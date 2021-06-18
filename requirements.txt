@@ -1,0 +1,5 @@
+django==3.*
+graphene_django==2.*
+django-cors-headers==3.*
+psycopg2==2.*
+numpy
