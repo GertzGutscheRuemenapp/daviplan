@@ -32,13 +32,13 @@ class CreateUser(graphene.Mutation):
         user_name = graphene.String()
         password = graphene.String()
 
-    ok = graphene.Boolean()
     user = graphene.Field(UserType)
 
     def mutate(root, info, user_name, password):
-        user = User(name=user_name, password=password)
-        ok = True
-        return CreateUser(user=user, ok=ok)
+        user = User(username=user_name, password=password)
+        user.save()
+        profile = user.profile # auto created
+        return CreateUser(user=profile)
 
 
 # replace with mutation form?
@@ -63,7 +63,7 @@ class UserMutation(graphene.Mutation):
                admin_access, can_create_scenarios, can_edit_data):
         profile = Profile.objects.get(pk=id)
         user = profile.user
-        user.user_name = user_name
+        user.username = user_name
         user.first_name = first_name
         user.last_name = last_name
         user.password = password

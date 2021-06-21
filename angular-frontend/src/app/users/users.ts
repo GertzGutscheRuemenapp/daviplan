@@ -9,10 +9,6 @@ export type User = {
   canEditData: boolean;
 }
 
-export type UserQuery = {
-  allUsers: User[];
-}
-
 export const mockUsers = [
   {
     id: 1,
