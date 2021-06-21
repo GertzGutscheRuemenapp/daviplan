@@ -1,20 +1,24 @@
 <h2>Users</h2>
 
 <ul class="users">
-  <li *ngFor="let user of users"
+  <li *ngFor="let user of (users | async)"
       [class.selected]="user === selectedUser"
       (click)="onSelect(user)">
-    <span class="badge">{{user.id}}</span> {{user.user_name}}
+    <span class="badge">{{user.id}}</span> {{user.userName}}
   </li>
 </ul>
 
 <div *ngIf="selectedUser">
 
-  <h2>{{selectedUser.user_name | uppercase}} Details</h2>
+  <h2>{{selectedUser.userName | uppercase}} Details</h2>
   <div><span>id: </span>{{selectedUser.id}}</div>
   <div>
-    <label for="hero-name">User name: </label>
-    <input id="hero-name" [(ngModel)]="selectedUser.user_name" placeholder="name">
+    <label for="user-name">User name: </label>
+    <input id="user-name" [(ngModel)]="selectedUser.userName" placeholder="name">
+    <label for="user-admin-access">Kann Seite administrieren </label>
+    <input id="user-admin-access" type="checkbox" [checked]="selectedUser.adminAccess">
+    <input type="checkbox" [checked]="selectedUser.canEditData">
+    <input type="checkbox" [checked]="selectedUser.canCreateScenarios">
   </div>
 
 </div>

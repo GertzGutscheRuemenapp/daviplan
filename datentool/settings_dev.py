@@ -1,15 +1,15 @@
 from datentool.settings import *
 
-#INSTALLED_APPS.extend([
-    #'corsheaders'
-#])
+INSTALLED_APPS.extend([
+    'corsheaders'
+])
 
-#MIDDLEWARE.extend([
-    #'corsheaders.middleware.CorsMiddleware',
-    #'django.middleware.common.CommonMiddleware'
-#])
+MIDDLEWARE.extend([
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware'
+])
 
-#CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_ALLOW_ALL = True
 
 DEBUG = True
 

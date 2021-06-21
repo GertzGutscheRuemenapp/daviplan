@@ -1,33 +1,37 @@
-export interface User {
+export type User = {
   id: number;
-  user_name: string;
+  userName: string;
   email: string;
-  first_name: string;
-  last_name: string;
-  admin_access: boolean;
-  can_create_scenarios: boolean;
-  can_edit_data: boolean;
+  firstName: string;
+  lastName: string;
+  adminAccess: boolean;
+  canCreateScenarios: boolean;
+  canEditData: boolean;
+}
+
+export type UserQuery = {
+  allUsers: User[];
 }
 
 export const mockUsers = [
   {
     id: 1,
-    user_name: 'bla',
+    userName: 'bla',
     email: 'bla@bla.com',
-    first_name: 'Hans',
-    last_name: 'Blubb',
-    admin_access: true,
-    can_create_scenarios: true,
-    can_edit_data: true,
+    firstName: 'Hans',
+    lastName: 'Blubb',
+    adminAccess: true,
+    canCreateScenarios: true,
+    canEditData: true,
   },
   {
     id: 2,
-    user_name: 'bla',
+    userName: 'bla',
     email: 'bla@bla.com',
-    first_name: 'Franz',
-    last_name: 'Bumm',
-    admin_access: false,
-    can_create_scenarios: true,
-    can_edit_data: true
+    firstName: 'Franz',
+    lastName: 'Bumm',
+    adminAccess: false,
+    canCreateScenarios: true,
+    canEditData: true
   },
 ];

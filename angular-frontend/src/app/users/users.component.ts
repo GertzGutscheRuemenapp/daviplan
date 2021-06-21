@@ -1,5 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { mockUsers, User } from './users';
+import { Apollo, gql } from 'apollo-angular';
+import { map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { mockUsers, User, UserQuery } from './users';
 
 @Component({
   selector: 'app-users',
@@ -8,12 +11,21 @@ import { mockUsers, User } from './users';
 })
 export class UsersComponent implements OnInit {
 
-  users = mockUsers;
+  users!: Observable<User[]>;
   selectedUser?: User;
 
-  constructor() { }
+  constructor(private apollo: Apollo) {}
 
   ngOnInit() {
+    this.users = this.apollo.watchQuery<UserQuery>({
+      query: gql`
+        query {
+          allUsers{
+            id, userName, canEditData, canCreateScenarios, adminAccess
+          }
+        }
+      `
+    }).valueChanges.pipe(map(result => result.data.allUsers));
   }
 
   onSelect(user: User): void {

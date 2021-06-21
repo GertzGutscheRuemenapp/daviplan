@@ -5,7 +5,7 @@ import { Apollo } from "apollo-angular";
 import { HttpLink } from "apollo-angular/http";
 import { InMemoryCache } from "@apollo/client/core";
 
-const uri = "localhost:8000/graphql";
+const uri = "http://localhost:8000/graphql";
 
 @NgModule({
   exports: [HttpClientModule]
