@@ -5,7 +5,7 @@ export const ALL_USERS_QUERY = gql`
     query {
       allUsers{
         id, userName, email, firstName, lastName,
-        canEditData, canCreateScenarios, adminAccess
+        canEditData, canCreateScenarios, adminAccess, isSuperuser
       }
     }
 `;
@@ -13,14 +13,22 @@ export const ALL_USERS_QUERY = gql`
 export const CREATE_USER_QUERY = gql`
     mutation createUser($userName: String!, $password: String!){
       createUser(userName: $userName, password: $password){
-        user { id, userName }
+        user { id, userName }, ok
+      }
+     }
+`;
+
+export const DELETE_USER_QUERY = gql`
+    mutation deleteUser($id: ID!){
+      deleteUser(id: $id){
+        ok
       }
      }
 `;
 
 export const UPDATE_USER_QUERY = gql`
-    mutation updateUser($userId: Int!){
-      updateUser(id: $userId){
+    mutation updateUser($id: ID!){
+      updateUser(id: $id){
         user{
           id, userName
         }

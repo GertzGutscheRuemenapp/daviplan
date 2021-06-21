@@ -1,9 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {Apollo, QueryRef} from 'apollo-angular';
-import {map} from 'rxjs/operators';
-import {Observable} from 'rxjs';
 import {User} from './users';
-import {ALL_USERS_QUERY, CREATE_USER_QUERY, GetUsersQuery} from './graphql';
+import {ALL_USERS_QUERY, CREATE_USER_QUERY, DELETE_USER_QUERY, GetUsersQuery} from './graphql';
 
 @Component({
   selector: 'app-users',
@@ -45,6 +43,22 @@ export class UsersComponent implements OnInit {
       this.userQuery.refetch().then( res => {
         this.selectedUser = this.users.find(user => user.id === userId);
       });
+    },(error) => {
+      console.log('there was an error sending the query', error);
+    });
+  }
+
+  onDeleteUser() {
+    if (!this.selectedUser)
+      return;
+    this.apollo.mutate({
+      mutation: DELETE_USER_QUERY,
+      variables: {
+        id: this.selectedUser.id
+      }
+    }).subscribe(({ data }) => {
+      this.selectedUser = undefined;
+      this.userQuery.refetch();
     },(error) => {
       console.log('there was an error sending the query', error);
     });

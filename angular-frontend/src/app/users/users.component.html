@@ -2,11 +2,13 @@
 
 <ul class="users">
   <li *ngFor="let user of users"
+      [class.superuser]="user.isSuperuser"
       [class.selected]="user === selectedUser"
       (click)="onSelect(user)">
     <span class="badge">{{user.id}}</span> {{user.userName}}
   </li>
 </ul>
+<button *ngIf="selectedUser && !selectedUser.isSuperuser" (click)="onDeleteUser()" i18n>Nutzer löschen</button>
 
 <!--ToDo: Form-->
 <h2 i18n>Neuer Benutzer </h2>

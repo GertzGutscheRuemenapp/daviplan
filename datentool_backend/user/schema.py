@@ -14,6 +14,7 @@ class UserType(DjangoObjectType):
     email = graphene.String()
     first_name = graphene.String()
     last_name = graphene.String()
+    is_superuser = graphene.Boolean()
 
     def resolve_user_name(self, info):
         return self.user.username
@@ -23,6 +24,8 @@ class UserType(DjangoObjectType):
         return self.user.first_name
     def resolve_last_name(self, info):
         return self.user.last_name
+    def resolve_is_superuser(self, info):
+        return self.user.is_superuser
 
 
 # ToDo: for test purposes only, replace with a mutation form?
@@ -32,17 +35,18 @@ class CreateUser(graphene.Mutation):
         user_name = graphene.String()
         password = graphene.String()
 
+    ok = graphene.Boolean()
     user = graphene.Field(UserType)
 
     def mutate(root, info, user_name, password):
         user = User(username=user_name, password=password)
         user.save()
         profile = user.profile # auto created
-        return CreateUser(user=profile)
+        return CreateUser(user=profile, ok=True)
 
 
 # replace with mutation form?
-class UserMutation(graphene.Mutation):
+class UpdateUser(graphene.Mutation):
     class Arguments:
         id = graphene.ID()
         user_name = graphene.String()
@@ -72,7 +76,22 @@ class UserMutation(graphene.Mutation):
         profile.can_edit_data = can_edit_data
         # profile is saved automatically on user save
         user.save()
-        return UserMutation(user=user)
+        return UpdateUser(user=user)
+
+
+class DeleteUser(graphene.Mutation):
+    class Arguments:
+        id = graphene.ID()
+
+    ok = graphene.Boolean()
+
+    @classmethod
+    def mutate(cls, root, info, id):
+        user = User.objects.get(profile__pk=id)
+        if user.is_superuser:
+            return DeleteUser(ok=False)
+        user.delete()
+        return DeleteUser(ok=True)
 
 
 class Query(graphene.ObjectType):
@@ -88,4 +107,5 @@ class Query(graphene.ObjectType):
 
 class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
-    update_user = UserMutation.Field()
+    update_user = UpdateUser.Field()
+    delete_user = DeleteUser.Field()

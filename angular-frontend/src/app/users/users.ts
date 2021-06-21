@@ -7,6 +7,7 @@ export type User = {
   adminAccess: boolean;
   canCreateScenarios: boolean;
   canEditData: boolean;
+  isSuperuser: boolean;
 }
 
 export const mockUsers = [
