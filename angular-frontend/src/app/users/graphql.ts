@@ -27,8 +27,10 @@ export const DELETE_USER_QUERY = gql`
 `;
 
 export const UPDATE_USER_QUERY = gql`
-    mutation updateUser($id: ID!){
-      updateUser(id: $id){
+    mutation updateUser($id: ID!, $userName: String!, $email: String!, $firstName: String!, $lastName: String!,
+        $canEditData: Boolean!, $canCreateScenarios: Boolean!, $adminAccess: Boolean!){
+      updateUser(id: $id, userName: $userName, email: $email, firstName: $firstName, lastName: $lastName,
+        canEditData: $canEditData, canCreateScenarios: $canCreateScenarios, adminAccess: $adminAccess){
         user{
           id, userName
         }

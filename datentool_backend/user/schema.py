@@ -49,34 +49,32 @@ class CreateUser(graphene.Mutation):
 class UpdateUser(graphene.Mutation):
     class Arguments:
         id = graphene.ID()
-        user_name = graphene.String()
-        email = graphene.String()
-        first_name = graphene.String()
-        last_name = graphene.String()
-        password = graphene.String()
-        admin_access = graphene.Boolean()
-        can_create_scenarios = graphene.Boolean()
-        can_edit_data = graphene.Boolean()
+        user_name = graphene.String(required=False)
+        email = graphene.String(required=False)
+        first_name = graphene.String(required=False)
+        last_name = graphene.String(required=False)
+        password = graphene.String(required=False)
+        admin_access = graphene.Boolean(required=False)
+        can_create_scenarios = graphene.Boolean(required=False)
+        can_edit_data = graphene.Boolean(required=False)
 
     user = graphene.Field(UserType)
 
     @classmethod
-    def mutate(cls, root, info,
-               id, user_name, email,
-               first_name, last_name, password,
-               admin_access, can_create_scenarios, can_edit_data):
+    def mutate(cls, root, info, id, **kwargs):
         profile = Profile.objects.get(pk=id)
         user = profile.user
-        user.username = user_name
-        user.first_name = first_name
-        user.last_name = last_name
-        user.password = password
-        profile.admin_access = admin_access
-        profile.can_create_scenarios = can_create_scenarios
-        profile.can_edit_data = can_edit_data
+        if 'user_name' in kwargs:
+            user.username = kwargs['user_name']
+        for attr in ['first_name', 'last_name', 'password', 'email']:
+            if attr in kwargs:
+                setattr(user, attr, kwargs[attr])
+        for attr in ['admin_access', 'can_create_scenarios', 'can_edit_data']:
+            if attr in kwargs:
+                setattr(profile, attr, kwargs[attr])
         # profile is saved automatically on user save
         user.save()
-        return UpdateUser(user=user)
+        return UpdateUser(user=profile)
 
 
 class DeleteUser(graphene.Mutation):

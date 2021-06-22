@@ -3,7 +3,7 @@
 <ul class="users">
   <li *ngFor="let user of users"
       [class.superuser]="user.isSuperuser"
-      [class.selected]="user === selectedUser"
+      [class.selected]="selectedUser && (user.id === selectedUser.id)"
       (click)="onSelect(user)">
     <span class="badge">{{user.id}}</span> {{user.userName}}
   </li>
@@ -17,7 +17,7 @@
   <input id="new-user-name" placeholder="user_name" [(ngModel)]="newUserName">
   <br>
   <label for="new-user-password" i18n>Passwort</label>
-  <input id="new-user-password" type="password" placeholder="user_name" [(ngModel)]="newUserPassword">
+  <input id="new-user-password" type="password"  [(ngModel)]="newUserPassword">
   <br>
   <button (click)="onCreateUser()" i18n>Nutzer erstellen</button>
 </div>
@@ -40,14 +40,15 @@
     <label for="user-email" i18n>E-Mail</label>
     <input id="user-email" [(ngModel)]="selectedUser.email">
     <br>
+    <input id="user-admin-access" type="checkbox" [(ngModel)]="selectedUser.adminAccess">
     <label for="user-admin-access" i18n>Kann Seite administrieren</label>
-    <input id="user-admin-access" type="checkbox" [checked]="selectedUser.adminAccess">
     <br>
+    <input id="user-can-edit" type="checkbox" [(ngModel)]="selectedUser.canEditData">
     <label for="user-can-edit" i18n>Kann Grundlagendaten editieren</label>
-    <input id="user-can-edit" type="checkbox" [checked]="selectedUser.canEditData">
     <br>
+    <input id="user-can-create-scenarios" type="checkbox" [(ngModel)]="selectedUser.canCreateScenarios">
     <label for="user-can-create-scenarios" i18n>Kann Szenarien anlegen</label>
-    <input id="user-can-create-scenarios" type="checkbox" [checked]="selectedUser.canCreateScenarios">
   </div>
+  <button (click)="onUpdateUser()" i18n>Speichern</button>
 
 </div>

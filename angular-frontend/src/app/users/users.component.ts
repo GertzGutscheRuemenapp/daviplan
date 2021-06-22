@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {Apollo, QueryRef} from 'apollo-angular';
 import {User} from './users';
-import {ALL_USERS_QUERY, CREATE_USER_QUERY, DELETE_USER_QUERY, GetUsersQuery} from './graphql';
+import {ALL_USERS_QUERY, CREATE_USER_QUERY, DELETE_USER_QUERY, GetUsersQuery, UPDATE_USER_QUERY} from './graphql';
 
 @Component({
   selector: 'app-users',
@@ -28,7 +28,7 @@ export class UsersComponent implements OnInit {
   }
 
   onSelect(user: User): void {
-    this.selectedUser = user;
+    this.selectedUser = Object.assign({}, user);
   }
 
   onCreateUser() {
@@ -46,6 +46,33 @@ export class UsersComponent implements OnInit {
     },(error) => {
       console.log('there was an error sending the query', error);
     });
+  }
+
+  onUpdateUser() {
+    if (!this.selectedUser)
+      return;
+    this.apollo.mutate({
+      mutation: UPDATE_USER_QUERY,
+      variables: {
+        id: this.selectedUser.id,
+        userName: this.selectedUser.userName,
+        email: this.selectedUser.email,
+        firstName: this.selectedUser.firstName,
+        lastName: this.selectedUser.lastName,
+        canEditData: this.selectedUser.canEditData,
+        canCreateScenarios: this.selectedUser.canCreateScenarios,
+        adminAccess: this.selectedUser.adminAccess
+      }
+    }).subscribe(({ data }) => {
+      let userId = (data as any).updateUser.user.id;
+      this.userQuery.refetch().then( res => {
+        let user = this.users.find(user => user.id === userId);
+        this.selectedUser = Object.assign({}, user);
+      });
+    },(error) => {
+      console.log('there was an error sending the query', error);
+    });
+
   }
 
   onDeleteUser() {
