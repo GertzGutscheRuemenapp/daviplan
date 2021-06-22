@@ -19,6 +19,10 @@
   background-color: #e6e6e6;
   left: .1em;
 }
+.users li.superuser {
+  color: #8e8e8e;
+  background-color: #f6f6f6;
+}
 .users li.selected {
   background-color: black;
   color: white;

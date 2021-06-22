@@ -7,10 +7,7 @@ export type User = {
   adminAccess: boolean;
   canCreateScenarios: boolean;
   canEditData: boolean;
-}
-
-export type UserQuery = {
-  allUsers: User[];
+  isSuperuser: boolean;
 }
 
 export const mockUsers = [

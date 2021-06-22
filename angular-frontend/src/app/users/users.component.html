@@ -1,24 +1,54 @@
-<h2>Users</h2>
+<h2 i18n>Benutzer</h2>
 
 <ul class="users">
-  <li *ngFor="let user of (users | async)"
-      [class.selected]="user === selectedUser"
+  <li *ngFor="let user of users"
+      [class.superuser]="user.isSuperuser"
+      [class.selected]="selectedUser && (user.id === selectedUser.id)"
       (click)="onSelect(user)">
     <span class="badge">{{user.id}}</span> {{user.userName}}
   </li>
 </ul>
+<button *ngIf="selectedUser && !selectedUser.isSuperuser" (click)="onDeleteUser()" i18n>Nutzer löschen</button>
+
+<!--ToDo: Form-->
+<h2 i18n>Neuer Benutzer </h2>
+<div>
+  <label for="new-user-name" i18n>Nutzername</label>
+  <input id="new-user-name" placeholder="user_name" [(ngModel)]="newUserName">
+  <br>
+  <label for="new-user-password" i18n>Passwort</label>
+  <input id="new-user-password" type="password"  [(ngModel)]="newUserPassword">
+  <br>
+  <button (click)="onCreateUser()" i18n>Nutzer erstellen</button>
+</div>
 
 <div *ngIf="selectedUser">
 
+  <!--ToDo: Form-->
   <h2>{{selectedUser.userName | uppercase}} Details</h2>
   <div><span>id: </span>{{selectedUser.id}}</div>
   <div>
-    <label for="user-name">User name: </label>
-    <input id="user-name" [(ngModel)]="selectedUser.userName" placeholder="name">
-    <label for="user-admin-access">Kann Seite administrieren </label>
-    <input id="user-admin-access" type="checkbox" [checked]="selectedUser.adminAccess">
-    <input type="checkbox" [checked]="selectedUser.canEditData">
-    <input type="checkbox" [checked]="selectedUser.canCreateScenarios">
+    <label for="user-name" i18n>Nutzername</label>
+    <input id="user-name" [(ngModel)]="selectedUser.userName" placeholder="user_name">
+    <br>
+    <label for="user-first-name" i18n>Vorname</label>
+    <input id="user-first-name" [(ngModel)]="selectedUser.firstName">
+    <br>
+    <label for="user-last-name" i18n>Nachname</label>
+    <input id="user-last-name" [(ngModel)]="selectedUser.lastName">
+    <br>
+    <label for="user-email" i18n>E-Mail</label>
+    <input id="user-email" [(ngModel)]="selectedUser.email">
+    <br>
+    <input id="user-admin-access" type="checkbox" [(ngModel)]="selectedUser.adminAccess">
+    <label for="user-admin-access" i18n>Kann Seite administrieren</label>
+    <br>
+    <input id="user-can-edit" type="checkbox" [(ngModel)]="selectedUser.canEditData">
+    <label for="user-can-edit" i18n>Kann Grundlagendaten editieren</label>
+    <br>
+    <input id="user-can-create-scenarios" type="checkbox" [(ngModel)]="selectedUser.canCreateScenarios">
+    <label for="user-can-create-scenarios" i18n>Kann Szenarien anlegen</label>
   </div>
+  <button (click)="onUpdateUser()" i18n>Speichern</button>
 
 </div>
