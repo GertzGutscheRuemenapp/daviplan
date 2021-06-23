@@ -8,11 +8,11 @@ import { Component, OnInit } from '@angular/core';
 export class AdministrationComponent implements OnInit {
 
   menuItems = [
-    {name:  $localize`Grundeinstellungen`, url: 'admin/settings'},
-    {name:  $localize`Projektgebiet`, url: 'admin/project'},
-    {name:  $localize`Infrastrukturbereiche`, url: 'admin/infrastructure'},
-    {name:  $localize`Personen und Berechtigungen`, url: 'admin/users'},
-    {name:  $localize`Koordination der Grundlagendaten`, url: 'admin/coordination'}
+    {name:  $localize`Grundeinstellungen`, url: 'admin/settings', children: []},
+    {name:  $localize`Projektgebiet`, url: 'admin/project', children: []},
+    {name:  $localize`Infrastrukturbereiche`, url: 'admin/infrastructure', children: []},
+    {name:  $localize`Personen und Berechtigungen`, url: 'admin/users', children: []},
+    {name:  $localize`Koordination der Grundlagendaten`, url: 'admin/coordination', children: []}
   ];
 
   constructor() { }

@@ -6,6 +6,7 @@ import { map, shareReplay } from 'rxjs/operators';
 type Link = {
   name: string;
   url: string;
+  children: Link[];
 }
 
 @Component({
