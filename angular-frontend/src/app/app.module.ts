@@ -5,7 +5,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { GraphQLModule } from './graphql.module';
 import { HttpClientModule } from '@angular/common/http';
-import { UsersComponent } from './users/users.component';
+import { UsersComponent } from './administration/users/users.component';
 import {FormsModule} from "@angular/forms";
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { LayoutModule } from '@angular/cdk/layout';
@@ -18,6 +18,10 @@ import { MatListModule } from '@angular/material/list';
 import { MainNavComponent } from './main-nav/main-nav.component';
 import { AdministrationComponent } from './administration/administration.component';
 import { SideNavComponent } from './side-nav/side-nav.component';
+import { DashComponent } from './dash/dash.component';
+import { MatGridListModule } from '@angular/material/grid-list';
+import { MatCardModule } from '@angular/material/card';
+import { MatMenuModule } from '@angular/material/menu';
 
 @NgModule({
   declarations: [
@@ -25,7 +29,8 @@ import { SideNavComponent } from './side-nav/side-nav.component';
     UsersComponent,
     MainNavComponent,
     AdministrationComponent,
-    SideNavComponent
+    SideNavComponent,
+    DashComponent
   ],
   imports: [
     BrowserModule,
@@ -40,7 +45,10 @@ import { SideNavComponent } from './side-nav/side-nav.component';
     MatButtonModule,
     MatSidenavModule,
     MatIconModule,
-    MatListModule
+    MatListModule,
+    MatGridListModule,
+    MatCardModule,
+    MatMenuModule
   ],
   providers: [],
   bootstrap: [AppComponent]
