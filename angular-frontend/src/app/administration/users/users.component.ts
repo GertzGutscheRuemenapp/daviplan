@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { Apollo, QueryRef } from 'apollo-angular';
-import { User } from './users';
-import { ALL_USERS_QUERY, CREATE_USER_QUERY, DELETE_USER_QUERY, GetUsersQuery, UPDATE_USER_QUERY } from './graphql';
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { map } from "rxjs/operators";
+import { MatDialog } from '@angular/material/dialog';
+import { User } from './users';
+import { ALL_USERS_QUERY, CREATE_USER_QUERY, DELETE_USER_QUERY, GetUsersQuery, UPDATE_USER_QUERY } from './graphql';
+import { ConfirmDialogComponent } from '../../dialogs/confirm-dialog.component';
 
 @Component({
   selector: 'app-users',
@@ -41,7 +43,7 @@ export class UsersComponent implements OnInit {
     })
   );
 
-  constructor(private apollo: Apollo, private breakpointObserver: BreakpointObserver) {}
+  constructor(private apollo: Apollo, private breakpointObserver: BreakpointObserver, public dialog: MatDialog) {}
 
   ngOnInit() {
     this.userQuery = this.apollo.watchQuery<GetUsersQuery>({
@@ -101,18 +103,29 @@ export class UsersComponent implements OnInit {
   }
 
   onDeleteUser() {
-    if (!this.selectedUser)
+   if (!this.selectedUser)
       return;
-    this.apollo.mutate({
-      mutation: DELETE_USER_QUERY,
-      variables: {
-        id: this.selectedUser.id
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '300px',
+      data: {
+        title: 'Nutzer löschen',
+        message: `Möchten sie den Nutzer "${this.selectedUser.userName}" wirklich löschen?`
       }
-    }).subscribe(({ data }) => {
-      this.selectedUser = undefined;
-      this.userQuery.refetch();
-    },(error) => {
-      console.log('there was an error sending the query', error);
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed === true) {
+        this.apollo.mutate({
+          mutation: DELETE_USER_QUERY,
+          variables: {
+            id: this.selectedUser!.id
+          }
+        }).subscribe(({ data }) => {
+          this.selectedUser = undefined;
+          this.userQuery.refetch();
+        },(error) => {
+          console.log('there was an error sending the query', error);
+        });
+      }
     });
   }
 }

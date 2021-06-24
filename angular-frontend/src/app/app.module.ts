@@ -6,10 +6,10 @@ import { AppComponent } from './app.component';
 import { GraphQLModule } from './graphql.module';
 import { HttpClientModule } from '@angular/common/http';
 import { UsersComponent } from './administration/users/users.component';
-import {FormsModule} from "@angular/forms";
+import { FormsModule } from "@angular/forms";
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { LayoutModule } from '@angular/cdk/layout';
-import {FlexLayoutModule} from '@angular/flex-layout';
+import { FlexLayoutModule } from '@angular/flex-layout';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -23,6 +23,9 @@ import { MatGridListModule } from '@angular/material/grid-list';
 import { MatCardModule } from '@angular/material/card';
 import { MatMenuModule } from '@angular/material/menu';
 import { CardComponent } from "./dash/dash-card.component";
+import { DataPreviewCardComponent } from "./dash/data-preview-card.component";
+import { MatDialogModule } from "@angular/material/dialog";
+import { ConfirmDialogComponent } from "./dialogs/confirm-dialog.component";
 
 @NgModule({
   declarations: [
@@ -32,7 +35,9 @@ import { CardComponent } from "./dash/dash-card.component";
     MainNavComponent,
     AdministrationComponent,
     SideNavComponent,
-    DashComponent
+    DashComponent,
+    DataPreviewCardComponent,
+    ConfirmDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -50,7 +55,8 @@ import { CardComponent } from "./dash/dash-card.component";
     MatListModule,
     MatGridListModule,
     MatCardModule,
-    MatMenuModule
+    MatMenuModule,
+    MatDialogModule
   ],
   providers: [],
   bootstrap: [AppComponent]

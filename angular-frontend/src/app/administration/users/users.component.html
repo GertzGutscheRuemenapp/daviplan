@@ -1,7 +1,7 @@
 <div class="grid-container">
   <mat-grid-list  cols="{{ ( layout | async )?.columns }}" rowHeight="350px">
     <mat-grid-tile [colspan]="( layout | async )!.userList.cols" [rowspan]="( layout | async )!.userList.rows">
-      <app-dash-card title="Benutzerkonten">
+      <app-data-card title="Benutzerkonten">
         <ul class="users">
           <li *ngFor="let user of users"
               [class.superuser]="user.isSuperuser"
@@ -11,10 +11,10 @@
           </li>
         </ul>
         <button *ngIf="selectedUser && !selectedUser.isSuperuser" mat-flat-button color="warn" (click)="onDeleteUser()" i18n>Nutzer löschen</button>
-      </app-dash-card>
+      </app-data-card>
     </mat-grid-tile>
     <mat-grid-tile *ngIf="selectedUser" [colspan]="( layout | async )!.account.cols" [rowspan]="( layout | async )!.account.rows">
-      <app-dash-card title="Konto">
+      <app-data-card title="Konto" [editable]="true">
         <!--ToDo: Form-->
         <div>
           <label for="user-name" i18n>Nutzername</label>
@@ -30,18 +30,18 @@
           <input id="user-email" [(ngModel)]="selectedUser.email">
         </div>
         <button (click)="onUpdateUser()" i18n>Speichern</button>
-      </app-dash-card>
+      </app-data-card>
     </mat-grid-tile>
     <mat-grid-tile *ngIf="selectedUser" [colspan]="( layout | async )!.dataAccess.cols" [rowspan]="( layout | async )!.dataAccess.rows">
-      <app-dash-card title="Datenzugriff">
+      <app-data-card title="Datenzugriff" [editable]="true">
         <!--ToDo: Form-->
         <div>
         </div>
         <button (click)="onUpdateUser()" i18n>Speichern</button>
-      </app-dash-card>
+      </app-data-card>
     </mat-grid-tile>
     <mat-grid-tile *ngIf="selectedUser" [colspan]="( layout | async )!.permissions.cols" [rowspan]="( layout | async )!.permissions.rows">
-      <app-dash-card title="Berechtigungen">
+      <app-data-card title="Berechtigungen" [editable]="true">
         <!--ToDo: Form-->
         <div>
           <br>
@@ -55,7 +55,7 @@
           <label for="user-can-create-scenarios" i18n>Kann Szenarien anlegen</label>
         </div>
         <button (click)="onUpdateUser()" i18n>Speichern</button>
-      </app-dash-card>
+      </app-data-card>
     </mat-grid-tile>
   </mat-grid-list>
 </div>

@@ -1,0 +1,16 @@
+.dashboard-card-content {
+  text-align: left!important;
+  flex-grow: 1!important;
+  display: flex!important;
+  flex-direction: column!important;
+  align-items: flex-start!important;
+  max-height: 100%!important;
+  justify-content: left!important;
+}
+
+.data-preview-edit-button{
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+}
+
