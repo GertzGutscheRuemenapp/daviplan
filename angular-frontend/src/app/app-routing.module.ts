@@ -19,6 +19,10 @@ const routes: Routes = [
       }
     ]
   },
+  {
+    path: 'bevoelkerung',
+    component: DashComponent
+  },
 ];
 
 @NgModule({

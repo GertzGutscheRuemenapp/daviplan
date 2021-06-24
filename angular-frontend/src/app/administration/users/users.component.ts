@@ -1,13 +1,16 @@
-import {Component, OnInit} from '@angular/core';
-import {Apollo, QueryRef} from 'apollo-angular';
-import {User} from './users';
-import {ALL_USERS_QUERY, CREATE_USER_QUERY, DELETE_USER_QUERY, GetUsersQuery, UPDATE_USER_QUERY} from './graphql';
+import { Component, OnInit } from '@angular/core';
+import { Apollo, QueryRef } from 'apollo-angular';
+import { User } from './users';
+import { ALL_USERS_QUERY, CREATE_USER_QUERY, DELETE_USER_QUERY, GetUsersQuery, UPDATE_USER_QUERY } from './graphql';
+import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
+import { map } from "rxjs/operators";
 
 @Component({
   selector: 'app-users',
   templateUrl: './users.component.html',
   styleUrls: ['./users.component.scss']
 })
+
 export class UsersComponent implements OnInit {
 
   userQuery!: QueryRef<GetUsersQuery>;
@@ -16,7 +19,29 @@ export class UsersComponent implements OnInit {
   newUserName: String = '';
   newUserPassword: String = '';
 
-  constructor(private apollo: Apollo) {}
+  layout = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
+    map(({ matches }) => {
+      if (matches) {
+        return {
+          columns: 1,
+          userList: { cols: 1, rows: 1 },
+          account: { cols: 1, rows: 2 },
+          permissions: { cols: 1, rows: 2 },
+          dataAccess: { cols: 1, rows: 2 },
+        };
+      }
+
+      return {
+        columns: 3,
+        userList: { cols: 1, rows: 2 },
+        account: { cols: 1, rows: 1 },
+        permissions: { cols: 1, rows: 1 },
+        dataAccess: { cols: 1, rows: 1 },
+      };
+    })
+  );
+
+  constructor(private apollo: Apollo, private breakpointObserver: BreakpointObserver) {}
 
   ngOnInit() {
     this.userQuery = this.apollo.watchQuery<GetUsersQuery>({
