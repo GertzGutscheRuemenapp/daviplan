@@ -1,5 +1,5 @@
 import { Component, Inject } from '@angular/core';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 export interface DialogData {
   title: string;
@@ -16,14 +16,12 @@ export interface DialogData {
 
 export class ConfirmDialogComponent {
 
-/*  @Input() title: string  = '';
-  @Input() message: string  = '';
-  @Input() confirmButtonText: string  = 'OK';
-  @Input() cancelButtonText: string  = 'Abbrechen';*/
-
   constructor(
     public dialogRef: MatDialogRef<ConfirmDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: DialogData) {}
+    @Inject(MAT_DIALOG_DATA) public data: DialogData) {
+    data.confirmButtonText = data.confirmButtonText || $localize`Bestätigen`;
+    data.cancelButtonText = data.cancelButtonText || $localize`Abbrechen`;
+  }
 
   onConfirmClick() {
     this.dialogRef.close(true);
