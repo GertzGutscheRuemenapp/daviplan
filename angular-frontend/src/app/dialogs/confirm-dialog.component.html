@@ -1,5 +1,8 @@
 <h1 mat-dialog-title>{{ data.title }}</h1>
 <mat-dialog-content>
+  <div class="loadOverlay" *ngIf="isLoading">
+    <mat-spinner [diameter]="50"></mat-spinner>
+  </div>
   <p>
     {{ data.message }}
   </p>

@@ -4,7 +4,7 @@ import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { map } from "rxjs/operators";
 import { MatDialog } from '@angular/material/dialog';
 import { User } from './users';
-import { ALL_USERS_QUERY, CREATE_USER_QUERY, DELETE_USER_QUERY, GetUsersQuery, UPDATE_USER_QUERY } from './graphql';
+import { ALL_USERS_QUERY, CREATE_USER_QUERY, DELETE_USER_QUERY, GetUsersQuery, UPDATE_USER_QUERY, UPDATE_ACCOUNT_QUERY, UPDATE_ACCOUNT_QUERY_WO_PASS } from './graphql';
 import { ConfirmDialogComponent } from '../../dialogs/confirm-dialog.component';
 import { DataCardComponent } from '../../dash/data-card.component'
 import {Observable} from "rxjs";
@@ -65,10 +65,40 @@ export class UsersComponent implements OnInit  {
   @ViewChild('accountCard') set content(content: DataCardComponent) {
     if(content) {
       this.accountCard = content;
-      this.accountCard.dialogClosed.subscribe((ok)=>{
-        console.log('hallo')
+      this.accountCard.dialogConfirmed.subscribe((ok)=>{
+        this.accountCard?.setLoading(true);
+        if(this.selectedUserClone)
+          this.apollo.mutate({
+            mutation: UPDATE_ACCOUNT_QUERY_WO_PASS,
+            variables: {
+              id: this.selectedUserClone.id,
+              userName: this.selectedUserClone.userName,
+              email: this.selectedUserClone.email,
+              firstName: this.selectedUserClone.firstName,
+              lastName: this.selectedUserClone.lastName
+            }
+          }).subscribe(({ data }) => {
+            this.accountCard?.closeDialog();
+            this.refresh((data as any).updateUser.user.id);
+            this.accountCard?.setLoading(false);
+          },(error) => {
+            console.log('there was an error sending the query', error);
+            this.accountCard?.setLoading(false);
+          });
       })
     }
+  }
+
+  refresh(userId?: number): void {
+    this.userQuery.refetch().then( res => {
+      if (userId != undefined){
+        let user = this.users.find(user => user.id === userId);
+        this.selectedUser = user;
+        this.selectedUserClone = Object.assign({}, user);
+      }
+      else
+        this.selectedUser = undefined;
+    });
   }
 
   onSelect(user: User): void {
@@ -84,10 +114,7 @@ export class UsersComponent implements OnInit  {
         password: this.newUserPassword
       }
     }).subscribe(({ data }) => {
-      let userId = (data as any).createUser.user.id;
-      this.userQuery.refetch().then( res => {
-        this.selectedUser = this.users.find(user => user.id === userId);
-      });
+      this.refresh((data as any).createUser.user.id);
     },(error) => {
       console.log('there was an error sending the query', error);
     });
@@ -138,8 +165,7 @@ export class UsersComponent implements OnInit  {
             id: this.selectedUser!.id
           }
         }).subscribe(({ data }) => {
-          this.selectedUser = undefined;
-          this.userQuery.refetch();
+          this.refresh();
         },(error) => {
           console.log('there was an error sending the query', error);
         });

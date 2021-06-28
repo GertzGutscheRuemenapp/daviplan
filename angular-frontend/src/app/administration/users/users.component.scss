@@ -50,6 +50,13 @@
   border-radius: 4px 0 0 4px;
 }
 
-input {
+
+.editContent input {
   padding: .5rem;
+  width: 100%;
+}
+
+.editContent table {
+  padding: .5rem;
+  width: 90%;
 }

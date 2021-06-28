@@ -1,4 +1,4 @@
-import { Component, Inject, TemplateRef } from '@angular/core';
+import {Component, EventEmitter, Inject, Output, TemplateRef} from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Observable } from "rxjs";
 
@@ -19,6 +19,8 @@ export interface DialogData {
 })
 
 export class ConfirmDialogComponent {
+  public isLoading: boolean = false;
+  @Output() confirmed = new EventEmitter<boolean>();
 
   constructor(
     public dialogRef: MatDialogRef<ConfirmDialogComponent>,
@@ -34,7 +36,11 @@ export class ConfirmDialogComponent {
       });
 
     }*/
+    // remove focus from inputs
+    document.body.focus()
+    // this.dialogRef._containerInstance._elementRef.nativeElement.focus()
     if (this.data.closeOnConfirm)
       this.dialogRef.close(true);
+    this.confirmed.emit();
   }
 }

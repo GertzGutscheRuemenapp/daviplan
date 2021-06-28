@@ -38,6 +38,29 @@ export const UPDATE_USER_QUERY = gql`
     }
 `;
 
+// ToDo: ist it possible to ignore or remove optional variables in apollo/graphene?
+export const UPDATE_ACCOUNT_QUERY_WO_PASS = gql`
+    mutation updateUser($id: ID!, $userName: String!, $email: String!, $firstName: String!, $lastName: String!){
+      updateUser(id: $id, userName: $userName, email: $email, firstName: $firstName, lastName: $lastName){
+        user{
+          id, userName
+        }
+      }
+    }
+`;
+
+export const UPDATE_ACCOUNT_QUERY = gql`
+    mutation updateUser($id: ID!, $userName: String!, $email: String!, $firstName: String!, $lastName: String!,
+        $password: String!){
+      updateUser(id: $id, userName: $userName, email: $email, firstName: $firstName, lastName: $lastName,
+        password: $password){
+        user{
+          id, userName
+        }
+      }
+    }
+`;
+
 export type GetUsersQuery = {
   allUsers: User[];
 }

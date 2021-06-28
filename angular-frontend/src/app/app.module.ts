@@ -26,6 +26,7 @@ import { CardComponent } from "./dash/dash-card.component";
 import { MatDialogModule } from "@angular/material/dialog";
 import { ConfirmDialogComponent } from "./dialogs/confirm-dialog.component";
 import { DataCardComponent } from "./dash/data-card.component";
+import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
 
 @NgModule({
   declarations: [
@@ -56,7 +57,8 @@ import { DataCardComponent } from "./dash/data-card.component";
     MatGridListModule,
     MatCardModule,
     MatMenuModule,
-    MatDialogModule
+    MatDialogModule,
+    MatProgressSpinnerModule
   ],
   providers: [],
   bootstrap: [AppComponent]

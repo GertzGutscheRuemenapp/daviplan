@@ -22,10 +22,12 @@ export class DataCardComponent {
   dialogRef?: MatDialogRef<ConfirmDialogComponent>;
   @Input() title: string = '';
   @Input() confirmButtonText: string = '';
+  @Input() width: string = '500px';
   @Input() cancelButtonText: string = '';
   @Input() previewTemplate!: TemplateRef<any>;
   @Input() editTemplate!: TemplateRef<any>;
   @Output() dialogClosed = new EventEmitter<boolean>();
+  @Output() dialogConfirmed = new EventEmitter<boolean>();
 
   constructor(public dialog: MatDialog) {
 
@@ -33,7 +35,9 @@ export class DataCardComponent {
 
   onEdit() {
     this.dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '300px',
+      panelClass: 'absolute',
+      width: this.width,
+      disableClose: true,
       data: {
         title: this.title,
         template: this.editTemplate,
@@ -43,5 +47,19 @@ export class DataCardComponent {
     this.dialogRef.afterClosed().subscribe((ok: boolean) => {
       this.dialogClosed.emit(ok);
     });
+    this.dialogRef.componentInstance.confirmed.subscribe(() => {
+      this.dialogConfirmed.emit();
+    });
+
+  }
+
+  closeDialog() {
+    if (this.dialogRef)
+      this.dialogRef.close();
+  }
+
+  setLoading(enable: boolean){
+    if (this.dialogRef)
+      this.dialogRef.componentInstance.isLoading = enable;
   }
 }
