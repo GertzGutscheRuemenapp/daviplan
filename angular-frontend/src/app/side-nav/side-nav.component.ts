@@ -24,8 +24,6 @@ export class SideNavComponent {
     );
 
   constructor(private breakpointObserver: BreakpointObserver) {
-
-    console.log('hadsdsa')
   }
 
 }

@@ -3,6 +3,7 @@
   <p>
     {{ data.message }}
   </p>
+  <ng-container *ngTemplateOutlet="data.template;"></ng-container>
 </mat-dialog-content>
 <mat-dialog-actions align="center">
   <button mat-button color="primary" (click)="onConfirmClick()" tabindex="1">{{ data.confirmButtonText }}</button>

@@ -8,6 +8,7 @@ export type User = {
   canCreateScenarios: boolean;
   canEditData: boolean;
   isSuperuser: boolean;
+  password: string;
 }
 
 export const mockUsers = [

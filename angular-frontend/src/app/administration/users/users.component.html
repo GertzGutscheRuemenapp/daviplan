@@ -14,26 +14,57 @@
       </app-data-card>
     </mat-grid-tile>
     <mat-grid-tile *ngIf="selectedUser" [colspan]="( layout | async )!.account.cols" [rowspan]="( layout | async )!.account.rows">
-      <app-data-card title="Konto" [editable]="true">
-        <!--ToDo: Form-->
-        <div>
-          <label for="user-name" i18n>Nutzername</label>
-          <input id="user-name" [(ngModel)]="selectedUser.userName" placeholder="user_name">
-          <br>
-          <label for="user-first-name" i18n>Vorname</label>
-          <input id="user-first-name" [(ngModel)]="selectedUser.firstName">
-          <br>
-          <label for="user-last-name" i18n>Nachname</label>
-          <input id="user-last-name" [(ngModel)]="selectedUser.lastName">
-          <br>
-          <label for="user-email" i18n>E-Mail</label>
-          <input id="user-email" [(ngModel)]="selectedUser.email">
-        </div>
-        <button (click)="onUpdateUser()" i18n>Speichern</button>
+      <ng-template #accountEdit>
+        <table>
+          <tr>
+            <td i18n>Nutzername</td>
+            <td><input id="user-name" [ngModel]="selectedUserClone.userName"></td>
+          </tr>
+          <tr>
+            <td i18n>Vorname</td>
+            <td><input id="user-first-name" [ngModel]="selectedUserClone.firstName"></td>
+          </tr>
+          <tr>
+            <td i18n>Nachname</td>
+            <td><input id="user-last-name" [(ngModel)]="selectedUserClone.lastName"></td>
+          </tr>
+          <tr>
+            <td i18n>E-Mail</td>
+            <td><input id="user-email" [(ngModel)]="selectedUserClone.email"></td>
+          </tr>
+          <tr>
+            <td i18n>Passwort</td>
+            <td><input id="user-pass1" type="password" value="xxxxxxxxx"></td>
+          </tr>
+          <tr>
+            <td i18n>Passwort wiederholen</td>
+            <td><input id="user-pass2" type="password" value="xxxxxxxxx"></td>
+          </tr>
+        </table>
+      </ng-template>
+      <app-data-card #accountCard title="Konto" [editTemplate]="accountEdit">
+        <table>
+          <tr>
+            <td i18n>Nutzername</td>
+            <td i18n>{{selectedUser.userName}}</td>
+          </tr>
+          <tr>
+            <td i18n>Vorname</td>
+            <td i18n>{{selectedUser.firstName}}</td>
+          </tr>
+          <tr>
+            <td i18n>Nachname</td>
+            <td i18n>{{selectedUser.lastName}}</td>
+          </tr>
+          <tr>
+            <td i18n>E-Mail</td>
+            <td i18n>{{selectedUser.email}}</td>
+          </tr>
+        </table>
       </app-data-card>
     </mat-grid-tile>
     <mat-grid-tile *ngIf="selectedUser" [colspan]="( layout | async )!.dataAccess.cols" [rowspan]="( layout | async )!.dataAccess.rows">
-      <app-data-card title="Datenzugriff" [editable]="true">
+      <app-data-card title="Datenzugriff">
         <!--ToDo: Form-->
         <div>
         </div>
@@ -41,7 +72,7 @@
       </app-data-card>
     </mat-grid-tile>
     <mat-grid-tile *ngIf="selectedUser" [colspan]="( layout | async )!.permissions.cols" [rowspan]="( layout | async )!.permissions.rows">
-      <app-data-card title="Berechtigungen" [editable]="true">
+      <app-data-card title="Berechtigungen">
         <!--ToDo: Form-->
         <div>
           <br>

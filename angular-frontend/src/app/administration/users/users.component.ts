@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {AfterViewInit, Component, OnInit, ViewChild} from '@angular/core';
 import { Apollo, QueryRef } from 'apollo-angular';
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { map } from "rxjs/operators";
@@ -6,6 +6,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { User } from './users';
 import { ALL_USERS_QUERY, CREATE_USER_QUERY, DELETE_USER_QUERY, GetUsersQuery, UPDATE_USER_QUERY } from './graphql';
 import { ConfirmDialogComponent } from '../../dialogs/confirm-dialog.component';
+import { DataCardComponent } from '../../dash/data-card.component'
+import {Observable} from "rxjs";
 
 @Component({
   selector: 'app-users',
@@ -13,13 +15,16 @@ import { ConfirmDialogComponent } from '../../dialogs/confirm-dialog.component';
   styleUrls: ['./users.component.scss']
 })
 
-export class UsersComponent implements OnInit {
+export class UsersComponent implements OnInit  {
 
+  @ViewChild('accountCard') accountCard?: DataCardComponent;
   userQuery!: QueryRef<GetUsersQuery>;
   users: User[] = [];
   selectedUser?: User;
+  selectedUserClone?: User;
   newUserName: String = '';
   newUserPassword: String = '';
+  // postAccount!: Observable<any>;
 
   layout = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
     map(({ matches }) => {
@@ -52,10 +57,23 @@ export class UsersComponent implements OnInit {
     this.userQuery.valueChanges.subscribe((response) =>{
       this.users = response.data.allUsers
     });
+/*    this.postAccount = new Observable((observer) => {
+      console.log(this.selectedUser)
+    });*/
+  }
+
+  @ViewChild('accountCard') set content(content: DataCardComponent) {
+    if(content) {
+      this.accountCard = content;
+      this.accountCard.dialogClosed.subscribe((ok)=>{
+        console.log('hallo')
+      })
+    }
   }
 
   onSelect(user: User): void {
-    this.selectedUser = Object.assign({}, user);
+    this.selectedUser = user;
+    this.selectedUserClone = Object.assign({}, user);
   }
 
   onCreateUser() {

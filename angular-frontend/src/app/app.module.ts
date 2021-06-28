@@ -23,9 +23,9 @@ import { MatGridListModule } from '@angular/material/grid-list';
 import { MatCardModule } from '@angular/material/card';
 import { MatMenuModule } from '@angular/material/menu';
 import { CardComponent } from "./dash/dash-card.component";
-import { DataPreviewCardComponent } from "./dash/data-preview-card.component";
 import { MatDialogModule } from "@angular/material/dialog";
 import { ConfirmDialogComponent } from "./dialogs/confirm-dialog.component";
+import { DataCardComponent } from "./dash/data-card.component";
 
 @NgModule({
   declarations: [
@@ -36,7 +36,7 @@ import { ConfirmDialogComponent } from "./dialogs/confirm-dialog.component";
     AdministrationComponent,
     SideNavComponent,
     DashComponent,
-    DataPreviewCardComponent,
+    DataCardComponent,
     ConfirmDialogComponent
   ],
   imports: [
