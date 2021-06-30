@@ -51,7 +51,7 @@
 }
 
 
-.editContent input {
+.editContent input:not([type=checkbox]) {
   padding: .5rem;
   width: 100%;
 }

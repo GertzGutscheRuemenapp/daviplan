@@ -24,6 +24,8 @@ export class UsersComponent implements OnInit  {
   selectedUserClone?: User;
   newUserName: String = '';
   newUserPassword: String = '';
+  changePass: boolean = false;
+  password: string = ;
   // postAccount!: Observable<any>;
 
   layout = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
@@ -101,9 +103,13 @@ export class UsersComponent implements OnInit  {
     });
   }
 
-  onSelect(user: User): void {
+  onSelect(user: User) {
     this.selectedUser = user;
     this.selectedUserClone = Object.assign({}, user);
+  }
+
+  onTogglePassChange() {
+    console.log('hallo')
   }
 
   onCreateUser() {

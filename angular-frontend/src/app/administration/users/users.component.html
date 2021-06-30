@@ -19,27 +19,32 @@
           <table>
             <tr>
               <td i18n>Nutzername</td>
-              <td><input id="user-name" [ngModel]="selectedUser.userName"></td>
+              <td><input id="user-name" [ngModel]="selectedUserClone!.userName"></td>
             </tr>
             <tr>
               <td i18n>Vorname</td>
-              <td><input id="user-first-name" [ngModel]="selectedUser.firstName"></td>
+              <td><input id="user-first-name" [ngModel]="selectedUserClone!.firstName"></td>
             </tr>
             <tr>
               <td i18n>Nachname</td>
-              <td><input id="user-last-name" [(ngModel)]="selectedUser.lastName"></td>
+              <td><input id="user-last-name" [(ngModel)]="selectedUserClone!.lastName"></td>
             </tr>
             <tr>
               <td i18n>E-Mail</td>
-              <td><input id="user-email" [(ngModel)]="selectedUser.email"></td>
+              <td><input id="user-email" [(ngModel)]="selectedUserClone!.email"></td>
+            </tr>
+            <tr style="height: 20px;"></tr>
+            <tr>
+              <td i18n>Passwort ändern</td>
+              <td><input id="change-pass" (change)="onTogglePassChange()" type="checkbox"></td>
             </tr>
             <tr>
               <td i18n>Passwort</td>
-              <td><input id="user-pass1" type="password" value="xxxxxxxxx"></td>
+              <td><input id="user-pass1" type="password" placeholder="xxxxxxxxx" disabled></td>
             </tr>
             <tr>
               <td i18n>Passwort wiederholen</td>
-              <td><input id="user-pass2" type="password" value="xxxxxxxxx"></td>
+              <td><input id="user-pass2" type="password" placeholder="xxxxxxxxx" disabled></td>
             </tr>
           </table>
         </div>
@@ -48,19 +53,19 @@
         <table>
           <tr>
             <td i18n>Nutzername</td>
-            <td i18n>{{selectedUserClone!.userName}}</td>
+            <td i18n>{{selectedUser.userName}}</td>
           </tr>
           <tr>
             <td i18n>Vorname</td>
-            <td i18n>{{selectedUserClone!.firstName}}</td>
+            <td i18n>{{selectedUser.firstName}}</td>
           </tr>
           <tr>
             <td i18n>Nachname</td>
-            <td i18n>{{selectedUserClone!.lastName}}</td>
+            <td i18n>{{selectedUser.lastName}}</td>
           </tr>
           <tr>
             <td i18n>E-Mail</td>
-            <td i18n>{{selectedUserClone!.email}}</td>
+            <td i18n>{{selectedUser.email}}</td>
           </tr>
         </table>
       </app-data-card>
