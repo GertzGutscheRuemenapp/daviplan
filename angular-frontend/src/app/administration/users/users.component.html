@@ -31,19 +31,18 @@
             </mat-form-field>
             <mat-form-field class="full">
               <mat-label i18n>E-Mail</mat-label>
-              <input matInput formControlName="email"/>
+              <input matInput ngModel email formControlName="email"/>
             </mat-form-field>
-          </div><!--
-          <mat-checkbox formControlName="changePass">Passwort ändern</mat-checkbox>
+          </div>
+          <mat-checkbox #passCheck formControlName="changePass" (change)="onTogglePassChange(passCheck.checked)">Passwort ändern</mat-checkbox>
           <mat-form-field class="full">
             <mat-label i18n>Passwort</mat-label>
-            <input matInput type="password" formControlName="password" placeholder="·········"/>
+            <input matInput type="password" [attr.disabled]="!changePassword? '': null" formControlName="password" placeholder="·········"/>
           </mat-form-field>
           <mat-form-field class="full">
             <mat-label i18n>Passwort bestätigen</mat-label>
-            <input matInput type="password" formControlName="password" placeholder="·········"/>
-          </mat-form-field>-->
-<!--          <button type="submit" [disabled]="accountForm.pristine">Save</button>-->
+            <input matInput type="password" [attr.disabled]="!changePassword? '': null" formControlName="passConfirm" placeholder="·········"/>
+          </mat-form-field>
         </form>
       </ng-template>
       <app-data-card #accountCard title="Konto" [editTemplate]="accountEdit">
@@ -72,7 +71,6 @@
         <!--ToDo: Form-->
         <div>
         </div>
-        <button (click)="onUpdateUser()" i18n>Speichern</button>
       </app-data-card>
     </mat-grid-tile>
     <mat-grid-tile *ngIf="selectedUser" [colspan]="( layout | async )!.permissions.cols" [rowspan]="( layout | async )!.permissions.rows">
@@ -89,7 +87,6 @@
           <input id="user-can-create-scenarios" type="checkbox" [(ngModel)]="selectedUser.canCreateScenarios">
           <label for="user-can-create-scenarios" i18n>Kann Szenarien anlegen</label>
         </div>
-        <button (click)="onUpdateUser()" i18n>Speichern</button>
       </app-data-card>
     </mat-grid-tile>
   </mat-grid-list>

@@ -24,10 +24,8 @@ export class UsersComponent implements OnInit  {
   selectedUser?: User;
   newUserName: String = '';
   newUserPassword: String = '';
-  changePass: boolean = false;
-  password: string = '';
   accountForm!: FormGroup;
-  // postAccount!: Observable<any>;
+  changePassword: boolean = false;
 
   layout = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
     map(({ matches }) => {
@@ -62,16 +60,12 @@ export class UsersComponent implements OnInit  {
     this.userQuery.valueChanges.subscribe((response) =>{
       this.users = response.data.allUsers
     });
-/*    this.postAccount = new Observable((observer) => {
-      console.log(this.selectedUser)
-    });*/
   }
 
   @ViewChild('accountCard') set content(content: DataCardComponent) {
     if(content) {
       this.accountCard = content;
       this.accountCard.dialogConfirmed.subscribe((ok)=>{
-        console.log(this.accountForm.value)
         this.accountCard?.setLoading(true);
         let user = this.accountForm.value.user;
         this.apollo.mutate({
@@ -92,6 +86,14 @@ export class UsersComponent implements OnInit  {
           this.accountCard?.setLoading(false);
         });
       })
+      this.accountCard.dialogClosed.subscribe(()=>{
+        this.changePassword = false;
+        this.accountForm.reset({
+          user: this.selectedUser,
+          changePass: this.changePassword,
+          password: ''
+        });
+      })
     }
   }
 
@@ -110,13 +112,14 @@ export class UsersComponent implements OnInit  {
     this.selectedUser = user;
     this.accountForm = this.formBuilder.group({
       user: this.formBuilder.group(this.selectedUser),
-      changePass: false,
-      password: ''
+      changePass: this.changePassword,
+      password: new FormControl({value: '', disabled: !this.changePassword}),
+      passConfirm: new FormControl({value: '', disabled: !this.changePassword})
     });
   }
 
-  onTogglePassChange() {
-    console.log('hallo')
+  onTogglePassChange(checked: boolean) {
+    this.changePassword = checked;
   }
 
   onCreateUser() {
