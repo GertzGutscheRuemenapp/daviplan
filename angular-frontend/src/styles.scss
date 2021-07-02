@@ -20,5 +20,10 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 .cdk-overlay-pane.absolute{
   position: absolute!important;
-
 }
+
+mat-form-field.full {
+  width: 100%;
+}
+
+

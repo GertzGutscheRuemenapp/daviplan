@@ -5,6 +5,7 @@ import { Component, OnInit } from '@angular/core';
   templateUrl: './administration.component.html',
   styleUrls: ['./administration.component.scss']
 })
+
 export class AdministrationComponent implements OnInit {
 
   menuItems = [

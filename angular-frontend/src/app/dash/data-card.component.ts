@@ -2,15 +2,6 @@
 import { Component, Input, Output, TemplateRef, EventEmitter } from '@angular/core';
 import { ConfirmDialogComponent } from "../dialogs/confirm-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
-import { Observable } from "rxjs";
-
-/*export interface InputData {
-  title: string;
-  message: string;
-  confirmButtonText: string;
-  cancelButtonText: string;
-  inputs: DataInput[];
-}*/
 
 @Component({
   selector: 'app-data-card',

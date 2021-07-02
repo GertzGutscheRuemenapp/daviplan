@@ -15,39 +15,36 @@
     </mat-grid-tile>
     <mat-grid-tile *ngIf="selectedUser" [colspan]="( layout | async )!.account.cols" [rowspan]="( layout | async )!.account.rows">
       <ng-template #accountEdit>
-        <div class="editContent">
-          <table>
-            <tr>
-              <td i18n>Nutzername</td>
-              <td><input id="user-name" [ngModel]="selectedUserClone!.userName"></td>
-            </tr>
-            <tr>
-              <td i18n>Vorname</td>
-              <td><input id="user-first-name" [ngModel]="selectedUserClone!.firstName"></td>
-            </tr>
-            <tr>
-              <td i18n>Nachname</td>
-              <td><input id="user-last-name" [(ngModel)]="selectedUserClone!.lastName"></td>
-            </tr>
-            <tr>
-              <td i18n>E-Mail</td>
-              <td><input id="user-email" [(ngModel)]="selectedUserClone!.email"></td>
-            </tr>
-            <tr style="height: 20px;"></tr>
-            <tr>
-              <td i18n>Passwort ändern</td>
-              <td><input id="change-pass" (change)="onTogglePassChange()" type="checkbox"></td>
-            </tr>
-            <tr>
-              <td i18n>Passwort</td>
-              <td><input id="user-pass1" type="password" placeholder="xxxxxxxxx" disabled></td>
-            </tr>
-            <tr>
-              <td i18n>Passwort wiederholen</td>
-              <td><input id="user-pass2" type="password" placeholder="xxxxxxxxx" disabled></td>
-            </tr>
-          </table>
-        </div>
+        <form [formGroup]="accountForm" (ngSubmit)="onUpdateUser()">
+          <div formGroupName="user">
+            <mat-form-field class="full">
+              <mat-label i18n>Nutzername</mat-label>
+              <input matInput formControlName="userName">
+            </mat-form-field>
+            <mat-form-field class="full">
+              <mat-label i18n>Vorname</mat-label>
+              <input matInput formControlName="firstName"/>
+            </mat-form-field>
+            <mat-form-field class="full">
+              <mat-label i18n>Nachname</mat-label>
+              <input matInput formControlName="lastName"/>
+            </mat-form-field>
+            <mat-form-field class="full">
+              <mat-label i18n>E-Mail</mat-label>
+              <input matInput formControlName="email"/>
+            </mat-form-field>
+          </div><!--
+          <mat-checkbox formControlName="changePass">Passwort ändern</mat-checkbox>
+          <mat-form-field class="full">
+            <mat-label i18n>Passwort</mat-label>
+            <input matInput type="password" formControlName="password" placeholder="·········"/>
+          </mat-form-field>
+          <mat-form-field class="full">
+            <mat-label i18n>Passwort bestätigen</mat-label>
+            <input matInput type="password" formControlName="password" placeholder="·········"/>
+          </mat-form-field>-->
+<!--          <button type="submit" [disabled]="accountForm.pristine">Save</button>-->
+        </form>
       </ng-template>
       <app-data-card #accountCard title="Konto" [editTemplate]="accountEdit">
         <table>

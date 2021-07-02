@@ -2,12 +2,13 @@ import {AfterViewInit, Component, OnInit, ViewChild} from '@angular/core';
 import { Apollo, QueryRef } from 'apollo-angular';
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { map } from "rxjs/operators";
-import { MatDialog } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { User } from './users';
 import { ALL_USERS_QUERY, CREATE_USER_QUERY, DELETE_USER_QUERY, GetUsersQuery, UPDATE_USER_QUERY, UPDATE_ACCOUNT_QUERY, UPDATE_ACCOUNT_QUERY_WO_PASS } from './graphql';
 import { ConfirmDialogComponent } from '../../dialogs/confirm-dialog.component';
 import { DataCardComponent } from '../../dash/data-card.component'
 import {Observable} from "rxjs";
+import {FormBuilder, FormControl, FormGroup} from "@angular/forms";
 
 @Component({
   selector: 'app-users',
@@ -21,11 +22,11 @@ export class UsersComponent implements OnInit  {
   userQuery!: QueryRef<GetUsersQuery>;
   users: User[] = [];
   selectedUser?: User;
-  selectedUserClone?: User;
   newUserName: String = '';
   newUserPassword: String = '';
   changePass: boolean = false;
-  password: string = ;
+  password: string = '';
+  accountForm!: FormGroup;
   // postAccount!: Observable<any>;
 
   layout = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
@@ -50,7 +51,9 @@ export class UsersComponent implements OnInit  {
     })
   );
 
-  constructor(private apollo: Apollo, private breakpointObserver: BreakpointObserver, public dialog: MatDialog) {}
+  constructor(private apollo: Apollo, private breakpointObserver: BreakpointObserver,
+              public dialog: MatDialog, private formBuilder: FormBuilder) {
+  }
 
   ngOnInit() {
     this.userQuery = this.apollo.watchQuery<GetUsersQuery>({
@@ -68,25 +71,26 @@ export class UsersComponent implements OnInit  {
     if(content) {
       this.accountCard = content;
       this.accountCard.dialogConfirmed.subscribe((ok)=>{
+        console.log(this.accountForm.value)
         this.accountCard?.setLoading(true);
-        if(this.selectedUserClone)
-          this.apollo.mutate({
-            mutation: UPDATE_ACCOUNT_QUERY_WO_PASS,
-            variables: {
-              id: this.selectedUserClone.id,
-              userName: this.selectedUserClone.userName,
-              email: this.selectedUserClone.email,
-              firstName: this.selectedUserClone.firstName,
-              lastName: this.selectedUserClone.lastName
-            }
-          }).subscribe(({ data }) => {
-            this.accountCard?.closeDialog();
-            this.refresh((data as any).updateUser.user.id);
-            this.accountCard?.setLoading(false);
-          },(error) => {
-            console.log('there was an error sending the query', error);
-            this.accountCard?.setLoading(false);
-          });
+        let user = this.accountForm.value.user;
+        this.apollo.mutate({
+          mutation: UPDATE_ACCOUNT_QUERY_WO_PASS,
+          variables: {
+            id: this.selectedUser?.id,
+            userName: user.userName,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName
+          }
+        }).subscribe(({ data }) => {
+          this.accountCard?.closeDialog();
+          this.refresh((data as any).updateUser.user.id);
+          this.accountCard?.setLoading(false);
+        },(error) => {
+          console.log('there was an error sending the query', error);
+          this.accountCard?.setLoading(false);
+        });
       })
     }
   }
@@ -96,7 +100,6 @@ export class UsersComponent implements OnInit  {
       if (userId != undefined){
         let user = this.users.find(user => user.id === userId);
         this.selectedUser = user;
-        this.selectedUserClone = Object.assign({}, user);
       }
       else
         this.selectedUser = undefined;
@@ -105,7 +108,11 @@ export class UsersComponent implements OnInit  {
 
   onSelect(user: User) {
     this.selectedUser = user;
-    this.selectedUserClone = Object.assign({}, user);
+    this.accountForm = this.formBuilder.group({
+      user: this.formBuilder.group(this.selectedUser),
+      changePass: false,
+      password: ''
+    });
   }
 
   onTogglePassChange() {
