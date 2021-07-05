@@ -18,7 +18,7 @@ import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 
 export class UsersComponent implements OnInit  {
 
-  @ViewChild('accountCard') accountCard?: DataCardComponent;
+  accountCard?: DataCardComponent;
   userQuery!: QueryRef<GetUsersQuery>;
   users: User[] = [];
   selectedUser?: User;
@@ -63,8 +63,10 @@ export class UsersComponent implements OnInit  {
     });
   }
 
+  // setter needed for account card as it is not initialized on start (ngif)
   @ViewChild('accountCard') set content(content: DataCardComponent) {
-    if(content) {
+    // on init of accountCard
+    if(content && !this.accountCard) {
       this.accountCard = content;
       this.accountCard.dialogConfirmed.subscribe((ok)=>{
         this.accountForm.setErrors(null);
