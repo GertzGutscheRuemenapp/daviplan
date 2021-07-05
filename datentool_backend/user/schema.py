@@ -1,4 +1,6 @@
 import graphene
+from graphql import GraphQLError
+from django.utils.translation import gettext as _
 from graphene_django import DjangoObjectType
 from django.contrib.auth.models import User
 
@@ -65,6 +67,10 @@ class UpdateUser(graphene.Mutation):
         profile = Profile.objects.get(pk=id)
         user = profile.user
         if 'user_name' in kwargs:
+            ex_user = User.objects.get(username=kwargs['user_name'])
+            if ex_user.id != user.id:
+                raise GraphQLError(_('Nutzername ist bereits vergeben'))
+            #if user.id !=
             user.username = kwargs['user_name']
         for attr in ['first_name', 'last_name', 'password', 'email']:
             if attr in kwargs:

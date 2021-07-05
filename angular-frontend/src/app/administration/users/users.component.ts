@@ -66,8 +66,18 @@ export class UsersComponent implements OnInit  {
     if(content) {
       this.accountCard = content;
       this.accountCard.dialogConfirmed.subscribe((ok)=>{
+        if (this.accountForm.value.changePass){
+          if (!this.accountForm.value.password){
+            return;
+          }
+          else if (this.accountForm.value.password != this.accountForm.value.passConfirm){
+            this.accountForm.controls['password'].setErrors({'notMatching': true});
+            return;
+          }
+        }
         this.accountCard?.setLoading(true);
         let user = this.accountForm.value.user;
+        if (!user.userName) return;
         this.apollo.mutate({
           mutation: UPDATE_ACCOUNT_QUERY_WO_PASS,
           variables: {
@@ -78,20 +88,24 @@ export class UsersComponent implements OnInit  {
             lastName: user.lastName
           }
         }).subscribe(({ data }) => {
+          this.accountCard?.setLoading(false);
           this.accountCard?.closeDialog();
           this.refresh((data as any).updateUser.user.id);
-          this.accountCard?.setLoading(false);
         },(error) => {
           console.log('there was an error sending the query', error);
+          this.accountForm.setErrors({ 'error': error })
           this.accountCard?.setLoading(false);
         });
       })
       this.accountCard.dialogClosed.subscribe(()=>{
         this.changePassword = false;
+        this.accountForm.controls['password'].disable();
+        this.accountForm.controls['passConfirm'].disable();
         this.accountForm.reset({
           user: this.selectedUser,
           changePass: this.changePassword,
-          password: ''
+          password: '',
+          passConfirm: ''
         });
       })
     }
@@ -120,6 +134,14 @@ export class UsersComponent implements OnInit  {
 
   onTogglePassChange(checked: boolean) {
     this.changePassword = checked;
+    if (checked){
+      this.accountForm.controls['password'].enable();
+      this.accountForm.controls['passConfirm'].enable();
+    }
+    else {
+      this.accountForm.controls['password'].disable();
+      this.accountForm.controls['passConfirm'].disable();
+    }
   }
 
   onCreateUser() {

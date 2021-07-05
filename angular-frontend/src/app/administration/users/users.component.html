@@ -3,12 +3,11 @@
     <mat-grid-tile [colspan]="( layout | async )!.userList.cols" [rowspan]="( layout | async )!.userList.rows">
       <app-data-card title="Benutzerkonten">
         <ul class="users">
-          <li *ngFor="let user of users"
-              [class.superuser]="user.isSuperuser"
-              [class.selected]="selectedUser && (user.id === selectedUser.id)"
-              (click)="onSelect(user)">
-            <span class="badge">{{user.id}}</span> {{user.userName}}
-          </li>
+          <mat-selection-list [multiple]="false">
+            <mat-list-option *ngFor="let user of users" [value]="user" (click)="onSelect(user)">
+              {{ user.userName }}
+            </mat-list-option>
+          </mat-selection-list>
         </ul>
         <button *ngIf="selectedUser && !selectedUser.isSuperuser" mat-flat-button color="warn" (click)="onDeleteUser()" i18n>Nutzer löschen</button>
       </app-data-card>
@@ -16,10 +15,13 @@
     <mat-grid-tile *ngIf="selectedUser" [colspan]="( layout | async )!.account.cols" [rowspan]="( layout | async )!.account.rows">
       <ng-template #accountEdit>
         <form [formGroup]="accountForm" (ngSubmit)="onUpdateUser()">
+          <mat-error *ngIf="accountForm.errors && accountForm.errors['error']" class="alert">
+            {{accountForm.errors['error']}}
+          </mat-error>
           <div formGroupName="user">
             <mat-form-field class="full">
               <mat-label i18n>Nutzername</mat-label>
-              <input matInput formControlName="userName">
+              <input matInput formControlName="userName" required>
             </mat-form-field>
             <mat-form-field class="full">
               <mat-label i18n>Vorname</mat-label>
@@ -31,17 +33,18 @@
             </mat-form-field>
             <mat-form-field class="full">
               <mat-label i18n>E-Mail</mat-label>
-              <input matInput ngModel email formControlName="email"/>
+              <input matInput formControlName="email"/>
             </mat-form-field>
           </div>
           <mat-checkbox #passCheck formControlName="changePass" (change)="onTogglePassChange(passCheck.checked)">Passwort ändern</mat-checkbox>
           <mat-form-field class="full">
             <mat-label i18n>Passwort</mat-label>
-            <input matInput type="password" [attr.disabled]="!changePassword? '': null" formControlName="password" placeholder="·········"/>
+            <input matInput type="password" formControlName="password" placeholder="·········" required>
+            <mat-error *ngIf="accountForm.controls['password'].errors?.notMatching" i18n>Die Passwörter stimmen nicht überein</mat-error>
           </mat-form-field>
           <mat-form-field class="full">
             <mat-label i18n>Passwort bestätigen</mat-label>
-            <input matInput type="password" [attr.disabled]="!changePassword? '': null" formControlName="passConfirm" placeholder="·········"/>
+            <input matInput type="password" formControlName="passConfirm" placeholder="·········" required>
           </mat-form-field>
         </form>
       </ng-template>
