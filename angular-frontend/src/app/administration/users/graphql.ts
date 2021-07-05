@@ -61,6 +61,16 @@ export const UPDATE_ACCOUNT_QUERY = gql`
     }
 `;
 
+export const UPDATE_PERMISSIONS_QUERY = gql`
+    mutation updateUser($id: ID!,$canEditData: Boolean!, $canCreateScenarios: Boolean!, $adminAccess: Boolean!){
+      updateUser(id: $id, canEditData: $canEditData, canCreateScenarios: $canCreateScenarios, adminAccess: $adminAccess){
+        user{
+          id, userName
+        }
+      }
+    }
+`;
+
 export type GetUsersQuery = {
   allUsers: User[];
 }

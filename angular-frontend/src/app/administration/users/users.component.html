@@ -12,7 +12,7 @@
         <button *ngIf="selectedUser && !selectedUser.isSuperuser" mat-flat-button color="warn" (click)="onDeleteUser()" i18n>Nutzer löschen</button>
       </app-data-card>
     </mat-grid-tile>
-    <mat-grid-tile *ngIf="selectedUser" [colspan]="( layout | async )!.account.cols" [rowspan]="( layout | async )!.account.rows">
+    <mat-grid-tile [class.hidden]="!selectedUser" [colspan]="( layout | async )!.account.cols" [rowspan]="( layout | async )!.account.rows">
       <ng-template #accountEdit>
         <form [formGroup]="accountForm" (ngSubmit)="onUpdateUser()">
           <mat-error *ngIf="accountForm.errors && accountForm.errors['error']" class="alert">
@@ -53,43 +53,56 @@
         <table>
           <tr>
             <td i18n>Nutzername</td>
-            <td i18n>{{selectedUser.userName}}</td>
+            <td i18n>{{selectedUser?.userName}}</td>
           </tr>
           <tr>
             <td i18n>Vorname</td>
-            <td i18n>{{selectedUser.firstName}}</td>
+            <td i18n>{{selectedUser?.firstName}}</td>
           </tr>
           <tr>
             <td i18n>Nachname</td>
-            <td i18n>{{selectedUser.lastName}}</td>
+            <td i18n>{{selectedUser?.lastName}}</td>
           </tr>
           <tr>
             <td i18n>E-Mail</td>
-            <td i18n>{{selectedUser.email}}</td>
+            <td i18n>{{selectedUser?.email}}</td>
           </tr>
         </table>
       </app-data-card>
     </mat-grid-tile>
-    <mat-grid-tile *ngIf="selectedUser" [colspan]="( layout | async )!.dataAccess.cols" [rowspan]="( layout | async )!.dataAccess.rows">
+    <mat-grid-tile [class.hidden]="!selectedUser"  [colspan]="( layout | async )!.dataAccess.cols" [rowspan]="( layout | async )!.dataAccess.rows">
       <app-data-card title="Datenzugriff">
         <!--ToDo: Form-->
         <div>
         </div>
       </app-data-card>
     </mat-grid-tile>
-    <mat-grid-tile *ngIf="selectedUser" [colspan]="( layout | async )!.permissions.cols" [rowspan]="( layout | async )!.permissions.rows">
-      <app-data-card title="Berechtigungen">
-        <!--ToDo: Form-->
-        <div>
+    <mat-grid-tile [class.hidden]="!selectedUser"  [colspan]="( layout | async )!.permissions.cols" [rowspan]="( layout | async )!.permissions.rows">
+      <ng-template #permissionEdit>
+        <form [formGroup]="permissionForm" (ngSubmit)="onUpdateUser()">
+          <mat-error *ngIf="permissionForm.errors && permissionForm.errors['error']" class="alert">
+            {{permissionForm.errors['error']}}
+          </mat-error>
+          <div formGroupName="user">
+            <mat-checkbox formControlName="adminAccess" i18n>Kann Seite administrieren</mat-checkbox>
+            <mat-checkbox formControlName="canEditData" i18n>Kann Grundlagendaten editieren</mat-checkbox>
+            <mat-checkbox formControlName="canCreateScenarios" i18n>Kann Szenarien anlegen</mat-checkbox>
+          </div>
+        </form>
+      </ng-template>
+      <app-data-card #permissionCard title="Berechtigungen" [editTemplate]="permissionEdit">
+        <div *ngIf="selectedUser">
+          <mat-checkbox disabled type="checkbox" [(ngModel)]="selectedUser.adminAccess" i18n>
+            Kann Seite administrieren
+          </mat-checkbox>
           <br>
-          <input id="user-admin-access" type="checkbox" [(ngModel)]="selectedUser.adminAccess">
-          <label for="user-admin-access" i18n>Kann Seite administrieren</label>
+          <mat-checkbox disabled type="checkbox" [(ngModel)]="selectedUser.canEditData" i18n>
+            Kann Grundlagendaten editieren
+          </mat-checkbox>
           <br>
-          <input id="user-can-edit" type="checkbox" [(ngModel)]="selectedUser.canEditData">
-          <label for="user-can-edit" i18n>Kann Grundlagendaten editieren</label>
-          <br>
-          <input id="user-can-create-scenarios" type="checkbox" [(ngModel)]="selectedUser.canCreateScenarios">
-          <label for="user-can-create-scenarios" i18n>Kann Szenarien anlegen</label>
+          <mat-checkbox disabled type="checkbox" [(ngModel)]="selectedUser.canCreateScenarios" i18n>
+            Kann Szenarien anlegen
+          </mat-checkbox>
         </div>
       </app-data-card>
     </mat-grid-tile>

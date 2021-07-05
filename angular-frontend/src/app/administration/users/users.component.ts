@@ -4,7 +4,9 @@ import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { map } from "rxjs/operators";
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { User } from './users';
-import { ALL_USERS_QUERY, CREATE_USER_QUERY, DELETE_USER_QUERY, GetUsersQuery, UPDATE_USER_QUERY, UPDATE_ACCOUNT_QUERY, UPDATE_ACCOUNT_QUERY_WO_PASS } from './graphql';
+import { ALL_USERS_QUERY, CREATE_USER_QUERY, DELETE_USER_QUERY, GetUsersQuery,
+         UPDATE_USER_QUERY, UPDATE_ACCOUNT_QUERY, UPDATE_ACCOUNT_QUERY_WO_PASS,
+         UPDATE_PERMISSIONS_QUERY } from './graphql';
 import { ConfirmDialogComponent } from '../../dialogs/confirm-dialog.component';
 import { DataCardComponent } from '../../dash/data-card.component'
 import {Observable} from "rxjs";
@@ -16,15 +18,17 @@ import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
   styleUrls: ['./users.component.scss']
 })
 
-export class UsersComponent implements OnInit  {
+export class UsersComponent implements AfterViewInit  {
 
-  accountCard?: DataCardComponent;
+  @ViewChild('accountCard') accountCard?: DataCardComponent;
+  @ViewChild('permissionCard') permissionCard?: DataCardComponent;
+  accountForm!: FormGroup;
+  permissionForm!: FormGroup;
   userQuery!: QueryRef<GetUsersQuery>;
   users: User[] = [];
   selectedUser?: User;
   newUserName: String = '';
   newUserPassword: String = '';
-  accountForm!: FormGroup;
   changePassword: boolean = false;
 
   layout = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
@@ -53,7 +57,7 @@ export class UsersComponent implements OnInit  {
               public dialog: MatDialog, private formBuilder: FormBuilder) {
   }
 
-  ngOnInit() {
+  ngAfterViewInit() {
     this.userQuery = this.apollo.watchQuery<GetUsersQuery>({
       query: ALL_USERS_QUERY
     })
@@ -61,63 +65,94 @@ export class UsersComponent implements OnInit  {
       this.users = response.data.allUsers;
       this.users = this.users.slice().sort((a,b) => (a.userName > b.userName)? 1 : (a.userName < b.userName)? -1 : 0)
     });
+    this.setupAccountCard();
+    this.setupPermissionCard();
   }
 
-  // setter needed for account card as it is not initialized on start (ngif)
-  @ViewChild('accountCard') set content(content: DataCardComponent) {
-    // on init of accountCard
-    if(content && !this.accountCard) {
-      this.accountCard = content;
-      this.accountCard.dialogConfirmed.subscribe((ok)=>{
-        this.accountForm.setErrors(null);
-        // display errors for all fields even if not touched
-        this.accountForm.markAllAsTouched();
-        if (this.accountForm.invalid) return;
-        let user = this.accountForm.value.user;
-        let variables: any = {
-            id: this.selectedUser?.id,
-            userName: user.userName,
-            email: user.email,
-            firstName: user.firstName,
-            lastName: user.lastName
+  setupAccountCard(){
+    if (!this.accountCard) return;
+    this.accountCard.dialogConfirmed.subscribe((ok)=>{
+      this.accountForm.setErrors(null);
+      // display errors for all fields even if not touched
+      this.accountForm.markAllAsTouched();
+      if (this.accountForm.invalid) return;
+      let user = this.accountForm.value.user;
+      let variables: any = {
+          id: this.selectedUser?.id,
+          userName: user.userName,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName
+      }
+      let mutation = UPDATE_ACCOUNT_QUERY_WO_PASS;
+      if (this.accountForm.value.changePass){
+        let pass = this.accountForm.value.password
+        if (pass != this.accountForm.value.confirmPass){
+          this.accountForm.controls['confirmPass'].setErrors({'notMatching': true});
+          return;
         }
-        let mutation = UPDATE_ACCOUNT_QUERY_WO_PASS;
-        if (this.accountForm.value.changePass){
-          let pass = this.accountForm.value.password
-          if (pass != this.accountForm.value.confirmPass){
-            this.accountForm.controls['confirmPass'].setErrors({'notMatching': true});
-            return;
-          }
-          variables.password = pass;
-          mutation = UPDATE_ACCOUNT_QUERY;
-        }
-        this.accountCard?.setLoading(true);
-        this.apollo.mutate({
-          mutation: mutation,
-          variables: variables
-        }).subscribe(({ data }) => {
-          this.accountCard?.closeDialog();
-          this.refresh((data as any).updateUser.user.id);
-        },(error) => {
-          this.accountForm.setErrors({ 'error': error })
-          this.accountCard?.setLoading(false);
+        variables.password = pass;
+        mutation = UPDATE_ACCOUNT_QUERY;
+      }
+      this.accountCard?.setLoading(true);
+      this.apollo.mutate({
+        mutation: mutation,
+        variables: variables
+      }).subscribe(({ data }) => {
+        this.accountCard?.closeDialog();
+        this.refresh((data as any).updateUser.user.id);
+      },(error) => {
+        this.accountForm.setErrors({ 'error': error })
+        this.accountCard?.setLoading(false);
+      });
+    })
+    this.accountCard.dialogClosed.subscribe((ok)=>{
+      // reset form on cancel
+      if (!ok){
+        this.changePassword = false;
+        this.accountForm.controls['password'].disable();
+        this.accountForm.controls['confirmPass'].disable();
+        this.accountForm.reset({
+          user: this.selectedUser,
+          changePass: this.changePassword,
+          password: '',
+          confirmPass: ''
         });
-      })
-      this.accountCard.dialogClosed.subscribe((ok)=>{
-        // reset form on cancel
-        if (!ok){
-          this.changePassword = false;
-          this.accountForm.controls['password'].disable();
-          this.accountForm.controls['confirmPass'].disable();
-          this.accountForm.reset({
-            user: this.selectedUser,
-            changePass: this.changePassword,
-            password: '',
-            confirmPass: ''
-          });
-        }
-      })
-    }
+      }
+    })
+  }
+
+  setupPermissionCard() {
+    if (!this.permissionCard) return;
+    this.permissionCard.dialogConfirmed.subscribe((ok)=>{
+      this.permissionForm.setErrors(null);
+      let user = this.permissionForm.value.user;
+      let variables: any = {
+        id: this.selectedUser?.id,
+        adminAccess: user.adminAccess,
+        canCreateScenarios: user.canCreateScenarios,
+        canEditData: user.canEditData
+      }
+      this.permissionCard?.setLoading(true);
+      this.apollo.mutate({
+        mutation: UPDATE_PERMISSIONS_QUERY,
+        variables: variables
+      }).subscribe(({ data }) => {
+        this.permissionCard?.closeDialog();
+        this.refresh((data as any).updateUser.user.id);
+      },(error) => {
+        this.permissionForm.setErrors({ 'error': error })
+        this.permissionCard?.setLoading(false);
+      });
+    })
+    this.permissionCard?.dialogClosed.subscribe((ok)=>{
+      // reset form on cancel
+      if (!ok){
+        this.permissionForm.reset({
+          user: this.selectedUser
+        });
+      }
+    })
   }
 
   refresh(userId?: number): void {
@@ -141,6 +176,9 @@ export class UsersComponent implements OnInit  {
     });
     let userControl: any = this.accountForm.get('user');
     userControl.get('email').setValidators([Validators.email])
+    this.permissionForm = this.formBuilder.group({
+      user: this.formBuilder.group(this.selectedUser)
+    });
   }
 
   onTogglePassChange(checked: boolean) {
