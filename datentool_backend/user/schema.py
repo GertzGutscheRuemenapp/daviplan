@@ -67,10 +67,12 @@ class UpdateUser(graphene.Mutation):
         profile = Profile.objects.get(pk=id)
         user = profile.user
         if 'user_name' in kwargs:
-            ex_user = User.objects.get(username=kwargs['user_name'])
-            if ex_user.id != user.id:
-                raise GraphQLError(_('Nutzername ist bereits vergeben'))
-            #if user.id !=
+            try:
+                ex_user = User.objects.get(username=kwargs['user_name'])
+                if ex_user.id != user.id:
+                    raise GraphQLError(_('Nutzername ist bereits vergeben'))
+            except User.DoesNotExist:
+                pass
             user.username = kwargs['user_name']
         for attr in ['first_name', 'last_name', 'password', 'email']:
             if attr in kwargs:

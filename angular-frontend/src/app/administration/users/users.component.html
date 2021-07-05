@@ -3,8 +3,8 @@
     <mat-grid-tile [colspan]="( layout | async )!.userList.cols" [rowspan]="( layout | async )!.userList.rows">
       <app-data-card title="Benutzerkonten">
         <ul class="users">
-          <mat-selection-list [multiple]="false">
-            <mat-list-option *ngFor="let user of users" [value]="user" (click)="onSelect(user)">
+          <mat-selection-list [multiple]="false" >
+            <mat-list-option *ngFor="let user of users" [value]="user" (click)="onSelect(user)" [selected]="(selectedUser && (user.id === selectedUser.id))">
               {{ user.userName }}
             </mat-list-option>
           </mat-selection-list>
@@ -34,17 +34,18 @@
             <mat-form-field class="full">
               <mat-label i18n>E-Mail</mat-label>
               <input matInput formControlName="email"/>
+              <mat-error *ngIf="accountForm.get('user')?.get('email')?.errors" i18n>Die E-Mail Adresse hat kein gültiges Format.</mat-error>
             </mat-form-field>
           </div>
           <mat-checkbox #passCheck formControlName="changePass" (change)="onTogglePassChange(passCheck.checked)">Passwort ändern</mat-checkbox>
           <mat-form-field class="full">
             <mat-label i18n>Passwort</mat-label>
             <input matInput type="password" formControlName="password" placeholder="·········" required>
-            <mat-error *ngIf="accountForm.controls['password'].errors?.notMatching" i18n>Die Passwörter stimmen nicht überein</mat-error>
           </mat-form-field>
           <mat-form-field class="full">
             <mat-label i18n>Passwort bestätigen</mat-label>
-            <input matInput type="password" formControlName="passConfirm" placeholder="·········" required>
+            <input matInput type="password" formControlName="confirmPass" placeholder="·········" required>
+            <mat-error *ngIf="accountForm.get('confirmPass')?.errors?.notMatching" i18n>Die Passwörter stimmen nicht überein</mat-error>
           </mat-form-field>
         </form>
       </ng-template>

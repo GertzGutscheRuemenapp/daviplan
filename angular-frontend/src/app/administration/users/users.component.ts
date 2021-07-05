@@ -8,7 +8,7 @@ import { ALL_USERS_QUERY, CREATE_USER_QUERY, DELETE_USER_QUERY, GetUsersQuery, U
 import { ConfirmDialogComponent } from '../../dialogs/confirm-dialog.component';
 import { DataCardComponent } from '../../dash/data-card.component'
 import {Observable} from "rxjs";
-import {FormBuilder, FormControl, FormGroup} from "@angular/forms";
+import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 
 @Component({
   selector: 'app-users',
@@ -58,7 +58,8 @@ export class UsersComponent implements OnInit  {
       query: ALL_USERS_QUERY
     })
     this.userQuery.valueChanges.subscribe((response) =>{
-      this.users = response.data.allUsers
+      this.users = response.data.allUsers;
+      this.users = this.users.slice().sort((a,b) => (a.userName > b.userName)? 1 : (a.userName < b.userName)? -1 : 0)
     });
   }
 
@@ -66,47 +67,53 @@ export class UsersComponent implements OnInit  {
     if(content) {
       this.accountCard = content;
       this.accountCard.dialogConfirmed.subscribe((ok)=>{
-        if (this.accountForm.value.changePass){
-          if (!this.accountForm.value.password){
-            return;
-          }
-          else if (this.accountForm.value.password != this.accountForm.value.passConfirm){
-            this.accountForm.controls['password'].setErrors({'notMatching': true});
-            return;
-          }
-        }
-        this.accountCard?.setLoading(true);
+        this.accountForm.setErrors(null);
+        // display errors for all fields even if not touched
+        this.accountForm.markAllAsTouched();
+        if (this.accountForm.invalid) return;
         let user = this.accountForm.value.user;
-        if (!user.userName) return;
-        this.apollo.mutate({
-          mutation: UPDATE_ACCOUNT_QUERY_WO_PASS,
-          variables: {
+        let variables: any = {
             id: this.selectedUser?.id,
             userName: user.userName,
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName
+        }
+        let mutation = UPDATE_ACCOUNT_QUERY_WO_PASS;
+        if (this.accountForm.value.changePass){
+          let pass = this.accountForm.value.password
+          if (pass != this.accountForm.value.confirmPass){
+            this.accountForm.controls['confirmPass'].setErrors({'notMatching': true});
+            return;
           }
+          variables.password = pass;
+          mutation = UPDATE_ACCOUNT_QUERY;
+        }
+        this.accountCard?.setLoading(true);
+        this.apollo.mutate({
+          mutation: mutation,
+          variables: variables
         }).subscribe(({ data }) => {
-          this.accountCard?.setLoading(false);
           this.accountCard?.closeDialog();
           this.refresh((data as any).updateUser.user.id);
         },(error) => {
-          console.log('there was an error sending the query', error);
           this.accountForm.setErrors({ 'error': error })
           this.accountCard?.setLoading(false);
         });
       })
-      this.accountCard.dialogClosed.subscribe(()=>{
-        this.changePassword = false;
-        this.accountForm.controls['password'].disable();
-        this.accountForm.controls['passConfirm'].disable();
-        this.accountForm.reset({
-          user: this.selectedUser,
-          changePass: this.changePassword,
-          password: '',
-          passConfirm: ''
-        });
+      this.accountCard.dialogClosed.subscribe((ok)=>{
+        // reset form on cancel
+        if (!ok){
+          this.changePassword = false;
+          this.accountForm.controls['password'].disable();
+          this.accountForm.controls['confirmPass'].disable();
+          this.accountForm.reset({
+            user: this.selectedUser,
+            changePass: this.changePassword,
+            password: '',
+            confirmPass: ''
+          });
+        }
       })
     }
   }
@@ -115,7 +122,7 @@ export class UsersComponent implements OnInit  {
     this.userQuery.refetch().then( res => {
       if (userId != undefined){
         let user = this.users.find(user => user.id === userId);
-        this.selectedUser = user;
+        this.onSelect(user as User);
       }
       else
         this.selectedUser = undefined;
@@ -128,19 +135,21 @@ export class UsersComponent implements OnInit  {
       user: this.formBuilder.group(this.selectedUser),
       changePass: this.changePassword,
       password: new FormControl({value: '', disabled: !this.changePassword}),
-      passConfirm: new FormControl({value: '', disabled: !this.changePassword})
+      confirmPass: new FormControl({value: '', disabled: !this.changePassword})
     });
+    let userControl: any = this.accountForm.get('user');
+    userControl.get('email').setValidators([Validators.email])
   }
 
   onTogglePassChange(checked: boolean) {
     this.changePassword = checked;
     if (checked){
       this.accountForm.controls['password'].enable();
-      this.accountForm.controls['passConfirm'].enable();
+      this.accountForm.controls['confirmPass'].enable();
     }
     else {
       this.accountForm.controls['password'].disable();
-      this.accountForm.controls['passConfirm'].disable();
+      this.accountForm.controls['confirmPass'].disable();
     }
   }
 
@@ -154,7 +163,6 @@ export class UsersComponent implements OnInit  {
     }).subscribe(({ data }) => {
       this.refresh((data as any).createUser.user.id);
     },(error) => {
-      console.log('there was an error sending the query', error);
     });
   }
 
