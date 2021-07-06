@@ -11,7 +11,8 @@
   </a>
   <span class="example-spacer"></span>
   <div fxShow="true" fxHide.lt-md="true">
-    <a *ngFor="let item of menuItems" mat-button [routerLink]="'/'+item.url"> {{item.name}} </a>
+    <a *ngFor="let item of menuItems" mat-button [routerLink]="'/'+item.url" routerLinkActive="active-link"> {{item.name}} </a>
+    <a routerLink="/login" mat-button>Login</a>
   </div>
 
 </mat-toolbar>

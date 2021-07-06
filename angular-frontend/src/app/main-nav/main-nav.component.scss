@@ -1,3 +1,5 @@
+//@import "~src/styles";
+
 .sidenav-container {
   height: 100%;
 }
@@ -14,6 +16,11 @@
   position: sticky;
   top: 0;
   z-index: 100;
+}
+
+.mat-toolbar .active-link {
+  font-size: 1.2em;
+  //color: $app-accent;
 }
 
 

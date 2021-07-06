@@ -5,7 +5,7 @@
       [opened]="(isHandset$ | async) === false">
     <mat-toolbar></mat-toolbar>
     <mat-nav-list>
-      <a *ngFor="let item of menuItems" mat-list-item [routerLink]="'/'+item.url"> {{item.name}} </a>
+      <a *ngFor="let item of menuItems" mat-list-item  routerLinkActive="active-link" [routerLink]="'/'+item.url"> {{item.name}} </a>
     </mat-nav-list>
   </mat-sidenav>
   <mat-sidenav-content>
