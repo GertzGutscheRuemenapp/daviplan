@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, OnInit, TemplateRef, ViewChild} from '@angular/core';
 import { Apollo, QueryRef } from 'apollo-angular';
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { map } from "rxjs/operators";
@@ -22,13 +22,13 @@ export class UsersComponent implements AfterViewInit  {
 
   @ViewChild('accountCard') accountCard?: DataCardComponent;
   @ViewChild('permissionCard') permissionCard?: DataCardComponent;
+  @ViewChild('createUser') createUserTemplate?: TemplateRef<any>;
   accountForm!: FormGroup;
   permissionForm!: FormGroup;
+  createUserForm: FormGroup;
   userQuery!: QueryRef<GetUsersQuery>;
   users: User[] = [];
   selectedUser?: User;
-  newUserName: String = '';
-  newUserPassword: String = '';
   changePassword: boolean = false;
 
   layout = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
@@ -55,6 +55,11 @@ export class UsersComponent implements AfterViewInit  {
 
   constructor(private apollo: Apollo, private breakpointObserver: BreakpointObserver,
               public dialog: MatDialog, private formBuilder: FormBuilder) {
+    this.createUserForm = this.formBuilder.group({
+      userName: new FormControl('', Validators.required),
+      password: new FormControl('', Validators.required),
+      confirmPass: new FormControl('', Validators.required)
+    });
   }
 
   ngAfterViewInit() {
@@ -63,7 +68,9 @@ export class UsersComponent implements AfterViewInit  {
     })
     this.userQuery.valueChanges.subscribe((response) =>{
       this.users = response.data.allUsers;
-      this.users = this.users.slice().sort((a,b) => (a.userName > b.userName)? 1 : (a.userName < b.userName)? -1 : 0)
+      this.users = this.users.slice().sort((a,b) =>
+        (!a.isSuperuser && b.isSuperuser)? 1 : (a.isSuperuser && !b.isSuperuser)? -1 :
+          (a.userName > b.userName)? 1 : (a.userName < b.userName)? -1 : 0)
     });
     this.setupAccountCard();
     this.setupPermissionCard();
@@ -194,43 +201,45 @@ export class UsersComponent implements AfterViewInit  {
   }
 
   onCreateUser() {
-    this.apollo.mutate({
-      mutation: CREATE_USER_QUERY,
-      variables: {
-        userName: this.newUserName,
-        password: this.newUserPassword
+    let dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '300px',
+      disableClose: true,
+      data: {
+        title: 'Neuer Nutzer',
+        template: this.createUserTemplate,
+        closeOnConfirm: false
       }
-    }).subscribe(({ data }) => {
-      this.refresh((data as any).createUser.user.id);
-    },(error) => {
     });
-  }
-
-  onUpdateUser() {
-    if (!this.selectedUser)
-      return;
-    this.apollo.mutate({
-      mutation: UPDATE_USER_QUERY,
-      variables: {
-        id: this.selectedUser.id,
-        userName: this.selectedUser.userName,
-        email: this.selectedUser.email,
-        firstName: this.selectedUser.firstName,
-        lastName: this.selectedUser.lastName,
-        canEditData: this.selectedUser.canEditData,
-        canCreateScenarios: this.selectedUser.canCreateScenarios,
-        adminAccess: this.selectedUser.adminAccess
+    dialogRef.afterClosed().subscribe((ok: boolean) => {
+      this.createUserForm.reset();
+    });
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      this.createUserForm.setErrors(null);
+      // display errors for all fields even if not touched
+      this.createUserForm.markAllAsTouched();
+      if (this.createUserForm.invalid) return;
+      let userName = this.createUserForm.value.userName;
+      let password = this.createUserForm.value.password;
+      if (password != this.createUserForm.value.confirmPass){
+        this.createUserForm.controls['confirmPass'].setErrors({'notMatching': true});
+        return;
       }
-    }).subscribe(({ data }) => {
-      let userId = (data as any).updateUser.user.id;
-      this.userQuery.refetch().then( res => {
-        let user = this.users.find(user => user.id === userId);
-        this.selectedUser = Object.assign({}, user);
+      dialogRef.componentInstance.isLoading = true;
+      this.apollo.mutate({
+        mutation: CREATE_USER_QUERY,
+        variables: {
+          userName: userName,
+          password: password
+        }
+      }).subscribe(({ data }) => {
+        this.refresh((data as any).createUser.user.id);
+        dialogRef.close();
+      },(error) => {
+        this.createUserForm.setErrors({ 'error': error })
+        dialogRef.componentInstance.isLoading = false;
       });
-    },(error) => {
-      console.log('there was an error sending the query', error);
     });
-
   }
 
   onDeleteUser() {

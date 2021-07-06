@@ -41,6 +41,11 @@ class CreateUser(graphene.Mutation):
     user = graphene.Field(UserType)
 
     def mutate(root, info, user_name, password):
+        try:
+            User.objects.get(username=user_name)
+            raise GraphQLError(_('Nutzername ist bereits vergeben'))
+        except User.DoesNotExist:
+            pass
         user = User(username=user_name, password=password)
         user.save()
         profile = user.profile # auto created

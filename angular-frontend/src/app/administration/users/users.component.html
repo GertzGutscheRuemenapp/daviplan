@@ -5,16 +5,18 @@
         <ul class="users">
           <mat-selection-list [multiple]="false" >
             <mat-list-option *ngFor="let user of users" [value]="user" (click)="onSelect(user)" [selected]="(selectedUser && (user.id === selectedUser.id))">
-              {{ user.userName }}
+              <div mat-line>{{ user.userName }}</div>
+              <div mat-line *ngIf="user.isSuperuser"><i i18n>Administrator</i></div>
             </mat-list-option>
           </mat-selection-list>
         </ul>
-        <button *ngIf="selectedUser && !selectedUser.isSuperuser" mat-flat-button color="warn" (click)="onDeleteUser()" i18n>Nutzer löschen</button>
+        <button mat-raised-button color="primary" (click)="onCreateUser()" i18n>Nutzer hinzufügen</button>
+        <button [class.hidden]="!selectedUser || selectedUser.isSuperuser" mat-raised-button color="warn" (click)="onDeleteUser()" i18n>Nutzer löschen</button>
       </app-data-card>
     </mat-grid-tile>
     <mat-grid-tile [class.hidden]="!selectedUser" [colspan]="( layout | async )!.account.cols" [rowspan]="( layout | async )!.account.rows">
       <ng-template #accountEdit>
-        <form [formGroup]="accountForm" (ngSubmit)="onUpdateUser()">
+        <form [formGroup]="accountForm">
           <mat-error *ngIf="accountForm.errors && accountForm.errors['error']" class="alert">
             {{accountForm.errors['error']}}
           </mat-error>
@@ -79,7 +81,7 @@
     </mat-grid-tile>
     <mat-grid-tile [class.hidden]="!selectedUser"  [colspan]="( layout | async )!.permissions.cols" [rowspan]="( layout | async )!.permissions.rows">
       <ng-template #permissionEdit>
-        <form [formGroup]="permissionForm" (ngSubmit)="onUpdateUser()">
+        <form [formGroup]="permissionForm">
           <mat-error *ngIf="permissionForm.errors && permissionForm.errors['error']" class="alert">
             {{permissionForm.errors['error']}}
           </mat-error>
@@ -111,13 +113,23 @@
 
 
 <!--ToDo: Form-->
-<h2 i18n>Neuer Benutzer </h2>
-<div>
-  <label for="new-user-name" i18n>Nutzername</label>
-  <input id="new-user-name" placeholder="user_name" [(ngModel)]="newUserName">
-  <br>
-  <label for="new-user-password" i18n>Passwort</label>
-  <input id="new-user-password" type="password"  [(ngModel)]="newUserPassword">
-  <br>
-  <button (click)="onCreateUser()" i18n>Nutzer erstellen</button>
-</div>
+<ng-template #createUser>
+  <form [formGroup]="createUserForm">
+    <mat-error *ngIf="createUserForm.errors && createUserForm.errors['error']" class="alert">
+      {{createUserForm.errors['error']}}
+    </mat-error>
+    <mat-form-field class="full">
+      <mat-label i18n>Nutzername</mat-label>
+      <input matInput formControlName="userName">
+    </mat-form-field>
+    <mat-form-field class="full">
+      <mat-label i18n>Passwort</mat-label>
+      <input matInput type="password" formControlName="password" placeholder="·········">
+    </mat-form-field>
+    <mat-form-field class="full">
+      <mat-label i18n>Passwort bestätigen</mat-label>
+      <input matInput type="password" formControlName="confirmPass" placeholder="·········">
+      <mat-error *ngIf="createUserForm.get('confirmPass')?.errors?.notMatching" i18n>Die Passwörter stimmen nicht überein</mat-error>
+    </mat-form-field>
+  </form>
+</ng-template>
