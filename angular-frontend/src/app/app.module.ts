@@ -30,6 +30,7 @@ import { ConfirmDialogComponent } from "./dialogs/confirm-dialog.component";
 import { DataCardComponent } from "./dash/data-card.component";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatCheckboxModule } from "@angular/material/checkbox";
+import { LoginComponent } from './login/login.component';
 
 @NgModule({
   declarations: [
@@ -41,7 +42,8 @@ import { MatCheckboxModule } from "@angular/material/checkbox";
     SideNavComponent,
     DashComponent,
     DataCardComponent,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    LoginComponent
   ],
   imports: [
     BrowserModule,
