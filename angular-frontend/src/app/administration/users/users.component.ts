@@ -5,8 +5,7 @@ import { map } from "rxjs/operators";
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { User } from './users';
 import { ALL_USERS_QUERY, CREATE_USER_QUERY, DELETE_USER_QUERY, GetUsersQuery,
-         UPDATE_USER_QUERY, UPDATE_ACCOUNT_QUERY, UPDATE_ACCOUNT_QUERY_WO_PASS,
-         UPDATE_PERMISSIONS_QUERY } from './graphql';
+         UPDATE_ACCOUNT_QUERY, UPDATE_PERMISSIONS_QUERY } from './graphql';
 import { ConfirmDialogComponent } from '../../dialogs/confirm-dialog.component';
 import { DataCardComponent } from '../../dash/data-card.component'
 import {Observable} from "rxjs";
@@ -89,9 +88,9 @@ export class UsersComponent implements AfterViewInit  {
           userName: user.userName,
           email: user.email,
           firstName: user.firstName,
-          lastName: user.lastName
+          lastName: user.lastName,
+          password: null
       }
-      let mutation = UPDATE_ACCOUNT_QUERY_WO_PASS;
       if (this.accountForm.value.changePass){
         let pass = this.accountForm.value.password
         if (pass != this.accountForm.value.confirmPass){
@@ -99,11 +98,10 @@ export class UsersComponent implements AfterViewInit  {
           return;
         }
         variables.password = pass;
-        mutation = UPDATE_ACCOUNT_QUERY;
       }
       this.accountCard?.setLoading(true);
       this.apollo.mutate({
-        mutation: mutation,
+        mutation: UPDATE_ACCOUNT_QUERY,
         variables: variables
       }).subscribe(({ data }) => {
         this.accountCard?.closeDialog();
