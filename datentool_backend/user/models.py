@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.contrib.gis.db import models as gis_models
 
 
 class Profile(models.Model):
@@ -25,3 +26,32 @@ def create_user_profile(sender, instance, created, **kwargs):
 def save_user_profile(sender, instance, **kwargs):
     '''save profile when user is saved'''
     instance.profile.save()
+
+
+class Project(models.Model):
+    '''
+    Basic Project Information
+    '''
+    name = models.TextField()
+    owner = models.ForeignKey(Profile, on_delete=models.RESTRICT)
+    users = models.ManyToManyField(Profile, related_name='shared_with_users')
+    allow_shared_change = models.BooleanField()
+    map_section = gis_models.PolygonField()
+
+    @property
+    def infrastructures(self):
+        """set of infrastructures"""
+
+
+class Scenario(models.Model):
+    """BULE-Scenario"""
+    name = models.TextField()
+    project = models.ForeignKey(Project, on_delete=models.RESTRICT)
+
+    @property
+    def demand(self):
+        """set of demand rates"""
+
+    @property
+    def modes(self):
+        """the modes used in the scenario"""
