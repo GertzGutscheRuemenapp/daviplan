@@ -3,8 +3,16 @@ from graphql import GraphQLError
 from django.utils.translation import gettext as _
 from graphene_django import DjangoObjectType
 from django.contrib.auth.models import User
+import graphql_jwt
+from graphql_jwt.decorators import login_required
 
 from .models import Profile
+
+
+class Authentication(graphene.ObjectType):
+    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
+    verify_token = graphql_jwt.Verify.Field()
+    refresh_token = graphql_jwt.Refresh.Field()
 
 
 class UserType(DjangoObjectType):
@@ -40,6 +48,7 @@ class CreateUser(graphene.Mutation):
     ok = graphene.Boolean()
     user = graphene.Field(UserType)
 
+    @login_required
     def mutate(root, info, user_name, password):
         try:
             User.objects.get(username=user_name)
@@ -68,6 +77,7 @@ class UpdateUser(graphene.Mutation):
     user = graphene.Field(UserType)
 
     @classmethod
+    @login_required
     def mutate(cls, root, info, id, **kwargs):
         profile = Profile.objects.get(pk=id)
         user = profile.user
@@ -97,6 +107,7 @@ class DeleteUser(graphene.Mutation):
     ok = graphene.Boolean()
 
     @classmethod
+    @login_required
     def mutate(cls, root, info, id):
         user = User.objects.get(profile__pk=id)
         if user.is_superuser:
@@ -109,9 +120,11 @@ class Query(graphene.ObjectType):
     all_users = graphene.List(UserType)
     user = graphene.Field(UserType, id=graphene.ID())
 
+    @login_required
     def resolve_all_users(self, info, *args):
         return Profile.objects.all()
 
+    @login_required
     def resolve_user(self, info, id):
         return Profile.objects.get(pk=id)
 

@@ -7,7 +7,8 @@ class MergedQueries(user_schema.Query, ObjectType):
     classes here'''
 
 
-class MergedMutations(user_schema.Mutation, ObjectType):
+class MergedMutations(user_schema.Authentication, user_schema.Mutation,
+                      ObjectType):
     '''to merge mutations from individual schemes add them to the list of super
     classes here'''
 

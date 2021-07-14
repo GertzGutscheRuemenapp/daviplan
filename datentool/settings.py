@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'graphene_django',
-    'datentool_backend'
+    'datentool_backend',
+    'graphql_jwt.refresh_token.apps.RefreshTokenConfig'
 ]
 
 MIDDLEWARE = [
@@ -79,8 +80,21 @@ WSGI_APPLICATION = 'datentool.wsgi.application'
 
 GRAPHENE = {
     'SCHEMA':  'datentool_backend.schema',
+    'MIDDLEWARE': [
+        'graphql_jwt.middleware.JSONWebTokenMiddleware',
+    ],
 }
 
+AUTHENTICATION_BACKENDS = [
+    'graphql_jwt.backends.JSONWebTokenBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+GRAPHQL_JWT = {
+    "JWT_VERIFY_EXPIRATION": True,
+    "JWT_LONG_RUNNING_REFRESH_TOKEN": True,
+    'JWT_ALLOW_ARGUMENT': True
+}
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
