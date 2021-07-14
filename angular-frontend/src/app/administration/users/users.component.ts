@@ -2,13 +2,12 @@ import {AfterViewInit, Component, OnInit, TemplateRef, ViewChild} from '@angular
 import { Apollo, QueryRef } from 'apollo-angular';
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { map } from "rxjs/operators";
-import { MAT_DIALOG_DATA, MatDialogRef, MatDialog } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { User } from './users';
 import { ALL_USERS_QUERY, CREATE_USER_QUERY, DELETE_USER_QUERY, GetUsersQuery,
          UPDATE_ACCOUNT_QUERY, UPDATE_PERMISSIONS_QUERY } from './graphql';
 import { ConfirmDialogComponent } from '../../dialogs/confirm-dialog.component';
 import { DataCardComponent } from '../../dash/data-card.component'
-import {Observable} from "rxjs";
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 
 @Component({

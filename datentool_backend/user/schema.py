@@ -119,6 +119,11 @@ class DeleteUser(graphene.Mutation):
 class Query(graphene.ObjectType):
     all_users = graphene.List(UserType)
     user = graphene.Field(UserType, id=graphene.ID())
+    whoami = graphene.Field(UserType)
+
+    @login_required
+    def resolve_whoami(self, info, **kwargs):
+        return info.context.user.profile
 
     @login_required
     def resolve_all_users(self, info, *args):

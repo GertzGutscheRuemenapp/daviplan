@@ -35,3 +35,8 @@ mat-form-field.full {
   // Every toolbar row uses a flexbox row layout.
   flex: 1 1 auto;
 }
+
+.center {
+  display: flex;
+  justify-content: center;
+}
