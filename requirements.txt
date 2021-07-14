@@ -1,5 +1,6 @@
 django==3.*
-graphene_django==2.*
+graphene-django>=3.0.0b1
 django-cors-headers==3.*
 psycopg2==2.*
 numpy
+django-graphql-jwt

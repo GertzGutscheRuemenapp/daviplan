@@ -1,0 +1,14 @@
+<h1 mat-dialog-title>{{ data.title }}</h1>
+<mat-dialog-content>
+  <div class="loadOverlay" *ngIf="isLoading">
+    <mat-spinner [diameter]="50"></mat-spinner>
+  </div>
+  <p>
+    {{ data.message }}
+  </p>
+  <ng-container *ngTemplateOutlet="data.template;"></ng-container>
+</mat-dialog-content>
+<mat-dialog-actions align="center">
+  <button mat-button color="primary" (click)="onConfirmClick()" tabindex="1">{{ data.confirmButtonText }}</button>
+  <button mat-button mat-dialog-close tabindex="-1">{{ data.cancelButtonText }}</button>
+</mat-dialog-actions>

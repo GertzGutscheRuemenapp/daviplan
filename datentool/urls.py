@@ -21,7 +21,7 @@ from graphene_django.views import GraphQLView
 from datentool_backend.schema import schema
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('django-admin/', admin.site.urls),
     path('graphql', csrf_exempt(GraphQLView.as_view(
         graphiql=settings.DEBUG, schema=schema))),
 ]
