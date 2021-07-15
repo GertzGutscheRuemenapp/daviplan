@@ -4,10 +4,11 @@ INSTALLED_APPS.extend([
     'corsheaders'
 ])
 
-MIDDLEWARE.extend([
+# cors has to be on top
+MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware'
-])
+] + MIDDLEWARE
 
 CORS_ORIGIN_ALLOW_ALL = True
 
