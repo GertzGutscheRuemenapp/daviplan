@@ -1,14 +1,14 @@
-import {AfterViewInit, Component, OnInit, TemplateRef, ViewChild} from '@angular/core';
-import { Apollo, QueryRef } from 'apollo-angular';
+import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { map } from "rxjs/operators";
 import { MatDialog } from '@angular/material/dialog';
-import { User } from './users';
-import { ALL_USERS_QUERY, CREATE_USER_QUERY, DELETE_USER_QUERY, GetUsersQuery,
-         UPDATE_ACCOUNT_QUERY, UPDATE_PERMISSIONS_QUERY } from './graphql';
+import { User } from '../../login/users';
 import { ConfirmDialogComponent } from '../../dialogs/confirm-dialog.component';
 import { DataCardComponent } from '../../dash/data-card.component'
-import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
+import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
+import { RestAPI } from "../../rest-api";
+import { Observable } from "rxjs";
 
 @Component({
   selector: 'app-users',
@@ -24,7 +24,6 @@ export class UsersComponent implements AfterViewInit  {
   accountForm!: FormGroup;
   permissionForm!: FormGroup;
   createUserForm: FormGroup;
-  userQuery!: QueryRef<GetUsersQuery>;
   users: User[] = [];
   selectedUser?: User;
   changePassword: boolean = false;
@@ -50,28 +49,31 @@ export class UsersComponent implements AfterViewInit  {
       };
     })
   );
+  Object = Object;
 
-  constructor(private apollo: Apollo, private breakpointObserver: BreakpointObserver,
-              public dialog: MatDialog, private formBuilder: FormBuilder) {
+  constructor(private http: HttpClient, private breakpointObserver: BreakpointObserver,
+              private dialog: MatDialog, private formBuilder: FormBuilder, private rest: RestAPI) {
     this.createUserForm = this.formBuilder.group({
-      userName: new FormControl('', Validators.required),
+      username: new FormControl('', Validators.required),
       password: new FormControl('', Validators.required),
       confirmPass: new FormControl('', Validators.required)
     });
   }
 
   ngAfterViewInit() {
-    this.userQuery = this.apollo.watchQuery<GetUsersQuery>({
-      query: ALL_USERS_QUERY
-    })
-    this.userQuery.valueChanges.subscribe((response) =>{
-      this.users = response.data.allUsers;
-      this.users = this.users.slice().sort((a,b) =>
-        (!a.isSuperuser && b.isSuperuser)? 1 : (a.isSuperuser && !b.isSuperuser)? -1 :
-          (a.userName > b.userName)? 1 : (a.userName < b.userName)? -1 : 0)
-    });
+    this.getUsers();
     this.setupAccountCard();
     this.setupPermissionCard();
+  }
+
+  getUsers(): Observable<User[]> {
+    let query = this.http.get<User[]>(this.rest.URLS.users);
+    query.subscribe((users)=>{
+      this.users = users.slice().sort((a,b) =>
+        (!a.isSuperuser && b.isSuperuser)? 1 : (a.isSuperuser && !b.isSuperuser)? -1 :
+          (a.username > b.username)? 1 : (a.username < b.username)? -1 : 0)
+    })
+    return query;
   }
 
   setupAccountCard(){
@@ -82,9 +84,9 @@ export class UsersComponent implements AfterViewInit  {
       this.accountForm.markAllAsTouched();
       if (this.accountForm.invalid) return;
       let user = this.accountForm.value.user;
-      let variables: any = {
+      let attributes: any = {
           id: this.selectedUser?.id,
-          userName: user.userName,
+          username: user.username,
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
@@ -96,17 +98,16 @@ export class UsersComponent implements AfterViewInit  {
           this.accountForm.controls['confirmPass'].setErrors({'notMatching': true});
           return;
         }
-        variables.password = pass;
+        attributes.password = pass;
       }
       this.accountCard?.setLoading(true);
-      this.apollo.mutate({
-        mutation: UPDATE_ACCOUNT_QUERY,
-        variables: variables
-      }).subscribe(({ data }) => {
+      this.http.patch<User>(`${this.rest.URLS.users}${this.selectedUser?.id}/`, attributes
+      ).subscribe(data => {
         this.accountCard?.closeDialog();
-        this.refresh((data as any).updateUser.user.id);
+        this.refresh(data.id);
       },(error) => {
-        this.accountForm.setErrors({ 'error': error })
+        // ToDo: set specific errors to fields
+        this.accountForm.setErrors(error.error);
         this.accountCard?.setLoading(false);
       });
     })
@@ -130,22 +131,21 @@ export class UsersComponent implements AfterViewInit  {
     if (!this.permissionCard) return;
     this.permissionCard.dialogConfirmed.subscribe((ok)=>{
       this.permissionForm.setErrors(null);
-      let user = this.permissionForm.value.user;
-      let variables: any = {
-        id: this.selectedUser?.id,
-        adminAccess: user.adminAccess,
-        canCreateScenarios: user.canCreateScenarios,
-        canEditData: user.canEditData
+      let profile = this.permissionForm.value.profile;
+      let attributes = {
+        profile: {
+          adminAccess: profile.adminAccess,
+          canCreateScenarios: profile.canCreateScenarios,
+          canEditData: profile.canEditData
+        }
       }
       this.permissionCard?.setLoading(true);
-      this.apollo.mutate({
-        mutation: UPDATE_PERMISSIONS_QUERY,
-        variables: variables
-      }).subscribe(({ data }) => {
+      this.http.patch<User>(`${this.rest.URLS.users}${this.selectedUser?.id}/`, attributes
+      ).subscribe(user => {
         this.permissionCard?.closeDialog();
-        this.refresh((data as any).updateUser.user.id);
+        this.refresh(user.id);
       },(error) => {
-        this.permissionForm.setErrors({ 'error': error })
+        this.permissionForm.setErrors(error.error);
         this.permissionCard?.setLoading(false);
       });
     })
@@ -160,7 +160,7 @@ export class UsersComponent implements AfterViewInit  {
   }
 
   refresh(userId?: number): void {
-    this.userQuery.refetch().then( res => {
+    this.getUsers().subscribe( data => {
       if (userId != undefined){
         let user = this.users.find(user => user.id === userId);
         this.onSelect(user as User);
@@ -181,7 +181,7 @@ export class UsersComponent implements AfterViewInit  {
     let userControl: any = this.accountForm.get('user');
     userControl.get('email').setValidators([Validators.email])
     this.permissionForm = this.formBuilder.group({
-      user: this.formBuilder.group(this.selectedUser)
+      profile: this.formBuilder.group(this.selectedUser.profile)
     });
   }
 
@@ -216,24 +216,23 @@ export class UsersComponent implements AfterViewInit  {
       // display errors for all fields even if not touched
       this.createUserForm.markAllAsTouched();
       if (this.createUserForm.invalid) return;
-      let userName = this.createUserForm.value.userName;
+      let username = this.createUserForm.value.username;
       let password = this.createUserForm.value.password;
       if (password != this.createUserForm.value.confirmPass){
         this.createUserForm.controls['confirmPass'].setErrors({'notMatching': true});
         return;
       }
       dialogRef.componentInstance.isLoading = true;
-      this.apollo.mutate({
-        mutation: CREATE_USER_QUERY,
-        variables: {
-          userName: userName,
-          password: password
-        }
-      }).subscribe(({ data }) => {
-        this.refresh((data as any).createUser.user.id);
+      let attributes = {
+        username: username,
+        password: password
+      };
+      this.http.post<User>(this.rest.URLS.users, attributes
+      ).subscribe(user => {
+        this.refresh(user.id);
         dialogRef.close();
       },(error) => {
-        this.createUserForm.setErrors({ 'error': error })
+        this.createUserForm.setErrors(error.error);
         dialogRef.componentInstance.isLoading = false;
       });
     });
@@ -246,17 +245,14 @@ export class UsersComponent implements AfterViewInit  {
       width: '300px',
       data: {
         title: 'Nutzer löschen',
-        message: `Möchten sie den Nutzer "${this.selectedUser.userName}" wirklich löschen?`
+        message: `Möchten sie den Nutzer "${this.selectedUser.username}" wirklich löschen?`,
+        closeOnConfirm: true
       }
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed === true) {
-        this.apollo.mutate({
-          mutation: DELETE_USER_QUERY,
-          variables: {
-            id: this.selectedUser!.id
-          }
-        }).subscribe(({ data }) => {
+        this.http.delete(`${this.rest.URLS.users}${this.selectedUser?.id}/`
+        ).subscribe(res => {
           this.refresh();
         },(error) => {
           console.log('there was an error sending the query', error);

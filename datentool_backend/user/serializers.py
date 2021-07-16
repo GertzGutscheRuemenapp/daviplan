@@ -13,16 +13,16 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     parent_lookup_kwargs = {}
-    profile = ProfileSerializer()
+    profile = ProfileSerializer(required=False)
     url = serializers.HyperlinkedIdentityField(
         view_name='user-detail', read_only=True)
     password = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = User
-        organization = serializers.CharField(required=False, allow_null=True)
         fields = ('id', 'username', 'email', 'first_name',
                   'last_name', 'is_superuser', 'profile', 'url', 'password')
+        #extra_kwargs = {'profile': {'required': False, 'allow_null': True}}
 
     def create(self, validated_data):
         profile_data = validated_data.pop('profile', {})

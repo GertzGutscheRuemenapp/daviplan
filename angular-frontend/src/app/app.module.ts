@@ -30,7 +30,6 @@ import { DataCardComponent } from "./dash/data-card.component";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { LoginComponent } from './login/login.component';
-import { TranslateModule } from "@ngx-translate/core";
 import { TokenInterceptor } from './auth.service';
 
 @NgModule({
@@ -67,10 +66,7 @@ import { TokenInterceptor } from './auth.service';
     MatProgressSpinnerModule,
     ReactiveFormsModule,
     MatInputModule,
-    MatCheckboxModule,
-    TranslateModule.forRoot({
-      defaultLanguage: 'de'
-    })
+    MatCheckboxModule
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true }
