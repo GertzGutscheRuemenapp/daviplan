@@ -3,8 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { GraphQLModule } from './graphql.module';
-import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { UsersComponent } from './administration/users/users.component';
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -32,6 +31,7 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { LoginComponent } from './login/login.component';
 import { TranslateModule } from "@ngx-translate/core";
+import { TokenInterceptor } from './auth.service';
 
 @NgModule({
   declarations: [
@@ -50,7 +50,6 @@ import { TranslateModule } from "@ngx-translate/core";
     BrowserModule,
     AppRoutingModule,
     FlexLayoutModule,
-    GraphQLModule,
     HttpClientModule,
     FormsModule,
     BrowserAnimationsModule,
@@ -74,10 +73,7 @@ import { TranslateModule } from "@ngx-translate/core";
     })
   ],
   providers: [
-   /* {
-      provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
-      useValue: {appearance: 'fill'}
-    }*/
+    { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true }
   ],
   bootstrap: [AppComponent]
 })
