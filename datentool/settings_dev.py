@@ -1,10 +1,12 @@
 from datentool.settings import *
 
+DEBUG = True
+
 INSTALLED_APPS.extend([
     'corsheaders'
 ])
 
-# cors has to be on top
+# cors midleware has to be loaded first
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware'
@@ -12,7 +14,11 @@ MIDDLEWARE = [
 
 CORS_ORIGIN_ALLOW_ALL = True
 
-DEBUG = True
+# allow access to Rest API with session in development only
+# (in production only auth. via tokens is allowed)
+REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'].extend([
+    'rest_framework.authentication.SessionAuthentication',
+])
 
 # GDAL
 if os.name == 'nt':

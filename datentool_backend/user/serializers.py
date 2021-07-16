@@ -16,15 +16,16 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
     profile = ProfileSerializer()
     url = serializers.HyperlinkedIdentityField(
         view_name='user-detail', read_only=True)
+    password = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = User
         organization = serializers.CharField(required=False, allow_null=True)
         fields = ('id', 'username', 'email', 'first_name',
-                  'last_name', 'is_superuser', 'profile', 'url')
+                  'last_name', 'is_superuser', 'profile', 'url', 'password')
 
     def create(self, validated_data):
-        profile_data = validated_data.pop('profile')
+        profile_data = validated_data.pop('profile', {})
         instance = super().create(validated_data)
         profile = instance.profile
         for k, v in profile_data.items():
@@ -33,7 +34,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
-        profile_data = validated_data.pop('profile')
+        profile_data = validated_data.pop('profile', {})
         profile = instance.profile
         for k, v in profile_data.items():
             setattr(profile, k, v)
