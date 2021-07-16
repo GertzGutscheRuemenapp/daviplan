@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { AuthService } from '../auth.service';
-import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-login',
@@ -12,8 +11,7 @@ import { TranslateService } from '@ngx-translate/core';
 export class LoginComponent implements OnInit {
   loginForm: FormGroup;
 
-  constructor(private formBuilder: FormBuilder, private auth: AuthService,
-              private translate: TranslateService) {
+  constructor(private formBuilder: FormBuilder, private auth: AuthService) {
     this.loginForm = this.formBuilder.group({
       userName: '',
       password: ''
@@ -28,7 +26,7 @@ export class LoginComponent implements OnInit {
             password: pass,
             username: username
           }).subscribe(()=>{}, (error) => {
-            this.loginForm.setErrors({ 'error': this.translate.instant('Keine Übereinstimmung von Nutzer und Passwort') })
+            this.loginForm.setErrors({ 'error': $localize`Keine Übereinstimmung von Nutzer und Passwort` })
           });
   }
 
