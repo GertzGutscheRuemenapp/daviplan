@@ -13,27 +13,27 @@ interface Token {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  user$ = new BehaviorSubject<User>(null as any);
 
   constructor(private rest: RestAPI, private http: HttpClient ) { }
-  // user$ = new BehaviorSubject(null as any);
-  user$: Subject<User> = new ReplaySubject<User>()
 
   login(credentials: { username: string; password: string }): Observable<any> {
-      localStorage.removeItem('token');
+    // localStorage.removeItem('token');
     let query = this.http.post<Token>(this.rest.URLS.token, credentials)
       .pipe(
         tap(token => {
-          this.fetchCurrentUser();
           localStorage.setItem('token', token.access);
           localStorage.setItem('refreshToken', token.refresh);
+          this.fetchCurrentUser().subscribe(user=>this.user$.next(user));
         })
       );
       return query;
   }
 
   getCurrentUser(): Observable<User> {
-    let user = this.user$.pipe(
+    return this.user$.pipe(
       switchMap(user => {
+        // check if we already have user data
         if (user) {
           return of(user);
         }
@@ -44,10 +44,9 @@ export class AuthService {
           return this.fetchCurrentUser();
         }
 
-        return of(null);
+        return of(null as any);
       })
     );
-    return user as Observable<User>;
   }
 
   fetchCurrentUser(): Observable<User> {
@@ -61,7 +60,7 @@ export class AuthService {
 
   refreshToken(): Observable<Token> {
     const refreshToken = localStorage.getItem('refreshToken');
-    localStorage.removeItem('token');
+    // localStorage.removeItem('token');
     return this.http.post<Token>(
       this.rest.URLS.refreshToken,{ refresh: refreshToken }
     ).pipe(
@@ -73,7 +72,7 @@ export class AuthService {
   }
 
   logout(): void {
-    this.user$.next();
+    this.user$.next(null as any);
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
   }

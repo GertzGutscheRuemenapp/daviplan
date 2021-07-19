@@ -11,7 +11,13 @@
     <a *ngFor="let item of menuItems" mat-button [routerLink]="'/'+item.url" routerLinkActive="active-link"> {{item.name}} </a>
   </span>
   <span class="fill-space"></span>
-  <a routerLink="/login" mat-button>Login</a>
+  <ng-template #loggedOut>
+    <a routerLink="/login" mat-button>Login</a>
+  </ng-template>
+  <ng-container *ngIf="user$ | async; else loggedOut">
+    eingeloggt als&nbsp;<div *ngIf="user">{{user.username}}</div>
+    <a mat-button (click)="logout()">Logout</a>
+  </ng-container>
 </mat-toolbar>
 <mat-sidenav-container fxFlexFill class="example-container">
   <mat-sidenav color="primary" #sidenav fxLayout="column" mode="over" opened="false" fxHide.gt-sm="true">

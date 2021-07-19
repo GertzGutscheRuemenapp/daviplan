@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { AuthService } from '../auth.service';
 
@@ -8,10 +8,10 @@ import { AuthService } from '../auth.service';
   styleUrls: ['./login.component.scss']
 })
 
-export class LoginComponent implements OnInit {
+export class LoginComponent {
   loginForm: FormGroup;
 
-  constructor(private formBuilder: FormBuilder, private auth: AuthService) {
+  constructor(private formBuilder: FormBuilder, public auth: AuthService) {
     this.loginForm = this.formBuilder.group({
       userName: '',
       password: ''
@@ -25,12 +25,11 @@ export class LoginComponent implements OnInit {
        this.auth.login({
             password: pass,
             username: username
-          }).subscribe(()=>{}, (error) => {
+          }).subscribe(user => {
+
+       }, (error) => {
             this.loginForm.setErrors({ 'error': $localize`Keine Übereinstimmung von Nutzer und Passwort` })
           });
-  }
-
-  ngOnInit(): void {
   }
 
 }
