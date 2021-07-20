@@ -141,24 +141,9 @@ if os.name == 'nt':
 
 elif sys.platform == 'linux':
     # Linux
-    GDAL_LIBRARY_PATH = os.path.join(sys.exec_prefix,
-                                     'lib', 'libgdal.so')
-    GEOS_LIBRARY_PATH = os.path.join(sys.exec_prefix,
-                                     'lib', 'libgeos_c.so')
-    if not os.path.exists(GEOS_LIBRARY_PATH):
-        GEOS_LIBRARY_PATH = os.path.join(
-            sys.exec_prefix, 'lib', 'x86_64-linux-gnu', 'libgeos_c.so')
-    PROJ4_LIBRARY_PATH = os.path.join(sys.exec_prefix,
-                                     'lib', 'libproj.so')
-elif sys.platform == 'darwin':
-    # Max OS
-    GDAL_LIBRARY_PATH = os.path.join(sys.exec_prefix,
-                                     'lib', 'libgdal.dylib')
-    GEOS_LIBRARY_PATH = os.path.join(sys.exec_prefix,
-                                     'lib', 'libgeos_c.dylib')
-    PROJ4_LIBRARY_PATH = os.path.join(sys.exec_prefix,
-                                     'lib', 'libproj.dylib')
-
+    GDAL_LIBRARY_PATH = '/usr/lib/ogdi/libgdal.so'
+    GEOS_LIBRARY_PATH = '/usr/lib/x86_64-linux-gnu/libgeos_c.so'
+    PROJ4_LIBRARY_PATH = '/usr/lib/x86_64-linux-gnu/libproj.so'
 
 if sys.platform == 'linux':
     SPATIALITE_LIBRARY_PATH = 'mod_spatialite.so'
@@ -203,10 +188,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
-FRONTEND_APP_DIR = os.path.join(BASE_DIR, 'angular-frontend/dist')
+FRONTEND_APP_DIR = os.path.join(BASE_DIR, 'angular-frontend', 'dist')
 
 STATICFILES_DIRS = [
     os.path.join(FRONTEND_APP_DIR),
+]
+
+FIXTURE_DIRS = [
+    os.path.join(BASE_DIR, 'datentool_backend', 'fixtures'),
 ]
 
 STATIC_URL = '/static/'
