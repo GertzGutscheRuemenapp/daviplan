@@ -10,3 +10,8 @@ conda install -c conda-forge gdal=3.1 (global)
 (log in via /django-admin/login)
 - in production only tokens are allowed (receive via /api/token)
 - verification of token in header: {"Authorization": "Bearer *received token*"}
+
+### Serve Frontend
+\<path to installation\>/angular-frontend/npm install
+\<path to installation\>/angular-frontend/ng build --output-hashing none
+ - add argument --watch to reload on change

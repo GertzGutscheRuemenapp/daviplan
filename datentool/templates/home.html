@@ -1,0 +1,19 @@
+{% load static %}
+
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Datentool</title>
+  <base href="/">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="stylesheet" href="{% static 'angular-frontend/styles.css' %}"></head>
+<body>
+  <app-root></app-root>
+  <script type="text/javascript" src="{% static 'angular-frontend/runtime.js' %}"></script>
+  <script type="text/javascript" src="{% static 'angular-frontend/polyfills.js' %}"></script>
+  <script type="text/javascript" src="{% static 'angular-frontend/main.js' %}"></script>
+</body>
+</html>

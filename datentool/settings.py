@@ -89,7 +89,7 @@ ROOT_URLCONF = 'datentool.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'datentool', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'debug': True,
