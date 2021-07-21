@@ -21,9 +21,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
-DB_NAME = os.environ.get('DB_NAME')
-DB_USER = os.environ.get('DB_USER')
-DB_PASS = os.environ.get('DB_PASS')
+DB_NAME = os.environ.get('DB_NAME', 'datentool')
+DB_USER = os.environ.get('DB_USER', 'postgres')
+DB_PASS = os.environ.get('DB_PASS', '')
 DB_PORT = os.environ.get('DB_PORT', 5432)
 DB_HOST = os.environ.get('DB_HOST', 'localhost')
 SECRET_KEY = os.environ.get('SECRET_KEY')
@@ -215,9 +215,9 @@ STATICFILES_DIRS = [
     os.path.join(FRONTEND_APP_DIR),
 ]
 
-FIXTURE_DIRS = [
-    os.path.join(BASE_DIR, 'datentool_backend', 'fixtures'),
-]
+#FIXTURE_DIRS = [
+    #os.path.join(BASE_DIR, 'datentool_backend', 'fixtures'),
+#]
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'static'
