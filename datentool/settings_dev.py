@@ -6,13 +6,18 @@ INSTALLED_APPS.extend([
     'corsheaders'
 ])
 
+CORS_ORIGIN_ALLOW_ALL = True
+ALLOWED_HOSTS = ['*']
+#ALLOWED_HOSTS.extend([
+    #'localhost',
+    #'127.0.0.1'
+#])
+
 # cors midleware has to be loaded first
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware'
 ] + MIDDLEWARE
-
-CORS_ORIGIN_ALLOW_ALL = True
 
 # allow access to Rest API with session in development only
 # (in production only auth. via tokens is allowed)
@@ -32,8 +37,3 @@ DATABASES['default']['OPTIONS']['sslmode'] = 'prefer'
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-mzejv_pa9tbj7$5$q%ju0ko*)vrouq3_+0&q)y@phi!fevpntp'
-
-ALLOWED_HOSTS.extend([
-    'localhost',
-    '127.0.0.1'
-])
