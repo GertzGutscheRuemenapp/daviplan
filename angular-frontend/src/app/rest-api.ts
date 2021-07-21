@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class RestAPI {
-  public readonly API_SERVER = 'http://localhost:8000';
+  public readonly API_SERVER = '';
   public readonly API_ENDPOINT = `${ this.API_SERVER }/api`;
   public readonly URLS = {
     token: `${ this.API_ENDPOINT }/token/`,

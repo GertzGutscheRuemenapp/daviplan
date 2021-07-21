@@ -10,7 +10,8 @@ CORS_ORIGIN_ALLOW_ALL = True
 ALLOWED_HOSTS = ['*']
 #ALLOWED_HOSTS.extend([
     #'localhost',
-    #'127.0.0.1'
+    #'127.0.0.1',
+    #'0.0.0.0'
 #])
 
 # cors midleware has to be loaded first
@@ -35,5 +36,8 @@ if os.name == 'nt':
 
 DATABASES['default']['OPTIONS']['sslmode'] = 'prefer'
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-mzejv_pa9tbj7$5$q%ju0ko*)vrouq3_+0&q)y@phi!fevpntp'
+# default secret key, for dev only!
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'django-insecure-mzejv_pa9tbj7$5$q%ju0ko*)vrouq3_+0&q)y@phi!fevpntp'
+)
