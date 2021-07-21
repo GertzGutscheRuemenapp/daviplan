@@ -140,10 +140,29 @@ if os.name == 'nt':
                                    os.path.join(OSGEO4W_ROOT, 'bin')])
 
 elif sys.platform == 'linux':
+    lib_path = os.path.join(sys.exec_prefix, 'lib')
     # Linux
-    GDAL_LIBRARY_PATH = '/usr/lib/ogdi/libgdal.so'
-    GEOS_LIBRARY_PATH = '/usr/lib/x86_64-linux-gnu/libgeos_c.so'
-    PROJ4_LIBRARY_PATH = '/usr/lib/x86_64-linux-gnu/libproj.so'
+    GDAL_LIBRARY_PATH = os.path.join(lib_path, 'libgdal.so')
+
+    GEOS_LIBRARY_PATH = os.path.join(lib_path, 'libgeos_c.so')
+    if not os.path.exists(GEOS_LIBRARY_PATH):
+        GEOS_LIBRARY_PATH = os.path.join(lib_path, 'x86_64-linux-gnu',
+                                         'libgeos_c.so')
+
+    PROJ4_LIBRARY_PATH = os.path.join(sys.exec_prefix,
+                                     'lib', 'libproj.so')
+    if not os.path.exists(PROJ4_LIBRARY_PATH):
+        PROJ4_LIBRARY_PATH = os.path.join(lib_path, 'x86_64-linux-gnu',
+                                          'libproj.so')
+
+elif sys.platform == 'darwin':
+    # Max OS
+    GDAL_LIBRARY_PATH = os.path.join(sys.exec_prefix,
+                                     'lib', 'libgdal.dylib')
+    GEOS_LIBRARY_PATH = os.path.join(sys.exec_prefix,
+                                     'lib', 'libgeos_c.dylib')
+    PROJ4_LIBRARY_PATH = os.path.join(sys.exec_prefix,
+                                     'lib', 'libproj.dylib')
 
 if sys.platform == 'linux':
     SPATIALITE_LIBRARY_PATH = 'mod_spatialite.so'
