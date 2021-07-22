@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { Observable } from 'rxjs';
 import { map, share, shareReplay } from 'rxjs/operators';
-import { User } from "../../login/users";
+import { User } from "../../pages/login/users";
 import { AuthService } from "../../auth.service";
 import {Router} from "@angular/router";
 

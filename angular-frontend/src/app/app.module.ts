@@ -29,13 +29,14 @@ import { ConfirmDialogComponent } from "./dialogs/confirm-dialog.component";
 import { DataCardComponent } from "./dash/data-card.component";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatCheckboxModule } from "@angular/material/checkbox";
-import { LoginComponent } from './login/login.component';
+import { LoginComponent } from './pages/login/login.component';
 import { TokenInterceptor } from './auth.service';
 import { DemandComponent } from './pages/planning/demand/demand.component';
 import { PlanningComponent } from './pages/planning/planning.component';
 import { MatSelectModule } from "@angular/material/select";
-import { OlMapComponent } from './ol-map/ol-map.component';
+import { MapComponent } from './map/map.component';
 import { SupplyComponent } from './pages/planning/supply/supply.component';
+import { WelcomeComponent } from './pages/welcome.component';
 
 @NgModule({
   declarations: [
@@ -51,8 +52,9 @@ import { SupplyComponent } from './pages/planning/supply/supply.component';
     LoginComponent,
     DemandComponent,
     PlanningComponent,
-    OlMapComponent,
-    SupplyComponent
+    MapComponent,
+    SupplyComponent,
+    WelcomeComponent
   ],
   imports: [
     BrowserModule,

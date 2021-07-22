@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Observable, ReplaySubject, Subject, of, BehaviorSubject, throwError } from 'rxjs';
-import { User } from './login/users';
-import { catchError, filter, switchMap, take, tap } from 'rxjs/operators';
+import { User } from './pages/login/users';
+import { catchError, filter, switchMap, take, tap, map } from 'rxjs/operators';
 import { RestAPI } from "./rest-api";
-import { Router } from "@angular/router";
+import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree, Router } from "@angular/router";
 
 interface Token {
   access: string;
@@ -145,5 +145,24 @@ export class TokenInterceptor implements HttpInterceptor {
           return next.handle(this.addAuthorizationHeader(request, token));
         }));
     }
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class AuthGuard implements CanActivate {
+  constructor(private authService: AuthService,
+              private router: Router) { }
+
+  canActivate(
+    next: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
+    return this.authService.getCurrentUser().pipe(
+      map(user => !!user),
+      tap(isLogged => {
+        if (!isLogged) {
+          this.router.navigateByUrl('/login');
+        }
+      })
+    );
   }
 }

@@ -10,12 +10,12 @@ import TileLayer from 'ol/layer/Tile';
 import OSM, { ATTRIBUTION } from 'ol/source/OSM';
 
 @Component({
-  selector: 'app-ol-map',
-  templateUrl: './ol-map.component.html',
-  styleUrls: ['./ol-map.component.scss']
+  selector: 'app-map',
+  templateUrl: './map.component.html',
+  styleUrls: ['./map.component.scss']
 })
 
-export class OlMapComponent implements  AfterViewInit {
+export class MapComponent implements  AfterViewInit {
 
   @Input() center: Coordinate = [13.3392,52.5192];
   @Input() zoom: number = 8;
