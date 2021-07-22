@@ -32,4 +32,5 @@ urlpatterns = [
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path('api/token/refresh/', TokenRefreshView.as_view(),
          name='token_refresh'),
+    url('', TemplateView.as_view(template_name='home.html'), name='home')
 ]
