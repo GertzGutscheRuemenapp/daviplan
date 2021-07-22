@@ -16,4 +16,4 @@ RUN git clone https://github.com/GertzGutscheRuemenapp/bule_datentool.git $HOME/
 RUN python -m pip install --upgrade pip \
     && pip install -r $HOME/datentool/requirements.txt
 WORKDIR root/datentool/angular-frontend
-RUN npm install
+RUN npm ci
