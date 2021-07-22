@@ -3,11 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { map } from "rxjs/operators";
 import { MatDialog } from '@angular/material/dialog';
-import { User } from '../../login/users';
-import { ConfirmDialogComponent } from '../../dialogs/confirm-dialog.component';
-import { DataCardComponent } from '../../dash/data-card.component'
+import { User } from '../../../login/users';
+import { ConfirmDialogComponent } from '../../../dialogs/confirm-dialog.component';
+import { DataCardComponent } from '../../../dash/data-card.component'
 import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
-import { RestAPI } from "../../rest-api";
+import { RestAPI } from "../../../rest-api";
 import { Observable } from "rxjs";
 
 @Component({

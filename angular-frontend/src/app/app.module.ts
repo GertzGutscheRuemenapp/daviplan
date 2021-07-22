@@ -4,7 +4,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
-import { UsersComponent } from './administration/users/users.component';
+import { UsersComponent } from './pages/administration/users/users.component';
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { LayoutModule } from '@angular/cdk/layout';
@@ -14,9 +14,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
-import { MainNavComponent } from './main-nav/main-nav.component';
-import { AdministrationComponent } from './administration/administration.component';
-import { SideNavComponent } from './side-nav/side-nav.component';
+import { MainNavComponent } from './navigation/main-nav/main-nav.component';
+import { AdministrationComponent } from './pages/administration/administration.component';
+import { SideNavComponent } from './navigation/side-nav/side-nav.component';
 import { DashComponent } from './dash/dash.component';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatCardModule } from '@angular/material/card';
@@ -31,6 +31,11 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { LoginComponent } from './login/login.component';
 import { TokenInterceptor } from './auth.service';
+import { DemandComponent } from './pages/planning/demand/demand.component';
+import { PlanningComponent } from './pages/planning/planning.component';
+import { MatSelectModule } from "@angular/material/select";
+import { OlMapComponent } from './ol-map/ol-map.component';
+import { SupplyComponent } from './pages/planning/supply/supply.component';
 
 @NgModule({
   declarations: [
@@ -43,7 +48,11 @@ import { TokenInterceptor } from './auth.service';
     DashComponent,
     DataCardComponent,
     ConfirmDialogComponent,
-    LoginComponent
+    LoginComponent,
+    DemandComponent,
+    PlanningComponent,
+    OlMapComponent,
+    SupplyComponent
   ],
   imports: [
     BrowserModule,
@@ -66,7 +75,8 @@ import { TokenInterceptor } from './auth.service';
     MatProgressSpinnerModule,
     ReactiveFormsModule,
     MatInputModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatSelectModule
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true }

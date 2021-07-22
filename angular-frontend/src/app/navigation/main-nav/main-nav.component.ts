@@ -1,9 +1,9 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { Observable } from 'rxjs';
 import { map, share, shareReplay } from 'rxjs/operators';
-import { User } from "../login/users";
-import { AuthService } from "../auth.service";
+import { User } from "../../login/users";
+import { AuthService } from "../../auth.service";
 import {Router} from "@angular/router";
 
 @Component({
@@ -18,7 +18,7 @@ export class MainNavComponent implements OnInit{
 
   menuItems = [
     {name:  $localize`Bevölkerung`, url: 'bevoelkerung'},
-    {name:  $localize`Infrastrukturplanung`, url: 'infrastruktur'},
+    {name:  $localize`Infrastrukturplanung`, url: 'planung'},
     {name:  $localize`Grundlagendaten`, url: 'daten'},
     {name:  $localize`Administration`, url: 'admin'}
   ];

@@ -4,7 +4,7 @@
       <mat-icon>menu</mat-icon>
     </button>
   </div>
-  <a mat-button class="companyName" routerLink="/">
+  <a mat-button routerLink="/">
     <span>Datentool</span>
   </a>
   <span fxShow="true" fxHide.lt-md="true">
@@ -19,7 +19,7 @@
     <a mat-button (click)="logout()">Logout</a>
   </ng-container>
 </mat-toolbar>
-<mat-sidenav-container fxFlexFill class="example-container">
+<mat-sidenav-container fxFlexFill>
   <mat-sidenav color="primary" #sidenav fxLayout="column" mode="over" opened="false" fxHide.gt-sm="true">
     <div fxLayout="column">
       <a *ngFor="let item of menuItems" mat-button [routerLink]="'/'+item.url"> {{item.name}} </a>

@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
+import { environment } from "../environments/environment";
 
 @Injectable({
   providedIn: 'root'
 })
 export class RestAPI {
-  public readonly API_SERVER = '';
-  public readonly API_ENDPOINT = `${ this.API_SERVER }/api`;
+  public readonly API_ENDPOINT = environment.apiPath;
   public readonly URLS = {
     token: `${ this.API_ENDPOINT }/token/`,
     refreshToken: `${ this.API_ENDPOINT }/token/refresh/`,

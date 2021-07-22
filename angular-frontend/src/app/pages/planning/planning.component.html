@@ -1,0 +1,35 @@
+<mat-toolbar>
+<!--  <div fxShow="true" fxHide.gt-sm="true">
+    <button mat-icon-button (click)="sidenav.toggle()">
+      <mat-icon>menu</mat-icon>
+    </button>
+  </div>-->
+  <mat-form-field appearance="fill">
+    <mat-label>Planungsprozess</mat-label>
+    <mat-select>
+      <div class="row no-gutters pb-1">
+        <div class="col-sm-6 text-right pr-2">
+          <button mat-button>Planungsprozess hinzufügen</button>
+        </div>
+      </div>
+      <hr>
+      <mat-optgroup label="Meine Projekte">
+        <mat-option value="1"> Beispielprojekt 1 </mat-option>
+        <mat-option value="2"> Beispielprojekt 2 </mat-option>
+        <mat-option value="3"> Beispielprojekt 3 </mat-option>
+      </mat-optgroup>
+      <mat-optgroup label="Lisas geteilte Projekte">
+        <mat-option value="4"> Beispielprojekt 1 </mat-option>
+      </mat-optgroup>
+    </mat-select>
+  </mat-form-field>
+
+  <span fxShow="true" fxHide.lt-md="true">
+    <a mat-button routerLink="/planung/nachfrage" routerLinkActive="active-link" i18n> Nachfrage </a>
+    <a mat-button routerLink="/planung/angebot" routerLinkActive="active-link" i18n> Angebot </a>
+    <a mat-button routerLink="/planung/erreichbarkeiten" routerLinkActive="active-link" i18n> Erreichbarkeiten </a>
+    <a mat-button routerLink="/planung/bewertung" routerLinkActive="active-link" i18n> Bewertung </a>
+  </span>
+</mat-toolbar>
+<router-outlet>
+</router-outlet>
