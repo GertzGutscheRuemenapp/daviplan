@@ -13,4 +13,7 @@ export class PlanningComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  public onMapReady(event:any) {
+    console.log("Map Ready")
+  }
 }
