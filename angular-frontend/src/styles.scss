@@ -40,3 +40,26 @@ mat-form-field.full {
   display: flex;
   justify-content: center;
 }
+
+
+app-planning .mat-sidenav-content {
+  overflow: hidden;
+}
+
+app-planning .mat-grid-list.bottom {
+  position: fixed;
+  bottom: 0px;
+  width: 100%;
+}
+
+app-planning .grid-container {
+  margin: 20px;
+  pointer-events: none;
+}
+
+app-planning .mat-card {
+  max-width: fit-content;
+  max-height: fit-content;
+  min-width: 300px;
+  pointer-events: all;
+}

@@ -18,7 +18,7 @@ export class MainNavComponent implements OnInit{
 
   menuItems = [
     {name:  $localize`Bevölkerung`, url: 'bevoelkerung'},
-    {name:  $localize`Infrastrukturplanung`, url: 'planung'},
+    {name:  $localize`Infrastrukturplanung`, url: 'planung/nachfrage'},
     {name:  $localize`Grundlagendaten`, url: 'grundlagendaten'},
     {name:  $localize`Administration`, url: 'admin'}
   ];

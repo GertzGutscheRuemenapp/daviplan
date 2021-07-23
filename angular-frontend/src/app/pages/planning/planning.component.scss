@@ -12,24 +12,24 @@
   height: 100%;
   width: 100%;
 }
-
-::ng-deep .mat-sidenav-content {
+/*
+:host ::ng-deep .mat-sidenav-content {
   overflow: hidden;
 }
 
-::ng-deep .mat-grid-list.bottom {
+:host ::ng-deep .mat-grid-list.bottom {
   position: fixed;
   bottom: 0px;
   width: 100%;
 }
 
-::ng-deep .grid-container {
+:host ::ng-deep .grid-container {
   margin: 20px;
   pointer-events: none;
 }
-::ng-deep .mat-card {
+:host ::ng-deep .mat-card {
   max-width: fit-content;
   max-height: fit-content;
   min-width: 300px;
   pointer-events: all;
-}
+}*/
