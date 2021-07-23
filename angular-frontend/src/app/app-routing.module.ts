@@ -9,6 +9,7 @@ import { DemandComponent } from "./pages/planning/demand/demand.component";
 import { SupplyComponent } from "./pages/planning/supply/supply.component";
 import { WelcomeComponent } from "./pages/welcome.component";
 import { AuthGuard } from "./auth.service";
+import {BasedataComponent} from "./pages/basedata/basedata.component";
 
 const routes: Routes = [
   {
@@ -47,6 +48,10 @@ const routes: Routes = [
         component: SupplyComponent
       }
     ]
+  },
+  {
+    path: 'grundlagendaten',
+    component: BasedataComponent
   },
   {
     path: 'bevoelkerung',

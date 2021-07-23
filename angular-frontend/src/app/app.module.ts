@@ -37,6 +37,8 @@ import { MatSelectModule } from "@angular/material/select";
 import { MapComponent } from './map/map.component';
 import { SupplyComponent } from './pages/planning/supply/supply.component';
 import { WelcomeComponent } from './pages/welcome.component';
+import { BasedataComponent } from './pages/basedata/basedata.component';
+import {MatExpansionModule} from "@angular/material/expansion";
 
 @NgModule({
   declarations: [
@@ -54,7 +56,8 @@ import { WelcomeComponent } from './pages/welcome.component';
     PlanningComponent,
     MapComponent,
     SupplyComponent,
-    WelcomeComponent
+    WelcomeComponent,
+    BasedataComponent
   ],
   imports: [
     BrowserModule,
@@ -78,7 +81,8 @@ import { WelcomeComponent } from './pages/welcome.component';
     ReactiveFormsModule,
     MatInputModule,
     MatCheckboxModule,
-    MatSelectModule
+    MatSelectModule,
+    MatExpansionModule
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true }
