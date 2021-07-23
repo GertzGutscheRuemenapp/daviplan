@@ -41,15 +41,11 @@ mat-form-field.full {
   justify-content: center;
 }
 
-
-app-planning .mat-sidenav-content {
-  overflow: hidden;
-}
-
 app-planning .mat-grid-list.bottom {
   position: fixed;
   bottom: 0px;
-  width: 100%;
+  // not quite sure where the 40px come from but otherwise the element would be wider than the others
+  width: calc(100% - 40px);
 }
 
 app-planning .grid-container {
