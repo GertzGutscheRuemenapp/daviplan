@@ -41,6 +41,8 @@ mat-form-field.full {
   justify-content: center;
 }
 
+// definition of card styles in app-planning here to pass the styles to its child components (demand, supply ...)
+
 app-planning .mat-grid-list.bottom {
   position: fixed;
   bottom: 10px;
@@ -56,6 +58,13 @@ app-planning .mat-grid-tile.bottom mat-card{
 app-planning .mat-grid-tile.right mat-card{
   left: auto;
   right: 5px;
+}
+
+app-planning .mat-grid-tile.center mat-card{
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 app-planning .grid-container {

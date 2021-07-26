@@ -26,8 +26,19 @@
         <app-layer-select target="planning-map"></app-layer-select>
       </app-dash-card>
     </mat-grid-tile>
-    <mat-grid-tile colspan='8' class="bottom">
-      <app-dash-card title='Timeslider'> </app-dash-card>
+    <mat-grid-tile colspan='8' class="bottom center">
+      <app-dash-card title='Timeslider'>
+        <mat-slider
+          thumbLabel
+          tickInterval="1"
+          step="1"
+          min="1990"
+          max="2100"
+          aria-label="units"
+          style="width: 50em;"
+        >
+        </mat-slider>
+      </app-dash-card>
     </mat-grid-tile>
     <mat-grid-tile colspan='2' class="bottom right">
       <app-dash-card title='Legende'> </app-dash-card>

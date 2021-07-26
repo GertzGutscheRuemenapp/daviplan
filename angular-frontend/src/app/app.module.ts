@@ -39,6 +39,7 @@ import { WelcomeComponent } from './pages/welcome.component';
 import { BasedataComponent } from './pages/basedata/basedata.component';
 import {MatExpansionModule} from "@angular/material/expansion";
 import { LayerSelectComponent } from './map/layer-select/layer-select.component';
+import {MatSliderModule} from "@angular/material/slider";
 
 @NgModule({
   declarations: [
@@ -59,31 +60,32 @@ import { LayerSelectComponent } from './map/layer-select/layer-select.component'
     BasedataComponent,
     LayerSelectComponent
   ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    FlexLayoutModule,
-    HttpClientModule,
-    FormsModule,
-    BrowserAnimationsModule,
-    LayoutModule,
-    MatToolbarModule,
-    MatButtonModule,
-    MatSidenavModule,
-    MatIconModule,
-    MatListModule,
-    MatGridListModule,
-    MatCardModule,
-    MatMenuModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatProgressSpinnerModule,
-    ReactiveFormsModule,
-    MatInputModule,
-    MatCheckboxModule,
-    MatSelectModule,
-    MatExpansionModule
-  ],
+    imports: [
+        BrowserModule,
+        AppRoutingModule,
+        FlexLayoutModule,
+        HttpClientModule,
+        FormsModule,
+        BrowserAnimationsModule,
+        LayoutModule,
+        MatToolbarModule,
+        MatButtonModule,
+        MatSidenavModule,
+        MatIconModule,
+        MatListModule,
+        MatGridListModule,
+        MatCardModule,
+        MatMenuModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatProgressSpinnerModule,
+        ReactiveFormsModule,
+        MatInputModule,
+        MatCheckboxModule,
+        MatSelectModule,
+        MatExpansionModule,
+        MatSliderModule
+    ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true }
   ],
