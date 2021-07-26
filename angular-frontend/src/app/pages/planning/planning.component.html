@@ -31,6 +31,6 @@
     <a mat-button routerLink="/planung/bewertung" routerLinkActive="active-link" i18n> Bewertung </a>
   </span>
 </mat-toolbar>
+<div id="planning-map" class="map-container"></div>
 <router-outlet>
-  <app-map class="map" (mapReady)="onMapReady($event)"></app-map>
 </router-outlet>

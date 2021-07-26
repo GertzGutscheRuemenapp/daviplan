@@ -1,5 +1,4 @@
 <div class="grid-container">
-  <h1 class="mat-h1">Dashboard</h1>
   <mat-grid-list cols='12' rowHeight='200px'>
     <mat-grid-tile colspan='2'>
       <app-dash-card title='Nachfrage nach Leistung'> </app-dash-card>
@@ -23,7 +22,9 @@
   </mat-grid-list>
   <mat-grid-list cols='12' rowHeight='100px' class="bottom">
     <mat-grid-tile colspan='2'>
-      <app-dash-card title='Layer'> </app-dash-card>
+      <app-dash-card title='Layer'>
+        <app-layer-select target="planning-map"></app-layer-select>
+      </app-dash-card>
     </mat-grid-tile>
     <mat-grid-tile colspan='8'>
       <app-dash-card title='Timeslider'> </app-dash-card>

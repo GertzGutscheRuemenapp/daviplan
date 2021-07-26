@@ -1,19 +1,31 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { MapComponent } from '../map.component';
+import { Component, Input, AfterViewInit } from '@angular/core';
+import {MapService} from "../map.service";
+import {OlMap} from "../map";
 
 @Component({
   selector: 'app-layer-select',
   templateUrl: './layer-select.component.html',
   styleUrls: ['./layer-select.component.scss']
 })
-export class LayerSelectComponent implements OnInit {
-  @Input() map!: MapComponent;
+export class LayerSelectComponent implements AfterViewInit {
+  @Input() target!: string;
   overlayLayers: string[] = [];
   backgroundLayers: string[] = [];
+  map?: OlMap;
 
-  constructor() { }
+  constructor(private mapService: MapService) { }
 
-  ngOnInit(): void {
-    this.backgroundLayers = Object.keys(this.map.baseLayers);
+  ngAfterViewInit(): void {
+    this.mapService.mapCreated.subscribe( map => {
+      if (map.target = this.target) {
+        this.map = map;
+        this.initSelect();
+      }
+    })
+  }
+
+  initSelect(): void {
+    if (!this.map) return;
+    this.backgroundLayers = Object.keys(this.map.layers);
   }
 }

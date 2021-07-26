@@ -59,3 +59,9 @@ app-planning .mat-card {
   min-width: 300px;
   pointer-events: all;
 }
+
+.map-container {
+  width: inherit;
+  height: inherit;
+  z-index: 0;
+}

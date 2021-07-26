@@ -34,11 +34,11 @@ import { TokenInterceptor } from './auth.service';
 import { DemandComponent } from './pages/planning/demand/demand.component';
 import { PlanningComponent } from './pages/planning/planning.component';
 import { MatSelectModule } from "@angular/material/select";
-import { MapComponent } from './map/map.component';
 import { SupplyComponent } from './pages/planning/supply/supply.component';
 import { WelcomeComponent } from './pages/welcome.component';
 import { BasedataComponent } from './pages/basedata/basedata.component';
 import {MatExpansionModule} from "@angular/material/expansion";
+import { LayerSelectComponent } from './map/layer-select/layer-select.component';
 
 @NgModule({
   declarations: [
@@ -54,10 +54,10 @@ import {MatExpansionModule} from "@angular/material/expansion";
     LoginComponent,
     DemandComponent,
     PlanningComponent,
-    MapComponent,
     SupplyComponent,
     WelcomeComponent,
-    BasedataComponent
+    BasedataComponent,
+    LayerSelectComponent
   ],
   imports: [
     BrowserModule,
