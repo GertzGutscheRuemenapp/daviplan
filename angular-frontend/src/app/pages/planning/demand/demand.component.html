@@ -6,7 +6,7 @@
     <mat-grid-tile colspan='8'>
       <app-dash-card title='Szenarioauswahl'> </app-dash-card>
     </mat-grid-tile>
-    <mat-grid-tile colspan='2'>
+    <mat-grid-tile colspan='2' class="right">
       <app-dash-card title='Kartenkontrollen'> </app-dash-card>
     </mat-grid-tile>
   </mat-grid-list>
@@ -20,16 +20,16 @@
       <app-dash-card title='Gebietseinheit'> </app-dash-card>
     </mat-grid-tile>
   </mat-grid-list>
-  <mat-grid-list cols='12' rowHeight='100px' class="bottom">
-    <mat-grid-tile colspan='2'>
+  <mat-grid-list cols='12' rowHeight='200px' class="bottom">
+    <mat-grid-tile colspan='2' class="bottom">
       <app-dash-card title='Layer'>
         <app-layer-select target="planning-map"></app-layer-select>
       </app-dash-card>
     </mat-grid-tile>
-    <mat-grid-tile colspan='8'>
+    <mat-grid-tile colspan='8' class="bottom">
       <app-dash-card title='Timeslider'> </app-dash-card>
     </mat-grid-tile>
-    <mat-grid-tile colspan='2'>
+    <mat-grid-tile colspan='2' class="bottom right">
       <app-dash-card title='Legende'> </app-dash-card>
     </mat-grid-tile>
   </mat-grid-list>

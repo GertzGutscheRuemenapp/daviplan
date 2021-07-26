@@ -1,5 +1,6 @@
 import { Injectable, EventEmitter } from '@angular/core';
 import { OlMap } from './map'
+import OSM from 'ol/source/OSM';
 import {User} from "../pages/login/users";
 import {Observable} from "rxjs";
 
@@ -11,9 +12,12 @@ export class MapService {
   private maps: Record<string, OlMap> = {};
   mapCreated = new EventEmitter<OlMap>();
 
-  baseLayers: Record<string, string> = {
-    // 'OSM': new TileLayer({ source: new OSM({}), visible: true }),
-    'Ahocevar': 'https://ahocevar.com/geoserver/wfs'
+  baseLayers: Record<string, { params: any, url: string, visible: boolean }> = {
+    TopPlus:  {
+      url: 'https://sgx.geodatenzentrum.de/wms_topplus_open',
+      params: { layers: 'web' },
+      visible: false
+    }
   }
 
   constructor() { }
@@ -21,8 +25,9 @@ export class MapService {
   create(target: string): OlMap {
     let map = new OlMap(target);
     this.maps[target] = map;
-    for (let k in this.baseLayers) {
-      map.addWFSLayer(k, this.baseLayers[k]);
+    for (let name in this.baseLayers) {
+      let layer = this.baseLayers[name];
+      map.addWMS(name, layer.url, layer.params, layer.visible);
     }
     this.mapCreated.emit(map);
     return map;

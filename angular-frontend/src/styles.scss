@@ -43,9 +43,19 @@ mat-form-field.full {
 
 app-planning .mat-grid-list.bottom {
   position: fixed;
-  bottom: 0px;
+  bottom: 10px;
   // not quite sure where the 40px come from but otherwise the element would be wider than the others
   width: calc(100% - 40px);
+}
+
+app-planning .mat-grid-tile.bottom mat-card{
+  top: auto;
+  bottom: 5px;
+}
+
+app-planning .mat-grid-tile.right mat-card{
+  left: auto;
+  right: 5px;
 }
 
 app-planning .grid-container {

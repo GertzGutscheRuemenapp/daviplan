@@ -1,1 +1,5 @@
-<p>layer-select works!</p>
+<mat-form-field appearance="standard">
+  <mat-select [formControl]="backgroundControl"> <!--(selectionChange)="onSelect($event.value)">-->
+    <mat-option *ngFor="let layer of backgroundLayers" [value]="layer"> {{layer}} </mat-option>
+  </mat-select>
+</mat-form-field>
