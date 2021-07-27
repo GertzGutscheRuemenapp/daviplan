@@ -79,6 +79,14 @@ app-planning .mat-card {
   pointer-events: all;
 }
 
+mat-form-field span.mat-form-field-label-wrapper label {
+  color:grey !important;
+}
+
+mat-form-field.mat-focused span.mat-form-field-label-wrapper label {
+  color:grey !important;
+}
+
 .map-container {
   width: inherit;
   height: inherit;

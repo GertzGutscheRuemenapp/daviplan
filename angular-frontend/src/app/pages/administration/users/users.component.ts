@@ -89,8 +89,7 @@ export class UsersComponent implements AfterViewInit  {
           username: user.username,
           email: user.email,
           firstName: user.firstName,
-          lastName: user.lastName,
-          password: null
+          lastName: user.lastName
       }
       if (this.accountForm.value.changePass){
         let pass = this.accountForm.value.password

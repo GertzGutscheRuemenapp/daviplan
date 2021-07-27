@@ -22,12 +22,17 @@ export class LayerSelectComponent implements OnInit {
   }
 
   ngOnInit (): void {
-    this.mapService.mapCreated.subscribe( map => {
-      if (map.target = this.target) {
-        this.map = map;
-        this.initSelect();
-      }
-    })
+    this.map = this.mapService.getMap(this.target);
+    if (this.map)
+      this.initSelect();
+    // map not ready yet
+    else
+      this.mapService.mapCreated.subscribe( map => {
+        if (map.target = this.target) {
+          this.map = map;
+          this.initSelect();
+        }
+      })
     this.backgroundControl.valueChanges.pipe(
       startWith(this.backgroundControl.value),
       pairwise()
