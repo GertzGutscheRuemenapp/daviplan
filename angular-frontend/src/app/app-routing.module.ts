@@ -23,6 +23,10 @@ const routes: Routes = [
   },
   {
     path: 'admin',
+    redirectTo: 'admin/users'
+  },
+  {
+    path: 'admin',
     component: AdministrationComponent,
     canActivate: [AuthGuard],
     children: [
