@@ -13,6 +13,8 @@ import {BasedataComponent} from "./pages/basedata/basedata.component";
 import {PopulationComponent} from "./population/population.component";
 import {PopDevelopmentComponent} from "./population/pop-development/pop-development.component";
 import {PopStatisticsComponent} from "./population/pop-statistics/pop-statistics.component";
+import {RatingComponent} from "./pages/planning/rating/rating.component";
+import {ReachabilitiesComponent} from "./pages/planning/reachabilities/reachabilities.component";
 
 const routes: Routes = [
   {
@@ -49,6 +51,14 @@ const routes: Routes = [
       {
         path: 'angebot',
         component: SupplyComponent
+      },
+      {
+        path: 'erreichbarkeiten',
+        component: ReachabilitiesComponent
+      },
+      {
+        path: 'bewertung',
+        component: RatingComponent
       }
     ]
   },

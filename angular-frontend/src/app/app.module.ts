@@ -43,6 +43,8 @@ import {MatSliderModule} from "@angular/material/slider";
 import { PopulationComponent } from './population/population.component';
 import { PopDevelopmentComponent } from './population/pop-development/pop-development.component';
 import { PopStatisticsComponent } from './population/pop-statistics/pop-statistics.component';
+import { ReachabilitiesComponent } from './pages/planning/reachabilities/reachabilities.component';
+import { RatingComponent } from './pages/planning/rating/rating.component';
 
 @NgModule({
   declarations: [
@@ -64,7 +66,9 @@ import { PopStatisticsComponent } from './population/pop-statistics/pop-statisti
     LayerSelectComponent,
     PopulationComponent,
     PopDevelopmentComponent,
-    PopStatisticsComponent
+    PopStatisticsComponent,
+    ReachabilitiesComponent,
+    RatingComponent
   ],
     imports: [
         BrowserModule,
