@@ -1,6 +1,6 @@
 import {Component, AfterViewInit, OnDestroy} from '@angular/core';
-import {MapService} from "../../map/map.service";
-import {OlMap} from "../../map/map";
+import {MapService} from "../../../map/map.service";
+import {OlMap} from "../../../map/map";
 
 @Component({
   selector: 'app-pop-development',

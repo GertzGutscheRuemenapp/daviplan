@@ -1,6 +1,6 @@
 import {AfterViewInit, Component, OnDestroy} from '@angular/core';
-import { OlMap } from "../../map/map";
-import { MapService } from "../../map/map.service";
+import { OlMap } from "../../../map/map";
+import { MapService } from "../../../map/map.service";
 
 @Component({
   selector: 'app-pop-statistics',

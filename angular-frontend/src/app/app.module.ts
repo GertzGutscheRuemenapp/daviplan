@@ -40,9 +40,9 @@ import { BasedataComponent } from './pages/basedata/basedata.component';
 import {MatExpansionModule} from "@angular/material/expansion";
 import { LayerSelectComponent } from './map/layer-select/layer-select.component';
 import {MatSliderModule} from "@angular/material/slider";
-import { PopulationComponent } from './population/population.component';
-import { PopDevelopmentComponent } from './population/pop-development/pop-development.component';
-import { PopStatisticsComponent } from './population/pop-statistics/pop-statistics.component';
+import { PopulationComponent } from './pages/population/population.component';
+import { PopDevelopmentComponent } from './pages/population/pop-development/pop-development.component';
+import { PopStatisticsComponent } from './pages/population/pop-statistics/pop-statistics.component';
 import { ReachabilitiesComponent } from './pages/planning/reachabilities/reachabilities.component';
 import { RatingComponent } from './pages/planning/rating/rating.component';
 

@@ -10,9 +10,9 @@ import { SupplyComponent } from "./pages/planning/supply/supply.component";
 import { WelcomeComponent } from "./pages/welcome.component";
 import { AuthGuard } from "./auth.service";
 import {BasedataComponent} from "./pages/basedata/basedata.component";
-import {PopulationComponent} from "./population/population.component";
-import {PopDevelopmentComponent} from "./population/pop-development/pop-development.component";
-import {PopStatisticsComponent} from "./population/pop-statistics/pop-statistics.component";
+import {PopulationComponent} from "./pages/population/population.component";
+import {PopDevelopmentComponent} from "./pages/population/pop-development/pop-development.component";
+import {PopStatisticsComponent} from "./pages/population/pop-statistics/pop-statistics.component";
 import {RatingComponent} from "./pages/planning/rating/rating.component";
 import {ReachabilitiesComponent} from "./pages/planning/reachabilities/reachabilities.component";
 
