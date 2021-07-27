@@ -17,8 +17,8 @@ export class MainNavComponent implements OnInit{
   user$?: Observable<User>;
 
   menuItems = [
-    {name:  $localize`Bevölkerung`, url: 'bevoelkerung/entwicklung'},
-    {name:  $localize`Infrastrukturplanung`, url: 'planung/nachfrage'},
+    {name:  $localize`Bevölkerung`, url: 'bevoelkerung'},
+    {name:  $localize`Infrastrukturplanung`, url: 'planung'},
     {name:  $localize`Grundlagendaten`, url: 'grundlagendaten'},
     {name:  $localize`Administration`, url: 'admin'}
   ];

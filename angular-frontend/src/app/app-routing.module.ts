@@ -42,6 +42,10 @@ const routes: Routes = [
   },
   {
     path: 'planung',
+    redirectTo: 'planung/nachfrage',
+  },
+  {
+    path: 'planung',
     component: PlanningComponent,
     children: [
       {
@@ -65,6 +69,10 @@ const routes: Routes = [
   {
     path: 'grundlagendaten',
     component: BasedataComponent
+  },
+  {
+    path: 'bevoelkerung',
+    redirectTo: 'bevoelkerung/entwicklung',
   },
   {
     path: 'bevoelkerung',

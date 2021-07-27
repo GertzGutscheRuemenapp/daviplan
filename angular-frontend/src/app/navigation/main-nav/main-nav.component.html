@@ -8,7 +8,7 @@
     <span>Datentool</span>
   </a>
   <span fxShow="true" fxHide.lt-md="true">
-    <a *ngFor="let item of menuItems" mat-button [routerLink]="'/'+item.url" routerLinkActive="active-link"> {{item.name}} </a>
+    <a *ngFor="let item of menuItems" mat-button [routerLink]="'/'+item.url" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: false}"> {{item.name}} </a>
   </span>
   <span class="fill-space"></span>
   <ng-template #loggedOut>
