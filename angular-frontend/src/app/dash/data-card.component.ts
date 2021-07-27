@@ -6,7 +6,7 @@ import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 @Component({
   selector: 'app-data-card',
   templateUrl: './data-card.component.html',
-  styleUrls: ['./data-card.component.scss']
+  styleUrls: [ './dash-card.component.scss', './data-card.component.scss']
 })
 
 export class DataCardComponent {

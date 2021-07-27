@@ -1,118 +1,114 @@
-<div class="grid-container">
-  <mat-grid-list  cols="{{ ( layout | async )?.columns }}" rowHeight="350px">
-    <mat-grid-tile [colspan]="( layout | async )!.userList.cols" [rowspan]="( layout | async )!.userList.rows">
-      <app-data-card title="Benutzerkonten">
-        <ul class="users">
-          <mat-selection-list [multiple]="false" >
-            <mat-list-option *ngFor="let user of users" [value]="user" (click)="onSelect(user)" [selected]="(selectedUser && (user.id === selectedUser.id))">
-              <div mat-line>{{ user.username }}</div>
-              <div mat-line *ngIf="user.isSuperuser"><i i18n>Administrator</i></div>
-            </mat-list-option>
-          </mat-selection-list>
-        </ul>
-        <button mat-raised-button color="primary" (click)="onCreateUser()" i18n>Nutzer hinzufügen</button>
-        <button [class.hidden]="!selectedUser || selectedUser.isSuperuser" mat-raised-button color="warn" (click)="onDeleteUser()" i18n>Nutzer löschen</button>
-      </app-data-card>
-    </mat-grid-tile>
-    <mat-grid-tile [class.hidden]="!selectedUser" [colspan]="( layout | async )!.account.cols" [rowspan]="( layout | async )!.account.rows">
-      <ng-template #accountEdit>
-        <form [formGroup]="accountForm">
-          <div *ngIf="accountForm.errors">
-            <mat-error *ngFor="let error of Object.values(accountForm.errors)" class="alert">
-              {{ error }}
-            </mat-error>
-          </div>
-          <div formGroupName="user">
-            <mat-form-field class="full">
-              <mat-label i18n>Nutzername</mat-label>
-              <input matInput formControlName="username" required>
-            </mat-form-field>
-            <mat-form-field class="full">
-              <mat-label i18n>Vorname</mat-label>
-              <input matInput formControlName="firstName"/>
-            </mat-form-field>
-            <mat-form-field class="full">
-              <mat-label i18n>Nachname</mat-label>
-              <input matInput formControlName="lastName"/>
-            </mat-form-field>
-            <mat-form-field class="full">
-              <mat-label i18n>E-Mail</mat-label>
-              <input matInput formControlName="email"/>
-              <mat-error *ngIf="accountForm.get('user')?.get('email')?.errors" i18n>Die E-Mail Adresse hat kein gültiges Format.</mat-error>
-            </mat-form-field>
-          </div>
-          <mat-checkbox #passCheck formControlName="changePass" (change)="onTogglePassChange(passCheck.checked)">Passwort ändern</mat-checkbox>
-          <mat-form-field class="full">
-            <mat-label i18n>Passwort</mat-label>
-            <input matInput type="password" formControlName="password" placeholder="·········" required>
-          </mat-form-field>
-          <mat-form-field class="full">
-            <mat-label i18n>Passwort bestätigen</mat-label>
-            <input matInput type="password" formControlName="confirmPass" placeholder="·········" required>
-            <mat-error *ngIf="accountForm.get('confirmPass')?.errors?.notMatching" i18n>Die Passwörter stimmen nicht überein</mat-error>
-          </mat-form-field>
-        </form>
-      </ng-template>
-      <app-data-card #accountCard title="Konto" [editTemplate]="accountEdit">
-        <table>
-          <tr>
-            <td i18n>Nutzername</td>
-            <td i18n>{{selectedUser?.username}}</td>
-          </tr>
-          <tr>
-            <td i18n>Vorname</td>
-            <td i18n>{{selectedUser?.firstName}}</td>
-          </tr>
-          <tr>
-            <td i18n>Nachname</td>
-            <td i18n>{{selectedUser?.lastName}}</td>
-          </tr>
-          <tr>
-            <td i18n>E-Mail</td>
-            <td i18n>{{selectedUser?.email}}</td>
-          </tr>
-        </table>
-      </app-data-card>
-    </mat-grid-tile>
-    <mat-grid-tile [class.hidden]="!selectedUser"  [colspan]="( layout | async )!.dataAccess.cols" [rowspan]="( layout | async )!.dataAccess.rows">
-      <app-data-card title="Datenzugriff">
-        <!--ToDo: Form-->
-        <div>
-        </div>
-      </app-data-card>
-    </mat-grid-tile>
-    <mat-grid-tile [class.hidden]="!selectedUser"  [colspan]="( layout | async )!.permissions.cols" [rowspan]="( layout | async )!.permissions.rows">
-      <ng-template #permissionEdit>
-        <form [formGroup]="permissionForm">
-          <mat-error *ngIf="permissionForm.errors && permissionForm.errors['error']" class="alert">
-            {{permissionForm.errors['error']}}
-          </mat-error>
-          <div formGroupName="profile">
-            <mat-checkbox formControlName="adminAccess" i18n>Kann Seite administrieren</mat-checkbox>
-            <br>
-            <mat-checkbox formControlName="canEditData" i18n>Kann Grundlagendaten editieren</mat-checkbox>
-            <br>
-            <mat-checkbox formControlName="canCreateScenarios" i18n>Kann Szenarien anlegen</mat-checkbox>
-          </div>
-        </form>
-      </ng-template>
-      <app-data-card #permissionCard title="Berechtigungen" [editTemplate]="permissionEdit">
-        <div *ngIf="selectedUser">
-          <mat-checkbox disabled type="checkbox" [(ngModel)]="selectedUser.profile.adminAccess" i18n>
-            Kann Seite administrieren
-          </mat-checkbox>
-          <br>
-          <mat-checkbox disabled type="checkbox" [(ngModel)]="selectedUser.profile.canEditData" i18n>
-            Kann Grundlagendaten editieren
-          </mat-checkbox>
-          <br>
-          <mat-checkbox disabled type="checkbox" [(ngModel)]="selectedUser.profile.canCreateScenarios" i18n>
-            Kann Szenarien anlegen
-          </mat-checkbox>
-        </div>
-      </app-data-card>
-    </mat-grid-tile>
-  </mat-grid-list>
+<ng-template #accountEdit>
+  <form [formGroup]="accountForm">
+    <div *ngIf="accountForm.errors">
+      <mat-error *ngFor="let error of Object.values(accountForm.errors)" class="alert">
+        {{ error }}
+      </mat-error>
+    </div>
+    <div formGroupName="user">
+      <mat-form-field class="full">
+        <mat-label i18n>Nutzername</mat-label>
+        <input matInput formControlName="username" required>
+      </mat-form-field>
+      <mat-form-field class="full">
+        <mat-label i18n>Vorname</mat-label>
+        <input matInput formControlName="firstName"/>
+      </mat-form-field>
+      <mat-form-field class="full">
+        <mat-label i18n>Nachname</mat-label>
+        <input matInput formControlName="lastName"/>
+      </mat-form-field>
+      <mat-form-field class="full">
+        <mat-label i18n>E-Mail</mat-label>
+        <input matInput formControlName="email"/>
+        <mat-error *ngIf="accountForm.get('user')?.get('email')?.errors" i18n>Die E-Mail Adresse hat kein gültiges Format.</mat-error>
+      </mat-form-field>
+    </div>
+    <mat-checkbox #passCheck formControlName="changePass" (change)="onTogglePassChange(passCheck.checked)">Passwort ändern</mat-checkbox>
+    <mat-form-field class="full">
+      <mat-label i18n>Passwort</mat-label>
+      <input matInput type="password" formControlName="password" placeholder="·········" required>
+    </mat-form-field>
+    <mat-form-field class="full">
+      <mat-label i18n>Passwort bestätigen</mat-label>
+      <input matInput type="password" formControlName="confirmPass" placeholder="·········" required>
+      <mat-error *ngIf="accountForm.get('confirmPass')?.errors?.notMatching" i18n>Die Passwörter stimmen nicht überein</mat-error>
+    </mat-form-field>
+  </form>
+</ng-template>
+
+<ng-template #permissionEdit>
+  <form [formGroup]="permissionForm">
+    <mat-error *ngIf="permissionForm.errors && permissionForm.errors['error']" class="alert">
+      {{permissionForm.errors['error']}}
+    </mat-error>
+    <div formGroupName="profile">
+      <mat-checkbox formControlName="adminAccess" i18n>Kann Seite administrieren</mat-checkbox>
+      <br>
+      <mat-checkbox formControlName="canEditData" i18n>Kann Grundlagendaten editieren</mat-checkbox>
+      <br>
+      <mat-checkbox formControlName="canCreateScenarios" i18n>Kann Szenarien anlegen</mat-checkbox>
+    </div>
+  </form>
+</ng-template>
+
+<div style="display: flex; flex-wrap: wrap;">
+  <app-data-card title="Benutzerkonten" style="min-width: 400px;">
+    <mat-selection-list [multiple]="false" >
+      <mat-list-option *ngFor="let user of users" [value]="user" (click)="onSelect(user)" [selected]="(selectedUser && (user.id === selectedUser.id))">
+        <mat-icon mat-list-icon>person</mat-icon>
+        <div mat-line>{{ user.username }}</div>
+        <div mat-line *ngIf="user.isSuperuser"><i i18n>Administrator</i></div>
+      </mat-list-option>
+    </mat-selection-list>
+    <br>
+    <div style="width: 100%;">
+      <button mat-raised-button color="primary" (click)="onCreateUser()" i18n><mat-icon>person_add</mat-icon>&nbsp; hinzufügen</button>
+      <button style="float: right;" [class.hidden]="!selectedUser || selectedUser.isSuperuser" mat-raised-button color="warn" (click)="onDeleteUser()" i18n><mat-icon>delete_forever</mat-icon>&nbsp; Nutzer löschen</button>
+    </div>
+  </app-data-card>
+  <div style="display: flex; flex-wrap: wrap; align-content: flex-start; max-width: 1000px;">
+    <app-data-card #accountCard title="Konto" [editTemplate]="accountEdit" style="min-width: 400px; ">
+      <table>
+        <tr>
+          <td i18n>Nutzername</td>
+          <td i18n>{{selectedUser?.username}}</td>
+        </tr>
+        <tr>
+          <td i18n>Vorname</td>
+          <td i18n>{{selectedUser?.firstName}}</td>
+        </tr>
+        <tr>
+          <td i18n>Nachname</td>
+          <td i18n>{{selectedUser?.lastName}}</td>
+        </tr>
+        <tr>
+          <td i18n>E-Mail</td>
+          <td i18n>{{selectedUser?.email}}</td>
+        </tr>
+      </table>
+    </app-data-card>
+    <app-data-card #permissionCard title="Berechtigungen" [editTemplate]="permissionEdit" style="min-width: 400px;">
+      <div *ngIf="selectedUser">
+        <mat-checkbox disabled type="checkbox" [(ngModel)]="selectedUser.profile.adminAccess" i18n>
+          Kann Seite administrieren
+        </mat-checkbox>
+        <br>
+        <mat-checkbox disabled type="checkbox" [(ngModel)]="selectedUser.profile.canEditData" i18n>
+          Kann Grundlagendaten editieren
+        </mat-checkbox>
+        <br>
+        <mat-checkbox disabled type="checkbox" [(ngModel)]="selectedUser.profile.canCreateScenarios" i18n>
+          Kann Szenarien anlegen
+        </mat-checkbox>
+      </div>
+    </app-data-card>
+    <app-data-card title="Datenzugriff" style="min-width: 400px; ">
+      <!--ToDo: Form-->
+      <div>
+      </div>
+    </app-data-card>
+  </div>
 </div>
 
 

@@ -93,7 +93,17 @@ mat-form-field.mat-focused span.mat-form-field-label-wrapper label {
   z-index: 0;
 }
 
-app-pop-development #control mat-card, app-pop-statistics #control mat-card{
-  position: relative;
-  margin-bottom: 20px;
+//app-pop-development #control mat-card, app-pop-statistics #control mat-card{
+//  position: relative;
+//  margin-bottom: 20px;
+//}
+
+.grid-container .dashboard-card {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  right: 15px;
+  bottom: 15px;
+  margin: 0px!important;
 }
+

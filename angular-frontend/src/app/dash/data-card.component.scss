@@ -4,31 +4,9 @@
   bottom: 5px;
 }
 
-.dashboard-card {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  right: 15px;
-  bottom: 15px;
-}
-
 .dashboard-card-content {
-  text-align: left;
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  max-height: 100%;
   justify-content: left;
-}
-
-mat-card {
-  display: flex;
-  flex-direction: column;
-}
-
-.more-button {
-  position: absolute;
-  top: 5px;
-  right: 10px;
+  align-items: flex-start;
+  text-align: left;
+  padding-bottom: 30px;
 }
