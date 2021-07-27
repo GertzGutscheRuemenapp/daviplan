@@ -92,3 +92,8 @@ mat-form-field.mat-focused span.mat-form-field-label-wrapper label {
   height: inherit;
   z-index: 0;
 }
+
+app-pop-development #control mat-card, app-pop-statistics #control mat-card{
+  position: relative;
+  margin-bottom: 20px;
+}

@@ -40,6 +40,9 @@ import { BasedataComponent } from './pages/basedata/basedata.component';
 import {MatExpansionModule} from "@angular/material/expansion";
 import { LayerSelectComponent } from './map/layer-select/layer-select.component';
 import {MatSliderModule} from "@angular/material/slider";
+import { PopulationComponent } from './population/population.component';
+import { PopDevelopmentComponent } from './population/pop-development/pop-development.component';
+import { PopStatisticsComponent } from './population/pop-statistics/pop-statistics.component';
 
 @NgModule({
   declarations: [
@@ -58,7 +61,10 @@ import {MatSliderModule} from "@angular/material/slider";
     SupplyComponent,
     WelcomeComponent,
     BasedataComponent,
-    LayerSelectComponent
+    LayerSelectComponent,
+    PopulationComponent,
+    PopDevelopmentComponent,
+    PopStatisticsComponent
   ],
     imports: [
         BrowserModule,

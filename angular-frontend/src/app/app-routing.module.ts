@@ -10,6 +10,9 @@ import { SupplyComponent } from "./pages/planning/supply/supply.component";
 import { WelcomeComponent } from "./pages/welcome.component";
 import { AuthGuard } from "./auth.service";
 import {BasedataComponent} from "./pages/basedata/basedata.component";
+import {PopulationComponent} from "./population/population.component";
+import {PopDevelopmentComponent} from "./population/pop-development/pop-development.component";
+import {PopStatisticsComponent} from "./population/pop-statistics/pop-statistics.component";
 
 const routes: Routes = [
   {
@@ -55,7 +58,17 @@ const routes: Routes = [
   },
   {
     path: 'bevoelkerung',
-    component: DashComponent
+    component: PopulationComponent,
+    children: [
+      {
+        path: 'entwicklung',
+        component: PopDevelopmentComponent
+      },
+      {
+        path: 'statistik',
+        component: PopStatisticsComponent
+      }
+    ]
   },
 ];
 

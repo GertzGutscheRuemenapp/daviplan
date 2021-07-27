@@ -1,0 +1,22 @@
+<div id="wrapper">
+  <div id="control">
+    <app-data-card title='Gebietseinheiten'></app-data-card>
+    <app-data-card title='Prognoseszenario'></app-data-card>
+    <app-data-card title='Geschlecht'></app-data-card>
+  </div>
+  <div class="grid-container">
+    <mat-grid-list cols='5' rowHeight='1:1.2'>
+      <mat-grid-tile colspan='3' rowspan='2'>
+        <app-dash-card title='Karte'>
+          <div id="pop-map" class="map-container"></div>
+        </app-dash-card>
+      </mat-grid-tile>
+      <mat-grid-tile colspan='2' rowspan='1'>
+        <app-dash-card title='Diagramm Altersgruppen'> </app-dash-card>
+      </mat-grid-tile>
+      <mat-grid-tile colspan='2' rowspan='1'>
+        <app-dash-card title='Diagramm Altersgruppen'> </app-dash-card>
+      </mat-grid-tile>
+    </mat-grid-list>
+  </div>
+</div>
