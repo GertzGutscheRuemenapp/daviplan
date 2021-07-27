@@ -91,7 +91,10 @@ ROOT_URLCONF = 'datentool.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'datentool', 'templates')],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'datentool', 'templates'),
+            #os.path.join(BASE_DIR, 'angular-frontend', 'src')
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'debug': True,
