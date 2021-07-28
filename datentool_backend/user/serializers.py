@@ -5,14 +5,12 @@ from .models import Profile
 
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
-    parent_lookup_kwargs = {}
     class Meta:
         model = Profile
         fields =  ('admin_access', 'can_create_scenarios', 'can_edit_data')
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
-    parent_lookup_kwargs = {}
     profile = ProfileSerializer(required=False)
     url = serializers.HyperlinkedIdentityField(
         view_name='user-detail', read_only=True)
@@ -20,9 +18,8 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name',
-                  'last_name', 'is_superuser', 'profile', 'url', 'password')
-        #extra_kwargs = {'profile': {'required': False, 'allow_null': True}}
+        fields = ('id', 'url', 'username', 'email', 'first_name',
+                  'last_name', 'is_superuser', 'profile', 'password')
 
     def create(self, validated_data):
         profile_data = validated_data.pop('profile', {})
