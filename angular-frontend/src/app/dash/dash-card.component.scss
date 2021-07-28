@@ -1,19 +1,18 @@
 .dashboard-card {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  right: 15px;
-  bottom: 15px;
+  margin: 15px;
 }
 
 .dashboard-card-content {
-  text-align: center;
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
   max-height: 100%;
-  justify-content: center;
+  //justify-content: center;
+  //align-items: center;
+  //text-align: center;
+  justify-content: left;
+  align-items: flex-start;
+  text-align: left;
 }
 
 mat-card {
@@ -26,4 +25,3 @@ mat-card {
   top: 5px;
   right: 10px;
 }
-

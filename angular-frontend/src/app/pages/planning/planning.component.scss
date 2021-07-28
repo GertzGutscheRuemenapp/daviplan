@@ -1,0 +1,18 @@
+.active-link {
+  font-weight: bold;
+  font-size: 1em;
+}
+
+.mat-select-panel {
+  max-height: unset !important;
+}
+
+#planning-map {
+  position: fixed;
+  height: 100%;
+  width: 100%;
+}
+
+mat-toolbar mat-form-field {
+  font-size: 15px;
+}

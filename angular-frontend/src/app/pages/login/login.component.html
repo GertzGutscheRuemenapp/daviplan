@@ -1,0 +1,27 @@
+<div class="center">
+  <ng-template #loggedIn>
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()"> <!--*ngIf="!user"-->
+      <h2 i18n>Login</h2>
+      <mat-form-field>
+        <mat-label i18n>Nutzername</mat-label>
+        <input matInput formControlName="userName" required>
+      </mat-form-field>
+      <br>
+      <mat-form-field>
+        <mat-label i18n>Passwort</mat-label>
+        <input matInput type="password" formControlName="password" required>
+      </mat-form-field>
+      <br>
+      <mat-error *ngIf="loginForm.errors && loginForm.errors['error']" class="alert">
+        {{loginForm.errors['error']}}
+      </mat-error>
+      <button mat-raised-button color="primary" type="submit" i18n>Einloggen</button>
+    </form>
+  </ng-template>
+  <ng-container *ngIf="auth.user$ | async; else loggedIn">
+    <button mat-raised-button color="primary" (click)="auth.logout()" i18n>Ausloggen</button>
+  </ng-container>
+<!--  <div *ngIf="user">
+    <span i18n>Eingeloggt als {{user.username}} </span>
+  </div>-->
+</div>

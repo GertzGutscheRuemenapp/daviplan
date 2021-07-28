@@ -1,85 +1,39 @@
-
 import { Injectable } from '@angular/core';
-import { gql } from 'graphql-tag';
-import { Apollo, QueryRef } from 'apollo-angular';
-import { Observable, ReplaySubject, Subject, of} from 'rxjs';
-import { User } from './administration/users/users';
-import { map, switchMap, tap } from 'rxjs/operators';
+import { HttpClient, HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
+import { Observable, ReplaySubject, Subject, of, BehaviorSubject, throwError } from 'rxjs';
+import { User } from './pages/login/users';
+import { catchError, filter, switchMap, take, tap, map } from 'rxjs/operators';
+import { RestAPI } from "./rest-api";
+import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree, Router } from "@angular/router";
 
 interface Token {
-  token: string;
-  refreshToken: string;
-  payload: {
-    username: string;
-  };
+  access: string;
+  refresh: string;
 }
 
-interface LoginResponse {
-  tokenAuth: Token
-}
-
-interface WhoAmI {
-  whoami: User
-}
-
-const LOGIN_QUERY = gql`
-  mutation TokenAuth($username: String!, $password: String!) {
-    tokenAuth(username: $username, password: $password) {
-      token, payload, refreshToken
-    }
-}
-`;
-
-const REFRESH_QUERY = gql`
-  mutation RefreshToken($refreshToken: String!) {
-    refreshToken(refreshToken: $refreshToken) {
-      token, payload, refreshToken
-    }
-}
-`;
-
-const USER_QUERY = gql`
-  query {
-    whoami {
-        id, userName, email, firstName, lastName,
-        canEditData, canCreateScenarios, adminAccess, isSuperuser
-    }
-}
-`;
-
-@Injectable({
-  providedIn: 'root'
-})
-
+@Injectable({ providedIn: 'root' })
 export class AuthService {
+  user$ = new BehaviorSubject<User>(null as any);
 
-  constructor(private apollo: Apollo) { }
-  // user$ = new BehaviorSubject(null as any);
-  user$: Subject<User> = new ReplaySubject<User>()
+  constructor(private rest: RestAPI, private http: HttpClient ) { }
 
   login(credentials: { username: string; password: string }): Observable<any> {
-    localStorage.removeItem('token');
-    let query = this.apollo.mutate<{ tokenAuth: Token }>({
-      mutation: LOGIN_QUERY,
-      variables: {
-        password: credentials.password,
-        username: credentials.username
-      }
-    })
-    query.pipe(tap (({ data }) => {
-      if (data){
-        localStorage.setItem('user', data.tokenAuth.payload.username);
-        localStorage.setItem('token', data.tokenAuth.token);
-        localStorage.setItem('refreshToken', data.tokenAuth.refreshToken);
-        this.fetchCurrentUser();
-      }
-    }));
-    return query;
+    // localStorage.removeItem('token');
+    let query = this.http.post<Token>(this.rest.URLS.token, credentials)
+      .pipe(
+        tap(token => {
+          localStorage.setItem('token', token.access);
+          localStorage.setItem('refreshToken', token.refresh);
+          this.fetchCurrentUser().subscribe(user=>this.user$.next(user));
+        })
+      );
+      return query;
   }
 
   getCurrentUser(): Observable<User> {
-    let user = this.user$.pipe(
+    return this.user$.pipe(
       switchMap(user => {
+        // check if we already have user data
         if (user) {
           return of(user);
         }
@@ -90,43 +44,125 @@ export class AuthService {
           return this.fetchCurrentUser();
         }
 
-        return of(null);
+        return of(null as any);
       })
     );
-    return user as Observable<User>;
   }
 
   fetchCurrentUser(): Observable<User> {
-    let query = this.apollo.watchQuery<WhoAmI>({ query: USER_QUERY }).valueChanges;
-    query.subscribe((response)=>{
-      this.user$.next(response.data.whoami);
-    })
-    return query.pipe(map(({ data }) => data.whoami));
+    return this.http.get<User>(this.rest.URLS.currentUser)
+      .pipe(
+        tap(user => {
+          this.user$.next(user);
+        })
+      );
   }
 
-  refreshToken(): Observable<string> {
+  refreshToken(): Observable<Token> {
     const refreshToken = localStorage.getItem('refreshToken');
-    localStorage.removeItem('token');
-    let query = this.apollo.mutate<{ refreshToken: Token }>({
-      mutation: LOGIN_QUERY,
-      variables: {
-        password: refreshToken,
-      }
-    });
-    query.pipe(tap (({ data }) => {
-      if (data){
-        localStorage.setItem('token', data!.refreshToken.token);
-        localStorage.setItem('refreshToken', data!.refreshToken.refreshToken);
-      }
-    }));
-    return query.pipe(map(({ data }) => data!.refreshToken.refreshToken));
+    // localStorage.removeItem('token');
+    return this.http.post<Token>(
+      this.rest.URLS.refreshToken,{ refresh: refreshToken }
+    ).pipe(
+      tap(token => {
+        localStorage.setItem('token', token.access);
+        localStorage.setItem('refreshToken', token.refresh);
+      })
+    );
   }
 
   logout(): void {
-    this.user$.next();
+    this.user$.next(null as any);
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
-    this.apollo.client.resetStore();
+  }
+}
+
+@Injectable()
+export class TokenInterceptor implements HttpInterceptor {
+  private refreshingInProgress: boolean = false;
+  private accessTokenSubject: Subject<string> = new ReplaySubject<string>();
+
+  constructor( private authService: AuthService, private router: Router) {}
+
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    const accessToken = localStorage.getItem('token');
+
+    return next.handle(this.addAuthorizationHeader(req, accessToken || '')).pipe(
+      catchError(err => {
+        //
+        if (err instanceof HttpErrorResponse && err.status === 401) {
+          // get refresh tokens
+          const refreshToken = localStorage.getItem('refreshToken');
+          if (refreshToken && accessToken) {
+            return this.refreshToken(req, next);
+          }
+          return this.logoutAndRedirect(err);
+        }
+        // refresh token failed
+        /*if (err instanceof HttpErrorResponse && err.status === 403) {
+          return this.logoutAndRedirect(err);
+        }*/
+        // other errors
+        return throwError(err);
+      })
+    );
   }
 
+  private addAuthorizationHeader(request: HttpRequest<any>, token: string): HttpRequest<any> {
+    if (token) {
+      return request.clone({setHeaders: {Authorization: `Bearer ${token}`}});
+    }
+    return request;
+  }
+
+  private logoutAndRedirect(err: any): Observable<HttpEvent<any>> {
+    this.authService.logout();
+    this.router.navigateByUrl('/login');
+    return throwError(err);
+  }
+
+  private refreshToken(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    if (!this.refreshingInProgress) {
+      this.refreshingInProgress = true;
+      this.accessTokenSubject.next();
+
+      return this.authService.refreshToken().pipe(
+        switchMap((res) => {
+          this.refreshingInProgress = false;
+          this.accessTokenSubject.next(res.access);
+          // repeat failed request with new token
+          return next.handle(this.addAuthorizationHeader(request, res.access));
+        })
+      );
+    } else {
+      // new token
+      return this.accessTokenSubject.pipe(
+        filter(token => token !== null),
+        take(1),
+        switchMap(token => {
+          // repeat failed request with new token
+          return next.handle(this.addAuthorizationHeader(request, token));
+        }));
+    }
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class AuthGuard implements CanActivate {
+  constructor(private authService: AuthService,
+              private router: Router) { }
+
+  canActivate(
+    next: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
+    return this.authService.getCurrentUser().pipe(
+      map(user => !!user),
+      tap(isLogged => {
+        if (!isLogged) {
+          this.router.navigateByUrl('/login');
+        }
+      })
+    );
+  }
 }

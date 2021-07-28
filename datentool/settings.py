@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 from pathlib import Path
 import os
 import sys
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,9 +21,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
-DB_NAME = os.environ.get('DB_NAME')
-DB_USER = os.environ.get('DB_USER')
-DB_PASS = os.environ.get('DB_PASS')
+DB_NAME = os.environ.get('DB_NAME', 'datentool')
+DB_USER = os.environ.get('DB_USER', 'postgres')
+DB_PASS = os.environ.get('DB_PASS', '')
+DB_PORT = os.environ.get('DB_PORT', 5432)
+DB_HOST = os.environ.get('DB_HOST', 'localhost')
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -42,9 +45,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'graphene_django',
     'datentool_backend',
-    'graphql_jwt.refresh_token.apps.RefreshTokenConfig'
+    'rest_framework',
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -57,12 +60,41 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend'
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_RENDERER_CLASSES': (
+        'djangorestframework_camel_case.render.CamelCaseJSONRenderer',
+        'djangorestframework_camel_case.render.CamelCaseBrowsableAPIRenderer',
+    ),
+    'DEFAULT_PARSER_CLASSES': (
+        'djangorestframework_camel_case.parser.CamelCaseFormParser',
+        'djangorestframework_camel_case.parser.CamelCaseMultiPartParser',
+        'djangorestframework_camel_case.parser.CamelCaseJSONParser',
+    ),
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'ROTATE_REFRESH_TOKENS':  True,
+}
+
 ROOT_URLCONF = 'datentool.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'datentool', 'templates'),
+            #os.path.join(BASE_DIR, 'angular-frontend', 'src')
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'debug': True,
@@ -78,24 +110,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'datentool.wsgi.application'
 
-GRAPHENE = {
-    'SCHEMA':  'datentool_backend.schema',
-    'MIDDLEWARE': [
-        'graphql_jwt.middleware.JSONWebTokenMiddleware',
-    ],
-}
-
-AUTHENTICATION_BACKENDS = [
-    'graphql_jwt.backends.JSONWebTokenBackend',
-    'django.contrib.auth.backends.ModelBackend',
-]
-
-GRAPHQL_JWT = {
-    "JWT_VERIFY_EXPIRATION": True,
-    "JWT_LONG_RUNNING_REFRESH_TOKEN": True,
-    'JWT_ALLOW_ARGUMENT': True
-}
-
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
@@ -105,8 +119,8 @@ DATABASES = {
         'NAME': DB_NAME,
         'USER': DB_USER,
         'PASSWORD': DB_PASS,
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'HOST': DB_HOST,
+        'PORT': DB_PORT,
         'OPTIONS': {
             'sslmode': 'require',
             },
@@ -131,16 +145,21 @@ if os.name == 'nt':
                                    os.path.join(OSGEO4W_ROOT, 'bin')])
 
 elif sys.platform == 'linux':
+    lib_path = os.path.join(sys.exec_prefix, 'lib')
     # Linux
-    GDAL_LIBRARY_PATH = os.path.join(sys.exec_prefix,
-                                     'lib', 'libgdal.so')
-    GEOS_LIBRARY_PATH = os.path.join(sys.exec_prefix,
-                                     'lib', 'libgeos_c.so')
+    GDAL_LIBRARY_PATH = os.path.join(lib_path, 'libgdal.so')
+
+    GEOS_LIBRARY_PATH = os.path.join(lib_path, 'libgeos_c.so')
     if not os.path.exists(GEOS_LIBRARY_PATH):
-        GEOS_LIBRARY_PATH = os.path.join(
-            sys.exec_prefix, 'lib', 'x86_64-linux-gnu', 'libgeos_c.so')
+        GEOS_LIBRARY_PATH = os.path.join(lib_path, 'x86_64-linux-gnu',
+                                         'libgeos_c.so')
+
     PROJ4_LIBRARY_PATH = os.path.join(sys.exec_prefix,
                                      'lib', 'libproj.so')
+    if not os.path.exists(PROJ4_LIBRARY_PATH):
+        PROJ4_LIBRARY_PATH = os.path.join(lib_path, 'x86_64-linux-gnu',
+                                          'libproj.so')
+
 elif sys.platform == 'darwin':
     # Max OS
     GDAL_LIBRARY_PATH = os.path.join(sys.exec_prefix,
@@ -149,7 +168,6 @@ elif sys.platform == 'darwin':
                                      'lib', 'libgeos_c.dylib')
     PROJ4_LIBRARY_PATH = os.path.join(sys.exec_prefix,
                                      'lib', 'libproj.dylib')
-
 
 if sys.platform == 'linux':
     SPATIALITE_LIBRARY_PATH = 'mod_spatialite.so'
@@ -194,11 +212,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
-FRONTEND_APP_DIR = os.path.join(BASE_DIR, 'angular-frontend/dist')
+FRONTEND_APP_DIR = os.path.join(BASE_DIR, 'angular-frontend', 'dist')
 
 STATICFILES_DIRS = [
     os.path.join(FRONTEND_APP_DIR),
 ]
+
+#FIXTURE_DIRS = [
+    #os.path.join(BASE_DIR, 'datentool_backend', 'fixtures'),
+#]
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'static'
