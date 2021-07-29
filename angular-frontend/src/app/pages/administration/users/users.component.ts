@@ -27,32 +27,11 @@ export class UsersComponent implements AfterViewInit  {
   users: User[] = [];
   selectedUser?: User;
   changePassword: boolean = false;
-
-  layout = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
-    map(({ matches }) => {
-      if (matches) {
-        return {
-          columns: 1,
-          userList: { cols: 1, rows: 1 },
-          account: { cols: 1, rows: 2 },
-          permissions: { cols: 1, rows: 2 },
-          dataAccess: { cols: 1, rows: 2 },
-        };
-      }
-
-      return {
-        columns: 3,
-        userList: { cols: 1, rows: 2 },
-        account: { cols: 1, rows: 1 },
-        permissions: { cols: 1, rows: 1 },
-        dataAccess: { cols: 1, rows: 1 },
-      };
-    })
-  );
+  // workaround to have access to object iteration in template
   Object = Object;
 
-  constructor(private http: HttpClient, private breakpointObserver: BreakpointObserver,
-              private dialog: MatDialog, private formBuilder: FormBuilder, private rest: RestAPI) {
+  constructor(private http: HttpClient, private dialog: MatDialog, private formBuilder: FormBuilder,
+              private rest: RestAPI) {
     this.createUserForm = this.formBuilder.group({
       username: new FormControl('', Validators.required),
       password: new FormControl('', Validators.required),
@@ -69,6 +48,7 @@ export class UsersComponent implements AfterViewInit  {
   getUsers(): Observable<User[]> {
     let query = this.http.get<User[]>(this.rest.URLS.users);
     query.subscribe((users)=>{
+      // sort users alphabetically, admins always on top
       this.users = users.slice().sort((a,b) =>
         (!a.isSuperuser && b.isSuperuser)? 1 : (a.isSuperuser && !b.isSuperuser)? -1 :
           (a.username > b.username)? 1 : (a.username < b.username)? -1 : 0)
