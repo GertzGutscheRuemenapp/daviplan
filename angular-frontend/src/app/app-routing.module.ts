@@ -2,19 +2,19 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AdministrationComponent } from './pages/administration/administration.component';
 import { UsersComponent } from './pages/administration/users/users.component';
-import { DashComponent } from './dash/dash.component';
 import { LoginComponent } from './pages/login/login.component'
 import { PlanningComponent } from "./pages/planning/planning.component";
 import { DemandComponent } from "./pages/planning/demand/demand.component";
 import { SupplyComponent } from "./pages/planning/supply/supply.component";
 import { WelcomeComponent } from "./pages/welcome.component";
 import { AuthGuard } from "./auth.service";
-import {BasedataComponent} from "./pages/basedata/basedata.component";
-import {PopulationComponent} from "./pages/population/population.component";
-import {PopDevelopmentComponent} from "./pages/population/pop-development/pop-development.component";
-import {PopStatisticsComponent} from "./pages/population/pop-statistics/pop-statistics.component";
-import {RatingComponent} from "./pages/planning/rating/rating.component";
-import {ReachabilitiesComponent} from "./pages/planning/reachabilities/reachabilities.component";
+import { BasedataComponent } from "./pages/basedata/basedata.component";
+import { PopulationComponent } from "./pages/population/population.component";
+import { PopDevelopmentComponent } from "./pages/population/pop-development/pop-development.component";
+import { PopStatisticsComponent } from "./pages/population/pop-statistics/pop-statistics.component";
+import { RatingComponent } from "./pages/planning/rating/rating.component";
+import { ReachabilitiesComponent } from "./pages/planning/reachabilities/reachabilities.component";
+import { SettingsComponent } from "./pages/administration/settings/settings.component";
 
 const routes: Routes = [
   {
@@ -23,7 +23,7 @@ const routes: Routes = [
   },
   {
     path: 'admin',
-    redirectTo: 'admin/users'
+    redirectTo: 'admin/settings'
   },
   {
     path: 'admin',
@@ -32,7 +32,7 @@ const routes: Routes = [
     children: [
       {
         path: 'settings',
-        component: DashComponent
+        component: SettingsComponent
       },
       {
         path: 'users',

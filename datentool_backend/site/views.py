@@ -6,7 +6,6 @@ from .serializers import SiteSettingsSerializer
 
 class SiteSettingsViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    authentication_classes = []
     queryset = SiteSettings.objects.all()
     serializer_class = SiteSettingsSerializer
 

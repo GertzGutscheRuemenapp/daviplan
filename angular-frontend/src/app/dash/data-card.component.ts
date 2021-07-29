@@ -13,7 +13,7 @@ export class DataCardComponent {
   dialogRef?: MatDialogRef<ConfirmDialogComponent>;
   @Input() title: string = '';
   @Input() confirmButtonText: string = '';
-  @Input() width: string = '500px';
+  @Input() dialogWidth: string = '500px';
   @Input() cancelButtonText: string = '';
   @Input() previewTemplate!: TemplateRef<any>;
   @Input() editTemplate!: TemplateRef<any>;
@@ -27,7 +27,7 @@ export class DataCardComponent {
   onEdit() {
     this.dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
-      width: this.width,
+      width: this.dialogWidth,
       disableClose: true,
       data: {
         title: this.title,

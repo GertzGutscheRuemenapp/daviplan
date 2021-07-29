@@ -1,8 +1,5 @@
 import { Component } from '@angular/core';
-import { AuthService } from "./auth.service";
-import { SettingsService, SiteSettings } from "./settings.service";
-import { Router } from "@angular/router";
-import { Title } from "@angular/platform-browser";
+import { SettingsService } from "./settings.service";
 
 @Component({
   selector: 'app-root',
@@ -11,14 +8,12 @@ import { Title } from "@angular/platform-browser";
 })
 export class AppComponent {
 
-  constructor(private settings: SettingsService, private titleService: Title) {
+  constructor(private settings: SettingsService) {
+    // auto apply settings when new ones were fetched
+    // ToDo: is this the right place for this?
     settings.siteSettings$.subscribe(settings => {
       if (settings)
-        this.applySettings(settings);
+        this.settings.applySettings(settings);
     })
-  }
-
-  applySettings(settings: SiteSettings) {
-    this.titleService.setTitle(settings.title);
   }
 }
