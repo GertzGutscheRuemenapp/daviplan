@@ -45,6 +45,9 @@ import { PopDevelopmentComponent } from './pages/population/pop-development/pop-
 import { PopStatisticsComponent } from './pages/population/pop-statistics/pop-statistics.component';
 import { ReachabilitiesComponent } from './pages/planning/reachabilities/reachabilities.component';
 import { RatingComponent } from './pages/planning/rating/rating.component';
+import { MaterialCssVarsModule } from 'angular-material-css-vars';
+import { SettingsComponent } from './pages/administration/settings/settings.component';
+import { ColorPickerModule } from "ngx-color-picker";
 
 @NgModule({
   declarations: [
@@ -68,7 +71,8 @@ import { RatingComponent } from './pages/planning/rating/rating.component';
     PopDevelopmentComponent,
     PopStatisticsComponent,
     ReachabilitiesComponent,
-    RatingComponent
+    RatingComponent,
+    SettingsComponent
   ],
     imports: [
         BrowserModule,
@@ -94,7 +98,11 @@ import { RatingComponent } from './pages/planning/rating/rating.component';
         MatCheckboxModule,
         MatSelectModule,
         MatExpansionModule,
-        MatSliderModule
+        MatSliderModule,
+        MaterialCssVarsModule.forRoot({
+            isAutoContrast: true
+        }),
+        ColorPickerModule,
     ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true }

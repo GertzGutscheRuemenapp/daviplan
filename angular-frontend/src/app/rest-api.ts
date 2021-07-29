@@ -10,7 +10,8 @@ export class RestAPI {
     token: `${ this.API_ENDPOINT }/token/`,
     refreshToken: `${ this.API_ENDPOINT }/token/refresh/`,
     users: `${ this.API_ENDPOINT }/users/`,
-    currentUser: `${ this.API_ENDPOINT }/users/current/`
+    currentUser: `${ this.API_ENDPOINT }/users/current/`,
+    settings: `${ this.API_ENDPOINT }/settings/default/`
   }
   // ToDo: functions with generalized HTTP calls in here
 }

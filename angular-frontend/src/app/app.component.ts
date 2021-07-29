@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
-import { AuthService } from "./auth.service";
-import { Router } from "@angular/router";
+import { SettingsService } from "./settings.service";
 
 @Component({
   selector: 'app-root',
@@ -8,7 +7,13 @@ import { Router } from "@angular/router";
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'Datentool';
 
-  constructor() {}
+  constructor(private settings: SettingsService) {
+    // auto apply settings when new ones were fetched
+    // ToDo: is this the right place for this?
+    settings.siteSettings$.subscribe(settings => {
+      if (settings)
+        this.settings.applySettings(settings);
+    })
+  }
 }

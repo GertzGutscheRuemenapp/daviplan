@@ -1,10 +1,11 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 
 from .models import SiteSettings
 from .serializers import SiteSettingsSerializer
 
 
 class SiteSettingsViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     queryset = SiteSettings.objects.all()
     serializer_class = SiteSettingsSerializer
 

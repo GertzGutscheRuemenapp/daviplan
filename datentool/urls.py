@@ -16,13 +16,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.conf.urls import url, include
-from django.views.generic.base import TemplateView
-
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
     TokenVerifyView
 )
+
+from .views import HomePageView
 
 urlpatterns = [
     path('django-admin/', admin.site.urls),
@@ -32,5 +32,5 @@ urlpatterns = [
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path('api/token/refresh/', TokenRefreshView.as_view(),
          name='token_refresh'),
-    url('', TemplateView.as_view(template_name='home.html'), name='home')
+    url('', HomePageView.as_view(), name='home')
 ]
