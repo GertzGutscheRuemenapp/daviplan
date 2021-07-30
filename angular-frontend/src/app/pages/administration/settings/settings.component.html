@@ -1,5 +1,8 @@
 <div style="display: flex; flex-wrap: wrap; align-content: flex-start; max-width: 1000px;">
-  <app-data-card title="Konto" style="min-width: 400px; ">
+  <app-data-card #titleCard
+                 title="Allgemein"
+                 style="min-width: 400px;"
+                 [editTemplate]="titleEdit">
     <table>
       <tr>
         <td i18n>Name der Seite</td>
@@ -40,6 +43,25 @@
   </app-data-card>
 </div>
 
+<ng-template #titleEdit>
+  <form [formGroup]="titleForm">
+    <div *ngIf="titleForm.errors">
+      <mat-error *ngFor="let error of Object.values(titleForm.errors)" class="alert">
+        {{ error }}
+      </mat-error>
+    </div>
+    <mat-form-field class="full">
+      <mat-label i18n>Nutzername</mat-label>
+      <input matInput formControlName="title" required/>
+    </mat-form-field>
+    <mat-form-field class="full">
+      <mat-label i18n>E-Mail</mat-label>
+      <input matInput formControlName="contact" required/>
+      <mat-error *ngIf="titleForm.get('contact')?.errors" i18n>Die E-Mail Adresse hat kein gültiges Format.</mat-error>
+    </mat-form-field>
+  </form>
+</ng-template>
+
 <ng-template #welcomeTextEdit>
   <angular-editor [(ngModel)]="welcomeTextInput" [config]="editorConfig"></angular-editor>
 </ng-template>
@@ -78,6 +100,7 @@
     </table>
   </div>
   <mat-card>
+    <h2 i18n>Vorschau</h2>
     <mat-card-content>
       <div class="example-button-row">
         <button mat-button>Basic</button>
@@ -182,8 +205,8 @@
     </mat-card-content>
   </mat-card>
   <mat-card class="mat-elevation-z3">
+    <h2>Palette</h2>
     <mat-card-content>
-      <h2 style="margin-bottom: 0;">Palette</h2>
       <div style="display: flex">
         <div style="min-width: 50%;" class="palette mat-elevation-z5">
           <div class="bg-50">

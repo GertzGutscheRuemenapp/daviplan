@@ -5,6 +5,8 @@ import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { AngularEditorConfig } from '@kolkov/angular-editor';
 import { set } from "ol/transform";
+import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
+import { User } from "../../login/users";
 
 @Component({
   selector: 'app-settings',
@@ -14,7 +16,9 @@ import { set } from "ol/transform";
 export class SettingsComponent implements AfterViewInit {
   @ViewChild('appearanceCard') appearanceCard?: DataCardComponent;
   @ViewChild('welcomeTextCard') welcomeTextCard?: DataCardComponent;
+  @ViewChild('titleCard') titleCard?: DataCardComponent;
   settings?: SiteSettings;
+  titleForm!: FormGroup;
   primaryColorInput: string = '';
   secondaryColorInput: string = '';
   welcomeTextInput: string = '';
@@ -30,15 +34,54 @@ export class SettingsComponent implements AfterViewInit {
   Object = Object;
 
   constructor(private settingsService: SettingsService, private http: HttpClient, private rest: RestAPI,
-              private cdRef:ChangeDetectorRef) {  }
+              private cdRef:ChangeDetectorRef, private formBuilder: FormBuilder) {  }
 
   ngAfterViewInit(): void {
     this.settingsService.siteSettings$.subscribe(settings => {
       this.settings = Object.assign({}, settings);
       this.cdRef.detectChanges();
+      this.setupTitleCard();
       this.setupAppearanceCard();
       this.setupWelcomeTextCard();
     });
+  }
+
+  setupTitleCard(): void {
+    if (!this.settings || !this.titleCard) return;
+    this.titleForm = this.formBuilder.group({
+      title: this.settings.title,
+      contact: this.settings.contactMail
+    });
+    this.titleCard.dialogConfirmed.subscribe((ok)=>{
+      this.titleForm.setErrors(null);
+      // display errors for all fields even if not touched
+      this.titleForm.markAllAsTouched();
+      if (this.titleForm.invalid) return;
+      let attributes: any = {
+        title: this.titleForm.value.title,
+        contactMail: this.titleForm.value.contact
+      }
+      this.titleCard?.setLoading(true);
+      this.http.patch<SiteSettings>(this.rest.URLS.settings, attributes
+      ).subscribe(data => {
+        this.titleCard?.closeDialog(true);
+        // update global settings
+        this.settingsService.fetchSiteSettings();
+      },(error) => {
+        // ToDo: set specific errors to fields
+        this.titleForm.setErrors(error.error);
+        this.titleCard?.setLoading(false);
+      });
+    })
+    this.titleCard.dialogClosed.subscribe((ok)=>{
+      // reset form on cancel
+      if (!ok){
+        this.titleForm.reset({
+          title: this.settings?.title,
+          contact: this.settings?.contactMail,
+        });
+      }
+    })
   }
 
   setupAppearanceCard(): void {
@@ -90,7 +133,6 @@ export class SettingsComponent implements AfterViewInit {
       this.welcomeTextCard?.setLoading(true);
       this.http.patch<SiteSettings>(this.rest.URLS.settings, attributes
       ).subscribe(settings => {
-        this.settings!.welcomeText = settings.welcomeText;
         // update global settings
         this.settingsService.fetchSiteSettings();
         this.welcomeTextCard?.closeDialog(true);
