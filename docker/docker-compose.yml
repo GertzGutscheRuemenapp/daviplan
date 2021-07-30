@@ -19,7 +19,7 @@ services:
     image: datentool
     links:
       - postgis:db
-    command: bash -c "cd /root/datentool && git pull && pip install -r requirements.txt && cd angular-frontend && npm ci && ng build --output-hashing none && cd /root/datentool && python manage.py migrate --run-syncdb && python manage.py loaddata users && python manage.py runserver 0.0.0.0:8000"
+    command: bash -c "cd /root/datentool && git pull && pip install -r requirements.txt && cd angular-frontend && npm ci && ng build --stats_json --build-optimizer && cd /root/datentool && python manage.py migrate --run-syncdb && python manage.py loaddata users && python manage.py runserver 0.0.0.0:8000"
     ports:
       - "${EXT_PORT}:8000"
     restart: unless-stopped

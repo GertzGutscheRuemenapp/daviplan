@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 import sys
 from datetime import timedelta
+import json
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -212,7 +213,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
-FRONTEND_APP_DIR = os.path.join(BASE_DIR, 'angular-frontend', 'dist')
+FRONTEND_APP_DIR = os.path.join(BASE_DIR, 'angular-frontend')
+FRONTEND_DIST = 'dist/angular-frontend'
 
 STATICFILES_DIRS = [
     os.path.join(FRONTEND_APP_DIR),
@@ -229,3 +231,14 @@ STATIC_ROOT = BASE_DIR / 'static'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+def load_stats_json():
+    with open(os.path.join(FRONTEND_APP_DIR,
+                           *FRONTEND_DIST.split('/'),
+                           'stats.json'), 'r') as file:
+        chunks = json.loads(file.read())['assetsByChunkName'] or {}
+        chunk_paths = {k: (f'{FRONTEND_DIST}/{fn[0]}')
+                       for k, fn in chunks.items()}
+        return chunk_paths
+
+ANGULAR_RESOURCES = load_stats_json() or {}
