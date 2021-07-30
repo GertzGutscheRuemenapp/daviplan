@@ -23,7 +23,7 @@ export class SettingsComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     this.settingsService.siteSettings$.subscribe(settings => {
-      this.settings = settings;
+      this.settings = Object.assign({}, settings);
       this.cdRef.detectChanges();
       this.setupAppearanceCard();
     });
@@ -42,7 +42,7 @@ export class SettingsComponent implements AfterViewInit {
       this.appearanceCard?.setLoading(true);
       this.http.patch<SiteSettings>(this.rest.URLS.settings, attributes
       ).subscribe(settings => {
-        this.appearanceCard?.closeDialog();
+        this.appearanceCard?.closeDialog(true);
       },(error) => {
         this.appearanceErrors = error.error;
         this.appearanceCard?.setLoading(false);
@@ -55,6 +55,7 @@ export class SettingsComponent implements AfterViewInit {
         this.secondaryColor = this.settings!.secondaryColor;
         this.appearanceErrors = {};
       }
+      this.settingsService.setColor({ primary: this.primaryColor, secondary: this.secondaryColor });
     });
   }
 

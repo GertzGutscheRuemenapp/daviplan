@@ -46,7 +46,8 @@
       <tr>
         <td i18n>Primärfarbe</td>
         <td>
-          <input (colorPickerChange)="onPrimaryChange($event)"
+          <input class="colorpicker" readonly
+                 (colorPickerChange)="onPrimaryChange($event)"
                  [style.background]="primaryColor"
                  [cpPresetColors]="['#fff', '#000', '#2889e9', '#e920e9', '#fff500', 'rgb(236,64,64)']"
                  [(colorPicker)]="primaryColor"/>
@@ -55,7 +56,8 @@
       <tr>
         <td i18n>Sekundärfarbe</td>
         <td>
-          <input (colorPickerChange)="onSecondaryChange($event)"
+          <input class="colorpicker" readonly
+                 (colorPickerChange)="onSecondaryChange($event)"
                  [style.background]="secondaryColor"
                  [cpPresetColors]="['#fff', '#000', '#2889e9', '#e920e9', '#fff500', 'rgb(236,64,64)']"
                  [(colorPicker)]="secondaryColor"/>
@@ -167,11 +169,11 @@
       </div>
     </mat-card-content>
   </mat-card>
-  <section>
-    <mat-card class="mat-elevation-z3">
-      <mat-card-content>
-        <h2 style="margin-bottom: 0;">Palette</h2>
-        <div class="palette mat-elevation-z5">
+  <mat-card class="mat-elevation-z3">
+    <mat-card-content>
+      <h2 style="margin-bottom: 0;">Palette</h2>
+      <div style="display: flex">
+        <div style="min-width: 50%;" class="palette mat-elevation-z5">
           <div class="bg-50">
             <div>50</div>
           </div>
@@ -188,7 +190,7 @@
             <div>400</div>
           </div>
           <div class="bg-500">
-            <div>primary<br>500</div>
+            <div i18n>primär<br>500</div>
           </div>
           <div class="bg-600">
             <div>600</div>
@@ -203,7 +205,7 @@
             <div>900</div>
           </div>
         </div>
-        <div class="palette mat-elevation-z5">
+        <div style="min-width: 50%;" class="palette mat-elevation-z5">
           <div class="bga-50">
             <div>50</div>
           </div>
@@ -220,7 +222,7 @@
             <div>400</div>
           </div>
           <div class="bga-500">
-            <div>primary<br>500</div>
+            <div i18n>primär<br>500</div>
           </div>
           <div class="bga-600">
             <div>600</div>
@@ -235,7 +237,7 @@
             <div>900</div>
           </div>
         </div>
-      </mat-card-content>
-    </mat-card>
-  </section>
+      </div>
+    </mat-card-content>
+  </mat-card>
 </ng-template>

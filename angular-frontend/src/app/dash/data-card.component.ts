@@ -29,6 +29,7 @@ export class DataCardComponent {
       panelClass: 'absolute',
       width: this.dialogWidth,
       disableClose: true,
+      autoFocus: false,
       data: {
         title: this.title,
         template: this.editTemplate,
@@ -36,7 +37,7 @@ export class DataCardComponent {
       }
     });
     this.dialogRef.afterClosed().subscribe((ok: boolean) => {
-      this.dialogClosed.emit(ok);
+      this.dialogClosed.emit(!!ok);
     });
     this.dialogRef.componentInstance.confirmed.subscribe(() => {
       this.dialogConfirmed.emit();
@@ -44,9 +45,9 @@ export class DataCardComponent {
 
   }
 
-  closeDialog() {
+  closeDialog(confirmed: boolean = false) {
     if (this.dialogRef)
-      this.dialogRef.close();
+      this.dialogRef.close(confirmed);
   }
 
   setLoading(enable: boolean){

@@ -82,7 +82,7 @@ export class UsersComponent implements AfterViewInit  {
       this.accountCard?.setLoading(true);
       this.http.patch<User>(`${this.rest.URLS.users}${this.selectedUser?.id}/`, attributes
       ).subscribe(data => {
-        this.accountCard?.closeDialog();
+        this.accountCard?.closeDialog(true);
         this.refresh(data.id);
       },(error) => {
         // ToDo: set specific errors to fields
@@ -121,7 +121,7 @@ export class UsersComponent implements AfterViewInit  {
       this.permissionCard?.setLoading(true);
       this.http.patch<User>(`${this.rest.URLS.users}${this.selectedUser?.id}/`, attributes
       ).subscribe(user => {
-        this.permissionCard?.closeDialog();
+        this.permissionCard?.closeDialog(true);
         this.refresh(user.id);
       },(error) => {
         this.permissionForm.setErrors(error.error);
