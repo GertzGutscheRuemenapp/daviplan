@@ -11,7 +11,11 @@
       </tr>
     </table>
   </app-data-card>
-  <app-data-card #appearanceCard dialogWidth="800px" title="Darstellung" style="min-width: 400px;" [editTemplate]="appearanceEdit">
+  <app-data-card #appearanceCard
+                 dialogWidth="800px"
+                 title="Darstellung"
+                 style="min-width: 400px;"
+                 [editTemplate]="appearanceEdit">
     <table>
       <tr>
         <td i18n>Logo</td>
@@ -27,10 +31,18 @@
       </tr>
     </table>
   </app-data-card>
-  <app-data-card title="Willkommenstext" style="min-width: 800px;">
-    {{settings?.welcomeText}}
+  <app-data-card #welcomeTextCard
+                 dialogWidth="800px"
+                 title="Willkommenstext"
+                 style="min-width: 800px;"
+                 [editTemplate]="welcomeTextEdit">
+    <div [innerHTML]="settings?.welcomeText"></div>
   </app-data-card>
 </div>
+
+<ng-template #welcomeTextEdit>
+  <angular-editor [(ngModel)]="welcomeTextInput" [config]="editorConfig"></angular-editor>
+</ng-template>
 
 <ng-template #appearanceEdit>
   <div style="min-height: 100px">
@@ -48,9 +60,9 @@
         <td>
           <input class="colorpicker" readonly
                  (colorPickerChange)="onPrimaryChange($event)"
-                 [style.background]="primaryColor"
+                 [style.background]="primaryColorInput"
                  [cpPresetColors]="['#fff', '#000', '#2889e9', '#e920e9', '#fff500', 'rgb(236,64,64)']"
-                 [(colorPicker)]="primaryColor"/>
+                 [(colorPicker)]="primaryColorInput"/>
         </td>
       </tr>
       <tr>
@@ -58,9 +70,9 @@
         <td>
           <input class="colorpicker" readonly
                  (colorPickerChange)="onSecondaryChange($event)"
-                 [style.background]="secondaryColor"
+                 [style.background]="secondaryColorInput"
                  [cpPresetColors]="['#fff', '#000', '#2889e9', '#e920e9', '#fff500', 'rgb(236,64,64)']"
-                 [(colorPicker)]="secondaryColor"/>
+                 [(colorPicker)]="secondaryColorInput"/>
         </td>
       </tr>
     </table>
