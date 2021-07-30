@@ -1,5 +1,8 @@
 <div style="display: flex; flex-wrap: wrap; align-content: flex-start; max-width: 1000px;">
-  <app-data-card title="Konto" style="min-width: 400px; ">
+  <app-data-card #titleCard
+                 title="Allgemein"
+                 style="min-width: 400px;"
+                 [editTemplate]="titleEdit">
     <table>
       <tr>
         <td i18n>Name der Seite</td>
@@ -11,7 +14,11 @@
       </tr>
     </table>
   </app-data-card>
-  <app-data-card #appearanceCard dialogWidth="800px" title="Darstellung" style="min-width: 400px;" [editTemplate]="appearanceEdit">
+  <app-data-card #appearanceCard
+                 dialogWidth="800px"
+                 title="Darstellung"
+                 style="min-width: 400px;"
+                 [editTemplate]="appearanceEdit">
     <table>
       <tr>
         <td i18n>Logo</td>
@@ -27,10 +34,37 @@
       </tr>
     </table>
   </app-data-card>
-  <app-data-card title="Willkommenstext" style="min-width: 800px;">
-    {{settings?.welcomeText}}
+  <app-data-card #welcomeTextCard
+                 dialogWidth="800px"
+                 title="Willkommenstext"
+                 style="min-width: 800px;"
+                 [editTemplate]="welcomeTextEdit">
+    <div [innerHTML]="settings?.welcomeText"></div>
   </app-data-card>
 </div>
+
+<ng-template #titleEdit>
+  <form [formGroup]="titleForm">
+    <div *ngIf="titleForm.errors">
+      <mat-error *ngFor="let error of Object.values(titleForm.errors)" class="alert">
+        {{ error }}
+      </mat-error>
+    </div>
+    <mat-form-field class="full">
+      <mat-label i18n>Nutzername</mat-label>
+      <input matInput formControlName="title" required/>
+    </mat-form-field>
+    <mat-form-field class="full">
+      <mat-label i18n>E-Mail</mat-label>
+      <input matInput formControlName="contact" required/>
+      <mat-error *ngIf="titleForm.get('contact')?.errors" i18n>Die E-Mail Adresse hat kein gültiges Format.</mat-error>
+    </mat-form-field>
+  </form>
+</ng-template>
+
+<ng-template #welcomeTextEdit>
+  <angular-editor [(ngModel)]="welcomeTextInput" [config]="editorConfig"></angular-editor>
+</ng-template>
 
 <ng-template #appearanceEdit>
   <div style="min-height: 100px">
@@ -46,24 +80,27 @@
       <tr>
         <td i18n>Primärfarbe</td>
         <td>
-          <input (colorPickerChange)="onPrimaryChange($event)"
-                 [style.background]="primaryColor"
+          <input class="colorpicker" readonly
+                 (colorPickerChange)="onPrimaryChange($event)"
+                 [style.background]="primaryColorInput"
                  [cpPresetColors]="['#fff', '#000', '#2889e9', '#e920e9', '#fff500', 'rgb(236,64,64)']"
-                 [(colorPicker)]="primaryColor"/>
+                 [(colorPicker)]="primaryColorInput"/>
         </td>
       </tr>
       <tr>
         <td i18n>Sekundärfarbe</td>
         <td>
-          <input (colorPickerChange)="onSecondaryChange($event)"
-                 [style.background]="secondaryColor"
+          <input class="colorpicker" readonly
+                 (colorPickerChange)="onSecondaryChange($event)"
+                 [style.background]="secondaryColorInput"
                  [cpPresetColors]="['#fff', '#000', '#2889e9', '#e920e9', '#fff500', 'rgb(236,64,64)']"
-                 [(colorPicker)]="secondaryColor"/>
+                 [(colorPicker)]="secondaryColorInput"/>
         </td>
       </tr>
     </table>
   </div>
   <mat-card>
+    <h2 i18n>Vorschau</h2>
     <mat-card-content>
       <div class="example-button-row">
         <button mat-button>Basic</button>
@@ -167,11 +204,11 @@
       </div>
     </mat-card-content>
   </mat-card>
-  <section>
-    <mat-card class="mat-elevation-z3">
-      <mat-card-content>
-        <h2 style="margin-bottom: 0;">Palette</h2>
-        <div class="palette mat-elevation-z5">
+  <mat-card class="mat-elevation-z3">
+    <h2>Palette</h2>
+    <mat-card-content>
+      <div style="display: flex">
+        <div style="min-width: 50%;" class="palette mat-elevation-z5">
           <div class="bg-50">
             <div>50</div>
           </div>
@@ -188,7 +225,7 @@
             <div>400</div>
           </div>
           <div class="bg-500">
-            <div>primary<br>500</div>
+            <div i18n>primär<br>500</div>
           </div>
           <div class="bg-600">
             <div>600</div>
@@ -203,7 +240,7 @@
             <div>900</div>
           </div>
         </div>
-        <div class="palette mat-elevation-z5">
+        <div style="min-width: 50%;" class="palette mat-elevation-z5">
           <div class="bga-50">
             <div>50</div>
           </div>
@@ -220,7 +257,7 @@
             <div>400</div>
           </div>
           <div class="bga-500">
-            <div>primary<br>500</div>
+            <div i18n>primär<br>500</div>
           </div>
           <div class="bga-600">
             <div>600</div>
@@ -235,7 +272,7 @@
             <div>900</div>
           </div>
         </div>
-      </mat-card-content>
-    </mat-card>
-  </section>
+      </div>
+    </mat-card-content>
+  </mat-card>
 </ng-template>

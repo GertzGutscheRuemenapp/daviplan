@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { SettingsService } from "../settings.service";
 
 @Component({
   selector: 'app-pages',
@@ -6,10 +7,14 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./welcome.component.scss']
 })
 export class WelcomeComponent implements OnInit {
+  welcomeText: string = '';
 
-  constructor() { }
-
-  ngOnInit(): void {
+  constructor(private settingsService: SettingsService) {
+    this.settingsService.siteSettings$.subscribe(settings => {
+      this.welcomeText = settings.welcomeText;
+    });
   }
+
+  ngOnInit(): void { }
 
 }

@@ -48,6 +48,7 @@ import { RatingComponent } from './pages/planning/rating/rating.component';
 import { MaterialCssVarsModule } from 'angular-material-css-vars';
 import { SettingsComponent } from './pages/administration/settings/settings.component';
 import { ColorPickerModule } from "ngx-color-picker";
+import { AngularEditorModule } from '@kolkov/angular-editor';
 
 @NgModule({
   declarations: [
@@ -103,6 +104,7 @@ import { ColorPickerModule } from "ngx-color-picker";
             isAutoContrast: true
         }),
         ColorPickerModule,
+        AngularEditorModule
     ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true }

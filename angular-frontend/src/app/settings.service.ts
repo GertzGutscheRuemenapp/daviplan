@@ -7,7 +7,7 @@ import { Title } from "@angular/platform-browser";
 import { MaterialCssVarsService } from "angular-material-css-vars";
 
 export interface SiteSettings {
-  id: bigint,
+  id: number,
   title: string,
   contactMail: string,
   logo: string,
@@ -18,7 +18,9 @@ export interface SiteSettings {
 
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
-  siteSettings$ = new BehaviorSubject<SiteSettings>(null as any);
+  siteSettings$ = new BehaviorSubject<SiteSettings>({
+    id: 0, title: '', contactMail: '', logo: '', primaryColor: '', secondaryColor: '', welcomeText: ''
+  });
 
   constructor(private rest: RestAPI, private http: HttpClient, private titleService: Title,
               public materialCssVarsService: MaterialCssVarsService ) {
