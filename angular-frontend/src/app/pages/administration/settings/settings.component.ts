@@ -4,9 +4,8 @@ import { DataCardComponent } from "../../../dash/data-card.component";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { AngularEditorConfig } from '@kolkov/angular-editor';
-import { set } from "ol/transform";
-import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
-import { User } from "../../login/users";
+import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
+import { FileValidator } from 'ngx-material-file-input';
 
 @Component({
   selector: 'app-settings',
@@ -19,8 +18,10 @@ export class SettingsComponent implements AfterViewInit {
   @ViewChild('titleCard') titleCard?: DataCardComponent;
   settings?: SiteSettings;
   titleForm!: FormGroup;
+  logoForm!: FormGroup;
   primaryColorInput: string = '';
   secondaryColorInput: string = '';
+  logoChanged: boolean = false;
   welcomeTextInput: string = '';
   appearanceErrors: any = {};
   welcomeTextErrors: any = {};
@@ -30,6 +31,8 @@ export class SettingsComponent implements AfterViewInit {
     height: '300px',
     minHeight: '100px'
   }
+  // 10MB (=10 * 2 ** 20)
+  readonly maxLogoSize = 10485760;
   // workaround to have access to object iteration in template
   Object = Object;
 
@@ -88,10 +91,22 @@ export class SettingsComponent implements AfterViewInit {
     if (!this.settings || !this.appearanceCard) return;
     this.primaryColorInput = this.settings.primaryColor;
     this.secondaryColorInput = this.settings.secondaryColor;
+
+    this.logoForm = this.formBuilder.group({
+      logo: [ undefined, [FileValidator.maxContentSize(this.maxLogoSize)]]
+    });
+    this.logoForm.controls['logo'].valueChanges.subscribe(e=>{
+      this.logoChanged = true;
+    })
     this.appearanceCard.dialogConfirmed.subscribe((ok)=>{
       let attributes: any = {
         primaryColor: this.primaryColorInput,
         secondaryColor: this.secondaryColorInput
+      }
+      if (this.logoChanged){
+        let file = this.logoForm.value.logo;
+        // ToDo
+        //    attributes['logo'] = file;
       }
       this.appearanceCard?.setLoading(true);
       this.http.patch<SiteSettings>(this.rest.URLS.settings, attributes
@@ -111,6 +126,7 @@ export class SettingsComponent implements AfterViewInit {
         this.secondaryColorInput = this.settings!.secondaryColor;
         this.settingsService.setColor({ primary: this.primaryColorInput, secondary: this.secondaryColorInput });
       }
+      this.logoChanged = false;
       this.appearanceErrors = {};
     });
   }

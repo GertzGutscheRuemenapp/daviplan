@@ -49,6 +49,7 @@ import { MaterialCssVarsModule } from 'angular-material-css-vars';
 import { SettingsComponent } from './pages/administration/settings/settings.component';
 import { ColorPickerModule } from "ngx-color-picker";
 import { AngularEditorModule } from '@kolkov/angular-editor';
+import { MaterialFileInputModule } from "ngx-material-file-input";
 
 @NgModule({
   declarations: [
@@ -104,7 +105,8 @@ import { AngularEditorModule } from '@kolkov/angular-editor';
             isAutoContrast: true
         }),
         ColorPickerModule,
-        AngularEditorModule
+        AngularEditorModule,
+        MaterialFileInputModule
     ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true }
