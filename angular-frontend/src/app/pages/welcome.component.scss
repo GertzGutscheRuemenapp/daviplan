@@ -1,3 +1,7 @@
 .welcome {
-  margin-top: 10em;
+  margin: 50px;
+}
+
+.welcome > div {
+  max-width: 800px;
 }
