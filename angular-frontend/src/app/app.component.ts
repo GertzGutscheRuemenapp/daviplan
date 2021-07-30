@@ -12,8 +12,7 @@ export class AppComponent {
     // auto apply settings when new ones were fetched
     // ToDo: is this the right place for this?
     settings.siteSettings$.subscribe(settings => {
-      if (settings)
-        this.settings.applySettings(settings);
+      this.settings.applySettings(settings);
     })
   }
 }
