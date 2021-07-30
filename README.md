@@ -13,5 +13,6 @@ conda install -c conda-forge gdal=3.1 (global)
 
 ### Serve Frontend
 \<path to installation\>/angular-frontend/npm install
-\<path to installation\>/angular-frontend/ng build --output-hashing none
+\<path to installation\>/angular-frontend/ng build --stats-json
+ - argument --stats-json creates stats file that provides information to django about the built hashed resources
  - add argument --watch to reload on change

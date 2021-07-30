@@ -7,15 +7,21 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="stylesheet" href="{% static 'angular-frontend/styles.css' %}">
+  <link rel="stylesheet" href="{% static styles %}">
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body class="mat-typography">
   <app-root></app-root>
-  <script type="text/javascript" src="{% static 'angular-frontend/runtime.js' %}"></script>
-  <script type="text/javascript" src="{% static 'angular-frontend/polyfills.js' %}"></script>
-  <script type="text/javascript" src="{% static 'angular-frontend/main.js' %}"></script>
+  <script type="text/javascript" src="{% static runtime %}"></script>
+  <script type="text/javascript" src="{% static polyfills %}"></script>
+  {% if scripts %}
+    <script type="text/javascript" src="{% static scripts %}"></script>
+  {% endif %}
+  {% if vendor %}
+    <script type="text/javascript" src="{% static vendor %}"></script>
+  {% endif %}
+  <script type="text/javascript" src="{% static main %}"></script>
 </body>
 </html>
