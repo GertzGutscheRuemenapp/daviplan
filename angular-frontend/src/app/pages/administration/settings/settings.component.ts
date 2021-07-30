@@ -54,6 +54,8 @@ export class SettingsComponent implements AfterViewInit {
       this.http.patch<SiteSettings>(this.rest.URLS.settings, attributes
       ).subscribe(settings => {
         this.appearanceCard?.closeDialog(true);
+        // update global settings
+        this.settingsService.fetchSiteSettings();
       },(error) => {
         this.appearanceErrors = error.error;
         this.appearanceCard?.setLoading(false);
@@ -64,9 +66,9 @@ export class SettingsComponent implements AfterViewInit {
       if (!ok){
         this.primaryColorInput = this.settings!.primaryColor;
         this.secondaryColorInput = this.settings!.secondaryColor;
+        this.settingsService.setColor({ primary: this.primaryColorInput, secondary: this.secondaryColorInput });
       }
       this.appearanceErrors = {};
-      this.settingsService.setColor({ primary: this.primaryColorInput, secondary: this.secondaryColorInput });
     });
   }
 
@@ -89,6 +91,8 @@ export class SettingsComponent implements AfterViewInit {
       this.http.patch<SiteSettings>(this.rest.URLS.settings, attributes
       ).subscribe(settings => {
         this.settings!.welcomeText = settings.welcomeText;
+        // update global settings
+        this.settingsService.fetchSiteSettings();
         this.welcomeTextCard?.closeDialog(true);
       },(error) => {
         this.welcomeTextErrors = error.error;
