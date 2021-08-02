@@ -22,7 +22,10 @@
     <table>
       <tr>
         <td i18n>Logo</td>
-        <td><img [src]="settings?.logo" alt="Logo" width="50"></td>
+        <td><img *ngIf="settings?.logo; else noLogo" [src]="settings?.logo" alt="Logo" width="50"></td>
+        <ng-template #noLogo>
+          <div i18n> kein Logo </div>
+        </ng-template>
       </tr>
       <tr>
         <td i18n>Primärfarbe</td>
@@ -82,9 +85,9 @@
               <ngx-mat-file-input #logoInput
                                   [accept]="'.png,.bmp,.gif,.jpg,.svg,.apng,.ico'"
                                   formControlName="logo"
-                                  placeholder="kein Logo">
+                                  [placeholder]="logoPlaceholder">
               </ngx-mat-file-input>
-              <button mat-icon-button matSuffix *ngIf="!logoInput.empty" (click)="logoInput.clear($event)">
+              <button mat-icon-button matSuffix (click)="logoInput.clear($event)"> <!--*ngIf="!logoInput.empty"-->
                 <mat-icon>clear</mat-icon>
               </button>
             </mat-form-field>

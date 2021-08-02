@@ -19,7 +19,8 @@ import { SettingsComponent } from "./pages/administration/settings/settings.comp
 const routes: Routes = [
   {
     path: '',
-    component: WelcomeComponent
+    component: WelcomeComponent,
+    pathMatch: 'full'
   },
   {
     path: 'admin',

@@ -22,6 +22,7 @@ export class SettingsComponent implements AfterViewInit {
   primaryColorInput: string = '';
   secondaryColorInput: string = '';
   logoChanged: boolean = false;
+  logoPlaceholder: string = '';
   welcomeTextInput: string = '';
   appearanceErrors: any = {};
   welcomeTextErrors: any = {};
@@ -43,18 +44,22 @@ export class SettingsComponent implements AfterViewInit {
     this.settingsService.siteSettings$.subscribe(settings => {
       this.settings = Object.assign({}, settings);
       this.cdRef.detectChanges();
-      this.setupTitleCard();
-      this.setupAppearanceCard();
-      this.setupWelcomeTextCard();
+      this.titleForm = this.formBuilder.group({
+        title: this.settings.title,
+        contact: this.settings.contactMail
+      });
+      this.primaryColorInput = this.settings.primaryColor;
+      this.secondaryColorInput = this.settings.secondaryColor;
+      this.welcomeTextInput = this.settings.welcomeText;
+      this.setLogoPlaceholder();
     });
+    this.setupTitleCard();
+    this.setupAppearanceCard();
+    this.setupWelcomeTextCard();
   }
 
   setupTitleCard(): void {
     if (!this.settings || !this.titleCard) return;
-    this.titleForm = this.formBuilder.group({
-      title: this.settings.title,
-      contact: this.settings.contactMail
-    });
     this.titleCard.dialogConfirmed.subscribe((ok)=>{
       this.titleForm.setErrors(null);
       // display errors for all fields even if not touched
@@ -87,29 +92,40 @@ export class SettingsComponent implements AfterViewInit {
     })
   }
 
+  setLogoPlaceholder(): void {
+    if (!this.settings!.logo)
+      this.logoPlaceholder = 'kein Logo';
+    else {
+      let split = this.settings!.logo.split('/');
+      this.logoPlaceholder = split[split.length - 1];
+    }
+  }
+
   setupAppearanceCard(): void {
     if (!this.settings || !this.appearanceCard) return;
-    this.primaryColorInput = this.settings.primaryColor;
-    this.secondaryColorInput = this.settings.secondaryColor;
-
     this.logoForm = this.formBuilder.group({
       logo: [ undefined, [FileValidator.maxContentSize(this.maxLogoSize)]]
     });
     this.logoForm.controls['logo'].valueChanges.subscribe(e=>{
       this.logoChanged = true;
-    })
+      if (!this.logoForm.value.logo)
+        this.logoPlaceholder = 'kein Logo';
+    });
     this.appearanceCard.dialogConfirmed.subscribe((ok)=>{
-      let attributes: any = {
-        primaryColor: this.primaryColorInput,
-        secondaryColor: this.secondaryColorInput
-      }
+      const formData = new FormData();
+      // let attributes: any = {
+      //   primaryColor: this.primaryColorInput,
+      //   secondaryColor: this.secondaryColorInput
+      // }
+      formData.append('primaryColor', this.primaryColorInput);
+      formData.append('secondaryColor', this.secondaryColorInput);
       if (this.logoChanged){
         let file = this.logoForm.value.logo;
-        // ToDo
-        //    attributes['logo'] = file;
+        file = file ? file.files[0]: '';
+        formData.append('logo', file);
       }
       this.appearanceCard?.setLoading(true);
-      this.http.patch<SiteSettings>(this.rest.URLS.settings, attributes
+      this.http.patch<SiteSettings>(this.rest.URLS.settings, formData
       ).subscribe(settings => {
         this.appearanceCard?.closeDialog(true);
         // update global settings
@@ -126,8 +142,10 @@ export class SettingsComponent implements AfterViewInit {
         this.secondaryColorInput = this.settings!.secondaryColor;
         this.settingsService.setColor({ primary: this.primaryColorInput, secondary: this.secondaryColorInput });
       }
-      this.logoChanged = false;
       this.appearanceErrors = {};
+      this.logoForm.reset();
+      this.setLogoPlaceholder();
+      this.logoChanged = false;
     });
   }
 
@@ -141,7 +159,6 @@ export class SettingsComponent implements AfterViewInit {
 
   setupWelcomeTextCard(): void {
     if (!this.settings || !this.welcomeTextCard) return;
-    this.welcomeTextInput = this.settings.welcomeText;
     this.welcomeTextCard.dialogConfirmed.subscribe((ok)=>{
       let attributes: any = {
         welcomeText: this.welcomeTextInput
