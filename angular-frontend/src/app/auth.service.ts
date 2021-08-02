@@ -100,9 +100,9 @@ export class TokenInterceptor implements HttpInterceptor {
           return this.logoutAndRedirect(err);
         }
         // refresh token failed
-        if (err instanceof HttpErrorResponse && err.status === 403) {
-          return this.logoutAndRedirect(err);
-        }
+        // if (err instanceof HttpErrorResponse && err.status === 403) {
+        //   return this.logoutAndRedirect(err);
+        // }
         // other errors
         return throwError(err);
       })
@@ -133,6 +133,9 @@ export class TokenInterceptor implements HttpInterceptor {
           this.accessTokenSubject.next(res.access);
           // repeat failed request with new token
           return next.handle(this.addAuthorizationHeader(request, res.access));
+        }),
+        catchError(err => {
+          return this.logoutAndRedirect(err);
         })
       );
     } else {
