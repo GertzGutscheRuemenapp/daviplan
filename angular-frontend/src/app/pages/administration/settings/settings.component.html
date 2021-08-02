@@ -22,7 +22,10 @@
     <table>
       <tr>
         <td i18n>Logo</td>
-        <td><img [src]="settings?.logo" alt="Logo" width="50"></td>
+        <td><img *ngIf="settings?.logo; else noLogo" [src]="settings?.logo" alt="Logo" width="50"></td>
+        <ng-template #noLogo>
+          <div i18n> kein Logo </div>
+        </ng-template>
       </tr>
       <tr>
         <td i18n>Primärfarbe</td>
@@ -56,7 +59,7 @@
     </mat-form-field>
     <mat-form-field class="full">
       <mat-label i18n>E-Mail</mat-label>
-      <input matInput formControlName="contact" required/>
+      <input matInput formControlName="contact"/>
       <mat-error *ngIf="titleForm.get('contact')?.errors" i18n>Die E-Mail Adresse hat kein gültiges Format.</mat-error>
     </mat-form-field>
   </form>
@@ -76,6 +79,20 @@
     <table>
       <tr>
         <td i18n>Logo</td>
+        <td>
+          <form [formGroup]="logoForm">
+            <mat-form-field [floatLabel]="'never'">
+              <ngx-mat-file-input #logoInput
+                                  [accept]="'.png,.bmp,.gif,.jpg,.svg,.apng,.ico'"
+                                  formControlName="logo"
+                                  [placeholder]="logoPlaceholder">
+              </ngx-mat-file-input>
+              <button mat-icon-button matSuffix (click)="logoInput.clear($event)"> <!--*ngIf="!logoInput.empty"-->
+                <mat-icon>clear</mat-icon>
+              </button>
+            </mat-form-field>
+          </form>
+        </td>
       </tr>
       <tr>
         <td i18n>Primärfarbe</td>

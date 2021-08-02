@@ -99,3 +99,7 @@ mat-form-field.mat-focused span.mat-form-field-label-wrapper label {
   margin: 0px!important;
 }
 
+button mat-icon {
+  margin-left: -2px;
+  //margin-right: 2px;
+}

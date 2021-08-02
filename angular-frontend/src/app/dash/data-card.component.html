@@ -7,6 +7,12 @@
   <mat-card-content class="dashboard-card-content">
     <ng-content></ng-content>
     <ng-container *ngTemplateOutlet="previewTemplate;"></ng-container>
-    <button *ngIf="editTemplate" (click)="onEdit()" mat-raised-button color="accent" class="data-preview-edit-button">Editieren</button>
+    <button *ngIf="editTemplate"
+            (click)="onEdit()"
+            mat-raised-button color="accent"
+            class="data-preview-edit-button">
+      <mat-icon>edit</mat-icon>
+      Editieren
+    </button>
   </mat-card-content>
 </mat-card>

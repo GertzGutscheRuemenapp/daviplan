@@ -8,3 +8,4 @@ django-filter
 djangorestframework-simplejwt
 djangorestframework-camel-case
 Pillow
+django-cleanup
