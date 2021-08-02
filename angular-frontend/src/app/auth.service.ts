@@ -100,9 +100,9 @@ export class TokenInterceptor implements HttpInterceptor {
           return this.logoutAndRedirect(err);
         }
         // refresh token failed
-        /*if (err instanceof HttpErrorResponse && err.status === 403) {
+        if (err instanceof HttpErrorResponse && err.status === 403) {
           return this.logoutAndRedirect(err);
-        }*/
+        }
         // other errors
         return throwError(err);
       })
