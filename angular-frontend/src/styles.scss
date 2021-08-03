@@ -96,10 +96,19 @@ mat-form-field.mat-focused span.mat-form-field-label-wrapper label {
   left: 15px;
   right: 15px;
   bottom: 15px;
-  margin: 0px!important;
+  margin: 0px;
 }
 
 button mat-icon {
   margin-left: -2px;
   //margin-right: 2px;
+}
+
+app-data-card table, app-dash-card table {
+  border-collapse: separate;
+  border-spacing: 15px 0;
+}
+
+app-data-card td, app-dash-card td {
+  padding: 3px 0;
 }
