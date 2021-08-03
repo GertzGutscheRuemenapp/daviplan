@@ -50,6 +50,8 @@ import { SettingsComponent } from './pages/administration/settings/settings.comp
 import { ColorPickerModule } from "ngx-color-picker";
 import { AngularEditorModule } from '@kolkov/angular-editor';
 import { MaterialFileInputModule } from "ngx-material-file-input";
+import { AreasComponent } from './pages/basedata/areas/areas.component';
+import { LogComponent } from './log/log.component';
 
 @NgModule({
   declarations: [
@@ -74,7 +76,9 @@ import { MaterialFileInputModule } from "ngx-material-file-input";
     PopStatisticsComponent,
     ReachabilitiesComponent,
     RatingComponent,
-    SettingsComponent
+    SettingsComponent,
+    AreasComponent,
+    LogComponent
   ],
     imports: [
         BrowserModule,

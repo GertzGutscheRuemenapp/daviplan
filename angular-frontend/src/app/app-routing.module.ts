@@ -15,6 +15,7 @@ import { PopStatisticsComponent } from "./pages/population/pop-statistics/pop-st
 import { RatingComponent } from "./pages/planning/rating/rating.component";
 import { ReachabilitiesComponent } from "./pages/planning/reachabilities/reachabilities.component";
 import { SettingsComponent } from "./pages/administration/settings/settings.component";
+import { AreasComponent } from "./pages/basedata/areas/areas.component";
 
 const routes: Routes = [
   {
@@ -73,7 +74,17 @@ const routes: Routes = [
   },
   {
     path: 'grundlagendaten',
-    component: BasedataComponent
+    redirectTo: 'grundlagendaten/gebiete',
+  },
+  {
+    path: 'grundlagendaten',
+    component: BasedataComponent,
+    children: [
+      {
+        path: 'gebiete',
+        component: AreasComponent
+      },
+    ]
   },
   {
     path: 'bevoelkerung',

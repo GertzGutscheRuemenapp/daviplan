@@ -1,7 +1,5 @@
-import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
-import { map } from "rxjs/operators";
 import { MatDialog } from '@angular/material/dialog';
 import { User } from '../../login/users';
 import { ConfirmDialogComponent } from '../../../dialogs/confirm-dialog.component';
