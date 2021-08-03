@@ -1,11 +1,18 @@
-/* You can add global styles to this file, and also import other style files */
-@import '~angular-material-css-vars/main';
+@use '~@angular/material' as mat;
 
-@include init-material-css-vars() {
-  // If your app has any theme mixins, call them here.
-  // $mat-css-theme gets set to an appropriate value before this content is called.
-  // @include your-custom-component-theme($mat-css-theme);
-};
+@include mat.core();
+
+$app-primary: mat.define-palette(mat.$light-green-palette, 700);
+$app-accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
+
+$app-theme: mat.define-light-theme((
+  color: (
+    primary: $app-primary,
+    accent: $app-accent,
+  )
+));
+
+@include mat.all-component-themes($app-theme);
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

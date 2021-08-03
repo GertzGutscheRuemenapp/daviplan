@@ -4,8 +4,7 @@ import { DataCardComponent } from "../../../dash/data-card.component";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { AngularEditorConfig } from '@kolkov/angular-editor';
-import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
-import { FileValidator } from 'ngx-material-file-input';
+import { FormBuilder, FormGroup } from "@angular/forms";
 
 @Component({
   selector: 'app-settings',
@@ -13,16 +12,10 @@ import { FileValidator } from 'ngx-material-file-input';
   styleUrls: ['./settings.component.scss']
 })
 export class SettingsComponent implements AfterViewInit {
-  @ViewChild('appearanceCard') appearanceCard?: DataCardComponent;
   @ViewChild('welcomeTextCard') welcomeTextCard?: DataCardComponent;
   @ViewChild('titleCard') titleCard?: DataCardComponent;
   settings?: SiteSettings;
   titleForm!: FormGroup;
-  logoForm!: FormGroup;
-  primaryColorInput: string = '';
-  secondaryColorInput: string = '';
-  logoChanged: boolean = false;
-  logoPlaceholder: string = '';
   welcomeTextInput: string = '';
   appearanceErrors: any = {};
   welcomeTextErrors: any = {};
@@ -48,13 +41,9 @@ export class SettingsComponent implements AfterViewInit {
         title: this.settings.title,
         contact: this.settings.contactMail
       });
-      this.primaryColorInput = this.settings.primaryColor;
-      this.secondaryColorInput = this.settings.secondaryColor;
       this.welcomeTextInput = this.settings.welcomeText;
-      this.setLogoPlaceholder();
     });
     this.setupTitleCard();
-    this.setupAppearanceCard();
     this.setupWelcomeTextCard();
   }
 
@@ -92,71 +81,6 @@ export class SettingsComponent implements AfterViewInit {
     })
   }
 
-  setLogoPlaceholder(): void {
-    if (!this.settings!.logo)
-      this.logoPlaceholder = 'kein Logo';
-    else {
-      let split = this.settings!.logo.split('/');
-      this.logoPlaceholder = split[split.length - 1];
-    }
-  }
-
-  setupAppearanceCard(): void {
-    if (!this.settings || !this.appearanceCard) return;
-    this.logoForm = this.formBuilder.group({
-      logo: [ undefined, [FileValidator.maxContentSize(this.maxLogoSize)]]
-    });
-    this.logoForm.controls['logo'].valueChanges.subscribe(e=>{
-      this.logoChanged = true;
-      if (!this.logoForm.value.logo)
-        this.logoPlaceholder = 'kein Logo';
-    });
-    this.appearanceCard.dialogConfirmed.subscribe((ok)=>{
-      const formData = new FormData();
-      // let attributes: any = {
-      //   primaryColor: this.primaryColorInput,
-      //   secondaryColor: this.secondaryColorInput
-      // }
-      formData.append('primaryColor', this.primaryColorInput);
-      formData.append('secondaryColor', this.secondaryColorInput);
-      if (this.logoChanged){
-        let file = this.logoForm.value.logo;
-        file = file ? file.files[0]: '';
-        formData.append('logo', file);
-      }
-      this.appearanceCard?.setLoading(true);
-      this.http.patch<SiteSettings>(this.rest.URLS.settings, formData
-      ).subscribe(settings => {
-        this.appearanceCard?.closeDialog(true);
-        // update global settings
-        this.settingsService.fetchSiteSettings();
-      },(error) => {
-        this.appearanceErrors = error.error;
-        this.appearanceCard?.setLoading(false);
-      });
-    });
-    this.appearanceCard.dialogClosed.subscribe((ok)=>{
-      // reset colors on cancel
-      if (!ok){
-        this.primaryColorInput = this.settings!.primaryColor;
-        this.secondaryColorInput = this.settings!.secondaryColor;
-        this.settingsService.setColor({ primary: this.primaryColorInput, secondary: this.secondaryColorInput });
-      }
-      this.appearanceErrors = {};
-      this.logoForm.reset();
-      this.setLogoPlaceholder();
-      this.logoChanged = false;
-    });
-  }
-
-  onPrimaryChange(hex: string): void {
-    this.settingsService.setColor({ primary: this.primaryColorInput });
-  }
-
-  onSecondaryChange(hex: string): void {
-    this.settingsService.setColor({ secondary: this.secondaryColorInput });
-  }
-
   setupWelcomeTextCard(): void {
     if (!this.settings || !this.welcomeTextCard) return;
     this.welcomeTextCard.dialogConfirmed.subscribe((ok)=>{
@@ -176,7 +100,6 @@ export class SettingsComponent implements AfterViewInit {
     });
     this.welcomeTextCard.dialogClosed.subscribe((ok)=>{
       this.welcomeTextErrors = {};
-      this.settingsService.setColor({ primary: this.primaryColorInput, secondary: this.secondaryColorInput });
     });
   }
 

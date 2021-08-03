@@ -37,15 +37,14 @@ import { MatSelectModule } from "@angular/material/select";
 import { SupplyComponent } from './pages/planning/supply/supply.component';
 import { WelcomeComponent } from './pages/welcome.component';
 import { BasedataComponent } from './pages/basedata/basedata.component';
-import {MatExpansionModule} from "@angular/material/expansion";
+import { MatExpansionModule } from "@angular/material/expansion";
 import { LayerSelectComponent } from './map/layer-select/layer-select.component';
-import {MatSliderModule} from "@angular/material/slider";
+import { MatSliderModule } from "@angular/material/slider";
 import { PopulationComponent } from './pages/population/population.component';
 import { PopDevelopmentComponent } from './pages/population/pop-development/pop-development.component';
 import { PopStatisticsComponent } from './pages/population/pop-statistics/pop-statistics.component';
 import { ReachabilitiesComponent } from './pages/planning/reachabilities/reachabilities.component';
 import { RatingComponent } from './pages/planning/rating/rating.component';
-import { MaterialCssVarsModule } from 'angular-material-css-vars';
 import { SettingsComponent } from './pages/administration/settings/settings.component';
 import { ColorPickerModule } from "ngx-color-picker";
 import { AngularEditorModule } from '@kolkov/angular-editor';
@@ -105,9 +104,6 @@ import { LogComponent } from './log/log.component';
         MatSelectModule,
         MatExpansionModule,
         MatSliderModule,
-        MaterialCssVarsModule.forRoot({
-            isAutoContrast: true
-        }),
         ColorPickerModule,
         AngularEditorModule,
         MaterialFileInputModule

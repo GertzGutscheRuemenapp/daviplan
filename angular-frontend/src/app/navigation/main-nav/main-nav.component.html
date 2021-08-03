@@ -5,10 +5,7 @@
     </button>
   </div>
   <a mat-button routerLink="/">
-    <img *ngIf="settings?.logo; else noLogo" [src]="settings?.logo" alt="Startseite" title="Startseite" height="50">
-    <ng-template #noLogo>
-      <div i18n> Datentool </div>
-    </ng-template>
+    <div i18n> Datentool </div>
   </a>
   <span fxShow="true" fxHide.lt-md="true">
     <a *ngFor="let item of menuItems" mat-button [routerLink]="'/'+item.url" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: false}"> {{item.name}} </a>
