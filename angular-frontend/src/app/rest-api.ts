@@ -5,7 +5,7 @@ import { environment } from "../environments/environment";
   providedIn: 'root'
 })
 export class RestAPI {
-  public readonly API_ENDPOINT = environment.apiPath + '/api';
+  public readonly API_ENDPOINT = environment.apiPath;
   public readonly URLS = {
     token: `${ this.API_ENDPOINT }/token/`,
     refreshToken: `${ this.API_ENDPOINT }/token/refresh/`,
