@@ -219,6 +219,7 @@ FRONTEND_DIST = 'dist/angular-frontend'
 
 STATICFILES_DIRS = [
     os.path.join(FRONTEND_APP_DIR),
+    os.path.join(BASE_DIR, 'datentool', 'static'),
 ]
 
 #FIXTURE_DIRS = [

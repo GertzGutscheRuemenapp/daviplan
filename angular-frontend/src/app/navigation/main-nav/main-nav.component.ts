@@ -5,7 +5,7 @@ import { map, share, shareReplay } from 'rxjs/operators';
 import { User } from "../../pages/login/users";
 import { AuthService } from "../../auth.service";
 import {Router} from "@angular/router";
-import { SettingsService, SiteSettings } from "../../settings.service";
+import { environment } from "../../../environments/environment";
 
 @Component({
   selector: 'app-main-nav',
@@ -16,7 +16,7 @@ export class MainNavComponent implements OnInit{
 
   user?: User;
   user$?: Observable<User>;
-  settings?: SiteSettings;
+  backend: string = environment.backend;
 
   menuItems = [
     {name:  $localize`Bevölkerung`, url: 'bevoelkerung'},
@@ -31,10 +31,7 @@ export class MainNavComponent implements OnInit{
       shareReplay()
     );
 
-  constructor(private breakpointObserver: BreakpointObserver, private auth: AuthService,
-              private router: Router, private settingsService: SettingsService) {
-    this.settingsService.siteSettings$.subscribe(settings=>this.settings=settings)
-  }
+  constructor(private breakpointObserver: BreakpointObserver, private auth: AuthService, private router: Router) { }
 
   ngOnInit(): void {
     this.user$ = this.auth.getCurrentUser().pipe(share());

@@ -1,14 +1,104 @@
-/* You can add global styles to this file, and also import other style files */
-@import '~angular-material-css-vars/main';
+@use '~@angular/material' as mat;
 
-@include init-material-css-vars() {
-  // If your app has any theme mixins, call them here.
-  // $mat-css-theme gets set to an appropriate value before this content is called.
-  // @include your-custom-component-theme($mat-css-theme);
-};
+@include mat.core();
+
+$light-blue-palette: (
+  50 : #e4f2fe,
+  100 : #bce0fb,
+  200 : #90cbf9,
+  300 : #64b6f7,
+  400 : #42a6f5,
+  500 : #2196f3,
+  600 : #1d8ef1,
+  700 : #1883ef,
+  800 : #1479ed,
+  900 : #0b68ea,
+  A100 : #ffffff,
+  A200 : #e1ecff,
+  A400 : #aeccff,
+  A700 : #95bcff,
+  contrast: (
+    50 : #000000,
+    100 : #000000,
+    200 : #000000,
+    300 : #000000,
+    400 : #000000,
+    500 : #ffffff,
+    600 : #ffffff,
+    700 : #ffffff,
+    800 : #ffffff,
+    900 : #ffffff,
+    A100 : #000000,
+    A200 : #000000,
+    A400 : #000000,
+    A700 : #000000,
+  )
+);
+
+$brown-palette: (
+  50 : #f4eee7,
+  100 : #e4d5c3,
+  200 : #d3b99b,
+  300 : #c19c72,
+  400 : #b38754,
+  500 : #a67236,
+  600 : #9e6a30,
+  700 : #955f29,
+  800 : #8b5522,
+  900 : #7b4216,
+  A100 : #ffd1b2,
+  A200 : #ffb27f,
+  A400 : #ff944c,
+  A700 : #ff8532,
+  contrast: (
+    50 : #000000,
+    100 : #000000,
+    200 : #000000,
+    300 : #000000,
+    400 : #000000,
+    500 : #ffffff,
+    600 : #ffffff,
+    700 : #ffffff,
+    800 : #ffffff,
+    900 : #ffffff,
+    A100 : #000000,
+    A200 : #000000,
+    A400 : #000000,
+    A700 : #000000,
+  )
+);
+
+$app-primary: mat.define-palette($light-blue-palette, 500);
+$app-accent: mat.define-palette(mat.$brown-palette, A200, A100, A400);
+$app-typography: mat.define-typography-config(
+  $font-family: 'Calibri',
+  $headline: mat.define-typography-level(54px, 56px, 400),
+  $body-1: mat.define-typography-level(18px, 24px, 400),
+  $body-2: mat.define-typography-level(16px, 22px, 400),
+  $button: mat.define-typography-level(18px, 15px, 500),
+);
+
+$app-theme: mat.define-light-theme((
+  color: (
+    primary: $app-primary,
+    accent: $app-accent,
+  ),
+  typography: $app-typography,
+));
+
+$primary: mat.get-color-from-palette($app-primary, 500);
+$accent: mat.get-color-from-palette($app-accent, 500);
+//$warn: mat.color($app-warn, 500);
+
+@include mat.all-component-themes($app-theme);
+@include mat.core($app-typography);
 
 html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+body {
+  margin: 0;
+  font-family: Calibri, Roboto, sans-serif;
+  color: #000000DE;
+}
 
 .cdk-overlay-pane.absolute{
   position: absolute!important;
@@ -16,6 +106,22 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 mat-form-field.full {
   width: 100%;
+}
+
+.mat-form-field-appearance-outline .mat-form-field-infix {
+  padding: 0.5em 0 1em 0!important;
+}
+
+.mat-form-field-appearance-outline .mat-form-field-label-wrapper {
+  top: -1.1em;
+}
+
+.mat-card {
+  padding: 30px!important;
+}
+
+button.large {
+  padding: 10px!important;
 }
 
 .hidden {
@@ -112,3 +218,4 @@ app-data-card table, app-dash-card table {
 app-data-card td, app-dash-card td {
   padding: 3px 0;
 }
+

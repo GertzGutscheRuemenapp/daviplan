@@ -1,21 +1,54 @@
+@import "~src/styles";
+
 .sidenav-container {
   height: 100%;
-}
-
-.sidenav {
-  width: 200px;
 }
 
 .sidenav .mat-toolbar {
   background: inherit;
 }
 
-.mat-toolbar.mat-primary {
-  position: sticky;
-  top: 0;
-  z-index: 1;
+mat-sidenav .active-link, mat-sidenav .active-link:hover, mat-sidenav .active-link:focus{
+  color: white!important;
+  background-color: $primary!important;
 }
 
-mat-sidenav .active-link {
-  font-weight: bold;
+::ng-deep .sidenav .mat-list-item{
+  font-size: 18px!important;
+  padding: 10px!important;
 }
+
+/*
+
+::ng-deep .sidenav .active-link>.mat-list-item-content, .sidenav .active-link:hover>.mat-list-item-content, .sidenav .active-link:focus>.mat-list-item-content{
+  color: white!important;
+  background-color: $primary!important;
+}
+
+.sidenav a {
+  margin-top: 10px;
+}
+
+::ng-deep .sidenav .mat-list-item-content {
+  font-size: 18px!important;
+  padding: 30px!important;
+}
+*/
+
+/*
+.sidenav ul {
+  font-size: 18px;
+  border-radius: 4px;
+  list-style-type: none;
+  padding: 0;
+}
+
+.sidenav li>a{
+  padding: 20px;
+  border-radius: 4px;
+  display: block;
+  text-decoration: none;
+  width: 100%;
+  color: #000000DE;
+}
+*/
