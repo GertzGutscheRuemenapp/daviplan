@@ -51,6 +51,7 @@ import { AngularEditorModule } from '@kolkov/angular-editor';
 import { MaterialFileInputModule } from "ngx-material-file-input";
 import { AreasComponent } from './pages/basedata/areas/areas.component';
 import { LogComponent } from './log/log.component';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @NgModule({
   declarations: [
@@ -106,7 +107,8 @@ import { LogComponent } from './log/log.component';
         MatSliderModule,
         ColorPickerModule,
         AngularEditorModule,
-        MaterialFileInputModule
+        MaterialFileInputModule,
+        FontAwesomeModule
     ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true }

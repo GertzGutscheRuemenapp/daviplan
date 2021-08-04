@@ -2,10 +2,47 @@
 
 @include mat.core();
 
-$app-primary: mat.define-palette(mat.$light-green-palette, 700);
+$light-blue: (
+  50 : #e4f2fe,
+  100 : #bce0fb,
+  200 : #90cbf9,
+  300 : #64b6f7,
+  400 : #42a6f5,
+  500 : #2196f3,
+  600 : #1d8ef1,
+  700 : #1883ef,
+  800 : #1479ed,
+  900 : #0b68ea,
+  A100 : #ffffff,
+  A200 : #e1ecff,
+  A400 : #aeccff,
+  A700 : #95bcff,
+  contrast: (
+    50 : #000000,
+    100 : #000000,
+    200 : #000000,
+    300 : #000000,
+    400 : #000000,
+    500 : #ffffff,
+    600 : #ffffff,
+    700 : #ffffff,
+    800 : #ffffff,
+    900 : #ffffff,
+    A100 : #000000,
+    A200 : #000000,
+    A400 : #000000,
+    A700 : #000000,
+  )
+);
+
+$app-primary: mat.define-palette($light-blue, 500);
 $app-accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
 $app-typography: mat.define-typography-config(
   $font-family: 'Calibri',
+  $headline: mat.define-typography-level(54px, 56px, 400),
+  $body-1: mat.define-typography-level(18px, 24px, 400),
+  $body-2: mat.define-typography-level(16px, 22px, 400),
+  $button: mat.define-typography-level(18px, 15px, 500),
 );
 
 $app-theme: mat.define-light-theme((
@@ -17,6 +54,7 @@ $app-theme: mat.define-light-theme((
 ));
 
 @include mat.all-component-themes($app-theme);
+@include mat.core($app-typography);
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Calibri, "Helvetica Neue", sans-serif; }
@@ -27,6 +65,22 @@ body { margin: 0; font-family: Calibri, "Helvetica Neue", sans-serif; }
 
 mat-form-field.full {
   width: 100%;
+}
+
+.mat-form-field-appearance-outline .mat-form-field-infix {
+  padding: 0.5em 0 1em 0!important;
+}
+
+.mat-form-field-appearance-outline .mat-form-field-label-wrapper {
+  top: -1.1em;
+}
+
+.mat-card {
+  padding: 30px!important;
+}
+
+button.mat-primary {
+  padding: 10px!important;
 }
 
 .hidden {
