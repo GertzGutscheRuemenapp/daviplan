@@ -16,7 +16,7 @@ export class MainNavComponent implements OnInit{
 
   user?: User;
   user$?: Observable<User>;
-  backend: string = environment.backend;
+  backend: string = environment.apiPath;
 
   menuItems = [
     {name:  $localize`Bevölkerung`, url: 'bevoelkerung'},
