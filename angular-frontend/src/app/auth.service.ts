@@ -13,7 +13,7 @@ interface Token {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  user$ = new BehaviorSubject<User>(null as any);
+  user$ = new BehaviorSubject<User | null>(null);
 
   constructor(private rest: RestAPI, private http: HttpClient ) { }
 
@@ -72,9 +72,9 @@ export class AuthService {
   }
 
   logout(): void {
-    this.user$.next(null as any);
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
+    this.user$.next(null);
   }
 }
 
