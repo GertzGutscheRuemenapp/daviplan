@@ -2,7 +2,7 @@
 
 @include mat.core();
 
-$light-blue: (
+$light-blue-palette: (
   50 : #e4f2fe,
   100 : #bce0fb,
   200 : #90cbf9,
@@ -35,8 +35,41 @@ $light-blue: (
   )
 );
 
-$app-primary: mat.define-palette($light-blue, 500);
-$app-accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
+$brown-palette: (
+  50 : #f4eee7,
+  100 : #e4d5c3,
+  200 : #d3b99b,
+  300 : #c19c72,
+  400 : #b38754,
+  500 : #a67236,
+  600 : #9e6a30,
+  700 : #955f29,
+  800 : #8b5522,
+  900 : #7b4216,
+  A100 : #ffd1b2,
+  A200 : #ffb27f,
+  A400 : #ff944c,
+  A700 : #ff8532,
+  contrast: (
+    50 : #000000,
+    100 : #000000,
+    200 : #000000,
+    300 : #000000,
+    400 : #000000,
+    500 : #ffffff,
+    600 : #ffffff,
+    700 : #ffffff,
+    800 : #ffffff,
+    900 : #ffffff,
+    A100 : #000000,
+    A200 : #000000,
+    A400 : #000000,
+    A700 : #000000,
+  )
+);
+
+$app-primary: mat.define-palette($light-blue-palette, 500);
+$app-accent: mat.define-palette(mat.$brown-palette, A200, A100, A400);
 $app-typography: mat.define-typography-config(
   $font-family: 'Calibri',
   $headline: mat.define-typography-level(54px, 56px, 400),
@@ -53,11 +86,19 @@ $app-theme: mat.define-light-theme((
   typography: $app-typography,
 ));
 
+$primary: mat.get-color-from-palette($app-primary, 500);
+$accent: mat.get-color-from-palette($app-accent, 500);
+//$warn: mat.color($app-warn, 500);
+
 @include mat.all-component-themes($app-theme);
 @include mat.core($app-typography);
 
 html, body { height: 100%; }
-body { margin: 0; font-family: Calibri, "Helvetica Neue", sans-serif; }
+body {
+  margin: 0;
+  font-family: Calibri, Roboto, sans-serif;
+  color: #000000DE;
+}
 
 .cdk-overlay-pane.absolute{
   position: absolute!important;
@@ -79,7 +120,7 @@ mat-form-field.full {
   padding: 30px!important;
 }
 
-button.mat-primary {
+button.large {
   padding: 10px!important;
 }
 
@@ -177,3 +218,4 @@ app-data-card table, app-dash-card table {
 app-data-card td, app-dash-card td {
   padding: 3px 0;
 }
+

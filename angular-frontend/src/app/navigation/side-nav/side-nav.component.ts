@@ -17,6 +17,7 @@ type Link = {
 
 export class SideNavComponent {
   @Input() menuItems: Link[] = [];
+  @Input() width: string = '300px';
   isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
     .pipe(
       map(result => result.matches),

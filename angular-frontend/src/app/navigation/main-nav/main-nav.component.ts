@@ -5,6 +5,7 @@ import { map, share, shareReplay } from 'rxjs/operators';
 import { User } from "../../pages/login/users";
 import { AuthService } from "../../auth.service";
 import {Router} from "@angular/router";
+import { environment } from "../../../environments/environment";
 
 @Component({
   selector: 'app-main-nav',
@@ -15,6 +16,7 @@ export class MainNavComponent implements OnInit{
 
   user?: User;
   user$?: Observable<User>;
+  backend: string = environment.backend;
 
   menuItems = [
     {name:  $localize`Bevölkerung`, url: 'bevoelkerung'},

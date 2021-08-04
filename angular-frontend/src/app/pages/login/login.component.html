@@ -2,7 +2,7 @@
   <div style="width: 400px; margin-top: 100px;">
     <ng-template #loggedIn>
       <p style="text-align: center;"> Eingeloggt als <b>{{user?.username}}</b> </p>
-      <button mat-raised-button color="primary" (click)="auth.logout()" style="width:100%" i18n>Ausloggen</button>
+      <button class="large" mat-raised-button color="primary" (click)="auth.logout()" style="width:100%" i18n>Ausloggen</button>
     </ng-template>
     <h1 style="text-align: center;" i18n>Datentool Login</h1>
     <mat-card class="mat-elevation-z12" style="width: 360px;">
@@ -19,7 +19,7 @@
         <mat-error *ngIf="loginForm.errors && loginForm.errors['error']" class="alert">
           {{loginForm.errors['error']}}
         </mat-error>
-        <button mat-raised-button color="primary" type="submit" style="width:100%" i18n>Einloggen</button>
+        <button class="large" mat-raised-button color="primary" type="submit" style="width:100%" i18n>Einloggen</button>
       </form>
     </mat-card>
     <p class="mat-body-2" style="text-align: center; color: #00000099; width: 90%; padding: 20px;">
