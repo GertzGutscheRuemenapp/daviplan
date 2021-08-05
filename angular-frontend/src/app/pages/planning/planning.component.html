@@ -1,4 +1,4 @@
-<mat-toolbar>
+<mat-toolbar class="sub-nav">
 <!--  <div fxShow="true" fxHide.gt-sm="true">
     <button mat-icon-button (click)="sidenav.toggle()">
       <mat-icon>menu</mat-icon>
@@ -25,10 +25,10 @@
   </mat-form-field>
 
   <span fxShow="true" fxHide.lt-md="true">
-    <a mat-button routerLink="/planung/nachfrage" routerLinkActive="active-link" i18n> Nachfrage </a>
-    <a mat-button routerLink="/planung/angebot" routerLinkActive="active-link" i18n> Angebot </a>
-    <a mat-button routerLink="/planung/erreichbarkeiten" routerLinkActive="active-link" i18n> Erreichbarkeiten </a>
-    <a mat-button routerLink="/planung/bewertung" routerLinkActive="active-link" i18n> Bewertung </a>
+    <a routerLink="/planung/nachfrage" routerLinkActive="active-link" i18n> Nachfrage </a>
+    <a routerLink="/planung/angebot" routerLinkActive="active-link" i18n> Angebot </a>
+    <a routerLink="/planung/erreichbarkeiten" routerLinkActive="active-link" i18n> Erreichbarkeiten </a>
+    <a routerLink="/planung/bewertung" routerLinkActive="active-link" i18n> Bewertung </a>
   </span>
 </mat-toolbar>
 <div id="planning-map" class="map-container"></div>

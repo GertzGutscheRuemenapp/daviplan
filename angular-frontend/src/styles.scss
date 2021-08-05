@@ -73,6 +73,7 @@ $app-accent: mat.define-palette(mat.$brown-palette, A200, A100, A400);
 $app-typography: mat.define-typography-config(
   $font-family: 'Calibri',
   $headline: mat.define-typography-level(54px, 56px, 400),
+  $title: mat.define-typography-level(24px, 24px, 400),
   $body-1: mat.define-typography-level(18px, 24px, 400),
   $body-2: mat.define-typography-level(16px, 22px, 400),
   $button: mat.define-typography-level(18px, 15px, 500),
@@ -87,7 +88,7 @@ $app-theme: mat.define-light-theme((
 ));
 
 $primary: mat.get-color-from-palette($app-primary, 500);
-$accent: mat.get-color-from-palette($app-accent, 500);
+$accent: mat.get-color-from-palette($app-accent, 400);
 //$warn: mat.color($app-warn, 500);
 
 @include mat.all-component-themes($app-theme);
@@ -98,6 +99,15 @@ body {
   margin: 0;
   font-family: Calibri, Roboto, sans-serif;
   color: #000000DE;
+}
+
+mat-list-option[aria-selected="true"] {
+  background-color: $accent!important;
+  color: white!important;
+}
+
+mat-list-option:hover {
+  background-color: mat.get-color-from-palette($app-accent, 200) !important;
 }
 
 .cdk-overlay-pane.absolute{
@@ -215,3 +225,37 @@ app-data-card td, app-dash-card td {
   padding: 3px 0;
 }
 
+.sub-nav {
+  background-color: white;
+  display: flex;
+  border-bottom: 1px solid #0000001F;
+  height: 60px;
+}
+
+.sub-nav span {
+  display: flex;
+  height: 100%;
+}
+
+.sub-nav a {
+  font-size: 22px;
+  color: black;
+  text-decoration: none;
+  margin-right: 20px;
+  margin-left: 20px;
+  height: calc(100% - 22px);
+  display: flex;
+  padding-top: 20px;
+}
+
+.sub-nav a:not(.active-link):hover {
+  color: $accent;
+  border-bottom: 2px solid $accent;
+}
+
+.sub-nav .active-link {
+  color: $primary;
+  border-bottom: 2px solid $primary;
+  //font-weight: bold;
+  //text-decoration: underline;
+}
