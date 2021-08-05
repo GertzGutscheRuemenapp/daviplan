@@ -4,13 +4,16 @@
       <mat-icon>menu</mat-icon>
     </button>
   </div>
-  <a class="link home" routerLink="/" style="width: 300px;">
-    <img src="{{backend}}/static/img/test-logo.png" height="50px" alt="Logo" title="Datentool"/>
-    <div style="padding: 8px" i18n> Datentool </div>
-  </a>
+  <div style="width: 300px;">
+    <a class="home" routerLink="/" title="Startseite">
+      <img src="{{backend}}/static/img/test-logo.png" height="50px" alt="Logo"/>
+      <div style="padding: 8px" i18n> Datentool </div>
+    </a>
+  </div>
   <span class="page-links" fxShow="true" fxHide.lt-md="true">
     <a *ngFor="let item of menuItems"
        class="link"
+       [title]="item.name"
        [routerLink]="'/'+item.url"
        routerLinkActive="active-link"
        [routerLinkActiveOptions]="{exact: false}">
