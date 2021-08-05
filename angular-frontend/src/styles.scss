@@ -72,8 +72,8 @@ $app-primary: mat.define-palette($light-blue-palette, 500);
 $app-accent: mat.define-palette(mat.$brown-palette, A200, A100, A400);
 $app-typography: mat.define-typography-config(
   $font-family: 'Calibri',
-  $headline: mat.define-typography-level(54px, 56px, 400),
-  $title: mat.define-typography-level(24px, 24px, 400),
+  //$headline: mat.define-typography-level(54px, 56px, 400),
+  //$title: mat.define-typography-level(24px, 24px, 400),
   $body-1: mat.define-typography-level(18px, 24px, 400),
   $body-2: mat.define-typography-level(16px, 22px, 400),
   $button: mat.define-typography-level(18px, 15px, 500),
@@ -226,7 +226,7 @@ app-data-card td, app-dash-card td {
 }
 
 .sub-nav {
-  background-color: white;
+  background-color: #fafafa;
   display: flex;
   border-bottom: 1px solid #0000001F;
   height: 60px;

@@ -11,7 +11,9 @@
       </app-dash-card>
     </mat-grid-tile>
     <mat-grid-tile colspan='2' rowspan='1'>
-      <app-dash-card title='Säulendiagramm Altersgruppen'> </app-dash-card>
+      <app-dash-card title='Säulendiagramm Altersgruppen'>
+        <app-stacked-barchart [data]="data"></app-stacked-barchart>
+      </app-dash-card>
     </mat-grid-tile>
     <mat-grid-tile colspan='2' rowspan='1'>
       <app-dash-card title='Liniendiagramm Entwicklung'> </app-dash-card>
