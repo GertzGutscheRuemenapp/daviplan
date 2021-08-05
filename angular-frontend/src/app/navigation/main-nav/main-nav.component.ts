@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { Observable } from 'rxjs';
-import { map, share, shareReplay } from 'rxjs/operators';
+import { share } from 'rxjs/operators';
 import { User } from "../../pages/login/users";
 import { AuthService } from "../../auth.service";
 import {Router} from "@angular/router";
@@ -15,7 +15,7 @@ import { environment } from "../../../environments/environment";
 export class MainNavComponent implements OnInit{
 
   user?: User;
-  user$?: Observable<User>;
+  user$?: Observable<User | undefined>;
   backend: string = environment.backend;
 
   menuItems = [
@@ -24,12 +24,6 @@ export class MainNavComponent implements OnInit{
     {name:  $localize`Grundlagendaten`, url: 'grundlagendaten'},
     {name:  $localize`Administration`, url: 'admin'}
   ];
-
-  isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
-    .pipe(
-      map(result => result.matches),
-      shareReplay()
-    );
 
   constructor(private breakpointObserver: BreakpointObserver, private auth: AuthService, private router: Router) { }
 

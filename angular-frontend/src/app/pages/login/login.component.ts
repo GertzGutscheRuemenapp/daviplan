@@ -32,9 +32,7 @@ export class LoginComponent {
        this.auth.login({
             password: pass,
             username: username
-          }).subscribe(user => {
-         this.user = user;
-       }, (error) => {
+          }).subscribe(token => { }, (error) => {
             this.loginForm.setErrors({ 'error': $localize`Keine Übereinstimmung von Nutzer und Passwort` })
           });
   }
