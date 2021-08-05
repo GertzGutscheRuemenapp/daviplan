@@ -52,6 +52,7 @@ import { MaterialFileInputModule } from "ngx-material-file-input";
 import { AreasComponent } from './pages/basedata/areas/areas.component';
 import { LogComponent } from './log/log.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { StackedBarchartComponent } from './diagrams/stacked-barchart/stacked-barchart.component';
 
 @NgModule({
   declarations: [
@@ -78,7 +79,8 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
     RatingComponent,
     SettingsComponent,
     AreasComponent,
-    LogComponent
+    LogComponent,
+    StackedBarchartComponent
   ],
     imports: [
         BrowserModule,

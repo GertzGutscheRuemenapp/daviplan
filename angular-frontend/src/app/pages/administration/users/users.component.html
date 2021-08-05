@@ -2,7 +2,6 @@
   <app-data-card title="Benutzerkonten" style="min-width: 400px;">
     <mat-selection-list [multiple]="false" >
       <mat-list-option *ngFor="let user of users"
-                       class="mat-primary"
                        [value]="user"
                        (click)="onSelect(user)"
                        [selected]="(selectedUser && (user.id === selectedUser.id))">
@@ -13,12 +12,24 @@
     </mat-selection-list>
     <br>
     <div style="width: 100%;">
-      <button mat-raised-button color="primary" (click)="onCreateUser()" i18n><mat-icon>person_add</mat-icon>&nbsp; hinzufügen</button>
-      <button style="float: right;" [class.hidden]="!selectedUser || selectedUser.isSuperuser" mat-raised-button color="warn" (click)="onDeleteUser()" i18n><mat-icon>delete_forever</mat-icon>&nbsp; Nutzer löschen</button>
+      <button mat-raised-button color="primary"
+              (click)="onCreateUser()" i18n>
+        <mat-icon>person_add</mat-icon>&nbsp; hinzufügen
+      </button>
+      <button style="float: right;"
+              [class.hidden]="!selectedUser || selectedUser.isSuperuser"
+              mat-raised-button
+              color="warn"
+              (click)="onDeleteUser()" i18n>
+        <mat-icon>delete_forever</mat-icon>&nbsp; Nutzer löschen
+      </button>
     </div>
   </app-data-card>
   <div style="display: flex; flex-wrap: wrap; align-content: flex-start; max-width: 1000px;" [ngClass]="{'hidden': !selectedUser}">
-    <app-data-card #accountCard title="Konto" [editTemplate]="accountEdit" style="min-width: 400px; ">
+    <app-data-card #accountCard
+                   title="Konto"
+                   [editTemplate]="accountEdit"
+                   style="min-width: 400px; ">
       <table *ngIf="selectedUser">
         <tr>
           <td i18n>Nutzername</td>

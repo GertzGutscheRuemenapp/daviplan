@@ -4,7 +4,7 @@
       <p style="text-align: center;"> Eingeloggt als <b>{{user?.username}}</b> </p>
       <button class="large" mat-raised-button color="primary" (click)="auth.logout()" style="width:100%" i18n>Ausloggen</button>
     </ng-template>
-    <h1 style="text-align: center;" i18n>Datentool Login</h1>
+    <h1 style="text-align: center; font-size: 54px;" i18n>Datentool Login</h1>
     <mat-card class="mat-elevation-z12" style="width: 360px;">
       <form *ngIf="!user; else loggedIn" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="outline" style="margin-bottom: -20px;">
