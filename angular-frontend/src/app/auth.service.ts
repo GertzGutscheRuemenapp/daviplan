@@ -13,11 +13,11 @@ interface Token {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  user$ = new BehaviorSubject<User | null>(null);
+  user$ = new BehaviorSubject<User | undefined>(undefined);
 
   constructor(private rest: RestAPI, private http: HttpClient ) { }
 
-  login(credentials: { username: string; password: string }): Observable<any> {
+  login(credentials: { username: string; password: string }): Observable<Token> {
     // localStorage.removeItem('token');
     let query = this.http.post<Token>(this.rest.URLS.token, credentials)
       .pipe(
@@ -30,7 +30,7 @@ export class AuthService {
       return query;
   }
 
-  getCurrentUser(): Observable<User> {
+  getCurrentUser(): Observable<User | undefined> {
     return this.user$.pipe(
       switchMap(user => {
         // check if we already have user data
@@ -44,14 +44,17 @@ export class AuthService {
           return this.fetchCurrentUser();
         }
 
-        return of(null as any);
+        return of(undefined);
       })
     );
   }
 
-  fetchCurrentUser(): Observable<User> {
+  fetchCurrentUser(): Observable<User | undefined> {
     return this.http.get<User>(this.rest.URLS.currentUser)
       .pipe(
+        catchError(err => {
+          return of(undefined);
+        }),
         tap(user => {
           this.user$.next(user);
         })
@@ -74,7 +77,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
-    this.user$.next(null);
+    this.user$.next(undefined);
   }
 }
 

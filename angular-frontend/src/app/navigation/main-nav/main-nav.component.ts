@@ -15,7 +15,7 @@ import { environment } from "../../../environments/environment";
 export class MainNavComponent implements OnInit{
 
   user?: User;
-  user$?: Observable<User>;
+  user$?: Observable<User | undefined>;
   backend: string = environment.backend;
 
   menuItems = [

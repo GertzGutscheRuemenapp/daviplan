@@ -1,7 +1,11 @@
 <div style="display: flex; flex-wrap: wrap;">
   <app-data-card title="Benutzerkonten" style="min-width: 400px;">
     <mat-selection-list [multiple]="false" >
-      <mat-list-option *ngFor="let user of users" [value]="user" (click)="onSelect(user)" [selected]="(selectedUser && (user.id === selectedUser.id))">
+      <mat-list-option *ngFor="let user of users"
+                       class="mat-primary"
+                       [value]="user"
+                       (click)="onSelect(user)"
+                       [selected]="(selectedUser && (user.id === selectedUser.id))">
         <mat-icon mat-list-icon>person</mat-icon>
         <div mat-line>{{ user.username }}</div>
         <div mat-line *ngIf="user.isSuperuser"><i i18n>Administrator</i></div>
