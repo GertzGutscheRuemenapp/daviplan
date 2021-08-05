@@ -18,13 +18,14 @@
     </a>
   </span>
   <span class="fill-space"></span>
-  <ng-template #loggedOut>
-    <a routerLink="/login">Login</a>
-  </ng-template>
-  <div *ngIf="user$ | async; else loggedOut" class="mat-body-2" style="display: flex;">
-    eingeloggt als&nbsp;<b *ngIf="user">{{user.username}}</b>
-    &nbsp;&nbsp;
-    <a (click)="logout()" href="">Logout</a>
+  <div id="account">
+    <ng-template #loggedOut>
+      <a routerLink="/login">Login</a>
+    </ng-template>
+    <div *ngIf="user$ | async; else loggedOut" style="display: flex;">
+      eingeloggt als&nbsp;<b *ngIf="user">{{user.username}}</b>    &nbsp;&nbsp;
+      <a (click)="logout()" href="">Logout</a>
+    </div>
   </div>
 </mat-toolbar>
 <mat-sidenav-container fxFlexFill>
