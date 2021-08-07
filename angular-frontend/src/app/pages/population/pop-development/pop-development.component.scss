@@ -1,0 +1,19 @@
+#control {
+  width: 300px;
+  float: left;
+}
+
+.grid-container {
+  width: calc(100% - 350px);
+  float: right;
+}
+
+#control mat-card{
+  position: relative;
+}
+
+#pop-map {
+  height: 100%;
+  width: 100%;
+}
+

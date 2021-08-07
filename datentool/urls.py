@@ -15,13 +15,22 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from django.views.decorators.csrf import csrf_exempt
-from django.conf import settings
-from graphene_django.views import GraphQLView
-from datentool_backend.schema import schema
+from django.conf.urls import url, include
+from django.views.generic.base import TemplateView
+
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenVerifyView
+)
 
 urlpatterns = [
     path('django-admin/', admin.site.urls),
-    path('graphql', csrf_exempt(GraphQLView.as_view(
-        graphiql=settings.DEBUG, schema=schema))),
+    url('api/', include('datentool_backend.rest_urls')),
+    path('api/token/', TokenObtainPairView.as_view(),
+         name='token_obtain_pair'),
+    path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path('api/token/refresh/', TokenRefreshView.as_view(),
+         name='token_refresh'),
+    url('', TemplateView.as_view(template_name='home.html'), name='home')
 ]

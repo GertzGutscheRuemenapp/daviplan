@@ -1,0 +1,31 @@
+//@import "~src/styles";
+
+.mat-sidenav-container {
+  position: fixed;
+  height: 100%;
+}
+
+.sidenav {
+  width: 200px;
+}
+
+.sidenav .mat-toolbar {
+  background: inherit;
+}
+
+.mat-toolbar.mat-primary {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.mat-toolbar {
+  font-size: 1em;
+}
+
+.mat-toolbar .active-link {
+  font-size: 1.4em;
+  //color: $app-accent;
+}
+
+

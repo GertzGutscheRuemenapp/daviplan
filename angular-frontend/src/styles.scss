@@ -3,7 +3,7 @@
 
 @include mat.core();
 
-$app-primary: mat.define-palette(mat.$light-green-palette, 900);
+$app-primary: mat.define-palette(mat.$light-green-palette, 700);
 $app-accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
 
 $app-theme: mat.define-light-theme((
@@ -40,3 +40,70 @@ mat-form-field.full {
   display: flex;
   justify-content: center;
 }
+
+// definition of card styles in app-planning here to pass the styles to its child components (demand, supply ...)
+
+app-planning .mat-grid-list.bottom {
+  position: fixed;
+  bottom: 10px;
+  // not quite sure where the 40px come from but otherwise the element would be wider than the others
+  width: calc(100% - 40px);
+}
+
+app-planning .mat-grid-tile.bottom mat-card{
+  top: auto;
+  bottom: 5px;
+}
+
+app-planning .mat-grid-tile.right mat-card{
+  left: auto;
+  right: 5px;
+}
+
+app-planning .mat-grid-tile.center mat-card{
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+app-planning .grid-container {
+  margin: 20px;
+  pointer-events: none;
+}
+
+app-planning .mat-card {
+  max-width: fit-content;
+  max-height: fit-content;
+  min-width: 300px;
+  pointer-events: all;
+}
+
+mat-form-field span.mat-form-field-label-wrapper label {
+  color:grey !important;
+}
+
+mat-form-field.mat-focused span.mat-form-field-label-wrapper label {
+  color:grey !important;
+}
+
+.map-container {
+  width: inherit;
+  height: inherit;
+  z-index: 0;
+}
+
+//app-pop-development #control mat-card, app-pop-statistics #control mat-card{
+//  position: relative;
+//  margin-bottom: 20px;
+//}
+
+.grid-container .dashboard-card {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  right: 15px;
+  bottom: 15px;
+  margin: 0px!important;
+}
+
