@@ -241,8 +241,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 def load_stats_json():
     fn = os.path.join(FRONTEND_APP_DIR,
-                           *FRONTEND_DIST.split('/'),
-                           'stats.json')
+                      *FRONTEND_DIST.split('/'),
+                      'stats.json')
     if not os.path.exists(fn):
         return
     with open(fn, 'r') as file:
