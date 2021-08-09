@@ -11,6 +11,13 @@ const mockdata: StackedData[] = [
   { year: 2004, values: [189, 342, 293] },
   { year: 2005, values: [182, 345, 300] },
   { year: 2006, values: [176, 345, 298] },
+  { year: 2007, values: [195, 330, 290] },
+  { year: 2008, values: [195, 340, 295] },
+  { year: 2009, values: [192, 335, 293] },
+  { year: 2010, values: [195, 340, 295] },
+  { year: 2012, values: [189, 342, 293] },
+  { year: 2013, values: [200, 300, 280] },
+  { year: 2014, values: [195, 340, 295] },
 ]
 
 @Component({
@@ -21,6 +28,7 @@ const mockdata: StackedData[] = [
 export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   map?: OlMap;
   data: StackedData[] = mockdata;
+  labels: string[] = ['0-18', '19-64', '65+']
 
   constructor(private mapService: MapService) { }
 
