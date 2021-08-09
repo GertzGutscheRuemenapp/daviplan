@@ -1,9 +1,9 @@
 import { Component, Input, OnInit } from '@angular/core';
 import * as d3 from 'd3';
 
-export interface BarData {
+export interface StackedData {
   year: number,
-  count: number
+  values: number[]
 }
 
 @Component({
@@ -13,8 +13,9 @@ export interface BarData {
 })
 export class StackedBarchartComponent implements OnInit {
 
-  @Input() data?: BarData[];
+  @Input() data?: StackedData[];
   @Input() title?: string = '';
+  @Input() groups?: string[];
 
   private svg: any;
   private margin = 50;
@@ -35,7 +36,13 @@ export class StackedBarchartComponent implements OnInit {
       .attr("transform", "translate(" + this.margin + "," + this.margin + ")");
   }
 
-  private draw(data: BarData[]): void {
+  private draw(data: StackedData[]): void {
+    if (data.length == 0) return
+
+    if (!this.groups)
+      this.groups = d3.range(0, data[0].values.length).map(d=>d.toString());
+    let colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+    let max = d3.max(data, d => { return d.values.reduce((a, c) => a + c) })
     // Add X axis
     const x = d3.scaleBand()
       .range([0, this.width])
@@ -51,21 +58,37 @@ export class StackedBarchartComponent implements OnInit {
 
     // Add Y axis
     const y = d3.scaleLinear()
-      .domain([0, 500])
+      .domain([0, max!])
       .range([this.height, 0]);
+
+    let allValues = data.map(d=>{
+      let o: any = {};
+      d.values.forEach((v, i) =>  o[this.groups![i]] = v);
+      return o;
+    });
+    let stackedData = d3.stack().keys(this.groups)(allValues);
 
     this.svg.append("g")
       .call(d3.axisLeft(y));
 
     // Create and fill the bars
-    this.svg.selectAll("bars")
-      .data(data)
-      .enter()
-      .append("rect")
-      .attr("x", (d: BarData) => x(d.year.toString()))
-      .attr("y", (d: BarData) => y(d.count))
-      .attr("width", x.bandwidth())
-      .attr("height", (d: BarData) => this.height - y(d.count))
-      .attr("fill", "#d04a35");
+    this.svg.selectAll("stacks")
+    .data(data)
+    .enter().append("g")
+      // .attr("x", (d: StackedData) => x(d.year.toString()))
+      .attr("transform", (d: StackedData) => `translate(${x(d.year.toString())},0)`)
+      .selectAll("rect")
+      .data((d: StackedData) => {
+        // stack by summing up every element with its predecessors
+        let stacked = d.values.map((v, i) => d.values.slice(0, i+1).reduce((a, b) => a + b));
+        // draw highest bars first
+        return stacked.reverse();
+      })
+      .enter().append("rect")
+        .attr("fill", (d: number, i: number) => colorScale(i.toString()))
+        .attr("y", (d: number) => y(d))
+        .attr("width", x.bandwidth())
+        .attr("height", (d: number) => this.height - y(d));
+
   }
 }
