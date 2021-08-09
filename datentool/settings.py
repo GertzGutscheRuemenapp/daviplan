@@ -240,9 +240,12 @@ MEDIA_ROOT = os.path.join(PUBLIC_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 def load_stats_json():
-    with open(os.path.join(FRONTEND_APP_DIR,
+    fn = os.path.join(FRONTEND_APP_DIR,
                            *FRONTEND_DIST.split('/'),
-                           'stats.json'), 'r') as file:
+                           'stats.json')
+    if not os.path.exists(fn):
+        return
+    with open(fn, 'r') as file:
         chunks = json.loads(file.read())['assetsByChunkName'] or {}
         chunk_paths = {k: (f'{FRONTEND_DIST}/{fn[0]}')
                        for k, fn in chunks.items()}
