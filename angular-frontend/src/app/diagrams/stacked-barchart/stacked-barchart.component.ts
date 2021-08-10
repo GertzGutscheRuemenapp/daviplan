@@ -103,24 +103,31 @@ export class StackedBarchartComponent implements AfterViewInit {
         .attr('font-size', '0.8em')
         .text(this.xLabel);
 
-/*    // tooltips
-    function mouseOverBar(d: StackedData) {
+    let _this = this;
+    // tooltips
+    function onMouseOverBar(this: any, event: MouseEvent) {
       let stack = d3.select(this);
+      let data = this.__data__;
       stack.selectAll('rect').classed('highlight', true);
 
       let tooltip = d3.select('body').append('div').attr('class', 'tooltip');
-      let text = this.xlabel + ': ' + d[this.bandName].toString().replace('.',',') + '<br>';
+      let text = data.year.toString().replace('.',',') + '<br>';
       tooltip.style('opacity', .9);
-
-      var l = this.stackLabels.length;
-      for (var i = 0; i < l; i++){
-        text += _this.stackLabels[i] + ': <b>' + d.values[l - i - 1].toString().replace('.',',') + '</b><br>';
-      };
-      text += 'gesamt: <b>' + d.total.toString().replace('.',',') + '</b><br>';
+      //
+      _this.labels?.forEach((label, i)=>{
+         text += label + ': <b>' + data.values[i].toString().replace('.',',') + '</b><br>';
+      })
+      // text += 'gesamt: <b>' + d.total.toString().replace('.',',') + '</b><br>';
       tooltip.html(text);
-      tooltip.style('left', (d3.event.pageX + 10) + 'px')
-        .style('top', (d3.event.pageY - parseInt(tooltip.style('height'))) + 'px');
-    };*/
+      tooltip.style('left', (event.pageX + 10) + 'px')
+         .style('top', (event.pageY - parseInt(tooltip.style('height'))) + 'px');
+    };
+
+    function onMouseOutBar(this: any, event: MouseEvent) {
+      let stack = d3.select(this);
+      stack.selectAll('rect').classed('highlight', false);
+      d3.select('body').selectAll('div.tooltip').remove();
+    }
 
 
     // stacked bars
@@ -129,6 +136,8 @@ export class StackedBarchartComponent implements AfterViewInit {
     .enter().append("g")
       // .attr("x", (d: StackedData) => x(d.year.toString()))
       .attr("transform", (d: StackedData) => `translate(${x(d.year.toString())! + this.margin.left}, ${this.margin.top})`)
+      .on("mouseover", onMouseOverBar)
+      .on("mouseout", onMouseOutBar)
       .selectAll("rect")
       .data((d: StackedData) => {
         // stack by summing up every element with its predecessors

@@ -106,7 +106,7 @@ mat-list-option[aria-selected="true"] {
   color: white!important;
 }
 
-mat-list-option:hover {
+mat-list-option:not([aria-selected="true"]):hover {
   background-color: mat.get-color-from-palette($app-accent, 200) !important;
 }
 
@@ -258,4 +258,21 @@ app-data-card td, app-dash-card td {
   border-bottom: 2px solid $primary;
   //font-weight: bold;
   //text-decoration: underline;
+}
+
+rect.highlight{
+  fill: $accent!important;
+}
+
+div.tooltip {
+  position: absolute;
+  text-align: center;
+  padding: 2px;
+  font: 12px sans-serif;
+  background: white;
+  border: 1px;
+  border: solid 1px grey;
+  pointer-events: none;
+  opacity: 0.9;
+  z-index: 100;
 }

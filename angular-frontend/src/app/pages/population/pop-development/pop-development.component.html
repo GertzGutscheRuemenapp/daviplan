@@ -6,7 +6,7 @@
 <div class="grid-container">
   <mat-grid-list cols='5' rowHeight='1:1.2'>
     <mat-grid-tile colspan='3' rowspan='2'>
-      <app-dash-card title='Karte'>
+      <app-dash-card [title]="'Karte'">
         <div id="pop-map" class="map-container"></div>
       </app-dash-card>
     </mat-grid-tile>
@@ -17,7 +17,7 @@
                                 [labels]="labels"
                                 xLabel="Jahre"
                                 yLabel="Einwohner"
-                                title="Altersgruppen"
+                                [title]="'Altersgruppen'"
                                 subtitle="irgendwo">
 
           </app-stacked-barchart>
@@ -25,7 +25,7 @@
       </app-dash-card>
     </mat-grid-tile>
     <mat-grid-tile colspan='2' rowspan='1'>
-      <app-dash-card title='Liniendiagramm Entwicklung'> </app-dash-card>
+      <app-dash-card [title]="'Liniendiagramm Entwicklung'"> </app-dash-card>
     </mat-grid-tile>
   </mat-grid-list>
 </div>
