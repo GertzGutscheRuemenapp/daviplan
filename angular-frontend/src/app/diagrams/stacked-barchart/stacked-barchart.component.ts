@@ -18,14 +18,16 @@ export class StackedBarchartComponent implements AfterViewInit {
   @Input() subtitle: string = '';
   @Input() labels?: string[];
   @Input() drawLegend: boolean = true;
+  @Input() xLabel?: string;
+  @Input() yLabel?: string;
   @Input() width?: number;
   @Input() height?: number;
 
   private svg: any;
   private margin: {top: number, bottom: number, left: number, right: number } = {
     top: 50,
-    bottom: 30,
-    left: 30,
+    bottom: 40,
+    left: 60,
     right: 60
   };
 
@@ -65,6 +67,7 @@ export class StackedBarchartComponent implements AfterViewInit {
       .domain(data.map(d => d.year.toString()))
       .padding(0.5);
 
+    // x axis
     this.svg.append("g")
       .attr("transform",`translate(${this.margin.left},${innerHeight + this.margin.top})`)
       .call(d3.axisBottom(x))
@@ -72,7 +75,7 @@ export class StackedBarchartComponent implements AfterViewInit {
       .attr("transform", "translate(-10,0)rotate(-45)")
       .style("text-anchor", "end");
 
-    // Add Y axis
+    // y axis
     const y = d3.scaleLinear()
       .domain([0, max!])
       .range([innerHeight, 0]);
@@ -81,7 +84,46 @@ export class StackedBarchartComponent implements AfterViewInit {
       .attr("transform", `translate(${this.margin.left},${this.margin.top})`)
       .call(d3.axisLeft(y));
 
-    // Create and fill the bars
+    if (this.yLabel)
+      this.svg.append('text')
+        .attr("y", 10)
+        .attr("x", -(this.margin.top + 30))
+        .attr('dy', '0.5em')
+        .style('text-anchor', 'middle')
+        .attr('transform', 'rotate(-90)')
+        .attr('font-size', '0.8em')
+        .text(this.yLabel);
+
+    if (this.xLabel)
+      this.svg.append('text')
+        .attr("y", this.height! - 10)
+        .attr("x", this.width! - this.margin.right)
+        .attr('dy', '0.5em')
+        .style('text-anchor', 'end')
+        .attr('font-size', '0.8em')
+        .text(this.xLabel);
+
+/*    // tooltips
+    function mouseOverBar(d: StackedData) {
+      let stack = d3.select(this);
+      stack.selectAll('rect').classed('highlight', true);
+
+      let tooltip = d3.select('body').append('div').attr('class', 'tooltip');
+      let text = this.xlabel + ': ' + d[this.bandName].toString().replace('.',',') + '<br>';
+      tooltip.style('opacity', .9);
+
+      var l = this.stackLabels.length;
+      for (var i = 0; i < l; i++){
+        text += _this.stackLabels[i] + ': <b>' + d.values[l - i - 1].toString().replace('.',',') + '</b><br>';
+      };
+      text += 'gesamt: <b>' + d.total.toString().replace('.',',') + '</b><br>';
+      tooltip.html(text);
+      tooltip.style('left', (d3.event.pageX + 10) + 'px')
+        .style('top', (d3.event.pageY - parseInt(tooltip.style('height'))) + 'px');
+    };*/
+
+
+    // stacked bars
     this.svg.selectAll("stacks")
     .data(data)
     .enter().append("g")
@@ -100,8 +142,9 @@ export class StackedBarchartComponent implements AfterViewInit {
         .attr("width", x.bandwidth())
         .attr("height", (d: number) => innerHeight - y(d));
 
-    let size = 15;
+
     if (this.drawLegend) {
+      let size = 15;
 
       this.svg.selectAll("legendRect")
         .data(this.labels.reverse())
