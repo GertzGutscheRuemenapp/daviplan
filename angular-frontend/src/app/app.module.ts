@@ -53,6 +53,7 @@ import { AreasComponent } from './pages/basedata/areas/areas.component';
 import { LogComponent } from './log/log.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { StackedBarchartComponent } from './diagrams/stacked-barchart/stacked-barchart.component';
+import { MultilineChartComponent } from './diagrams/multiline-chart/multiline-chart.component';
 
 @NgModule({
   declarations: [
@@ -80,7 +81,8 @@ import { StackedBarchartComponent } from './diagrams/stacked-barchart/stacked-ba
     SettingsComponent,
     AreasComponent,
     LogComponent,
-    StackedBarchartComponent
+    StackedBarchartComponent,
+    MultilineChartComponent
   ],
     imports: [
         BrowserModule,

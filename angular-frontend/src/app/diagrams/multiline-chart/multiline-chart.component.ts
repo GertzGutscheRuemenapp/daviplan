@@ -1,19 +1,20 @@
-import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Input } from '@angular/core';
 import * as d3 from 'd3';
+import { StackedData } from "../stacked-barchart/stacked-barchart.component";
 
-export interface StackedData {
+export interface MultilineData {
   group: string,
   values: number[]
 }
 
 @Component({
-  selector: 'app-stacked-barchart',
-  templateUrl: './stacked-barchart.component.html',
-  styleUrls: ['./stacked-barchart.component.scss']
+  selector: 'app-multiline-chart',
+  templateUrl: './multiline-chart.component.html',
+  styleUrls: ['./multiline-chart.component.scss']
 })
-export class StackedBarchartComponent implements AfterViewInit {
+export class MultilineChartComponent implements AfterViewInit {
 
-  @Input() data?: StackedData[];
+  @Input() data?: MultilineData[];
   @Input() title: string = '';
   @Input() subtitle: string = '';
   @Input() labels?: string[];
@@ -37,7 +38,7 @@ export class StackedBarchartComponent implements AfterViewInit {
   }
 
   private createSvg(): void {
-    let figure = d3.select("figure#stacked-barchart");
+    let figure = d3.select("figure#multiline-chart");
     if (!(this.width && this.height)){
       let node: any = figure.node()
       let bbox = node.getBoundingClientRect();
@@ -52,15 +53,15 @@ export class StackedBarchartComponent implements AfterViewInit {
       .append("g");
   }
 
-  private draw(data: StackedData[]): void {
+  private draw(data: MultilineData[]): void {
     if (data.length == 0) return
 
     if (!this.labels)
       this.labels = d3.range(0, data[0].values.length).map(d=>d.toString());
     let colorScale = d3.scaleOrdinal(d3.schemeCategory10);
-    let max = d3.max(data, d => { return d.values.reduce((a, c) => a + c) });
+    let max = d3.max(data, d => { return d3.max(d.values) });
     let innerWidth = this.width! - this.margin.left - this.margin.right,
-        innerHeight = this.height! - this.margin.top - this.margin.bottom;
+      innerHeight = this.height! - this.margin.top - this.margin.bottom;
     // Add X axis
     const x = d3.scaleBand()
       .range([0, innerWidth])
@@ -105,50 +106,52 @@ export class StackedBarchartComponent implements AfterViewInit {
 
     let _this = this;
     // tooltips
-    function onMouseOverBar(this: any, event: MouseEvent) {
+/*    function onMouseOverBar(this: any, event: MouseEvent) {
       let stack = d3.select(this);
       let data: StackedData = this.__data__;
       stack.selectAll('rect').classed('highlight', true);
 
       let tooltip = d3.select('body').append('div').attr('class', 'tooltip');
-      let text = data.group + '<br>';
+      let text = data.group.toString().replace('.',',') + '<br>';
       tooltip.style('opacity', .9);
       //
       _this.labels?.forEach((label, i)=>{
-         text += label + ': <b>' + data.values[i].toString().replace('.',',') + '</b><br>';
+        text += label + ': <b>' + data.values[i].toString().replace('.',',') + '</b><br>';
       })
       // text += 'gesamt: <b>' + d.total.toString().replace('.',',') + '</b><br>';
       tooltip.html(text);
       tooltip.style('left', (event.pageX + 10) + 'px')
-         .style('top', (event.pageY - parseInt(tooltip.style('height'))) + 'px');
+        .style('top', (event.pageY - parseInt(tooltip.style('height'))) + 'px');
     };
 
     function onMouseOutBar(this: any, event: MouseEvent) {
       let stack = d3.select(this);
       stack.selectAll('rect').classed('highlight', false);
       d3.select('body').selectAll('div.tooltip').remove();
-    }
+    }*/
+    let line = d3.line()
+      .curve(d3.curveCardinal)
+      .x((d: any) => x(d.group)!)
+      .y((d: any) => y(d.value));
 
-    // stacked bars
-    this.svg.selectAll("stacks")
-    .data(data)
-    .enter().append("g")
-      // .attr("x", (d: StackedData) => x(d.year.toString()))
-      .attr("transform", (d: StackedData) => `translate(${x(d.group)! + this.margin.left}, ${this.margin.top})`)
-      .on("mouseover", onMouseOverBar)
-      .on("mouseout", onMouseOutBar)
-      .selectAll("rect")
-      .data((d: StackedData) => {
-        // stack by summing up every element with its predecessors
-        let stacked = d.values.map((v, i) => d.values.slice(0, i+1).reduce((a, b) => a + b));
-        // draw highest bars first
-        return stacked.reverse();
-      })
-      .enter().append("rect")
-        .attr("fill", (d: number, i: number) => colorScale(i.toString()))
-        .attr("y", (d: number) => y(d) )
-        .attr("width", x.bandwidth())
-        .attr("height", (d: number) => innerHeight - y(d));
+    this.labels.forEach((label, i)=>{
+
+      let di = data.map(d => {
+        return {
+          group: d.group,
+          value: d.values[i]
+        }
+      });
+      this.svg.append('g')
+        .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`)
+        .append("path")
+        .datum(di)
+        .attr("class", "line")
+        .attr("fill", "none")
+        .attr("stroke", colorScale(i.toString()))
+        .attr("stroke-width", 1.5)
+        .attr("d", line);
+    })
 
     if (this.drawLegend) {
       let size = 15;
@@ -158,9 +161,9 @@ export class StackedBarchartComponent implements AfterViewInit {
         .enter()
         .append("rect")
         .attr("x", innerWidth + this.margin.left)
-        .attr("y", (d: string, i: number) => 100 + (i * (size + 5))) // 100 is where the first dot appears. 25 is the distance between dots
+        .attr("y", (d: string, i: number) => 105 + (i * (size + 5))) // 100 is where the first dot appears. 25 is the distance between dots
         .attr("width", size)
-        .attr("height", size)
+        .attr("height", 3)
         .style("fill", (d: string, i: number) => colorScale(i.toString()));
 
       this.svg.selectAll("legendLabels")
@@ -177,17 +180,17 @@ export class StackedBarchartComponent implements AfterViewInit {
     }
 
     this.svg.append('text')
-        .attr('class', 'title')
-        .attr('x', this.margin.left)
-        .attr('y', 15)
-        .text(this.title);
+      .attr('class', 'title')
+      .attr('x', this.margin.left)
+      .attr('y', 15)
+      .text(this.title);
 
     this.svg.append('text')
-        .attr('class', 'subtitle')
-        .attr('x', this.margin.left)
-        .attr('y', 15)
-        .attr('font-size', '0.8em')
-        .attr('dy', '1em')
-        .text(this.subtitle);
+      .attr('class', 'subtitle')
+      .attr('x', this.margin.left)
+      .attr('y', 15)
+      .attr('font-size', '0.8em')
+      .attr('dy', '1em')
+      .text(this.subtitle);
   }
 }
