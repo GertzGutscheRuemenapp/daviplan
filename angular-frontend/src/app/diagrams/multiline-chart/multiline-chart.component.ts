@@ -114,7 +114,7 @@ export class MultilineChartComponent implements AfterViewInit {
         .text(this.xLabel);
 
     let line = d3.line()
-      .curve(d3.curveCardinal)
+      // .curve(d3.curveCardinal)
       .x((d: any) => x(d.group)!)
       .y((d: any) => y(d.value));
 
@@ -135,7 +135,7 @@ export class MultilineChartComponent implements AfterViewInit {
         lineG.selectAll('circle').style("display", 'none');
         tooltip.style("display", 'none');
       })
-      .on("mousemove", onmousemove);
+      .on("mousemove", onMouseMove);
 
     // helper rect to enlarge g for catching mouse moves
     lineG.append('rect')
@@ -143,12 +143,14 @@ export class MultilineChartComponent implements AfterViewInit {
       .attr("width", innerWidth)
       .attr("opacity", '0')
 
-    function onmousemove(this: any, event: MouseEvent){
+    function onMouseMove(this: any, event: MouseEvent){
       let xPos = d3.pointer(event)[0],
           xIdx = Math.floor((xPos + x.bandwidth()/2) / x.bandwidth()),
           groupData = data![xIdx];
       if (!groupData) return;
       lineG.selectAll('circle')
+        .transition()
+        .duration(this.animate ? 80 : 0)
         .attr("transform", (d: null, i: number) => `translate(${x(groups[xIdx])}, ${y(groupData.values[i])})`);
       let text = groupData.group + '<br>';
       _this.labels?.forEach((label, i)=>{
