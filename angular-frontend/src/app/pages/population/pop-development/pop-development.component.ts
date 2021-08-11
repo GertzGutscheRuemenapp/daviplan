@@ -28,7 +28,7 @@ const mockdata: StackedData[] = [
 export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   map?: OlMap;
   data: StackedData[] = mockdata;
-  labels: string[] = ['0-18', '19-64', '65+']
+  labels: string[] = ['65+', '19-64', '0-18']
   xSeparator = {
     leftLabel: $localize`Realdaten`,
     rightLabel: $localize`Prognose (Basisjahr: 2003)`,

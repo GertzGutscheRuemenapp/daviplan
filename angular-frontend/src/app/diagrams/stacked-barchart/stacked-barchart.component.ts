@@ -106,6 +106,11 @@ export class StackedBarchartComponent implements AfterViewInit {
         .attr('font-size', '0.8em')
         .text(this.xLabel);
 
+    let tooltip = d3.select('body')
+      .append('div')
+      .attr('class', 'tooltip')
+      .style("display", 'none');
+
     let _this = this;
     // tooltips
     function onMouseOverBar(this: any, event: MouseEvent) {
@@ -113,54 +118,54 @@ export class StackedBarchartComponent implements AfterViewInit {
       stack.attr("opacity", 1);
       let data: StackedData = this.__data__;
       stack.selectAll('rect').classed('highlight', true);
-
-      let tooltip = d3.select('body').append('div').attr('class', 'tooltip');
       let text = data.group + '<br>';
-      tooltip.style('opacity', .9);
-      //
       _this.labels?.forEach((label, i)=>{
-         text += label + ': <b>' + data.values[i].toString().replace('.',',') + '</b><br>';
+        text += `<b style="color: ${colorScale(i.toString())}">${label}</b>: ${data.values[i].toString().replace('.', ',')}<br>`;
       })
-      // text += 'gesamt: <b>' + d.total.toString().replace('.',',') + '</b><br>';
+      tooltip.style("display", null);
       tooltip.html(text);
-      tooltip.style('left', (event.pageX + 10) + 'px')
-         .style('top', (event.pageY - parseInt(tooltip.style('height'))) + 'px');
     };
 
     let sepIdx = (this.xSeparator) ? groups.indexOf(this.xSeparator.x) : -1;
     function highlightOpacity(i: number) {
-      return _this.xSeparator && _this.xSeparator.highlight && i > sepIdx ? 0.5 : 1
+      return _this.xSeparator && _this.xSeparator.highlight && i > sepIdx ? 0.7 : 1;
     }
 
     function onMouseOutBar(this: any, event: MouseEvent) {
       let stack = d3.select(this);
       let data: StackedData = this.__data__;
-      stack.attr("opacity", highlightOpacity(groups.indexOf(data.group)))
+      stack.attr("opacity", highlightOpacity(groups.indexOf(data.group)));
       stack.selectAll('rect').classed('highlight', false);
-      d3.select('body').selectAll('div.tooltip').remove();
+      tooltip.style("display", 'none');
+    }
+
+    function onMouseMove(this: any, event: MouseEvent){
+      tooltip.style('left', event.pageX + 15 + 'px')
+        .style('top', event.pageY + 10 + 'px');
     }
 
     // stacked bars
     this.svg.selectAll("stacks")
-    .data(data)
-    .enter().append("g")
-      // .attr("x", (d: StackedData) => x(d.year.toString()))
-      .attr("transform", (d: StackedData) => `translate(${x(d.group)! + this.margin.left}, ${this.margin.top})`)
-      .on("mouseover", onMouseOverBar)
-      .on("mouseout", onMouseOutBar)
-      .attr("opacity", (d: StackedData, i: number) => highlightOpacity(i))
-      .selectAll("rect")
-      .data((d: StackedData) => {
-        // stack by summing up every element with its predecessors
-        let stacked = d.values.map((v, i) => d.values.slice(0, i+1).reduce((a, b) => a + b));
-        // draw highest bars first
-        return stacked.reverse();
-      })
-      .enter().append("rect")
-        .attr("fill", (d: number, i: number) => colorScale(i.toString()))
-        .attr("y", (d: number) => y(d) )
-        .attr("width", x.bandwidth())
-        .attr("height", (d: number) => innerHeight - y(d));
+      .data(data)
+      .enter().append("g")
+        // .attr("x", (d: StackedData) => x(d.year.toString()))
+        .attr("transform", (d: StackedData) => `translate(${x(d.group)! + this.margin.left}, ${this.margin.top})`)
+        .on("mouseover", onMouseOverBar)
+        .on("mouseout", onMouseOutBar)
+        .on("mousemove", onMouseMove)
+        .attr("opacity", (d: StackedData, i: number) => highlightOpacity(i))
+        .selectAll("rect")
+        .data((d: StackedData) => {
+          // stack by summing up every element with its predecessors
+          let stacked = d.values.map((v, i) => d.values.slice(0, i+1).reduce((a, b) => a + b));
+          // draw highest bars first
+          return stacked.reverse();
+        })
+        .enter().append("rect")
+          .attr("fill", (d: number, i: number) => colorScale(i.toString()))
+          .attr("y", (d: number) => y(d) )
+          .attr("width", x.bandwidth())
+          .attr("height", (d: number) => innerHeight - y(d));
 
     if (this.drawLegend) {
       let size = 15;

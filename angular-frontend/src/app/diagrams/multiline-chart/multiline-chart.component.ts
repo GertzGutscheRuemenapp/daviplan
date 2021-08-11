@@ -63,10 +63,11 @@ export class MultilineChartComponent implements AfterViewInit {
     let max = d3.max(data, d => { return d3.max(d.values) });
     let innerWidth = this.width! - this.margin.left - this.margin.right,
       innerHeight = this.height! - this.margin.top - this.margin.bottom;
+    let groups = data.map(d => d.group);
     // Add X axis
     const x = d3.scaleBand()
       .range([0, innerWidth])
-      .domain(data.map(d => d.group))
+      .domain(groups)
       .padding(0);
 
     // x axis
@@ -111,37 +112,50 @@ export class MultilineChartComponent implements AfterViewInit {
         .attr('font-size', '0.8em')
         .text(this.xLabel);
 
-    let _this = this;
-
-    // tooltips
-    function onMouseOver(this: any, event: MouseEvent) {
-      // let stack = d3.select(this);
-      // let data: StackedData = this.__data__;
-      // stack.selectAll('rect').classed('highlight', true);
-      //
-      // let tooltip = d3.select('body').append('div').attr('class', 'tooltip');
-      // let text = data.group.toString().replace('.',',') + '<br>';
-      // tooltip.style('opacity', .9);
-      // //
-      // _this.labels?.forEach((label, i)=>{
-      //   text += label + ': <b>' + data.values[i].toString().replace('.',',') + '</b><br>';
-      // })
-      // // text += 'gesamt: <b>' + d.total.toString().replace('.',',') + '</b><br>';
-      // tooltip.html(text);
-      // tooltip.style('left', (event.pageX + 10) + 'px')
-      //   .style('top', (event.pageY - parseInt(tooltip.style('height'))) + 'px');
-    };
-
-    function onMouseOutBar(this: any, event: MouseEvent) {
-      // let stack = d3.select(this);
-      // stack.selectAll('rect').classed('highlight', false);
-      // d3.select('body').selectAll('div.tooltip').remove();
-    }
-
     let line = d3.line()
       .curve(d3.curveCardinal)
       .x((d: any) => x(d.group)!)
       .y((d: any) => y(d.value));
+
+    let _this = this;
+
+    let tooltip = d3.select('body')
+      .append('div')
+      .attr('class', 'tooltip')
+      .style("display", 'none');
+
+    let lineG = this.svg.append('g')
+      .attr("transform", `translate(${this.margin.left + x.bandwidth()/2}, ${this.margin.top})`)
+      .on("mouseover", () => {
+        lineG.selectAll('circle').style("display", null);
+        tooltip.style("display", null);
+      })
+      .on("mouseout", () => {
+        lineG.selectAll('circle').style("display", 'none');
+        tooltip.style("display", 'none');
+      })
+      .on("mousemove", onmousemove);
+
+    // helper rect to enlarge g for catching mouse moves
+    lineG.append('rect')
+      .attr("height", innerHeight)
+      .attr("width", innerWidth)
+      .attr("opacity", '0')
+
+    function onmousemove(this: any, event: MouseEvent){
+      let xPos = d3.pointer(event)[0],
+          xIdx = Math.floor((xPos + x.bandwidth()/2) / x.bandwidth()),
+          groupData = _this.data![xIdx];
+      lineG.selectAll('circle')
+        .attr("transform", (d: null, i: number) => `translate(${x(groups[xIdx])}, ${y(groupData.values[i])})`);
+      let text = groupData.group + '<br>';
+      _this.labels?.forEach((label, i)=>{
+        text += `<b style="color: ${colorScale(i.toString())}">${label}</b>: ${groupData.values[i].toString().replace('.', ',')}<br>`;
+      })
+      tooltip.html(text);
+      tooltip.style('left', event.pageX + 15 + 'px')
+        .style('top', event.pageY + 10 + 'px');
+    }
 
     this.labels.forEach((label, i)=>{
 
@@ -151,15 +165,17 @@ export class MultilineChartComponent implements AfterViewInit {
           value: d.values[i]
         }
       });
-      this.svg.append('g')
-        .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`)
-        .append("path")
+      lineG.append("path")
         .datum(di)
         .attr("class", "line")
         .attr("fill", "none")
         .attr("stroke", colorScale(i.toString()))
         .attr("stroke-width", 1.5)
         .attr("d", line);
+      lineG.append("circle")
+        .attr("r", 3)
+        .attr("fill", colorScale(i.toString()))
+        .style("display", 'none');
     })
 
     if (this.drawLegend) {
@@ -235,6 +251,7 @@ export class MultilineChartComponent implements AfterViewInit {
           .attr("height", innerHeight + 10)
           .attr("fill", 'white')
           .attr("opacity", 0.5)
+          .attr('pointer-events', 'none')
       }
     }
   }
