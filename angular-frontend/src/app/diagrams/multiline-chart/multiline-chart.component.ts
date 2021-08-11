@@ -183,13 +183,14 @@ export class MultilineChartComponent implements AfterViewInit {
           .attr("stroke-dashoffset", length)
           .transition()
           .duration(1000)
-          .ease(d3.easeQuadOut)
+          // .ease(d3.easeQuadOut)
           .attr("stroke-dashoffset", 0);
       }
 
       lineG.append("circle")
         .attr("r", 3)
         .attr("fill", colorScale(i.toString()))
+        .attr("transform", `translate(${x(groups[0])}, ${y(data[0].values[i])})`)
         .style("display", 'none');
     })
 
