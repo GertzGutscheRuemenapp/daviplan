@@ -22,6 +22,7 @@ export class StackedBarchartComponent implements AfterViewInit {
   @Input() yLabel?: string;
   @Input() width?: number;
   @Input() height?: number;
+  @Input() xSeparator?: { leftLabel?: string, rightLabel?:string, x: string, highlight?: boolean };
 
   private svg: any;
   private margin: {top: number, bottom: number, left: number, right: number } = {
@@ -61,10 +62,12 @@ export class StackedBarchartComponent implements AfterViewInit {
     let max = d3.max(data, d => { return d.values.reduce((a, c) => a + c) });
     let innerWidth = this.width! - this.margin.left - this.margin.right,
         innerHeight = this.height! - this.margin.top - this.margin.bottom;
+
+    let groups = data.map(d => d.group);
     // Add X axis
     const x = d3.scaleBand()
       .range([0, innerWidth])
-      .domain(data.map(d => d.group))
+      .domain(groups)
       .padding(0.5);
 
     // x axis
@@ -107,6 +110,7 @@ export class StackedBarchartComponent implements AfterViewInit {
     // tooltips
     function onMouseOverBar(this: any, event: MouseEvent) {
       let stack = d3.select(this);
+      stack.attr("opacity", 1);
       let data: StackedData = this.__data__;
       stack.selectAll('rect').classed('highlight', true);
 
@@ -123,8 +127,15 @@ export class StackedBarchartComponent implements AfterViewInit {
          .style('top', (event.pageY - parseInt(tooltip.style('height'))) + 'px');
     };
 
+    let sepIdx = (this.xSeparator) ? groups.indexOf(this.xSeparator.x) : -1;
+    function highlightOpacity(i: number) {
+      return _this.xSeparator && _this.xSeparator.highlight && i > sepIdx ? 0.5 : 1
+    }
+
     function onMouseOutBar(this: any, event: MouseEvent) {
       let stack = d3.select(this);
+      let data: StackedData = this.__data__;
+      stack.attr("opacity", highlightOpacity(groups.indexOf(data.group)))
       stack.selectAll('rect').classed('highlight', false);
       d3.select('body').selectAll('div.tooltip').remove();
     }
@@ -137,6 +148,7 @@ export class StackedBarchartComponent implements AfterViewInit {
       .attr("transform", (d: StackedData) => `translate(${x(d.group)! + this.margin.left}, ${this.margin.top})`)
       .on("mouseover", onMouseOverBar)
       .on("mouseout", onMouseOutBar)
+      .attr("opacity", (d: StackedData, i: number) => highlightOpacity(i))
       .selectAll("rect")
       .data((d: StackedData) => {
         // stack by summing up every element with its predecessors
@@ -189,5 +201,32 @@ export class StackedBarchartComponent implements AfterViewInit {
         .attr('font-size', '0.8em')
         .attr('dy', '1em')
         .text(this.subtitle);
+
+    if (this.xSeparator) {
+      let xSepPos = x(this.xSeparator.x)! + this.margin.left + x.bandwidth() * 1.5;
+      this.svg.append('line')
+        .style('stroke', 'black')
+        .attr('x1', xSepPos)
+        .attr('y1', this.margin.top)
+        .attr('x2', xSepPos)
+        .attr('y2', this.height)
+        .attr('class', 'separator');
+      if (this.xSeparator.leftLabel)
+        this.svg.append('text')
+          .attr("y", this.height! - 10)
+          .attr("x", xSepPos - 5)
+          .attr('dy', '0.5em')
+          .style('text-anchor', 'end')
+          .attr('font-size', '0.7em')
+          .text(this.xSeparator.leftLabel);
+      if (this.xSeparator.rightLabel)
+        this.svg.append('text')
+          .attr("y", this.height! - 10)
+          .attr("x", xSepPos + 5)
+          .attr('dy', '0.5em')
+          .style('text-anchor', 'start')
+          .attr('font-size', '0.7em')
+          .text(this.xSeparator.rightLabel);
+    }
   }
 }

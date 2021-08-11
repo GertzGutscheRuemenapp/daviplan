@@ -29,6 +29,12 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   map?: OlMap;
   data: StackedData[] = mockdata;
   labels: string[] = ['0-18', '19-64', '65+']
+  xSeparator = {
+    leftLabel: $localize`Realdaten`,
+    rightLabel: $localize`Prognose (Basisjahr: 2003)`,
+    x: '2003',
+    highlight: true
+  }
 
   constructor(private mapService: MapService) { }
 

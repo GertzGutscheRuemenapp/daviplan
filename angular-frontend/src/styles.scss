@@ -276,3 +276,9 @@ div.tooltip {
   opacity: 0.9;
   z-index: 100;
 }
+
+.separator {
+  stroke: #888;
+  stroke-width: 2;
+  stroke-dasharray: 6, 6;
+}

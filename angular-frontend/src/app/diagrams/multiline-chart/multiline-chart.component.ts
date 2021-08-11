@@ -23,11 +23,12 @@ export class MultilineChartComponent implements AfterViewInit {
   @Input() yLabel?: string;
   @Input() width?: number;
   @Input() height?: number;
+  @Input() xSeparator?: { leftLabel?: string, rightLabel?:string, x: string, highlight?: boolean };
 
   private svg: any;
   private margin: {top: number, bottom: number, left: number, right: number } = {
     top: 50,
-    bottom: 40,
+    bottom: 50,
     left: 60,
     right: 60
   };
@@ -66,7 +67,7 @@ export class MultilineChartComponent implements AfterViewInit {
     const x = d3.scaleBand()
       .range([0, innerWidth])
       .domain(data.map(d => d.group))
-      .padding(0.5);
+      .padding(0);
 
     // x axis
     this.svg.append("g")
@@ -75,6 +76,12 @@ export class MultilineChartComponent implements AfterViewInit {
       .selectAll("text")
       .attr("transform", "translate(-10,0)rotate(-45)")
       .style("text-anchor", "end");
+
+/*   this.svg.append("line")
+      .attr({ x1: x("3"), y1: 0,
+        x2: x("3"), y2: innerHeight
+      })
+      .attr('class', 'separator');*/
 
     // y axis
     const y = d3.scaleLinear()
@@ -105,30 +112,32 @@ export class MultilineChartComponent implements AfterViewInit {
         .text(this.xLabel);
 
     let _this = this;
-    // tooltips
-/*    function onMouseOverBar(this: any, event: MouseEvent) {
-      let stack = d3.select(this);
-      let data: StackedData = this.__data__;
-      stack.selectAll('rect').classed('highlight', true);
 
-      let tooltip = d3.select('body').append('div').attr('class', 'tooltip');
-      let text = data.group.toString().replace('.',',') + '<br>';
-      tooltip.style('opacity', .9);
+    // tooltips
+    function onMouseOver(this: any, event: MouseEvent) {
+      // let stack = d3.select(this);
+      // let data: StackedData = this.__data__;
+      // stack.selectAll('rect').classed('highlight', true);
       //
-      _this.labels?.forEach((label, i)=>{
-        text += label + ': <b>' + data.values[i].toString().replace('.',',') + '</b><br>';
-      })
-      // text += 'gesamt: <b>' + d.total.toString().replace('.',',') + '</b><br>';
-      tooltip.html(text);
-      tooltip.style('left', (event.pageX + 10) + 'px')
-        .style('top', (event.pageY - parseInt(tooltip.style('height'))) + 'px');
+      // let tooltip = d3.select('body').append('div').attr('class', 'tooltip');
+      // let text = data.group.toString().replace('.',',') + '<br>';
+      // tooltip.style('opacity', .9);
+      // //
+      // _this.labels?.forEach((label, i)=>{
+      //   text += label + ': <b>' + data.values[i].toString().replace('.',',') + '</b><br>';
+      // })
+      // // text += 'gesamt: <b>' + d.total.toString().replace('.',',') + '</b><br>';
+      // tooltip.html(text);
+      // tooltip.style('left', (event.pageX + 10) + 'px')
+      //   .style('top', (event.pageY - parseInt(tooltip.style('height'))) + 'px');
     };
 
     function onMouseOutBar(this: any, event: MouseEvent) {
-      let stack = d3.select(this);
-      stack.selectAll('rect').classed('highlight', false);
-      d3.select('body').selectAll('div.tooltip').remove();
-    }*/
+      // let stack = d3.select(this);
+      // stack.selectAll('rect').classed('highlight', false);
+      // d3.select('body').selectAll('div.tooltip').remove();
+    }
+
     let line = d3.line()
       .curve(d3.curveCardinal)
       .x((d: any) => x(d.group)!)
@@ -192,5 +201,41 @@ export class MultilineChartComponent implements AfterViewInit {
       .attr('font-size', '0.8em')
       .attr('dy', '1em')
       .text(this.subtitle);
+
+    if (this.xSeparator) {
+      let xSepPos = x(this.xSeparator.x)! + this.margin.left + x.bandwidth();
+      this.svg.append('line')
+        .style('stroke', 'black')
+        .attr('x1', xSepPos)
+        .attr('y1', this.margin.top)
+        .attr('x2', xSepPos)
+        .attr('y2', this.height)
+        .attr('class', 'separator');
+      if (this.xSeparator.leftLabel)
+        this.svg.append('text')
+          .attr("y", this.height! - 10)
+          .attr("x", xSepPos - 5)
+          .attr('dy', '0.5em')
+          .style('text-anchor', 'end')
+          .attr('font-size', '0.7em')
+          .text(this.xSeparator.leftLabel);
+      if (this.xSeparator.rightLabel)
+        this.svg.append('text')
+          .attr("y", this.height! - 10)
+          .attr("x", xSepPos + 5)
+          .attr('dy', '0.5em')
+          .style('text-anchor', 'start')
+          .attr('font-size', '0.7em')
+          .text(this.xSeparator.rightLabel);
+      if (this.xSeparator.highlight) {
+        this.svg.append('rect')
+          .attr("x", xSepPos)
+          .attr("y", this.margin.top - 10) // 100 is where the first dot appears. 25 is the distance between dots
+          .attr("width", innerWidth - x(this.xSeparator.x)! - x.bandwidth())
+          .attr("height", innerHeight + 10)
+          .attr("fill", 'white')
+          .attr("opacity", 0.5)
+      }
+    }
   }
 }
