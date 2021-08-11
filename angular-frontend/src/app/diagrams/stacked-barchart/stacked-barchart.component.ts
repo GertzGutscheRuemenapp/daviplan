@@ -27,7 +27,7 @@ export class StackedBarchartComponent implements AfterViewInit {
   private svg: any;
   private margin: {top: number, bottom: number, left: number, right: number } = {
     top: 50,
-    bottom: 40,
+    bottom: 50,
     left: 60,
     right: 60
   };

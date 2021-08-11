@@ -23,6 +23,9 @@ export class MultilineChartComponent implements AfterViewInit {
   @Input() yLabel?: string;
   @Input() width?: number;
   @Input() height?: number;
+  @Input() unit?: string;
+  @Input() min?: number;
+  @Input() max?: number;
   @Input() xSeparator?: { leftLabel?: string, rightLabel?:string, x: string, highlight?: boolean };
 
   private svg: any;
@@ -54,13 +57,12 @@ export class MultilineChartComponent implements AfterViewInit {
       .append("g");
   }
 
-  private draw(data: MultilineData[]): void {
+  public draw(data: MultilineData[]): void {
     if (data.length == 0) return
 
     if (!this.labels)
       this.labels = d3.range(0, data[0].values.length).map(d=>d.toString());
     let colorScale = d3.scaleOrdinal(d3.schemeCategory10);
-    let max = d3.max(data, d => { return d3.max(d.values) });
     let innerWidth = this.width! - this.margin.left - this.margin.right,
       innerHeight = this.height! - this.margin.top - this.margin.bottom;
     let groups = data.map(d => d.group);
@@ -78,20 +80,18 @@ export class MultilineChartComponent implements AfterViewInit {
       .attr("transform", "translate(-10,0)rotate(-45)")
       .style("text-anchor", "end");
 
-/*   this.svg.append("line")
-      .attr({ x1: x("3"), y1: 0,
-        x2: x("3"), y2: innerHeight
-      })
-      .attr('class', 'separator');*/
-
+    let max = this.max || d3.max(data, d => { return d3.max(d.values) });
     // y axis
     const y = d3.scaleLinear()
-      .domain([0, max!])
+      .domain([this.min || 0, max!])
       .range([innerHeight, 0]);
 
     this.svg.append("g")
       .attr("transform", `translate(${this.margin.left},${this.margin.top})`)
-      .call(d3.axisLeft(y));
+      .call(
+        d3.axisLeft(y)
+          .tickFormat((y: any) => (this.unit) ? `${y}${this.unit}` : y)
+      );
 
     if (this.yLabel)
       this.svg.append('text')
@@ -145,12 +145,13 @@ export class MultilineChartComponent implements AfterViewInit {
     function onmousemove(this: any, event: MouseEvent){
       let xPos = d3.pointer(event)[0],
           xIdx = Math.floor((xPos + x.bandwidth()/2) / x.bandwidth()),
-          groupData = _this.data![xIdx];
+          groupData = data![xIdx];
+      if (!groupData) return;
       lineG.selectAll('circle')
         .attr("transform", (d: null, i: number) => `translate(${x(groups[xIdx])}, ${y(groupData.values[i])})`);
       let text = groupData.group + '<br>';
       _this.labels?.forEach((label, i)=>{
-        text += `<b style="color: ${colorScale(i.toString())}">${label}</b>: ${groupData.values[i].toString().replace('.', ',')}<br>`;
+        text += `<b style="color: ${colorScale(i.toString())}">${label}</b>: ${groupData.values[i].toString().replace('.', ',')}${(_this.unit) ? _this.unit : ''}<br>`;
       })
       tooltip.html(text);
       tooltip.style('left', event.pageX + 15 + 'px')

@@ -1,7 +1,8 @@
-import { Component, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
 import { MapService } from "../../../map/map.service";
 import { OlMap } from "../../../map/map";
 import { StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
+import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
 
 const mockdata: StackedData[] = [
   { group: '2000', values: [200, 300, 280] },
@@ -35,11 +36,22 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     x: '2003',
     highlight: true
   }
+  @ViewChild('lineChart') lineChart?: MultilineChartComponent;
 
   constructor(private mapService: MapService) { }
 
   ngAfterViewInit(): void {
     this.map = this.mapService.create('pop-map');
+    let first = mockdata[0].values;
+    let relData = mockdata.map(d => { return {
+      group: d.group,
+      values: d.values.map((v, i) => Math.round(10000 * v / first[i]) / 100 )
+    }})
+    let max = Math.max(...relData.map(d => Math.max(...d.values))),
+        min = Math.min(...relData.map(d => Math.min(...d.values)));
+    this.lineChart!.min = Math.floor(min / 10) * 10;
+    this.lineChart!.max = Math.ceil(max / 10) * 10;
+    this.lineChart?.draw(relData);
   }
 
   ngOnDestroy(): void {
