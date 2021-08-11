@@ -26,6 +26,7 @@ export class MultilineChartComponent implements AfterViewInit {
   @Input() unit?: string;
   @Input() min?: number;
   @Input() max?: number;
+  @Input() animate?: boolean;
   @Input() xSeparator?: { leftLabel?: string, rightLabel?:string, x: string, highlight?: boolean };
 
   private svg: any;
@@ -98,7 +99,7 @@ export class MultilineChartComponent implements AfterViewInit {
         .attr("y", 10)
         .attr("x", -(this.margin.top + 30))
         .attr('dy', '0.5em')
-        .style('text-anchor', 'middle')
+        .style('text-anchor', 'end')
         .attr('transform', 'rotate(-90)')
         .attr('font-size', '0.8em')
         .text(this.yLabel);
@@ -166,13 +167,24 @@ export class MultilineChartComponent implements AfterViewInit {
           value: d.values[i]
         }
       });
-      lineG.append("path")
+      let path = lineG.append("path")
         .datum(di)
         .attr("class", "line")
         .attr("fill", "none")
         .attr("stroke", colorScale(i.toString()))
         .attr("stroke-width", 1.5)
         .attr("d", line);
+
+      if (this.animate) {
+        let length = path.node().getTotalLength();
+        path.attr("stroke-dasharray", length + " " + length)
+          .attr("stroke-dashoffset", length)
+          .transition()
+          .duration(1000)
+          .ease(d3.easeQuadOut)
+          .attr("stroke-dashoffset", 0);
+      }
+
       lineG.append("circle")
         .attr("r", 3)
         .attr("fill", colorScale(i.toString()))

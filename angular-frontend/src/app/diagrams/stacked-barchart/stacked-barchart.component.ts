@@ -22,6 +22,7 @@ export class StackedBarchartComponent implements AfterViewInit {
   @Input() yLabel?: string;
   @Input() width?: number;
   @Input() height?: number;
+  @Input() animate?: boolean;
   @Input() xSeparator?: { leftLabel?: string, rightLabel?:string, x: string, highlight?: boolean };
 
   private svg: any;
@@ -92,7 +93,7 @@ export class StackedBarchartComponent implements AfterViewInit {
         .attr("y", 10)
         .attr("x", -(this.margin.top + 30))
         .attr('dy', '0.5em')
-        .style('text-anchor', 'middle')
+        .style('text-anchor', 'end')
         .attr('transform', 'rotate(-90)')
         .attr('font-size', '0.8em')
         .text(this.yLabel);
@@ -145,7 +146,7 @@ export class StackedBarchartComponent implements AfterViewInit {
     }
 
     // stacked bars
-    this.svg.selectAll("stacks")
+    let bars = this.svg.selectAll("stacks")
       .data(data)
       .enter().append("g")
         // .attr("x", (d: StackedData) => x(d.year.toString()))
@@ -162,10 +163,17 @@ export class StackedBarchartComponent implements AfterViewInit {
           return stacked.reverse();
         })
         .enter().append("rect")
-          .attr("fill", (d: number, i: number) => colorScale(i.toString()))
-          .attr("y", (d: number) => y(d) )
           .attr("width", x.bandwidth())
-          .attr("height", (d: number) => innerHeight - y(d));
+          .attr("fill", (d: number, i: number) => colorScale(i.toString()))
+          .attr("y", (d: number) => (this.animate) ? innerHeight : y(d))
+          .attr("height", (d: number) => (this.animate) ? innerHeight - y(0) : innerHeight - y(d));
+
+    if (this.animate)
+      bars.transition()
+        .duration(800)
+        .attr("y", (d: number) => y(d))
+        .attr("height", (d: number) => innerHeight - y(d));
+        // .delay((d: any, i: number) => i * 100);
 
     if (this.drawLegend) {
       let size = 15;
