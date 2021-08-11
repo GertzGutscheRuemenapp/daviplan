@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MaxLengthValidator
 from django.contrib.gis.db import models as gis_models
 from ..user.models import Profile
 from ..infrastructure.models import Infrastructure, Service
@@ -19,7 +20,7 @@ class Raster(models.Model):
 class RasterCell(models.Model):
     """a raster cell"""
     raster = models.ForeignKey(Raster, on_delete=models.RESTRICT)
-    cellcode = models.TextField()
+    cellcode = models.TextField(validators=[MaxLengthValidator(12)])
     value = models.FloatField()
 
 
