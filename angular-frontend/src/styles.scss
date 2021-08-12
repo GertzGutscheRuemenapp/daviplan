@@ -1,75 +1,9 @@
 @use '~@angular/material' as mat;
-
 @include mat.core();
 
-$blue-palette: (
-  50 : #E3F2FD  ,
-  100 : #BBDEFB,
-  200 : #90CAF9,
-  300 : #64B5F6,
-  400 : #42A5F5,
-  500 : #2196F3,
-  600 : #1E88E5,
-  700 : #1976D2,
-  800 : #1565C0,
-  900 : #0D47A1,
-  A100 : #ffffff,
-  A200 : #e1ecff,
-  A400 : #aeccff,
-  A700 : #95bcff,
-  contrast: (
-    50 : #000000,
-    100 : #000000,
-    200 : #000000,
-    300 : #000000,
-    400 : #000000,
-    500 : #ffffff,
-    600 : #ffffff,
-    700 : #ffffff,
-    800 : #ffffff,
-    900 : #ffffff,
-    A100 : #000000,
-    A200 : #000000,
-    A400 : #000000,
-    A700 : #000000,
-  )
-);
+@import "constants";
 
-$golden-palette: (
-  50 : #F9F3E2,
-  100 : #F1DFB6,
-  200 : #E9CB86,
-  300 : #E2B757,
-  400 : #DDA837,
-  500 : #DA9A22,
-  600 : #D6901D,
-  700 : #D08217,
-  800 : #CA7412,
-  900 : #BF600C,
-  A100 : #ffd1b2,
-  A200 : #ffb27f,
-  A400 : #ff944c,
-  A700 : #ff8532,
-  contrast: (
-    50 : #000000,
-    100 : #000000,
-    200 : #000000,
-    300 : #000000,
-    400 : #000000,
-    500 : #ffffff,
-    600 : #ffffff,
-    700 : #ffffff,
-    800 : #ffffff,
-    900 : #ffffff,
-    A100 : #000000,
-    A200 : #000000,
-    A400 : #000000,
-    A700 : #000000,
-  )
-);
 
-$app-primary: mat.define-palette($blue-palette, 500);
-$app-accent: mat.define-palette($golden-palette, A200, A100, A400);
 $app-typography: mat.define-typography-config(
   $font-family: 'Calibri',
   //$headline: mat.define-typography-level(54px, 56px, 400),
@@ -87,8 +21,6 @@ $app-theme: mat.define-light-theme((
   typography: $app-typography,
 ));
 
-$primary: mat.get-color-from-palette($app-primary, 500);
-$accent: mat.get-color-from-palette($app-accent, 500);
 //$warn: mat.color($app-warn, 500);
 
 @include mat.all-component-themes($app-theme);
@@ -226,10 +158,15 @@ app-data-card td, app-dash-card td {
 }
 
 .sub-nav {
-  background-color: #fafafa;
+  //background-color: #fafafa;
+  background-color: white;
   display: flex;
   border-bottom: 1px solid #0000001F;
   height: 60px;
+}
+
+mat-sidenav-content {
+  background-color: white;
 }
 
 .sub-nav span {
@@ -261,7 +198,7 @@ app-data-card td, app-dash-card td {
 }
 
 rect.highlight{
-  fill: $primary!important;
+  fill: mat.get-color-from-palette($app-accent, 400)!important;
 }
 
 div.tooltip {
