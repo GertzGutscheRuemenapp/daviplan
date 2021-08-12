@@ -150,7 +150,7 @@ export class MultilineChartComponent implements AfterViewInit {
       if (!groupData) return;
       lineG.selectAll('circle')
         .transition()
-        .duration(this.animate ? 80 : 0)
+        .duration(this.animate ? 40 : 0)
         .attr("transform", (d: null, i: number) => `translate(${x(groups[xIdx])}, ${y(groupData.values[i])})`);
       let text = groupData.group + '<br>';
       _this.labels?.forEach((label, i)=>{
