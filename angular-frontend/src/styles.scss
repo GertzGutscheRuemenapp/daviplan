@@ -7,7 +7,7 @@
 $app-typography: mat.define-typography-config(
   $font-family: 'Calibri',
   //$headline: mat.define-typography-level(54px, 56px, 400),
-  //$title: mat.define-typography-level(24px, 24px, 400),
+ // $title: mat.define-typography-level(20px, 20px, 500),
   $body-1: mat.define-typography-level(18px, 24px, 400),
   $body-2: mat.define-typography-level(16px, 22px, 400),
   $button: mat.define-typography-level(18px, 15px, 500),
@@ -23,13 +23,13 @@ $app-theme: mat.define-light-theme((
 
 //$warn: mat.color($app-warn, 500);
 
-@include mat.all-component-themes($app-theme);
 @include mat.core($app-typography);
+@include mat.all-component-themes($app-theme);
 
 html, body { height: 100%; }
 body {
   margin: 0;
-  font-family: Calibri, Roboto, sans-serif;
+  font-family: Calibri, Candara, Segoe, "Segoe UI", Optima, Arial, sans-serif;
   color: #000000DE;
 }
 

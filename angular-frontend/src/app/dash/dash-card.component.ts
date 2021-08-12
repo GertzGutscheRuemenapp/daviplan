@@ -9,6 +9,7 @@ import { Component, Input } from '@angular/core';
 
 export class CardComponent{
   @Input() title: string = '';
+  @Input() infoText: string = '';
   @Input() height: string = 'auto';
 
   constructor() {}
