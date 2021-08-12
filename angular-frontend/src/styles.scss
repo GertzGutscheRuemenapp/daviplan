@@ -1,8 +1,9 @@
 @use '~@angular/material' as mat;
 @include mat.core();
-
 @import "constants";
 
+$app-primary: mat.define-palette($blue-palette, 500);
+$app-accent: mat.define-palette($golden-palette, 500);
 
 $app-typography: mat.define-typography-config(
   $font-family: 'Calibri',

@@ -1,6 +1,3 @@
-@use '~@angular/material' as mat;
-@include mat.core();
-
 $blue-palette: (
   50 : #E3F2FD  ,
   100 : #BBDEFB,
@@ -67,8 +64,5 @@ $golden-palette: (
   )
 );
 
-$app-primary: mat.define-palette($blue-palette, 500);
-$app-accent: mat.define-palette($golden-palette, 500);
-
-$primary: mat.get-color-from-palette($app-primary, 500);
-$accent: mat.get-color-from-palette($app-accent, 500);
+$primary: #2196F3;
+$accent: #DA9A22;
