@@ -5,37 +5,45 @@
     <app-dash-card title='Geschlecht'></app-dash-card>
   </div>
   <div fxLayout="column" fxFlex="40" fxFlex.lt-lg="50" fxFlex.lt-md="100">
-    <app-dash-card title='Karte' height="70vh">
-        <div id="pop-map" class="map-container"></div>
+    <app-dash-card title='Karte'>
+      <div style="width: 100%; padding-bottom: 100%;">
+        <div style="position: absolute; width: calc(100% - 32px); height: calc(100% - 68px);">
+          <div id="pop-map" class="map-container"></div>
+        </div>
+      </div>
     </app-dash-card>
   </div>
   <div fxLayout="column" fxFlex="35" fxFlex.lt-lg="80" fxFlex.lt-md="100">
-    <app-dash-card height="35vh">
-      <div style="width: 100%; height: 100%">
-        <app-stacked-barchart [data]="data"
-                              [labels]="labels"
-                              xLabel="Jahre"
-                              yLabel="Einwohner"
-                              [title]="'Bevölkerungsentwicklung'"
-                              [xSeparator]="xSeparator"
-                              [animate]="true"
-                              subtitle="irgendwo">
+    <app-dash-card>
+      <div style="width: 100%; padding-bottom: 54%;">
+        <div style="position: absolute; width: calc(100% - 32px); height: calc(100% - 48px);">
+          <app-stacked-barchart [data]="data"
+                                [labels]="labels"
+                                xLabel="Jahre"
+                                yLabel="Einwohner"
+                                [title]="'Bevölkerungsentwicklung'"
+                                [xSeparator]="xSeparator"
+                                [animate]="true"
+                                subtitle="irgendwo">
 
-        </app-stacked-barchart>
+          </app-stacked-barchart>
+        </div>
       </div>
     </app-dash-card>
-    <app-dash-card height="35vh">
-      <div style="width: 100%; height: 100%">
-        <app-multiline-chart #lineChart
-                             [labels]="labels"
-                             xLabel="Jahre"
-                             yLabel="Einwohner relativ"
-                             [title]="'relative Altersgruppenentwicklung'"
-                             [xSeparator]="xSeparator"
-                             [animate]="true"
-                             unit="%"
-                             subtitle="irgendwo">
-        </app-multiline-chart>
+    <app-dash-card>
+      <div style="width: 100%; padding-bottom: 54%;">
+        <div style="position: absolute; width: calc(100% - 32px); height: calc(100% - 48px);">
+          <app-multiline-chart #lineChart
+                               [labels]="labels"
+                               xLabel="Jahre"
+                               yLabel="Einwohner relativ"
+                               [title]="'relative Altersgruppenentwicklung'"
+                               [xSeparator]="xSeparator"
+                               [animate]="true"
+                               unit="%"
+                               subtitle="irgendwo">
+          </app-multiline-chart>
+        </div>
       </div>
     </app-dash-card>
   </div>
