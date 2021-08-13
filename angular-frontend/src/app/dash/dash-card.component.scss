@@ -37,11 +37,16 @@ h2.title {
 h3.subtitle {
   color: #a6a6a6;
   text-transform: uppercase;
+  margin-bottom: 10px;
 }
 
 h3 {
   font-weight: bold;
   margin-bottom: 0;
+}
+
+.info-text {
+  margin-top: 10px;
 }
 
 ::ng-deep app-dash-card textarea {
@@ -84,6 +89,7 @@ h3 {
   flex-direction: row;
   box-sizing: border-box;
   display: flex;
+  margin: 5px 0 5px 0;
 }
 
 ::ng-deep app-dash-card .input-row label {

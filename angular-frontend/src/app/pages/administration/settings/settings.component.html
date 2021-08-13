@@ -1,7 +1,8 @@
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="400px">
     <app-dash-card [title]="'Name der Seite'"
-                   subtitle="Name ändern">
+                   subtitle="Name ändern"
+                   infoText="Bla bla Name der Seite ändern bla bla bla">
       <div class="input-row" style="width: 90%">
         <label>{{settings?.title}}</label>
         <div class="fill-space"></div>
@@ -28,7 +29,7 @@
 </div>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="400px">
-    <app-dash-card [title]="'Logo für die Startseite des Accounts'"
+    <app-dash-card [title]="'Logo für die Startseite'"
                    subtitle="Logo ändern">
       <div style="width: 100%" class="img-bg">
         <button mat-icon-button color="primary"
@@ -53,6 +54,20 @@
     </app-dash-card>
   </div>
 </div>
+
+<ng-template #titleEdit>
+  <form [formGroup]="titleForm">
+    <div *ngIf="titleForm.errors">
+      <mat-error *ngFor="let error of Object.values(titleForm.errors)" class="alert">
+        {{ error }}
+      </mat-error>
+    </div>
+    <mat-form-field class="full">
+      <mat-label i18n>Nutzername</mat-label>
+      <input matInput formControlName="title" required/>
+    </mat-form-field>
+  </form>
+</ng-template>
 
 <!--
 <div style="display: flex; flex-wrap: wrap; align-content: flex-start; max-width: 1000px;">
