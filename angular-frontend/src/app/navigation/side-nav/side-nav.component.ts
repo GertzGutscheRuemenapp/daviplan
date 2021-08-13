@@ -17,6 +17,8 @@ type Link = {
 
 export class SideNavComponent {
   @Input() menuItems: Link[] = [];
+  @Input() marginRight: string = '20px';
+  @Input() marginTop: string = '100px';
   @Input() width: string = '300px';
   isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
     .pipe(

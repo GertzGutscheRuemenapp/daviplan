@@ -3,8 +3,7 @@
       [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
       [mode]="(isHandset$ | async) ? 'over' : 'side'"
       [opened]="(isHandset$ | async) === false">
-    <mat-toolbar></mat-toolbar>
-    <mat-nav-list>
+    <mat-nav-list [style.margin-top]="marginTop">
       <div *ngFor="let item of menuItems">
         <a *ngIf="item.url"
            mat-list-item
@@ -52,6 +51,8 @@
       *ngIf="isHandset$ | async">
       <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
     </button>
-    <router-outlet></router-outlet>
+    <div [style.margin-top]="marginTop" [style.margin-left]="marginRight">
+      <router-outlet></router-outlet>
+    </div>
   </mat-sidenav-content>
 </mat-sidenav-container>

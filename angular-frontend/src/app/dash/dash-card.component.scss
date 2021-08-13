@@ -1,6 +1,9 @@
+@import "~src/constants";
+
 .dashboard-card {
-  margin: 15px;
+  margin: 10px;
   border: 1px solid #0000001F;
+  border-bottom: 1px solid $primary;
 }
 
 .dashboard-card-content {
@@ -25,4 +28,75 @@ mat-card {
   position: absolute;
   top: 5px;
   right: 10px;
+}
+
+h2.title {
+  color: $accent;
+}
+
+h3.subtitle {
+  color: #a6a6a6;
+  text-transform: uppercase;
+}
+
+h3 {
+  font-weight: bold;
+  margin-bottom: 0;
+}
+
+::ng-deep app-dash-card textarea {
+  width: 100%;
+  color: $primary;
+  cursor: pointer;
+}
+
+::ng-deep app-dash-card textarea:disabled {
+  background-color: white;
+}
+
+::ng-deep app-dash-card textarea:hover {
+  background-color: map-get($blue-palette, A200);
+  border: 1px solid map-get($blue-palette, A400);
+}
+
+::ng-deep app-dash-card img {
+  border: 1px solid #0000001F;
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+::ng-deep app-dash-card img:hover {
+  border: 1px solid map-get($blue-palette, A400);
+}
+
+::ng-deep app-dash-card .img-bg:hover {
+  background-color: map-get($blue-palette, A400);
+}
+
+::ng-deep app-dash-card label {
+  align-items: center;
+  display: flex;
+  color: $primary;
+}
+
+::ng-deep app-dash-card .input-row {
+  cursor: pointer;
+  flex-direction: row;
+  box-sizing: border-box;
+  display: flex;
+}
+
+::ng-deep app-dash-card .input-row label {
+  cursor: pointer;
+  transition: margin 400ms;
+}
+
+::ng-deep app-dash-card .input-row:hover label {
+  margin-left: 10px;
+  color: map-get($blue-palette, 600);
+  //font-weight: bold;
+}
+
+::ng-deep app-dash-card .input-row:hover .mat-icon-button {
+  background-color: map-get($blue-palette, A200);
 }

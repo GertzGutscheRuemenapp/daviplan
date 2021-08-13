@@ -17,7 +17,6 @@ import { MatListModule } from '@angular/material/list';
 import { MainNavComponent } from './navigation/main-nav/main-nav.component';
 import { AdministrationComponent } from './pages/administration/administration.component';
 import { SideNavComponent } from './navigation/side-nav/side-nav.component';
-import { DashComponent } from './dash/dash.component';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatCardModule } from '@angular/material/card';
 import { MatMenuModule } from '@angular/material/menu';
@@ -63,7 +62,6 @@ import { MultilineChartComponent } from './diagrams/multiline-chart/multiline-ch
     MainNavComponent,
     AdministrationComponent,
     SideNavComponent,
-    DashComponent,
     DataCardComponent,
     ConfirmDialogComponent,
     LoginComponent,

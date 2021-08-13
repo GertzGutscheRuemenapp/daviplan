@@ -1,3 +1,60 @@
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="400px">
+    <app-dash-card [title]="'Name der Seite'"
+                   subtitle="Name ändern">
+      <div class="input-row" style="width: 90%">
+        <label>{{settings?.title}}</label>
+        <div class="fill-space"></div>
+        <button mat-icon-button color="primary">
+          <mat-icon>edit</mat-icon>
+        </button>
+      </div>
+    </app-dash-card>
+  </div>
+  <div fxLayout="column" fxFlex="400px">
+    <app-dash-card [title]="'Kontakt E-Mail für Accounterstellung'"
+                   subtitle="E-Mail ändern"
+                   infoText="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor
+                   invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.">
+      <div class="input-row" style="width: 90%">
+        <label>{{settings?.contactMail || '-'}}</label>
+        <div class="fill-space"></div>
+        <button mat-icon-button color="primary">
+          <mat-icon>edit</mat-icon>
+        </button>
+      </div>
+    </app-dash-card>
+  </div>
+</div>
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="400px">
+    <app-dash-card [title]="'Logo für die Startseite des Accounts'"
+                   subtitle="Logo ändern">
+      <div style="width: 100%" class="img-bg">
+        <button mat-icon-button color="primary"
+                style="position: absolute; left: 45%; top: 50%; pointer-events: none; z-index: 1;">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <img [src]="settings?.logo" style="width: 100%;">
+      </div>
+    </app-dash-card>
+  </div>
+  <div fxLayout="column" fxFlex="400px">
+    <app-dash-card [title]="'Willkommenstext für die Startseite'"
+                   subtitle="Willkommenstext ändern">
+      <div style="width: 100%">
+        <button mat-icon-button color="primary"
+                style="position: absolute; left: 40%; top: 50%; pointer-events: none;">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <textarea disabled [value]="settings?.welcomeText" style="width: 100%; height: 250px; resize: none;">
+        </textarea>
+      </div>
+    </app-dash-card>
+  </div>
+</div>
+
+<!--
 <div style="display: flex; flex-wrap: wrap; align-content: flex-start; max-width: 1000px;">
   <app-data-card #titleCard
                  title="Allgemein"
@@ -45,3 +102,4 @@
 <ng-template #welcomeTextEdit>
   <angular-editor [(ngModel)]="welcomeTextInput" [config]="editorConfig"></angular-editor>
 </ng-template>
+-->
