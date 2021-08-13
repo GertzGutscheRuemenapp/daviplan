@@ -5,7 +5,8 @@
     </mat-card-title>
   </mat-card-header>-->
   <mat-card-content class="dashboard-card-content">
-    <h2>{{title}}</h2>
+    <h2 class="title">{{title}}</h2>
+    <h3 *ngIf="subtitle" class="subtitle">{{subtitle}}</h3>
     <ng-content></ng-content>
     <div *ngIf="infoText">
       <h3>INFORMATIONSTEXT</h3>

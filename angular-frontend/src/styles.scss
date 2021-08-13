@@ -167,7 +167,7 @@ app-data-card td, app-dash-card td {
 }
 
 mat-sidenav-content {
-  background-color: white;
+  //background-color: white;
 }
 
 .sub-nav span {
@@ -219,4 +219,16 @@ div.tooltip {
   stroke: #888;
   stroke-width: 2;
   stroke-dasharray: 6, 6;
+}
+
+button.mat-icon-button {
+  background-color: white;
+}
+
+.mat-icon-button mat-icon {
+  margin-top: -3px;
+}
+
+.mat-icon-button:hover {
+  background-color: map-get($blue-palette, A200);
 }
