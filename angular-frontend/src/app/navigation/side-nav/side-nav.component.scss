@@ -1,4 +1,4 @@
-@import "~src/styles";
+@import "~src/constants";
 
 .sidenav-container {
   height: 100%;
@@ -15,40 +15,8 @@ mat-sidenav .active-link, mat-sidenav .active-link:hover, mat-sidenav .active-li
 
 ::ng-deep .sidenav .mat-list-item{
   font-size: 18px!important;
-  padding: 10px!important;
+  height: 70px!important;
 }
-
-/*
-
-::ng-deep .sidenav .active-link>.mat-list-item-content, .sidenav .active-link:hover>.mat-list-item-content, .sidenav .active-link:focus>.mat-list-item-content{
-  color: white!important;
-  background-color: $primary!important;
+::ng-deep .sidenav .mat-list-item-content{
+  padding-left: 40px!important;
 }
-
-.sidenav a {
-  margin-top: 10px;
-}
-
-::ng-deep .sidenav .mat-list-item-content {
-  font-size: 18px!important;
-  padding: 30px!important;
-}
-*/
-
-/*
-.sidenav ul {
-  font-size: 18px;
-  border-radius: 4px;
-  list-style-type: none;
-  padding: 0;
-}
-
-.sidenav li>a{
-  padding: 20px;
-  border-radius: 4px;
-  display: block;
-  text-decoration: none;
-  width: 100%;
-  color: #000000DE;
-}
-*/

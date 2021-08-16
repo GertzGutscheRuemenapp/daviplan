@@ -37,7 +37,7 @@ urlpatterns = [
     # ToDo: matches ALL routes to the angular entry page, also when trying
     # to access media files (/media/* but strangely /static/* or /api/* work)
     # '^$' enables media but causes problems while directly calling subroutes
-    url('', HomePageView.as_view(), name='home')
+    url('^$', HomePageView.as_view(), name='home')
 ] \
 + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
 + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

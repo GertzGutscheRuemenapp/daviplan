@@ -8,13 +8,14 @@ export interface SiteSettings {
   id: number,
   title: string,
   contactMail: string,
-  welcomeText: string
+  welcomeText: string,
+  logo: string
 }
 
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
   siteSettings$ = new BehaviorSubject<SiteSettings>({
-    id: 0, title: '', contactMail: '', welcomeText: ''
+    id: 0, title: '', contactMail: '', welcomeText: '', logo: ''
   });
 
   constructor(private rest: RestAPI, private http: HttpClient, private titleService: Title) {

@@ -1,17 +1,16 @@
-<mat-card class="dashboard-card  mat-elevation-z0" [style.height]="height">
-  <mat-card-header>
+<mat-card class="dashboard-card mat-elevation-z0" [style.height]="height">
+<!--  <mat-card-header>
     <mat-card-title>
       {{title}}
-<!--      <button mat-icon-button class="more-button" [matMenuTriggerFor]="menu" aria-label="Toggle menu">
-        <mat-icon>more_vert</mat-icon>
-      </button>-->
-<!--      <mat-menu #menu="matMenu" xPosition="before">
-        <button mat-menu-item>Expand</button>
-        <button mat-menu-item>Remove</button>
-      </mat-menu>-->
     </mat-card-title>
-  </mat-card-header>
+  </mat-card-header>-->
   <mat-card-content class="dashboard-card-content">
+    <h2 class="title">{{title}}</h2>
+    <h3 *ngIf="subtitle" class="subtitle">{{subtitle}}</h3>
     <ng-content></ng-content>
+    <div *ngIf="infoText" class="info-text">
+      <h3>INFORMATIONSTEXT</h3>
+      {{infoText}}
+    </div>
   </mat-card-content>
 </mat-card>

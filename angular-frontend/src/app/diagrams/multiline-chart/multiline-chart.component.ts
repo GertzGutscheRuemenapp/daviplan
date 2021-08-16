@@ -23,6 +23,10 @@ export class MultilineChartComponent implements AfterViewInit {
   @Input() yLabel?: string;
   @Input() width?: number;
   @Input() height?: number;
+  @Input() unit?: string;
+  @Input() min?: number;
+  @Input() max?: number;
+  @Input() animate?: boolean;
   @Input() xSeparator?: { leftLabel?: string, rightLabel?:string, x: string, highlight?: boolean };
 
   private svg: any;
@@ -54,19 +58,19 @@ export class MultilineChartComponent implements AfterViewInit {
       .append("g");
   }
 
-  private draw(data: MultilineData[]): void {
+  public draw(data: MultilineData[]): void {
     if (data.length == 0) return
 
     if (!this.labels)
       this.labels = d3.range(0, data[0].values.length).map(d=>d.toString());
     let colorScale = d3.scaleOrdinal(d3.schemeCategory10);
-    let max = d3.max(data, d => { return d3.max(d.values) });
     let innerWidth = this.width! - this.margin.left - this.margin.right,
       innerHeight = this.height! - this.margin.top - this.margin.bottom;
+    let groups = data.map(d => d.group);
     // Add X axis
     const x = d3.scaleBand()
       .range([0, innerWidth])
-      .domain(data.map(d => d.group))
+      .domain(groups)
       .padding(0);
 
     // x axis
@@ -77,27 +81,25 @@ export class MultilineChartComponent implements AfterViewInit {
       .attr("transform", "translate(-10,0)rotate(-45)")
       .style("text-anchor", "end");
 
-/*   this.svg.append("line")
-      .attr({ x1: x("3"), y1: 0,
-        x2: x("3"), y2: innerHeight
-      })
-      .attr('class', 'separator');*/
-
+    let max = this.max || d3.max(data, d => { return d3.max(d.values) });
     // y axis
     const y = d3.scaleLinear()
-      .domain([0, max!])
+      .domain([this.min || 0, max!])
       .range([innerHeight, 0]);
 
     this.svg.append("g")
       .attr("transform", `translate(${this.margin.left},${this.margin.top})`)
-      .call(d3.axisLeft(y));
+      .call(
+        d3.axisLeft(y)
+          .tickFormat((y: any) => (this.unit) ? `${y}${this.unit}` : y)
+      );
 
     if (this.yLabel)
       this.svg.append('text')
         .attr("y", 10)
         .attr("x", -(this.margin.top + 30))
         .attr('dy', '0.5em')
-        .style('text-anchor', 'middle')
+        .style('text-anchor', 'end')
         .attr('transform', 'rotate(-90)')
         .attr('font-size', '0.8em')
         .text(this.yLabel);
@@ -111,37 +113,53 @@ export class MultilineChartComponent implements AfterViewInit {
         .attr('font-size', '0.8em')
         .text(this.xLabel);
 
-    let _this = this;
-
-    // tooltips
-    function onMouseOver(this: any, event: MouseEvent) {
-      // let stack = d3.select(this);
-      // let data: StackedData = this.__data__;
-      // stack.selectAll('rect').classed('highlight', true);
-      //
-      // let tooltip = d3.select('body').append('div').attr('class', 'tooltip');
-      // let text = data.group.toString().replace('.',',') + '<br>';
-      // tooltip.style('opacity', .9);
-      // //
-      // _this.labels?.forEach((label, i)=>{
-      //   text += label + ': <b>' + data.values[i].toString().replace('.',',') + '</b><br>';
-      // })
-      // // text += 'gesamt: <b>' + d.total.toString().replace('.',',') + '</b><br>';
-      // tooltip.html(text);
-      // tooltip.style('left', (event.pageX + 10) + 'px')
-      //   .style('top', (event.pageY - parseInt(tooltip.style('height'))) + 'px');
-    };
-
-    function onMouseOutBar(this: any, event: MouseEvent) {
-      // let stack = d3.select(this);
-      // stack.selectAll('rect').classed('highlight', false);
-      // d3.select('body').selectAll('div.tooltip').remove();
-    }
-
     let line = d3.line()
-      .curve(d3.curveCardinal)
+      // .curve(d3.curveCardinal)
       .x((d: any) => x(d.group)!)
       .y((d: any) => y(d.value));
+
+    let _this = this;
+
+    let tooltip = d3.select('body')
+      .append('div')
+      .attr('class', 'tooltip')
+      .style("display", 'none');
+
+    let lineG = this.svg.append('g')
+      .attr("transform", `translate(${this.margin.left + x.bandwidth()/2}, ${this.margin.top})`)
+      .on("mouseover", () => {
+        lineG.selectAll('circle').style("display", null);
+        tooltip.style("display", null);
+      })
+      .on("mouseout", () => {
+        lineG.selectAll('circle').style("display", 'none');
+        tooltip.style("display", 'none');
+      })
+      .on("mousemove", onMouseMove);
+
+    // helper rect to enlarge g for catching mouse moves
+    lineG.append('rect')
+      .attr("height", innerHeight)
+      .attr("width", innerWidth)
+      .attr("opacity", '0')
+
+    function onMouseMove(this: any, event: MouseEvent){
+      let xPos = d3.pointer(event)[0],
+          xIdx = Math.floor((xPos + x.bandwidth()/2) / x.bandwidth()),
+          groupData = data![xIdx];
+      if (!groupData) return;
+      lineG.selectAll('circle')
+        .transition()
+        .duration(this.animate ? 60 : 0)
+        .attr("transform", (d: null, i: number) => `translate(${x(groups[xIdx])}, ${y(groupData.values[i])})`);
+      let text = groupData.group + '<br>';
+      _this.labels?.forEach((label, i)=>{
+        text += `<b style="color: ${colorScale(i.toString())}">${label}</b>: ${groupData.values[i].toString().replace('.', ',')}${(_this.unit) ? _this.unit : ''}<br>`;
+      })
+      tooltip.html(text);
+      tooltip.style('left', event.pageX + 15 + 'px')
+        .style('top', event.pageY + 10 + 'px');
+    }
 
     this.labels.forEach((label, i)=>{
 
@@ -151,15 +169,29 @@ export class MultilineChartComponent implements AfterViewInit {
           value: d.values[i]
         }
       });
-      this.svg.append('g')
-        .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`)
-        .append("path")
+      let path = lineG.append("path")
         .datum(di)
         .attr("class", "line")
         .attr("fill", "none")
         .attr("stroke", colorScale(i.toString()))
         .attr("stroke-width", 1.5)
         .attr("d", line);
+
+      if (this.animate) {
+        let length = path.node().getTotalLength();
+        path.attr("stroke-dasharray", length + " " + length)
+          .attr("stroke-dashoffset", length)
+          .transition()
+          .duration(1000)
+          // .ease(d3.easeQuadOut)
+          .attr("stroke-dashoffset", 0);
+      }
+
+      lineG.append("circle")
+        .attr("r", 3)
+        .attr("fill", colorScale(i.toString()))
+        .attr("transform", `translate(${x(groups[0])}, ${y(data[0].values[i])})`)
+        .style("display", 'none');
     })
 
     if (this.drawLegend) {
@@ -235,6 +267,7 @@ export class MultilineChartComponent implements AfterViewInit {
           .attr("height", innerHeight + 10)
           .attr("fill", 'white')
           .attr("opacity", 0.5)
+          .attr('pointer-events', 'none')
       }
     }
   }

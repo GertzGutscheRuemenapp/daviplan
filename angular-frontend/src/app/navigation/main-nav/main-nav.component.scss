@@ -3,6 +3,7 @@
 .mat-sidenav-container {
   position: fixed;
   height: 100%;
+  padding-bottom: 60px;
 }
 
 .sidenav {
@@ -48,6 +49,7 @@
   //border-bottom: 3px solid #000000DE;
   color: $accent;
   box-shadow: 0 12px 10px -10px $accent;
+  //border-bottom: 3px solid $accent;
 }
 
 .page-links .active-link {
