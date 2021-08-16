@@ -25,7 +25,7 @@ import { MatInputModule } from '@angular/material/input';
 import { CardComponent } from "./dash/dash-card.component";
 import { MatDialogModule } from "@angular/material/dialog";
 import { ConfirmDialogComponent } from "./dialogs/confirm-dialog.component";
-import { DataCardComponent } from "./dash/data-card.component";
+import { InputCardComponent } from "./dash/input-card.component";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { LoginComponent } from './pages/login/login.component';
@@ -46,7 +46,6 @@ import { ReachabilitiesComponent } from './pages/planning/reachabilities/reachab
 import { RatingComponent } from './pages/planning/rating/rating.component';
 import { SettingsComponent } from './pages/administration/settings/settings.component';
 import { ColorPickerModule } from "ngx-color-picker";
-import { AngularEditorModule } from '@kolkov/angular-editor';
 import { MaterialFileInputModule } from "ngx-material-file-input";
 import { AreasComponent } from './pages/basedata/areas/areas.component';
 import { LogComponent } from './log/log.component';
@@ -62,7 +61,7 @@ import { MultilineChartComponent } from './diagrams/multiline-chart/multiline-ch
     MainNavComponent,
     AdministrationComponent,
     SideNavComponent,
-    DataCardComponent,
+    InputCardComponent,
     ConfirmDialogComponent,
     LoginComponent,
     DemandComponent,
@@ -108,7 +107,6 @@ import { MultilineChartComponent } from './diagrams/multiline-chart/multiline-ch
         MatExpansionModule,
         MatSliderModule,
         ColorPickerModule,
-        AngularEditorModule,
         MaterialFileInputModule,
         FontAwesomeModule
     ],
