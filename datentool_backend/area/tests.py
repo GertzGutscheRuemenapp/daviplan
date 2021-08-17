@@ -69,30 +69,30 @@ def convert_polygons(polygon: gg.Polygon) -> Polygon:
 class AreaTestCase(TestCase):
 
     @given(map_symbol())
-    def test_map_symbols(self, map_symbol):
+    def test_map_symbols(self, map_symbol: MapSymbols):
         self.assertIsInstance(map_symbol, MapSymbols)
         self.assertIsInstance(map_symbol.symbol, SymbolForm)
         self.assertIsNotNone(map_symbol.pk)
 
     @given(layer_group())
-    def test_layer_group(self, layer_group):
+    def test_layer_group(self, layer_group: LayerGroup):
         self.assertIsInstance(layer_group, LayerGroup)
         self.assertIsNotNone(layer_group.pk)
 
     @given(internal_wfs_layer())
-    def test_internal_wfs_layer(self, wfs_layer):
+    def test_internal_wfs_layer(self, wfs_layer: InternalWFSLayer):
         self.assertIsInstance(wfs_layer, InternalWFSLayer)
         self.assertIsInstance(wfs_layer.group, LayerGroup)
         self.assertIsInstance(wfs_layer.symbol.symbol, SymbolForm)
         self.assertIsNotNone(wfs_layer.pk)
 
     @given(source())
-    def test_source(self, source):
+    def test_source(self, source: Source):
         self.assertIsInstance(source, Source)
         self.assertIn(source.source_type, SourceTypes)
 
     @given(area_level())
-    def test_area_level(self, area_level):
+    def test_area_level(self, area_level: AreaLevel):
         self.assertIsInstance(area_level, AreaLevel)
         self.assertIsInstance(area_level.source, Source)
         self.assertIsInstance(area_level.layer, InternalWFSLayer)
@@ -101,7 +101,7 @@ class AreaTestCase(TestCase):
                       area_level=area_level(),
                       attributes=json_example(),
                       geom=polygons().map(convert_polygons)))
-    def test_area(self, area):
+    def test_area(self, area: Area):
         self.assertIsInstance(area, Area)
         result = json.loads(json.dumps(area.attributes))
         self.assertEqual(result, area.attributes)

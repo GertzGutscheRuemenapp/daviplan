@@ -1,5 +1,7 @@
 from django.db import models
-from django.core.validators import MaxLengthValidator
+from django.core.validators import (MaxLengthValidator,
+                                    MinValueValidator, MaxValueValidator)
+
 from django.contrib.gis.db import models as gis_models
 from ..user.models import Profile
 from ..infrastructure.models import Infrastructure, Service
@@ -15,7 +17,7 @@ class Raster(models.Model):
     """a raster"""
     name = models.TextField()
     year = models.ForeignKey(Years, on_delete=models.RESTRICT)
-
+1
 
 class RasterCell(models.Model):
     """a raster cell"""
@@ -37,12 +39,15 @@ class AgeClassification(models.Model):
 class AgeGroup(models.Model):
     """an age group in an age classification"""
     classification = models.ForeignKey(AgeClassification, on_delete=models.RESTRICT)
-    from_age = models.IntegerField()
-    to_age = models.IntegerField()
+    from_age = models.IntegerField(validators=[MinValueValidator(0),
+                                               MaxValueValidator(127)])
+    to_age = models.IntegerField(validators=[MinValueValidator(0),
+                                             MaxValueValidator(127)])
 
 
 class DisaggPopRaster(models.Model):
     """a raster with disaggregated population by age and gender"""
+    raster = models.ForeignKey(Raster, on_delete=models.RESTRICT, null=True)
     genders = models.ManyToManyField(Gender)
 
 
