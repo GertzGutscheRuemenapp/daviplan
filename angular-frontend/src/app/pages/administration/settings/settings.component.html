@@ -20,6 +20,7 @@
     <app-input-card #contactEdit
                     [title]="'Kontakt E-Mail für Accounterstellung'"
                     subtitle="E-Mail ändern"
+                    [dialogTitle]="'Kontakt E-Mail ändern'"
                     infoText="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor
                     invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua."
                     [editTemplate]="contactTemplate"
@@ -37,7 +38,7 @@
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="400px">
     <app-input-card [title]="'Logo für die Startseite'"
-                   subtitle="Logo ändern">
+                    subtitle="Logo ändern">
       <div style="width: 100%" class="img-bg">
         <button mat-icon-button color="primary"
                 style="position: absolute; left: 45%; top: 50%; pointer-events: none; z-index: 1;">
@@ -48,15 +49,21 @@
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="400px">
-    <app-input-card [title]="'Willkommenstext für die Startseite'"
-                   subtitle="Willkommenstext ändern">
-      <div style="width: 100%">
+    <app-input-card #welcomeTextEdit
+                    [title]="'Willkommenstext für die Startseite'"
+                    subtitle="Willkommenstext ändern"
+                    [dialogTitle]="'Willkommenstext für die Startseite einfügen'"
+                    dialogWidth="1000px"
+                    [editTemplate]="welcomeTextTemplate"
+                    [editButton]="welcomeTextEditButton">
+      <div #welcomeTextEditButton style="width: 100%">
         <button mat-icon-button color="primary"
-                style="position: absolute; left: 40%; top: 50%; pointer-events: none;">
+                style="position: absolute; left: 40%; top: 50%; pointer-events: none; z-index: 1;">
           <mat-icon>edit</mat-icon>
         </button>
-        <textarea disabled [value]="settings?.welcomeText" style="width: 100%; height: 250px; resize: none;">
-        </textarea>
+        <div class="text">
+          <div style="transform: scale(0.5, 0.5); margin: -50px 0 -50px -105px;"><div style="width: 150%; height: 150%" [innerHTML]="settings?.welcomeText"></div></div>
+        </div>
       </div>
     </app-input-card>
   </div>
@@ -91,52 +98,11 @@
   </form>
 </ng-template>
 
-<!--
-<div style="display: flex; flex-wrap: wrap; align-content: flex-start; max-width: 1000px;">
-  <app-data-card #titleCard
-                 title="Allgemein"
-                 style="min-width: 400px;"
-                 [editTemplate]="titleEdit">
-    <table>
-      <tr>
-        <td i18n>Name der Seite</td>
-        <td>{{settings?.title}}</td>
-      </tr>
-      <tr>
-        <td style="max-width: 150px;" i18n>Kontakt E-Mail für Accounterstellung</td>
-        <td>{{settings?.contactMail}}</td>
-      </tr>
-    </table>
-  </app-data-card>
-  <app-data-card #welcomeTextCard
-                 dialogWidth="800px"
-                 title="Willkommenstext"
-                 style="min-width: 800px;"
-                 [editTemplate]="welcomeTextEdit">
-    <div [innerHTML]="settings?.welcomeText"></div>
-  </app-data-card>
-</div>
-
-<ng-template #titleEdit>
-  <form [formGroup]="titleForm">
-    <div *ngIf="titleForm.errors">
-      <mat-error *ngFor="let error of Object.values(titleForm.errors)" class="alert">
-        {{ error }}
-      </mat-error>
-    </div>
-    <mat-form-field class="full">
-      <mat-label i18n>Nutzername</mat-label>
-      <input matInput formControlName="title" required/>
-    </mat-form-field>
-    <mat-form-field class="full">
-      <mat-label i18n>E-Mail</mat-label>
-      <input matInput formControlName="contact"/>
-      <mat-error *ngIf="titleForm.get('contact')?.errors" i18n>Die E-Mail Adresse hat kein gültiges Format.</mat-error>
-    </mat-form-field>
-  </form>
+<ng-template #welcomeTextTemplate>
+  <div *ngIf="welcomeTextErrors.errors">
+    <mat-error *ngFor="let error of Object.values(welcomeTextErrors.errors)" class="alert">
+      {{ error }}
+    </mat-error>
+  </div>
+  <ckeditor [editor]="Editor" [config]="editorConfig" [(ngModel)]="welcomeTextInput"></ckeditor>
 </ng-template>
-
-<ng-template #welcomeTextEdit>
-  <angular-editor [(ngModel)]="welcomeTextInput" [config]="editorConfig"></angular-editor>
-</ng-template>
--->

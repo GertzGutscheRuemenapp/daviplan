@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
@@ -52,6 +51,7 @@ import { LogComponent } from './log/log.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { StackedBarchartComponent } from './diagrams/stacked-barchart/stacked-barchart.component';
 import { MultilineChartComponent } from './diagrams/multiline-chart/multiline-chart.component';
+import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 
 @NgModule({
   declarations: [
@@ -79,7 +79,7 @@ import { MultilineChartComponent } from './diagrams/multiline-chart/multiline-ch
     AreasComponent,
     LogComponent,
     StackedBarchartComponent,
-    MultilineChartComponent
+    MultilineChartComponent,
   ],
     imports: [
         BrowserModule,
@@ -108,7 +108,8 @@ import { MultilineChartComponent } from './diagrams/multiline-chart/multiline-ch
         MatSliderModule,
         ColorPickerModule,
         MaterialFileInputModule,
-        FontAwesomeModule
+        FontAwesomeModule,
+        CKEditorModule
     ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true }

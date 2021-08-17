@@ -6,7 +6,8 @@ import { RestAPI } from "../../../rest-api";
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { FileValidator } from 'ngx-material-file-input';
 import { MatDialog } from "@angular/material/dialog";
-import { MatButton } from "@angular/material/button";
+import '@ckeditor/ckeditor5-build-classic/build/translations/de';
+import * as ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
 @Component({
   selector: 'app-settings',
@@ -20,17 +21,26 @@ export class SettingsComponent implements AfterViewInit {
   @ViewChild('contactEdit') contactEdit!: InputCardComponent;
   @ViewChild('contactTemplate') contactTemplate!: TemplateRef<any>;
   @ViewChild('contactEditButton') contactEditButton!: HTMLElement;
+  @ViewChild('welcomeTextEdit') welcomeTextEdit!: InputCardComponent;
+  @ViewChild('welcomeTextTemplate') welcomeTextTemplate!: TemplateRef<any>;
+  @ViewChild('welcomeTextEditButton') welcomeTextEditButton!: HTMLElement;
   settings?: SiteSettings;
   titleForm!: FormGroup;
   contactForm!: FormGroup;
   logoForm!: FormGroup;
   welcomeTextInput: string = '';
-  appearanceErrors: any = {};
   welcomeTextErrors: any = {};
   // 10MB (=10 * 2 ** 20)
   readonly maxLogoSize = 10485760;
   // workaround to have access to object iteration in template
   Object = Object;
+  Editor = ClassicEditor;
+  editorConfig = {
+    toolbar: {
+      items: ['heading', '|', 'bold', 'italic', '|', 'undo', 'redo', '-', 'numberedList', 'bulletedList']
+    },
+    language: 'de'
+  };
 
   constructor(private settingsService: SettingsService, private http: HttpClient, private rest: RestAPI,
               private cdRef: ChangeDetectorRef, private formBuilder: FormBuilder, public dialog: MatDialog) {  }
@@ -39,15 +49,11 @@ export class SettingsComponent implements AfterViewInit {
     this.settingsService.siteSettings$.subscribe(settings => {
       this.settings = Object.assign({}, settings);
       this.cdRef.detectChanges();
-      // this.settingsForm = this.formBuilder.group({
-      //   title: this.settings.title,
-      //   contact: this.settings.contactMail,
-      //   logo: [ undefined, [FileValidator.maxContentSize(this.maxLogoSize)]],
-      //   welcomeText: this.settings.welcomeText
-      // });
+      this.welcomeTextInput = settings.welcomeText;
     });
     this.setupTitleDialog();
     this.setupContactDialog();
+    this.setupWelcomeTextDialog();
   }
 
   setupTitleDialog(): void {
@@ -117,6 +123,28 @@ export class SettingsComponent implements AfterViewInit {
         });
       }
     })
+  }
+
+  setupWelcomeTextDialog() {
+    this.welcomeTextEdit.dialogConfirmed.subscribe((ok)=>{
+      let attributes: any = {
+        welcomeText: this.welcomeTextInput
+      }
+      this.welcomeTextEdit.setLoading(true);
+      this.http.patch<SiteSettings>(this.rest.URLS.settings, attributes
+      ).subscribe(settings => {
+        // update global settings
+        this.settingsService.fetchSiteSettings();
+        this.welcomeTextEdit.closeDialog(true);
+      },(error) => {
+        this.welcomeTextErrors = error.error;
+        this.welcomeTextEdit.setLoading(false);
+      });
+    });
+    this.welcomeTextEdit.dialogClosed.subscribe((ok)=>{
+      this.welcomeTextErrors = {};
+      this.welcomeTextInput = this.settings!.welcomeText;
+    });
   }
 
 

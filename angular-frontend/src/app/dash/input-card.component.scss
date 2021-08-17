@@ -49,17 +49,20 @@ h3 {
   margin-top: 10px;
 }
 
-::ng-deep app-input-card textarea {
-  width: 100%;
+::ng-deep app-input-card .text {
+  width: calc(100% - 10px);
+  overflow-x: auto;
   color: $primary;
   cursor: pointer;
+  border: 1px solid #0000001F;
+  padding: 5px;
 }
 
-::ng-deep app-input-card textarea:disabled {
+::ng-deep app-input-card .text:disabled {
   background-color: white;
 }
 
-::ng-deep app-input-card textarea:hover {
+::ng-deep app-input-card .text:hover {
   background-color: map-get($blue-palette, A200);
   border: 1px solid map-get($blue-palette, A400);
 }
