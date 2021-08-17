@@ -8,6 +8,7 @@ import { FileValidator } from 'ngx-material-file-input';
 import { MatDialog } from "@angular/material/dialog";
 import '@ckeditor/ckeditor5-build-classic/build/translations/de';
 import * as ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import { FileHandle } from "../../../helpers/dragndrop.directive";
 
 @Component({
   selector: 'app-settings',
@@ -24,17 +25,22 @@ export class SettingsComponent implements AfterViewInit {
   @ViewChild('welcomeTextEdit') welcomeTextEdit!: InputCardComponent;
   @ViewChild('welcomeTextTemplate') welcomeTextTemplate!: TemplateRef<any>;
   @ViewChild('welcomeTextEditButton') welcomeTextEditButton!: HTMLElement;
+  @ViewChild('logoEdit') logoEdit!: InputCardComponent;
+  @ViewChild('logoTemplate') logoTemplate!: TemplateRef<any>;
+  @ViewChild('logoEditButton') logoEditButton!: HTMLElement;
   settings?: SiteSettings;
   titleForm!: FormGroup;
   contactForm!: FormGroup;
   logoForm!: FormGroup;
   welcomeTextInput: string = '';
   welcomeTextErrors: any = {};
+  logoErrors: any = {};
   // 10MB (=10 * 2 ** 20)
   readonly maxLogoSize = 10485760;
   // workaround to have access to object iteration in template
   Object = Object;
   Editor = ClassicEditor;
+  logoFile?: FileHandle;
   editorConfig = {
     toolbar: {
       items: ['heading', '|', 'bold', 'italic', '|', 'undo', 'redo', '-', 'numberedList', 'bulletedList']
@@ -54,6 +60,7 @@ export class SettingsComponent implements AfterViewInit {
     this.setupTitleDialog();
     this.setupContactDialog();
     this.setupWelcomeTextDialog();
+    this.setupLogoDialog();
   }
 
   setupTitleDialog(): void {
@@ -147,62 +154,35 @@ export class SettingsComponent implements AfterViewInit {
     });
   }
 
+  setupLogoDialog() {
+    this.logoEdit.dialogConfirmed.subscribe((ok)=>{
+      const formData = new FormData();
+      if (!this.logoFile) {
+        this.logoErrors['errors'] = {'error': $localize`Die Datei darf nicht leer sein.`};
+        return;
+      }
+      formData.append('logo', this.logoFile.file);
+      this.logoEdit?.setLoading(true);
+      this.http.patch<SiteSettings>(this.rest.URLS.settings, formData
+      ).subscribe(settings => {
+        this.logoEdit?.closeDialog(true);
+        // update global settings
+        this.settingsService.fetchSiteSettings();
+      },(error) => {
+        this.logoErrors = error.error;
+        this.logoEdit?.setLoading(false);
+      });
+    });
+    this.logoEdit.dialogClosed.subscribe((ok)=> {
+      this.logoErrors = {};
+      this.logoFile = undefined;
+    })
+  }
 
-  //
-  // setupTitleCard(): void {
-  //   if (!this.settings || !this.titleCard) return;
-  //   this.titleCard.dialogConfirmed.subscribe((ok)=>{
-  //     this.titleForm.setErrors(null);
-  //     // display errors for all fields even if not touched
-  //     this.titleForm.markAllAsTouched();
-  //     if (this.titleForm.invalid) return;
-  //     let attributes: any = {
-  //       title: this.titleForm.value.title,
-  //       contactMail: this.titleForm.value.contact
-  //     }
-  //     this.titleCard?.setLoading(true);
-  //     this.http.patch<SiteSettings>(this.rest.URLS.settings, attributes
-  //     ).subscribe(data => {
-  //       this.titleCard?.closeDialog(true);
-  //       // update global settings
-  //       this.settingsService.fetchSiteSettings();
-  //     },(error) => {
-  //       // ToDo: set specific errors to fields
-  //       this.titleForm.setErrors(error.error);
-  //       this.titleCard?.setLoading(false);
-  //     });
-  //   })
-  //   this.titleCard.dialogClosed.subscribe((ok)=>{
-  //     // reset form on cancel
-  //     if (!ok){
-  //       this.titleForm.reset({
-  //         title: this.settings?.title,
-  //         contact: this.settings?.contactMail,
-  //       });
-  //     }
-  //   })
-  // }
-  //
-  // setupWelcomeTextCard(): void {
-  //   if (!this.settings || !this.welcomeTextCard) return;
-  //   this.welcomeTextCard.dialogConfirmed.subscribe((ok)=>{
-  //     let attributes: any = {
-  //       welcomeText: this.welcomeTextInput
-  //     }
-  //     this.welcomeTextCard?.setLoading(true);
-  //     this.http.patch<SiteSettings>(this.rest.URLS.settings, attributes
-  //     ).subscribe(settings => {
-  //       // update global settings
-  //       this.settingsService.fetchSiteSettings();
-  //       this.welcomeTextCard?.closeDialog(true);
-  //     },(error) => {
-  //       this.welcomeTextErrors = error.error;
-  //       this.welcomeTextCard?.setLoading(false);
-  //     });
-  //   });
-  //   this.welcomeTextCard.dialogClosed.subscribe((ok)=>{
-  //     this.welcomeTextErrors = {};
-  //   });
-  // }
+  filesDropped(files: FileHandle[]): void {
+    this.logoErrors = {};
+    // ToDo: verify file
+    this.logoFile = files[0];
+  }
 
 }

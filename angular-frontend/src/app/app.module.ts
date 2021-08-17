@@ -52,6 +52,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { StackedBarchartComponent } from './diagrams/stacked-barchart/stacked-barchart.component';
 import { MultilineChartComponent } from './diagrams/multiline-chart/multiline-chart.component';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
+import { DragDirective } from './helpers/dragndrop.directive'
 
 @NgModule({
   declarations: [
@@ -80,6 +81,7 @@ import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
     LogComponent,
     StackedBarchartComponent,
     MultilineChartComponent,
+    DragDirective
   ],
     imports: [
         BrowserModule,

@@ -56,6 +56,8 @@ h3 {
   cursor: pointer;
   border: 1px solid #0000001F;
   padding: 5px;
+  min-height: 100px;
+  max-height: 300px;
 }
 
 ::ng-deep app-input-card .text:disabled {

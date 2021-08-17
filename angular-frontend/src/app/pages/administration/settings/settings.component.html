@@ -37,9 +37,13 @@
 </div>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="400px">
-    <app-input-card [title]="'Logo für die Startseite'"
-                    subtitle="Logo ändern">
-      <div style="width: 100%" class="img-bg">
+    <app-input-card #logoEdit
+                    [title]="'Logo für die Startseite'"
+                    subtitle="Logo ändern"
+                    [dialogTitle]="'Bilddatei als Logo festlegen'"
+                    [editTemplate]="logoTemplate"
+                    [editButton]="logoEditButton">
+      <div #logoEditButton style="width: 100%" class="img-bg">
         <button mat-icon-button color="primary"
                 style="position: absolute; left: 45%; top: 50%; pointer-events: none; z-index: 1;">
           <mat-icon>edit</mat-icon>
@@ -58,11 +62,11 @@
                     [editButton]="welcomeTextEditButton">
       <div #welcomeTextEditButton style="width: 100%">
         <button mat-icon-button color="primary"
-                style="position: absolute; left: 40%; top: 50%; pointer-events: none; z-index: 1;">
+          style="position: absolute; left: 42%; top: 55%; pointer-events: none; z-index: 1;">
           <mat-icon>edit</mat-icon>
         </button>
         <div class="text">
-          <div style="transform: scale(0.5, 0.5); margin: -50px 0 -50px -105px;"><div style="width: 150%; height: 150%" [innerHTML]="settings?.welcomeText"></div></div>
+          <div style="transform: scale(0.5, 0.5); margin: -20% 0 -20% -105px;"><div style="width: 150%;" [innerHTML]="settings?.welcomeText"></div></div>
         </div>
       </div>
     </app-input-card>
@@ -105,4 +109,22 @@
     </mat-error>
   </div>
   <ckeditor [editor]="Editor" [config]="editorConfig" [(ngModel)]="welcomeTextInput"></ckeditor>
+</ng-template>
+
+<ng-template #logoTemplate>
+  <div *ngIf="logoErrors.errors">
+    <mat-error *ngFor="let error of Object.values(logoErrors.errors)" class="alert">
+      {{ error }}
+    </mat-error>
+  </div>
+  <div class="col-12 rmpm dropzone" appDrag (files)="filesDropped($event)">
+    <div class="text-wrapper">
+      <div class="centered" style="min-height: 300px;">
+        <div style="width: calc(100% - 60px)" class="drop-overlay">
+          <h1 i18n>Bilddatei hierher ziehen</h1>
+        </div>
+        <img *ngIf="logoFile" [src]="logoFile.url" width="100%">
+      </div>
+    </div>
+  </div>
 </ng-template>

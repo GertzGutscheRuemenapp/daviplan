@@ -232,3 +232,20 @@ button.mat-icon-button {
 .mat-icon-button:hover {
   background-color: map-get($blue-palette, A200);
 }
+
+.dropzone {
+  min-height: 300px;
+  min-width: 300px;
+  display: table;
+  width: 100%;
+  background-color: white!important;
+  border: dashed 2px lightgray;
+}
+
+.drop-overlay {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  text-align: center;
+  text-shadow: -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;
+}
