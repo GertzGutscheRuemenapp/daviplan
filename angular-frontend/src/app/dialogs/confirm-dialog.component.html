@@ -8,7 +8,7 @@
   </p>
   <ng-container *ngTemplateOutlet="data.template;"></ng-container>
 </mat-dialog-content>
-<mat-dialog-actions align="center">
+<mat-dialog-actions align="left">
+  <button mat-button color="primary" mat-dialog-close tabindex="-1">{{ data.cancelButtonText }}</button>
   <button mat-button color="primary" (click)="onConfirmClick()" tabindex="1">{{ data.confirmButtonText }}</button>
-  <button mat-button mat-dialog-close tabindex="-1">{{ data.cancelButtonText }}</button>
 </mat-dialog-actions>

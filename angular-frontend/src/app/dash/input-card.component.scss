@@ -1,0 +1,113 @@
+@import "~src/constants";
+
+.dashboard-card {
+  margin: 10px;
+  border: 1px solid #0000001F;
+  border-bottom: 1px solid $primary;
+}
+
+.dashboard-card-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  //justify-content: center;
+  //align-items: center;
+  //text-align: center;
+  justify-content: left;
+  align-items: flex-start;
+  text-align: left;
+}
+
+mat-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.more-button {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+}
+
+h2.title {
+  color: $accent;
+}
+
+h3.subtitle {
+  color: #a6a6a6;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+h3 {
+  font-weight: bold;
+  margin-bottom: 0;
+}
+
+.info-text {
+  margin-top: 10px;
+}
+
+::ng-deep app-input-card .text {
+  width: calc(100% - 10px);
+  overflow-x: auto;
+  color: $primary;
+  cursor: pointer;
+  border: 1px solid #0000001F;
+  padding: 5px;
+  min-height: 100px;
+  max-height: 300px;
+}
+
+::ng-deep app-input-card .text:disabled {
+  background-color: white;
+}
+
+::ng-deep app-input-card .text:hover {
+  background-color: map-get($blue-palette, A200);
+  border: 1px solid map-get($blue-palette, A400);
+}
+
+::ng-deep app-input-card img {
+  border: 1px solid #0000001F;
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+::ng-deep app-input-card img:hover {
+  border: 1px solid map-get($blue-palette, A400);
+}
+
+::ng-deep app-input-card .img-bg:hover {
+  background-color: map-get($blue-palette, A400);
+}
+
+::ng-deep app-input-card label {
+  align-items: center;
+  display: flex;
+  color: $primary;
+}
+
+::ng-deep app-input-card .input-row {
+  cursor: pointer;
+  flex-direction: row;
+  box-sizing: border-box;
+  display: flex;
+  margin: 5px 0 5px 0;
+}
+
+::ng-deep app-input-card .input-row label {
+  cursor: pointer;
+  transition: margin 400ms;
+}
+
+::ng-deep app-input-card .input-row:hover label {
+  margin-left: 10px;
+  color: map-get($blue-palette, 600);
+  //font-weight: bold;
+}
+
+::ng-deep app-input-card .input-row:hover .mat-icon-button {
+  background-color: map-get($blue-palette, A200);
+}

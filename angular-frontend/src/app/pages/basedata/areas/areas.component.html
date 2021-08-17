@@ -13,7 +13,7 @@
         <button style="float: right;" [class.hidden]="!selectedAreaLevel" mat-raised-button color="warn" (click)="onDeleteArea()" i18n><mat-icon>delete_forever</mat-icon>&nbsp; Gebiet entfernen </button>
       </div>
     </app-dash-card>
-    <app-data-card #prefCard title="Eigenschaften" [class.hidden]="!selectedAreaLevel">
+    <app-input-card #prefCard title="Eigenschaften" [class.hidden]="!selectedAreaLevel">
       <div *ngIf="selectedAreaLevel">
         <table>
           <tr>
@@ -36,7 +36,7 @@
           </tr>
         </table>
       </div>
-    </app-data-card>
+    </app-input-card>
   </div>
   <div style="min-width: 1000px;">
     <app-dash-card title="Daten" height="300px">

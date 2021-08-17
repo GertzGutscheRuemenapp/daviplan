@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
@@ -25,7 +24,7 @@ import { MatInputModule } from '@angular/material/input';
 import { CardComponent } from "./dash/dash-card.component";
 import { MatDialogModule } from "@angular/material/dialog";
 import { ConfirmDialogComponent } from "./dialogs/confirm-dialog.component";
-import { DataCardComponent } from "./dash/data-card.component";
+import { InputCardComponent } from "./dash/input-card.component";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { LoginComponent } from './pages/login/login.component';
@@ -46,13 +45,14 @@ import { ReachabilitiesComponent } from './pages/planning/reachabilities/reachab
 import { RatingComponent } from './pages/planning/rating/rating.component';
 import { SettingsComponent } from './pages/administration/settings/settings.component';
 import { ColorPickerModule } from "ngx-color-picker";
-import { AngularEditorModule } from '@kolkov/angular-editor';
 import { MaterialFileInputModule } from "ngx-material-file-input";
 import { AreasComponent } from './pages/basedata/areas/areas.component';
 import { LogComponent } from './log/log.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { StackedBarchartComponent } from './diagrams/stacked-barchart/stacked-barchart.component';
 import { MultilineChartComponent } from './diagrams/multiline-chart/multiline-chart.component';
+import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
+import { DragDirective } from './helpers/dragndrop.directive'
 
 @NgModule({
   declarations: [
@@ -62,7 +62,7 @@ import { MultilineChartComponent } from './diagrams/multiline-chart/multiline-ch
     MainNavComponent,
     AdministrationComponent,
     SideNavComponent,
-    DataCardComponent,
+    InputCardComponent,
     ConfirmDialogComponent,
     LoginComponent,
     DemandComponent,
@@ -80,7 +80,8 @@ import { MultilineChartComponent } from './diagrams/multiline-chart/multiline-ch
     AreasComponent,
     LogComponent,
     StackedBarchartComponent,
-    MultilineChartComponent
+    MultilineChartComponent,
+    DragDirective
   ],
     imports: [
         BrowserModule,
@@ -108,9 +109,9 @@ import { MultilineChartComponent } from './diagrams/multiline-chart/multiline-ch
         MatExpansionModule,
         MatSliderModule,
         ColorPickerModule,
-        AngularEditorModule,
         MaterialFileInputModule,
-        FontAwesomeModule
+        FontAwesomeModule,
+        CKEditorModule
     ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true }

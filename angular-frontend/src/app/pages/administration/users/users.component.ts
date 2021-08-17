@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
 import { User } from '../../login/users';
 import { ConfirmDialogComponent } from '../../../dialogs/confirm-dialog.component';
-import { DataCardComponent } from '../../../dash/data-card.component'
+import { InputCardComponent } from '../../../dash/input-card.component'
 import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
 import { RestAPI } from "../../../rest-api";
 import { Observable } from "rxjs";
@@ -16,8 +16,8 @@ import { Observable } from "rxjs";
 
 export class UsersComponent implements AfterViewInit  {
 
-  @ViewChild('accountCard') accountCard?: DataCardComponent;
-  @ViewChild('permissionCard') permissionCard?: DataCardComponent;
+  @ViewChild('accountCard') accountCard?: InputCardComponent;
+  @ViewChild('permissionCard') permissionCard?: InputCardComponent;
   @ViewChild('createUser') createUserTemplate?: TemplateRef<any>;
   accountForm!: FormGroup;
   permissionForm!: FormGroup;
@@ -38,11 +38,11 @@ export class UsersComponent implements AfterViewInit  {
   }
 
   ngAfterViewInit() {
-    this.getUsers();
-    this.setupAccountCard();
-    this.setupPermissionCard();
+    // this.getUsers();
+    // this.setupAccountCard();
+    // this.setupPermissionCard();
   }
-
+/*
   getUsers(): Observable<User[]> {
     let query = this.http.get<User[]>(this.rest.URLS.users);
     query.subscribe((users)=>{
@@ -236,5 +236,5 @@ export class UsersComponent implements AfterViewInit  {
         });
       }
     });
-  }
+  }*/
 }

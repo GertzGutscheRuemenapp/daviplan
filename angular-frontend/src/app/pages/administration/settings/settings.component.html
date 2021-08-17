@@ -1,120 +1,130 @@
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="400px">
-    <app-dash-card [title]="'Name der Seite'"
+    <app-input-card #titleEdit
+                   [title]="'Name der Seite'"
                    subtitle="Name ändern"
-                   infoText="Bla bla Name der Seite ändern bla bla bla">
-      <div class="input-row" style="width: 90%">
+                   [dialogTitle]="'Namen der Seite ändern'"
+                   infoText="Bla bla Name der Seite ändern bla bla bla"
+                   [editTemplate]="titleTemplate"
+                   [editButton]="titleEditButton">
+      <div #titleEditButton class="input-row" style="width: 90%">
         <label>{{settings?.title}}</label>
         <div class="fill-space"></div>
         <button mat-icon-button color="primary">
           <mat-icon>edit</mat-icon>
         </button>
       </div>
-    </app-dash-card>
+    </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="400px">
-    <app-dash-card [title]="'Kontakt E-Mail für Accounterstellung'"
-                   subtitle="E-Mail ändern"
-                   infoText="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor
-                   invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.">
-      <div class="input-row" style="width: 90%">
+    <app-input-card #contactEdit
+                    [title]="'Kontakt E-Mail für Accounterstellung'"
+                    subtitle="E-Mail ändern"
+                    [dialogTitle]="'Kontakt E-Mail ändern'"
+                    infoText="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor
+                    invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua."
+                    [editTemplate]="contactTemplate"
+                    [editButton]="contactEditButton">
+      <div #contactEditButton class="input-row" style="width: 90%">
         <label>{{settings?.contactMail || '-'}}</label>
         <div class="fill-space"></div>
         <button mat-icon-button color="primary">
           <mat-icon>edit</mat-icon>
         </button>
       </div>
-    </app-dash-card>
+    </app-input-card>
   </div>
 </div>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="400px">
-    <app-dash-card [title]="'Logo für die Startseite'"
-                   subtitle="Logo ändern">
-      <div style="width: 100%" class="img-bg">
+    <app-input-card #logoEdit
+                    [title]="'Logo für die Startseite'"
+                    subtitle="Logo ändern"
+                    [dialogTitle]="'Bilddatei als Logo festlegen'"
+                    [editTemplate]="logoTemplate"
+                    [editButton]="logoEditButton">
+      <div #logoEditButton style="width: 100%" class="img-bg">
         <button mat-icon-button color="primary"
                 style="position: absolute; left: 45%; top: 50%; pointer-events: none; z-index: 1;">
           <mat-icon>edit</mat-icon>
         </button>
         <img [src]="settings?.logo" style="width: 100%;">
       </div>
-    </app-dash-card>
+    </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="400px">
-    <app-dash-card [title]="'Willkommenstext für die Startseite'"
-                   subtitle="Willkommenstext ändern">
-      <div style="width: 100%">
+    <app-input-card #welcomeTextEdit
+                    [title]="'Willkommenstext für die Startseite'"
+                    subtitle="Willkommenstext ändern"
+                    [dialogTitle]="'Willkommenstext für die Startseite einfügen'"
+                    dialogWidth="1000px"
+                    [editTemplate]="welcomeTextTemplate"
+                    [editButton]="welcomeTextEditButton">
+      <div #welcomeTextEditButton style="width: 100%">
         <button mat-icon-button color="primary"
-                style="position: absolute; left: 40%; top: 50%; pointer-events: none;">
+          style="position: absolute; left: 42%; top: 55%; pointer-events: none; z-index: 1;">
           <mat-icon>edit</mat-icon>
         </button>
-        <textarea disabled [value]="settings?.welcomeText" style="width: 100%; height: 250px; resize: none;">
-        </textarea>
+        <div class="text">
+          <div style="transform: scale(0.5, 0.5); margin: -20% 0 -20% -105px;"><div style="width: 150%;" [innerHTML]="settings?.welcomeText"></div></div>
+        </div>
       </div>
-    </app-dash-card>
+    </app-input-card>
   </div>
 </div>
 
-<ng-template #titleEdit>
+<ng-template #titleTemplate>
   <form [formGroup]="titleForm">
     <div *ngIf="titleForm.errors">
       <mat-error *ngFor="let error of Object.values(titleForm.errors)" class="alert">
         {{ error }}
       </mat-error>
     </div>
-    <mat-form-field class="full">
-      <mat-label i18n>Nutzername</mat-label>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label i18n>Neuen Namen eingeben</mat-label>
       <input matInput formControlName="title" required/>
     </mat-form-field>
   </form>
 </ng-template>
 
-<!--
-<div style="display: flex; flex-wrap: wrap; align-content: flex-start; max-width: 1000px;">
-  <app-data-card #titleCard
-                 title="Allgemein"
-                 style="min-width: 400px;"
-                 [editTemplate]="titleEdit">
-    <table>
-      <tr>
-        <td i18n>Name der Seite</td>
-        <td>{{settings?.title}}</td>
-      </tr>
-      <tr>
-        <td style="max-width: 150px;" i18n>Kontakt E-Mail für Accounterstellung</td>
-        <td>{{settings?.contactMail}}</td>
-      </tr>
-    </table>
-  </app-data-card>
-  <app-data-card #welcomeTextCard
-                 dialogWidth="800px"
-                 title="Willkommenstext"
-                 style="min-width: 800px;"
-                 [editTemplate]="welcomeTextEdit">
-    <div [innerHTML]="settings?.welcomeText"></div>
-  </app-data-card>
-</div>
-
-<ng-template #titleEdit>
-  <form [formGroup]="titleForm">
-    <div *ngIf="titleForm.errors">
-      <mat-error *ngFor="let error of Object.values(titleForm.errors)" class="alert">
+<ng-template #contactTemplate>
+  <form [formGroup]="contactForm">
+    <div *ngIf="contactForm.errors">
+      <mat-error *ngFor="let error of Object.values(contactForm.errors)" class="alert">
         {{ error }}
       </mat-error>
     </div>
-    <mat-form-field class="full">
-      <mat-label i18n>Nutzername</mat-label>
-      <input matInput formControlName="title" required/>
-    </mat-form-field>
-    <mat-form-field class="full">
+    <mat-form-field appearance="outline" class="full">
       <mat-label i18n>E-Mail</mat-label>
       <input matInput formControlName="contact"/>
-      <mat-error *ngIf="titleForm.get('contact')?.errors" i18n>Die E-Mail Adresse hat kein gültiges Format.</mat-error>
+      <mat-error *ngIf="contactForm.get('contact')?.errors" i18n>Die E-Mail Adresse hat kein gültiges Format.</mat-error>
     </mat-form-field>
   </form>
 </ng-template>
 
-<ng-template #welcomeTextEdit>
-  <angular-editor [(ngModel)]="welcomeTextInput" [config]="editorConfig"></angular-editor>
+<ng-template #welcomeTextTemplate>
+  <div *ngIf="welcomeTextErrors.errors">
+    <mat-error *ngFor="let error of Object.values(welcomeTextErrors.errors)" class="alert">
+      {{ error }}
+    </mat-error>
+  </div>
+  <ckeditor [editor]="Editor" [config]="editorConfig" [(ngModel)]="welcomeTextInput"></ckeditor>
 </ng-template>
--->
+
+<ng-template #logoTemplate>
+  <div *ngIf="logoErrors.errors">
+    <mat-error *ngFor="let error of Object.values(logoErrors.errors)" class="alert">
+      {{ error }}
+    </mat-error>
+  </div>
+  <div class="col-12 rmpm dropzone" appDrag (files)="filesDropped($event)">
+    <div class="text-wrapper">
+      <div class="centered" style="min-height: 300px;">
+        <div style="width: calc(100% - 60px)" class="drop-overlay">
+          <h1 i18n>Bilddatei hierher ziehen</h1>
+        </div>
+        <img *ngIf="logoFile" [src]="logoFile.url" width="100%">
+      </div>
+    </div>
+  </div>
+</ng-template>
