@@ -3,7 +3,7 @@ from hypothesis import given
 from hypothesis.strategies import integers, lists, just
 from .models import (Years, Raster, RasterCell,
                      Gender, AgeClassification, AgeGroup,
-                     DisaggPopRaster)
+                     DisaggPopRaster, RasterPopulationCell)
 
 
 def year():
@@ -45,7 +45,7 @@ class PopulationTestCase(TestCase):
                      min_size=2,
                      max_size=8).map(lambda _: raster)
 
-    @given(raster().flatmap(generate_with_cells) )
+    @given(raster().flatmap(generate_with_cells))
     def test_raster_cells(self, raster: Raster):
         self.assertIsInstance(raster, Raster)
         self.assertIsNotNone(raster.pk)
@@ -67,12 +67,28 @@ class PopulationTestCase(TestCase):
         for gender in genders:
             self.assertIsInstance(gender, Gender)
 
-    #@given(disagg_pop_raster())
-    #def test_disagg_pop_raster(self,
-                               #disagg_pop_raster: DisaggPopRaster,
-                               ##genders,
-                               #):
-        #self.assertIsInstance(disagg_pop_raster, DisaggPopRaster)
-        #self.assertIsInstance(disagg_pop_raster.raster, Raster)
-        ##disagg_pop_raster.genders.add(genders)
-        ##self.assertIsInstance(disagg_pop_raster.genders, Gender)
+    @given(disagg_pop_raster(), lists(gender(), unique=True))
+    def test_disagg_pop_raster(self,
+                               disagg_pop_raster: DisaggPopRaster,
+                               genders,
+                               ):
+        self.assertIsInstance(disagg_pop_raster, DisaggPopRaster)
+        self.assertIsInstance(disagg_pop_raster.raster, Raster)
+        disagg_pop_raster.genders.add(*genders)
+        self.assertQuerysetEqual(disagg_pop_raster.genders.all(), genders, ordered=False)
+
+
+    @given(raster().flatmap(generate_with_cells), disagg_pop_raster(), gender())
+    def test_raster_population_cells(self, raster: Raster, disagg_pop_raster: DisaggPopRaster,
+                          gender: Gender):
+        disagg_pop_raster.genders.add(gender)
+        for year in range(2000, 2015, 5):
+            for cell in raster.rastercell_set.all():
+                for age in range(10):
+                    RasterPopulationCell.objects.create(raster=disagg_pop_raster,
+                                                        year=year,
+                                                        cell=cell,
+                                                        age=age,
+                                                        gender=gender,
+                                                        value=42.3)
+
