@@ -70,17 +70,20 @@ h3 {
 }
 
 ::ng-deep app-input-card img {
-  border: 1px solid #0000001F;
   opacity: 0.6;
   cursor: pointer;
 }
 
-::ng-deep app-input-card img:hover {
-  border: 1px solid map-get($blue-palette, A400);
+::ng-deep app-input-card .img-wrapper {
+  border: 1px solid #0000001F;
+  width: 100%;
+  min-height: 200px;
 }
 
-::ng-deep app-input-card .img-bg:hover {
+::ng-deep app-input-card .img-wrapper:hover {
+  border: 1px solid map-get($blue-palette, A400);
   background-color: map-get($blue-palette, A400);
+  cursor: pointer;
 }
 
 ::ng-deep app-input-card label {
