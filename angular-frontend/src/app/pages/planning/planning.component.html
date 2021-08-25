@@ -10,15 +10,37 @@
     </div>
     <mat-form-field appearance="standard" class="">
       <mat-label>Planungsprozess</mat-label>
-      <mat-select disableOptionCentering matNativeControl>
-        <mat-option disabled class="selected"> Beispielprojekt 1 </mat-option>
+      <mat-select [formControl]="processForm" disableOptionCentering (selectionChange)="onProcessChange($event.value)">
+        <mat-select-trigger>
+          <span *ngIf="activeProject">
+            {{ activeProject.name }}
+<!--            <mat-icon *ngIf="activeProject.shared">people</mat-icon>
+            <mat-icon *ngIf="!activeProject.shared">person</mat-icon>
+            <mat-icon *ngIf="activeProject.editable === false">edit_off</mat-icon>-->
+          </span>
+        </mat-select-trigger>
+        <mat-option *ngIf="activeProject" disabled class="selected">
+          {{ activeProject.name }}
+          <mat-icon *ngIf="activeProject.shared">people</mat-icon>
+          <mat-icon *ngIf="!activeProject.shared">person</mat-icon>
+          <mat-icon *ngIf="activeProject.editable === false">edit_off</mat-icon>
+          <i *ngIf="activeProject.user" style="font-size: 0.8em">({{ activeProject.user }})</i>
+        </mat-option>
         <mat-optgroup label="Meine Projekte">
-          <mat-option value="1"> Beispielprojekt 1 </mat-option>
-          <mat-option value="2"> Beispielprojekt 2 </mat-option>
-          <mat-option value="3"> Beispielprojekt 3 </mat-option>
+          <mat-option *ngFor="let project of myProjects" [value]="project.id">
+            {{ project.name }}
+            <mat-icon *ngIf="!project.shared">person</mat-icon>
+            <mat-icon *ngIf="project.shared">people</mat-icon>
+          </mat-option>
+          <mat-option title="Prozess hinzufügen"><mat-icon style="font-size: 1.2em;">add</mat-icon></mat-option>
         </mat-optgroup>
-        <mat-optgroup label="Lisas geteilte Projekte">
-          <mat-option value="4"> Beispielprojekt 1 </mat-option>
+        <mat-optgroup *ngIf="sharedProjects" label="Geteilte Projekte">
+          <mat-option *ngFor="let project of sharedProjects" [value]="project.id">
+            {{ project.name }}
+            <mat-icon>people</mat-icon>
+            <mat-icon *ngIf="project.editable === false">edit_off</mat-icon>
+            <i style="font-size: 0.8em">({{ project.user }})</i>
+          </mat-option>
         </mat-optgroup>
       </mat-select>
     </mat-form-field>

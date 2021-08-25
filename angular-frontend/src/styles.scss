@@ -285,14 +285,20 @@ button.mat-icon-button {
   display: none;
 }
 
-.mat-select-min-line, mat-option.selected {
+.mat-select-min-line, .mat-select-trigger span, mat-option.selected {
   color: $accent!important;
-  font-size: 1.2em!important;
 }
 
 .mat-select-panel {
   max-height: 50vh!important;
-  margin-top: -17px;
+  margin-top: -14px;
+}
+
+mat-select mat-icon, .mat-select-panel mat-icon, .mat-select-min-line mat-icon, .mat-select-trigger mat-icon,  {
+  font-size: 0.8em;
+  vertical-align: baseline!important;;
+  margin: 0 3px!important;
+  width: 10px;
 }
 
 .mat-focus-indicator {

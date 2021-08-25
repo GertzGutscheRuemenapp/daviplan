@@ -21,6 +21,10 @@ $context-bar-width: 370px;
   //border-bottom: 1px solid $primary;
 }
 
+#process-select mat-form-field {
+  width: 200px;
+}
+
 ::ng-deep app-planning .planning-context {
   width: $context-bar-width;
   background-color: white;
