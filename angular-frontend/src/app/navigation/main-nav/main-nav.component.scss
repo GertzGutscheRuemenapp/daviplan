@@ -42,20 +42,24 @@
 
 .page-links .link {
   margin-right: 20px;
-  height: calc(100% - 17px); //- 20px);
+  height: calc(100% - 20px); //- 17px);
+  border-bottom-color: white;
+  //transition: font-size 0.2s;
+  transition: color 0.3s, border-bottom-color 0.5s;
 }
 
 .page-links .link:not(.active-link):hover{
-  //border-bottom: 3px solid #000000DE;
-  color: $accent;
-  box-shadow: 0 12px 10px -10px $accent;
-  //border-bottom: 3px solid $accent;
+  //color: $accent;
+  //box-shadow: 0 12px 10px -10px $accent;
+  border-bottom: 3px solid $primary;
+  //font-size: 1.05em;
+  //background-color: $primary-light;
 }
 
 .page-links .active-link {
   color: $primary;
-  //border-bottom: 3px solid $primary;
-  box-shadow: 0 12px 10px -10px;
+  border-bottom: 3px solid $primary;
+  //box-shadow: 0 12px 10px -10px;
 }
 
 .main-collapse {
