@@ -4,7 +4,7 @@ export type Profile = {
   canEditData: boolean;
 }
 
-export type User = {
+export interface User {
   id: number;
   username: string;
   email: string;

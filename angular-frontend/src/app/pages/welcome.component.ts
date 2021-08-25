@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { SettingsService } from "../settings.service";
+import { SettingsService, SiteSettings } from "../settings.service";
 
 @Component({
   selector: 'app-pages',
@@ -7,11 +7,11 @@ import { SettingsService } from "../settings.service";
   styleUrls: ['./welcome.component.scss']
 })
 export class WelcomeComponent implements OnInit {
-  welcomeText: string = '';
+  settings?: SiteSettings;
 
   constructor(private settingsService: SettingsService) {
     this.settingsService.siteSettings$.subscribe(settings => {
-      this.welcomeText = settings.welcomeText;
+      this.settings = settings;
     });
   }
 

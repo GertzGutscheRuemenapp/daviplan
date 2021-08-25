@@ -162,8 +162,9 @@ app-data-card td, app-dash-card td {
   //background-color: #fafafa;
   background-color: white;
   display: flex;
-  border-bottom: 1px solid #0000001F;
+  //border-bottom: 1px solid #0000001F;
   height: 60px;
+  padding: 0!important;
 }
 
 mat-sidenav-content {
@@ -176,26 +177,27 @@ mat-sidenav-content {
 }
 
 .sub-nav a {
-  font-size: 22px;
-  color: black;
+  font-size: 18px;
+  width: 182px;
+  color: #00000099;
   text-decoration: none;
-  margin-right: 20px;
-  margin-left: 20px;
-  height: calc(100% - 22px);
+  height: calc(100% - 3px);
+  margin-top: 3px;
   display: flex;
-  padding-top: 20px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0px 0px 4px 4px;
+  transition: color 0.2s, background-color 0.2s
 }
 
 .sub-nav a:not(.active-link):hover {
-  color: $accent;
-  border-bottom: 2px solid $accent;
+  background-color: $primary-light;
+  color: #000000DE;
 }
 
 .sub-nav .active-link {
-  color: $primary;
-  border-bottom: 2px solid $primary;
-  //font-weight: bold;
-  //text-decoration: underline;
+  color: white;
+  background-color: $primary;
 }
 
 rect.highlight{
@@ -208,7 +210,6 @@ div.tooltip {
   padding: 2px;
   font: 12px sans-serif;
   background: white;
-  border: 1px;
   border: solid 1px grey;
   pointer-events: none;
   opacity: 0.9;
@@ -249,3 +250,66 @@ button.mat-icon-button {
   text-align: center;
   text-shadow: -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;
 }
+
+.mini-fab-icon {
+  box-sizing: border-box;
+  position: relative;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  display: inline-block;
+  white-space: nowrap;
+  text-decoration: none;
+  vertical-align: baseline;
+  text-align: center;
+  margin-right: 20px;
+  line-height: 42px;
+  padding: 3px 0;
+  overflow: visible;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  background-color: white;
+  border: 2px solid $accent;
+  color: $accent;
+}
+
+.mini-fab-icon mat-icon {
+  font-size: 26px;
+  margin-left: -3px;
+}
+
+.mat-form-field-underline {
+  display: none;
+}
+
+.mat-select-min-line, .mat-select-trigger span, mat-option.selected {
+  color: $accent!important;
+}
+
+.mat-select-panel {
+  max-height: 50vh!important;
+  margin-top: -14px;
+}
+
+mat-select mat-icon, .mat-select-panel mat-icon, .mat-select-min-line mat-icon, .mat-select-trigger mat-icon,  {
+  font-size: 0.8em;
+  vertical-align: baseline!important;;
+  margin: 0 3px!important;
+  width: 10px;
+}
+
+.mat-focus-indicator {
+  background-color: white!important;
+}
+
+.mat-selected {
+  color: $accent!important;
+}
+
+.mat-option:not(.mat-option-disabled):hover {
+  background-color: $primary-light!important;
+}
+

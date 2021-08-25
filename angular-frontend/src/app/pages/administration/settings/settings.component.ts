@@ -185,4 +185,9 @@ export class SettingsComponent implements AfterViewInit {
     this.logoFile = files[0];
   }
 
+  removeLogo(): void {
+    this.http.patch<SiteSettings>(this.rest.URLS.settings, { logo: null }
+    ).subscribe( settings => this.settingsService.fetchSiteSettings() )
+  }
+
 }

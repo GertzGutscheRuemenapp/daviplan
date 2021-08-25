@@ -1,11 +1,34 @@
-.mat-select-panel {
+@import "~src/constants";
+
+/*.mat-select-panel {
   max-height: unset !important;
-}
+}*/
+$context-bar-width: 370px;
 
 #planning-map {
+  // always in background
   position: fixed;
+  // minus top menus
+  height: calc(100% - 120px);
+  // leave space for planning context bars
+  width: calc(100% - #{$context-bar-width});
+  padding-left: $context-bar-width;
+}
+
+#process-select {
+  width: calc(#{$context-bar-width} - 36px);
+  padding: 0 18px 0 18px;
+  //border-bottom: 1px solid $primary;
+}
+
+#process-select mat-form-field {
+  width: 200px;
+}
+
+::ng-deep app-planning .planning-context {
+  width: $context-bar-width;
+  background-color: white;
   height: 100%;
-  width: 100%;
 }
 
 mat-toolbar mat-form-field {
@@ -13,3 +36,4 @@ mat-toolbar mat-form-field {
   margin-right: 30px;
   margin-top: 15px;
 }
+
