@@ -18,20 +18,26 @@ export class MainNavComponent implements OnInit{
   user$?: Observable<User | undefined>;
   backend: string = environment.backend;
 
-  menuItems = [
-    {name:  $localize`Bevölkerung`, url: 'bevoelkerung'},
-    {name:  $localize`Infrastrukturplanung`, url: 'planung'},
-    {name:  $localize`Grundlagendaten`, url: 'grundlagendaten'},
-    {name:  $localize`Administration`, url: 'admin'}
-  ];
+  menuItems: { name: string, url: string }[] = [];
 
   constructor(private breakpointObserver: BreakpointObserver, private auth: AuthService, private router: Router) { }
 
   ngOnInit(): void {
     this.user$ = this.auth.getCurrentUser().pipe(share());
     this.user$.subscribe(user=> {
-      this.user = user
+      this.user = user;
+      this.buildMenu();
     });
+  }
+
+  buildMenu(): void {
+    if (this.user)
+      this.menuItems = [
+        { name:  $localize`Bevölkerung`, url: 'bevoelkerung' },
+        { name:  $localize`Infrastrukturplanung`, url: 'planung' },
+        { name:  $localize`Grundlagendaten`, url: 'grundlagendaten' },
+        { name:  $localize`Administration`, url: 'admin' }
+      ];
   }
 
   logout(): void {
