@@ -24,7 +24,7 @@
           <mat-icon *ngIf="activeProject.shared">people</mat-icon>
           <mat-icon *ngIf="!activeProject.shared">person</mat-icon>
           <mat-icon *ngIf="activeProject.editable === false">edit_off</mat-icon>
-          <i *ngIf="activeProject.user" style="font-size: 0.8em">({{ activeProject.user }})</i>
+          <i *ngIf="activeProject.user" style="font-size: 12px">({{ activeProject.user }})</i>
         </mat-option>
         <mat-optgroup label="Meine Projekte">
           <mat-option *ngFor="let project of myProjects" [value]="project.id">
@@ -39,7 +39,7 @@
             {{ project.name }}
             <mat-icon>people</mat-icon>
             <mat-icon *ngIf="project.editable === false">edit_off</mat-icon>
-            <i style="font-size: 0.8em">({{ project.user }})</i>
+            <i style="font-size: 12px">({{ project.user }})</i>
           </mat-option>
         </mat-optgroup>
       </mat-select>

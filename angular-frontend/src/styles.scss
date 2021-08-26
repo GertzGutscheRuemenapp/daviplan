@@ -165,6 +165,7 @@ app-data-card td, app-dash-card td {
   //border-bottom: 1px solid #0000001F;
   height: 60px;
   //padding: 0!important;
+  box-shadow: 0px 0px 3px 2px #d9d9d9;
 }
 
 mat-sidenav-content {
@@ -287,16 +288,21 @@ button.mat-icon-button {
 }
 
 .mat-select-min-line, .mat-select-trigger span, mat-option.selected {
+  font-size: 20px!important;
   color: $accent!important;
+}
+
+mat-option.selected {
+  margin: -8px 0;
 }
 
 .mat-select-panel {
   max-height: 50vh!important;
-  margin-top: -14px;
+  margin-top: -10px;
 }
 
 mat-select mat-icon, .mat-select-panel mat-icon, .mat-select-min-line mat-icon, .mat-select-trigger mat-icon,  {
-  font-size: 0.8em;
+  font-size: 12px!important;
   vertical-align: baseline!important;;
   margin: 0 3px!important;
   width: 10px;
@@ -318,12 +324,9 @@ mat-select mat-icon, .mat-select-panel mat-icon, .mat-select-min-line mat-icon, 
   width: $context-bar-width;
   background-color: white;
   height: 100%;
+  box-shadow: 2px 3px 3px 0px #d9d9d9;
 }
 
 app-population .context-bar {
-  height: auto;
-}
-
-app-pop-development {
-  align-items: stretch;
+  height: calc(100vh - 120px);
 }
