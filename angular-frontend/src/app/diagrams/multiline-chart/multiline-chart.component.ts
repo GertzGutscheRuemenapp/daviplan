@@ -53,8 +53,7 @@ export class MultilineChartComponent implements AfterViewInit {
         this.height = bbox.height;
     }
     this.svg = figure.append("svg")
-      .attr("width", this.width!)
-      .attr("height", this.height!)
+      .attr("viewBox", `0 0 ${this.width!} ${this.height!}`)
       .append("g");
   }
 
