@@ -32,12 +32,13 @@
 .page-links, .home {
   display: flex;
   height: 100%;
+  color: #00000099;
 }
 
 .mat-toolbar .link {
   padding: 17px 10px 0 10px;
   text-decoration: none;
-  color: #000000DE;
+  color: #00000099;
 }
 
 .page-links .link {
@@ -52,8 +53,13 @@
   //color: $accent;
   //box-shadow: 0 12px 10px -10px $accent;
   border-bottom: 3px solid $primary;
+  color: black;
   //font-size: 1.05em;
   //background-color: $primary-light;
+}
+
+.home:hover{
+  color: black;
 }
 
 .page-links .active-link {

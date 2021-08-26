@@ -8,6 +8,10 @@
   background: inherit;
 }
 
+::ng-deep .sidenav .mat-list-item:hover{
+  background-color: $primary-light!important;
+}
+
 mat-sidenav .active-link, mat-sidenav .active-link:hover, mat-sidenav .active-link:focus{
   color: white!important;
   background-color: $primary!important;
@@ -17,6 +21,7 @@ mat-sidenav .active-link, mat-sidenav .active-link:hover, mat-sidenav .active-li
   font-size: 18px!important;
   height: 70px!important;
 }
+
 ::ng-deep .sidenav .mat-list-item-content{
   padding-left: 40px!important;
 }
