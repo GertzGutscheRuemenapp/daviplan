@@ -1,3 +1,67 @@
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="400px">
+    <app-input-card #userList
+                    [title]="'Benutzerkonten'"
+                    subtitle="Konten hinzufügen und entfernen"
+                    [dialogTitle]="'Namen der Seite ändern'"
+                    infoText="Hier steht ein Infotext zum Editieren der Benutzerkonten">
+<!--                    [editTemplate]="titleTemplate"-->
+
+      <mat-selection-list [multiple]="false" style="min-height: 300px">
+        <mat-list-option *ngFor="let user of users"
+                         [value]="user"
+                         (click)="onSelect(user)"
+                         [selected]="(selectedUser && (user.id === selectedUser.id))">
+          <mat-icon mat-list-icon>person</mat-icon>
+          <div mat-line>{{ user.username }}</div>
+          <div mat-line *ngIf="user.isSuperuser"><i style="font-size: 14px;" i18n>Administrator</i></div>
+        </mat-list-option>
+      </mat-selection-list>
+      <div style="width: 100%; padding: 10px 0;">
+        <button mat-button color="primary"
+                (click)="onCreateUser()" i18n>
+          <mat-icon>add</mat-icon>hinzufügen
+        </button>
+        <button mat-button color="primary"
+                style="float: right;"
+                [disabled]="(!selectedUser || selectedUser.isSuperuser) ? true : null"
+                (click)="onDeleteUser()" i18n>
+          <mat-icon>close</mat-icon>entfernen
+        </button>
+      </div>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="400px" [ngClass]="{'hidden': !selectedUser}">
+    <app-input-card #accountCard
+                   [title]="'Konto'">
+<!--      [editTemplate]="accountEdit"-->
+      <table *ngIf="selectedUser">
+        <tr>
+          <td i18n>Nutzername</td>
+          <td>{{selectedUser?.username}}</td>
+        </tr>
+        <tr>
+          <td i18n>Vorname</td>
+          <td>{{selectedUser?.firstName || '-'}}</td>
+        </tr>
+        <tr>
+          <td i18n>Nachname</td>
+          <td>{{selectedUser?.lastName || '-'}}</td>
+        </tr>
+        <tr>
+          <td i18n>E-Mail</td>
+          <td>{{selectedUser?.email || '-'}}</td>
+        </tr>
+      </table>
+      <div>
+        <button mat-button color="primary" style="margin-top: 30px;" i18n>
+          <mat-icon>mode_edit_outline</mat-icon>editieren
+        </button>
+      </div>
+    </app-input-card>
+  </div>
+</div>
+
 <!--
 <div style="display: flex; flex-wrap: wrap;">
   <app-data-card title="Benutzerkonten" style="min-width: 400px;">

@@ -35,7 +35,7 @@ h2.title {
 }
 
 h3.subtitle {
-  color: #a6a6a6;
+  color: #00000061;
   text-transform: uppercase;
   margin-bottom: 10px;
 }
@@ -49,68 +49,99 @@ h3 {
   margin-top: 10px;
 }
 
-::ng-deep app-input-card .text {
-  width: calc(100% - 10px);
-  overflow-x: auto;
-  color: $primary;
-  cursor: pointer;
-  border: 1px solid #0000001F;
-  padding: 5px;
-  min-height: 100px;
-  max-height: 300px;
-}
+::ng-deep app-input-card  {
+  .text {
+    width: calc(100% - 10px);
+    overflow-x: auto;
+    color: $primary;
+    cursor: pointer;
+    border: 1px solid #0000001F;
+    padding: 5px;
+    min-height: 100px;
+    max-height: 300px;
+  }
 
-::ng-deep app-input-card .text:disabled {
-  background-color: white;
-}
+  .text:disabled {
+    background-color: white;
+  }
 
-::ng-deep app-input-card .text:hover {
-  background-color: map-get($blue-palette, A200);
-  border: 1px solid map-get($blue-palette, A400);
-}
+  .text:hover {
+    background-color: map-get($blue-palette, A200);
+    border: 1px solid map-get($blue-palette, A400);
+  }
 
-::ng-deep app-input-card img {
-  opacity: 0.6;
-  cursor: pointer;
-}
+  img {
+    opacity: 0.6;
+    cursor: pointer;
+  }
 
-::ng-deep app-input-card .img-wrapper {
-  border: 1px solid #0000001F;
-  width: 100%;
-  min-height: 200px;
-}
+  .img-wrapper {
+    border: 1px solid #0000001F;
+    width: 100%;
+    min-height: 200px;
+  }
 
-::ng-deep app-input-card .img-wrapper:hover {
-  border: 1px solid map-get($blue-palette, A400);
-  background-color: map-get($blue-palette, A400);
-  cursor: pointer;
-}
+  .img-wrapper:hover {
+    border: 1px solid map-get($blue-palette, A400);
+    background-color: map-get($blue-palette, A400);
+    cursor: pointer;
+  }
 
-::ng-deep app-input-card label {
-  align-items: center;
-  display: flex;
-  color: $primary;
-}
+  label {
+    align-items: center;
+    display: flex;
+    color: $primary;
+  }
 
-::ng-deep app-input-card .input-row {
-  cursor: pointer;
-  flex-direction: row;
-  box-sizing: border-box;
-  display: flex;
-  margin: 5px 0 5px 0;
-}
+  .input-row {
+    cursor: pointer;
+    flex-direction: row;
+    box-sizing: border-box;
+    display: flex;
+    margin: 5px 0 5px 0;
+  }
 
-::ng-deep app-input-card .input-row label {
-  cursor: pointer;
-  transition: margin 400ms;
-}
+  .input-row label {
+    cursor: pointer;
+    transition: margin 400ms;
+  }
 
-::ng-deep app-input-card .input-row:hover label {
-  margin-left: 10px;
-  color: map-get($blue-palette, 600);
-  //font-weight: bold;
-}
+  .input-row:hover label {
+    margin-left: 10px;
+    color: map-get($blue-palette, 600);
+    //font-weight: bold;
+  }
 
-::ng-deep app-input-card .input-row:hover .mat-icon-button {
-  background-color: map-get($blue-palette, A200);
+  .input-row:hover .mat-icon-button {
+    background-color: map-get($blue-palette, A200);
+  }
+
+  .mat-button-base {
+    text-transform: uppercase;
+    padding: 0 4px;
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  .mat-button-base .mat-button-focus-overlay {
+    background-color: transparent!important;
+  }
+
+  .mat-button-base:hover {
+    color: map-get($blue-palette, 900);
+  }
+
+  td:first-child {
+    padding-right: 20px;
+    font-size: 16px;
+    color: #00000061;
+    text-transform: uppercase;
+    font-weight: bold;
+    width: 1%;
+  }
+
+  td:nth-child(2) {
+    color: $primary;
+    opacity: 0.7;
+  }
 }

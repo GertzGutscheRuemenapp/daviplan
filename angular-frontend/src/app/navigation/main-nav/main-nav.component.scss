@@ -20,7 +20,7 @@
   z-index: 100;
   background: white;
   box-shadow: 0px 0px 5px 4px #a7a7a7;
-  font-size: 28px;
+  font-size: 24px;
 }
 
 .home {
@@ -33,6 +33,7 @@
   display: flex;
   height: 100%;
   color: #00000099;
+  transition: font-size 0.2s;
 }
 
 .mat-toolbar .link {
@@ -45,26 +46,26 @@
   margin-right: 20px;
   height: calc(100% - 20px); //- 17px);
   border-bottom-color: white;
-  //transition: font-size 0.2s;
-  transition: color 0.3s, border-bottom-color 0.5s;
+  transition: font-size 0.2s, color 0.3s, border-bottom-color 0.4s;
 }
 
 .page-links .link:not(.active-link):hover{
   //color: $accent;
   //box-shadow: 0 12px 10px -10px $accent;
-  border-bottom: 3px solid $primary;
-  color: black;
-  //font-size: 1.05em;
+  border-bottom: 3px solid gray;
+  //color: black;
+  font-size: 28px;
   //background-color: $primary-light;
 }
 
 .home:hover{
-  color: black;
+  font-size: 28px;
 }
 
 .page-links .active-link {
   color: $primary;
   border-bottom: 3px solid $primary;
+  font-size: 28px;
   //box-shadow: 0 12px 10px -10px;
 }
 

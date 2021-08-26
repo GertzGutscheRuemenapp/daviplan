@@ -38,11 +38,11 @@ export class UsersComponent implements AfterViewInit  {
   }
 
   ngAfterViewInit() {
-    // this.getUsers();
+    this.getUsers();
     // this.setupAccountCard();
     // this.setupPermissionCard();
   }
-/*
+
   getUsers(): Observable<User[]> {
     let query = this.http.get<User[]>(this.rest.URLS.users);
     query.subscribe((users)=>{
@@ -236,5 +236,5 @@ export class UsersComponent implements AfterViewInit  {
         });
       }
     });
-  }*/
+  }
 }

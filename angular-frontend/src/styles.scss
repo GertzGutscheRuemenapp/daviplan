@@ -35,12 +35,12 @@ body {
 }
 
 mat-list-option[aria-selected="true"] {
-  background-color: $accent!important;
-  color: white!important;
+  background-color: $primary-light!important;
+  //color: white!important;
 }
 
 mat-list-option:not([aria-selected="true"]):hover {
-  background-color: mat.get-color-from-palette($app-accent, 200) !important;
+  background-color: $primary-light!important;
 }
 
 .cdk-overlay-pane.absolute{
