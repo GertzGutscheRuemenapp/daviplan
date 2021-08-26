@@ -3,7 +3,6 @@
 /*.mat-select-panel {
   max-height: unset !important;
 }*/
-$context-bar-width: 370px;
 
 #planning-map {
   // always in background
@@ -25,15 +24,12 @@ $context-bar-width: 370px;
   width: 200px;
 }
 
-::ng-deep app-planning .planning-context {
-  width: $context-bar-width;
-  background-color: white;
-  height: 100%;
-}
-
 mat-toolbar mat-form-field {
   font-size: 15px;
   margin-right: 30px;
   margin-top: 15px;
 }
 
+.sub-nav {
+  padding: 0;
+}

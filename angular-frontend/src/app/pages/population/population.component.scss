@@ -1,1 +1,6 @@
+@import "~src/constants";
+
+.sub-nav {
+  padding-left: calc(#{$context-bar-width});
+}
 

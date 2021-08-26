@@ -164,7 +164,7 @@ app-data-card td, app-dash-card td {
   display: flex;
   //border-bottom: 1px solid #0000001F;
   height: 60px;
-  padding: 0!important;
+  //padding: 0!important;
 }
 
 mat-sidenav-content {
@@ -178,16 +178,17 @@ mat-sidenav-content {
 
 .sub-nav a {
   font-size: 18px;
-  width: 182px;
+  min-width: 180px;
   color: #00000099;
   text-decoration: none;
+  padding: 0 25px;
   height: calc(100% - 3px);
   margin-top: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 0px 0px 4px 4px;
-  transition: color 0.2s, background-color 0.2s
+  transition: color 0.2s, background-color 0.2s;
 }
 
 .sub-nav a:not(.active-link):hover {
@@ -313,3 +314,16 @@ mat-select mat-icon, .mat-select-panel mat-icon, .mat-select-min-line mat-icon, 
   background-color: $primary-light!important;
 }
 
+.context-bar {
+  width: $context-bar-width;
+  background-color: white;
+  height: 100%;
+}
+
+app-population .context-bar {
+  height: auto;
+}
+
+app-pop-development {
+  align-items: stretch;
+}
