@@ -37,7 +37,7 @@ urlpatterns = [
     # match all routes to the home page (entry point to angular) to let angular
     # handle the routing, /api and /static routes are atill handled by django
     # automatically, for some reason /media is not, so it is excluded here
-    url('^(?!media).+', HomePageView.as_view(), name='home'),
+    url('^(?!media).*', HomePageView.as_view(), name='home'),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
