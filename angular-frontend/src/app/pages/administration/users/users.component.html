@@ -160,11 +160,17 @@
       </mat-checkbox>
       <mat-form-field appearance="fill">
         <mat-label i18n>Passwort</mat-label>
-        <input matInput type="password" formControlName="password" placeholder="·········" required>
+        <input matInput formControlName="password"
+               [type]="showAccountPassword ? 'text' : 'password'"
+               placeholder="·········" required>
+        <fa-icon matSuffix [icon]="showAccountPassword? faEyeSlash: faEye" (click)="showAccountPassword = !showAccountPassword"></fa-icon>
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label i18n>Passwort bestätigen</mat-label>
-        <input matInput type="password" formControlName="confirmPass" placeholder="·········" required>
+        <input matInput formControlName="confirmPass"
+               [type]="showAccountPassword ? 'text' : 'password'"
+               placeholder="·········" required>
+        <fa-icon matSuffix [icon]="showAccountPassword? faEyeSlash: faEye" (click)="showAccountPassword = !showAccountPassword"></fa-icon>
         <mat-error *ngIf="accountForm.get('confirmPass')?.errors?.notMatching" i18n>Die Passwörter stimmen nicht überein</mat-error>
       </mat-form-field>
     </div>
@@ -207,11 +213,17 @@
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label i18n>Passwort</mat-label>
-        <input matInput type="password" formControlName="password" placeholder="·········" required>
+        <input matInput formControlName="password"
+               [type]="showNewUserPassword ? 'text' : 'password'"
+               placeholder="·········" required>
+        <fa-icon matSuffix [icon]="showNewUserPassword? faEyeSlash: faEye" (click)="showNewUserPassword = !showNewUserPassword"></fa-icon>
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label i18n>Passwort bestätigen</mat-label>
-        <input matInput type="password" formControlName="confirmPass" placeholder="·········" required>
+        <input matInput formControlName="confirmPass"
+               [type]="showNewUserPassword ? 'text' : 'password'"
+               placeholder="·········" required>
+        <fa-icon matSuffix [icon]="showNewUserPassword? faEyeSlash: faEye" (click)="showNewUserPassword = !showNewUserPassword"></fa-icon>
         <mat-error *ngIf="createUserForm.get('confirmPass')?.errors?.notMatching" i18n>Die Passwörter stimmen nicht überein</mat-error>
       </mat-form-field>
     </div>

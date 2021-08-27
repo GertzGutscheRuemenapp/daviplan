@@ -7,6 +7,7 @@ import { InputCardComponent } from '../../../dash/input-card.component'
 import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
 import { RestAPI } from "../../../rest-api";
 import { Observable } from "rxjs";
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-users',
@@ -19,12 +20,16 @@ export class UsersComponent implements AfterViewInit  {
   @ViewChild('accountCard') accountCard?: InputCardComponent;
   @ViewChild('permissionCard') permissionCard?: InputCardComponent;
   @ViewChild('createUser') createUserTemplate?: TemplateRef<any>;
+  faEye = faEye;
+  faEyeSlash = faEyeSlash;
   accountForm!: FormGroup;
   permissionForm!: FormGroup;
   createUserForm: FormGroup;
   users: User[] = [];
   selectedUser?: User;
   changePassword: boolean = false;
+  showAccountPassword: boolean = false;
+  showNewUserPassword: boolean = false;
   // workaround to have access to object iteration in template
   Object = Object;
 
@@ -92,6 +97,7 @@ export class UsersComponent implements AfterViewInit  {
       // reset form on cancel
       if (!ok){
         this.changePassword = false;
+        this.showAccountPassword = false;
         this.accountForm.controls['password'].disable();
         this.accountForm.controls['confirmPass'].disable();
         this.accountForm.reset({
@@ -187,6 +193,7 @@ export class UsersComponent implements AfterViewInit  {
     });
     dialogRef.afterClosed().subscribe((ok: boolean) => {
       this.createUserForm.reset();
+      this.showNewUserPassword = false;
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
       this.createUserForm.setErrors(null);
