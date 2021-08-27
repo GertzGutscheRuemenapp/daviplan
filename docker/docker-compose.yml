@@ -10,8 +10,8 @@ services:
       # does not allow connection otherwise atm
       POSTGRES_HOST_AUTH_METHOD: trust
       POSTGRES_DB: datentool
-    #volumes:
-    #       - postgres_data:/var/lib/postgresql/data/
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
 
   web:
     env_file: .env
@@ -23,3 +23,8 @@ services:
     ports:
       - "${EXT_PORT}:8000"
     restart: unless-stopped
+    volumes:
+      - ./public:/root/datentool/public
+
+volumes:
+  postgres_data:
