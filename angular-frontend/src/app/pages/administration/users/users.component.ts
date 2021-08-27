@@ -31,16 +31,16 @@ export class UsersComponent implements AfterViewInit  {
   constructor(private http: HttpClient, private dialog: MatDialog, private formBuilder: FormBuilder,
               private rest: RestAPI) {
     this.createUserForm = this.formBuilder.group({
-      username: new FormControl('', Validators.required),
-      password: new FormControl('', Validators.required),
-      confirmPass: new FormControl('', Validators.required)
+      username: new FormControl(''),
+      password: new FormControl(''),
+      confirmPass: new FormControl('')
     });
   }
 
   ngAfterViewInit() {
     this.getUsers();
-    // this.setupAccountCard();
-    // this.setupPermissionCard();
+    this.setupAccountCard();
+    this.setupPermissionCard();
   }
 
   getUsers(): Observable<User[]> {

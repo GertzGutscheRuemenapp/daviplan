@@ -8,7 +8,8 @@
   width: 90%;
 }
 
-mat-selection-list {
-  width: 100%;
-  border: solid lightgrey;
+.sensitive-check {
+  margin: 0 0 10px -15px;
+  transform: scale(0.8);
+  float: right;
 }

@@ -34,6 +34,18 @@ body {
   color: #000000DE;
 }
 
+.mat-form-field-appearance-fill .mat-form-field-flex {
+  padding: .5em .5em 0 .5em!important;
+  //color: $primary;
+}
+.mat-form-field-wrapper{
+  padding-bottom: 1em;
+}
+
+mat-form-field.mat-focused .mat-form-field-flex{
+  box-shadow: inset 0px -1px 0px 0px #2196f3;
+}
+
 mat-list-option[aria-selected="true"] {
   background-color: $primary-light!important;
   //color: white!important;
@@ -329,4 +341,23 @@ mat-select mat-icon, .mat-select-panel mat-icon, .mat-select-min-line mat-icon, 
 
 app-population .context-bar {
   height: calc(100vh - 120px);
+}
+
+.mat-button-base {
+  text-transform: uppercase;
+  padding: 0 4px !important;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.mat-button-base .mat-button-focus-overlay {
+  background-color: transparent!important;
+}
+
+.mat-button-base:hover {
+  color: map-get($blue-palette, 900);
+}
+
+.mat-button-base mat-icon {
+  margin: -2px 2px 0 0;
 }
