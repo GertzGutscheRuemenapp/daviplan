@@ -1,5 +1,14 @@
 // card.component.ts
-import { Component, Input, Output, TemplateRef, EventEmitter, AfterViewInit, ElementRef } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  TemplateRef,
+  EventEmitter,
+  AfterViewInit,
+  ElementRef,
+  ViewChild
+} from '@angular/core';
 import { ConfirmDialogComponent } from "../dialogs/confirm-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { MatButton } from "@angular/material/button";
@@ -12,7 +21,8 @@ import { MatButton } from "@angular/material/button";
 
 export class InputCardComponent implements AfterViewInit {
   dialogRef?: MatDialogRef<ConfirmDialogComponent>;
-  @Input() editButton?: HTMLElement;
+  @ViewChild('editButton') prebuildEditButton?: MatButton;
+  @Input() editButton?: HTMLElement | MatButton;
   @Input() title: string = '';
   @Input() subtitle: string = '';
   @Input() dialogTitle: string = '';
@@ -29,10 +39,13 @@ export class InputCardComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     let _this = this;
-    if (this.editButton)
-      this.editButton.addEventListener('click', function(){
+    if (this.editTemplate){
+      let button = (!this.editButton) ? this.prebuildEditButton : this.editButton;
+      let natButton = (button instanceof MatButton) ? button._getHostElement() : button;
+      natButton.addEventListener('click', function(){
         _this.onEdit();
       });
+    }
   }
 
   onEdit() {
@@ -44,7 +57,8 @@ export class InputCardComponent implements AfterViewInit {
       data: {
         title: this.dialogTitle || this.title,
         template: this.editTemplate,
-        closeOnConfirm: false
+        closeOnConfirm: false,
+        confirmButtonText: $localize`Speichern`
       }
     });
     this.dialogRef.afterClosed().subscribe((ok: boolean) => {

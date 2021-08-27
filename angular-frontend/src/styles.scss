@@ -34,13 +34,25 @@ body {
   color: #000000DE;
 }
 
+.mat-form-field-appearance-fill .mat-form-field-flex {
+  padding: .5em .5em 0 .5em!important;
+  //color: $primary;
+}
+.mat-form-field-wrapper{
+  padding-bottom: 1em;
+}
+
+mat-form-field.mat-focused .mat-form-field-flex{
+  box-shadow: inset 0px -1px 0px 0px #2196f3;
+}
+
 mat-list-option[aria-selected="true"] {
-  background-color: $accent!important;
-  color: white!important;
+  background-color: $primary-light!important;
+  //color: white!important;
 }
 
 mat-list-option:not([aria-selected="true"]):hover {
-  background-color: mat.get-color-from-palette($app-accent, 200) !important;
+  background-color: $primary-light!important;
 }
 
 .cdk-overlay-pane.absolute{
@@ -165,6 +177,7 @@ app-data-card td, app-dash-card td {
   //border-bottom: 1px solid #0000001F;
   height: 60px;
   //padding: 0!important;
+  box-shadow: 0px 0px 3px 2px #d9d9d9;
 }
 
 mat-sidenav-content {
@@ -193,7 +206,7 @@ mat-sidenav-content {
 
 .sub-nav a:not(.active-link):hover {
   background-color: $primary-light;
-  color: #000000DE;
+  color: black;
 }
 
 .sub-nav .active-link {
@@ -287,16 +300,21 @@ button.mat-icon-button {
 }
 
 .mat-select-min-line, .mat-select-trigger span, mat-option.selected {
+  font-size: 20px!important;
   color: $accent!important;
+}
+
+mat-option.selected {
+  margin: -8px 0;
 }
 
 .mat-select-panel {
   max-height: 50vh!important;
-  margin-top: -14px;
+  margin-top: -10px;
 }
 
 mat-select mat-icon, .mat-select-panel mat-icon, .mat-select-min-line mat-icon, .mat-select-trigger mat-icon,  {
-  font-size: 0.8em;
+  font-size: 12px!important;
   vertical-align: baseline!important;;
   margin: 0 3px!important;
   width: 10px;
@@ -318,12 +336,28 @@ mat-select mat-icon, .mat-select-panel mat-icon, .mat-select-min-line mat-icon, 
   width: $context-bar-width;
   background-color: white;
   height: 100%;
+  box-shadow: 2px 3px 3px 0px #d9d9d9;
 }
 
 app-population .context-bar {
-  height: auto;
+  height: calc(100vh - 120px);
 }
 
-app-pop-development {
-  align-items: stretch;
+.mat-button-base {
+  text-transform: uppercase;
+  padding: 0 4px !important;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.mat-button-base .mat-button-focus-overlay {
+  background-color: transparent!important;
+}
+
+.mat-button-base:hover {
+  color: map-get($blue-palette, 900);
+}
+
+.mat-button-base mat-icon {
+  margin: -2px 2px 0 0;
 }

@@ -9,6 +9,13 @@
   <ng-container *ngTemplateOutlet="data.template;"></ng-container>
 </mat-dialog-content>
 <mat-dialog-actions align="left">
-  <button mat-button color="primary" mat-dialog-close tabindex="-1">{{ data.cancelButtonText }}</button>
-  <button mat-button color="primary" (click)="onConfirmClick()" tabindex="1">{{ data.confirmButtonText }}</button>
+  <button mat-button color="primary"
+          mat-dialog-close
+          style="margin-right: 30px;">
+    {{ data.cancelButtonText }}
+  </button>
+  <button mat-button color="primary"
+          (click)="onConfirmClick()">
+    {{ data.confirmButtonText }}
+  </button>
 </mat-dialog-actions>

@@ -7,6 +7,7 @@ import { InputCardComponent } from '../../../dash/input-card.component'
 import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
 import { RestAPI } from "../../../rest-api";
 import { Observable } from "rxjs";
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-users',
@@ -19,30 +20,34 @@ export class UsersComponent implements AfterViewInit  {
   @ViewChild('accountCard') accountCard?: InputCardComponent;
   @ViewChild('permissionCard') permissionCard?: InputCardComponent;
   @ViewChild('createUser') createUserTemplate?: TemplateRef<any>;
+  faEye = faEye;
+  faEyeSlash = faEyeSlash;
   accountForm!: FormGroup;
   permissionForm!: FormGroup;
   createUserForm: FormGroup;
   users: User[] = [];
   selectedUser?: User;
   changePassword: boolean = false;
+  showAccountPassword: boolean = false;
+  showNewUserPassword: boolean = false;
   // workaround to have access to object iteration in template
   Object = Object;
 
   constructor(private http: HttpClient, private dialog: MatDialog, private formBuilder: FormBuilder,
               private rest: RestAPI) {
     this.createUserForm = this.formBuilder.group({
-      username: new FormControl('', Validators.required),
-      password: new FormControl('', Validators.required),
-      confirmPass: new FormControl('', Validators.required)
+      username: new FormControl(''),
+      password: new FormControl(''),
+      confirmPass: new FormControl('')
     });
   }
 
   ngAfterViewInit() {
-    // this.getUsers();
-    // this.setupAccountCard();
-    // this.setupPermissionCard();
+    this.getUsers();
+    this.setupAccountCard();
+    this.setupPermissionCard();
   }
-/*
+
   getUsers(): Observable<User[]> {
     let query = this.http.get<User[]>(this.rest.URLS.users);
     query.subscribe((users)=>{
@@ -92,6 +97,7 @@ export class UsersComponent implements AfterViewInit  {
       // reset form on cancel
       if (!ok){
         this.changePassword = false;
+        this.showAccountPassword = false;
         this.accountForm.controls['password'].disable();
         this.accountForm.controls['confirmPass'].disable();
         this.accountForm.reset({
@@ -187,6 +193,7 @@ export class UsersComponent implements AfterViewInit  {
     });
     dialogRef.afterClosed().subscribe((ok: boolean) => {
       this.createUserForm.reset();
+      this.showNewUserPassword = false;
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
       this.createUserForm.setErrors(null);
@@ -236,5 +243,5 @@ export class UsersComponent implements AfterViewInit  {
         });
       }
     });
-  }*/
+  }
 }
