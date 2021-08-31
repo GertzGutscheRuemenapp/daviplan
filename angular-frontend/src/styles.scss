@@ -361,3 +361,25 @@ app-population .context-bar {
 .mat-button-base mat-icon {
   margin: -2px 2px 0 0;
 }
+
+.cdk-overlay-pane.warning {
+
+   mat-dialog-container {
+     border-bottom: 5px solid $warning;
+   }
+}
+
+mat-form-field.warning  .mat-form-field-flex {
+  padding-top: 0!important;
+  border-left: 3px solid $warning;
+  border-radius: 0 4px 4px 0;
+  background-image: repeating-linear-gradient(
+   -45deg, $warning-light, $warning-light 4px, whitesmoke 4px, whitesmoke 10px) !important;
+  input {
+    color: black !important;
+  }
+}
+
+mat-icon.warning {
+  color: $warning;
+}

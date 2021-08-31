@@ -20,6 +20,7 @@ export class UsersComponent implements AfterViewInit  {
   @ViewChild('accountCard') accountCard?: InputCardComponent;
   @ViewChild('permissionCard') permissionCard?: InputCardComponent;
   @ViewChild('createUser') createUserTemplate?: TemplateRef<any>;
+  @ViewChild('removeUser') removeUserTemplate?: TemplateRef<any>;
   faEye = faEye;
   faEyeSlash = faEyeSlash;
   accountForm!: FormGroup;
@@ -226,12 +227,14 @@ export class UsersComponent implements AfterViewInit  {
    if (!this.selectedUser)
       return;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '300px',
+      width: '400px',
       data: {
-        title: 'Nutzer löschen',
-        message: `Möchten sie den Nutzer "${this.selectedUser.username}" wirklich löschen?`,
+        title: $localize`Das Konto wirklich entfernen?`,
+        confirmButtonText: $localize`Konto entfernen`,
+        template: this.removeUserTemplate,
         closeOnConfirm: true
-      }
+      },
+      panelClass: 'warning'
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed === true) {
