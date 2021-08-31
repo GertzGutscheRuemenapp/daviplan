@@ -1,15 +1,35 @@
-.mat-select-panel {
+@import "~src/constants";
+
+/*.mat-select-panel {
   max-height: unset !important;
-}
+}*/
 
 #planning-map {
+  // always in background
   position: fixed;
-  height: 100%;
-  width: 100%;
+  // minus top menus
+  height: calc(100% - 120px);
+  // leave space for planning context bars
+  width: calc(100% - #{$context-bar-width});
+  padding: 3px 0 0 calc(#{$context-bar-width} + 3px);
+}
+
+#process-select {
+  width: calc(#{$context-bar-width} - 36px);
+  padding: 0 18px 0 18px;
+  //border-bottom: 1px solid $primary;
+}
+
+#process-select mat-form-field {
+  width: 200px;
 }
 
 mat-toolbar mat-form-field {
   font-size: 15px;
   margin-right: 30px;
   margin-top: 15px;
+}
+
+.sub-nav {
+  padding: 0;
 }

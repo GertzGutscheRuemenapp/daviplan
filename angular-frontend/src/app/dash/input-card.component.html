@@ -4,7 +4,15 @@
   <ng-content></ng-content>
   <ng-container *ngTemplateOutlet="previewTemplate;"></ng-container>
   <div *ngIf="infoText" class="info-text">
-    <h3>INFORMATIONSTEXT</h3>
+    <h3>INFORMATION</h3>
     {{infoText}}
+  </div>
+  <div>
+    <button #editButton
+            *ngIf="editTemplate && !editButton"
+            mat-button color="primary"
+            style="margin-top: 30px;" i18n>
+      <mat-icon fontSet="material-icons-outlined">edit_outline</mat-icon>editieren
+    </button>
   </div>
 </mat-card>

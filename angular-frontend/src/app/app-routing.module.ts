@@ -21,6 +21,7 @@ const routes: Routes = [
   {
     path: '',
     component: WelcomeComponent,
+    canActivate: [AuthGuard],
     pathMatch: 'full'
   },
   {
@@ -53,6 +54,7 @@ const routes: Routes = [
   {
     path: 'planung',
     component: PlanningComponent,
+    canActivate: [AuthGuard],
     children: [
       {
         path: 'nachfrage',
@@ -79,6 +81,7 @@ const routes: Routes = [
   {
     path: 'grundlagendaten',
     component: BasedataComponent,
+    canActivate: [AuthGuard],
     children: [
       {
         path: 'gebiete',
@@ -93,6 +96,7 @@ const routes: Routes = [
   {
     path: 'bevoelkerung',
     component: PopulationComponent,
+    canActivate: [AuthGuard],
     children: [
       {
         path: 'entwicklung',

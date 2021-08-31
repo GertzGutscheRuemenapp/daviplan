@@ -1,36 +1,45 @@
-<!--
-<div style="display: flex; flex-wrap: wrap;">
-  <app-data-card title="Benutzerkonten" style="min-width: 400px;">
-    <mat-selection-list [multiple]="false" >
-      <mat-list-option *ngFor="let user of users"
-                       [value]="user"
-                       (click)="onSelect(user)"
-                       [selected]="(selectedUser && (user.id === selectedUser.id))">
-        <mat-icon mat-list-icon>person</mat-icon>
-        <div mat-line>{{ user.username }}</div>
-        <div mat-line *ngIf="user.isSuperuser"><i i18n>Administrator</i></div>
-      </mat-list-option>
-    </mat-selection-list>
-    <br>
-    <div style="width: 100%;">
-      <button mat-raised-button color="primary"
-              (click)="onCreateUser()" i18n>
-        <mat-icon>person_add</mat-icon>&nbsp; hinzufügen
-      </button>
-      <button style="float: right;"
-              [class.hidden]="!selectedUser || selectedUser.isSuperuser"
-              mat-raised-button
-              color="warn"
-              (click)="onDeleteUser()" i18n>
-        <mat-icon>delete_forever</mat-icon>&nbsp; Nutzer löschen
-      </button>
-    </div>
-  </app-data-card>
-  <div style="display: flex; flex-wrap: wrap; align-content: flex-start; max-width: 1000px;" [ngClass]="{'hidden': !selectedUser}">
-    <app-data-card #accountCard
-                   title="Konto"
-                   [editTemplate]="accountEdit"
-                   style="min-width: 400px; ">
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="400px">
+    <app-input-card #userList
+                    [title]="'Benutzerkonten'"
+                    subtitle="Konten auswählen und bearbeiten"
+                    [dialogTitle]="'Namen der Seite ändern'">
+
+      <mat-selection-list [multiple]="false" style="min-height: 300px">
+        <mat-list-option *ngFor="let user of users"
+                         [value]="user"
+                         (click)="onSelect(user)"
+                         [selected]="(selectedUser && (user.id === selectedUser.id))">
+          <mat-icon *ngIf="!user.isSuperuser" class="material-icons-outlined" mat-list-icon>person</mat-icon>
+          <mat-icon *ngIf="user.isSuperuser" class="material-icons-outlined" mat-list-icon>admin_panel_settings</mat-icon>
+          <div mat-line>{{ user.username }}</div>
+          <div mat-line *ngIf="user.isSuperuser"><i style="font-size: 14px;" i18n>Administrator</i></div>
+          <div mat-line *ngIf="!user.isSuperuser"><i style="font-size: 14px;" i18n>{{user.firstName}} {{user.lastName}}</i></div>
+        </mat-list-option>
+      </mat-selection-list>
+      <div class="info-text">
+        <h3>INFORMATION</h3>
+        Nur Nutzer*innen mit einem Konto haben Zugriff auf das System. <br>
+        Hier können Sie neue Konten erstellen und bestehende Konten über die obige Liste bearbeiten oder entfernen.
+      </div>
+      <div style="margin-top: 30px;">
+        <button mat-button color="primary"
+                (click)="onCreateUser()" i18n>
+          <mat-icon>add</mat-icon>hinzufügen
+        </button>
+        <button mat-button color="primary"
+                style="margin-left: 40px;"
+                [disabled]="(!selectedUser || selectedUser.isSuperuser) ? true : null"
+                (click)="onDeleteUser()" i18n>
+          <mat-icon>close</mat-icon>entfernen
+        </button>
+      </div>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="400px" [ngClass]="{'hidden': !selectedUser}">
+    <app-input-card #accountCard
+                   [title]="'Konto'"
+                   [editTemplate]="accountEdit">
       <table *ngIf="selectedUser">
         <tr>
           <td i18n>Nutzername</td>
@@ -38,36 +47,80 @@
         </tr>
         <tr>
           <td i18n>Vorname</td>
-          <td>{{selectedUser?.firstName}}</td>
+          <td>{{selectedUser?.firstName || '-'}}</td>
         </tr>
         <tr>
           <td i18n>Nachname</td>
-          <td>{{selectedUser?.lastName}}</td>
+          <td>{{selectedUser?.lastName || '-'}}</td>
         </tr>
         <tr>
           <td i18n>E-Mail</td>
-          <td>{{selectedUser?.email}}</td>
+          <td>{{selectedUser?.email || '-'}}</td>
+        </tr>
+        <tr>
+          <td i18n>Passwort</td>
+          <td>************</td>
         </tr>
       </table>
-    </app-data-card>
-    <app-data-card #permissionCard title="Berechtigungen" [editTemplate]="permissionEdit" style="width: 400px;">
+    </app-input-card>
+    <app-input-card #permissionCard
+                    [title]="'Berechtigungen'"
+                    [ngClass]="{'hidden': selectedUser?.isSuperuser}"
+                    [editTemplate]="permissionEdit">
       <div *ngIf="selectedUser">
-        <mat-checkbox disabled type="checkbox" [(ngModel)]="selectedUser.profile.adminAccess" i18n>
+        <mat-checkbox disabled [(ngModel)]="selectedUser.profile.adminAccess" i18n>
           Kann Seite administrieren
         </mat-checkbox>
-        <mat-checkbox disabled type="checkbox" [(ngModel)]="selectedUser.profile.canEditData" i18n>
+        <mat-checkbox disabled [(ngModel)]="selectedUser.profile.canEditData" i18n>
           Kann Grundlagendaten editieren
         </mat-checkbox>
-        <mat-checkbox disabled type="checkbox" [(ngModel)]="selectedUser.profile.canCreateScenarios" i18n>
+        <mat-checkbox disabled [(ngModel)]="selectedUser.profile.canCreateScenarios" i18n>
           Kann Szenarien anlegen
         </mat-checkbox>
       </div>
-    </app-data-card>
-    <app-data-card title="Datenzugriff" style="min-width: 400px; ">
-      &lt;!&ndash;ToDo: Form&ndash;&gt;
-      <div>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="400px" [ngClass]="{'hidden': !selectedUser || selectedUser.isSuperuser}">
+    <app-input-card [title]="'Datenzugriff'"
+                    infoText="Nur Platzhalter, noch nicht funktional."
+                    [editTemplate]="dataAccessEdit">
+      <div style="display: flex;">
+        <mat-checkbox class="infra-check" disabled [checked]="true">
+          Schulen
+        </mat-checkbox>
+        <div class="dotted-fill"></div>
+        <mat-checkbox class="sensitive-check" disabled [checked]="true">
+          sensible Daten
+        </mat-checkbox>
       </div>
-    </app-data-card>
+      <div style="display: flex;">
+        <mat-checkbox disabled [checked]="true">
+          Kinderbetreuung
+        </mat-checkbox>
+        <div class="dotted-fill"></div>
+        <mat-checkbox class="sensitive-check" disabled [checked]="true">
+          sensible Daten
+        </mat-checkbox>
+      </div>
+      <div style="display: flex;">
+        <mat-checkbox disabled [checked]="true">
+          Ärzte
+        </mat-checkbox>
+        <div class="dotted-fill" style="border-color: #00000061"></div>
+        <mat-checkbox class="sensitive-check" disabled [checked]="false">
+          sensible Daten
+        </mat-checkbox>
+      </div>
+      <div style="display: flex;">
+        <mat-checkbox disabled>
+          Feuerwehr
+        </mat-checkbox>
+        <div class="dotted-fill" style="border-color: #00000061"></div>
+        <mat-checkbox class="sensitive-check" disabled [checked]="false">
+          sensible Daten
+        </mat-checkbox>
+      </div>
+    </app-input-card>
   </div>
 </div>
 
@@ -78,35 +131,49 @@
         {{ error }}
       </mat-error>
     </div>
-    <div formGroupName="user">
-      <mat-form-field class="full">
+    <div formGroupName="user" fxLayout="column">
+      <mat-form-field appearance="fill">
         <mat-label i18n>Nutzername</mat-label>
         <input matInput formControlName="username" required>
       </mat-form-field>
-      <mat-form-field class="full">
+      <mat-form-field appearance="fill">
         <mat-label i18n>Vorname</mat-label>
         <input matInput formControlName="firstName"/>
       </mat-form-field>
-      <mat-form-field class="full">
+      <mat-form-field appearance="fill">
         <mat-label i18n>Nachname</mat-label>
         <input matInput formControlName="lastName"/>
       </mat-form-field>
-      <mat-form-field class="full">
+      <mat-form-field appearance="fill">
         <mat-label i18n>E-Mail</mat-label>
         <input matInput formControlName="email"/>
         <mat-error *ngIf="accountForm.get('user')?.get('email')?.errors" i18n>Die E-Mail Adresse hat kein gültiges Format.</mat-error>
       </mat-form-field>
     </div>
-    <mat-checkbox #passCheck formControlName="changePass" (change)="onTogglePassChange(passCheck.checked)">Passwort ändern</mat-checkbox>
-    <mat-form-field class="full">
-      <mat-label i18n>Passwort</mat-label>
-      <input matInput type="password" formControlName="password" placeholder="·········" required>
-    </mat-form-field>
-    <mat-form-field class="full">
-      <mat-label i18n>Passwort bestätigen</mat-label>
-      <input matInput type="password" formControlName="confirmPass" placeholder="·········" required>
-      <mat-error *ngIf="accountForm.get('confirmPass')?.errors?.notMatching" i18n>Die Passwörter stimmen nicht überein</mat-error>
-    </mat-form-field>
+    <div fxLayout="column">
+      <mat-checkbox #passCheck
+                    formControlName="changePass"
+                    color="primary"
+                    style="margin-bottom: 10px;"
+                    (change)="onTogglePassChange(passCheck.checked)">
+        Passwort ändern
+      </mat-checkbox>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Passwort</mat-label>
+        <input matInput formControlName="password"
+               [type]="showAccountPassword ? 'text' : 'password'"
+               placeholder="·········" required>
+        <fa-icon matSuffix [icon]="showAccountPassword? faEyeSlash: faEye" (click)="showAccountPassword = !showAccountPassword"></fa-icon>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Passwort bestätigen</mat-label>
+        <input matInput formControlName="confirmPass"
+               [type]="showAccountPassword ? 'text' : 'password'"
+               placeholder="·········" required>
+        <fa-icon matSuffix [icon]="showAccountPassword? faEyeSlash: faEye" (click)="showAccountPassword = !showAccountPassword"></fa-icon>
+        <mat-error *ngIf="accountForm.get('confirmPass')?.errors?.notMatching" i18n>Die Passwörter stimmen nicht überein</mat-error>
+      </mat-form-field>
+    </div>
   </form>
 </ng-template>
 
@@ -115,12 +182,19 @@
     <mat-error *ngIf="permissionForm.errors && permissionForm.errors['error']" class="alert">
       {{permissionForm.errors['error']}}
     </mat-error>
-    <div formGroupName="profile" style="min-height: 100px">
-      <mat-checkbox formControlName="adminAccess" i18n>Kann Seite administrieren</mat-checkbox>
-      <br>
-      <mat-checkbox formControlName="canEditData" i18n>Kann Grundlagendaten editieren</mat-checkbox>
-      <br>
-      <mat-checkbox formControlName="canCreateScenarios" i18n>Kann Szenarien anlegen</mat-checkbox>
+    <div formGroupName="profile" fxLayout="column" style="min-height: 100px;">
+      <mat-checkbox color="primary"
+                    formControlName="adminAccess" i18n>
+        Kann Seite administrieren
+      </mat-checkbox>
+      <mat-checkbox color="primary"
+                    formControlName="canEditData" i18n>
+        Kann Grundlagendaten editieren
+      </mat-checkbox>
+      <mat-checkbox color="primary"
+                    formControlName="canCreateScenarios" i18n>
+        Kann Szenarien anlegen
+      </mat-checkbox>
     </div>
   </form>
 </ng-template>
@@ -132,19 +206,30 @@
         {{ error }}
       </mat-error>
     </div>
-    <mat-form-field class="full">
-      <mat-label i18n>Nutzername</mat-label>
-      <input matInput formControlName="username">
-    </mat-form-field>
-    <mat-form-field class="full">
-      <mat-label i18n>Passwort</mat-label>
-      <input matInput type="password" formControlName="password" placeholder="·········">
-    </mat-form-field>
-    <mat-form-field class="full">
-      <mat-label i18n>Passwort bestätigen</mat-label>
-      <input matInput type="password" formControlName="confirmPass" placeholder="·········">
-      <mat-error *ngIf="createUserForm.get('confirmPass')?.errors?.notMatching" i18n>Die Passwörter stimmen nicht überein</mat-error>
-    </mat-form-field>
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Nutzername</mat-label>
+        <input matInput formControlName="username" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Passwort</mat-label>
+        <input matInput formControlName="password"
+               [type]="showNewUserPassword ? 'text' : 'password'"
+               placeholder="·········" required>
+        <fa-icon matSuffix [icon]="showNewUserPassword? faEyeSlash: faEye" (click)="showNewUserPassword = !showNewUserPassword"></fa-icon>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Passwort bestätigen</mat-label>
+        <input matInput formControlName="confirmPass"
+               [type]="showNewUserPassword ? 'text' : 'password'"
+               placeholder="·········" required>
+        <fa-icon matSuffix [icon]="showNewUserPassword? faEyeSlash: faEye" (click)="showNewUserPassword = !showNewUserPassword"></fa-icon>
+        <mat-error *ngIf="createUserForm.get('confirmPass')?.errors?.notMatching" i18n>Die Passwörter stimmen nicht überein</mat-error>
+      </mat-form-field>
+    </div>
   </form>
 </ng-template>
--->
+
+<ng-template #dataAccessEdit>
+  ToDo
+</ng-template>

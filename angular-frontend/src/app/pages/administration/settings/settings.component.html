@@ -43,13 +43,16 @@
                     [dialogTitle]="'Bilddatei als Logo festlegen'"
                     [editTemplate]="logoTemplate"
                     [editButton]="logoEditButton">
-      <div #logoEditButton style="width: 100%" class="img-bg">
+      <div #logoEditButton class="img-wrapper">
         <button mat-icon-button color="primary"
                 style="position: absolute; left: 45%; top: 50%; pointer-events: none; z-index: 1;">
           <mat-icon>edit</mat-icon>
         </button>
         <img [src]="settings?.logo" style="width: 100%;">
       </div>
+      <button mat-button color="primary" (click)="removeLogo()" i18n>
+        <mat-icon>close</mat-icon>&nbsp; Logo entfernen
+      </button>
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="400px">

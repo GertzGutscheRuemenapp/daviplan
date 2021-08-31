@@ -3,6 +3,8 @@ import { FormBuilder, FormGroup } from "@angular/forms";
 import { AuthService } from '../../auth.service';
 import { User } from "./users";
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { Router } from "@angular/router";
+import { SettingsService, SiteSettings } from "../../settings.service";
 
 @Component({
   selector: 'app-login',
@@ -11,13 +13,18 @@ import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 })
 
 export class LoginComponent {
+  settings?: SiteSettings;
   loginForm: FormGroup;
   user?: User;
   showPassword: boolean = false;
   faEye = faEye;
   faEyeSlash = faEyeSlash;
 
-  constructor(private formBuilder: FormBuilder, public auth: AuthService) {
+  constructor(private settingsService: SettingsService, private formBuilder: FormBuilder, public auth: AuthService,
+              private router: Router) {
+    this.settingsService.siteSettings$.subscribe(settings => {
+      this.settings = settings;
+    });
     this.loginForm = this.formBuilder.group({
       userName: '',
       password: ''
@@ -32,7 +39,9 @@ export class LoginComponent {
        this.auth.login({
             password: pass,
             username: username
-          }).subscribe(token => { }, (error) => {
+          }).subscribe(token => {
+            this.router.navigate(['/']);
+          }, (error) => {
             this.loginForm.setErrors({ 'error': $localize`Keine Übereinstimmung von Nutzer und Passwort` })
           });
   }

@@ -1,29 +1,36 @@
-<div class="center">
-  <div style="width: 400px; margin-top: 100px;">
-    <ng-template #loggedIn>
-      <p style="text-align: center;"> Eingeloggt als <b>{{user?.username}}</b> </p>
-      <button class="large" mat-raised-button color="primary" (click)="auth.logout()" style="width:100%" i18n>Ausloggen</button>
-    </ng-template>
-    <h1 style="text-align: center; font-size: 54px;" i18n>Datentool Login</h1>
-    <mat-card class="mat-elevation-z12" style="width: 360px;">
-      <form *ngIf="!user; else loggedIn" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <mat-form-field appearance="outline" style="margin-bottom: -20px;">
-          <mat-label i18n>Nutzername</mat-label>
-          <input matInput formControlName="userName" required>
-        </mat-form-field>
-        <mat-form-field appearance="outline" style="margin-bottom: -10px;">
-          <mat-label i18n>Passwort</mat-label>
-          <input matInput type="password" formControlName="password" [type]="showPassword ? 'text' : 'password'" required>
-          <fa-icon matSuffix [icon]="showPassword? faEyeSlash: faEye" (click)="showPassword = !showPassword"></fa-icon>
-        </mat-form-field>
-        <mat-error *ngIf="loginForm.errors && loginForm.errors['error']" class="alert">
-          {{loginForm.errors['error']}}
-        </mat-error>
-        <button class="large" mat-raised-button color="primary" type="submit" style="width:100%" i18n>Einloggen</button>
-      </form>
-    </mat-card>
-    <p class="mat-body-2" style="text-align: center; color: #00000099; width: 90%; padding: 20px;">
-      © 2020 - 2021 Gertz Gutsche Rümenapp Stadtentwicklung und Mobilität GbR <br> Hamburg | Berlin
-    </p>
+<div fxFlex fxLayout="row wrap" fxFlexAlign="center baseline">
+  <div fxLayout="column" fxFlex="30" fxFlex.lt-lg="30" fxFlex.lt-md="10" style="background-color: #fafafa;">
+    <div style="padding-top: 100px;">
+      <img [src]="settings?.logo" style="mix-blend-mode: multiply; max-height: 420px; max-width: 100%; float: right;">
+    </div>
+  </div>
+  <div fxLayout="column" fxFlex="50" fxFlex.lt-lg="70" fxFlex.lt-md="90">
+    <div style="width: 400px; margin-top: 100px;">
+      <ng-template #loggedIn>
+        <p style="text-align: center;"> Eingeloggt als <b>{{user?.username}}</b> </p>
+        <button class="large" mat-raised-button color="primary" (click)="auth.logout()" style="width:100%" i18n>Ausloggen</button>
+      </ng-template>
+      <h1 style="text-align: center; font-size: 42px;" i18n> {{settings?.title}} Login </h1>
+      <mat-card class="mat-elevation-z12" style="width: 360px;">
+        <form *ngIf="!user; else loggedIn" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+          <mat-form-field appearance="outline" style="margin-bottom: -20px;">
+            <mat-label i18n>Nutzername</mat-label>
+            <input matInput formControlName="userName" required>
+          </mat-form-field>
+          <mat-form-field appearance="outline" style="margin-bottom: -10px;">
+            <mat-label i18n>Passwort</mat-label>
+            <input matInput type="password" formControlName="password" [type]="showPassword ? 'text' : 'password'" required>
+            <fa-icon matSuffix [icon]="showPassword? faEyeSlash: faEye" (click)="showPassword = !showPassword"></fa-icon>
+          </mat-form-field>
+          <mat-error *ngIf="loginForm.errors && loginForm.errors['error']" class="alert">
+            {{loginForm.errors['error']}}
+          </mat-error>
+          <button class="large" mat-raised-button color="primary" type="submit" style="width:100%" i18n>Einloggen</button>
+        </form>
+      </mat-card>
+      <p class="mat-body-2" style="text-align: center; color: #00000099; width: 90%; padding: 20px;">
+        © 2020 - 2021 Gertz Gutsche Rümenapp Stadtentwicklung und Mobilität GbR <br> Hamburg | Berlin
+      </p>
+    </div>
   </div>
 </div>
