@@ -24,6 +24,7 @@
     "@apollo/client": "^3.0.0",
     "@ckeditor/ckeditor5-angular": "^2.0.2",
     "@ckeditor/ckeditor5-build-classic": "^29.1.0",
+    "@ecodev/fab-speed-dial": "^8.0.1",
     "@fortawesome/angular-fontawesome": "^0.9.0",
     "@fortawesome/fontawesome-svg-core": "^1.2.35",
     "@fortawesome/free-solid-svg-icons": "^5.15.3",

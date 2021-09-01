@@ -54,6 +54,8 @@ import { MultilineChartComponent } from './diagrams/multiline-chart/multiline-ch
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { DragDirective } from './helpers/dragndrop.directive'
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
+import { MapControlsComponent } from './map/map-controls/map-controls.component';
+import { EcoFabSpeedDialModule } from "@ecodev/fab-speed-dial";
 
 @NgModule({
   declarations: [
@@ -82,39 +84,41 @@ import { MatSlideToggleModule } from "@angular/material/slide-toggle";
     LogComponent,
     StackedBarchartComponent,
     MultilineChartComponent,
-    DragDirective
+    DragDirective,
+    MapControlsComponent
   ],
-    imports: [
-        BrowserModule,
-        AppRoutingModule,
-        FlexLayoutModule,
-        HttpClientModule,
-        FormsModule,
-        BrowserAnimationsModule,
-        LayoutModule,
-        MatToolbarModule,
-        MatButtonModule,
-        MatSidenavModule,
-        MatIconModule,
-        MatListModule,
-        MatGridListModule,
-        MatCardModule,
-        MatMenuModule,
-        MatDialogModule,
-        MatFormFieldModule,
-        MatProgressSpinnerModule,
-        ReactiveFormsModule,
-        MatInputModule,
-        MatCheckboxModule,
-        MatSelectModule,
-        MatExpansionModule,
-        MatSliderModule,
-        ColorPickerModule,
-        MaterialFileInputModule,
-        FontAwesomeModule,
-        CKEditorModule,
-        MatSlideToggleModule
-    ],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    FlexLayoutModule,
+    HttpClientModule,
+    FormsModule,
+    BrowserAnimationsModule,
+    LayoutModule,
+    MatToolbarModule,
+    MatButtonModule,
+    MatSidenavModule,
+    MatIconModule,
+    MatListModule,
+    MatGridListModule,
+    MatCardModule,
+    MatMenuModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatProgressSpinnerModule,
+    ReactiveFormsModule,
+    MatInputModule,
+    MatCheckboxModule,
+    MatSelectModule,
+    MatExpansionModule,
+    MatSliderModule,
+    ColorPickerModule,
+    MaterialFileInputModule,
+    FontAwesomeModule,
+    CKEditorModule,
+    MatSlideToggleModule,
+    EcoFabSpeedDialModule
+  ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true }
   ],

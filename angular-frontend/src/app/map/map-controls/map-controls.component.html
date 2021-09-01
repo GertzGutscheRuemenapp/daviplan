@@ -1,0 +1,62 @@
+<div id="leftDialBack"
+     [style.opacity]="dialBackVis? 1: 0">
+</div>
+<eco-fab-speed-dial #leftDial direction="left" style="position: fixed;" [fixed]="true">
+  <eco-fab-speed-dial-actions>
+    <button mat-mini-fab
+            class="no-shadow"
+            color="primary"
+            (click)="action('action3')">
+      <mat-icon>print</mat-icon>
+    </button>
+    <button mat-mini-fab
+            class="no-shadow"
+            color="primary"
+            (click)="action('action3')">
+      <mat-icon>download</mat-icon>
+    </button>
+    <button mat-mini-fab
+            class="no-shadow"
+            color="primary"
+            (click)="action('action2')">
+      <mat-icon>bookmark_add</mat-icon>
+    </button>
+    <button mat-mini-fab
+            class="no-shadow"
+            color="primary"
+            (click)="action('action1')">
+      <mat-icon>bookmark</mat-icon>
+    </button>
+  </eco-fab-speed-dial-actions>
+</eco-fab-speed-dial>
+<eco-fab-speed-dial #rightDial direction="down" style="position: fixed;" [fixed]="true">
+  <eco-fab-speed-dial-trigger [spin]="true">
+    <button mat-fab
+            class="bordered"
+            color="primary"
+            (click)="trigger()">
+      <mat-icon>apps</mat-icon>
+    </button>
+  </eco-fab-speed-dial-trigger>
+
+  <eco-fab-speed-dial-actions>
+    <button mat-mini-fab
+            color="primary"
+            class="no-shadow"
+            (click)="action('action1')">
+      <mat-icon>zoom_in</mat-icon>
+    </button>
+    <button mat-mini-fab
+            color="primary"
+            class="no-shadow"
+            (click)="action('action2')">
+      <mat-icon>zoom_out</mat-icon>
+    </button>
+    <button mat-mini-fab
+            class="no-shadow"
+            color="primary"
+            (click)="action('action3')">
+      <mat-icon>fullscreen</mat-icon>
+    </button>
+  </eco-fab-speed-dial-actions>
+</eco-fab-speed-dial>
