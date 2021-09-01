@@ -66,6 +66,13 @@ def convert_polygons(polygon: gg.Polygon) -> Polygon:
     return polygon
 
 
+def area():
+    return from_model(Area,
+                      area_level=area_level(),
+                      attributes=json_example(),
+                      geom=polygons().map(convert_polygons))
+
+
 class AreaTestCase(TestCase):
 
     @given(map_symbol())
@@ -97,10 +104,7 @@ class AreaTestCase(TestCase):
         self.assertIsInstance(area_level.source, Source)
         self.assertIsInstance(area_level.layer, InternalWFSLayer)
 
-    @given(from_model(Area,
-                      area_level=area_level(),
-                      attributes=json_example(),
-                      geom=polygons().map(convert_polygons)))
+    @given(area())
     def test_area(self, area: Area):
         self.assertIsInstance(area, Area)
         result = json.loads(json.dumps(area.attributes))

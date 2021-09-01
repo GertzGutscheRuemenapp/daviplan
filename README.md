@@ -16,3 +16,6 @@ conda install -c conda-forge gdal=3.1 (global)
 \<path to installation\>/angular-frontend/ng build --stats-json
  - argument --stats-json creates stats file that provides information to django about the built hashed resources
  - add argument --watch to reload on change
+
+### export fixtures for area (very slow when creating it with hypothesis)
+dumpdata datentool_backend.symbolform datentool_backend.mapsymbols datentool_backend.layergroup datentool_backend.internalwfslayer datentool_backend.source datentool_backend.arealevel datentool_backend.area --indent 2 >test.json
