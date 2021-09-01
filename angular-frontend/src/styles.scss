@@ -64,7 +64,7 @@ mat-form-field.full {
 }
 
 .mat-form-field-appearance-outline .mat-form-field-infix {
-  padding: 0.5em 0 1em 0!important;
+  padding: 0.5em 0 0.5em 0!important;
 }
 
 .mat-form-field-appearance-outline .mat-form-field-label-wrapper {
@@ -279,8 +279,8 @@ button.mat-icon-button {
   vertical-align: baseline;
   text-align: center;
   margin-right: 20px;
-  line-height: 42px;
-  padding: 3px 0;
+  //line-height: 42px;
+  padding: 5px 0;
   overflow: visible;
   border-radius: 50%;
   width: 40px;
@@ -292,7 +292,7 @@ button.mat-icon-button {
 
 .mini-fab-icon mat-icon {
   font-size: 26px;
-  margin-left: -3px;
+  margin-left: -2px;
 }
 
 .mat-form-field-underline {
@@ -382,4 +382,45 @@ mat-form-field.warning  .mat-form-field-flex {
 
 mat-icon.warning {
   color: $warning;
+}
+
+.context-bar {
+
+  mat-expansion-panel {
+    box-shadow: none !important;
+    padding: 0 !important;
+    mat-expansion-panel-header {
+      padding: 2px 18px !important;
+      height: 68px!important;
+    }
+    mat-panel-title {
+      padding: 5px 0;
+      text-transform: uppercase;
+      color: #00000061;
+      align-items: center;
+      border-top: 1px solid $primary;
+      height: 60px!important;
+    }
+  }
+
+  mat-expansion-panel:not(.mat-expanded) {
+    mat-panel-title {
+      border-bottom: 1px solid $primary;
+    }
+  }
+
+  mat-panel-title:hover {
+    color:black;
+  }
+
+  mat-expansion-panel.mat-expanded {
+    mat-expansion-panel-header {
+      height: auto !important;
+      padding: 0px 18px !important;
+      background-color: $primary-light !important;
+    }
+    mat-panel-title {
+      color: black;
+    }
+  }
 }
