@@ -3,7 +3,7 @@
   <div class="loadOverlay" *ngIf="isLoading">
     <mat-spinner [diameter]="50"></mat-spinner>
   </div>
-  <p>
+  <p *ngIf="data.message">
     {{ data.message }}
   </p>
   <ng-container *ngTemplateOutlet="data.template;"></ng-container>
@@ -11,7 +11,7 @@
 <mat-dialog-actions align="left">
   <button mat-button color="primary"
           mat-dialog-close
-          style="margin-right: 30px;">
+          style="margin-right: 20px;">
     {{ data.cancelButtonText }}
   </button>
   <button mat-button color="primary"

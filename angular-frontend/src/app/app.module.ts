@@ -53,6 +53,7 @@ import { StackedBarchartComponent } from './diagrams/stacked-barchart/stacked-ba
 import { MultilineChartComponent } from './diagrams/multiline-chart/multiline-chart.component';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { DragDirective } from './helpers/dragndrop.directive'
+import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 
 @NgModule({
   declarations: [
@@ -111,7 +112,8 @@ import { DragDirective } from './helpers/dragndrop.directive'
         ColorPickerModule,
         MaterialFileInputModule,
         FontAwesomeModule,
-        CKEditorModule
+        CKEditorModule,
+        MatSlideToggleModule
     ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true }
