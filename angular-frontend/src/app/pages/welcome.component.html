@@ -1,12 +1,26 @@
 <div fxFlex fxLayout="row wrap" fxFlexAlign="center baseline">
-  <div fxLayout="column" fxFlex="30" fxFlex.lt-lg="30" fxFlex.lt-md="10" style="background-color: #fafafa;">
-    <div style="padding-top: 100px;">
-      <img [src]="settings?.logo" style="mix-blend-mode: multiply; max-height: 420px; max-width: 100%; float: right;">
-    </div>
+  <div fxLayout="column" fxFlex="20" fxFlex.lt-lg="1">
   </div>
-  <div fxLayout="column" fxFlex="50" fxFlex.lt-lg="50" fxFlex.lt-md="90">
+  <div fxLayout="column" fxFlex="40" fxFlex.lt-lg="50" fxFlex.lt-md="100">
     <div class="welcome">
       <div [innerHTML]="settings?.welcomeText"></div>
+    </div>
+    <div style="padding: 20px 50px; background-color: #fafafa; display: inline-flex;">
+      <a class="logo" routerLink="/" title="Startseite" style="margin-right: 100px; padding-top: 20px">
+        <img src="{{backend}}/static/img/test-logo.png" height="50px" alt="Logo" style="mix-blend-mode: multiply"/>
+        <div i18n> <p>davi</p><p>plan</p> </div>
+      </a>
+      <div>
+        <p>Ein Projekt von</p>
+        <a class="logo" href="http://www.regiongestalten.de" title="Region gestalten">
+          <img src="{{backend}}/static/img/region-gestalten-logo.jpg" height="50px" alt="Logo" style="mix-blend-mode: multiply"/>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div fxLayout="column" fxFlex="30" fxFlex.lt-lg="49"  fxFlex.lt-md="100">
+    <div style="padding: 50px; background-color: #fafafa;">
+      <img [src]="settings?.logo" style="mix-blend-mode: multiply; max-height: 420px; max-width: 100%; float: left;">
     </div>
   </div>
 </div>
