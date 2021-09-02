@@ -20,7 +20,7 @@ export class OlMap {
   layers: Record<string, Layer<any>>;
   mapProjection: string;
 
-  constructor( target: string, center: Coordinate = [13.3392,52.5192], zoom: number = 8, projection: string = 'EPSG:3857' ) {
+  constructor( target: string, center: Coordinate = [13.3392,52.5192], zoom: number = 8, projection: string = 'EPSG:3857', showDefaultControls: boolean = false ) {
     // this.layers = layers;
     this.target = target;
     this.view = new View({
@@ -32,13 +32,16 @@ export class OlMap {
     })
     this.layers = { 'OSM': osmLayer };
 
+    let controls = (showDefaultControls) ? DefaultControls().extend([
+        new ScaleLine({}),
+      ]) : DefaultControls({ zoom : false, //attribution : false,
+    })
+
     this.map = new Map({
       layers: [osmLayer],
       target: target,
       view: this.view,
-      controls: DefaultControls().extend([
-        new ScaleLine({}),
-      ]),
+      controls: controls,
     });
     this.mapProjection = projection;
   }

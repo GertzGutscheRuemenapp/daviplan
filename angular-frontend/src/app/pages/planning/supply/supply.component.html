@@ -1,3 +1,53 @@
 <div class="context-bar">
+  <mat-expansion-panel>
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <div class="mini-fab-icon">
+          <mat-icon>memory</mat-icon>
+        </div>
+        Leistungen
+      </mat-panel-title>
+    </mat-expansion-panel-header>
 
+    <mat-form-field appearance="outline" class="small">
+      <mat-label>Infrastruktur</mat-label>
+      <mat-select disableOptionCentering [value]="activeInfrastructure">
+        <mat-option value="Kinderbetreuung">
+          Kinderbetreuung
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <br>
+    <mat-checkbox>Kita</mat-checkbox>
+    <br>
+    <mat-checkbox>Krippe</mat-checkbox>
+    <br>
+    <mat-slide-toggle>Cluster</mat-slide-toggle>
+    <br>
+    <mat-slide-toggle>Verdrängung</mat-slide-toggle>
+    <br>
+    <button mat-button>Zoom auf alle</button>
+  </mat-expansion-panel>
+  <mat-expansion-panel>
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <div class="mini-fab-icon">
+          <mat-icon>memory</mat-icon>
+        </div>
+        Darstellung
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    ToDo
+  </mat-expansion-panel>
+  <mat-expansion-panel>
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <div class="mini-fab-icon">
+          <mat-icon>memory</mat-icon>
+        </div>
+        Karteninformationen
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    ToDo
+  </mat-expansion-panel>
 </div>
