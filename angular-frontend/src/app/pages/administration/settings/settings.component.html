@@ -51,6 +51,7 @@
         <img [src]="settings?.logo" style="width: 100%;">
       </div>
       <button mat-button class="mat-button-dv"
+              [disabled]="(!settings?.logo) ? true : null"
               color="primary" (click)="removeLogo()" i18n>
         <mat-icon>close</mat-icon>&nbsp; Logo entfernen
       </button>
@@ -131,4 +132,14 @@
       </div>
     </div>
   </div>
+</ng-template>
+
+<ng-template #removeLogoTemplate>
+  <div style="display: flex; align-items: end;">
+    <mat-form-field appearance="fill" class="warning" style="width: 300px; margin-right: 10px;">
+      <input disabled matInput [value]="logoFileName()">
+    </mat-form-field>
+    <mat-icon class="material-icons-outlined warning" style="font-size: 40px;">report_problem</mat-icon>
+  </div>
+  <p style="font-size: 0.8em; margin: -15px 0 0 10px;"> Die Entfernung ist dauerhaft und endgültig</p>
 </ng-template>

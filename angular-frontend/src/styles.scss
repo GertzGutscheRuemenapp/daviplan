@@ -401,14 +401,14 @@ app-population .context-bar {
     background-color: transparent!important;
   }
 
-  :hover {
-    color: map-get($blue-palette, 900);
-  }
-
   mat-icon {
     margin: -2px 2px 0 0;
   }
 }
+.mat-button-dv.mat-button-base:not(.mat-button-disabled) :hover {
+  color: map-get($blue-palette, 900);
+}
+
 
 .cdk-overlay-pane.warning {
 
