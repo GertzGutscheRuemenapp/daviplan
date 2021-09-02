@@ -34,6 +34,22 @@ body {
   color: #000000DE;
 }
 
+.logo {
+  text-decoration: none;
+  color: #000000DE;
+  display: flex;
+  div {
+    font-size: 28px;
+    padding: 8px 0; display: inline-flex;
+    p:first-child{
+      color: #a67236
+    }
+    p:nth-child(2){
+      color: #48553d
+    }
+  }
+}
+
 .mat-form-field-appearance-fill .mat-form-field-flex {
   padding: .5em .5em 0 .5em!important;
   //color: $primary;
@@ -348,6 +364,7 @@ mat-select mat-icon, .mat-select-panel mat-icon, .mat-select-min-line mat-icon, 
   background-color: white;
   height: 100%;
   box-shadow: 2px 3px 3px 0px #d9d9d9;
+  padding-top: 10px;
 }
 
 app-population .context-bar {
