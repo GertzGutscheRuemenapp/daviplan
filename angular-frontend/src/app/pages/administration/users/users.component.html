@@ -24,11 +24,13 @@
       </div>
       <div style="margin-top: 30px;">
         <button mat-button color="primary"
+                class="mat-button-dv"
                 (click)="onCreateUser()" i18n>
           <mat-icon>add</mat-icon>hinzufügen
         </button>
         <button mat-button color="primary"
                 style="margin-left: 40px;"
+                class="mat-button-dv"
                 [disabled]="(!selectedUser || selectedUser.isSuperuser) ? true : null"
                 (click)="onDeleteUser()" i18n>
           <mat-icon>close</mat-icon>entfernen

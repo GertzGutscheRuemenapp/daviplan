@@ -9,8 +9,14 @@
       </mat-selection-list>
       <br>
       <div style="width: 100%;">
-        <button mat-raised-button color="primary" (click)="onCreateArea()" i18n><mat-icon>add_circle_outline</mat-icon>&nbsp; hinzufügen</button>
-        <button style="float: right;" [class.hidden]="!selectedAreaLevel" mat-raised-button color="warn" (click)="onDeleteArea()" i18n><mat-icon>delete_forever</mat-icon>&nbsp; Gebiet entfernen </button>
+        <button mat-button class="mat-button-dv"
+                color="primary" (click)="onCreateArea()" i18n><mat-icon>add_circle_outline</mat-icon>&nbsp; hinzufügen</button>
+        <button style="float: right;" class="mat-button-dv"
+                [class.hidden]="!selectedAreaLevel"
+                mat-raised-button color="warn"
+                (click)="onDeleteArea()" i18n>
+          <mat-icon>delete_forever</mat-icon>&nbsp; Gebiet entfernen
+        </button>
       </div>
     </app-dash-card>
     <app-input-card #prefCard title="Eigenschaften" [class.hidden]="!selectedAreaLevel">

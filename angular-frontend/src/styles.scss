@@ -79,12 +79,25 @@ mat-form-field.full {
   width: 100%;
 }
 
-.mat-form-field-appearance-outline.small .mat-form-field-infix {
-  padding: 0.5em 0 0.5em 0!important;
-}
-
-.mat-form-field-appearance-outline.small .mat-form-field-label-wrapper {
-  top: -1.1em;
+.mat-form-field-appearance-outline.small {
+  .mat-form-field-infix {
+    padding: 0 0 0.5em 0 !important;
+  }
+  .mat-form-field-label-wrapper {
+    top: -1em;
+  }
+  .mat-form-field-label.mat-empty {
+    margin-top: -0.8em;
+  }
+  .mat-select-arrow-wrapper{
+    padding-top: 10px;
+  }
+  .mat-select-trigger span{
+    font-size: 18px!important;
+  }
+  .mat-form-field-wrapper{
+    padding-bottom: 0;
+  }
 }
 
 button.large {
@@ -371,23 +384,23 @@ app-population .context-bar {
   height: calc(100vh - 120px);
 }
 
-.mat-button-base {
+.mat-button-dv.mat-button-base {
   text-transform: uppercase;
   padding: 0 4px !important;
   font-size: 16px;
   font-weight: bold;
-}
 
-.mat-button-base .mat-button-focus-overlay {
-  background-color: transparent!important;
-}
+  .mat-button-focus-overlay {
+    background-color: transparent!important;
+  }
 
-.mat-button-base:hover {
-  color: map-get($blue-palette, 900);
-}
+  :hover {
+    color: map-get($blue-palette, 900);
+  }
 
-.mat-button-base mat-icon {
-  margin: -2px 2px 0 0;
+  mat-icon {
+    margin: -2px 2px 0 0;
+  }
 }
 
 .cdk-overlay-pane.warning {
@@ -415,25 +428,40 @@ mat-icon.warning {
 .context-bar {
 
   mat-expansion-panel {
+    margin-top: -1px;
     box-shadow: none !important;
     padding: 0 !important;
     mat-expansion-panel-header {
       padding: 2px 18px !important;
       height: 68px!important;
     }
+    .mat-content {
+      border-top: 1px solid $primary;
+      border-bottom: 1px solid $primary;
+      transition: 0.4s ease-in border-bottom-color;
+    }
     mat-panel-title {
       padding: 5px 0;
       text-transform: uppercase;
       color: #00000061;
       align-items: center;
-      border-top: 1px solid $primary;
       height: 60px!important;
     }
+    .mat-expansion-indicator:after {
+      color: $primary;
+    }
+    .mat-expansion-indicator {
+      margin-left: -10px;
+    }
+/*    .mat-expansion-indicator {
+      height: 70px;
+      border-top: 1px solid $primary;
+    }*/
   }
 
-  mat-expansion-panel:not(.mat-expanded) {
-    mat-panel-title {
-      border-bottom: 1px solid $primary;
+  mat-expansion-panel.mat-expanded {
+    .mat-content {
+      border-bottom: 1px solid white;
     }
   }
 
@@ -450,5 +478,8 @@ mat-icon.warning {
     mat-panel-title {
       color: black;
     }
+  }
+  .mat-expansion-panel-body {
+    padding: 16px 16px 16px 40px;
   }
 }
