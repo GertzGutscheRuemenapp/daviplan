@@ -13,3 +13,4 @@ hypothesis[django]
 hypothesis_geometry
 hypothesis-geojson
 hypothesis-csv
+factory_boy

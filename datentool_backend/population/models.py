@@ -17,12 +17,12 @@ class Raster(models.Model):
     """a raster"""
     name = models.TextField()
     year = models.ForeignKey(Years, on_delete=models.RESTRICT)
-1
+
 
 class RasterCell(models.Model):
     """a raster cell"""
     raster = models.ForeignKey(Raster, on_delete=models.RESTRICT)
-    cellcode = models.TextField(validators=[MaxLengthValidator(12)])
+    cellcode = models.TextField(validators=[MaxLengthValidator(13)])
     value = models.FloatField()
 
 
