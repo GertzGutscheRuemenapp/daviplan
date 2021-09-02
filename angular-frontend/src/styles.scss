@@ -199,6 +199,18 @@ app-data-card td, app-dash-card td {
   padding: 3px 0;
 }
 
+.context-bar {
+  width: $context-bar-width;
+  background-color: white;
+  height: 100%;
+  box-shadow: 0px 5px 5px -1px rgb(0 0 0 / 20%), 0px 10px 10px 0px rgb(0 0 0 / 14%), 2px 18px 18px 0px rgb(0 0 0 / 12%);
+  padding-top: 10px;
+}
+
+.main-nav {
+  box-shadow: 0px 0px 5px 1px #a7a7a7!important;
+}
+
 .sub-nav {
   //background-color: #fafafa;
   background-color: white;
@@ -206,7 +218,7 @@ app-data-card td, app-dash-card td {
   //border-bottom: 1px solid #0000001F;
   height: 60px;
   //padding: 0!important;
-  box-shadow: 0px 0px 3px 2px #d9d9d9;
+  box-shadow: 0px 3px 5px -1px rgb(0 0 0 / 20%), 0px 6px 10px 0px rgb(0 0 0 / 14%), 0px 1px 18px 0px rgb(0 0 0 / 12%);
 }
 
 mat-sidenav-content {
@@ -329,6 +341,9 @@ button.mat-icon-button {
   .mat-button-wrapper{
     padding: 0;
   }
+  mat-icon {
+    margin: -3px 1px 0 0;
+  }
 }
 
 .mat-form-field-underline {
@@ -370,14 +385,6 @@ mat-select mat-icon, .mat-select-panel mat-icon, .mat-select-min-line mat-icon, 
 
 .mat-option:not(.mat-option-disabled):hover {
   background-color: $primary-light!important;
-}
-
-.context-bar {
-  width: $context-bar-width;
-  background-color: white;
-  height: 100%;
-  box-shadow: 2px 3px 3px 0px #d9d9d9;
-  padding-top: 10px;
 }
 
 app-population .context-bar {
@@ -481,5 +488,14 @@ mat-icon.warning {
   }
   .mat-expansion-panel-body {
     padding: 16px 16px 16px 40px;
+  }
+}
+
+mat-expansion-panel.side-toggle {
+  .mat-expansion-indicator:after {
+    transform: rotate(135deg);
+  }
+  .mat-expansion-panel-content {
+    display: none;
   }
 }

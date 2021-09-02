@@ -56,6 +56,7 @@ import { DragDirective } from './helpers/dragndrop.directive'
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MapControlsComponent } from './map/map-controls/map-controls.component';
 import { EcoFabSpeedDialModule } from "@ecodev/fab-speed-dial";
+import { ScenarioMenuComponent } from './pages/planning/scenario-menu/scenario-menu.component';
 
 @NgModule({
   declarations: [
@@ -85,7 +86,8 @@ import { EcoFabSpeedDialModule } from "@ecodev/fab-speed-dial";
     StackedBarchartComponent,
     MultilineChartComponent,
     DragDirective,
-    MapControlsComponent
+    MapControlsComponent,
+    ScenarioMenuComponent
   ],
   imports: [
     BrowserModule,
