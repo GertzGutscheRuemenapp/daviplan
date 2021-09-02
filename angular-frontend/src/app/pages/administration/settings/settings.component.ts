@@ -9,6 +9,7 @@ import { MatDialog } from "@angular/material/dialog";
 import '@ckeditor/ckeditor5-build-classic/build/translations/de';
 import * as ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import { FileHandle } from "../../../helpers/dragndrop.directive";
+import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog.component";
 
 @Component({
   selector: 'app-settings',
@@ -28,6 +29,7 @@ export class SettingsComponent implements AfterViewInit {
   @ViewChild('logoEdit') logoEdit!: InputCardComponent;
   @ViewChild('logoTemplate') logoTemplate!: TemplateRef<any>;
   @ViewChild('logoEditButton') logoEditButton!: HTMLElement;
+  @ViewChild('removeLogoTemplate') removeLogoTemplate!: TemplateRef<any>;
   settings?: SiteSettings;
   titleForm!: FormGroup;
   contactForm!: FormGroup;
@@ -186,8 +188,28 @@ export class SettingsComponent implements AfterViewInit {
   }
 
   removeLogo(): void {
-    this.http.patch<SiteSettings>(this.rest.URLS.settings, { logo: null }
-    ).subscribe( settings => this.settingsService.fetchSiteSettings() )
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: $localize`Das Logo wirklich entfernen?`,
+        confirmButtonText: $localize`Logo entfernen`,
+        template: this.removeLogoTemplate,
+        closeOnConfirm: true
+      },
+      panelClass: 'warning'
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed === true) {
+        this.http.patch<SiteSettings>(this.rest.URLS.settings, { logo: null }
+        ).subscribe( settings => this.settingsService.fetchSiteSettings() )
+      }
+    });
+  }
+
+  logoFileName(): string | undefined {
+    if (!this.settings?.logo) return;
+    let split = this.settings?.logo.split('/');
+    return split[split.length - 1];
   }
 
 }
