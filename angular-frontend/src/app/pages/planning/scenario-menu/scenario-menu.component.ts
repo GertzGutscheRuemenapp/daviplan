@@ -7,6 +7,8 @@ import { Component, OnInit } from '@angular/core';
 })
 export class ScenarioMenuComponent implements OnInit {
 
+  scenarios: string[] = ['Szenario 1', 'Szenario 2']
+
   constructor() { }
 
   ngOnInit(): void {

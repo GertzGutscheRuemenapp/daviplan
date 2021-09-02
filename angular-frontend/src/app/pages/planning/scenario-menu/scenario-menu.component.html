@@ -1,6 +1,11 @@
 <div>
   <div id="scenario-menu">
-
+    <div class="scenario-card">
+      Status Quo Fortschreibung
+    </div>
+    <div *ngFor="let scenario of scenarios" class="scenario-card">
+      {{ scenario }}
+    </div>
   </div>
   <div id="scenario-arrow">
     &#9664;
