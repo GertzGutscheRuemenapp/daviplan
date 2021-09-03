@@ -18,7 +18,7 @@
 #process-select {
   width: calc(#{$context-bar-width} - 36px);
   padding: 0 18px 0 18px;
-  //border-bottom: 1px solid $primary;
+  height: 90px;
 }
 
 #process-select mat-form-field {
@@ -37,4 +37,39 @@ mat-toolbar mat-form-field {
 
 .sub-nav {
   padding: 0;
+}
+
+
+::ng-deep #process-select {
+  .mat-select-value span {
+    color: $accent;
+  }
+  .mat-select:not(.mat-select-empty) .mat-select-arrow {
+    margin-top: 22px;
+  }
+  .mat-form-field-underline {
+     display: none!important;
+  }
+}
+
+.mat-option.selected, .mat-selected span {
+  color: $accent;
+}
+
+//::ng-deep .mat-select-min-line, .mat-select-trigger span, .mat-option.selected, .mat-selected, .mat-option-text {
+//    color: $accent;
+//  }
+
+
+::ng-deep #scenario-toggle.mat-expanded {
+  mat-expansion-panel-header {
+    background-color: $primary !important;
+  }
+  .mat-content {
+    padding-bottom: 1px;
+    border-bottom: none;
+  }
+  mat-panel-title, .mat-expansion-indicator:after {
+    color: white;
+  }
 }

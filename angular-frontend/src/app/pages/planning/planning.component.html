@@ -14,32 +14,29 @@
         <mat-select-trigger>
           <span *ngIf="activeProject">
             {{ activeProject.name }}
-<!--            <mat-icon *ngIf="activeProject.shared">people</mat-icon>
-            <mat-icon *ngIf="!activeProject.shared">person</mat-icon>
-            <mat-icon *ngIf="activeProject.editable === false">edit_off</mat-icon>-->
           </span>
         </mat-select-trigger>
         <mat-option *ngIf="activeProject" disabled class="selected">
           {{ activeProject.name }}
-          <mat-icon *ngIf="activeProject.shared">people</mat-icon>
-          <mat-icon *ngIf="!activeProject.shared">person</mat-icon>
-          <mat-icon *ngIf="activeProject.editable === false">edit_off</mat-icon>
-          <i *ngIf="activeProject.user" style="font-size: 12px">({{ activeProject.user }})</i>
+          <mat-icon *ngIf="activeProject.shared">share</mat-icon>
+<!--          <mat-icon *ngIf="!activeProject.shared">person</mat-icon>-->
+          <mat-icon *ngIf="activeProject.editable === false" class="material-icons-outlined" style="color: red;">cancel</mat-icon>
+          <i *ngIf="activeProject.user" style="font-size: 12px; margin-left: 3px;">({{ activeProject.user }})</i>
         </mat-option>
         <mat-optgroup label="Meine Projekte">
           <mat-option *ngFor="let project of myProjects" [value]="project.id">
             {{ project.name }}
-            <mat-icon *ngIf="!project.shared">person</mat-icon>
-            <mat-icon *ngIf="project.shared">people</mat-icon>
+<!--            <mat-icon *ngIf="!project.shared">person</mat-icon>-->
+            <mat-icon *ngIf="project.shared">share</mat-icon>
           </mat-option>
           <mat-option title="Prozess hinzufügen"><mat-icon style="font-size: 1.2em;">add</mat-icon></mat-option>
         </mat-optgroup>
         <mat-optgroup *ngIf="sharedProjects" label="Geteilte Projekte">
           <mat-option *ngFor="let project of sharedProjects" [value]="project.id">
             {{ project.name }}
-            <mat-icon>people</mat-icon>
-            <mat-icon *ngIf="project.editable === false">edit_off</mat-icon>
-            <i style="font-size: 12px">({{ project.user }})</i>
+            <mat-icon>share</mat-icon>
+            <mat-icon *ngIf="project.editable === false" class="material-icons-outlined" style="color: red;">cancel</mat-icon>
+            <i style="font-size: 12px; margin-left: 3px;">({{ project.user }})</i>
           </mat-option>
         </mat-optgroup>
       </mat-select>
@@ -55,5 +52,18 @@
 </mat-toolbar>
 <div id="planning-map" class="map-container"></div>
 <app-map-controls style="position: absolute; right: 100px; top: 100px;"></app-map-controls>
-<router-outlet>
-</router-outlet>
+<app-scenario-menu style="position: absolute; top: 90px; z-index: -1;" [style.left]="showScenarioMenu? '370px': '-200px'"></app-scenario-menu>
+<div class="context-bar">
+  <mat-expansion-panel id="scenario-toggle" class="side-toggle">
+    <mat-expansion-panel-header (click)="toggleScenarioMenu()">
+      <mat-panel-title>
+        <div class="mini-fab-icon">
+          <mat-icon class="material-icons-outlined">sick</mat-icon>
+        </div>
+        Szenario
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+  </mat-expansion-panel>
+  <router-outlet>
+  </router-outlet>
+</div>
