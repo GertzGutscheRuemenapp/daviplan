@@ -8,14 +8,9 @@ import { FormControl } from "@angular/forms";
 })
 export class SupplyComponent implements OnInit{
   activeInfrastructure: string = '';
+
   constructor() {}
-  showScenarioMenu: boolean = false;
 
   ngOnInit(): void {
-  }
-
-  toggleScenarioMenu(): void{
-    this.showScenarioMenu = !this.showScenarioMenu;
-    console.log(this.showScenarioMenu)
   }
 }

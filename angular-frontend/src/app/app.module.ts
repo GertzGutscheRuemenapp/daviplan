@@ -57,6 +57,7 @@ import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MapControlsComponent } from './map/map-controls/map-controls.component';
 import { EcoFabSpeedDialModule } from "@ecodev/fab-speed-dial";
 import { ScenarioMenuComponent } from './pages/planning/scenario-menu/scenario-menu.component';
+import { MatRadioModule } from "@angular/material/radio";
 
 @NgModule({
   declarations: [
@@ -89,38 +90,39 @@ import { ScenarioMenuComponent } from './pages/planning/scenario-menu/scenario-m
     MapControlsComponent,
     ScenarioMenuComponent
   ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    FlexLayoutModule,
-    HttpClientModule,
-    FormsModule,
-    BrowserAnimationsModule,
-    LayoutModule,
-    MatToolbarModule,
-    MatButtonModule,
-    MatSidenavModule,
-    MatIconModule,
-    MatListModule,
-    MatGridListModule,
-    MatCardModule,
-    MatMenuModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatProgressSpinnerModule,
-    ReactiveFormsModule,
-    MatInputModule,
-    MatCheckboxModule,
-    MatSelectModule,
-    MatExpansionModule,
-    MatSliderModule,
-    ColorPickerModule,
-    MaterialFileInputModule,
-    FontAwesomeModule,
-    CKEditorModule,
-    MatSlideToggleModule,
-    EcoFabSpeedDialModule
-  ],
+    imports: [
+        BrowserModule,
+        AppRoutingModule,
+        FlexLayoutModule,
+        HttpClientModule,
+        FormsModule,
+        BrowserAnimationsModule,
+        LayoutModule,
+        MatToolbarModule,
+        MatButtonModule,
+        MatSidenavModule,
+        MatIconModule,
+        MatListModule,
+        MatGridListModule,
+        MatCardModule,
+        MatMenuModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatProgressSpinnerModule,
+        ReactiveFormsModule,
+        MatInputModule,
+        MatCheckboxModule,
+        MatSelectModule,
+        MatExpansionModule,
+        MatSliderModule,
+        ColorPickerModule,
+        MaterialFileInputModule,
+        FontAwesomeModule,
+        CKEditorModule,
+        MatSlideToggleModule,
+        EcoFabSpeedDialModule,
+        MatRadioModule
+    ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true }
   ],

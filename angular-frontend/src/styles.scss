@@ -58,7 +58,7 @@ body {
   padding-bottom: 1em;
 }
 
-mat-form-field.mat-focused .mat-form-field-flex{
+.mat-form-field-appearance-fill.mat-focused .mat-form-field-flex{
   box-shadow: inset 0px -1px 0px 0px #2196f3;
 }
 
@@ -200,6 +200,7 @@ app-data-card td, app-dash-card td {
 }
 
 .context-bar {
+  position: relative;
   width: $context-bar-width;
   background-color: white;
   height: 100%;
@@ -212,12 +213,9 @@ app-data-card td, app-dash-card td {
 }
 
 .sub-nav {
-  //background-color: #fafafa;
   background-color: white;
   display: flex;
-  //border-bottom: 1px solid #0000001F;
   height: 60px;
-  //padding: 0!important;
   box-shadow: 0px 3px 5px -1px rgb(0 0 0 / 20%), 0px 6px 10px 0px rgb(0 0 0 / 14%), 0px 1px 18px 0px rgb(0 0 0 / 12%);
 }
 
@@ -236,8 +234,8 @@ mat-sidenav-content {
   color: #00000099;
   text-decoration: none;
   padding: 0 25px;
-  height: calc(100% - 3px);
-  margin-top: 3px;
+  //height: calc(100% - 3px);
+  //margin-top: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -350,9 +348,9 @@ button.mat-icon-button {
   display: none;
 }
 
-.mat-select-min-line, .mat-select-trigger span, mat-option.selected {
-  font-size: 20px!important;
-  color: $accent!important;
+.mat-select-min-line, .mat-select-trigger span, .mat-option.selected {
+  font-size: 20px !important;
+  color: $primary;
 }
 
 mat-option.selected {
@@ -360,31 +358,27 @@ mat-option.selected {
 }
 
 .mat-select-panel {
-  max-height: 50vh!important;
+  max-height: 50vh !important;
   margin-top: -10px;
 }
 
 mat-select mat-icon, .mat-select-panel mat-icon, .mat-select-min-line mat-icon, .mat-select-trigger mat-icon,  {
-  font-size: 12px!important;
-  vertical-align: baseline!important;;
-  margin: 0 3px!important;
+  font-size: 12px !important;
+  vertical-align: baseline !important;;
+  margin: 0 1px !important;
   width: 10px;
 }
 
 .no-shadow {
-  box-shadow: none!important;
+  box-shadow: none !important;
 }
 
 .mat-select-panel .mat-focus-indicator {
-  background-color: white!important;
-}
-
-.mat-selected {
-  color: $accent!important;
+  background-color: white !important;
 }
 
 .mat-option:not(.mat-option-disabled):hover {
-  background-color: $primary-light!important;
+  background-color: $primary-light !important;
 }
 
 app-population .context-bar {
