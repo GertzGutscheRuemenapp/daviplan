@@ -52,7 +52,7 @@
 </mat-toolbar>
 <div id="planning-map" class="map-container"></div>
 <app-map-controls style="position: absolute; right: 100px; top: 100px;"></app-map-controls>
-<app-scenario-menu style="position: absolute; top: 90px; z-index: -1;" [style.left]="showScenarioMenu? '370px': '-200px'"></app-scenario-menu>
+<app-scenario-menu [ngClass]="{'expanded' : showScenarioMenu}"></app-scenario-menu>
 <div class="context-bar">
   <mat-expansion-panel id="scenario-toggle" class="side-toggle">
     <mat-expansion-panel-header (click)="toggleScenarioMenu()">

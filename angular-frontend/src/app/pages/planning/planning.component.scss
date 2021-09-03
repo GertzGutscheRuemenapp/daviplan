@@ -73,3 +73,15 @@ mat-toolbar mat-form-field {
     color: white;
   }
 }
+
+app-scenario-menu {
+  position: absolute;
+  top: 90px;
+  //left: calc(#{$context-bar-width} - 100% - 100px);
+  left: calc(#{$context-bar-width} - 700px);
+  transition: 0.3s ease-out left;
+}
+
+app-scenario-menu.expanded {
+  left: $context-bar-width;
+}
