@@ -1,3 +1,62 @@
-<div class="context-bar">
-
-</div>
+<mat-expansion-panel>
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <div class="mini-fab-icon">
+        <mat-icon class="material-icons-outlined">sick</mat-icon>
+      </div>
+      Leistung
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  <mat-form-field appearance="outline" class="small">
+    <mat-label>Leistung</mat-label>
+    <mat-select disableOptionCentering value="Kinderbetreuung">
+      <mat-option value="Kinderbetreuung">
+        Kinderbetreuung
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <ul style="list-style-type: none; margin: 0 -10px;">
+    <mat-radio-group>
+      <li><mat-radio-button value="1" color="primary" [checked]="true">Kita</mat-radio-button></li>
+      <li><mat-radio-button value="2" color="primary" [checked]="false">Krippe</mat-radio-button></li>
+    </mat-radio-group>
+  </ul>
+</mat-expansion-panel>
+<mat-expansion-panel>
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <div class="mini-fab-icon">
+        <mat-icon class="material-icons-outlined">sick</mat-icon>
+      </div>
+      Gebietseinheit
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  <mat-form-field appearance="outline" class="small">
+    <mat-label>Gebietseinheit</mat-label>
+    <mat-select disableOptionCentering value="Gemeinden">
+      <mat-option value="Bundesländer">
+        Bundesländer
+      </mat-option>
+      <mat-option value="Kreise">
+        Kreise
+      </mat-option>
+      <mat-option value="Verwaltungsgemeinschaften">
+        Verwaltungsgemeinschaften
+      </mat-option>
+      <mat-option value="Gemeinden">
+        Gemeinden
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</mat-expansion-panel>
+<mat-expansion-panel>
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <div class="mini-fab-icon">
+        <mat-icon class="material-icons-outlined">sick</mat-icon>
+      </div>
+      Vergleichsdarstellung
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  ToDo
+</mat-expansion-panel>
