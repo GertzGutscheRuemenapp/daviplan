@@ -1,13 +1,15 @@
 <div>
   <div id="scenario-menu">
-    <div class="scenario-card">
+    <div #scenario class="scenario-card active" [attr.data-value]="'Status Quo'"
+         (click)="toggleScenario($event)">
       <div class="scenario-card-header">
         Status Quo Fortschreibung
       </div>
       <div class="scenario-card-body">
       </div>
     </div>
-    <div *ngFor="let scenario of scenarios" class="scenario-card">
+    <div #scenario *ngFor="let scenario of scenarios" [attr.data-value]="scenario"
+         (click)="toggleScenario($event)" class="scenario-card">
       <div class="scenario-card-header">
         {{ scenario }}
       </div>
