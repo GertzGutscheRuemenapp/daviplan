@@ -2,7 +2,7 @@ import numpy as np
 from django.test import TestCase
 from .models import PrognosisEntry, Years
 from .factories import (RasterCellFactory, AgeGroupFactory, AgeClassificationFactory,
-                        GenderFactory,
+                        GenderFactory, PopulationFactory,
                         DisaggPopRasterFactory, RasterPopulationCellFactory,
                         PrognosisEntryFactory, AreaFactory, PrognosisFactory,
                         PopStatEntryFactory)
@@ -62,3 +62,8 @@ class TestPopulation(TestCase):
     def test_popstatistic(self):
         ps = PopStatEntryFactory()
         print(ps.area.attributes)
+
+    def test_population(self):
+        pop = PopulationFactory(genders=self.genders)
+        self.assertQuerysetEqual(
+            pop.genders.all(), self.genders, ordered=False)

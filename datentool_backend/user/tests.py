@@ -1,5 +1,5 @@
 from django.test import TestCase
-from .factories import (ProfileFactory)
+from .factories import (ProfileFactory, UserFactory, User)
 
 
 class TestProfile(TestCase):
@@ -9,4 +9,13 @@ class TestProfile(TestCase):
         cls.profile = ProfileFactory()
 
     def test_profile(self):
-         profile = self.profile
+        profile = self.profile
+
+    def test_user(self):
+        user = UserFactory()
+        self.assertTrue(user.profile)
+        user.profile.admin_access = False
+        user.save()
+
+        user2 = User.objects.create(username='Test')
+        self.assertTrue(user2.profile.pk)

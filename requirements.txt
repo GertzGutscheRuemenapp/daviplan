@@ -15,3 +15,4 @@ hypothesis-geojson
 hypothesis-csv
 factory_boy
 django-bulkmodel
+coverage
