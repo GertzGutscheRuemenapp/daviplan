@@ -11,13 +11,14 @@
   height: calc(100% - 120px);
   // leave space for planning context bars
   width: calc(100% - #{$context-bar-width});
-  padding: 3px 0 0 calc(#{$context-bar-width} + 3px);
+  padding-left: calc(#{$context-bar-width});
+  z-index: -1;
 }
 
 #process-select {
   width: calc(#{$context-bar-width} - 36px);
   padding: 0 18px 0 18px;
-  //border-bottom: 1px solid $primary;
+  height: 90px;
 }
 
 #process-select mat-form-field {
@@ -36,4 +37,51 @@ mat-toolbar mat-form-field {
 
 .sub-nav {
   padding: 0;
+}
+
+
+::ng-deep #process-select {
+  .mat-select-value span {
+    color: $accent;
+  }
+  .mat-select:not(.mat-select-empty) .mat-select-arrow {
+    margin-top: 22px;
+  }
+  .mat-form-field-underline {
+     display: none!important;
+  }
+}
+
+.mat-option.selected, .mat-selected span {
+  color: $accent;
+}
+
+//::ng-deep .mat-select-min-line, .mat-select-trigger span, .mat-option.selected, .mat-selected, .mat-option-text {
+//    color: $accent;
+//  }
+
+
+::ng-deep #scenario-toggle.mat-expanded {
+  mat-expansion-panel-header {
+    background-color: $primary !important;
+  }
+  .mat-content {
+    padding-bottom: 1px;
+    border-bottom: none;
+  }
+  mat-panel-title, .mat-expansion-indicator:after {
+    color: white;
+  }
+}
+
+app-scenario-menu {
+  position: absolute;
+  top: 90px;
+  //left: calc(#{$context-bar-width} - 100% - 100px);
+  left: calc(#{$context-bar-width} - 700px);
+  transition: 0.3s ease-out left;
+}
+
+app-scenario-menu.expanded {
+  left: $context-bar-width;
 }

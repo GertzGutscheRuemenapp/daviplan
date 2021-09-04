@@ -54,6 +54,10 @@ import { MultilineChartComponent } from './diagrams/multiline-chart/multiline-ch
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { DragDirective } from './helpers/dragndrop.directive'
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
+import { MapControlsComponent } from './map/map-controls/map-controls.component';
+import { EcoFabSpeedDialModule } from "@ecodev/fab-speed-dial";
+import { ScenarioMenuComponent } from './pages/planning/scenario-menu/scenario-menu.component';
+import { MatRadioModule } from "@angular/material/radio";
 
 @NgModule({
   declarations: [
@@ -82,7 +86,9 @@ import { MatSlideToggleModule } from "@angular/material/slide-toggle";
     LogComponent,
     StackedBarchartComponent,
     MultilineChartComponent,
-    DragDirective
+    DragDirective,
+    MapControlsComponent,
+    ScenarioMenuComponent
   ],
     imports: [
         BrowserModule,
@@ -113,7 +119,9 @@ import { MatSlideToggleModule } from "@angular/material/slide-toggle";
         MaterialFileInputModule,
         FontAwesomeModule,
         CKEditorModule,
-        MatSlideToggleModule
+        MatSlideToggleModule,
+        EcoFabSpeedDialModule,
+        MatRadioModule
     ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true }

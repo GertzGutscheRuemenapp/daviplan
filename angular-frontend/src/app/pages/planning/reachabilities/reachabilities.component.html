@@ -1,35 +1,44 @@
-<div class="grid-container">
-  <mat-grid-list cols='12' rowHeight='200px'>
-    <mat-grid-tile colspan='2'>
-      <app-dash-card title='Nachfrage nach Leistung'> </app-dash-card>
-    </mat-grid-tile>
-    <mat-grid-tile colspan='8'>
-      <app-dash-card title='Szenarioauswahl'> </app-dash-card>
-    </mat-grid-tile>
-    <mat-grid-tile colspan='2' class="right">
-      <app-dash-card title='Kartenkontrollen'> </app-dash-card>
-    </mat-grid-tile>
-  </mat-grid-list>
-  <mat-grid-list cols='12' rowHeight='100px'>
-    <mat-grid-tile colspan='2'>
-      <app-dash-card title='Leistungen'> </app-dash-card>
-    </mat-grid-tile>
-  </mat-grid-list>
-  <mat-grid-list cols='12' rowHeight='100px'>
-    <mat-grid-tile  colspan='2'>
-      <app-dash-card title='Auswahltool'> </app-dash-card>
-    </mat-grid-tile>
-  </mat-grid-list>
-  <mat-grid-list cols='12' rowHeight='200px' class="bottom">
-    <mat-grid-tile colspan='2' class="bottom">
-      <app-dash-card title='Layer'>
-        <app-layer-select target="planning-map"></app-layer-select>
-      </app-dash-card>
-    </mat-grid-tile>
-    <mat-grid-tile colspan='8'>
-    </mat-grid-tile>
-    <mat-grid-tile colspan='2' class="bottom right">
-      <app-dash-card title='Legende'> </app-dash-card>
-    </mat-grid-tile>
-  </mat-grid-list>
-</div>
+<mat-expansion-panel>
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <div class="mini-fab-icon">
+        <mat-icon class="material-icons-outlined">sick</mat-icon>
+      </div>
+      Infrastruktur und Leistungen
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  <div style="padding-bottom: 10px; border-bottom: 1px solid lightgrey;">
+    <mat-form-field appearance="outline" class="small">
+      <mat-label>Infrastruktur</mat-label>
+      <mat-select disableOptionCentering value="Kinderbetreuung"><!-- [value]="activeInfrastructure">-->
+        <mat-option value="Kinderbetreuung">
+          Kinderbetreuung
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <ul style="list-style-type: none; margin: 0 -10px;">
+      <li><mat-checkbox color="primary">Kita</mat-checkbox></li>
+      <li><mat-checkbox color="primary">Krippe</mat-checkbox></li>
+    </ul>
+  </div>
+  <div>
+    <ul style="list-style-type: none; margin: 10px 0 10px -20px;">
+      <li><button mat-stroked-button color="primary" style="margin-bottom: 10px;">
+        <mat-icon>zoom_out_map</mat-icon> Zoom auf alle
+      </button></li>
+      <li><mat-slide-toggle color="primary">Cluster</mat-slide-toggle></li>
+      <li><mat-slide-toggle color="primary">Verdrängung</mat-slide-toggle></li>
+    </ul>
+  </div>
+</mat-expansion-panel>
+<mat-expansion-panel>
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <div class="mini-fab-icon">
+        <mat-icon class="material-icons-outlined">sick</mat-icon>
+      </div>
+      Verkehrsmittel und Wegezeiten
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  ToDo
+</mat-expansion-panel>

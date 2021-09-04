@@ -1,53 +1,44 @@
-<div class="context-bar">
-  <mat-expansion-panel>
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        <div class="mini-fab-icon">
-          <mat-icon>memory</mat-icon>
-        </div>
-        Leistungen
-      </mat-panel-title>
-    </mat-expansion-panel-header>
-
+<mat-expansion-panel>
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <div class="mini-fab-icon">
+        <mat-icon class="material-icons-outlined">sick</mat-icon>
+      </div>
+      Infrastruktur und Leistungen
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  <div style="padding-bottom: 10px; border-bottom: 1px solid lightgrey;">
     <mat-form-field appearance="outline" class="small">
       <mat-label>Infrastruktur</mat-label>
-      <mat-select disableOptionCentering [value]="activeInfrastructure">
+      <mat-select disableOptionCentering value="Kinderbetreuung"><!-- [value]="activeInfrastructure">-->
         <mat-option value="Kinderbetreuung">
           Kinderbetreuung
         </mat-option>
       </mat-select>
     </mat-form-field>
-    <br>
-    <mat-checkbox>Kita</mat-checkbox>
-    <br>
-    <mat-checkbox>Krippe</mat-checkbox>
-    <br>
-    <mat-slide-toggle>Cluster</mat-slide-toggle>
-    <br>
-    <mat-slide-toggle>Verdrängung</mat-slide-toggle>
-    <br>
-    <button mat-button>Zoom auf alle</button>
-  </mat-expansion-panel>
-  <mat-expansion-panel>
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        <div class="mini-fab-icon">
-          <mat-icon>memory</mat-icon>
-        </div>
-        Darstellung
-      </mat-panel-title>
-    </mat-expansion-panel-header>
-    ToDo
-  </mat-expansion-panel>
-  <mat-expansion-panel>
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        <div class="mini-fab-icon">
-          <mat-icon>memory</mat-icon>
-        </div>
-        Karteninformationen
-      </mat-panel-title>
-    </mat-expansion-panel-header>
-    ToDo
-  </mat-expansion-panel>
-</div>
+    <ul style="list-style-type: none; margin: 0 -10px;">
+      <li><mat-checkbox color="primary">Kita</mat-checkbox></li>
+      <li><mat-checkbox color="primary">Krippe</mat-checkbox></li>
+    </ul>
+  </div>
+  <div>
+    <ul style="list-style-type: none; margin: 10px 0 10px -20px;">
+      <li><button mat-stroked-button color="primary" style="margin-bottom: 10px;">
+        <mat-icon>zoom_out_map</mat-icon> Zoom auf alle
+      </button></li>
+      <li><mat-slide-toggle color="primary">Cluster</mat-slide-toggle></li>
+      <li><mat-slide-toggle color="primary">Verdrängung</mat-slide-toggle></li>
+    </ul>
+  </div>
+</mat-expansion-panel>
+<mat-expansion-panel>
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <div class="mini-fab-icon">
+        <mat-icon class="material-icons-outlined">sick</mat-icon>
+      </div>
+      Vergleichsdarstellung
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  ToDo
+</mat-expansion-panel>

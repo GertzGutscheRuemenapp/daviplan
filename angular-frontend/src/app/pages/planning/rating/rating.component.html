@@ -1,51 +1,49 @@
-<div class="grid-container">
-  <mat-grid-list cols='12' rowHeight='200px'>
-    <mat-grid-tile colspan='2'>
-    </mat-grid-tile>
-    <mat-grid-tile colspan='8'>
-      <app-dash-card title='Szenarioauswahl'> </app-dash-card>
-    </mat-grid-tile>
-    <mat-grid-tile colspan='2' class="right">
-      <app-dash-card title='Kartenkontrollen'> </app-dash-card>
-    </mat-grid-tile>
-  </mat-grid-list>
-  <mat-grid-list cols='12' rowHeight='200px'>
-    <mat-grid-tile  colspan='2'>
-      <app-dash-card title='Bewertungsindikator'> </app-dash-card>
-    </mat-grid-tile>
-  </mat-grid-list>
-  <mat-grid-list cols='12' rowHeight='100px'>
-    <mat-grid-tile colspan='2'>
-      <app-dash-card title='Darstellung'> </app-dash-card>
-    </mat-grid-tile>
-  </mat-grid-list>
-  <mat-grid-list cols='12' rowHeight='200px'>
-    <mat-grid-tile colspan='2'>
-      <app-dash-card title='Diagrammvorschau'> </app-dash-card>
-    </mat-grid-tile>
-  </mat-grid-list>
-  <mat-grid-list cols='12' rowHeight='200px' class="bottom">
-    <mat-grid-tile colspan='2' class="bottom">
-      <app-dash-card title='Layer'>
-        <app-layer-select target="planning-map"></app-layer-select>
-      </app-dash-card>
-    </mat-grid-tile>
-    <mat-grid-tile colspan='8' class="bottom center">
-      <app-dash-card title='Timeslider'>
-        <mat-slider
-          thumbLabel
-          tickInterval="1"
-          step="1"
-          min="1990"
-          max="2100"
-          aria-label="units"
-          style="width: 50em;"
-        >
-        </mat-slider>
-      </app-dash-card>
-    </mat-grid-tile>
-    <mat-grid-tile colspan='2' class="bottom right">
-      <app-dash-card title='Legende'> </app-dash-card>
-    </mat-grid-tile>
-  </mat-grid-list>
-</div>
+<mat-expansion-panel>
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <div class="mini-fab-icon">
+        <mat-icon class="material-icons-outlined">sick</mat-icon>
+      </div>
+      Indikator
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  ToDo
+</mat-expansion-panel>
+<mat-expansion-panel>
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <div class="mini-fab-icon">
+        <mat-icon class="material-icons-outlined">sick</mat-icon>
+      </div>
+      Gebietseinheit
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  <mat-form-field appearance="outline" class="small">
+    <mat-label>Gebietseinheit</mat-label>
+    <mat-select disableOptionCentering value="Gemeinden">
+      <mat-option value="Bundesländer">
+        Bundesländer
+      </mat-option>
+      <mat-option value="Kreise">
+        Kreise
+      </mat-option>
+      <mat-option value="Verwaltungsgemeinschaften">
+        Verwaltungsgemeinschaften
+      </mat-option>
+      <mat-option value="Gemeinden">
+        Gemeinden
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</mat-expansion-panel>
+<mat-expansion-panel>
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <div class="mini-fab-icon">
+        <mat-icon class="material-icons-outlined">sick</mat-icon>
+      </div>
+      Vergleichsdarstellung
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  ToDo
+</mat-expansion-panel>

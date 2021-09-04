@@ -34,6 +34,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   sharedProjects: Project[] = mockSharedProjects;
   activeProject?: Project;
   processForm = new FormControl();
+  showScenarioMenu: boolean = false;
 
   constructor(private renderer: Renderer2, private elRef: ElementRef, private mapService: MapService) {  }
 
@@ -55,5 +56,9 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
 
   getProject(id: number): Project {
     return this.myProjects.concat(this.sharedProjects).filter(project => project.id === id)[0];
+  }
+
+  toggleScenarioMenu(): void{
+    this.showScenarioMenu = !this.showScenarioMenu;
   }
 }

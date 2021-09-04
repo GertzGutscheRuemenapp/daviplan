@@ -1,0 +1,38 @@
+<div>
+  <div id="scenario-menu">
+    <div #scenario class="scenario-card active" [attr.data-value]="'Status Quo'"
+         (click)="toggleScenario($event)">
+      <div class="scenario-card-header">
+        Status Quo Fortschreibung
+      </div>
+      <div class="scenario-card-body">
+      </div>
+    </div>
+    <div #scenario *ngFor="let scenario of scenarios" [attr.data-value]="scenario"
+         (click)="toggleScenario($event)" class="scenario-card">
+      <div class="scenario-card-header">
+        {{ scenario }}
+      </div>
+      <div class="scenario-card-body">
+        Hier stehen irgendwelche Eigenschaften des Szenarios
+      </div>
+    </div>
+    <div id="scenario-controls">
+      <button mat-button color="primary"
+              class="mat-button-dv">
+        <mat-icon>edit</mat-icon>
+      </button>
+      <button mat-button color="primary"
+              class="mat-button-dv">
+        <mat-icon>add</mat-icon>
+      </button>
+      <button mat-button color="primary"
+              class="mat-button-dv">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+  <div id="scenario-arrow">
+    &#9664;
+  </div>
+</div>
