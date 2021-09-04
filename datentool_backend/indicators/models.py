@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib.gis.db import models as gis_models
 from ..infrastructure.models import Service
 from ..population.models import RasterCell
 

@@ -2,9 +2,6 @@ from django.db import models
 from django.core.validators import (MaxLengthValidator,
                                     MinValueValidator, MaxValueValidator)
 
-from django.contrib.gis.db import models as gis_models
-from ..user.models import Profile
-from ..infrastructure.models import Infrastructure, Service
 from ..area.models import AreaLevel, Area
 from bulkmodel.models import BulkModel
 

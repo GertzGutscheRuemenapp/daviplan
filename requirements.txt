@@ -2,7 +2,7 @@ django==3.*
 django-cors-headers==3.*
 psycopg2==2.*
 numpy
-djangorestframework
+django-rest-framework
 markdown
 django-filter
 djangorestframework-simplejwt
@@ -12,3 +12,5 @@ django-cleanup
 factory_boy
 django-bulkmodel
 coverage
+django-test-plus
+djangorestframework-gis

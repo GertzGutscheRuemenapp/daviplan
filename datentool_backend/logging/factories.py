@@ -2,7 +2,7 @@ from faker import Faker
 import factory
 from factory.django import DjangoModelFactory, mute_signals
 from django.db.models.signals import post_save
-from .models import (CapacityUploadLog, PlaceUploadLog, AreaUploadLog, LogEntry)
+from .models import (CapacityUploadLog, PlaceUploadLog, AreaUploadLog)
 
 from ..user.factories import ProfileFactory
 from ..infrastructure.factories import ServiceFactory, InfrastructureFactory

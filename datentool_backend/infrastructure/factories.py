@@ -1,5 +1,4 @@
 from faker import Faker
-from faker.generator import Generator
 import factory
 from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import Point

@@ -7,7 +7,7 @@ from .factories import (InfrastructureFactory, ServiceFactory, CapacityFactory,
 class TestInfrastructure(TestCase):
 
     def test_service(self):
-         service = ServiceFactory()
+        service = ServiceFactory()
 
     def test_infrastructure(self):
         """"""

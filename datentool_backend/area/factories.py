@@ -1,5 +1,4 @@
-from faker import Factory, Faker
-from faker.generator import Generator
+from faker import Faker
 import factory
 from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import Point
@@ -33,7 +32,7 @@ class LayerGroupFactory(DjangoModelFactory):
         django_get_or_create = ('order',)
 
     name = faker.word()
-    order = faker.pyint(max_value=10)
+    order = factory.Sequence(lambda n: faker.pyint(max_value=10))
 
 
 class LayerFactory(DjangoModelFactory):
