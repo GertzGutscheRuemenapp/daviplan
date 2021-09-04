@@ -6,7 +6,6 @@ from django.contrib.gis.geos import Point
 from .models import (SymbolForm, MapSymbols, LayerGroup, Layer,
                      WMSLayer, InternalWFSLayer, SourceTypes, Source,
                      AreaLevel, Area)
-from ..user.factories import ProfileFactory
 
 
 faker = Faker('de-DE')

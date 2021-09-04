@@ -1,4 +1,5 @@
 import factory
+from factory.django import DjangoModelFactory, mute_signals
 from faker import Faker
 
 from .models import User, Profile, post_save
@@ -7,8 +8,8 @@ from .models import User, Profile, post_save
 faker = Faker('de-DE')
 
 
-@factory.django.mute_signals(post_save)
-class ProfileFactory(factory.django.DjangoModelFactory):
+@mute_signals(post_save)
+class ProfileFactory(DjangoModelFactory):
     class Meta:
         model = Profile
 
@@ -20,8 +21,8 @@ class ProfileFactory(factory.django.DjangoModelFactory):
     user = factory.SubFactory('datentool_backend.factories.UserFactory', profile=None)
 
 
-@factory.django.mute_signals(post_save)
-class UserFactory(factory.django.DjangoModelFactory):
+@mute_signals(post_save)
+class UserFactory(DjangoModelFactory):
     class Meta:
         model = User
 

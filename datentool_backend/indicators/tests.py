@@ -5,15 +5,14 @@ from .factories import (ModeVariantFactory, RouterFactory,
 
 class TestIndicator(TestCase):
 
-    @classmethod
-    def setUpTestData(cls):
-        cls.mode_variant = ModeVariantFactory()
-        cls.router = RouterFactory()
-        cls.indicator = IndicatorFactory()
-        cls.matrix = ReachabilityMatrixFactory()
-
     def test_mode_variant(self):
-         mode_variant = self.mode_variant
+        mode_variant = ModeVariantFactory()
 
     def test_router(self):
-        router = self.router
+        router = RouterFactory()
+
+    def test_indicator(self):
+        indicator = IndicatorFactory()
+
+    def test_matrix(self):
+        matrix = ReachabilityMatrixFactory()

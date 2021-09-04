@@ -5,7 +5,6 @@ from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import Point
 from .models import (Infrastructure, Quota, Service, Place,
                      Capacity, FieldTypes, FieldType, FClass, PlaceField)
-from ..user.factories import ProfileFactory
 from ..area.factories import InternalWFSLayerFactory, MapSymbolsFactory
 
 faker = Faker('de-DE')

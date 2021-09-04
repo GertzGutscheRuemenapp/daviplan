@@ -1,4 +1,4 @@
-from faker import Factory, Generator
+from faker import Faker
 import factory
 from factory.django import DjangoModelFactory
 from .models import (Modes, ModeVariant, Router,
@@ -8,13 +8,14 @@ from ..population.factories import RasterCellFactory
 from ..infrastructure.factories import ServiceFactory
 
 
-faker = Factory.create() # factory.generator.Generator
+faker = Faker('de-DE')
+
 
 class ModeFactory(DjangoModelFactory):
     class Meta:
         model = Modes
 
-    name = faker.name()
+    name = factory.Sequence(lambda n: faker.unique.name())
 
 
 class ModeVariantFactory(DjangoModelFactory):
@@ -24,7 +25,7 @@ class ModeVariantFactory(DjangoModelFactory):
     mode = factory.SubFactory(ModeFactory)
     name = factory.LazyAttribute(lambda o: f'{o.mode.name}_Variant')
     meta = faker.json(num_rows=3, indent=True)
-    is_default = True
+    is_default = faker.pybool()
 
 
 class ReachabilityMatrixFactory(DjangoModelFactory):
