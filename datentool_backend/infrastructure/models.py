@@ -62,6 +62,7 @@ class FieldTypes(models.TextChoices):
     NUMBER = 'NUM', 'Number'
     STRING = 'STR', 'String'
 
+
 class FieldType(models.Model):
     """a generic field type"""
     field_type = models.CharField(max_length=3, choices=FieldTypes.choices)
@@ -77,7 +78,7 @@ class FClass(models.Model):
 
 class PlaceField(models.Model):
     """a field of a place"""
-    attribure = models.TextField()
+    attribute = models.TextField()
     unit = models.TextField()
     infrastructure = models.ForeignKey(Infrastructure, on_delete=models.RESTRICT)
     field_type = models.ForeignKey(FieldType, on_delete=models.RESTRICT)

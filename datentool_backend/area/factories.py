@@ -8,7 +8,7 @@ from .models import (SymbolForm, MapSymbols, LayerGroup, Layer,
                      AreaLevel, Area)
 from ..user.factories import ProfileFactory
 
-#faker: Generator = Factory.create()
+
 faker = Faker('de-DE')
 
 
