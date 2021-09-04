@@ -9,10 +9,6 @@ djangorestframework-simplejwt
 djangorestframework-camel-case
 Pillow
 django-cleanup
-hypothesis[django]
-hypothesis_geometry
-hypothesis-geojson
-hypothesis-csv
 factory_boy
 django-bulkmodel
 coverage
