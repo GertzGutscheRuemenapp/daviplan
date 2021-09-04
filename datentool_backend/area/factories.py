@@ -1,4 +1,4 @@
-from faker import Factory
+from faker import Factory, Faker
 from faker.generator import Generator
 import factory
 from factory.django import DjangoModelFactory
@@ -8,7 +8,8 @@ from .models import (SymbolForm, MapSymbols, LayerGroup, Layer,
                      AreaLevel, Area)
 from ..user.factories import ProfileFactory
 
-faker: Generator = Factory.create()
+#faker: Generator = Factory.create()
+faker = Faker('de-DE')
 
 
 class SymbolFormFactory(DjangoModelFactory):
