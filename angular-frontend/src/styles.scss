@@ -382,7 +382,8 @@ mat-select mat-icon, .mat-select-panel mat-icon, .mat-select-min-line mat-icon, 
 }
 
 app-population .context-bar {
-  height: calc(100vh - 120px);
+  height: calc(100vh - 130px);
+  z-index: 1;
 }
 
 .mat-button-dv.mat-button-base {

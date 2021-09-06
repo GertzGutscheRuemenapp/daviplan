@@ -1,52 +1,97 @@
-<div class="context-bar">
-  <app-dash-card title='Gebietseinheiten'></app-dash-card>
-  <app-dash-card title='Prognoseszenario'></app-dash-card>
-  <app-dash-card title='Geschlecht'></app-dash-card>
+<div class="context-bar" style="calc(100vh - 150px);">
+  <mat-expansion-panel expanded>
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <div class="mini-fab-icon">
+          <mat-icon class="material-icons-outlined">sick</mat-icon>
+        </div>
+        Gebietseinheit
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    <mat-form-field appearance="outline" class="small">
+      <mat-label>Gebietseinheit</mat-label>
+      <mat-select disableOptionCentering value="Gemeinden">
+        <mat-option value="Bundesländer">
+          Bundesländer
+        </mat-option>
+        <mat-option value="Kreise">
+          Kreise
+        </mat-option>
+        <mat-option value="Verwaltungsgemeinschaften">
+          Verwaltungsgemeinschaften
+        </mat-option>
+        <mat-option value="Gemeinden">
+          Gemeinden
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <br>
+    <mat-form-field appearance="outline" class="small">
+      <mat-label>Gebiet</mat-label>
+      <mat-select disableOptionCentering>
+      </mat-select>
+    </mat-form-field>
+  </mat-expansion-panel>
+  <mat-expansion-panel expanded>
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <div class="mini-fab-icon">
+          <mat-icon class="material-icons-outlined">sick</mat-icon>
+        </div>
+        Prognoseszenario
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    ToDo
+  </mat-expansion-panel>
+  <mat-expansion-panel expanded>
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <div class="mini-fab-icon">
+          <mat-icon class="material-icons-outlined">sick</mat-icon>
+        </div>
+        Geschlecht
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    ToDo
+  </mat-expansion-panel>
 </div>
 
 <div fxFlex fxLayout="row wrap" fxLayoutGap="10px" fxFlexAlign="center baseline">
-  <div fxLayout="column" fxFlex="50" fxFlex.lt-md="100">
-    <app-dash-card title='Karte'>
-      <div style="width: 100%; padding-bottom: 100%;">
-        <div style="position: absolute; width: calc(100% - 32px); height: calc(100% - 68px);">
-          <div id="pop-map" class="map-container"></div>
-        </div>
-      </div>
-    </app-dash-card>
+  <div fxLayout="column" fxFlex="60" fxFlex.lt-md="100">
+    <div style="height: 100%; width: 100%; min-height: 300px; position: relative;">
+      <div id="pop-map" class="map-container"></div>
+      <app-map-controls style="position: absolute; right: 90px; top: 30px;"></app-map-controls>
+    </div>
   </div>
-  <div fxLayout="column" fxFlex="45" fxFlex.lt-md="100">
-    <app-dash-card>
-      <div style="width: 100%; padding-bottom: 54%;">
-        <div style="position: absolute; width: calc(100% - 32px); height: calc(100% - 48px);">
-          <app-stacked-barchart [data]="data"
-                                [labels]="labels"
-                                xLabel="Jahre"
-                                yLabel="Einwohner"
-                                [title]="'Bevölkerungsentwicklung'"
-                                [xSeparator]="xSeparator"
-                                [animate]="true"
-                                subtitle="irgendwo">
+  <div fxLayout="column" fxFlex="39" fxFlex.lt-md="100" style="overflow: hidden">
+    <div style="width: 100%; padding-bottom: 60%; position: relative">
+      <div style="position: absolute; width: 100%; height: 100%;">
+        <app-stacked-barchart [data]="data"
+                              [labels]="labels"
+                              xLabel="Jahre"
+                              yLabel="Einwohner"
+                              [title]="'Bevölkerungsentwicklung'"
+                              [xSeparator]="xSeparator"
+                              [animate]="true"
+                              subtitle="irgendwo">
 
-          </app-stacked-barchart>
-        </div>
+        </app-stacked-barchart>
       </div>
-    </app-dash-card>
-    <app-dash-card>
-      <div style="width: 100%; padding-bottom: 54%;">
-        <div style="position: absolute; width: calc(100% - 32px); height: calc(100% - 48px);">
-          <app-multiline-chart #lineChart
-                               [labels]="labels"
-                               xLabel="Jahre"
-                               yLabel="Einwohner relativ"
-                               [title]="'relative Altersgruppenentwicklung'"
-                               [xSeparator]="xSeparator"
-                               [animate]="true"
-                               unit="%"
-                               subtitle="irgendwo">
-          </app-multiline-chart>
-        </div>
+    </div>
+    <div style="width: 100%; padding-bottom: 60%; position: relative">
+      <div style="position: absolute; width: calc(100% - 32px); height: calc(100% - 48px);">
+        <app-multiline-chart #lineChart
+                             [labels]="labels"
+                             xLabel="Jahre"
+                             yLabel="Einwohner relativ"
+                             [title]="'relative Altersgruppenentwicklung'"
+                             [xSeparator]="xSeparator"
+                             [animate]="true"
+                             unit="%"
+                             subtitle="irgendwo">
+        </app-multiline-chart>
       </div>
-    </app-dash-card>
+    </div>
   </div>
 </div>
 
