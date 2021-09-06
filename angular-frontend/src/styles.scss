@@ -199,15 +199,6 @@ app-data-card td, app-dash-card td {
   padding: 3px 0;
 }
 
-.context-bar {
-  position: relative;
-  width: $context-bar-width;
-  background-color: white;
-  height: 100%;
-  box-shadow: 0px 5px 5px -1px rgb(0 0 0 / 20%), 0px 10px 10px 0px rgb(0 0 0 / 14%), 2px 18px 18px 0px rgb(0 0 0 / 12%);
-  padding-top: 10px;
-}
-
 .main-nav {
   box-shadow: 0px 0px 5px 1px #a7a7a7!important;
 }
@@ -217,6 +208,8 @@ app-data-card td, app-dash-card td {
   display: flex;
   height: 60px;
   box-shadow: 0px 3px 5px -1px rgb(0 0 0 / 20%), 0px 6px 10px 0px rgb(0 0 0 / 14%), 0px 1px 18px 0px rgb(0 0 0 / 12%);
+  position: relative;
+  z-index: 1;
 }
 
 mat-sidenav-content {
@@ -230,7 +223,7 @@ mat-sidenav-content {
 
 .sub-nav a {
   font-size: 18px;
-  min-width: 180px;
+  //min-width: 180px;
   color: #00000099;
   text-decoration: none;
   padding: 0 25px;
@@ -254,24 +247,26 @@ mat-sidenav-content {
 }
 
 rect.highlight{
-  fill: mat.get-color-from-palette($app-accent, 400)!important;
+  fill: mat.get-color-from-palette($app-primary, 400)!important;
 }
 
 div.tooltip {
   position: absolute;
-  text-align: center;
-  padding: 2px;
+  //text-align: center;
+  padding: 10px;
   font: 12px sans-serif;
   background: white;
+  border-radius: 5px;
   border: solid 1px grey;
   pointer-events: none;
-  opacity: 0.9;
+  //opacity: 0.9;
   z-index: 100;
+  box-shadow: 0px 0px 5px 1px #a7a7a7!important;
 }
 
 .separator {
   stroke: #888;
-  stroke-width: 2;
+  stroke-width: 1;
   stroke-dasharray: 6, 6;
 }
 
@@ -382,7 +377,8 @@ mat-select mat-icon, .mat-select-panel mat-icon, .mat-select-min-line mat-icon, 
 }
 
 app-population .context-bar {
-  height: calc(100vh - 120px);
+  height: calc(100vh - 130px);
+  z-index: 1;
 }
 
 .mat-button-dv.mat-button-base {
@@ -427,6 +423,13 @@ mat-icon.warning {
 }
 
 .context-bar {
+  z-index: 2;
+  position: relative;
+  width: $context-bar-width;
+  background-color: white;
+  height: 100%;
+  box-shadow: 0px 5px 5px -1px rgb(0 0 0 / 20%), 0px 10px 10px 0px rgb(0 0 0 / 14%), 2px 18px 18px 0px rgb(0 0 0 / 12%);
+  padding-top: 10px;
 
   mat-expansion-panel {
     margin-top: -1px;

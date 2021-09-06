@@ -12,7 +12,6 @@
   // leave space for planning context bars
   width: calc(100% - #{$context-bar-width});
   padding-left: calc(#{$context-bar-width});
-  z-index: -1;
 }
 
 #process-select {
