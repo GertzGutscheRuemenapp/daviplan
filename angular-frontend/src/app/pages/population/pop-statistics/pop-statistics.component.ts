@@ -13,10 +13,10 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   constructor(private mapService: MapService) { }
 
   ngAfterViewInit(): void {
-    this.map = this.mapService.create('stat-map');
+    this.map = this.mapService.create('pop-stat-map');
   }
 
   ngOnDestroy(): void {
-    this.mapService.remove('stat-map');
+    this.mapService.remove('pop-stat-map');
   }
 }

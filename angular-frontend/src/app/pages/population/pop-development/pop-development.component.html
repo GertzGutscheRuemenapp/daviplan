@@ -1,4 +1,4 @@
-<div class="context-bar" style="calc(100vh - 150px);">
+<div class="context-bar">
   <mat-expansion-panel expanded>
     <mat-expansion-panel-header>
       <mat-panel-title>
@@ -57,15 +57,13 @@
 </div>
 
 <div fxFlex fxLayout="row wrap" fxLayoutGap="10px" fxFlexAlign="center baseline">
-  <div fxLayout="column" fxFlex="60" fxFlex.lt-md="100">
-    <div style="height: 100%; width: 100%; min-height: 300px; position: relative;">
-      <div id="pop-map" class="map-container"></div>
-      <app-map-controls style="position: absolute; right: 90px; top: 30px;"></app-map-controls>
-    </div>
+  <div id="map-wrapper">
+    <div id="pop-dev-map" class="map-container"></div>
+    <app-map-controls style="position: absolute; right: 90px; top: 30px;"></app-map-controls>
   </div>
-  <div fxLayout="column" fxFlex="39" fxFlex.lt-md="100" style="overflow: hidden">
-    <div style="width: 100%; padding-bottom: 60%; position: relative">
-      <div style="position: absolute; width: 100%; height: 100%;">
+  <div id="diagram-bar">
+    <div class="diagram-wrapper">
+      <div>
         <app-stacked-barchart [data]="data"
                               [labels]="labels"
                               xLabel="Jahre"
@@ -74,12 +72,11 @@
                               [xSeparator]="xSeparator"
                               [animate]="true"
                               subtitle="irgendwo">
-
         </app-stacked-barchart>
       </div>
-    </div>
-    <div style="width: 100%; padding-bottom: 60%; position: relative">
-      <div style="position: absolute; width: calc(100% - 32px); height: calc(100% - 48px);">
+    </div><br>
+    <div class="diagram-wrapper">
+      <div>
         <app-multiline-chart #lineChart
                              [labels]="labels"
                              xLabel="Jahre"

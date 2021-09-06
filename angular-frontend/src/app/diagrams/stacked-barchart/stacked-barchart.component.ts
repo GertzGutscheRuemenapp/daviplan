@@ -58,7 +58,7 @@ export class StackedBarchartComponent implements AfterViewInit {
 
     if (!this.labels)
       this.labels = d3.range(0, data[0].values.length).map(d=>d.toString());
-    let colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+    let colorScale = d3.scaleOrdinal(d3.schemeSet2);
     let max = d3.max(data, d => { return d.values.reduce((a, c) => a + c) });
     let innerWidth = this.width! - this.margin.left - this.margin.right,
         innerHeight = this.height! - this.margin.top - this.margin.bottom;
@@ -217,7 +217,7 @@ export class StackedBarchartComponent implements AfterViewInit {
     if (this.xSeparator) {
       let xSepPos = x(this.xSeparator.x)! + this.margin.left + x.bandwidth() * 1.5;
       this.svg.append('line')
-        .style('stroke', 'black')
+        // .style('stroke', 'black')
         .attr('x1', xSepPos)
         .attr('y1', this.margin.top)
         .attr('x2', xSepPos)
@@ -230,6 +230,7 @@ export class StackedBarchartComponent implements AfterViewInit {
           .attr('dy', '0.5em')
           .style('text-anchor', 'end')
           .attr('font-size', '0.7em')
+          .attr('fill', 'grey')
           .text(this.xSeparator.leftLabel);
       if (this.xSeparator.rightLabel)
         this.svg.append('text')
@@ -238,6 +239,7 @@ export class StackedBarchartComponent implements AfterViewInit {
           .attr('dy', '0.5em')
           .style('text-anchor', 'start')
           .attr('font-size', '0.7em')
+          .attr('fill', 'grey')
           .text(this.xSeparator.rightLabel);
     }
   }

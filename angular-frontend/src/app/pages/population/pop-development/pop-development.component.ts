@@ -41,7 +41,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   constructor(private mapService: MapService) { }
 
   ngAfterViewInit(): void {
-    this.map = this.mapService.create('pop-map');
+    this.map = this.mapService.create('pop-dev-map');
     let first = mockdata[0].values;
     let relData = mockdata.map(d => { return {
       group: d.group,
@@ -55,7 +55,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.mapService.remove('pop-map');
+    this.mapService.remove('pop-dev-map');
   }
 
 }

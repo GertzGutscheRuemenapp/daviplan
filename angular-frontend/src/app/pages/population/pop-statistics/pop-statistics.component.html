@@ -1,14 +1,46 @@
+<div class="context-bar">
+  <mat-expansion-panel expanded>
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <div class="mini-fab-icon">
+          <mat-icon class="material-icons-outlined">sick</mat-icon>
+        </div>
+        Thema
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    ToDo
+  </mat-expansion-panel>
+  <mat-expansion-panel expanded>
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <div class="mini-fab-icon">
+          <mat-icon class="material-icons-outlined">sick</mat-icon>
+        </div>
+        Gebiet
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    <mat-form-field appearance="outline" class="small">
+      <mat-label>Gebiet</mat-label>
+      <mat-select disableOptionCentering>
+      </mat-select>
+    </mat-form-field>
+  </mat-expansion-panel>
+</div>
+
 <div fxFlex fxLayout="row wrap" fxLayoutGap="10px" fxFlexAlign="center baseline">
-  <div fxLayout="column" fxFlex="300px">
-    <app-dash-card title='Thema'></app-dash-card>
+  <div id="map-wrapper">
+    <div id="pop-stat-map" class="map-container"></div>
+    <app-map-controls style="position: absolute; right: 90px; top: 30px;"></app-map-controls>
   </div>
-  <div fxLayout="column" fxFlex="40" fxFlex.lt-lg="50" fxFlex.lt-md="100">
-    <app-dash-card title='Karte' height="70vh">
-      <div id="stat-map" class="map-container"></div>
-    </app-dash-card>
-  </div>
-  <div fxLayout="column" fxFlex="35" fxFlex.lt-lg="80" fxFlex.lt-md="100">
-    <app-dash-card title='Diagramm Wanderungssaldo'> </app-dash-card>
-    <app-dash-card title='Diagramm Wanderung'> </app-dash-card>
+  <div id="diagram-bar">
+    <div class="diagram-wrapper">
+      <div>
+      </div>
+    </div><br>
+    <div class="diagram-wrapper">
+      <div>
+      </div>
+    </div>
   </div>
 </div>
+
