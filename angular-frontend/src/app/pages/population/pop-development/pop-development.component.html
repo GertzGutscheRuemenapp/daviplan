@@ -10,7 +10,7 @@
     </mat-expansion-panel-header>
     <mat-form-field appearance="outline" class="small">
       <mat-label>Gebietseinheit</mat-label>
-      <mat-select disableOptionCentering value="Gemeinden">
+      <mat-select disableOptionCentering [(ngModel)]="activeLevel">
         <mat-option value="Bundesländer">
           Bundesländer
         </mat-option>
@@ -55,6 +55,10 @@
     ToDo
   </mat-expansion-panel>
 </div>
+
+<app-side-toggle icon="info">
+  Bevölkerungsentwicklung > {{activeLevel}} / Trendfortschreibung Geschlecht: alle / Altersgruppen: alle Kartenansicht: Einzeljahr 2029
+</app-side-toggle>
 
 <div fxFlex fxLayout="row wrap" fxLayoutGap="10px" fxFlexAlign="center baseline">
   <div id="map-wrapper">

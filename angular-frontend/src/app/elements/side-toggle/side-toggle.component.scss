@@ -1,0 +1,74 @@
+@import "~src/constants";
+
+.side-toggle{
+  min-height: 70px;
+  display: flex;
+  .side-toggle-content-wrapper {
+    background-color: white;
+    transition: 0.3s width ease-in;
+    overflow:hidden;
+    white-space:nowrap;
+    display:inline-block;
+    width: 0%;
+    box-shadow: 0px 0px 5px 1px #a7a7a7;
+  }
+  .side-toggle-content {
+    padding: 5px 10px;
+  }
+  .side-toggle-trigger {
+    cursor: pointer;
+    display: flex;
+  }
+  .side-toggle-indicator {
+    min-width: 40px;
+    height: 100%;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $primary;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 1px 0px 3px 1px #a7a7a7;
+    user-select: none;
+  }
+  ::ng-deep .side-toggle-icon {
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    opacity: 1;
+    transition: 0.3s opacity ease-out;
+    button {
+      display: flex;
+      justify-content: center;
+      .mat-button-wrapper {
+        padding: 4px 0;
+        margin-left: -2px;
+      }
+      mat-icon {
+        font-size: 28px;
+      }
+    }
+  }
+  .side-toggle-trigger:hover {
+    button, .side-toggle-indicator {
+      background-color: map-get($blue-palette, A200);
+    }
+  }
+}
+
+.side-toggle.expanded {
+  .side-toggle-content-wrapper {
+    width: 100%;
+    background-color: white;
+  }
+  .side-toggle-indicator {
+    background-color: $primary;
+    color: white;
+    mat-icon {
+      transform: rotate(180deg);
+    }
+  }
+  .side-toggle-icon {
+    opacity: 0;
+  }
+}

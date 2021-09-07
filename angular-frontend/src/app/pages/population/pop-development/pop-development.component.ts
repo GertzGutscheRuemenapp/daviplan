@@ -28,6 +28,7 @@ const mockdata: StackedData[] = [
 })
 export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   map?: OlMap;
+  activeLevel: string = 'Gemeinden';
   data: StackedData[] = mockdata;
   labels: string[] = ['65+', '19-64', '0-18']
   xSeparator = {
