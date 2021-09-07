@@ -34,7 +34,7 @@
   ::ng-deep .side-toggle-icon {
     display: flex;
     align-items: center;
-    padding-left: 10px;
+    padding: 0 10px;
     opacity: 1;
     transition: 0.3s opacity ease-out;
     button {
@@ -70,5 +70,15 @@
   }
   .side-toggle-icon {
     opacity: 0;
+  }
+}
+
+.side-toggle.dir-left {
+  flex-direction: row-reverse;
+  .side-toggle-trigger {
+    flex-direction: row-reverse;
+    .side-toggle-indicator {
+      transform: rotate(180deg);
+    }
   }
 }

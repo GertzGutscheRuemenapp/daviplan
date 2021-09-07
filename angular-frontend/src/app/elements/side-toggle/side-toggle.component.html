@@ -1,4 +1,4 @@
-<div class="side-toggle" [ngClass]="{'expanded': expanded}">
+<div class="side-toggle" [ngClass]="{'expanded': expanded, 'dir-left': direction === 'left'}">
   <div class="side-toggle-content-wrapper">
     <div class="side-toggle-content">
       <ng-content></ng-content>
