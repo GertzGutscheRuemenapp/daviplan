@@ -58,6 +58,7 @@ import { MapControlsComponent } from './map/map-controls/map-controls.component'
 import { EcoFabSpeedDialModule } from "@ecodev/fab-speed-dial";
 import { ScenarioMenuComponent } from './pages/planning/scenario-menu/scenario-menu.component';
 import { MatRadioModule } from "@angular/material/radio";
+import { SideToggleComponent } from './elements/side-toggle/side-toggle.component';
 
 @NgModule({
   declarations: [
@@ -88,7 +89,8 @@ import { MatRadioModule } from "@angular/material/radio";
     MultilineChartComponent,
     DragDirective,
     MapControlsComponent,
-    ScenarioMenuComponent
+    ScenarioMenuComponent,
+    SideToggleComponent
   ],
     imports: [
         BrowserModule,

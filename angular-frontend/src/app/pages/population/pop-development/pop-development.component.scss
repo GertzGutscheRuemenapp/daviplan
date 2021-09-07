@@ -1,3 +1,5 @@
+@import "~src/constants";
+
 #control {
   width: 300px;
   float: left;
@@ -10,5 +12,16 @@
 
 #control mat-card{
   position: relative;
+}
+
+.context-bar {
+  z-index: 2;
+}
+
+app-side-toggle {
+  position: absolute;
+  left: $context-bar-width;
+  top: 120px;
+  z-index: 1;
 }
 

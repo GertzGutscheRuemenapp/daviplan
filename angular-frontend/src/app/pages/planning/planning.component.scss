@@ -79,8 +79,16 @@ app-scenario-menu {
   //left: calc(#{$context-bar-width} - 100% - 100px);
   left: calc(#{$context-bar-width} - 700px);
   transition: 0.3s ease-out left;
+  z-index: 2;
 }
 
 app-scenario-menu.expanded {
   left: $context-bar-width;
+}
+
+app-side-toggle {
+  position: absolute;
+  left: $context-bar-width;
+  top: 120px;
+  z-index: 1;
 }

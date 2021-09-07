@@ -1,6 +1,5 @@
-import { Component, ElementRef, AfterViewInit, Renderer2, OnDestroy } from '@angular/core';
+import { Component, ElementRef, AfterViewInit, Renderer2, OnDestroy, ViewChild } from '@angular/core';
 import { MapService } from "../../map/map.service";
-import Projection from "ol/proj/Projection";
 import { FormControl } from "@angular/forms";
 
 

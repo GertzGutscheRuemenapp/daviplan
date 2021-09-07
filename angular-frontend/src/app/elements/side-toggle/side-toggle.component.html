@@ -1,0 +1,15 @@
+<div class="side-toggle" [ngClass]="{'expanded': expanded}">
+  <div class="side-toggle-content-wrapper">
+    <div class="side-toggle-content">
+      <ng-content></ng-content>
+    </div>
+  </div>
+  <div class="side-toggle-trigger" (click)="expanded=!expanded">
+    <div class="side-toggle-indicator"> <mat-icon>chevron_right</mat-icon> </div>
+    <div class="side-toggle-icon">
+      <button mat-mini-fab color="primary">
+        <mat-icon>{{icon}}</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>
