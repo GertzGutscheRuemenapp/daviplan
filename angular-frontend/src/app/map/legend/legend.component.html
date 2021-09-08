@@ -1,32 +1,49 @@
-<div class="legend-header">
-  <div class="mini-fab-icon">
-    <mat-icon>layers</mat-icon>
-  </div>
-  <span i18n>Legende</span>
-</div>
-
-<mat-expansion-panel *ngFor="let group of activeGroups" expanded>
-  <mat-expansion-panel-header>
-    <mat-panel-title>
-      {{group}}
-    </mat-panel-title>
-  </mat-expansion-panel-header>
-  <div *ngFor="let layer of layerGroups[group]">
-    <div *ngIf="layer.checked">
-      {{ layer.name }}
+<div class="legend" [ngClass]="{'edit': editMode}">
+  <div class="legend-header">
+    <div class="mini-fab-icon">
+      <mat-icon>layers</mat-icon>
     </div>
+    <span i18n>Legende</span>
+    <button color="primary" *ngIf="!editMode" (click)="editMode = !editMode" mat-icon-button style="box-shadow: none; margin-left: auto;">
+      <mat-icon>list</mat-icon>
+    </button>
+    <button color="primary" *ngIf="editMode" (click)="editMode = !editMode" mat-mini-fab style="box-shadow: none; margin-left: auto;">
+      <mat-icon>list</mat-icon>
+    </button>
   </div>
-</mat-expansion-panel>
-<mat-expansion-panel expanded>
-  <mat-expansion-panel-header>
-    <mat-panel-title>
-      Hintergrundkarte
-    </mat-panel-title>
-  </mat-expansion-panel-header>
-  <mat-form-field appearance="outline" class="small">
-    <mat-select [(ngModel)]="activeBackground" (selectionChange)="selectBackground($event.value)">
-      <mat-option *ngFor="let layer of backgroundLayers" [value]="layer"> {{layer}} </mat-option>
-    </mat-select>
-  </mat-form-field>
-</mat-expansion-panel>
-
+  <div class="legend-body">
+    <mat-expansion-panel *ngFor="let group of activeGroups" expanded>
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          {{group}}
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <div class="legend-entry" *ngIf="editMode">
+        <div class="legend-layer-control" style="text-transform: uppercase; margin-left: auto; color: #00000061;" i18n>Anzeige</div>
+      </div>
+      <div *ngFor="let layer of layerGroups[group]">
+        <div class="legend-entry" [ngClass]="{'checked': layer.checked}" *ngIf="editMode || layer.checked">
+          <div class="legend-layer-title">{{ layer.name }}</div>
+          <div class="legend-layer-control" *ngIf="editMode">
+            <mat-checkbox color="primary" [checked]="layer.checked" ></mat-checkbox>
+            <mat-slider aria-label="Transparenz" color="primary"
+                        min="0" max="0" value="1">
+            </mat-slider>
+          </div>
+      </div>
+      </div>
+    </mat-expansion-panel>
+    <mat-expansion-panel expanded>
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          Hintergrundkarte
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <mat-form-field appearance="outline" class="small">
+        <mat-select [(ngModel)]="activeBackground" (selectionChange)="selectBackground($event.value)">
+          <mat-option *ngFor="let layer of backgroundLayers" [value]="layer"> {{layer}} </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </mat-expansion-panel>
+  </div>
+</div>

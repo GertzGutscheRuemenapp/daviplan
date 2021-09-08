@@ -86,11 +86,16 @@ app-scenario-menu.expanded {
   left: $context-bar-width;
 }
 
-app-side-toggle {
+#legend {
   position: absolute;
   right: 0;
-  top: 300px;
+  top: 500px;
   z-index: 1;
+}
+
+::ng-deep #legend .legend-body {
+  max-height: calc(100vh - 650px);
+  overflow-y: auto;
 }
 
 app-map-controls {

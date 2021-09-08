@@ -4,10 +4,10 @@ import { MapService } from "../map.service";
 import { FormControl } from "@angular/forms";
 
 const mockLayerGroups: Record<string, any[]> = {
-/*  Leistungen: [
-    { name: 'Kita', checked: true },
-    { name: 'Krippe', checked: true },
-  ],*/
+  // Leistungen: [
+  //   { name: 'Kita', checked: true },
+  //   { name: 'Krippe', checked: true },
+  // ],
   Standorte: [
     { name: 'Schulen', checked: false },
     { name: 'Feuerwehr', checked: true },
@@ -19,6 +19,10 @@ const mockLayerGroups: Record<string, any[]> = {
     { name: 'Kreise', checked: true },
     { name: 'Verwaltungsgemeinschaften', checked: false },
     { name: 'Gemeinden', checked: false },
+  ],
+  Ökologie: [
+    { name: 'Wälder', checked: false },
+    { name: 'Gewässer', checked: false }
   ]
 }
 
@@ -36,6 +40,7 @@ export class LegendComponent implements OnInit {
   backgroundLayers: string[] = [''];
   layerGroups: Record<string, any[]> = mockLayerGroups;
   activeGroups: string[] = [];
+  editMode: boolean = true;
 
   constructor(private mapService: MapService, private cdRef:ChangeDetectorRef) {
   }
