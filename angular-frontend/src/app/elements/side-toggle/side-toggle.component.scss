@@ -43,16 +43,19 @@
       box-shadow: 0px 0px 5px 2px #a7a7a7;
       justify-content: center;
       .mat-button-wrapper {
-        padding: 4px 0;
-        margin-left: -2px;
+        padding: 6px 0;
+        margin-left: -3px;
       }
       mat-icon {
         font-size: 28px;
       }
     }
   }
+}
+
+.side-toggle:not(.expanded){
   .side-toggle-trigger:hover {
-    button, .side-toggle-indicator {
+    .side-toggle-indicator {
       background-color: map-get($blue-palette, A200);
     }
   }

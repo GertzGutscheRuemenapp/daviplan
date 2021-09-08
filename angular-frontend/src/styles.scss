@@ -493,3 +493,8 @@ mat-expansion-panel.side-toggle {
     display: none;
   }
 }
+
+.mat-mini-fab mat-icon{
+  margin-top: -3px;
+  //margin-left: 1px;
+}
