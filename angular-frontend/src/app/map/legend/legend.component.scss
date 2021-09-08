@@ -24,6 +24,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   padding-right: 5px;
+  color: grey;
 }
 .legend-layer-control {
   width: 40%;
@@ -36,5 +37,5 @@
   }
 }
 .checked .legend-layer-title {
-  color: $primary;
+  color: $primary !important;
 }

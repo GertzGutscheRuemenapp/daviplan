@@ -85,4 +85,9 @@ export class OlMap {
     let layer = this.layers[name];
     layer?.setVisible(visible);
   }
+
+  setOpacity(name: string, opacity: number): void{
+    let layer = this.layers[name];
+    layer?.setOpacity(opacity);
+  }
 }

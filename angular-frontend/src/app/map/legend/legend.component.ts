@@ -37,10 +37,12 @@ export class LegendComponent implements OnInit {
   layers: any;
   map?: OlMap;
   activeBackground = '';
+  backgroundOpacity = 1;
   backgroundLayers: string[] = [''];
   layerGroups: Record<string, any[]> = mockLayerGroups;
   activeGroups: string[] = [];
   editMode: boolean = true;
+  Object = Object;
 
   constructor(private mapService: MapService, private cdRef:ChangeDetectorRef) {
   }
@@ -63,12 +65,25 @@ export class LegendComponent implements OnInit {
     if (!this.map) return;
     this.backgroundLayers = this.mapService.backgroundLayers.map(layer => layer.name);
     this.activeBackground = this.backgroundLayers[0];
-    this.activeGroups = Object.keys(this.layerGroups).filter(g => this.layerGroups[g].filter(l => l.checked).length > 0);
     this.selectBackground(this.activeBackground);
+    this.filterActiveGroups();
     this.cdRef.detectChanges();
   }
 
   selectBackground(selected: string) {
-    this.backgroundLayers.forEach(layer => (this.map?.setVisible(layer, layer === selected)));
+    this.backgroundLayers.forEach(layer => {
+      this.map?.setVisible(layer, layer === selected);
+      this.map?.setOpacity(layer, this.backgroundOpacity);
+    });
+  }
+
+  // ToDo: use template filter
+  filterActiveGroups(): void {
+    this.activeGroups = Object.keys(this.layerGroups).filter(g => this.layerGroups[g].filter(l => l.checked).length > 0);
+  }
+
+  opacityChanged(layer: string, value: number | null): void {
+    if(value === null) return;
+    this.map?.setOpacity(layer, value);
   }
 }
