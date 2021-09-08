@@ -18,10 +18,9 @@
   z-index: 2;
 }
 
-app-side-toggle {
+#info {
   position: absolute;
   left: $context-bar-width;
   top: 120px;
   z-index: 1;
 }
-

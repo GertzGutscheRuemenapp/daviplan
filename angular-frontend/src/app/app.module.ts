@@ -36,7 +36,6 @@ import { SupplyComponent } from './pages/planning/supply/supply.component';
 import { WelcomeComponent } from './pages/welcome.component';
 import { BasedataComponent } from './pages/basedata/basedata.component';
 import { MatExpansionModule } from "@angular/material/expansion";
-import { LayerSelectComponent } from './map/layer-select/layer-select.component';
 import { MatSliderModule } from "@angular/material/slider";
 import { PopulationComponent } from './pages/population/population.component';
 import { PopDevelopmentComponent } from './pages/population/pop-development/pop-development.component';
@@ -59,6 +58,7 @@ import { EcoFabSpeedDialModule } from "@ecodev/fab-speed-dial";
 import { ScenarioMenuComponent } from './pages/planning/scenario-menu/scenario-menu.component';
 import { MatRadioModule } from "@angular/material/radio";
 import { SideToggleComponent } from './elements/side-toggle/side-toggle.component';
+import { LegendComponent } from './map/legend/legend.component';
 
 @NgModule({
   declarations: [
@@ -76,7 +76,6 @@ import { SideToggleComponent } from './elements/side-toggle/side-toggle.componen
     SupplyComponent,
     WelcomeComponent,
     BasedataComponent,
-    LayerSelectComponent,
     PopulationComponent,
     PopDevelopmentComponent,
     PopStatisticsComponent,
@@ -90,7 +89,8 @@ import { SideToggleComponent } from './elements/side-toggle/side-toggle.componen
     DragDirective,
     MapControlsComponent,
     ScenarioMenuComponent,
-    SideToggleComponent
+    SideToggleComponent,
+    LegendComponent
   ],
     imports: [
         BrowserModule,

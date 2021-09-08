@@ -1,10 +1,10 @@
-<div class="side-toggle" [ngClass]="{'expanded': expanded}">
-  <div class="side-toggle-content-wrapper">
+<div class="side-toggle" [ngClass]="{'expanded': expanded, 'dir-left': direction === 'left'}">
+  <div class="side-toggle-content-wrapper" [style.border-radius]="(fullHeightIndicator ? '0px' : 'none' )">
     <div class="side-toggle-content">
       <ng-content></ng-content>
     </div>
   </div>
-  <div class="side-toggle-trigger" (click)="expanded=!expanded">
+  <div class="side-toggle-trigger" (click)="expanded=!expanded" [style.max-height]="(fullHeightIndicator ? '100%' : '60px' )">
     <div class="side-toggle-indicator"> <mat-icon>chevron_right</mat-icon> </div>
     <div class="side-toggle-icon">
       <button mat-mini-fab color="primary">

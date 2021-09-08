@@ -1,0 +1,41 @@
+@import "~src/constants";
+
+.legend {
+  width: 250px;
+  user-select: none;
+  transition: width 0.3s ease-out, height 0.3s ease-out;
+}
+.legend-header {
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  text-transform: uppercase;
+}
+.legend.edit{
+  width: 400px;
+}
+.legend-entry {
+  display: flex;
+}
+.legend.edit .legend-layer-title {
+  border-right: 1px solid lightgrey;
+  width: 60%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding-right: 5px;
+  color: grey;
+}
+.legend-layer-control {
+  width: 40%;
+  padding-left: 5px;
+  mat-slider {
+    height: 30px;
+  }
+  ::ng-deep .mat-slider-wrapper {
+    top: 15px;
+  }
+}
+.checked .legend-layer-title {
+  color: $primary !important;
+}

@@ -1,0 +1,65 @@
+<div class="legend" [ngClass]="{'edit': editMode}">
+  <div class="legend-header">
+    <div class="mini-fab-icon">
+      <mat-icon>layers</mat-icon>
+    </div>
+    <span i18n>Legende</span>
+    <button color="primary" *ngIf="!editMode" (click)="editMode = !editMode" mat-icon-button style="box-shadow: none; margin-left: auto;">
+      <mat-icon>list</mat-icon>
+    </button>
+    <button color="primary" *ngIf="editMode" (click)="editMode = !editMode" mat-mini-fab style="box-shadow: none; margin-left: auto;">
+      <mat-icon>list</mat-icon>
+    </button>
+  </div>
+  <div class="legend-body">
+    <div *ngFor="let group of Object.keys(layerGroups)">
+      <mat-expansion-panel [style.display]="editMode || (activeGroups.indexOf(group) >= 0) ? '': 'none'" expanded>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            {{group}}
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+  <!--      <div class="legend-entry" *ngIf="editMode">
+          <div class="legend-layer-control" style="text-transform: uppercase; margin-left: auto; color: #00000061;" i18n>Anzeige</div>
+        </div>-->
+        <div *ngFor="let layer of layerGroups[group]">
+          <div class="legend-entry" [ngClass]="{'checked': layer.checked}" *ngIf="editMode || layer.checked">
+            <div class="legend-layer-title">{{ layer.name }}</div>
+            <div class="legend-layer-control" *ngIf="editMode">
+              <mat-checkbox color="primary" [checked]="layer.checked" (change)="layer.checked = !layer.checked; filterActiveGroups();"></mat-checkbox>
+              <mat-slider aria-label="Transparenz" color="primary"
+                          [disabled]="!layer.checked"
+                          (input)="opacityChanged(layer.name, $event.value)"
+                          min="0" max="1" value="1" step="0.001">
+              </mat-slider>
+            </div>
+          </div>
+        </div>
+      </mat-expansion-panel>
+    </div>
+    <mat-expansion-panel expanded>
+      <mat-expansion-panel-header>
+        <mat-panel-title i18n>
+          Hintergrundkarte
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <div class="legend-entry">
+        <div class="legend-layer-title">
+          <mat-form-field appearance="outline" class="small" style="width: 180px;">
+            <mat-select [(ngModel)]="activeBackground" (selectionChange)="selectBackground($event.value)">
+              <mat-option *ngFor="let layer of backgroundLayers" [value]="layer"> {{layer}} </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="legend-layer-control" *ngIf="editMode" style="padding-left: 10px;">
+          <mat-slider aria-label="Transparenz" color="primary"
+                      style="margin-top: 10px;"
+                      [(ngModel)]="backgroundOpacity"
+                      (input)="opacityChanged(activeBackground, $event.value)"
+                      min="0" max="1" value="1" step="0.001">
+          </mat-slider>
+        </div>
+      </div>
+    </mat-expansion-panel>
+  </div>
+</div>

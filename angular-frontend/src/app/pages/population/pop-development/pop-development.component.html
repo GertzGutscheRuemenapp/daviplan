@@ -1,3 +1,4 @@
+
 <div class="context-bar">
   <mat-expansion-panel expanded>
     <mat-expansion-panel-header>
@@ -56,9 +57,14 @@
   </mat-expansion-panel>
 </div>
 
-<app-side-toggle icon="info">
-  Bevölkerungsentwicklung > {{activeLevel}} / Trendfortschreibung Geschlecht: alle / Altersgruppen: alle Kartenansicht: Einzeljahr 2029
+<app-side-toggle id="info" icon="info" [fullHeightIndicator]="true">
+  <div style="padding: 10px">
+    Bevölkerungsentwicklung > {{activeLevel}} / <br>
+    Trendfortschreibung Geschlecht: alle / <br>
+    Altersgruppen: alle Kartenansicht: Einzeljahr 2029
+  </div>
 </app-side-toggle>
+
 
 <div fxFlex fxLayout="row wrap" fxLayoutGap="10px" fxFlexAlign="center baseline">
   <div id="map-wrapper">
@@ -96,3 +102,11 @@
   </div>
 </div>
 
+<div>
+  <app-side-toggle id="legend"
+                   icon="layers"
+                   direction="left"
+                   expanded>
+    <app-legend target="planning-map"></app-legend>
+  </app-side-toggle>
+</div>

@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { LayerSelectComponent } from './layer-select.component';
+import { LegendComponent } from './legend.component';
 
-describe('LayerSelectComponent', () => {
-  let component: LayerSelectComponent;
-  let fixture: ComponentFixture<LayerSelectComponent>;
+describe('LegendComponent', () => {
+  let component: LegendComponent;
+  let fixture: ComponentFixture<LegendComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ LayerSelectComponent ]
+      declarations: [ LegendComponent ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(LayerSelectComponent);
+    fixture = TestBed.createComponent(LegendComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

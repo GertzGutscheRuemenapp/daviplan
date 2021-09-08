@@ -4,30 +4,49 @@ import OSM from 'ol/source/OSM';
 import {User} from "../pages/login/users";
 import {Observable} from "rxjs";
 
+
+interface Layer {
+  id: number;
+  name: string;
+  url: string;
+  params?: any;
+  visible: boolean;
+  xyz?: boolean;
+}
+
+const mockBackgroundLayers: Layer[] = [
+  {
+    id: 1,
+    name: 'OSM',
+    url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    visible: false,
+    xyz: true
+  },
+  {
+    id: 2,
+    name: 'TopPlus',
+    url: 'https://sgx.geodatenzentrum.de/wms_topplus_open',
+    params: { layers: 'web' },
+    visible: false
+  },
+]
+
 @Injectable({
   providedIn: 'root'
 })
-
 export class MapService {
   private maps: Record<string, OlMap> = {};
   mapCreated = new EventEmitter<OlMap>();
 
-  baseLayers: Record<string, { params: any, url: string, visible: boolean }> = {
-    TopPlus:  {
-      url: 'https://sgx.geodatenzentrum.de/wms_topplus_open',
-      params: { layers: 'web' },
-      visible: false
-    }
-  }
+  backgroundLayers: Layer[] = mockBackgroundLayers;
 
   constructor() { }
 
   create(target: string): OlMap {
     let map = new OlMap(target);
     this.maps[target] = map;
-    for (let name in this.baseLayers) {
-      let layer = this.baseLayers[name];
-      map.addWMS(name, layer.url, layer.params, layer.visible);
+    for (let layer of this.backgroundLayers) {
+      map.addTileServer(layer);
     }
     this.mapCreated.emit(map);
     return map;

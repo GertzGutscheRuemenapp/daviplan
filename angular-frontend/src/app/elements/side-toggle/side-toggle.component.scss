@@ -2,25 +2,26 @@
 
 .side-toggle{
   min-height: 70px;
-  display: flex;
+  display: inline-flex;
   .side-toggle-content-wrapper {
     background-color: white;
-    transition: 0.3s width ease-in;
+    transition: 0.4s width ease-in;
     overflow:hidden;
     white-space:nowrap;
     display:inline-block;
     width: 0%;
-    box-shadow: 0px 0px 5px 1px #a7a7a7;
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 5px;
   }
   .side-toggle-content {
-    padding: 5px 10px;
+    //padding: 5px 10px;
   }
   .side-toggle-trigger {
     cursor: pointer;
     display: flex;
   }
   .side-toggle-indicator {
-    min-width: 40px;
+    min-width: 35px;
     height: 100%;
     background-color: white;
     display: flex;
@@ -34,11 +35,12 @@
   ::ng-deep .side-toggle-icon {
     display: flex;
     align-items: center;
-    padding-left: 10px;
+    padding: 0 10px;
     opacity: 1;
     transition: 0.3s opacity ease-out;
     button {
       display: flex;
+      box-shadow: 0px 0px 5px 2px #a7a7a7;
       justify-content: center;
       .mat-button-wrapper {
         padding: 4px 0;
@@ -60,6 +62,7 @@
   .side-toggle-content-wrapper {
     width: 100%;
     background-color: white;
+    box-shadow: 0px 1px 5px 1px #a7a7a7;
   }
   .side-toggle-indicator {
     background-color: $primary;
@@ -72,3 +75,18 @@
     opacity: 0;
   }
 }
+
+.side-toggle.dir-left {
+  flex-direction: row-reverse;
+  .side-toggle-trigger {
+    flex-direction: row-reverse;
+    .side-toggle-indicator {
+      transform: rotate(180deg);
+    }
+  }
+  .side-toggle-content-wrapper {
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 0px;
+  }
+}
+
