@@ -59,6 +59,7 @@ import { EcoFabSpeedDialModule } from "@ecodev/fab-speed-dial";
 import { ScenarioMenuComponent } from './pages/planning/scenario-menu/scenario-menu.component';
 import { MatRadioModule } from "@angular/material/radio";
 import { SideToggleComponent } from './elements/side-toggle/side-toggle.component';
+import { LegendComponent } from './map/legend/legend.component';
 
 @NgModule({
   declarations: [
@@ -90,7 +91,8 @@ import { SideToggleComponent } from './elements/side-toggle/side-toggle.componen
     DragDirective,
     MapControlsComponent,
     ScenarioMenuComponent,
-    SideToggleComponent
+    SideToggleComponent,
+    LegendComponent
   ],
     imports: [
         BrowserModule,

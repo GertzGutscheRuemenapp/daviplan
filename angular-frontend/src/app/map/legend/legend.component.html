@@ -1,0 +1,6 @@
+<mat-form-field appearance="standard">
+  <mat-select [(ngModel)]="activeBackground" (selectionChange)="selectBackground($event.value)">
+    <mat-option *ngFor="let layer of backgroundLayers" [value]="layer"> {{layer}} </mat-option>
+  </mat-select>
+</mat-form-field>
+

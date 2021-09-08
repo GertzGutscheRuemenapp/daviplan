@@ -42,7 +42,6 @@
       </mat-select>
     </mat-form-field>
   </div>
-
   <span fxShow="true" fxHide.lt-md="true">
     <a routerLink="/planung/nachfrage" routerLinkActive="active-link" i18n> Nachfrage </a>
     <a routerLink="/planung/angebot" routerLinkActive="active-link" i18n> Angebot </a>
@@ -51,7 +50,7 @@
   </span>
 </mat-toolbar>
 <div id="planning-map" class="map-container"></div>
-<app-map-controls style="position: absolute; right: 100px; top: 100px;"></app-map-controls>
+<app-map-controls></app-map-controls>
 <app-scenario-menu [ngClass]="{'expanded' : showScenarioMenu}"></app-scenario-menu>
 <div class="context-bar">
   <mat-expansion-panel id="scenario-toggle" class="side-toggle">
@@ -68,6 +67,9 @@
   </router-outlet>
 </div>
 
-<app-side-toggle icon="info" [style.opacity]="(showScenarioMenu) ? 0.5 : 1" [style.pointer-events]="(showScenarioMenu) ? 'none' : 'all'">
-  stichpunktartige Beschreibung, was gerade auf der Karte gezeigt wird
+<app-side-toggle id="legend"
+                 icon="layers"
+                 direction="left"
+                 expanded>
+  <app-legend target="planning-map"></app-legend>
 </app-side-toggle>

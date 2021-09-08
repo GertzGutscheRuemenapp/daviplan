@@ -88,7 +88,13 @@ app-scenario-menu.expanded {
 
 app-side-toggle {
   position: absolute;
-  left: $context-bar-width;
-  top: 120px;
+  right: 0;
+  top: 300px;
   z-index: 1;
+}
+
+app-map-controls {
+  position: absolute;
+  right: 100px;
+  top: 100px;
 }
