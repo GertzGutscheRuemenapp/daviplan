@@ -12,7 +12,7 @@ export class MapControlsComponent implements OnInit {
   @ViewChild('rightDial') rightDial?: EcoFabSpeedDialComponent;
   @ViewChild('leftDialBack') leftDialBack?: HTMLElement;
 
-  dialBackVis: boolean = false;
+  expanded: boolean = false;
 
   constructor() { }
 
@@ -26,7 +26,7 @@ export class MapControlsComponent implements OnInit {
   trigger(): void{
     this.leftDial?.toggle();
     this.rightDial?.toggle();
-    this.dialBackVis = !this.dialBackVis;
+    this.expanded = !this.expanded;
   }
 
 }

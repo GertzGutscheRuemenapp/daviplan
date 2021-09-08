@@ -1,9 +1,20 @@
 #leftDialBack {
-  background-color: white;
   position: fixed;
   width: 230px;
   margin-left: -210px;
   height: 55px;
+  text-align: right;
+  div {
+    background-color: white;
+    width: 0%;
+    height: 100%;
+    white-space:nowrap;
+    display:inline-block;
+    transition: width 0.3s cubic-bezier(0.55, 0, 0.55, 0.2);
+  }
+}
+
+#leftDialBack.expanded div {
   box-shadow: 0px 0px 3px 2px #c7c7c7;
-  transition: opacity 0.3s ease-in-out;
+  width: 100%;
 }
