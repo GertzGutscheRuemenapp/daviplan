@@ -54,3 +54,15 @@
     }
   }
 }
+
+
+::ng-deep #legend {
+  position: absolute;
+  right: 640px;
+  top: 500px;
+  z-index: 1;
+  .legend-body {
+    max-height: calc(100vh - 650px);
+    overflow-y: auto;
+  }
+}
