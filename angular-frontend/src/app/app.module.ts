@@ -36,7 +36,6 @@ import { SupplyComponent } from './pages/planning/supply/supply.component';
 import { WelcomeComponent } from './pages/welcome.component';
 import { BasedataComponent } from './pages/basedata/basedata.component';
 import { MatExpansionModule } from "@angular/material/expansion";
-import { LayerSelectComponent } from './map/layer-select/layer-select.component';
 import { MatSliderModule } from "@angular/material/slider";
 import { PopulationComponent } from './pages/population/population.component';
 import { PopDevelopmentComponent } from './pages/population/pop-development/pop-development.component';
@@ -77,7 +76,6 @@ import { LegendComponent } from './map/legend/legend.component';
     SupplyComponent,
     WelcomeComponent,
     BasedataComponent,
-    LayerSelectComponent,
     PopulationComponent,
     PopDevelopmentComponent,
     PopStatisticsComponent,

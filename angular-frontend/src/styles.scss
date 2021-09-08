@@ -431,61 +431,58 @@ mat-icon.warning {
   box-shadow: 0px 5px 5px -1px rgb(0 0 0 / 20%), 0px 10px 10px 0px rgb(0 0 0 / 14%), 2px 18px 18px 0px rgb(0 0 0 / 12%);
   padding-top: 10px;
 
-  mat-expansion-panel {
-    margin-top: -1px;
-    box-shadow: none !important;
-    padding: 0 !important;
-    mat-expansion-panel-header {
-      padding: 2px 18px !important;
-      height: 68px!important;
-    }
-    .mat-content {
-      border-top: 1px solid $primary;
-      border-bottom: 1px solid $primary;
-      transition: 0.4s ease-in border-bottom-color;
-    }
-    mat-panel-title {
-      padding: 5px 0;
-      text-transform: uppercase;
-      color: #00000061;
-      align-items: center;
-      height: 60px!important;
-    }
-    .mat-expansion-indicator:after {
-      color: $primary;
-    }
-    .mat-expansion-indicator {
-      margin-left: -10px;
-    }
-/*    .mat-expansion-indicator {
-      height: 70px;
-      border-top: 1px solid $primary;
-    }*/
+  mat-expansion-panel-header, mat-expansion-panel.mat-expanded mat-expansion-panel-header {
+    height: 68px!important;
+    padding: 0px 18px !important;
   }
 
-  mat-expansion-panel.mat-expanded {
-    .mat-content {
-      border-bottom: 1px solid white;
-    }
+  mat-panel-title {
+    height: 60px!important;
   }
 
-  mat-panel-title:hover {
-    color:black;
-  }
-
-  mat-expansion-panel.mat-expanded {
-    mat-expansion-panel-header {
-      height: auto !important;
-      padding: 0px 18px !important;
-      background-color: $primary-light !important;
-    }
-    mat-panel-title {
-      color: black;
-    }
-  }
   .mat-expansion-panel-body {
-    padding: 16px 16px 16px 40px;
+    padding: 6px 16px 15px 54px;
+    border-bottom: 1px solid $primary-light;
   }
+}
+
+mat-expansion-panel {
+  box-shadow: none !important;
+  padding: 0 !important;
+/*    .mat-content {
+    border-top: 1px solid $primary;
+    border-bottom: 1px solid $primary;
+    transition: 0.4s ease-in border-bottom-color;
+  }*/
+  .mat-expansion-panel-header-title {
+    padding: 5px 0;
+    text-transform: uppercase;
+    color: #00000061;
+    align-items: center;
+  }
+  .mat-expansion-indicator:after {
+    color: $primary;
+  }
+  .mat-expansion-indicator {
+    margin-left: -10px;
+  }
+}
+
+mat-expansion-panel:hover .mat-expansion-panel-header-title {
+  color:black;
+}
+
+mat-expansion-panel.mat-expanded {
+  mat-expansion-panel-header {
+    height: 48px !important;
+    background-color: $primary-light !important;
+  }
+  mat-panel-title {
+    color: black;
+  }
+}
+.mat-expansion-panel-body {
+  padding: 16px 16px 16px 40px;
 }
 
 mat-expansion-panel.side-toggle {

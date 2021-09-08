@@ -1,6 +1,32 @@
-<mat-form-field appearance="standard">
-  <mat-select [(ngModel)]="activeBackground" (selectionChange)="selectBackground($event.value)">
-    <mat-option *ngFor="let layer of backgroundLayers" [value]="layer"> {{layer}} </mat-option>
-  </mat-select>
-</mat-form-field>
+<div class="legend-header">
+  <div class="mini-fab-icon">
+    <mat-icon>layers</mat-icon>
+  </div>
+  <span i18n>Legende</span>
+</div>
+
+<mat-expansion-panel *ngFor="let group of activeGroups" expanded>
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      {{group}}
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  <div *ngFor="let layer of layerGroups[group]">
+    <div *ngIf="layer.checked">
+      {{ layer.name }}
+    </div>
+  </div>
+</mat-expansion-panel>
+<mat-expansion-panel expanded>
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      Hintergrundkarte
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  <mat-form-field appearance="outline" class="small">
+    <mat-select [(ngModel)]="activeBackground" (selectionChange)="selectBackground($event.value)">
+      <mat-option *ngFor="let layer of backgroundLayers" [value]="layer"> {{layer}} </mat-option>
+    </mat-select>
+  </mat-form-field>
+</mat-expansion-panel>
 

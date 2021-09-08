@@ -40,9 +40,9 @@ mat-toolbar mat-form-field {
 
 
 ::ng-deep #process-select {
-  .mat-select-value span {
+/*  .mat-select-value span {
     color: $accent;
-  }
+  }*/
   .mat-select:not(.mat-select-empty) .mat-select-arrow {
     margin-top: 22px;
   }
@@ -52,7 +52,7 @@ mat-toolbar mat-form-field {
 }
 
 .mat-option.selected, .mat-selected span {
-  color: $accent;
+  color: $primary;
 }
 
 //::ng-deep .mat-select-min-line, .mat-select-trigger span, .mat-option.selected, .mat-selected, .mat-option-text {

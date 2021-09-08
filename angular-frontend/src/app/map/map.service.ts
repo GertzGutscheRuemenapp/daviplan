@@ -14,25 +14,6 @@ interface Layer {
   xyz?: boolean;
 }
 
-const mockLayers = {
-  Leistungen: [
-    { name: 'Kita' },
-    { name: 'Krippe' },
-  ],
-  Standorte: [
-    { name: 'Schulen' },
-    { name: 'Feuerwehr' },
-    { name: 'Kinderbeutreuung' },
-    { name: 'Ärzte' },
-  ],
-  Gebietsgrenzen: [
-    { name: 'Gemeinden' },
-    { name: 'Kreise' },
-    { name: 'Verwaltungsgemeinschaften' },
-    { name: 'Gemeinden' },
-  ]
-}
-
 const mockBackgroundLayers: Layer[] = [
   {
     id: 1,
@@ -57,7 +38,6 @@ export class MapService {
   private maps: Record<string, OlMap> = {};
   mapCreated = new EventEmitter<OlMap>();
 
-  layers = mockLayers;
   backgroundLayers: Layer[] = mockBackgroundLayers;
 
   constructor() { }

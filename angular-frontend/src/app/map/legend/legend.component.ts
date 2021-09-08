@@ -1,8 +1,26 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { OlMap } from "../map";
-import { pairwise, startWith } from "rxjs/operators";
 import { MapService } from "../map.service";
 import { FormControl } from "@angular/forms";
+
+const mockLayerGroups: Record<string, any[]> = {
+/*  Leistungen: [
+    { name: 'Kita', checked: true },
+    { name: 'Krippe', checked: true },
+  ],*/
+  Standorte: [
+    { name: 'Schulen', checked: false },
+    { name: 'Feuerwehr', checked: true },
+    { name: 'Kinderbeutreuung', checked: false },
+    { name: 'Ärzte', checked: true },
+  ],
+  Gebietsgrenzen: [
+    { name: 'Gemeinden', checked: false },
+    { name: 'Kreise', checked: true },
+    { name: 'Verwaltungsgemeinschaften', checked: false },
+    { name: 'Gemeinden', checked: false },
+  ]
+}
 
 @Component({
   selector: 'app-legend',
@@ -16,6 +34,8 @@ export class LegendComponent implements OnInit {
   map?: OlMap;
   activeBackground = '';
   backgroundLayers: string[] = [''];
+  layerGroups: Record<string, any[]> = mockLayerGroups;
+  activeGroups: string[] = [];
 
   constructor(private mapService: MapService, private cdRef:ChangeDetectorRef) {
   }
@@ -38,6 +58,7 @@ export class LegendComponent implements OnInit {
     if (!this.map) return;
     this.backgroundLayers = this.mapService.backgroundLayers.map(layer => layer.name);
     this.activeBackground = this.backgroundLayers[0];
+    this.activeGroups = Object.keys(this.layerGroups).filter(g => this.layerGroups[g].filter(l => l.checked).length > 0);
     this.selectBackground(this.activeBackground);
     this.cdRef.detectChanges();
   }
