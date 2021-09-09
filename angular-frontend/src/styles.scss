@@ -549,6 +549,10 @@ app-map-controls {
   bottom: 0;
   z-index: 1;
   height: 40vh;
+  pointer-events: none;
+  .side-toggle>div {
+    pointer-events: all;
+  }
   .legend-body {
     max-height: calc(40vh - 70px);
     overflow-y: auto;
