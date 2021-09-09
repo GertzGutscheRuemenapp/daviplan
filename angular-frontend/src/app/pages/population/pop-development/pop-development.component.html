@@ -1,4 +1,3 @@
-
 <div class="context-bar">
   <mat-expansion-panel expanded>
     <mat-expansion-panel-header>
@@ -10,7 +9,6 @@
       </mat-panel-title>
     </mat-expansion-panel-header>
     <mat-form-field appearance="outline" class="small">
-      <mat-label>Gebietseinheit</mat-label>
       <mat-select disableOptionCentering [(ngModel)]="activeLevel">
         <mat-option value="Bundesländer">
           Bundesländer
@@ -26,12 +24,6 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
-    <br>
-    <mat-form-field appearance="outline" class="small">
-      <mat-label>Gebiet</mat-label>
-      <mat-select disableOptionCentering>
-      </mat-select>
-    </mat-form-field>
   </mat-expansion-panel>
   <mat-expansion-panel expanded>
     <mat-expansion-panel-header>
@@ -42,7 +34,16 @@
         Prognoseszenario
       </mat-panel-title>
     </mat-expansion-panel-header>
-    ToDo
+    <mat-form-field appearance="outline" class="small">
+      <mat-select disableOptionCentering value="Trendfortschreibung">
+        <mat-option value="Trendfortschreibung">
+          Trendfortschreibung
+        </mat-option>
+        <mat-option value="Prognose">
+          Prognose
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
   </mat-expansion-panel>
   <mat-expansion-panel expanded>
     <mat-expansion-panel-header>
@@ -53,25 +54,85 @@
         Geschlecht
       </mat-panel-title>
     </mat-expansion-panel-header>
-    ToDo
+    <mat-form-field appearance="outline" class="small">
+      <mat-select disableOptionCentering value="alle">
+        <mat-option value="alle">
+          alle
+        </mat-option>
+        <mat-option value="männlich">
+          männlich
+        </mat-option>
+        <mat-option value="weiblich">
+          weiblich
+        </mat-option>
+        <mat-option value="divers">
+          divers
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <div class="sub-select-box">
+      <label i18n> Enthaltene Altersgruppen </label>
+      <button mat-icon-button color="primary" style="float: right; margin-top: -8px;">
+        <mat-icon>edit</mat-icon>
+      </button>
+      <div class="age-select-box" style="margin-top: 10px">
+        <div class="row checked">
+          <label>alle</label>
+          <mat-checkbox color="primary" [checked]="true"></mat-checkbox>
+        </div>
+        <mat-divider></mat-divider>
+        <div class="row checked">
+          <label>0 bis unter 19 Jahre</label>
+          <mat-checkbox color="primary" [checked]="true"></mat-checkbox>
+        </div>
+        <div class="row checked">
+          <label>10 bis unter 40 Jahre</label>
+          <mat-checkbox color="primary" [checked]="true"></mat-checkbox>
+        </div>
+        <div class="row checked">
+          <label>40 bis unter 60 Jahre</label>
+          <mat-checkbox color="primary" [checked]="true"></mat-checkbox>
+        </div>
+        <div class="row">
+          <label>65 Jahre und älter</label>
+          <mat-checkbox color="primary" [checked]="false"></mat-checkbox>
+        </div>
+      </div>
+    </div>
   </mat-expansion-panel>
 </div>
 
-<app-side-toggle id="info" icon="info" [fullHeightIndicator]="true">
-  <div style="padding: 10px">
-    Bevölkerungsentwicklung > {{activeLevel}} / <br>
-    Trendfortschreibung Geschlecht: alle / <br>
-    Altersgruppen: alle Kartenansicht: Einzeljahr 2029
-  </div>
-</app-side-toggle>
-
-
 <div fxFlex fxLayout="row wrap" fxLayoutGap="10px" fxFlexAlign="center baseline">
-  <div id="map-wrapper">
+  <div class="map-wrapper">
     <div id="pop-dev-map" class="map-container"></div>
+    <div id="info" cdkDrag cdkDragBoundary=".map-wrapper">
+      <div class="handle" title="Anzeigeinformationen">
+        <mat-icon color="primary">info</mat-icon>
+      </div>
+      <app-side-toggle [fullHeightIndicator]="true" expanded>
+        <div style="padding: 10px">
+          Bevölkerungsentwicklung > {{activeLevel}} | Trendfortschreibung <br>
+          Geschlecht: alle | Vergleich 2007 / 2010
+        </div>
+      </app-side-toggle>
+    </div>
     <app-map-controls style="position: absolute; right: 90px; top: 30px;"></app-map-controls>
+    <app-side-toggle id="legend"
+                     icon="layers"
+                     direction="left"
+                     expanded>
+      <app-legend target="planning-map"></app-legend>
+    </app-side-toggle>
   </div>
   <div id="diagram-bar">
+    <mat-form-field appearance="outline" class="small">
+      <mat-label>Gebiet</mat-label>
+      <mat-select disableOptionCentering value="irgendwo">
+        <mat-option value="irgendwo">
+          irgendwo
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
     <div class="diagram-wrapper">
       <div>
         <app-stacked-barchart [data]="data"
@@ -102,11 +163,4 @@
   </div>
 </div>
 
-<div>
-  <app-side-toggle id="legend"
-                   icon="layers"
-                   direction="left"
-                   expanded>
-    <app-legend target="planning-map"></app-legend>
-  </app-side-toggle>
-</div>
+

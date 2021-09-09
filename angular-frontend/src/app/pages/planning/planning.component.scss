@@ -4,7 +4,7 @@
   max-height: unset !important;
 }*/
 
-#planning-map {
+.map-wrapper {
   // always in background
   position: fixed;
   // minus top menus
@@ -12,6 +12,12 @@
   // leave space for planning context bars
   width: calc(100% - #{$context-bar-width});
   padding-left: calc(#{$context-bar-width});
+}
+
+#planning-map {
+  width: 100%;
+  height: 100%;
+  position: relative;
 }
 
 #process-select {
@@ -96,11 +102,4 @@ app-scenario-menu.expanded {
 ::ng-deep #legend .legend-body {
   max-height: calc(100vh - 650px);
   overflow-y: auto;
-}
-
-app-map-controls {
-  position: absolute;
-  right: 100px;
-  top: 100px;
-  z-index: 2;
 }

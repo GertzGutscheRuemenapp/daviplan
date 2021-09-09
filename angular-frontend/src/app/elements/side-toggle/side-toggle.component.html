@@ -6,7 +6,7 @@
   </div>
   <div class="side-toggle-trigger" (click)="expanded=!expanded" [style.max-height]="(fullHeightIndicator ? '100%' : '60px' )">
     <div class="side-toggle-indicator"> <mat-icon>chevron_right</mat-icon> </div>
-    <div class="side-toggle-icon">
+    <div *ngIf="icon" class="side-toggle-icon">
       <button mat-mini-fab color="primary">
         <mat-icon>{{icon}}</mat-icon>
       </button>

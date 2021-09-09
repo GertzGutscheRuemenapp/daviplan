@@ -49,8 +49,22 @@
     <a routerLink="/planung/bewertung" routerLinkActive="active-link" i18n> Bewertung </a>
   </span>
 </mat-toolbar>
-<div id="planning-map" class="map-container"></div>
-<app-map-controls></app-map-controls>
+<div class="map-wrapper">
+  <div id="planning-map" class="map-container">
+    <div id="info" cdkDrag cdkDragBoundary="#planning-map">
+      <div class="handle" title="Anzeigeinformationen">
+        <mat-icon color="primary">info</mat-icon>
+      </div>
+      <app-side-toggle [fullHeightIndicator]="true" expanded>
+        <div style="padding: 10px">
+          Bevölkerungsentwicklung >Trendfortschreibung <br>
+          Geschlecht: alle | Vergleich 2007 / 2010
+        </div>
+      </app-side-toggle>
+    </div>
+    <app-map-controls></app-map-controls>
+  </div>
+</div>
 <app-scenario-menu [ngClass]="{'expanded' : showScenarioMenu}"></app-scenario-menu>
 <div class="context-bar">
   <mat-expansion-panel id="scenario-toggle" class="side-toggle">

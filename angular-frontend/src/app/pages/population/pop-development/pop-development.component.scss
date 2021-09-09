@@ -1,10 +1,5 @@
 @import "~src/constants";
 
-#control {
-  width: 300px;
-  float: left;
-}
-
 .grid-container {
   width: calc(100% - 350px);
   float: right;
@@ -18,9 +13,28 @@
   z-index: 2;
 }
 
-#info {
-  position: absolute;
-  left: $context-bar-width;
-  top: 120px;
-  z-index: 1;
+#gender-select {
+  border-bottom: 1px solid lightgrey;
+}
+
+.context-bar {
+  mat-form-field, .sub-select-box {
+    width: 230px;
+  }
+}
+
+.age-select-box {
+  padding: 8px 16px;
+  border: 1px solid lightgrey;
+  label {
+    text-transform: none;
+    display:inline-block;
+    width: calc(100% - 30px);
+  }
+  .checked label {
+    color: $primary;
+  }
+  .row {
+    width: 100%;
+  }
 }
