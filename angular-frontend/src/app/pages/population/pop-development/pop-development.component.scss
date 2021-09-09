@@ -13,32 +13,6 @@
   z-index: 2;
 }
 
-#info {
-  position: absolute;
-  display: flex;
-  left: 50px;
-  top: 20px;
-  z-index: 10;
-  height: 70px;
-  user-select: none;
-  cursor: move;
-  .handle {
-    background-color: white;
-    border-radius: 5px 0 0 5px;
-    display: flex;
-    width: 40px;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 1px 0px 3px 1px #a7a7a7;
-    z-index: 1;
-    mat-icon {
-      font-size: 30px;
-      height: 30px;
-      width: 30px;
-    }
-  }
-}
-
 #gender-select {
   border-bottom: 1px solid lightgrey;
 }
