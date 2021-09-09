@@ -444,6 +444,17 @@ mat-icon.warning {
     padding: 6px 16px 15px 54px;
     border-bottom: 1px solid $primary-light;
   }
+
+  .sub-select-box {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid lightgrey;
+    label {
+      text-transform: uppercase;
+      color: $darkgrey;
+      font-size: 14px;
+    }
+  }
 }
 
 mat-expansion-panel {

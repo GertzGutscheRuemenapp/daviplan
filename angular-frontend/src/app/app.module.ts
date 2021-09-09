@@ -59,6 +59,7 @@ import { ScenarioMenuComponent } from './pages/planning/scenario-menu/scenario-m
 import { MatRadioModule } from "@angular/material/radio";
 import { SideToggleComponent } from './elements/side-toggle/side-toggle.component';
 import { LegendComponent } from './map/legend/legend.component';
+import { DragDropModule } from "@angular/cdk/drag-drop";
 
 @NgModule({
   declarations: [
@@ -123,7 +124,8 @@ import { LegendComponent } from './map/legend/legend.component';
         CKEditorModule,
         MatSlideToggleModule,
         EcoFabSpeedDialModule,
-        MatRadioModule
+        MatRadioModule,
+        DragDropModule
     ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true }
