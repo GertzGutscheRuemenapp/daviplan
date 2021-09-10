@@ -28,10 +28,6 @@ export class OlMap {
       center: olProj.fromLonLat(center),
       zoom: zoom
     });
-    let osmLayer = new TileLayer({
-      source: new OSM(),
-    })
-    this.layers = { 'OSM': osmLayer };
 
     let controls = (showDefaultControls) ? DefaultControls().extend([
         new ScaleLine({}),
@@ -39,7 +35,7 @@ export class OlMap {
     })
 
     this.map = new Map({
-      layers: [osmLayer],
+      layers: [],
       target: target,
       view: this.view,
       controls: controls,

@@ -1,6 +1,5 @@
 import { Component, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
-import { MapService } from "../../../map/map.service";
-import { OlMap } from "../../../map/map";
+import { MapControl, MapService } from "../../../map/map.service";
 import { StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
 
@@ -26,8 +25,8 @@ const mockdata: StackedData[] = [
   templateUrl: './pop-development.component.html',
   styleUrls: ['./pop-development.component.scss']
 })
-export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
-  map?: OlMap;
+export class PopDevelopmentComponent implements AfterViewInit {
+  mapControl?: MapControl;
   activeLevel: string = 'Gemeinden';
   data: StackedData[] = mockdata;
   labels: string[] = ['65+', '19-64', '0-18']
@@ -42,7 +41,8 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   constructor(private mapService: MapService) { }
 
   ngAfterViewInit(): void {
-    this.map = this.mapService.create('pop-dev-map');
+    this.mapControl = this.mapService.get('population-map');
+    this.mapControl.mapDescription = 'Bevölkerungsentwicklung > Gemeinden | Trendfortschreibung <br> Geschlecht: alle';
     let first = mockdata[0].values;
     let relData = mockdata.map(d => { return {
       group: d.group,
@@ -54,9 +54,4 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     this.lineChart!.max = Math.ceil(max / 10) * 10;
     this.lineChart?.draw(relData);
   }
-
-  ngOnDestroy(): void {
-    this.mapService.remove('pop-dev-map');
-  }
-
 }

@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { MapControl, MapService } from "../../map/map.service";
 
 @Component({
   selector: 'app-population',
@@ -6,10 +7,15 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./population.component.scss']
 })
 export class PopulationComponent implements OnInit {
+  mapControl?: MapControl;
 
-  constructor() { }
+  constructor(private mapService: MapService) { }
 
   ngOnInit(): void {
+    this.mapControl = this.mapService.get('population-map');
   }
 
+  ngOnDestroy(): void {
+    this.mapControl?.destroy();
+  }
 }
