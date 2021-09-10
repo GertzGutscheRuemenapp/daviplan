@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { MapControl, MapService } from "../../map/map.service";
 
 @Component({
@@ -6,12 +6,12 @@ import { MapControl, MapService } from "../../map/map.service";
   templateUrl: './population.component.html',
   styleUrls: ['./population.component.scss']
 })
-export class PopulationComponent implements OnInit {
+export class PopulationComponent implements AfterViewInit {
   mapControl?: MapControl;
 
   constructor(private mapService: MapService) { }
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
   }
 

@@ -110,5 +110,6 @@ export class MapControl {
   destroy(): void {
     if(!this.map) return;
     this.map.unset();
+    this.destroyed.emit(this.target);
   }
 }

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { OlMap } from "../map";
 import { MapControl, MapService, Layer } from "../map.service";
 import { FormControl } from "@angular/forms";
@@ -31,7 +31,7 @@ const mockLayerGroups: Record<string, any[]> = {
   templateUrl: './legend.component.html',
   styleUrls: ['./legend.component.scss']
 })
-export class LegendComponent implements OnInit {
+export class LegendComponent implements AfterViewInit {
 
   @Input() target!: string;
   layers: any;
@@ -47,7 +47,7 @@ export class LegendComponent implements OnInit {
   constructor(private mapService: MapService, private cdRef:ChangeDetectorRef) {
   }
 
-  ngOnInit (): void {
+  ngAfterViewInit (): void {
     this.mapControl = this.mapService.get(this.target);
     this.initSelect();
   }
