@@ -51,12 +51,26 @@
 </mat-toolbar>
 <div class="map-wrapper">
   <div id="planning-map" class="map-container">
-    <div id="info" cdkDrag cdkDragBoundary="#planning-map">
-      <div class="handle" title="Anzeigeinformationen">
+    <div id="info" class="map-drag-element" cdkDrag cdkDragBoundary="#population-map">
+      <div class="handle" title="Anzeigeinformationen" cdkDragHandle>
         <mat-icon color="primary">info</mat-icon>
       </div>
       <app-side-toggle [fullHeightIndicator]="true" expanded>
         <div style="padding: 10px" [innerHTML]="this.mapControl?.mapDescription"></div>
+      </app-side-toggle>
+    </div>
+    <div id="time-slider" class="map-drag-element" cdkDrag cdkDragBoundary="#population-map">
+      <div class="handle" title="Anzeigezeit" cdkDragHandle>
+        <mat-icon color="primary">query_builder</mat-icon>
+      </div>
+      <app-side-toggle [fullHeightIndicator]="true" expanded>
+        <div style="padding: 15px 10px 5px 10px">
+          <label>2017</label>
+          <mat-slider thumbLabel aria-label="Jahr" color="primary"
+                      min="2017" max="2039" value="2020" step="1">
+          </mat-slider>
+          <label>2039</label>
+        </div>
       </app-side-toggle>
     </div>
     <app-map-controls></app-map-controls>

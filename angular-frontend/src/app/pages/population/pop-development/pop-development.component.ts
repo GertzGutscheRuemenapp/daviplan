@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, AfterViewInit, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
 import { StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";

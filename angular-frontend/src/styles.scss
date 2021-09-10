@@ -511,17 +511,14 @@ mat-expansion-panel.side-toggle {
   //margin-left: 1px;
 }
 
-#info {
+.map-drag-element {
   position: absolute;
   display: flex;
-  left: 50px;
-  top: 20px;
   z-index: 10;
-  height: 70px;
   user-select: none;
-  cursor: move;
   .handle {
     background-color: white;
+    cursor: move;
     border-radius: 5px 0 0 5px;
     display: flex;
     width: 40px;
@@ -534,6 +531,25 @@ mat-expansion-panel.side-toggle {
       height: 30px;
       width: 30px;
     }
+  }
+}
+
+#info {
+  left: 50px;
+  top: 20px;
+  height: 70px;
+}
+
+#time-slider {
+  left: 50px;
+  bottom: 20px;
+  height: 70px;
+  //height: 88px;
+  mat-slider {
+    width: 300px;
+  }
+  .side-toggle-content {
+    //padding: 10px 0;
   }
 }
 
