@@ -41,6 +41,12 @@
   }
 }
 
+::ng-deep .context-bar {
+  mat-form-field, .sub-select-box {
+    width: 230px;
+  }
+}
+
 @media (max-width: 63.9375em) {
   ::ng-deep app-population {
     #diagram-bar {

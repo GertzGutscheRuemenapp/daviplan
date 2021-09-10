@@ -8,37 +8,62 @@
         Thema
       </mat-panel-title>
     </mat-expansion-panel-header>
-    ToDo
-  </mat-expansion-panel>
-  <mat-expansion-panel expanded>
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        <div class="mini-fab-icon">
-          <mat-icon class="material-icons-outlined">sick</mat-icon>
-        </div>
-        Gebiet
-      </mat-panel-title>
-    </mat-expansion-panel-header>
     <mat-form-field appearance="outline" class="small">
-      <mat-label>Gebiet</mat-label>
-      <mat-select disableOptionCentering>
+      <mat-select disableOptionCentering value="wanderung">
+        <mat-option value="natur">
+          Natürlicher Saldo
+        </mat-option>
+        <mat-option value="wanderung">
+          Wanderung
+        </mat-option>
       </mat-select>
     </mat-form-field>
+    <ul style="list-style-type: none; margin: 0 -10px;">
+      <li><mat-checkbox [checked]="true" color="primary">Zuzüge</mat-checkbox></li>
+      <li><mat-checkbox [checked]="true" color="primary">Fortzüge</mat-checkbox></li>
+    </ul>
   </mat-expansion-panel>
 </div>
 
 <div fxFlex fxLayout="row wrap" fxLayoutGap="10px" fxFlexAlign="center baseline">
-  <div id="map-wrapper">
+  <div class="map-wrapper">
     <div id="pop-stat-map" class="map-container"></div>
+    <div id="info" cdkDrag cdkDragBoundary=".map-wrapper">
+      <div class="handle" title="Anzeigeinformationen">
+        <mat-icon color="primary">info</mat-icon>
+      </div>
+      <app-side-toggle [fullHeightIndicator]="true" expanded>
+        <div style="padding: 10px">
+          Statistik irgendwas
+        </div>
+      </app-side-toggle>
+    </div>
     <app-map-controls style="position: absolute; right: 90px; top: 30px;"></app-map-controls>
+    <app-side-toggle id="legend"
+                     icon="layers"
+                     direction="left"
+                     expanded>
+      <!--                     cdkDragLockAxis="y" cdkDrag>-->
+      <app-legend target="planning-map"></app-legend>
+    </app-side-toggle>
   </div>
   <div id="diagram-bar">
+    <mat-form-field appearance="outline" class="small">
+      <mat-label>Gebiet</mat-label>
+      <mat-select disableOptionCentering value="irgendwo">
+        <mat-option value="irgendwo">
+          irgendwo
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
     <div class="diagram-wrapper">
       <div>
+        ToDo: Säulendiagramm kombiniert mit Linie Thema ausgewähltes Gebiet
       </div>
     </div><br>
     <div class="diagram-wrapper">
       <div>
+        ToDo: Linieniagramm Saldo Gesamtgebiet
       </div>
     </div>
   </div>

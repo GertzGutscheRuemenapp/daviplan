@@ -104,25 +104,27 @@
 
 <div fxFlex fxLayout="row wrap" fxLayoutGap="10px" fxFlexAlign="center baseline">
   <div class="map-wrapper">
-    <div id="pop-dev-map" class="map-container"></div>
-    <div id="info" cdkDrag cdkDragBoundary=".map-wrapper">
-      <div class="handle" title="Anzeigeinformationen">
-        <mat-icon color="primary">info</mat-icon>
-      </div>
-      <app-side-toggle [fullHeightIndicator]="true" expanded>
-        <div style="padding: 10px">
-          Bevölkerungsentwicklung > {{activeLevel}} | Trendfortschreibung <br>
-          Geschlecht: alle | Vergleich 2007 / 2010
+    <div id="pop-dev-map" class="map-container">
+      <div id="info" cdkDrag cdkDragBoundary=".map-wrapper">
+        <div class="handle" title="Anzeigeinformationen">
+          <mat-icon color="primary">info</mat-icon>
         </div>
+        <app-side-toggle [fullHeightIndicator]="true" expanded>
+          <div style="padding: 10px">
+            Bevölkerungsentwicklung > {{activeLevel}} | Trendfortschreibung <br>
+            Geschlecht: alle | Vergleich 2007 / 2010
+          </div>
+        </app-side-toggle>
+      </div>
+      <app-map-controls style="position: absolute; right: 90px; top: 30px;"></app-map-controls>
+      <app-side-toggle id="legend"
+                       icon="layers"
+                       direction="left"
+                       expanded>
+        <!--                     cdkDragLockAxis="y" cdkDrag>-->
+        <app-legend target="planning-map"></app-legend>
       </app-side-toggle>
     </div>
-    <app-map-controls style="position: absolute; right: 90px; top: 30px;"></app-map-controls>
-    <app-side-toggle id="legend"
-                     icon="layers"
-                     direction="left"
-                     expanded>
-      <app-legend target="planning-map"></app-legend>
-    </app-side-toggle>
   </div>
   <div id="diagram-bar">
     <mat-form-field appearance="outline" class="small">
