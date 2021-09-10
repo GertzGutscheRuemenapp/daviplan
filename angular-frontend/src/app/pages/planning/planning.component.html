@@ -51,7 +51,7 @@
 </mat-toolbar>
 <div class="map-wrapper">
   <div id="planning-map" class="map-container">
-    <div id="info" class="map-drag-element" cdkDrag cdkDragBoundary="#population-map">
+    <div id="info" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">
       <div class="handle" title="Anzeigeinformationen" cdkDragHandle>
         <mat-icon color="primary">info</mat-icon>
       </div>
@@ -59,7 +59,7 @@
         <div style="padding: 10px" [innerHTML]="this.mapControl?.mapDescription"></div>
       </app-side-toggle>
     </div>
-    <div id="time-slider" class="map-drag-element" cdkDrag cdkDragBoundary="#population-map">
+    <div id="time-slider" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">
       <div class="handle" title="Anzeigezeit" cdkDragHandle>
         <mat-icon color="primary">query_builder</mat-icon>
       </div>
