@@ -56,10 +56,7 @@
         <mat-icon color="primary">info</mat-icon>
       </div>
       <app-side-toggle [fullHeightIndicator]="true" expanded>
-        <div style="padding: 10px">
-          Bevölkerungsentwicklung >Trendfortschreibung <br>
-          Geschlecht: alle | Vergleich 2007 / 2010
-        </div>
+        <div style="padding: 10px" [innerHTML]="this.mapControl?.mapDescription"></div>
       </app-side-toggle>
     </div>
     <app-map-controls></app-map-controls>

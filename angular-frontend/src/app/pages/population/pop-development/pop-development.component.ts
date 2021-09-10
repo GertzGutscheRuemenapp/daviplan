@@ -1,6 +1,5 @@
 import { Component, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
-import { MapService } from "../../../map/map.service";
-import { OlMap } from "../../../map/map";
+import { MapControl, MapService } from "../../../map/map.service";
 import { StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
 
@@ -27,7 +26,7 @@ const mockdata: StackedData[] = [
   styleUrls: ['./pop-development.component.scss']
 })
 export class PopDevelopmentComponent implements AfterViewInit {
-  map?: OlMap;
+  mapControl?: MapControl;
   activeLevel: string = 'Gemeinden';
   data: StackedData[] = mockdata;
   labels: string[] = ['65+', '19-64', '0-18']
@@ -42,6 +41,8 @@ export class PopDevelopmentComponent implements AfterViewInit {
   constructor(private mapService: MapService) { }
 
   ngAfterViewInit(): void {
+    this.mapControl = this.mapService.get('population-map');
+    this.mapControl.mapDescription = 'Bevölkerungsentwicklung > Gemeinden | Trendfortschreibung <br> Geschlecht: alle';
     let first = mockdata[0].values;
     let relData = mockdata.map(d => { return {
       group: d.group,

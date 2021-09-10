@@ -11,10 +11,7 @@
         <mat-icon color="primary">info</mat-icon>
       </div>
       <app-side-toggle [fullHeightIndicator]="true" expanded>
-        <div style="padding: 10px">
-          Hier steht ein kontextabhängiger<br>
-          Text
-        </div>
+        <div style="padding: 10px" [innerHTML]="this.mapControl?.mapDescription"></div>
       </app-side-toggle>
     </div>
     <app-map-controls style="position: absolute; right: 90px; top: 30px;"></app-map-controls>

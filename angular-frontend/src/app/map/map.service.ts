@@ -62,9 +62,9 @@ export class MapControl {
   target = '';
   destroyed = new EventEmitter<string>();
   map?: OlMap;
+  mapDescription = '';
   private layers: Record<number, LayerSettings> = [];
   private readonly backgroundLayers: LayerSettings[] = [];
-  private mapDescription = '';
   private backgroundOpacity: number = 1;
 
   constructor(backgroundLayers: LayerSettings[], target: string) {

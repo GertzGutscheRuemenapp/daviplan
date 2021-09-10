@@ -43,6 +43,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     let wrapper = this.elRef.nativeElement.closest('mat-sidenav-content');
     this.renderer.setStyle(wrapper, 'overflow', 'hidden');
     this.mapControl = this.mapService.get('planning-map');
+    this.mapControl.mapDescription = 'Planungsprozess: xyz > Status Quo Fortschreibung <br> usw.'
   }
 
   ngOnDestroy(): void {
