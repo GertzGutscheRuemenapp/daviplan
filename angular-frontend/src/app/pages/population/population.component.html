@@ -4,5 +4,28 @@
     <a routerLink="/bevoelkerung/statistik" routerLinkActive="active-link" i18n> Statistiken </a>
   </span>
 </mat-toolbar>
+<div class="map-wrapper">
+  <div id="population-map">
+    <div id="info" cdkDrag cdkDragBoundary="#population-map">
+      <div class="handle" title="Anzeigeinformationen">
+        <mat-icon color="primary">info</mat-icon>
+      </div>
+      <app-side-toggle [fullHeightIndicator]="true" expanded>
+        <div style="padding: 10px">
+          Hier steht ein kontextabhängiger<br>
+          Text
+        </div>
+      </app-side-toggle>
+    </div>
+    <app-map-controls style="position: absolute; right: 90px; top: 30px;"></app-map-controls>
+    <app-side-toggle id="legend"
+                     icon="layers"
+                     direction="left"
+                     expanded>
+      <!--                     cdkDragLockAxis="y" cdkDrag>-->
+      <app-legend target="population-map"></app-legend>
+    </app-side-toggle>
+  </div>
+</div>
 <router-outlet>
 </router-outlet>

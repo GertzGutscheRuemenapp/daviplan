@@ -7,16 +7,10 @@ import { MapService } from "../../../map/map.service";
   templateUrl: './pop-statistics.component.html',
   styleUrls: ['./pop-statistics.component.scss']
 })
-export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
-  map?: OlMap;
+export class PopStatisticsComponent implements AfterViewInit {
 
-  constructor(private mapService: MapService) { }
+  constructor() { }
 
   ngAfterViewInit(): void {
-    this.map = this.mapService.create('pop-stat-map');
-  }
-
-  ngOnDestroy(): void {
-    this.mapService.remove('pop-stat-map');
   }
 }

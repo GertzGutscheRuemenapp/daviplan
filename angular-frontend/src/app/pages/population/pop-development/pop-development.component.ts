@@ -26,7 +26,7 @@ const mockdata: StackedData[] = [
   templateUrl: './pop-development.component.html',
   styleUrls: ['./pop-development.component.scss']
 })
-export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
+export class PopDevelopmentComponent implements AfterViewInit {
   map?: OlMap;
   activeLevel: string = 'Gemeinden';
   data: StackedData[] = mockdata;
@@ -42,7 +42,6 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   constructor(private mapService: MapService) { }
 
   ngAfterViewInit(): void {
-    this.map = this.mapService.create('pop-dev-map');
     let first = mockdata[0].values;
     let relData = mockdata.map(d => { return {
       group: d.group,
@@ -54,9 +53,4 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     this.lineChart!.max = Math.ceil(max / 10) * 10;
     this.lineChart?.draw(relData);
   }
-
-  ngOnDestroy(): void {
-    this.mapService.remove('pop-dev-map');
-  }
-
 }

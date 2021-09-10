@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { OlMap } from "../map";
-import { MapService } from "../map.service";
+import { MapControl, MapService, Layer } from "../map.service";
 import { FormControl } from "@angular/forms";
 
 const mockLayerGroups: Record<string, any[]> = {
@@ -35,10 +35,10 @@ export class LegendComponent implements OnInit {
 
   @Input() target!: string;
   layers: any;
-  map?: OlMap;
-  activeBackground = '';
+  mapControl!: MapControl;
+  activeBackground?: number;
   backgroundOpacity = 1;
-  backgroundLayers: string[] = [''];
+  backgroundLayers: Layer[] = [];
   layerGroups: Record<string, any[]> = mockLayerGroups;
   activeGroups: string[] = [];
   editMode: boolean = true;
@@ -48,33 +48,16 @@ export class LegendComponent implements OnInit {
   }
 
   ngOnInit (): void {
-    this.map = this.mapService.getMap(this.target);
-    if (this.map)
-      this.initSelect();
-    // map not ready yet
-    else
-      this.mapService.mapCreated.subscribe( map => {
-        if (map.target = this.target) {
-          this.map = map;
-          this.initSelect();
-        }
-      })
+    this.mapControl = this.mapService.get(this.target);
+    this.initSelect();
   }
 
   initSelect(): void {
-    if (!this.map) return;
-    this.backgroundLayers = this.mapService.backgroundLayers.map(layer => layer.name);
-    this.activeBackground = this.backgroundLayers[0];
-    this.selectBackground(this.activeBackground);
+    this.backgroundLayers = this.mapControl.getBackgroundLayers();
+    this.activeBackground = this.backgroundLayers[0].id;
+    this.mapControl.setBackground(this.activeBackground);
     this.filterActiveGroups();
     this.cdRef.detectChanges();
-  }
-
-  selectBackground(selected: string) {
-    this.backgroundLayers.forEach(layer => {
-      this.map?.setVisible(layer, layer === selected);
-      this.map?.setOpacity(layer, this.backgroundOpacity);
-    });
   }
 
   // ToDo: use template filter
@@ -82,8 +65,8 @@ export class LegendComponent implements OnInit {
     this.activeGroups = Object.keys(this.layerGroups).filter(g => this.layerGroups[g].filter(l => l.checked).length > 0);
   }
 
-  opacityChanged(layer: string, value: number | null): void {
+  opacityChanged(id: number, value: number | null): void {
     if(value === null) return;
-    this.map?.setOpacity(layer, value);
+    this.mapControl?.setLayerAttr(id, { opacity: value });
   }
 }

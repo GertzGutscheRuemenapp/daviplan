@@ -4,28 +4,34 @@
   padding-left: calc(#{$context-bar-width});
 }
 
+$diagram-bar-width: 600px;
+
+.map-wrapper {
+  position: fixed;
+  height: calc(100% - 120px);
+  width: calc(100% - #{$context-bar-width} - #{$diagram-bar-width} - 40px);
+  padding-left: $context-bar-width;
+  padding-right: $diagram-bar-width + 40px;
+}
+#population-map {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
 ::ng-deep app-population {
   overflow-y: hidden;
   #diagram-bar {
     position: absolute;
+    top: 60px;
     right: 0px;
-    width: 600px;
+    width: $diagram-bar-width;
     background-color: white;
     height: calc(100% - 60px);
     overflow-y: auto;
     padding: 0 20px;
     z-index: 2;
     box-shadow: 0px 5px 5px -1px rgb(0 0 0 / 20%), 0px 10px 10px 0px rgb(0 0 0 / 14%), 2px 18px 18px 0px rgb(0 0 0 / 12%);
-  }
-  .map-wrapper {
-    height: 100%;
-    width: calc(100% - 640px);
-    position: relative;
-    margin: 0!important;
-  }
-  .map-container {
-    height: 100%;
-    width: 100%;
   }
   .diagram-wrapper {
     width: 100%;
