@@ -279,6 +279,7 @@ button.mat-icon-button {
 
 .mat-icon-button mat-icon {
   margin-top: -3px;
+  margin-left: 2px;
 }
 
 .mat-icon-button:hover {
@@ -466,9 +467,6 @@ mat-icon.warning {
   .mat-expansion-panel-body {
     padding: 6px 5px 15px 54px;
     border-bottom: 1px solid $primary-light;
-    mat-divider {
-      width: calc(100% - 11px);
-    }
   }
 
   .sub-select-box {
@@ -613,5 +611,29 @@ app-map-controls {
   .legend-body {
     max-height: calc(40vh - 70px);
     overflow-y: auto;
+  }
+}
+
+.row-button {
+  cursor: pointer;
+  flex-direction: row;
+  box-sizing: border-box;
+  display: flex;
+  margin: 5px 0 5px 0;
+  align-items: center;
+
+  label {
+    cursor: pointer;
+    transition: margin 400ms;
+  }
+}
+
+.row-button:hover, .row-button.active {
+  label {
+    margin-left: 10px;
+    color: map-get($blue-palette, 600);
+  }
+  .mat-icon-button {
+    background-color: map-get($blue-palette, A200);
   }
 }
