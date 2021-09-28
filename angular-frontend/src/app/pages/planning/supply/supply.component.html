@@ -1,15 +1,15 @@
-<mat-expansion-panel>
+<mat-expansion-panel expanded>
   <mat-expansion-panel-header>
     <mat-panel-title>
       <div class="mini-fab-icon">
-        <mat-icon class="material-icons-outlined">sick</mat-icon>
+        <div class="davicon icon-GGR-davicons-Font-Simple-3-Standorte-Leistungen"></div>
       </div>
-      Infrastruktur und Leistungen
+      Standorte / Leistungen
     </mat-panel-title>
   </mat-expansion-panel-header>
   <div style="padding-bottom: 10px; border-bottom: 1px solid lightgrey;">
     <mat-form-field appearance="outline" class="small">
-<!--      <mat-label>Infrastruktur</mat-label>-->
+      <mat-label>Infrastruktur</mat-label>
       <mat-select disableOptionCentering value="Kinderbetreuung"><!-- [value]="activeInfrastructure">-->
         <mat-option value="Kinderbetreuung">
           Kinderbetreuung
@@ -22,20 +22,22 @@
     </ul>
   </div>
   <div>
-    <ul style="list-style-type: none; margin: 10px 0 10px -20px;">
-      <li><button mat-stroked-button color="primary" style="margin-bottom: 10px;">
-        <mat-icon>zoom_out_map</mat-icon> Zoom auf alle
-      </button></li>
+    <ul style="list-style-type: none; margin: 10px 0 10px -28px;">
+      <li>
+        <button mat-button color="primary" style="margin-bottom: 10px;">
+          <mat-icon>location_searching</mat-icon> Zoom auf alle
+        </button>
+      </li>
       <li><mat-slide-toggle color="primary">Cluster</mat-slide-toggle></li>
       <li><mat-slide-toggle color="primary">Verdrängung</mat-slide-toggle></li>
     </ul>
   </div>
 </mat-expansion-panel>
-<mat-expansion-panel>
+<mat-expansion-panel expanded>
   <mat-expansion-panel-header>
     <mat-panel-title>
       <div class="mini-fab-icon">
-        <mat-icon class="material-icons-outlined">sick</mat-icon>
+        <div class="davicon icon-GGR-davicons-Font-Simple-4-Vergleichsdarstellung"></div>
       </div>
       Vergleichsdarstellung
     </mat-panel-title>

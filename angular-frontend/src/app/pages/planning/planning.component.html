@@ -5,8 +5,8 @@
     </button>
   </div>-->
   <div id="process-select">
-    <div class="mini-fab-icon">
-      <mat-icon class="material-icons-outlined">sick</mat-icon>
+    <div class="mini-fab-icon inverted primary">
+      <div class="davicon icon-GGR-davicons-Font-Simple-1-Planungsprozess"></div>
     </div>
     <mat-form-field appearance="standard" class="">
       <mat-label>Planungsprozess</mat-label>
@@ -61,7 +61,7 @@
     </div>
     <div id="time-slider" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">
       <div class="handle" title="Anzeigezeit" cdkDragHandle>
-        <mat-icon color="primary">query_builder</mat-icon>
+        <mat-icon color="primary">event</mat-icon>
       </div>
       <app-side-toggle [fullHeightIndicator]="true" expanded>
         <div style="padding: 15px 10px 5px 10px">
@@ -81,8 +81,8 @@
   <mat-expansion-panel id="scenario-toggle" class="side-toggle">
     <mat-expansion-panel-header (click)="toggleScenarioMenu()">
       <mat-panel-title>
-        <div class="mini-fab-icon">
-          <mat-icon class="material-icons-outlined">sick</mat-icon>
+        <div class="mini-fab-icon" [ngClass]="{'primary': showScenarioMenu}">
+          <div class="davicon icon-GGR-davicons-Font-Simple-2-Szenario"></div>
         </div>
         Szenario
       </mat-panel-title>

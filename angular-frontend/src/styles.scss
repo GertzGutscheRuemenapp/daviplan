@@ -187,6 +187,7 @@ mat-form-field.mat-focused span.mat-form-field-label-wrapper label {
 
 button mat-icon {
   margin-left: -2px;
+  margin-right: 1px;
   //margin-right: 2px;
 }
 
@@ -322,11 +323,30 @@ button.mat-icon-button {
   background-color: white;
   border: 2px solid $accent;
   color: $accent;
+  mat-icon {
+    font-size: 26px;
+    margin-left: -2px;
+  }
+  .davicon {
+    font-size: 32px;
+    margin-left: -2px;
+    margin-top: -3px;
+  }
 }
 
-.mini-fab-icon mat-icon {
-  font-size: 26px;
-  margin-left: -2px;
+.mini-fab-icon.primary {
+  border: 2px solid $primary;
+  color: $primary;
+}
+
+.mini-fab-icon.inverted {
+  background-color: $accent;
+  .davicon {
+    color: white;
+  }
+}
+.mini-fab-icon.inverted.primary {
+  background-color: $primary;
 }
 
 .mat-fab.bordered {
