@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.gis.db import models as gis_models
-from ..user.models import Profile
-from ..area.models import InternalWFSLayer, MapSymbols
+from datentool_backend.user.models import Profile
+from datentool_backend.area.models import InternalWFSLayer, MapSymbols
 
 
 class Infrastructure(models.Model):
