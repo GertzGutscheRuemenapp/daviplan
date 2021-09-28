@@ -16,6 +16,9 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
+    <button color="primary" mat-icon-button style="box-shadow: none; margin-left: auto;">
+      <mat-icon>filter_list</mat-icon>
+    </button>
     <ul style="list-style-type: none; margin: 0 -10px;">
       <li><mat-checkbox color="primary">Kita</mat-checkbox></li>
       <li><mat-checkbox color="primary">Krippe</mat-checkbox></li>
@@ -33,6 +36,13 @@
       <li><mat-slide-toggle color="primary">Verdrängung</mat-slide-toggle></li>
     </ul>
   </div>
+  <mat-divider></mat-divider>
+  <button color="primary" *ngIf="!addPlaceMode" (click)="addPlaceMode = !addPlaceMode" mat-icon-button style="box-shadow: none; margin-left: auto;">
+    <mat-icon>list</mat-icon>
+  </button>
+  <button color="primary" *ngIf="addPlaceMode" (click)="addPlaceMode = !addPlaceMode" mat-mini-fab style="box-shadow: none; margin-left: auto;">
+    <mat-icon>list</mat-icon>
+  </button>
 </mat-expansion-panel>
 <mat-expansion-panel expanded>
   <mat-expansion-panel-header>

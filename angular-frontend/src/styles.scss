@@ -464,8 +464,11 @@ mat-icon.warning {
   }
 
   .mat-expansion-panel-body {
-    padding: 6px 16px 15px 54px;
+    padding: 6px 5px 15px 54px;
     border-bottom: 1px solid $primary-light;
+    mat-divider {
+      width: calc(100% - 11px);
+    }
   }
 
   .sub-select-box {
