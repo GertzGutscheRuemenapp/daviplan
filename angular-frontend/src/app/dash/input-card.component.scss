@@ -82,6 +82,7 @@ h3.subtitle {
     border: 1px solid #0000001F;
     width: 100%;
     min-height: 200px;
+    display: flex;
   }
 
   .img-wrapper:hover {
@@ -94,29 +95,6 @@ h3.subtitle {
     align-items: center;
     display: flex;
     color: $primary;
-  }
-
-  .input-row {
-    cursor: pointer;
-    flex-direction: row;
-    box-sizing: border-box;
-    display: flex;
-    margin: 5px 0 5px 0;
-  }
-
-  .input-row label {
-    cursor: pointer;
-    transition: margin 400ms;
-  }
-
-  .input-row:hover label {
-    margin-left: 10px;
-    color: map-get($blue-palette, 600);
-    //font-weight: bold;
-  }
-
-  .input-row:hover .mat-icon-button {
-    background-color: map-get($blue-palette, A200);
   }
 
   td:first-child {

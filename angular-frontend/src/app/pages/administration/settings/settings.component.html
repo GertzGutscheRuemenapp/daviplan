@@ -7,7 +7,7 @@
                    infoText="Bla bla Name der Seite ändern bla bla bla"
                    [editTemplate]="titleTemplate"
                    [editButton]="titleEditButton">
-      <div #titleEditButton class="input-row" style="width: 90%">
+      <div #titleEditButton class="row-button" style="width: 90%">
         <label>{{settings?.title}}</label>
         <div class="fill-space"></div>
         <button mat-icon-button color="primary">
@@ -25,7 +25,7 @@
                     invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua."
                     [editTemplate]="contactTemplate"
                     [editButton]="contactEditButton">
-      <div #contactEditButton class="input-row" style="width: 90%">
+      <div #contactEditButton class="row-button" style="width: 90%">
         <label>{{settings?.contactMail || '-'}}</label>
         <div class="fill-space"></div>
         <button mat-icon-button color="primary">
@@ -48,7 +48,7 @@
                 style="position: absolute; left: 45%; top: 50%; pointer-events: none; z-index: 1;">
           <mat-icon>edit</mat-icon>
         </button>
-        <img [src]="settings?.logo" style="width: 100%;">
+        <img [src]="settings?.logo" style="width: 100%;  object-fit: contain;">
       </div>
       <button mat-button class="mat-button-dv"
               [disabled]="(!settings?.logo) ? true : null"
