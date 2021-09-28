@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { MapControl, MapService } from "../../map/map.service";
+import { faArrowsAlt } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-population',
@@ -8,6 +9,7 @@ import { MapControl, MapService } from "../../map/map.service";
 })
 export class PopulationComponent implements AfterViewInit {
   mapControl?: MapControl;
+  faArrows = faArrowsAlt;
 
   constructor(private mapService: MapService) { }
 

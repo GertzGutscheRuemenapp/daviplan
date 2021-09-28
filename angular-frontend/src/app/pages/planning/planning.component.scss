@@ -31,7 +31,8 @@
 }
 
 ::ng-deep .context-bar mat-form-field {
-  width: calc(#{$context-bar-width} - 100px);
+  width: calc(#{$context-bar-width} - 105px);
+  margin-right: 5px;
 }
 
 mat-toolbar mat-form-field {

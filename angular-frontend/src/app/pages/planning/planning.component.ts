@@ -1,7 +1,7 @@
 import { Component, ElementRef, AfterViewInit, Renderer2, OnDestroy, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../map/map.service";
 import { FormControl } from "@angular/forms";
-
+import { faArrowsAlt } from '@fortawesome/free-solid-svg-icons';
 
 interface Project {
   user?: string;
@@ -29,6 +29,7 @@ const mockSharedProjects: Project[] = [
 })
 export class PlanningComponent implements AfterViewInit, OnDestroy {
 
+  faArrows = faArrowsAlt;
   myProjects: Project[] = mockMyProjects;
   sharedProjects: Project[] = mockSharedProjects;
   activeProject?: Project;
