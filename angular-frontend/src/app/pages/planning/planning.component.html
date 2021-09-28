@@ -54,6 +54,7 @@
     <div id="info" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">
       <div class="handle" title="Anzeigeinformationen" cdkDragHandle>
         <mat-icon color="primary">info</mat-icon>
+        <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
       </div>
       <app-side-toggle [fullHeightIndicator]="true" expanded>
         <div style="padding: 10px" [innerHTML]="this.mapControl?.mapDescription"></div>
@@ -62,6 +63,7 @@
     <div id="time-slider" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">
       <div class="handle" title="Anzeigezeit" cdkDragHandle>
         <mat-icon color="primary">event</mat-icon>
+        <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
       </div>
       <app-side-toggle [fullHeightIndicator]="true" expanded>
         <div style="padding: 15px 10px 5px 10px">

@@ -7,8 +7,10 @@ $app-accent: mat.define-palette($golden-palette, 500);
 
 $app-typography: mat.define-typography-config(
   $font-family: 'Calibri',
-  //$headline: mat.define-typography-level(54px, 56px, 400),
- // $title: mat.define-typography-level(20px, 20px, 500),
+/*  $headline: mat.define-typography-level(54px, 54px, 400),
+  $title: mat.define-typography-level(28px, 28px, 500),
+  $subheading-2: mat.define-typography-level(26px, 26px, 400),
+  $subheading-1: mat.define-typography-level(24px, 24px, 400),*/
   $body-1: mat.define-typography-level(18px, 24px, 400),
   $body-2: mat.define-typography-level(16px, 22px, 400),
   $button: mat.define-typography-level(18px, 15px, 500),
@@ -554,6 +556,15 @@ mat-expansion-panel.side-toggle {
   }
 }
 
+.drag-indicator{
+  position: absolute;
+  left: 25px; top: -2px;
+  color: lightgrey;
+  font-size: 0.6em;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
 #info {
   left: 50px;
   top: 20px;
@@ -570,6 +581,12 @@ mat-expansion-panel.side-toggle {
   }
   .side-toggle-content {
     //padding: 10px 0;
+  }
+}
+
+#info:hover, #time-slider:hover {
+  .drag-indicator {
+    opacity: 1;
   }
 }
 
