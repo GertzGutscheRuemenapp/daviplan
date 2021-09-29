@@ -16,6 +16,9 @@ class Profile(models.Model):
     can_create_scenarios = models.BooleanField(default=False)
     can_edit_data = models.BooleanField(default=False)
 
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__}: {self.user.username}'
+
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):

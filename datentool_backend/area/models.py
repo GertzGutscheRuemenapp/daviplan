@@ -76,3 +76,9 @@ class Area(models.Model):
     area_level = models.ForeignKey(AreaLevel, on_delete=models.RESTRICT)
     geom = gis_models.GeometryField()
     attributes = models.JSONField()
+
+    def __str__(self) -> str:
+        name = self.attributes.get('name',
+                                   self.attributes.get('gen', self.pk))
+        return f'{self.__class__.__name__} ({self.area_level.name}): {name}'
+
