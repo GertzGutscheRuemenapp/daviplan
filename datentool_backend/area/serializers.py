@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import SymbolForm, MapSymbols
+from .models import SymbolForm, MapSymbol
 
 
 class SymbolFormSerializer(serializers.HyperlinkedModelSerializer):
@@ -11,6 +11,6 @@ class SymbolFormSerializer(serializers.HyperlinkedModelSerializer):
 
 class MapSymbolsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = MapSymbols
+        model = MapSymbol
         fields =  ('id', 'symbol', 'fill_color', 'stroke_color')
 

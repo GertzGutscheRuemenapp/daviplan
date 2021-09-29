@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.gis.db import models as gis_models
 from datentool_backend.user.models import Profile
-from datentool_backend.area.models import InternalWFSLayer, MapSymbols
+from datentool_backend.area.models import InternalWFSLayer, MapSymbol
 
 
 class Infrastructure(models.Model):
@@ -16,7 +16,7 @@ class Infrastructure(models.Model):
         Profile, related_name='infrastructure_accessible_by')
     # sensitive_data
     layer = models.ForeignKey(InternalWFSLayer, on_delete=models.RESTRICT)
-    symbol = models.ForeignKey(MapSymbols, on_delete=models.RESTRICT)
+    symbol = models.ForeignKey(MapSymbol, on_delete=models.RESTRICT)
 
 
 class Quota(models.Model):

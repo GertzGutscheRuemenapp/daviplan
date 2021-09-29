@@ -9,7 +9,7 @@ class SymbolForm(models.Model):
     name = models.TextField()
 
 
-class MapSymbols(models.Model):
+class MapSymbol(models.Model):
     '''
     MapSymbols
     '''
@@ -42,7 +42,7 @@ class WMSLayer(Layer):
 
 class InternalWFSLayer(Layer):
     """an internal WFS Layer"""
-    symbol = models.ForeignKey(MapSymbols, on_delete=models.RESTRICT)
+    symbol = models.ForeignKey(MapSymbol, on_delete=models.RESTRICT)
 
 
 class SourceTypes(models.TextChoices):

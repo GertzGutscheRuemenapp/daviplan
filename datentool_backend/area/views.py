@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 
-from .models import SymbolForm, MapSymbols
+from .models import SymbolForm, MapSymbol
 from .serializers import SymbolFormSerializer, MapSymbolsSerializer
 
 
@@ -10,5 +10,5 @@ class SymbolFormViewSet(viewsets.ModelViewSet):
 
 
 class MapSymbolsViewSet(viewsets.ModelViewSet):
-    queryset = MapSymbols.objects.all()
+    queryset = MapSymbol.objects.all()
     serializer_class = MapSymbolsSerializer

@@ -1,5 +1,15 @@
 [
 {
+  "model": "datentool_backend.profile",
+  "pk": 1,
+  "fields": {
+    "user": 1,
+    "admin_access": false,
+    "can_create_scenarios": false,
+    "can_edit_data": false
+  }
+},
+{
   "model": "datentool_backend.symbolform",
   "pk": 1,
   "fields": {
@@ -47,6 +57,16 @@
 },
 {
   "model": "datentool_backend.arealevel",
+  "pk": 0,
+  "fields": {
+    "name": "Ortsteil",
+    "order": 0,
+    "source": 1,
+    "layer": 1
+  }
+},
+{
+  "model": "datentool_backend.arealevel",
   "pk": 1,
   "fields": {
     "name": "Gemeinde",
@@ -59,8 +79,28 @@
   "model": "datentool_backend.arealevel",
   "pk": 2,
   "fields": {
-    "name": "Kreis",
+    "name": "Amt",
     "order": 2,
+    "source": 1,
+    "layer": 1
+  }
+},
+{
+  "model": "datentool_backend.arealevel",
+  "pk": 3,
+  "fields": {
+    "name": "Kreis",
+    "order": 3,
+    "source": 1,
+    "layer": 1
+  }
+},
+{
+  "model": "datentool_backend.arealevel",
+  "pk": 5,
+  "fields": {
+    "name": "Bundesland",
+    "order": 4,
     "source": 1,
     "layer": 1
   }

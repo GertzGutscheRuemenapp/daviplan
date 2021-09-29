@@ -2,7 +2,7 @@ from faker import Faker
 import factory
 from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import Point
-from .models import (SymbolForm, MapSymbols, LayerGroup, Layer,
+from .models import (SymbolForm, MapSymbol, LayerGroup, Layer,
                      WMSLayer, InternalWFSLayer, SourceTypes, Source,
                      AreaLevel, Area)
 
@@ -19,7 +19,7 @@ class SymbolFormFactory(DjangoModelFactory):
 
 class MapSymbolsFactory(DjangoModelFactory):
     class Meta:
-        model = MapSymbols
+        model = MapSymbol
 
     symbol = factory.SubFactory(SymbolFormFactory)
     fill_color = faker.color()
