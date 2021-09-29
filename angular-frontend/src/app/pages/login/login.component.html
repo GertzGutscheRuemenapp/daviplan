@@ -1,15 +1,19 @@
+<div id="background" style="background-image: url('{{backend}}/static/img/GGR-Startbild-Layout-1-01.png');"></div>
+<div id="banner" class="center">
+  <img [src]="settings?.logo" height="120px" style="mix-blend-mode: multiply; margin-right: 50px;" >
+  <div class="logo">
+    <img src="{{backend}}/static/img/test-logo.png" height="100px" alt="Logo"/>
+    <div style="align-items: center; font-size: 50px;"> <p>davi</p><p>plan</p> </div>
+  </div>
+</div>
 <div class="center">
   <div style="width: 600px;">
-    <div class="center" style="background-color: #fafafa; padding: 50px 0 25px 0; border-bottom: 2px solid lightgrey;">
-      <img [src]="settings?.logo" style="mix-blend-mode: multiply; max-height: 150px;">
-    </div>
     <div class="center">
       <div style="width: 400px; margin-top: 25px;">
         <ng-template #loggedIn>
           <p style="text-align: center;"> Eingeloggt als <b>{{user?.username}}</b> </p>
           <button class="large" mat-raised-button color="primary" (click)="auth.logout()" style="width:100%" i18n>Ausloggen</button>
         </ng-template>
-        <h1 style="text-align: center; font-size: 42px;" i18n> {{settings?.title}} Login </h1>
         <mat-card class="mat-elevation-z12" style="width: 360px;">
           <form *ngIf="!user; else loggedIn" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
             <mat-form-field appearance="outline" style="margin-bottom: -20px;">

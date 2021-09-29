@@ -119,6 +119,7 @@ button.large {
 .center {
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 
 // definition of card styles in app-planning here to pass the styles to its child components (demand, supply ...)
@@ -217,6 +218,7 @@ app-data-card td, app-dash-card td {
 
 mat-sidenav-content {
   //background-color: white;
+  overflow-x: hidden;
 }
 
 .sub-nav span {
@@ -647,4 +649,14 @@ app-map-controls {
   .mat-icon-button {
     background-color: map-get($blue-palette, A200);
   }
+}
+
+#background {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  opacity: 0.5;
+  z-index: -1;
 }

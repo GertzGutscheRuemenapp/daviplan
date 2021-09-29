@@ -1,4 +1,4 @@
-<mat-toolbar class="main-nav">
+<mat-toolbar *ngIf="user$ | async" class="main-nav">
   <div fxShow="true" fxHide.gt-sm="true">
     <button mat-icon-button (click)="sidenav.toggle()">
       <mat-icon>menu</mat-icon>
@@ -25,7 +25,7 @@
     <ng-template #loggedOut>
       <a routerLink="/login">Login</a>
     </ng-template>
-    <div *ngIf="user$ | async; else loggedOut" style="display: flex;">
+    <div *ngIf="user; else loggedOut" style="display: flex;">
       eingeloggt als&nbsp;<b *ngIf="user">{{user.username}}</b>    &nbsp;&nbsp;
       <a (click)="logout()" href="">Logout</a>
     </div>
