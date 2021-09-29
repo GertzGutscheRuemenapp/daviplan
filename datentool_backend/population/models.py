@@ -2,7 +2,8 @@ from django.db import models
 from django.core.validators import (MaxLengthValidator,
                                     MinValueValidator, MaxValueValidator)
 
-from ..area.models import AreaLevel, Area
+from datentool_backend.base import NamedModel
+from datentool_backend.area.models import AreaLevel, Area
 from bulkmodel.models import BulkModel
 
 
@@ -10,8 +11,11 @@ class Year(BulkModel):
     """years available"""
     year = models.IntegerField()
 
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__}: {self.year}'
 
-class Raster(models.Model):
+
+class Raster(NamedModel, models.Model):
     """a raster"""
     name = models.TextField()
     year = models.ForeignKey(Year, on_delete=models.RESTRICT)
@@ -24,12 +28,12 @@ class RasterCell(models.Model):
     value = models.FloatField()
 
 
-class Gender(models.Model):
+class Gender(NamedModel, models.Model):
     """the genders available"""
     name = models.TextField()
 
 
-class AgeClassification(models.Model):
+class AgeClassification(NamedModel, models.Model):
     """an age classification"""
     name = models.TextField()
 
@@ -59,7 +63,7 @@ class RasterPopulationCell(models.Model):
     value = models.FloatField()
 
 
-class Prognosis(models.Model):
+class Prognosis(NamedModel, models.Model):
     """a prognosis"""
     name = models.TextField()
     years = models.ManyToManyField(Year)

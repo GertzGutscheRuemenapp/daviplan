@@ -1,10 +1,11 @@
 from django.db import models
 from django.contrib.gis.db import models as gis_models
+from datentool_backend.base import NamedModel
 from datentool_backend.user.models import Profile
 from datentool_backend.area.models import InternalWFSLayer, MapSymbol
 
 
-class Infrastructure(models.Model):
+class Infrastructure(NamedModel, models.Model):
     '''
     Infrastructure that provide services
     '''
@@ -23,8 +24,11 @@ class Quota(models.Model):
     """kind of capacity"""
     quota_type = models.TextField()
 
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__}: {self.quota_type}'
 
-class Service(models.Model):
+
+class Service(NamedModel, models.Model):
     '''
     A Service provided by an infrastructure
     '''
@@ -40,7 +44,7 @@ class Service(models.Model):
     quota = models.ForeignKey(Quota, on_delete=models.RESTRICT)
 
 
-class Place(models.Model):
+class Place(NamedModel, models.Model):
     """location of an infrastructure"""
     name = models.TextField()
     infrastructure = models.ForeignKey(Infrastructure, on_delete=models.RESTRICT)
@@ -63,7 +67,7 @@ class FieldTypes(models.TextChoices):
     STRING = 'STR', 'String'
 
 
-class FieldType(models.Model):
+class FieldType(NamedModel, models.Model):
     """a generic field type"""
     field_type = models.CharField(max_length=3, choices=FieldTypes.choices)
     name = models.TextField()
@@ -82,3 +86,7 @@ class PlaceField(models.Model):
     unit = models.TextField()
     infrastructure = models.ForeignKey(Infrastructure, on_delete=models.RESTRICT)
     field_type = models.ForeignKey(FieldType, on_delete=models.RESTRICT)
+
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__}: {self.attribute}'
+

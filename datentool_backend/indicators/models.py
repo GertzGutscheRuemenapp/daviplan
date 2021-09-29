@@ -1,16 +1,17 @@
 from django.db import models
-from ..infrastructure.models import Service
-from ..population.models import RasterCell
+from datentool_backend.base import NamedModel
+from datentool_backend.infrastructure.models import Service
+from datentool_backend.population.models import RasterCell
 
 
-class Mode(models.Model):
+class Mode(NamedModel, models.Model):
     '''
     modes available
     '''
     name = models.TextField()
 
 
-class ModeVariant(models.Model):
+class ModeVariant(NamedModel, models.Model):
     '''
     modes
     '''
@@ -30,7 +31,7 @@ class ReachabilityMatrix(models.Model):
     minutes = models.FloatField()
 
 
-class Router(models.Model):
+class Router(NamedModel, models.Model):
     """an OTP ROuter to use"""
     name = models.TextField()
     osm_file = models.TextField()
@@ -46,7 +47,7 @@ class IndicatorTypes(models.TextChoices):
     TYPE2 = 'T2', 'Type2'
 
 
-class Indicator(models.Model):
+class Indicator(NamedModel, models.Model):
     """An Indicator"""
     indicator_type = models.CharField(max_length=2, choices=IndicatorTypes.choices)
     name = models.TextField()

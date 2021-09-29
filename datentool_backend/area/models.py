@@ -1,8 +1,9 @@
 from django.db import models
 from django.contrib.gis.db import models as gis_models
+from datentool_backend.base import NamedModel
 
 
-class SymbolForm(models.Model):
+class SymbolForm(NamedModel, models.Model):
     '''
     Map Symbol Forms
     '''
@@ -18,13 +19,13 @@ class MapSymbol(models.Model):
     stroke_color = models.CharField(max_length=9)
 
 
-class LayerGroup(models.Model):
+class LayerGroup(NamedModel, models.Model):
     """a Layer Group"""
     name = models.TextField()
     order = models.IntegerField(unique=True)
 
 
-class Layer(models.Model):
+class Layer(NamedModel, models.Model):
     """a generic layer"""
     name = models.TextField()
     group = models.ForeignKey(LayerGroup, on_delete=models.RESTRICT)
@@ -38,6 +39,9 @@ class Layer(models.Model):
 class WMSLayer(Layer):
     """a WMS Layer"""
     url = models.URLField()
+
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__}: {self.url}'
 
 
 class InternalWFSLayer(Layer):
@@ -59,7 +63,7 @@ class Source(models.Model):
     layer = models.TextField(null=True, blank=True)
 
 
-class AreaLevel(models.Model):
+class AreaLevel(NamedModel, models.Model):
     """an area level"""
     name = models.TextField()
     order = models.IntegerField(unique=True)

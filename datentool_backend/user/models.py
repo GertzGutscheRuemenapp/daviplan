@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.gis.db import models as gis_models
+from datentool_backend.base import NamedModel
 
 
 class Profile(models.Model):
@@ -28,7 +29,7 @@ def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
 
 
-class Project(models.Model):
+class Project(NamedModel, models.Model):
     '''
     Basic Project Information
     '''
@@ -43,7 +44,7 @@ class Project(models.Model):
         """set of infrastructures"""
 
 
-class Scenario(models.Model):
+class Scenario(NamedModel, models.Model):
     """BULE-Scenario"""
     name = models.TextField()
     project = models.ForeignKey(Project, on_delete=models.RESTRICT)

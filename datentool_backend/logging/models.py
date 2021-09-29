@@ -1,10 +1,11 @@
 from django.db import models
-from ..user.models import Profile
-from ..infrastructure.models import Infrastructure, Service
-from ..area.models import AreaLevel
+from datentool_backend.base import NamedModel
+from datentool_backend.user.models import Profile
+from datentool_backend.infrastructure.models import Infrastructure, Service
+from datentool_backend.area.models import AreaLevel
 
 
-class LogEntry(models.Model):
+class LogEntry(NamedModel, models.Model):
     """a generic log entry"""
     user = models.ForeignKey(Profile, on_delete=models.RESTRICT)
     date = models.DateField()
