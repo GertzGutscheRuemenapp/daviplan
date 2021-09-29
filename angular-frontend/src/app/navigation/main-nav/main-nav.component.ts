@@ -6,6 +6,7 @@ import { User } from "../../pages/login/users";
 import { AuthService } from "../../auth.service";
 import {Router} from "@angular/router";
 import { environment } from "../../../environments/environment";
+import { SettingsService, SiteSettings } from "../../settings.service";
 
 @Component({
   selector: 'app-main-nav',
@@ -17,12 +18,17 @@ export class MainNavComponent implements OnInit{
   user?: User;
   user$?: Observable<User | undefined>;
   backend: string = environment.backend;
+  settings?: SiteSettings;
 
   menuItems: { name: string, url: string }[] = [];
 
-  constructor(private breakpointObserver: BreakpointObserver, private auth: AuthService, private router: Router) { }
+  constructor(private settingsService: SettingsService, private breakpointObserver: BreakpointObserver,
+              private auth: AuthService, private router: Router) { }
 
   ngOnInit(): void {
+    this.settingsService.siteSettings$.subscribe(settings => {
+      this.settings = settings;
+    });
     this.user$ = this.auth.getCurrentUser().pipe(share());
     this.user$.subscribe(user=> {
       this.user = user;

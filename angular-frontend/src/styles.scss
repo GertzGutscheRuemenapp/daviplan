@@ -42,7 +42,8 @@ body {
   display: flex;
   div {
     font-size: 28px;
-    padding: 8px 0; display: inline-flex;
+    padding: 10px 0 0 0 !important;
+    display: inline-flex;
     p:first-child{
       color: #a67236
     }
