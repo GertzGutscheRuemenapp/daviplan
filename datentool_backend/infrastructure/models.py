@@ -51,6 +51,9 @@ class Place(NamedModel, models.Model):
     geom = gis_models.PointField()
     attributes = models.JSONField()
 
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__} ({self.infrastructure.name}): {self.name}'
+
 
 class Capacity(models.Model):
     """Capacity of an infrastructure for a service"""
