@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class SiteSettings(models.Model):
+class SiteSetting(models.Model):
     ''''''
     name = models.CharField(max_length=50, unique=True)
     title = models.TextField(default='Datentool')
