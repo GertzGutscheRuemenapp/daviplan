@@ -2,7 +2,7 @@ import numpy as np
 from faker import Faker
 import factory
 from factory.django import DjangoModelFactory
-from .models import (Years, Raster, RasterCell,
+from .models import (Year, Raster, RasterCell,
                      Gender, AgeClassification, AgeGroup,
                      DisaggPopRaster, RasterPopulationCell,
                      Prognosis, PrognosisEntry,
@@ -15,7 +15,7 @@ faker = Faker('de-DE')
 
 class YearFactory(DjangoModelFactory):
     class Meta:
-        model = Years
+        model = Year
 
     year = faker.unique.year()
 

@@ -1,6 +1,6 @@
 import numpy as np
 from django.test import TestCase
-from .models import PrognosisEntry, Years
+from .models import PrognosisEntry, Year
 from .factories import (RasterCellFactory, AgeGroupFactory, AgeClassificationFactory,
                         GenderFactory, PopulationFactory,
                         DisaggPopRasterFactory, RasterPopulationCellFactory,
@@ -12,9 +12,9 @@ class TestPopulation(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.years = Years.objects.bulk_create([Years(year=y) for y in range(2010, 2015)],
+        cls.years = Year.objects.bulk_create([Year(year=y) for y in range(2010, 2015)],
                                               return_queryset=True)
-        #cls.years = Years.objects.all()
+        #cls.years = Year.objects.all()
         cls.cell = RasterCellFactory()
         cls.genders = [GenderFactory() for i in range(3)]
         cls.age_classification = AgeClassificationFactory()

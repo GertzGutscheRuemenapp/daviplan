@@ -6,7 +6,7 @@ from ..area.models import AreaLevel, Area
 from bulkmodel.models import BulkModel
 
 
-class Years(BulkModel):
+class Year(BulkModel):
     """years available"""
     year = models.IntegerField()
 
@@ -14,7 +14,7 @@ class Years(BulkModel):
 class Raster(models.Model):
     """a raster"""
     name = models.TextField()
-    year = models.ForeignKey(Years, on_delete=models.RESTRICT)
+    year = models.ForeignKey(Year, on_delete=models.RESTRICT)
 
 
 class RasterCell(models.Model):
@@ -62,7 +62,7 @@ class RasterPopulationCell(models.Model):
 class Prognosis(models.Model):
     """a prognosis"""
     name = models.TextField()
-    years = models.ManyToManyField(Years)
+    years = models.ManyToManyField(Year)
     raster = models.ForeignKey(DisaggPopRaster, on_delete=models.RESTRICT)
     age_classification = models.ForeignKey(AgeClassification, on_delete=models.RESTRICT)
     is_default = models.BooleanField()
@@ -71,7 +71,7 @@ class Prognosis(models.Model):
 class PrognosisEntry(models.Model):
     """a prognosis entry"""
     prognosis = models.ForeignKey(Prognosis, on_delete=models.RESTRICT)
-    year = models.ForeignKey(Years, on_delete=models.RESTRICT)
+    year = models.ForeignKey(Year, on_delete=models.RESTRICT)
     area = models.ForeignKey(Area, on_delete=models.RESTRICT)
     agegroup = models.ForeignKey(AgeGroup, on_delete=models.RESTRICT)
     gender = models.ForeignKey(Gender, on_delete=models.RESTRICT)
@@ -81,7 +81,7 @@ class PrognosisEntry(models.Model):
 class Population(models.Model):
     """Population data for an area level"""
     area_level = models.ForeignKey(AreaLevel, on_delete=models.RESTRICT)
-    year = models.ForeignKey(Years, on_delete=models.RESTRICT)
+    year = models.ForeignKey(Year, on_delete=models.RESTRICT)
     genders = models.ManyToManyField(Gender)
     raster = models.ForeignKey(DisaggPopRaster, on_delete=models.RESTRICT)
 
@@ -97,7 +97,7 @@ class PopulationEntry(models.Model):
 
 class PopStatistic(models.Model):
     """population statistic for a certain year"""
-    year = models.ForeignKey(Years, on_delete=models.RESTRICT)
+    year = models.ForeignKey(Year, on_delete=models.RESTRICT)
 
 
 class PopStatEntry(models.Model):
