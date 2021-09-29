@@ -36,7 +36,6 @@ import { SupplyComponent } from './pages/planning/supply/supply.component';
 import { WelcomeComponent } from './pages/welcome.component';
 import { BasedataComponent } from './pages/basedata/basedata.component';
 import { MatExpansionModule } from "@angular/material/expansion";
-import { LayerSelectComponent } from './map/layer-select/layer-select.component';
 import { MatSliderModule } from "@angular/material/slider";
 import { PopulationComponent } from './pages/population/population.component';
 import { PopDevelopmentComponent } from './pages/population/pop-development/pop-development.component';
@@ -58,6 +57,11 @@ import { MapControlsComponent } from './map/map-controls/map-controls.component'
 import { EcoFabSpeedDialModule } from "@ecodev/fab-speed-dial";
 import { ScenarioMenuComponent } from './pages/planning/scenario-menu/scenario-menu.component';
 import { MatRadioModule } from "@angular/material/radio";
+import { SideToggleComponent } from './elements/side-toggle/side-toggle.component';
+import { LegendComponent } from './map/legend/legend.component';
+import { DragDropModule } from "@angular/cdk/drag-drop";
+import { MatDatepickerModule } from "@angular/material/datepicker";
+import {MatNativeDateModule} from '@angular/material/core';
 
 @NgModule({
   declarations: [
@@ -75,7 +79,6 @@ import { MatRadioModule } from "@angular/material/radio";
     SupplyComponent,
     WelcomeComponent,
     BasedataComponent,
-    LayerSelectComponent,
     PopulationComponent,
     PopDevelopmentComponent,
     PopStatisticsComponent,
@@ -88,7 +91,9 @@ import { MatRadioModule } from "@angular/material/radio";
     MultilineChartComponent,
     DragDirective,
     MapControlsComponent,
-    ScenarioMenuComponent
+    ScenarioMenuComponent,
+    SideToggleComponent,
+    LegendComponent
   ],
     imports: [
         BrowserModule,
@@ -121,7 +126,10 @@ import { MatRadioModule } from "@angular/material/radio";
         CKEditorModule,
         MatSlideToggleModule,
         EcoFabSpeedDialModule,
-        MatRadioModule
+        MatRadioModule,
+        DragDropModule,
+        MatDatepickerModule,
+        MatNativeDateModule
     ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true }

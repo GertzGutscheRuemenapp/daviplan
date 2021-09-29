@@ -5,8 +5,8 @@
     </button>
   </div>-->
   <div id="process-select">
-    <div class="mini-fab-icon">
-      <mat-icon class="material-icons-outlined">sick</mat-icon>
+    <div class="mini-fab-icon inverted primary">
+      <div class="davicon icon-GGR-davicons-Font-Simple-1-Planungsprozess"></div>
     </div>
     <mat-form-field appearance="standard" class="">
       <mat-label>Planungsprozess</mat-label>
@@ -42,7 +42,6 @@
       </mat-select>
     </mat-form-field>
   </div>
-
   <span fxShow="true" fxHide.lt-md="true">
     <a routerLink="/planung/nachfrage" routerLinkActive="active-link" i18n> Nachfrage </a>
     <a routerLink="/planung/angebot" routerLinkActive="active-link" i18n> Angebot </a>
@@ -50,15 +49,42 @@
     <a routerLink="/planung/bewertung" routerLinkActive="active-link" i18n> Bewertung </a>
   </span>
 </mat-toolbar>
-<div id="planning-map" class="map-container"></div>
-<app-map-controls style="position: absolute; right: 100px; top: 100px;"></app-map-controls>
+<div class="map-wrapper">
+  <div id="planning-map" class="map-container">
+    <div id="info" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">
+      <div class="handle" title="Anzeigeinformationen" cdkDragHandle>
+        <mat-icon color="primary">info</mat-icon>
+        <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
+      </div>
+      <app-side-toggle [fullHeightIndicator]="true" expanded>
+        <div style="padding: 10px" [innerHTML]="this.mapControl?.mapDescription"></div>
+      </app-side-toggle>
+    </div>
+    <div id="time-slider" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">
+      <div class="handle" title="Anzeigezeit" cdkDragHandle>
+        <mat-icon color="primary">event</mat-icon>
+        <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
+      </div>
+      <app-side-toggle [fullHeightIndicator]="true" expanded>
+        <div style="padding: 15px 10px 5px 10px">
+          <label>2017</label>
+          <mat-slider thumbLabel aria-label="Jahr" color="primary"
+                      min="2017" max="2039" value="2020" step="1">
+          </mat-slider>
+          <label>2039</label>
+        </div>
+      </app-side-toggle>
+    </div>
+    <app-map-controls></app-map-controls>
+  </div>
+</div>
 <app-scenario-menu [ngClass]="{'expanded' : showScenarioMenu}"></app-scenario-menu>
 <div class="context-bar">
   <mat-expansion-panel id="scenario-toggle" class="side-toggle">
     <mat-expansion-panel-header (click)="toggleScenarioMenu()">
       <mat-panel-title>
-        <div class="mini-fab-icon">
-          <mat-icon class="material-icons-outlined">sick</mat-icon>
+        <div class="mini-fab-icon" [ngClass]="{'primary': showScenarioMenu}">
+          <div class="davicon icon-GGR-davicons-Font-Simple-2-Szenario"></div>
         </div>
         Szenario
       </mat-panel-title>
@@ -67,3 +93,10 @@
   <router-outlet>
   </router-outlet>
 </div>
+
+<app-side-toggle id="legend"
+                 icon="layers"
+                 direction="left"
+                 expanded>
+  <app-legend target="planning-map"></app-legend>
+</app-side-toggle>

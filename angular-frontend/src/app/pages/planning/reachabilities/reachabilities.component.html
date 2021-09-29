@@ -1,10 +1,10 @@
-<mat-expansion-panel>
+<mat-expansion-panel expanded>
   <mat-expansion-panel-header>
     <mat-panel-title>
       <div class="mini-fab-icon">
-        <mat-icon class="material-icons-outlined">sick</mat-icon>
+        <div class="davicon icon-GGR-davicons-Font-Simple-3-Standorte-Leistungen"></div>
       </div>
-      Infrastruktur und Leistungen
+      Leistung/en
     </mat-panel-title>
   </mat-expansion-panel-header>
   <div style="padding-bottom: 10px; border-bottom: 1px solid lightgrey;">
@@ -16,28 +16,37 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
+    <button color="primary" mat-icon-button style="box-shadow: none; margin-left: auto;" title="Standortfilter">
+      <mat-icon>filter_list</mat-icon>
+    </button>
     <ul style="list-style-type: none; margin: 0 -10px;">
       <li><mat-checkbox color="primary">Kita</mat-checkbox></li>
       <li><mat-checkbox color="primary">Krippe</mat-checkbox></li>
     </ul>
   </div>
   <div>
-    <ul style="list-style-type: none; margin: 10px 0 10px -20px;">
-      <li><button mat-stroked-button color="primary" style="margin-bottom: 10px;">
-        <mat-icon>zoom_out_map</mat-icon> Zoom auf alle
-      </button></li>
+    <ul style="list-style-type: none; margin: 10px 0 10px -28px;">
       <li><mat-slide-toggle color="primary">Cluster</mat-slide-toggle></li>
       <li><mat-slide-toggle color="primary">Verdrängung</mat-slide-toggle></li>
+      <li>
+        <div class="row-button">
+          <label i18n>Zoom auf alle</label>
+          <div class="fill-space"></div>
+          <button mat-icon-button color="primary">
+            <mat-icon>location_searching</mat-icon>
+          </button>
+        </div>
+      </li>
     </ul>
   </div>
 </mat-expansion-panel>
-<mat-expansion-panel>
+<mat-expansion-panel expanded>
   <mat-expansion-panel-header>
     <mat-panel-title>
       <div class="mini-fab-icon">
-        <mat-icon class="material-icons-outlined">sick</mat-icon>
+        <div class="davicon icon-GGR-davicons-Font-Simple-5-Fortbewegung-Wegezeit"></div>
       </div>
-      Verkehrsmittel und Wegezeiten
+      Verkehrsmittel / Wegezeiten
     </mat-panel-title>
   </mat-expansion-panel-header>
   ToDo

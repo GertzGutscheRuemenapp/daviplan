@@ -36,7 +36,7 @@
   .scenario-card-body {
     pointer-events: none;
     background-color: #f4f4f4;
-    min-height: 100px;
+    height: 110px;
     font-size: 12px;
     text-align: center;
   }
@@ -64,7 +64,8 @@
 }
 
 #scenario-controls {
-  width: 60px;
+  width: 50px;
+  padding-left: 10px;
 
   button {
     margin: 8px 0;

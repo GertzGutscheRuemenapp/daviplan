@@ -4,7 +4,7 @@
   max-height: unset !important;
 }*/
 
-#planning-map {
+.map-wrapper {
   // always in background
   position: fixed;
   // minus top menus
@@ -12,7 +12,12 @@
   // leave space for planning context bars
   width: calc(100% - #{$context-bar-width});
   padding-left: calc(#{$context-bar-width});
-  z-index: -1;
+}
+
+#planning-map {
+  width: 100%;
+  height: 100%;
+  position: relative;
 }
 
 #process-select {
@@ -25,8 +30,14 @@
   width: 200px;
 }
 
-::ng-deep .context-bar mat-form-field {
-  width: calc(#{$context-bar-width} - 100px);
+::ng-deep app-planning .context-bar {
+  mat-form-field {
+    width: calc(#{$context-bar-width} - 105px);
+    margin-right: 5px;
+  }
+  mat-divider {
+    width: calc(#{$context-bar-width} - 105px);
+  }
 }
 
 mat-toolbar mat-form-field {
@@ -41,9 +52,9 @@ mat-toolbar mat-form-field {
 
 
 ::ng-deep #process-select {
-  .mat-select-value span {
+/*  .mat-select-value span {
     color: $accent;
-  }
+  }*/
   .mat-select:not(.mat-select-empty) .mat-select-arrow {
     margin-top: 22px;
   }
@@ -53,7 +64,7 @@ mat-toolbar mat-form-field {
 }
 
 .mat-option.selected, .mat-selected span {
-  color: $accent;
+  color: $primary;
 }
 
 //::ng-deep .mat-select-min-line, .mat-select-trigger span, .mat-option.selected, .mat-selected, .mat-option-text {
@@ -79,9 +90,22 @@ app-scenario-menu {
   top: 90px;
   //left: calc(#{$context-bar-width} - 100% - 100px);
   left: calc(#{$context-bar-width} - 700px);
-  transition: 0.3s ease-out left;
+  transition: 0.4s ease-out left;
+  z-index: 2;
 }
 
 app-scenario-menu.expanded {
   left: $context-bar-width;
+}
+
+#legend {
+  position: absolute;
+  right: 0;
+  top: 500px;
+  z-index: 1;
+}
+
+::ng-deep #legend .legend-body {
+  max-height: calc(100vh - 650px);
+  overflow-y: auto;
 }

@@ -7,8 +7,10 @@ $app-accent: mat.define-palette($golden-palette, 500);
 
 $app-typography: mat.define-typography-config(
   $font-family: 'Calibri',
-  //$headline: mat.define-typography-level(54px, 56px, 400),
- // $title: mat.define-typography-level(20px, 20px, 500),
+/*  $headline: mat.define-typography-level(54px, 54px, 400),
+  $title: mat.define-typography-level(28px, 28px, 500),
+  $subheading-2: mat.define-typography-level(26px, 26px, 400),
+  $subheading-1: mat.define-typography-level(24px, 24px, 400),*/
   $body-1: mat.define-typography-level(18px, 24px, 400),
   $body-2: mat.define-typography-level(16px, 22px, 400),
   $button: mat.define-typography-level(18px, 15px, 500),
@@ -187,6 +189,7 @@ mat-form-field.mat-focused span.mat-form-field-label-wrapper label {
 
 button mat-icon {
   margin-left: -2px;
+  margin-right: 1px;
   //margin-right: 2px;
 }
 
@@ -199,15 +202,6 @@ app-data-card td, app-dash-card td {
   padding: 3px 0;
 }
 
-.context-bar {
-  position: relative;
-  width: $context-bar-width;
-  background-color: white;
-  height: 100%;
-  box-shadow: 0px 5px 5px -1px rgb(0 0 0 / 20%), 0px 10px 10px 0px rgb(0 0 0 / 14%), 2px 18px 18px 0px rgb(0 0 0 / 12%);
-  padding-top: 10px;
-}
-
 .main-nav {
   box-shadow: 0px 0px 5px 1px #a7a7a7!important;
 }
@@ -217,6 +211,8 @@ app-data-card td, app-dash-card td {
   display: flex;
   height: 60px;
   box-shadow: 0px 3px 5px -1px rgb(0 0 0 / 20%), 0px 6px 10px 0px rgb(0 0 0 / 14%), 0px 1px 18px 0px rgb(0 0 0 / 12%);
+  position: relative;
+  z-index: 1;
 }
 
 mat-sidenav-content {
@@ -230,7 +226,7 @@ mat-sidenav-content {
 
 .sub-nav a {
   font-size: 18px;
-  min-width: 180px;
+  //min-width: 180px;
   color: #00000099;
   text-decoration: none;
   padding: 0 25px;
@@ -254,24 +250,26 @@ mat-sidenav-content {
 }
 
 rect.highlight{
-  fill: mat.get-color-from-palette($app-accent, 400)!important;
+  fill: mat.get-color-from-palette($app-primary, 400)!important;
 }
 
 div.tooltip {
   position: absolute;
-  text-align: center;
-  padding: 2px;
+  //text-align: center;
+  padding: 10px;
   font: 12px sans-serif;
   background: white;
+  border-radius: 5px;
   border: solid 1px grey;
   pointer-events: none;
-  opacity: 0.9;
+  //opacity: 0.9;
   z-index: 100;
+  box-shadow: 0px 0px 5px 1px #a7a7a7!important;
 }
 
 .separator {
   stroke: #888;
-  stroke-width: 2;
+  stroke-width: 1;
   stroke-dasharray: 6, 6;
 }
 
@@ -281,6 +279,7 @@ button.mat-icon-button {
 
 .mat-icon-button mat-icon {
   margin-top: -3px;
+  margin-left: 2px;
 }
 
 .mat-icon-button:hover {
@@ -327,11 +326,30 @@ button.mat-icon-button {
   background-color: white;
   border: 2px solid $accent;
   color: $accent;
+  mat-icon {
+    font-size: 26px;
+    margin-left: -2px;
+  }
+  .davicon {
+    font-size: 32px;
+    margin-left: -2px;
+    margin-top: -3px;
+  }
 }
 
-.mini-fab-icon mat-icon {
-  font-size: 26px;
-  margin-left: -2px;
+.mini-fab-icon.primary {
+  border: 2px solid $primary;
+  color: $primary;
+}
+
+.mini-fab-icon.inverted {
+  background-color: $accent;
+  .davicon {
+    color: white;
+  }
+}
+.mini-fab-icon.inverted.primary {
+  background-color: $primary;
 }
 
 .mat-fab.bordered {
@@ -382,7 +400,8 @@ mat-select mat-icon, .mat-select-panel mat-icon, .mat-select-min-line mat-icon, 
 }
 
 app-population .context-bar {
-  height: calc(100vh - 120px);
+  height: calc(100vh - 130px);
+  z-index: 1;
 }
 
 .mat-button-dv.mat-button-base {
@@ -427,62 +446,89 @@ mat-icon.warning {
 }
 
 .context-bar {
+  z-index: 2;
+  position: relative;
+  width: $context-bar-width;
+  overflow-y: auto;
+  background-color: white;
+  height: 100%;
+  box-shadow: 0px 5px 5px -1px rgb(0 0 0 / 20%), 0px 10px 10px 0px rgb(0 0 0 / 14%), 2px 18px 18px 0px rgb(0 0 0 / 12%);
+  padding-top: 10px;
 
-  mat-expansion-panel {
-    margin-top: -1px;
-    box-shadow: none !important;
-    padding: 0 !important;
-    mat-expansion-panel-header {
-      padding: 2px 18px !important;
-      height: 68px!important;
-    }
-    .mat-content {
-      border-top: 1px solid $primary;
-      border-bottom: 1px solid $primary;
-      transition: 0.4s ease-in border-bottom-color;
-    }
-    mat-panel-title {
-      padding: 5px 0;
-      text-transform: uppercase;
-      color: #00000061;
-      align-items: center;
-      height: 60px!important;
-    }
-    .mat-expansion-indicator:after {
-      color: $primary;
-    }
-    .mat-expansion-indicator {
-      margin-left: -10px;
-    }
-/*    .mat-expansion-indicator {
-      height: 70px;
-      border-top: 1px solid $primary;
-    }*/
+  mat-expansion-panel-header, mat-expansion-panel.mat-expanded mat-expansion-panel-header {
+    height: 68px!important;
+    padding: 0px 18px !important;
   }
 
-  mat-expansion-panel.mat-expanded {
-    .mat-content {
-      border-bottom: 1px solid white;
-    }
+  mat-panel-title {
+    height: 60px!important;
   }
 
-  mat-panel-title:hover {
-    color:black;
-  }
-
-  mat-expansion-panel.mat-expanded {
-    mat-expansion-panel-header {
-      height: auto !important;
-      padding: 0px 18px !important;
-      background-color: $primary-light !important;
-    }
-    mat-panel-title {
-      color: black;
-    }
-  }
   .mat-expansion-panel-body {
-    padding: 16px 16px 16px 40px;
+    padding: 6px 5px 15px 54px;
+    border-bottom: 1px solid $primary-light;
   }
+
+  .sub-select-box {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid lightgrey;
+    label {
+      text-transform: uppercase;
+      color: $darkgrey;
+      font-size: 14px;
+    }
+  }
+
+  mat-checkbox, mat-radio-button, mat-slide-toggle, .row-button  {
+    color: grey;
+  }
+  .mat-radio-checked, .mat-checkbox-checked, mat-slide-toggle.mat-checked {
+    color: $primary;
+  }
+  .mat-radio-label-content {
+    white-space: normal;
+    line-height: 1;
+  }
+}
+
+mat-expansion-panel {
+  box-shadow: none !important;
+  padding: 0 !important;
+/*    .mat-content {
+    border-top: 1px solid $primary;
+    border-bottom: 1px solid $primary;
+    transition: 0.4s ease-in border-bottom-color;
+  }*/
+  .mat-expansion-panel-header-title {
+    padding: 5px 0;
+    text-transform: uppercase;
+    color: #00000061;
+    align-items: center;
+  }
+  .mat-expansion-indicator:after {
+    color: $primary;
+  }
+  .mat-expansion-indicator {
+    margin-left: -10px;
+  }
+}
+
+mat-expansion-panel:hover .mat-expansion-panel-header-title {
+  color:black;
+}
+
+mat-expansion-panel.mat-expanded {
+  mat-expansion-panel-header {
+    height: 48px !important;
+    background-color: $primary-light !important;
+  }
+  mat-panel-title {
+    color: black;
+  }
+}
+.mat-expansion-panel-body {
+  padding: 16px 16px 16px 40px;
 }
 
 mat-expansion-panel.side-toggle {
@@ -491,5 +537,114 @@ mat-expansion-panel.side-toggle {
   }
   .mat-expansion-panel-content {
     display: none;
+  }
+}
+
+.mat-mini-fab mat-icon{
+  margin-top: -3px;
+  //margin-left: 1px;
+}
+
+.map-drag-element {
+  position: absolute;
+  display: flex;
+  z-index: 10;
+  user-select: none;
+  .handle {
+    background-color: white;
+    cursor: move;
+    border-radius: 5px 0 0 5px;
+    display: flex;
+    width: 40px;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 1px 0px 3px 1px #a7a7a7;
+    z-index: 1;
+    mat-icon {
+      font-size: 30px;
+      height: 30px;
+      width: 30px;
+    }
+  }
+}
+
+.drag-indicator{
+  position: absolute;
+  left: 25px; top: -2px;
+  color: lightgrey;
+  font-size: 0.6em;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+#info {
+  left: 50px;
+  top: 20px;
+  height: 70px;
+}
+
+#time-slider {
+  left: 50px;
+  bottom: 20px;
+  height: 70px;
+  //height: 88px;
+  mat-slider {
+    width: 300px;
+  }
+  .side-toggle-content {
+    //padding: 10px 0;
+  }
+}
+
+#info:hover, #time-slider:hover {
+  .drag-indicator {
+    opacity: 1;
+  }
+}
+
+app-map-controls {
+  position: absolute;
+  right: 90px;
+  top: 30px;
+  z-index: 2;
+}
+
+#legend {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  height: 40vh;
+  pointer-events: none;
+  .side-toggle>div {
+    pointer-events: all;
+  }
+  .legend-body {
+    max-height: calc(40vh - 70px);
+    overflow-y: auto;
+  }
+}
+
+.row-button {
+  cursor: pointer;
+  flex-direction: row;
+  box-sizing: border-box;
+  display: flex;
+  margin: 5px 0 5px 0;
+  align-items: center;
+
+  label {
+    cursor: pointer;
+    transition: margin 400ms;
+  }
+}
+
+.row-button:hover, .row-button.active {
+  label {
+    margin-left: 10px;
+    color: map-get($blue-palette, 600);
+  }
+  .mat-icon-button {
+    background-color: map-get($blue-palette, A200);
   }
 }

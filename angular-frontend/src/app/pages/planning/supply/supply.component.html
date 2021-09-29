@@ -1,13 +1,13 @@
-<mat-expansion-panel>
+<mat-expansion-panel expanded>
   <mat-expansion-panel-header>
     <mat-panel-title>
       <div class="mini-fab-icon">
-        <mat-icon class="material-icons-outlined">sick</mat-icon>
+        <div class="davicon icon-GGR-davicons-Font-Simple-3-Standorte-Leistungen"></div>
       </div>
-      Infrastruktur und Leistungen
+      Standorte / Leistungen
     </mat-panel-title>
   </mat-expansion-panel-header>
-  <div style="padding-bottom: 10px; border-bottom: 1px solid lightgrey;">
+  <div style="padding-bottom: 10px;">
     <mat-form-field appearance="outline" class="small">
       <mat-label>Infrastruktur</mat-label>
       <mat-select disableOptionCentering value="Kinderbetreuung"><!-- [value]="activeInfrastructure">-->
@@ -16,29 +16,79 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
+    <button color="primary" mat-icon-button style="box-shadow: none; margin-left: auto;" title="Standortfilter">
+      <mat-icon>filter_list</mat-icon>
+    </button>
     <ul style="list-style-type: none; margin: 0 -10px;">
       <li><mat-checkbox color="primary">Kita</mat-checkbox></li>
       <li><mat-checkbox color="primary">Krippe</mat-checkbox></li>
     </ul>
   </div>
+  <mat-divider></mat-divider>
   <div>
-    <ul style="list-style-type: none; margin: 10px 0 10px -20px;">
-      <li><button mat-stroked-button color="primary" style="margin-bottom: 10px;">
-        <mat-icon>zoom_out_map</mat-icon> Zoom auf alle
-      </button></li>
+    <ul style="list-style-type: none; margin: 10px 0 10px -28px;">
       <li><mat-slide-toggle color="primary">Cluster</mat-slide-toggle></li>
       <li><mat-slide-toggle color="primary">Verdrängung</mat-slide-toggle></li>
+      <li>
+        <div class="row-button">
+          <label i18n>Zoom auf alle</label>
+          <div class="fill-space"></div>
+          <button mat-icon-button color="primary">
+            <mat-icon>location_searching</mat-icon>
+          </button>
+        </div>
+      </li>
     </ul>
   </div>
+  <mat-divider></mat-divider>
+  <div class="row-button" [ngClass]="{'active': addPlaceMode}" (click)="addPlaceMode = !addPlaceMode" style="padding-left: 10px;">
+    <label i18n>Neuen Standort hinzufügen</label>
+    <div class="fill-space"></div>
+    <button color="primary" *ngIf="!addPlaceMode" mat-icon-button>
+      <mat-icon class="material-icons-outlined">add_location_alt</mat-icon>
+    </button>
+    <button color="primary" *ngIf="addPlaceMode" mat-mini-fab style="box-shadow: none; margin-left: auto;">
+      <mat-icon class="material-icons-outlined">add_location_alt</mat-icon>
+    </button>
+  </div>
 </mat-expansion-panel>
-<mat-expansion-panel>
+<mat-expansion-panel expanded>
   <mat-expansion-panel-header>
     <mat-panel-title>
       <div class="mini-fab-icon">
-        <mat-icon class="material-icons-outlined">sick</mat-icon>
+        <div class="davicon icon-GGR-davicons-Font-Simple-4-Vergleichsdarstellung"></div>
       </div>
       Vergleichsdarstellung
     </mat-panel-title>
   </mat-expansion-panel-header>
-  ToDo
+  <mat-checkbox color="primary" [checked]="true" i18n>Angebotsstrukturen vergleichen</mat-checkbox>
+  <ul style="list-style-type: none; margin: 0 -10px;">
+    <mat-radio-group>
+      <li>
+        <mat-radio-button value="1" color="primary" [checked]="true" style="padding: 10px 0; text-transform: uppercase; font-size: 14px; font-weight: bold;" i18n>Mit Angebotsstrukturen im gleichen Szenario im Jahr</mat-radio-button>
+        <mat-form-field appearance="fill" class="small">
+          <input matInput [matDatepicker]="productionYearPicker">
+          <!--       formControlName="productionYear"
+                 [class.is-invalid]="isControlInvalid('productionYear')"
+                 [class.is-valid]="isControlValid('productionYear')">-->
+
+          <mat-datepicker-toggle matSuffix [for]="productionYearPicker"></mat-datepicker-toggle>
+          <mat-datepicker #productionYearPicker startView="multi-year"></mat-datepicker>
+        </mat-form-field>
+      </li>
+      <li>
+        <mat-radio-button value="2" color="primary" [checked]="false" style="padding: 10px 0; text-transform: uppercase; font-size: 14px; font-weight: bold;" i18n>Mit Angebotsstrukturen im Szenario</mat-radio-button>
+        <mat-form-field appearance="outline" class="small">
+          <mat-select disableOptionCentering value="1">
+            <mat-option value="1">
+              Szenario 1
+            </mat-option>
+            <mat-option value="2">
+              Szenario 2
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </li>
+    </mat-radio-group>
+  </ul>
 </mat-expansion-panel>

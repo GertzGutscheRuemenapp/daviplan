@@ -1,8 +1,7 @@
-import { Component, ElementRef, AfterViewInit, Renderer2, OnDestroy } from '@angular/core';
-import { MapService } from "../../map/map.service";
-import Projection from "ol/proj/Projection";
+import { Component, ElementRef, AfterViewInit, Renderer2, OnDestroy, ViewChild } from '@angular/core';
+import { MapControl, MapService } from "../../map/map.service";
 import { FormControl } from "@angular/forms";
-
+import { faArrowsAlt } from '@fortawesome/free-solid-svg-icons';
 
 interface Project {
   user?: string;
@@ -30,11 +29,13 @@ const mockSharedProjects: Project[] = [
 })
 export class PlanningComponent implements AfterViewInit, OnDestroy {
 
+  faArrows = faArrowsAlt;
   myProjects: Project[] = mockMyProjects;
   sharedProjects: Project[] = mockSharedProjects;
   activeProject?: Project;
   processForm = new FormControl();
   showScenarioMenu: boolean = false;
+  mapControl?: MapControl;
 
   constructor(private renderer: Renderer2, private elRef: ElementRef, private mapService: MapService) {  }
 
@@ -42,11 +43,12 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     // there is no parent css selector yet but we only want to hide the overflow in the planning pages
     let wrapper = this.elRef.nativeElement.closest('mat-sidenav-content');
     this.renderer.setStyle(wrapper, 'overflow', 'hidden');
-    this.mapService.create('planning-map');
+    this.mapControl = this.mapService.get('planning-map');
+    this.mapControl.mapDescription = 'Planungsprozess: xyz > Status Quo Fortschreibung <br> usw.'
   }
 
   ngOnDestroy(): void {
-    this.mapService.remove('planning-map');
+    this.mapControl?.destroy();
   }
 
   onProcessChange(id: number): void {

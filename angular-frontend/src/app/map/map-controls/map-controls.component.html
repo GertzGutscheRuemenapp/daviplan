@@ -1,7 +1,7 @@
-<div id="leftDialBack"
-     [style.opacity]="dialBackVis? 1: 0">
+<div id="leftDialBack" [ngClass]="{'expanded': expanded}">
+  <div></div>
 </div>
-<eco-fab-speed-dial #leftDial direction="left" style="position: fixed;" [fixed]="true">
+<eco-fab-speed-dial #leftDial direction="left" [fixed]="true">
   <eco-fab-speed-dial-actions>
     <button mat-mini-fab
             class="no-shadow"
@@ -29,7 +29,7 @@
     </button>
   </eco-fab-speed-dial-actions>
 </eco-fab-speed-dial>
-<eco-fab-speed-dial #rightDial direction="down" style="position: fixed;" [fixed]="true">
+<eco-fab-speed-dial #rightDial direction="down" [fixed]="true">
   <eco-fab-speed-dial-trigger [spin]="true">
     <button mat-fab
             class="bordered"

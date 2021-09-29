@@ -62,7 +62,7 @@ export class MultilineChartComponent implements AfterViewInit {
 
     if (!this.labels)
       this.labels = d3.range(0, data[0].values.length).map(d=>d.toString());
-    let colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+    let colorScale = d3.scaleOrdinal(d3.schemeSet2);
     let innerWidth = this.width! - this.margin.left - this.margin.right,
       innerHeight = this.height! - this.margin.top - this.margin.bottom;
     let groups = data.map(d => d.group);
@@ -173,7 +173,7 @@ export class MultilineChartComponent implements AfterViewInit {
         .attr("class", "line")
         .attr("fill", "none")
         .attr("stroke", colorScale(i.toString()))
-        .attr("stroke-width", 1.5)
+        .attr("stroke-width", 3)
         .attr("d", line);
 
       if (this.animate) {
@@ -236,7 +236,7 @@ export class MultilineChartComponent implements AfterViewInit {
     if (this.xSeparator) {
       let xSepPos = x(this.xSeparator.x)! + this.margin.left + x.bandwidth();
       this.svg.append('line')
-        .style('stroke', 'black')
+        // .style('stroke', 'grey')
         .attr('x1', xSepPos)
         .attr('y1', this.margin.top)
         .attr('x2', xSepPos)
@@ -249,6 +249,7 @@ export class MultilineChartComponent implements AfterViewInit {
           .attr('dy', '0.5em')
           .style('text-anchor', 'end')
           .attr('font-size', '0.7em')
+          .attr('fill', 'grey')
           .text(this.xSeparator.leftLabel);
       if (this.xSeparator.rightLabel)
         this.svg.append('text')
@@ -257,6 +258,7 @@ export class MultilineChartComponent implements AfterViewInit {
           .attr('dy', '0.5em')
           .style('text-anchor', 'start')
           .attr('font-size', '0.7em')
+          .attr('fill', 'grey')
           .text(this.xSeparator.rightLabel);
       if (this.xSeparator.highlight) {
         this.svg.append('rect')

@@ -1,6 +1,5 @@
 import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
-import { MapService } from "../../../map/map.service";
-import { OlMap } from "../../../map/map";
+import { MapControl, MapService } from "../../../map/map.service";
 import { AreaLevel, mockAreaLevels } from "./areas";
 
 @Component({
@@ -9,20 +8,20 @@ import { AreaLevel, mockAreaLevels } from "./areas";
   styleUrls: ['./areas.component.scss']
 })
 export class AreasComponent implements AfterViewInit, OnDestroy {
-  map?: OlMap;
+  mapControl?: MapControl;
   selectedAreaLevel?: AreaLevel;
   areaLevels?: AreaLevel[];
 
   constructor(private mapService: MapService, private cdRef:ChangeDetectorRef) { }
 
   ngAfterViewInit(): void {
-    this.map = this.mapService.create('level-map');
+    this.mapControl = this.mapService.get('level-map');
     this.areaLevels = mockAreaLevels;
     this.cdRef.detectChanges();
   }
 
   ngOnDestroy(): void {
-    this.mapService.remove('level-map');
+    this.mapControl?.destroy();
   }
 
   onSelect(areaLevel: AreaLevel): void {

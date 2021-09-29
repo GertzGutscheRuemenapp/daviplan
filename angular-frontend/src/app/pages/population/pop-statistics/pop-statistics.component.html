@@ -1,14 +1,48 @@
-<div fxFlex fxLayout="row wrap" fxLayoutGap="10px" fxFlexAlign="center baseline">
-  <div fxLayout="column" fxFlex="300px">
-    <app-dash-card title='Thema'></app-dash-card>
-  </div>
-  <div fxLayout="column" fxFlex="40" fxFlex.lt-lg="50" fxFlex.lt-md="100">
-    <app-dash-card title='Karte' height="70vh">
-      <div id="stat-map" class="map-container"></div>
-    </app-dash-card>
-  </div>
-  <div fxLayout="column" fxFlex="35" fxFlex.lt-lg="80" fxFlex.lt-md="100">
-    <app-dash-card title='Diagramm Wanderungssaldo'> </app-dash-card>
-    <app-dash-card title='Diagramm Wanderung'> </app-dash-card>
+<div class="context-bar">
+  <mat-expansion-panel expanded>
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <div class="mini-fab-icon">
+          <mat-icon class="material-icons-outlined">show_chart</mat-icon>
+        </div>
+        Thema
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    <mat-form-field appearance="outline" class="small">
+      <mat-select disableOptionCentering value="wanderung">
+        <mat-option value="natur">
+          Natürlicher Saldo
+        </mat-option>
+        <mat-option value="wanderung">
+          Wanderung
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <ul style="list-style-type: none; margin: 0 -10px;">
+      <li><mat-checkbox [checked]="true" color="primary">Zuzüge</mat-checkbox></li>
+      <li><mat-checkbox [checked]="true" color="primary">Fortzüge</mat-checkbox></li>
+    </ul>
+  </mat-expansion-panel>
+</div>
+
+<div id="diagram-bar">
+  <mat-form-field appearance="outline" class="small">
+    <mat-label>Gebiet</mat-label>
+    <mat-select disableOptionCentering value="irgendwo">
+      <mat-option value="irgendwo">
+        irgendwo
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <div class="diagram-wrapper">
+    <div>
+      ToDo: Säulendiagramm kombiniert mit Linie Thema ausgewähltes Gebiet
+    </div>
+  </div><br>
+  <div class="diagram-wrapper">
+    <div>
+      ToDo: Linieniagramm Saldo Gesamtgebiet
+    </div>
   </div>
 </div>
+

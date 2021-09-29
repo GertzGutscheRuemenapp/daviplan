@@ -12,12 +12,13 @@ import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
 import GeoJSON from 'ol/format/GeoJSON';
 import { bbox as bboxStrategy } from 'ol/loadingstrategy';
 import TileWMS from 'ol/source/TileWMS';
+import XYZ from 'ol/source/XYZ';
 
 export class OlMap {
   target: string;
   view: View;
   map: Map;
-  layers: Record<string, Layer<any>>;
+  layers: Record<string, Layer<any>> = {};
   mapProjection: string;
 
   constructor( target: string, center: Coordinate = [13.3392,52.5192], zoom: number = 8, projection: string = 'EPSG:3857', showDefaultControls: boolean = false ) {
@@ -27,10 +28,6 @@ export class OlMap {
       center: olProj.fromLonLat(center),
       zoom: zoom
     });
-    let osmLayer = new TileLayer({
-      source: new OSM(),
-    })
-    this.layers = { 'OSM': osmLayer };
 
     let controls = (showDefaultControls) ? DefaultControls().extend([
         new ScaleLine({}),
@@ -38,7 +35,7 @@ export class OlMap {
     })
 
     this.map = new Map({
-      layers: [osmLayer],
+      layers: [],
       target: target,
       view: this.view,
       controls: controls,
@@ -46,24 +43,25 @@ export class OlMap {
     this.mapProjection = projection;
   }
 
-  addWMS(name: string, url: string, params: any = {}, visible: boolean = true, opacity: number = 1): Layer<any>{
+  addTileServer(options: { name: string, url: string, params?: any, visible?: boolean, opacity?: number, xyz?: boolean}): Layer<any>{
 
-    if (this.layers[name] != null) this.removeLayer(name)
+    if (this.layers[options.name] != null) this.removeLayer(options.name)
 
-    let source = new TileWMS({
-      url: url,
-      params: params,
+    let source = (options.xyz) ? new XYZ({ url: options.url }) :
+      new TileWMS({
+      url: options.url,
+      params: options.params || {},
       serverType: 'geoserver',
     })
 
     let layer = new TileLayer({
-      opacity: opacity,
+      opacity: (options.opacity != undefined) ? options.opacity: 1,
       source: source,
-      visible: visible
+      visible: options.visible === true
     });
 
     this.map.addLayer(layer);
-    this.layers[name] = layer;
+    this.layers[options.name] = layer;
 
     return layer;
   }
@@ -82,5 +80,10 @@ export class OlMap {
   setVisible(name: string, visible: boolean): void{
     let layer = this.layers[name];
     layer?.setVisible(visible);
+  }
+
+  setOpacity(name: string, opacity: number): void{
+    let layer = this.layers[name];
+    layer?.setOpacity(opacity);
   }
 }

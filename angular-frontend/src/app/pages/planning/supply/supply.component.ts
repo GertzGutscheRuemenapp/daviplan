@@ -8,6 +8,7 @@ import { FormControl } from "@angular/forms";
 })
 export class SupplyComponent implements OnInit{
   activeInfrastructure: string = '';
+  addPlaceMode = false;
 
   constructor() {}
 

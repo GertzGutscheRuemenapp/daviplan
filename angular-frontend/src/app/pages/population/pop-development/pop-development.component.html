@@ -1,52 +1,144 @@
 <div class="context-bar">
-  <app-dash-card title='Gebietseinheiten'></app-dash-card>
-  <app-dash-card title='Prognoseszenario'></app-dash-card>
-  <app-dash-card title='Geschlecht'></app-dash-card>
+  <mat-expansion-panel expanded>
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <div class="mini-fab-icon">
+          <mat-icon class="material-icons-outlined">border_outer</mat-icon>
+        </div>
+        Gebietseinheit
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    <mat-form-field appearance="outline" class="small">
+      <mat-select disableOptionCentering [(ngModel)]="activeLevel">
+        <mat-option value="Bundesländer">
+          Bundesländer
+        </mat-option>
+        <mat-option value="Kreise">
+          Kreise
+        </mat-option>
+        <mat-option value="Verwaltungsgemeinschaften">
+          Verwaltungsgemeinschaften
+        </mat-option>
+        <mat-option value="Gemeinden">
+          Gemeinden
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </mat-expansion-panel>
+  <mat-expansion-panel expanded>
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <div class="mini-fab-icon">
+          <mat-icon class="material-icons-outlined">timeline</mat-icon>
+        </div>
+        Prognoseszenario
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    <mat-form-field appearance="outline" class="small">
+      <mat-select disableOptionCentering value="Trendfortschreibung">
+        <mat-option value="Trendfortschreibung">
+          Trendfortschreibung
+        </mat-option>
+        <mat-option value="Prognose">
+          Prognose
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </mat-expansion-panel>
+  <mat-expansion-panel expanded>
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <div class="mini-fab-icon">
+          <mat-icon class="material-icons-outlined">group</mat-icon>
+        </div>
+        Bevölkerungsgruppen
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    <mat-form-field appearance="outline" class="small">
+      <mat-label i18n>Geschlecht</mat-label>
+      <mat-select disableOptionCentering value="alle">
+        <mat-option value="alle">
+          alle
+        </mat-option>
+        <mat-option value="männlich">
+          männlich
+        </mat-option>
+        <mat-option value="weiblich">
+          weiblich
+        </mat-option>
+        <mat-option value="divers">
+          divers
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <div class="sub-select-box">
+      <label i18n> Enthaltene Altersgruppen </label>
+      <button mat-icon-button color="primary" style="float: right; margin-top: -8px;">
+        <mat-icon>edit</mat-icon>
+      </button>
+      <div class="age-select-box" style="margin-top: 10px">
+        <div class="row checked">
+          <label>alle</label>
+          <mat-checkbox color="primary" [checked]="true"></mat-checkbox>
+        </div>
+        <mat-divider></mat-divider>
+        <div class="row checked">
+          <label>0 bis unter 19 Jahre</label>
+          <mat-checkbox color="primary" [checked]="true"></mat-checkbox>
+        </div>
+        <div class="row checked">
+          <label>10 bis unter 40 Jahre</label>
+          <mat-checkbox color="primary" [checked]="true"></mat-checkbox>
+        </div>
+        <div class="row checked">
+          <label>40 bis unter 60 Jahre</label>
+          <mat-checkbox color="primary" [checked]="true"></mat-checkbox>
+        </div>
+        <div class="row">
+          <label>65 Jahre und älter</label>
+          <mat-checkbox color="primary" [checked]="false"></mat-checkbox>
+        </div>
+      </div>
+    </div>
+  </mat-expansion-panel>
 </div>
 
-<div fxFlex fxLayout="row wrap" fxLayoutGap="10px" fxFlexAlign="center baseline">
-  <div fxLayout="column" fxFlex="50" fxFlex.lt-md="100">
-    <app-dash-card title='Karte'>
-      <div style="width: 100%; padding-bottom: 100%;">
-        <div style="position: absolute; width: calc(100% - 32px); height: calc(100% - 68px);">
-          <div id="pop-map" class="map-container"></div>
-        </div>
-      </div>
-    </app-dash-card>
-  </div>
-  <div fxLayout="column" fxFlex="45" fxFlex.lt-md="100">
-    <app-dash-card>
-      <div style="width: 100%; padding-bottom: 54%;">
-        <div style="position: absolute; width: calc(100% - 32px); height: calc(100% - 48px);">
-          <app-stacked-barchart [data]="data"
-                                [labels]="labels"
-                                xLabel="Jahre"
-                                yLabel="Einwohner"
-                                [title]="'Bevölkerungsentwicklung'"
-                                [xSeparator]="xSeparator"
-                                [animate]="true"
-                                subtitle="irgendwo">
-
-          </app-stacked-barchart>
-        </div>
-      </div>
-    </app-dash-card>
-    <app-dash-card>
-      <div style="width: 100%; padding-bottom: 54%;">
-        <div style="position: absolute; width: calc(100% - 32px); height: calc(100% - 48px);">
-          <app-multiline-chart #lineChart
-                               [labels]="labels"
-                               xLabel="Jahre"
-                               yLabel="Einwohner relativ"
-                               [title]="'relative Altersgruppenentwicklung'"
-                               [xSeparator]="xSeparator"
-                               [animate]="true"
-                               unit="%"
-                               subtitle="irgendwo">
-          </app-multiline-chart>
-        </div>
-      </div>
-    </app-dash-card>
+<div id="diagram-bar">
+  <mat-form-field appearance="outline" class="small">
+    <mat-label>Gebiet</mat-label>
+    <mat-select disableOptionCentering value="irgendwo">
+      <mat-option value="irgendwo">
+        irgendwo
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <div class="diagram-wrapper">
+    <div>
+      <app-stacked-barchart [data]="data"
+                            [labels]="labels"
+                            xLabel="Jahre"
+                            yLabel="Einwohner"
+                            [title]="'Bevölkerungsentwicklung'"
+                            [xSeparator]="xSeparator"
+                            [animate]="true"
+                            subtitle="irgendwo">
+      </app-stacked-barchart>
+    </div>
+  </div><br>
+  <div class="diagram-wrapper">
+    <div>
+      <app-multiline-chart #lineChart
+                           [labels]="labels"
+                           xLabel="Jahre"
+                           yLabel="Einwohner relativ"
+                           [title]="'relative Altersgruppenentwicklung'"
+                           [xSeparator]="xSeparator"
+                           [animate]="true"
+                           unit="%"
+                           subtitle="irgendwo">
+      </app-multiline-chart>
+    </div>
   </div>
 </div>
+
 
