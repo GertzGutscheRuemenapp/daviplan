@@ -60,6 +60,8 @@ import { MatRadioModule } from "@angular/material/radio";
 import { SideToggleComponent } from './elements/side-toggle/side-toggle.component';
 import { LegendComponent } from './map/legend/legend.component';
 import { DragDropModule } from "@angular/cdk/drag-drop";
+import { MatDatepickerModule } from "@angular/material/datepicker";
+import {MatNativeDateModule} from '@angular/material/core';
 
 @NgModule({
   declarations: [
@@ -125,7 +127,9 @@ import { DragDropModule } from "@angular/cdk/drag-drop";
         MatSlideToggleModule,
         EcoFabSpeedDialModule,
         MatRadioModule,
-        DragDropModule
+        DragDropModule,
+        MatDatepickerModule,
+        MatNativeDateModule
     ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true }
