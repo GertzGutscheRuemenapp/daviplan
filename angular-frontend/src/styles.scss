@@ -479,6 +479,17 @@ mat-icon.warning {
       font-size: 14px;
     }
   }
+
+  mat-checkbox, mat-radio-button, mat-slide-toggle, .row-button  {
+    color: grey;
+  }
+  .mat-radio-checked, .mat-checkbox-checked, mat-slide-toggle.mat-checked {
+    color: $primary;
+  }
+  .mat-radio-label-content {
+    white-space: normal;
+    line-height: 1;
+  }
 }
 
 mat-expansion-panel {
