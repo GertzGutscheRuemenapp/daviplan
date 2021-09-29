@@ -1,7 +1,7 @@
 from faker import Faker
 import factory
 from factory.django import DjangoModelFactory
-from .models import (Modes, ModeVariant, Router,
+from .models import (Mode, ModeVariant, Router,
                      ReachabilityMatrix, Indicator, IndicatorTypes)
 
 from ..population.factories import RasterCellFactory
@@ -13,7 +13,7 @@ faker = Faker('de-DE')
 
 class ModeFactory(DjangoModelFactory):
     class Meta:
-        model = Modes
+        model = Mode
 
     name = factory.Sequence(lambda n: faker.unique.name())
 

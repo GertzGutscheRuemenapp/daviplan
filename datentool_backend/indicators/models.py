@@ -3,7 +3,7 @@ from ..infrastructure.models import Service
 from ..population.models import RasterCell
 
 
-class Modes(models.Model):
+class Mode(models.Model):
     '''
     modes available
     '''
@@ -14,7 +14,7 @@ class ModeVariant(models.Model):
     '''
     modes
     '''
-    mode = models.ForeignKey(Modes, on_delete=models.RESTRICT)
+    mode = models.ForeignKey(Mode, on_delete=models.RESTRICT)
     name = models.TextField()
     meta = models.JSONField()
     is_default = models.BooleanField()

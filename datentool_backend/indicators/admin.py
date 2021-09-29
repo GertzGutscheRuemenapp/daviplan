@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    Modes, ModeVariant, ReachabilityMatrix, Router, Indicator)
+    Mode, ModeVariant, ReachabilityMatrix, Router, Indicator)
 
 # Register your models here.
 class ModesAdmin(admin.ModelAdmin):
@@ -23,7 +23,7 @@ class IndicatorAdmin(admin.ModelAdmin):
     """"""
 
 
-admin.site.register(Modes, ModesAdmin)
+admin.site.register(Mode, ModesAdmin)
 admin.site.register(ModeVariant, ModeVariantAdmin)
 admin.site.register(ReachabilityMatrix, ReachabilityMatrixAdmin)
 admin.site.register(Router, RouterAdmin)
