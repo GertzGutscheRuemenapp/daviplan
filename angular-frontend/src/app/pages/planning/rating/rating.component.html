@@ -7,7 +7,26 @@
       Indikator
     </mat-panel-title>
   </mat-expansion-panel-header>
-  ToDo
+  <mat-form-field appearance="outline" class="small">
+    <mat-select disableOptionCentering>
+      <mat-optgroup label="Meine Indikatoren">
+        <mat-option value="1">
+          Testindikator
+          <button mat-button>entfernen</button>
+          <button mat-button>editieren</button>
+        </mat-option>
+        <mat-option title="Indikator hinzufügen"><mat-icon class="material-icons-outlined">add_circle_outline</mat-icon>Indikator hinzufügen</mat-option>
+      </mat-optgroup>
+      <mat-optgroup label="Vorgegebene Indikatoren">
+        <mat-option value="2">
+          U3-Kind mit Betreuungswunsch pro Kita mit Krippe
+        </mat-option>
+        <mat-option value="3">
+          Anzahl der U3-Kinder mit Betreuungswunsch, für die diese Einrichtung am besten erreichbar ist
+        </mat-option>
+      </mat-optgroup>
+    </mat-select>
+  </mat-form-field>
 </mat-expansion-panel>
 <mat-expansion-panel expanded>
   <mat-expansion-panel-header>

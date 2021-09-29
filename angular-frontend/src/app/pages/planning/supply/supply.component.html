@@ -60,10 +60,10 @@
     </mat-panel-title>
   </mat-expansion-panel-header>
   <mat-checkbox color="primary" [checked]="true" i18n>Angebotsstrukturen vergleichen</mat-checkbox>
-  <ul style="list-style-type: none; margin: 0 -10px;">
+  <ul style="list-style-type: none; padding-left: 10px;">
     <mat-radio-group>
       <li>
-        <mat-radio-button value="1" color="primary" [checked]="true" style="padding: 10px 0; text-transform: uppercase; font-size: 14px; font-weight: bold;" i18n>Mit Angebotsstrukturen im gleichen Szenario im Jahr</mat-radio-button>
+        <mat-radio-button value="1" color="primary" [checked]="true" style="padding: 0 20px 10px 0; text-transform: uppercase; font-size: 14px; font-weight: bold;" i18n>Mit Angebotsstrukturen im gleichen Szenario im Jahr</mat-radio-button>
         <mat-form-field appearance="fill" class="small">
           <input [(ngModel)]="compareYear" matInput
                  [matDatepicker]="compareYearPicker" />
@@ -76,7 +76,7 @@
         </mat-form-field>
       </li>
       <li>
-        <mat-radio-button value="2" color="primary" [checked]="false" style="padding: 10px 0; text-transform: uppercase; font-size: 14px; font-weight: bold;" i18n>Mit Angebotsstrukturen im Szenario</mat-radio-button>
+        <mat-radio-button value="2" color="primary" [checked]="false" style="padding: 10px 20px 10px 0; text-transform: uppercase; font-size: 14px; font-weight: bold;" i18n>Mit Angebotsstrukturen im Szenario</mat-radio-button>
         <mat-form-field appearance="outline" class="small">
           <mat-select disableOptionCentering value="1">
             <mat-option value="1">

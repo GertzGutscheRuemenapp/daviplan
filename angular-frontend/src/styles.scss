@@ -383,7 +383,7 @@ mat-option.selected {
   margin-top: -10px;
 }
 
-mat-select mat-icon, .mat-select-panel mat-icon, .mat-select-min-line mat-icon, .mat-select-trigger mat-icon,  {
+.mat-select-panel .info-icon  {
   font-size: 12px !important;
   vertical-align: baseline !important;;
   margin: 0 1px !important;
