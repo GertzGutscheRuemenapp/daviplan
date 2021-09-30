@@ -1,3 +1,4 @@
+from django.forms import ModelForm
 from django.contrib import admin
 from .models import (
     Year, Raster, RasterCell, Gender, AgeClassification,
@@ -6,12 +7,27 @@ from .models import (
     PopStatistic, PopStatEntry,
 )
 
+class YearForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['bm_create_uuid'].required = False
+
+    class Meta:
+        model = Year
+        fields = '__all__'
+
+
 # Register your models here.
 class YearAdmin(admin.ModelAdmin):
     """"""
+    form = YearForm
 
 
 class RasterAdmin(admin.ModelAdmin):
+    """"""
+
+
+class RasterCellAdmin(admin.ModelAdmin):
     """"""
 
 
@@ -60,6 +76,7 @@ class PopStatEntryAdmin(admin.ModelAdmin):
 
 admin.site.register(Year, YearAdmin)
 admin.site.register(Raster, RasterAdmin)
+admin.site.register(RasterCell, RasterAdmin)
 admin.site.register(Gender, GenderAdmin)
 admin.site.register(AgeClassification, AgeClassificationAdmin)
 admin.site.register(AgeGroup, AgeGroupAdmin)
