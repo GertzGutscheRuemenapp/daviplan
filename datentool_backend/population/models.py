@@ -36,12 +36,18 @@ class RasterCell(models.Model):
     pnt = gis_models.PointField()
     poly = gis_models.PolygonField()
 
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__}: {self.raster.name}-{self.cellcode}'
+
 
 class RasterCellPopulation(models.Model):
     """the population in a cell in a certain PopulationRaster"""
-    raster = models.ForeignKey(PopulationRaster, on_delete=models.RESTRICT)
+    popraster = models.ForeignKey(PopulationRaster, on_delete=models.RESTRICT)
     cell = models.ForeignKey(RasterCell, on_delete=models.RESTRICT)
     value = models.FloatField()
+
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__}: {self.popraster.name}-{self.cell.cellcode}'
 
 
 class Gender(NamedModel, models.Model):
@@ -65,14 +71,14 @@ class AgeGroup(models.Model):
 
 class DisaggPopRaster(models.Model):
     """a raster with disaggregated population by age and gender"""
-    raster = models.ForeignKey(PopulationRaster,
+    popraster = models.ForeignKey(PopulationRaster,
                                on_delete=models.RESTRICT, null=True)
     genders = models.ManyToManyField(Gender)
 
 
 class RasterCellPopulationAgeGender(models.Model):
     """a raster cell with a disaggregated value"""
-    raster = models.ForeignKey(DisaggPopRaster, on_delete=models.RESTRICT)
+    disaggraster = models.ForeignKey(DisaggPopRaster, on_delete=models.RESTRICT)
     year = models.IntegerField()
     cell = models.ForeignKey(RasterCell, on_delete=models.RESTRICT)
     age = models.IntegerField()

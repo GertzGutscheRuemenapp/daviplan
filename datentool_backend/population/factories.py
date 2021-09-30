@@ -124,7 +124,7 @@ class DisaggPopRasterFactory(DjangoModelFactory):
     class Meta:
         model = DisaggPopRaster
 
-    raster = factory.SubFactory(PopulationRasterFactory)
+    popraster = factory.SubFactory(PopulationRasterFactory)
 
     @factory.post_generation
     def genders(self, create, extracted, **kwargs):
@@ -142,10 +142,10 @@ class RasterCellPopulationAgeGenderFactory(DjangoModelFactory):
     class Meta:
         model = RasterCellPopulationAgeGender
 
-    raster = factory.SubFactory(DisaggPopRasterFactory)
+    disaggraster = factory.SubFactory(DisaggPopRasterFactory)
     year = faker.year()
     cell = factory.LazyAttribute(lambda o:
-        RasterCellFactory(raster=o.raster.raster.raster))
+        RasterCellFactory(raster=o.disaggraster.popraster.raster))
     age = faker.pyint(max_value=127)
     gender = factory.SubFactory(GenderFactory)
     value = faker.pyfloat(positive=True)

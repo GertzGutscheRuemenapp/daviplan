@@ -25,7 +25,7 @@ class TestPopulation(TestCase):
         self.assertQuerysetEqual(
             self.disagg_popraster.genders.all(), self.genders, ordered=False)
         rp = RasterCellPopulationAgeGenderFactory()
-        self.assertEqual(rp.cell.raster, rp.raster.raster.raster)
+        self.assertEqual(rp.cell.raster, rp.disaggraster.popraster.raster)
 
     def test_age_group(self):
         """Test the age groups"""
