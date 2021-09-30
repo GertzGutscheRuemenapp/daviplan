@@ -62,6 +62,7 @@ import { LegendComponent } from './map/legend/legend.component';
 import { DragDropModule } from "@angular/cdk/drag-drop";
 import { MatDatepickerModule } from "@angular/material/datepicker";
 import {MatNativeDateModule} from '@angular/material/core';
+import { TimeSliderComponent } from './elements/time-slider/time-slider.component';
 
 @NgModule({
   declarations: [
@@ -93,7 +94,8 @@ import {MatNativeDateModule} from '@angular/material/core';
     MapControlsComponent,
     ScenarioMenuComponent,
     SideToggleComponent,
-    LegendComponent
+    LegendComponent,
+    TimeSliderComponent
   ],
     imports: [
         BrowserModule,
