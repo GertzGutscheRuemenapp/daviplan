@@ -21,12 +21,8 @@
         <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
       </div>
       <app-side-toggle [fullHeightIndicator]="true" expanded>
-        <div style="padding: 15px 10px 5px 10px">
-          <label>2017</label>
-          <mat-slider thumbLabel aria-label="Jahr" color="primary"
-                      min="2017" max="2039" value="2020" step="1">
-          </mat-slider>
-          <label>2039</label>
+        <div style="padding: 18px 10px 12px 10px">
+          <app-time-slider [prognosisEnd]="2013" [years]="[2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025]"></app-time-slider>
         </div>
       </app-side-toggle>
     </div>
