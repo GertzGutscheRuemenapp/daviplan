@@ -1,8 +1,10 @@
 from django.forms import ModelForm
 from django.contrib import admin
 from .models import (
-    Year, Raster, RasterCell, Gender, AgeClassification,
-    AgeGroup, DisaggPopRaster, RasterPopulationCell, Prognosis, PrognosisEntry,
+    Year, Raster, PopulationRaster, RasterCell, RasterCellPopulation,
+    Gender, AgeClassification, AgeGroup,
+    DisaggPopRaster, RasterCellPopulationAgeGender,
+    Prognosis, PrognosisEntry,
     Population, PopulationEntry,
     PopStatistic, PopStatEntry,
 )
@@ -27,7 +29,15 @@ class RasterAdmin(admin.ModelAdmin):
     """"""
 
 
+class PopulationRasterAdmin(admin.ModelAdmin):
+    """"""
+
+
 class RasterCellAdmin(admin.ModelAdmin):
+    """"""
+
+
+class RasterCellPopulationAdmin(admin.ModelAdmin):
     """"""
 
 
@@ -47,7 +57,7 @@ class DisaggPopRasterAdmin(admin.ModelAdmin):
     """"""
 
 
-class RasterPopulationCellAdmin(admin.ModelAdmin):
+class RasterCellPopulationAgeGenderAdmin(admin.ModelAdmin):
     """"""
 
 
@@ -76,12 +86,14 @@ class PopStatEntryAdmin(admin.ModelAdmin):
 
 admin.site.register(Year, YearAdmin)
 admin.site.register(Raster, RasterAdmin)
+admin.site.register(PopulationRaster, PopulationRasterAdmin)
 admin.site.register(RasterCell, RasterAdmin)
+admin.site.register(RasterCellPopulation, RasterCellPopulationAdmin)
 admin.site.register(Gender, GenderAdmin)
 admin.site.register(AgeClassification, AgeClassificationAdmin)
 admin.site.register(AgeGroup, AgeGroupAdmin)
 admin.site.register(DisaggPopRaster, DisaggPopRasterAdmin)
-admin.site.register(RasterPopulationCell, RasterPopulationCellAdmin)
+admin.site.register(RasterCellPopulationAgeGender, RasterCellPopulationAgeGenderAdmin)
 admin.site.register(Prognosis, PrognosisAdmin)
 admin.site.register(PrognosisEntry, PrognosisEntryAdmin)
 admin.site.register(Population, PopulationAdmin)

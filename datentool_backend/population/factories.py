@@ -1,10 +1,12 @@
 import numpy as np
+from django.contrib.gis.geos import Point, Polygon
 from faker import Faker
 import factory
 from factory.django import DjangoModelFactory
-from .models import (Year, Raster, RasterCell,
+from .models import (Year, Raster, PopulationRaster,
+                     RasterCell, RasterCellPopulation,
                      Gender, AgeClassification, AgeGroup,
-                     DisaggPopRaster, RasterPopulationCell,
+                     DisaggPopRaster, RasterCellPopulationAgeGender,
                      Prognosis, PrognosisEntry,
                      Population, PopulationEntry,
                      PopStatistic, PopStatEntry,
@@ -23,10 +25,36 @@ class YearFactory(DjangoModelFactory):
 class RasterFactory(DjangoModelFactory):
     class Meta:
         model = Raster
-        django_get_or_create = ('year', )
 
     name = faker.word()
+
+
+class PopulationRasterFactory(DjangoModelFactory):
+    class Meta:
+        model = PopulationRaster
+        django_get_or_create = ('year', 'raster')
+
+    name = faker.word()
+    raster = factory.SubFactory(RasterFactory)
     year = factory.SubFactory(YearFactory)
+
+
+def _get_poly_from_cellcode(rc: 'RasterCell') -> Polygon:
+    """convert cellcode to polygon"""
+    north = int(rc.cellcode[5:10])
+    east = int(rc.cellcode[11:16])
+    offsets = [(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)]
+    points = [Point(x=east * 100 + dx, y=north * 100 + dy, srid=3035)
+              for dx, dy in offsets]
+    poly = Polygon(points, srid=3035)
+    poly_wgs = poly.transform(4326, clone=True)
+    return poly_wgs
+
+
+def _get_point_from_poly(rc: 'RasterCell') -> Point:
+    """convert polygon to point"""
+    pnt = rc.poly.centroid
+    return pnt
 
 
 class RasterCellFactory(DjangoModelFactory):
@@ -35,7 +63,20 @@ class RasterCellFactory(DjangoModelFactory):
         django_get_or_create = ('raster', )
 
     raster = factory.SubFactory(RasterFactory)
-    cellcode = faker.pystr_format(string_format=f'100mN####E####')
+    cellcode = faker.pystr_format(string_format=f'100mN#####E#####')
+    poly = factory.LazyAttribute(_get_poly_from_cellcode)
+    pnt = factory.LazyAttribute(_get_point_from_poly)
+
+
+
+
+class RasterCellPopulationFactory(DjangoModelFactory):
+    class Meta:
+        model = RasterCellPopulation
+        django_get_or_create = ('raster', )
+
+    raster = factory.SubFactory(PopulationRasterFactory)
+    cell = factory.SubFactory(RasterCellFactory)
     value = faker.pyfloat(max_value=100)
 
 
@@ -83,7 +124,7 @@ class DisaggPopRasterFactory(DjangoModelFactory):
     class Meta:
         model = DisaggPopRaster
 
-    raster = factory.SubFactory(RasterFactory)
+    raster = factory.SubFactory(PopulationRasterFactory)
 
     @factory.post_generation
     def genders(self, create, extracted, **kwargs):
@@ -97,14 +138,14 @@ class DisaggPopRasterFactory(DjangoModelFactory):
                 self.genders.add(gender)
 
 
-class RasterPopulationCellFactory(DjangoModelFactory):
+class RasterCellPopulationAgeGenderFactory(DjangoModelFactory):
     class Meta:
-        model = RasterPopulationCell
+        model = RasterCellPopulationAgeGender
 
     raster = factory.SubFactory(DisaggPopRasterFactory)
     year = faker.year()
     cell = factory.LazyAttribute(lambda o:
-        RasterCellFactory(raster=o.raster.raster))
+        RasterCellFactory(raster=o.raster.raster.raster))
     age = faker.pyint(max_value=127)
     gender = factory.SubFactory(GenderFactory)
     value = faker.pyfloat(positive=True)

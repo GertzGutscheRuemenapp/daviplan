@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.gis.db import models as gis_models
 from django.core.validators import (MaxLengthValidator,
                                     MinValueValidator, MaxValueValidator)
 
@@ -18,13 +19,28 @@ class Year(BulkModel):
 class Raster(NamedModel, models.Model):
     """a raster"""
     name = models.TextField()
+
+
+class PopulationRaster(NamedModel, models.Model):
+    """a raster with population data"""
+    name = models.TextField()
+    raster = models.ForeignKey(Raster, on_delete=models.RESTRICT)
     year = models.ForeignKey(Year, on_delete=models.RESTRICT)
+    default = models.BooleanField(default=False)
 
 
 class RasterCell(models.Model):
-    """a raster cell"""
+    """a raster cell with geometry"""
     raster = models.ForeignKey(Raster, on_delete=models.RESTRICT)
     cellcode = models.TextField(validators=[MaxLengthValidator(13)])
+    pnt = gis_models.PointField()
+    poly = gis_models.PolygonField()
+
+
+class RasterCellPopulation(models.Model):
+    """the population in a cell in a certain PopulationRaster"""
+    raster = models.ForeignKey(PopulationRaster, on_delete=models.RESTRICT)
+    cell = models.ForeignKey(RasterCell, on_delete=models.RESTRICT)
     value = models.FloatField()
 
 
@@ -49,11 +65,12 @@ class AgeGroup(models.Model):
 
 class DisaggPopRaster(models.Model):
     """a raster with disaggregated population by age and gender"""
-    raster = models.ForeignKey(Raster, on_delete=models.RESTRICT, null=True)
+    raster = models.ForeignKey(PopulationRaster,
+                               on_delete=models.RESTRICT, null=True)
     genders = models.ManyToManyField(Gender)
 
 
-class RasterPopulationCell(models.Model):
+class RasterCellPopulationAgeGender(models.Model):
     """a raster cell with a disaggregated value"""
     raster = models.ForeignKey(DisaggPopRaster, on_delete=models.RESTRICT)
     year = models.IntegerField()

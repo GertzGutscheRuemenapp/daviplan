@@ -3,7 +3,7 @@ from django.test import TestCase
 from .models import PrognosisEntry, Year
 from .factories import (RasterCellFactory, AgeGroupFactory, AgeClassificationFactory,
                         GenderFactory, PopulationFactory,
-                        DisaggPopRasterFactory, RasterPopulationCellFactory,
+                        DisaggPopRasterFactory, RasterCellPopulationAgeGenderFactory,
                         PrognosisEntryFactory, AreaFactory, PrognosisFactory,
                         PopStatEntryFactory)
 
@@ -24,8 +24,8 @@ class TestPopulation(TestCase):
         cell = self.cell
         self.assertQuerysetEqual(
             self.disagg_popraster.genders.all(), self.genders, ordered=False)
-        rp = RasterPopulationCellFactory()
-        self.assertEqual(rp.cell.raster, rp.raster.raster)
+        rp = RasterCellPopulationAgeGenderFactory()
+        self.assertEqual(rp.cell.raster, rp.raster.raster.raster)
 
     def test_age_group(self):
         """Test the age groups"""
