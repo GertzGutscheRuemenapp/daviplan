@@ -7,14 +7,26 @@ import { MatSlider } from "@angular/material/slider";
   styleUrls: ['./time-slider.component.scss']
 })
 export class TimeSliderComponent implements AfterViewInit {
-  @Input() years!: number[];
+  @Input() years: number[] = [0, 1];
   @ViewChild('slider') slider!: MatSlider;
   @Input() value?: number = 0;
   @Input() prognosisEnd?: number;
+  overlay: any;
 
   constructor(private renderer: Renderer2) { }
 
   ngAfterViewInit(): void {
+    this.draw();
+  }
+
+  draw(): void {
+    if (this.overlay){
+      const sliderEl = this.slider._elementRef.nativeElement;
+      this.renderer.removeChild(sliderEl, this.overlay);
+    }
+    const sliderEl = this.slider._elementRef.nativeElement;
+    this.overlay = this.renderer.createElement('div');
+    this.renderer.appendChild(sliderEl, this.overlay);
     if (this.prognosisEnd)
       this.createDivider();
     this.addTicks();
@@ -36,10 +48,10 @@ export class TimeSliderComponent implements AfterViewInit {
     this.renderer.addClass(rightLabel, 'divider-label');
     rightLabel.innerHTML = 'Prognosedaten';
 
-    this.renderer.appendChild(sliderEl, divider);
-    this.renderer.appendChild(sliderEl, wrapper);
-    this.renderer.appendChild(sliderEl, leftLabel);
-    this.renderer.appendChild(sliderEl, rightLabel);
+    this.renderer.appendChild(this.overlay, divider);
+    this.renderer.appendChild(this.overlay, wrapper);
+    this.renderer.appendChild(this.overlay, leftLabel);
+    this.renderer.appendChild(this.overlay, rightLabel);
 
     let prognosisPos = (this.prognosisEnd! - this.years[0]) * step;
     this.renderer.setStyle(divider, 'left', `${prognosisPos + 8}px`);
@@ -58,7 +70,7 @@ export class TimeSliderComponent implements AfterViewInit {
       this.renderer.addClass(tick, 'year-tick');
       // this.renderer.setProperty(tick,'title', year);
       this.renderer.setStyle(tick, 'left', `${pos + 6}px`);
-      this.renderer.appendChild(sliderEl, tick);
+      this.renderer.appendChild(this.overlay, tick);
 
       const label = this.renderer.createElement('label');
       label.innerHTML = year;
