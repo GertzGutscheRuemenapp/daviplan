@@ -18,7 +18,7 @@
   top: 5px;
   height: 40px;
   left: 4px;
-  background-color: $primary-light;
+  background-color: #2196F31F;
   border-radius: 5px 0 0 5px;
 }
 
@@ -66,7 +66,8 @@ mat-slider:not(.mat-slider-sliding) .year-tick:hover{
 
 .divider-label {
   opacity: 0;
-  top: 37px;
+  top: -15px;
+  //top: 37px;
   color: $accent;
   font-size: 12px;
   transition: opacity 0.3s;

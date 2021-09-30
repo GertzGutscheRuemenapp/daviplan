@@ -605,6 +605,12 @@ mat-expansion-panel.side-toggle {
   }
 }
 
+#info, #time-slider {
+  .cdk-drag-handle:hover {
+    background-color: $primary-light;
+  }
+}
+
 app-map-controls {
   position: absolute;
   right: 90px;
