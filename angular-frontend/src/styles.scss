@@ -374,6 +374,10 @@ button.mat-icon-button {
   color: $primary;
 }
 
+.mat-select-disabled .mat-select-min-line {
+  color: lightgrey;
+}
+
 mat-option.selected {
   margin: -8px 0;
 }

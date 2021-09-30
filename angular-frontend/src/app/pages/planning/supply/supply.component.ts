@@ -1,6 +1,4 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormControl } from "@angular/forms";
-import { MatDatepicker } from "@angular/material/datepicker";
 
 @Component({
   selector: 'app-supply',
@@ -8,18 +6,13 @@ import { MatDatepicker } from "@angular/material/datepicker";
   styleUrls: ['./supply.component.scss']
 })
 export class SupplyComponent implements OnInit{
-  activeInfrastructure: string = '';
-  compareYear = 2025;
   addPlaceMode = false;
-  @ViewChild('compareYearPicker', {static: false}) private compareYearPicker?: MatDatepicker<Date>;
+  years = [2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025];
+  compareSupply = true;
+  compareStatus = 'option 1';
 
   constructor() {}
 
   ngOnInit(): void {
-  }
-
-  chosenYearHandler(ev: any): void {
-    this.compareYearPicker?.close();
-    this.compareYear = ev.getFullYear();
   }
 }

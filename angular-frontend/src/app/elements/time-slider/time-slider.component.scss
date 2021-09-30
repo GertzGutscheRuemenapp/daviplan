@@ -73,6 +73,6 @@ mat-slider:not(.mat-slider-sliding) .year-tick:hover{
   transition: opacity 0.3s;
 }
 
-mat-slider:not(.mat-slider-sliding):hover .divider-label {
+mat-slider:not(.cdk-focused):hover .divider-label {
   opacity: 1;
 }

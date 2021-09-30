@@ -27,6 +27,9 @@ const mockdata: StackedData[] = [
   styleUrls: ['./pop-development.component.scss']
 })
 export class PopDevelopmentComponent implements AfterViewInit {
+  @ViewChild('lineChart') lineChart?: MultilineChartComponent;
+  compareYears = false;
+  years = [2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025];
   mapControl?: MapControl;
   activeLevel: string = 'Gemeinden';
   data: StackedData[] = mockdata;
@@ -37,7 +40,6 @@ export class PopDevelopmentComponent implements AfterViewInit {
     x: '2003',
     highlight: true
   }
-  @ViewChild('lineChart') lineChart?: MultilineChartComponent;
 
   constructor(private mapService: MapService, private popService: PopService) {
   }
@@ -64,7 +66,7 @@ export class PopDevelopmentComponent implements AfterViewInit {
   setSlider(): void {
     let slider = this.popService.timeSlider!;
     slider.prognosisEnd = 2013;
-    slider.years = [2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025];
+    slider.years = this.years;
     slider.value = 2012;
     slider.draw();
   }
