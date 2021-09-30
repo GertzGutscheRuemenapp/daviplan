@@ -16,26 +16,26 @@
             {{ activeProject.name }}
           </span>
         </mat-select-trigger>
-        <mat-option *ngIf="activeProject" disabled class="selected">
+        <mat-option class="selected" *ngIf="activeProject" disabled>
           {{ activeProject.name }}
-          <mat-icon *ngIf="activeProject.shared">share</mat-icon>
+          <mat-icon class="info-icon" *ngIf="activeProject.shared">share</mat-icon>
 <!--          <mat-icon *ngIf="!activeProject.shared">person</mat-icon>-->
-          <mat-icon *ngIf="activeProject.editable === false" class="material-icons-outlined" style="color: red;">cancel</mat-icon>
+          <mat-icon class="info-icon material-icons-outlined" *ngIf="activeProject.editable === false" style="color: red;">cancel</mat-icon>
           <i *ngIf="activeProject.user" style="font-size: 12px; margin-left: 3px;">({{ activeProject.user }})</i>
         </mat-option>
         <mat-optgroup label="Meine Projekte">
           <mat-option *ngFor="let project of myProjects" [value]="project.id">
             {{ project.name }}
 <!--            <mat-icon *ngIf="!project.shared">person</mat-icon>-->
-            <mat-icon *ngIf="project.shared">share</mat-icon>
+            <mat-icon class="info-icon" *ngIf="project.shared">share</mat-icon>
           </mat-option>
           <mat-option title="Prozess hinzufügen"><mat-icon style="font-size: 1.2em;">add</mat-icon></mat-option>
         </mat-optgroup>
         <mat-optgroup *ngIf="sharedProjects" label="Geteilte Projekte">
           <mat-option *ngFor="let project of sharedProjects" [value]="project.id">
             {{ project.name }}
-            <mat-icon>share</mat-icon>
-            <mat-icon *ngIf="project.editable === false" class="material-icons-outlined" style="color: red;">cancel</mat-icon>
+            <mat-icon class="info-icon">share</mat-icon>
+            <mat-icon class="info-icon material-icons-outlined" *ngIf="project.editable === false" style="color: red;">cancel</mat-icon>
             <i style="font-size: 12px; margin-left: 3px;">({{ project.user }})</i>
           </mat-option>
         </mat-optgroup>
@@ -66,12 +66,8 @@
         <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
       </div>
       <app-side-toggle [fullHeightIndicator]="true" expanded>
-        <div style="padding: 15px 10px 5px 10px">
-          <label>2017</label>
-          <mat-slider thumbLabel aria-label="Jahr" color="primary"
-                      min="2017" max="2039" value="2020" step="1">
-          </mat-slider>
-          <label>2039</label>
+        <div style="padding: 18px 10px 12px 10px">
+          <app-time-slider [prognosisEnd]="2013" [years]="[2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025]"></app-time-slider>
         </div>
       </app-side-toggle>
     </div>

@@ -2,6 +2,7 @@ import { Component, AfterViewInit, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
 import { StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
+import { PopService } from "../population.component";
 
 const mockdata: StackedData[] = [
   { group: '2000', values: [200, 300, 280] },
@@ -26,6 +27,9 @@ const mockdata: StackedData[] = [
   styleUrls: ['./pop-development.component.scss']
 })
 export class PopDevelopmentComponent implements AfterViewInit {
+  @ViewChild('lineChart') lineChart?: MultilineChartComponent;
+  compareYears = false;
+  years = [2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025];
   mapControl?: MapControl;
   activeLevel: string = 'Gemeinden';
   data: StackedData[] = mockdata;
@@ -36,9 +40,9 @@ export class PopDevelopmentComponent implements AfterViewInit {
     x: '2003',
     highlight: true
   }
-  @ViewChild('lineChart') lineChart?: MultilineChartComponent;
 
-  constructor(private mapService: MapService) { }
+  constructor(private mapService: MapService, private popService: PopService) {
+  }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
@@ -53,5 +57,17 @@ export class PopDevelopmentComponent implements AfterViewInit {
     this.lineChart!.min = Math.floor(min / 10) * 10;
     this.lineChart!.max = Math.ceil(max / 10) * 10;
     this.lineChart?.draw(relData);
+    if (this.popService.timeSlider)
+      this.setSlider();
+    else
+      this.popService.ready.subscribe(r => this.setSlider());
+  }
+
+  setSlider(): void {
+    let slider = this.popService.timeSlider!;
+    slider.prognosisEnd = 2013;
+    slider.years = this.years;
+    slider.value = 2012;
+    slider.draw();
   }
 }

@@ -41,11 +41,13 @@
                     [title]="'Logo für die Startseite'"
                     subtitle="Logo ändern"
                     [dialogTitle]="'Bilddatei als Logo festlegen'"
+                    infoText="Die Individualisierung des Logos ist optional. Falls ein Logo gesetzt wird, wird es auf der Loginseite angezeigt und
+                    links in der Hauptnavigations- leiste. Ist es nicht gesetzt, wird stattdessen das DaviPlan-Logo in der Navigation angezeigt."
                     [editTemplate]="logoTemplate"
                     [editButton]="logoEditButton">
       <div #logoEditButton class="img-wrapper">
         <button mat-icon-button color="primary"
-                style="position: absolute; left: 45%; top: 50%; pointer-events: none; z-index: 1;">
+                style="position: absolute; left: 45%; top: 165px; pointer-events: none; z-index: 1;">
           <mat-icon>edit</mat-icon>
         </button>
         <img [src]="settings?.logo" style="width: 100%;  object-fit: contain;">

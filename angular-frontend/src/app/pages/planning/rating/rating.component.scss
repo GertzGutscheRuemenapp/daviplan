@@ -1,0 +1,12 @@
+::ng-deep .indicator-panel {
+  min-width: 600px !important;
+  font-size: 0.8em !important;
+
+  .mat-icon-button {
+    float: right;
+    margin-right: 3px;
+    mat-icon {
+      margin-left: 7px;
+    }
+  }
+}

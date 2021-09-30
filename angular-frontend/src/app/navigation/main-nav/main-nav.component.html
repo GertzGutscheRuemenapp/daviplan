@@ -1,13 +1,16 @@
-<mat-toolbar class="main-nav">
+<mat-toolbar *ngIf="user$ | async" class="main-nav">
   <div fxShow="true" fxHide.gt-sm="true">
     <button mat-icon-button (click)="sidenav.toggle()">
       <mat-icon>menu</mat-icon>
     </button>
   </div>
-  <div style="width: 300px; padding-top: 14px;">
+  <div style="width: 300px; padding-top: 5px;">
     <a class="logo" routerLink="/" title="Startseite">
-      <img src="{{backend}}/static/img/test-logo.png" height="50px" alt="Logo"/>
-      <div i18n> <p>davi</p><p>plan</p> </div>
+      <img *ngIf="settings?.logo; else noLogo" [src]="settings?.logo" alt="Startseite" title="Startseite" height="50px">
+      <ng-template #noLogo>
+          <img src="{{backend}}/static/img/test-logo.png" height="56px" alt="Logo"/>
+          <div i18n> <p>davi</p><p>plan</p> </div>
+      </ng-template>
     </a>
   </div>
   <span class="page-links" fxShow="true" fxHide.lt-md="true">
@@ -25,7 +28,7 @@
     <ng-template #loggedOut>
       <a routerLink="/login">Login</a>
     </ng-template>
-    <div *ngIf="user$ | async; else loggedOut" style="display: flex;">
+    <div *ngIf="user; else loggedOut" style="display: flex;">
       eingeloggt als&nbsp;<b *ngIf="user">{{user.username}}</b>    &nbsp;&nbsp;
       <a (click)="logout()" href="">Logout</a>
     </div>
