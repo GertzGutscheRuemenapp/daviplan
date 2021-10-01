@@ -2,6 +2,7 @@ import {AfterViewInit, Component, OnDestroy} from '@angular/core';
 import { OlMap } from "../../../map/map";
 import { MapControl, MapService } from "../../../map/map.service";
 import { PopService } from "../population.component";
+import { environment } from "../../../../environments/environment";
 
 @Component({
   selector: 'app-pop-statistics',
@@ -10,6 +11,7 @@ import { PopService } from "../population.component";
 })
 export class PopStatisticsComponent implements AfterViewInit {
   mapControl?: MapControl;
+  backend: string = environment.backend;
 
   constructor(private mapService: MapService, private popService: PopService) {
   }

@@ -113,8 +113,11 @@ app-scenario-menu.expanded {
 ::ng-deep app-planning {
   .compare-radio-list {
     list-style-type: none;
-    padding: 5px 0 5px 25px;
-    margin: 0;
+    //padding: 5px 0 5px 25px;
+    //margin: 0;
+    padding: 0;
+    margin: 10px 0 0 -2px;
+    width: 250px;
 
     mat-radio-button  {
       padding: 10px 20px 0 0;

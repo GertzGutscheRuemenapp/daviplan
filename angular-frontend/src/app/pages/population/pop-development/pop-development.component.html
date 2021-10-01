@@ -110,8 +110,8 @@
         Vergleichsdarstellung
       </mat-panel-title>
     </mat-expansion-panel-header>
-    <mat-checkbox color="primary" [(ngModel)]="compareYears" style="margin: 0 0 10px -12px;"
-                  i18n>Bevölkerungsstruktur vergleichen</mat-checkbox>
+    <mat-checkbox color="primary" [(ngModel)]="compareYears" style="margin-bottom: 10px; width: 200px;"
+                  i18n>Bevölkerungsstruktur vergleichen</mat-checkbox> <!--style="margin: 0 0 10px -12px;"-->
     <mat-form-field appearance="outline" class="small">
       <mat-label>Jahr</mat-label>
       <mat-select disableOptionCentering [value]="years[0]" [disabled]="!compareYears">

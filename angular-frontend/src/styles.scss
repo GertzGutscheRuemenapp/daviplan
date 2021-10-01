@@ -467,6 +467,10 @@ mat-icon.warning {
     padding: 0px 18px !important;
   }
 
+  .mat-checkbox-label {
+    white-space: normal !important; line-height: 1 !important;
+  }
+
   mat-panel-title {
     height: 60px!important;
   }
