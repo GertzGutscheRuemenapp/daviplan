@@ -12,6 +12,7 @@ import { environment } from "../../../../environments/environment";
 export class PopStatisticsComponent implements AfterViewInit {
   mapControl?: MapControl;
   backend: string = environment.backend;
+  theme = 'wanderung';
 
   constructor(private mapService: MapService, private popService: PopService) {
   }
