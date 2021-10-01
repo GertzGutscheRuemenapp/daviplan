@@ -33,6 +33,7 @@
     "@types/proj4": "^2.5.1",
     "d3": "^7.0.0",
     "graphql": "^15.0.0",
+    "ng2-tooltip-directive": "^2.10.3",
     "ngx-color-picker": "^11.0.0",
     "ngx-material-file-input": "^2.1.1",
     "ol": "^6.6.1",

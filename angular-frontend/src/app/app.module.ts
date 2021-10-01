@@ -60,9 +60,8 @@ import { MatRadioModule } from "@angular/material/radio";
 import { SideToggleComponent } from './elements/side-toggle/side-toggle.component';
 import { LegendComponent } from './map/legend/legend.component';
 import { DragDropModule } from "@angular/cdk/drag-drop";
-import { MatDatepickerModule } from "@angular/material/datepicker";
-import {MatNativeDateModule} from '@angular/material/core';
 import { TimeSliderComponent } from './elements/time-slider/time-slider.component';
+import { TooltipModule } from 'ng2-tooltip-directive';
 
 @NgModule({
   declarations: [
@@ -130,8 +129,7 @@ import { TimeSliderComponent } from './elements/time-slider/time-slider.componen
         EcoFabSpeedDialModule,
         MatRadioModule,
         DragDropModule,
-        MatDatepickerModule,
-        MatNativeDateModule
+        TooltipModule
     ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true }

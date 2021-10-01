@@ -4,39 +4,44 @@
       <mat-icon>menu</mat-icon>
     </button>
   </div>-->
+  <ng-template #apTip>
+    {{ activeProject?.name }}
+  </ng-template>
   <div id="process-select">
     <div class="mini-fab-icon inverted primary">
       <div class="davicon icon-GGR-davicons-Font-Simple-1-Planungsprozess"></div>
     </div>
-    <mat-form-field appearance="standard" class="">
+    <mat-form-field appearance="standard" class="small">
       <mat-label>Planungsprozess</mat-label>
-      <mat-select [formControl]="processForm" disableOptionCentering (selectionChange)="onProcessChange($event.value)">
-        <mat-select-trigger>
-          <span *ngIf="activeProject">
-            {{ activeProject.name }}
-          </span>
-        </mat-select-trigger>
-        <mat-option class="selected" *ngIf="activeProject" disabled>
-          {{ activeProject.name }}
-          <mat-icon class="info-icon" *ngIf="activeProject.shared">share</mat-icon>
-<!--          <mat-icon *ngIf="!activeProject.shared">person</mat-icon>-->
-          <mat-icon class="info-icon material-icons-outlined" *ngIf="activeProject.editable === false" style="color: red;">cancel</mat-icon>
-          <i *ngIf="activeProject.user" style="font-size: 12px; margin-left: 3px;">({{ activeProject.user }})</i>
-        </mat-option>
-        <mat-optgroup label="Meine Projekte">
-          <mat-option *ngFor="let project of myProjects" [value]="project.id">
+      <mat-select disableOptionCentering
+                  [tooltip]="$any(apTip)" contentType="template"
+                  [hideDelay]="0"
+                  theme="light"
+                  maxWidth="400px"
+                  placement="right"
+                  (selectionChange)="onProcessChange($event.value)">
+        <mat-optgroup label="Meine Prozesse">
+          <mat-option *ngFor="let project of myProjects"
+                      tooltip="{{(project.shared)? 'geteilt mit ...': ''}}"
+                      tooltipClass="context-tooltip"
+                      theme="light"
+                      [value]="project.id"
+                      [hideDelay]="0"
+                      placement="right">
             {{ project.name }}
-<!--            <mat-icon *ngIf="!project.shared">person</mat-icon>-->
-            <mat-icon class="info-icon" *ngIf="project.shared">share</mat-icon>
           </mat-option>
-          <mat-option title="Prozess hinzufügen"><mat-icon style="font-size: 1.2em;">add</mat-icon></mat-option>
+          <mat-option title="Prozess hinzufügen"><mat-icon style="font-size: 1.2em; margin-right: 5px;">add</mat-icon>Prozess hinzufügen</mat-option>
         </mat-optgroup>
-        <mat-optgroup *ngIf="sharedProjects" label="Geteilte Projekte">
-          <mat-option *ngFor="let project of sharedProjects" [value]="project.id">
+        <mat-optgroup *ngIf="sharedProjects" label="Geteilte Prozesse">
+          <mat-option *ngFor="let project of sharedProjects"
+                      [value]="project.id"
+                      tooltip="{{(project.editable)? 'editierbar': 'nicht editierbar'}} <br> geteilt durch {{project.user}}"
+                      [hideDelay]="0"
+                      tooltipClass="context-tooltip"
+                      theme="light"
+                      maxWidth="400px"
+                      placement="right">
             {{ project.name }}
-            <mat-icon class="info-icon">share</mat-icon>
-            <mat-icon class="info-icon material-icons-outlined" *ngIf="project.editable === false" style="color: red;">cancel</mat-icon>
-            <i style="font-size: 12px; margin-left: 3px;">({{ project.user }})</i>
           </mat-option>
         </mat-optgroup>
       </mat-select>

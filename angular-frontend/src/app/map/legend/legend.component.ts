@@ -1,7 +1,5 @@
 import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
-import { OlMap } from "../map";
 import { MapControl, MapService, Layer } from "../map.service";
-import { FormControl } from "@angular/forms";
 
 const mockLayerGroups: Record<string, any[]> = {
   // Leistungen: [
@@ -9,16 +7,16 @@ const mockLayerGroups: Record<string, any[]> = {
   //   { name: 'Krippe', checked: true },
   // ],
   Standorte: [
-    { name: 'Schulen', checked: false },
-    { name: 'Feuerwehr', checked: true },
-    { name: 'Kinderbeutreuung', checked: false },
-    { name: 'Ärzte', checked: true },
+    { name: 'Schulen', checked: false, color: 'grey', symbol: 'dot' },
+    { name: 'Feuerwehr', checked: true, color: 'red', symbol: 'dot' },
+    { name: 'Kinderbeutreuung', checked: false, color: 'lightblue', symbol: 'dot' },
+    { name: 'Ärzte', checked: true, color: 'lightgreen', symbol: 'dot' },
   ],
   Gebietsgrenzen: [
-    { name: 'Gemeinden', checked: false },
-    { name: 'Kreise', checked: true },
-    { name: 'Verwaltungsgemeinschaften', checked: false },
-    { name: 'Gemeinden', checked: false },
+    { name: 'Gemeinden', checked: false, color: 'orange', symbol: 'line' },
+    { name: 'Kreise', checked: true, color: 'yellow', symbol: 'line' },
+    { name: 'Verwaltungsgemeinschaften', checked: false, color: 'red', symbol: 'line' },
+    { name: 'Bundesländer', checked: false, color: 'black', symbol: 'line' },
   ],
   Ökologie: [
     { name: 'Wälder', checked: false },
