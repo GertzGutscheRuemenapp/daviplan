@@ -103,6 +103,10 @@ mat-form-field.full {
   }
 }
 
+mat-form-field.small {
+  font-size: 16px;
+}
+
 button.large {
   padding: 10px!important;
 }
@@ -674,4 +678,9 @@ app-map-controls {
   background-size: cover;
   opacity: 0.5;
   z-index: -1;
+}
+
+.context-tooltip {
+  font-size: 16px;
+  color: rgba(0, 0, 0, 0.87);
 }
