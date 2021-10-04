@@ -683,4 +683,13 @@ app-map-controls {
 .context-tooltip {
   font-size: 16px;
   color: rgba(0, 0, 0, 0.87);
+  text-align: left!important;
+}
+
+.mat-select-panel {
+  .mat-icon-button {
+    mat-icon {
+      margin-left: 7px;
+    }
+  }
 }

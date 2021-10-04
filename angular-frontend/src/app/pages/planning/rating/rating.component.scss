@@ -1,12 +1,18 @@
 ::ng-deep .indicator-panel {
-  min-width: 600px !important;
-  font-size: 0.8em !important;
-
-  .mat-icon-button {
-    float: right;
-    margin-right: 3px;
-    mat-icon {
-      margin-left: 7px;
+  min-width: 400px !important;
+  .own-option {
+    float: left;
+    div {
+      display: inline-block;
+      float: left;
+      white-space: nowrap;
+      overflow: hidden;
+      max-width: 260px;
+      text-overflow: ellipsis;
+    }
+    .mat-icon-button {
+      margin-top: 3px;
+      margin-right: 3px;
     }
   }
 }
