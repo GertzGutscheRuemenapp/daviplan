@@ -66,6 +66,11 @@ $diagram-bar-width: 600px;
     width: calc(100% - #{$context-bar-width});
   }
   ::ng-deep app-population {
+    .diagram-wrapper {
+      width: 50%;
+      float: left;
+      padding-bottom: 30%;
+    }
     .context-bar {
       top: 60px + $sub-nav-height;
     }
@@ -77,6 +82,16 @@ $diagram-bar-width: 600px;
       box-shadow: none;
       padding: 20px;
       z-index: 11;
+    }
+  }
+}
+
+@media only screen and (max-width: 66em) {
+
+  ::ng-deep app-population {
+    .diagram-wrapper {
+      width: 100%;
+      padding-bottom: 60%;
     }
   }
 }
