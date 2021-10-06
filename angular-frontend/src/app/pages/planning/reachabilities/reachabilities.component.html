@@ -47,8 +47,83 @@
       <div class="mini-fab-icon">
         <div class="davicon icon-GGR-davicons-Font-Simple-5-Fortbewegung-Wegezeit"></div>
       </div>
-      Verkehrsmittel / Wegezeiten
+      Indikator
     </mat-panel-title>
   </mat-expansion-panel-header>
-  ToDo
+
+  <mat-form-field appearance="outline" class="small">
+    <mat-select #indicator disableOptionCentering value="1">
+      <mat-option value="1"
+                  tooltip="Wegezeit zwischen ausgewählter Einrichtung und den Wohnstandorten"
+                  theme="light"
+                  placement="right"
+                  maxWidth="600px"
+                  [hideDelay]="0">
+        Einrichtung -> Wohnstandorte
+      </mat-option>
+      <mat-option value="2"
+                  tooltip="Wegezeit zwischen ausgewähltem Wohnstandort und allen Einrichtung"
+                  theme="light"
+                  placement="right"
+                  maxWidth="600px"
+                  [hideDelay]="0">
+        Wohnstandort -> Einrichtungen
+      </mat-option>
+      <mat-option value="3"
+                  tooltip="Wegezeit zur nächsten Einrichtung für alle Wohnstandorte"
+                  theme="light"
+                  placement="right"
+                  maxWidth="600px"
+                  [hideDelay]="0">
+        nächste Einrichtung
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <div *ngIf="indicator.value==1 || indicator.value==2"
+       style="float: right; padding-top: 3px;"
+       (click)="selectMode=!selectMode"
+       [title]="(indicator.value==1)? 'Einrichtung auswählen': 'Wohnstandort auswählen'">
+    <button color="primary" *ngIf="!selectMode" mat-icon-button>
+      <mat-icon class="material-icons-outlined">near_me</mat-icon>
+    </button>
+    <button color="primary" *ngIf="selectMode" mat-mini-fab style="box-shadow: none; margin-left: auto;">
+      <mat-icon class="material-icons-outlined">near_me</mat-icon>
+    </button>
+  </div>
+</mat-expansion-panel>
+<mat-expansion-panel expanded>
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <div class="mini-fab-icon">
+        <mat-icon class="material-icons-outlined">directions_bus_filled</mat-icon>
+      </div>
+      Verkehrsmittel
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  <div style="display: flex">
+    <div class="mini-fab-icon primary"
+         [ngClass]="{'inverted': transportMode == 1}"
+         (click)="transportMode=1"
+         title="zu Fuß" style="cursor: pointer;">
+      <mat-icon class="material-icons-outlined">directions_walk</mat-icon>
+    </div>
+    <div class="mini-fab-icon primary"
+         [ngClass]="{'inverted': transportMode == 2}"
+         (click)="transportMode=2"
+         title="Fahrrad" style="cursor: pointer;">
+      <mat-icon class="material-icons-outlined">directions_bike</mat-icon>
+    </div>
+    <div class="mini-fab-icon primary"
+         [ngClass]="{'inverted': transportMode == 3}"
+         (click)="transportMode=3"
+         title="Auto" style="cursor: pointer;">
+      <div class="davicon icon-GGR-davicons-Font-Simple-17-PKW"></div>
+    </div>
+    <div class="mini-fab-icon primary"
+         [ngClass]="{'inverted': transportMode == 4}"
+         (click)="transportMode=4"
+         title="ÖPNV" style="cursor: pointer;">
+      <div class="davicon icon-GGR-davicons-Font-Simple-18-OEPNV"></div>
+    </div>
+  </div>
 </mat-expansion-panel>

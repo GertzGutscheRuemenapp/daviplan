@@ -352,6 +352,7 @@ button.mat-icon-button {
 
 .mini-fab-icon.inverted {
   background-color: $accent;
+  color: white;
   .davicon {
     color: white;
   }
@@ -553,7 +554,7 @@ mat-expansion-panel.side-toggle {
 
 .mat-mini-fab mat-icon{
   margin-top: -3px;
-  //margin-left: 1px;
+  margin-left: 1px;
 }
 
 .map-drag-element {
