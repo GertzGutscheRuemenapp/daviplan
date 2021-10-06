@@ -1,11 +1,11 @@
 eco-fab-speed-dial {
-  position: fixed;
+  position: absolute;
 }
 eco-fab-speed-dial-trigger > button {
   box-shadow: 0px 1px 5px 2px #a7a7a7;
 }
 #leftDialBack {
-  position: fixed;
+  position: absolute;
   width: 230px;
   margin-left: -210px;
   height: 55px;
@@ -23,4 +23,12 @@ eco-fab-speed-dial-trigger > button {
 #leftDialBack.expanded div {
   box-shadow: 0px 0px 3px 2px #c7c7c7;
   width: 100%;
+}
+
+eco-fab-speed-dial.eco-down .mat-mini-fab {
+  border: 2px solid white;
+  .mat-icon {
+    margin-top: -6px;
+    margin-left: 1px;
+  }
 }

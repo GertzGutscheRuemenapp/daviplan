@@ -6,6 +6,7 @@
 </mat-toolbar>
 <div class="map-wrapper">
   <div id="population-map">
+    <app-map-controls></app-map-controls>
     <div id="info" class="map-drag-element" cdkDrag cdkDragBoundary="#population-map">
       <div class="handle" title="Anzeigeinformationen" cdkDragHandle>
         <mat-icon color="primary">info</mat-icon>
@@ -26,7 +27,6 @@
         </div>
       </app-side-toggle>
     </div>
-    <app-map-controls style="position: absolute; right: 90px; top: 30px;"></app-map-controls>
     <app-side-toggle id="legend"
                      icon="layers"
                      direction="left"

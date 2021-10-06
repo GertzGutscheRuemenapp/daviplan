@@ -41,13 +41,16 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     // there is no parent css selector yet but we only want to hide the overflow in the planning pages
+    // a bit hacky
     let wrapper = this.elRef.nativeElement.closest('mat-sidenav-content');
-    this.renderer.setStyle(wrapper, 'overflow', 'hidden');
+    this.renderer.setStyle(wrapper, 'overflow-y', 'hidden');
     this.mapControl = this.mapService.get('planning-map');
     this.mapControl.mapDescription = 'Planungsprozess: xyz > Status Quo Fortschreibung <br> usw.'
   }
 
   ngOnDestroy(): void {
+    let wrapper = this.elRef.nativeElement.closest('mat-sidenav-content');
+    this.renderer.setStyle(wrapper, 'overflow-y', 'auto');
     this.mapControl?.destroy();
   }
 
