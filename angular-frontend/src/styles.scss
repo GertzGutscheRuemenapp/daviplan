@@ -215,10 +215,10 @@ app-data-card td, app-dash-card td {
 .sub-nav {
   background-color: white;
   display: flex;
-  height: 60px;
+  height: $sub-nav-height;
   box-shadow: 0px 3px 5px -1px rgb(0 0 0 / 20%), 0px 6px 10px 0px rgb(0 0 0 / 14%), 0px 1px 18px 0px rgb(0 0 0 / 12%);
   position: relative;
-  z-index: 1;
+  z-index: 11;
 }
 
 mat-sidenav-content {
@@ -410,11 +410,6 @@ mat-option.selected {
   background-color: $primary-light !important;
 }
 
-app-population .context-bar {
-  height: calc(100vh - 130px);
-  z-index: 1;
-}
-
 .mat-button-dv.mat-button-base {
   text-transform: uppercase;
   padding: 0 4px !important;
@@ -457,7 +452,7 @@ mat-icon.warning {
 }
 
 .context-bar {
-  z-index: 2;
+  z-index: 12;
   position: relative;
   width: $context-bar-width;
   overflow-y: auto;
@@ -683,4 +678,13 @@ app-map-controls {
 .context-tooltip {
   font-size: 16px;
   color: rgba(0, 0, 0, 0.87);
+  text-align: left!important;
+}
+
+.mat-select-panel {
+  .mat-icon-button {
+    mat-icon {
+      margin-left: 7px;
+    }
+  }
 }

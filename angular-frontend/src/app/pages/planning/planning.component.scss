@@ -97,18 +97,6 @@ app-scenario-menu.expanded {
   left: $context-bar-width;
 }
 
-#legend {
-  position: absolute;
-  right: 0;
-  top: 500px;
-  z-index: 1;
-}
-
-::ng-deep #legend .legend-body {
-  max-height: calc(100vh - 650px);
-  overflow-y: auto;
-}
-
 ::ng-deep app-planning {
   .compare-radio-list {
     list-style-type: none;
