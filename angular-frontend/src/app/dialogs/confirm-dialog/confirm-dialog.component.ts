@@ -7,7 +7,8 @@ export interface DialogData {
   confirmButtonText: string,
   cancelButtonText: string,
   template: TemplateRef<any>,
-  closeOnConfirm: boolean
+  closeOnConfirm: boolean,
+  context: any;
 }
 
 @Component({
@@ -25,6 +26,7 @@ export class ConfirmDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: DialogData) {
     data.confirmButtonText = data.confirmButtonText || $localize`Bestätigen`;
     data.cancelButtonText = data.cancelButtonText || $localize`Abbrechen`;
+    data.context = data.context || {};
   }
 
   onConfirmClick() {

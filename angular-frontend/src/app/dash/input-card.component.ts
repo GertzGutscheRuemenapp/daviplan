@@ -9,7 +9,7 @@ import {
   ElementRef,
   ViewChild
 } from '@angular/core';
-import { ConfirmDialogComponent } from "../dialogs/confirm-dialog.component";
+import { ConfirmDialogComponent } from "../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { MatButton } from "@angular/material/button";
 

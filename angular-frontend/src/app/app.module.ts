@@ -23,7 +23,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { CardComponent } from "./dash/dash-card.component";
 import { MatDialogModule } from "@angular/material/dialog";
-import { ConfirmDialogComponent } from "./dialogs/confirm-dialog.component";
+import { ConfirmDialogComponent } from "./dialogs/confirm-dialog/confirm-dialog.component";
 import { InputCardComponent } from "./dash/input-card.component";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatCheckboxModule } from "@angular/material/checkbox";

@@ -1,3 +1,5 @@
+@import "../../../constants";
+
 .loadOverlay {
   position: absolute;
   width: 100%;
@@ -27,4 +29,8 @@ mat-dialog-content {
 
 .mat-dialog-content {
   overflow: visible;
+}
+
+h4 {
+  color: $accent;
 }

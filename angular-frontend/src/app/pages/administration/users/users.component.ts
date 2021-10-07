@@ -2,7 +2,7 @@ import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core'
 import { HttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
 import { User } from '../../login/users';
-import { ConfirmDialogComponent } from '../../../dialogs/confirm-dialog.component';
+import { ConfirmDialogComponent } from '../../../dialogs/confirm-dialog/confirm-dialog.component';
 import { InputCardComponent } from '../../../dash/input-card.component'
 import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
 import { RestAPI } from "../../../rest-api";
