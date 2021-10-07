@@ -5,7 +5,7 @@
   position: fixed;
 }
 
-$diagram-bar-width: 600px;
+$diagram-bar-width: 30%;
 
 .map-wrapper {
   position: absolute;
@@ -13,7 +13,7 @@ $diagram-bar-width: 600px;
   height: calc(100% - #{$sub-nav-height});
   width: calc(100% - #{$context-bar-width} - #{$diagram-bar-width} - 40px);
   padding-left: $context-bar-width;
-  padding-right: $diagram-bar-width + 40px;
+  padding-right: calc(#{$diagram-bar-width} + 40px);
 }
 #population-map {
   position: relative;
@@ -59,7 +59,7 @@ $diagram-bar-width: 600px;
   }
 }
 
-@media only screen and (max-width: 90em) {
+@media only screen and (max-width: 95em) {
   .map-wrapper {
     padding-right: 0px;
     height: 50vh;

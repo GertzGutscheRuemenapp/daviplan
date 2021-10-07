@@ -311,6 +311,12 @@ app-basedata, app-administration{
         padding-left: 60px !important;
       }
     }
+
+    mat-expansion-panel.mat-expanded {
+      mat-expansion-panel-header {
+        background-color: #0000000B !important;
+      }
+    }
   }
 }
 
@@ -559,6 +565,15 @@ mat-icon.warning {
     padding: 0px 18px !important;
   }
 
+  mat-expansion-panel.mat-expanded {
+    mat-expansion-panel-header {
+      background-color: $primary-light !important;
+    }
+    mat-panel-title {
+      color: black;
+    }
+  }
+
   .mat-checkbox-label {
     white-space: normal !important; line-height: 1 !important;
   }
@@ -617,18 +632,13 @@ mat-sidenav, .context-bar {
     }
   }
 
-  mat-expansion-panel:hover .mat-expansion-panel-header-title {
-    color:black;
-  }
-
-  mat-expansion-panel.mat-expanded {
-    mat-expansion-panel-header {
-      background-color: $primary-light !important;
-    }
-    mat-panel-title {
+  .mat-expansion-panel-header:hover {
+    background-color: #0000000B !important;
+    .mat-expansion-panel-header-title {
       color: black;
     }
   }
+
   .mat-expansion-panel-body {
     padding: 16px 16px 16px 40px;
   }

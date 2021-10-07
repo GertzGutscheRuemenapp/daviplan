@@ -11,8 +11,10 @@
            [routerLink]="'/'+item.url"
         > {{ item.name }}
         </a>
-        <mat-expansion-panel *ngIf="item.children.length > 0">
-          <mat-expansion-panel-header >
+        <mat-expansion-panel *ngIf="item.children.length > 0"
+                             [expanded]="cookies.get(prefix + item.name) == true">
+          <mat-expansion-panel-header
+            (click)="cookies.toggle(prefix + item.name)">
             <mat-panel-title>
               {{ item.name }}
             </mat-panel-title>
