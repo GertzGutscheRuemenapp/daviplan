@@ -30,13 +30,12 @@ mat-card {
   right: 10px;
 }
 
-h2.title {
+.title {
   color: $accent;
 }
 
-h3.subtitle {
+.sub {
   color: #00000061;
-  text-transform: uppercase;
   margin-bottom: 10px;
 }
 
@@ -49,7 +48,7 @@ h3.subtitle {
   }
 
   .info-text {
-    margin-top: 30px;
+    margin-top: 20px;
     //text-align: justify;
   }
 
@@ -62,7 +61,12 @@ h3.subtitle {
     padding: 5px;
     min-height: 100px;
     max-height: 300px;
+    h1, h2, h3, h4, h5, h6 {
+      color: $primary;
+    }
   }
+
+
 
   .text:disabled {
     background-color: white;

@@ -7,13 +7,13 @@ $app-accent: mat.define-palette($golden-palette, 500);
 
 $app-typography: mat.define-typography-config(
   $font-family: 'Calibri',
-/*  $headline: mat.define-typography-level(54px, 54px, 400),
-  $title: mat.define-typography-level(28px, 28px, 500),
-  $subheading-2: mat.define-typography-level(26px, 26px, 400),
-  $subheading-1: mat.define-typography-level(24px, 24px, 400),*/
-  $body-1: mat.define-typography-level(18px, 24px, 400),
-  $body-2: mat.define-typography-level(16px, 22px, 400),
-  $button: mat.define-typography-level(18px, 15px, 500),
+  //$headline: mat.define-typography-level(54px, 54px, 400),
+  //$title: mat.define-typography-level(28px, 28px, 500),
+  //$subheading-2: mat.define-typography-level(26px, 26px, 400),
+  //$subheading-1: mat.define-typography-level(24px, 24px, 400),
+  $body-1: mat.define-typography-level(16px, 24px, 400),
+  $body-2: mat.define-typography-level(16px, 20px, 400),
+  $button: mat.define-typography-level(16px, 16px, 500),
 );
 
 $app-theme: mat.define-light-theme((
@@ -29,17 +29,86 @@ $app-theme: mat.define-light-theme((
 @include mat.core($app-typography);
 @include mat.all-component-themes($app-theme);
 
+// non-material headings
+// not defined in the typography, messes up default inputs (material typography is be overriden here)
+h1 {
+  font-size: 54px !important;
+  line-height: 54px !important;
+  letter-spacing: 0px !important;
+  color: $light-black;
+}
+h2 {
+  font-size: 28px !important;
+  line-height: 24px !important;
+  letter-spacing: 0.21px !important;
+  color: $light-black;
+}
+h3 {
+  font-size: 26px !important;
+  line-height: 24px !important;
+  letter-spacing: 0.2px !important;
+  color: $light-black;
+}
+h4 {
+  font-size: 24px !important;
+  line-height: 24px !important;
+  letter-spacing: 0.18px !important;
+  color: $light-black;
+}
+h5 {
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: 0.32px;
+  color: $light-black;
+}
+h6 {
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: 0.14px;
+  font-weight: bold;
+  color: black;
+}
+
+.subtitle1 {
+  font-size: 14px;
+  line-height: 24px;
+  letter-spacing: 1.25px;
+  text-transform: uppercase;
+  font-weight: bold;
+  color: $light-black;
+}
+
+.subtitle2 {
+  font-size: 14px;
+  letter-spacing: 0.11px;
+  color: $light-black;
+}
+
+.info-text {
+  font-size: 16px;
+  line-height: 20px;
+  letter-spacing: 0.29px;
+  color: #00000099;
+}
+
+.overline{
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+  color: $light-black;
+}
+
 html, body { height: 100%; }
 body {
   margin: 0;
   font-family: Calibri, Candara, Segoe, "Segoe UI", Optima, Arial, sans-serif;
-  color: #000000DE;
+  color: $light-black;
   overflow: hidden;
 }
 
 .logo {
   text-decoration: none;
-  color: #000000DE;
+  color: $light-black;
   display: flex;
   div {
     font-size: 28px;
