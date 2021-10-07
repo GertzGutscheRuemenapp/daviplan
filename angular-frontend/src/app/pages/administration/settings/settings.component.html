@@ -21,7 +21,7 @@
                     [title]="'Kontakt E-Mail (optional)'"
                     subtitle="E-Mail ändern"
                     [dialogTitle]="'Kontakt E-Mail ändern'"
-                    infoText="Diese E-Mail-Adresse wird im Login als Kontakt angegeben, an den sich Nutzer für die Beantragung eines Accounts bzw. zum Zurücksetzen des Passworts wenden können. Die Adresse wird anderweitig nicht verwendet."
+                    infoText="Diese E-Mail-Adresse wird im Login als Kontakt angegeben, an den sich Nutzer für die Beantragung eines Accounts bzw. zum Zurücksetzen des Passworts wenden können. Die Adresse wird anderweitig nicht verwendet.<br> Zum Entfernen der Mail muss das Eingabfeld leer gelassen werden."
                     [editTemplate]="contactTemplate"
                     [editButton]="contactEditButton">
       <div #contactEditButton class="row-button" style="width: 90%">
@@ -31,11 +31,11 @@
           <mat-icon>edit</mat-icon>
         </button>
       </div>
-      <button mat-button class="mat-button-dv"
+<!--      <button mat-button class="mat-button-dv"
               [disabled]="(!settings?.contactMail) ? true : null"
               color="primary" (click)="removeEmail()" i18n>
         <mat-icon>close</mat-icon>&nbsp; E-Mail entfernen
-      </button>
+      </button>-->
     </app-input-card>
   </div>
 </div>
@@ -65,7 +65,7 @@
                     subtitle="Logo ändern"
                     [dialogTitle]="'Bilddatei als Logo festlegen'"
                     infoText="Die Individualisierung des Logos ist optional. Falls ein Logo gesetzt wird, wird es auf der Loginseite angezeigt und
-                    links in der Hauptnavigations- leiste. Ist es nicht gesetzt, wird stattdessen das DaviPlan-Logo in der Navigation angezeigt."
+                    links in der Hauptnavigationsleiste. Ist es nicht gesetzt, wird stattdessen das DaviPlan-Logo in der Navigation angezeigt."
                     [editTemplate]="logoTemplate"
                     [editButton]="logoEditButton">
       <div #logoEditButton class="img-wrapper">

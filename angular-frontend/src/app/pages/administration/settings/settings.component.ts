@@ -207,6 +207,7 @@ export class SettingsComponent implements AfterViewInit {
     });
   }
 
+/*
   removeEmail(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
@@ -229,6 +230,7 @@ export class SettingsComponent implements AfterViewInit {
       }
     });
   }
+*/
 
   logoFileName(): string | undefined {
     if (!this.settings?.logo) return;

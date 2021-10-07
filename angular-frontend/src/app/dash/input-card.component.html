@@ -6,7 +6,7 @@
   <div *ngIf="infoText" class="info-text">
     <span class="subtitle1">INFORMATION</span>
     <br>
-    {{infoText}}
+    <span [innerHTML]="infoText"></span>
   </div>
   <div>
     <button #editButton
