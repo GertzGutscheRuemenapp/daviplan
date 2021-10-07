@@ -62,6 +62,7 @@ import { LegendComponent } from './map/legend/legend.component';
 import { DragDropModule } from "@angular/cdk/drag-drop";
 import { TimeSliderComponent } from './elements/time-slider/time-slider.component';
 import { TooltipModule } from 'ng2-tooltip-directive';
+import { PopRasterComponent } from './pages/basedata/pop-raster/pop-raster.component';
 
 @NgModule({
   declarations: [
@@ -94,7 +95,8 @@ import { TooltipModule } from 'ng2-tooltip-directive';
     ScenarioMenuComponent,
     SideToggleComponent,
     LegendComponent,
-    TimeSliderComponent
+    TimeSliderComponent,
+    PopRasterComponent
   ],
     imports: [
         BrowserModule,
