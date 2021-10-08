@@ -14,6 +14,7 @@ export class PopRasterComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-raster-map');
+    this.mapControl.setBackground(this.mapControl.getBackgroundLayers()[0].id)
   }
 
   ngOnDestroy(): void {

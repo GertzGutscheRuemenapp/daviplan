@@ -17,6 +17,7 @@ import { ReachabilitiesComponent } from "./pages/planning/reachabilities/reachab
 import { SettingsComponent } from "./pages/administration/settings/settings.component";
 import { AreasComponent } from "./pages/basedata/areas/areas.component";
 import { PopRasterComponent } from "./pages/basedata/pop-raster/pop-raster.component";
+import { RealDataComponent } from "./pages/basedata/real-data/real-data.component";
 
 const routes: Routes = [
   {
@@ -91,6 +92,10 @@ const routes: Routes = [
       {
         path: 'einwohnerraster',
         component: PopRasterComponent
+      },
+      {
+        path: 'realdaten',
+        component: RealDataComponent
       },
     ]
   },

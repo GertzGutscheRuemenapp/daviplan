@@ -3,10 +3,3 @@
   height: 600px;
   position: relative;
 }
-
-::ng-deep app-pop-raster #legend {
-  .side-toggle.expanded .side-toggle-content-wrapper, .side-toggle-indicator {
-    box-shadow: none;
-    border: 1px solid lightgrey;
-  }
-}

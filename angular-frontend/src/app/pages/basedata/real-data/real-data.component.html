@@ -1,0 +1,97 @@
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="400px">
+    <app-input-card [title]="'Gebietseinheit'"
+                    [editTemplate]="areaLevelEdit"
+                    infoText="Platzhalter Erklärung: Basis für Uploads, Ändern löscht alle Daten">
+      <table>
+        <tr>
+          <td i18n>Gebietseinheit</td>
+          <td>Gemeinden</td>
+        </tr>
+      </table>
+      <div after>
+        <mat-divider style="margin: 20px 0 5px 0;"></mat-divider>
+        <br>
+        <app-input-card [title]="'Jahre'"
+                        [borderless]="true"
+                        subtitle="Verfügbare Jahre bearbeiten"
+                        infoText="Platzhalter Erklärung: Jahr auswählen / hinzufügen / entfernen">
+          <mat-selection-list [multiple]="false"
+                              id="year-select">
+            <mat-list-option *ngFor="let year of years"
+                             (click)="selectedYear = year"
+                             [selected]="(year === selectedYear)">
+              <div class="option-text">{{year}}</div>
+            </mat-list-option>
+          </mat-selection-list>
+          <div style="margin-top: 10px;">
+            <button mat-button color="primary"
+                    class="mat-button-dv" i18n>
+              <mat-icon>add</mat-icon>hinzufügen
+            </button>
+            <button mat-button color="primary"
+                    style="margin-left: 40px;"
+                    class="mat-button-dv" i18n>
+              <mat-icon>close</mat-icon>entfernen
+            </button>
+          </div>
+        </app-input-card>
+      </div>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="1000px">
+    <app-input-card #dataEdit
+                    [title]="'Daten'"
+                    [dialogTitle]="'Kontakt E-Mail ändern'"
+                    infoText="">
+      <div style="width: 100%; display: flex;">
+        <div style="width: 50%; align-self: start;">
+          <span class="subtitle1"
+                style="color: #00000061;">
+            {{selectedYear}}
+          </span>
+          <table style="margin-top: 15px;">
+            <tr>
+              <td i18n>Upload am</td>
+              <td>02.06.2022</td>
+            </tr>
+            <tr>
+              <td i18n>durch</td>
+              <td>Sascha Schmidt</td>
+            </tr>
+          </table>
+          <div style="margin: 20px 0;">
+            <button mat-flat-button color="primary" i18n>
+              <mat-icon>upload</mat-icon> Daten hochladen
+            </button>
+            <button mat-mini-fab color="primary"
+                    aria-label="Daten herunterladen" title="Daten herunterladen"
+                    style="float: right; margin-right: 10px; box-shadow: none;">
+              <mat-icon>download</mat-icon>
+            </button>
+          </div>
+          <button class="mat-button-dv"
+                  mat-button color="primary" i18n>
+            <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
+          </button>
+        </div>
+        <div id="log-window" style="width: 50%">
+          <app-log></app-log>
+        </div>
+      </div>
+      <div id="base-real-data-map" class="map-container">
+        <app-map-controls></app-map-controls>
+        <app-side-toggle id="legend"
+                         icon="layers"
+                         direction="left"
+                         expanded>
+          <app-legend target="base-real-data-map"></app-legend>
+        </app-side-toggle>
+      </div>
+    </app-input-card>
+  </div>
+</div>
+
+<ng-template #areaLevelEdit>
+  ToDo
+</ng-template>

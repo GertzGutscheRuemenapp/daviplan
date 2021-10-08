@@ -26,6 +26,7 @@ $diagram-bar-width: 30%;
 
   .context-bar {
     position: fixed;
+    top: 60px + $sub-nav-height;
   }
   #diagram-bar {
     position: absolute;
@@ -70,9 +71,6 @@ $diagram-bar-width: 30%;
       width: 50%;
       float: left;
       padding-bottom: 30%;
-    }
-    .context-bar {
-      top: 60px + $sub-nav-height;
     }
     #diagram-bar {
       position: absolute;
