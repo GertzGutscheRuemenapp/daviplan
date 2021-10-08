@@ -32,6 +32,7 @@ export class InputCardComponent implements AfterViewInit {
   @Input() cancelButtonText: string = '';
   @Input() previewTemplate!: TemplateRef<any>;
   @Input() editTemplate!: TemplateRef<any>;
+  @Input() borderless: boolean = false;
   @Output() dialogClosed = new EventEmitter<boolean>();
   @Output() dialogConfirmed = new EventEmitter<boolean>();
 

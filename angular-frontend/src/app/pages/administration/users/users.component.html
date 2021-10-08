@@ -20,21 +20,19 @@
           <div mat-line *ngIf="!user.isSuperuser"><i style="font-size: 14px;" i18n>{{user.firstName}} {{user.lastName}}</i></div>
         </mat-list-option>
       </mat-selection-list>
-      <div after>
-        <div style="margin-top: 30px;">
-          <button mat-button color="primary"
-                  class="mat-button-dv"
-                  (click)="onCreateUser()" i18n>
-            <mat-icon>add</mat-icon>hinzufügen
-          </button>
-          <button mat-button color="primary"
-                  style="margin-left: 40px;"
-                  class="mat-button-dv"
-                  [disabled]="(!selectedUser || selectedUser.isSuperuser) ? true : null"
-                  (click)="onDeleteUser()" i18n>
-            <mat-icon>close</mat-icon>entfernen
-          </button>
-        </div>
+      <div style="margin-top: 10px;">
+        <button mat-button color="primary"
+                class="mat-button-dv"
+                (click)="onCreateUser()" i18n>
+          <mat-icon>add</mat-icon>hinzufügen
+        </button>
+        <button mat-button color="primary"
+                style="margin-left: 40px;"
+                class="mat-button-dv"
+                [disabled]="(!selectedUser || selectedUser.isSuperuser) ? true : null"
+                (click)="onDeleteUser()" i18n>
+          <mat-icon>close</mat-icon>entfernen
+        </button>
       </div>
     </app-input-card>
   </div>

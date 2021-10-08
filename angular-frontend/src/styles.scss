@@ -12,8 +12,8 @@ $app-typography: mat.define-typography-config(
   //$subheading-2: mat.define-typography-level(26px, 26px, 400),
   //$subheading-1: mat.define-typography-level(24px, 24px, 400),
   // Todo: menu letter spacing 0.14px
-  $body-1: mat.define-typography-level(16px, 24px, 400, $letter-spacing: 0.5px),
-  $body-2: mat.define-typography-level(16px, 20px, 400, $letter-spacing: 0.29px),
+  $body-1: mat.define-typography-level(16px, 24px, 400, $letter-spacing: 0.14px),
+  $body-2: mat.define-typography-level(16px, 20px, 400, $letter-spacing: 0.2px),
   $button: mat.define-typography-level(16px, 16px, 500, $letter-spacing: 1.42px),
 );
 
@@ -797,4 +797,22 @@ app-map-controls {
 .side-toggle-content {
   max-width: 40vw;
   //overflow-x: auto;
+}
+
+.mat-selection-list .mat-divider-horizontal {
+  width: calc(100% - 20px) !important;
+  margin: 10px;
+  position: relative !important;
+}
+
+.mat-card .mat-divider-horizontal {
+  position: relative !important;
+}
+
+.mat-list-base .mat-list-item.mat-2-line, .mat-list-base .mat-list-option.mat-2-line {
+  height: 60px !important;
+}
+
+.mat-list-base .mat-list-item, .mat-list-base .mat-list-option {
+  height: 35px !important;
 }
