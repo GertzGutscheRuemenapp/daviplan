@@ -29,12 +29,16 @@
 .legend-entry {
   display: flex;
 }
-.legend.edit .legend-layer-title {
-  border-right: 1px solid lightgrey;
-  width: 55%;
+
+.legend-layer-title{
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+.legend.edit .legend-layer-title {
+  border-right: 1px solid lightgrey;
+  width: 55%;
   padding-right: 5px;
   color: grey;
 }
