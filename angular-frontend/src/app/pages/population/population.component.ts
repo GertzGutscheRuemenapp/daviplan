@@ -3,7 +3,6 @@ import { MapControl, MapService } from "../../map/map.service";
 import { faArrowsAlt } from '@fortawesome/free-solid-svg-icons';
 import { TimeSliderComponent } from "../../elements/time-slider/time-slider.component";
 
-
 @Injectable({ providedIn: 'root' })
 export class PopService {
   timeSlider?: TimeSliderComponent;

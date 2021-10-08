@@ -1,0 +1,120 @@
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="300px">
+    <app-input-card [title]="'Basiseinstellungen'"
+                    [editTemplate]="areaLevelEdit"
+                    infoText="Platzhalter Erklärung: Basis für Uploads, Ändern löscht alle Daten">
+      <table>
+        <tr>
+          <td i18n>Gebietseinheit</td>
+          <td>Gemeinden</td>
+        </tr>
+        <tr>
+          <td i18n>Altersgruppen</td>
+          <td>
+            0 bis unter 18 <br>
+            18 bis unter 65 <br>
+            65 und älter
+          </td>
+        </tr>
+      </table>
+      <div after>
+        <mat-divider style="margin: 20px 0 5px 0;"></mat-divider>
+        <app-input-card [title]="'Prognosejahre'"
+                        [borderless]="true"
+                        [editTemplate]="yearsEdit"
+                        infoText="Platzhalter Erklärung: Jahre bestimmen Template">
+          <table>
+            <tr>
+              <td i18n>ausgewählt</td>
+              <td>2017, 2018, 2019, 2020, 2021, 2022</td>
+            </tr>
+          </table>
+        </app-input-card>
+        <br>
+      </div>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="300px">
+    <app-input-card [title]="'Prognosevarianten'"
+                    subtitle="Verfügbare Prognosen bearbeiten"
+                    infoText="Platzhalter Erklärung: Prognose auswählen / hinzufügen / entfernen">
+      <mat-selection-list [multiple]="false"
+                          id="prognosis-select">
+        <mat-list-option *ngFor="let prognosis of prognoses"
+                         (click)="selectedPrognosis = prognosis"
+                         [selected]="(prognosis === selectedPrognosis)">
+          <div class="option-text">{{prognosis}}</div>
+        </mat-list-option>
+      </mat-selection-list>
+      <div style="margin-top: 10px;">
+        <button mat-button color="primary"
+                class="mat-button-dv" i18n>
+          <mat-icon>add</mat-icon>hinzufügen
+        </button>
+        <button mat-button color="primary"
+                style="float:right;"
+                class="mat-button-dv" i18n>
+          <mat-icon>close</mat-icon>entfernen
+        </button>
+      </div>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="800px">
+    <app-input-card #dataEdit
+                    [title]="'Prognosedaten'"
+                    infoText="">
+      <div style="width: 100%; display: flex;">
+        <div style="width: 50%; align-self: start;">
+          <span class="subtitle1"
+                style="color: #00000061;">
+            {{selectedPrognosis}}
+          </span>
+          <table style="margin-top: 15px;">
+            <tr>
+              <td i18n>Upload am</td>
+              <td>02.06.2022</td>
+            </tr>
+            <tr>
+              <td i18n>durch</td>
+              <td>Sascha Schmidt</td>
+            </tr>
+          </table>
+          <div style="margin: 20px 0;">
+            <button mat-flat-button color="primary" i18n>
+              <mat-icon>upload</mat-icon> Daten hochladen
+            </button>
+            <button mat-mini-fab color="primary"
+                    aria-label="Daten herunterladen" title="Daten herunterladen"
+                    style="float: right; margin-right: 10px; box-shadow: none;">
+              <mat-icon>download</mat-icon>
+            </button>
+          </div>
+          <button class="mat-button-dv"
+                  mat-button color="primary" i18n>
+            <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
+          </button>
+        </div>
+        <div id="log-window" style="width: 50%">
+          <app-log></app-log>
+        </div>
+      </div>
+      <div id="base-prog-data-map" class="map-container">
+        <app-map-controls></app-map-controls>
+        <app-side-toggle id="legend"
+                         icon="layers"
+                         direction="left"
+                         expanded>
+          <app-legend target="base-prog-data-map"></app-legend>
+        </app-side-toggle>
+      </div>
+    </app-input-card>
+  </div>
+</div>
+
+<ng-template #areaLevelEdit>
+  ToDo
+</ng-template>
+
+<ng-template #yearsEdit>
+  ToDo
+</ng-template>

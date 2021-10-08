@@ -6,6 +6,8 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./reachabilities.component.scss']
 })
 export class ReachabilitiesComponent implements OnInit {
+  selectMode = false;
+  transportMode = 1;
 
   constructor() { }
 

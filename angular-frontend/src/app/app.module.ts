@@ -23,7 +23,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { CardComponent } from "./dash/dash-card.component";
 import { MatDialogModule } from "@angular/material/dialog";
-import { ConfirmDialogComponent } from "./dialogs/confirm-dialog.component";
+import { ConfirmDialogComponent } from "./dialogs/confirm-dialog/confirm-dialog.component";
 import { InputCardComponent } from "./dash/input-card.component";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatCheckboxModule } from "@angular/material/checkbox";
@@ -62,6 +62,10 @@ import { LegendComponent } from './map/legend/legend.component';
 import { DragDropModule } from "@angular/cdk/drag-drop";
 import { TimeSliderComponent } from './elements/time-slider/time-slider.component';
 import { TooltipModule } from 'ng2-tooltip-directive';
+import { PopRasterComponent } from './pages/basedata/pop-raster/pop-raster.component';
+import { CookieService} from 'ngx-cookie-service';
+import { RealDataComponent } from './pages/basedata/real-data/real-data.component';
+import { PrognosisDataComponent } from './pages/basedata/prognosis-data/prognosis-data.component';
 
 @NgModule({
   declarations: [
@@ -94,7 +98,10 @@ import { TooltipModule } from 'ng2-tooltip-directive';
     ScenarioMenuComponent,
     SideToggleComponent,
     LegendComponent,
-    TimeSliderComponent
+    TimeSliderComponent,
+    PopRasterComponent,
+    RealDataComponent,
+    PrognosisDataComponent
   ],
     imports: [
         BrowserModule,
@@ -132,6 +139,7 @@ import { TooltipModule } from 'ng2-tooltip-directive';
         TooltipModule
     ],
   providers: [
+    [CookieService],
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true }
   ],
   bootstrap: [AppComponent]

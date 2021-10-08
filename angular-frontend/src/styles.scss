@@ -7,13 +7,14 @@ $app-accent: mat.define-palette($golden-palette, 500);
 
 $app-typography: mat.define-typography-config(
   $font-family: 'Calibri',
-/*  $headline: mat.define-typography-level(54px, 54px, 400),
-  $title: mat.define-typography-level(28px, 28px, 500),
-  $subheading-2: mat.define-typography-level(26px, 26px, 400),
-  $subheading-1: mat.define-typography-level(24px, 24px, 400),*/
-  $body-1: mat.define-typography-level(18px, 24px, 400),
-  $body-2: mat.define-typography-level(16px, 22px, 400),
-  $button: mat.define-typography-level(18px, 15px, 500),
+  //$headline: mat.define-typography-level(54px, 54px, 400),
+  //$title: mat.define-typography-level(28px, 28px, 500),
+  //$subheading-2: mat.define-typography-level(26px, 26px, 400),
+  //$subheading-1: mat.define-typography-level(24px, 24px, 400),
+  // Todo: menu letter spacing 0.14px
+  $body-1: mat.define-typography-level(16px, 24px, 400, $letter-spacing: 0.14px),
+  $body-2: mat.define-typography-level(16px, 20px, 400, $letter-spacing: 0.2px),
+  $button: mat.define-typography-level(16px, 16px, 500, $letter-spacing: 1.42px),
 );
 
 $app-theme: mat.define-light-theme((
@@ -29,16 +30,87 @@ $app-theme: mat.define-light-theme((
 @include mat.core($app-typography);
 @include mat.all-component-themes($app-theme);
 
+// non-material headings
+// not defined in the typography, messes up default inputs (material typography is be overriden here)
+h1 {
+  font-size: 54px !important;
+  line-height: 54px !important;
+  letter-spacing: 0px !important;
+  color: $light-black;
+}
+h2 {
+  font-size: 28px !important;
+  line-height: 24px !important;
+  letter-spacing: 0.21px !important;
+  color: $light-black;
+}
+h3 {
+  font-size: 26px !important;
+  line-height: 24px !important;
+  letter-spacing: 0.2px !important;
+  color: $light-black;
+}
+h4 {
+  font-size: 24px !important;
+  line-height: 24px !important;
+  letter-spacing: 0.18px !important;
+  color: $light-black;
+}
+h5 {
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: 0.32px;
+  color: $light-black;
+}
+h6 {
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: 0.14px;
+  font-weight: bold;
+  color: black;
+}
+
+.subtitle1 {
+  font-size: 14px;
+  line-height: 24px;
+  letter-spacing: 1.25px;
+  text-transform: uppercase;
+  font-weight: bold;
+  color: $light-black;
+}
+
+.subtitle2 {
+  font-size: 14px;
+  letter-spacing: 0.11px;
+  color: $light-black;
+}
+
+.info-text {
+  font-size: 16px;
+  line-height: 20px;
+  letter-spacing: 0.29px;
+  color: #00000099;
+}
+
+.overline{
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+  color: $light-black;
+}
+
 html, body { height: 100%; }
 body {
   margin: 0;
   font-family: Calibri, Candara, Segoe, "Segoe UI", Optima, Arial, sans-serif;
-  color: #000000DE;
+  color: $light-black;
+  overflow: hidden;
+  //letter-spacing: 0.3px;
 }
 
 .logo {
   text-decoration: none;
-  color: #000000DE;
+  color: $light-black;
   display: flex;
   div {
     font-size: 28px;
@@ -226,6 +298,30 @@ mat-sidenav-content {
   overflow-x: hidden;
 }
 
+app-basedata, app-administration, app-legend{
+  mat-sidenav {
+    .mat-expansion-panel-header {
+      height: 70px !important;
+    }
+    .mat-expansion-panel-header-title {
+      font-size: 18px;
+      padding-left: 16px !important;
+    }
+    .mat-expansion-panel-body {
+      padding: 0;
+      .mat-list-item-content {
+        padding-left: 60px !important;
+      }
+    }
+
+    mat-expansion-panel.mat-expanded {
+      mat-expansion-panel-header {
+        background-color: #0000000B !important;
+      }
+    }
+  }
+}
+
 .sub-nav span {
   display: flex;
   height: 100%;
@@ -351,6 +447,7 @@ button.mat-icon-button {
 
 .mini-fab-icon.inverted {
   background-color: $accent;
+  color: white;
   .davicon {
     color: white;
   }
@@ -461,6 +558,10 @@ mat-icon.warning {
   box-shadow: 0px 5px 5px -1px rgb(0 0 0 / 20%), 0px 10px 10px 0px rgb(0 0 0 / 14%), 2px 18px 18px 0px rgb(0 0 0 / 12%);
   padding-top: 10px;
 
+  mat-expansion-panel .mat-expansion-panel-header-title {
+    text-transform: uppercase;
+  }
+
   mat-expansion-panel-header, mat-expansion-panel.mat-expanded mat-expansion-panel-header {
     height: 68px!important;
     padding: 0px 18px !important;
@@ -472,11 +573,6 @@ mat-icon.warning {
 
   mat-panel-title {
     height: 60px!important;
-  }
-
-  .mat-expansion-panel-body {
-    padding: 6px 5px 15px 54px;
-    border-bottom: 1px solid $primary-light;
   }
 
   .sub-select-box {
@@ -500,65 +596,86 @@ mat-icon.warning {
     white-space: normal;
     line-height: 1;
   }
+  .mat-expansion-panel-body {
+    padding: 6px 5px 15px 54px;
+    border-bottom: 1px solid $primary-light;
+  }
 }
 
-mat-expansion-panel {
-  box-shadow: none !important;
-  padding: 0 !important;
-/*    .mat-content {
-    border-top: 1px solid $primary;
-    border-bottom: 1px solid $primary;
-    transition: 0.4s ease-in border-bottom-color;
-  }*/
-  .mat-expansion-panel-header-title {
-    padding: 5px 0;
+app-legend, .context-bar {
+  mat-expansion-panel.mat-expanded {
+    mat-expansion-panel-header {
+      background-color: $primary-light !important;
+    }
+    mat-panel-title {
+      color: black;
+    }
+  }
+}
+
+app-legend {
+  mat-expansion-panel .mat-expansion-panel-header-title {
     text-transform: uppercase;
-    color: grey;
-    align-items: center;
   }
-  .mat-expansion-indicator:after {
-    color: $primary;
-  }
-  .mat-expansion-indicator {
-    margin-left: -10px;
+  mat-expansion-panel-header, mat-expansion-panel.mat-expanded mat-expansion-panel-header {
+    height: 48px!important;
   }
 }
 
-mat-expansion-panel:hover .mat-expansion-panel-header-title {
-  color:black;
+mat-sidenav, .context-bar, app-legend {
+  mat-expansion-panel {
+    box-shadow: none !important;
+    padding: 0 !important;
+    /*    .mat-content {
+        border-top: 1px solid $primary;
+        border-bottom: 1px solid $primary;
+        transition: 0.4s ease-in border-bottom-color;
+      }*/
+    .mat-expansion-panel-header-title {
+      padding: 5px 0;
+      color: grey;
+      align-items: center;
+    }
+    .mat-expansion-indicator:after {
+      color: $primary;
+    }
+    .mat-expansion-indicator {
+      margin-left: -10px;
+    }
+  }
+
+  .mat-expansion-panel-header:hover {
+    background-color: #0000000B !important;
+    .mat-expansion-panel-header-title {
+      color: black;
+    }
+  }
+
+  mat-expansion-panel.side-toggle {
+    .mat-expansion-indicator:after {
+      transform: rotate(135deg);
+    }
+    .mat-expansion-panel-content {
+      display: none;
+    }
+  }
 }
 
-mat-expansion-panel.mat-expanded {
-  mat-expansion-panel-header {
-    height: 48px !important;
-    background-color: $primary-light !important;
-  }
-  mat-panel-title {
-    color: black;
-  }
-}
-.mat-expansion-panel-body {
-  padding: 16px 16px 16px 40px;
-}
-
-mat-expansion-panel.side-toggle {
-  .mat-expansion-indicator:after {
-    transform: rotate(135deg);
-  }
-  .mat-expansion-panel-content {
-    display: none;
+mat-sidenav {
+  .mat-expansion-panel-body {
+    padding: 16px 16px 16px 40px;
   }
 }
 
 .mat-mini-fab mat-icon{
   margin-top: -3px;
-  //margin-left: 1px;
+  margin-left: 1px;
 }
 
 .map-drag-element {
   position: absolute;
   display: flex;
-  z-index: 10;
+  z-index: 4;
   user-select: none;
   .handle {
     background-color: white;
@@ -622,14 +739,14 @@ app-map-controls {
   position: absolute;
   right: 90px;
   top: 30px;
-  z-index: 2;
+  z-index: 6;
 }
 
 #legend {
   position: absolute;
   right: 0;
   bottom: 0;
-  z-index: 1;
+  z-index: 5;
   height: 40vh;
   pointer-events: none;
   .side-toggle>div {
@@ -687,4 +804,27 @@ app-map-controls {
       margin-left: 7px;
     }
   }
+}
+
+.side-toggle-content {
+  max-width: 40vw;
+  //overflow-x: auto;
+}
+
+.mat-selection-list .mat-divider-horizontal {
+  width: calc(100% - 20px) !important;
+  margin: 10px;
+  position: relative !important;
+}
+
+.mat-card .mat-divider-horizontal {
+  position: relative !important;
+}
+
+.mat-list-base .mat-list-item.mat-2-line, .mat-list-base .mat-list-option.mat-2-line {
+  height: 60px !important;
+}
+
+.mat-list-base .mat-list-item, .mat-list-base .mat-list-option {
+  height: 35px !important;
 }

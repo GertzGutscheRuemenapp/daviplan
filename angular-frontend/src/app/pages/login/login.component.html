@@ -6,7 +6,7 @@
     <div style="align-items: center; font-size: 50px;"> <p>davi</p><p>plan</p> </div>
   </div>
 </div>
-<div class="center">
+<div class="center" style="overflow-y: auto;">
   <div style="width: 600px;">
     <div class="center">
       <div style="width: 400px; margin-top: 25px;">
@@ -29,6 +29,11 @@
               {{loginForm.errors['error']}}
             </mat-error>
             <button class="large" mat-raised-button color="primary" type="submit" style="width:100%" i18n>Einloggen</button>
+            <div *ngIf="settings?.contactMail" style="text-align: center; margin-top: 20px; font-style: italic;">
+              <span i18n>Zur Beantragung eines Accounts oder bei Verlust der Zugangsdaten, wenden Sie sich bitte an</span>
+              &nbsp;
+              <a [href]="settings?.contactMail">{{settings?.contactMail}}</a>
+            </div>
           </form>
         </mat-card>
         <p class="mat-body-2" style="text-align: center; color: #00000099; width: 90%; padding: 20px;">
