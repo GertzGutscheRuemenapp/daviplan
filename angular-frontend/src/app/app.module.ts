@@ -65,6 +65,7 @@ import { TooltipModule } from 'ng2-tooltip-directive';
 import { PopRasterComponent } from './pages/basedata/pop-raster/pop-raster.component';
 import { CookieService} from 'ngx-cookie-service';
 import { RealDataComponent } from './pages/basedata/real-data/real-data.component';
+import { PrognosisDataComponent } from './pages/basedata/prognosis-data/prognosis-data.component';
 
 @NgModule({
   declarations: [
@@ -99,7 +100,8 @@ import { RealDataComponent } from './pages/basedata/real-data/real-data.componen
     LegendComponent,
     TimeSliderComponent,
     PopRasterComponent,
-    RealDataComponent
+    RealDataComponent,
+    PrognosisDataComponent
   ],
     imports: [
         BrowserModule,

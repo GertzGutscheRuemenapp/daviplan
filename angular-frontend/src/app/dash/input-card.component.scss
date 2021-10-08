@@ -161,5 +161,8 @@ mat-card {
       letter-spacing: 0.6px;
       white-space: nowrap;
     }
+    td {
+      vertical-align: text-top;
+    }
   }
 }
