@@ -1,15 +1,23 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy } from '@angular/core';
+import { MapControl, MapService } from "../../../map/map.service";
+import { mockAreaLevels, mockPresetLevels } from "../areas/areas";
 
 @Component({
   selector: 'app-pop-raster',
   templateUrl: './pop-raster.component.html',
   styleUrls: ['./pop-raster.component.scss']
 })
-export class PopRasterComponent implements OnInit {
+export class PopRasterComponent implements AfterViewInit, OnDestroy {
+  mapControl?: MapControl;
 
-  constructor() { }
+  constructor(private mapService: MapService) { }
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
+    this.mapControl = this.mapService.get('base-raster-map');
+  }
+
+  ngOnDestroy(): void {
+    this.mapControl?.destroy();
   }
 
 }
