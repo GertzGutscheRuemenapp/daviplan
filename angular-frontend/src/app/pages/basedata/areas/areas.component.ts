@@ -17,7 +17,8 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   constructor(private mapService: MapService, private cdRef:ChangeDetectorRef) { }
 
   ngAfterViewInit(): void {
-    this.mapControl = this.mapService.get('level-map');
+    this.mapControl = this.mapService.get('base-areas-map');
+    this.mapControl.setBackground(this.mapControl.getBackgroundLayers()[0].id)
     this.areaLevels = mockAreaLevels;
     this.presetLevels = mockPresetLevels;
     this.selectedAreaLevel = this.presetLevels[0];

@@ -20,7 +20,7 @@ export class LogComponent implements AfterViewInit {
 
   addLogEntry(entry: LogEntry): void {
     let textArea = this.logEl.nativeElement;
-    textArea.value += `${entry.date.toLocaleDateString()} - ${entry.text}\r\n`;
+    textArea.value += `${entry.date.toLocaleDateString()} ${entry.date.toLocaleTimeString()} - ${entry.text}\r\n`;
   }
 
 }

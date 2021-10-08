@@ -2,8 +2,9 @@
   <div fxLayout="column" fxFlex="400px">
     <app-input-card #levelsEdit
                     [title]="'Gebietseinheiten'"
-                    subtitle="Vorgaben / Shapes hinzufügen"
-                    infoText="Platzhalter Erklärung auswählen / hinzufügen / entfernen / checkbox">
+                    subtitle="Vorgaben / Shapes bearbeiten"
+                    infoText="Platzhalter Erklärung auswählen / hinzufügen / entfernen / checkbox <br>
+                              die oberen vier sind Vorgaben">
       <mat-selection-list [multiple]="false"
                           id="level-select">
         <div class="option-wrapper" *ngFor="let areaLevel of presetLevels">
@@ -58,12 +59,62 @@
       </div>
     </app-input-card>
   </div>
-  <div fxLayout="column" fxFlex="800px">
+  <div fxLayout="column" fxFlex="1000px">
     <app-input-card #dataEdit
                     [title]="'Daten'"
-                    [subtitle]="selectedAreaLevel?.name || ''"
                     [dialogTitle]="'Kontakt E-Mail ändern'"
                     infoText="">
+      <div style="width: 100%; display: flex;">
+        <div style="width: 50%; align-self: start;">
+          <span class="subtitle1"
+                style="color: #00000061;">
+            {{selectedAreaLevel?.name}}
+          </span>
+          <br><br>
+          <table>
+            <tr>
+              <td i18n>Gebiete (Features)</td>
+              <td>12</td>
+            </tr>
+            <tr>
+              <td i18n>Quelle</td>
+              <td>WFS-Dienst</td>
+            </tr>
+            <tr>
+              <td i18n>URL</td>
+              <td style="max-width: 100px; overflow: hidden; text-overflow: ellipsis;">
+                https://sgx.geodatenzentrum.de/wfs/bvmsdfkdfhnsdflfnsdnlk
+              </td>
+            </tr>
+            <tr>
+              <td i18n>letzter Abruf</td>
+              <td>02.06.2022</td>
+            </tr>
+          </table>
+          <button class="mat-button-dv"
+                  mat-button color="primary"
+                  style="margin-top: 20px;" i18n>
+            <mat-icon class="material-icons-outlined">refresh</mat-icon> Daten abrufen und aktualisieren
+          </button>
+          <div>
+            <button class="mat-button-dv"
+                    mat-button color="primary" i18n>
+              <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
+            </button>
+            <button mat-mini-fab color="primary"
+                    aria-label="Daten herunterladen" title="Daten herunterladen"
+                    style="float: right; margin-right: 10px; box-shadow: none;">
+              <mat-icon>download</mat-icon>
+            </button>
+          </div>
+        </div>
+        <div id="log-window" style="width: 50%">
+          <app-log></app-log>
+        </div>
+      </div>
+      <div id="base-areas-map" class="map-container">
+        <app-map-controls></app-map-controls>
+      </div>
     </app-input-card>
   </div>
 </div>
@@ -71,7 +122,9 @@
 <ng-template #propertiesEdit>
     <mat-form-field appearance="fill" style="width: 100%">
       <mat-label i18n>Name</mat-label>
-      <input matInput formControlName="username" required [value]="selectedAreaLevel?.name">
+      <input matInput formControlName="username"
+                      [value]="selectedAreaLevel?.name"
+                      [disabled]="selectedAreaLevel?.preset || false">
     </mat-form-field>
     <table>
       <tr>
