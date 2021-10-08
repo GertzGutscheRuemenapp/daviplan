@@ -3,7 +3,10 @@
     <app-input-card #userList
                     [title]="'Benutzerkonten'"
                     subtitle="Konten auswählen und bearbeiten"
-                    [dialogTitle]="'Namen der Seite ändern'">
+                    [dialogTitle]="'Namen der Seite ändern'"
+                    infoText="
+        Nur Nutzer*innen mit einem Konto haben Zugriff auf das System. <br>
+        Hier können Sie neue Konten erstellen und bestehende Konten über die obige Liste bearbeiten oder entfernen.">
 
       <mat-selection-list [multiple]="false" style="min-height: 300px">
         <mat-list-option *ngFor="let user of users"
@@ -17,24 +20,21 @@
           <div mat-line *ngIf="!user.isSuperuser"><i style="font-size: 14px;" i18n>{{user.firstName}} {{user.lastName}}</i></div>
         </mat-list-option>
       </mat-selection-list>
-      <div class="info-text">
-        <span class="subtitle1">INFORMATION</span><br>
-        Nur Nutzer*innen mit einem Konto haben Zugriff auf das System. <br>
-        Hier können Sie neue Konten erstellen und bestehende Konten über die obige Liste bearbeiten oder entfernen.
-      </div>
-      <div style="margin-top: 30px;">
-        <button mat-button color="primary"
-                class="mat-button-dv"
-                (click)="onCreateUser()" i18n>
-          <mat-icon>add</mat-icon>hinzufügen
-        </button>
-        <button mat-button color="primary"
-                style="margin-left: 40px;"
-                class="mat-button-dv"
-                [disabled]="(!selectedUser || selectedUser.isSuperuser) ? true : null"
-                (click)="onDeleteUser()" i18n>
-          <mat-icon>close</mat-icon>entfernen
-        </button>
+      <div after>
+        <div style="margin-top: 30px;">
+          <button mat-button color="primary"
+                  class="mat-button-dv"
+                  (click)="onCreateUser()" i18n>
+            <mat-icon>add</mat-icon>hinzufügen
+          </button>
+          <button mat-button color="primary"
+                  style="margin-left: 40px;"
+                  class="mat-button-dv"
+                  [disabled]="(!selectedUser || selectedUser.isSuperuser) ? true : null"
+                  (click)="onDeleteUser()" i18n>
+            <mat-icon>close</mat-icon>entfernen
+          </button>
+        </div>
       </div>
     </app-input-card>
   </div>
