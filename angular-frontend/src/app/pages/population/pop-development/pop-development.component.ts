@@ -4,7 +4,7 @@ import { StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
 import { PopService } from "../population.component";
 
-const mockdata: StackedData[] = [
+export const mockdata: StackedData[] = [
   { group: '2000', values: [200, 300, 280] },
   { group: '2001', values: [190, 310, 290] },
   { group: '2002', values: [192, 335, 293] },

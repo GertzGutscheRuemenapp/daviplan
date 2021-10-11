@@ -13,27 +13,24 @@
           <td>
             0 bis unter 18 <br>
             18 bis unter 65 <br>
-            65 und älter
+            65 Jahre und älter
           </td>
         </tr>
       </table>
+    </app-input-card>
+    <app-input-card [title]="'Prognosejahre'"
+                    [editTemplate]="yearsEdit">
+      <table>
+        <tr>
+          <td i18n>ausgewählt</td>
+          <td>2017, 2018, 2019, 2020, 2021, 2022</td>
+        </tr>
+      </table>
       <div after>
-        <mat-divider style="margin: 20px 0 5px 0;"></mat-divider>
-        <app-input-card [title]="'Prognosejahre'"
-                        [borderless]="true"
-                        [editTemplate]="yearsEdit"
-                        infoText="Platzhalter Erklärung: Jahre für alle Varianten gleich...">
-          <table>
-            <tr>
-              <td i18n>ausgewählt</td>
-              <td>2017, 2018, 2019, 2020, 2021, 2022</td>
-            </tr>
-          </table>
-        </app-input-card>
-        <mat-divider style="margin: 20px 0 5px 0;"></mat-divider>
+        <mat-divider style="margin: 10px 0 15px 0;"></mat-divider>
         <app-input-card [title]="'Prognosevarianten'"
                         [borderless]="true"
-                        subtitle="Verfügbare Prognosen bearbeiten">
+                        infoText="Platzhalter: hinzufügen, entfernen, auswählen">
           <mat-selection-list [multiple]="false"
                               id="prognosis-select">
             <mat-list-option *ngFor="let prognosis of prognoses"
@@ -57,7 +54,7 @@
       </div>
     </app-input-card>
   </div>
-  <div fxLayout="column" fxFlex="800px">
+  <div fxLayout="column" fxFlex="1100px">
     <app-input-card #dataEdit
                     [title]="'Prognosedaten'"
                     infoText="">
@@ -67,43 +64,99 @@
                 style="color: #00000061;">
             {{selectedPrognosis}}
           </span>
-          <table style="margin-top: 15px;">
-            <tr>
-              <td i18n>Upload am</td>
-              <td>02.06.2022</td>
-            </tr>
-            <tr>
-              <td i18n>durch</td>
-              <td>Sascha Schmidt</td>
-            </tr>
-          </table>
-          <div style="margin: 20px 0;">
+          <div style="margin-top: 15px; display: flex;">
+            <table>
+              <tr>
+                <td i18n>Upload am</td>
+                <td>02.06.2022</td>
+              </tr>
+            </table>
+            <table style="margin-left: 20px;">
+              <tr>
+                <td i18n>durch</td>
+                <td>Sascha Schmidt</td>
+              </tr>
+            </table>
+          </div>
+          <div style="margin: 20px 0 10px 0;">
             <button mat-flat-button color="primary" i18n>
               <mat-icon>upload</mat-icon> Daten hochladen
-            </button>
-            <button mat-mini-fab color="primary"
-                    aria-label="Daten herunterladen" title="Daten herunterladen"
-                    style="float: right; margin-right: 10px; box-shadow: none;">
-              <mat-icon>download</mat-icon>
             </button>
           </div>
           <button class="mat-button-dv"
                   mat-button color="primary" i18n>
             <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
           </button>
+          <button mat-mini-fab color="primary"
+                  aria-label="Daten herunterladen" title="Daten herunterladen"
+                  style="float: right; margin: -10px 15px 0 0; box-shadow: none;">
+            <mat-icon>download</mat-icon>
+          </button>
         </div>
         <div id="log-window" style="width: 50%">
           <app-log></app-log>
         </div>
       </div>
-      <div id="base-prog-data-map" class="map-container">
-        <app-map-controls></app-map-controls>
-        <app-side-toggle id="legend"
-                         icon="layers"
-                         direction="left"
-                         expanded>
-          <app-legend target="base-prog-data-map"></app-legend>
-        </app-side-toggle>
+      <div style="display: flex">
+        <div id="base-prog-data-map" class="map-container">
+          <app-map-controls></app-map-controls>
+          <app-side-toggle id="legend"
+                           icon="layers"
+                           direction="left">
+            <app-legend target="base-prog-data-map"></app-legend>
+          </app-side-toggle>
+          <app-side-toggle id="age-groups"
+                           icon="group">
+            <div style="padding: 15px;">
+              <span class="subtitle1" i18n>Altersgruppen</span>
+              <br>
+              <mat-checkbox color="primary" [checked]="true">0 bis unter 19 Jahre</mat-checkbox>
+              <br>
+              <mat-checkbox color="primary" [checked]="true">18 bis unter 65Jahre</mat-checkbox>
+              <br>
+              <mat-checkbox color="primary" [checked]="true">65 Jahre und älter</mat-checkbox>
+            </div>
+          </app-side-toggle>
+        </div>
+        <div class="diagram-container">
+          <mat-form-field appearance="outline" class="small">
+            <mat-label>Gebiet</mat-label>
+            <mat-select disableOptionCentering value="irgendwo">
+              <mat-option value="irgendwo">
+                irgendwo
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <div class="diagram-wrapper" style="margin-bottom: 10px;">
+            <div>
+              <app-stacked-barchart [data]="data"
+                                    [labels]="labels"
+                                    xLabel="Jahre"
+                                    yLabel="Einwohner"
+                                    [title]="'Bevölkerungsentwicklung'"
+                                    [xSeparator]="xSeparator"
+                                    [animate]="true"
+                                    [height]="230"
+                                    subtitle="irgendwo">
+              </app-stacked-barchart>
+            </div>
+          </div>
+          <div class="diagram-wrapper">
+            <div>
+              <app-multiline-chart #lineChart
+                                   [labels]="labels"
+                                   xLabel="Jahre"
+                                   yLabel="Einwohner relativ"
+                                   [title]="'relative Altersgruppenentwicklung'"
+                                   [xSeparator]="xSeparator"
+                                   [animate]="true"
+                                   [height]="230"
+                                   unit="%"
+                                   subtitle="irgendwo">
+              </app-multiline-chart>
+            </div>
+          </div>
+        </div>
       </div>
     </app-input-card>
   </div>

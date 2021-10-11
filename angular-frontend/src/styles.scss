@@ -678,19 +678,20 @@ app-legend, .info-text {
   .mat-expansion-panel-header:hover {
     background-color: white !important;
   }
-  .mat-expansion-panel-body {
-    padding: 0;
-    font-size: 16px;
-    line-height: 20px;
-    letter-spacing: .29px;
-    color: #0009;
-  }
   mat-expansion-panel-header, mat-expansion-panel.mat-expanded mat-expansion-panel-header {
     height: 24px!important;
   }
   .mat-expansion-indicator {
     margin-left: 10px;
   }
+}
+
+.info-text, .info-text .mat-expansion-panel-body {
+  padding: 0;
+  font-size: 16px;
+  line-height: 20px;
+  letter-spacing: .29px;
+  color: #0009;
 }
 
 mat-sidenav {
