@@ -3,10 +3,14 @@
   <span *ngIf="subtitle" class="subtitle1 sub">{{subtitle}}</span>
   <ng-content></ng-content>
   <ng-container *ngTemplateOutlet="previewTemplate;"></ng-container>
-  <div *ngIf="infoText" class="info-text">
-    <span class="subtitle1">INFORMATION</span>
-    <br>
-    <span [innerHTML]="infoText"></span>
+  <div *ngIf="infoText" class="info-text" style="margin-top: 20px;">
+    <mat-expansion-panel [expanded]="infoExpanded">
+      <mat-expansion-panel-header>
+        <mat-icon color="primary" style="margin-right: 5px;">info</mat-icon>
+        <span class="subtitle1">INFORMATION</span>
+      </mat-expansion-panel-header>
+      <span [innerHTML]="infoText"></span>
+    </mat-expansion-panel>
   </div>
   <div>
     <button #editButton
