@@ -1,5 +1,5 @@
 <div fxLayout="row wrap">
-  <div fxLayout="column" fxFlex="400px">
+  <div fxLayout="column" fxFlex="350px">
     <app-input-card [title]="'Basiseinstellungen'"
                     [editTemplate]="areaLevelEdit"
                     infoText="Platzhalter Erklärung: Basis für Uploads, Ändern löscht alle Daten">
@@ -9,37 +9,32 @@
           <td>Gemeinden</td>
         </tr>
       </table>
-      <div after>
-        <mat-divider style="margin: 20px 0 5px 0;"></mat-divider>
-        <br>
-        <app-input-card [title]="'Jahre'"
-                        [borderless]="true"
-                        subtitle="Verfügbare Jahre bearbeiten"
-                        infoText="Platzhalter Erklärung: Jahr auswählen / hinzufügen / entfernen">
-          <mat-selection-list [multiple]="false"
-                              id="year-select">
-            <mat-list-option *ngFor="let year of years"
-                             (click)="selectedYear = year"
-                             [selected]="(year === selectedYear)">
-              <div class="option-text">{{year}}</div>
-            </mat-list-option>
-          </mat-selection-list>
-          <div style="margin-top: 10px;">
-            <button mat-button color="primary"
-                    class="mat-button-dv" i18n>
-              <mat-icon>add</mat-icon>hinzufügen
-            </button>
-            <button mat-button color="primary"
-                    style="margin-left: 40px;"
-                    class="mat-button-dv" i18n>
-              <mat-icon>close</mat-icon>entfernen
-            </button>
-          </div>
-        </app-input-card>
+    </app-input-card>
+    <app-input-card [title]="'Jahre'"
+                    subtitle="Verfügbare Jahre bearbeiten"
+                    infoText="Platzhalter Erklärung: Jahr auswählen / hinzufügen / entfernen">
+      <mat-selection-list [multiple]="false"
+                          id="year-select">
+        <mat-list-option *ngFor="let year of years"
+                         (click)="selectedYear = year"
+                         [selected]="(year === selectedYear)">
+          <div class="option-text">{{year}}</div>
+        </mat-list-option>
+      </mat-selection-list>
+      <div style="margin-top: 10px;">
+        <button mat-button color="primary"
+                class="mat-button-dv" i18n>
+          <mat-icon>add</mat-icon>hinzufügen
+        </button>
+        <button mat-button color="primary"
+                style="margin-left: 40px;"
+                class="mat-button-dv" i18n>
+          <mat-icon>close</mat-icon>entfernen
+        </button>
       </div>
     </app-input-card>
   </div>
-  <div fxLayout="column" fxFlex="1000px">
+  <div fxLayout="column" fxFlex="1100px">
     <app-input-card #dataEdit
                     [title]="'Realdaten'"
                     infoText="">
@@ -49,43 +44,61 @@
                 style="color: #00000061;">
             {{selectedYear}}
           </span>
-          <table style="margin-top: 15px;">
-            <tr>
-              <td i18n>Upload am</td>
-              <td>02.06.2022</td>
-            </tr>
-            <tr>
-              <td i18n>durch</td>
-              <td>Sascha Schmidt</td>
-            </tr>
-          </table>
-          <div style="margin: 20px 0;">
+          <div style="margin-top: 15px; display: flex;">
+            <table>
+              <tr>
+                <td i18n>Upload am</td>
+                <td>02.06.2022</td>
+              </tr>
+            </table>
+            <table style="margin-left: 20px;">
+              <tr>
+                <td i18n>durch</td>
+                <td>Sascha Schmidt</td>
+              </tr>
+            </table>
+          </div>
+          <div style="margin: 20px 0 10px 0;">
             <button mat-flat-button color="primary" i18n>
               <mat-icon>upload</mat-icon> Daten hochladen
-            </button>
-            <button mat-mini-fab color="primary"
-                    aria-label="Daten herunterladen" title="Daten herunterladen"
-                    style="float: right; margin-right: 10px; box-shadow: none;">
-              <mat-icon>download</mat-icon>
             </button>
           </div>
           <button class="mat-button-dv"
                   mat-button color="primary" i18n>
             <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
           </button>
+          <button mat-mini-fab color="primary"
+                  aria-label="Daten herunterladen" title="Daten herunterladen"
+                  style="float: right; margin: -10px 15px 0 0; box-shadow: none;">
+            <mat-icon>download</mat-icon>
+          </button>
         </div>
         <div id="log-window" style="width: 50%">
           <app-log></app-log>
         </div>
       </div>
-      <div id="base-real-data-map" class="map-container">
-        <app-map-controls></app-map-controls>
-        <app-side-toggle id="legend"
-                         icon="layers"
-                         direction="left"
-                         expanded>
-          <app-legend target="base-real-data-map"></app-legend>
-        </app-side-toggle>
+      <div style="display: flex">
+        <div id="base-real-data-map" class="map-container">
+          <app-map-controls></app-map-controls>
+          <app-side-toggle id="legend"
+                           icon="layers"
+                           direction="left">
+            <app-legend target="base-real-data-map"></app-legend>
+          </app-side-toggle>
+        </div>
+        <div class="diagram-container">
+          <mat-form-field appearance="outline" class="small">
+            <mat-label>Gebiet</mat-label>
+            <mat-select disableOptionCentering value="irgendwo">
+              <mat-option value="irgendwo">
+                irgendwo
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <div class="diagram-wrapper">
+            <img src="{{backend}}/static/img/Bev-pyramide Screenshot.png" width="100%">
+          </div>
+        </div>
       </div>
     </app-input-card>
   </div>

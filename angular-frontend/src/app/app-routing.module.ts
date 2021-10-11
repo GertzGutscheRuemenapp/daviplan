@@ -19,6 +19,7 @@ import { AreasComponent } from "./pages/basedata/areas/areas.component";
 import { PopRasterComponent } from "./pages/basedata/pop-raster/pop-raster.component";
 import { RealDataComponent } from "./pages/basedata/real-data/real-data.component";
 import { PrognosisDataComponent } from "./pages/basedata/prognosis-data/prognosis-data.component";
+import { StatisticsComponent } from "./pages/basedata/statistics/statistics.component";
 
 const routes: Routes = [
   {
@@ -101,6 +102,10 @@ const routes: Routes = [
       {
         path: 'prognosedaten',
         component: PrognosisDataComponent
+      },
+      {
+        path: 'statistiken',
+        component: StatisticsComponent
       },
     ]
   },

@@ -52,19 +52,15 @@ mat-card {
       margin-bottom: 0 !important;
     }
 
-    .info-text {
-      margin-top: 20px;
-      //text-align: justify;
-    }
-
     .text {
+      position: relative;
       width: calc(100% - 10px);
       overflow-x: auto;
       color: $primary;
       cursor: pointer;
       border: 1px solid #0000001F;
       padding: 5px;
-      min-height: 100px;
+      min-height: 190px;
       max-height: 300px;
 
       h1, h2, h3, h4, h5, h6 {
@@ -89,8 +85,9 @@ mat-card {
     .img-wrapper {
       border: 1px solid #0000001F;
       width: 100%;
-      min-height: 200px;
+      min-height: 164px;
       display: flex;
+      position: relative;
     }
 
     .img-wrapper:hover {

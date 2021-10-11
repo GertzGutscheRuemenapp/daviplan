@@ -46,15 +46,16 @@
                     subtitle="Willkommenstext ändern"
                     [dialogTitle]="'Willkommenstext für die Startseite einfügen'"
                     dialogWidth="1000px"
+                    infoText="Platzhalter: Text, der auf der Startseite angezeigt wird (nach Login oder bei Klick auf Logo links oben)"
                     [editTemplate]="welcomeTextTemplate"
                     [editButton]="welcomeTextEditButton">
       <div #welcomeTextEditButton style="width: 100%">
-        <button mat-icon-button color="primary"
-                style="position: absolute; left: 42%; top: 55%; pointer-events: none; z-index: 1;">
-          <mat-icon>edit</mat-icon>
-        </button>
         <div class="text">
           <div style="transform: scale(0.5, 0.5); margin: -20% 0 -20% -105px;"><div style="width: 150%;" [innerHTML]="settings?.welcomeText"></div></div>
+          <button mat-icon-button color="primary"
+                  style="position: absolute; left: 42%; top: 40%; pointer-events: none; z-index: 1;">
+            <mat-icon>edit</mat-icon>
+          </button>
         </div>
       </div>
     </app-input-card>
@@ -70,7 +71,7 @@
                     [editButton]="logoEditButton">
       <div #logoEditButton class="img-wrapper">
         <button mat-icon-button color="primary"
-                style="position: absolute; left: 45%; top: 35%; pointer-events: none; z-index: 1;">
+                style="position: absolute; left: 42%; top: 40%; pointer-events: none; z-index: 1;">
           <mat-icon>edit</mat-icon>
         </button>
         <img [src]="settings?.logo" style="width: 100%;  object-fit: contain;">
