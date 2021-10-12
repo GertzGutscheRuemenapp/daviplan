@@ -67,6 +67,7 @@ import { CookieService} from 'ngx-cookie-service';
 import { RealDataComponent } from './pages/basedata/real-data/real-data.component';
 import { PrognosisDataComponent } from './pages/basedata/prognosis-data/prognosis-data.component';
 import { StatisticsComponent } from './pages/basedata/statistics/statistics.component';
+import { InfrastructureComponent } from './pages/administration/infrastructure/infrastructure.component';
 
 @NgModule({
   declarations: [
@@ -103,7 +104,8 @@ import { StatisticsComponent } from './pages/basedata/statistics/statistics.comp
     PopRasterComponent,
     RealDataComponent,
     PrognosisDataComponent,
-    StatisticsComponent
+    StatisticsComponent,
+    InfrastructureComponent
   ],
     imports: [
         BrowserModule,
