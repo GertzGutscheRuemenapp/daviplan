@@ -1,5 +1,5 @@
-<mat-toolbar class="sub-nav">
-  <span fxShow="true" fxHide.lt-md="true">
+<mat-toolbar class="sub-nav" [style.visibility]="">
+  <span>
     <a routerLink="/bevoelkerung/entwicklung" routerLinkActive="active-link" i18n> Bevölkerungsentwicklung </a>
     <a routerLink="/bevoelkerung/statistik" routerLinkActive="active-link" i18n> Statistiken </a>
   </span>
@@ -31,7 +31,6 @@
                      icon="layers"
                      direction="left"
                      expanded>
-      <!--                     cdkDragLockAxis="y" cdkDrag>-->
       <app-legend target="population-map"></app-legend>
     </app-side-toggle>
   </div>

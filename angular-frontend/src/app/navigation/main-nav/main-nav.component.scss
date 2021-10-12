@@ -21,6 +21,7 @@
   background: white;
   box-shadow: 0px 0px 5px 4px #a7a7a7;
   font-size: 24px;
+  height: 64px;
 }
 
 .page-links, .home {
@@ -65,6 +66,13 @@
 
 .main-collapse {
   padding-top: 60px;
+  a {
+    font-size: 28px;
+    line-height: 48px;
+    margin-bottom: 20px;
+    font-weight: normal;
+    text-align: left;
+  }
 }
 
 .main-collapse .active-link {
