@@ -299,6 +299,12 @@ mat-sidenav-content {
   background-color: white;
 }
 
+app-basedata, app-administration {
+  mat-sidenav-content {
+    background-color: #fafafa;
+  }
+}
+
 app-basedata, app-administration{
   mat-sidenav {
     .mat-expansion-panel-header {
@@ -550,7 +556,7 @@ mat-icon.warning {
 }
 
 .context-bar {
-  z-index: 12;
+  z-index: 12 !important;
   position: relative;
   width: $context-bar-width;
   overflow-y: auto;

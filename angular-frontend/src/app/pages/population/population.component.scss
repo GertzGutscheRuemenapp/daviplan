@@ -105,10 +105,16 @@ $diagram-bar-width: 30%;
 
 // small
 @media only screen and (max-width: 39.9375em) {
+  .sub-links {
+    a {
+      font-size: 16px !important;
+      padding: 0 10px;
+    }
+  }
   .map-wrapper {
     padding-left: 0;
     width: 100%;
-    max-height: 30em;
+    height: 30em;
   }
   .sub-nav {
     padding-left: 60px;

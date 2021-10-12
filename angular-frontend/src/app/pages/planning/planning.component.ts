@@ -2,6 +2,9 @@ import { Component, ElementRef, AfterViewInit, Renderer2, OnDestroy, ViewChild }
 import { MapControl, MapService } from "../../map/map.service";
 import { FormControl } from "@angular/forms";
 import { faArrowsAlt } from '@fortawesome/free-solid-svg-icons';
+import { Observable } from "rxjs";
+import { map, shareReplay } from "rxjs/operators";
+import { BreakpointObserver } from "@angular/cdk/layout";
 
 interface Project {
   user?: string;
@@ -36,8 +39,14 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   processForm = new FormControl();
   showScenarioMenu: boolean = false;
   mapControl?: MapControl;
+  isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 39.9375em)')
+    .pipe(
+      map(result => result.matches),
+      shareReplay()
+    );
 
-  constructor(private renderer: Renderer2, private elRef: ElementRef, private mapService: MapService) {  }
+  constructor(private breakpointObserver: BreakpointObserver, private renderer: Renderer2,
+              private elRef: ElementRef, private mapService: MapService) {  }
 
   ngAfterViewInit(): void {
     // there is no parent css selector yet but we only want to hide the overflow in the planning pages

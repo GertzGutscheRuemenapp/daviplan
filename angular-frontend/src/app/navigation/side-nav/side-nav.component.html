@@ -1,5 +1,7 @@
 <mat-sidenav-container class="sidenav-container">
   <mat-sidenav #drawer class="sidenav"
+               [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
+               [mode]="(isHandset$ | async) ? 'over' : 'side'"
                [style.width]="width"
                [opened]="(isHandset$ | async) === false">
     <mat-nav-list [style.margin-top]="marginTop">

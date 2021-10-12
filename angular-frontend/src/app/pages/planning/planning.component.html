@@ -9,6 +9,41 @@
     <div *ngIf="activeProject?.shared && !activeProject?.user">geteilt mit ...</div>
     <div *ngIf="activeProject?.user">{{(activeProject?.editable)? 'editierbar': 'nicht editierbar'}} <br> geteilt durch <i>{{activeProject?.user}}</i></div>
   </ng-template>
+  <span class="sub-links">
+    <a routerLink="/planung/nachfrage" routerLinkActive="active-link" i18n> Nachfrage </a>
+    <a routerLink="/planung/angebot" routerLinkActive="active-link" i18n> Angebot </a>
+    <a routerLink="/planung/erreichbarkeiten" routerLinkActive="active-link" i18n> Erreichbarkeiten </a>
+    <a routerLink="/planung/bewertung" routerLinkActive="active-link" i18n> Bewertung </a>
+  </span>
+</mat-toolbar>
+<div class="map-wrapper">
+  <div id="planning-map" class="map-container">
+    <div id="info" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">
+      <div class="handle" title="Anzeigeinformationen" cdkDragHandle>
+        <mat-icon color="primary">info</mat-icon>
+        <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
+      </div>
+      <app-side-toggle [fullHeightIndicator]="true" expanded>
+        <div style="padding: 10px" [innerHTML]="this.mapControl?.mapDescription"></div>
+      </app-side-toggle>
+    </div>
+    <div id="time-slider" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">
+      <div class="handle" title="Anzeigezeit" cdkDragHandle>
+        <mat-icon color="primary">event</mat-icon>
+        <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
+      </div>
+      <app-side-toggle [fullHeightIndicator]="true" expanded>
+        <div style="padding: 18px 10px 12px 10px">
+          <app-time-slider [prognosisEnd]="2013" [years]="[2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025]"></app-time-slider>
+        </div>
+      </app-side-toggle>
+    </div>
+    <app-map-controls></app-map-controls>
+  </div>
+</div>
+<app-scenario-menu [ngClass]="{'expanded': showScenarioMenu}"></app-scenario-menu>
+<mat-sidenav #drawer class="context-bar"
+             [opened]="(isSM$ | async) === false">
   <div id="process-select">
     <div class="mini-fab-icon inverted primary">
       <div class="davicon icon-GGR-davicons-Font-Simple-1-Planungsprozess"></div>
@@ -56,40 +91,6 @@
       </mat-select>
     </mat-form-field>
   </div>
-  <span fxShow="true" fxHide.lt-md="true">
-    <a routerLink="/planung/nachfrage" routerLinkActive="active-link" i18n> Nachfrage </a>
-    <a routerLink="/planung/angebot" routerLinkActive="active-link" i18n> Angebot </a>
-    <a routerLink="/planung/erreichbarkeiten" routerLinkActive="active-link" i18n> Erreichbarkeiten </a>
-    <a routerLink="/planung/bewertung" routerLinkActive="active-link" i18n> Bewertung </a>
-  </span>
-</mat-toolbar>
-<div class="map-wrapper">
-  <div id="planning-map" class="map-container">
-    <div id="info" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">
-      <div class="handle" title="Anzeigeinformationen" cdkDragHandle>
-        <mat-icon color="primary">info</mat-icon>
-        <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
-      </div>
-      <app-side-toggle [fullHeightIndicator]="true" expanded>
-        <div style="padding: 10px" [innerHTML]="this.mapControl?.mapDescription"></div>
-      </app-side-toggle>
-    </div>
-    <div id="time-slider" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">
-      <div class="handle" title="Anzeigezeit" cdkDragHandle>
-        <mat-icon color="primary">event</mat-icon>
-        <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
-      </div>
-      <app-side-toggle [fullHeightIndicator]="true" expanded>
-        <div style="padding: 18px 10px 12px 10px">
-          <app-time-slider [prognosisEnd]="2013" [years]="[2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025]"></app-time-slider>
-        </div>
-      </app-side-toggle>
-    </div>
-    <app-map-controls></app-map-controls>
-  </div>
-</div>
-<app-scenario-menu [ngClass]="{'expanded' : showScenarioMenu}"></app-scenario-menu>
-<div class="context-bar">
   <mat-expansion-panel id="scenario-toggle" class="side-toggle">
     <mat-expansion-panel-header (click)="toggleScenarioMenu()">
       <mat-panel-title>
@@ -102,7 +103,16 @@
   </mat-expansion-panel>
   <router-outlet>
   </router-outlet>
-</div>
+</mat-sidenav>
+<button type="button"
+        id="toggle-settings"
+        aria-label="Toggle sidenav"
+        mat-icon-button
+        color="primary"
+        (click)="drawer.toggle()"
+        *ngIf="isSM$ | async">
+  <mat-icon aria-label="Side nav toggle icon">arrow_circle_down</mat-icon>
+</button>
 
 <app-side-toggle id="legend"
                  icon="layers"
