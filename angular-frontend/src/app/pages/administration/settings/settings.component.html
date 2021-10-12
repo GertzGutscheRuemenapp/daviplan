@@ -15,32 +15,6 @@
         </button>
       </div>
     </app-input-card>
-  </div>
-  <div fxLayout="column" fxFlex="400px">
-    <app-input-card #contactEdit
-                    [title]="'Kontakt E-Mail (optional)'"
-                    subtitle="E-Mail ändern"
-                    [dialogTitle]="'Kontakt E-Mail ändern'"
-                    infoText="Diese E-Mail-Adresse wird im Login als Kontakt angegeben, an den sich Nutzer für die Beantragung eines Accounts bzw. zum Zurücksetzen des Passworts wenden können. Die Adresse wird anderweitig nicht verwendet.<br> Zum Entfernen der Mail muss das Eingabfeld leer gelassen werden."
-                    [editTemplate]="contactTemplate"
-                    [editButton]="contactEditButton">
-      <div #contactEditButton class="row-button" style="width: 90%">
-        <label>{{settings?.contactMail || '-'}}</label>
-        <div class="fill-space"></div>
-        <button mat-icon-button color="primary">
-          <mat-icon>edit</mat-icon>
-        </button>
-      </div>
-<!--      <button mat-button class="mat-button-dv"
-              [disabled]="(!settings?.contactMail) ? true : null"
-              color="primary" (click)="removeEmail()" i18n>
-        <mat-icon>close</mat-icon>&nbsp; E-Mail entfernen
-      </button>-->
-    </app-input-card>
-  </div>
-</div>
-<div fxLayout="row wrap">
-  <div fxLayout="column" fxFlex="400px">
     <app-input-card #welcomeTextEdit
                     [title]="'Willkommenstext für die Startseite'"
                     subtitle="Willkommenstext ändern"
@@ -61,6 +35,26 @@
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="400px">
+    <app-input-card #contactEdit
+                    [title]="'Kontakt E-Mail (optional)'"
+                    subtitle="E-Mail ändern"
+                    [dialogTitle]="'Kontakt E-Mail ändern'"
+                    infoText="Diese E-Mail-Adresse wird im Login als Kontakt angegeben, an den sich Nutzer für die Beantragung eines Accounts bzw. zum Zurücksetzen des Passworts wenden können. Die Adresse wird anderweitig nicht verwendet.<br> Zum Entfernen der Mail muss das Eingabfeld leer gelassen werden."
+                    [editTemplate]="contactTemplate"
+                    [editButton]="contactEditButton">
+      <div #contactEditButton class="row-button" style="width: 90%">
+        <label>{{settings?.contactMail || '-'}}</label>
+        <div class="fill-space"></div>
+        <button mat-icon-button color="primary">
+          <mat-icon>edit</mat-icon>
+        </button>
+      </div>
+      <!--      <button mat-button class="mat-button-dv"
+                    [disabled]="(!settings?.contactMail) ? true : null"
+                    color="primary" (click)="removeEmail()" i18n>
+              <mat-icon>close</mat-icon>&nbsp; E-Mail entfernen
+            </button>-->
+    </app-input-card>
     <app-input-card #logoEdit
                     [title]="'Logo für die Startseite (optional)'"
                     subtitle="Logo ändern"
