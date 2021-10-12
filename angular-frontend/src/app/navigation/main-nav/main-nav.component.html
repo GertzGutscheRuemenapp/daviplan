@@ -35,12 +35,13 @@
   </div>
 </mat-toolbar>
 <mat-sidenav-container fxFlexFill>
-  <mat-sidenav class="main-collapse" color="primary" #sidenav fxLayout="column" mode="over" opened="false" fxHide.gt-sm="true">
+  <mat-sidenav class="main-collapse" color="primary" #sidenav fxLayout="column" mode="over" opened="false">
     <div fxLayout="column">
       <a *ngFor="let item of menuItems"
          mat-button
          routerLinkActive="active-link"
-         [routerLink]="'/'+item.url">
+         [routerLink]="'/'+item.url"
+         [routerLinkActiveOptions]="{exact: false}">
         {{item.name}}
       </a>
     </div>

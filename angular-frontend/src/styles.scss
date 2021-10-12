@@ -296,6 +296,7 @@ app-data-card td, app-dash-card td {
 mat-sidenav-content {
   //background-color: white;
   overflow-x: hidden;
+  background-color: white;
 }
 
 app-basedata, app-administration{
@@ -555,7 +556,7 @@ mat-icon.warning {
   overflow-y: auto;
   background-color: white;
   height: 100%;
-  box-shadow: 0px 5px 5px -1px rgb(0 0 0 / 20%), 0px 10px 10px 0px rgb(0 0 0 / 14%), 2px 18px 18px 0px rgb(0 0 0 / 12%);
+  box-shadow: 0px 5px 5px -1px rgb(0 0 0 / 20%), 0px 10px 10px 0px rgb(0 0 0 / 14%), 2px 18px 18px 0px rgb(0 0 0 / 12%) !important;
   padding-top: 10px;
 
   mat-expansion-panel .mat-expansion-panel-header-title {
@@ -840,8 +841,7 @@ app-map-controls {
 }
 
 .side-toggle-content {
-  max-width: 40vw;
-  //overflow-x: auto;
+  max-width: 82vw;
 }
 
 .mat-selection-list .mat-divider-horizontal {

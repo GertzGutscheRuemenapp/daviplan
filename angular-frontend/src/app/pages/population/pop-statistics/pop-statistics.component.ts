@@ -3,6 +3,9 @@ import { OlMap } from "../../../map/map";
 import { MapControl, MapService } from "../../../map/map.service";
 import { PopService } from "../population.component";
 import { environment } from "../../../../environments/environment";
+import { Observable } from "rxjs";
+import { map, shareReplay } from "rxjs/operators";
+import { BreakpointObserver } from "@angular/cdk/layout";
 
 @Component({
   selector: 'app-pop-statistics',
@@ -13,8 +16,13 @@ export class PopStatisticsComponent implements AfterViewInit {
   mapControl?: MapControl;
   backend: string = environment.backend;
   theme = 'wanderung';
+  isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 39.9375em)')
+    .pipe(
+      map(result => result.matches),
+      shareReplay()
+    );
 
-  constructor(private mapService: MapService, private popService: PopService) {
+  constructor(private breakpointObserver: BreakpointObserver, private mapService: MapService, private popService: PopService) {
   }
 
   ngAfterViewInit(): void {

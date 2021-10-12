@@ -1,4 +1,5 @@
-<div class="context-bar">
+<mat-sidenav #drawer class="context-bar"
+             [opened]="(isSM$ | async) === false">
   <mat-expansion-panel expanded>
     <mat-expansion-panel-header>
       <mat-panel-title>
@@ -27,7 +28,16 @@
       <li><mat-checkbox [checked]="false" color="primary">Sterbefälle</mat-checkbox></li>
     </ul>
   </mat-expansion-panel>
-</div>
+</mat-sidenav>
+<button type="button"
+        id="toggle-settings"
+        aria-label="Toggle sidenav"
+        mat-icon-button
+        color="primary"
+        (click)="drawer.toggle()"
+        *ngIf="isSM$ | async">
+  <mat-icon aria-label="Side nav toggle icon">settings</mat-icon>
+</button>
 
 <div id="diagram-bar">
   <mat-form-field appearance="outline" class="small">
