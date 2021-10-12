@@ -87,3 +87,12 @@
 #account a {
   color: $light-black;
 }
+
+@media only screen and (max-width: 75em) {
+  .page-links {
+    a {
+      font-size: 20px !important;
+      padding: 0 10px;
+    }
+  }
+}

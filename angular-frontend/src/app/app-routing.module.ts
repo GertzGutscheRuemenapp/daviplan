@@ -20,6 +20,7 @@ import { PopRasterComponent } from "./pages/basedata/pop-raster/pop-raster.compo
 import { RealDataComponent } from "./pages/basedata/real-data/real-data.component";
 import { PrognosisDataComponent } from "./pages/basedata/prognosis-data/prognosis-data.component";
 import { StatisticsComponent } from "./pages/basedata/statistics/statistics.component";
+import { InfrastructureComponent } from "./pages/administration/infrastructure/infrastructure.component";
 
 const routes: Routes = [
   {
@@ -30,7 +31,7 @@ const routes: Routes = [
   },
   {
     path: 'admin',
-    redirectTo: 'admin/settings'
+    redirectTo: 'admin/einstellungen'
   },
   {
     path: 'admin',
@@ -38,12 +39,16 @@ const routes: Routes = [
     canActivate: [AuthGuard],
     children: [
       {
-        path: 'settings',
+        path: 'einstellungen',
         component: SettingsComponent
       },
       {
-        path: 'users',
+        path: 'benutzer',
         component: UsersComponent
+      },
+      {
+        path: 'infrastruktur',
+        component: InfrastructureComponent
       }
     ]
   },
