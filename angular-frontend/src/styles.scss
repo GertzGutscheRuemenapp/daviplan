@@ -363,7 +363,7 @@ rect.highlight{
   fill: mat.get-color-from-palette($app-primary, 400)!important;
 }
 
-div.tooltip {
+div.d3-tooltip, div.tooltip {
   position: absolute;
   //text-align: center;
   padding: 10px;
@@ -867,3 +867,12 @@ app-map-controls {
 .mat-list-base .mat-list-item, .mat-list-base .mat-list-option {
   height: 35px !important;
 }
+
+.mat-button.mat-success {
+  color: #155724;
+}
+
+.mat-button.mat-success:hover {
+  background-color: #f0fff3;
+}
+

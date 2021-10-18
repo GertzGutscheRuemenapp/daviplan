@@ -121,7 +121,7 @@ export class MultilineChartComponent implements AfterViewInit {
 
     let tooltip = d3.select('body')
       .append('div')
-      .attr('class', 'tooltip')
+      .attr('class', 'd3-tooltip')
       .style("display", 'none');
 
     let lineG = this.svg.append('g')
