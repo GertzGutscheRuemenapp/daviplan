@@ -10,6 +10,7 @@
     text-align: left;
     text-transform: uppercase;
     background-color: #0000000B;
+    white-space: nowrap;
     //padding: 10px;
   }
   td, th {
@@ -44,7 +45,7 @@ td.marker {
   padding: 0 20px !important;
   vertical-align: middle;
   mat-icon {
-    font-size: 2em;
+    //font-size: 2em;
   }
 }
 
