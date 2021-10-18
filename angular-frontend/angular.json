@@ -31,6 +31,7 @@
               "src/assets"
             ],
             "styles": [
+              "./node_modules/bootstrap-css-only/css/bootstrap.min.css",
               "src/styles.scss",
               "src/fonts.css",
               "./node_modules/ol/ol.css"

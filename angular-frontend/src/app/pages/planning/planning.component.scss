@@ -18,7 +18,8 @@
   // minus top menus
   height: calc(100% - 120px);
   // leave space for planning context bars
-  width: calc(100% - #{$context-bar-width});
+  //width: calc(100% - #{$context-bar-width});
+  width: 100%;
   padding-left: calc(#{$context-bar-width});
 }
 

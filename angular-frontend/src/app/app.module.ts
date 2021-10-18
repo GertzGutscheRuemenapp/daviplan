@@ -68,6 +68,9 @@ import { RealDataComponent } from './pages/basedata/real-data/real-data.componen
 import { PrognosisDataComponent } from './pages/basedata/prognosis-data/prognosis-data.component';
 import { StatisticsComponent } from './pages/basedata/statistics/statistics.component';
 import { InfrastructureComponent } from './pages/administration/infrastructure/infrastructure.component';
+import { ProjectAreaComponent } from './pages/administration/project-area/project-area.component';
+import { CoordinationComponent } from './pages/administration/coordination/coordination.component';
+import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
 
 @NgModule({
   declarations: [
@@ -105,7 +108,9 @@ import { InfrastructureComponent } from './pages/administration/infrastructure/i
     RealDataComponent,
     PrognosisDataComponent,
     StatisticsComponent,
-    InfrastructureComponent
+    InfrastructureComponent,
+    ProjectAreaComponent,
+    CoordinationComponent
   ],
     imports: [
         BrowserModule,
@@ -140,7 +145,8 @@ import { InfrastructureComponent } from './pages/administration/infrastructure/i
         EcoFabSpeedDialModule,
         MatRadioModule,
         DragDropModule,
-        TooltipModule
+        TooltipModule,
+        NgbModule
     ],
   providers: [
     [CookieService],

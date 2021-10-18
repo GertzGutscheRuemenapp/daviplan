@@ -6,9 +6,10 @@ $diagram-bar-width: 30%;
   position: absolute;
   top: $sub-nav-height;
   height: calc(100% - #{$sub-nav-height});
-  width: calc(100% - #{$context-bar-width} - #{$diagram-bar-width} - 40px);
+  //width: calc(100% - #{$context-bar-width} - #{$diagram-bar-width} - 40px);
+  width: 100%;
   padding-left: $context-bar-width;
-  padding-right: calc(#{$diagram-bar-width} + 40px);
+  padding-right: $diagram-bar-width;
 }
 #population-map {
   position: relative;
@@ -72,7 +73,6 @@ $diagram-bar-width: 30%;
   .map-wrapper {
     padding-right: 0px;
     height: 50vh;
-    width: calc(100% - #{$context-bar-width});
   }
   ::ng-deep app-population {
     .diagram-wrapper {

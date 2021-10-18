@@ -15,7 +15,7 @@ export interface User {
   profile: Profile;
 }
 
-export const mockUsers = [
+export const mockUsers: User[] = [
   {
     id: 1,
     username: 'bla',
@@ -23,6 +23,7 @@ export const mockUsers = [
     firstName: 'Hans',
     lastName: 'Blubb',
     isSuperuser: false,
+    password: '',
     profile: {
       adminAccess: true,
       canCreateScenarios: true,
@@ -36,6 +37,7 @@ export const mockUsers = [
     firstName: 'Franz',
     lastName: 'Bumm',
     isSuperuser: true,
+    password: '',
     profile: {
       adminAccess: false,
       canCreateScenarios: false,

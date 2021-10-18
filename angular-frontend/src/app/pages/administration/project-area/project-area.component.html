@@ -1,0 +1,16 @@
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="800px">
+    <app-input-card [title]="'Projektgebiet'"
+                    subtitle="Manuelle Auswahl des Projektgebiets"
+                    infoText="Platzhalter Erklärung: Projektgebiet manuell aus Karte auswählen"
+                    [editTemplate]="projectEdit">
+      <div id="project-area-map" class="map-container">
+        <app-map-controls></app-map-controls>
+      </div>
+    </app-input-card>
+  </div>
+</div>
+
+<ng-template #projectEdit>
+  ToDo
+</ng-template>
