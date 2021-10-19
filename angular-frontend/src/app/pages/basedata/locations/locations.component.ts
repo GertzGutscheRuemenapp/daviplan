@@ -1,6 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
 import { infrastructures } from "../../administration/infrastructure/infrastructure.component";
-import { environment } from "../../../../environments/environment";
 import { MapControl, MapService } from "../../../map/map.service";
 
 @Component({

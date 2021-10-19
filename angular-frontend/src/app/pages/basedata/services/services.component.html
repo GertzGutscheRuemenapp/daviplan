@@ -1,1 +1,95 @@
-<p>services works!</p>
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="350px">
+    <app-input-card [title]="'Infrastrukturen'"
+                    infoText="Platzhalter Erklärung: Infrastruktur auswählen, erzeugt woanders (Administration)"
+                    subtitle="Untertitel??">
+      <mat-selection-list [multiple]="false"
+                          id="infrastructure-select">
+        <mat-list-option *ngFor="let infrastructure of infrastructures"
+                         (click)="selectedInfrastructure = infrastructure"
+                         [selected]="(infrastructure === selectedInfrastructure)">
+          <div class="option-text">{{infrastructure}}</div>
+        </mat-list-option>
+      </mat-selection-list>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="400px">
+    <app-input-card [title]="'Leistungen'"
+                    [subtitle]="'der Infrastruktur ' + selectedInfrastructure + '??'"
+                    infoText="Platzhalter: hinzufügen, entfernen, auswählen">
+      <mat-selection-list [multiple]="false"
+                          id="service-select">
+        <mat-list-option *ngFor="let service of services"
+                         (click)="selectedService = service"
+                         [selected]="(service === selectedService)">
+          <div class="option-text">{{service}}</div>
+        </mat-list-option>
+      </mat-selection-list>
+      <div style="margin-top: 10px;">
+        <button mat-button color="primary"
+                class="mat-button-dv">
+          <mat-icon>add</mat-icon>hinzufügen
+        </button>
+        <button mat-button color="primary"
+                style="margin-left: 40px;"
+                class="mat-button-dv">
+          <mat-icon>close</mat-icon>entfernen
+        </button>
+      </div>
+      <div after>
+        <mat-divider style="margin: 10px 0 15px 0;"></mat-divider>
+        <app-input-card [title]="'Eigenschaften'"
+                        [borderless]="true"
+                        [editTemplate]="propertiesEdit"
+                        infoText="Platzhalter: Eigenschaften der gewählten Leistung">
+          <table>
+            <tr>
+              <td>Name</td>
+              <td>{{selectedService}}</td>
+            </tr>
+            <tr>
+              <td>Beschreibung</td>
+              <td>
+                <div style="overflow: hidden; -webkit-line-clamp: 5; -webkit-box-orient: vertical; display: -webkit-box;">
+                  Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+                </div>
+              </td>
+            </tr>
+          </table>
+        </app-input-card>
+      </div>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="350px">
+    <app-input-card [title]="'Kapazitäten'"
+                    [editTemplate]="capacityEdit"
+                    [subtitle]="selectedService"
+                    infoText="Platzhalter: was, wenn nicht Kapazität; Einheiten werden in Infraplanung angezeigt ">
+      <mat-checkbox disabled [checked]="true">
+        hat Kapazität
+      </mat-checkbox>
+      <table style="margin-top: 10px;">
+        <tr>
+          <td style="padding-bottom: 10px;">Einheit</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Einzahl</td>
+          <td>Platz</td>
+        </tr>
+        <tr>
+          <td>Mehrzahl</td>
+          <td>Plätze</td>
+        </tr>
+      </table>
+    </app-input-card>
+  </div>
+</div>
+
+<ng-template #propertiesEdit>
+  ToDo
+</ng-template>
+
+<ng-template #capacityEdit>
+  ToDo
+</ng-template>
