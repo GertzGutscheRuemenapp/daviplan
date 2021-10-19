@@ -11,7 +11,6 @@
           <th i18n>zuweisen</th>
           <th i18n>Bearbeitungsstatus</th>
           <th i18n>markieren</th>
-          <th style="width: 30px;"></th>
         </tr>
         <ng-container *ngFor="let topDomain of Object.keys(domains)">
           <tr *ngFor="let domain of domains[topDomain]; let i = index;"
@@ -33,7 +32,7 @@
                 <a mat-icon-button color="primary"
                    [href]="domain.url"
                    title="Link zur Administration der Person">
-                  <mat-icon>person</mat-icon>
+                  <mat-icon>manage_accounts</mat-icon>
                 </a>
                 {{user.firstName}} {{user.lastName}}
               </div>
@@ -71,7 +70,7 @@
                 <button mat-button
                         color="warn" style="width: 100%; text-align: start;"
                         (click)="domain.marker = 3;">
-                  <mat-icon>error_outline</mat-icon> Warnung
+                  <mat-icon>error_outline</mat-icon> Hohe Dringlichkeit
                 </button>
                 <button *ngIf="domain.marker" mat-button
                         style="width: 100%; text-align: start; color: grey;"
@@ -80,17 +79,16 @@
                 </button>
               </ng-template>
               <button mat-icon-button color="primary"
-                      class="rotate"
+                      [ngClass]="{rotate: !domain.marker}"
                       title="Markierung des Aufgabenbereichs umschalten"
                       [ngbPopover]="popContent"
                       container="body">
-                <mat-icon>more_vert</mat-icon>
+
+                <mat-icon *ngIf="domain.marker===1" color="success">check_circle_outline</mat-icon>
+                <mat-icon *ngIf="domain.marker===2" color="accent">schedule</mat-icon>
+                <mat-icon *ngIf="domain.marker===3" color="warn">error_outline</mat-icon>
+                <mat-icon *ngIf="!domain.marker">more_vert</mat-icon>
               </button>
-            </td>
-            <td class="marker">
-              <mat-icon *ngIf="domain.marker===1" color="success">check_circle_outline</mat-icon>
-              <mat-icon *ngIf="domain.marker===2" color="accent">schedule</mat-icon>
-              <mat-icon *ngIf="domain.marker===3" color="warn">error_outline</mat-icon>
             </td>
           </tr>
         </ng-container>

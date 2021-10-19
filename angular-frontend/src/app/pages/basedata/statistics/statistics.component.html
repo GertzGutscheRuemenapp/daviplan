@@ -1,6 +1,8 @@
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
-    <app-input-card [title]="'Regionalstatistik'" infoText="Platzhalter: Abruf von Destatis">
+    <app-input-card [title]="'Bevölkerungssalden'"
+                    infoText="Platzhalter: Abruf von Destatis"
+                    [subtitle]="'Abruf der Regionalstatistik'">
       <table>
         <tr>
           <td i18n>letzter Abruf</td>
@@ -70,14 +72,14 @@
                 </mat-option>
               </mat-select>
             </mat-form-field>
-            <ul style="list-style-type: none; margin: 0 -20px;" [style.display]="(theme==='wanderung')? 'block' : 'none'">
-              <li><mat-checkbox [checked]="true" color="primary">Zuzüge</mat-checkbox></li>
-              <li><mat-checkbox [checked]="true" color="primary">Fortzüge</mat-checkbox></li>
-            </ul>
-            <ul style="list-style-type: none; margin: 0 -20px;" [style.display]="(theme==='natur')? 'block' : 'none'">
-              <li><mat-checkbox [checked]="true" color="primary">Geburten</mat-checkbox></li>
-              <li><mat-checkbox [checked]="false" color="primary">Sterbefälle</mat-checkbox></li>
-            </ul>
+            <div class="sub-select-wrapper" [style.display]="(theme==='wanderung')? 'block' : 'none'">
+              <mat-checkbox [checked]="true" color="primary">Zuzüge</mat-checkbox><br>
+              <mat-checkbox [checked]="true" color="primary">Fortzüge</mat-checkbox>
+            </div>
+            <div class="sub-select-wrapper" [style.display]="(theme==='natur')? 'block' : 'none'">
+              <mat-checkbox [checked]="true" color="primary">Geburten</mat-checkbox>
+              <mat-checkbox [checked]="false" color="primary">Sterbefälle</mat-checkbox>
+            </div>
           </div>
         </app-side-toggle>
       </div>

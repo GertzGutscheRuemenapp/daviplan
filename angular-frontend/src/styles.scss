@@ -604,7 +604,7 @@ mat-icon.warning {
     line-height: 1;
   }
   .mat-expansion-panel-body {
-    padding: 6px 5px 15px 54px;
+    padding: 15px 5px 15px 54px;
     border-bottom: 1px solid $primary-light;
   }
 }
@@ -879,4 +879,10 @@ app-map-controls {
 
 .mat-button-base:focus {
   outline: none;
+}
+
+.sub-select-wrapper {
+  padding: 10px 5px 5px 10px;
+  border: 1px solid #dedede;
+  border-radius: 5px;
 }

@@ -20,8 +20,8 @@ export const mockUsers: User[] = [
     id: 1,
     username: 'bla',
     email: 'bla@bla.com',
-    firstName: 'Hans',
-    lastName: 'Blubb',
+    firstName: 'Sascha',
+    lastName: 'Schmidt',
     isSuperuser: false,
     password: '',
     profile: {
@@ -34,8 +34,8 @@ export const mockUsers: User[] = [
     id: 2,
     username: 'admin',
     email: 'bla2@bla.com',
-    firstName: 'Franz',
-    lastName: 'Bumm',
+    firstName: 'Hannah',
+    lastName: 'Hansen',
     isSuperuser: true,
     password: '',
     profile: {

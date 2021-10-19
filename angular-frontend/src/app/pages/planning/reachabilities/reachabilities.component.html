@@ -16,13 +16,13 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
-    <button color="primary" mat-icon-button style="box-shadow: none; margin-left: auto;" title="Standortfilter">
+    <button color="primary" mat-icon-button style="box-shadow: none; margin-left: auto; position: absolute;" title="Standortfilter">
       <mat-icon>filter_list</mat-icon>
     </button>
-    <ul style="list-style-type: none; margin: 0 -10px;">
-      <li><mat-checkbox color="primary">Kita</mat-checkbox></li>
-      <li><mat-checkbox color="primary">Krippe</mat-checkbox></li>
-    </ul>
+    <div class="sub-select-wrapper">
+      <mat-checkbox color="primary">Kita</mat-checkbox><br>
+      <mat-checkbox color="primary">Krippe</mat-checkbox>
+    </div>
   </div>
   <mat-divider></mat-divider>
   <div>
