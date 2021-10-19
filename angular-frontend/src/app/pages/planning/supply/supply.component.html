@@ -16,13 +16,13 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
-    <button color="primary" mat-icon-button style="box-shadow: none; margin-left: auto;" title="Standortfilter">
+    <button color="primary" mat-icon-button style="box-shadow: none; margin-left: auto; position: absolute;" title="Standortfilter">
       <mat-icon>filter_list</mat-icon>
     </button>
-    <ul style="list-style-type: none; margin: 0 -10px;">
-      <li><mat-checkbox color="primary">Kita</mat-checkbox></li>
-      <li><mat-checkbox color="primary">Krippe</mat-checkbox></li>
-    </ul>
+    <div class="sub-select-wrapper">
+      <mat-checkbox color="primary">Kita</mat-checkbox><br>
+      <mat-checkbox color="primary">Krippe</mat-checkbox>
+    </div>
   </div>
   <mat-divider></mat-divider>
   <div>
@@ -61,43 +61,39 @@
       Vergleichsdarstellung
     </mat-panel-title>
   </mat-expansion-panel-header>
-  <mat-checkbox color="primary" [(ngModel)]="compareSupply" i18n> <!--style="margin-left: -12px"-->
+  <mat-checkbox style="padding-left: 12px;" color="primary" [(ngModel)]="compareSupply" i18n> <!--style="margin-left: -12px"-->
     Angebot vergleichen
   </mat-checkbox>
-  <ul class="compare-radio-list">
+  <div class="sub-select-wrapper compare-radio-list">
     <mat-radio-group [(ngModel)]="compareStatus">
-      <li>
-        <mat-radio-button value="option 1" color="primary"
-                          [disabled]="!compareSupply"
-                          i18n>
-          Mit Angebotsstrukturen im gleichen Szenario im Jahr
-        </mat-radio-button>
-        <mat-form-field appearance="outline" class="small">
+      <mat-radio-button value="option 1" color="primary"
+                        [disabled]="!compareSupply"
+                        i18n>
+        Mit Angebotsstrukturen im gleichen Szenario im Jahr
+      </mat-radio-button>
+      <mat-form-field appearance="outline" class="small">
 <!--          <mat-label>Jahr</mat-label>-->
-          <mat-select disableOptionCentering [value]="years[0]" [disabled]="!compareSupply || compareStatus != 'option 1'">
-            <mat-option *ngFor="let year of years" [value]="year">
-              {{year}}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-      </li>
-      <li>
-        <mat-radio-button value="option 2" color="primary"
-                          [disabled]="!compareSupply"
-                          i18n>
-          Mit Angebotsstrukturen im gleichen Jahr im Szenario
-        </mat-radio-button>
-        <mat-form-field appearance="outline" class="small">
-          <mat-select disableOptionCentering value="1" [disabled]="!compareSupply || compareStatus != 'option 2'">
-            <mat-option value="1">
-              Szenario 1
-            </mat-option>
-            <mat-option value="2">
-              Szenario 2
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-      </li>
+        <mat-select disableOptionCentering [value]="years[0]" [disabled]="!compareSupply || compareStatus != 'option 1'">
+          <mat-option *ngFor="let year of years" [value]="year">
+            {{year}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-radio-button value="option 2" color="primary"
+                        [disabled]="!compareSupply"
+                        i18n>
+        Mit Angebotsstrukturen im gleichen Jahr im Szenario
+      </mat-radio-button>
+      <mat-form-field appearance="outline" class="small">
+        <mat-select disableOptionCentering value="1" [disabled]="!compareSupply || compareStatus != 'option 2'">
+          <mat-option value="1">
+            Szenario 1
+          </mat-option>
+          <mat-option value="2">
+            Szenario 2
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
     </mat-radio-group>
-  </ul>
+  </div>
 </mat-expansion-panel>

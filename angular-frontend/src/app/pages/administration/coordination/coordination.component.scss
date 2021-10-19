@@ -42,14 +42,6 @@
   transform: rotate(-90deg);
 }
 
-td.marker {
-  padding: 0 20px !important;
-  vertical-align: middle;
-  mat-icon {
-    //font-size: 2em;
-  }
-}
-
 tr.success {
   td:not(:first-child), td.not-first-child {
     background-color: #f0fff3;

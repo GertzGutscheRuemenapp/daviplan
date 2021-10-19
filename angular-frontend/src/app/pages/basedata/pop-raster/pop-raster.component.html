@@ -1,5 +1,5 @@
 <div fxLayout="row wrap">
-  <div fxLayout="column" fxFlex="350px">
+  <div fxLayout="column" fxFlex="352px">
     <app-input-card [title]="'Raster'"
                     [editTemplate]="rasterEdit">
       <table>
@@ -16,9 +16,14 @@
           <td>1457</td>
         </tr>
       </table>
-      <button mat-flat-button color="primary" i18n>
-        <mat-icon>upload</mat-icon> Daten hochladen
-      </button>
+      <div style="margin-top: 20px;">
+        <button mat-stroked-button color="primary" style="margin-right: 10px;">
+          <mat-icon>download</mat-icon> Template
+        </button>
+        <button mat-flat-button color="primary">
+          <mat-icon>upload</mat-icon> Daten hochladen
+        </button>
+      </div>
       <button mat-mini-fab color="primary"
               aria-label="Daten herunterladen" title="Daten herunterladen"
               style="position: absolute; right: 15px; bottom: 15px; box-shadow: none;">
@@ -27,8 +32,7 @@
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="800px">
-    <app-input-card #dataEdit
-                    [title]="'Rasteransicht'">
+    <app-input-card [title]="'Rasteransicht'">
       <div id="base-raster-map" class="map-container">
         <app-map-controls></app-map-controls>
         <app-side-toggle id="legend"

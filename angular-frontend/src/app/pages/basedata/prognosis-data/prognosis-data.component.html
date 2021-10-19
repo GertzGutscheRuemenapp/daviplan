@@ -16,41 +16,32 @@
             65 Jahre und älter
           </td>
         </tr>
-      </table>
-    </app-input-card>
-    <app-input-card [title]="'Prognosejahre'"
-                    [editTemplate]="yearsEdit">
-      <table>
         <tr>
-          <td i18n>ausgewählt</td>
+          <td i18n>Prognosejahre</td>
           <td>2017, 2018, 2019, 2020, 2021, 2022</td>
         </tr>
       </table>
-      <div after>
-        <mat-divider style="margin: 10px 0 15px 0;"></mat-divider>
-        <app-input-card [title]="'Prognosevarianten'"
-                        [borderless]="true"
-                        infoText="Platzhalter: hinzufügen, entfernen, auswählen">
-          <mat-selection-list [multiple]="false"
-                              id="prognosis-select">
-            <mat-list-option *ngFor="let prognosis of prognoses"
-                             (click)="selectedPrognosis = prognosis"
-                             [selected]="(prognosis === selectedPrognosis)">
-              <div class="option-text">{{prognosis}}</div>
-            </mat-list-option>
-          </mat-selection-list>
-          <div style="margin-top: 10px;">
-            <button mat-button color="primary"
-                    class="mat-button-dv" i18n>
-              <mat-icon>add</mat-icon>hinzufügen
-            </button>
-            <button mat-button color="primary"
-                    style="float:right;"
-                    class="mat-button-dv" i18n>
-              <mat-icon>close</mat-icon>entfernen
-            </button>
-          </div>
-        </app-input-card>
+    </app-input-card>
+    <app-input-card [title]="'Prognosevarianten'"
+                    infoText="Platzhalter: hinzufügen, entfernen, auswählen">
+      <mat-selection-list [multiple]="false"
+                          id="prognosis-select">
+        <mat-list-option *ngFor="let prognosis of prognoses"
+                         (click)="selectedPrognosis = prognosis"
+                         [selected]="(prognosis === selectedPrognosis)">
+          <div class="option-text">{{prognosis}}</div>
+        </mat-list-option>
+      </mat-selection-list>
+      <div style="margin-top: 10px;">
+        <button mat-button color="primary"
+                class="mat-button-dv" i18n>
+          <mat-icon>add</mat-icon>hinzufügen
+        </button>
+        <button mat-button color="primary"
+                style="float:right;"
+                class="mat-button-dv" i18n>
+          <mat-icon>close</mat-icon>entfernen
+        </button>
       </div>
     </app-input-card>
   </div>
@@ -79,7 +70,10 @@
             </table>
           </div>
           <div style="margin: 20px 0 10px 0;">
-            <button mat-flat-button color="primary" i18n>
+            <button mat-stroked-button color="primary" style="margin-right: 10px;">
+              <mat-icon>download</mat-icon> Template
+            </button>
+            <button mat-flat-button color="primary">
               <mat-icon>upload</mat-icon> Daten hochladen
             </button>
           </div>
@@ -163,9 +157,5 @@
 </div>
 
 <ng-template #areaLevelEdit>
-  ToDo
-</ng-template>
-
-<ng-template #yearsEdit>
   ToDo
 </ng-template>

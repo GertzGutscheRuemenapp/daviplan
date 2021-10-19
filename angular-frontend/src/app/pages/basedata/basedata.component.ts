@@ -13,7 +13,7 @@ export class BasedataComponent implements OnInit {
         {name:  $localize`Einwohnerraster`, url: 'grundlagendaten/einwohnerraster', children: []},
         {name:  $localize`Realdaten`, url: 'grundlagendaten/realdaten', children: []},
         {name:  $localize`Prognosedaten`, url: 'grundlagendaten/prognosedaten', children: []},
-        {name:  $localize`Statistiken`, url: 'grundlagendaten/statistiken', children: []}
+        {name:  $localize`Bevölkerungssalden`, url: 'grundlagendaten/statistiken', children: []}
       ]
     },
     {name:  $localize`Infrastrukturdaten`, url: '', children: [
