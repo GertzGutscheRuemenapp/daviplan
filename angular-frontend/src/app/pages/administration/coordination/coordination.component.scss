@@ -16,6 +16,7 @@
   td, th {
     padding: 10px;
     border-bottom: 1px solid lightgrey;
+    transition: background-color 0.5s ease;
   }
   td:not(:first-child), td.not-first-child {
     color: #000000BC;
