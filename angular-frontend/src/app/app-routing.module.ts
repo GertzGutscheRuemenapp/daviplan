@@ -23,6 +23,10 @@ import { StatisticsComponent } from "./pages/basedata/statistics/statistics.comp
 import { InfrastructureComponent } from "./pages/administration/infrastructure/infrastructure.component";
 import { ProjectAreaComponent } from "./pages/administration/project-area/project-area.component";
 import { CoordinationComponent } from "./pages/administration/coordination/coordination.component";
+import { LocationsComponent } from "./pages/basedata/locations/locations.component";
+import { ServicesComponent } from "./pages/basedata/services/services.component";
+import { CapacitiesComponent } from "./pages/basedata/capacities/capacities.component";
+import { DemandQuotasComponent } from "./pages/basedata/demand-quotas/demand-quotas.component";
 
 const routes: Routes = [
   {
@@ -121,6 +125,22 @@ const routes: Routes = [
       {
         path: 'statistiken',
         component: StatisticsComponent
+      },
+      {
+        path: 'standorte',
+        component: LocationsComponent
+      },
+      {
+        path: 'leistungen',
+        component: ServicesComponent
+      },
+      {
+        path: 'kapazitaeten',
+        component: CapacitiesComponent
+      },
+      {
+        path: 'nachfragequoten',
+        component: DemandQuotasComponent
       },
     ]
   },

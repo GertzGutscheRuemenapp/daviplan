@@ -1,0 +1,89 @@
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="350px">
+    <app-input-card [title]="'Infrastrukturen'"
+                    infoText="Platzhalter Erklärung: Infrastruktur auswählen, erzeugt woanders (Administration)"
+                    subtitle="Untertitel??">
+      <mat-selection-list [multiple]="false"
+                          id="infrastructure-select">
+        <mat-list-option *ngFor="let infrastructure of infrastructures"
+                         (click)="selectedInfrastructure = infrastructure"
+                         [selected]="(infrastructure === selectedInfrastructure)">
+          <div class="option-text">{{infrastructure}}</div>
+        </mat-list-option>
+      </mat-selection-list>
+      <div after>
+        <mat-divider style="margin: 10px 0 15px 0;"></mat-divider>
+        <app-input-card [title]="'Leistungen'"
+                        [borderless]="true"
+                        [subtitle]="'Untertitel??'"
+                        infoText="Platzhalter: Leistungen bearbeiten in anderem Bereich">
+          <mat-selection-list [multiple]="false"
+                              id="service-select">
+            <mat-list-option *ngFor="let service of services"
+                             (click)="selectedService = service"
+                             [selected]="(service === selectedService)">
+              <div class="option-text">{{service}}</div>
+            </mat-list-option>
+          </mat-selection-list>
+        </app-input-card>
+      </div>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="1100px">
+    <app-input-card [title]="'Standortdaten'"
+                    infoText="Platzhalter: Als befüllte Vorlage hochladen und/oder über Karte editieren, Standort auf Karte auswählen">
+      <div style="width: 100%; display: flex;">
+        <div style="width: 50%; align-self: start;">
+          <span class="subtitle1"
+                style="color: #00000061;">
+            {{selectedInfrastructure}}
+          </span>
+          <div style="display: flex; margin-top: 15px;">
+            <table>
+              <tr>
+                <td i18n>Standorte mit Leistung</td>
+                <td>24 von 102</td>
+              </tr>
+              <tr>
+                <td i18n>Upload am</td>
+                <td>02.06.2022</td>
+              </tr>
+            </table>
+            <table style="margin-left: 20px;">
+              <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+              <tr>
+                <td i18n>durch</td>
+                <td>Sascha Schmidt</td>
+              </tr>
+            </table>
+          </div>
+          <div style="margin: 20px 0 10px 0;">
+            <button mat-flat-button color="primary" i18n>
+              <mat-icon>upload</mat-icon> Daten hochladen
+            </button>
+          </div>
+          <button class="mat-button-dv"
+                  mat-button color="primary" i18n>
+            <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
+          </button>
+          <button mat-mini-fab color="primary"
+                  aria-label="Daten herunterladen" title="Daten herunterladen"
+                  style="float: right; margin: -10px 15px 0 0; box-shadow: none;">
+            <mat-icon>download</mat-icon>
+          </button>
+        </div>
+        <div id="log-window" style="width: 50%">
+          <app-log></app-log>
+        </div>
+      </div>
+      <div id="base-capacities-map" class="map-container">
+        <app-map-controls></app-map-controls>
+        <app-side-toggle id="legend"
+                         icon="layers"
+                         direction="left">
+          <app-legend target="base-capacities-map"></app-legend>
+        </app-side-toggle>
+      </div>
+    </app-input-card>
+  </div>
+</div>

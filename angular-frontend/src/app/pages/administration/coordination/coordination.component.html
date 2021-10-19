@@ -1,7 +1,7 @@
 <div style="max-width: 1400px;">
   <app-input-card [title]="'Koordination'"
                   [subtitle]="'Liste aller benötigten Datensätze und der zugewiesenen Personen'"
-                  infoText="Platzhalter Erklärung: Zuweisung der Personen, vorhandene Datensätze, Markierung">
+                  infoText="Platzhalter Erklärung: Benutzung optional, Erleichterung der Planung,  Zuweisung der Personen, vorhandene Datensätze, Markierung">
     <div style="overflow-x: auto;">
       <table class="coordination-table">
         <tr>
@@ -68,12 +68,12 @@
                         (click)="domain.marker = 2;">
                   <mat-icon>schedule</mat-icon> In Bearbeitung
                 </button>
-                <button mat-button [ngClass]="{'material-icons-outlined': domain.marker!==3}"
+                <button mat-button
                         color="warn" style="width: 100%; text-align: start;"
                         (click)="domain.marker = 3;">
                   <mat-icon>error_outline</mat-icon> Warnung
                 </button>
-                <button *ngIf="domain.marker" mat-button class="material-icons-outlined"
+                <button *ngIf="domain.marker" mat-button
                         style="width: 100%; text-align: start; color: grey;"
                         (click)="domain.marker = 0;">
                   <mat-icon>highlight_off</mat-icon> Markierung entfernen
@@ -83,7 +83,6 @@
                       class="rotate"
                       title="Markierung des Aufgabenbereichs umschalten"
                       [ngbPopover]="popContent"
-
                       container="body">
                 <mat-icon>more_vert</mat-icon>
               </button>

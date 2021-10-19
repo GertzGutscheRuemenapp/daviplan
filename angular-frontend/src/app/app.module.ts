@@ -71,6 +71,10 @@ import { InfrastructureComponent } from './pages/administration/infrastructure/i
 import { ProjectAreaComponent } from './pages/administration/project-area/project-area.component';
 import { CoordinationComponent } from './pages/administration/coordination/coordination.component';
 import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
+import { LocationsComponent } from './pages/basedata/locations/locations.component';
+import { ServicesComponent } from './pages/basedata/services/services.component';
+import { CapacitiesComponent } from './pages/basedata/capacities/capacities.component';
+import { DemandQuotasComponent } from './pages/basedata/demand-quotas/demand-quotas.component';
 
 @NgModule({
   declarations: [
@@ -110,7 +114,11 @@ import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
     StatisticsComponent,
     InfrastructureComponent,
     ProjectAreaComponent,
-    CoordinationComponent
+    CoordinationComponent,
+    LocationsComponent,
+    ServicesComponent,
+    CapacitiesComponent,
+    DemandQuotasComponent
   ],
     imports: [
         BrowserModule,
