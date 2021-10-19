@@ -18,7 +18,8 @@ export class BasedataComponent implements OnInit {
     },
     {name:  $localize`Infrastrukturdaten`, url: '', children: [
       {name:  $localize`Standorte`, url: 'grundlagendaten/standorte', children: []},
-      {name:  $localize`Leistungen und Kapazitäten`, url: 'grundlagendaten/leistungen', children: []},
+      {name:  $localize`Leistungen`, url: 'grundlagendaten/leistungen', children: []},
+      {name:  $localize`Kapazitäten`, url: 'grundlagendaten/kapazitaeten', children: []},
       {name:  $localize`Nachfragequoten`, url: 'grundlagendaten/nachfragequoten', children: []},
       ]
     },

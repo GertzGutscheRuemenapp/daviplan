@@ -1,3 +1,5 @@
+@import "~src/constants";
+
 #prognosis-select {
   min-height: 150px;
   max-height: 250px;
@@ -32,5 +34,13 @@
   pointer-events: none;
   .side-toggle>div {
     pointer-events: all;
+  }
+  .mat-checkbox-checked {
+    .mat-checkbox-label {
+      color: $primary !important;
+    }
+    .mat-checkbox-background {
+      background-color: $primary !important;
+    }
   }
 }

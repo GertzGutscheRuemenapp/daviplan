@@ -809,6 +809,7 @@ app-map-controls {
   label {
     cursor: pointer;
     transition: margin 400ms;
+    margin-bottom: 0;
   }
 }
 
@@ -869,10 +870,14 @@ app-map-controls {
 }
 
 .mat-button.mat-success, .mat-icon.mat-success {
-  color: #155724;
+  color: #16ab38;
 }
 
 .mat-button.mat-success:hover {
   background-color: #f0fff3;
 }
 
+.mat-button-base:focus {
+  outline: none !important;
+  border: none !important;
+}
