@@ -39,8 +39,9 @@
             </td>
             <td style="padding-left: 22px;">
               <button mat-icon-button color="primary"
+                      style="position: absolute;"
                       title="Zuständige Personen bearbeiten">
-                <mat-icon>person_add</mat-icon>
+                <div class="davicon icon-GGR-davicons-Font-Single-20-Benutzer-Plus-Minus"></div>
               </button>
             </td>
             <td>
@@ -83,7 +84,6 @@
                       title="Markierung des Aufgabenbereichs umschalten"
                       [ngbPopover]="popContent"
                       container="body">
-
                 <mat-icon *ngIf="domain.marker===1" color="success">check_circle_outline</mat-icon>
                 <mat-icon *ngIf="domain.marker===2" color="accent">schedule</mat-icon>
                 <mat-icon *ngIf="domain.marker===3" color="warn">error_outline</mat-icon>

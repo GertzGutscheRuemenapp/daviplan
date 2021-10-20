@@ -463,6 +463,10 @@ button.mat-icon-button {
   background-color: $primary;
 }
 
+.mat-icon-button .davicon {
+  font-size: 34px;
+}
+
 .mat-fab.bordered {
   border: 10px solid white;
   .mat-button-wrapper{
