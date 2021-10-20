@@ -8,8 +8,8 @@
                             id="infrastructure-select">
           <mat-list-option *ngFor="let infrastructure of infrastructures"
                            (click)="selectedInfrastructure = infrastructure"
-                           [selected]="(infrastructure === selectedInfrastructure)">
-            <div class="option-text">{{infrastructure}}</div>
+                           [selected]="(infrastructure.id === selectedInfrastructure.id)">
+            <div class="option-text">{{infrastructure.name}}</div>
           </mat-list-option>
         </mat-selection-list>
         <div class="order-controls">
@@ -41,7 +41,7 @@
       <table *ngIf="selectedInfrastructure">
         <tr>
           <td i18n>Name</td>
-          <td>{{selectedInfrastructure}}</td>
+          <td>{{selectedInfrastructure.name}}</td>
         </tr>
         <tr>
           <td i18n>Beschreibung</td>

@@ -7,8 +7,8 @@
                           id="infrastructure-select">
         <mat-list-option *ngFor="let infrastructure of infrastructures"
                          (click)="selectedInfrastructure = infrastructure"
-                         [selected]="(infrastructure === selectedInfrastructure)">
-          <div class="option-text">{{infrastructure}}</div>
+                         [selected]="(infrastructure.id === selectedInfrastructure.id)">
+          <div class="option-text">{{infrastructure.name}}</div>
         </mat-list-option>
       </mat-selection-list>
       <div after>
@@ -16,7 +16,7 @@
         <app-input-card [title]="'Standortattribute'"
                         [borderless]="true"
                         [editTemplate]="attributesEdit"
-                        [subtitle]="selectedInfrastructure"
+                        [subtitle]="selectedInfrastructure.name"
                         infoText="Platzhalter: verfügbare Felder der Standorte, die beim Upload zugewiesen werden können">
           <table>
             <tr>
@@ -47,7 +47,7 @@
         <div style="width: 50%; align-self: start;">
           <span class="subtitle1"
                 style="color: #00000061;">
-            {{selectedInfrastructure}}
+            {{selectedInfrastructure.name}}
           </span>
           <div style="display: flex; margin-top: 15px;">
             <table>

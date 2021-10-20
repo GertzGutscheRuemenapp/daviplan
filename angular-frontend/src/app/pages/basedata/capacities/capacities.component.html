@@ -1,42 +1,49 @@
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
-    <app-input-card [title]="'Infrastrukturen'"
-                    infoText="Platzhalter Erklärung: Infrastruktur auswählen, erzeugt woanders (Administration)"
-                    subtitle="Untertitel??">
-      <mat-selection-list [multiple]="false"
-                          id="infrastructure-select">
-        <mat-list-option *ngFor="let infrastructure of infrastructures"
-                         (click)="selectedInfrastructure = infrastructure"
-                         [selected]="(infrastructure === selectedInfrastructure)">
-          <div class="option-text">{{infrastructure}}</div>
-        </mat-list-option>
-      </mat-selection-list>
-      <div after>
-        <mat-divider style="margin: 10px 0 15px 0;"></mat-divider>
-        <app-input-card [title]="'Leistungen'"
-                        [borderless]="true"
-                        [subtitle]="'Untertitel??'"
-                        infoText="Platzhalter: Leistungen bearbeiten in anderem Bereich">
-          <mat-selection-list [multiple]="false"
-                              id="service-select">
-            <mat-list-option *ngFor="let service of services"
-                             (click)="selectedService = service"
-                             [selected]="(service === selectedService)">
-              <div class="option-text">{{service}}</div>
-            </mat-list-option>
-          </mat-selection-list>
-        </app-input-card>
+<!--    <app-input-card>
+      <div *ngFor="let infrastructure of infrastructures">
+        <div class="cat-select">
+          <mat-expansion-panel expanded>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                {{infrastructure.name}}
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <div *ngFor="let service of infrastructure.services">
+              <div>
+                {{service.name}}
+              </div>
+            </div>
+          </mat-expansion-panel>
+        </div>
       </div>
+    </app-input-card>-->
+    <app-input-card [title]="'Leistungen'"
+                    [subtitle]="'Untertitel??'"
+                    infoText="Platzhalter: Leistungen bearbeiten in anderem Bereich">
+      <mat-selection-list [multiple]="false"
+                          class="categorized"
+                          id="service-select">
+        <ng-container *ngFor="let infrastructure of infrastructures">
+          <div mat-subheader>{{infrastructure.name}}</div>
+          <mat-list-option *ngFor="let service of infrastructure.services"
+                           (click)="selectedService = service"
+                           [selected]="(service.id === selectedService.id)">
+            <div class="option-text">{{service.name}}</div>
+          </mat-list-option>
+          <mat-divider></mat-divider>
+        </ng-container>
+      </mat-selection-list>
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="1100px">
-    <app-input-card [title]="'Standortdaten'"
+    <app-input-card [title]="'Leistungsdaten'"
                     infoText="Platzhalter: Als befüllte Vorlage hochladen und/oder über Karte editieren, Standort auf Karte auswählen">
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
           <span class="subtitle1"
                 style="color: #00000061;">
-            {{selectedInfrastructure}}
+            {{selectedService.name}}
           </span>
           <div style="display: flex; margin-top: 15px;">
             <table>

@@ -1,5 +1,5 @@
-import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { infrastructures } from "../../administration/infrastructure/infrastructure.component";
+import { AfterViewInit, Component, OnDestroy } from '@angular/core';
+import { mockInfrastructures } from "../../administration/infrastructure/infrastructure.component";
 import { MapControl, MapService } from "../../../map/map.service";
 
 @Component({
@@ -8,8 +8,8 @@ import { MapControl, MapService } from "../../../map/map.service";
   styleUrls: ['./locations.component.scss']
 })
 export class LocationsComponent implements AfterViewInit, OnDestroy {
-  infrastructures = infrastructures;
-  selectedInfrastructure = infrastructures[1];
+  infrastructures = mockInfrastructures;
+  selectedInfrastructure = mockInfrastructures[1];
   mapControl?: MapControl;
   addPlaceMode = false;
 
