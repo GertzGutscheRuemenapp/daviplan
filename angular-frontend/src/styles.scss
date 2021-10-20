@@ -823,6 +823,14 @@ app-map-controls {
   }
 }
 
+.row-button.disabled {
+  color: lightgrey;
+  pointer-events: none;
+  .mat-icon {
+    color: lightgrey;
+  }
+}
+
 #background {
   position: fixed;
   top: 0;
@@ -885,4 +893,16 @@ app-map-controls {
   padding: 10px 5px 5px 10px;
   border: 1px solid #dedede;
   border-radius: 5px;
+}
+
+.mat-radio-button.mat-radio-disabled {
+  .mat-radio-label-content {
+    color: lightgrey;
+  }
+  .mat-radio-outer-circle {
+    border-color: lightgrey !important;
+  }
+  .mat-radio-inner-circle {
+    background-color: lightgrey;
+  }
 }

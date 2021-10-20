@@ -8,17 +8,19 @@
     </mat-panel-title>
   </mat-expansion-panel-header>
   <div style="padding-bottom: 10px;">
-    <mat-form-field appearance="outline" class="small">
-      <mat-label>Infrastruktur</mat-label>
-      <mat-select disableOptionCentering value="Kinderbetreuung"><!-- [value]="activeInfrastructure">-->
-        <mat-option value="Kinderbetreuung">
-          Kinderbetreuung
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-    <button color="primary" mat-icon-button style="box-shadow: none; margin-left: auto; position: absolute;" title="Standortfilter">
-      <mat-icon>filter_list</mat-icon>
-    </button>
+    <div style="position: relative;">
+      <mat-form-field appearance="outline" class="small">
+        <mat-label>Infrastruktur</mat-label>
+        <mat-select disableOptionCentering value="Kinderbetreuung"><!-- [value]="activeInfrastructure">-->
+          <mat-option value="Kinderbetreuung">
+            Kinderbetreuung
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button color="primary" mat-icon-button class="filter-button" title="Standortfilter">
+        <mat-icon>filter_list</mat-icon>
+      </button>
+    </div>
     <div class="sub-select-wrapper">
       <mat-checkbox color="primary">Kita</mat-checkbox><br>
       <mat-checkbox color="primary">Krippe</mat-checkbox>
@@ -50,45 +52,53 @@
       Indikator
     </mat-panel-title>
   </mat-expansion-panel-header>
-
-  <mat-form-field appearance="outline" class="small">
-    <mat-select #indicator disableOptionCentering value="1">
-      <mat-option value="1"
-                  tooltip="Wegezeit zwischen ausgewählter Einrichtung und den Wohnstandorten"
-                  theme="light"
-                  placement="right"
-                  maxWidth="600px"
-                  [hideDelay]="0">
+  <div id="indicator-select"><!--  <div style="padding-left: 8px;">-->
+    <mat-radio-group [(ngModel)]="indicator" (change)="toggleIndicator()">
+      <mat-radio-button value="option 1" color="primary"
+                        tooltip="Wegezeit zwischen ausgewählter Einrichtung und den Wohnstandorten"
+                        theme="light"
+                        placement="right"
+                        maxWidth="600px"
+                        [hideDelay]="0" i18n>
         Einrichtung -> Wohnstandorte
-      </mat-option>
-      <mat-option value="2"
-                  tooltip="Wegezeit zwischen ausgewähltem Wohnstandort und allen Einrichtung"
-                  theme="light"
-                  placement="right"
-                  maxWidth="600px"
-                  [hideDelay]="0">
+      </mat-radio-button>
+      <div class="row-button" [ngClass]="{'active': selectFacMode, 'disabled': indicator!=='option 1'}" (click)="selectFacMode = !selectFacMode">
+        <label i18n>Einrichtung auswählen</label>
+        <div class="fill-space"></div>
+        <button color="primary" *ngIf="!selectFacMode" mat-icon-button>
+          <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
+        </button>
+        <button color="primary" *ngIf="selectFacMode" mat-mini-fab>
+          <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
+        </button>
+      </div>
+      <mat-radio-button value="option 2" color="primary"
+                        tooltip="Wegezeit zwischen ausgewähltem Wohnstandort und allen Einrichtung"
+                        theme="light"
+                        placement="right"
+                        maxWidth="600px"
+                        [hideDelay]="0" i18n>
         Wohnstandort -> Einrichtungen
-      </mat-option>
-      <mat-option value="3"
-                  tooltip="Wegezeit zur nächsten Einrichtung für alle Wohnstandorte"
-                  theme="light"
-                  placement="right"
-                  maxWidth="600px"
-                  [hideDelay]="0">
+      </mat-radio-button>
+      <div class="row-button" [ngClass]="{'active': selectLivMode, 'disabled': indicator!=='option 2'}" (click)="selectLivMode = !selectLivMode">
+        <label i18n>Wohnstandort auswählen</label>
+        <div class="fill-space"></div>
+        <button color="primary" *ngIf="!selectLivMode" mat-icon-button>
+          <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
+        </button>
+        <button color="primary" *ngIf="selectLivMode" mat-mini-fab>
+          <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
+        </button>
+      </div>
+      <mat-radio-button value="option 3" color="primary"
+                        tooltip="Wegezeit zur nächsten Einrichtung für alle Wohnstandorte"
+                        theme="light"
+                        placement="right"
+                        maxWidth="600px"
+                        [hideDelay]="0" i18n>
         nächste Einrichtung
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
-  <div *ngIf="indicator.value==1 || indicator.value==2"
-       style="float: right; padding-top: 3px;"
-       (click)="selectMode=!selectMode"
-       [title]="(indicator.value==1)? 'Einrichtung auswählen': 'Wohnstandort auswählen'">
-    <button color="primary" *ngIf="!selectMode" mat-icon-button>
-      <mat-icon class="material-icons-outlined">near_me</mat-icon>
-    </button>
-    <button color="primary" *ngIf="selectMode" mat-mini-fab style="box-shadow: none; margin-left: auto;">
-      <mat-icon class="material-icons-outlined">near_me</mat-icon>
-    </button>
+      </mat-radio-button>
+    </mat-radio-group>
   </div>
 </mat-expansion-panel>
 <mat-expansion-panel expanded>
@@ -100,30 +110,46 @@
       Verkehrsmittel
     </mat-panel-title>
   </mat-expansion-panel-header>
-  <div style="display: flex">
-    <div class="mini-fab-icon primary"
-         [ngClass]="{'inverted': transportMode == 1}"
-         (click)="transportMode=1"
-         title="zu Fuß" style="cursor: pointer;">
-      <mat-icon class="material-icons-outlined">directions_walk</mat-icon>
+  <div id="mode-select" class="sub-select-wrapper" style="display: flex">
+    <div (click)="transportMode=1" title="zu Fuß" [ngClass]="{'selected': transportMode === 1}">
+      <div class="mini-fab-icon primary"
+           [ngClass]="{'inverted': transportMode === 1}"
+           style="cursor: pointer;">
+        <mat-icon style="font-size: 20px;" class="material-icons-outlined">directions_walk</mat-icon>
+      </div>
+      <div>
+        zu Fuß
+      </div>
     </div>
-    <div class="mini-fab-icon primary"
-         [ngClass]="{'inverted': transportMode == 2}"
-         (click)="transportMode=2"
-         title="Fahrrad" style="cursor: pointer;">
-      <mat-icon class="material-icons-outlined">directions_bike</mat-icon>
+    <div (click)="transportMode=2" title="Fahrrad"  [ngClass]="{'selected': transportMode === 2}">
+      <div class="mini-fab-icon primary"
+           [ngClass]="{'inverted': transportMode === 2}"
+           title="Fahrrad" style="cursor: pointer;">
+        <mat-icon style="font-size: 20px;" class="material-icons-outlined">directions_bike</mat-icon>
+      </div>
+      <div>
+        Rad
+      </div>
     </div>
-    <div class="mini-fab-icon primary"
-         [ngClass]="{'inverted': transportMode == 3}"
-         (click)="transportMode=3"
-         title="Auto" style="cursor: pointer;">
-      <div class="davicon icon-GGR-davicons-Font-Simple-17-PKW"></div>
+    <div (click)="transportMode=3" title="Auto"  [ngClass]="{'selected': transportMode === 3}">
+      <div class="mini-fab-icon primary"
+           [ngClass]="{'inverted': transportMode === 3}"
+           style="cursor: pointer;">
+        <div class="davicon icon-GGR-davicons-Font-Simple-17-PKW"></div>
+      </div>
+      <div style="margin-top: -4px;">
+        Auto
+      </div>
     </div>
-    <div class="mini-fab-icon primary"
-         [ngClass]="{'inverted': transportMode == 4}"
-         (click)="transportMode=4"
-         title="ÖPNV" style="cursor: pointer;">
-      <div class="davicon icon-GGR-davicons-Font-Simple-18-OEPNV"></div>
+    <div (click)="transportMode=4" title="ÖPNV"  [ngClass]="{'selected': transportMode === 4}">
+      <div class="mini-fab-icon primary"
+           [ngClass]="{'inverted': transportMode === 4}"
+           title="ÖPNV" style="cursor: pointer;">
+        <div class="davicon icon-GGR-davicons-Font-Simple-18-OEPNV"></div>
+      </div>
+      <div style="margin-top: -4px;">
+        ÖPNV
+      </div>
     </div>
   </div>
 </mat-expansion-panel>

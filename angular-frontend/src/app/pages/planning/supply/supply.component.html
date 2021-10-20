@@ -8,17 +8,19 @@
     </mat-panel-title>
   </mat-expansion-panel-header>
   <div style="padding-bottom: 10px;">
-    <mat-form-field appearance="outline" class="small">
-      <mat-label>Infrastruktur</mat-label>
-      <mat-select disableOptionCentering value="Kinderbetreuung"><!-- [value]="activeInfrastructure">-->
-        <mat-option value="Kinderbetreuung">
-          Kinderbetreuung
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-    <button color="primary" mat-icon-button style="box-shadow: none; margin-left: auto; position: absolute;" title="Standortfilter">
-      <mat-icon>filter_list</mat-icon>
-    </button>
+    <div style="position: relative;">
+      <mat-form-field appearance="outline" class="small">
+        <mat-label>Infrastruktur</mat-label>
+        <mat-select disableOptionCentering value="Kinderbetreuung"><!-- [value]="activeInfrastructure">-->
+          <mat-option value="Kinderbetreuung">
+            Kinderbetreuung
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button color="primary" mat-icon-button class="filter-button" title="Standortfilter">
+        <mat-icon>filter_list</mat-icon>
+      </button>
+    </div>
     <div class="sub-select-wrapper">
       <mat-checkbox color="primary">Kita</mat-checkbox><br>
       <mat-checkbox color="primary">Krippe</mat-checkbox>
@@ -47,7 +49,7 @@
     <button color="primary" *ngIf="!addPlaceMode" mat-icon-button>
       <mat-icon class="material-icons-outlined">add_location_alt</mat-icon>
     </button>
-    <button color="primary" *ngIf="addPlaceMode" mat-mini-fab style="box-shadow: none; margin-left: auto;">
+    <button color="primary" *ngIf="addPlaceMode" mat-mini-fab>
       <mat-icon class="material-icons-outlined">add_location_alt</mat-icon>
     </button>
   </div>
