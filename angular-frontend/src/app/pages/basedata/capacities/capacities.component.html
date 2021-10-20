@@ -7,8 +7,8 @@
                           id="infrastructure-select">
         <mat-list-option *ngFor="let infrastructure of infrastructures"
                          (click)="selectedInfrastructure = infrastructure"
-                         [selected]="(infrastructure === selectedInfrastructure)">
-          <div class="option-text">{{infrastructure}}</div>
+                         [selected]="(infrastructure.id === selectedInfrastructure.id)">
+          <div class="option-text">{{infrastructure.name}}</div>
         </mat-list-option>
       </mat-selection-list>
       <div after>
@@ -19,10 +19,10 @@
                         infoText="Platzhalter: Leistungen bearbeiten in anderem Bereich">
           <mat-selection-list [multiple]="false"
                               id="service-select">
-            <mat-list-option *ngFor="let service of services"
+            <mat-list-option *ngFor="let service of selectedInfrastructure.services"
                              (click)="selectedService = service"
-                             [selected]="(service === selectedService)">
-              <div class="option-text">{{service}}</div>
+                             [selected]="(service.id === selectedService.id)">
+              <div class="option-text">{{service.name}}</div>
             </mat-list-option>
           </mat-selection-list>
         </app-input-card>
@@ -30,13 +30,13 @@
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="1100px">
-    <app-input-card [title]="'Standortdaten'"
+    <app-input-card [title]="'Leistungsdaten'"
                     infoText="Platzhalter: Als befüllte Vorlage hochladen und/oder über Karte editieren, Standort auf Karte auswählen">
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
           <span class="subtitle1"
                 style="color: #00000061;">
-            {{selectedInfrastructure}}
+            {{selectedService.name}}
           </span>
           <div style="display: flex; margin-top: 15px;">
             <table>

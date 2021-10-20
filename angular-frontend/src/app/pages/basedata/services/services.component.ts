@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { infrastructures } from "../../administration/infrastructure/infrastructure.component";
+import { mockInfrastructures } from "../../administration/infrastructure/infrastructure.component";
 
 @Component({
   selector: 'app-services',
@@ -7,10 +7,10 @@ import { infrastructures } from "../../administration/infrastructure/infrastruct
   styleUrls: ['./services.component.scss']
 })
 export class ServicesComponent implements OnInit {
-  infrastructures = infrastructures;
-  selectedInfrastructure = infrastructures[1];
-  services = ['Grundschule', 'Gymnasium'];
-  selectedService = 'Gymnasium';
+  infrastructures = mockInfrastructures;
+  selectedInfrastructure = mockInfrastructures[1];
+  services = mockInfrastructures[1].services;
+  selectedService = mockInfrastructures[1].services[1];
 
   constructor() { }
 

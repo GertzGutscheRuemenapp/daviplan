@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy } from '@angular/core';
-import { infrastructures } from "../../administration/infrastructure/infrastructure.component";
+import { mockInfrastructures } from "../../administration/infrastructure/infrastructure.component";
 import { MapControl, MapService } from "../../../map/map.service";
 
 @Component({
@@ -8,10 +8,10 @@ import { MapControl, MapService } from "../../../map/map.service";
   styleUrls: ['./capacities.component.scss']
 })
 export class CapacitiesComponent implements AfterViewInit, OnDestroy {
-  infrastructures = infrastructures;
-  selectedInfrastructure = infrastructures[1];
-  services = ['Grundschule', 'Gymnasium'];
-  selectedService = 'Gymnasium';
+  infrastructures = mockInfrastructures;
+  selectedInfrastructure = mockInfrastructures[1];
+  services = mockInfrastructures[1].services;
+  selectedService = mockInfrastructures[1].services[1];
 
   mapControl?: MapControl;
 

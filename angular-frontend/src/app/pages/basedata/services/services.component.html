@@ -7,22 +7,22 @@
                           id="infrastructure-select">
         <mat-list-option *ngFor="let infrastructure of infrastructures"
                          (click)="selectedInfrastructure = infrastructure"
-                         [selected]="(infrastructure === selectedInfrastructure)">
-          <div class="option-text">{{infrastructure}}</div>
+                         [selected]="(infrastructure.id === selectedInfrastructure.id)">
+          <div class="option-text">{{infrastructure.name}}</div>
         </mat-list-option>
       </mat-selection-list>
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="400px">
     <app-input-card [title]="'Leistungen'"
-                    [subtitle]="'der Infrastruktur ' + selectedInfrastructure + '??'"
+                    [subtitle]="'der Infrastruktur ' + selectedInfrastructure.name + '??'"
                     infoText="Platzhalter: hinzufügen, entfernen, auswählen">
       <mat-selection-list [multiple]="false"
                           id="service-select">
-        <mat-list-option *ngFor="let service of services"
+        <mat-list-option *ngFor="let service of selectedInfrastructure.services"
                          (click)="selectedService = service"
-                         [selected]="(service === selectedService)">
-          <div class="option-text">{{service}}</div>
+                         [selected]="(service.id === selectedService.id)">
+          <div class="option-text">{{service.name}}</div>
         </mat-list-option>
       </mat-selection-list>
       <div style="margin-top: 10px;">
@@ -45,7 +45,7 @@
           <table>
             <tr>
               <td>Name</td>
-              <td>{{selectedService}}</td>
+              <td>{{selectedService.name}}</td>
             </tr>
             <tr>
               <td>Beschreibung</td>
@@ -63,10 +63,10 @@
   <div fxLayout="column" fxFlex="350px">
     <app-input-card [title]="'Kapazitäten'"
                     [editTemplate]="capacityEdit"
-                    [subtitle]="selectedService"
+                    [subtitle]="selectedService.name"
                     infoText="Platzhalter: was, wenn nicht Kapazität; Einheiten werden in Infraplanung angezeigt ">
       <mat-checkbox disabled [checked]="true">
-        hat Kapazität
+        hat Kapazität?? (hab die bessere Formulierung vergessen)
       </mat-checkbox>
       <table style="margin-top: 10px;">
         <tr>

@@ -1,6 +1,22 @@
 import { Component, OnInit } from '@angular/core';
 
-export const infrastructures = ['Kinderbetreuung', 'Schulen', 'Ärzte', 'Feuerwehr'];
+interface Service {
+  id: number,
+  name: string;
+}
+
+interface Infrastructure {
+  id: number,
+  name: string;
+  services: Service[];
+}
+
+export const mockInfrastructures: Infrastructure[] = [
+  { id: 1, name: 'Kinderbetreuung', services: [{ id: 1, name: 'Kita' }, { id: 2, name: 'Krippe' }]},
+  { id: 2, name: 'Schulen', services: [{ id: 3, name: 'Grundschule' }, { id: 4, name: 'Gymnasium' }]},
+  { id: 3, name: 'Ärzte', services: [{ id: 5, name: 'Allgemeinmedizinerin' }, { id: 6, name: 'Internistin' }, { id: 7, name: 'Hautärztin' }]},
+  { id: 4, name: 'Feuerwehr', services: [{ id: 8, name: 'Brandschutz???' }, { id: 9, name: '????' }]},
+]
 
 @Component({
   selector: 'app-infrastructure',
@@ -8,8 +24,8 @@ export const infrastructures = ['Kinderbetreuung', 'Schulen', 'Ärzte', 'Feuerwe
   styleUrls: ['./infrastructure.component.scss']
 })
 export class InfrastructureComponent implements OnInit {
-  infrastructures = infrastructures
-  selectedInfrastructure = 'Kinderbetreuung'
+  infrastructures: Infrastructure[] = mockInfrastructures;
+  selectedInfrastructure: Infrastructure = mockInfrastructures[0];
 
   constructor() { }
 
