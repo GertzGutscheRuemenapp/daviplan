@@ -609,7 +609,7 @@ mat-icon.warning {
   }
 }
 
-app-legend, .context-bar {
+app-legend, .context-bar, .cat-select {
   mat-expansion-panel.mat-expanded {
     mat-expansion-panel-header {
       background-color: $primary-light !important;
@@ -620,7 +620,7 @@ app-legend, .context-bar {
   }
 }
 
-mat-sidenav, .context-bar, app-legend {
+mat-sidenav, .context-bar, app-legend, .cat-select {
   mat-expansion-panel {
     .mat-expansion-indicator {
       margin-left: -10px;
@@ -636,7 +636,7 @@ mat-sidenav, .context-bar, app-legend {
   }
 }
 
-mat-sidenav, .context-bar, app-legend, .info-text {
+mat-sidenav, .context-bar, app-legend, .info-text, .cat-select {
   mat-expansion-panel {
     box-shadow: none !important;
     padding: 0 !important;
@@ -665,13 +665,13 @@ mat-sidenav, .context-bar, app-legend, .info-text {
   }
 }
 
-app-legend {
+app-legend, .cat-select {
   mat-expansion-panel-header, mat-expansion-panel.mat-expanded mat-expansion-panel-header {
     height: 48px!important;
   }
 }
 
-app-legend, .info-text {
+app-legend, .info-text, .cat-select {
   mat-expansion-panel .mat-expansion-panel-header-title {
     text-transform: uppercase;
   }
@@ -904,5 +904,20 @@ app-map-controls {
   }
   .mat-radio-inner-circle {
     background-color: lightgrey;
+  }
+}
+
+mat-selection-list.categorized {
+  padding-top: 15px;
+  .mat-subheader {
+    text-transform: uppercase;
+    height: 30px;
+    padding: 0 16px;
+  }
+  .mat-list-text {
+    padding-left: 20px !important;
+  }
+  .mat-divider:last-child {
+    display: none;
   }
 }

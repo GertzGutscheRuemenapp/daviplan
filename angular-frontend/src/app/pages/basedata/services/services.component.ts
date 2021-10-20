@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { mockInfrastructures } from "../../administration/infrastructure/infrastructure.component";
+import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
+import { MatDialog } from "@angular/material/dialog";
 
 @Component({
   selector: 'app-services',
@@ -8,13 +10,25 @@ import { mockInfrastructures } from "../../administration/infrastructure/infrast
 })
 export class ServicesComponent implements OnInit {
   infrastructures = mockInfrastructures;
-  selectedInfrastructure = mockInfrastructures[1];
   services = mockInfrastructures[1].services;
   selectedService = mockInfrastructures[1].services[1];
+  @ViewChild('createService') createServiceTemplate?: TemplateRef<any>;
 
-  constructor() { }
+  constructor(private dialog: MatDialog) { }
 
   ngOnInit(): void {
   }
 
+  onCreateService() {
+    let dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '300px',
+      disableClose: true,
+      data: {
+        title: 'Neue Leistung',
+        template: this.createServiceTemplate,
+        closeOnConfirm: false
+      }
+    });
+  }
 }

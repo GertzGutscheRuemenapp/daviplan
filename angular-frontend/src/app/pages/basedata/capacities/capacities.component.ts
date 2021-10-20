@@ -9,7 +9,6 @@ import { MapControl, MapService } from "../../../map/map.service";
 })
 export class CapacitiesComponent implements AfterViewInit, OnDestroy {
   infrastructures = mockInfrastructures;
-  selectedInfrastructure = mockInfrastructures[1];
   services = mockInfrastructures[1].services;
   selectedService = mockInfrastructures[1].services[1];
 
