@@ -27,6 +27,7 @@ import { LocationsComponent } from "./pages/basedata/locations/locations.compone
 import { ServicesComponent } from "./pages/basedata/services/services.component";
 import { CapacitiesComponent } from "./pages/basedata/capacities/capacities.component";
 import { DemandQuotasComponent } from "./pages/basedata/demand-quotas/demand-quotas.component";
+import { IndicatorsComponent } from "./pages/basedata/indicators/indicators.component";
 
 const routes: Routes = [
   {
@@ -141,6 +142,10 @@ const routes: Routes = [
       {
         path: 'nachfragequoten',
         component: DemandQuotasComponent
+      },
+      {
+        path: 'indikatoren',
+        component: IndicatorsComponent
       },
     ]
   },

@@ -1,0 +1,87 @@
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="350px">
+    <app-input-card [title]="'Indikatoren'"
+                    [subtitle]="'Untertitel??'"
+                    infoText="Platzhalter: hinzu, entfernen">
+      <mat-selection-list [multiple]="false"
+                          id="indicator-select">
+        <mat-list-option *ngFor="let indicator of indicators"
+                         (click)="selectedIndicator = indicator"
+                         [selected]="(indicator === selectedIndicator)"
+                         [title]="indicator.name">
+          <div class="option-text">{{indicator.name}}</div>
+        </mat-list-option>
+      </mat-selection-list>
+      <div>
+        <button mat-button color="primary"
+                class="mat-button-dv">
+          <mat-icon>add</mat-icon>hinzufügen
+        </button>
+        <button mat-button color="primary"
+                style="float: right;"
+                class="mat-button-dv">
+          <!--                [disabled]="selectedQuota==='aktuelle Quoten'"-->
+          <mat-icon>close</mat-icon>entfernen
+        </button>
+      </div>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="1100px">
+    <app-input-card [title]="'Indikatordefinition'"
+                    [editTemplate]="indicatorEdit"
+                    infoText="Platzhalter: ??">
+      <div style="width: 100%; display: flex;">
+        <div style="width: 40%; padding-right: 15px;">
+          <table>
+            <tr>
+              <td i18n>(Kurz)Name</td>
+              <td>{{selectedIndicator.name}}</td>
+            </tr>
+            <tr>
+              <td i18n>Beschreibung</td>
+              <td>{{selectedIndicator.description}}</td>
+            </tr>
+            <tr>
+              <td i18n>Leistung(en)</td>
+              <td>Kita</td>
+            </tr>
+          </table>
+        </div>
+        <div style="width: 60%;">
+          <table>
+            <tr>
+              <td i18n>Perspektive</td>
+              <td>aus Sicht der Einrichtungen</td>
+            </tr>
+            <tr>
+              <td i18n>Gegenstand der Bewertung</td>
+              <td>Umfang der Nachfrage</td>
+            </tr>
+            <tr>
+              <td i18n>Struktur der Indikatordefinition</td>
+              <td>Nachfragende nach betrachteter Leistung in einer Gebietseinheit pro Einrichtung mit dieser Leistung in der gleichen Gebietseinheit</td>
+            </tr>
+            <tr>
+              <td i18n>Indikator wird ermittelt für</td>
+              <td>jede Gebietseinheit</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+      <div after>
+        <div id="base-indicators-map" class="map-container">
+          <app-map-controls></app-map-controls>
+          <app-side-toggle id="legend"
+                           icon="layers"
+                           direction="left">
+            <app-legend target="base-indicators-map"></app-legend>
+          </app-side-toggle>
+        </div>
+      </div>
+    </app-input-card>
+  </div>
+</div>
+
+<ng-template #indicatorEdit>
+  ToDo
+</ng-template>

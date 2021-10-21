@@ -10,7 +10,7 @@
   <mat-form-field appearance="outline" class="small">
     <mat-select disableOptionCentering panelClass="indicator-panel" value="2">
       <mat-optgroup label="Meine Indikatoren">
-        <mat-option value="1"
+        <mat-option value="0"
                     class="own-option"
                     tooltip="Mein Testindikator"
                     theme="light"
@@ -39,21 +39,14 @@
         </mat-option>
       </mat-optgroup>
       <mat-optgroup label="Vorgegebene Indikatoren">
-        <mat-option value="2"
-                    tooltip="U3-Kind mit Betreuungswunsch pro Kita mit Krippe"
+        <mat-option *ngFor="let indicator of indicators"
+                    value="{{indicator.id}}"
+                    tooltip="{{indicator.description}}"
                     theme="light"
                     placement="right"
                     maxWidth="400px"
                     [hideDelay]="0">
-          Kita U3 Nachfrage
-        </mat-option>
-        <mat-option value="3"
-                    tooltip="Anzahl der U3-Kinder mit Betreuungswunsch, für die diese Einrichtung am besten erreichbar ist"
-                    theme="light"
-                    placement="right"
-                    maxWidth="400px"
-                    [hideDelay]="0">
-          Kita U3 Erreichbarkeit
+          {{indicator.name}}
         </mat-option>
       </mat-optgroup>
     </mat-select>
