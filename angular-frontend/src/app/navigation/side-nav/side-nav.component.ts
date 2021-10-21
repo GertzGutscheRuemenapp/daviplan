@@ -7,6 +7,8 @@ import { CookieService } from "../../helpers/cookies.service";
 type Link = {
   name: string;
   url: string;
+  icon?: string;
+  davicon?: string;
   children: Link[];
 }
 
