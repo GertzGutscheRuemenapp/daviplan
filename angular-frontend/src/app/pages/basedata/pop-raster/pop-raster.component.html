@@ -1,7 +1,8 @@
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="352px">
     <app-input-card [title]="'Raster'"
-                    [editTemplate]="rasterEdit">
+                    [editTemplate]="rasterEdit"
+                    infoText="Platzhalter: braucht es hier eine Hilfe?">
       <table>
         <tr>
           <td i18n>Name</td>
@@ -26,13 +27,14 @@
       </div>
       <button mat-mini-fab color="primary"
               aria-label="Daten herunterladen" title="Daten herunterladen"
-              style="position: absolute; right: 15px; bottom: 15px; box-shadow: none;">
+              style="position: absolute; right: 15px; bottom: 55px; box-shadow: none;">
         <mat-icon>download</mat-icon>
       </button>
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="800px">
-    <app-input-card [title]="'Rasteransicht'">
+    <app-input-card [title]="'Rasteransicht'"
+                    infoText="Platzhalter: braucht es hier eine Hilfe?">
       <div id="base-raster-map" class="map-container">
         <app-map-controls></app-map-controls>
         <app-side-toggle id="legend"

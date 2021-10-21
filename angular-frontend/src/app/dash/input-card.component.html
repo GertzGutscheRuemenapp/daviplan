@@ -3,6 +3,15 @@
   <span *ngIf="subtitle" class="subtitle1 sub">{{subtitle}}</span>
   <ng-content></ng-content>
   <ng-container *ngTemplateOutlet="previewTemplate;"></ng-container>
+  <div>
+    <button #editButton
+            *ngIf="editTemplate && !editButton"
+            class="mat-button-dv"
+            mat-button color="primary"
+            style="margin-top: 15px; margin-left: -2px;" i18n>
+      <mat-icon>edit</mat-icon>editieren
+    </button>
+  </div>
   <div *ngIf="infoText" class="info-text" style="margin-top: 15px;">
     <mat-expansion-panel [expanded]="infoExpanded">
       <mat-expansion-panel-header>
@@ -11,15 +20,6 @@
       </mat-expansion-panel-header>
       <span [innerHTML]="infoText"></span>
     </mat-expansion-panel>
-  </div>
-  <div>
-    <button #editButton
-            *ngIf="editTemplate && !editButton"
-            class="mat-button-dv"
-            mat-button color="primary"
-            style="margin-top: 10px;" i18n>
-      <mat-icon>edit</mat-icon>editieren
-    </button>
   </div>
   <ng-content select="[after]"></ng-content>
 </mat-card>

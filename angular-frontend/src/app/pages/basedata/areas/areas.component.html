@@ -44,7 +44,8 @@
         <br>
         <app-input-card [title]="'Eigenschaften'"
                         [borderless]="true"
-                        [editTemplate]="propertiesEdit">
+                        [editTemplate]="propertiesEdit"
+                        infoText="Platzhalter: braucht es hier eine Hilfe?">
           <table *ngIf="selectedAreaLevel">
             <tr>
               <td i18n>Name</td>
@@ -60,10 +61,9 @@
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="1000px">
-    <app-input-card #dataEdit
-                    [title]="'Daten'"
+    <app-input-card [title]="'Daten'"
                     [dialogTitle]="'Kontakt E-Mail ändern'"
-                    infoText="">
+                    infoText="Platzhalter: braucht es hier eine Hilfe?">
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
           <span class="subtitle1"
