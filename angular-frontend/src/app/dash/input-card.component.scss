@@ -104,12 +104,15 @@ mat-card {
 
     $primary-prev: map-get($blue-palette, 300);
 
-    td:nth-child(2) {
+    td:not(:first-child) {
       color: $primary-prev;
+    }
+    th {
+      color: grey;
     }
 
     .mat-checkbox {
-      padding-left: 5px;
+      //padding-left: 5px;
 
       .mat-checkbox-label {
         color: #00000061 !important;
@@ -145,6 +148,14 @@ mat-card {
       overflow-y: auto;
       box-sizing: content-box;
       padding-bottom: 8px;
+      .option-text {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+/*      .star-option:hover, .star-option[aria-selected=true] {
+        background-color: #c8ffd4 !important;
+      }*/
     }
   }
   app-input-card, confirm-dialog {
