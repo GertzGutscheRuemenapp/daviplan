@@ -50,8 +50,7 @@
                     infoText="Platzhalter: braucht es hier eine Hilfe?">
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
-          <span class="subtitle1"
-                style="color: #00000061;">
+          <span class="subtitle1 sub">
             {{selectedPrognosis}}
           </span>
           <div style="margin-top: 15px; display: flex;">
@@ -100,7 +99,7 @@
           </app-side-toggle>
           <app-side-toggle id="age-groups"
                            icon="group">
-            <div style="padding: 15px;">
+            <div style="padding: 15px; min-width: 200px;">
               <span class="subtitle1" i18n>Altersgruppen</span>
               <br>
               <mat-checkbox color="primary" [checked]="true">0 bis unter 19 Jahre</mat-checkbox>

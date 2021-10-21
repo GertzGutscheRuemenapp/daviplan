@@ -4,29 +4,31 @@
     <mat-expansion-panel-header>
       <mat-panel-title>
         <div class="mini-fab-icon">
-          <mat-icon class="material-icons-outlined">show_chart</mat-icon>
+          <mat-icon class="material-icons-outlined">family_restroom</mat-icon>
         </div>
         Thema
       </mat-panel-title>
     </mat-expansion-panel-header>
-    <mat-form-field appearance="outline" class="small">
-      <mat-select disableOptionCentering [(ngModel)]="theme">
-        <mat-option value="natur">
-          Natürlicher Saldo
-        </mat-option>
-        <mat-option value="wanderung">
-          Wanderung
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-    <ul style="list-style-type: none; margin: 0 -10px;" [style.display]="(theme==='wanderung')? 'block' : 'none'">
-      <li><mat-checkbox [checked]="true" color="primary">Zuzüge</mat-checkbox></li>
-      <li><mat-checkbox [checked]="true" color="primary">Fortzüge</mat-checkbox></li>
-    </ul>
-    <ul style="list-style-type: none; margin: 0 -10px;" [style.display]="(theme==='natur')? 'block' : 'none'">
-      <li><mat-checkbox [checked]="true" color="primary">Geburten</mat-checkbox></li>
-      <li><mat-checkbox [checked]="false" color="primary">Sterbefälle</mat-checkbox></li>
-    </ul>
+    <div style="padding-bottom: 10px;">
+      <mat-form-field appearance="outline" class="small">
+        <mat-select disableOptionCentering [(ngModel)]="theme">
+          <mat-option value="natur">
+            Natürlicher Saldo
+          </mat-option>
+          <mat-option value="wanderung">
+            Wanderung
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <div class="sub-select-wrapper" [style.display]="(theme==='wanderung')? 'block' : 'none'">
+        <mat-checkbox [checked]="true" color="primary">Zuzüge</mat-checkbox><br>
+        <mat-checkbox [checked]="true" color="primary">Fortzüge</mat-checkbox>
+      </div>
+      <div class="sub-select-wrapper" [style.display]="(theme==='natur')? 'block' : 'none'">
+        <mat-checkbox [checked]="true" color="primary">Zuzüge</mat-checkbox><br>
+        <mat-checkbox [checked]="false" color="primary">Sterbefälle</mat-checkbox>
+      </div>
+    </div>
   </mat-expansion-panel>
 </mat-sidenav>
 <button type="button"

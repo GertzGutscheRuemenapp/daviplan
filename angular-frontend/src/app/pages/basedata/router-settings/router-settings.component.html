@@ -1,0 +1,144 @@
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="350px">
+    <app-input-card [title]="'Infrastrukturen'"
+                    infoText="Platzhalter Erklärung: Infrastruktur auswählen, erzeugt woanders (Administration)"
+                    subtitle="Untertitel??">
+      <mat-selection-list [multiple]="false"
+                          id="router-select">
+        <mat-list-option *ngFor="let router of routers"
+                         (click)="selectedRouter = router"
+                         [selected]="router === selectedRouter">
+          <div class="option-text">{{router}}</div>
+        </mat-list-option>
+      </mat-selection-list>
+      <div style="margin-top: 10px;">
+        <button mat-button color="primary"
+                class="mat-button-dv">
+          <mat-icon>add</mat-icon>hinzufügen
+        </button>
+        <button mat-button color="primary"
+                style="margin-left: 40px;"
+                class="mat-button-dv">
+          <mat-icon>close</mat-icon>entfernen
+        </button>
+      </div>
+    </app-input-card>
+  </div>
+  <div style="display: flex; flex-flow: wrap; max-width: 900px;">
+    <div style="width: 300px;">
+      <app-input-card [title]="'OpenStreetMap Daten'"
+                      infoText="Platzhalter Erklärung: woher? was ist das? Vorgabe?"
+                      [subtitle]="selectedRouter">
+        <div style="height: 80px;">
+          <table>
+            <tr>
+              <td>Datei</td>
+              <td>germany.osm.pbf</td>
+            </tr>
+            <tr>
+              <td>Upload</td>
+              <td>31.05.2022</td>
+            </tr>
+          </table>
+        </div>
+        <div>
+          <button mat-button class="mat-button-dv" color="primary">
+            <mat-icon style="transform: scaleX(-1);">refresh</mat-icon> Auf Vorgabe zurücksetzen
+          </button>
+        </div>
+        <div>
+          <button mat-button class="mat-button-dv" color="primary">
+            <mat-icon>upload</mat-icon> Datei hochladen
+          </button>
+        </div>
+      </app-input-card>
+    </div>
+    <div style="width: 300px;">
+      <app-input-card [title]="'Höhendaten'"
+                      [subtitle]="'optional'"
+                      infoText="Platzhalter Erklärung: woher? was ist das? Vorgabe?">
+        <div style="height: 80px;">
+          <table>
+            <tr>
+              <td>Datei</td>
+              <td>Vorgabe (deutschlandweite Aster)</td>
+            </tr>
+            <tr>
+              <td>Upload</td>
+              <td>-</td>
+            </tr>
+          </table>
+        </div>
+        <div>
+          <button mat-button class="mat-button-dv" color="primary">
+            <mat-icon style="transform: scaleX(-1);">refresh</mat-icon> Auf Vorgabe zurücksetzen
+          </button>
+        </div>
+        <div>
+          <button mat-button class="mat-button-dv" color="primary">
+            <mat-icon>upload</mat-icon> Datei hochladen
+          </button>
+        </div>
+      </app-input-card>
+    </div>
+    <div style="width: 300px;">
+      <app-input-card [title]="'ÖPNV GTFS-Feed'"
+                      [subtitle]="'optional'"
+                      infoText="Platzhalter Erklärung: woher? was ist das?">
+        <div style="height: 80px;">
+          <table>
+            <tr>
+              <td>Datei</td>
+              <td>-</td>
+            </tr>
+            <tr>
+              <td>Upload</td>
+              <td>-</td>
+            </tr>
+          </table>
+        </div>
+        <div>
+          <button mat-button class="mat-button-dv" color="primary">
+            <mat-icon>close</mat-icon> entfernen
+          </button>
+        </div>
+        <div>
+          <button mat-button class="mat-button-dv" color="primary">
+            <mat-icon>upload</mat-icon> Datei hochladen
+          </button>
+        </div>
+      </app-input-card>
+    </div>
+    <div fxLayout="column" fxFlex="900px">
+      <app-input-card [title]="'Router'"
+                      infoText="Platzhalter Erklärung: baut den Router, wozu?">
+        <div style="width: 100%; display: flex;">
+          <div style="width: 40%;">
+            <table>
+              <tr>
+                <td style="min-width: 130px;; white-space: normal;">Buffer um das Projektgebiet</td>
+                <td>10km</td>
+              </tr>
+              <tr>
+                <td>gebaut am</td>
+                <td>31.05.2022</td>
+              </tr>
+              <tr>
+                <td>von</td>
+                <td>Sascha Schmidt</td>
+              </tr>
+            </table>
+            <div style="margin-top: 50px;">
+              <button mat-flat-button color="primary">
+                <mat-icon>build</mat-icon> Router bauen
+              </button>
+            </div>
+          </div>
+          <div id="log-window" style="width: 60%">
+            <app-log></app-log>
+          </div>
+        </div>
+      </app-input-card>
+    </div>
+  </div>
+</div>

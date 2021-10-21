@@ -62,9 +62,12 @@ $diagram-bar-width: 30%;
   position: fixed;
 }
 
-::ng-deep .context-bar {
+::ng-deep app-population .context-bar {
   mat-form-field, .sub-select-box {
     width: 230px;
+  }
+  .sub-select-wrapper {
+    width: calc(#{$context-bar-width} - 110px);
   }
 }
 

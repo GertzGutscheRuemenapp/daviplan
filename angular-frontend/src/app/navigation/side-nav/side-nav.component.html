@@ -10,6 +10,8 @@
            mat-list-item
            routerLinkActive="active-link"
            [routerLink]="'/'+item.url">
+          <div *ngIf="item.davicon" class="davicon {{item.davicon}}"></div>
+          <mat-icon *ngIf="!item.davicon" class="material-icons-outlined">{{item.icon}}</mat-icon>
           {{ item.name }}
         </a>
         <mat-expansion-panel *ngIf="item.children.length > 0"
@@ -17,10 +19,18 @@
           <mat-expansion-panel-header
             (click)="cookies.toggle(prefix + item.name)">
             <mat-panel-title>
+              <div *ngIf="item.davicon" class="davicon {{item.davicon}}"></div>
+              <mat-icon *ngIf="!item.davicon" class="material-icons-outlined">{{item.icon}}</mat-icon>
               {{ item.name }}
             </mat-panel-title>
           </mat-expansion-panel-header>
-          <a *ngFor="let subitem of item.children" mat-list-item routerLinkActive="active-link" [routerLink]="'/'+subitem.url"> {{ subitem.name }} </a>
+          <ng-container *ngFor="let subitem of item.children">
+            <a mat-list-item routerLinkActive="active-link" [routerLink]="'/'+subitem.url">
+              <div *ngIf="subitem.davicon" class="davicon {{subitem.davicon}}"></div>
+              <mat-icon *ngIf="!subitem.davicon" class="material-icons-outlined">{{subitem.icon}}</mat-icon>
+              {{ subitem.name }}
+            </a>
+          </ng-container>
         </mat-expansion-panel>
       </div>
     </mat-nav-list>
