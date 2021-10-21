@@ -24,20 +24,12 @@
       </div>
     </app-input-card>
   </div>
-  <div fxLayout="column" fxFlex="300px">
-    <app-input-card [title]="'Routereinstellungen'"
-                    infoText="Platzhalter Erklärung: was ist ein Router?">
-      <table>
-        <tr>
-          <td>Name</td>
-          <td>{{selectedRouter}}</td>
-        </tr>
-      </table>
-      <div after>
-        <mat-divider></mat-divider>
-        <app-input-card [subtitle]="'OpenStreetMap Daten'"
-                        [borderless]="true"
-                        infoText="Platzhalter Erklärung: woher? was ist das? Vorgabe?">
+  <div style="display: flex; flex-flow: wrap; max-width: 900px;">
+    <div style="width: 300px;">
+      <app-input-card [title]="'OpenStreetMap Daten'"
+                      infoText="Platzhalter Erklärung: woher? was ist das? Vorgabe?"
+                      [subtitle]="selectedRouter">
+        <div style="height: 80px;">
           <table>
             <tr>
               <td>Datei</td>
@@ -48,16 +40,24 @@
               <td>31.05.2022</td>
             </tr>
           </table>
-          <div>
-            <button mat-flat-button color="primary">
-              <mat-icon>upload</mat-icon> Datei hochladen
-            </button>
-          </div>
-        </app-input-card>
-        <mat-divider></mat-divider>
-        <app-input-card [subtitle]="'Höhendaten'"
-                        [borderless]="true"
-                        infoText="Platzhalter Erklärung: woher? was ist das? Vorgabe?">
+        </div>
+        <div>
+          <button mat-button class="mat-button-dv" color="primary">
+            <mat-icon style="transform: scaleX(-1);">refresh</mat-icon> Auf Vorgabe zurücksetzen
+          </button>
+        </div>
+        <div>
+          <button mat-button class="mat-button-dv" color="primary">
+            <mat-icon>upload</mat-icon> Datei hochladen
+          </button>
+        </div>
+      </app-input-card>
+    </div>
+    <div style="width: 300px;">
+      <app-input-card [title]="'Höhendaten'"
+                      [subtitle]="'optional'"
+                      infoText="Platzhalter Erklärung: woher? was ist das? Vorgabe?">
+        <div style="height: 80px;">
           <table>
             <tr>
               <td>Datei</td>
@@ -68,14 +68,24 @@
               <td>-</td>
             </tr>
           </table>
-          <button mat-flat-button color="primary">
-            <mat-icon>upload</mat-icon> Daten hochladen
+        </div>
+        <div>
+          <button mat-button class="mat-button-dv" color="primary">
+            <mat-icon style="transform: scaleX(-1);">refresh</mat-icon> Auf Vorgabe zurücksetzen
           </button>
-        </app-input-card>
-        <mat-divider></mat-divider>
-        <app-input-card [subtitle]="'ÖPNV GTFS-Feed'"
-                        [borderless]="true"
-                        infoText="Platzhalter Erklärung: woher? was ist das?">
+        </div>
+        <div>
+          <button mat-button class="mat-button-dv" color="primary">
+            <mat-icon>upload</mat-icon> Datei hochladen
+          </button>
+        </div>
+      </app-input-card>
+    </div>
+    <div style="width: 300px;">
+      <app-input-card [title]="'ÖPNV GTFS-Feed'"
+                      [subtitle]="'optional'"
+                      infoText="Platzhalter Erklärung: woher? was ist das?">
+        <div style="height: 80px;">
           <table>
             <tr>
               <td>Datei</td>
@@ -86,37 +96,49 @@
               <td>-</td>
             </tr>
           </table>
-          <button mat-flat-button color="primary">
-            <mat-icon>upload</mat-icon> Daten hochladen
+        </div>
+        <div>
+          <button mat-button class="mat-button-dv" color="primary">
+            <mat-icon>close</mat-icon> entfernen
           </button>
-        </app-input-card>
-      </div>
-    </app-input-card>
-  </div>
-  <div fxLayout="column" fxFlex="800px">
-    <app-input-card [title]="'Router'"
-                    infoText="Platzhalter Erklärung: baut den Router, wozu?">
-      <div style="width: 100%; display: flex;">
-        <div style="width: 40%;">
-          <table>
-            <tr>
-              <td style="min-width: 130px;; white-space: normal;">Buffer um das Projektgebiet</td>
-              <td>10km</td>
-            </tr>
-            <tr>
-              <td>gebaut am</td>
-              <td>31.05.2022</td>
-            </tr>
-            <tr>
-              <td>von</td>
-              <td>Sascha Schmidt</td>
-            </tr>
-          </table>
         </div>
-        <div id="log-window" style="width: 60%">
-          <app-log></app-log>
+        <div>
+          <button mat-button class="mat-button-dv" color="primary">
+            <mat-icon>upload</mat-icon> Datei hochladen
+          </button>
         </div>
-      </div>
-    </app-input-card>
+      </app-input-card>
+    </div>
+    <div fxLayout="column" fxFlex="900px">
+      <app-input-card [title]="'Router'"
+                      infoText="Platzhalter Erklärung: baut den Router, wozu?">
+        <div style="width: 100%; display: flex;">
+          <div style="width: 40%;">
+            <table>
+              <tr>
+                <td style="min-width: 130px;; white-space: normal;">Buffer um das Projektgebiet</td>
+                <td>10km</td>
+              </tr>
+              <tr>
+                <td>gebaut am</td>
+                <td>31.05.2022</td>
+              </tr>
+              <tr>
+                <td>von</td>
+                <td>Sascha Schmidt</td>
+              </tr>
+            </table>
+            <div style="margin-top: 50px;">
+              <button mat-flat-button color="primary">
+                <mat-icon>build</mat-icon> Router bauen
+              </button>
+            </div>
+          </div>
+          <div id="log-window" style="width: 60%">
+            <app-log></app-log>
+          </div>
+        </div>
+      </app-input-card>
+    </div>
   </div>
 </div>
