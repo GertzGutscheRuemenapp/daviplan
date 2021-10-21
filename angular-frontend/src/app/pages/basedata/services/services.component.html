@@ -49,6 +49,8 @@
         </tr>
       </table>
     </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="400px">
     <app-input-card [title]="'Kapazitäten'"
                     [editTemplate]="capacityEdit"
                     [subtitle]="selectedService.name"
@@ -67,6 +69,25 @@
         </tr>
       </table>
     </app-input-card>
+    <app-input-card [title]="'Nachfrage'"
+                    [editTemplate]="demandEdit"
+                    [subtitle]="selectedService.name"
+                    infoText="Platzhalter: Quote hat logische Auswirkungen, Nachfragende Einheit nur Anzeige in Infraplanung">
+      <table style="margin-top: 10px;">
+        <tr>
+          <td>Nachfragende Einzahl</td>
+          <td>Schüler*in</td>
+        </tr>
+        <tr>
+          <td>Nachfragende Mehrzahl</td>
+          <td>Schüler*innen</td>
+        </tr>
+        <tr>
+          <td>Einheit Quote</td>
+          <td>Prozent</td>
+        </tr>
+      </table>
+    </app-input-card>
   </div>
 </div>
 
@@ -75,6 +96,10 @@
 </ng-template>
 
 <ng-template #capacityEdit>
+  ToDo
+</ng-template>
+
+<ng-template #demandEdit>
   ToDo
 </ng-template>
 
