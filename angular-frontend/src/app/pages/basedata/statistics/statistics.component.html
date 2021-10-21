@@ -9,7 +9,7 @@
           <td>02.06.2022</td>
         </tr>
       </table>
-      <div after style="margin-top: 20px">
+      <div style="margin-top: 10px">
         <button mat-flat-button color="primary" i18n>
           <mat-icon>refresh</mat-icon> Abrufen
         </button>
@@ -35,8 +35,8 @@
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="800px">
-    <app-input-card #dataEdit
-                    [title]="'Daten'">
+    <app-input-card [title]="'Daten'"
+                    infoText="Platzhalter: braucht es hier eine Hilfe?">
       <span class="subtitle1"
             style="color: #00000061;">
         {{selectedYear}}

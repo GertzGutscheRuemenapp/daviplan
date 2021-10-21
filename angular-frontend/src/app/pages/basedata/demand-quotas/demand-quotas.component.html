@@ -39,7 +39,7 @@
     </app-input-card>
     <app-input-card [title]="'Nachfragequoten-Sets'"
                     [subtitle]="selectedService.name"
-                    infoText="Platzhalter: time slider verschieben zur Visualisierung; kein bulk upload, manuell editieren">
+                    infoText="Platzhalter: hinzu, entfernen, status quo setzen">
       <mat-selection-list [multiple]="false"
                           id="quota-select">
         <mat-list-option *ngFor="let quota of quotas"
@@ -73,7 +73,7 @@
     <app-input-card [title]="'Nachfragequoten-Set'"
                     [subtitle]="selectedQuota===statusQuoQuota? 'Status Quo': ''"
                     [editTemplate]="quotaEdit"
-                    infoText="Platzhalter: ?">
+                    infoText="Platzhalter: time slider verschieben zur Visualisierung; kein bulk upload, manuell editieren">
       <table>
         <tr>
           <td i18n>Name</td>
