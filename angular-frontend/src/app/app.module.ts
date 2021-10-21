@@ -76,6 +76,9 @@ import { ServicesComponent } from './pages/basedata/services/services.component'
 import { CapacitiesComponent } from './pages/basedata/capacities/capacities.component';
 import { DemandQuotasComponent } from './pages/basedata/demand-quotas/demand-quotas.component';
 import { IndicatorsComponent } from './pages/basedata/indicators/indicators.component';
+import { RouterSettingsComponent } from './pages/basedata/router-settings/router-settings.component';
+import { ReachabilityMatrixComponent } from './pages/basedata/reachability-matrix/reachability-matrix.component';
+import { ExternalLayersComponent } from './pages/basedata/external-layers/external-layers.component';
 
 @NgModule({
   declarations: [
@@ -120,7 +123,10 @@ import { IndicatorsComponent } from './pages/basedata/indicators/indicators.comp
     ServicesComponent,
     CapacitiesComponent,
     DemandQuotasComponent,
-    IndicatorsComponent
+    IndicatorsComponent,
+    RouterSettingsComponent,
+    ReachabilityMatrixComponent,
+    ExternalLayersComponent
   ],
     imports: [
         BrowserModule,

@@ -38,11 +38,6 @@ mat-card {
   color: $accent;
 }
 
-.sub {
-  color: #00000061;
-  margin-bottom: 10px;
-}
-
 
 ::ng-deep {
   app-input-card {
@@ -50,6 +45,13 @@ mat-card {
     h3 {
       font-weight: bold !important;
       margin-bottom: 0 !important;
+    }
+
+    .sub {
+      //color: #00000061;
+      //color: $light-black;
+      color: grey;
+      margin-bottom: 10px;
     }
 
     .text {
