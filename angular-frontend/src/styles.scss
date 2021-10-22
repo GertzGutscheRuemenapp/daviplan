@@ -617,7 +617,7 @@ mat-icon.warning {
   }
 }
 
-app-legend, .context-bar, .cat-select {
+app-legend, .context-bar, .tree-select {
   mat-expansion-panel.mat-expanded {
     mat-expansion-panel-header {
       background-color: $primary-light !important;
@@ -628,7 +628,7 @@ app-legend, .context-bar, .cat-select {
   }
 }
 
-mat-sidenav, .context-bar, app-legend, .cat-select {
+mat-sidenav, .context-bar, app-legend, .tree-select {
   mat-expansion-panel {
     .mat-expansion-indicator {
       margin-left: -10px;
@@ -644,7 +644,7 @@ mat-sidenav, .context-bar, app-legend, .cat-select {
   }
 }
 
-mat-sidenav, .context-bar, app-legend, .info-text, .cat-select {
+mat-sidenav, .context-bar, app-legend, .info-text, .tree-select {
   mat-expansion-panel {
     box-shadow: none !important;
     padding: 0 !important;
@@ -673,13 +673,13 @@ mat-sidenav, .context-bar, app-legend, .info-text, .cat-select {
   }
 }
 
-app-legend, .cat-select {
+app-legend, .tree-select {
   mat-expansion-panel-header, mat-expansion-panel.mat-expanded mat-expansion-panel-header {
     height: 48px!important;
   }
 }
 
-app-legend, .info-text, .cat-select {
+app-legend, .info-text, .tree-select {
   mat-expansion-panel .mat-expansion-panel-header-title {
     text-transform: uppercase;
   }
