@@ -1,0 +1,41 @@
+<!--derived from https://material.angular.io/components/tree/api-->
+
+<mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
+  <mat-tree-node *matTreeNodeDef="let node" [ngClass]="{selected: node.isSelected, checked: checklistSelection.isSelected(node)}" matTreeNodeToggle matTreeNodePadding>
+    <div class="node" (click)="select(node)">
+      <mat-checkbox class="checklist-leaf-node"
+                    color="primary"
+                    [checked]="checklistSelection.isSelected(node)"
+                    (change)="todoLeafItemSelectionToggle(node)"></mat-checkbox>
+      <label class="node-label">{{node.name}}</label>
+    </div>
+  </mat-tree-node>
+
+<!--  <mat-tree-node *matTreeNodeDef="let node; when: hasNoContent" matTreeNodePadding>
+    <mat-form-field appearance="fill">
+      <mat-label>New item...</mat-label>
+      <input matInput #itemValue placeholder="Ex. Lettuce">
+    </mat-form-field>
+    <button mat-button (click)="saveNode(node, itemValue.value)">Save</button>
+  </mat-tree-node>-->
+
+  <mat-tree-node *matTreeNodeDef="let node; when: hasChild" [ngClass]="{selected: node.isSelected, checked: checklistSelection.isSelected(node)}" matTreeNodePadding>
+    <div class="top-node" (click)="select(node)">
+      <button class="toggle-tree-node" mat-icon-button matTreeNodeToggle
+              [attr.aria-label]="'Toggle ' + node.name">
+        <mat-icon class="mat-icon-rtl-mirror">
+          {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
+        </mat-icon>
+      </button>
+      <mat-checkbox color="primary"
+                    [checked]="descendantsAllSelected(node)"
+                    [indeterminate]="descendantsPartiallySelected(node)"
+                    (change)="todoItemSelectionToggle(node)"></mat-checkbox>
+      <label class="node-label">{{node.name}}</label>
+    </div>
+    <button class="add-item-button" color="primary"
+            mat-icon-button (click)="addNewItem(node)"
+            title="Layer zur Gruppe hinzufügen"><mat-icon>add</mat-icon>
+    </button>
+  </mat-tree-node>
+</mat-tree>

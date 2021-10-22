@@ -1,24 +1,26 @@
 <div fxLayout="row wrap">
-  <div fxLayout="column" fxFlex="350px">
+  <div fxLayout="column" fxFlex="450px">
     <app-input-card [title]="'Layer'"
                     [subtitle]="'Untertitel??'"
                     infoText="Platzhalter: WMS, hinzu, entfernen">
-      <div id="layer-select" class="tree-select">
-        <ng-container *ngFor="let group of layerGroups">
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                {{group.name}}
-              </mat-panel-title>
-            </mat-expansion-panel-header>
-            <!--      <div class="legend-entry" *ngIf="editMode">
-                    <div class="legend-layer-control" style="text-transform: uppercase; margin-left: auto; color: #00000061;" i18n>Anzeige</div>
-                  </div>-->
-            <div *ngFor="let layer of group.layers">
-              {{layer.name}}
-            </div>
-          </mat-expansion-panel>
-        </ng-container>
+      <div style="display: inline-flex;">
+        <div id="layer-select">
+          <app-check-tree [items]="layerGroups"></app-check-tree>
+        </div>
+        <div class="order-controls">
+          <button mat-icon-button>
+            <mat-icon>expand_less</mat-icon>
+          </button>
+          <button mat-icon-button>
+            <mat-icon>expand_more</mat-icon>
+          </button>
+        </div>
+      </div>
+      <div style="margin-top: 10px;">
+        <button mat-button color="primary"
+                class="mat-button-dv" i18n>
+          <mat-icon>add</mat-icon>Layergruppe hinzufügen
+        </button>
       </div>
     </app-input-card>
   </div>

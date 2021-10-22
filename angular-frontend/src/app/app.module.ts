@@ -79,6 +79,8 @@ import { IndicatorsComponent } from './pages/basedata/indicators/indicators.comp
 import { RouterSettingsComponent } from './pages/basedata/router-settings/router-settings.component';
 import { ReachabilityMatrixComponent } from './pages/basedata/reachability-matrix/reachability-matrix.component';
 import { ExternalLayersComponent } from './pages/basedata/external-layers/external-layers.component';
+import { CheckTreeComponent } from './elements/check-tree/check-tree.component';
+import { MatTreeModule } from "@angular/material/tree";
 
 @NgModule({
   declarations: [
@@ -126,7 +128,8 @@ import { ExternalLayersComponent } from './pages/basedata/external-layers/extern
     IndicatorsComponent,
     RouterSettingsComponent,
     ReachabilityMatrixComponent,
-    ExternalLayersComponent
+    ExternalLayersComponent,
+    CheckTreeComponent
   ],
     imports: [
         BrowserModule,
@@ -162,7 +165,8 @@ import { ExternalLayersComponent } from './pages/basedata/external-layers/extern
         MatRadioModule,
         DragDropModule,
         TooltipModule,
-        NgbModule
+        NgbModule,
+        MatTreeModule
     ],
   providers: [
     [CookieService],
