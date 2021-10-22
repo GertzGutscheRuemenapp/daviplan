@@ -8,12 +8,30 @@
   .mat-toolbar {
     background: inherit;
   }
+  .mat-icon, .davicon {
+    color: $accent;
+  }
+/*  mat-expansion-panel-header {
+    .mat-icon, .davicon {
+      color: grey;
+    }
+  }*/
+  .active-link {
+    .mat-icon, .davicon {
+      color: white;
+    }
+  }
   .mat-icon {
     margin-right: 5px;
   }
   .davicon {
     font-size: 32px;
     margin-left: -4px;
+  }
+  .subitem:not(.active-link) {
+    .mat-icon, .davicon {
+      color: lightgrey;
+    }
   }
 }
 
