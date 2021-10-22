@@ -43,8 +43,8 @@ mat-card {
   app-input-card {
 
     h3 {
-      font-weight: bold !important;
-      margin-bottom: 0 !important;
+      font-weight: bold;
+      margin-bottom: 0;
     }
 
     .sub {
@@ -117,23 +117,23 @@ mat-card {
       //padding-left: 5px;
 
       .mat-checkbox-label {
-        color: #00000061 !important;
+        color: #00000061;
         white-space: normal;
       }
 
       .mat-checkbox-frame {
-        border-color: lightgrey !important;
+        border-color: lightgrey;
       }
     }
 
-    .mat-checkbox-checked {
-      .mat-checkbox-label {
-        color: $primary-prev !important;
-      }
-
+    .mat-checkbox-disabled.mat-checkbox-checked, .mat-checkbox-checked {
       .mat-checkbox-background {
-        background-color: $primary-prev !important;
+        background-color: $primary-prev;
       }
+    }
+
+    .mat-checkbox-checked .mat-checkbox-label {
+        color: $primary-prev;
     }
 
     .dotted-fill {

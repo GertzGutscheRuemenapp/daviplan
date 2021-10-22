@@ -1,1 +1,27 @@
-<p>external-layers works!</p>
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="450px">
+    <app-input-card [title]="'Layer'"
+                    [subtitle]="'Untertitel??'"
+                    infoText="Platzhalter: WMS, hinzu, entfernen">
+      <div style="display: inline-flex;">
+        <div id="layer-select">
+          <app-check-tree [items]="layerGroups"></app-check-tree>
+        </div>
+        <div class="order-controls">
+          <button mat-icon-button>
+            <mat-icon>expand_less</mat-icon>
+          </button>
+          <button mat-icon-button>
+            <mat-icon>expand_more</mat-icon>
+          </button>
+        </div>
+      </div>
+      <div style="margin-top: 10px;">
+        <button mat-button color="primary"
+                class="mat-button-dv" i18n>
+          <mat-icon>add</mat-icon>Layergruppe hinzufügen
+        </button>
+      </div>
+    </app-input-card>
+  </div>
+</div>

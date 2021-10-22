@@ -25,7 +25,7 @@
             </mat-panel-title>
           </mat-expansion-panel-header>
           <ng-container *ngFor="let subitem of item.children">
-            <a mat-list-item routerLinkActive="active-link" [routerLink]="'/'+subitem.url">
+            <a class="subitem" mat-list-item routerLinkActive="active-link" [routerLink]="'/'+subitem.url">
               <div *ngIf="subitem.davicon" class="davicon {{subitem.davicon}}"></div>
               <mat-icon *ngIf="!subitem.davicon" class="material-icons-outlined">{{subitem.icon}}</mat-icon>
               {{ subitem.name }}

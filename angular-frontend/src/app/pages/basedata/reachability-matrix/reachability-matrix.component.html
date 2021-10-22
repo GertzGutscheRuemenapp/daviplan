@@ -1,1 +1,104 @@
-<p>reachability-matrix works!</p>
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="350px">
+    <app-input-card [title]="'Verkehrsmittel'"
+                    infoText="Platzhalter Erklärung: hinzufügen, entfernen, als status quo festlegen (einer je Modus)"
+                    subtitle="Erreichbarkeitsvarianten">
+      <mat-selection-list [multiple]="false"
+                          class="categorized"
+                          id="mode-select">
+        <ng-container *ngFor="let mode of modes">
+          <div mat-subheader>
+            <mat-icon *ngIf="mode.icon" class="material-icons-outlined" style="font-size: 20px; margin-left: -7px; margin-right: 2px;">{{mode.icon}}</mat-icon>
+            <div *ngIf="mode.davicon" class="davicon {{mode.davicon}}" style="font-size: 28px; margin-left: -11px; margin-right: 1px;"></div>
+            {{mode.name}}
+          </div>
+          <mat-list-option *ngFor="let router of mode.routers"
+                           (click)="selectedRouter = router"
+                           [selected]="(router.id === selectedRouter.id)">
+            <div class="option-text">{{router.name}}</div>
+            <mat-icon *ngIf="router.id===statusQuoRouters[router.mode]" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
+          </mat-list-option>
+          <mat-divider></mat-divider>
+        </ng-container>
+      </mat-selection-list>
+      <button mat-button color="primary"
+              (click)="statusQuoRouters[selectedRouter.mode] = (statusQuoRouters[selectedRouter.mode]===selectedRouter.id)? undefined : selectedRouter.id">
+        <mat-icon class="material-icons-outlined">verified</mat-icon>
+        Als Status Quo festlegen
+      </button>
+      <div>
+        <button mat-button color="primary"
+                class="mat-button-dv">
+          <mat-icon>add</mat-icon>hinzufügen
+        </button>
+        <button mat-button color="primary"
+                style="float: right;"
+                class="mat-button-dv">
+          <!--                [disabled]="selectedQuota==='aktuelle Quoten'"-->
+          <mat-icon>close</mat-icon>entfernen
+        </button>
+      </div>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="1100px">
+    <app-input-card [title]="'Erreichbarkeitsmatrix'"
+                    infoText="Platzhalter: entweder hochladen oder berechnen">
+      <div style="width: 100%; display: flex;">
+        <div style="width: 50%; align-self: start;">
+          <span class="subtitle1 sub">
+            {{selectedRouter.mode + ' / ' + selectedRouter.name + ((selectedRouter.id === statusQuoRouters[selectedRouter.mode])? ' (Status Quo)': '')}}
+          </span>
+          <div style="display: flex; margin-top: 15px;">
+            <table>
+              <tr>
+                <td i18n>Wegenetz</td>
+                <td>Deutschland 2020</td>
+              </tr>
+              <tr>
+                <td i18n>Buffer um Siedlungszellen</td>
+                <td>700m</td>
+              </tr>
+              <tr>
+                <td i18n>berechnet am</td>
+                <td>31.05.2022</td>
+              </tr>
+              <tr>
+                <td i18n>durch</td>
+                <td>Sascha Schmidt</td>
+              </tr>
+            </table>
+          </div>
+          <button style="margin: 20px 0;" mat-flat-button color="primary">
+            <mat-icon>build</mat-icon> Berechnen
+          </button>
+          <div>
+            <button mat-stroked-button color="primary" style="margin-right: 10px;">
+              <mat-icon>download</mat-icon> Template
+            </button>
+            <button mat-flat-button color="primary">
+              <mat-icon>upload</mat-icon> Daten hochladen
+            </button>
+            <button mat-mini-fab color="primary"
+                    aria-label="Daten herunterladen" title="Daten herunterladen"
+                    style="float: right; margin-right: 15px; box-shadow: none;">
+              <mat-icon>download</mat-icon>
+            </button>
+          </div>
+        </div>
+        <div id="log-window" style="width: 50%">
+          <app-log></app-log>
+        </div>
+      </div>
+      <div after>
+        <div id="base-reachabilities-map" class="map-container">
+          <app-map-controls></app-map-controls>
+          <app-side-toggle id="legend"
+                           icon="layers"
+                           direction="left">
+            <app-legend target="base-reachabilities-map"></app-legend>
+          </app-side-toggle>
+        </div>
+      </div>
+    </app-input-card>
+  </div>
+</div>
