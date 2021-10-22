@@ -125,6 +125,10 @@ body {
   }
 }
 
+.mat-form-field-appearance-outline .mat-form-field-outline-thick {
+  color: $primary;
+}
+
 .mat-form-field-appearance-fill .mat-form-field-flex {
   padding: .5em .5em 0 .5em!important;
   //color: $primary;
