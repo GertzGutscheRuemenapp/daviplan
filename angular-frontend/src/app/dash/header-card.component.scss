@@ -1,0 +1,20 @@
+@import "~src/constants";
+
+.dashboard-card {
+  margin: 10px;
+  border: 1px solid #0000001F;
+  border-bottom: 1px solid $accent;
+  max-width: calc(100% - 30px);
+}
+
+.title {
+  color: $accent;
+}
+
+.mat-expansion-panel-header {
+  width: calc(100% - 10px);
+}
+
+::ng-deep app-header-card .mat-expansion-indicator {
+  margin-top: -15px;
+}
