@@ -30,14 +30,17 @@
 }
 
 #process-select {
-  width: calc(#{$context-bar-width} - 36px);
-  padding: 0 18px 0 18px;
+  width: calc(#{$context-bar-width} - 18px);
+  padding-left: 18px;
   height: 70px;
   margin-top: -10px;
-}
-
-#process-select mat-form-field {
-  width: 200px;
+  mat-form-field {
+    width: 200px;
+  }
+  .process-button {
+    float: right;
+    top: 28px;
+  }
 }
 
 ::ng-deep app-planning .context-bar {
@@ -113,6 +116,9 @@ app-scenario-menu.expanded {
 }
 
 ::ng-deep app-planning {
+  #process-select .mat-form-field-appearance-standard.mat-form-field-has-label .mat-select:not(.mat-select-empty) .mat-select-arrow-wrapper {
+    transform: none;
+  }
   .sub-select-wrapper {
     mat-radio-button  {
       text-transform: uppercase;
