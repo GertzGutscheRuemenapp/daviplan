@@ -15,6 +15,11 @@
   width: calc(100% - 10px);
 }
 
-::ng-deep app-header-card .mat-expansion-indicator {
-  margin-top: -15px;
+::ng-deep app-header-card {
+  .mat-expansion-indicator {
+    margin-top: -15px;
+  }
+  .mat-expansion-panel-body {
+    //max-width: 600px;
+  }
 }
