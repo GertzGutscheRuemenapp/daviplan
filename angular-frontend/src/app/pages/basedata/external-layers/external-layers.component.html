@@ -6,7 +6,7 @@
   <div fxLayout="column" fxFlex="450px">
     <app-input-card [title]="'Layer'"
                     [subtitle]="'Untertitel??'"
-                    infoText="Platzhalter: Layer hinzu im Baum, Gruppe hinzu unterhalb des Baumes, ausgewählte Layer/gruppe entfernen unterhalb, WMS, hinzu, entfernen">
+                    infoText="Platzhalter: Layer hinzu im Baum, Gruppe hinzu unterhalb des Baumes, ausgewählte Layer/gruppe entfernen unterhalb, WMS, hinzu, entfernen; nur gecheckte Layer sind in Legende der Bevölkerung und Infrastrukturplanung sicht- und auswählbar">
       <div style="display: inline-flex;">
         <div id="layer-select">
           <app-check-tree #layerTree [items]="layerGroups"></app-check-tree>
@@ -36,7 +36,7 @@
     <ng-container *ngIf="selectedLayer">
       <app-input-card [title]="'Layereigenschaften'"
                       [editTemplate]="editLayer"
-                      infoText="Platzhalter: WMS, hinzu, entfernen">
+                      infoText="Platzhalter">
         <table>
           <tr>
             <td>Name</td>
@@ -52,7 +52,7 @@
   </div>
   <div fxLayout="column" fxFlex="800px">
     <app-input-card [title]="'Kartenansicht'"
-                    infoText="Platzhalter: zeigt alle im Layerbaum angezeigten Layer">
+                    infoText="Platzhalter: zeigt alle im Layerbaum gecheckten Layer an">
 
       <div id="base-layers-map" class="map-container">
         <app-map-controls></app-map-controls>
