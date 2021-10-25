@@ -81,6 +81,7 @@ import { ReachabilityMatrixComponent } from './pages/basedata/reachability-matri
 import { ExternalLayersComponent } from './pages/basedata/external-layers/external-layers.component';
 import { CheckTreeComponent } from './elements/check-tree/check-tree.component';
 import { MatTreeModule } from "@angular/material/tree";
+import { HeaderCardComponent } from "./dash/header-card.component";
 
 @NgModule({
   declarations: [
@@ -91,6 +92,7 @@ import { MatTreeModule } from "@angular/material/tree";
     AdministrationComponent,
     SideNavComponent,
     InputCardComponent,
+    HeaderCardComponent,
     ConfirmDialogComponent,
     LoginComponent,
     DemandComponent,
