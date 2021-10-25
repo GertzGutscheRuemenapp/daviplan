@@ -4,7 +4,7 @@
 
 import {SelectionModel} from '@angular/cdk/collections';
 import {FlatTreeControl} from '@angular/cdk/tree';
-import { Component, Injectable, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Injectable, Input, OnInit, Output } from '@angular/core';
 import {MatTreeFlatDataSource, MatTreeFlattener} from '@angular/material/tree';
 import {BehaviorSubject} from 'rxjs';
 
@@ -12,12 +12,14 @@ import {BehaviorSubject} from 'rxjs';
  * Node for to-do item
  */
 export class TreeItemNode {
+  id?: number;
   children?: TreeItemNode[];
   name!: string;
 }
 
 /** Flat to-do item node with expandable and level information */
 export class TreeItemFlatNode {
+  id?: number;
   name!: string;
   level!: number;
   expandable!: boolean;
@@ -89,6 +91,7 @@ export class ChecklistDatabase {
 })
 export class CheckTreeComponent implements OnInit {
   @Input() items: TreeItemNode[] = [];
+  @Output() selected = new EventEmitter<TreeItemFlatNode>();
   /** Map from flat node to nested node. This helps us finding the nested node to be modified */
   flatNodeMap = new Map<TreeItemFlatNode, TreeItemNode>();
 
@@ -144,6 +147,7 @@ export class CheckTreeComponent implements OnInit {
       : new TreeItemFlatNode();
     flatNode.name = node.name;
     flatNode.level = level;
+    flatNode.id = node.id;
     flatNode.expandable = !!node.children?.length;
     this.flatNodeMap.set(flatNode, node);
     this.nestedNodeMap.set(node, flatNode);
@@ -235,6 +239,7 @@ export class CheckTreeComponent implements OnInit {
     if(this.isExpandable(node)) {
       this.treeControl.expand(node);
     }
+    this.selected.emit(node);
   }
 
   /** Select the category so we can insert the new item. */

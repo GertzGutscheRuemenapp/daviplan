@@ -1,5 +1,5 @@
 <app-header-card [title]="'Nachfragequoten'"
-                 width="1560px">
+                 width="1530px">
   Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
 </app-header-card>
 <div fxLayout="row wrap">
@@ -73,7 +73,7 @@
       </div>
     </app-input-card>
   </div>
-  <div fxLayout="column" fxFlex="930px">
+  <div fxLayout="column" fxFlex="900px">
     <app-input-card [title]="'Nachfragequoten-Set'"
                     [subtitle]="selectedQuota===statusQuoQuota? 'Status Quo': ''"
                     [editTemplate]="quotaEdit"
@@ -91,7 +91,7 @@
         <label style="padding-top: 20px;">{{timeSlider.value}}</label>
       </div>
       <div style="width: 100%; display: flex; align-items: stretch;">
-        <div style="width: 50%; border: solid #0000001F; padding: 8px;">
+        <div style="width: 40%; border: solid #0000001F; padding: 8px;">
           <table style="width: 100%; text-align: center;">
             <tr>
               <th style="text-align: left;">{{timeSlider.value}}</th>
@@ -119,7 +119,7 @@
             </tr>
           </table>
         </div>
-        <div style="display: flex; width: 50%; flex-flow: row wrap;">
+        <div style="display: flex; width: 60%; flex-flow: row wrap;">
           <div class="diagram-wrapper" style="width: 100%;">
             <img src="{{backend}}/static/img/Nachfragequoten alle Altersklassen screenshot.png" width="100%">
           </div>
