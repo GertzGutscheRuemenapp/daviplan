@@ -5,7 +5,9 @@
     </button>
   </div>-->
   <ng-template #apTip>
-    <b>{{ activeProject?.name }}</b>
+    <b>{{ activeProject?.name }}</b> <br>
+    <i>{{ activeProject?.description }}</i>
+    <mat-divider></mat-divider>
     <div *ngIf="activeProject?.shared && !activeProject?.user">geteilt mit ...</div>
     <div *ngIf="activeProject?.user">{{(activeProject?.editable)? 'editierbar': 'nicht editierbar'}} <br> geteilt durch <i>{{activeProject?.user}}</i></div>
   </ng-template>
@@ -66,10 +68,11 @@
             <mat-icon>add</mat-icon>
           </button>
           <mat-option *ngFor="let project of myProjects"
-                      tooltip="{{(project.shared)? 'geteilt mit ...': ''}}"
+                      tooltip="{{(project.description)? '<i>' + project.description + '</i><br>' : ''}} {{(project.shared)? 'geteilt mit ...': ''}}"
                       theme="light"
                       [value]="project.id"
                       [hideDelay]="0"
+                      tooltipClass="context-tooltip"
                       placement="right">
             {{ project.name }}
           </mat-option>
@@ -85,7 +88,7 @@
         <mat-optgroup *ngIf="sharedProjects" label="Geteilte Prozesse">
           <mat-option *ngFor="let project of sharedProjects"
                       [value]="project.id"
-                      tooltip="{{(project.editable)? 'editierbar': 'nicht editierbar'}} <br> geteilt durch <i>{{project.user}}</i>"
+                      tooltip="{{(project.description)? '<i>' + project.description + '</i><br>' : ''}} {{(project.editable)? 'editierbar': 'nicht editierbar'}} <br> geteilt durch <i>{{project.user}}</i>"
                       [hideDelay]="0"
                       tooltipClass="context-tooltip"
                       theme="light"

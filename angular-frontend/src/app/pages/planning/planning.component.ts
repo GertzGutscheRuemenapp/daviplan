@@ -21,7 +21,7 @@ interface Project {
 }
 
 const mockMyProjects: Project[] = [
-  { name: 'Beispielprojekt 1', id: 1, description: 'Beschreibungstext' },
+  { name: 'Beispielprojekt 1', id: 1, description: 'Beschreibungstext', shared: true },
   { name: 'Beispielprojekt 2', id: 2, shared: true },
   { name: 'Beispielprojekt 3', description: 'Beschreibungstext', id: 3 }
 ]
