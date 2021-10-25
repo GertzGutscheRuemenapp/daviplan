@@ -12,7 +12,14 @@
       <mat-form-field appearance="outline" class="small">
         <mat-label>Infrastruktur</mat-label>
         <mat-select disableOptionCentering [(value)]="selectedInfrastructure">
-          <mat-option [value]="infrastructure" *ngFor="let infrastructure of infrastructures">
+          <mat-option [value]="infrastructure" *ngFor="let infrastructure of infrastructures"
+                      [tooltip]="infrastructure.description"
+                      [showDelay]="500"
+                      [hideDelay]="0"
+                      tooltipClass="context-tooltip"
+                      theme="light"
+                      maxWidth="400px"
+                      placement="right">
             {{infrastructure.name}}
           </mat-option>
         </mat-select>
@@ -63,6 +70,7 @@
                         theme="light"
                         placement="right"
                         maxWidth="600px"
+                        [showDelay]="500"
                         [hideDelay]="0" i18n>
         Einrichtung -> Wohnstandorte
       </mat-radio-button>

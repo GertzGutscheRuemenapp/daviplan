@@ -51,7 +51,7 @@
     <mat-form-field appearance="standard" class="small">
       <mat-label>Planungsprozess</mat-label>
       <mat-select disableOptionCentering
-                  [tooltip]="$any(apTip)" contentType="template"
+                  [tooltip]="(activeProject)? $any(apTip): ''" contentType="template"
                   [hideDelay]="0"
                   tooltipClass="context-tooltip"
                   theme="light"
@@ -59,6 +59,12 @@
                   placement="right"
                   (selectionChange)="onProcessChange($event.value)">
         <mat-optgroup label="Meine Prozesse">
+          <button title="Planungsprozess erstellen"
+                  mat-icon-button color="primary"
+                  style="position: absolute; right: 7px; top: 5px;"
+                  (click)="onEditProcess(true)">
+            <mat-icon>add</mat-icon>
+          </button>
           <mat-option *ngFor="let project of myProjects"
                       tooltip="{{(project.shared)? 'geteilt mit ...': ''}}"
                       theme="light"
@@ -67,14 +73,14 @@
                       placement="right">
             {{ project.name }}
           </mat-option>
-          <mat-option tooltip="Prozess hinzufügen"
+<!--          <mat-option tooltip="Prozess hinzufügen"
                       theme="light"
                       [hideDelay]="0"
                       placement="right">
             <button mat-icon-button color="primary">
               <mat-icon>add</mat-icon>
             </button>
-          </mat-option>
+          </mat-option>-->
         </mat-optgroup>
         <mat-optgroup *ngIf="sharedProjects" label="Geteilte Prozesse">
           <mat-option *ngFor="let project of sharedProjects"
@@ -90,6 +96,18 @@
         </mat-optgroup>
       </mat-select>
     </mat-form-field>
+    <button *ngIf="activeProject" class="process-button"
+            title="ausgewählten Planungsprozess editieren"
+            mat-icon-button color="primary"
+            (click)="onEditProcess()" i18n>
+      <mat-icon>edit</mat-icon>
+    </button>
+    <button *ngIf="!activeProject" class="process-button"
+            title="Planungsprozess erstellen"
+            mat-icon-button color="primary"
+            (click)="onEditProcess(true)" i18n>
+      <mat-icon>add</mat-icon>
+    </button>
   </div>
   <mat-expansion-panel id="scenario-toggle" class="side-toggle">
     <mat-expansion-panel-header (click)="toggleScenarioMenu()">
@@ -120,3 +138,42 @@
                  expanded>
   <app-legend target="planning-map"></app-legend>
 </app-side-toggle>
+
+<ng-template #processTemplate>
+  <div fxLayout="row wrap">
+    <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Name</mat-label>
+        <input matInput [value]="!createProcess? activeProject?.name: ''">
+      </mat-form-field>
+    </div>
+    <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Beschreibung</mat-label>
+        <textarea matInput rows="3" [value]="!createProcess? activeProject?.description: ''"></textarea>
+      </mat-form-field>
+    </div>
+  </div>
+  <mat-divider style="width: 100%; margin-bottom: 10px;"></mat-divider>
+  <div fxLayout="row wrap">
+    <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
+      <span class="subtitle1" style="color: grey;">Infrastrukturbereiche</span>
+      <div class="border-box" style="height: 250px;">
+        <mat-checkbox class="reverse" color="primary">alle</mat-checkbox>
+        <mat-divider style="margin-bottom: 10px;"></mat-divider>
+        <mat-checkbox class="reverse" color="primary" *ngFor="let infrastructure of infrastructures">
+          {{infrastructure.name}}
+        </mat-checkbox>
+      </div>
+    </div>
+    <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
+      <span class="subtitle1" style="color: grey;">Zugriff auf Planungsprozess</span>
+      <div class="border-box" style="height: 250px;">
+        <mat-checkbox class="reverse" color="primary" *ngFor="let user of users">
+          {{user.firstName + ' ' + user.lastName}}
+        </mat-checkbox>
+      </div>
+      <mat-checkbox style="margin-top: 10px;" color="primary">Änderungen an Planungsprozess erlauben</mat-checkbox>
+    </div>
+  </div>
+</ng-template>

@@ -12,7 +12,14 @@
       <mat-form-field appearance="outline" class="small">
         <mat-label>Infrastruktur</mat-label>
         <mat-select disableOptionCentering [(value)]="selectedInfrastructure">
-          <mat-option [value]="infrastructure" *ngFor="let infrastructure of infrastructures">
+          <mat-option [value]="infrastructure" *ngFor="let infrastructure of infrastructures"
+                      [tooltip]="infrastructure.description"
+                      [hideDelay]="0"
+                      [showDelay]="500"
+                      tooltipClass="context-tooltip"
+                      theme="light"
+                      maxWidth="400px"
+                      placement="right">
             {{infrastructure.name}}
           </mat-option>
         </mat-select>

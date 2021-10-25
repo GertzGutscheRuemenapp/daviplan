@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Inject, Output, TemplateRef} from '@angular/core';
+import { Component, EventEmitter, Inject, Input, Output, TemplateRef } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 export interface DialogData {
@@ -9,6 +9,8 @@ export interface DialogData {
   template: TemplateRef<any>,
   closeOnConfirm: boolean,
   context: any;
+  infoText?: string;
+  infoExpanded?: boolean;
 }
 
 @Component({
