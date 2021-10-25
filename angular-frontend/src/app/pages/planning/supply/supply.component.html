@@ -11,9 +11,9 @@
     <div style="position: relative;">
       <mat-form-field appearance="outline" class="small">
         <mat-label>Infrastruktur</mat-label>
-        <mat-select disableOptionCentering value="Kinderbetreuung"><!-- [value]="activeInfrastructure">-->
-          <mat-option value="Kinderbetreuung">
-            Kinderbetreuung
+        <mat-select disableOptionCentering [(value)]="selectedInfrastructure">
+          <mat-option [value]="infrastructure" *ngFor="let infrastructure of infrastructures">
+            {{infrastructure.name}}
           </mat-option>
         </mat-select>
       </mat-form-field>
@@ -22,8 +22,12 @@
       </button>
     </div>
     <div class="sub-select-wrapper">
-      <mat-checkbox color="primary">Kita</mat-checkbox><br>
-      <mat-checkbox color="primary">Krippe</mat-checkbox>
+      <mat-checkbox *ngFor="let service of selectedInfrastructure.services; let first = first;"
+                    [value]="service.name" style="width: 100%;"
+                    [checked]="first"
+                    color="primary">
+        {{service.name}}
+      </mat-checkbox>
     </div>
   </div>
   <mat-divider></mat-divider>

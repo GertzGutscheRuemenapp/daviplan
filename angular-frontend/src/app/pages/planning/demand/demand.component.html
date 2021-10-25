@@ -9,16 +9,20 @@
   </mat-expansion-panel-header>
   <mat-form-field appearance="outline" class="small">
     <mat-label>Infrastruktur</mat-label>
-    <mat-select disableOptionCentering value="Kinderbetreuung">
-      <mat-option value="Kinderbetreuung">
-        Kinderbetreuung
+    <mat-select disableOptionCentering [(value)]="selectedInfrastructure">
+      <mat-option [value]="infrastructure" *ngFor="let infrastructure of infrastructures">
+        {{infrastructure.name}}
       </mat-option>
     </mat-select>
   </mat-form-field>
   <div class="sub-select-wrapper">
     <mat-radio-group>
-      <mat-radio-button value="1" color="primary" [checked]="true">Kita</mat-radio-button><br>
-      <mat-radio-button value="2" color="primary" [checked]="false">Krippe</mat-radio-button>
+      <mat-radio-button *ngFor="let service of selectedInfrastructure.services; let first = first;"
+                        [value]="service" style="width: 100%;"
+                        [checked]="first"
+                        color="primary">
+        {{service.name}}
+      </mat-radio-button>
     </mat-radio-group>
   </div>
 </mat-expansion-panel>

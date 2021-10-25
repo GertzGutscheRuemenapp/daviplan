@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { mockInfrastructures } from "../../administration/infrastructure/infrastructure.component";
 
 @Component({
   selector: 'app-reachabilities',
@@ -11,6 +12,8 @@ export class ReachabilitiesComponent implements OnInit {
   indicator = 'option 1';
   selectFacMode = false;
   selectLivMode = false;
+  infrastructures = mockInfrastructures;
+  selectedInfrastructure = this.infrastructures[0];
 
   constructor() { }
 
