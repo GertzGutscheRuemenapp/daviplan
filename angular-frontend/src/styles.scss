@@ -99,6 +99,24 @@ h6 {
   color: $light-black;
 }
 
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $accent-light;
+  border-radius: 8px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: $accent;
+}
+
 html, body { height: 100%; }
 body {
   margin: 0;
