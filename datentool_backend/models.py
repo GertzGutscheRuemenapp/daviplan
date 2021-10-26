@@ -1,3 +1,4 @@
+from .demand.models import *
 from .user.models import *
 from .infrastructure.models import *
 from .logging.models import *

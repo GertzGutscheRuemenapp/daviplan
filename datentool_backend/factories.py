@@ -3,3 +3,4 @@ from .area.factories import *
 from .population.factories import *
 from .infrastructure.factories import *
 from .indicators.factories import *
+from .demand.factories import *
