@@ -101,6 +101,7 @@ h6 {
 
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -483,6 +484,11 @@ button.mat-icon-button {
 }
 .mini-fab-icon.inverted.primary {
   background-color: $primary;
+}
+
+.mat-icon-button.inverted {
+  background-color: $primary;
+  color: white;
 }
 
 .mat-icon-button .davicon {

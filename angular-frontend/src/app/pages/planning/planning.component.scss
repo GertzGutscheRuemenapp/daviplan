@@ -30,12 +30,12 @@
 }
 
 #process-select {
-  width: calc(#{$context-bar-width} - 18px);
+  width: calc(#{$context-bar-width} - 12px);
   padding-left: 18px;
   height: 70px;
   margin-top: -10px;
   mat-form-field {
-    width: 200px;
+    width: 210px;
   }
   .process-button {
     float: right;

@@ -83,6 +83,7 @@ import { CheckTreeComponent } from './elements/check-tree/check-tree.component';
 import { MatTreeModule } from "@angular/material/tree";
 import { HeaderCardComponent } from "./dash/header-card.component";
 import { FilterTableComponent } from './elements/filter-table/filter-table.component';
+import { MatChipsModule } from "@angular/material/chips";
 
 @NgModule({
   declarations: [
@@ -170,7 +171,8 @@ import { FilterTableComponent } from './elements/filter-table/filter-table.compo
         DragDropModule,
         TooltipModule,
         NgbModule,
-        MatTreeModule
+        MatTreeModule,
+        MatChipsModule
     ],
   providers: [
     [CookieService],
