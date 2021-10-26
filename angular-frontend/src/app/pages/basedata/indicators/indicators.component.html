@@ -75,22 +75,13 @@
       <div after>
         <div id="base-indicators-map" class="map-container">
           <app-map-controls></app-map-controls>
-          <app-side-toggle id="areas-overlay" icon="flip_to_front">
-            <div style="padding: 5px;">
+          <app-side-toggle id="areas-overlay" icon="flip_to_front" [fullHeightIndicator]="true">
+            <div style="padding: 10px;">
               <mat-form-field appearance="outline" class="small">
                 <mat-label>Gebietseinheit</mat-label>
-                <mat-select disableOptionCentering value="Gemeinden">
-                  <mat-option value="Bundesländer">
-                    Bundesländer
-                  </mat-option>
-                  <mat-option value="Kreise">
-                    Kreise
-                  </mat-option>
-                  <mat-option value="Verwaltungsgemeinschaften">
-                    Verwaltungsgemeinschaften
-                  </mat-option>
-                  <mat-option value="Gemeinden">
-                    Gemeinden
+                <mat-select disableOptionCentering [value]="areaLevels[0]">
+                  <mat-option [value]="areaLevel" *ngFor="let areaLevel of areaLevels">
+                    {{areaLevel.name}}
                   </mat-option>
                 </mat-select>
               </mat-form-field>

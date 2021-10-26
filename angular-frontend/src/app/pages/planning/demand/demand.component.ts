@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { mockInfrastructures } from "../../administration/infrastructure/infrastructure.component";
+import { mockPresetLevels } from "../../basedata/areas/areas";
 
 @Component({
   selector: 'app-demand',
@@ -12,6 +13,7 @@ export class DemandComponent implements OnInit {
   compareStatus = 'option 1';
   infrastructures = mockInfrastructures;
   selectedInfrastructure = this.infrastructures[0];
+  areaLevels = mockPresetLevels;
 
   constructor() { }
 

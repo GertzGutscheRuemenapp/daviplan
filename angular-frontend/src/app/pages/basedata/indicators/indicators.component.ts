@@ -2,6 +2,7 @@ import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
 import { environment } from "../../../../environments/environment";
 import { mockInfrastructures } from "../../administration/infrastructure/infrastructure.component";
 import { MapControl, MapService } from "../../../map/map.service";
+import { mockPresetLevels } from "../areas/areas";
 
 interface Indicator {
   id: number;
@@ -25,6 +26,7 @@ export class IndicatorsComponent implements AfterViewInit, OnDestroy {
   indicators = mockIndicators;
   selectedIndicator = this.indicators[0];
   mapControl?: MapControl;
+  areaLevels = mockPresetLevels;
 
   constructor(private mapService: MapService) { }
 

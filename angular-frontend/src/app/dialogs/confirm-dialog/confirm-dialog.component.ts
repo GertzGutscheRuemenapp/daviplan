@@ -9,6 +9,7 @@ export interface DialogData {
   template: TemplateRef<any>,
   closeOnConfirm: boolean,
   context: any;
+  subtitle?: string;
   infoText?: string;
   infoExpanded?: boolean;
 }
