@@ -34,3 +34,8 @@ mat-dialog-content {
 h4 {
   color: $accent;
 }
+
+::ng-deep confirm-dialog .sub {
+  color: grey;
+  margin-bottom: 10px;
+}
