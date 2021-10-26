@@ -4,39 +4,44 @@
       <mat-icon>menu</mat-icon>
     </button>
   </div>-->
+  <ng-template #apTip>
+    {{ activeProject?.name }}
+  </ng-template>
   <div id="process-select">
     <div class="mini-fab-icon inverted primary">
       <div class="davicon icon-GGR-davicons-Font-Simple-1-Planungsprozess"></div>
     </div>
-    <mat-form-field appearance="standard" class="">
+    <mat-form-field appearance="standard" class="small">
       <mat-label>Planungsprozess</mat-label>
-      <mat-select [formControl]="processForm" disableOptionCentering (selectionChange)="onProcessChange($event.value)">
-        <mat-select-trigger>
-          <span *ngIf="activeProject">
-            {{ activeProject.name }}
-          </span>
-        </mat-select-trigger>
-        <mat-option *ngIf="activeProject" disabled class="selected">
-          {{ activeProject.name }}
-          <mat-icon *ngIf="activeProject.shared">share</mat-icon>
-<!--          <mat-icon *ngIf="!activeProject.shared">person</mat-icon>-->
-          <mat-icon *ngIf="activeProject.editable === false" class="material-icons-outlined" style="color: red;">cancel</mat-icon>
-          <i *ngIf="activeProject.user" style="font-size: 12px; margin-left: 3px;">({{ activeProject.user }})</i>
-        </mat-option>
-        <mat-optgroup label="Meine Projekte">
-          <mat-option *ngFor="let project of myProjects" [value]="project.id">
+      <mat-select disableOptionCentering
+                  [tooltip]="$any(apTip)" contentType="template"
+                  [hideDelay]="0"
+                  theme="light"
+                  maxWidth="400px"
+                  placement="right"
+                  (selectionChange)="onProcessChange($event.value)">
+        <mat-optgroup label="Meine Prozesse">
+          <mat-option *ngFor="let project of myProjects"
+                      tooltip="{{(project.shared)? 'geteilt mit ...': ''}}"
+                      tooltipClass="context-tooltip"
+                      theme="light"
+                      [value]="project.id"
+                      [hideDelay]="0"
+                      placement="right">
             {{ project.name }}
-<!--            <mat-icon *ngIf="!project.shared">person</mat-icon>-->
-            <mat-icon *ngIf="project.shared">share</mat-icon>
           </mat-option>
-          <mat-option title="Prozess hinzufügen"><mat-icon style="font-size: 1.2em;">add</mat-icon></mat-option>
+          <mat-option title="Prozess hinzufügen"><mat-icon style="font-size: 1.2em; margin-right: 5px;">add</mat-icon>Prozess hinzufügen</mat-option>
         </mat-optgroup>
-        <mat-optgroup *ngIf="sharedProjects" label="Geteilte Projekte">
-          <mat-option *ngFor="let project of sharedProjects" [value]="project.id">
+        <mat-optgroup *ngIf="sharedProjects" label="Geteilte Prozesse">
+          <mat-option *ngFor="let project of sharedProjects"
+                      [value]="project.id"
+                      tooltip="{{(project.editable)? 'editierbar': 'nicht editierbar'}} <br> geteilt durch {{project.user}}"
+                      [hideDelay]="0"
+                      tooltipClass="context-tooltip"
+                      theme="light"
+                      maxWidth="400px"
+                      placement="right">
             {{ project.name }}
-            <mat-icon>share</mat-icon>
-            <mat-icon *ngIf="project.editable === false" class="material-icons-outlined" style="color: red;">cancel</mat-icon>
-            <i style="font-size: 12px; margin-left: 3px;">({{ project.user }})</i>
           </mat-option>
         </mat-optgroup>
       </mat-select>
@@ -66,12 +71,8 @@
         <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
       </div>
       <app-side-toggle [fullHeightIndicator]="true" expanded>
-        <div style="padding: 15px 10px 5px 10px">
-          <label>2017</label>
-          <mat-slider thumbLabel aria-label="Jahr" color="primary"
-                      min="2017" max="2039" value="2020" step="1">
-          </mat-slider>
-          <label>2039</label>
+        <div style="padding: 18px 10px 12px 10px">
+          <app-time-slider [prognosisEnd]="2013" [years]="[2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025]"></app-time-slider>
         </div>
       </app-side-toggle>
     </div>

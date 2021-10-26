@@ -101,6 +101,26 @@
       </div>
     </div>
   </mat-expansion-panel>
+  <mat-expansion-panel expanded>
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <div class="mini-fab-icon">
+          <div class="davicon icon-GGR-davicons-Font-Simple-4-Vergleichsdarstellung"></div>
+        </div>
+        Vergleichsdarstellung
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    <mat-checkbox color="primary" [(ngModel)]="compareYears" style="margin-bottom: 10px; width: 200px;"
+                  i18n>Bevölkerungsstruktur vergleichen</mat-checkbox> <!--style="margin: 0 0 10px -12px;"-->
+    <mat-form-field appearance="outline" class="small">
+      <mat-label>Jahr</mat-label>
+      <mat-select disableOptionCentering [value]="years[0]" [disabled]="!compareYears">
+        <mat-option *ngFor="let year of years" [value]="year">
+          {{year}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </mat-expansion-panel>
 </div>
 
 <div id="diagram-bar">

@@ -42,7 +42,8 @@ body {
   display: flex;
   div {
     font-size: 28px;
-    padding: 8px 0; display: inline-flex;
+    padding: 10px 0 0 0 !important;
+    display: inline-flex;
     p:first-child{
       color: #a67236
     }
@@ -102,6 +103,10 @@ mat-form-field.full {
   }
 }
 
+mat-form-field.small {
+  font-size: 16px;
+}
+
 button.large {
   padding: 10px!important;
 }
@@ -119,6 +124,7 @@ button.large {
 .center {
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 
 // definition of card styles in app-planning here to pass the styles to its child components (demand, supply ...)
@@ -217,6 +223,7 @@ app-data-card td, app-dash-card td {
 
 mat-sidenav-content {
   //background-color: white;
+  overflow-x: hidden;
 }
 
 .sub-nav span {
@@ -371,6 +378,10 @@ button.mat-icon-button {
   color: $primary;
 }
 
+.mat-select-disabled .mat-select-min-line {
+  color: lightgrey;
+}
+
 mat-option.selected {
   margin: -8px 0;
 }
@@ -380,7 +391,7 @@ mat-option.selected {
   margin-top: -10px;
 }
 
-mat-select mat-icon, .mat-select-panel mat-icon, .mat-select-min-line mat-icon, .mat-select-trigger mat-icon,  {
+.mat-select-panel .info-icon  {
   font-size: 12px !important;
   vertical-align: baseline !important;;
   margin: 0 1px !important;
@@ -460,6 +471,10 @@ mat-icon.warning {
     padding: 0px 18px !important;
   }
 
+  .mat-checkbox-label {
+    white-space: normal !important; line-height: 1 !important;
+  }
+
   mat-panel-title {
     height: 60px!important;
   }
@@ -503,7 +518,7 @@ mat-expansion-panel {
   .mat-expansion-panel-header-title {
     padding: 5px 0;
     text-transform: uppercase;
-    color: #00000061;
+    color: grey;
     align-items: center;
   }
   .mat-expansion-indicator:after {
@@ -586,7 +601,7 @@ mat-expansion-panel.side-toggle {
 #time-slider {
   left: 50px;
   bottom: 20px;
-  height: 70px;
+  height: 78px;
   //height: 88px;
   mat-slider {
     width: 300px;
@@ -599,6 +614,12 @@ mat-expansion-panel.side-toggle {
 #info:hover, #time-slider:hover {
   .drag-indicator {
     opacity: 1;
+  }
+}
+
+#info, #time-slider {
+  .cdk-drag-handle:hover {
+    background-color: $primary-light;
   }
 }
 
@@ -647,4 +668,19 @@ app-map-controls {
   .mat-icon-button {
     background-color: map-get($blue-palette, A200);
   }
+}
+
+#background {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  opacity: 0.5;
+  z-index: -1;
+}
+
+.context-tooltip {
+  font-size: 16px;
+  color: rgba(0, 0, 0, 0.87);
 }

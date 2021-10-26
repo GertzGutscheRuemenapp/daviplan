@@ -1,0 +1,9 @@
+<label>{{years[0]}}</label>
+<mat-slider #slider
+            thumbLabel aria-label="Jahr"
+            color="primary"
+            (change)="inputChanged($event)" (input)="sliderMoved($event)"
+            min="{{years[0]}}" max="{{years[years.length - 1]}}" step="1" value="{{value}}">
+<!--            [ngModel]="pickedYear"-->
+</mat-slider>
+<label>{{years[years.length - 1]}}</label>

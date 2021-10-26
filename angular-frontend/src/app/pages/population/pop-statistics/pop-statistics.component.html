@@ -9,7 +9,7 @@
       </mat-panel-title>
     </mat-expansion-panel-header>
     <mat-form-field appearance="outline" class="small">
-      <mat-select disableOptionCentering value="wanderung">
+      <mat-select disableOptionCentering [(ngModel)]="theme">
         <mat-option value="natur">
           Natürlicher Saldo
         </mat-option>
@@ -18,9 +18,13 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
-    <ul style="list-style-type: none; margin: 0 -10px;">
+    <ul style="list-style-type: none; margin: 0 -10px;" [style.display]="(theme==='wanderung')? 'block' : 'none'">
       <li><mat-checkbox [checked]="true" color="primary">Zuzüge</mat-checkbox></li>
       <li><mat-checkbox [checked]="true" color="primary">Fortzüge</mat-checkbox></li>
+    </ul>
+    <ul style="list-style-type: none; margin: 0 -10px;" [style.display]="(theme==='natur')? 'block' : 'none'">
+      <li><mat-checkbox [checked]="true" color="primary">Geburten</mat-checkbox></li>
+      <li><mat-checkbox [checked]="false" color="primary">Sterbefälle</mat-checkbox></li>
     </ul>
   </mat-expansion-panel>
 </div>
@@ -34,15 +38,12 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
-  <div class="diagram-wrapper">
-    <div>
-      ToDo: Säulendiagramm kombiniert mit Linie Thema ausgewähltes Gebiet
-    </div>
-  </div><br>
-  <div class="diagram-wrapper">
-    <div>
-      ToDo: Linieniagramm Saldo Gesamtgebiet
-    </div>
+  <div class="diagram-wrapper" style="padding-bottom: 0;">
+    <img src="{{backend}}/static/img/Wanderung Screenshot.png" width="100%"/>
+  </div>
+  <div class="diagram-wrapper" style="padding-bottom: 0;">
+    Gesamtgebiet
+    <img src="{{backend}}/static/img/Wanderungssaldo Screenshot.png" width="100%"/>
   </div>
 </div>
 

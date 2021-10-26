@@ -24,6 +24,7 @@
         </div>-->
         <div *ngFor="let layer of layerGroups[group]">
           <div class="legend-entry" [ngClass]="{'checked': layer.checked}" *ngIf="editMode || layer.checked">
+            <div class="symbol" [style.background]="layer.color || 'white'" [class]="layer.symbol"></div>
             <div class="legend-layer-title">{{ layer.name }}</div>
             <div class="legend-layer-control" *ngIf="editMode">
               <mat-checkbox color="primary" [checked]="layer.checked" (change)="layer.checked = !layer.checked; filterActiveGroups();"></mat-checkbox>

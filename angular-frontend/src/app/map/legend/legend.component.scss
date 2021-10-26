@@ -4,6 +4,18 @@
   width: 250px;
   user-select: none;
   transition: width 0.3s ease-out, height 0.3s ease-out;
+  .symbol {
+    width: 20px;
+    margin: 4px;
+  }
+  .dot {
+    height: 20px;
+    border-radius: 10px;
+  }
+  .line {
+    height: 3px;
+    margin-top: 12px;
+  }
 }
 .legend-header {
   padding: 10px 18px;
@@ -12,14 +24,14 @@
   text-transform: uppercase;
 }
 .legend.edit{
-  width: 400px;
+  width: 420px;
 }
 .legend-entry {
   display: flex;
 }
 .legend.edit .legend-layer-title {
   border-right: 1px solid lightgrey;
-  width: 60%;
+  width: 55%;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -27,7 +39,7 @@
   color: grey;
 }
 .legend-layer-control {
-  width: 40%;
+  width: 35%;
   padding-left: 5px;
   mat-slider {
     height: 30px;
