@@ -2,3 +2,5 @@
 public
 htmlcov
 .coverage
+/datentool.wpr
+/datentool.wpu
