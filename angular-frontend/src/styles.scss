@@ -590,7 +590,7 @@ mat-icon.warning {
     margin-top: 18px;
     padding-top: 18px;
     border-top: 1px solid lightgrey;
-    label {
+    label:not(.mat-checkbox-layout) {
       text-transform: uppercase;
       color: $darkgrey;
       font-size: 14px;
@@ -607,7 +607,7 @@ mat-icon.warning {
   }
 }
 
-confirm-dialog, .context-bar {
+confirm-dialog, .context-bar, .border-box {
   .mat-radio-checked, .mat-checkbox-checked, mat-slide-toggle.mat-checked {
     color: $primary;
   }

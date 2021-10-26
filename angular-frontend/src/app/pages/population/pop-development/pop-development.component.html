@@ -68,28 +68,13 @@
       <button mat-icon-button color="primary" style="float: right; margin-top: -8px;">
         <mat-icon>edit</mat-icon>
       </button>
-      <div class="age-select-box" style="margin-top: 10px">
-        <div class="age-row checked">
-          <label>alle</label>
-          <mat-checkbox color="primary" [checked]="true"></mat-checkbox>
-        </div>
-        <mat-divider></mat-divider>
-        <div class="age-row checked">
-          <label>0 bis unter 19 Jahre</label>
-          <mat-checkbox color="primary" [checked]="true"></mat-checkbox>
-        </div>
-        <div class="age-row checked">
-          <label>10 bis unter 40 Jahre</label>
-          <mat-checkbox color="primary" [checked]="true"></mat-checkbox>
-        </div>
-        <div class="age-row checked">
-          <label>40 bis unter 60 Jahre</label>
-          <mat-checkbox color="primary" [checked]="true"></mat-checkbox>
-        </div>
-        <div class="age-row">
-          <label>65 Jahre und älter</label>
-          <mat-checkbox color="primary" [checked]="false"></mat-checkbox>
-        </div>
+      <div class="border-box" style="margin-top: 10px">
+        <mat-checkbox class="reverse" color="primary" [checked]="true">alle</mat-checkbox>
+        <mat-divider style="margin-bottom: 10px;"></mat-divider>
+        <mat-checkbox class="reverse" color="primary" [checked]="true">0 bis unter 19 Jahre</mat-checkbox>
+        <mat-checkbox class="reverse" color="primary" [checked]="true">10 bis unter 40 Jahre</mat-checkbox>
+        <mat-checkbox class="reverse" color="primary" [checked]="true">40 bis unter 60 Jahre</mat-checkbox>
+        <mat-checkbox class="reverse" color="primary" [checked]="false">65 Jahre und älter</mat-checkbox>
       </div>
     </div>
   </mat-expansion-panel>
