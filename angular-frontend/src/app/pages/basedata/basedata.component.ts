@@ -10,9 +10,9 @@ export class BasedataComponent implements OnInit {
   menuItems = [
     {name:  $localize`Gebiete`, url: 'grundlagendaten/gebiete', icon: 'public', children: []},
     {name:  $localize`Bevölkerung`, icon: 'groups', url: '', children: [
-        {name:  $localize`Einwohnerraster`, url: 'grundlagendaten/einwohnerraster', icon: 'grid_4x4', children: []},
         {name:  $localize`Realdaten`, url: 'grundlagendaten/realdaten', icon: 'timeline', children: []},
         {name:  $localize`Prognosedaten`, url: 'grundlagendaten/prognosedaten', icon: 'auto_graph', children: []},
+        {name:  $localize`Einwohnerraster`, url: 'grundlagendaten/einwohnerraster', icon: 'grid_4x4', children: []},
         {name:  $localize`Bevölkerungssalden`, url: 'grundlagendaten/statistiken', icon: 'family_restroom', children: []}
       ]
     },

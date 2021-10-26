@@ -1,5 +1,7 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { mockInfrastructures } from "../../administration/infrastructure/infrastructure.component";
+import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
+import { MatDialog } from "@angular/material/dialog";
 
 @Component({
   selector: 'app-supply',
@@ -13,9 +15,26 @@ export class SupplyComponent implements OnInit{
   compareStatus = 'option 1';
   infrastructures = mockInfrastructures;
   selectedInfrastructure = this.infrastructures[0];
+  @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
 
-  constructor() {}
+  constructor(private dialog: MatDialog) {}
 
   ngOnInit(): void {
+  }
+
+  onFilter(): void {
+    let dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '1400px',
+      disableClose: false,
+      data: {
+        title: 'Standortfilter',
+        template: this.filterTemplate,
+        closeOnConfirm: true,
+        infoText: 'Platzhalter: Die Filterung der Tabelle filtert die in der Karte dargestellten Standorte'
+      }
+    });
+    dialogRef.afterClosed().subscribe((ok: boolean) => {  });
+    dialogRef.componentInstance.confirmed.subscribe(() => {  });
   }
 }

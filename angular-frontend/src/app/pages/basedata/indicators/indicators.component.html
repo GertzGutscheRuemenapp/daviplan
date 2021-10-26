@@ -8,13 +8,20 @@
                     [subtitle]="'Untertitel??'"
                     infoText="Platzhalter: hinzu, entfernen">
       <mat-selection-list [multiple]="false"
+                          class="categorized"
                           id="indicator-select">
-        <mat-list-option *ngFor="let indicator of indicators"
-                         (click)="selectedIndicator = indicator"
-                         [selected]="(indicator === selectedIndicator)"
-                         [title]="indicator.name">
-          <div class="option-text">{{indicator.name}}</div>
-        </mat-list-option>
+        <ng-container *ngFor="let infrastructure of infrastructures; let first = first;">
+          <div mat-subheader>{{infrastructure.name}}</div>
+          <ng-container *ngFor="let indicator of indicators">
+            <mat-list-option *ngIf="indicator.infrastructure === infrastructure.id"
+                             (click)="selectedIndicator = indicator"
+                             [selected]="(indicator === selectedIndicator)"
+                             [title]="indicator.name">
+              <div class="option-text">{{indicator.name}}</div>
+            </mat-list-option>
+          </ng-container>
+          <mat-divider></mat-divider>
+        </ng-container>
       </mat-selection-list>
       <div>
         <button mat-button color="primary"
@@ -99,5 +106,5 @@
 </div>
 
 <ng-template #indicatorEdit>
-  ToDo
+  Funktionalität für den Prototyp noch nicht hinterlegt.
 </ng-template>

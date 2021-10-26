@@ -14,31 +14,47 @@
         </tr>
         <tr>
           <td i18n>Quelle</td>
-          <td>Vorgabe</td>
-        </tr>
-        <tr>
-          <td i18n>Zellen</td>
-          <td>1457</td>
+          <td>Template</td>
         </tr>
       </table>
-      <div style="margin-top: 20px;">
-        <button mat-stroked-button color="primary" style="margin-right: 10px;">
-          <mat-icon>download</mat-icon> Template
-        </button>
-        <button mat-flat-button color="primary">
-          <mat-icon>upload</mat-icon> Daten hochladen
-        </button>
-      </div>
-      <button mat-mini-fab color="primary"
-              aria-label="Daten herunterladen" title="Daten herunterladen"
-              style="position: absolute; right: 15px; bottom: 55px; box-shadow: none;">
-        <mat-icon>download</mat-icon>
-      </button>
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="800px">
     <app-input-card [title]="'Rasteransicht'"
                     infoText="Platzhalter: braucht es hier eine Hilfe?">
+      <div fxLayout="column">
+        <div style="display: flex">
+          <table>
+            <tr>
+              <td i18n>Zellen</td>
+              <td>1457</td>
+            </tr>
+            <tr>
+              <td i18n>Upload am</td>
+              <td>02.06.2022</td>
+            </tr>
+          </table>
+          <table style="margin-left: 20px; align-self: flex-end;">
+            <tr>
+              <td i18n>durch</td>
+              <td>Sascha Schmidt</td>
+            </tr>
+          </table>
+        </div>
+        <div style="margin-top: 20px;">
+          <button mat-stroked-button color="primary" style="margin-right: 10px;">
+            <mat-icon>download</mat-icon> Template
+          </button>
+          <button mat-flat-button color="primary">
+            <mat-icon>upload</mat-icon> Daten hochladen
+          </button>
+          <button mat-mini-fab color="primary"
+                  aria-label="Daten herunterladen" title="Daten herunterladen"
+                  style="float: right; box-shadow: none;">
+            <mat-icon>download</mat-icon>
+          </button>
+        </div>
+      </div>
       <div id="base-raster-map" class="map-container">
         <app-map-controls></app-map-controls>
         <app-side-toggle id="legend"
@@ -53,5 +69,5 @@
 
 
 <ng-template #rasterEdit>
-  ToDo
+  Funktionalität für den Prototyp noch nicht hinterlegt.
 </ng-template>

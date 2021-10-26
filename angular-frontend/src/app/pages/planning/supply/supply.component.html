@@ -24,7 +24,9 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <button color="primary" mat-icon-button class="filter-button" title="Standortfilter">
+      <button color="primary" mat-icon-button
+              class="filter-button" title="Standortfilter"
+              (click)="onFilter()">
         <mat-icon>filter_list</mat-icon>
       </button>
     </div>
@@ -110,3 +112,25 @@
     </mat-radio-group>
   </div>
 </mat-expansion-panel>
+
+<ng-template #filterTemplate>
+  <div style="display: flex; align-items: end; margin-top: -40px; user-select: none;">
+    <span class="subtitle1 sub" i18n>Tabelle zeigt gefilterte Standorte im Szenario xy im Jahr {{timeSlider.value}}</span>
+    <div id="time-slider-wrapper" style="display: flex; margin-left: 200px; margin-bottom: 10px;"> <!--margin-left: auto-->
+      <div class="time-button" (click)="timeSlider.value = timeSlider.value - 1;">
+        <mat-icon color="primary">chevron_left</mat-icon>
+      </div>
+      <div class="time-button" (click)="timeSlider.value = timeSlider.value + 1;">
+        <mat-icon color="primary">chevron_right</mat-icon>
+      </div>
+      <div style="display: flex; padding: 10px 10px 20px 10px;">
+        <label style="padding-top: 25px;">2000</label>
+        <mat-slider #timeSlider color="primary"
+                    thumbLabel min="2000" max="2100" step="1" value="2010"
+                    style="width: 420px; margin-top: 15px;"></mat-slider>
+        <label style="padding-top: 25px;">2100</label>
+      </div>
+    </div>
+  </div>
+  <app-filter-table></app-filter-table>
+</ng-template>

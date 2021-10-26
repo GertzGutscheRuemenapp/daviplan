@@ -82,6 +82,8 @@ import { ExternalLayersComponent } from './pages/basedata/external-layers/extern
 import { CheckTreeComponent } from './elements/check-tree/check-tree.component';
 import { MatTreeModule } from "@angular/material/tree";
 import { HeaderCardComponent } from "./dash/header-card.component";
+import { FilterTableComponent } from './elements/filter-table/filter-table.component';
+import { MatChipsModule } from "@angular/material/chips";
 
 @NgModule({
   declarations: [
@@ -131,7 +133,8 @@ import { HeaderCardComponent } from "./dash/header-card.component";
     RouterSettingsComponent,
     ReachabilityMatrixComponent,
     ExternalLayersComponent,
-    CheckTreeComponent
+    CheckTreeComponent,
+    FilterTableComponent
   ],
     imports: [
         BrowserModule,
@@ -168,7 +171,8 @@ import { HeaderCardComponent } from "./dash/header-card.component";
         DragDropModule,
         TooltipModule,
         NgbModule,
-        MatTreeModule
+        MatTreeModule,
+        MatChipsModule
     ],
   providers: [
     [CookieService],

@@ -6,13 +6,14 @@ import { mockPresetLevels } from "../areas/areas";
 
 interface Indicator {
   id: number;
+  infrastructure: number;
   name: string;
   description: string;
 }
 
 export const mockIndicators: Indicator[] = [
-  {id: 1, name: 'Kita U3 Nachfrage', description: 'U3-Kind mit Betreuungswunsch pro Kita mit Krippe'},
-  {id: 2, name: 'Kita U3 Erreichbarkeit', description: 'Anzahl der U3-Kinder mit Betreuungswunsch, für die diese Einrichtung am besten erreichbar ist'}
+  {id: 1, infrastructure: mockInfrastructures[0].id, name: 'Kita U3 Nachfrage', description: 'U3-Kind mit Betreuungswunsch pro Kita mit Krippe'},
+  {id: 2, infrastructure: mockInfrastructures[0].id, name: 'Kita U3 Erreichbarkeit', description: 'Anzahl der U3-Kinder mit Betreuungswunsch, für die diese Einrichtung am besten erreichbar ist'}
 ]
 
 @Component({
