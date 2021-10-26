@@ -1,0 +1,61 @@
+<app-header-card [title]="'Infrastrukturbereiche'"
+                 width="980px">
+  Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+</app-header-card>
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="400px">
+    <app-input-card [title]="'Infrastrukturbereiche'"
+                    subtitle="Verfügbare Infrastrukturbereiche bearbeiten"
+                    infoText="Platzhalter Erklärung: Infrastrukturbereiche auswählen / hinzufügen / entfernen, aus Vorlage laden">
+      <div style="display: inline-flex;">
+        <mat-selection-list [multiple]="false"
+                            id="infrastructure-select">
+          <mat-list-option *ngFor="let infrastructure of infrastructures"
+                           (click)="selectedInfrastructure = infrastructure"
+                           [selected]="(infrastructure.id === selectedInfrastructure.id)">
+            <div class="option-text">{{infrastructure.name}}</div>
+          </mat-list-option>
+        </mat-selection-list>
+        <div class="order-controls">
+          <button mat-icon-button>
+            <mat-icon>expand_less</mat-icon>
+          </button>
+          <button mat-icon-button>
+            <mat-icon>expand_more</mat-icon>
+          </button>
+        </div>
+      </div>
+      <div style="margin-top: 10px;">
+        <button mat-button color="primary"
+                class="mat-button-dv" i18n>
+          <mat-icon>add</mat-icon>hinzufügen
+        </button>
+        <button mat-button color="primary"
+                style="margin-left: 40px;"
+                class="mat-button-dv" i18n>
+          <mat-icon>close</mat-icon>entfernen
+        </button>
+      </div>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="600px">
+    <app-input-card [title]="'Eigenschaften'"
+                    infoText="braucht es hier irgendeine Information?"
+                    [editTemplate]="infrastructureEdit">
+      <table *ngIf="selectedInfrastructure">
+        <tr>
+          <td i18n>Name</td>
+          <td>{{selectedInfrastructure.name}}</td>
+        </tr>
+        <tr>
+          <td i18n>Beschreibung</td>
+          <td>{{selectedInfrastructure.description}}</td>
+        </tr>
+      </table>
+    </app-input-card>
+  </div>
+</div>
+
+<ng-template #infrastructureEdit>
+  ToDo
+</ng-template>

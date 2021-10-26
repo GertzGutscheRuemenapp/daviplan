@@ -1,0 +1,102 @@
+<app-header-card [title]="'Kapazitäten'"
+                 width="1430px">
+  Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+</app-header-card>
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="350px">
+<!--    <app-input-card>
+      <div *ngFor="let infrastructure of infrastructures">
+        <div class="cat-select">
+          <mat-expansion-panel expanded>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                {{infrastructure.name}}
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <div *ngFor="let service of infrastructure.services">
+              <div>
+                {{service.name}}
+              </div>
+            </div>
+          </mat-expansion-panel>
+        </div>
+      </div>
+    </app-input-card>-->
+    <app-input-card [title]="'Leistungen'"
+                    [subtitle]="'Untertitel??'"
+                    infoText="Platzhalter: Leistungen bearbeiten in anderem Bereich">
+      <mat-selection-list [multiple]="false"
+                          class="categorized"
+                          id="service-select">
+        <ng-container *ngFor="let infrastructure of infrastructures">
+          <div mat-subheader>{{infrastructure.name}}</div>
+          <mat-list-option *ngFor="let service of infrastructure.services"
+                           (click)="selectedService = service"
+                           [selected]="(service.id === selectedService.id)">
+            <div class="option-text">{{service.name}}</div>
+          </mat-list-option>
+          <mat-divider></mat-divider>
+        </ng-container>
+      </mat-selection-list>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="1100px">
+    <app-input-card [title]="'Leistungsdaten'"
+                    infoText="Platzhalter: Als befüllte Vorlage hochladen und/oder über Karte editieren, Standort auf Karte auswählen">
+      <div style="width: 100%; display: flex;">
+        <div style="width: 50%; align-self: start;">
+          <span class="subtitle1 sub">
+            {{selectedService.name}}
+          </span>
+          <div style="display: flex; margin-top: 15px;">
+            <table>
+              <tr>
+                <td i18n>Standorte mit Leistung</td>
+                <td>24 von 102</td>
+              </tr>
+              <tr>
+                <td i18n>Upload am</td>
+                <td>02.06.2022</td>
+              </tr>
+            </table>
+            <table style="margin-left: 20px;">
+              <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+              <tr>
+                <td i18n>durch</td>
+                <td>Sascha Schmidt</td>
+              </tr>
+            </table>
+          </div>
+          <div style="margin: 20px 0 10px 0;">
+            <button mat-stroked-button color="primary" style="margin-right: 10px;">
+              <mat-icon>download</mat-icon> Template
+            </button>
+            <button mat-flat-button color="primary">
+              <mat-icon>upload</mat-icon> Daten hochladen
+            </button>
+          </div>
+          <button class="mat-button-dv"
+                  mat-button color="primary" i18n>
+            <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
+          </button>
+          <button mat-mini-fab color="primary"
+                  aria-label="Daten herunterladen" title="Daten herunterladen"
+                  style="float: right; margin: -10px 15px 0 0; box-shadow: none;">
+            <mat-icon>download</mat-icon>
+          </button>
+        </div>
+        <div id="log-window" style="width: 50%">
+          <app-log></app-log>
+        </div>
+      </div>
+      <div id="base-capacities-map" class="map-container">
+        <app-map-controls></app-map-controls>
+        <app-side-toggle id="legend"
+                         icon="layers"
+                         direction="left">
+          <app-legend target="base-capacities-map"></app-legend>
+        </app-side-toggle>
+      </div>
+    </app-input-card>
+  </div>
+</div>

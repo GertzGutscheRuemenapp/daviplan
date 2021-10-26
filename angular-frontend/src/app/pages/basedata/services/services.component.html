@@ -1,0 +1,125 @@
+<app-header-card [title]="'Leistungen'"
+                 width="1130px">
+  Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+</app-header-card>
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="350px">
+    <app-input-card [title]="'Leistungen'"
+                    [subtitle]="'Untertitel????'"
+                    infoText="Platzhalter: hinzufügen, entfernen, auswählen">
+      <mat-selection-list [multiple]="false"
+                          class="categorized"
+                          id="service-select">
+        <ng-container *ngFor="let infrastructure of infrastructures">
+          <div mat-subheader>{{infrastructure.name}}</div>
+          <mat-list-option *ngFor="let service of infrastructure.services"
+                           (click)="selectedService = service"
+                           [selected]="(service.id === selectedService.id)">
+            <div class="option-text">{{service.name}}</div>
+          </mat-list-option>
+          <mat-divider></mat-divider>
+        </ng-container>
+      </mat-selection-list>
+      <div style="margin-top: 10px;">
+        <button mat-button color="primary"
+                class="mat-button-dv"
+                (click)="onCreateService()">
+          <mat-icon>add</mat-icon>hinzufügen
+        </button>
+        <button mat-button color="primary"
+                style="margin-left: 40px;"
+                class="mat-button-dv">
+          <mat-icon>close</mat-icon>entfernen
+        </button>
+      </div>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="400px">
+    <app-input-card [title]="'Eigenschaften'"
+                    [editTemplate]="propertiesEdit"
+                    infoText="Platzhalter: Eigenschaften der gewählten Leistung">
+      <table>
+        <tr>
+          <td>Name</td>
+          <td>{{selectedService.name}}</td>
+        </tr>
+        <tr>
+          <td>Beschreibung</td>
+          <td>
+            <div style="overflow: hidden; -webkit-line-clamp: 5; -webkit-box-orient: vertical; display: -webkit-box;">
+              Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+            </div>
+          </td>
+        </tr>
+      </table>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="400px">
+    <app-input-card [title]="'Kapazitäten'"
+                    [editTemplate]="capacityEdit"
+                    [subtitle]="selectedService.name"
+                    infoText="Platzhalter: was, wenn nicht Kapazität; Einheiten werden in Infraplanung angezeigt ">
+      <mat-checkbox disabled [checked]="true">
+        hat Kapazität?? (hab die bessere Formulierung vergessen)
+      </mat-checkbox>
+      <table style="margin-top: 10px;">
+        <tr>
+          <td>Einheit Einzahl</td>
+          <td>Platz</td>
+        </tr>
+        <tr>
+          <td>Einheit Mehrzahl</td>
+          <td>Plätze</td>
+        </tr>
+      </table>
+    </app-input-card>
+    <app-input-card [title]="'Nachfrage'"
+                    [editTemplate]="demandEdit"
+                    [subtitle]="selectedService.name"
+                    infoText="Platzhalter: Quote hat logische Auswirkungen, Nachfragende Einheit nur Anzeige in Infraplanung">
+      <table style="margin-top: 10px;">
+        <tr>
+          <td>Nachfragende Einzahl</td>
+          <td>Schüler*in</td>
+        </tr>
+        <tr>
+          <td>Nachfragende Mehrzahl</td>
+          <td>Schüler*innen</td>
+        </tr>
+        <tr>
+          <td>Einheit Quote</td>
+          <td>Prozent</td>
+        </tr>
+      </table>
+    </app-input-card>
+  </div>
+</div>
+
+<ng-template #propertiesEdit>
+  ToDo
+</ng-template>
+
+<ng-template #capacityEdit>
+  ToDo
+</ng-template>
+
+<ng-template #demandEdit>
+  ToDo
+</ng-template>
+
+<ng-template #createService>
+  <div fxLayout="column">
+    <mat-form-field appearance="fill">
+      <mat-label i18n>Infrastruktur</mat-label>
+      <mat-select [value]="infrastructures[0].id">
+        <mat-option *ngFor="let infrastructure of infrastructures" [value]="infrastructure.id">
+          {{infrastructure.name}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+      <mat-label i18n>Name der Leistung</mat-label>
+      <input matInput formControlName="username" required>
+    </mat-form-field>
+  </div>
+</ng-template>

@@ -15,14 +15,15 @@ export interface User {
   profile: Profile;
 }
 
-export const mockUsers = [
+export const mockUsers: User[] = [
   {
     id: 1,
     username: 'bla',
     email: 'bla@bla.com',
-    firstName: 'Hans',
-    lastName: 'Blubb',
+    firstName: 'Sascha',
+    lastName: 'Schmidt',
     isSuperuser: false,
+    password: '',
     profile: {
       adminAccess: true,
       canCreateScenarios: true,
@@ -33,9 +34,10 @@ export const mockUsers = [
     id: 2,
     username: 'admin',
     email: 'bla2@bla.com',
-    firstName: 'Franz',
-    lastName: 'Bumm',
+    firstName: 'Hannah',
+    lastName: 'Hansen',
     isSuperuser: true,
+    password: '',
     profile: {
       adminAccess: false,
       canCreateScenarios: false,

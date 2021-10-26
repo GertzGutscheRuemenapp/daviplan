@@ -9,10 +9,6 @@
   position: relative;
 }
 
-.context-bar {
-  z-index: 2;
-}
-
 #gender-select {
   border-bottom: 1px solid lightgrey;
 }
@@ -28,7 +24,7 @@
   .checked label {
     color: $primary;
   }
-  .row {
+  .age-row {
     width: 100%;
   }
 }

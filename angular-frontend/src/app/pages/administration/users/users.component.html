@@ -1,9 +1,16 @@
+<app-header-card [title]="'Personen und Berechtigungen'"
+                 width="1180px">
+  Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+</app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="400px">
     <app-input-card #userList
                     [title]="'Benutzerkonten'"
                     subtitle="Konten auswählen und bearbeiten"
-                    [dialogTitle]="'Namen der Seite ändern'">
+                    [dialogTitle]="'Namen der Seite ändern'"
+                    infoText="
+        Nur Nutzer*innen mit einem Konto haben Zugriff auf das System. <br>
+        Hier können Sie neue Konten erstellen und bestehende Konten über die obige Liste bearbeiten oder entfernen.">
 
       <mat-selection-list [multiple]="false" style="min-height: 300px">
         <mat-list-option *ngFor="let user of users"
@@ -17,12 +24,7 @@
           <div mat-line *ngIf="!user.isSuperuser"><i style="font-size: 14px;" i18n>{{user.firstName}} {{user.lastName}}</i></div>
         </mat-list-option>
       </mat-selection-list>
-      <div class="info-text">
-        <h3>INFORMATION</h3>
-        Nur Nutzer*innen mit einem Konto haben Zugriff auf das System. <br>
-        Hier können Sie neue Konten erstellen und bestehende Konten über die obige Liste bearbeiten oder entfernen.
-      </div>
-      <div style="margin-top: 30px;">
+      <div style="margin-top: 10px;">
         <button mat-button color="primary"
                 class="mat-button-dv"
                 (click)="onCreateUser()" i18n>
@@ -77,7 +79,7 @@
           Kann Grundlagendaten editieren
         </mat-checkbox>
         <mat-checkbox disabled [(ngModel)]="selectedUser.profile.canCreateScenarios" i18n>
-          Kann Szenarien anlegen
+          Kann Planungsprozesse anlegen
         </mat-checkbox>
       </div>
     </app-input-card>
@@ -195,7 +197,7 @@
       </mat-checkbox>
       <mat-checkbox color="primary"
                     formControlName="canCreateScenarios" i18n>
-        Kann Szenarien anlegen
+        Kann Planungsprozesse anlegen
       </mat-checkbox>
     </div>
   </form>

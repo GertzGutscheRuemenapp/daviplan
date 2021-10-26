@@ -1,3 +1,8 @@
+<app-header-card [title]="'Grundeinstellungen'"
+                 width="780px">
+  Hier legen Sie fest, wie Ihre individuelle kommunale oder
+  regionale Anwendung von daviplan für die Nutzer erscheinen soll (Name, Logo, Willkommenstext, Kontakt)
+</app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="400px">
     <app-input-card #titleEdit
@@ -15,14 +20,31 @@
         </button>
       </div>
     </app-input-card>
+    <app-input-card #welcomeTextEdit
+                    [title]="'Willkommenstext für die Startseite'"
+                    subtitle="Willkommenstext ändern"
+                    [dialogTitle]="'Willkommenstext für die Startseite einfügen'"
+                    dialogWidth="1000px"
+                    infoText="Platzhalter: Text, der auf der Startseite angezeigt wird (nach Login oder bei Klick auf Logo links oben)"
+                    [editTemplate]="welcomeTextTemplate"
+                    [editButton]="welcomeTextEditButton">
+      <div #welcomeTextEditButton style="width: 100%">
+        <div class="text">
+          <div style="transform: scale(0.5, 0.5); margin: -20% 0 -20% -105px;"><div style="width: 150%;" [innerHTML]="settings?.welcomeText"></div></div>
+          <button mat-icon-button color="primary"
+                  style="position: absolute; left: 42%; top: 40%; pointer-events: none; z-index: 1;">
+            <mat-icon>edit</mat-icon>
+          </button>
+        </div>
+      </div>
+    </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="400px">
     <app-input-card #contactEdit
-                    [title]="'Kontakt E-Mail für Accounterstellung'"
+                    [title]="'Kontakt E-Mail (optional)'"
                     subtitle="E-Mail ändern"
                     [dialogTitle]="'Kontakt E-Mail ändern'"
-                    infoText="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor
-                    invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua."
+                    infoText="Diese E-Mail-Adresse wird im Loginbereich als Kontakt angegeben, an den sich Nutzer für die Beantragung eines Accounts bzw. zum Zurücksetzen des Passworts wenden können. Die Adresse wird anderweitig nicht verwendet.<br> Zum Entfernen der Mail muss das Eingabfeld leer gelassen werden."
                     [editTemplate]="contactTemplate"
                     [editButton]="contactEditButton">
       <div #contactEditButton class="row-button" style="width: 90%">
@@ -32,22 +54,23 @@
           <mat-icon>edit</mat-icon>
         </button>
       </div>
+      <!--      <button mat-button class="mat-button-dv"
+                    [disabled]="(!settings?.contactMail) ? true : null"
+                    color="primary" (click)="removeEmail()" i18n>
+              <mat-icon>close</mat-icon>&nbsp; E-Mail entfernen
+            </button>-->
     </app-input-card>
-  </div>
-</div>
-<div fxLayout="row wrap">
-  <div fxLayout="column" fxFlex="400px">
     <app-input-card #logoEdit
-                    [title]="'Logo für die Startseite'"
+                    [title]="'Logo für die Startseite (optional)'"
                     subtitle="Logo ändern"
                     [dialogTitle]="'Bilddatei als Logo festlegen'"
                     infoText="Die Individualisierung des Logos ist optional. Falls ein Logo gesetzt wird, wird es auf der Loginseite angezeigt und
-                    links in der Hauptnavigations- leiste. Ist es nicht gesetzt, wird stattdessen das DaviPlan-Logo in der Navigation angezeigt."
+                    links in der Hauptnavigationsleiste. Ist es nicht gesetzt, wird stattdessen das DaviPlan-Logo in der Navigation angezeigt."
                     [editTemplate]="logoTemplate"
                     [editButton]="logoEditButton">
       <div #logoEditButton class="img-wrapper">
         <button mat-icon-button color="primary"
-                style="position: absolute; left: 45%; top: 165px; pointer-events: none; z-index: 1;">
+                style="position: absolute; left: 42%; top: 40%; pointer-events: none; z-index: 1;">
           <mat-icon>edit</mat-icon>
         </button>
         <img [src]="settings?.logo" style="width: 100%;  object-fit: contain;">
@@ -57,25 +80,6 @@
               color="primary" (click)="removeLogo()" i18n>
         <mat-icon>close</mat-icon>&nbsp; Logo entfernen
       </button>
-    </app-input-card>
-  </div>
-  <div fxLayout="column" fxFlex="400px">
-    <app-input-card #welcomeTextEdit
-                    [title]="'Willkommenstext für die Startseite'"
-                    subtitle="Willkommenstext ändern"
-                    [dialogTitle]="'Willkommenstext für die Startseite einfügen'"
-                    dialogWidth="1000px"
-                    [editTemplate]="welcomeTextTemplate"
-                    [editButton]="welcomeTextEditButton">
-      <div #welcomeTextEditButton style="width: 100%">
-        <button mat-icon-button color="primary"
-          style="position: absolute; left: 42%; top: 55%; pointer-events: none; z-index: 1;">
-          <mat-icon>edit</mat-icon>
-        </button>
-        <div class="text">
-          <div style="transform: scale(0.5, 0.5); margin: -20% 0 -20% -105px;"><div style="width: 150%;" [innerHTML]="settings?.welcomeText"></div></div>
-        </div>
-      </div>
     </app-input-card>
   </div>
 </div>
@@ -128,7 +132,7 @@
     <div class="text-wrapper">
       <div class="centered" style="min-height: 300px;">
         <div style="width: calc(100% - 60px)" class="drop-overlay">
-          <h1 i18n>Bilddatei hierher ziehen</h1>
+          <h4 i18n>Bilddatei hierher ziehen</h4>
         </div>
         <img *ngIf="logoFile" [src]="logoFile.url" width="100%">
       </div>
@@ -136,12 +140,12 @@
   </div>
 </ng-template>
 
-<ng-template #removeLogoTemplate>
-  <div style="display: flex; align-items: end;">
+<ng-template #removeTemplate let-input="input" let-warning="warning">
+  <div style="display: flex;">
     <mat-form-field appearance="fill" class="warning" style="width: 300px; margin-right: 10px;">
-      <input disabled matInput [value]="logoFileName()">
+      <input disabled matInput [value]="input">
     </mat-form-field>
-    <mat-icon class="material-icons-outlined warning" style="font-size: 40px;">report_problem</mat-icon>
+    <mat-icon class="material-icons-outlined warning" style="font-size: 40px; margin-top: 4px;">report_problem</mat-icon>
   </div>
-  <p style="font-size: 0.8em; margin: -15px 0 0 10px;"> Die Entfernung ist dauerhaft und endgültig</p>
+  <p *ngIf="warning" style="font-size: 0.8em; margin: -15px 0 0 10px;"> Die Entfernung ist dauerhaft und endgültig</p>
 </ng-template>

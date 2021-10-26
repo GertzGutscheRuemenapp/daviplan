@@ -1,0 +1,91 @@
+<app-header-card [title]="'Bevölkerungssalden'"
+                 width="1130px">
+  Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+</app-header-card>
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="350px">
+    <app-input-card [title]="'Bevölkerungssalden'"
+                    infoText="Platzhalter: Abruf von Destatis"
+                    [subtitle]="'Abruf der Regionalstatistik'">
+      <table>
+        <tr>
+          <td i18n>letzter Abruf</td>
+          <td>02.06.2022</td>
+        </tr>
+      </table>
+      <div style="margin-top: 10px">
+        <button mat-flat-button color="primary" i18n>
+          <mat-icon>refresh</mat-icon> Abrufen
+        </button>
+      </div>
+    </app-input-card>
+    <app-input-card [title]="'Jahre'"
+                    subtitle="Verfügbare Jahre bearbeiten"
+                    infoText="Platzhalter Erklärung: Jahr auswählen / entfernen">
+      <mat-selection-list [multiple]="false"
+                          id="year-select">
+        <mat-list-option *ngFor="let year of years"
+                         (click)="selectedYear = year"
+                         [selected]="(year === selectedYear)">
+          <div class="option-text">{{year}}</div>
+        </mat-list-option>
+      </mat-selection-list>
+      <div style="margin-top: 10px;">
+        <button mat-button color="primary"
+                class="mat-button-dv" i18n>
+          <mat-icon>close</mat-icon>entfernen
+        </button>
+      </div>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="800px">
+    <app-input-card [title]="'Daten'"
+                    infoText="Platzhalter: braucht es hier eine Hilfe?">
+      <span class="subtitle1 sub">
+        {{selectedYear}}
+      </span>
+      <div>
+        <button class="mat-button-dv"
+                mat-button color="primary" i18n>
+          <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
+        </button>
+        <button mat-mini-fab color="primary"
+                aria-label="Daten herunterladen" title="Daten herunterladen"
+                style="float: right; margin: -10px 15px 0 0; box-shadow: none;">
+          <mat-icon>download</mat-icon>
+        </button>
+      </div>
+      <div id="base-statistics-map" class="map-container">
+        <app-map-controls></app-map-controls>
+        <app-side-toggle id="legend"
+                         icon="layers"
+                         direction="left">
+          <app-legend target="base-statistics-map"></app-legend>
+        </app-side-toggle>
+        <app-side-toggle id="statistics-theme"
+                         icon="family_restroom">
+          <div style="padding: 15px;">
+            <mat-form-field appearance="outline" class="small">
+              <mat-select disableOptionCentering [(ngModel)]="theme">
+                <mat-option value="natur">
+                  Natürlicher Saldo
+                </mat-option>
+                <mat-option value="wanderung">
+                  Wanderung
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            <div class="sub-select-wrapper" [style.display]="(theme==='wanderung')? 'block' : 'none'">
+              <mat-checkbox [checked]="true" color="primary">Zuzüge</mat-checkbox><br>
+              <mat-checkbox [checked]="true" color="primary">Fortzüge</mat-checkbox>
+            </div>
+            <div class="sub-select-wrapper" [style.display]="(theme==='natur')? 'block' : 'none'">
+              <mat-checkbox [checked]="true" color="primary">Geburten</mat-checkbox>
+              <mat-checkbox [checked]="false" color="primary">Sterbefälle</mat-checkbox>
+            </div>
+          </div>
+        </app-side-toggle>
+      </div>
+    </app-input-card>
+  </div>
+</div>

@@ -1,0 +1,101 @@
+<app-header-card [title]="'Koordination der Grundlagendaten'"
+                 width="1380px">
+  Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+</app-header-card>
+<div style="max-width: 1400px;">
+  <app-input-card [subtitle]="'Liste aller benötigten Datensätze und der zugewiesenen Personen'"
+                  infoText="Platzhalter Erklärung: Benutzung optional, Erleichterung der Planung,  Zuweisung der Personen, vorhandene Datensätze, Markierung">
+    <div style="overflow-x: auto;">
+      <table class="coordination-table">
+        <tr>
+          <th></th>
+          <th i18n>Daten-/Aufgabenbereich</th>
+          <th style="width: 1%; min-width: 220px;" i18n>berechtigt für Bearbeitung</th>
+          <th i18n>zuweisen</th>
+          <th i18n>Bearbeitungsstatus</th>
+          <th i18n>markieren</th>
+        </tr>
+        <ng-container *ngFor="let topDomain of Object.keys(domains)">
+          <tr *ngFor="let domain of domains[topDomain]; let i = index;"
+              [ngClass]="{'success': domain.marker===1, 'in-progress': domain.marker===2, 'warning': domain.marker===3}">
+            <td *ngIf="i===0" [attr.rowspan]="domains[topDomain].length">{{topDomain}}</td>
+            <td class="not-first-child">
+              <a mat-icon-button color="primary"
+                 [href]="domain.url"
+                 title="Link zum Aufgabenbereich">
+                <mat-icon>link</mat-icon>
+              </a>
+              {{domain.name}}
+            </td>
+            <td>
+              <div *ngIf="domain.users.length===0" style="padding-left: 45px;">
+                -
+              </div>
+              <div *ngFor="let user of domain.users">
+                <a mat-icon-button color="primary"
+                   href="/admin/benutzer"
+                   title="Link zur Administration der Person">
+                  <mat-icon>manage_accounts</mat-icon>
+                </a>
+                {{user.firstName}} {{user.lastName}}
+              </div>
+            </td>
+            <td style="padding-left: 22px;">
+              <button mat-icon-button color="primary"
+                      style="top: 10px;"
+                      title="Zuständige Personen bearbeiten">
+                <div class="davicon icon-GGR-davicons-Font-Single-20-Benutzer-Plus-Minus"></div>
+              </button>
+            </td>
+            <td>
+              <button mat-icon-button
+                      color="primary"
+                      style="cursor: help;"
+                      tooltip="Hier kommen Details zum Bearbeitungsstatus des Aufgabenbereichs rein"
+                      theme="light"
+                      [hideDelay]="0"
+                      maxWidth="400px">
+                <mat-icon>info</mat-icon>
+              </button>
+              {{domain.status.text}}
+            </td>
+            <td style="padding-left: 30px;">
+              <ng-template #popContent>
+                <button mat-button
+                        color="success" style="width: 100%; text-align: start;"
+                        (click)="domain.marker = 1;">
+                  <mat-icon>check_circle_outline</mat-icon> Fertig
+                </button>
+                <button mat-button
+                        color="accent" style="width: 100%; text-align: start;"
+                        (click)="domain.marker = 2;">
+                  <mat-icon>schedule</mat-icon> In Bearbeitung
+                </button>
+                <button mat-button
+                        color="warn" style="width: 100%; text-align: start;"
+                        (click)="domain.marker = 3;">
+                  <mat-icon>error_outline</mat-icon> Hohe Dringlichkeit
+                </button>
+                <button *ngIf="domain.marker" mat-button
+                        style="width: 100%; text-align: start; color: grey;"
+                        (click)="domain.marker = 0;">
+                  <mat-icon>highlight_off</mat-icon> Markierung entfernen
+                </button>
+              </ng-template>
+              <button mat-icon-button color="primary"
+                      [ngClass]="{rotate: !domain.marker}"
+                      title="Markierung des Aufgabenbereichs umschalten"
+                      [ngbPopover]="popContent"
+                      container="body">
+                <mat-icon *ngIf="domain.marker===1" color="success">check_circle_outline</mat-icon>
+                <mat-icon *ngIf="domain.marker===2" color="accent">schedule</mat-icon>
+                <mat-icon *ngIf="domain.marker===3" color="warn">error_outline</mat-icon>
+                <mat-icon *ngIf="!domain.marker">more_vert</mat-icon>
+              </button>
+            </td>
+          </tr>
+        </ng-container>
+      </table>
+    </div>
+  </app-input-card>
+</div>

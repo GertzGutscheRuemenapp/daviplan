@@ -1,0 +1,114 @@
+<app-header-card [title]="'Realdaten'"
+                 width="1430px">
+  Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+</app-header-card>
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="350px">
+    <app-input-card [title]="'Basiseinstellungen'"
+                    [editTemplate]="areaLevelEdit"
+                    infoText="Platzhalter Erklärung: Basis für Uploads, Ändern löscht alle Daten">
+      <table>
+        <tr>
+          <td i18n>Gebietseinheit</td>
+          <td>Gemeinden</td>
+        </tr>
+      </table>
+    </app-input-card>
+    <app-input-card [title]="'Jahre'"
+                    subtitle="Verfügbare Jahre bearbeiten"
+                    infoText="Platzhalter Erklärung: Jahr auswählen / hinzufügen / entfernen">
+      <mat-selection-list [multiple]="false"
+                          id="year-select">
+        <mat-list-option *ngFor="let year of years"
+                         (click)="selectedYear = year"
+                         [selected]="(year === selectedYear)">
+          <div class="option-text">{{year}}</div>
+        </mat-list-option>
+      </mat-selection-list>
+      <div style="margin-top: 10px;">
+        <button mat-button color="primary"
+                class="mat-button-dv" i18n>
+          <mat-icon>add</mat-icon>hinzufügen
+        </button>
+        <button mat-button color="primary"
+                style="margin-left: 40px;"
+                class="mat-button-dv" i18n>
+          <mat-icon>close</mat-icon>entfernen
+        </button>
+      </div>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="1100px">
+    <app-input-card [title]="'Realdaten'"
+                    infoText="Platzhalter: braucht es hier eine Hilfe?">
+      <div style="width: 100%; display: flex;">
+        <div style="width: 50%; align-self: start;">
+          <span class="subtitle1 sub">
+            {{selectedYear}}
+          </span>
+          <div style="margin-top: 15px; display: flex;">
+            <table>
+              <tr>
+                <td i18n>Upload am</td>
+                <td>02.06.2022</td>
+              </tr>
+            </table>
+            <table style="margin-left: 20px;">
+              <tr>
+                <td i18n>durch</td>
+                <td>Sascha Schmidt</td>
+              </tr>
+            </table>
+          </div>
+          <div style="margin: 20px 0 10px 0;">
+            <button mat-stroked-button color="primary" style="margin-right: 10px;">
+              <mat-icon>download</mat-icon> Template
+            </button>
+            <button mat-flat-button color="primary">
+              <mat-icon>upload</mat-icon> Daten hochladen
+            </button>
+          </div>
+          <button class="mat-button-dv"
+                  mat-button color="primary" i18n>
+            <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
+          </button>
+          <button mat-mini-fab color="primary"
+                  aria-label="Daten herunterladen" title="Daten herunterladen"
+                  style="float: right; margin: -10px 15px 0 0; box-shadow: none;">
+            <mat-icon>download</mat-icon>
+          </button>
+        </div>
+        <div id="log-window" style="width: 50%">
+          <app-log></app-log>
+        </div>
+      </div>
+      <div style="display: flex">
+        <div id="base-real-data-map" class="map-container">
+          <app-map-controls></app-map-controls>
+          <app-side-toggle id="legend"
+                           icon="layers"
+                           direction="left">
+            <app-legend target="base-real-data-map"></app-legend>
+          </app-side-toggle>
+        </div>
+        <div class="diagram-container">
+          <mat-form-field appearance="outline" class="small">
+            <mat-label>Gebiet</mat-label>
+            <mat-select disableOptionCentering value="irgendwo">
+              <mat-option value="irgendwo">
+                irgendwo
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <div class="diagram-wrapper">
+            <img src="{{backend}}/static/img/Bev-pyramide Screenshot.png" width="100%">
+          </div>
+        </div>
+      </div>
+    </app-input-card>
+  </div>
+</div>
+
+<ng-template #areaLevelEdit>
+  ToDo
+</ng-template>

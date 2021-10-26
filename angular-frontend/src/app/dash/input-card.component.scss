@@ -1,9 +1,13 @@
 @import "~src/constants";
 
-.dashboard-card {
+.dashboard-card:not(.borderless) {
   margin: 10px;
   border: 1px solid #0000001F;
   border-bottom: 1px solid $primary;
+}
+
+.borderless {
+  padding: 0;
 }
 
 .dashboard-card-content {
@@ -30,117 +34,146 @@ mat-card {
   right: 10px;
 }
 
-h2.title {
+.title {
   color: $accent;
 }
 
-h3.subtitle {
-  color: #00000061;
-  text-transform: uppercase;
-  margin-bottom: 10px;
-}
 
+::ng-deep {
+  app-input-card {
 
-::ng-deep app-input-card  {
-
-  h3 {
-    font-weight: bold !important;
-    margin-bottom: 0 !important;
-  }
-
-  .info-text {
-    margin-top: 30px;
-    //text-align: justify;
-  }
-
-  .text {
-    width: calc(100% - 10px);
-    overflow-x: auto;
-    color: $primary;
-    cursor: pointer;
-    border: 1px solid #0000001F;
-    padding: 5px;
-    min-height: 100px;
-    max-height: 300px;
-  }
-
-  .text:disabled {
-    background-color: white;
-  }
-
-  .text:hover {
-    background-color: map-get($blue-palette, A200);
-    border: 1px solid map-get($blue-palette, A400);
-  }
-
-  img {
-    opacity: 0.6;
-    cursor: pointer;
-  }
-
-  .img-wrapper {
-    border: 1px solid #0000001F;
-    width: 100%;
-    min-height: 200px;
-    display: flex;
-  }
-
-  .img-wrapper:hover {
-    border: 1px solid map-get($blue-palette, A400);
-    background-color: map-get($blue-palette, A400);
-    cursor: pointer;
-  }
-
-  label {
-    align-items: center;
-    display: flex;
-    color: $primary;
-  }
-
-  td:first-child {
-    padding-right: 20px;
-    font-size: 16px;
-    color: #00000061;
-    text-transform: uppercase;
-    font-weight: bold;
-    width: 1%;
-  }
-
-  $primary-prev: map-get($blue-palette, 300);
-
-  td:nth-child(2) {
-    color: $primary-prev;
-  }
-
-  .mat-checkbox {
-    padding-left: 5px;
-    .mat-checkbox-label{
-      color: #00000061!important;
+    h3 {
+      font-weight: bold;
+      margin-bottom: 0;
     }
-    .mat-checkbox-frame {
-      border-color: lightgrey!important;
+
+    .sub {
+      //color: #00000061;
+      //color: $light-black;
+      color: grey;
+      margin-bottom: 10px;
+    }
+
+    .text {
+      position: relative;
+      width: calc(100% - 10px);
+      overflow-x: auto;
+      color: $primary;
+      cursor: pointer;
+      border: 1px solid #0000001F;
+      padding: 5px;
+      min-height: 190px;
+      max-height: 300px;
+
+      h1, h2, h3, h4, h5, h6 {
+        color: $primary;
+      }
+    }
+
+    .text:disabled {
+      background-color: white;
+    }
+
+    .text:hover {
+      background-color: map-get($blue-palette, A200);
+      border: 1px solid map-get($blue-palette, A400);
+    }
+
+    img {
+      opacity: 0.6;
+      cursor: pointer;
+    }
+
+    .img-wrapper {
+      border: 1px solid #0000001F;
+      width: 100%;
+      min-height: 164px;
+      display: flex;
+      position: relative;
+    }
+
+    .img-wrapper:hover {
+      border: 1px solid map-get($blue-palette, A400);
+      background-color: map-get($blue-palette, A400);
+      cursor: pointer;
+    }
+
+    label {
+      align-items: center;
+      display: flex;
+      color: $primary;
+    }
+
+    $primary-prev: map-get($blue-palette, 300);
+
+    td:not(:first-child) {
+      color: $primary-prev;
+    }
+    th {
+      color: grey;
+    }
+
+    .mat-checkbox {
+      //padding-left: 5px;
+
+      .mat-checkbox-label {
+        color: #00000061;
+        white-space: normal;
+      }
+
+      .mat-checkbox-frame {
+        border-color: lightgrey;
+      }
+    }
+
+    .mat-checkbox-disabled.mat-checkbox-checked, .mat-checkbox-checked {
+      .mat-checkbox-background {
+        background-color: $primary-prev;
+      }
+    }
+
+    .mat-checkbox-checked .mat-checkbox-label {
+        color: $primary-prev;
+    }
+
+    .dotted-fill {
+      flex: 1 1 auto;
+      border-bottom: 1px dashed $primary-prev;
+      height: 20px;
+      margin: 0 2px;
+    }
+
+    mat-selection-list {
+      //overlaps into padding
+      width: calc(100% - 5px);
+      border: solid #0000001F;
+      overflow-y: auto;
+      box-sizing: content-box;
+      padding-bottom: 8px;
+      .option-text {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+/*      .star-option:hover, .star-option[aria-selected=true] {
+        background-color: #c8ffd4 !important;
+      }*/
     }
   }
-
-  .mat-checkbox-checked {
-    .mat-checkbox-label{
-      color: $primary-prev!important;
+  app-input-card, confirm-dialog {
+    td:first-child:not(.not-first-child) {
+      padding-right: 20px;
+      font-size: 14px;
+      line-height: 16px;
+      color: #00000061;
+      text-transform: uppercase;
+      font-weight: bold;
+      width: 1%;
+      letter-spacing: 0.6px;
+      white-space: nowrap;
     }
-   .mat-checkbox-background {
-     background-color: $primary-prev!important;
+    td {
+      vertical-align: text-top;
     }
-  }
-
-  .dotted-fill {
-    flex: 1 1 auto;
-    border-bottom: 1px dashed $primary-prev;
-    height: 20px;
-    margin: 0 2px;
-  }
-
-  mat-selection-list {
-    //overlaps into padding
-    width: calc(100% - 5px);
-    border: solid #0000001F;
   }
 }

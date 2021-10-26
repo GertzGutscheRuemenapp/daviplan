@@ -2,7 +2,9 @@ import { AfterViewInit, Component, EventEmitter, Injectable, OnInit, ViewChild }
 import { MapControl, MapService } from "../../map/map.service";
 import { faArrowsAlt } from '@fortawesome/free-solid-svg-icons';
 import { TimeSliderComponent } from "../../elements/time-slider/time-slider.component";
-
+import { Observable } from "rxjs";
+import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
+import { map, shareReplay } from "rxjs/operators";
 
 @Injectable({ providedIn: 'root' })
 export class PopService {
@@ -19,8 +21,13 @@ export class PopulationComponent implements AfterViewInit {
   @ViewChild('timeSlider') timeSlider?: TimeSliderComponent;
   mapControl?: MapControl;
   faArrows = faArrowsAlt;
+  isHandset$: Observable<boolean> = this.breakpointObserver.observe('min-width: 39.9375em')
+    .pipe(
+      map(result => result.matches),
+      shareReplay()
+    );
 
-  constructor(private mapService: MapService, private popService: PopService) { }
+  constructor(private breakpointObserver: BreakpointObserver, private mapService: MapService, private popService: PopService) { }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');

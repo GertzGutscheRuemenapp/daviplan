@@ -29,18 +29,19 @@
       <a routerLink="/login">Login</a>
     </ng-template>
     <div *ngIf="user; else loggedOut" style="display: flex;">
-      eingeloggt als&nbsp;<b *ngIf="user">{{user.username}}</b>    &nbsp;&nbsp;
+      <mat-icon style="margin-top: 2px;">person</mat-icon><b *ngIf="user">{{user.username}}</b> &nbsp;&nbsp;&nbsp;
       <a (click)="logout()" href="">Logout</a>
     </div>
   </div>
 </mat-toolbar>
 <mat-sidenav-container fxFlexFill>
-  <mat-sidenav class="main-collapse" color="primary" #sidenav fxLayout="column" mode="over" opened="false" fxHide.gt-sm="true">
+  <mat-sidenav class="main-collapse" color="primary" #sidenav fxLayout="column" mode="over" opened="false">
     <div fxLayout="column">
       <a *ngFor="let item of menuItems"
          mat-button
          routerLinkActive="active-link"
-         [routerLink]="'/'+item.url">
+         [routerLink]="'/'+item.url"
+         [routerLinkActiveOptions]="{exact: false}">
         {{item.name}}
       </a>
     </div>

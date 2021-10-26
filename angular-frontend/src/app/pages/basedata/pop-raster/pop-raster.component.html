@@ -1,0 +1,57 @@
+<app-header-card [title]="'Einwohnerraster'"
+                 width="1132px">
+  Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+</app-header-card>
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="352px">
+    <app-input-card [title]="'Raster'"
+                    [editTemplate]="rasterEdit"
+                    infoText="Platzhalter: braucht es hier eine Hilfe?">
+      <table>
+        <tr>
+          <td i18n>Name</td>
+          <td>Zensus 2011 LAEA</td>
+        </tr>
+        <tr>
+          <td i18n>Quelle</td>
+          <td>Vorgabe</td>
+        </tr>
+        <tr>
+          <td i18n>Zellen</td>
+          <td>1457</td>
+        </tr>
+      </table>
+      <div style="margin-top: 20px;">
+        <button mat-stroked-button color="primary" style="margin-right: 10px;">
+          <mat-icon>download</mat-icon> Template
+        </button>
+        <button mat-flat-button color="primary">
+          <mat-icon>upload</mat-icon> Daten hochladen
+        </button>
+      </div>
+      <button mat-mini-fab color="primary"
+              aria-label="Daten herunterladen" title="Daten herunterladen"
+              style="position: absolute; right: 15px; bottom: 55px; box-shadow: none;">
+        <mat-icon>download</mat-icon>
+      </button>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="800px">
+    <app-input-card [title]="'Rasteransicht'"
+                    infoText="Platzhalter: braucht es hier eine Hilfe?">
+      <div id="base-raster-map" class="map-container">
+        <app-map-controls></app-map-controls>
+        <app-side-toggle id="legend"
+                         icon="layers"
+                         direction="left">
+          <app-legend target="base-raster-map"></app-legend>
+        </app-side-toggle>
+      </div>
+    </app-input-card>
+  </div>
+</div>
+
+
+<ng-template #rasterEdit>
+  ToDo
+</ng-template>

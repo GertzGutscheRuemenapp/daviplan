@@ -16,6 +16,21 @@ import { RatingComponent } from "./pages/planning/rating/rating.component";
 import { ReachabilitiesComponent } from "./pages/planning/reachabilities/reachabilities.component";
 import { SettingsComponent } from "./pages/administration/settings/settings.component";
 import { AreasComponent } from "./pages/basedata/areas/areas.component";
+import { PopRasterComponent } from "./pages/basedata/pop-raster/pop-raster.component";
+import { RealDataComponent } from "./pages/basedata/real-data/real-data.component";
+import { PrognosisDataComponent } from "./pages/basedata/prognosis-data/prognosis-data.component";
+import { StatisticsComponent } from "./pages/basedata/statistics/statistics.component";
+import { InfrastructureComponent } from "./pages/administration/infrastructure/infrastructure.component";
+import { ProjectAreaComponent } from "./pages/administration/project-area/project-area.component";
+import { CoordinationComponent } from "./pages/administration/coordination/coordination.component";
+import { LocationsComponent } from "./pages/basedata/locations/locations.component";
+import { ServicesComponent } from "./pages/basedata/services/services.component";
+import { CapacitiesComponent } from "./pages/basedata/capacities/capacities.component";
+import { DemandQuotasComponent } from "./pages/basedata/demand-quotas/demand-quotas.component";
+import { IndicatorsComponent } from "./pages/basedata/indicators/indicators.component";
+import { ExternalLayersComponent } from "./pages/basedata/external-layers/external-layers.component";
+import { RouterSettingsComponent } from "./pages/basedata/router-settings/router-settings.component";
+import { ReachabilityMatrixComponent } from "./pages/basedata/reachability-matrix/reachability-matrix.component";
 
 const routes: Routes = [
   {
@@ -26,7 +41,7 @@ const routes: Routes = [
   },
   {
     path: 'admin',
-    redirectTo: 'admin/settings'
+    redirectTo: 'admin/einstellungen'
   },
   {
     path: 'admin',
@@ -34,12 +49,24 @@ const routes: Routes = [
     canActivate: [AuthGuard],
     children: [
       {
-        path: 'settings',
+        path: 'einstellungen',
         component: SettingsComponent
       },
       {
-        path: 'users',
+        path: 'benutzer',
         component: UsersComponent
+      },
+      {
+        path: 'infrastruktur',
+        component: InfrastructureComponent
+      },
+      {
+        path: 'projektgebiet',
+        component: ProjectAreaComponent
+      },
+      {
+        path: 'koordination',
+        component: CoordinationComponent
       }
     ]
   },
@@ -86,6 +113,54 @@ const routes: Routes = [
       {
         path: 'gebiete',
         component: AreasComponent
+      },
+      {
+        path: 'einwohnerraster',
+        component: PopRasterComponent
+      },
+      {
+        path: 'realdaten',
+        component: RealDataComponent
+      },
+      {
+        path: 'prognosedaten',
+        component: PrognosisDataComponent
+      },
+      {
+        path: 'statistiken',
+        component: StatisticsComponent
+      },
+      {
+        path: 'standorte',
+        component: LocationsComponent
+      },
+      {
+        path: 'leistungen',
+        component: ServicesComponent
+      },
+      {
+        path: 'kapazitaeten',
+        component: CapacitiesComponent
+      },
+      {
+        path: 'nachfragequoten',
+        component: DemandQuotasComponent
+      },
+      {
+        path: 'indikatoren',
+        component: IndicatorsComponent
+      },
+      {
+        path: 'wegenetz',
+        component: RouterSettingsComponent
+      },
+      {
+        path: 'erreichbarkeiten',
+        component: ReachabilityMatrixComponent
+      },
+      {
+        path: 'layer',
+        component: ExternalLayersComponent
       },
     ]
   },

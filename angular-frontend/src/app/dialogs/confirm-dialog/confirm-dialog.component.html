@@ -1,0 +1,32 @@
+<h4 mat-dialog-title>{{ data.title }}</h4>
+<mat-dialog-content>
+  <div class="loadOverlay" *ngIf="isLoading">
+    <mat-spinner [diameter]="50"></mat-spinner>
+  </div>
+  <p *ngIf="data.message">
+    {{ data.message }}
+  </p>
+  <ng-container *ngTemplateOutlet="data.template; context: data.context"></ng-container>
+  <div *ngIf="data.infoText" class="info-text" style="margin-top: 15px;">
+    <mat-expansion-panel [expanded]="data.infoExpanded">
+      <mat-expansion-panel-header>
+        <mat-icon color="primary" class="material-icons-outlined" style="margin-right: 5px;">info</mat-icon>
+        <span class="subtitle1" style="color: grey;">INFORMATION</span>
+      </mat-expansion-panel-header>
+      <span [innerHTML]="data.infoText"></span>
+    </mat-expansion-panel>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button class="mat-button-dv"
+          color="primary"
+          mat-dialog-close
+          style="margin-right: 20px;">
+    {{ data.cancelButtonText }}
+  </button>
+  <button mat-button class="mat-button-dv"
+          color="primary"
+          (click)="onConfirmClick()">
+    {{ data.confirmButtonText }}
+  </button>
+</mat-dialog-actions>

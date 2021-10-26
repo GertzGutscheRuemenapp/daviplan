@@ -1,82 +1,141 @@
-<div style="display: flex; flex-wrap: wrap;">
-  <div style="width: 400px;">
-    <app-dash-card title="Gebietseinheiten" height="300px">
-      <mat-selection-list [multiple]="false" style="height: 200px;">
-        <mat-list-option *ngFor="let areaLevel of areaLevels" [value]="areaLevel" (click)="onSelect(areaLevel)" [selected]="(selectedAreaLevel && (areaLevel.id === selectedAreaLevel.id))">
-          <mat-icon mat-list-icon>layers</mat-icon>
-          <div mat-line>{{ areaLevel.name }}</div>
-        </mat-list-option>-
+<app-header-card [title]="'Gebiete'"
+                 width="1380px">
+  Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+</app-header-card>
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="400px">
+    <app-input-card [title]="'Gebietseinheiten'"
+                    subtitle="Vorgaben / Shapes bearbeiten"
+                    infoText="Platzhalter Erklärung auswählen / hinzufügen / entfernen / checkbox <br>
+                              die oberen vier sind Vorgaben">
+      <mat-selection-list [multiple]="false"
+                          id="level-select">
+        <div class="option-wrapper" *ngFor="let areaLevel of presetLevels">
+          <mat-list-option [value]="areaLevel"
+                           (click)="onSelect(areaLevel)"
+                           [selected]="(selectedAreaLevel && (areaLevel.id === selectedAreaLevel.id))">
+            <div class="option-text">{{ areaLevel.name }}</div>
+          </mat-list-option>
+          <mat-checkbox></mat-checkbox>
+        </div>
+        <mat-divider></mat-divider>
+        <div class="option-wrapper" *ngFor="let areaLevel of areaLevels">
+          <mat-list-option [value]="areaLevel"
+                           (click)="onSelect(areaLevel)"
+                           [selected]="(selectedAreaLevel && (areaLevel.id === selectedAreaLevel.id))">
+            <div class="option-text">{{ areaLevel.name }}</div>
+          </mat-list-option>
+          <mat-checkbox></mat-checkbox>
+        </div>
       </mat-selection-list>
-      <br>
-      <div style="width: 100%;">
-        <button mat-button class="mat-button-dv"
-                color="primary" (click)="onCreateArea()" i18n><mat-icon>add_circle_outline</mat-icon>&nbsp; hinzufügen</button>
-        <button style="float: right;" class="mat-button-dv"
-                [class.hidden]="!selectedAreaLevel"
-                mat-raised-button color="warn"
-                (click)="onDeleteArea()" i18n>
-          <mat-icon>delete_forever</mat-icon>&nbsp; Gebiet entfernen
+      <div style="margin-top: 10px;">
+        <button mat-button color="primary"
+                class="mat-button-dv"
+                (click)="onCreateArea()" i18n>
+          <mat-icon>add</mat-icon>hinzufügen
+        </button>
+        <button mat-button color="primary"
+                style="margin-left: 40px;"
+                class="mat-button-dv"
+                [disabled]="selectedAreaLevel?.preset"
+                (click)="onCreateArea()" i18n>
+          <mat-icon>close</mat-icon>entfernen
         </button>
       </div>
-    </app-dash-card>
-    <app-input-card #prefCard title="Eigenschaften" [class.hidden]="!selectedAreaLevel">
-      <div *ngIf="selectedAreaLevel">
-        <table>
-          <tr>
-            <td i18n>Name</td>
-            <td>{{selectedAreaLevel.name}}</td>
-          </tr>
-        </table>
+      <div after>
+        <mat-divider style="margin: 20px 0 5px 0;"></mat-divider>
         <br>
-        <mat-checkbox disabled type="checkbox" [(ngModel)]="selectedAreaLevel.layer" i18n>
-          als Layer in Kartenansichten zur Verfügung stellen
-        </mat-checkbox>
-        <table>
-          <tr>
-            <td i18n>Füllfarbe</td>
-            <td></td>
-          </tr>
-          <tr>
-            <td i18n>Linienfarbe</td>
-            <td></td>
-          </tr>
-        </table>
+        <app-input-card [title]="'Eigenschaften'"
+                        [borderless]="true"
+                        [editTemplate]="propertiesEdit"
+                        infoText="Platzhalter: braucht es hier eine Hilfe?">
+          <table *ngIf="selectedAreaLevel">
+            <tr>
+              <td i18n>Name</td>
+              <td>{{selectedAreaLevel?.name}}</td>
+            </tr>
+            <tr>
+              <td i18n>Linienfarbe</td>
+              <td><div class="symbol square" [style.backgroundColor]="selectedAreaLevel?.layer?.symbol?.strokeColor"></div></td>
+            </tr>
+          </table>
+        </app-input-card>
       </div>
     </app-input-card>
   </div>
-  <div style="min-width: 1000px;">
-    <app-dash-card title="Daten" height="300px">
-      <div style="width: 100%; height: 100%;">
-        <div style="width: 500px; float: left;"  [class.hidden]="!selectedAreaLevel">
-          <table>
+  <div fxLayout="column" fxFlex="1000px">
+    <app-input-card [title]="'Daten'"
+                    [dialogTitle]="'Kontakt E-Mail ändern'"
+                    infoText="Platzhalter: braucht es hier eine Hilfe?">
+      <div style="width: 100%; display: flex;">
+        <div style="width: 50%; align-self: start;">
+          <span class="subtitle1 sub">
+            {{selectedAreaLevel?.name}}
+          </span>
+          <table style="margin-top: 15px;">
             <tr>
-              <td>Gebiete</td>
-              <td>?</td>
+              <td i18n>Gebiete (Features)</td>
+              <td>12</td>
             </tr>
             <tr>
-              <td>Quelle</td>
-              <td>?</td>
+              <td i18n>Quelle</td>
+              <td>WFS-Dienst</td>
             </tr>
             <tr>
-              <td>letzter Abruf</td>
-              <td>?</td>
+              <td i18n>URL</td>
+              <td style="max-width: 100px; overflow: hidden; text-overflow: ellipsis;">
+                https://sgx.geodatenzentrum.de/wfs/bvmsdfkdfhnsdflfnsdnlk
+              </td>
+            </tr>
+            <tr>
+              <td i18n>letzter Abruf</td>
+              <td>02.06.2022</td>
             </tr>
           </table>
-          <div style="bottom: 20px; position: absolute; width: 460px;">
-            <button mat-raised-button color="primary" style="float: left;"> aus WFS </button>
-            <span style="float: left; font-size: 2em; font-weight: bold;"> / </span>
-            <button mat-raised-button color="primary" style="float: left;"> Shape hochladen </button>
-            <button mat-raised-button color="accent" style="float: right;"> Datentabelle </button>
+          <button class="mat-button-dv"
+                  mat-button color="primary"
+                  style="margin-top: 20px;" i18n>
+            <mat-icon class="material-icons-outlined">refresh</mat-icon> Daten abrufen und aktualisieren
+          </button>
+          <div>
+            <button class="mat-button-dv"
+                    mat-button color="primary" i18n>
+              <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
+            </button>
+            <button mat-mini-fab color="primary"
+                    aria-label="Daten herunterladen" title="Daten herunterladen"
+                    style="float: right; margin-right: 10px; box-shadow: none;">
+              <mat-icon>download</mat-icon>
+            </button>
           </div>
         </div>
-        <div style="width: 500px; float: right; height: 100%;">
-
+        <div id="log-window" style="width: 50%">
           <app-log></app-log>
         </div>
       </div>
-    </app-dash-card>
-    <app-dash-card title='Karte' height="500px">
-      <div id="level-map" class="map-container"></div>
-    </app-dash-card>
+      <div id="base-areas-map" class="map-container">
+        <app-map-controls></app-map-controls>
+      </div>
+    </app-input-card>
   </div>
 </div>
+
+<ng-template #propertiesEdit>
+    <mat-form-field appearance="fill" style="width: 100%">
+      <mat-label i18n>Name</mat-label>
+      <input matInput formControlName="username"
+                      [value]="selectedAreaLevel?.name"
+                      [disabled]="selectedAreaLevel?.preset || false">
+    </mat-form-field>
+    <table>
+      <tr>
+        <td i18n>Linienfarbe</td>
+        <td>
+          <div class="symbol square"
+               [(colorPicker)]="colorSelection"
+               [style.backgroundColor]="colorSelection"
+               style="cursor: pointer">
+          </div></td>
+      </tr>
+    </table>
+</ng-template>

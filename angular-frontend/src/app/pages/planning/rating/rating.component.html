@@ -10,23 +10,43 @@
   <mat-form-field appearance="outline" class="small">
     <mat-select disableOptionCentering panelClass="indicator-panel" value="2">
       <mat-optgroup label="Meine Indikatoren">
-        <mat-option value="1">
-          Testindikator
-          <button mat-icon-button color="primary">
+        <mat-option value="0"
+                    class="own-option"
+                    tooltip="Mein Testindikator"
+                    theme="light"
+                    placement="right"
+                    maxWidth="400px"
+                    [hideDelay]="0">
+          <div>
+            Test + langer Text der die maximale Größe des Containers überschreiten sollte
+          </div>
+          <button mat-icon-button color="primary"
+                  title="Indikator editieren">
             <mat-icon>delete</mat-icon>
           </button>
-          <button mat-icon-button color="primary">
+          <button mat-icon-button color="primary"
+                  title="Indikator löschen">
             <mat-icon>edit</mat-icon>
           </button>
         </mat-option>
-        <mat-option title="Indikator hinzufügen"><mat-icon class="material-icons-outlined">add</mat-icon>Indikator hinzufügen</mat-option>
+        <mat-option tooltip="Indikator hinzufügen"
+                    theme="light"
+                    [hideDelay]="0"
+                    placement="right">
+          <button mat-icon-button color="primary">
+            <mat-icon>add</mat-icon>
+          </button>
+        </mat-option>
       </mat-optgroup>
       <mat-optgroup label="Vorgegebene Indikatoren">
-        <mat-option value="2">
-          U3-Kind mit Betreuungswunsch pro Kita mit Krippe
-        </mat-option>
-        <mat-option value="3">
-          Anzahl der U3-Kinder mit Betreuungswunsch, für die diese Einrichtung am besten erreichbar ist
+        <mat-option *ngFor="let indicator of indicators"
+                    value="{{indicator.id}}"
+                    tooltip="{{indicator.description}}"
+                    theme="light"
+                    placement="right"
+                    maxWidth="400px"
+                    [hideDelay]="0">
+          {{indicator.name}}
         </mat-option>
       </mat-optgroup>
     </mat-select>
@@ -36,7 +56,7 @@
   <mat-expansion-panel-header>
     <mat-panel-title>
       <div class="mini-fab-icon">
-        <mat-icon class="material-icons-outlined">border_outer</mat-icon>
+        <mat-icon class="material-icons-outlined">flip_to_front</mat-icon>
       </div>
       Gebietseinheit
     </mat-panel-title>
@@ -67,42 +87,38 @@
       Vergleichsdarstellung
     </mat-panel-title>
   </mat-expansion-panel-header>
-  <mat-checkbox color="primary" [(ngModel)]="compareSupply" i18n> <!--style="margin-left: -12px"-->
+  <mat-checkbox style="padding-left: 12px;" color="primary" [(ngModel)]="compareSupply" i18n> <!--style="margin-left: -12px"-->
     Nachfrage vergleichen
   </mat-checkbox>
-  <ul class="compare-radio-list">
+  <div class="sub-select-wrapper compare-radio-list">
     <mat-radio-group [(ngModel)]="compareStatus">
-      <li>
-        <mat-radio-button value="option 1" color="primary"
-                          [disabled]="!compareSupply"
-                          i18n>
-          Mit Bewertung im gleichen Szenario im Jahr
-        </mat-radio-button>
-        <mat-form-field appearance="outline" class="small">
-          <mat-select disableOptionCentering [value]="years[0]" [disabled]="!compareSupply || compareStatus != 'option 1'">
-            <mat-option *ngFor="let year of years" [value]="year">
-              {{year}}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-      </li>
-      <li>
-        <mat-radio-button value="option 2" color="primary"
-                          [disabled]="!compareSupply"
-                          i18n>
-          Mit Bewertung im gleichen Jahr im Szenario
-        </mat-radio-button>
-        <mat-form-field appearance="outline" class="small">
-          <mat-select disableOptionCentering value="1" [disabled]="!compareSupply || compareStatus != 'option 2'">
-            <mat-option value="1">
-              Szenario 1
-            </mat-option>
-            <mat-option value="2">
-              Szenario 2
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-      </li>
+      <mat-radio-button value="option 1" color="primary"
+                        [disabled]="!compareSupply"
+                        i18n>
+        Mit Bewertung im gleichen Szenario im Jahr
+      </mat-radio-button>
+      <mat-form-field appearance="outline" class="small">
+        <mat-select disableOptionCentering [value]="years[0]" [disabled]="!compareSupply || compareStatus != 'option 1'">
+          <mat-option *ngFor="let year of years" [value]="year">
+            {{year}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-radio-button value="option 2" color="primary"
+                        [disabled]="!compareSupply"
+                        i18n>
+        Mit Bewertung im gleichen Jahr im Szenario
+      </mat-radio-button>
+      <mat-form-field appearance="outline" class="small">
+        <mat-select disableOptionCentering value="1" [disabled]="!compareSupply || compareStatus != 'option 2'">
+          <mat-option value="1">
+            Szenario 1
+          </mat-option>
+          <mat-option value="2">
+            Szenario 2
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
     </mat-radio-group>
-  </ul>
+  </div>
 </mat-expansion-panel>

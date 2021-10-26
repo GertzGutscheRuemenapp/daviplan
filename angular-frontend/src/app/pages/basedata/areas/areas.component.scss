@@ -1,9 +1,39 @@
-mat-selection-list {
-  width: 100%;
-  border: solid lightgrey;
-}
-
 #level-map {
   height: 100%;
   width: 100%;
+}
+
+.symbol {
+  margin: 0;
+}
+
+::ng-deep app-areas #level-select {
+  min-height: 200px;
+  max-height: 400px;
+  .option-wrapper {
+    position: relative;
+  }
+  mat-list-option {
+    width: calc(100% - 50px);
+    .mat-list-text {
+      padding: 0;
+    }
+    .option-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+  mat-checkbox {
+    position: absolute;
+    right: 18px;
+    top: 5px;
+  }
+}
+
+#base-areas-map {
+  width: 100%;
+  height: 600px;
+  margin-top: 15px;
+  position: relative;
 }

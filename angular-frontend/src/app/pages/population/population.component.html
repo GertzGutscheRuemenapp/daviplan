@@ -1,18 +1,19 @@
-<mat-toolbar class="sub-nav">
-  <span fxShow="true" fxHide.lt-md="true">
+<mat-toolbar class="sub-nav" [style.visibility]="">
+  <span class="sub-links">
     <a routerLink="/bevoelkerung/entwicklung" routerLinkActive="active-link" i18n> Bevölkerungsentwicklung </a>
-    <a routerLink="/bevoelkerung/statistik" routerLinkActive="active-link" i18n> Statistiken </a>
+    <a routerLink="/bevoelkerung/statistik" routerLinkActive="active-link" i18n> Bevölkerungssalden </a>
   </span>
 </mat-toolbar>
 <div class="map-wrapper">
   <div id="population-map">
+    <app-map-controls></app-map-controls>
     <div id="info" class="map-drag-element" cdkDrag cdkDragBoundary="#population-map">
       <div class="handle" title="Anzeigeinformationen" cdkDragHandle>
         <mat-icon color="primary">info</mat-icon>
         <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
       </div>
       <app-side-toggle [fullHeightIndicator]="true" expanded>
-        <div style="padding: 10px" [innerHTML]="this.mapControl?.mapDescription"></div>
+        <div style="padding: 10px; min-height: 70px;" [innerHTML]="this.mapControl?.mapDescription"></div>
       </app-side-toggle>
     </div>
     <div id="time-slider" class="map-drag-element" cdkDrag cdkDragBoundary="#population-map">
@@ -26,12 +27,10 @@
         </div>
       </app-side-toggle>
     </div>
-    <app-map-controls style="position: absolute; right: 90px; top: 30px;"></app-map-controls>
     <app-side-toggle id="legend"
                      icon="layers"
                      direction="left"
                      expanded>
-      <!--                     cdkDragLockAxis="y" cdkDrag>-->
       <app-legend target="population-map"></app-legend>
     </app-side-toggle>
   </div>

@@ -1,0 +1,35 @@
+@import "~src/constants";
+
+#mode-select {
+  padding-left: 5px;
+  font-size: 14px;
+  align-items: start;
+  color: grey;
+  .mini-fab-icon {
+    padding: 2px;
+    width: 35px;
+    height: 35px;
+    margin: auto;
+    mat-icon {
+      font-size: 20px;
+      margin-top: 3px;
+      margin-left: 0;
+    }
+  }
+  > div {
+    text-align: center;
+    min-width: 55px;
+    cursor: pointer;
+  }
+  div.selected {
+    color: $primary;
+  }
+}
+
+#indicator-select {
+  //padding-left: 8px;
+  .row-button {
+    padding-left: 28px;
+    margin-top: -5px;
+  }
+}

@@ -3,8 +3,11 @@ import { MapControl, MapService } from "../../../map/map.service";
 import { StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
 import { PopService } from "../population.component";
+import { Observable } from "rxjs";
+import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
+import { map, shareReplay } from "rxjs/operators";
 
-const mockdata: StackedData[] = [
+export const mockdata: StackedData[] = [
   { group: '2000', values: [200, 300, 280] },
   { group: '2001', values: [190, 310, 290] },
   { group: '2002', values: [192, 335, 293] },
@@ -40,8 +43,13 @@ export class PopDevelopmentComponent implements AfterViewInit {
     x: '2003',
     highlight: true
   }
+  isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 39.9375em)')
+    .pipe(
+      map(result => result.matches),
+      shareReplay()
+    );
 
-  constructor(private mapService: MapService, private popService: PopService) {
+  constructor(private breakpointObserver: BreakpointObserver, private mapService: MapService, private popService: PopService) {
   }
 
   ngAfterViewInit(): void {

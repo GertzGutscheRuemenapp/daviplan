@@ -1,0 +1,71 @@
+<app-header-card [title]="'Externe Layer'"
+                 width="1230px">
+  Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+</app-header-card>
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="450px">
+    <app-input-card [title]="'Layer'"
+                    [subtitle]="'Untertitel??'"
+                    infoText="Platzhalter: Layer hinzu im Baum, Gruppe hinzu unterhalb des Baumes, ausgewählte Layer/gruppe entfernen unterhalb, WMS, hinzu, entfernen; nur gecheckte Layer sind in Legende der Bevölkerung und Infrastrukturplanung sicht- und auswählbar">
+      <div style="display: inline-flex;">
+        <div id="layer-select">
+          <app-check-tree #layerTree [items]="layerGroups"></app-check-tree>
+        </div>
+        <div class="order-controls">
+          <button mat-icon-button>
+            <mat-icon>expand_less</mat-icon>
+          </button>
+          <button mat-icon-button>
+            <mat-icon>expand_more</mat-icon>
+          </button>
+        </div>
+      </div>
+      <div style="margin-top: 10px;">
+        <button mat-button color="primary"
+                class="mat-button-dv" i18n>
+          <mat-icon>add</mat-icon>Layergruppe hinzufügen
+        </button>
+        <button mat-button color="primary"
+                style="margin-left: 30px;"
+                class="mat-button-dv"
+                [disabled]="(!(selectedLayer || selectedGroup)) ? true : null" i18n>
+          <mat-icon>close</mat-icon>entfernen
+        </button>
+      </div>
+    </app-input-card>
+    <ng-container *ngIf="selectedLayer">
+      <app-input-card [title]="'Layereigenschaften'"
+                      [editTemplate]="editLayer"
+                      infoText="Platzhalter">
+        <table>
+          <tr>
+            <td>Name</td>
+            <td>{{selectedLayer?.name}}</td>
+          </tr>
+          <tr>
+            <td>URL</td>
+            <td>https://monitor.ioer.de/cgi-bin/wms?MAP=O06RG_wms</td>
+          </tr>
+        </table>
+      </app-input-card>
+    </ng-container>
+  </div>
+  <div fxLayout="column" fxFlex="800px">
+    <app-input-card [title]="'Kartenansicht'"
+                    infoText="Platzhalter: zeigt alle im Layerbaum gecheckten Layer an">
+
+      <div id="base-layers-map" class="map-container">
+        <app-map-controls></app-map-controls>
+        <app-side-toggle id="legend"
+                         icon="layers"
+                         direction="left">
+          <app-legend target="base-layers-map"></app-legend>
+        </app-side-toggle>
+      </div>
+    </app-input-card>
+  </div>
+</div>
+
+<ng-template #editLayer>
+  ToDo
+</ng-template>

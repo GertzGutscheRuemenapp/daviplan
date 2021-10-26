@@ -21,6 +21,7 @@
   background: white;
   box-shadow: 0px 0px 5px 4px #a7a7a7;
   font-size: 24px;
+  height: 64px;
 }
 
 .page-links, .home {
@@ -38,7 +39,7 @@
 
 .page-links .link {
   margin-right: 20px;
-  height: calc(100% - 20px); //- 17px);
+  //height: calc(100% - 20px); //- 17px);
   border-bottom-color: white;
   transition: font-size 0.2s, color 0.3s, border-bottom-color 0.4s;
 }
@@ -65,6 +66,13 @@
 
 .main-collapse {
   padding-top: 60px;
+  a {
+    font-size: 28px;
+    line-height: 48px;
+    margin-bottom: 20px;
+    font-weight: normal;
+    text-align: left;
+  }
 }
 
 .main-collapse .active-link {
@@ -77,5 +85,14 @@
 }
 
 #account a {
-  color: #000000DE;
+  color: $light-black;
+}
+
+@media only screen and (max-width: 75em) {
+  .page-links {
+    a {
+      font-size: 20px !important;
+      padding: 0 10px;
+    }
+  }
 }

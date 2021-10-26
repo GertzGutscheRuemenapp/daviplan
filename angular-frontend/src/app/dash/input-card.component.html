@@ -1,19 +1,25 @@
-<mat-card class="dashboard-card mat-elevation-z0">
-  <h2 class="title">{{title}}</h2>
-  <h3 *ngIf="subtitle" class="subtitle">{{subtitle}}</h3>
+<mat-card class="dashboard-card mat-elevation-z0" [ngClass]="{'borderless': borderless}">
+  <h4 *ngIf="title" class="title">{{title}}</h4>
+  <span *ngIf="subtitle" class="subtitle1 sub">{{subtitle}}</span>
   <ng-content></ng-content>
   <ng-container *ngTemplateOutlet="previewTemplate;"></ng-container>
-  <div *ngIf="infoText" class="info-text">
-    <h3>INFORMATION</h3>
-    {{infoText}}
-  </div>
   <div>
     <button #editButton
             *ngIf="editTemplate && !editButton"
             class="mat-button-dv"
             mat-button color="primary"
-            style="margin-top: 30px;" i18n>
-      <mat-icon fontSet="material-icons-outlined">edit_outline</mat-icon>editieren
+            style="margin-top: 15px; margin-left: -2px;" i18n>
+      <mat-icon>edit</mat-icon>editieren
     </button>
   </div>
+  <div *ngIf="infoText" class="info-text" style="margin-top: 15px;">
+    <mat-expansion-panel [expanded]="infoExpanded">
+      <mat-expansion-panel-header>
+        <mat-icon color="primary" class="material-icons-outlined" style="margin-right: 5px;">info</mat-icon>
+        <span class="subtitle1" style="color: grey;">INFORMATION</span>
+      </mat-expansion-panel-header>
+      <span [innerHTML]="infoText"></span>
+    </mat-expansion-panel>
+  </div>
+  <ng-content select="[after]"></ng-content>
 </mat-card>

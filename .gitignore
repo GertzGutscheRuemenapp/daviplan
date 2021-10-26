@@ -3,3 +3,6 @@ public
 .hypothesis
 .coverage
 htmlcov
+.coverage
+/datentool.wpr
+/datentool.wpu

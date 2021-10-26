@@ -1,9 +1,10 @@
-<div class="context-bar">
+<mat-sidenav #drawer class="context-bar"
+             [opened]="(isSM$ | async) === false">
   <mat-expansion-panel expanded>
     <mat-expansion-panel-header>
       <mat-panel-title>
         <div class="mini-fab-icon">
-          <mat-icon class="material-icons-outlined">border_outer</mat-icon>
+          <mat-icon class="material-icons-outlined">flip_to_front</mat-icon>
         </div>
         Gebietseinheit
       </mat-panel-title>
@@ -29,7 +30,7 @@
     <mat-expansion-panel-header>
       <mat-panel-title>
         <div class="mini-fab-icon">
-          <mat-icon class="material-icons-outlined">timeline</mat-icon>
+          <mat-icon class="material-icons-outlined">auto_graph</mat-icon>
         </div>
         Prognoseszenario
       </mat-panel-title>
@@ -77,24 +78,24 @@
         <mat-icon>edit</mat-icon>
       </button>
       <div class="age-select-box" style="margin-top: 10px">
-        <div class="row checked">
+        <div class="age-row checked">
           <label>alle</label>
           <mat-checkbox color="primary" [checked]="true"></mat-checkbox>
         </div>
         <mat-divider></mat-divider>
-        <div class="row checked">
+        <div class="age-row checked">
           <label>0 bis unter 19 Jahre</label>
           <mat-checkbox color="primary" [checked]="true"></mat-checkbox>
         </div>
-        <div class="row checked">
+        <div class="age-row checked">
           <label>10 bis unter 40 Jahre</label>
           <mat-checkbox color="primary" [checked]="true"></mat-checkbox>
         </div>
-        <div class="row checked">
+        <div class="age-row checked">
           <label>40 bis unter 60 Jahre</label>
           <mat-checkbox color="primary" [checked]="true"></mat-checkbox>
         </div>
-        <div class="row">
+        <div class="age-row">
           <label>65 Jahre und älter</label>
           <mat-checkbox color="primary" [checked]="false"></mat-checkbox>
         </div>
@@ -121,7 +122,16 @@
       </mat-select>
     </mat-form-field>
   </mat-expansion-panel>
-</div>
+</mat-sidenav>
+<button type="button"
+        id="toggle-settings"
+        aria-label="Toggle sidenav"
+        mat-icon-button
+        color="primary"
+        (click)="drawer.toggle()"
+        *ngIf="isSM$ | async">
+  <mat-icon aria-label="Side nav toggle icon">arrow_circle_down</mat-icon>
+</button>
 
 <div id="diagram-bar">
   <mat-form-field appearance="outline" class="small">
@@ -132,6 +142,7 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
+  <br>
   <div class="diagram-wrapper">
     <div>
       <app-stacked-barchart [data]="data"
@@ -144,7 +155,7 @@
                             subtitle="irgendwo">
       </app-stacked-barchart>
     </div>
-  </div><br>
+  </div>
   <div class="diagram-wrapper">
     <div>
       <app-multiline-chart #lineChart
