@@ -19,14 +19,14 @@ export interface AreaLevel {
 
 export const mockPresetLevels: AreaLevel[] = [
   {
-    id: 1,
-    name: 'Bundesländer',
+    id: 4,
+    name: 'Gemeinden',
     layer: {
-      id: 1,
+      id: 4,
       symbol: {
-        id: 1,
-        fillColor: 'black',
-        strokeColor: 'black'
+        id: 4,
+        fillColor: 'orange',
+        strokeColor: 'orange'
       }
     },
     preset: true
@@ -46,7 +46,7 @@ export const mockPresetLevels: AreaLevel[] = [
   },
   {
     id: 3,
-    name: 'Kreise',
+    name: 'Kreise und kreisfreie Städte',
     layer: {
       id: 3,
       symbol: {
@@ -58,14 +58,14 @@ export const mockPresetLevels: AreaLevel[] = [
     preset: true
   },
   {
-    id: 4,
-    name: 'Gemeinden',
+    id: 1,
+    name: 'Bundesländer',
     layer: {
-      id: 4,
+      id: 1,
       symbol: {
-        id: 4,
-        fillColor: 'orange',
-        strokeColor: 'orange'
+        id: 1,
+        fillColor: 'black',
+        strokeColor: 'black'
       }
     },
     preset: true

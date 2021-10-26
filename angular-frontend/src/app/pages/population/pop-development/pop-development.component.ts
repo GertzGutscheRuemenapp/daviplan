@@ -6,6 +6,7 @@ import { PopService } from "../population.component";
 import { Observable } from "rxjs";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { map, shareReplay } from "rxjs/operators";
+import { mockPresetLevels } from "../../basedata/areas/areas";
 
 export const mockdata: StackedData[] = [
   { group: '2000', values: [200, 300, 280] },
@@ -32,6 +33,7 @@ export const mockdata: StackedData[] = [
 export class PopDevelopmentComponent implements AfterViewInit {
   @ViewChild('lineChart') lineChart?: MultilineChartComponent;
   compareYears = false;
+  areaLevels = mockPresetLevels;
   years = [2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025];
   mapControl?: MapControl;
   activeLevel: string = 'Gemeinden';

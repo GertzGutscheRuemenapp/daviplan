@@ -10,18 +10,9 @@
       </mat-panel-title>
     </mat-expansion-panel-header>
     <mat-form-field appearance="outline" class="small">
-      <mat-select disableOptionCentering [(ngModel)]="activeLevel">
-        <mat-option value="Bundesländer">
-          Bundesländer
-        </mat-option>
-        <mat-option value="Kreise">
-          Kreise
-        </mat-option>
-        <mat-option value="Verwaltungsgemeinschaften">
-          Verwaltungsgemeinschaften
-        </mat-option>
-        <mat-option value="Gemeinden">
-          Gemeinden
+      <mat-select disableOptionCentering [value]="areaLevels[0]">
+        <mat-option [value]="areaLevel" *ngFor="let areaLevel of areaLevels">
+          {{areaLevel.name}}
         </mat-option>
       </mat-select>
     </mat-form-field>

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { mockIndicators } from "../../basedata/indicators/indicators.component";
+import { mockPresetLevels } from "../../basedata/areas/areas";
 
 @Component({
   selector: 'app-rating',
@@ -11,6 +12,7 @@ export class RatingComponent implements OnInit {
   compareSupply = true;
   compareStatus = 'option 1';
   indicators = mockIndicators;
+  areaLevels = mockPresetLevels;
 
   constructor() { }
 
