@@ -8,7 +8,8 @@
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="800px">
     <app-input-card subtitle="Manuelle Auswahl des Projektgebiets"
-                    infoText="Um Ihr Projektgebiet festzulegen oder zu verändern, klicken Sie bitte auf „Editieren“. Sie gelangen dann zu einer Kartendarstellung, in der Sie Ihr Projektgebiet aus einzelnen Ge-meinden, Verwaltungsgemeinschaften und Landkreisen zusammensetzen können."
+                    [topRightHelp]="true"
+                    infoText="Um Ihr Projektgebiet festzulegen oder zu verändern, klicken Sie bitte auf „Editieren“. Sie gelangen dann zu einer Kartendarstellung, in der Sie Ihr Projektgebiet aus einzelnen Gemeinden, Verwaltungsgemeinschaften und Landkreisen zusammensetzen können."
                     [editTemplate]="projectEdit">
       <div id="project-area-map" class="map-container">
         <app-map-controls></app-map-controls>

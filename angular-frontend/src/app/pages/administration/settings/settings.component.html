@@ -10,7 +10,8 @@
                    [title]="'Name der Seite'"
                    subtitle="Name ändern"
                    [dialogTitle]="'Namen der Seite ändern'"
-                   infoText="Hier können Sie den Namen der Webseite individuell anpassen, z.B. „Daseinsvorsorgepla-nung XY-Region“. Der Name erscheint als Titel des Browser-Tabs, in dem daviplan geöffnet wird."
+                   infoText="<p>Hier können Sie den Namen der Webseite individuell anpassen, z.B. „Daseinsvorsorgeplanung XY-Region“.</p>
+                   <p>Der Name erscheint als Titel des Browser-Tabs, in dem daviplan geöffnet wird.</p>"
                    [editTemplate]="titleTemplate"
                    [editButton]="titleEditButton">
       <div #titleEditButton class="row-button" style="width: 90%">
@@ -26,7 +27,8 @@
                     subtitle="Willkommenstext ändern"
                     [dialogTitle]="'Willkommenstext für die Startseite einfügen'"
                     dialogWidth="1000px"
-                    infoText="Hier können sie einen Text eintragen, der auf der Startseite angezeigt wird. Die Startseite ist die Seite, die die Nutzer*innen nach dem Login sehen. Sie kann auch über ein Anklicken des Logos oben links erreicht werden."
+                    infoText="<p>Hier können sie einen Text eintragen, der auf der Startseite angezeigt wird.</p>
+                    <p>Die Startseite ist die Seite, die die Nutzer*innen nach dem Login sehen. Sie kann auch über ein Anklicken des Logos oben links erreicht werden.</p>"
                     [editTemplate]="welcomeTextTemplate"
                     [editButton]="welcomeTextEditButton">
       <div #welcomeTextEditButton style="width: 100%">
@@ -45,7 +47,8 @@
                     [title]="'Kontakt E-Mail (optional)'"
                     subtitle="E-Mail ändern"
                     [dialogTitle]="'Kontakt E-Mail ändern'"
-                    infoText="Diese E-Mail-Adresse wird im Loginbereich als Kontakt angegeben, an den sich Nutzer für die Beantragung eines Accounts bzw. zum Zurücksetzen des Passworts wenden können. Die Adresse wird anderweitig nicht verwendet.<br> Zum Entfernen der Mail muss das Eingabfeld leer gelassen werden."
+                    infoText="<p>Diese E-Mail-Adresse wird im Loginbereich als Kontakt angegeben, an den sich Nutzer für die Beantragung eines Accounts bzw. zum Zurücksetzen des Passworts wenden können. Die Adresse wird anderweitig nicht verwendet.</p>
+                    <p>Zum Entfernen der Mail muss das Eingabfeld leer gelassen werden.</p>"
                     [editTemplate]="contactTemplate"
                     [editButton]="contactEditButton">
       <div #contactEditButton class="row-button" style="width: 90%">
@@ -65,8 +68,9 @@
                     [title]="'Logo für die Startseite (optional)'"
                     subtitle="Logo ändern"
                     [dialogTitle]="'Bilddatei als Logo festlegen'"
-                    infoText="Die Individualisierung des Logos ist optional. Falls ein Logo gesetzt wird, wird es auf der Loginseite angezeigt und
-                    links in der Hauptnavigationsleiste. Ist es nicht gesetzt, wird stattdessen das daviplan-Logo in der Navigation angezeigt."
+                    infoText="<p>Die Individualisierung des Logos ist optional. Falls ein Logo gesetzt wird, wird es auf der Loginseite angezeigt und
+                    links in der Hauptnavigationsleiste.</p>
+                    <p> Ist es nicht gesetzt, wird stattdessen das daviplan-Logo in der Navigation angezeigt.</p>"
                     [editTemplate]="logoTemplate"
                     [editButton]="logoEditButton">
       <div #logoEditButton class="img-wrapper">
