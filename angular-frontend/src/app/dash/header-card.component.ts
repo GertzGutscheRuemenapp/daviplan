@@ -10,8 +10,8 @@ import {  Component, Input, OnInit } from '@angular/core';
 export class HeaderCardComponent implements OnInit {
   @Input() title!: string;
   @Input() infoText: string = '';
-  @Input() expanded: boolean = true;
   @Input() width: string = '';
+  @Input() cookieId = 'generic-header';
 
   constructor () {}
   ngOnInit() {
