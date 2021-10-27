@@ -15,9 +15,8 @@
           {{ item.name }}
         </a>
         <mat-expansion-panel *ngIf="item.children.length > 0"
-                             [expanded]="cookies.get(prefix + item.name) == true">
-          <mat-expansion-panel-header
-            (click)="cookies.toggle(prefix + item.name)">
+                             [cookieExpansion]="prefix + item.name">
+          <mat-expansion-panel-header>
             <mat-panel-title>
               <div *ngIf="item.davicon" class="davicon {{item.davicon}}"></div>
               <mat-icon *ngIf="!item.davicon" class="material-icons-outlined">{{item.icon}}</mat-icon>

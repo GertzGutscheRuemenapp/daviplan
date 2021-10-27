@@ -1,6 +1,6 @@
 <mat-sidenav #drawer class="context-bar"
              [opened]="(isSM$ | async) === false">
-  <mat-expansion-panel expanded>
+  <mat-expansion-panel cookieExpansion="exp-pop-area">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <div class="mini-fab-icon">
@@ -17,7 +17,7 @@
       </mat-select>
     </mat-form-field>
   </mat-expansion-panel>
-  <mat-expansion-panel expanded>
+  <mat-expansion-panel cookieExpansion="exp-pop-prog">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <div class="mini-fab-icon">
@@ -37,7 +37,7 @@
       </mat-select>
     </mat-form-field>
   </mat-expansion-panel>
-  <mat-expansion-panel expanded>
+  <mat-expansion-panel cookieExpansion="exp-pop-groups">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <div class="mini-fab-icon">
@@ -80,7 +80,7 @@
       </div>
     </div>
   </mat-expansion-panel>
-  <mat-expansion-panel expanded>
+  <mat-expansion-panel cookieExpansion="exp-pop-compare">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <div class="mini-fab-icon">

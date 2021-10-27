@@ -71,37 +71,25 @@ $diagram-bar-width: 30%;
   }
 }
 
-// large
-@media only screen and (max-width: 95em) {
+// medium
+@media only screen and (max-width: 63.9375em) {
   .map-wrapper {
     padding-right: 0px;
-    height: 50vh;
+    height: 60vh;
   }
   ::ng-deep app-population {
     .diagram-wrapper {
-      width: 50%;
-      float: left;
-      padding-bottom: 30%;
+      width: 100%;
+      padding-bottom: 60%;
     }
     #diagram-bar {
       position: absolute;
       width: calc(100% - #{$context-bar-width} - 40px);
       height: auto;
-      top: calc(50vh + #{$sub-nav-height});
-      box-shadow: none;
+      top: calc(60vh + #{$sub-nav-height});
       padding: 20px;
-      z-index: 11;
-    }
-  }
-}
-
-// medium
-@media only screen and (max-width: 63.9375em) {
-
-  ::ng-deep app-population {
-    .diagram-wrapper {
-      width: 100%;
-      padding-bottom: 60%;
+      box-shadow: none;
+      z-index: 10;
     }
   }
 }
