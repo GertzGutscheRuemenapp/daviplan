@@ -11,8 +11,9 @@
   <div *ngIf="data.infoText" class="info-text" style="margin-top: 15px;">
     <mat-expansion-panel [expanded]="data.infoExpanded">
       <mat-expansion-panel-header>
-        <mat-icon color="primary" class="material-icons-outlined" style="margin-right: 5px;">info</mat-icon>
-        <span class="subtitle1" style="color: grey;">INFORMATION</span>
+        <mat-icon color="primary" class="material-icons-outlined"
+                  style="margin-right: 5px;">help_outline</mat-icon>
+        <span class="subtitle1" style="color: grey;">Hilfe</span>
       </mat-expansion-panel-header>
       <span [innerHTML]="data.infoText"></span>
     </mat-expansion-panel>
