@@ -10,7 +10,6 @@ export class CookieService {
 
   toggle(name: string, path?: string | undefined) {
     let val = (!this.ngxCookies.check(name) || this.ngxCookies.get(name) === 'false')? 'true': 'false';
-    console.log(val)
     this.ngxCookies.set(name, val, { path: path });
   }
 
@@ -23,5 +22,9 @@ export class CookieService {
 
   public set(name: string, val: any, path?: string | undefined) {
     this.ngxCookies.set(name, String(val), { path: path });
+  }
+
+  public has(name: string) {
+    return this.ngxCookies.check(name);
   }
 }

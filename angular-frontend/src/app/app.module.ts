@@ -84,6 +84,7 @@ import { MatTreeModule } from "@angular/material/tree";
 import { HeaderCardComponent } from "./dash/header-card.component";
 import { FilterTableComponent } from './elements/filter-table/filter-table.component';
 import { MatChipsModule } from "@angular/material/chips";
+import { CookieExpansionDirective } from './helpers/cookie-expansion.directive';
 
 @NgModule({
   declarations: [
@@ -134,7 +135,8 @@ import { MatChipsModule } from "@angular/material/chips";
     ReachabilityMatrixComponent,
     ExternalLayersComponent,
     CheckTreeComponent,
-    FilterTableComponent
+    FilterTableComponent,
+    CookieExpansionDirective
   ],
     imports: [
         BrowserModule,
