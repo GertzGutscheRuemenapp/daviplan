@@ -11,6 +11,7 @@ export class SideToggleComponent implements OnInit {
   @Input() content!: TemplateRef<any>;
   @Input('expanded') _expanded?: string;
   @Input() direction: string = 'right';
+  @Input() name: string = 'Seitenmenü';
   // does the indicator div go the full height of the content or fixed width (if false)
   @Input() fullHeightIndicator: boolean = false;
   expanded = false;

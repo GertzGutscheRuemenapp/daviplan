@@ -1,16 +1,23 @@
 <app-header-card [title]="'Gebiete'"
                  cookieId="exp-areas-header"
                  width="1380px">
-  Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+  <p>Sie können Ihr Projektgebiet in Gebiete einteilen. Die Gebiete dienen später der räumlich differenzierten Bilanzierung von Angebot und Nachfrage nach den betrachteten Infrastrukturen. Sie müssen mindestens eine Gebietseinteilung aktivieren.</p>
+  <p>Standardmäßig entsprechen die Gebiete den administrativen Einheiten, d.h. je nach Gesamtgröße den Gemeinden, Verwaltungsgemeinschaften (Ämter, Samtgemeinden, Verbandsgemeinden, VG), Kreisen und Bundesländern. Diese amtlichen Grenzen können auf Sie einfach vom Bundesamt für Kartographie und Geodäsie (BKG) herunterladen lassen.</p>
+  <p>Ergänzend können Sie eigene Gebietseinheiten, z.B. Ortsteile, hinzufügen. Hierzu laden Sie ein Shape-File hoch oder Sie geben einen WFS-Dienst an. Alle Gebietseinteilungen müssen das gesamte Projektgebiet abdecken.</p>
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="400px">
     <app-input-card [title]="'Gebietseinheiten'"
-                    subtitle="Vorgaben / Shapes bearbeiten"
-                    infoText="Platzhalter Erklärung auswählen / hinzufügen / entfernen / checkbox <br>
-                              die oberen vier sind Vorgaben">
+                    subtitle="Administrative Ebenen aktivieren und/oder eigene Gebietseinteilung hinzufügen"
+                    infoText="<p>Die vier oberen Gebietseinteilungen sind die administrativen Grenzen. Wählen Sie eine Gebietseinteilung aus und klicken Sie anschließend in der Box „Daten der Gebietseinteilung“ auf „Daten abrufen bzw. aktualisieren“. Daraufhin werden die Daten vom BKG heruntergeladen, mit Ihrem Projektgebiet verschnitten und in der Karte angezeigt.</p>
+                              <p>In der Box „Darstellung der ausgewählten Gebietseinteilung“ können Sie den angezeigten Namen und die Linienfarbe der Gebietseinteilung verändern.</p>
+                              <p>Wiederholen Sie dieses Vorgehen für jede amtliche Gebietseinteilung, die Sie nutzen möchten.</p>
+                              <p>Um optional eine eigene Gebietseinteilungen (Shape-File, WFS-Dienst) hinzuzufügen, klicken Sie auf „Hinzufügen“. Diese erscheint danach in der Liste der Gebietseinheiten unterhalb einer Trennlinie zu den vier vorgegebenen Gebietseinheiten. Wenn Sie diese in der Liste auswählen, wird Sie in der Karte angezeigt und Sie können ihre Darstellung anpassen.</p>">
       <mat-selection-list [multiple]="false"
                           id="level-select">
+        <mat-optgroup>
+          Administrative Ebenen
+        </mat-optgroup>
         <div class="option-wrapper" *ngFor="let areaLevel of presetLevels">
           <mat-list-option [value]="areaLevel"
                            (click)="onSelect(areaLevel)"
@@ -20,6 +27,9 @@
           <mat-checkbox></mat-checkbox>
         </div>
         <mat-divider></mat-divider>
+        <mat-optgroup>
+          Eigene Gebietseinteilungen
+        </mat-optgroup>
         <div class="option-wrapper" *ngFor="let areaLevel of areaLevels">
           <mat-list-option [value]="areaLevel"
                            (click)="onSelect(areaLevel)"
@@ -43,32 +53,29 @@
           <mat-icon>close</mat-icon>entfernen
         </button>
       </div>
-      <div after>
-        <mat-divider style="margin: 20px 0 5px 0;"></mat-divider>
-        <br>
-        <app-input-card [title]="'Eigenschaften'"
-                        [borderless]="true"
-                        [editTemplate]="propertiesEdit"
-                        infoText="Platzhalter: braucht es hier eine Hilfe?">
-          <table *ngIf="selectedAreaLevel">
-            <tr>
-              <td i18n>Name</td>
-              <td>{{selectedAreaLevel?.name}}</td>
-            </tr>
-            <tr>
-              <td i18n>Linienfarbe</td>
-              <td><div class="symbol square" [style.backgroundColor]="selectedAreaLevel?.layer?.symbol?.strokeColor"></div></td>
-            </tr>
-          </table>
-        </app-input-card>
-      </div>
+    </app-input-card>
+    <app-input-card [title]="'Darstellung der ausgewählten Gebietseinteilung'"
+                    [editTemplate]="propertiesEdit"
+                    [subtitle]="'In allen Karten der Anwendung so darstellen'"
+                    infoText="<p>Über die Schaltfläche „Editieren“ können Sie festlegen, wie die gerade ausgewählte Gebietseinteilung in allen Karten dieser Anwendung, d.h. auch in den Bereichen „Bevölkerung“ und „Infrastrukturplanung“ des Hauptmenüs dargestellt und bezeichnet werden soll.</p>">
+      <table *ngIf="selectedAreaLevel">
+        <tr>
+          <td i18n>Name</td>
+          <td>{{selectedAreaLevel?.name}}</td>
+        </tr>
+        <tr>
+          <td i18n>Linienfarbe</td>
+          <td><div class="symbol square" [style.backgroundColor]="selectedAreaLevel?.layer?.symbol?.strokeColor"></div></td>
+        </tr>
+      </table>
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="1000px">
-    <app-input-card [title]="'Daten'"
+    <app-input-card [title]="'Daten der ausgewählten Gebietseinteilung'"
                     [topRightHelp]="true"
                     [dialogTitle]="'Kontakt E-Mail ändern'"
-                    infoText="Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.">
+                    infoText="<p>Klicken Sie auf „Daten abrufen bzw. aktualisieren“, um die Daten erstmalig oder – zum Aktualisieren – erneut vom Bundesamt für Kartographie und Geodäsie (BKG) herunterzuladen. Den Zeitpunkt der letzten Aktualisierung können Sie der Aktualisierungshistorie entnehmen.</p>
+                              <p>Die Darstellung in der Karte können Sie in der Box „Darstellung der ausgewählten Gebietseinteilung“ anpassen.</p>">
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
           <span class="subtitle1 sub">
@@ -97,7 +104,7 @@
           <button class="mat-button-dv"
                   mat-button color="primary"
                   style="margin-top: 20px;" i18n>
-            <mat-icon class="material-icons-outlined">refresh</mat-icon> Daten abrufen und aktualisieren
+            <mat-icon class="material-icons-outlined">refresh</mat-icon> Daten abrufen bzw. aktualisieren
           </button>
           <div>
             <button class="mat-button-dv"
@@ -112,6 +119,7 @@
           </div>
         </div>
         <div id="log-window" style="width: 50%">
+          <span class="subtitle1">Aktualisierungshistorie</span>
           <app-log></app-log>
         </div>
       </div>
