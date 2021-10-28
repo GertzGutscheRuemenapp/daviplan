@@ -1,6 +1,6 @@
 <mat-sidenav #drawer class="context-bar"
              [opened]="(isSM$ | async) === false">
-  <mat-expansion-panel cookieExpansion="exp-pop-area">
+  <mat-expansion-panel class="lg-menu-panel" cookieExpansion="exp-pop-area">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <div class="mini-fab-icon">
@@ -16,8 +16,20 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
+    <div class="info-text">
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-icon color="primary" class="material-icons-outlined"
+                    style="margin-right: 5px;">help_outline</mat-icon>
+          <span class="subtitle1" style="color: grey;">Hilfe</span>
+        </mat-expansion-panel-header>
+        <span >
+        Wählen Sie aus dem Dropdown-Menü die Gebietseinheit, für die Werte in der Karte angezeigt werden sollen. Es werden Werte für alle Gebiete der ausgewählten Gebietseinheit dargestellt.
+      </span>
+      </mat-expansion-panel>
+    </div>
   </mat-expansion-panel>
-  <mat-expansion-panel cookieExpansion="exp-pop-prog">
+  <mat-expansion-panel class="lg-menu-panel" cookieExpansion="exp-pop-prog">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <div class="mini-fab-icon">
@@ -37,7 +49,7 @@
       </mat-select>
     </mat-form-field>
   </mat-expansion-panel>
-  <mat-expansion-panel cookieExpansion="exp-pop-groups">
+  <mat-expansion-panel class="lg-menu-panel" cookieExpansion="exp-pop-groups">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <div class="mini-fab-icon">
@@ -80,7 +92,7 @@
       </div>
     </div>
   </mat-expansion-panel>
-  <mat-expansion-panel cookieExpansion="exp-pop-compare">
+  <mat-expansion-panel class="lg-menu-panel" cookieExpansion="exp-pop-compare">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <div class="mini-fab-icon">
