@@ -9,23 +9,4 @@
             "is_active": true
         }
     }
-    { "model": "auth.user",
-        "pk": 2,
-        "fields": {
-            "username": "test",
-            "password": "pbkdf2_sha256$260000$FqV9Jey70eLgnJKtcljRZz$PSMETFTcbUiy6EAMFWm8j5Ew01d7QUrtc3F+rEbk2ko=",
-            "is_superuser": false,
-            "is_staff": false,
-            "is_active": true
-        }
-    }
-    { "model": "datentool_backend.profile",
-        "pk": 2,
-        "fields": {
-            "user": 2,
-            "admin_access": true,
-            "can_create_scenarios": true,
-            "can_edit_data": true
-        }
-    }
 ]

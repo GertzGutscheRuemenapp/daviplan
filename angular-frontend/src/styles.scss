@@ -597,17 +597,17 @@ mat-icon.warning {
   box-shadow: 0px 5px 5px -1px rgb(0 0 0 / 20%), 0px 10px 10px 0px rgb(0 0 0 / 14%), 2px 18px 18px 0px rgb(0 0 0 / 12%) !important;
   padding-top: 10px;
 
-  mat-expansion-panel .mat-expansion-panel-header-title {
+  mat-expansion-panel.lg-menu-panel > .mat-expansion-panel-header {
     text-transform: uppercase;
+
+    mat-panel-title {
+      height: 60px!important;
+    }
   }
 
-  mat-expansion-panel-header, mat-expansion-panel.mat-expanded mat-expansion-panel-header {
-    height: 68px!important;
+  mat-expansion-panel.lg-menu-panel > .mat-expansion-panel-header, mat-expansion-panel.lg-menu-panel.mat-expanded > .mat-expansion-panel-header {
+    height: 68px !important;
     padding: 0px 18px !important;
-  }
-
-  mat-panel-title {
-    height: 60px!important;
   }
 
   .sub-select-box {
@@ -645,29 +645,25 @@ confirm-dialog, .context-bar, .border-box {
   }
 }
 
-app-legend, .context-bar, .tree-select {
-  mat-expansion-panel.mat-expanded {
-    mat-expansion-panel-header {
-      background-color: $primary-light !important;
-    }
-    mat-panel-title {
-      color: black;
-    }
+mat-expansion-panel.lg-menu-panel.mat-expanded > .mat-expansion-panel-header:not(:hover), app-legend .mat-expanded .mat-expansion-panel-header:not(:hover) {
+  background-color: $primary-light !important;
+  mat-panel-title {
+    color: black;
   }
 }
 
-mat-sidenav, .context-bar, app-legend, .tree-select {
-  mat-expansion-panel {
-    .mat-expansion-indicator {
+mat-expansion-panel-header.mat-focus-indicator {
+  background-color: white !important;
+}
+
+mat-sidenav mat-expansion-panel, .lg-menu-panel, app-legend mat-expansion-panel, .tree-select mat-expansion-panel {
+  > .mat-expansion-panel-header .mat-expansion-indicator {
       margin-left: -10px;
-    }
-
-    .mat-expansion-panel-header:hover {
-      background-color: #0000000B !important;
-
-      .mat-expansion-panel-header-title {
-        color: black;
-      }
+  }
+  > .mat-expansion-panel-header:hover {
+    background-color: #0000000B !important;
+    .mat-expansion-panel-header-title {
+      color: black;
     }
   }
 }
