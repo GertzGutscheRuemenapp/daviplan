@@ -1,11 +1,17 @@
-<app-header-card [title]="'Bevölkerungssalden'"
+<app-header-card [title]="'Bevölkerungssalden: Wanderungssaldo und natürliches Saldo'"
                  width="1130px">
-  Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+  <p>Neben den Einwohnerzahlen (Realdaten der zurückliegenden Jahre und Prognose für die Zukunft) können im Hauptmenüabschnitt „Bevölkerung“ für alle Nutzer*innen auch Daten zum Wanderungssaldo (= Zuzüge minus Fortzüge) angezeigt werden. Diese haben rein informatorischen Charakter und fließen nicht in den Auswertungen des Hauptmenüabschnitts „Infrastrukturplanung“ ein.</p>
+  <p>Im Gegensatz zu den Einwohnerzahlen brauchen Sie die Bevölkerungssalden nicht selbst hochladen. Vielmehr greift daviplan hierzu auf die Online-Angebote der Statistischen Ämter des Bundes und der Länder („Regionalstatistik“) zurück.</p>
+  <p>Wenn Sie die Bevölkerungssalden für Ihre Nutzer*innen anzeigen möchten, klicken Sie in der Box „Online-Datenabruf“ auf „Abrufen“.</p>
+  <p>Ihnen werden dann in der Box „Jahre“ die Jahre angezeigt, für die aus dem Online-Angebot der Regionalstatistik Daten über Ihr Projektgebiet heruntergeladen werden konnten. Wenn Sie eines dieser Jahre in der Liste auswählen, werden Ihnen die zugehörigen Salden in der Karte angezeigt.</p>
+  <p>Die Inhalte der Karte steuern Sie über die Menü oben links in der Karte. Ist dieses eingeklappt, klicken Sie bitte auf das Icon mit der Familie.</p>
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
-    <app-input-card [title]="'Bevölkerungssalden'"
-                    infoText="Platzhalter: Abruf von Destatis"
+    <app-input-card [title]="'Online-Datenabruf '"
+                    infoText="<p>Klicken Sie auf „Abrufen“, um die Daten der natürlichen Bevölkerungsentwicklung (Geburten und Sterbefälle) sowie zu den Wanderungen (Zu- und Fortzüge) aus dem Online-Angebot der Regionalstatistik herunterzuladen.</p>
+                    <p>Nach dem erfolgreichen Abruf werden Ihnen in der Box „Jahre“ die Jahre angezeigt, für die nun Daten zur Verfügung stehen. Wenn Sie eines dieser Jahre auswählen, werden Ihnen die zugehörigen Salden in der Karte angezeigt.</p>
+                    <p>Die Inhalte der Karte steuern Sie über die Menü oben links in der Karte. Ist dieses eingeklappt, klicken Sie bitte auf das Icon mit der Familie.</p>"
                     [subtitle]="'Abruf der Regionalstatistik'">
       <table>
         <tr>
@@ -21,7 +27,9 @@
     </app-input-card>
     <app-input-card [title]="'Jahre'"
                     subtitle="Verfügbare Jahre bearbeiten"
-                    infoText="Platzhalter Erklärung: Jahr auswählen / entfernen">
+                    infoText="<p>Die Liste in dieser Box enthält die Jahre, für die Daten aus dem Online-Angebot der Regionalstatistik heruntergeladen werden konnten.</p>
+                    <p>Wenn Sie den Nutzer*innen im Hauptmenüabschnitt „Bevölkerung“ ein Jahr davon nicht zur Verfügung stellen möchten, wählen Sie dieses in der Liste aus und klicken Sie auf „Entfernen“. Um es wieder hinzuzufügen, müssen Sie alle Daten erneut von der Regionalstatistik abrufen.</p>
+                    <p>Wenn Sie eines der Jahre in der Liste auswählen, werden Ihnen die zugehörigen Werte zur natürlichen Bevölkerungsentwicklung (Geburten und Sterbefälle) und zu den Wanderungen (Zu- und Fortzüge) in der Karte angezeigt. Die Inhalte der Karte steuern Sie über die Menü oben links in der Karte. Ist dieses eingeklappt, klicken Sie bitte auf das Icon mit der Familie.</p>">
       <mat-selection-list [multiple]="false"
                           id="year-select">
         <mat-list-option *ngFor="let year of years"
@@ -39,10 +47,14 @@
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="800px">
-    <app-input-card [title]="'Daten'"
-                    infoText="Platzhalter: braucht es hier eine Hilfe?">
+    <app-input-card [title]="'Daten des ausgewählten Jahres'"
+                    subtitle="Natürliches Saldo (Geburten und Sterbefälle) und Wanderungssaldo (Zu- und Fortzüge) für ausgewähltes Jahr anzeigen lassen."
+                    [topRightHelp]="true"
+                    infoText="<p>Die Karte veranschaulicht Ihnen die Daten für das in der Box „Jahre“ ausgewählte Jahr.</p>
+                    <p>Die Inhalte der Karte – also natürliche Bevölkerungsentwicklung (Geburten und Sterbefälle) oder Wanderungen (Zu- und Fortzüge) – steuern Sie über das Menü oben links in der Karte. Ist dieses eingeklappt, klicken Sie bitte auf das Icon mit der Familie.</p>
+                    <p>Weitere Informationen wie zusätzliche Gebietsgrenzen können Sie über die Legendensteuerung (auf halber Höhe am rechten Rand der Karte) hinzufügen. Ist diese Steuerung eingeklappt, klicken Sie bitte auf das Icon mit den gestapelten Kartenblättern.</p>">
       <span class="subtitle1 sub">
-        {{selectedYear}}
+        Jahr: {{selectedYear}}
       </span>
       <div>
         <button class="mat-button-dv"
@@ -59,11 +71,12 @@
         <app-map-controls></app-map-controls>
         <app-side-toggle id="legend"
                          icon="layers"
-                         name="Legende"
+                         name="Legenden- und Layersteuerung"
                          direction="left">
           <app-legend target="base-statistics-map"></app-legend>
         </app-side-toggle>
         <app-side-toggle id="statistics-theme"
+                         name="Themenwahl"
                          icon="family_restroom">
           <div style="padding: 15px;">
             <mat-form-field appearance="outline" class="small">
@@ -82,7 +95,7 @@
               <mat-checkbox [checked]="true" color="primary">Fortzüge</mat-checkbox>
             </div>
             <div class="sub-select-wrapper" [style.display]="(theme==='natur')? 'block' : 'none'">
-              <mat-checkbox [checked]="true" color="primary">Geburten</mat-checkbox>
+              <mat-checkbox [checked]="true" color="primary">Geburten</mat-checkbox><br>
               <mat-checkbox [checked]="false" color="primary">Sterbefälle</mat-checkbox>
             </div>
           </div>

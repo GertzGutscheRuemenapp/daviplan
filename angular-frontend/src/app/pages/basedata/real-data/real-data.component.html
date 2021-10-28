@@ -13,11 +13,11 @@
     <app-input-card [title]="'Gebietseinteilung'"
                     [editTemplate]="areaLevelEdit"
                     infoText="<p>Wenn Sie eine andere als die angezeigte Gebietseinteilung zur Grundlage einer Einwohnerdaten machen möchten, klicken Sie auf „Editieren“.</p>
-                              Beachten Sie dabei folgende wichtige Hinweise:
-                              <ol>
-                                <li>Eine Veränderung der Auswahl der Gebietseinteilung für die Einwohnerdaten löscht alle bereits eingelesenen Real- und Prognosedaten.</li>
-                                <li>Die Festlegung gilt auch für die Prognosedaten, die Sie im gleichnamigen Menüabschnitt hochladen können.</li>
-                              </o>">
+                    Beachten Sie dabei folgende wichtige Hinweise:
+                    <ol>
+                      <li>Eine Veränderung der Auswahl der Gebietseinteilung für die Einwohnerdaten löscht alle bereits eingelesenen Real- und Prognosedaten.</li>
+                      <li>Die Festlegung gilt auch für die Prognosedaten, die Sie im gleichnamigen Menüabschnitt hochladen können.</li>
+                    </o>">
       <table>
         <tr>
           <td i18n>Gebietseinheit</td>
@@ -28,9 +28,9 @@
     <app-input-card [title]="'Jahre'"
                     subtitle="Jahre hinzufügen bzw. bereits hinzugefügte bearbeiten"
                     infoText="<p>Klicken Sie auf „Hinzufügen“, um das erste oder ein weiteres Jahr mit Realdaten hinzuzufügen. In dem sich öffnenden Dialog geben Sie dazu nur die Jahreszahl an. Die hinzugefügte Jahreszahl erscheint dann in der Liste der Jahre.</p>
-                              <p>Für ein dort ausgewähltes Jahr können Sie dann in der Box „Einwohnerdaten des ausgewählten Jahres hochladen“ eine Vorlagedatei („Template“) herunterzuladen. Befüllen Sie diese mit Ihren Daten und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch.</p>
-                              <p>Wiederholen Sie dieses Vorgehen bitte für alle zurückliegenden Jahre, für die Sie Ihren Nutzer*innen reale Einwohnerdaten zur Verfügung stellen möchten.</p>
-                              <p>Um ein Jahr samt seinen ggf. bereits hochgeladenen Daten zu löschen wählen Sie dieses in der Liste der Jahre aus und klicken auf „Entfernen“.</p>">
+                    <p>Für ein dort ausgewähltes Jahr können Sie dann in der Box „Einwohnerdaten des ausgewählten Jahres hochladen“ eine Vorlagedatei („Template“) herunterzuladen. Befüllen Sie diese mit Ihren Daten und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch.</p>
+                    <p>Wiederholen Sie dieses Vorgehen bitte für alle zurückliegenden Jahre, für die Sie Ihren Nutzer*innen reale Einwohnerdaten zur Verfügung stellen möchten.</p>
+                    <p>Um ein Jahr samt seinen ggf. bereits hochgeladenen Daten zu löschen wählen Sie dieses in der Liste der Jahre aus und klicken auf „Entfernen“.</p>">
       <mat-selection-list [multiple]="false"
                           id="year-select">
         <mat-list-option *ngFor="let year of years"
@@ -56,15 +56,14 @@
     <app-input-card [title]="'Einwohnerdaten des ausgewählten Jahres hochladen'"
                     [topRightHelp]="true"
                     infoText="<p>Wenn Sie für dieses Jahr noch keine Einwohnerdaten hochgeladen haben (oder die bereits hochgeladenen Daten ersetzen möchten), können Sie sich mit der Schaltfläche „Template“ eine Vorlagedatei im Excelformat  herunterladen. Befüllen Sie diese mit Ihren Daten für das angezeigte Jahr und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Zur Kontrolle können Sie sich die hochgeladenen Daten anschließend in der Box „Alterspyramide“ für einzelne Gebiete anschauen. Alternativ können Sie sich die Gesamttabelle des Jahres über die Schaltfläche „Datentabelle ansehen“ anzeigen lassen.</p>
-                              <p>Um die Daten weiterer Jahre hochzuladen, fügen Sie bitte in der Box „Jahre“ weitere Jahre hinzu und wiederholen das Vorgehen entsprechend. Für jedes Jahr benötigen Sie eine eigene Vorlagedatei.</p>">
+                    <p>Um die Daten weiterer Jahre hochzuladen, fügen Sie bitte in der Box „Jahre“ weitere Jahre hinzu und wiederholen das Vorgehen entsprechend. Für jedes Jahr benötigen Sie eine eigene Vorlagedatei.</p>">
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
+          <span class="subtitle1 sub">
+            Jahr {{selectedYear}}
+          </span>
           <div style="margin-top: 15px; display: flex;">
             <table>
-              <tr>
-                <td i18n>Jahr</td>
-                <td>{{selectedYear}}</td>
-              </tr>
               <tr>
                 <td i18n>Upload am</td>
                 <td>02.06.2022</td>
@@ -96,29 +95,37 @@
           </button>
         </div>
         <div id="log-window" style="width: 50%">
-          <span class="subtitle1">Upload-Historie</span>
+          <span class="subtitle1">Daten-Historie</span>
           <app-log></app-log>
         </div>
       </div>
-      <div style="display: flex">
+    </app-input-card>
+    <app-input-card [title]="'Alterspyramide für ausgewähltes Jahr und ein ausgewähltes Gebiet'"
+                    [topRightHelp]="true"
+                    subtitle="Auswahl eines Gebiets über die Karte bzw. die Auswahlbox"
+                    infoText="<p>Wählen Sie in der Auswahlliste „Gebiet“ ein Gebiet aus, um dessen Einwohnerdaten in der Alterspyramide anzuzeigen. Alternativ können Sie das Gebiet auch durch Anklicken in der Karte auswählen. Die Daten der Alterspyramide beziehen sich auf das in der Box „Jahre“ ausgewählte Jahr. Um für das gleiche Gebiet zwischen den Jahren zu springen, klicken Sie in der Box „Jahre“ ein anderes Jahr an.</p>
+                    <p>Voraussetzung für die Anzeige ist, dass Sie bereits Einwohnerdaten für mindestens ein Jahr hochgeladen haben.</p>">
+      <div>
+        <mat-form-field appearance="outline" class="small">
+          <mat-label>Gebiet</mat-label>
+          <mat-select disableOptionCentering value="irgendwo">
+            <mat-option value="irgendwo">
+              irgendwo
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <div style="width: 100%; display: flex;">
         <div id="base-real-data-map" class="map-container">
           <app-map-controls></app-map-controls>
           <app-side-toggle id="legend"
                            icon="layers"
-                           name="Legende"
+                           name="Legenden- und Layersteuerung"
                            direction="left">
             <app-legend target="base-real-data-map"></app-legend>
           </app-side-toggle>
         </div>
         <div class="diagram-container">
-          <mat-form-field appearance="outline" class="small">
-            <mat-label>Gebiet</mat-label>
-            <mat-select disableOptionCentering value="irgendwo">
-              <mat-option value="irgendwo">
-                irgendwo
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
           <div class="diagram-wrapper">
             <img src="{{backend}}/static/img/Bev-pyramide Screenshot.png" width="100%">
           </div>

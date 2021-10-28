@@ -1,13 +1,18 @@
-<app-header-card [title]="'Standorte'"
+<app-header-card [title]="'Standorte der Infrastrukturen'"
                  cookieId="exp-locations-header"
                  width="1430px">
-  Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+  <p>In diesem Bereich können Sie für jeden Infrastrukturbereich eine Adressliste mit den Standorten der Infrastrukturen hochladen (oder diese händisch in der Karten eintragen).</p>
+  <p>Wählen Sie dazu einen Infrastrukturbereich aus und legen zu zunächst in Abschnitt „Standorteigenschaften“ fest, mit welchen Attributen (z.B. Name, Gebäudezustand, Typ, Budget, Investitionsbedarf …) sie die Standorte zusätzlich zu ihrer räumlichen Lage beschreiben möchten.</p>
+  <p>Anschließend können Sie sich für den betreffenden Infrastrukturbereich eine dazu passende Vorlagedatei erzeugen lassen, die sie in der Box „Standorte des ausgewählten Infrastrukturbereichs“ herunterladen, befüllen und anschließend wieder hochladen können.</p>
+  <p>Die eingelesenen Standorte werden Ihnen anschließend in der Karte angezeigt, wo Sie deren Lage und Eigenschaften noch einmal korrigieren können.</p>
+  <p>Sie können jedem Standort im nachfolgenden Menüpunkt „Kapazitäten“ bei Bedarf auch mehrere Leistungen zuordnen, z.B. wenn eine Kita Krippe und Elementarbetreuung anbietet oder ein Ärztehaus sowohl haus- wie auch fachärztliche Leistungen anbietet.</p>
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
-    <app-input-card [title]="'Infrastrukturen'"
-                    infoText="Platzhalter Erklärung: Infrastruktur auswählen, erzeugt woanders (Administration)"
-                    subtitle="Untertitel??">
+    <app-input-card [title]="'Infrastrukturbereiche'"
+                    subtitle="Infrastrukturbereich auswählen, um Standorte anzuzeigen bzw. einzutragen"
+                    infoText="<p>Wählen Sie in der Liste den Infrastrukturbereich aus, dessen Standort sie anzeigen, hochladen oder verändern möchten.</p>
+                    <p>Bevor Sie eine Standortliste hochladen oder Standorte in die Karte einzeichnen, legen Sie bitte erst die Attribute der Standortliste fest, indem Sie auf die Schaltfläche „Editieren“ am Fuß dieser Eingabebox klicken. Weitere Informationen finden Sie in der darunter stehenden Hilfe.</p>">
       <mat-selection-list [multiple]="false"
                           id="infrastructure-select">
         <mat-list-option *ngFor="let infrastructure of infrastructures"
@@ -18,11 +23,12 @@
       </mat-selection-list>
       <div after>
         <mat-divider style="margin: 10px 0 15px 0;"></mat-divider>
-        <app-input-card [title]="'Standortattribute'"
+        <app-input-card [title]="'Standorteigenschaften'"
                         [borderless]="true"
                         [editTemplate]="attributesEdit"
                         [subtitle]="selectedInfrastructure.name"
-                        infoText="Platzhalter: verfügbare Felder der Standorte, die beim Upload zugewiesen werden können">
+                        infoText="<p>Neben der räumlichen Lage können sie die einzelnen Standorte anhand weiterer Eigenschaften („Attribute“) beschreiben. Welche dies sind (z.B. Name, Gebäudezustand, Typ, Budget, Investitionsbedarf …) entscheiden Sie selbst.</p>
+                        <p>Klicken Sie hierzu auf die Schaltfläche „Editieren“ und folgenden Sie den Erläuterungen im Hilfetext des dann erscheinenden Eingabedialogs.</p>">
           <table>
             <tr>
               <td>Name</td>
@@ -47,11 +53,17 @@
   </div>
   <div fxLayout="column" fxFlex="1100px">
     <app-input-card [title]="'Standortdaten'"
-                    infoText="Platzhalter: Als befüllte Vorlage hochladen und/oder über Karte editieren, Standort auf Karte auswählen, setzen">
+                    [topRightHelp]="true"
+                    infoText="<p>Nachdem Sie in der Box „Standorteigenschaften“ die Datenstruktur zur Beschreibung der Standorte des gewählten Infrastrukturbereichs definiert haben, können Sie sich über die Schaltfläche „Template“ eine Vorlagedatei im Excel-Format  herunterladen.</p>
+                    <p>Tragen Sie in diese Vorlage bitte alle für den Infrastrukturbereich relevanten Standorte ein, unabhängig davon, welche Leistungen des Infrastrukturbereichs in welchem dieser Standorte angeboten wird. (Dies ist erst Gegenstand des nachfolgenden Menüpunkts „Kapazitäten“.)</p>
+                    <p>Beim Ausfüllen der Vorlage entspricht jede Zeile einem Infrastrukturstandort, z.B. einer Schule. Neben der postalisch korrekten Adresse (auf deren Basis die Verortung in der Karte erfolgt) werden Sie in der Vorlage um Angaben zu allen Standorteigenschaften gebeten, die Sie in der Box „Standorteigenschaften“ definiert haben.</p>
+                    <p>Laden Sie die ausgefüllte Vorlagedatei anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Das System wird die Standorte anhand der Adresse georeferenzieren und in der Karte anzeigen. Kontrollieren Sie die Lage der Standorte in der Karte und korrigieren  Sie diese gegeben Falls.</p>
+                    <p>Einzelne Standorte können Sie auch über die Funktion „Neuen Standort hinzufügen“ in der Karte eintragen (Icon oben links).</p>
+                    <p>Eine Liste aller Standorte des Infrastrukturbereichs wird Ihnen angezeigt, wenn Sie auf „Datentabelle ansehen“ klicken.</p>">
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
           <span class="subtitle1 sub">
-            {{selectedInfrastructure.name}}
+            Infrastrukturbereich "{{selectedInfrastructure.name}}"
           </span>
           <div style="display: flex; margin-top: 15px;">
             <table>
@@ -91,6 +103,7 @@
           </button>
         </div>
         <div id="log-window" style="width: 50%">
+          <span class="subtitle1">Daten-Historie</span>
           <app-log></app-log>
         </div>
       </div>
@@ -98,11 +111,12 @@
         <app-map-controls></app-map-controls>
         <app-side-toggle id="legend"
                          icon="layers"
-                         name="Legende"
+                         name="Legenden- und Layersteuerung"
                          direction="left">
           <app-legend target="base-locations-map"></app-legend>
         </app-side-toggle>
-        <app-side-toggle id="add-overlay" icon="add_location_alt">
+        <app-side-toggle id="add-overlay" icon="add_location_alt"
+                         name="Funktion zum Hinzufügen von Standorten">
           <div class="row-button" [ngClass]="{'active': addPlaceMode}" (click)="addPlaceMode = !addPlaceMode" style="padding-left: 10px;">
             <label i18n>Neuen Standort hinzufügen</label>
             <div class="fill-space"></div>
