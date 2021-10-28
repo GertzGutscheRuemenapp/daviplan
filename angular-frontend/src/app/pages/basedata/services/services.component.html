@@ -1,13 +1,18 @@
-<app-header-card [title]="'Leistungen'"
+<app-header-card [title]="'Leistungen in den Infrastrukturbereichen'"
                  cookieId="exp-services-header"
                  width="1130px">
-  Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+  <p>Im Administrationsbereich wurde festgelegt, welche Infrastrukturbereiche der Daseinsvorsorge (z.B. Kindertagesbetreuung, Schule, Feuerwehr, ärztliche Versorgung, Einzelhandel, …) mit daviplan betrachtet werden sollen.</p>
+  <p>An dieser Stelle differenzieren Sie die Infrastrukturbereiche weiter aus, in dem Sie Ihnen „Leistungen“ zuordnen. Leistungen sind die einzelnen Angebote der Infrastrukturen, die von den Nutzer*innen nachgefragt und genutzt werden. Alle Nachfrageschätzungen, Kapazitätsangaben und Nachfrage-Angebot-Vergleiche im Hauptmenüabschnitt „Infrastrukturplanung“ werden sich auf diese Leistungen beziehen.</p>
+  <p>Für den Infrastrukturbereich „Kindertagesbetreuung“ könnten z.B. „Krippe“, „Elementarbetreuung“ und „Hort“ drei mögliche Leistungen sein. Bei der ärztlichen Versorgung z.B. „Hausärzte“ und „Fachärzte“, wobei ggf. bei den Fachärzten noch zwischen den wichtigsten Fachrichtungen unterschieden werden können, indem diese jeweils als eigene Leistung definiert werden. Für die Feuerwehr könnten z.B. unterschiedliche Einsatztypen durch entsprechende definierte Leistungen abgebildet werden.</p>
+  <p>Sie können die Leistungen jedes Infrastrukturbereichs frei definieren. Bedenken Sie jedoch, dass Sie im weiteren Verlauf der Datenaufbereitung in der Lage sein müssen, für diese Leistungen Angaben zu vorhandenen Kapazitäten sowie zum Häufigkeit der Nachfrage pro Einwohner*in („Nachfragequote“) zu machen.</p>
+  <p>Ein Infrastrukturstandort kann auch mehrere Leistungen anbieten, z.B. Kita mit Krippe und Elementarbetreuung oder Ärztehaus mit Haus- und Fachärzten.</p>
+  <p>Um eine Leistung zu definieren, fügen Sie diese zunächst in der Box „Leistungen“ dem betreffenden Infrastrukturbereich hinzu und ergänzen Sie anschließend deren Eigenschaften (Beschreibung, Kapazitätseinheit, Nachfrageeinheit) in den drei anderen Eingabeboxen.</p>
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
     <app-input-card [title]="'Leistungen'"
-                    [subtitle]="'Untertitel????'"
-                    infoText="Platzhalter: hinzufügen, entfernen, auswählen">
+                    infoText="<p>Um eine Leistung hinzuzufügen, klicken Sie auf die Schaltfläche „Hinzufügen“. Anschließend können Sie deren Eigenschaften (Beschreibung, Kapazitätseinheit, Nachfrageeinheit) in den drei anderen Eingabeboxen eintragen.</p>
+                    <p>Um die Eigenschaften bereits hinzugefügter Leistungen zu sehen und ggf. zu verändern, wählen Sie diese in der Liste der Leistungen aus. Die drei anderen Eingabeboxen zeigen Ihnen die bisher definierten Eigenschaften. Über den jeweilige Schaltfläche „Editieren“ können Sie diese verändern.</p>">
       <mat-selection-list [multiple]="false"
                           class="categorized"
                           id="service-select">
@@ -36,9 +41,10 @@
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="400px">
-    <app-input-card [title]="'Eigenschaften'"
+    <app-input-card [title]="'Bezeichnung der ausgewählten Leistung'"
                     [editTemplate]="propertiesEdit"
-                    infoText="Platzhalter: Eigenschaften der gewählten Leistung">
+                    infoText="<p>Der angezeigte Name entspricht der Bezeichnung in der Liste. Diese können Sie über die Schaltfläche „Editieren“ nachträglich noch verändern. Zudem können Sie eine Kurzbeschreibung hinzufügen.</p>
+                    <p>Beide Eigenschaften sind für die Nutzer*innen des Hauptmenübereichs „Infrastrukturplanung“ als Auswahlbezeichnung bzw. kurzem Definitionstext sichtbar.</p>">
       <table>
         <tr>
           <td>Name</td>
@@ -56,12 +62,15 @@
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="400px">
-    <app-input-card [title]="'Kapazitäten'"
+    <app-input-card [title]="'Kapazitätseinheit der ausgewählten Leistung'"
                     [editTemplate]="capacityEdit"
                     [subtitle]="selectedService.name"
-                    infoText="Platzhalter: was, wenn nicht Kapazität; Einheiten werden in Infraplanung angezeigt ">
+                    infoText="<p>In dieser Eingabebox können Sie über die Schaltfläche „Editieren“ festlegen, ob für diese Leistung die Kapazitäten der Einrichtungen berücksichtigt werden sollen. Dies können z.B. die genehmigten Plätze der Kitas oder die maximale Schülerzahl der Schulen sein.</p>
+                    <p>Bei manchen Leistungen ist es hingegen eher relevant, dass diese überhaupt an einem Ort verfügbar ist, wohingegen die Kapazität für Ihre Fragestellung eher zweitrangig ist (oder Ihnen keine Daten hierzu vorliegen). Dies können z.B. Feuerwehrstandorte, Ärzte oder Lebensmittelläden sein. In diesem Fall löschen Sie bitte das Häkchen vor der Eingangsfrage.</p>
+                    <p>Je nach Fragestellung oder Datenstand können Sie aber natürlich auch für diese beispielhaft genannten Infrastrukturen eine Kapazität definieren. In diesem Fall setzen Sie das Häkchen.</p>
+                    <p>Wenn Sie das Häkchen gesetzt haben, werden Sie gebeten anzugeben, wie die Maßeinheit der Kapazität für diese Leistung heißt, z.B. „Plätze“ oder „Patienten (max.)“ (Die eigentlichen Werte geben Sie im nachfolgenden Menüpunkt „Kapazitäten“ an.). Um im weiteren Verlauf Anzeigen wie „1 Plätze“ zu vermeiden, geben Sie bitte neben der Mehrzahl auch die Einzahl („Platz“) an.</p>">
       <mat-checkbox disabled [checked]="true">
-        hat Kapazität?? (hab die bessere Formulierung vergessen)
+        Für diese Leistung sollen die Kapazitäten der Einrichtungen berücksichtigt werden
       </mat-checkbox>
       <table style="margin-top: 10px;">
         <tr>
@@ -74,10 +83,11 @@
         </tr>
       </table>
     </app-input-card>
-    <app-input-card [title]="'Nachfrage'"
+    <app-input-card [title]="'Nachfrageeinheit der ausgewählten Leistung'"
                     [editTemplate]="demandEdit"
                     [subtitle]="selectedService.name"
-                    infoText="Platzhalter: Quote hat logische Auswirkungen, Nachfragende Einheit nur Anzeige in Infraplanung">
+                    infoText="<p>In dieser Eingabebox können Sie über die Schaltfläche „Editieren“ festlegen, wie die Maßeinheit der Nachfrage für diese Leistung heißt, z.B. „Kitakinder“, „Schüler*innen“, „Patienten“ oder „Brandfälle“.</p>
+                    <p>Um im weiteren Verlauf Anzeigen wie „1 Kitakinder“ zu vermeiden, geben Sie bitte neben der Mehrzahl auch die Einzahl („Kitakind“) an.</p>">
       <table style="margin-top: 10px;">
         <tr>
           <td>Nachfragende Einzahl</td>

@@ -11,8 +11,8 @@
                     subtitle="Konten auswählen und bearbeiten"
                     [dialogTitle]="'Namen der Seite ändern'"
                     infoText="<p>Nur Nutzer*innen mit einem Konto haben Zugriff auf das System. </p>
-        <p>Hier können Sie neue Konten erstellen und bestehende Konten über die obige Liste bearbeiten oder entfernen.</p>
-        <p>Die Detailinformationen zu einem Konto werden Ihnen in den anderen Boxen angezeigt, sobald sie dieses Konto in der Liste ausgewählt haben. In den anderen Boxen können Sie das Konto jeweils über die Schaltflächen „Editieren“ verändern.</p>">
+                    <p>Hier können Sie neue Konten erstellen und bestehende Konten über die obige Liste bearbeiten oder entfernen.</p>
+                    <p>Die Detailinformationen zu einem Konto werden Ihnen in den anderen Boxen angezeigt, sobald sie dieses Konto in der Liste ausgewählt haben. In den anderen Boxen können Sie das Konto jeweils über die Schaltflächen „Editieren“ verändern.</p>">
       <mat-selection-list [multiple]="false" style="min-height: 300px">
         <mat-list-option *ngFor="let user of users"
                          [value]="user"
@@ -41,103 +41,105 @@
       </div>
     </app-input-card>
   </div>
-  <div fxLayout="column" fxFlex="400px" [ngClass]="{'hidden': !selectedUser}">
-    <app-input-card #accountCard
-                   [title]="'Ausgewähltes Konto'"
-                   infoText="Über die Schaltfläche „Editieren“ können Sie Namen, E-Mail-Adresse und Passwort verändern."
-                   [editTemplate]="accountEdit">
-      <table *ngIf="selectedUser">
-        <tr>
-          <td i18n>Nutzername</td>
-          <td>{{selectedUser?.username}}</td>
-        </tr>
-        <tr>
-          <td i18n>Vorname</td>
-          <td>{{selectedUser?.firstName || '-'}}</td>
-        </tr>
-        <tr>
-          <td i18n>Nachname</td>
-          <td>{{selectedUser?.lastName || '-'}}</td>
-        </tr>
-        <tr>
-          <td i18n>E-Mail</td>
-          <td>{{selectedUser?.email || '-'}}</td>
-        </tr>
-        <tr>
-          <td i18n>Passwort</td>
-          <td>************</td>
-        </tr>
-      </table>
-    </app-input-card>
-    <app-input-card #permissionCard
-                    [title]="'Berechtigungen des ausgewählten Kontos'"
-                    infoText="<p>Über die Schaltfläche „Editieren“ können Sie die Berechtigungen des ausgewählten Kontos einstellen.</p>
-<p>Die Optionen „Kann Grundlagendaten editieren“ und „Kann Planungsprozesse anlegen“ gelten für alle Infrastrukturbereiche, für die Sie in der Box „Zugang zu Infrastrukturbereichen“ einen Zugriff gewähren.</p>
-<p>Für Nutzer*innen mit der aktivierten Option „Kann Seite administrieren“ ist der Hauptmenübereich „Administration“ sicht- und editierbar. </p>
-<p>Nutzer*innen mit der aktivierten Option „Kann Grundlagendaten editieren“ können im nachfolgenden Menüpunkt „Koordination der Grundlagendaten“ ausgewählt werden, um konkrete Bereiche der Grundlagendaten einzupflegen. Für diese Nutzer*innen sind dann die entsprechenden Abschnitte des Hauptmenübereichs „Grundlagendaten“ sicht- und editierbar.</p>
-<p>Der Hauptmenübereich „Bevölkerung“ ist für alle Nutzer*innen sichtbar.</p>
-<p>Der Hauptmenübereich „Infrastrukturplanung“ ist alle Nutzer*innen sichtbar, für die ein Zugriff auf den entsprechenden Infrastrukturbereich in der Box „Datenzugriff des ausgewählten Kontos“ gewährt wurde.</p>
-<p>Nutzer*innen mit der aktivierten Option „Kann Planungsprozess anlegen“ können im Hauptmenübereich „Infrastrukturplanung“ eigene Planungsprozesse anlegen und bearbeiten.</p>
-<p>Nutzer*innen ohne die aktivierte Option „Kann Planungsprozess anlegen“ können im Hauptmenübereich „Infrastrukturplanung“ vorhandene Planungsprozesse nur betrachten, wenn Sie zu diesen eingeladen werden. Im Zuge dieser Einladung kann ihnen optional die Berechtigung zugewiesen werden, innerhalb des betreffenden Planungsprozesses Szenarien anzulegen und zu editieren. </p>"
-                    [ngClass]="{'hidden': selectedUser?.isSuperuser}"
-                    [editTemplate]="permissionEdit">
-      <div *ngIf="selectedUser">
-        <mat-checkbox disabled [(ngModel)]="selectedUser.profile.adminAccess" i18n>
-          Kann Seite administrieren
-        </mat-checkbox>
-        <mat-checkbox disabled [(ngModel)]="selectedUser.profile.canEditData" i18n>
-          Kann Grundlagendaten editieren
-        </mat-checkbox>
-        <mat-checkbox disabled [(ngModel)]="selectedUser.profile.canCreateScenarios" i18n>
-          Kann Planungsprozesse anlegen
-        </mat-checkbox>
-      </div>
-    </app-input-card>
-  </div>
-  <div fxLayout="column" fxFlex="400px" [ngClass]="{'hidden': !selectedUser || selectedUser.isSuperuser}">
-    <app-input-card [title]="'Datenzugriff des ausgewählten Kontos'"
-                    infoText="<p>Die Auswahlliste umfasst alle Infrastrukturbereiche, die im vorstehenden Menüpunkt „Infrastrukturbereiche“ definiert wurden.</p>
-<p>Sie können dem ausgewählten Konto Zugriff auf alle oder einzelne Infrastrukturbereiche gewähren, indem Sie auf „Editieren“ klicken. Hier können Sie auch festlegen, ob die betreffende Personen Daten sehen darf, die im Hauptmenübereich „Grundlagendaten“ als „sensible Daten“ mit einem besonderen Datenschutzstatus versehen wurden.</p>
-<p>Die genaue Form des Zugriffs (nur lesen oder auch bearbeiten) legen Sie in der Box „Berechtigungen“ fest. Eine Differenzierung der Berechtigungen nach Infrastrukturbereich ist nicht möglich.</p>"
-                    subtitle="Ausgewähltes Konto hat Zugriff auf diese Infrastrukturbereiche"
-                    [editTemplate]="dataAccessEdit">
-      <div style="display: flex;">
-        <mat-checkbox class="infra-check" disabled [checked]="true">
-          Schulen
-        </mat-checkbox>
-        <div class="dotted-fill"></div>
-        <mat-checkbox class="sensitive-check" disabled [checked]="true">
-          sensible Daten
-        </mat-checkbox>
-      </div>
-      <div style="display: flex;">
-        <mat-checkbox disabled [checked]="true">
-          Kinderbetreuung
-        </mat-checkbox>
-        <div class="dotted-fill"></div>
-        <mat-checkbox class="sensitive-check" disabled [checked]="true">
-          sensible Daten
-        </mat-checkbox>
-      </div>
-      <div style="display: flex;">
-        <mat-checkbox disabled [checked]="true">
-          Ärzte
-        </mat-checkbox>
-        <div class="dotted-fill" style="border-color: #00000061"></div>
-        <mat-checkbox class="sensitive-check" disabled [checked]="false">
-          sensible Daten
-        </mat-checkbox>
-      </div>
-      <div style="display: flex;">
-        <mat-checkbox disabled>
-          Feuerwehr
-        </mat-checkbox>
-        <div class="dotted-fill" style="border-color: #00000061"></div>
-        <mat-checkbox class="sensitive-check" disabled [checked]="false">
-          sensible Daten
-        </mat-checkbox>
-      </div>
-    </app-input-card>
+  <div fxLayout="row wrap">
+    <div fxLayout="column" fxFlex="400px" [ngClass]="{'hidden': !selectedUser}">
+      <app-input-card #accountCard
+                     [title]="'Ausgewähltes Konto'"
+                     infoText="Über die Schaltfläche „Editieren“ können Sie Namen, E-Mail-Adresse und Passwort verändern."
+                     [editTemplate]="accountEdit">
+        <table *ngIf="selectedUser">
+          <tr>
+            <td i18n>Nutzername</td>
+            <td>{{selectedUser?.username}}</td>
+          </tr>
+          <tr>
+            <td i18n>Vorname</td>
+            <td>{{selectedUser?.firstName || '-'}}</td>
+          </tr>
+          <tr>
+            <td i18n>Nachname</td>
+            <td>{{selectedUser?.lastName || '-'}}</td>
+          </tr>
+          <tr>
+            <td i18n>E-Mail</td>
+            <td>{{selectedUser?.email || '-'}}</td>
+          </tr>
+          <tr>
+            <td i18n>Passwort</td>
+            <td>************</td>
+          </tr>
+        </table>
+      </app-input-card>
+      <app-input-card #permissionCard
+                      [title]="'Berechtigungen des ausgewählten Kontos'"
+                      infoText="<p>Über die Schaltfläche „Editieren“ können Sie die Berechtigungen des ausgewählten Kontos einstellen.</p>
+                      <p>Die Optionen „Kann Grundlagendaten editieren“ und „Kann Planungsprozesse anlegen“ gelten für alle Infrastrukturbereiche, für die Sie in der Box „Zugang zu Infrastrukturbereichen“ einen Zugriff gewähren.</p>
+                      <p>Für Nutzer*innen mit der aktivierten Option „Kann Seite administrieren“ ist der Hauptmenübereich „Administration“ sicht- und editierbar. </p>
+                      <p>Nutzer*innen mit der aktivierten Option „Kann Grundlagendaten editieren“ können im nachfolgenden Menüpunkt „Koordination der Grundlagendaten“ ausgewählt werden, um konkrete Bereiche der Grundlagendaten einzupflegen. Für diese Nutzer*innen sind dann die entsprechenden Abschnitte des Hauptmenübereichs „Grundlagendaten“ sicht- und editierbar.</p>
+                      <p>Der Hauptmenübereich „Bevölkerung“ ist für alle Nutzer*innen sichtbar.</p>
+                      <p>Der Hauptmenübereich „Infrastrukturplanung“ ist alle Nutzer*innen sichtbar, für die ein Zugriff auf den entsprechenden Infrastrukturbereich in der Box „Datenzugriff des ausgewählten Kontos“ gewährt wurde.</p>
+                      <p>Nutzer*innen mit der aktivierten Option „Kann Planungsprozess anlegen“ können im Hauptmenübereich „Infrastrukturplanung“ eigene Planungsprozesse anlegen und bearbeiten.</p>
+                      <p>Nutzer*innen ohne die aktivierte Option „Kann Planungsprozess anlegen“ können im Hauptmenübereich „Infrastrukturplanung“ vorhandene Planungsprozesse nur betrachten, wenn Sie zu diesen eingeladen werden. Im Zuge dieser Einladung kann ihnen optional die Berechtigung zugewiesen werden, innerhalb des betreffenden Planungsprozesses Szenarien anzulegen und zu editieren. </p>"
+                      [ngClass]="{'hidden': selectedUser?.isSuperuser}"
+                      [editTemplate]="permissionEdit">
+        <div *ngIf="selectedUser">
+          <mat-checkbox disabled [(ngModel)]="selectedUser.profile.adminAccess" i18n>
+            Kann Seite administrieren
+          </mat-checkbox>
+          <mat-checkbox disabled [(ngModel)]="selectedUser.profile.canEditData" i18n>
+            Kann Grundlagendaten editieren
+          </mat-checkbox>
+          <mat-checkbox disabled [(ngModel)]="selectedUser.profile.canCreateScenarios" i18n>
+            Kann Planungsprozesse anlegen
+          </mat-checkbox>
+        </div>
+      </app-input-card>
+    </div>
+    <div fxLayout="column" fxFlex="400px" [ngClass]="{'hidden': !selectedUser || selectedUser.isSuperuser}">
+      <app-input-card [title]="'Datenzugriff des ausgewählten Kontos'"
+                      infoText="<p>Die Auswahlliste umfasst alle Infrastrukturbereiche, die im vorstehenden Menüpunkt „Infrastrukturbereiche“ definiert wurden.</p>
+                      <p>Sie können dem ausgewählten Konto Zugriff auf alle oder einzelne Infrastrukturbereiche gewähren, indem Sie auf „Editieren“ klicken. Hier können Sie auch festlegen, ob die betreffende Personen Daten sehen darf, die im Hauptmenübereich „Grundlagendaten“ als „sensible Daten“ mit einem besonderen Datenschutzstatus versehen wurden.</p>
+                      <p>Die genaue Form des Zugriffs (nur lesen oder auch bearbeiten) legen Sie in der Box „Berechtigungen“ fest. Eine Differenzierung der Berechtigungen nach Infrastrukturbereich ist nicht möglich.</p>"
+                      subtitle="Ausgewähltes Konto hat Zugriff auf diese Infrastrukturbereiche"
+                      [editTemplate]="dataAccessEdit">
+        <div style="display: flex;">
+          <mat-checkbox class="infra-check" disabled [checked]="true">
+            Schulen
+          </mat-checkbox>
+          <div class="dotted-fill"></div>
+          <mat-checkbox class="sensitive-check" disabled [checked]="true">
+            sensible Daten
+          </mat-checkbox>
+        </div>
+        <div style="display: flex;">
+          <mat-checkbox disabled [checked]="true">
+            Kinderbetreuung
+          </mat-checkbox>
+          <div class="dotted-fill"></div>
+          <mat-checkbox class="sensitive-check" disabled [checked]="true">
+            sensible Daten
+          </mat-checkbox>
+        </div>
+        <div style="display: flex;">
+          <mat-checkbox disabled [checked]="true">
+            Ärzte
+          </mat-checkbox>
+          <div class="dotted-fill" style="border-color: #00000061"></div>
+          <mat-checkbox class="sensitive-check" disabled [checked]="false">
+            sensible Daten
+          </mat-checkbox>
+        </div>
+        <div style="display: flex;">
+          <mat-checkbox disabled>
+            Feuerwehr
+          </mat-checkbox>
+          <div class="dotted-fill" style="border-color: #00000061"></div>
+          <mat-checkbox class="sensitive-check" disabled [checked]="false">
+            sensible Daten
+          </mat-checkbox>
+        </div>
+      </app-input-card>
+    </div>
   </div>
 </div>
 

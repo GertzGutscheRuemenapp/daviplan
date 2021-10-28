@@ -72,12 +72,11 @@
                               <p>Um die Daten weitere Prognosevarianten hochzuladen, fügen Sie bitte in der Box „Prognosevariante“ weitere Varianten hinzu und wiederholen das Vorgehen entsprechend. Für jede Prognosevariante benötigen Sie eine eigene Vorlagedatei.</p>">
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
+          <span class="subtitle1 sub">
+            Prognosevariante "{{selectedPrognosis}}"
+          </span>
           <div style="margin-top: 15px; display: flex;">
             <table>
-              <tr>
-                <td i18n>Prognosevariante</td>
-                <td>{{selectedPrognosis}}</td>
-              </tr>
               <tr>
                 <td i18n>Upload am</td>
                 <td>02.06.2022</td>
@@ -109,16 +108,32 @@
           </button>
         </div>
         <div id="log-window" style="width: 50%">
-          <span class="subtitle1">Upload-Historie</span>
+          <span class="subtitle1">Daten-Historie</span>
           <app-log></app-log>
         </div>
       </div>
-      <div style="display: flex">
+    </app-input-card>
+    <app-input-card [title]="'Veranschaulichung der ausgewählten Variante für ein ausgewähltes Gebiet'"
+                    [topRightHelp]="true"
+                    subtitle="Auswahl eines Gebiets über die Karte bzw. die Auswahlbox"
+                    infoText="<p>Wählen Sie in der Auswahlliste „Gebiet“ ein Gebiet aus, um dessen Prognosedaten in den Diagrammen anzuzeigen. Alternativ können Sie das Gebiet auch durch Anklicken in der Karte auswählen. Die Daten der Diagramme beziehen sich auf die in der Box „Prognosevarianten“ ausgewählte Variante. Um für das gleiche Gebiet zwischen den Prognosevarianten zu springen, klicken Sie in der Box „Prognosevarianten“ eine andere Variante an.</p>
+                    <p>Voraussetzung für die Anzeige ist, dass Sie bereits Einwohnerdaten für mindestens eine Prognosevariante hochgeladen haben.</p>">
+      <div>
+        <mat-form-field appearance="outline" class="small">
+          <mat-label>Gebiet</mat-label>
+          <mat-select disableOptionCentering value="irgendwo">
+            <mat-option value="irgendwo">
+              irgendwo
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <div style="width: 100%; display: flex">
         <div id="base-prog-data-map" class="map-container">
           <app-map-controls></app-map-controls>
           <app-side-toggle id="legend"
                            icon="layers"
-                           name="Legende"
+                           name="Legenden- und Layersteuerung"
                            direction="left">
             <app-legend target="base-prog-data-map"></app-legend>
           </app-side-toggle>
@@ -136,14 +151,6 @@
           </app-side-toggle>
         </div>
         <div class="diagram-container">
-          <mat-form-field appearance="outline" class="small">
-            <mat-label>Gebiet</mat-label>
-            <mat-select disableOptionCentering value="irgendwo">
-              <mat-option value="irgendwo">
-                irgendwo
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
           <div class="diagram-wrapper" style="margin-bottom: 10px;">
             <div>
               <app-stacked-barchart [data]="data"
