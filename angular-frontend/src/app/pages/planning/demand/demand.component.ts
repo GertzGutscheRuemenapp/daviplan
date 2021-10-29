@@ -14,6 +14,7 @@ export class DemandComponent implements OnInit {
   infrastructures = mockInfrastructures;
   selectedInfrastructure = this.infrastructures[0];
   areaLevels = mockPresetLevels;
+  showScenarioMenu = false;
 
   constructor() { }
 

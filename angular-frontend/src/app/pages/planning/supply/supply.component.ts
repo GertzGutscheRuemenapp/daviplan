@@ -15,6 +15,7 @@ export class SupplyComponent implements OnInit{
   compareStatus = 'option 1';
   infrastructures = mockInfrastructures;
   selectedInfrastructure = this.infrastructures[0];
+  showScenarioMenu = false;
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
 
   constructor(private dialog: MatDialog) {}

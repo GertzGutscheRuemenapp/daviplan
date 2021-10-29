@@ -16,6 +16,7 @@ export class ReachabilitiesComponent implements OnInit {
   selectLivMode = false;
   infrastructures = mockInfrastructures;
   selectedInfrastructure = this.infrastructures[0];
+  showScenarioMenu = false;
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
 
   constructor(private dialog: MatDialog) {}
