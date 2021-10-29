@@ -34,7 +34,7 @@ export class ReachabilitiesComponent implements OnInit {
       width: '1400px',
       disableClose: false,
       data: {
-        title: 'Standortfilter',
+        // title: 'Standortfilter',
         template: this.filterTemplate,
         closeOnConfirm: true,
         infoText: 'Platzhalter: Die Filterung der Tabelle filtert die in der Karte dargestellten Standorte'

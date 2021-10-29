@@ -28,14 +28,17 @@ mat-dialog-content {
 }
 
 .mat-dialog-content {
-  overflow: visible;
+  overflow: auto;
 }
 
-h4 {
-  color: $accent;
-}
+::ng-deep confirm-dialog {
+  .sub {
+    color: grey;
+    margin-bottom: 10px;
+  }
 
-::ng-deep confirm-dialog .sub {
-  color: grey;
-  margin-bottom: 10px;
+  h4 {
+    color: $accent;
+  }
+
 }
