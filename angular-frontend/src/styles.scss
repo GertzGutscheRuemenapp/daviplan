@@ -7,11 +7,11 @@ $app-accent: mat.define-palette($golden-palette, 500);
 
 $app-typography: mat.define-typography-config(
   $font-family: 'Calibri',
-  //$headline: mat.define-typography-level(54px, 54px, 400),
-  //$title: mat.define-typography-level(28px, 28px, 500),
-  //$subheading-2: mat.define-typography-level(26px, 26px, 400),
-  //$subheading-1: mat.define-typography-level(24px, 24px, 400),
-  // Todo: menu letter spacing 0.14px
+    //$headline: mat.define-typography-level(54px, 54px, 400),
+    //$title: mat.define-typography-level(28px, 28px, 500),
+    //$subheading-2: mat.define-typography-level(26px, 26px, 400),
+    //$subheading-1: mat.define-typography-level(24px, 24px, 400),
+    // Todo: menu letter spacing 0.14px
   $body-1: mat.define-typography-level(16px, 24px, 400, $letter-spacing: 0.14px),
   $body-2: mat.define-typography-level(16px, 20px, 400, $letter-spacing: 0.2px),
   $button: mat.define-typography-level(16px, 16px, 500, $letter-spacing: 1.42px),
@@ -567,9 +567,9 @@ mat-option.selected {
 
 .cdk-overlay-pane.warning {
 
-   mat-dialog-container {
-     border-bottom: 5px solid $warning;
-   }
+  mat-dialog-container {
+    border-bottom: 5px solid $warning;
+  }
 }
 
 mat-form-field.warning  .mat-form-field-flex {
@@ -577,7 +577,7 @@ mat-form-field.warning  .mat-form-field-flex {
   border-left: 3px solid $warning;
   border-radius: 0 4px 4px 0;
   background-image: repeating-linear-gradient(
-   -45deg, $warning-light, $warning-light 4px, whitesmoke 4px, whitesmoke 10px) !important;
+      -45deg, $warning-light, $warning-light 4px, whitesmoke 4px, whitesmoke 10px) !important;
   input {
     color: black !important;
   }
@@ -597,17 +597,17 @@ mat-icon.warning {
   box-shadow: 0px 5px 5px -1px rgb(0 0 0 / 20%), 0px 10px 10px 0px rgb(0 0 0 / 14%), 2px 18px 18px 0px rgb(0 0 0 / 12%) !important;
   padding-top: 10px;
 
-  mat-expansion-panel.lg-menu-panel > .mat-expansion-panel-header {
+  mat-expansion-panel .mat-expansion-panel-header-title {
     text-transform: uppercase;
-
-    mat-panel-title {
-      height: 60px!important;
-    }
   }
 
-  mat-expansion-panel.lg-menu-panel > .mat-expansion-panel-header, mat-expansion-panel.lg-menu-panel.mat-expanded > .mat-expansion-panel-header {
-    height: 68px !important;
-    padding: 0px 18px !important;
+  mat-expansion-panel-header, mat-expansion-panel.mat-expanded mat-expansion-panel-header {
+    height: 68px;
+    padding: 0px 18px;
+  }
+
+  mat-panel-title {
+    height: 60px;
   }
 
   .sub-select-box {
@@ -629,6 +629,14 @@ mat-icon.warning {
     padding: 15px 5px 15px 54px;
     border-bottom: 1px solid $primary-light;
   }
+  .text-panel {
+    margin-top: 10px;
+    //margin-left: -28px;
+    margin-left: -18px;
+    .mat-expansion-panel-body {
+      padding-right: 25px !important;
+    }
+  }
 }
 
 confirm-dialog, .context-bar, .border-box {
@@ -645,55 +653,58 @@ confirm-dialog, .context-bar, .border-box {
   }
 }
 
-mat-expansion-panel.lg-menu-panel.mat-expanded > .mat-expansion-panel-header:not(:hover), app-legend .mat-expanded .mat-expansion-panel-header:not(:hover) {
-  background-color: $primary-light !important;
-  mat-panel-title {
-    color: black;
-  }
-}
+app-legend, .context-bar, .tree-select {
+  mat-expansion-panel.mat-expanded, mat-expansion-panel.mat-expanded {
+    mat-expansion-panel-header, mat-expansion-panel-header:focus {
+      background-color: $primary-light;
+    }
 
-mat-expansion-panel-header.mat-focus-indicator {
-  background-color: white !important;
-}
-
-mat-sidenav mat-expansion-panel, .lg-menu-panel, app-legend mat-expansion-panel, .tree-select mat-expansion-panel {
-  > .mat-expansion-panel-header .mat-expansion-indicator {
-      margin-left: -10px;
-  }
-  > .mat-expansion-panel-header:hover {
-    background-color: #0000000B !important;
-    .mat-expansion-panel-header-title {
+    mat-panel-title {
       color: black;
     }
   }
 }
 
-mat-sidenav, .context-bar, app-legend, .info-text, .tree-select {
+mat-sidenav, .context-bar, app-legend, .tree-select {
   mat-expansion-panel {
-    box-shadow: none !important;
-    padding: 0 !important;
-    /*    .mat-content {
-        border-top: 1px solid $primary;
-        border-bottom: 1px solid $primary;
-        transition: 0.4s ease-in border-bottom-color;
-      }*/
-    .mat-expansion-panel-header-title {
-      padding: 5px 0;
-      color: grey;
-      align-items: center;
+    .mat-expansion-indicator {
+      margin-left: -10px;
     }
-    .mat-expansion-indicator:after {
-      color: $primary;
+
+    .mat-expansion-panel-header:hover {
+      background-color: #0000000B !important;
+
+      .mat-expansion-panel-header-title {
+        color: black;
+      }
     }
   }
+}
 
-  mat-expansion-panel.side-toggle {
-    .mat-expansion-indicator:after {
-      transform: rotate(135deg);
-    }
-    .mat-expansion-panel-content {
-      display: none;
-    }
+mat-expansion-panel {
+  box-shadow: none !important;
+  padding: 0 !important;
+  /*    .mat-content {
+      border-top: 1px solid $primary;
+      border-bottom: 1px solid $primary;
+      transition: 0.4s ease-in border-bottom-color;
+    }*/
+  .mat-expansion-panel-header-title {
+    padding: 5px 0;
+    color: grey;
+    align-items: center;
+  }
+  .mat-expansion-indicator:after {
+    color: $primary;
+  }
+}
+
+mat-expansion-panel.side-toggle {
+  .mat-expansion-indicator:after {
+    transform: rotate(135deg);
+  }
+  .mat-expansion-panel-content {
+    display: none;
   }
 }
 
@@ -709,13 +720,17 @@ app-legend, .info-text, .tree-select {
   }
 }
 
-.info-text {
+.mat-expansion-panel.text-panel {
   mat-expansion-panel-header {
     padding: 0;
     display: inline-flex;
+    align-items: center;
+    .subtitle1 {
+      line-height: 24px;
+    }
   }
-  .mat-expansion-panel-header:hover {
-    background-color: white !important;
+  mat-expansion-panel-header, mat-expansion-panel-header:hover {
+    background-color: transparent !important;
   }
   mat-expansion-panel-header, mat-expansion-panel.mat-expanded mat-expansion-panel-header {
     height: 24px!important;
@@ -725,12 +740,13 @@ app-legend, .info-text, .tree-select {
   }
 }
 
-.info-text, .info-text .mat-expansion-panel-body {
+.info-text, .mat-expansion-panel.text-panel .mat-expansion-panel-body {
   padding: 0;
   font-size: 16px;
   line-height: 20px;
   letter-spacing: .29px;
   color: #0009;
+  border-bottom: none;
 }
 
 mat-sidenav {
@@ -962,9 +978,9 @@ mat-selection-list.categorized {
   mat-checkbox {
     width: 100%;
   }
-/*  mat-divider {
-    margin: 10px 0;
-  }*/
+  /*  mat-divider {
+      margin: 10px 0;
+    }*/
 }
 
 mat-checkbox.reverse {

@@ -9,7 +9,7 @@
   </p>
   <ng-container *ngTemplateOutlet="data.template; context: data.context"></ng-container>
   <div *ngIf="data.infoText" class="info-text" style="margin-top: 15px;">
-    <mat-expansion-panel [expanded]="data.infoExpanded">
+    <mat-expansion-panel class="text-panel" [expanded]="data.infoExpanded">
       <mat-expansion-panel-header>
         <mat-icon color="primary" class="material-icons-outlined"
                   style="margin-right: 5px;">help_outline</mat-icon>
