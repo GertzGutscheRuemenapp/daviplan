@@ -13,6 +13,7 @@ export class RatingComponent implements OnInit {
   compareStatus = 'option 1';
   indicators = mockIndicators;
   areaLevels = mockPresetLevels;
+  showScenarioMenu = false;
 
   constructor() { }
 

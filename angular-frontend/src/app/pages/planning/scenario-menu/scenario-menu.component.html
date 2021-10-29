@@ -1,38 +1,242 @@
 <div>
   <div id="scenario-menu">
-    <div #scenario class="scenario-card active" [attr.data-value]="'Status Quo'"
-         (click)="toggleScenario($event)">
-      <div class="scenario-card-header">
+    <div #scenario class="scenario-card active" [attr.data-value]="'Status Quo'">
+      <div class="scenario-card-header"
+           (click)="toggleScenario('Status Quo')">
         Status Quo Fortschreibung
       </div>
       <div class="scenario-card-body">
+        <ng-container *ngIf="domain==='demand'">
+          <ng-container *ngTemplateOutlet="demandStatusQuo"></ng-container>
+        </ng-container>
+        <ng-container *ngIf="domain==='reachabilities'">
+          <ng-container *ngTemplateOutlet="reachabilitiesStatusQuo"></ng-container>
+        </ng-container>
+        <ng-container *ngIf="domain==='rating'">
+          <ng-container *ngTemplateOutlet="ratingStatusQuo"></ng-container>
+        </ng-container>
+        <ng-container *ngIf="domain==='supply'">
+          <ng-container *ngTemplateOutlet="supplyStatusQuo"></ng-container>
+        </ng-container>
       </div>
     </div>
     <div #scenario *ngFor="let scenario of scenarios" [attr.data-value]="scenario"
-         (click)="toggleScenario($event)" class="scenario-card">
-      <div class="scenario-card-header">
+         class="scenario-card">
+      <div class="scenario-card-header"
+           (click)="toggleScenario(scenario)">
         {{ scenario }}
       </div>
       <div class="scenario-card-body">
-        Hier werden Eigenschaften des Szenarios aufgelistet
+        <ng-container *ngIf="domain==='demand'">
+          <ng-container *ngTemplateOutlet="demandScenario"></ng-container>
+        </ng-container>
+        <ng-container *ngIf="domain==='reachabilities'">
+          <ng-container *ngTemplateOutlet="reachabilitiesScenario"></ng-container>
+        </ng-container>
+        <ng-container *ngIf="domain==='rating'">
+          <ng-container *ngTemplateOutlet="ratingScenario"></ng-container>
+        </ng-container>
+        <ng-container *ngIf="domain==='supply'">
+          <ng-container *ngTemplateOutlet="supplyScenario"></ng-container>
+        </ng-container>
       </div>
     </div>
     <div id="scenario-controls">
-      <button mat-icon-button color="primary"
-              class="mat-button-dv">
-        <mat-icon>edit</mat-icon>
-      </button>
-      <button mat-icon-button color="primary"
-              class="mat-button-dv">
-        <mat-icon>add</mat-icon>
-      </button>
-      <button mat-icon-button color="primary"
-              class="mat-button-dv">
-        <mat-icon>close</mat-icon>
-      </button>
+      <div>
+        <button mat-icon-button color="primary"
+                [disabled]="activeScenario === 'Status Quo'"
+                (click)="onEditScenario()"
+                class="mat-button-dv">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button color="primary"
+                (click)="onCreateScenario()"
+                class="mat-button-dv">
+          <mat-icon>add</mat-icon>
+        </button>
+        <button mat-icon-button color="primary"
+                [disabled]="activeScenario === 'Status Quo'"
+                (click)="onDeleteScenario()"
+                class="mat-button-dv">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
     </div>
   </div>
   <div id="scenario-arrow">
     &#9664;
   </div>
 </div>
+
+<ng-template #removeScenario>
+  <div style="display: flex; align-items: end;">
+    <mat-form-field appearance="fill" class="warning" style="width: 300px; margin-right: 10px;">
+      <input disabled matInput [value]="activeScenario">
+    </mat-form-field>
+    <mat-icon class="material-icons-outlined warning" style="font-size: 40px; align-self: baseline;">report_problem</mat-icon>
+  </div>
+  <p style="font-size: 0.8em; margin: -15px 0 0 10px;"> Die Entfernung ist dauerhaft und endgültig</p>
+</ng-template>
+
+<ng-template #createScenario>
+  <div fxLayout="column">
+    <mat-form-field appearance="fill">
+      <mat-label i18n>Name des Szenarios</mat-label>
+      <input matInput>
+    </mat-form-field>
+  </div>
+</ng-template>
+
+<ng-template #editScenario>
+  <div fxLayout="column">
+    <mat-form-field appearance="fill">
+      <mat-label i18n>Name des Szenarios</mat-label>
+      <input matInput [value]="activeScenario">
+    </mat-form-field>
+  </div>
+</ng-template>
+
+
+<ng-template #demandScenario>
+  <div class="scenario-row">
+    <mat-icon class="material-icons-outlined" color="primary"
+              title="aktuell eingestellte Nachfragequoten anzeigen"
+              (click)="onShowDemandPlaceholder()">
+      info
+    </mat-icon>
+    <mat-form-field appearance="standard" class="small">
+      <mat-label>Nachfragequoten-Set</mat-label>
+      <mat-select disableOptionCentering [value]="quotas[1]">
+        <mat-option *ngFor="let quota of quotas" [value]="quota">
+          {{quota}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="scenario-row">
+    <mat-icon class="material-icons-outlined" color="primary"
+              title="aktuell eingestellte Einwohnerentwicklung anzeigen"
+              (click)="onShowDemandPlaceholder()">
+      info
+    </mat-icon>
+    <mat-form-field appearance="standard" class="small">
+      <mat-label>Einwohnerentwicklung</mat-label>
+      <mat-select disableOptionCentering [value]="prognoses[1]">
+        <mat-option *ngFor="let prognosis of prognoses" [value]="prognosis">
+          {{prognosis}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+</ng-template>
+
+<ng-template #demandStatusQuo>
+  <div class="scenario-row">
+    <mat-icon class="material-icons-outlined" color="primary"
+              title="aktuell eingestellte Nachfragequoten anzeigen"
+              (click)="onShowDemandPlaceholder()">
+      info
+    </mat-icon>
+    <mat-form-field appearance="standard" class="small">
+      <mat-label>Nachfragequoten-Set</mat-label>
+      <mat-select [value]="quotas[0]">
+        <mat-option [value]="quotas[0]">
+          {{quotas[0]}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="scenario-row">
+    <mat-icon class="material-icons-outlined" color="primary"
+              title="aktuell eingestellte Einwohnerentwicklung anzeigen"
+              (click)="onShowDemandPlaceholder()">
+      info
+    </mat-icon>
+    <mat-form-field appearance="standard" class="small">
+      <mat-label>Einwohnerentwicklung</mat-label>
+      <mat-select [value]="prognoses[0]">
+        <mat-option [value]="prognoses[0]">
+          {{prognoses[0]}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+<!--  <button mat-button color="primary">{{quotas[0]}}</button>
+  <button mat-button color="primary">{{prognoses[0]}}</button>-->
+</ng-template>
+
+<ng-template #reachabilitiesScenario>
+  <div class="scenario-row">
+   <!-- <mat-icon class="material-icons-outlined" color="primary"
+              title="aktuell eingestellte Verkehrsmittelvarianten anzeigen">
+      info
+    </mat-icon>-->
+    <mat-form-field appearance="standard" class="small">
+      <mat-label>Verkehrsmittelvariante</mat-label>
+      <mat-select disableOptionCentering value="Ausbau der B232">
+        <mat-option value="Dtl 2021">
+          Dtl 2021
+        </mat-option>
+        <mat-option value="Ausbau der B232">
+          Ausbau der B232
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+</ng-template>
+
+<ng-template #reachabilitiesStatusQuo>
+  <div class="scenario-row">
+<!--    <mat-icon class="material-icons-outlined" color="primary"
+              title="aktuell eingestellte Verkehrsmittelvarianten anzeigen">
+      info
+    </mat-icon>-->
+    <mat-form-field appearance="standard" class="small">
+      <mat-label>Verkehrsmittelvariante</mat-label>
+      <mat-select value="Dtl 2021">
+        <mat-option value="Dtl 2021">
+          Dtl 2021
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+</ng-template>
+
+<ng-template #ratingScenario>
+  Platzhalter allgemeine Kennwerte
+</ng-template>
+
+<ng-template #ratingStatusQuo>
+  Platzhalter allgemeine Kennwerte
+</ng-template>
+
+<ng-template #supplyScenario>
+  <div title="Kennwerte anzeigen"
+       style="cursor: pointer; display: flex;"
+       (click)="onShowSupplyTable()">
+    <div style="align-self: center; margin-right: 10px;">
+      <mat-icon class="material-icons-outlined" color="primary">
+        info
+      </mat-icon>
+    </div>
+    <div>
+      ausgewählte Leistungen: <br>
+      Standorte +2<br>
+      Plätze +30
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #supplyStatusQuo>
+  Platzhalter allgemeine Kennwerte
+</ng-template>
+
+<ng-template #supplyScenarioTable>
+  Platzhalter für Tabelle mit Änderungen gegenüber des Status Quo<br>
+  <i>Funktionalität für den Prototyp noch nicht hinterlegt.</i>
+</ng-template>
+
+<ng-template #demandPlaceholderTable>
+  Platzhalter für Anzeige der aktuell eingestellten Nachfragequoten bzw. Einwohnerentwicklung<br>
+  <i>Funktionalität für den Prototyp noch nicht hinterlegt.</i>
+</ng-template>

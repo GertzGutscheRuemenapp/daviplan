@@ -4,6 +4,9 @@ import { StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart
 import { mockdata } from "../../population/pop-development/pop-development.component"
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
 
+
+export const mockPrognoses = ['Trendfortschreibung', 'mehr Zuwanderung', 'mehr Abwanderung'];
+
 @Component({
   selector: 'app-prognosis-data',
   templateUrl: './prognosis-data.component.html',
@@ -12,7 +15,7 @@ import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multi
 export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   @ViewChild('lineChart') lineChart?: MultilineChartComponent;
   mapControl?: MapControl;
-  prognoses = ['Trendfortschreibung', 'mehr Zuwanderung', 'mehr Abwanderung'];
+  prognoses = mockPrognoses;
   selectedPrognosis = 'Trendfortschreibung';
   data: StackedData[] = mockdata;
   labels: string[] = ['65+', '19-64', '0-18']

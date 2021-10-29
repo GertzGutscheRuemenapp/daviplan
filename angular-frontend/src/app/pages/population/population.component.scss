@@ -72,7 +72,7 @@ $diagram-bar-width: 30%;
 }
 
 // medium
-@media only screen and (max-width: 63.9375em) {
+@media only screen and (max-width: 80em) {
   .map-wrapper {
     padding-right: 0px;
     height: 60vh;
@@ -95,7 +95,7 @@ $diagram-bar-width: 30%;
 }
 
 // small
-@media only screen and (max-width: 39.9375em) {
+@media only screen and (max-width: 50em) {
   .sub-links {
     a {
       font-size: 16px !important;

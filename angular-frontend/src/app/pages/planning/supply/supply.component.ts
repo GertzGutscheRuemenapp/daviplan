@@ -15,6 +15,7 @@ export class SupplyComponent implements OnInit{
   compareStatus = 'option 1';
   infrastructures = mockInfrastructures;
   selectedInfrastructure = this.infrastructures[0];
+  showScenarioMenu = false;
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
 
   constructor(private dialog: MatDialog) {}
@@ -28,7 +29,7 @@ export class SupplyComponent implements OnInit{
       width: '1400px',
       disableClose: false,
       data: {
-        title: 'Standortfilter',
+        // title: 'Standortfilter',
         template: this.filterTemplate,
         closeOnConfirm: true,
         infoText: 'Platzhalter: Die Filterung der Tabelle filtert die in der Karte dargestellten Standorte'

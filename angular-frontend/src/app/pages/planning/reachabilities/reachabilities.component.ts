@@ -16,6 +16,7 @@ export class ReachabilitiesComponent implements OnInit {
   selectLivMode = false;
   infrastructures = mockInfrastructures;
   selectedInfrastructure = this.infrastructures[0];
+  showScenarioMenu = false;
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
 
   constructor(private dialog: MatDialog) {}
@@ -34,7 +35,7 @@ export class ReachabilitiesComponent implements OnInit {
       width: '1400px',
       disableClose: false,
       data: {
-        title: 'Standortfilter',
+        // title: 'Standortfilter',
         template: this.filterTemplate,
         closeOnConfirm: true,
         infoText: 'Platzhalter: Die Filterung der Tabelle filtert die in der Karte dargestellten Standorte'

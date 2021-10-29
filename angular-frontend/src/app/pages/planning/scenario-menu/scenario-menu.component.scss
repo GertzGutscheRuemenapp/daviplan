@@ -22,23 +22,45 @@
 .scenario-card {
   height: 100%;
   width: 200px;
-  cursor: pointer;
   border: 1px solid #cbe6f8;
   .scenario-card-header {
     height: 50px;
     text-align: center;
     padding: 5px;
-    pointer-events: none;
+    //pointer-events: none;
+    cursor: pointer;
     //display: flex;
     //align-items: center;
     //justify-content: center;
   }
   .scenario-card-body {
-    pointer-events: none;
+    //pointer-events: none;
     background-color: #f4f4f4;
     height: 120px;
     font-size: 12px;
-    text-align: center;
+    //text-align: center;
+    padding: 10px;
+    mat-form-field {
+      width: 100%;
+    }
+    .scenario-row {
+      //position: relative;
+      display: flex;
+      mat-form-field {
+        width: 145px;
+      }
+      mat-icon {
+        //position: absolute;
+        //top: 18px;
+        //right: -5px;
+        cursor: pointer;
+        align-self: end;
+        margin-right: 5px;
+      }
+      mat-icon:hover {
+        //background-color: $primary-light;
+      }
+    }
   }
 }
 .scenario-card.active {
@@ -65,9 +87,43 @@
 
 #scenario-controls {
   width: 50px;
-  padding-left: 5px;
+  padding-left: 8px;
+  display: flex;
+  align-items: center;
 
   button {
     margin: 8px 0;
+  }
+}
+
+::ng-deep app-scenario-menu {
+  .scenario-card:not(.active):not(:hover) {
+    .mat-select-min-line, .mat-select-trigger span, .mat-select-arrow, mat-icon {
+      color: grey !important;
+    }
+  }
+  .mat-form-field-wrapper{
+    padding: 0;
+  }
+  .mat-form-field {
+    font-size: 14px;
+    .mat-select-trigger span {
+      font-size: 14px !important;
+    }
+    .mat-form-field-infix {
+      padding: 0.2em 0;
+    }
+    .mat-select-arrow {
+      margin-top: 12px;
+    }
+  }
+  [data-value="Status Quo"]{
+    .mat-form-field {
+      pointer-events: none;
+    }
+    .mat-select-arrow {
+      //display: none;
+      opacity: 0;
+    }
   }
 }
