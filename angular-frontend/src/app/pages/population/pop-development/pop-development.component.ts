@@ -48,7 +48,7 @@ export class PopDevelopmentComponent implements AfterViewInit {
     x: '2003',
     highlight: true
   }
-  isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 39.9375em)')
+  isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 50em)')
     .pipe(
       map(result => result.matches),
       shareReplay()
