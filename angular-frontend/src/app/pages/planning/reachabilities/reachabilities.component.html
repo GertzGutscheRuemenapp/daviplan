@@ -66,6 +66,17 @@
       </li>
     </ul>
   </div>
+  <mat-expansion-panel class="text-panel">
+    <mat-expansion-panel-header>
+      <mat-icon color="primary" class="material-icons-outlined"
+                style="margin-right: 5px;">help_outline</mat-icon>
+      <span class="subtitle1">Hilfe</span>
+    </mat-expansion-panel-header>
+    <span class="info-text">
+      <p>Wählen Sie hier im Dropdown-Menü den Infrastrukturbereich und per Checkbox die Leistungen aus dem jeweiligen Infrastrukturbereich aus. Mit dem Klick auf das Filtersymbol können Sie Filter auf Standorte setzen und bearbeiten.</p>
+      <p>Cluster, Verdrängung und Zoom auf alle stellen Darstellungsoptionen für die Karte dar. </p>
+    </span>
+  </mat-expansion-panel>
 </mat-expansion-panel>
 <mat-expansion-panel cookieExpansion="exp-reach-indicator">
   <mat-expansion-panel-header>
@@ -85,7 +96,7 @@
                         maxWidth="600px"
                         [showDelay]="500"
                         [hideDelay]="0" i18n>
-        Einrichtung -> Wohnstandorte
+        von allen Wohnstandorten zum Angebot
       </mat-radio-button>
       <div class="row-button" [ngClass]="{'active': selectFacMode, 'disabled': indicator!=='option 1'}" (click)="selectFacMode = !selectFacMode">
         <label i18n>Einrichtung auswählen</label>
@@ -103,7 +114,7 @@
                         placement="right"
                         maxWidth="600px"
                         [hideDelay]="0" i18n>
-        Wohnstandort -> Einrichtungen
+        von einem Wohnstandort zu allen Angeboten
       </mat-radio-button>
       <div class="row-button" [ngClass]="{'active': selectLivMode, 'disabled': indicator!=='option 2'}" (click)="selectLivMode = !selectLivMode">
         <label i18n>Wohnstandort auswählen</label>
@@ -121,10 +132,25 @@
                         placement="right"
                         maxWidth="600px"
                         [hideDelay]="0" i18n>
-        nächste Einrichtung
+        von allen Wohnstandorten zum jeweils nächsten Angebot
       </mat-radio-button>
     </mat-radio-group>
   </div>
+  <mat-expansion-panel class="text-panel">
+    <mat-expansion-panel-header>
+      <mat-icon color="primary" class="material-icons-outlined"
+                style="margin-right: 5px;">help_outline</mat-icon>
+      <span class="subtitle1">Hilfe</span>
+    </mat-expansion-panel-header>
+    <span class="info-text">
+      Wählen Sie hier den Erreichbarkeitsindikator für die Darstellung in der Karte aus. Dargestelt stellt wird die Erreichbarkeit mit dem unten ausgewählten Verkehrsmittel. Sie haben dabei drei Optionen:
+      <ul>
+        <li>Erreichbarkeit eines Standortes mit ausgewählter Leistung von allen Wohnstandorten anzeigen (>gewünschten Standort mit Klick in die Karte auswählen)</li>
+        <li>Erreichbarkeit aller Standorte mit ausgewählter Leistung von einem Wohnstandort aus anzeigen (>gewünschten Wohnstandort mit Klick in die Karte auswählen)</li>
+        <li>Erreichbarkeit des jeweils nächsten Standortes mit ausgewählter Leistung für alle Wohnstandorte. </li>
+      </ul>
+    </span>
+  </mat-expansion-panel>
 </mat-expansion-panel>
 <mat-expansion-panel cookieExpansion="exp-reach-modes">
   <mat-expansion-panel-header>
@@ -177,13 +203,23 @@
       </div>
     </div>
   </div>
+  <mat-expansion-panel class="text-panel">
+    <mat-expansion-panel-header>
+      <mat-icon color="primary" class="material-icons-outlined"
+                style="margin-right: 5px;">help_outline</mat-icon>
+      <span class="subtitle1">Hilfe</span>
+    </mat-expansion-panel-header>
+    <span class="info-text">
+      Wählen Sie hier das Verkehrsmittel für die Erreichbarkeitsdarstellung.
+    </span>
+  </mat-expansion-panel>
 </mat-expansion-panel>
 
 <ng-template #filterTemplate>
   <div style="display: flex; align-items: end; user-select: none;">
     <div>
       <h4>Standortfilter</h4>
-      <span class="subtitle1 sub" i18n>Tabelle zeigt gefilterte Standorte im Szenario xy im Jahr {{timeSlider.value}}</span>
+      <span class="subtitle1 sub" i18n>Die Tabelle zeigt die gefilterten Standorte im Szenario [Name] im Jahr {{timeSlider.value}}</span>
     </div>
     <div id="time-slider-wrapper" style="display: flex; margin-left: 200px; margin-bottom: 10px;"> <!--margin-left: auto-->
       <div class="time-button" (click)="timeSlider.value = timeSlider.value - 1;">

@@ -90,6 +90,8 @@ h6 {
   line-height: 20px;
   letter-spacing: 0.29px;
   color: #00000099;
+  text-align: justify;
+  hyphens: auto;
 }
 
 .overline{
@@ -603,7 +605,7 @@ mat-icon.warning {
 
   mat-expansion-panel-header, mat-expansion-panel.mat-expanded mat-expansion-panel-header {
     height: 68px;
-    padding: 0px 18px;
+    padding: 0px 18px !important;
   }
 
   mat-panel-title {
@@ -633,6 +635,9 @@ mat-icon.warning {
     margin-top: 10px;
     //margin-left: -28px;
     margin-left: -18px;
+    .subtitle1 {
+      color: grey;
+    }
     .mat-expansion-panel-body {
       padding-right: 25px !important;
     }
@@ -905,6 +910,7 @@ app-map-controls {
 
 .side-toggle-content {
   max-width: 82vw;
+  overflow: auto;
 }
 
 .mat-selection-list .mat-divider-horizontal {
