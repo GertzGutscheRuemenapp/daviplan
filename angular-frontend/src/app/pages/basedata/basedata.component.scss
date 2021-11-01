@@ -1,6 +1,9 @@
 ::ng-deep app-basedata {
   #log-window {
-    border: solid #0000001F;
+    //border: solid #0000001F;
+    .subtitle1 {
+      color: grey;
+    }
     min-height: 150px;
     overflow: hidden;
   }

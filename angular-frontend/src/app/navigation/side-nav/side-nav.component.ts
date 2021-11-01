@@ -23,13 +23,13 @@ export class SideNavComponent {
   @Input() marginRight: string = '20px';
   @Input() marginTop: string = '100px';
   @Input() width: string = '300px';
-  prefix = 'nav-expanded-';
+  prefix = 'exp-nav-';
   isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
     .pipe(
       map(result => result.matches),
       shareReplay()
     );
 
-  constructor(private breakpointObserver: BreakpointObserver, public cookies: CookieService) {}
+  constructor(private breakpointObserver: BreakpointObserver) {}
 
 }

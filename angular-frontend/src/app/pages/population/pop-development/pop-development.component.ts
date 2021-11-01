@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ViewChild } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, TemplateRef } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
 import { StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
@@ -6,6 +6,9 @@ import { PopService } from "../population.component";
 import { Observable } from "rxjs";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { map, shareReplay } from "rxjs/operators";
+import { mockPresetLevels } from "../../basedata/areas/areas";
+import { MatDialog } from "@angular/material/dialog";
+import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 
 export const mockdata: StackedData[] = [
   { group: '2000', values: [200, 300, 280] },
@@ -31,7 +34,9 @@ export const mockdata: StackedData[] = [
 })
 export class PopDevelopmentComponent implements AfterViewInit {
   @ViewChild('lineChart') lineChart?: MultilineChartComponent;
+  @ViewChild('ageGroupTemplate') ageGroupTemplate!: TemplateRef<any>;
   compareYears = false;
+  areaLevels = mockPresetLevels;
   years = [2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025];
   mapControl?: MapControl;
   activeLevel: string = 'Gemeinden';
@@ -43,13 +48,14 @@ export class PopDevelopmentComponent implements AfterViewInit {
     x: '2003',
     highlight: true
   }
-  isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 39.9375em)')
+  isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 50em)')
     .pipe(
       map(result => result.matches),
       shareReplay()
     );
 
-  constructor(private breakpointObserver: BreakpointObserver, private mapService: MapService, private popService: PopService) {
+  constructor(private breakpointObserver: BreakpointObserver, private mapService: MapService, private dialog: MatDialog,
+              private popService: PopService) {
   }
 
   ngAfterViewInit(): void {
@@ -77,5 +83,23 @@ export class PopDevelopmentComponent implements AfterViewInit {
     slider.years = this.years;
     slider.value = 2012;
     slider.draw();
+  }
+
+  editAgeGroups(): void {
+    let dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '350px',
+      disableClose: false,
+      data: {
+        title: 'Altersgruppen definieren',
+        subtitle: 'Marker hinzufügen und entfernen',
+        template: this.ageGroupTemplate,
+        closeOnConfirm: true,
+        confirmButtonText: 'Speichern',
+        infoText: 'Platzhalter: Wenn Prognosen nicht für alle Altersjahrgänge, sonder in ALtersgruppen hochgeladen wurden, können die Marker nicht frei definiert und verschoben werden. In diesem Fall können die Marker nur gelöscht und an vordefinierter Stelle wieder hinzugefügt werden.'
+      }
+    });
+    dialogRef.afterClosed().subscribe((ok: boolean) => {  });
+    dialogRef.componentInstance.confirmed.subscribe(() => {  });
   }
 }

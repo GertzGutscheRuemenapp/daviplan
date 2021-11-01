@@ -53,7 +53,6 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
       map(result => result.matches),
       shareReplay()
     );
-
   constructor(private breakpointObserver: BreakpointObserver, private renderer: Renderer2,
               private elRef: ElementRef, private mapService: MapService, private dialog: MatDialog) {  }
 

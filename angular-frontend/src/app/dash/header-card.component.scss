@@ -13,13 +13,19 @@
 
 .mat-expansion-panel-header {
   width: calc(100% - 10px);
+  align-items: baseline;
 }
+
+//.mat-expansion-panel-header, .mat-expanded .mat-expansion-panel-header {
+//  height: 40px !important;
+//}
 
 ::ng-deep app-header-card {
   .mat-expansion-indicator {
-    margin-top: -15px;
+    align-self: center;
   }
   .mat-expansion-panel-body {
     //max-width: 600px;
+    padding-top: 16px !important;
   }
 }

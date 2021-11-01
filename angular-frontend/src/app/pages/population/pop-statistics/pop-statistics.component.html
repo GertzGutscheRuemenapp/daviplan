@@ -1,6 +1,7 @@
 <mat-sidenav #drawer class="context-bar"
+             [autoFocus]="false"
              [opened]="(isSM$ | async) === false">
-  <mat-expansion-panel expanded>
+  <mat-expansion-panel cookieExpansion="exp-pop-theme">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <div class="mini-fab-icon">
@@ -59,4 +60,3 @@
     <img src="{{backend}}/static/img/Wanderungssaldo Screenshot.png" width="100%"/>
   </div>
 </div>
-

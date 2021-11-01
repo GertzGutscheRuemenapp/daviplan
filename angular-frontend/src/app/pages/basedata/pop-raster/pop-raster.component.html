@@ -1,6 +1,10 @@
 <app-header-card [title]="'Einwohnerraster'"
+                 cookieId="exp-raster-header"
                  width="1132px">
-  Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+  <p>Für einige Auswertungen müssen die vorstehend eingegebenen Einwohnerdaten auf eine sehr kleinräumige Ebene umgeschätzt werden, z.B. um die Erreichbarkeitsverhältnisse zu bewerten. Hierfür nutzt daviplan ein 100x100-Meter-Raster nach dem europäischen LAEA-Standard.</p>
+  <p>Für jeder Rasterzelle ist eine – ggf. schon ein paar Jahre veraltete – Einwohnerzahl bekannt. Diese Werte werden als Aufteilungsschlüssel verwendet, um die von Ihnen in den vorherigen Schritte „Realdaten“ und „Prognosedaten“ hochgeladenen Daten für jedes Betrachtungsjahr bei Bedarf auch auf die kleinräumigen LAEA-Rasterzellen zu verteilen.</p>
+  <p>In daviplan ist sind die Zensus-Rasterdaten 2011 in der 100x100-Meter-LAEA-Einteilung bereits hinterlegt. Sie müssen daher auf dieser Seite keine weiteren Daten hochladen.</p>
+  <p>Wenn Sie stattdessen ein eigenes Raster als Aufteilungsschlüssel für alle Betrachtungsjahre verwenden möchten, so können Sie dieses auf dieser Seite hochladen. Es muss dem 100x100-Meter-LAEA-Standard entsprechend und für das Projektgebiet flächendeckend vorliegen.</p>
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="352px">
@@ -14,35 +18,53 @@
         </tr>
         <tr>
           <td i18n>Quelle</td>
-          <td>Vorgabe</td>
-        </tr>
-        <tr>
-          <td i18n>Zellen</td>
-          <td>1457</td>
+          <td>Template</td>
         </tr>
       </table>
-      <div style="margin-top: 20px;">
-        <button mat-stroked-button color="primary" style="margin-right: 10px;">
-          <mat-icon>download</mat-icon> Template
-        </button>
-        <button mat-flat-button color="primary">
-          <mat-icon>upload</mat-icon> Daten hochladen
-        </button>
-      </div>
-      <button mat-mini-fab color="primary"
-              aria-label="Daten herunterladen" title="Daten herunterladen"
-              style="position: absolute; right: 15px; bottom: 55px; box-shadow: none;">
-        <mat-icon>download</mat-icon>
-      </button>
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="800px">
     <app-input-card [title]="'Rasteransicht'"
+                    [topRightHelp]="true"
                     infoText="Platzhalter: braucht es hier eine Hilfe?">
+      <div fxLayout="column">
+        <div style="display: flex">
+          <table>
+            <tr>
+              <td i18n>Zellen</td>
+              <td>1457</td>
+            </tr>
+            <tr>
+              <td i18n>Upload am</td>
+              <td>02.06.2022</td>
+            </tr>
+          </table>
+          <table style="margin-left: 20px; align-self: flex-end;">
+            <tr>
+              <td i18n>durch</td>
+              <td>Sascha Schmidt</td>
+            </tr>
+          </table>
+        </div>
+        <div style="margin-top: 20px;">
+          <button mat-stroked-button color="primary" style="margin-right: 10px;">
+            <mat-icon>download</mat-icon> Template
+          </button>
+          <button mat-flat-button color="primary">
+            <mat-icon>upload</mat-icon> Daten hochladen
+          </button>
+          <button mat-mini-fab color="primary"
+                  aria-label="Daten herunterladen" title="Daten herunterladen"
+                  style="float: right; box-shadow: none;">
+            <mat-icon>download</mat-icon>
+          </button>
+        </div>
+      </div>
       <div id="base-raster-map" class="map-container">
         <app-map-controls></app-map-controls>
         <app-side-toggle id="legend"
                          icon="layers"
+                         name="Legenden- und Layersteuerung"
                          direction="left">
           <app-legend target="base-raster-map"></app-legend>
         </app-side-toggle>
@@ -53,5 +75,5 @@
 
 
 <ng-template #rasterEdit>
-  ToDo
+  Funktionalität für den Prototyp noch nicht hinterlegt.
 </ng-template>

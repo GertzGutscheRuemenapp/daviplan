@@ -1,10 +1,19 @@
 <app-header-card [title]="'Koordination der Grundlagendaten'"
+                 cookieId="exp-coordination-header"
                  width="1380px">
-  Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+  <p>Die nachfolgende Liste soll Ihnen als Gesamtkoordinator*in helfen, den Überblick zu behalten, welche Grundlagendaten benötigt werden, welche Personen für das Einpflegen (und ggf. das regelmäßige Aktualisieren) dieser Grundlagendaten verantwortlich sind welcher Bearbeitungsstatus bereits erreicht wurde.</p>
+  <p>Die Eintragungen in der Spalte „Bearbeitungsstatus“ sind automatisch generiert. Weitere automatisch generierte Detailinformationen zu den bereits eingepflegten Grundlagendaten erhalten Sie durch Überfahren des i-Symbols am linken Rand der Spalte.</p>
+  <p>Auf Basis der Informationen zum Bearbeitungsstatus können Sie in der Spalte „Markieren“ die Zeilen einfärben, die bereits vollständig bearbeitet sind bzw. bei denen es noch Handlungsbedarf gibt. Die Kommunikation mit den verantwortlichen Personen erfolgt außerhalb von daviplan.</p>
 </app-header-card>
 <div style="max-width: 1400px;">
   <app-input-card [subtitle]="'Liste aller benötigten Datensätze und der zugewiesenen Personen'"
-                  infoText="Platzhalter Erklärung: Benutzung optional, Erleichterung der Planung,  Zuweisung der Personen, vorhandene Datensätze, Markierung">
+                  [topRightHelp]="true"
+                  infoText="<p>Mit einem Klick auf das Icon am linken Rand der Spalte „Daten-/Aufgabenbereich“ gelangen Sie zur entsprechenden Eingabeseite im Hauptmenübereich „Grundlagendaten“.</p>
+<p>Um eine bestimmte Person mit dem Einpflegen bestimmter Grundlagendaten aus der Liste zu beauftragen, klicken Sie in der entsprechenden Zeile auf das Icon in der Spalte „Zuwei-sen“. Sie können dort alle Personen auswählen, deren im vorherigen Schritt „Personen und Berechtigungen“ die Berechtigung zum Editieren von Grundlagendaten eingeräumt wurde. Handelt es sich um die Grundlage für einen Infrastrukturbereich, muss die Person dort zusätzlich auch das Recht zu Zugriff auf diesen Infrastrukturbereich erhalten haben.</p>
+<p>Das Icon am linken Rand der Spalte „Berechtigt für Bearbeitung“ führt zum Menübereich „Personen und Berechtigungen“, in der die Nutzerkonten und grundlegenden Berechtigungen verwaltet werden.</p>
+<p>Sie können einem Grundlagendatenbereich auch mehrere Personen zuordnen. Diese erhalten identische Rechte. </p>
+<p>Um die Zuweisung einer Person zu einem Grundlagendatenbereich wieder zu löschen, klicken Sie bitte ebenfalls auf das Icon in der Spalte „Zuweisen“.</p>
+">
     <div style="overflow-x: auto;">
       <table class="coordination-table">
         <tr>

@@ -1,0 +1,47 @@
+<table id="filter-table">
+  <tr>
+    <th *ngFor="let th of header; let i = index;">
+      <div>
+        <div style="margin-right: 10px;">
+          <button color="primary" mat-icon-button
+                  class="filter-button" title="Standortfilter"
+                  [ngClass]="{'inverted': filtered[i]}"
+                  (click)="filtered[i] = !filtered[i]"
+                  title="Filter umschalten">
+            <mat-icon>filter_list</mat-icon>
+          </button>
+        </div>
+        <div style="cursor: pointer; display: flex;">
+          <span class="subtitle1" style="color: grey;">{{th}}</span>
+          <div class="sort-icon" style="position: relative; min-width: 30px;">
+            <mat-icon style="position: absolute; top: -3px; left: 5px;">arrow_drop_up</mat-icon>
+            <mat-icon style="position: absolute; top: 4px; left: 5px;">arrow_drop_down</mat-icon>
+          </div>
+        </div>
+      </div>
+    </th>
+  </tr>
+  <tr *ngFor="let row of rows">
+    <td *ngFor="let column of row">{{column}}</td>
+  </tr>
+</table>
+
+<div style="margin-top: 20px;" >
+  <span class="subtitle1 sub" i18n>aktuell verwendete Filter</span>
+  <div id="filter-box" class="border-box">
+    <mat-chip-list>
+      <mat-chip color="primary">
+        Name | K[...]
+        <mat-icon>cancel</mat-icon>
+      </mat-chip>
+      <mat-chip color="primary">
+        Kapazität Krippe | größer 6
+        <mat-icon>cancel</mat-icon>
+      </mat-chip>
+    </mat-chip-list>
+  </div>
+  <button mat-button color="primary"
+          class="mat-button-dv">
+    <mat-icon>filter_list</mat-icon> alle Filter zurücksetzen
+  </button>
+</div>

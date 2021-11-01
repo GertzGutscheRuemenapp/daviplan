@@ -1,6 +1,7 @@
 <mat-sidenav #drawer class="context-bar"
+             [autoFocus]="false"
              [opened]="(isSM$ | async) === false">
-  <mat-expansion-panel expanded>
+  <mat-expansion-panel cookieExpansion="exp-pop-area">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <div class="mini-fab-icon">
@@ -10,23 +11,26 @@
       </mat-panel-title>
     </mat-expansion-panel-header>
     <mat-form-field appearance="outline" class="small">
-      <mat-select disableOptionCentering [(ngModel)]="activeLevel">
-        <mat-option value="Bundesländer">
-          Bundesländer
-        </mat-option>
-        <mat-option value="Kreise">
-          Kreise
-        </mat-option>
-        <mat-option value="Verwaltungsgemeinschaften">
-          Verwaltungsgemeinschaften
-        </mat-option>
-        <mat-option value="Gemeinden">
-          Gemeinden
+      <mat-select disableOptionCentering [value]="areaLevels[0]">
+        <mat-option [value]="areaLevel" *ngFor="let areaLevel of areaLevels">
+          {{areaLevel.name}}
         </mat-option>
       </mat-select>
     </mat-form-field>
+    <div class="info-text">
+      <mat-expansion-panel class="text-panel">
+        <mat-expansion-panel-header>
+          <mat-icon color="primary" class="material-icons-outlined"
+                    style="margin-right: 5px;">help_outline</mat-icon>
+          <span class="subtitle1" style="color: grey;">Hilfe</span>
+        </mat-expansion-panel-header>
+        <span >
+        Wählen Sie aus dem Dropdown-Menü die Gebietseinheit, für die Werte in der Karte angezeigt werden sollen. Es werden Werte für alle Gebiete der ausgewählten Gebietseinheit dargestellt.
+      </span>
+      </mat-expansion-panel>
+    </div>
   </mat-expansion-panel>
-  <mat-expansion-panel expanded>
+  <mat-expansion-panel cookieExpansion="exp-pop-prog">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <div class="mini-fab-icon">
@@ -46,7 +50,7 @@
       </mat-select>
     </mat-form-field>
   </mat-expansion-panel>
-  <mat-expansion-panel expanded>
+  <mat-expansion-panel cookieExpansion="exp-pop-groups">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <div class="mini-fab-icon">
@@ -73,36 +77,23 @@
       </mat-select>
     </mat-form-field>
     <div class="sub-select-box">
-      <label i18n> Enthaltene Altersgruppen </label>
-      <button mat-icon-button color="primary" style="float: right; margin-top: -8px;">
+      <span style="color: grey;" class="subtitle1" i18n> Enthaltene Altersgruppen </span>
+      <button mat-icon-button color="primary"
+              style="position: absolute; right: 10px; margin-top: -8px;"
+              (click)="editAgeGroups()">
         <mat-icon>edit</mat-icon>
       </button>
-      <div class="age-select-box" style="margin-top: 10px">
-        <div class="age-row checked">
-          <label>alle</label>
-          <mat-checkbox color="primary" [checked]="true"></mat-checkbox>
-        </div>
-        <mat-divider></mat-divider>
-        <div class="age-row checked">
-          <label>0 bis unter 19 Jahre</label>
-          <mat-checkbox color="primary" [checked]="true"></mat-checkbox>
-        </div>
-        <div class="age-row checked">
-          <label>10 bis unter 40 Jahre</label>
-          <mat-checkbox color="primary" [checked]="true"></mat-checkbox>
-        </div>
-        <div class="age-row checked">
-          <label>40 bis unter 60 Jahre</label>
-          <mat-checkbox color="primary" [checked]="true"></mat-checkbox>
-        </div>
-        <div class="age-row">
-          <label>65 Jahre und älter</label>
-          <mat-checkbox color="primary" [checked]="false"></mat-checkbox>
-        </div>
+      <div class="border-box" style="margin-top: 10px">
+        <mat-checkbox class="reverse" color="primary" [checked]="true">alle</mat-checkbox>
+        <mat-divider style="margin-bottom: 10px;"></mat-divider>
+        <mat-checkbox class="reverse" color="primary" [checked]="true">0 bis unter 19 Jahre</mat-checkbox>
+        <mat-checkbox class="reverse" color="primary" [checked]="true">10 bis unter 40 Jahre</mat-checkbox>
+        <mat-checkbox class="reverse" color="primary" [checked]="true">40 bis unter 60 Jahre</mat-checkbox>
+        <mat-checkbox class="reverse" color="primary" [checked]="false">65 Jahre und älter</mat-checkbox>
       </div>
     </div>
   </mat-expansion-panel>
-  <mat-expansion-panel expanded>
+  <mat-expansion-panel cookieExpansion="exp-pop-compare">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <div class="mini-fab-icon">
@@ -173,3 +164,29 @@
 </div>
 
 
+<ng-template #ageGroupTemplate>
+  <i>Funktionalität des Altersgruppen-Sliders noch nicht implementiert</i>
+  <div style="margin-top: 10px;">
+    <button mat-button color="primary"
+            class="mat-button-dv"
+            title="Altersgruppe hinzufügen">
+      <mat-icon>add</mat-icon>hinzufügen
+    </button>
+    <button mat-button color="primary"
+            style="margin-left: 40px;"
+            class="mat-button-dv"
+            title="Altersgruppe entfernen">
+      <mat-icon>close</mat-icon>entfernen
+    </button>
+  </div>
+  <mat-divider style="margin: 10px 0;"></mat-divider>
+  <span class="subtitle1 sub" i18n>
+    ausgewählte Altersgrenzen
+  </span>
+  <div class="border-box">
+    0 bis unter 19 Jahre <br>
+    10 bis unter 40 Jahre <br>
+    40 bis unter 60 Jahre <br>
+    65 Jahre und älter
+  </div>
+</ng-template>

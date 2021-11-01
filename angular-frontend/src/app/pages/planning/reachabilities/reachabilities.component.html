@@ -1,4 +1,15 @@
-<mat-expansion-panel expanded>
+<app-scenario-menu domain="reachabilities" [ngClass]="{'expanded': showScenarioMenu}"></app-scenario-menu>
+<mat-expansion-panel class="side-toggle" id="scenario-toggle">
+  <mat-expansion-panel-header (click)="showScenarioMenu=!showScenarioMenu">
+    <mat-panel-title>
+      <div class="mini-fab-icon" [ngClass]="{'primary': showScenarioMenu}">
+        <div class="davicon icon-GGR-davicons-Font-Simple-2-Szenario"></div>
+      </div>
+      Szenario
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+</mat-expansion-panel>
+<mat-expansion-panel cookieExpansion="exp-reach-services">
   <mat-expansion-panel-header>
     <mat-panel-title>
       <div class="mini-fab-icon">
@@ -24,7 +35,9 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <button color="primary" mat-icon-button class="filter-button" title="Standortfilter">
+      <button color="primary" mat-icon-button
+              class="filter-button" title="Standortfilter"
+              (click)="onFilter()">
         <mat-icon>filter_list</mat-icon>
       </button>
     </div>
@@ -54,7 +67,7 @@
     </ul>
   </div>
 </mat-expansion-panel>
-<mat-expansion-panel expanded>
+<mat-expansion-panel cookieExpansion="exp-reach-indicator">
   <mat-expansion-panel-header>
     <mat-panel-title>
       <div class="mini-fab-icon">
@@ -113,7 +126,7 @@
     </mat-radio-group>
   </div>
 </mat-expansion-panel>
-<mat-expansion-panel expanded>
+<mat-expansion-panel cookieExpansion="exp-reach-modes">
   <mat-expansion-panel-header>
     <mat-panel-title>
       <div class="mini-fab-icon">
@@ -165,3 +178,28 @@
     </div>
   </div>
 </mat-expansion-panel>
+
+<ng-template #filterTemplate>
+  <div style="display: flex; align-items: end; user-select: none;">
+    <div>
+      <h4>Standortfilter</h4>
+      <span class="subtitle1 sub" i18n>Tabelle zeigt gefilterte Standorte im Szenario xy im Jahr {{timeSlider.value}}</span>
+    </div>
+    <div id="time-slider-wrapper" style="display: flex; margin-left: 200px; margin-bottom: 10px;"> <!--margin-left: auto-->
+      <div class="time-button" (click)="timeSlider.value = timeSlider.value - 1;">
+        <mat-icon color="primary">chevron_left</mat-icon>
+      </div>
+      <div class="time-button" (click)="timeSlider.value = timeSlider.value + 1;">
+        <mat-icon color="primary">chevron_right</mat-icon>
+      </div>
+      <div style="display: flex; padding: 0px 10px 10px 10px;">
+        <label style="padding-top: 25px;">2000</label>
+        <mat-slider #timeSlider color="primary"
+                    thumbLabel min="2000" max="2100" step="1" value="2010"
+                    style="width: 420px; margin-top: 15px;"></mat-slider>
+        <label style="padding-top: 25px;">2100</label>
+      </div>
+    </div>
+  </div>
+  <app-filter-table></app-filter-table>
+</ng-template>

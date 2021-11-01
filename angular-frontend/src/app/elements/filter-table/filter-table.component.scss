@@ -1,0 +1,44 @@
+#filter-table {
+  border-spacing: 0;
+  overflow-x: auto;
+  display: block;
+  th {
+    background-color: #f4f4f4;
+    white-space: nowrap;
+    >div {
+      display: flex;
+      align-items: baseline;
+    }
+  }
+  th, td {
+    padding: 10px;
+    border: 1px solid lightgrey;
+  }
+  td {
+    padding-left: 20px;
+    padding-right: 20px;
+    //padding-left: 60px;
+  }
+  .filter-button {
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    padding: 0;
+    margin-left: auto;
+  }
+}
+
+#filter-box {
+  min-height: 100px;
+  width: 60%;
+}
+
+.mat-chip {
+  background-color: white;
+  border: 1px solid grey;
+  .mat-icon {
+    cursor: pointer;
+    color: grey;
+    margin-left: 8px;
+  }
+}

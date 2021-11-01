@@ -1,12 +1,16 @@
 <app-header-card [title]="'Infrastrukturbereiche'"
+                 cookieId="exp-infra-header"
                  width="980px">
-  Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+  <p>Das Arbeiten mit daviplan gliedert sich anhand von Infrastrukturbereichen (z.B. Kinderbetreuung, Schule, Ärztliche Versorgung, Feuerwehr, …). Diese werden hier definiert.</p>
+  <p>Im nachfolgenden Schritt „Koordination der Grundlagendaten“ kann einer oder mehreren Personen die Verantwortung für die Grundlagendaten jeder dieser Infrastrukturbereiche zugeordnet werden. Im Zuge der Erfassung der Grundlagendaten können die Infrastrukturbereich noch weiter ausdifferenziert werden, indem ihnen „Leistungen“ zugewiesen werden. Leistungen im Infrastrukturbereich „Kinderbetreuung“ könnten z.B. Krippe, Elementarbetreuung und Hort sein.</p>
+  <p>Legen Sie auf dieser Seite zunächst nur die Infrastrukturbereiche fest.</p>
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="400px">
-    <app-input-card [title]="'Infrastrukturbereiche'"
-                    subtitle="Verfügbare Infrastrukturbereiche bearbeiten"
-                    infoText="Platzhalter Erklärung: Infrastrukturbereiche auswählen / hinzufügen / entfernen, aus Vorlage laden">
+    <app-input-card [title]="'Definierte Infrastrukturbereiche'"
+                    subtitle="Diese Infrastrukturbereiche sollen behandelt werden:"
+                    infoText="<p>Klicken Sie auf „Hinzufügen“, um der Liste einen Infrastrukturbereich hinzuzufügen. Sie können den neuen Infrastrukturbereich frei definieren oder auf eine der Vorlagen zurückgreifen, die Ihnen dann angezeigt werden.</p>
+                    <p>Um einen Infrastrukturbereich umzubenennen oder seine Beschreibung zu verändern, klicken Sie im Bereich „Eigenschaften des ausgewählten Infrastrukturbereichs“ auf „Editieren“.</p>">
       <div style="display: inline-flex;">
         <mat-selection-list [multiple]="false"
                             id="infrastructure-select">
@@ -39,8 +43,9 @@
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="600px">
-    <app-input-card [title]="'Eigenschaften'"
-                    infoText="braucht es hier irgendeine Information?"
+    <app-input-card [title]="'Eigenschaften des ausgewählten Infrastrukturbereichs'"
+                    infoText="<p>Um einen Infrastrukturbereich umzubenennen oder seine Beschreibung zu verändern, klicken Sie auf „Editieren“.</p>
+                    <p>Die Beschreibung erscheint als Zusatzinformation in Form eines Tooltips in den Auswahllisten des Hauptmenübereichs „Infrastrukturplanung“. Sie sollte daher möglichst kurz sein.</p>"
                     [editTemplate]="infrastructureEdit">
       <table *ngIf="selectedInfrastructure">
         <tr>
@@ -57,5 +62,5 @@
 </div>
 
 <ng-template #infrastructureEdit>
-  ToDo
+  Funktionalität für den Prototyp noch nicht hinterlegt.
 </ng-template>

@@ -1,9 +1,9 @@
 <mat-toolbar class="sub-nav">
-<!--  <div fxShow="true" fxHide.gt-sm="true">
-    <button mat-icon-button (click)="sidenav.toggle()">
-      <mat-icon>menu</mat-icon>
-    </button>
-  </div>-->
+  <!--  <div fxShow="true" fxHide.gt-sm="true">
+      <button mat-icon-button (click)="sidenav.toggle()">
+        <mat-icon>menu</mat-icon>
+      </button>
+    </div>-->
   <ng-template #apTip>
     <b>{{ activeProject?.name }}</b> <br>
     <i>{{ activeProject?.description }}</i>
@@ -43,7 +43,6 @@
     <app-map-controls></app-map-controls>
   </div>
 </div>
-<app-scenario-menu [ngClass]="{'expanded': showScenarioMenu}"></app-scenario-menu>
 <mat-sidenav #drawer class="context-bar"
              [opened]="(isSM$ | async) === false">
   <div id="process-select">
@@ -76,14 +75,14 @@
                       placement="right">
             {{ project.name }}
           </mat-option>
-<!--          <mat-option tooltip="Prozess hinzufügen"
-                      theme="light"
-                      [hideDelay]="0"
-                      placement="right">
-            <button mat-icon-button color="primary">
-              <mat-icon>add</mat-icon>
-            </button>
-          </mat-option>-->
+          <!--          <mat-option tooltip="Prozess hinzufügen"
+                                theme="light"
+                                [hideDelay]="0"
+                                placement="right">
+                      <button mat-icon-button color="primary">
+                        <mat-icon>add</mat-icon>
+                      </button>
+                    </mat-option>-->
         </mat-optgroup>
         <mat-optgroup *ngIf="sharedProjects" label="Geteilte Prozesse">
           <mat-option *ngFor="let project of sharedProjects"
@@ -112,16 +111,6 @@
       <mat-icon>add</mat-icon>
     </button>
   </div>
-  <mat-expansion-panel id="scenario-toggle" class="side-toggle">
-    <mat-expansion-panel-header (click)="toggleScenarioMenu()">
-      <mat-panel-title>
-        <div class="mini-fab-icon" [ngClass]="{'primary': showScenarioMenu}">
-          <div class="davicon icon-GGR-davicons-Font-Simple-2-Szenario"></div>
-        </div>
-        Szenario
-      </mat-panel-title>
-    </mat-expansion-panel-header>
-  </mat-expansion-panel>
   <router-outlet>
   </router-outlet>
 </mat-sidenav>
@@ -137,6 +126,7 @@
 
 <app-side-toggle id="legend"
                  icon="layers"
+                 name="Legenden- und Layersteuerung"
                  direction="left"
                  expanded>
   <app-legend target="planning-map"></app-legend>

@@ -1,6 +1,12 @@
-<app-header-card [title]="'Kapazitäten'"
+<app-header-card [title]="'Leistungen an Standorten'"
+                 cookieId="exp-capa-header"
                  width="1430px">
-  Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+  <p>In diesem Arbeitsschritt legen Sie fest, welche der Leistungen eines Infrastrukturbereichs an welchem der Standorte dieses Infrastrukturbereichs angeboten werden.</p>
+  <p>Wenn Sie bei Definition einer Leistung im vorstehenden Menüpunkt „Leistungen“ ausgewählt haben, dass bei dieser die Kapazitäten der Einrichtungen berücksichtigt werden sollen, definieren Sie im gleichen Arbeitsschritt auch, wie viele Plätze (oder sonstige von Ihnen für die Leistung definierte Kapazitätseinheiten) an dem betreffenden Standort zur Verfügung stehen.</p>
+  <p>Eine solche Festlegung mit Kapazitätsangabe kann z.B. so aussehen: „Der Standort ‚Kita Zwergenland’ hat 20 Krippenplätze und 40 Hortplätze.“. Bei Leistungen ohne Kapazitätsangabe wäre die Festlegung z.B. „Am Standort ‚Ärztehaus Innenstadt‘ gibt es wohl die Leistung ‚Hausarzt‘ wie auch die Leistung ‚Facharzt (Fachrichtung Gynäkologie)‘).</p>
+  <p>Um diese Festlegungen zu treffen, wählen Sie in der Box „Leistungen“ zunächst eine Leistung aus. Für diese können Sie dann in der Box „Standorte mit der ausgewählten Leistung“ eine Vorlagedatei herunterladen. Diese enthält alle Standorte des betreffenden Infrastrukturbereichs. Sie können darin für jeden Standort eintragen, ob die ausgewählte Leistung dort angeboten wird. Wenn dabei Kapazitäten betrachtet werden sollen, tragen Sie die Kapazität ein. Wenn nicht, markieren Sie nur die Standort mit der betreffenden Leistung durch eine „1“.</p>
+  <p>Laden Sie die ausgefüllte Vorlagedatei anschließend wieder hoch und kontrollieren Sie das Einleseergebnis in der Karte.</p>
+  <p>Wiederholen Sie dieses Vorgehen für alle Leistungen aller Infrastrukturbereiche.</p>
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
@@ -23,8 +29,9 @@
       </div>
     </app-input-card>-->
     <app-input-card [title]="'Leistungen'"
-                    [subtitle]="'Untertitel??'"
-                    infoText="Platzhalter: Leistungen bearbeiten in anderem Bereich">
+                    [subtitle]="'Leistung auswählen, um sie Standorten zuzuordnen'"
+                    infoText="<p>Wählen aus der Liste die Leistung aus, die Sie den Standorten zuordnen möchten.</p>
+                    <p>Laden Sie anschließend über die Schaltfläche „Template“ in der Box „Standorte mit der ausgewählten Leistung“ eine Vorlagedatei herunter und folgen Sie den Anweisungen des dortigen Hilfetextes.</p>">
       <mat-selection-list [multiple]="false"
                           class="categorized"
                           id="service-select">
@@ -41,12 +48,19 @@
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="1100px">
-    <app-input-card [title]="'Leistungsdaten'"
-                    infoText="Platzhalter: Als befüllte Vorlage hochladen und/oder über Karte editieren, Standort auf Karte auswählen">
+    <app-input-card [title]="'Standorte mit der ausgewählten Leistung'"
+                    [topRightHelp]="true"
+                    infoText="<p>Über die Schaltfläche „Template“ können Sie sich für die in der Box „Leistungen“ ausgewählte Leistung eine Vorlagedatei für die Standortzuordnung herunterladen.</p>
+                    <p>Diese Vorlagedatei enthält alle Standorte des betreffenden Infrastrukturbereichs und sie können darin für jeden Standort eintragen, ob die ausgewählte Leistung dort angeboten wird. Wenn dabei Kapazitäten betrachtet werden sollen, tragen Sie die Kapazität ein. Wenn nicht, markieren Sie nur die Standort mit der betreffenden Leistung durch eine „1“.</p>
+                    <p>Laden Sie die ausgefüllte Vorlagedatei anschließend wieder hoch und kontrollieren Sie das Einleseergebnis in der Karte. Sie können darin für jeden Standort eintragen, ob die ausgewählte Leistung dort angeboten wird.</p>
+                    <p>Wenn dabei Kapazitäten betrachtet werden sollen, tragen Sie die Kapazität als Zahlenwert ein. Wenn nicht, markieren Sie nur die Standort mit der betreffenden Leistung durch eine „1“.</p>
+                    <p>Tragen Sie bei allen Standorten, an denen die betreffende Leistung nicht angeboten wird eine 0 ein oder lassen Sie die betreffenden Felder leer.</p>
+                    <p>Laden Sie anschließend die ausgefüllte Datei mit Hilfe der Schaltfläche „Daten hochladen“ wieder hoch. Die eingelesenen Standortzuordnungen (und ggf. Kapazitäten) werden Ihnen in der Karte angezeigt.</p>
+                    <p>Wiederholen Sie dieses Vorgehen für alle Leistungen aller Infrastrukturbereiche.</p>">
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
           <span class="subtitle1 sub">
-            {{selectedService.name}}
+            Leistung "{{selectedService.name}}"
           </span>
           <div style="display: flex; margin-top: 15px;">
             <table>
@@ -86,6 +100,7 @@
           </button>
         </div>
         <div id="log-window" style="width: 50%">
+          <span class="subtitle1">Daten-Historie</span>
           <app-log></app-log>
         </div>
       </div>
@@ -93,6 +108,7 @@
         <app-map-controls></app-map-controls>
         <app-side-toggle id="legend"
                          icon="layers"
+                         name="Legenden- und Layersteuerung"
                          direction="left">
           <app-legend target="base-capacities-map"></app-legend>
         </app-side-toggle>

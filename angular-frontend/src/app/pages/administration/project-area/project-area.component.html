@@ -1,11 +1,15 @@
 <app-header-card [title]="'Projektgebiet'"
+                 cookieId="exp-project-header"
                  width="780px">
-  Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+  Für Ihre kommunale oder regionale Anwendung von daviplan müssen sie ein Projektgebiet festgelegt. Das Projektgebiet muss alle Gebietskörperschaften umfassen,
+  für die Sie Infrastrukturen erfassen, Einwohnerentwicklungen betrachten, Nachfrage abschätzen, Szenarien der Infrastrukturentwicklung durchspielen und
+  Versorgungsquoten ermitteln wollen. Auswertungen für Teilbereiche (z.B. einzelne Gemeinden oder Ortsteile) innerhalb dieses Projektgebiets sind möglich.
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="800px">
     <app-input-card subtitle="Manuelle Auswahl des Projektgebiets"
-                    infoText="Platzhalter Erklärung: Projektgebiet manuell aus Karte auswählen"
+                    [topRightHelp]="true"
+                    infoText="Um Ihr Projektgebiet festzulegen oder zu verändern, klicken Sie bitte auf „Editieren“. Sie gelangen dann zu einer Kartendarstellung, in der Sie Ihr Projektgebiet aus einzelnen Gemeinden, Verwaltungsgemeinschaften und Landkreisen zusammensetzen können."
                     [editTemplate]="projectEdit">
       <div id="project-area-map" class="map-container">
         <app-map-controls></app-map-controls>
@@ -15,5 +19,5 @@
 </div>
 
 <ng-template #projectEdit>
-  ToDo
+  Funktionalität für den Prototyp noch nicht hinterlegt.
 </ng-template>

@@ -1,4 +1,5 @@
 <app-header-card [title]="'Indikatoren'"
+                 cookieId="exp-indicators-header"
                  width="1430px">
   Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
 </app-header-card>
@@ -8,13 +9,20 @@
                     [subtitle]="'Untertitel??'"
                     infoText="Platzhalter: hinzu, entfernen">
       <mat-selection-list [multiple]="false"
+                          class="categorized"
                           id="indicator-select">
-        <mat-list-option *ngFor="let indicator of indicators"
-                         (click)="selectedIndicator = indicator"
-                         [selected]="(indicator === selectedIndicator)"
-                         [title]="indicator.name">
-          <div class="option-text">{{indicator.name}}</div>
-        </mat-list-option>
+        <ng-container *ngFor="let infrastructure of infrastructures; let first = first;">
+          <div mat-subheader>{{infrastructure.name}}</div>
+          <ng-container *ngFor="let indicator of indicators">
+            <mat-list-option *ngIf="indicator.infrastructure === infrastructure.id"
+                             (click)="selectedIndicator = indicator"
+                             [selected]="(indicator === selectedIndicator)"
+                             [title]="indicator.name">
+              <div class="option-text">{{indicator.name}}</div>
+            </mat-list-option>
+          </ng-container>
+          <mat-divider></mat-divider>
+        </ng-container>
       </mat-selection-list>
       <div>
         <button mat-button color="primary"
@@ -75,22 +83,13 @@
       <div after>
         <div id="base-indicators-map" class="map-container">
           <app-map-controls></app-map-controls>
-          <app-side-toggle id="areas-overlay" icon="flip_to_front">
-            <div style="padding: 5px;">
+          <app-side-toggle id="areas-overlay" icon="flip_to_front" [fullHeightIndicator]="true">
+            <div style="padding: 10px;">
               <mat-form-field appearance="outline" class="small">
                 <mat-label>Gebietseinheit</mat-label>
-                <mat-select disableOptionCentering value="Gemeinden">
-                  <mat-option value="Bundesländer">
-                    Bundesländer
-                  </mat-option>
-                  <mat-option value="Kreise">
-                    Kreise
-                  </mat-option>
-                  <mat-option value="Verwaltungsgemeinschaften">
-                    Verwaltungsgemeinschaften
-                  </mat-option>
-                  <mat-option value="Gemeinden">
-                    Gemeinden
+                <mat-select disableOptionCentering [value]="areaLevels[0]">
+                  <mat-option [value]="areaLevel" *ngFor="let areaLevel of areaLevels">
+                    {{areaLevel.name}}
                   </mat-option>
                 </mat-select>
               </mat-form-field>
@@ -98,6 +97,7 @@
           </app-side-toggle>
           <app-side-toggle id="legend"
                            icon="layers"
+                           name="Legenden- und Layersteuerung"
                            direction="left">
             <app-legend target="base-indicators-map"></app-legend>
           </app-side-toggle>
@@ -108,5 +108,5 @@
 </div>
 
 <ng-template #indicatorEdit>
-  ToDo
+  Funktionalität für den Prototyp noch nicht hinterlegt.
 </ng-template>

@@ -7,11 +7,11 @@ $app-accent: mat.define-palette($golden-palette, 500);
 
 $app-typography: mat.define-typography-config(
   $font-family: 'Calibri',
-  //$headline: mat.define-typography-level(54px, 54px, 400),
-  //$title: mat.define-typography-level(28px, 28px, 500),
-  //$subheading-2: mat.define-typography-level(26px, 26px, 400),
-  //$subheading-1: mat.define-typography-level(24px, 24px, 400),
-  // Todo: menu letter spacing 0.14px
+    //$headline: mat.define-typography-level(54px, 54px, 400),
+    //$title: mat.define-typography-level(28px, 28px, 500),
+    //$subheading-2: mat.define-typography-level(26px, 26px, 400),
+    //$subheading-1: mat.define-typography-level(24px, 24px, 400),
+    // Todo: menu letter spacing 0.14px
   $body-1: mat.define-typography-level(16px, 24px, 400, $letter-spacing: 0.14px),
   $body-2: mat.define-typography-level(16px, 20px, 400, $letter-spacing: 0.2px),
   $button: mat.define-typography-level(16px, 16px, 500, $letter-spacing: 1.42px),
@@ -72,7 +72,7 @@ h6 {
 
 .subtitle1 {
   font-size: 14px;
-  line-height: 24px;
+  line-height: 18px;
   letter-spacing: 1.25px;
   text-transform: uppercase;
   font-weight: bold;
@@ -97,6 +97,25 @@ h6 {
   line-height: 16px;
   letter-spacing: 0.4px;
   color: $light-black;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $accent-light;
+  border-radius: 8px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: $accent;
 }
 
 html, body { height: 100%; }
@@ -467,6 +486,11 @@ button.mat-icon-button {
   background-color: $primary;
 }
 
+.mat-icon-button.inverted {
+  background-color: $primary;
+  color: white;
+}
+
 .mat-icon-button .davicon {
   font-size: 34px;
 }
@@ -543,9 +567,9 @@ mat-option.selected {
 
 .cdk-overlay-pane.warning {
 
-   mat-dialog-container {
-     border-bottom: 5px solid $warning;
-   }
+  mat-dialog-container {
+    border-bottom: 5px solid $warning;
+  }
 }
 
 mat-form-field.warning  .mat-form-field-flex {
@@ -553,7 +577,7 @@ mat-form-field.warning  .mat-form-field-flex {
   border-left: 3px solid $warning;
   border-radius: 0 4px 4px 0;
   background-image: repeating-linear-gradient(
-   -45deg, $warning-light, $warning-light 4px, whitesmoke 4px, whitesmoke 10px) !important;
+      -45deg, $warning-light, $warning-light 4px, whitesmoke 4px, whitesmoke 10px) !important;
   input {
     color: black !important;
   }
@@ -578,19 +602,19 @@ mat-icon.warning {
   }
 
   mat-expansion-panel-header, mat-expansion-panel.mat-expanded mat-expansion-panel-header {
-    height: 68px!important;
-    padding: 0px 18px !important;
+    height: 68px;
+    padding: 0px 18px;
   }
 
   mat-panel-title {
-    height: 60px!important;
+    height: 60px;
   }
 
   .sub-select-box {
     margin-top: 18px;
     padding-top: 18px;
     border-top: 1px solid lightgrey;
-    label {
+    label:not(.mat-checkbox-layout) {
       text-transform: uppercase;
       color: $darkgrey;
       font-size: 14px;
@@ -605,9 +629,17 @@ mat-icon.warning {
     padding: 15px 5px 15px 54px;
     border-bottom: 1px solid $primary-light;
   }
+  .text-panel {
+    margin-top: 10px;
+    //margin-left: -28px;
+    margin-left: -18px;
+    .mat-expansion-panel-body {
+      padding-right: 25px !important;
+    }
+  }
 }
 
-confirm-dialog, .context-bar {
+confirm-dialog, .context-bar, .border-box {
   .mat-radio-checked, .mat-checkbox-checked, mat-slide-toggle.mat-checked {
     color: $primary;
   }
@@ -622,10 +654,11 @@ confirm-dialog, .context-bar {
 }
 
 app-legend, .context-bar, .tree-select {
-  mat-expansion-panel.mat-expanded {
-    mat-expansion-panel-header {
-      background-color: $primary-light !important;
+  mat-expansion-panel.mat-expanded, mat-expansion-panel.mat-expanded {
+    mat-expansion-panel-header, mat-expansion-panel-header:focus {
+      background-color: $primary-light;
     }
+
     mat-panel-title {
       color: black;
     }
@@ -648,32 +681,30 @@ mat-sidenav, .context-bar, app-legend, .tree-select {
   }
 }
 
-mat-sidenav, .context-bar, app-legend, .info-text, .tree-select {
-  mat-expansion-panel {
-    box-shadow: none !important;
-    padding: 0 !important;
-    /*    .mat-content {
-        border-top: 1px solid $primary;
-        border-bottom: 1px solid $primary;
-        transition: 0.4s ease-in border-bottom-color;
-      }*/
-    .mat-expansion-panel-header-title {
-      padding: 5px 0;
-      color: grey;
-      align-items: center;
-    }
-    .mat-expansion-indicator:after {
-      color: $primary;
-    }
+mat-expansion-panel {
+  box-shadow: none !important;
+  padding: 0 !important;
+  /*    .mat-content {
+      border-top: 1px solid $primary;
+      border-bottom: 1px solid $primary;
+      transition: 0.4s ease-in border-bottom-color;
+    }*/
+  .mat-expansion-panel-header-title {
+    padding: 5px 0;
+    color: grey;
+    align-items: center;
   }
+  .mat-expansion-indicator:after {
+    color: $primary;
+  }
+}
 
-  mat-expansion-panel.side-toggle {
-    .mat-expansion-indicator:after {
-      transform: rotate(135deg);
-    }
-    .mat-expansion-panel-content {
-      display: none;
-    }
+mat-expansion-panel.side-toggle {
+  .mat-expansion-indicator:after {
+    transform: rotate(135deg);
+  }
+  .mat-expansion-panel-content {
+    display: none;
   }
 }
 
@@ -689,13 +720,17 @@ app-legend, .info-text, .tree-select {
   }
 }
 
-.info-text {
+.mat-expansion-panel.text-panel {
   mat-expansion-panel-header {
     padding: 0;
     display: inline-flex;
+    align-items: center;
+    .subtitle1 {
+      line-height: 24px;
+    }
   }
-  .mat-expansion-panel-header:hover {
-    background-color: white !important;
+  mat-expansion-panel-header, mat-expansion-panel-header:hover {
+    background-color: transparent !important;
   }
   mat-expansion-panel-header, mat-expansion-panel.mat-expanded mat-expansion-panel-header {
     height: 24px!important;
@@ -705,12 +740,13 @@ app-legend, .info-text, .tree-select {
   }
 }
 
-.info-text, .info-text .mat-expansion-panel-body {
+.info-text, .mat-expansion-panel.text-panel .mat-expansion-panel-body {
   padding: 0;
   font-size: 16px;
   line-height: 20px;
   letter-spacing: .29px;
   color: #0009;
+  border-bottom: none;
 }
 
 mat-sidenav {
@@ -942,9 +978,9 @@ mat-selection-list.categorized {
   mat-checkbox {
     width: 100%;
   }
-/*  mat-divider {
-    margin: 10px 0;
-  }*/
+  /*  mat-divider {
+      margin: 10px 0;
+    }*/
 }
 
 mat-checkbox.reverse {

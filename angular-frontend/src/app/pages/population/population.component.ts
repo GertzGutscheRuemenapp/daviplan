@@ -21,13 +21,8 @@ export class PopulationComponent implements AfterViewInit {
   @ViewChild('timeSlider') timeSlider?: TimeSliderComponent;
   mapControl?: MapControl;
   faArrows = faArrowsAlt;
-  isHandset$: Observable<boolean> = this.breakpointObserver.observe('min-width: 39.9375em')
-    .pipe(
-      map(result => result.matches),
-      shareReplay()
-    );
 
-  constructor(private breakpointObserver: BreakpointObserver, private mapService: MapService, private popService: PopService) { }
+  constructor(private mapService: MapService, private popService: PopService) { }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');

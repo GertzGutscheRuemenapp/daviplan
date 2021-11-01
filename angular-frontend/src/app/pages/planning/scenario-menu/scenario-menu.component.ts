@@ -1,4 +1,8 @@
-import { Component, OnInit, ViewChildren, QueryList, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChildren, QueryList, ElementRef, ViewChild, TemplateRef, Input } from '@angular/core';
+import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
+import { MatDialog } from "@angular/material/dialog";
+import { mockQuotas } from "../../basedata/demand-quotas/demand-quotas.component";
+import { mockPrognoses } from "../../basedata/prognosis-data/prognosis-data.component";
 
 @Component({
   selector: 'app-scenario-menu',
@@ -6,19 +10,28 @@ import { Component, OnInit, ViewChildren, QueryList, ElementRef } from '@angular
   styleUrls: ['./scenario-menu.component.scss']
 })
 export class ScenarioMenuComponent implements OnInit {
+  @Input() domain: string = '';
   @ViewChildren('scenario') scenarioCards?: QueryList<ElementRef>;
   scenarios: string[] = ['Szenario 1', 'Szenario 2']
   activeScenario: string = 'Status Quo';
+  @ViewChild('removeScenario') removeScenarioTemplate?: TemplateRef<any>;
+  @ViewChild('editScenario') editScenarioTemplate?: TemplateRef<any>;
+  @ViewChild('createScenario') createScenarioTemplate?: TemplateRef<any>;
+  @ViewChild('supplyScenarioTable') supplyScenarioTableTemplate?: TemplateRef<any>;
+  @ViewChild('demandPlaceholderTable') demandPlaceholderTemplate?: TemplateRef<any>;
+  quotas = mockQuotas;
+  prognoses = mockPrognoses;
 
-  constructor() { }
+  constructor(private dialog: MatDialog) { }
 
   ngOnInit(): void {
   }
 
-  toggleScenario(event: Event) {
-    if (event.target !== event.currentTarget) return;
-    let a = (event.target as Element).attributes;
-    this.activeScenario = ((event.target as Element).attributes as any)['data-value'].value;
+  toggleScenario(scenario: string) {
+    // if (event.target !== event.currentTarget) return;
+    // let a = (event.target as Element).attributes;
+    // this.activeScenario = ((event.target as Element).attributes as any)['data-value'].value;
+    this.activeScenario = scenario;
     this.scenarioCards?.forEach((card: ElementRef) => {
       let el = card.nativeElement;
       if (el.attributes['data-value'].nodeValue === this.activeScenario)
@@ -28,4 +41,74 @@ export class ScenarioMenuComponent implements OnInit {
     });
   }
 
+  onDeleteScenario() {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: $localize`Das Szenario wirklich entfernen?`,
+        confirmButtonText: $localize`Szenario entfernen`,
+        template: this.removeScenarioTemplate,
+        closeOnConfirm: true
+      },
+      panelClass: 'warning'
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+    });
+  }
+
+  onCreateScenario() {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: $localize`Szenario erstellen`,
+        // confirmButtonText: $localize`erstellen`,
+        template: this.createScenarioTemplate,
+        closeOnConfirm: true
+      }
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+    });
+  }
+
+  onEditScenario() {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: $localize`Szenario umbenennen`,
+        // confirmButtonText: $localize`umbenennen`,
+        template: this.editScenarioTemplate,
+        closeOnConfirm: true
+      }
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+    });
+  }
+
+  onShowSupplyTable() {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: $localize`Übersicht der Änderungen`,
+        // confirmButtonText: $localize`umbenennen`,
+        template: this.supplyScenarioTableTemplate,
+        closeOnConfirm: true
+      }
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+    });
+  }
+
+  onShowDemandPlaceholder() {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        // title: $localize``,
+        // confirmButtonText: $localize`umbenennen`,
+        template: this.demandPlaceholderTemplate,
+        closeOnConfirm: true
+      }
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+    });
+  }
 }

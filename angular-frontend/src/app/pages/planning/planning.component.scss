@@ -30,12 +30,12 @@
 }
 
 #process-select {
-  width: calc(#{$context-bar-width} - 18px);
+  width: calc(#{$context-bar-width} - 12px);
   padding-left: 18px;
   height: 70px;
   margin-top: -10px;
   mat-form-field {
-    width: 200px;
+    width: 210px;
   }
   .process-button {
     float: right;
@@ -102,30 +102,30 @@ mat-toolbar mat-form-field {
   }
 }
 
-app-scenario-menu {
-  position: absolute;
-  top: 90px;
-  //left: calc(#{$context-bar-width} - 100% - 100px);
-  left: calc(#{$context-bar-width} - 700px);
-  transition: 0.4s ease-out left;
-  z-index: 2;
-}
-
-app-scenario-menu.expanded {
-  left: $context-bar-width;
-}
-
 ::ng-deep app-planning {
+
+  app-scenario-menu {
+    position: fixed;
+    top: 155px;
+    //left: calc(#{$context-bar-width} - 100% - 100px);
+    left: calc(#{$context-bar-width} - 700px);
+    transition: 0.4s ease-out left;
+    z-index: -1;
+  }
+
+  app-scenario-menu.expanded {
+    left: $context-bar-width;
+  }
   #process-select .mat-form-field-appearance-standard.mat-form-field-has-label .mat-select:not(.mat-select-empty) .mat-select-arrow-wrapper {
     transform: none;
   }
-  .sub-select-wrapper {
+/*  .sub-select-wrapper {
     mat-radio-button  {
       text-transform: uppercase;
       font-size: 14px;
       font-weight: bold;
     }
-  }
+  }*/
   .compare-radio-list {
     margin-top: 5px;
     mat-form-field {

@@ -33,6 +33,7 @@ export class InputCardComponent implements AfterViewInit {
   @Input() previewTemplate!: TemplateRef<any>;
   @Input() editTemplate!: TemplateRef<any>;
   @Input() borderless: boolean = false;
+  @Input() topRightHelp: boolean = false;
   @Input() infoExpanded: boolean = false;
   @Output() dialogClosed = new EventEmitter<boolean>();
   @Output() dialogConfirmed = new EventEmitter<boolean>();
