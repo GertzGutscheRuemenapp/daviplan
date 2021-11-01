@@ -3,7 +3,7 @@ from rest_framework import serializers
 from .models import SymbolForm, MapSymbol
 
 
-class SymbolFormSerializer(serializers.HyperlinkedModelSerializer):
+class SymbolFormSerializer(serializers.ModelSerializer):
     class Meta:
         model = SymbolForm
         fields =  ('id', 'name', )
