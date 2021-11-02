@@ -59,6 +59,18 @@
         </table>
       </app-input-card>
     </ng-container>
+    <ng-container *ngIf="selectedGroup">
+      <app-input-card [title]="'Eigenschaften der ausgewählten Layergruppe'"
+                      [editTemplate]="editLayerGroup"
+                      infoText="<p>Klicken Sie auf „Editieren“, um den in den daviplan-Karten angezeigten Namen der ausgewählten Layergruppe zu verändern.</p>">
+        <table>
+          <tr>
+            <td>Name</td>
+            <td>{{selectedGroup?.name}}</td>
+          </tr>
+        </table>
+      </app-input-card>
+    </ng-container>
   </div>
   <div fxLayout="column" fxFlex="800px">
     <app-input-card [title]="'Kartenansicht'"
@@ -81,5 +93,9 @@
 </div>
 
 <ng-template #editLayer>
+  Funktionalität für den Prototyp noch nicht hinterlegt.
+</ng-template>
+
+<ng-template #editLayerGroup>
   Funktionalität für den Prototyp noch nicht hinterlegt.
 </ng-template>
