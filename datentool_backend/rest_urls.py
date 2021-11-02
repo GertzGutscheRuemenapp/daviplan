@@ -6,6 +6,8 @@ from .area.views import (SymbolFormViewSet, MapSymbolsViewSet, LayerGroupViewSet
                          WMSLayerViewSet, InternalWFSLayerViewSet, SourceViewSet,
                          AreaLevelViewSet, AreaViewSet)
 
+from .demand.views import (DemandRateSetViewSet, DemandRateViewSet)
+
 from .infrastructure.views import InfrastructureViewSet
 
 router = routers.SimpleRouter()
@@ -22,7 +24,13 @@ router.register(r'source', SourceViewSet, basename='source')
 router.register(r'arealevel', AreaLevelViewSet, basename='arealevel')
 router.register(r'area', AreaViewSet, basename='area')
 
+# demand
+router.register(r'demandrateset', DemandRateSetViewSet, basename='demandrateset')
+router.register(r'demandrate', DemandRateViewSet, basename='demandrate')
+
 # infrastructure
 router.register(r'infrastructure', InfrastructureViewSet, basename='infrastructure')
+
+
 
 urlpatterns = router.urls
