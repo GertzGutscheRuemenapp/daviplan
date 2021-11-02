@@ -2,7 +2,9 @@ from rest_framework import routers
 from datentool_backend.user.views import UserViewSet
 from datentool_backend.site.views import SiteSettingsViewSet
 
-from .area.views import SymbolFormViewSet, MapSymbolsViewSet
+from .area.views import (SymbolFormViewSet, MapSymbolsViewSet, LayerGroupViewSet,
+                         WMSLayerViewSet, InternalWFSLayerViewSet, SourceViewSet,
+                         AreaLevelViewSet, AreaViewSet)
 
 from .infrastructure.views import InfrastructureViewSet
 
@@ -13,7 +15,12 @@ router.register(r'settings', SiteSettingsViewSet, basename='settings')
 # areas
 router.register(r'symbolform', SymbolFormViewSet, basename='symbolform')
 router.register(r'mapsymbols', MapSymbolsViewSet, basename='mapsymbols')
-
+router.register(r'layergroup', LayerGroupViewSet, basename='layergroup')
+router.register(r'wmslayer', WMSLayerViewSet, basename='wmslayer')
+router.register(r'internalwfslayer', InternalWFSLayerViewSet, basename='internalwfslayer')
+router.register(r'source', SourceViewSet, basename='source')
+router.register(r'arealevel', AreaLevelViewSet, basename='arealevel')
+router.register(r'area', AreaViewSet, basename='area')
 
 # infrastructure
 router.register(r'infrastructure', InfrastructureViewSet, basename='infrastructure')

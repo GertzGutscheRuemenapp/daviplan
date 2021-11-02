@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from .models import SymbolForm, MapSymbol
+from .models import (SymbolForm, MapSymbol, LayerGroup, WMSLayer,
+                     InternalWFSLayer, Source, AreaLevel, Area)
 
 
 class SymbolFormSerializer(serializers.ModelSerializer):
@@ -14,3 +15,38 @@ class MapSymbolsSerializer(serializers.ModelSerializer):
         model = MapSymbol
         fields =  ('id', 'symbol', 'fill_color', 'stroke_color')
 
+
+class LayerGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LayerGroup
+        fields = ('id', 'name', 'order')
+
+
+class WMSLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WMSLayer
+        fields = ('id', 'url')
+
+
+class InternalWFSLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InternalWFSLayer
+        fields = ('id', 'symbol')
+
+
+class SourceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Source
+        fields = ('source_type', 'date', 'id_field', 'url', 'layer')
+
+
+class AreaLevelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AreaLevel
+        fields = ('id', 'name', 'order', 'source', 'layer')
+
+
+class AreaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Area
+        fields = ('id', 'area_level', 'geom', 'attributes')
