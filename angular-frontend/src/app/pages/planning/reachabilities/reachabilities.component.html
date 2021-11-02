@@ -1,6 +1,6 @@
-<app-scenario-menu domain="reachabilities" [ngClass]="{'expanded': showScenarioMenu}"></app-scenario-menu>
-<mat-expansion-panel class="side-toggle" id="scenario-toggle">
-  <mat-expansion-panel-header (click)="showScenarioMenu=!showScenarioMenu">
+<app-scenario-menu domain="supply" [ngClass]="{'expanded': showScenarioMenu}"></app-scenario-menu>
+<mat-expansion-panel class="side-toggle" id="scenario-toggle" cookieExpansion="exp-planning-scenario">
+  <mat-expansion-panel-header (click)="showScenarioMenu=!showScenarioMenu;">
     <mat-panel-title>
       <div class="mini-fab-icon" [ngClass]="{'primary': showScenarioMenu}">
         <div class="davicon icon-GGR-davicons-Font-Simple-2-Szenario"></div>

@@ -2,6 +2,7 @@ import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { mockInfrastructures } from "../../administration/infrastructure/infrastructure.component";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
+import { CookieService } from "../../../helpers/cookies.service";
 
 @Component({
   selector: 'app-reachabilities',
@@ -16,12 +17,13 @@ export class ReachabilitiesComponent implements OnInit {
   selectLivMode = false;
   infrastructures = mockInfrastructures;
   selectedInfrastructure = this.infrastructures[0];
-  showScenarioMenu = false;
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
+  showScenarioMenu: any = false;
 
-  constructor(private dialog: MatDialog) {}
+  constructor(private dialog: MatDialog, public cookies: CookieService) {}
 
   ngOnInit(): void {
+    this.showScenarioMenu = this.cookies.get('exp-planning-scenario');
   }
 
   toggleIndicator(): void {

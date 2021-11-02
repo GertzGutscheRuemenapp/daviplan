@@ -1,4 +1,15 @@
-import { Component, Input, OnInit, TemplateRef } from '@angular/core';
+import {
+  AfterContentInit,
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  TemplateRef
+} from '@angular/core';
+import { CdkAccordionItem } from "@angular/cdk/accordion/accordion-item";
+import { MatExpansionPanel } from "@angular/material/expansion";
 
 @Component({
   selector: 'app-side-toggle',
@@ -9,17 +20,44 @@ export class SideToggleComponent implements OnInit {
 
   @Input() icon?: string;
   @Input() content!: TemplateRef<any>;
-  @Input('expanded') _expanded?: string;
+  @Input('expanded') _str_expanded?: string;
   @Input() direction: string = 'right';
   @Input() name: string = 'Seitenmenü';
   // does the indicator div go the full height of the content or fixed width (if false)
   @Input() fullHeightIndicator: boolean = false;
-  expanded = false;
+  _expanded = false;
+  closed: EventEmitter<void>;
+  /** Event emitted every time the AccordionItem is opened. */
+  opened: EventEmitter<void>;
 
-  constructor() { }
+  constructor() {
+    this.closed = new EventEmitter();
+    this.opened = new EventEmitter();
+  }
 
   ngOnInit(): void {
-    this.expanded = this._expanded === '' || this._expanded === 'true';
+    this._expanded = this._str_expanded === '' || this._str_expanded === 'true';
+  }
+
+  toggle(): void {
+    this.expanded = !this.expanded;
+  }
+
+  get expanded(): boolean{
+    return this._expanded;
+  };
+  set expanded(expanded: boolean){
+    if (expanded) this.open();
+    else this.close();
+  };
+
+  open(): void {
+    this._expanded = true;
+    this.opened.emit();
+  }
+  close(): void {
+    this._expanded = false;
+    this.closed.emit();
   }
 
 }
