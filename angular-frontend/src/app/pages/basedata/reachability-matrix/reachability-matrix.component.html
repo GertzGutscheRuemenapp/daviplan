@@ -1,13 +1,20 @@
 <app-header-card [title]="'Erreichbarkeiten'"
                  cookieId="exp-reach-header"
                  width="1430px">
-  Platzhalter: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+  <p>Wie schon im vorigen Menüpunkt beschrieben werden die Erreichbarkeitsverhältnisse in Ihrem Projektgebiet anhand von Erreichbarkeitsmatrizen abgebildet.</p>
+  <p>Erreichbarkeitsmatrizen sind (große) Tabellen, in denen für ein bestimmtes Verkehrsmittel verzeichnet ist, wie lange man mit diesem von Teilfläche A zu Teilfläche B braucht. Die Teilflächen entsprechend dabei dem europaweit standardisierten 100x100-Meter-LAEA-Raster, auf das bereits im Menüpunkt „Einwohnerraster“ Bezug genommen wurde.</p>
+  <p>Diese Erreichbarkeitsmatrizen können Sie auf dieser Seite für die vier Verkehrsmittel „zu Fuß“, „Fahrrad“, „Auto“ und „ÖPNV“ zusammentragen. Dabei können Sie entweder extern vorberechnete Erreichbarkeitsmatrizen hochladen. Alternativ können Sie alle oder einzelne Erreichbarkeitsmatrizen mit einem oder mehreren im vorigen Menüpunkt „Verkehrsnetz“ erzeugten Verkehrsnetzen und deren Routensuchern berechnen.</p>
+  <p>Erzeugen Sie nach Möglichkeit für jedes Verkehrsmittel eine Erreichbarkeitsmatrix. Wenn Sie für ein Verkehrsmittel unterschiedliche Entwicklungszustände (z.B. „aktueller Fahrplan“, „geplanter Fahrplan“ oder „mit/ohne neue Ortsumgehung“) abbilden möchten, können Sie für einzelne Verkehrsmittel auch mehrere Erreichbarkeitsmatrizen für die Nutzer*innen des Hauptmenübereichs „Infrastrukturplanung“ bereitstellen. Diese unterschiedlichen Versionen der regionalen Erreichbarkeit können von den Nutzer*innen dann alternativ in ihre Szenarienbetrachtungen integriert werden.</p>
+  <p>Um eine Erreichbarkeitsmatrix zu erzeugen, wählen Sie in der Box „Verkehrsmittel“ zunächst das Verkehrsmittel aus, für das sie eine Erreichbarkeitsmatrix hinzufügen oder erzeugen wollen. Klicken Sie dann auf „Hinzufügen“.</p>
+  <p>Gehen Sie anschließend zur Box „Ausgewählte Erreichbarkeitsmatrix“. Hier können Sie die Daten dieser Matrix (aus einer externen Vorberechnung) hochladen oder mit Hilfe eines im Menüpunkt „Verkehrsnetz“ erzeugten Routensuchers berechnen. Detail hierzu finden Sie im Hilfetext der Box.</p>
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
-    <app-input-card [title]="'Verkehrsmittel'"
-                    infoText="Platzhalter Erklärung: hinzufügen, entfernen, als status quo festlegen (einer je Modus)"
-                    subtitle="Erreichbarkeitsvarianten">
+    <app-input-card [title]="'Erreichbarkeitsmatrizen'"
+                    subtitle="Erreichbarkeitsmatrix hinzufügen oder auswählen"
+                    infoText="<p>Um eine neue Erreichbarkeitsmatrix hinzuzufügen, wählen Sie in der Liste das passende Verkehrsmittel aus und klicken Sie auf „Hinzufügen“. Gehen Sie anschließend zur Box „Ausgewählte Erreichbarkeitsmatrix“. Hier können Sie die Daten dieser Matrix (aus einer externen Vorberechnung) hochladen oder mit Hilfe eines im Menüpunkt „Verkehrsnetz“ erzeugten Routensuchers berechnen. Detail hierzu finden Sie im Hilfetext der Box.</p>
+                    <p>Um eine Erreichbarkeitsmatrix wieder zu löschen, wählen Sie diese in der Liste aus und klicken auf „Entfernen“.</p>
+                    <p>Wenn Sie für ein Verkehrsmittel mehr als eine Erreichbarkeitsmatrix definiert haben, müssen Sie festlegen, welche davon für das im Hauptmenüabschnitt „Infrastrukturplanung“ immer automatisch erzeugte Planungsszenario „Trendfortschreibung“ verwendet werden soll. Wählen Sie hierzu die betreffende Erreichbarkeitsmatrix in der Liste aus und klicken Sie auf „Als Annahme für Trendfortschreibung festlegen“.</p>">
       <mat-selection-list [multiple]="false"
                           class="categorized"
                           id="mode-select">
@@ -27,9 +34,15 @@
         </ng-container>
       </mat-selection-list>
       <button mat-button color="primary"
-              (click)="statusQuoRouters[selectedRouter.mode] = (statusQuoRouters[selectedRouter.mode]===selectedRouter.id)? undefined : selectedRouter.id">
-        <mat-icon class="material-icons-outlined">verified</mat-icon>
-        Als Status Quo festlegen
+              style="margin: 10px 0;"
+              (click)="statusQuoRouters[selectedRouter.mode] = selectedRouter.id">
+<!--              (click)="statusQuoRouters[selectedRouter.mode] = (statusQuoRouters[selectedRouter.mode]===selectedRouter.id)? undefined : selectedRouter.id">-->
+        <div style="display: flex">
+          <mat-icon style="margin-right: 5px; align-self: center;" class="material-icons-outlined">verified</mat-icon>
+          <div style="white-space: normal; text-align: left; line-height: 18px;">
+            Als Annahme für Trendfortschreibung festlegen
+          </div>
+        </div>
       </button>
       <div>
         <button mat-button color="primary"
@@ -47,11 +60,13 @@
   </div>
   <div fxLayout="column" fxFlex="1100px">
     <app-input-card [title]="'Erreichbarkeitsmatrix'"
-                    infoText="Platzhalter: entweder hochladen oder berechnen">
+                    [topRightHelp]="true"
+                    infoText="<p>Wenn Sie für diese Erreichbarkeitsmatrix Daten aus einer externen Vorberechnung nutzen möchten, können Sie sich mit der Schaltfläche „Template“ eine Vorlagedatei herunterladen. Befüllen Sie diese mit Ihren Matrixdaten und laden Sie sie anschließend mit der Schaltfläche „Daten hochladen“ wieder hoch.</p>
+                    <p>Alternativ können Sie die Erreichbarkeitsmatrix auch über die Schaltfläche „Berechnen“ berechnen lassen. Voraussetzung ist, dass Sie im vorigen Menüpunkt „Verkehrsnetz“ ein passendes Verkehrsnetz mit Routensucher erzeugt haben. Dieses können Sie in dem Dialog auswählen, der sich nach dem Anklicken der Schaltfläche „Berechnen“ öffnet.</p>">
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
           <span class="subtitle1 sub">
-            {{selectedRouter.mode + ' / ' + selectedRouter.name + ((selectedRouter.id === statusQuoRouters[selectedRouter.mode])? ' (Status Quo)': '')}}
+            Verkehrsmittel {{selectedRouter.mode}} / Erreichbarkeitsmatrix „{{selectedRouter.name}}“
           </span>
           <div style="display: flex; margin-top: 15px;">
             <table>
@@ -91,19 +106,18 @@
           </div>
         </div>
         <div id="log-window" style="width: 50%">
+          <span class="subtitle1">Daten-Historie</span>
           <app-log></app-log>
         </div>
       </div>
-      <div after>
-        <div id="base-reachabilities-map" class="map-container">
-          <app-map-controls></app-map-controls>
-          <app-side-toggle id="legend"
-                           icon="layers"
-                           name="Legenden- und Layersteuerung"
-                           direction="left">
-            <app-legend target="base-reachabilities-map"></app-legend>
-          </app-side-toggle>
-        </div>
+      <div id="base-reachabilities-map" style="margin-top: 15px;" class="map-container">
+        <app-map-controls></app-map-controls>
+        <app-side-toggle id="legend"
+                         icon="layers"
+                         name="Legenden- und Layersteuerung"
+                         direction="left">
+          <app-legend target="base-reachabilities-map"></app-legend>
+        </app-side-toggle>
       </div>
     </app-input-card>
   </div>

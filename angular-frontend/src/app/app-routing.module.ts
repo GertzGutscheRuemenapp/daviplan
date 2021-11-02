@@ -151,7 +151,7 @@ const routes: Routes = [
         component: IndicatorsComponent
       },
       {
-        path: 'wegenetz',
+        path: 'verkehrsnetz',
         component: RouterSettingsComponent
       },
       {
