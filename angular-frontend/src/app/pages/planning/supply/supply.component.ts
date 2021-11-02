@@ -2,6 +2,7 @@ import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { mockInfrastructures } from "../../administration/infrastructure/infrastructure.component";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
+import { SideToggleComponent } from "../../../elements/side-toggle/side-toggle.component";
 
 @Component({
   selector: 'app-supply',

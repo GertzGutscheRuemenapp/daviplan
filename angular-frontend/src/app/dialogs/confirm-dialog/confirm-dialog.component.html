@@ -26,7 +26,7 @@
           style="margin-right: 20px;">
     {{ data.cancelButtonText }}
   </button>
-  <button mat-button class="mat-button-dv"
+  <button *ngIf="!data.hideConfirmButton" mat-button class="mat-button-dv"
           color="primary"
           (click)="onConfirmClick()">
     {{ data.confirmButtonText }}

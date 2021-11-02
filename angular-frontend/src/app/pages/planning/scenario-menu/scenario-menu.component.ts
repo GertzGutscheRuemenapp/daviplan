@@ -3,6 +3,7 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { MatDialog } from "@angular/material/dialog";
 import { mockQuotas } from "../../basedata/demand-quotas/demand-quotas.component";
 import { mockPrognoses } from "../../basedata/prognosis-data/prognosis-data.component";
+import { environment } from "../../../../environments/environment";
 
 @Component({
   selector: 'app-scenario-menu',
@@ -19,8 +20,10 @@ export class ScenarioMenuComponent implements OnInit {
   @ViewChild('createScenario') createScenarioTemplate?: TemplateRef<any>;
   @ViewChild('supplyScenarioTable') supplyScenarioTableTemplate?: TemplateRef<any>;
   @ViewChild('demandPlaceholderTable') demandPlaceholderTemplate?: TemplateRef<any>;
+  @ViewChild('demandQuotaDialog') demandQuotaTemplate?: TemplateRef<any>;
   quotas = mockQuotas;
   prognoses = mockPrognoses;
+  backend: string = environment.backend;
 
   constructor(private dialog: MatDialog) { }
 
@@ -91,7 +94,7 @@ export class ScenarioMenuComponent implements OnInit {
         title: $localize`Übersicht der Änderungen`,
         // confirmButtonText: $localize`umbenennen`,
         template: this.supplyScenarioTableTemplate,
-        closeOnConfirm: true
+        hideConfirmButton: true
       }
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
@@ -105,7 +108,21 @@ export class ScenarioMenuComponent implements OnInit {
         // title: $localize``,
         // confirmButtonText: $localize`umbenennen`,
         template: this.demandPlaceholderTemplate,
-        closeOnConfirm: true
+        hideConfirmButton: true
+      }
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+    });
+  }
+
+  onShowDemandQuotaSet() {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '900px',
+      data: {
+        title: $localize`Nachfragequoten-Set: [Name]`,
+        // confirmButtonText: $localize`umbenennen`,
+        template: this.demandQuotaTemplate,
+        hideConfirmButton: true
       }
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
