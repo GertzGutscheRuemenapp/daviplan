@@ -943,6 +943,18 @@ app-map-controls {
   outline: none;
 }
 
+.multiline-button .mat-button-wrapper {
+  display: flex;
+  white-space: normal;
+  text-align: left;
+  line-height: 18px;
+  padding: 8px 0;
+  mat-icon {
+    margin-right: 5px;
+    align-self: center;
+  }
+}
+
 .sub-select-wrapper {
   padding: 10px 5px 5px 10px;
   border: 1px solid #dedede;

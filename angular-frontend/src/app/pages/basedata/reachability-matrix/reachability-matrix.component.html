@@ -34,15 +34,10 @@
         </ng-container>
       </mat-selection-list>
       <button mat-button color="primary"
-              style="margin: 10px 0;"
               (click)="statusQuoRouters[selectedRouter.mode] = selectedRouter.id">
 <!--              (click)="statusQuoRouters[selectedRouter.mode] = (statusQuoRouters[selectedRouter.mode]===selectedRouter.id)? undefined : selectedRouter.id">-->
-        <div style="display: flex">
-          <mat-icon style="margin-right: 5px; align-self: center;" class="material-icons-outlined">verified</mat-icon>
-          <div style="white-space: normal; text-align: left; line-height: 18px;">
-            Als Annahme für Trendfortschreibung festlegen
-          </div>
-        </div>
+        <mat-icon class="material-icons-outlined">verified</mat-icon>
+        Als Annahme für Trendfortschreibung festlegen
       </button>
       <div>
         <button mat-button color="primary"
