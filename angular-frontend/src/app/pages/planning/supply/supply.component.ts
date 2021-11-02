@@ -2,7 +2,7 @@ import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { mockInfrastructures } from "../../administration/infrastructure/infrastructure.component";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
-import { SideToggleComponent } from "../../../elements/side-toggle/side-toggle.component";
+import { CookieService } from "../../../helpers/cookies.service";
 
 @Component({
   selector: 'app-supply',
@@ -16,12 +16,13 @@ export class SupplyComponent implements OnInit{
   compareStatus = 'option 1';
   infrastructures = mockInfrastructures;
   selectedInfrastructure = this.infrastructures[0];
-  showScenarioMenu = false;
+  showScenarioMenu: any = false;
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
 
-  constructor(private dialog: MatDialog) {}
+  constructor(private dialog: MatDialog, public cookies: CookieService) {}
 
   ngOnInit(): void {
+    this.showScenarioMenu = this.cookies.get('exp-planning-scenario');
   }
 
   onFilter(): void {
