@@ -1,27 +1,36 @@
 import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { MapControl, MapService, Layer } from "../map.service";
 
-const mockLayerGroups: Record<string, any[]> = {
+const mockLayerGroups: Record<string, { info?: string, layers: any[] }> = {
   // Leistungen: [
   //   { name: 'Kita', checked: true },
   //   { name: 'Krippe', checked: true },
   // ],
-  Standorte: [
-    { name: 'Schulen', checked: false, color: 'grey', symbol: 'dot' },
-    { name: 'Feuerwehr', checked: true, color: 'red', symbol: 'dot' },
-    { name: 'Kinderbeutreuung', checked: false, color: 'lightblue', symbol: 'dot' },
-    { name: 'Ärzte', checked: true, color: 'lightgreen', symbol: 'dot' },
-  ],
-  Gebietsgrenzen: [
-    { name: 'Gemeinden', checked: false, color: 'orange', symbol: 'line' },
-    { name: 'Kreise', checked: true, color: 'yellow', symbol: 'line' },
-    { name: 'Verwaltungsgemeinschaften', checked: false, color: 'red', symbol: 'line' },
-    { name: 'Bundesländer', checked: false, color: 'black', symbol: 'line' },
-  ],
-  Ökologie: [
-    { name: 'Wälder', checked: false },
-    { name: 'Gewässer', checked: false }
-  ]
+  Standorte: {
+    info: '',
+    layers: [
+      { name: 'Schulen', checked: false, color: 'grey', symbol: 'dot' },
+      { name: 'Feuerwehr', checked: true, color: 'red', symbol: 'dot' },
+      { name: 'Kinderbeutreuung', checked: false, color: 'lightblue', symbol: 'dot' },
+      { name: 'Ärzte', checked: true, color: 'lightgreen', symbol: 'dot' },
+    ]
+  },
+  Gebietsgrenzen: {
+    info: '',
+    layers: [
+      { name: 'Gemeinden', checked: false, color: 'orange', symbol: 'line' },
+      { name: 'Kreise', checked: true, color: 'yellow', symbol: 'line' },
+      { name: 'Verwaltungsgemeinschaften', checked: false, color: 'red', symbol: 'line' },
+      { name: 'Bundesländer', checked: false, color: 'black', symbol: 'line' },
+    ]
+  },
+  Ökologie: {
+    info: '',
+    layers: [
+      { name: 'Wälder', checked: false },
+      { name: 'Gewässer', checked: false }
+    ]
+  }
 }
 
 @Component({
@@ -37,7 +46,7 @@ export class LegendComponent implements AfterViewInit {
   activeBackground?: number;
   backgroundOpacity = 1;
   backgroundLayers: Layer[] = [];
-  layerGroups: Record<string, any[]> = mockLayerGroups;
+  layerGroups = mockLayerGroups;
   activeGroups: string[] = [];
   editMode: boolean = true;
   Object = Object;
@@ -60,7 +69,7 @@ export class LegendComponent implements AfterViewInit {
 
   // ToDo: use template filter
   filterActiveGroups(): void {
-    this.activeGroups = Object.keys(this.layerGroups).filter(g => this.layerGroups[g].filter(l => l.checked).length > 0);
+    this.activeGroups = Object.keys(this.layerGroups).filter(g => this.layerGroups[g].layers.filter(l => l.checked).length > 0);
   }
 
   opacityChanged(id: number, value: number | null): void {

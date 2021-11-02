@@ -59,7 +59,7 @@
                   maxWidth="400px"
                   placement="right"
                   (selectionChange)="onProcessChange($event.value)">
-        <mat-optgroup label="Meine Prozesse">
+        <mat-optgroup label="Meine Planungsprozesse">
           <button title="Planungsprozess erstellen"
                   mat-icon-button color="primary"
                   style="position: absolute; right: 7px; top: 5px;"
@@ -84,7 +84,7 @@
                       </button>
                     </mat-option>-->
         </mat-optgroup>
-        <mat-optgroup *ngIf="sharedProjects" label="Geteilte Prozesse">
+        <mat-optgroup *ngIf="sharedProjects" label="Geteilte Planungsprozesse">
           <mat-option *ngFor="let project of sharedProjects"
                       [value]="project.id"
                       tooltip="{{(project.description)? '<i>' + project.description + '</i><br>' : ''}} {{(project.editable)? 'editierbar': 'nicht editierbar'}} <br> geteilt durch <i>{{project.user}}</i>"

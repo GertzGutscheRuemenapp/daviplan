@@ -6,14 +6,14 @@ import { mockPresetLevels } from "../areas/areas";
 
 interface Indicator {
   id: number;
-  infrastructure: number;
+  service: number;
   name: string;
   description: string;
 }
 
 export const mockIndicators: Indicator[] = [
-  {id: 1, infrastructure: mockInfrastructures[0].id, name: 'Kita U3 Nachfrage', description: 'U3-Kind mit Betreuungswunsch pro Kita mit Krippe'},
-  {id: 2, infrastructure: mockInfrastructures[0].id, name: 'Kita U3 Erreichbarkeit', description: 'Anzahl der U3-Kinder mit Betreuungswunsch, für die diese Einrichtung am besten erreichbar ist'}
+  {id: 1, service: mockInfrastructures[0].services[0].id, name: 'Kita U3 Nachfrage', description: 'U3-Kind mit Betreuungswunsch pro Kita mit Krippe'},
+  {id: 2, service: mockInfrastructures[0].services[0].id, name: 'Kita U3 Erreichbarkeit', description: 'Anzahl der U3-Kinder mit Betreuungswunsch, für die diese Einrichtung am besten erreichbar ist'}
 ]
 
 @Component({
@@ -28,6 +28,7 @@ export class IndicatorsComponent implements AfterViewInit, OnDestroy {
   selectedIndicator = this.indicators[0];
   mapControl?: MapControl;
   areaLevels = mockPresetLevels;
+  selectedService = mockInfrastructures[0].services[0];
 
   constructor(private mapService: MapService) { }
 

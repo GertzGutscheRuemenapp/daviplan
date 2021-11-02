@@ -22,7 +22,7 @@
   <!--      <div class="legend-entry" *ngIf="editMode">
           <div class="legend-layer-control" style="text-transform: uppercase; margin-left: auto; color: #00000061;" i18n>Anzeige</div>
         </div>-->
-        <div *ngFor="let layer of layerGroups[group]">
+        <div *ngFor="let layer of layerGroups[group].layers">
           <div class="legend-entry" [ngClass]="{'checked': layer.checked}"
                                     *ngIf="editMode || layer.checked">
             <div class="symbol" [style.background]="layer.color || 'white'" [class]="layer.symbol"></div>
