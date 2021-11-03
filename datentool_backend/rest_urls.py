@@ -15,21 +15,24 @@ router.register(r'users', UserViewSet, basename='user')
 router.register(r'settings', SiteSettingsViewSet, basename='settings')
 
 # areas
-router.register(r'symbolform', SymbolFormViewSet, basename='symbolform')
+router.register(r'symbolforms', SymbolFormViewSet, basename='symbolforms')
 router.register(r'mapsymbols', MapSymbolsViewSet, basename='mapsymbols')
-router.register(r'layergroup', LayerGroupViewSet, basename='layergroup')
-router.register(r'wmslayer', WMSLayerViewSet, basename='wmslayer')
-router.register(r'internalwfslayer', InternalWFSLayerViewSet, basename='internalwfslayer')
-router.register(r'source', SourceViewSet, basename='source')
-router.register(r'arealevel', AreaLevelViewSet, basename='arealevel')
-router.register(r'area', AreaViewSet, basename='area')
+router.register(r'layergroups', LayerGroupViewSet, basename='layergroups')
+router.register(r'wmslayers', WMSLayerViewSet, basename='wmslayer')
+router.register(r'internalwfslayers', InternalWFSLayerViewSet,
+                basename='internalwfslayers')
+router.register(r'sources', SourceViewSet, basename='sources')
+router.register(r'arealevels', AreaLevelViewSet, basename='arealevels')
+router.register(r'areas', AreaViewSet, basename='areas')
 
 # demand
-router.register(r'demandrateset', DemandRateSetViewSet, basename='demandrateset')
-router.register(r'demandrate', DemandRateViewSet, basename='demandrate')
+router.register(r'demandratesets', DemandRateSetViewSet,
+                basename='demandratesets')
+router.register(r'demandrates', DemandRateViewSet, basename='demandrates')
 
 # infrastructure
-router.register(r'infrastructure', InfrastructureViewSet, basename='infrastructure')
+router.register(r'infrastructures', InfrastructureViewSet,
+                basename='infrastructures')
 
 
 

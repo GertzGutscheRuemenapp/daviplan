@@ -40,7 +40,7 @@ class _TestAPI:
 
 class TestSymbolFormAPI(_TestAPI, BasicModelTest, APITestCase):
     """"""
-    url_key = "symbolform"
+    url_key = "symbolforms"
     factory = SymbolFormFactory
 
     @classmethod
@@ -67,21 +67,21 @@ class TestMapSymbolsAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.patch_data = dict(symbol=symbol, stroke_color=faker.color())
 
 
-""" Test for LayerGroup is not working!
+#""" Test for LayerGroup is not working!
 class TestLayerGroupAPI(_TestAPI, BasicModelTest, APITestCase):
 
-    url_key = "layergroup"
+    url_key = "layergroups"
     factory = LayerGroupFactory
 
 
-         @classmethod
+    @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.post_data = dict(name='posttestname')
-        cls.put_data = dict(name='puttestname')
-        cls.patch_data = dict(name='patchtestname')
+        cls.post_data = dict(name='posttestname', order=2)
+        cls.put_data = dict(name='puttestname', order=3)
+        cls.patch_data = dict(name='patchtestname', order=4)
 
-
+"""
 # Test for WMSLayer, InternalWFSLayer, Source
 is test for WMSLayer, InternalWFSLayer, Source necessary? already in class TestAreas
 
