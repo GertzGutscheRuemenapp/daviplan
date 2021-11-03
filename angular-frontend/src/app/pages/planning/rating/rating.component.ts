@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { mockIndicators } from "../../basedata/indicators/indicators.component";
 import { mockPresetLevels } from "../../basedata/areas/areas";
+import { CookieService } from "../../../helpers/cookies.service";
 
 @Component({
   selector: 'app-rating',
@@ -13,11 +14,11 @@ export class RatingComponent implements OnInit {
   compareStatus = 'option 1';
   indicators = mockIndicators;
   areaLevels = mockPresetLevels;
-  showScenarioMenu = false;
+  showScenarioMenu: any = false;
 
-  constructor() { }
+  constructor(public cookies: CookieService) {}
 
   ngOnInit(): void {
+    this.showScenarioMenu = this.cookies.get('exp-planning-scenario');
   }
-
 }

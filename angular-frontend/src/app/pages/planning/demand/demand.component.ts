@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { mockInfrastructures } from "../../administration/infrastructure/infrastructure.component";
 import { mockPresetLevels } from "../../basedata/areas/areas";
+import { CookieService } from "../../../helpers/cookies.service";
 
 @Component({
   selector: 'app-demand',
@@ -14,10 +15,11 @@ export class DemandComponent implements OnInit {
   infrastructures = mockInfrastructures;
   selectedInfrastructure = this.infrastructures[0];
   areaLevels = mockPresetLevels;
-  showScenarioMenu = false;
+  showScenarioMenu: any = false;
 
-  constructor() { }
+  constructor(public cookies: CookieService) {}
 
   ngOnInit(): void {
+    this.showScenarioMenu = this.cookies.get('exp-planning-scenario');
   }
 }

@@ -1,6 +1,6 @@
 <app-scenario-menu domain="demand" [ngClass]="{'expanded': showScenarioMenu}"></app-scenario-menu>
-<mat-expansion-panel class="side-toggle" id="scenario-toggle">
-  <mat-expansion-panel-header (click)="showScenarioMenu=!showScenarioMenu">
+<mat-expansion-panel class="side-toggle" id="scenario-toggle" cookieExpansion="exp-planning-scenario">
+  <mat-expansion-panel-header (click)="showScenarioMenu=!showScenarioMenu;">
     <mat-panel-title>
       <div class="mini-fab-icon" [ngClass]="{'primary': showScenarioMenu}">
         <div class="davicon icon-GGR-davicons-Font-Simple-2-Szenario"></div>
@@ -19,7 +19,7 @@
     </mat-panel-title>
   </mat-expansion-panel-header>
   <mat-form-field appearance="outline" class="small">
-    <mat-label>Infrastruktur</mat-label>
+    <mat-label>Infrastrukturbereich</mat-label>
     <mat-select disableOptionCentering [(value)]="selectedInfrastructure">
       <mat-option [value]="infrastructure" *ngFor="let infrastructure of infrastructures"
                   [tooltip]="infrastructure.description"
@@ -43,6 +43,16 @@
       </mat-radio-button>
     </mat-radio-group>
   </div>
+  <mat-expansion-panel class="text-panel">
+    <mat-expansion-panel-header>
+      <mat-icon color="primary" class="material-icons-outlined"
+                style="margin-right: 5px;">help_outline</mat-icon>
+      <span class="subtitle1">Hilfe</span>
+    </mat-expansion-panel-header>
+    <span class="info-text">
+      Wählen Sie hier im Dropdown-Menü den Infrastrukturbereich und per Checkbox die Leistungen aus dem jeweiligen Infrastrukturbereich aus.
+    </span>
+  </mat-expansion-panel>
 </mat-expansion-panel>
 <mat-expansion-panel cookieExpansion="exp-demand-areas">
   <mat-expansion-panel-header>
@@ -60,6 +70,16 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
+  <mat-expansion-panel class="text-panel">
+    <mat-expansion-panel-header>
+      <mat-icon color="primary" class="material-icons-outlined"
+                style="margin-right: 5px;">help_outline</mat-icon>
+      <span class="subtitle1">Hilfe</span>
+    </mat-expansion-panel-header>
+    <span class="info-text">
+      Wählen Sie hier im Dropdown-Menü die jeweilige Gebietseinheit aus.
+    </span>
+  </mat-expansion-panel>
 </mat-expansion-panel>
 <mat-expansion-panel cookieExpansion="exp-demand-compare">
   <mat-expansion-panel-header>
@@ -104,4 +124,14 @@
       </mat-form-field>
     </mat-radio-group>
   </div>
+  <mat-expansion-panel class="text-panel">
+    <mat-expansion-panel-header>
+      <mat-icon color="primary" class="material-icons-outlined"
+                style="margin-right: 5px;">help_outline</mat-icon>
+      <span class="subtitle1">Hilfe</span>
+    </mat-expansion-panel-header>
+    <span class="info-text">
+      Sie können die Nachfrage für das mit dem Zeitslider ausgewählte Jahr vergleichen: Entweder mit der Nachfrage für ein anderes Jahr für das Werte vorliegen oder aber mit der Nachfrage für ein anderes Szenario im selben Jahr. Die Darstellung erfolgt in der Karte.
+    </span>
+  </mat-expansion-panel>
 </mat-expansion-panel>

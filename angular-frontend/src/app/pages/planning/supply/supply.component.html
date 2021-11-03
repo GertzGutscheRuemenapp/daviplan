@@ -1,6 +1,6 @@
 <app-scenario-menu domain="supply" [ngClass]="{'expanded': showScenarioMenu}"></app-scenario-menu>
-<mat-expansion-panel class="side-toggle" id="scenario-toggle">
-  <mat-expansion-panel-header (click)="showScenarioMenu=!showScenarioMenu">
+<mat-expansion-panel class="side-toggle" id="scenario-toggle" cookieExpansion="exp-planning-scenario">
+  <mat-expansion-panel-header (click)="showScenarioMenu=!showScenarioMenu;">
     <mat-panel-title>
       <div class="mini-fab-icon" [ngClass]="{'primary': showScenarioMenu}">
         <div class="davicon icon-GGR-davicons-Font-Simple-2-Szenario"></div>
@@ -77,6 +77,18 @@
       <mat-icon class="material-icons-outlined">add_location_alt</mat-icon>
     </button>
   </div>
+  <mat-expansion-panel class="text-panel">
+    <mat-expansion-panel-header>
+      <mat-icon color="primary" class="material-icons-outlined"
+                style="margin-right: 5px;">help_outline</mat-icon>
+      <span class="subtitle1">Hilfe</span>
+    </mat-expansion-panel-header>
+    <span class="info-text">
+      <p>Wählen Sie hier im Dropdown-Menü den Infrastrukturbereich und per Checkbox die Leistungen aus dem jeweiligen Infrastrukturbereich aus. Mit dem Klick auf das Filtersymbol können Sie Filter auf Standorte setzen und bearbeiten.</p>
+      <p>Cluster, Verdrängung und Zoom auf alle stellen Darstellungsoptionen für die Karte dar.</p>
+      <p>Klick auf das Symbol „Neuen Standort hinzufügen“ öffnet einen Dialog um Hinzufügen eines zusätzlichen Standortes.</p>
+    </span>
+  </mat-expansion-panel>
 </mat-expansion-panel>
 <mat-expansion-panel  cookieExpansion="exp-supply-compare">
   <mat-expansion-panel-header>
@@ -88,7 +100,7 @@
     </mat-panel-title>
   </mat-expansion-panel-header>
   <mat-checkbox style="padding-left: 12px;" color="primary" [(ngModel)]="compareSupply" i18n> <!--style="margin-left: -12px"-->
-    Angebot vergleichen
+    Angebotsstrukturen vergleichen
   </mat-checkbox>
   <div class="sub-select-wrapper compare-radio-list">
     <mat-radio-group [(ngModel)]="compareStatus">
@@ -122,6 +134,16 @@
       </mat-form-field>
     </mat-radio-group>
   </div>
+  <mat-expansion-panel class="text-panel">
+    <mat-expansion-panel-header>
+      <mat-icon color="primary" class="material-icons-outlined"
+                style="margin-right: 5px;">help_outline</mat-icon>
+      <span class="subtitle1">Hilfe</span>
+    </mat-expansion-panel-header>
+    <span class="info-text">
+     Sie können die Angebotsstrukturen das mit dem Zeitslider ausgewählte Jahr vergleichen: Entweder mit den Angebotsstrukturen für ein anderes Jahr oder aber mit der Angebotsstruktur für ein anderes Szenario im selben Jahr. Die Darstellung erfolgt in der Karte.
+    </span>
+  </mat-expansion-panel>
 </mat-expansion-panel>
 <!--workaround to cover visible scenario menu-->
 <div style="width: 100%; height:50px; background-color: white;"></div>
@@ -130,7 +152,7 @@
   <div style="display: flex; align-items: end; user-select: none;">
     <div>
       <h4>Standortfilter</h4>
-      <span class="subtitle1 sub" i18n>Tabelle zeigt gefilterte Standorte im Szenario xy im Jahr {{timeSlider.value}}</span>
+      <span class="subtitle1 sub" i18n>Die Tabelle zeigt die gefilterten Standorte im Szenario [Name] im Jahr {{timeSlider.value}}</span>
     </div>
     <div id="time-slider-wrapper" style="display: flex; margin-left: 200px; margin-bottom: 10px;"> <!--margin-left: auto-->
       <div class="time-button" (click)="timeSlider.value = timeSlider.value - 1;">

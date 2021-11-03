@@ -60,7 +60,7 @@ export class PopDevelopmentComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
-    this.mapControl.mapDescription = 'Bevölkerungsentwicklung > Gemeinden | Trendfortschreibung <br> Geschlecht: alle';
+    this.mapControl.mapDescription = 'Bevölkerungsentwicklung für [ausgewählte Gebietseinheit] | [ausgewähltes Prognoseszenario] | <br> Geschlecht: [ausgewähltes Geschlecht | [ausgewählte Altersgruppen] ';
     let first = mockdata[0].values;
     let relData = mockdata.map(d => { return {
       group: d.group,
@@ -88,7 +88,7 @@ export class PopDevelopmentComponent implements AfterViewInit {
   editAgeGroups(): void {
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
-      width: '350px',
+      width: '500px',
       disableClose: false,
       data: {
         title: 'Altersgruppen definieren',
@@ -96,7 +96,7 @@ export class PopDevelopmentComponent implements AfterViewInit {
         template: this.ageGroupTemplate,
         closeOnConfirm: true,
         confirmButtonText: 'Speichern',
-        infoText: 'Platzhalter: Wenn Prognosen nicht für alle Altersjahrgänge, sonder in ALtersgruppen hochgeladen wurden, können die Marker nicht frei definiert und verschoben werden. In diesem Fall können die Marker nur gelöscht und an vordefinierter Stelle wieder hinzugefügt werden.'
+        infoText: 'Hier können Sie die Altersgruppen für die Darstellung der Bevölkerungsentwicklung definieren. Dafür positionieren Sie die Marker bitte an den Grenzen („bis unter X Jahre“). Liegen die Grundlagendaten nach Einzelaltersjahrgängen vor, können Sie die Altersgruppen frei wählen. Sind die Grundlagendaten bereits nach Altersgruppen zusammengefasst, können diese hier für die Darstellung weiter aggregiert werden. Ein Klick auf den Button Speichern übernimmt Ihre Angaben für die Darstellung.'
       }
     });
     dialogRef.afterClosed().subscribe((ok: boolean) => {  });

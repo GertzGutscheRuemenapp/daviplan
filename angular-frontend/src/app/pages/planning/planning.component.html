@@ -25,7 +25,7 @@
         <mat-icon color="primary">info</mat-icon>
         <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
       </div>
-      <app-side-toggle [fullHeightIndicator]="true" expanded>
+      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-planning-description" [cookieExpansionInit]="true">
         <div style="padding: 10px; min-height: 70px;" [innerHTML]="this.mapControl?.mapDescription"></div>
       </app-side-toggle>
     </div>
@@ -34,7 +34,7 @@
         <mat-icon color="primary">event</mat-icon>
         <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
       </div>
-      <app-side-toggle [fullHeightIndicator]="true" expanded>
+      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-planning-timeslider" [cookieExpansionInit]="true">
         <div style="padding: 18px 10px 12px 10px">
           <app-time-slider [prognosisEnd]="2013" [years]="[2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025]"></app-time-slider>
         </div>
@@ -59,7 +59,7 @@
                   maxWidth="400px"
                   placement="right"
                   (selectionChange)="onProcessChange($event.value)">
-        <mat-optgroup label="Meine Prozesse">
+        <mat-optgroup label="Meine Planungsprozesse">
           <button title="Planungsprozess erstellen"
                   mat-icon-button color="primary"
                   style="position: absolute; right: 7px; top: 5px;"
@@ -84,7 +84,7 @@
                       </button>
                     </mat-option>-->
         </mat-optgroup>
-        <mat-optgroup *ngIf="sharedProjects" label="Geteilte Prozesse">
+        <mat-optgroup *ngIf="sharedProjects" label="Geteilte Planungsprozesse">
           <mat-option *ngFor="let project of sharedProjects"
                       [value]="project.id"
                       tooltip="{{(project.description)? '<i>' + project.description + '</i><br>' : ''}} {{(project.editable)? 'editierbar': 'nicht editierbar'}} <br> geteilt durch <i>{{project.user}}</i>"
@@ -98,6 +98,16 @@
         </mat-optgroup>
       </mat-select>
     </mat-form-field>
+    <button mat-icon-button color="primary"
+            title="Hilfe"
+            tooltip="Wählen Sie hier den Planungsprozess aus. Mit einem Klick auf das Stift-Symbol können Sie den ausgewählten Planungsprozess editieren. Über das Plus-Symbol können Sie Planungsprozesse hinzufügen."
+            [hideDelay]="3000"
+            trigger="click"
+            tooltipClass="context-tooltip"
+            theme="light"
+            maxWidth="300px">
+      <mat-icon>help_outline</mat-icon>
+    </button>
     <button *ngIf="activeProject" class="process-button"
             title="ausgewählten Planungsprozess editieren"
             mat-icon-button color="primary"
@@ -128,7 +138,7 @@
                  icon="layers"
                  name="Legenden- und Layersteuerung"
                  direction="left"
-                 expanded>
+                 cookieExpansion="exp-planning-legend" [cookieExpansionInit]="true">
   <app-legend target="planning-map"></app-legend>
 </app-side-toggle>
 

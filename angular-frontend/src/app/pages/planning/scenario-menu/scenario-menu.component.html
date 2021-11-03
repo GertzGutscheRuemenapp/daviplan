@@ -46,19 +46,29 @@
         <button mat-icon-button color="primary"
                 [disabled]="activeScenario === 'Status Quo'"
                 (click)="onEditScenario()"
-                class="mat-button-dv">
+                title="ausgewähltes Szenario editieren">
           <mat-icon>edit</mat-icon>
         </button>
         <button mat-icon-button color="primary"
                 (click)="onCreateScenario()"
-                class="mat-button-dv">
+                title="Szenario erstellen">
           <mat-icon>add</mat-icon>
         </button>
         <button mat-icon-button color="primary"
                 [disabled]="activeScenario === 'Status Quo'"
                 (click)="onDeleteScenario()"
-                class="mat-button-dv">
+                title="ausgewähltes Szenario entfernen">
           <mat-icon>close</mat-icon>
+        </button>
+        <button mat-icon-button color="primary"
+                title="Hilfe"
+                tooltip="Sie können sich hier Ihre Erreichbarkeitsszenarien anzeigen lassen, diese editieren, neue hinzufügen und bestehende löschen. "
+                [hideDelay]="2000"
+                trigger="click"
+                tooltipClass="context-tooltip"
+                theme="light"
+                maxWidth="300px">
+          <mat-icon>help_outline</mat-icon>
         </button>
       </div>
     </div>
@@ -101,7 +111,7 @@
   <div class="scenario-row">
     <mat-icon class="material-icons-outlined" color="primary"
               title="aktuell eingestellte Nachfragequoten anzeigen"
-              (click)="onShowDemandPlaceholder()">
+              (click)="onShowDemandQuotaSet()">
       info
     </mat-icon>
     <mat-form-field appearance="standard" class="small">
@@ -134,7 +144,7 @@
   <div class="scenario-row">
     <mat-icon class="material-icons-outlined" color="primary"
               title="aktuell eingestellte Nachfragequoten anzeigen"
-              (click)="onShowDemandPlaceholder()">
+              (click)="onShowDemandQuotaSet()">
       info
     </mat-icon>
     <mat-form-field appearance="standard" class="small">
@@ -237,6 +247,54 @@
 </ng-template>
 
 <ng-template #demandPlaceholderTable>
-  Platzhalter für Anzeige der aktuell eingestellten Nachfragequoten bzw. Einwohnerentwicklung<br>
   <i>Funktionalität für den Prototyp noch nicht hinterlegt.</i>
+</ng-template>
+
+<ng-template #demandQuotaDialog>
+  <div style="display: flex;">
+    <mat-slider #timeSlider color="primary"
+                thumbLabel min="2000" max="2100" step="1" value="2010" tickInterval="1"
+                style="width: 420px; margin-top: 15px;"></mat-slider>
+    <label style="padding-top: 20px;">{{timeSlider.value}}</label>
+  </div>
+  <div style="width: 100%; display: flex; align-items: stretch;">
+    <div style="width: 40%; border: solid #0000001F; padding: 8px;">
+      <table style="width: 100%; text-align: center;">
+        <tr>
+          <th style="text-align: left;">{{timeSlider.value}}</th>
+          <th colspan="2" style="text-align: center">Quote (in Prozent)</th>
+        </tr>
+        <tr>
+          <th style="min-width: 20%;"></th>
+          <th>weiblich</th>
+          <th>männlich</th>
+        </tr>
+        <tr>
+          <td>9 bis unter 12 Jahre</td>
+          <td>20</td>
+          <td>19</td>
+        </tr>
+        <tr>
+          <td>12 bis unter 15 Jahre</td>
+          <td>30</td>
+          <td>24</td>
+        </tr>
+        <tr>
+          <td>15 bis unter 20 Jahre</td>
+          <td>18</td>
+          <td>15</td>
+        </tr>
+      </table>
+    </div>
+    <div style="display: flex; width: 55%; margin-left: 10px; flex-flow: row wrap;">
+      <span class="subtitle1" style="color: grey;">Nachfragequote nach Altersgruppe im ausgewählten Jahr {{timeSlider.value}}</span>
+      <div class="diagram-wrapper" style="width: 100%;">
+        <img src="{{backend}}/static/img/Nachfragequoten alle Altersklassen screenshot.png" width="100%">
+      </div>
+      <span class="subtitle1" style="color: grey;">Nachfragequote der ausgewählten Altersgruppe [xxx] nach Jahr</span>
+      <div class="diagram-wrapper" style="width: 100%;">
+        <img src="{{backend}}/static/img/Nachfrage Altersklasse screenshot.png" width="100%">
+      </div>
+    </div>
+  </div>
 </ng-template>

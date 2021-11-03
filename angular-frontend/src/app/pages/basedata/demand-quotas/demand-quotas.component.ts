@@ -13,7 +13,6 @@ export class DemandQuotasComponent implements OnInit {
   quotas = mockQuotas;
   backend: string = environment.backend;
   infrastructures = mockInfrastructures;
-  services = mockInfrastructures[1].services;
   selectedService = mockInfrastructures[1].services[1];
   selectedQuota = this.quotas[0];
   statusQuoQuota: string | undefined = this.quotas[1];

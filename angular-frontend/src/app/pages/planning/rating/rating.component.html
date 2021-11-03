@@ -1,6 +1,6 @@
 <app-scenario-menu domain="rating" [ngClass]="{'expanded': showScenarioMenu}"></app-scenario-menu>
-<mat-expansion-panel class="side-toggle" id="scenario-toggle">
-  <mat-expansion-panel-header (click)="showScenarioMenu=!showScenarioMenu">
+<mat-expansion-panel class="side-toggle" id="scenario-toggle" cookieExpansion="exp-planning-scenario">
+  <mat-expansion-panel-header (click)="showScenarioMenu=!showScenarioMenu;">
     <mat-panel-title>
       <div class="mini-fab-icon" [ngClass]="{'primary': showScenarioMenu}">
         <div class="davicon icon-GGR-davicons-Font-Simple-2-Szenario"></div>
@@ -62,6 +62,16 @@
       </mat-optgroup>
     </mat-select>
   </mat-form-field>
+  <mat-expansion-panel class="text-panel">
+    <mat-expansion-panel-header>
+      <mat-icon color="primary" class="material-icons-outlined"
+                style="margin-right: 5px;">help_outline</mat-icon>
+      <span class="subtitle1">Hilfe</span>
+    </mat-expansion-panel-header>
+    <span class="info-text">
+      <p>Wählen Sie hier aus den definierten Indikatoren für die Darstellung aus. Sie können hier zudem eigene Indikatoren hinzufügen oder löschen.</p>
+    </span>
+  </mat-expansion-panel>
 </mat-expansion-panel>
 <mat-expansion-panel cookieExpansion="exp-rating-areas">
   <mat-expansion-panel-header>
@@ -79,6 +89,16 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
+  <mat-expansion-panel class="text-panel">
+    <mat-expansion-panel-header>
+      <mat-icon color="primary" class="material-icons-outlined"
+                style="margin-right: 5px;">help_outline</mat-icon>
+      <span class="subtitle1">Hilfe</span>
+    </mat-expansion-panel-header>
+    <span class="info-text">
+      <p>Wählen Sie hier im Dropdown-Menü die jeweilige Gebietseinheit für die Darstellung aus.</p>
+    </span>
+  </mat-expansion-panel>
 </mat-expansion-panel>
 <mat-expansion-panel cookieExpansion="exp-rating-compare">
   <mat-expansion-panel-header>
