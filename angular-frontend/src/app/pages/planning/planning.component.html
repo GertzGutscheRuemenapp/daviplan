@@ -98,6 +98,16 @@
         </mat-optgroup>
       </mat-select>
     </mat-form-field>
+    <button mat-icon-button color="primary"
+            class="material-icons-outlined" title="Hilfe"
+            tooltip="Wählen Sie hier den Planungsprozess aus. Mit einem Klick auf das Stift-Symbol können Sie den ausgewählten Planungsprozess editieren. Über das Plus-Symbol können Sie Planungsprozesse hinzufügen."
+            [hideDelay]="3000"
+            trigger="click"
+            tooltipClass="context-tooltip"
+            theme="light"
+            maxWidth="300px">
+      <mat-icon>help_outline</mat-icon>
+    </button>
     <button *ngIf="activeProject" class="process-button"
             title="ausgewählten Planungsprozess editieren"
             mat-icon-button color="primary"

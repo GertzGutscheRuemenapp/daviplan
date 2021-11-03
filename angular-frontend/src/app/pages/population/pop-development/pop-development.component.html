@@ -144,15 +144,27 @@
 </button>
 
 <div id="diagram-bar">
-  <mat-form-field appearance="outline" class="small">
-    <mat-label>Gebiet</mat-label>
-    <mat-select disableOptionCentering value="irgendwo">
-      <mat-option value="irgendwo">
-        irgendwo
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
-  <br>
+  <div>
+    <mat-form-field appearance="outline" class="small">
+      <mat-label>Gebiet</mat-label>
+      <mat-select disableOptionCentering value="irgendwo">
+        <mat-option value="irgendwo">
+          irgendwo
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-expansion-panel class="text-panel" style="margin-top: -30px; background: none;">
+      <mat-expansion-panel-header style="margin-left: 80%;">
+        <mat-icon color="primary" class="material-icons-outlined"
+                  style="margin-right: 5px;">help_outline</mat-icon>
+        <span class="subtitle1">Hilfe</span>
+      </mat-expansion-panel-header>
+      <div class="info-text" style="padding-bottom: 10px;">
+        <p>Wählen Sie aus dem Dropdown-Menü das Gebiet, für das Sie sich Ergebnisse in Diagrammen anzeigen lassen wollen.</p>
+        <p>Alternativ können Sie ein Gebiet auch in der Karte auswählen durch einen Klick auf selbiges.</p>
+      </div>
+    </mat-expansion-panel>
+  </div>
   <div class="diagram-wrapper">
     <div>
       <app-stacked-barchart [data]="data"
@@ -166,6 +178,16 @@
       </app-stacked-barchart>
     </div>
   </div>
+  <mat-expansion-panel class="text-panel">
+    <mat-expansion-panel-header style="margin-left: 80%;">
+      <mat-icon color="primary" class="material-icons-outlined"
+                style="margin-right: 5px;">help_outline</mat-icon>
+      <span class="subtitle1">Hilfe</span>
+    </mat-expansion-panel-header>
+    <div class="info-text" style="padding-bottom: 10px;">
+      Das Diagramm stellt die absolute Entwicklung der Bevölkerungszahl des oben ausgewählten Gebiets dar. Passen Sie die Darstellung ggf. durch Auswahl des Geschlechtes sowie der Altersklassen auf der linken Seite an.
+    </div>
+  </mat-expansion-panel>
   <div class="diagram-wrapper">
     <div>
       <app-multiline-chart #lineChart
@@ -180,8 +202,17 @@
       </app-multiline-chart>
     </div>
   </div>
+  <mat-expansion-panel class="text-panel">
+    <mat-expansion-panel-header style="margin-left: 80%;">
+      <mat-icon color="primary" class="material-icons-outlined"
+                style="margin-right: 5px;">help_outline</mat-icon>
+      <span class="subtitle1">Hilfe</span>
+    </mat-expansion-panel-header>
+    <div class="info-text" style="padding-bottom: 10px;">
+      Das Diagramm stellt die relative Entwicklung der Bevölkerungszahl des oben ausgewählten Gebiets dar. Das erste im Datensatz verfügbare Jahr wird auf 100%, alle anderen Jahre dazu ins Verhältnis gesetzt. Passen Sie die Darstellung ggf. durch Auswahl des Geschlechtes sowie der Altersklassen auf der linken Seite an.
+    </div>
+  </mat-expansion-panel>
 </div>
-
 
 <ng-template #ageGroupTemplate>
   <i>Funktionalität des Altersgruppen-Sliders noch nicht implementiert</i>
