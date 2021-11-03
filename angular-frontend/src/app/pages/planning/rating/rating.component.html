@@ -19,39 +19,47 @@
     </mat-panel-title>
   </mat-expansion-panel-header>
   <mat-form-field appearance="outline" class="small">
-    <mat-select disableOptionCentering panelClass="indicator-panel" value="2">
+    <mat-select disableOptionCentering panelClass="custom-option-panel"
+                (selectionChange)="onIndicatorChange($event.value)" [value]="activeIndicator.id">
+      <mat-select-trigger>
+        <span *ngIf="activeIndicator">
+          {{ activeIndicator.name }}
+        </span>
+      </mat-select-trigger>
       <mat-optgroup label="Meine Indikatoren">
-        <mat-option value="0"
-                    class="own-option"
-                    tooltip="Mein Testindikator"
+        <button mat-icon-button color="primary"
+                title="Indikator hinzufügen"
+                style="position: absolute; right: 7px; top: 5px;">
+          <mat-icon>add</mat-icon>
+        </button>
+        <mat-option *ngFor="let indicator of customIndicators"
+                    [value]="indicator.id"
+                    class="custom-option"
+                    [tooltip]="indicator.description"
                     theme="light"
                     placement="right"
                     maxWidth="400px"
                     [hideDelay]="0">
-          <div>
-            Test + langer Text der die maximale Größe des Containers überschreiten sollte
+          <div class="option-title">
+            {{indicator.name}}
           </div>
-          <button mat-icon-button color="primary"
-                  title="Indikator editieren">
-            <mat-icon>delete</mat-icon>
-          </button>
-          <button mat-icon-button color="primary"
-                  title="Indikator löschen">
-            <mat-icon>edit</mat-icon>
-          </button>
-        </mat-option>
-        <mat-option tooltip="Indikator hinzufügen"
-                    theme="light"
-                    [hideDelay]="0"
-                    placement="right">
-          <button mat-icon-button color="primary">
-            <mat-icon>add</mat-icon>
-          </button>
+          <div class="option-controls">
+            <button mat-icon-button color="primary"
+                    (click)="$event.stopPropagation()"
+                    title="Indikator editieren">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="primary"
+                    (click)="$event.stopPropagation()"
+                    title="Indikator löschen">
+              <mat-icon>remove</mat-icon>
+            </button>
+          </div>
         </mat-option>
       </mat-optgroup>
       <mat-optgroup label="Vorgegebene Indikatoren">
         <mat-option *ngFor="let indicator of indicators"
-                    value="{{indicator.id}}"
+                    [value]="indicator.id"
                     tooltip="{{indicator.description}}"
                     theme="light"
                     placement="right"

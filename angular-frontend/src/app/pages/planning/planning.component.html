@@ -58,7 +58,13 @@
                   theme="light"
                   maxWidth="400px"
                   placement="right"
+                  panelClass="custom-option-panel"
                   (selectionChange)="onProcessChange($event.value)">
+        <mat-select-trigger>
+          <span *ngIf="activeProject">
+            {{ activeProject.name }}
+          </span>
+        </mat-select-trigger>
         <mat-optgroup label="Meine Planungsprozesse">
           <button title="Planungsprozess erstellen"
                   mat-icon-button color="primary"
@@ -71,18 +77,25 @@
                       theme="light"
                       [value]="project.id"
                       [hideDelay]="0"
+                      class="custom-option"
                       tooltipClass="context-tooltip"
                       placement="right">
-            {{ project.name }}
+            <div class="option-title">
+              {{project.name}}
+            </div>
+            <div class="option-controls">
+              <button mat-icon-button color="primary"
+                      (click)="$event.stopPropagation()"
+                      title="Planungsprozess editieren">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="primary"
+                      (click)="$event.stopPropagation()"
+                      title="Planungsprozess löschen">
+                <mat-icon>remove</mat-icon>
+              </button>
+            </div>
           </mat-option>
-          <!--          <mat-option tooltip="Prozess hinzufügen"
-                                theme="light"
-                                [hideDelay]="0"
-                                placement="right">
-                      <button mat-icon-button color="primary">
-                        <mat-icon>add</mat-icon>
-                      </button>
-                    </mat-option>-->
         </mat-optgroup>
         <mat-optgroup *ngIf="sharedProjects" label="Geteilte Planungsprozesse">
           <mat-option *ngFor="let project of sharedProjects"
