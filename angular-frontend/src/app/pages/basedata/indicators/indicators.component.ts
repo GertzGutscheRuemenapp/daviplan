@@ -4,7 +4,7 @@ import { mockInfrastructures } from "../../administration/infrastructure/infrast
 import { MapControl, MapService } from "../../../map/map.service";
 import { mockPresetLevels } from "../areas/areas";
 
-interface Indicator {
+export interface Indicator {
   id: number;
   service: number;
   name: string;

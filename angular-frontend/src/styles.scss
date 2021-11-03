@@ -540,7 +540,7 @@ mat-option.selected {
   box-shadow: none !important;
 }
 
-.mat-select-panel .mat-focus-indicator {
+.mat-select-panel mat-option.mat-focus-indicator {
   background-color: white !important;
 }
 
@@ -901,14 +901,6 @@ app-map-controls {
   text-align: left!important;
 }
 
-.mat-select-panel {
-  .mat-icon-button {
-    mat-icon {
-      margin-left: 7px;
-    }
-  }
-}
-
 .side-toggle-content {
   max-width: 82vw;
   //overflow: auto;
@@ -1012,6 +1004,39 @@ mat-checkbox.reverse {
     }
     .mat-checkbox-label {
       float: left;
+    }
+  }
+}
+
+.custom-option-panel {
+  min-width: 300px !important;
+  .mat-icon-button {
+    margin-top: 3px;
+    margin-right: 3px;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    mat-icon {
+      margin-left: 3px;
+    }
+  }
+  .custom-option {
+    .option-title {
+      display: inline-block;
+      white-space: nowrap;
+      overflow: hidden;
+      float: left;
+      max-width: 70%;
+      margin-right: 30%;
+      text-overflow: ellipsis;
+    }
+    .option-controls {
+      position: fixed;
+      right: 0;
+      //display: inline-block;
+      background-color: white;
+      padding: 0 5px;
+      //pointer-events: none;
     }
   }
 }
