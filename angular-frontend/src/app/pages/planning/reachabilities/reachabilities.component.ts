@@ -40,7 +40,9 @@ export class ReachabilitiesComponent implements OnInit {
         // title: 'Standortfilter',
         template: this.filterTemplate,
         closeOnConfirm: true,
-        infoText: 'Platzhalter: Die Filterung der Tabelle filtert die in der Karte dargestellten Standorte'
+        infoText: '<p>Mit dem Schieberegler rechts oben können Sie das Jahr wählen für das die Standortstruktur in der Tabelle angezeigt werden soll. Die Einstellung wird für die Default-Kartendarstellung übernommen.</p>' +
+          '<p>Mit einem Klick auf das Filtersymbol in der Tabelle können Sie Filter auf die in der jeweiligen Spalte Indikatoren definieren. Die Filter werden grundsätzlich auf alle Jahre angewendet. In der Karte werden nur die gefilterten Standorte angezeigt.</p>'+
+          '<p>Sie können einmal gesetzte Filter bei Bedarf im Feld „Aktuell verwendete Filter“ unter der Tabelle wieder löschen.</p>'
       }
     });
     dialogRef.afterClosed().subscribe((ok: boolean) => {  });

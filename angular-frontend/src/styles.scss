@@ -659,9 +659,9 @@ confirm-dialog, .context-bar, .border-box {
 }
 
 app-legend, .context-bar, .tree-select {
-  mat-expansion-panel.mat-expanded, mat-expansion-panel.mat-expanded {
-    mat-expansion-panel-header, mat-expansion-panel-header:focus {
-      background-color: $primary-light;
+  mat-expansion-panel.mat-expanded:not(.text-panel) {
+    > mat-expansion-panel-header, > mat-expansion-panel-header:focus {
+      background-color: $primary-light !important;
     }
 
     mat-panel-title {
@@ -896,6 +896,7 @@ app-map-controls {
 
 .context-tooltip {
   font-size: 16px;
+  padding: 8px 12px!important;
   color: rgba(0, 0, 0, 0.87);
   text-align: left!important;
 }

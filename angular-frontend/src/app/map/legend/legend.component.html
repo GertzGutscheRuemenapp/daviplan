@@ -4,10 +4,22 @@
       <mat-icon>layers</mat-icon>
     </div>
     <span i18n>Legende</span>
-    <button color="primary" *ngIf="!editMode" (click)="editMode = !editMode" mat-icon-button style="box-shadow: none; margin-left: auto;">
+    <button mat-icon-button color="primary"
+            class="material-icons-outlined" title="Hilfe"
+            tooltip="<p>Die Legende wird in zwei Modi dargestellt, zwischen denen durch Klick auf den Button rechts umgeschaltet werden kann.</p>
+            <p>Im kompakten Modus werden in der Legende alle in der Karte aktiv angezeigten Layer und ihre Symbologie gruppiert aufgelistet.</p>
+            <p>Im Editiermodus werden alle verfügbaren Layer angezeigt. Sie können einzelne Layer und ihre Darstellung in der Karte aktivieren und deaktivieren. Mit den Schiebereglern wird die Transparenz der jeweiligen Layer eingestellt.</p>"
+            [hideDelay]="5000"
+            trigger="click"
+            tooltipClass="context-tooltip"
+            theme="light"
+            maxWidth="500px">
+      <mat-icon>help_outline</mat-icon>
+    </button>
+    <button title="In den Editiermodus umschalten" color="primary" *ngIf="!editMode" (click)="editMode = !editMode" mat-icon-button style="box-shadow: none; margin-left: auto;">
       <mat-icon>list</mat-icon>
     </button>
-    <button color="primary" *ngIf="editMode" (click)="editMode = !editMode" mat-mini-fab style="box-shadow: none; margin-left: auto;">
+    <button title="In den kompakten Modus umschalten" color="primary" *ngIf="editMode" (click)="editMode = !editMode" mat-mini-fab style="box-shadow: none; margin-left: auto;">
       <mat-icon>list</mat-icon>
     </button>
   </div>
