@@ -4,7 +4,6 @@ import { InputCardComponent } from "../../../dash/input-card.component";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { FormBuilder, FormGroup } from "@angular/forms";
-import { FileValidator } from 'ngx-material-file-input';
 import { MatDialog } from "@angular/material/dialog";
 import '@ckeditor/ckeditor5-build-classic/build/translations/de';
 import * as ClassicEditor from '@ckeditor/ckeditor5-build-classic';

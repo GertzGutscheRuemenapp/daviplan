@@ -44,7 +44,6 @@ import { ReachabilitiesComponent } from './pages/planning/reachabilities/reachab
 import { RatingComponent } from './pages/planning/rating/rating.component';
 import { SettingsComponent } from './pages/administration/settings/settings.component';
 import { ColorPickerModule } from "ngx-color-picker";
-import { MaterialFileInputModule } from "ngx-material-file-input";
 import { AreasComponent } from './pages/basedata/areas/areas.component';
 import { LogComponent } from './log/log.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -61,7 +60,6 @@ import { SideToggleComponent } from './elements/side-toggle/side-toggle.componen
 import { LegendComponent } from './map/legend/legend.component';
 import { DragDropModule } from "@angular/cdk/drag-drop";
 import { TimeSliderComponent } from './elements/time-slider/time-slider.component';
-import { TooltipModule } from 'ng2-tooltip-directive';
 import { PopRasterComponent } from './pages/basedata/pop-raster/pop-raster.component';
 import { CookieService} from 'ngx-cookie-service';
 import { RealDataComponent } from './pages/basedata/real-data/real-data.component';
@@ -164,14 +162,12 @@ import { CookieExpansionDirective } from './helpers/cookie-expansion.directive';
         MatExpansionModule,
         MatSliderModule,
         ColorPickerModule,
-        MaterialFileInputModule,
         FontAwesomeModule,
         CKEditorModule,
         MatSlideToggleModule,
         EcoFabSpeedDialModule,
         MatRadioModule,
         DragDropModule,
-        TooltipModule,
         NgbModule,
         MatTreeModule,
         MatChipsModule
