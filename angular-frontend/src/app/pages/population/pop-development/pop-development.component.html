@@ -149,7 +149,7 @@
       <mat-label>Gebiet</mat-label>
       <mat-select disableOptionCentering value="irgendwo">
         <mat-option value="irgendwo">
-          irgendwo
+          [Gebietseinheit]
         </mat-option>
       </mat-select>
     </mat-form-field>
@@ -174,7 +174,7 @@
                             [title]="'Bevölkerungsentwicklung'"
                             [xSeparator]="xSeparator"
                             [animate]="true"
-                            subtitle="irgendwo">
+                            subtitle="[Gebietseinheit]">
       </app-stacked-barchart>
     </div>
   </div>
@@ -198,7 +198,7 @@
                            [xSeparator]="xSeparator"
                            [animate]="true"
                            unit="%"
-                           subtitle="irgendwo">
+                           subtitle="[Gebietseinheit]">
       </app-multiline-chart>
     </div>
   </div>

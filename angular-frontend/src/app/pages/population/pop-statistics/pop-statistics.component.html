@@ -21,6 +21,14 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
+<!--      <mat-radio-group [(ngModel)]="theme">
+        <mat-radio-button value="natur" color="primary">
+          Natürlicher Saldo
+        </mat-radio-button><br>
+        <mat-radio-button value="wanderung" color="primary">
+          Wanderung
+        </mat-radio-button>
+      </mat-radio-group>-->
       <div class="sub-select-wrapper" [style.display]="(theme==='wanderung')? 'block' : 'none'">
         <mat-checkbox [checked]="true" color="primary">Geburten</mat-checkbox><br>
         <mat-checkbox [checked]="true" color="primary">Sterbefälle</mat-checkbox>
@@ -64,7 +72,7 @@
       <mat-label>Gebiet</mat-label>
       <mat-select disableOptionCentering value="irgendwo">
         <mat-option value="irgendwo">
-          irgendwo
+          [Gebietseinheit]
         </mat-option>
       </mat-select>
     </mat-form-field>

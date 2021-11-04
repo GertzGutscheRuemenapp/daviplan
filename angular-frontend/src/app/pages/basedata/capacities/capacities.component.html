@@ -31,7 +31,7 @@
     <app-input-card [title]="'Leistungen'"
                     [subtitle]="'Leistung auswählen, um sie Standorten zuzuordnen'"
                     infoText="<p>Wählen aus der Liste die Leistung aus, die Sie den Standorten zuordnen möchten.</p>
-                    <p>Laden Sie anschließend über die Schaltfläche „Template“ in der Box „Standorte mit der ausgewählten Leistung“ eine Vorlagedatei herunter und folgen Sie den Anweisungen des dortigen Hilfetextes.</p>">
+                    <p>Laden Sie anschließend über die Schaltfläche „Vorlage herunterladen“ in der Box „Standorte mit der ausgewählten Leistung“ eine Vorlagedatei herunter und folgen Sie den Anweisungen des dortigen Hilfetextes.</p>">
       <mat-selection-list [multiple]="false"
                           class="categorized"
                           id="service-select">
@@ -50,7 +50,7 @@
   <div fxLayout="column" fxFlex="1100px">
     <app-input-card [title]="'Standorte mit der ausgewählten Leistung'"
                     [topRightHelp]="true"
-                    infoText="<p>Über die Schaltfläche „Template“ können Sie sich für die in der Box „Leistungen“ ausgewählte Leistung eine Vorlagedatei für die Standortzuordnung herunterladen.</p>
+                    infoText="<p>Über die Schaltfläche „Vorlage herunterladen“ können Sie sich für die in der Box „Leistungen“ ausgewählte Leistung eine Vorlagedatei für die Standortzuordnung herunterladen.</p>
                     <p>Diese Vorlagedatei enthält alle Standorte des betreffenden Infrastrukturbereichs und sie können darin für jeden Standort eintragen, ob die ausgewählte Leistung dort angeboten wird. Wenn dabei Kapazitäten betrachtet werden sollen, tragen Sie die Kapazität ein. Wenn nicht, markieren Sie nur die Standort mit der betreffenden Leistung durch eine „1“.</p>
                     <p>Laden Sie die ausgefüllte Vorlagedatei anschließend wieder hoch und kontrollieren Sie das Einleseergebnis in der Karte. Sie können darin für jeden Standort eintragen, ob die ausgewählte Leistung dort angeboten wird.</p>
                     <p>Wenn dabei Kapazitäten betrachtet werden sollen, tragen Sie die Kapazität als Zahlenwert ein. Wenn nicht, markieren Sie nur die Standort mit der betreffenden Leistung durch eine „1“.</p>
@@ -83,7 +83,7 @@
           </div>
           <div style="margin: 20px 0 10px 0;">
             <button mat-stroked-button color="primary" style="margin-right: 10px;">
-              <mat-icon>download</mat-icon> Template
+              <mat-icon>download</mat-icon> Vorlage herunterladen
             </button>
             <button mat-flat-button color="primary">
               <mat-icon>upload</mat-icon> Daten hochladen
