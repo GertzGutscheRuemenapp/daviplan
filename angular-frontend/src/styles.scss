@@ -337,8 +337,13 @@ app-basedata, app-administration {
   }
 }
 
+.mat-expansion-panel-header {
+  user-select: none;
+}
+
 app-basedata, app-administration{
   mat-sidenav {
+    user-select: none;
     .mat-expansion-panel-header {
       height: 70px !important;
     }
