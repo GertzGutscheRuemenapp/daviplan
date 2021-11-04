@@ -46,6 +46,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   infrastructures = mockInfrastructures;
   users = mockUsers;
   @ViewChild('processTemplate') processTemplate?: TemplateRef<any>;
+  @ViewChild('removeProject') removeProjectTemplate?: TemplateRef<any>;
   showScenarioMenu: boolean = false;
   mapControl?: MapControl;
   isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 39.9375em)')
@@ -84,21 +85,37 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.showScenarioMenu = !this.showScenarioMenu;
   }
 
-  onEditProcess(create: boolean = false): void {
-    this.createProcess = create;
+  onEditProject(project: Project | undefined = undefined): void {
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
       width: '600px',
       disableClose: false,
       data: {
-        title: create? 'Planungsprozess erstellen': 'Planungsprozess editieren',
+        title: project? 'Planungsprozess erstellen': 'Planungsprozess editieren',
         template: this.processTemplate,
         closeOnConfirm: true,
-        confirmButtonText: create? 'Bestätigen': 'Speichern',
+        context: { project: project },
+        confirmButtonText: project? 'Bestätigen': 'Speichern',
         infoText: 'Platzhalter'
       }
     });
     dialogRef.afterClosed().subscribe((ok: boolean) => {  });
     dialogRef.componentInstance.confirmed.subscribe(() => {  });
+  }
+
+  onDeleteProject(project: Project) {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '500px',
+      data: {
+        title: $localize`Den Planungsprozess wirklich entfernen?`,
+        confirmButtonText: $localize`Planungsprozess entfernen`,
+        context: { project: project },
+        template: this.removeProjectTemplate,
+        closeOnConfirm: true
+      },
+      panelClass: 'warning'
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+    });
   }
 }

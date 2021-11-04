@@ -32,31 +32,31 @@ $app-theme: mat.define-light-theme((
 
 // main heading styles not defined in typography (messes up material inputs and elements otherwise)
 // instead overriden in all text-boxes
-.welcome, .info-text, ckeditor .ck-content{
+.welcome, .info-text, ckeditor .ck-content, confirm-dialog, mat-card{
   h1 {
-    font-size: 54px ;
-    line-height: 54px;
+    font-size: 54px !important;
+    line-height: 54px !important;
     letter-spacing: 0px;
     color: $light-black;
   }
 
   h2 {
-    font-size: 28px;
-    line-height: 24px;
+    font-size: 28px !important;
+    line-height: 24px !important;
     letter-spacing: 0.21px;
     color: $light-black;
   }
 
   h3 {
-    font-size: 26px;
-    line-height: 24px;
+    font-size: 26px !important;
+    line-height: 24px !important;
     letter-spacing: 0.2px;
     color: $light-black;
   }
 
   h4 {
-    font-size: 24px;
-    line-height: 24px;
+    font-size: 24px !important;
+    line-height: 24px !important;
     letter-spacing: 0.18px;
     color: $light-black;
   }
