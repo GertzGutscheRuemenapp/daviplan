@@ -62,12 +62,9 @@
         </button>
         <button mat-icon-button color="primary"
                 title="Hilfe"
-                tooltip="Sie können sich hier Ihre Erreichbarkeitsszenarien anzeigen lassen, diese editieren, neue hinzufügen und bestehende löschen. "
-                [hideDelay]="2000"
-                trigger="click"
-                tooltipClass="context-tooltip"
-                theme="light"
-                maxWidth="300px">
+                ngbPopover="Sie können sich hier Ihre Erreichbarkeitsszenarien anzeigen lassen, diese editieren, neue hinzufügen und bestehende löschen. "
+                popoverTitle="Szenarioverwaltung"
+                [autoClose]="true">
           <mat-icon>help_outline</mat-icon>
         </button>
       </div>

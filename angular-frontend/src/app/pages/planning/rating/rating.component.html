@@ -20,7 +20,12 @@
   </mat-expansion-panel-header>
   <mat-form-field appearance="outline" class="small">
     <mat-select disableOptionCentering panelClass="custom-option-panel"
-                (selectionChange)="onIndicatorChange($event.value)" [value]="activeIndicator.id">
+                (selectionChange)="onIndicatorChange($event.value)"
+                [value]="activeIndicator.id"
+                [ngbPopover]="activeIndicator?.description"
+                placement="right"
+                container="body"
+                triggers="mouseenter:mouseleave">
       <mat-select-trigger>
         <span *ngIf="activeIndicator">
           {{ activeIndicator.name }}
@@ -35,11 +40,10 @@
         <mat-option *ngFor="let indicator of customIndicators"
                     [value]="indicator.id"
                     class="custom-option"
-                    [tooltip]="indicator.description"
-                    theme="light"
+                    [ngbPopover]="indicator.description"
                     placement="right"
-                    maxWidth="400px"
-                    [hideDelay]="0">
+                    container="body"
+                    triggers="mouseenter:mouseleave">
           <div class="option-title">
             {{indicator.name}}
           </div>
@@ -60,11 +64,10 @@
       <mat-optgroup label="Vorgegebene Indikatoren">
         <mat-option *ngFor="let indicator of indicators"
                     [value]="indicator.id"
-                    tooltip="{{indicator.description}}"
-                    theme="light"
+                    [ngbPopover]="indicator.description"
                     placement="right"
-                    maxWidth="400px"
-                    [hideDelay]="0">
+                    container="body"
+                    triggers="mouseenter:mouseleave">
           {{indicator.name}}
         </mat-option>
       </mat-optgroup>
