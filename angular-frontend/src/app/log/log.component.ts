@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, AfterViewInit, ElementRef, ViewChild, Input } from '@angular/core';
 import { mockLogs, LogEntry } from "./logs";
 
 @Component({
@@ -8,6 +8,7 @@ import { mockLogs, LogEntry } from "./logs";
 })
 export class LogComponent implements AfterViewInit {
   @ViewChild('log') logEl!: ElementRef;
+  @Input() height: string = '100%';
 
   entries: LogEntry[] = [];
 
@@ -20,7 +21,8 @@ export class LogComponent implements AfterViewInit {
 
   addLogEntry(entry: LogEntry): void {
     let textArea = this.logEl.nativeElement;
-    textArea.value += `${entry.date.toLocaleDateString()} ${entry.date.toLocaleTimeString()} - ${entry.text}\r\n`;
+    let row = `${entry.date.toLocaleDateString()} ${entry.date.toLocaleTimeString()} - ${entry.text}\r\n`;
+    textArea.value += row;
   }
 
 }

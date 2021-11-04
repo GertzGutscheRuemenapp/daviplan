@@ -26,6 +26,7 @@
 mat-card {
   display: flex;
   flex-direction: column;
+  user-select: none;
 }
 
 .more-button {
@@ -183,11 +184,10 @@ mat-card {
   mat-expansion-panel {
     background: none;
     mat-expansion-panel-header {
-      float: right;
+      margin-left: calc(100% - 88px);
     }
     .mat-expansion-panel-body {
       background: white;
-      margin-top: 30px;
     }
   }
 }

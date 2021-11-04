@@ -105,7 +105,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
 
   onDeleteProject(project: Project) {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '500px',
+      width: '460px',
       data: {
         title: $localize`Den Planungsprozess wirklich entfernen?`,
         confirmButtonText: $localize`Planungsprozess entfernen`,
