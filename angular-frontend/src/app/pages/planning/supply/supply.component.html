@@ -22,7 +22,7 @@
     <div style="position: relative;">
       <mat-form-field appearance="outline" class="small">
         <mat-label>Infrastrukturbereich</mat-label>
-        <mat-select disableOptionCentering
+        <mat-select disableOptionCentering disableRipple
                     [(value)]="selectedInfrastructure"
                     [ngbPopover]="selectedInfrastructure?.description"
                     placement="right"
@@ -118,7 +118,7 @@
       </mat-radio-button>
       <mat-form-field appearance="outline" class="small">
         <!--          <mat-label>Jahr</mat-label>-->
-        <mat-select disableOptionCentering [value]="years[0]" [disabled]="!compareSupply || compareStatus != 'option 1'">
+        <mat-select disableOptionCentering disableRipple [value]="years[0]" [disabled]="!compareSupply || compareStatus != 'option 1'">
           <mat-option *ngFor="let year of years" [value]="year">
             {{year}}
           </mat-option>
@@ -130,7 +130,7 @@
         Mit Angebotsstrukturen im gleichen Jahr im Szenario
       </mat-radio-button>
       <mat-form-field appearance="outline" class="small">
-        <mat-select disableOptionCentering value="1" [disabled]="!compareSupply || compareStatus != 'option 2'">
+        <mat-select disableOptionCentering disableRipple value="1" [disabled]="!compareSupply || compareStatus != 'option 2'">
           <mat-option value="1">
             Szenario 1
           </mat-option>
