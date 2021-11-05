@@ -26,6 +26,17 @@
   }
 }
 
+#time-slider {
+  align-items: center;
+  display: flex;
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+  padding: 0 10px;
+  mat-slider {
+    width: 500px;
+  }
+}
+
 ::ng-deep app-rating #chart-toggle {
   // side toggle for charts does not "lie under" side nav (context bar)
   // workaround to make it look like it does by adding left inner shadow

@@ -1,0 +1,23 @@
+<div style="position: relative">
+  <h4 *ngIf="data.title" mat-dialog-title>{{ data.title }}</h4>
+  <span *ngIf="data.subtitle" class="subtitle1 sub">{{data.subtitle}}</span>
+  <button color="primary" mat-icon-button mat-dialog-close id="close-button">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+<mat-dialog-content>
+  <ng-container *ngTemplateOutlet="data.template; context: data.context"></ng-container>
+  <div *ngIf="data.infoText" class="info-text" style="margin-top: 15px;">
+    <mat-expansion-panel class="text-panel" [expanded]="data.infoExpanded">
+      <mat-expansion-panel-header>
+        <mat-icon color="primary" class="material-icons-outlined"
+                  style="margin-right: 5px;">help_outline</mat-icon>
+        <span class="subtitle1" style="color: grey;">Hilfe</span>
+      </mat-expansion-panel-header>
+      <span [innerHTML]="data.infoText"></span>
+    </mat-expansion-panel>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions *ngIf="data.showOkButton">
+  <button mat-button mat-dialog-close class="mat-button-dv" color="primary">OK</button>
+</mat-dialog-actions>

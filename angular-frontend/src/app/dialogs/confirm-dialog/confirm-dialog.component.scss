@@ -41,4 +41,7 @@ mat-dialog-content {
     color: $accent;
   }
 
+  .mat-dialog-content {
+    max-height: 90vh;
+  }
 }
