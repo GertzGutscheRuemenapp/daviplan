@@ -83,6 +83,7 @@ import { HeaderCardComponent } from "./dash/header-card.component";
 import { FilterTableComponent } from './elements/filter-table/filter-table.component';
 import { MatChipsModule } from "@angular/material/chips";
 import { CookieExpansionDirective } from './helpers/cookie-expansion.directive';
+import { SimpleDialogComponent } from './dialogs/simple-dialog/simple-dialog.component';
 
 @NgModule({
   declarations: [
@@ -134,7 +135,8 @@ import { CookieExpansionDirective } from './helpers/cookie-expansion.directive';
     ExternalLayersComponent,
     CheckTreeComponent,
     FilterTableComponent,
-    CookieExpansionDirective
+    CookieExpansionDirective,
+    SimpleDialogComponent
   ],
     imports: [
         BrowserModule,

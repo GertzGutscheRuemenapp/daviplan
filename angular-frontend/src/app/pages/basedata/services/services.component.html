@@ -122,7 +122,7 @@
   <div fxLayout="column">
     <mat-form-field appearance="fill">
       <mat-label i18n>Infrastruktur</mat-label>
-      <mat-select [value]="infrastructures[0].id">
+      <mat-select disableRipple [value]="infrastructures[0].id">
         <mat-option *ngFor="let infrastructure of infrastructures" [value]="infrastructure.id">
           {{infrastructure.name}}
         </mat-option>

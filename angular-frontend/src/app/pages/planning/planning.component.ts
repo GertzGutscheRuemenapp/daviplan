@@ -91,11 +91,11 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
       width: '600px',
       disableClose: false,
       data: {
-        title: project? 'Planungsprozess erstellen': 'Planungsprozess editieren',
+        title: project? 'Planungsprozess editieren': 'Planungsprozess erstellen',
         template: this.processTemplate,
         closeOnConfirm: true,
         context: { project: project },
-        confirmButtonText: project? 'Bestätigen': 'Speichern',
+        confirmButtonText: project? 'Speichern': 'Bestätigen',
         infoText: 'Platzhalter'
       }
     });

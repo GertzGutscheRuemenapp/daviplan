@@ -116,7 +116,7 @@
             <div style="padding: 10px;">
               <mat-form-field appearance="outline" class="small">
                 <mat-label>Gebietseinheit</mat-label>
-                <mat-select disableOptionCentering [value]="areaLevels[0]">
+                <mat-select disableOptionCentering disableRipple [value]="areaLevels[0]">
                   <mat-option [value]="areaLevel" *ngFor="let areaLevel of areaLevels">
                     {{areaLevel.name}}
                   </mat-option>

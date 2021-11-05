@@ -43,24 +43,24 @@
     </div>
     <div id="scenario-controls">
       <div>
-        <button mat-icon-button color="primary"
+        <button mat-icon-button color="primary" class="small"
                 [disabled]="activeScenario === 'Status Quo'"
                 (click)="onEditScenario()"
                 title="ausgewähltes Szenario editieren">
           <mat-icon>edit</mat-icon>
         </button>
-        <button mat-icon-button color="primary"
+        <button mat-icon-button color="primary" class="small"
                 (click)="onCreateScenario()"
                 title="Szenario erstellen">
           <mat-icon>add</mat-icon>
         </button>
-        <button mat-icon-button color="primary"
+        <button mat-icon-button color="primary" class="small"
                 [disabled]="activeScenario === 'Status Quo'"
                 (click)="onDeleteScenario()"
                 title="ausgewähltes Szenario entfernen">
           <mat-icon>close</mat-icon>
         </button>
-        <button mat-icon-button color="primary"
+        <button mat-icon-button color="primary" class="small"
                 title="Hilfe"
                 ngbPopover="Sie können sich hier Ihre Erreichbarkeitsszenarien anzeigen lassen, diese editieren, neue hinzufügen und bestehende löschen. "
                 popoverTitle="Szenarioverwaltung"
@@ -113,7 +113,7 @@
     </mat-icon>
     <mat-form-field appearance="standard" class="small">
       <mat-label>Nachfragequoten-Set</mat-label>
-      <mat-select disableOptionCentering [value]="quotas[1]">
+      <mat-select disableOptionCentering disableRipple [value]="quotas[1]">
         <mat-option *ngFor="let quota of quotas" [value]="quota">
           {{quota}}
         </mat-option>
@@ -128,7 +128,7 @@
     </mat-icon>
     <mat-form-field appearance="standard" class="small">
       <mat-label>Einwohnerentwicklung</mat-label>
-      <mat-select disableOptionCentering [value]="prognoses[1]">
+      <mat-select disableOptionCentering disableRipple [value]="prognoses[1]">
         <mat-option *ngFor="let prognosis of prognoses" [value]="prognosis">
           {{prognosis}}
         </mat-option>
@@ -146,7 +146,7 @@
     </mat-icon>
     <mat-form-field appearance="standard" class="small">
       <mat-label>Nachfragequoten-Set</mat-label>
-      <mat-select [value]="quotas[0]">
+      <mat-select disableRipple [value]="quotas[0]">
         <mat-option [value]="quotas[0]">
           {{quotas[0]}}
         </mat-option>
@@ -161,7 +161,7 @@
     </mat-icon>
     <mat-form-field appearance="standard" class="small">
       <mat-label>Einwohnerentwicklung</mat-label>
-      <mat-select [value]="prognoses[0]">
+      <mat-select disableRipple [value]="prognoses[0]">
         <mat-option [value]="prognoses[0]">
           {{prognoses[0]}}
         </mat-option>
@@ -180,7 +180,7 @@
     </mat-icon>-->
     <mat-form-field appearance="standard" class="small">
       <mat-label>Verkehrsmittelvariante</mat-label>
-      <mat-select disableOptionCentering value="Ausbau der B232">
+      <mat-select disableOptionCentering disableRipple value="Ausbau der B232">
         <mat-option value="Dtl 2021">
           Dtl 2021
         </mat-option>
@@ -200,7 +200,7 @@
     </mat-icon>-->
     <mat-form-field appearance="standard" class="small">
       <mat-label>Verkehrsmittelvariante</mat-label>
-      <mat-select value="Dtl 2021">
+      <mat-select disableRipple value="Dtl 2021">
         <mat-option value="Dtl 2021">
           Dtl 2021
         </mat-option>

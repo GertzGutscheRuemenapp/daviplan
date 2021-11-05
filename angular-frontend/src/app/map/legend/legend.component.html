@@ -10,7 +10,7 @@
       <p>Im Editiermodus werden alle verfügbaren Layer angezeigt. Sie können einzelne Layer und ihre Darstellung in der Karte aktivieren und deaktivieren. Mit den Schiebereglern wird die Transparenz der jeweiligen Layer eingestellt.</p>
       <p>derzeit aktiv: <b *ngIf="editMode">Editiermodus</b> <b *ngIf="!editMode">kompakter Modus</b></p>
     </ng-template>
-    <button mat-icon-button color="primary"
+    <button mat-icon-button color="primary" class="small" style="margin-left: 5px;"
             title="Hilfe"
             [ngbPopover]="legendPopover"
             popoverTitle="Legende"
@@ -66,7 +66,7 @@
       <div class="legend-entry">
         <div class="legend-layer-title">
           <mat-form-field appearance="outline" class="small" style="width: 180px;">
-            <mat-select [(ngModel)]="activeBackground" (selectionChange)="this.mapControl.setBackground($event.value); opacityChanged(activeBackground!, backgroundOpacity);">
+            <mat-select disableRipple [(ngModel)]="activeBackground" (selectionChange)="this.mapControl.setBackground($event.value); opacityChanged(activeBackground!, backgroundOpacity);">
               <mat-option *ngFor="let layer of backgroundLayers" [value]="layer.id"> {{layer.name}} </mat-option>
             </mat-select>
           </mat-form-field>

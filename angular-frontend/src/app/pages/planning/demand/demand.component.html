@@ -20,7 +20,7 @@
   </mat-expansion-panel-header>
   <mat-form-field appearance="outline" class="small">
     <mat-label>Infrastrukturbereich</mat-label>
-    <mat-select disableOptionCentering
+    <mat-select disableOptionCentering disableRipple
                 [(value)]="selectedInfrastructure"
                 [ngbPopover]="selectedInfrastructure?.description"
                 placement="right"
@@ -71,7 +71,7 @@
     </mat-panel-title>
   </mat-expansion-panel-header>
   <mat-form-field appearance="outline" class="small">
-    <mat-select disableOptionCentering [value]="areaLevels[0]">
+    <mat-select disableOptionCentering disableRipple [value]="areaLevels[0]">
       <mat-option [value]="areaLevel" *ngFor="let areaLevel of areaLevels">
         {{areaLevel.name}}
       </mat-option>
@@ -108,7 +108,7 @@
         Mit Nachfrage im gleichen Szenario im Jahr
       </mat-radio-button>
       <mat-form-field appearance="outline" class="small">
-        <mat-select disableOptionCentering [value]="years[0]" [disabled]="!compareSupply || compareStatus != 'option 1'">
+        <mat-select disableOptionCentering disableRipple [value]="years[0]" [disabled]="!compareSupply || compareStatus != 'option 1'">
           <mat-option *ngFor="let year of years" [value]="year">
             {{year}}
           </mat-option>
@@ -120,7 +120,7 @@
         Mit Nachfrage im gleichen Jahr im Szenario
       </mat-radio-button>
       <mat-form-field appearance="outline" class="small">
-        <mat-select disableOptionCentering value="1" [disabled]="!compareSupply || compareStatus != 'option 2'">
+        <mat-select disableOptionCentering disableRipple value="1" [disabled]="!compareSupply || compareStatus != 'option 2'">
           <mat-option value="1">
             Szenario 1
           </mat-option>
