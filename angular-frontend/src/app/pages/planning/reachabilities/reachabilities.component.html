@@ -102,10 +102,7 @@
       <div class="row-button" [ngClass]="{'active': selectFacMode, 'disabled': indicator!=='option 1'}" (click)="selectFacMode = !selectFacMode">
         <label i18n>Einrichtung auswählen</label>
         <div class="fill-space"></div>
-        <button color="primary" *ngIf="!selectFacMode" class="small" mat-icon-button>
-          <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
-        </button>
-        <button color="primary" *ngIf="selectFacMode" class="small" mat-mini-fab>
+        <button color="primary" [ngClass]="{inverted: selectFacMode}" class="small" mat-icon-button>
           <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
         </button>
       </div>
@@ -118,7 +115,7 @@
         <button color="primary" *ngIf="!selectLivMode" class="small" mat-icon-button>
           <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
         </button>
-        <button color="primary" *ngIf="selectLivMode" class="small" mat-mini-fab>
+        <button color="primary" *ngIf="selectLivMode" class="small no-shadow" mat-mini-fab>
           <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
         </button>
       </div>

@@ -896,6 +896,8 @@ app-map-controls {
     margin-left: 10px;
     color: map-get($blue-palette, 600);
   }
+}
+.row-button:not(.active):hover {
   .mat-icon-button {
     background-color: map-get($blue-palette, A200);
   }
