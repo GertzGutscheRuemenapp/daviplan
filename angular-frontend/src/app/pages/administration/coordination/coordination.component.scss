@@ -56,6 +56,6 @@ tr.warning{
 
 tr.in-progress{
   td:not(:first-child), td.not-first-child {
-    background-color: $warning-light;
+    background-color: #FFCE0014;
   }
 }
