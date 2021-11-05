@@ -18,7 +18,8 @@
         <mat-icon color="primary">info</mat-icon>
         <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
       </div>
-      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-planning-description" [cookieExpansionInit]="true">
+      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-planning-description"
+                       [initiallyExpanded]="true">
         <div style="padding: 10px; min-height: 70px;" [innerHTML]="this.mapControl?.mapDescription"></div>
       </app-side-toggle>
     </div>
@@ -27,7 +28,8 @@
         <mat-icon color="primary">event</mat-icon>
         <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
       </div>
-      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-planning-timeslider" [cookieExpansionInit]="true">
+      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-planning-timeslider"
+                       [initiallyExpanded]="true">
         <div style="padding: 18px 10px 12px 10px">
           <app-time-slider [prognosisEnd]="2013" [years]="[2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025]"></app-time-slider>
         </div>
@@ -75,8 +77,8 @@
         </mat-select-trigger>
         <mat-optgroup label="Meine Planungsprozesse">
           <button title="Planungsprozess erstellen"
-                  mat-icon-button color="primary"
-                  style="position: absolute; right: 7px; top: 5px;"
+                  mat-icon-button color="primary" class="small"
+                  style="position: absolute; right: 6px; top: 5px;"
                   (click)="onEditProject()">
             <mat-icon>add</mat-icon>
           </button>
@@ -96,12 +98,12 @@
                 {{project.name}}
               </div>
               <div class="option-controls">
-                <button mat-icon-button color="primary"
+                <button mat-icon-button color="primary" class="small"
                         (click)="$event.stopPropagation(); onEditProject(project)"
                         title="Planungsprozess editieren">
                   <mat-icon>edit</mat-icon>
                 </button>
-                <button mat-icon-button color="primary"
+                <button mat-icon-button color="primary" class="small"
                         (click)="$event.stopPropagation(); onDeleteProject(project);"
                         title="Planungsprozess löschen">
                   <mat-icon>remove</mat-icon>
@@ -131,7 +133,7 @@
         </mat-optgroup>
       </mat-select>
     </mat-form-field>
-    <button mat-icon-button color="primary"
+    <button mat-icon-button color="primary" class="small"
             title="Hilfe"
             ngbPopover="Wählen Sie hier den Planungsprozess aus. Mit einem Klick auf das Stift-Symbol können Sie den ausgewählten Planungsprozess editieren. Über das Plus-Symbol können Sie Planungsprozesse hinzufügen."
             popoverTitle="Planungsprozess"
@@ -139,13 +141,13 @@
             [autoClose]="true">
       <mat-icon>help_outline</mat-icon>
     </button>
-    <button *ngIf="activeProject" class="process-button"
+    <button *ngIf="activeProject" class="process-button small"
             title="ausgewählten Planungsprozess editieren"
             mat-icon-button color="primary"
             (click)="onEditProject(activeProject)" i18n>
       <mat-icon>edit</mat-icon>
     </button>
-    <button *ngIf="!activeProject" class="process-button"
+    <button *ngIf="!activeProject" class="process-button small"
             title="Planungsprozess erstellen"
             mat-icon-button color="primary"
             (click)="onEditProject()" i18n>
@@ -169,7 +171,7 @@
                  icon="layers"
                  name="Legenden- und Layersteuerung"
                  direction="left"
-                 cookieExpansion="exp-planning-legend" [cookieExpansionInit]="true">
+                 cookieExpansion="exp-planning-legend" [initiallyExpanded]="true">
   <app-legend target="planning-map"></app-legend>
 </app-side-toggle>
 

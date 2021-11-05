@@ -3,6 +3,7 @@ import { Indicator, mockIndicators } from "../../basedata/indicators/indicators.
 import { mockPresetLevels } from "../../basedata/areas/areas";
 import { CookieService } from "../../../helpers/cookies.service";
 import { mockInfrastructures } from "../../administration/infrastructure/infrastructure.component";
+import { environment } from "../../../../environments/environment";
 
 const mockCustomIndicators: Indicator[] = [
   {id: 6, service: mockInfrastructures[0].services[0].id, name: 'Test + langer Text der die maximale Größe des Containers überschreiten sollte', description: 'eigener Testindikator'},
@@ -15,6 +16,7 @@ const mockCustomIndicators: Indicator[] = [
   styleUrls: ['./rating.component.scss']
 })
 export class RatingComponent implements OnInit {
+  backend: string = environment.backend;
   years = [2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025];
   compareSupply = true;
   compareStatus = 'option 1';

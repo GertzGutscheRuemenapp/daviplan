@@ -433,6 +433,19 @@ button.mat-icon-button {
   background-color: map-get($blue-palette, A200);
 }
 
+.mat-mini-fab.small, .mat-icon-button.small {
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+}
+
+/*.mat-mini-fab.small {
+  .mat-icon {
+    font-size: 20px;
+    margin-top: 0;
+  }
+}*/
+
 .dropzone {
   min-height: 300px;
   min-width: 300px;

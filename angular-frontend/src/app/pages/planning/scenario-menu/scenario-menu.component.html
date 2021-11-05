@@ -43,24 +43,24 @@
     </div>
     <div id="scenario-controls">
       <div>
-        <button mat-icon-button color="primary"
+        <button mat-icon-button color="primary" class="small"
                 [disabled]="activeScenario === 'Status Quo'"
                 (click)="onEditScenario()"
                 title="ausgewähltes Szenario editieren">
           <mat-icon>edit</mat-icon>
         </button>
-        <button mat-icon-button color="primary"
+        <button mat-icon-button color="primary" class="small"
                 (click)="onCreateScenario()"
                 title="Szenario erstellen">
           <mat-icon>add</mat-icon>
         </button>
-        <button mat-icon-button color="primary"
+        <button mat-icon-button color="primary" class="small"
                 [disabled]="activeScenario === 'Status Quo'"
                 (click)="onDeleteScenario()"
                 title="ausgewähltes Szenario entfernen">
           <mat-icon>close</mat-icon>
         </button>
-        <button mat-icon-button color="primary"
+        <button mat-icon-button color="primary" class="small"
                 title="Hilfe"
                 ngbPopover="Sie können sich hier Ihre Erreichbarkeitsszenarien anzeigen lassen, diese editieren, neue hinzufügen und bestehende löschen. "
                 popoverTitle="Szenarioverwaltung"

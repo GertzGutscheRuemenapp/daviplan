@@ -8,7 +8,7 @@ import { SideToggleComponent } from "../elements/side-toggle/side-toggle.compone
 })
 export class CookieExpansionDirective implements OnInit {
   @Input() cookieExpansion = '';
-  @Input() cookieExpansionInit = false;
+  @Input() initiallyExpanded = false;
   component!: MatExpansionPanel | SideToggleComponent;
 
   constructor(private host: ViewContainerRef , private cookies: CookieService) {
@@ -17,7 +17,7 @@ export class CookieExpansionDirective implements OnInit {
   }
 
   ngOnInit() {
-    let expand: any = this.cookieExpansionInit;
+    let expand: any = this.initiallyExpanded;
     if (!this.cookies.has(this.cookieExpansion)){
       this.cookies.set(this.cookieExpansion, expand);
     }

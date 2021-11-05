@@ -38,7 +38,7 @@
         </mat-select>
       </mat-form-field>
       <button color="primary" mat-icon-button
-              class="filter-button" title="Standortfilter"
+              class="filter-button small" title="Standortfilter"
               (click)="onFilter()">
         <mat-icon>filter_list</mat-icon>
       </button>
@@ -66,7 +66,7 @@
         <div class="row-button">
           <label i18n>Zoom auf alle</label>
           <div class="fill-space"></div>
-          <button mat-icon-button color="primary">
+          <button mat-icon-button color="primary" class="small">
             <mat-icon>location_searching</mat-icon>
           </button>
         </div>
@@ -102,10 +102,10 @@
       <div class="row-button" [ngClass]="{'active': selectFacMode, 'disabled': indicator!=='option 1'}" (click)="selectFacMode = !selectFacMode">
         <label i18n>Einrichtung auswählen</label>
         <div class="fill-space"></div>
-        <button color="primary" *ngIf="!selectFacMode" mat-icon-button>
+        <button color="primary" *ngIf="!selectFacMode" class="small" mat-icon-button>
           <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
         </button>
-        <button color="primary" *ngIf="selectFacMode" mat-mini-fab>
+        <button color="primary" *ngIf="selectFacMode" class="small" mat-mini-fab>
           <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
         </button>
       </div>
@@ -115,10 +115,10 @@
       <div class="row-button" [ngClass]="{'active': selectLivMode, 'disabled': indicator!=='option 2'}" (click)="selectLivMode = !selectLivMode">
         <label i18n>Wohnstandort auswählen</label>
         <div class="fill-space"></div>
-        <button color="primary" *ngIf="!selectLivMode" mat-icon-button>
+        <button color="primary" *ngIf="!selectLivMode" class="small" mat-icon-button>
           <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
         </button>
-        <button color="primary" *ngIf="selectLivMode" mat-mini-fab>
+        <button color="primary" *ngIf="selectLivMode" class="small" mat-mini-fab>
           <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
         </button>
       </div>

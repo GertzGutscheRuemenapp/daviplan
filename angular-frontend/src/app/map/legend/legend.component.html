@@ -10,7 +10,7 @@
       <p>Im Editiermodus werden alle verfügbaren Layer angezeigt. Sie können einzelne Layer und ihre Darstellung in der Karte aktivieren und deaktivieren. Mit den Schiebereglern wird die Transparenz der jeweiligen Layer eingestellt.</p>
       <p>derzeit aktiv: <b *ngIf="editMode">Editiermodus</b> <b *ngIf="!editMode">kompakter Modus</b></p>
     </ng-template>
-    <button mat-icon-button color="primary"
+    <button mat-icon-button color="primary" class="small" style="margin-left: 5px;"
             title="Hilfe"
             [ngbPopover]="legendPopover"
             popoverTitle="Legende"
