@@ -26,7 +26,7 @@
       </div>
     </app-input-card>
     <app-input-card [title]="'Jahre'"
-                    subtitle="Verfügbare Jahre bearbeiten"
+                    subtitle="Verfügbare Jahre"
                     infoText="<p>Die Liste in dieser Box enthält die Jahre, für die Daten aus dem Online-Angebot der Regionalstatistik heruntergeladen werden konnten.</p>
                     <p>Wenn Sie den Nutzer*innen im Hauptmenüabschnitt „Bevölkerung“ ein Jahr davon nicht zur Verfügung stellen möchten, wählen Sie dieses in der Liste aus und klicken Sie auf „Entfernen“. Um es wieder hinzuzufügen, müssen Sie alle Daten erneut von der Regionalstatistik abrufen.</p>
                     <p>Wenn Sie eines der Jahre in der Liste auswählen, werden Ihnen die zugehörigen Werte zur natürlichen Bevölkerungsentwicklung (Geburten und Sterbefälle) und zu den Wanderungen (Zu- und Fortzüge) in der Karte angezeigt. Die Inhalte der Karte steuern Sie über die Menü oben links in der Karte. Ist dieses eingeklappt, klicken Sie bitte auf das Icon mit der Familie.</p>">
@@ -48,7 +48,7 @@
   </div>
   <div fxLayout="column" fxFlex="800px">
     <app-input-card [title]="'Daten des ausgewählten Jahres'"
-                    subtitle="Natürliches Saldo (Geburten und Sterbefälle) und Wanderungssaldo (Zu- und Fortzüge) für ausgewähltes Jahr anzeigen lassen."
+                    subtitle="Natürliches Saldo (Geburten und Sterbefälle) und Wanderungssaldo (Zu- und Fortzüge) für ausgewähltes Jahr"
                     [topRightHelp]="true"
                     infoText="<p>Die Karte veranschaulicht Ihnen die Daten für das in der Box „Jahre“ ausgewählte Jahr.</p>
                     <p>Die Inhalte der Karte – also natürliche Bevölkerungsentwicklung (Geburten und Sterbefälle) oder Wanderungen (Zu- und Fortzüge) – steuern Sie über das Menü oben links in der Karte. Ist dieses eingeklappt, klicken Sie bitte auf das Icon mit der Familie.</p>
@@ -81,7 +81,7 @@
           <div style="padding: 15px;">
             <mat-form-field appearance="outline" class="small">
               <mat-label i18n>Thema</mat-label>
-              <mat-select disableOptionCentering [(ngModel)]="theme">
+              <mat-select disableOptionCentering disableRipple [(ngModel)]="theme">
                 <mat-option value="natur">
                   Natürlicher Saldo
                 </mat-option>

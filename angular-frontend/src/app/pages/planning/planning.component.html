@@ -4,13 +4,6 @@
         <mat-icon>menu</mat-icon>
       </button>
     </div>-->
-  <ng-template #apTip>
-    <b>{{ activeProject?.name }}</b> <br>
-    <i>{{ activeProject?.description }}</i>
-    <mat-divider></mat-divider>
-    <div *ngIf="activeProject?.shared && !activeProject?.user">geteilt mit ...</div>
-    <div *ngIf="activeProject?.user">{{(activeProject?.editable)? 'editierbar': 'nicht editierbar'}} <br> geteilt durch <i>{{activeProject?.user}}</i></div>
-  </ng-template>
   <span class="sub-links">
     <a routerLink="/planung/nachfrage" routerLinkActive="active-link" i18n> Nachfrage </a>
     <a routerLink="/planung/angebot" routerLinkActive="active-link" i18n> Angebot </a>
@@ -25,7 +18,8 @@
         <mat-icon color="primary">info</mat-icon>
         <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
       </div>
-      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-planning-description" [cookieExpansionInit]="true">
+      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-planning-description"
+                       [initiallyExpanded]="true">
         <div style="padding: 10px; min-height: 70px;" [innerHTML]="this.mapControl?.mapDescription"></div>
       </app-side-toggle>
     </div>
@@ -34,7 +28,8 @@
         <mat-icon color="primary">event</mat-icon>
         <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
       </div>
-      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-planning-timeslider" [cookieExpansionInit]="true">
+      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-planning-timeslider"
+                       [initiallyExpanded]="true">
         <div style="padding: 18px 10px 12px 10px">
           <app-time-slider [prognosisEnd]="2013" [years]="[2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025]"></app-time-slider>
         </div>
@@ -43,6 +38,22 @@
     <app-map-controls></app-map-controls>
   </div>
 </div>
+<ng-template #activeProjectPopover>
+  <ng-container *ngIf="activeProject">
+    <ng-container *ngIf="activeProject.description">
+      <i>{{activeProject.description }}</i>
+      <mat-divider></mat-divider>
+    </ng-container>
+    <div *ngIf="activeProject?.shared && !activeProject?.user">
+      geteilt mit ...
+    </div>
+    <div *ngIf="activeProject?.user">
+      {{(activeProject?.editable)? 'editierbar': 'nicht editierbar'}} <br>
+      geteilt durch <i>{{activeProject?.user}}</i>
+    </div>
+  </ng-container>
+  <div *ngIf="!activeProject" i18n>Wählen Sie hier einen Planungsprozess aus</div>
+</ng-template>
 <mat-sidenav #drawer class="context-bar"
              [opened]="(isSM$ | async) === false">
   <div id="process-select">
@@ -51,73 +62,95 @@
     </div>
     <mat-form-field appearance="standard" class="small">
       <mat-label>Planungsprozess</mat-label>
-      <mat-select disableOptionCentering
-                  [tooltip]="(activeProject)? $any(apTip): ''" contentType="template"
-                  [hideDelay]="0"
-                  tooltipClass="context-tooltip"
-                  theme="light"
-                  maxWidth="400px"
+      <mat-select disableOptionCentering disableRipple
+                  [ngbPopover]="activeProjectPopover"
+                  [popoverTitle]="activeProject?.name"
                   placement="right"
+                  container="body"
+                  triggers="mouseenter:mouseleave"
+                  panelClass="custom-option-panel"
                   (selectionChange)="onProcessChange($event.value)">
+        <mat-select-trigger>
+          <span *ngIf="activeProject">
+            {{ activeProject.name }}
+          </span>
+        </mat-select-trigger>
         <mat-optgroup label="Meine Planungsprozesse">
           <button title="Planungsprozess erstellen"
-                  mat-icon-button color="primary"
-                  style="position: absolute; right: 7px; top: 5px;"
-                  (click)="onEditProcess(true)">
+                  mat-icon-button color="primary" class="small"
+                  style="position: absolute; right: 6px; top: 5px;"
+                  (click)="onEditProject()">
             <mat-icon>add</mat-icon>
           </button>
-          <mat-option *ngFor="let project of myProjects"
-                      tooltip="{{(project.description)? '<i>' + project.description + '</i><br>' : ''}} {{(project.shared)? 'geteilt mit ...': ''}}"
-                      theme="light"
-                      [value]="project.id"
-                      [hideDelay]="0"
-                      tooltipClass="context-tooltip"
-                      placement="right">
-            {{ project.name }}
-          </mat-option>
-          <!--          <mat-option tooltip="Prozess hinzufügen"
-                                theme="light"
-                                [hideDelay]="0"
-                                placement="right">
-                      <button mat-icon-button color="primary">
-                        <mat-icon>add</mat-icon>
-                      </button>
-                    </mat-option>-->
+          <ng-container *ngFor="let project of myProjects">
+            <ng-template #projectPopover>
+              <ng-container *ngIf="project.description"> <i>{{project.description }}</i></ng-container>
+              <mat-divider *ngIf="project.description && project.shared"></mat-divider>
+              {{(project.shared)? 'geteilt mit ...': ''}}
+            </ng-template>
+            <mat-option class="custom-option"
+                        [value]="project.id"
+                        [ngbPopover]="projectPopover"
+                        placement="right"
+                        container="body"
+                        triggers="mouseenter:mouseleave">
+              <div class="option-title">
+                {{project.name}}
+              </div>
+              <div class="option-controls">
+                <button mat-icon-button color="primary" class="small"
+                        (click)="$event.stopPropagation(); onEditProject(project)"
+                        title="Planungsprozess editieren">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="primary" class="small"
+                        (click)="$event.stopPropagation(); onDeleteProject(project);"
+                        title="Planungsprozess löschen">
+                  <mat-icon>remove</mat-icon>
+                </button>
+              </div>
+            </mat-option>
+          </ng-container>
         </mat-optgroup>
         <mat-optgroup *ngIf="sharedProjects" label="Geteilte Planungsprozesse">
-          <mat-option *ngFor="let project of sharedProjects"
-                      [value]="project.id"
-                      tooltip="{{(project.description)? '<i>' + project.description + '</i><br>' : ''}} {{(project.editable)? 'editierbar': 'nicht editierbar'}} <br> geteilt durch <i>{{project.user}}</i>"
-                      [hideDelay]="0"
-                      tooltipClass="context-tooltip"
-                      theme="light"
-                      maxWidth="400px"
-                      placement="right">
-            {{ project.name }}
-          </mat-option>
+          <ng-container *ngFor="let project of sharedProjects">
+            <ng-template #projectPopover>
+              <ng-container *ngIf="project.description">
+                <i>{{project.description }}</i>
+                <mat-divider></mat-divider>
+              </ng-container>
+              {{(project.editable)? 'editierbar': 'nicht editierbar'}}<br>
+              geteilt durch <i>{{project.user}}</i>
+            </ng-template>
+            <mat-option [value]="project.id"
+                        [ngbPopover]="projectPopover"
+                        placement="right"
+                        container="body"
+                        triggers="mouseenter:mouseleave">
+              {{ project.name }}
+            </mat-option>
+          </ng-container>
         </mat-optgroup>
       </mat-select>
     </mat-form-field>
-    <button mat-icon-button color="primary"
+    <button mat-icon-button color="primary" class="small"
             title="Hilfe"
-            tooltip="Wählen Sie hier den Planungsprozess aus. Mit einem Klick auf das Stift-Symbol können Sie den ausgewählten Planungsprozess editieren. Über das Plus-Symbol können Sie Planungsprozesse hinzufügen."
-            [hideDelay]="3000"
-            trigger="click"
-            tooltipClass="context-tooltip"
-            theme="light"
-            maxWidth="300px">
+            ngbPopover="Wählen Sie hier den Planungsprozess aus. Mit einem Klick auf das Stift-Symbol können Sie den ausgewählten Planungsprozess editieren. Über das Plus-Symbol können Sie Planungsprozesse hinzufügen."
+            popoverTitle="Planungsprozess"
+            container="body"
+            [autoClose]="true">
       <mat-icon>help_outline</mat-icon>
     </button>
-    <button *ngIf="activeProject" class="process-button"
+    <button *ngIf="activeProject" class="process-button small"
             title="ausgewählten Planungsprozess editieren"
             mat-icon-button color="primary"
-            (click)="onEditProcess()" i18n>
+            (click)="onEditProject(activeProject)" i18n>
       <mat-icon>edit</mat-icon>
     </button>
-    <button *ngIf="!activeProject" class="process-button"
+    <button *ngIf="!activeProject" class="process-button small"
             title="Planungsprozess erstellen"
             mat-icon-button color="primary"
-            (click)="onEditProcess(true)" i18n>
+            (click)="onEditProject()" i18n>
       <mat-icon>add</mat-icon>
     </button>
   </div>
@@ -138,22 +171,22 @@
                  icon="layers"
                  name="Legenden- und Layersteuerung"
                  direction="left"
-                 cookieExpansion="exp-planning-legend" [cookieExpansionInit]="true">
+                 cookieExpansion="exp-planning-legend" [initiallyExpanded]="true">
   <app-legend target="planning-map"></app-legend>
 </app-side-toggle>
 
-<ng-template #processTemplate>
+<ng-template #processTemplate let-project="project">
   <div fxLayout="row wrap">
     <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
       <mat-form-field appearance="fill">
         <mat-label i18n>Name</mat-label>
-        <input matInput [value]="!createProcess? activeProject?.name: ''">
+        <input matInput [value]="project?.name">
       </mat-form-field>
     </div>
     <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
       <mat-form-field appearance="fill">
         <mat-label i18n>Beschreibung</mat-label>
-        <textarea matInput rows="3" [value]="!createProcess? activeProject?.description: ''"></textarea>
+        <textarea matInput rows="3" [value]="project?.description"></textarea>
       </mat-form-field>
     </div>
   </div>
@@ -179,4 +212,14 @@
       <mat-checkbox style="margin-top: 10px;" color="primary">Änderungen an Planungsprozess erlauben</mat-checkbox>
     </div>
   </div>
+</ng-template>
+
+<ng-template #removeProject let-project="project">
+  <div style="display: flex; align-items: end;">
+    <mat-form-field appearance="fill" class="warning" style="width: 300px; margin-right: 10px;">
+      <input disabled matInput [value]="project.name">
+    </mat-form-field>
+    <mat-icon class="material-icons-outlined warning" style="font-size: 40px; align-self: baseline;">report_problem</mat-icon>
+  </div>
+  <p style="font-size: 0.8em; margin: -15px 0 0 10px;"> Die Entfernung ist dauerhaft und endgültig</p>
 </ng-template>

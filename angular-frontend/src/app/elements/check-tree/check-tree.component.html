@@ -8,6 +8,11 @@
                     [checked]="checklistSelection.isSelected(node)"
                     (change)="todoLeafItemSelectionToggle(node)"></mat-checkbox>
       <label class="node-label">{{node.name}}</label>
+<!--      <button mat-icon-button color="primary"
+              class="item-button"
+              title="Layer entfernen">
+        <mat-icon>remove</mat-icon>
+      </button>-->
     </div>
   </mat-tree-node>
 

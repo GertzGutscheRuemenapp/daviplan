@@ -21,31 +21,38 @@
   <div style="padding-bottom: 10px;">
     <div style="position: relative;">
       <mat-form-field appearance="outline" class="small">
-        <mat-label>Infrastruktur</mat-label>
-        <mat-select disableOptionCentering [(value)]="selectedInfrastructure">
+        <mat-label>Infrastrukturbereich</mat-label>
+        <mat-select disableOptionCentering disableRipple
+                    [(value)]="selectedInfrastructure"
+                    [ngbPopover]="selectedInfrastructure?.description"
+                    placement="right"
+                    container="body"
+                    triggers="mouseenter:mouseleave">
           <mat-option [value]="infrastructure" *ngFor="let infrastructure of infrastructures"
-                      [tooltip]="infrastructure.description"
-                      [showDelay]="500"
-                      [hideDelay]="0"
-                      tooltipClass="context-tooltip"
-                      theme="light"
-                      maxWidth="400px"
-                      placement="right">
+                      [ngbPopover]="infrastructure.description"
+                      placement="right"
+                      container="body"
+                      triggers="mouseenter:mouseleave">
             {{infrastructure.name}}
           </mat-option>
         </mat-select>
       </mat-form-field>
       <button color="primary" mat-icon-button
-              class="filter-button" title="Standortfilter"
+              class="filter-button small" title="Standortfilter"
               (click)="onFilter()">
         <mat-icon>filter_list</mat-icon>
       </button>
     </div>
     <div class="sub-select-wrapper">
       <mat-checkbox *ngFor="let service of selectedInfrastructure.services; let first = first;"
-                    [value]="service.name" style="width: 100%;"
+                    [value]="service.name"
                     [checked]="first"
-                    color="primary">
+                    color="primary"
+                    style="margin-right: 100%;"
+                    ngbPopover="Platzhalter Beschreibung der Leistung"
+                    placement="right"
+                    container="body"
+                    triggers="mouseenter:mouseleave">
         {{service.name}}
       </mat-checkbox>
     </div>
@@ -59,7 +66,7 @@
         <div class="row-button">
           <label i18n>Zoom auf alle</label>
           <div class="fill-space"></div>
-          <button mat-icon-button color="primary">
+          <button mat-icon-button color="primary" class="small">
             <mat-icon>location_searching</mat-icon>
           </button>
         </div>
@@ -89,50 +96,31 @@
   </mat-expansion-panel-header>
   <div id="indicator-select"><!--  <div style="padding-left: 8px;">-->
     <mat-radio-group [(ngModel)]="indicator" (change)="toggleIndicator()">
-      <mat-radio-button value="option 1" color="primary"
-                        tooltip="Wegezeit zwischen ausgewählter Einrichtung und den Wohnstandorten"
-                        theme="light"
-                        placement="right"
-                        maxWidth="600px"
-                        [showDelay]="500"
-                        [hideDelay]="0" i18n>
-        von allen Wohnstandorten zum Angebot
+      <mat-radio-button value="option 1" color="primary" i18n>
+        von allen Wohnstandorten <br> zum Angebot
       </mat-radio-button>
       <div class="row-button" [ngClass]="{'active': selectFacMode, 'disabled': indicator!=='option 1'}" (click)="selectFacMode = !selectFacMode">
         <label i18n>Einrichtung auswählen</label>
         <div class="fill-space"></div>
-        <button color="primary" *ngIf="!selectFacMode" mat-icon-button>
-          <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
-        </button>
-        <button color="primary" *ngIf="selectFacMode" mat-mini-fab>
+        <button color="primary" [ngClass]="{inverted: selectFacMode}" class="small" mat-icon-button>
           <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
         </button>
       </div>
-      <mat-radio-button value="option 2" color="primary"
-                        tooltip="Wegezeit zwischen ausgewähltem Wohnstandort und allen Einrichtung"
-                        theme="light"
-                        placement="right"
-                        maxWidth="600px"
-                        [hideDelay]="0" i18n>
-        von einem Wohnstandort zu allen Angeboten
+      <mat-radio-button value="option 2" color="primary" i18n>
+        von einem Wohnstandort <br> zu allen Angeboten
       </mat-radio-button>
       <div class="row-button" [ngClass]="{'active': selectLivMode, 'disabled': indicator!=='option 2'}" (click)="selectLivMode = !selectLivMode">
         <label i18n>Wohnstandort auswählen</label>
         <div class="fill-space"></div>
-        <button color="primary" *ngIf="!selectLivMode" mat-icon-button>
+        <button color="primary" *ngIf="!selectLivMode" class="small" mat-icon-button>
           <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
         </button>
-        <button color="primary" *ngIf="selectLivMode" mat-mini-fab>
+        <button color="primary" *ngIf="selectLivMode" class="small no-shadow" mat-mini-fab>
           <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
         </button>
       </div>
-      <mat-radio-button value="option 3" color="primary"
-                        tooltip="Wegezeit zur nächsten Einrichtung für alle Wohnstandorte"
-                        theme="light"
-                        placement="right"
-                        maxWidth="600px"
-                        [hideDelay]="0" i18n>
-        von allen Wohnstandorten zum jeweils nächsten Angebot
+      <mat-radio-button value="option 3" color="primary" i18n>
+        von allen Wohnstandorten <br> zum jeweils nächsten Angebot
       </mat-radio-button>
     </mat-radio-group>
   </div>

@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Inject, Input, Output, TemplateRef } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
-export interface DialogData {
+interface DialogData {
   title: string,
   message: string,
   confirmButtonText: string,
@@ -25,9 +25,8 @@ export class ConfirmDialogComponent {
   public isLoading: boolean = false;
   @Output() confirmed = new EventEmitter<boolean>();
 
-  constructor(
-    public dialogRef: MatDialogRef<ConfirmDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: DialogData) {
+  constructor(public dialogRef: MatDialogRef<ConfirmDialogComponent>,
+              @Inject(MAT_DIALOG_DATA) public data: DialogData) {
     data.confirmButtonText = data.confirmButtonText || $localize`Bestätigen`;
     data.cancelButtonText = data.cancelButtonText || (data.hideConfirmButton)? 'OK': $localize`Abbrechen`;
     data.context = data.context || {};

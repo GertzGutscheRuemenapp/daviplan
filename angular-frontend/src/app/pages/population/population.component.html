@@ -12,7 +12,7 @@
         <mat-icon color="primary">info</mat-icon>
         <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
       </div>
-      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-pop-description" [cookieExpansionInit]="true">
+      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-pop-description" [initiallyExpanded]="true">
         <div style="padding: 10px; min-height: 70px;" [innerHTML]="this.mapControl?.mapDescription"></div>
       </app-side-toggle>
     </div>
@@ -21,7 +21,7 @@
         <mat-icon color="primary">date_range</mat-icon>
         <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
       </div>
-      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-pop-timeslider" [cookieExpansionInit]="true">
+      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-pop-timeslider" [initiallyExpanded]="true">
         <div style="padding: 18px 10px 12px 10px">
           <app-time-slider #timeSlider></app-time-slider>
         </div>
@@ -31,7 +31,7 @@
                      icon="layers"
                      direction="left"
                      name="Legenden- und Layersteuerung"
-                     cookieExpansion="exp-pop-legend" [cookieExpansionInit]="true">
+                     cookieExpansion="exp-pop-legend" [initiallyExpanded]="true">
       <app-legend target="population-map"></app-legend>
     </app-side-toggle>
   </div>

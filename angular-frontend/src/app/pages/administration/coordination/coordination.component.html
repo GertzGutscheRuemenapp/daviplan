@@ -60,10 +60,10 @@
               <button mat-icon-button
                       color="primary"
                       style="cursor: help;"
-                      tooltip="Hier kommen Details zum Bearbeitungsstatus des Aufgabenbereichs rein"
-                      theme="light"
-                      [hideDelay]="0"
-                      maxWidth="400px">
+                      ngbPopover="Hier kommen Details zum Bearbeitungsstatus des Aufgabenbereichs rein"
+                      popoverTitle="Bearbeitungsstatus"
+                      container="body"
+                      triggers="mouseenter:mouseleave">
                 <mat-icon>info</mat-icon>
               </button>
               {{domain.status.text}}

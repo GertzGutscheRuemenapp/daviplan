@@ -21,31 +21,38 @@
   <div style="padding-bottom: 10px;">
     <div style="position: relative;">
       <mat-form-field appearance="outline" class="small">
-        <mat-label>Infrastruktur</mat-label>
-        <mat-select disableOptionCentering [(value)]="selectedInfrastructure">
+        <mat-label>Infrastrukturbereich</mat-label>
+        <mat-select disableOptionCentering disableRipple
+                    [(value)]="selectedInfrastructure"
+                    [ngbPopover]="selectedInfrastructure?.description"
+                    placement="right"
+                    container="body"
+                    triggers="mouseenter:mouseleave">
           <mat-option [value]="infrastructure" *ngFor="let infrastructure of infrastructures"
-                      [tooltip]="infrastructure.description"
-                      [hideDelay]="0"
-                      [showDelay]="500"
-                      tooltipClass="context-tooltip"
-                      theme="light"
-                      maxWidth="400px"
-                      placement="right">
+                      [ngbPopover]="infrastructure.description"
+                      placement="right"
+                      container="body"
+                      triggers="mouseenter:mouseleave">
             {{infrastructure.name}}
           </mat-option>
         </mat-select>
       </mat-form-field>
       <button color="primary" mat-icon-button
-              class="filter-button" title="Standortfilter"
+              class="filter-button small" title="Standortfilter"
               (click)="onFilter()">
         <mat-icon>filter_list</mat-icon>
       </button>
     </div>
     <div class="sub-select-wrapper">
       <mat-checkbox *ngFor="let service of selectedInfrastructure.services; let first = first;"
-                    [value]="service.name" style="width: 100%;"
+                    [value]="service.name"
                     [checked]="first"
-                    color="primary">
+                    style="margin-right: 100%;"
+                    color="primary"
+                    ngbPopover="Platzhalter Beschreibung der Leistung"
+                    placement="right"
+                    container="body"
+                    triggers="mouseenter:mouseleave">
         {{service.name}}
       </mat-checkbox>
     </div>
@@ -59,7 +66,7 @@
         <div class="row-button">
           <label i18n>Zoom auf alle</label>
           <div class="fill-space"></div>
-          <button mat-icon-button color="primary">
+          <button mat-icon-button color="primary" class="small">
             <mat-icon>location_searching</mat-icon>
           </button>
         </div>
@@ -70,10 +77,7 @@
   <div class="row-button" [ngClass]="{'active': addPlaceMode}" (click)="addPlaceMode = !addPlaceMode" style="padding-left: 10px;">
     <label i18n>Neuen Standort hinzufügen</label>
     <div class="fill-space"></div>
-    <button color="primary" *ngIf="!addPlaceMode" mat-icon-button>
-      <mat-icon class="material-icons-outlined">add_location_alt</mat-icon>
-    </button>
-    <button color="primary" *ngIf="addPlaceMode" mat-mini-fab>
+    <button color="primary" [ngClass]="{inverted: addPlaceMode}" mat-icon-button class="small">
       <mat-icon class="material-icons-outlined">add_location_alt</mat-icon>
     </button>
   </div>
@@ -111,7 +115,7 @@
       </mat-radio-button>
       <mat-form-field appearance="outline" class="small">
         <!--          <mat-label>Jahr</mat-label>-->
-        <mat-select disableOptionCentering [value]="years[0]" [disabled]="!compareSupply || compareStatus != 'option 1'">
+        <mat-select disableOptionCentering disableRipple [value]="years[0]" [disabled]="!compareSupply || compareStatus != 'option 1'">
           <mat-option *ngFor="let year of years" [value]="year">
             {{year}}
           </mat-option>
@@ -123,7 +127,7 @@
         Mit Angebotsstrukturen im gleichen Jahr im Szenario
       </mat-radio-button>
       <mat-form-field appearance="outline" class="small">
-        <mat-select disableOptionCentering value="1" [disabled]="!compareSupply || compareStatus != 'option 2'">
+        <mat-select disableOptionCentering disableRipple value="1" [disabled]="!compareSupply || compareStatus != 'option 2'">
           <mat-option value="1">
             Szenario 1
           </mat-option>

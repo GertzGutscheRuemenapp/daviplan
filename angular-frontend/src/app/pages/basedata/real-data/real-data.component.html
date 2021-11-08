@@ -1,4 +1,4 @@
-<app-header-card [title]="'Realdaten = Einwohnerdaten der zurückliegenden Jahre'"
+<app-header-card [title]="'Realdaten (= Einwohnerdaten der zurückliegenden Jahre)'"
                  cookieId="exp-realdata-header"
                  width="1430px">
   <p>Für die Abschätzung der Nachfrage nach Infrastrukturen werden u.a. Einwohnerdaten benötigt. Auf dieser Seite können Realdaten, also Daten zur Einwohnerzahl und Altersstruktur in den zurückliegenden Jahren einlesen. Prognosedaten werden hingegen im entsprechend benannten Menüpunkt eingepflegt.</p>
@@ -28,7 +28,7 @@
     <app-input-card [title]="'Jahre'"
                     subtitle="Jahre hinzufügen bzw. bereits hinzugefügte bearbeiten"
                     infoText="<p>Klicken Sie auf „Hinzufügen“, um das erste oder ein weiteres Jahr mit Realdaten hinzuzufügen. In dem sich öffnenden Dialog geben Sie dazu nur die Jahreszahl an. Die hinzugefügte Jahreszahl erscheint dann in der Liste der Jahre.</p>
-                    <p>Für ein dort ausgewähltes Jahr können Sie dann in der Box „Einwohnerdaten des ausgewählten Jahres hochladen“ eine Vorlagedatei („Template“) herunterzuladen. Befüllen Sie diese mit Ihren Daten und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch.</p>
+                    <p>Für ein dort ausgewähltes Jahr können Sie dann in der Box „Einwohnerdaten des ausgewählten Jahres hochladen“ eine Vorlagedatei herunterzuladen. Befüllen Sie diese mit Ihren Daten und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch.</p>
                     <p>Wiederholen Sie dieses Vorgehen bitte für alle zurückliegenden Jahre, für die Sie Ihren Nutzer*innen reale Einwohnerdaten zur Verfügung stellen möchten.</p>
                     <p>Um ein Jahr samt seinen ggf. bereits hochgeladenen Daten zu löschen wählen Sie dieses in der Liste der Jahre aus und klicken auf „Entfernen“.</p>">
       <mat-selection-list [multiple]="false"
@@ -55,7 +55,7 @@
   <div fxLayout="column" fxFlex="1100px">
     <app-input-card [title]="'Einwohnerdaten des ausgewählten Jahres hochladen'"
                     [topRightHelp]="true"
-                    infoText="<p>Wenn Sie für dieses Jahr noch keine Einwohnerdaten hochgeladen haben (oder die bereits hochgeladenen Daten ersetzen möchten), können Sie sich mit der Schaltfläche „Template“ eine Vorlagedatei im Excelformat  herunterladen. Befüllen Sie diese mit Ihren Daten für das angezeigte Jahr und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Zur Kontrolle können Sie sich die hochgeladenen Daten anschließend in der Box „Alterspyramide“ für einzelne Gebiete anschauen. Alternativ können Sie sich die Gesamttabelle des Jahres über die Schaltfläche „Datentabelle ansehen“ anzeigen lassen.</p>
+                    infoText="<p>Wenn Sie für dieses Jahr noch keine Einwohnerdaten hochgeladen haben (oder die bereits hochgeladenen Daten ersetzen möchten), können Sie sich mit der Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excelformat  herunterladen. Befüllen Sie diese mit Ihren Daten für das angezeigte Jahr und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Zur Kontrolle können Sie sich die hochgeladenen Daten anschließend in der Box „Alterspyramide“ für einzelne Gebiete anschauen. Alternativ können Sie sich die Gesamttabelle des Jahres über die Schaltfläche „Datentabelle ansehen“ anzeigen lassen.</p>
                     <p>Um die Daten weiterer Jahre hochzuladen, fügen Sie bitte in der Box „Jahre“ weitere Jahre hinzu und wiederholen das Vorgehen entsprechend. Für jedes Jahr benötigen Sie eine eigene Vorlagedatei.</p>">
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
@@ -78,7 +78,7 @@
           </div>
           <div style="margin: 20px 0 10px 0;">
             <button mat-stroked-button color="primary" style="margin-right: 10px;">
-              <mat-icon>download</mat-icon> Template
+              <mat-icon>download</mat-icon> Vorlage herunterladen
             </button>
             <button mat-flat-button color="primary">
               <mat-icon>upload</mat-icon> Daten hochladen
@@ -96,7 +96,7 @@
         </div>
         <div id="log-window" style="width: 50%">
           <span class="subtitle1">Daten-Historie</span>
-          <app-log></app-log>
+          <app-log height="calc(100% - 25px)"></app-log>
         </div>
       </div>
     </app-input-card>
@@ -108,9 +108,9 @@
       <div>
         <mat-form-field appearance="outline" class="small">
           <mat-label>Gebiet</mat-label>
-          <mat-select disableOptionCentering value="irgendwo">
+          <mat-select disableOptionCentering disableRipple value="irgendwo">
             <mat-option value="irgendwo">
-              irgendwo
+              [Gebietseinheit]
             </mat-option>
           </mat-select>
         </mat-form-field>

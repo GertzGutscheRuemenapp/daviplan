@@ -36,6 +36,7 @@ mat-card {
 
 .title {
   color: $accent;
+  user-select: none;
 }
 
 
@@ -45,6 +46,7 @@ mat-card {
     h3 {
       font-weight: bold;
       margin-bottom: 0;
+      user-select: none;
     }
 
     .sub {
@@ -52,6 +54,7 @@ mat-card {
       //color: $light-black;
       color: grey;
       margin-bottom: 10px;
+      user-select: none;
     }
 
     .text {
@@ -183,11 +186,10 @@ mat-card {
   mat-expansion-panel {
     background: none;
     mat-expansion-panel-header {
-      float: right;
+      margin-left: calc(100% - 88px);
     }
     .mat-expansion-panel-body {
       background: white;
-      margin-top: 30px;
     }
   }
 }

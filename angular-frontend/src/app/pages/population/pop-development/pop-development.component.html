@@ -11,7 +11,7 @@
       </mat-panel-title>
     </mat-expansion-panel-header>
     <mat-form-field appearance="outline" class="small">
-      <mat-select disableOptionCentering [value]="areaLevels[0]">
+      <mat-select disableOptionCentering disableRipple [value]="areaLevels[0]">
         <mat-option [value]="areaLevel" *ngFor="let areaLevel of areaLevels">
           {{areaLevel.name}}
         </mat-option>
@@ -38,7 +38,7 @@
       </mat-panel-title>
     </mat-expansion-panel-header>
     <mat-form-field appearance="outline" class="small">
-      <mat-select disableOptionCentering value="Trendfortschreibung">
+      <mat-select disableOptionCentering disableRipple value="Trendfortschreibung">
         <mat-option value="Trendfortschreibung">
           Trendfortschreibung
         </mat-option>
@@ -69,7 +69,7 @@
     </mat-expansion-panel-header>
     <mat-form-field appearance="outline" class="small">
       <mat-label i18n>Geschlecht</mat-label>
-      <mat-select disableOptionCentering value="alle">
+      <mat-select disableOptionCentering disableRipple value="alle">
         <mat-option value="alle">
           alle
         </mat-option>
@@ -125,7 +125,7 @@
 <!--    Bevölkerungsstruktur vergleichen-->
     <mat-form-field appearance="outline" class="small">
       <mat-label>Jahr</mat-label>
-      <mat-select disableOptionCentering [value]="years[0]" [disabled]="!compareYears">
+      <mat-select disableOptionCentering disableRipple [value]="years[0]" [disabled]="!compareYears">
         <mat-option *ngFor="let year of years" [value]="year">
           {{year}}
         </mat-option>
@@ -147,9 +147,9 @@
   <div>
     <mat-form-field appearance="outline" class="small">
       <mat-label>Gebiet</mat-label>
-      <mat-select disableOptionCentering value="irgendwo">
+      <mat-select disableOptionCentering disableRipple value="irgendwo">
         <mat-option value="irgendwo">
-          irgendwo
+          [Gebietseinheit]
         </mat-option>
       </mat-select>
     </mat-form-field>
@@ -174,7 +174,7 @@
                             [title]="'Bevölkerungsentwicklung'"
                             [xSeparator]="xSeparator"
                             [animate]="true"
-                            subtitle="irgendwo">
+                            subtitle="[Gebietseinheit]">
       </app-stacked-barchart>
     </div>
   </div>
@@ -198,7 +198,7 @@
                            [xSeparator]="xSeparator"
                            [animate]="true"
                            unit="%"
-                           subtitle="irgendwo">
+                           subtitle="[Gebietseinheit]">
       </app-multiline-chart>
     </div>
   </div>

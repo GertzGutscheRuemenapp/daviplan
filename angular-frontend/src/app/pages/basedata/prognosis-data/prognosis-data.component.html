@@ -41,7 +41,7 @@
                     subtitle="Varianten hinzufügen bzw. bereits hinzugefügte bearbeiten"
                     infoText="<p>Klicken Sie auf „Hinzufügen“, um die erste Prognosevariante hinzuzufügen. Tun Sie dies auch, wenn Ihre Prognose keine Varianten ausweist.</p>
                               <p>In dem sich öffnenden Dialog geben Sie nur die Bezeichnung dieser Variante an, z.B. „Basisvariante“, „Trendfortschreibung“, „mehr Zuzug“ oder auch „einzige Variante“. Die hinzugefügte Variante erscheint dann in der Liste.</p>
-                              <p>Für eine in der Liste ausgewählte Varianten können Sie anschließend in der Box „Prognosedaten der ausgewählten Variante hochladen“ eine Vorlagedatei („Template“) herunterzuladen. Befüllen Sie diese mit Ihren Daten und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch.</p>
+                              <p>Für eine in der Liste ausgewählte Varianten können Sie anschließend in der Box „Prognosedaten der ausgewählten Variante hochladen“ eine Vorlagedatei herunterzuladen. Befüllen Sie diese mit Ihren Daten und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch.</p>
                               <p>Wiederholen Sie dieses Vorgehen bitte für alle Prognosevarianten, die Sie Ihren Nutzer*innen zur Verfügung stellen möchten.</p>
                               <p>Um eine Variante samt ihrer ggf. bereits hochgeladenen Daten zu löschen wählen Sie diese in der Liste aus und klicken auf „Entfernen“.</p>">
       <mat-selection-list [multiple]="false"
@@ -68,7 +68,7 @@
   <div fxLayout="column" fxFlex="1100px">
     <app-input-card [title]="'Prognosedaten der ausgewählten Variante hochladen'"
                     [topRightHelp]="true"
-                    infoText="<p>Wenn Sie für diese Prognosevariante noch keine Einwohnerdaten hochgeladen haben (oder die bereits hochgeladenen Daten ersetzen möchten), können Sie sich mit der Schaltfläche „Template“ eine Vorlagedatei im Excelformat  herunterladen. Befüllen Sie diese mit Ihren Daten für die angezeigte Variante und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Zur Kontrolle können Sie sich die hochgeladenen Daten anschließend in der Box „Veranschaulichung“ für einzelne Gebiete anschauen. Alternativ können Sie sich die Gesamttabelle der Prognosevariante über die Schaltfläche „Datentabelle ansehen“ anzeigen lassen.</p>
+                    infoText="<p>Wenn Sie für diese Prognosevariante noch keine Einwohnerdaten hochgeladen haben (oder die bereits hochgeladenen Daten ersetzen möchten), können Sie sich mit der Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excelformat  herunterladen. Befüllen Sie diese mit Ihren Daten für die angezeigte Variante und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Zur Kontrolle können Sie sich die hochgeladenen Daten anschließend in der Box „Veranschaulichung“ für einzelne Gebiete anschauen. Alternativ können Sie sich die Gesamttabelle der Prognosevariante über die Schaltfläche „Datentabelle ansehen“ anzeigen lassen.</p>
                               <p>Um die Daten weitere Prognosevarianten hochzuladen, fügen Sie bitte in der Box „Prognosevariante“ weitere Varianten hinzu und wiederholen das Vorgehen entsprechend. Für jede Prognosevariante benötigen Sie eine eigene Vorlagedatei.</p>">
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
@@ -91,7 +91,7 @@
           </div>
           <div style="margin: 20px 0 10px 0;">
             <button mat-stroked-button color="primary" style="margin-right: 10px;">
-              <mat-icon>download</mat-icon> Template
+              <mat-icon>download</mat-icon> Vorlage herunterladen
             </button>
             <button mat-flat-button color="primary">
               <mat-icon>upload</mat-icon> Daten hochladen
@@ -109,7 +109,7 @@
         </div>
         <div id="log-window" style="width: 50%">
           <span class="subtitle1">Daten-Historie</span>
-          <app-log></app-log>
+          <app-log height="calc(100% - 25px)"></app-log>
         </div>
       </div>
     </app-input-card>
@@ -121,9 +121,9 @@
       <div>
         <mat-form-field appearance="outline" class="small">
           <mat-label>Gebiet</mat-label>
-          <mat-select disableOptionCentering value="irgendwo">
+          <mat-select disableOptionCentering disableRipple value="irgendwo">
             <mat-option value="irgendwo">
-              irgendwo
+              [Gebietseinheit]
             </mat-option>
           </mat-select>
         </mat-form-field>
@@ -161,7 +161,7 @@
                                     [xSeparator]="xSeparator"
                                     [animate]="true"
                                     [height]="230"
-                                    subtitle="irgendwo">
+                                    subtitle="[Gebietseinheit]">
               </app-stacked-barchart>
             </div>
           </div>
@@ -176,7 +176,7 @@
                                    [animate]="true"
                                    [height]="230"
                                    unit="%"
-                                   subtitle="irgendwo">
+                                   subtitle="[Gebietseinheit]">
               </app-multiline-chart>
             </div>
           </div>

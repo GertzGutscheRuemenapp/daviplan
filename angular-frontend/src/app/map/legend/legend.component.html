@@ -4,16 +4,18 @@
       <mat-icon>layers</mat-icon>
     </div>
     <span i18n>Legende</span>
-    <button mat-icon-button color="primary"
+    <ng-template #legendPopover>
+      <p>Die Legende kann in zwei verschiedenen Ansichten dargestellt werden, zwischen denen durch Klick auf den Button rechts umgeschaltet werden kann.</p>
+      <p>In der kompakten Ansicht werden in der Legende alle in der Karte aktiv angezeigten Layer und ihre Symbologie gruppiert aufgelistet.</p>
+      <p>Im Editiermodus werden alle verfügbaren Layer angezeigt. Sie können einzelne Layer und ihre Darstellung in der Karte aktivieren und deaktivieren. Mit den Schiebereglern wird die Transparenz der jeweiligen Layer eingestellt.</p>
+      <p>derzeit aktiv: <b *ngIf="editMode">Editiermodus</b> <b *ngIf="!editMode">kompakter Modus</b></p>
+    </ng-template>
+    <button mat-icon-button color="primary" class="small" style="margin-left: 5px;"
             title="Hilfe"
-            tooltip="<p>Die Legende wird in zwei Modi dargestellt, zwischen denen durch Klick auf den Button rechts umgeschaltet werden kann.</p>
-            <p>Im kompakten Modus werden in der Legende alle in der Karte aktiv angezeigten Layer und ihre Symbologie gruppiert aufgelistet.</p>
-            <p>Im Editiermodus werden alle verfügbaren Layer angezeigt. Sie können einzelne Layer und ihre Darstellung in der Karte aktivieren und deaktivieren. Mit den Schiebereglern wird die Transparenz der jeweiligen Layer eingestellt.</p>"
-            [hideDelay]="5000"
-            trigger="click"
-            tooltipClass="context-tooltip"
-            theme="light"
-            maxWidth="500px">
+            [ngbPopover]="legendPopover"
+            popoverTitle="Legende"
+            container="body"
+            [autoClose]="true">
       <mat-icon>help_outline</mat-icon>
     </button>
     <button title="In den Editiermodus umschalten" color="primary" *ngIf="!editMode" (click)="editMode = !editMode" mat-icon-button style="box-shadow: none; margin-left: auto;">
@@ -64,7 +66,7 @@
       <div class="legend-entry">
         <div class="legend-layer-title">
           <mat-form-field appearance="outline" class="small" style="width: 180px;">
-            <mat-select [(ngModel)]="activeBackground" (selectionChange)="this.mapControl.setBackground($event.value); opacityChanged(activeBackground!, backgroundOpacity);">
+            <mat-select disableRipple [(ngModel)]="activeBackground" (selectionChange)="this.mapControl.setBackground($event.value); opacityChanged(activeBackground!, backgroundOpacity);">
               <mat-option *ngFor="let layer of backgroundLayers" [value]="layer.id"> {{layer.name}} </mat-option>
             </mat-select>
           </mat-form-field>

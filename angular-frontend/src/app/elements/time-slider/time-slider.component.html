@@ -7,14 +7,12 @@
 <!--            [ngModel]="pickedYear"-->
 </mat-slider>
 <label>{{years[years.length - 1]}}</label>
-<button mat-icon-button color="primary"
+<button mat-icon-button color="primary" class="small"
         title="Hilfe"
-        tooltip="Wählen Sie das Jahr, für das Daten angezeigt werden sollen, mit dem Slider."
-        [hideDelay]="2000"
-        trigger="click"
-        tooltipClass="context-tooltip"
-        theme="light"
-        maxWidth="300px"
+        ngbPopover="Wählen Sie das Jahr, für das Daten angezeigt werden sollen, mit dem Schieberegler."
+        popoverTitle="Zeitachse"
+        container="body"
+        [autoClose]="true"
         style="margin-left: 5px;">
   <mat-icon>help_outline</mat-icon>
 </button>

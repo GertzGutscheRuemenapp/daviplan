@@ -55,15 +55,10 @@
     padding-right: 7px;
   }
   .mat-mini-fab {
-    box-shadow: none; margin-left: auto;
+    margin-left: auto;
     .mat-button-wrapper {
       padding: 0;
     }
-  }
-  .mat-mini-fab, .mat-icon-button {
-    width: 30px;
-    height: 30px;
-    line-height: 30px;
   }
   .filter-button {
     position: absolute;

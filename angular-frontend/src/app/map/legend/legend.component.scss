@@ -60,6 +60,9 @@
   color: $primary !important;
 }
 
-.mat-expansion-panel {
+::ng-deep app-legend .mat-expansion-panel {
   box-shadow: none;
+  .mat-expansion-panel-body {
+    padding: 8px 20px 8px;
+  }
 }

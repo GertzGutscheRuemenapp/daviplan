@@ -19,44 +19,56 @@
     </mat-panel-title>
   </mat-expansion-panel-header>
   <mat-form-field appearance="outline" class="small">
-    <mat-select disableOptionCentering panelClass="indicator-panel" value="2">
+    <mat-select disableOptionCentering panelClass="custom-option-panel"
+                disableRipple
+                (selectionChange)="onIndicatorChange($event.value)"
+                [value]="activeIndicator.id"
+                [ngbPopover]="activeIndicator?.description"
+                placement="right"
+                container="body"
+                triggers="mouseenter:mouseleave">
+      <mat-select-trigger>
+        <span *ngIf="activeIndicator">
+          {{ activeIndicator.name }}
+        </span>
+      </mat-select-trigger>
       <mat-optgroup label="Meine Indikatoren">
-        <mat-option value="0"
-                    class="own-option"
-                    tooltip="Mein Testindikator"
-                    theme="light"
+        <button mat-icon-button color="primary" class="small"
+                title="Indikator hinzufügen"
+                style="position: absolute; right: 6px; top: 5px;">
+          <mat-icon>add</mat-icon>
+        </button>
+        <mat-option *ngFor="let indicator of customIndicators"
+                    [value]="indicator.id"
+                    class="custom-option"
+                    [ngbPopover]="indicator.description"
                     placement="right"
-                    maxWidth="400px"
-                    [hideDelay]="0">
-          <div>
-            Test + langer Text der die maximale Größe des Containers überschreiten sollte
+                    container="body"
+                    triggers="mouseenter:mouseleave">
+          <div class="option-title">
+            {{indicator.name}}
           </div>
-          <button mat-icon-button color="primary"
-                  title="Indikator editieren">
-            <mat-icon>delete</mat-icon>
-          </button>
-          <button mat-icon-button color="primary"
-                  title="Indikator löschen">
-            <mat-icon>edit</mat-icon>
-          </button>
-        </mat-option>
-        <mat-option tooltip="Indikator hinzufügen"
-                    theme="light"
-                    [hideDelay]="0"
-                    placement="right">
-          <button mat-icon-button color="primary">
-            <mat-icon>add</mat-icon>
-          </button>
+          <div class="option-controls">
+            <button mat-icon-button color="primary" class="small"
+                    (click)="$event.stopPropagation()"
+                    title="Indikator editieren">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="primary" class="small"
+                    (click)="$event.stopPropagation()"
+                    title="Indikator löschen">
+              <mat-icon>remove</mat-icon>
+            </button>
+          </div>
         </mat-option>
       </mat-optgroup>
       <mat-optgroup label="Vorgegebene Indikatoren">
         <mat-option *ngFor="let indicator of indicators"
-                    value="{{indicator.id}}"
-                    tooltip="{{indicator.description}}"
-                    theme="light"
+                    [value]="indicator.id"
+                    [ngbPopover]="indicator.description"
                     placement="right"
-                    maxWidth="400px"
-                    [hideDelay]="0">
+                    container="body"
+                    triggers="mouseenter:mouseleave">
           {{indicator.name}}
         </mat-option>
       </mat-optgroup>
@@ -83,7 +95,7 @@
     </mat-panel-title>
   </mat-expansion-panel-header>
   <mat-form-field appearance="outline" class="small">
-    <mat-select disableOptionCentering [value]="areaLevels[0]">
+    <mat-select disableOptionCentering disableRipple [value]="areaLevels[0]">
       <mat-option [value]="areaLevel" *ngFor="let areaLevel of areaLevels">
         {{areaLevel.name}}
       </mat-option>
@@ -120,7 +132,7 @@
         Mit Bewertung im gleichen Szenario im Jahr
       </mat-radio-button>
       <mat-form-field appearance="outline" class="small">
-        <mat-select disableOptionCentering [value]="years[0]" [disabled]="!compareSupply || compareStatus != 'option 1'">
+        <mat-select disableOptionCentering disableRipple [value]="years[0]" [disabled]="!compareSupply || compareStatus != 'option 1'">
           <mat-option *ngFor="let year of years" [value]="year">
             {{year}}
           </mat-option>
@@ -132,7 +144,7 @@
         Mit Bewertung im gleichen Jahr im Szenario
       </mat-radio-button>
       <mat-form-field appearance="outline" class="small">
-        <mat-select disableOptionCentering value="1" [disabled]="!compareSupply || compareStatus != 'option 2'">
+        <mat-select disableOptionCentering disableRipple value="1" [disabled]="!compareSupply || compareStatus != 'option 2'">
           <mat-option value="1">
             Szenario 1
           </mat-option>
@@ -144,3 +156,49 @@
     </mat-radio-group>
   </div>
 </mat-expansion-panel>
+<app-side-toggle id="chart-toggle" icon="bar_chart" name="Diagramm"
+                 cookieExpansion="exp-rating-diagram">
+  <div class="diagram-wrapper">
+    <img src="{{backend}}/static/img/Indikator U3 Screenshot.png" width="500px">
+    <div class="diagram-controls">
+      <button mat-mini-fab
+              class="small"
+              color="primary"
+              title="Diagramm vergrößert darstellen"
+              (click)="onFullscreenDialog()">
+        <mat-icon>fullscreen</mat-icon>
+      </button>
+      <br>
+      <button mat-mini-fab
+              class="small"
+              style="margin: 5px 0;"
+              color="primary"
+              title="Diagramm als Bilddatei herunterladen">
+        <mat-icon style="font-size: 20px; margin-top: 0;">download</mat-icon>
+      </button>
+      <br>
+      <ng-template #help>
+        <p>Das Diagramm zeigt die Kennwerte des ausgewählten Indikators für alle Gebiete der ausgewählten Gebietseinheit.</p>
+        <p>Mit einem Klick auf den Vollbild-Button rechts oben können Sie sich das Diagramm vergrößert in einem Dialog anzeigen lassen.</p>
+        <p>Über den Herunterladen-Button darunter können Sie sich das Diagramm als Bild (PNG) herunterladen.</p>
+      </ng-template>
+      <button mat-icon-button color="primary" class="small"
+              title="Hilfe"
+              [ngbPopover]="help"
+              popoverTitle="Diagrammdarstellung"
+              container="body"
+              [autoClose]="true">
+        <mat-icon>help_outline</mat-icon>
+      </button>
+    </div>
+  </div>
+</app-side-toggle>
+
+<ng-template #diagramDialog>
+  <div style="overflow-y: auto; max-height: 80vh;">
+    <img src="{{backend}}/static/img/Indikator U3 Screenshot.png" width="100%">
+  </div>
+  <div style="width: 100%; display: flex; justify-content: center;">
+    <app-time-slider id="time-slider" [prognosisEnd]="2013" [years]="[2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025]"></app-time-slider>
+  </div>
+</ng-template>
