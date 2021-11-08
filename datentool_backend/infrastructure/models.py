@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.gis.db import models as gis_models
-from datentool_backend.base import NamedModel
+from datentool_backend.base import NamedModel, JsonAttributes
 from datentool_backend.user.models import Profile
 from datentool_backend.area.models import InternalWFSLayer, MapSymbol
 
@@ -44,7 +44,7 @@ class Service(NamedModel, models.Model):
     quota = models.ForeignKey(Quota, on_delete=models.RESTRICT)
 
 
-class Place(NamedModel, models.Model):
+class Place(JsonAttributes, NamedModel, models.Model):
     """location of an infrastructure"""
     name = models.TextField()
     infrastructure = models.ForeignKey(Infrastructure, on_delete=models.RESTRICT)

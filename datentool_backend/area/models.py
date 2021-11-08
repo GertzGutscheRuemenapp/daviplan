@@ -1,6 +1,7 @@
+import json
 from django.db import models
 from django.contrib.gis.db import models as gis_models
-from datentool_backend.base import NamedModel
+from datentool_backend.base import NamedModel, JsonAttributes
 
 
 class SymbolForm(NamedModel, models.Model):
@@ -71,14 +72,15 @@ class AreaLevel(NamedModel, models.Model):
     layer = models.ForeignKey(InternalWFSLayer, on_delete=models.RESTRICT)
 
 
-class Area(models.Model):
+class Area(JsonAttributes, models.Model):
     """an area"""
     area_level = models.ForeignKey(AreaLevel, on_delete=models.RESTRICT)
     geom = gis_models.GeometryField()
     attributes = models.JSONField()
 
     def __str__(self) -> str:
-        name = self.attributes.get('name',
-                                   self.attributes.get('gen', self.pk))
+        attributes = self.get_attributes()
+        name = attributes.get('name',
+                              attributes.get('gen', self.pk))
         return f'{self.__class__.__name__} ({self.area_level.name}): {name}'
 

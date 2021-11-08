@@ -1,5 +1,5 @@
 from django.db import models
-from datentool_backend.base import NamedModel
+from datentool_backend.base import NamedModel, JsonAttributes
 from datentool_backend.infrastructure.models import Service
 from datentool_backend.population.models import RasterCell
 
@@ -11,7 +11,7 @@ class Mode(NamedModel, models.Model):
     name = models.TextField()
 
 
-class ModeVariant(NamedModel, models.Model):
+class ModeVariant(JsonAttributes, NamedModel, models.Model):
     '''
     modes
     '''
@@ -47,7 +47,7 @@ class IndicatorTypes(models.TextChoices):
     TYPE2 = 'T2', 'Type2'
 
 
-class Indicator(NamedModel, models.Model):
+class Indicator(JsonAttributes, NamedModel, models.Model):
     """An Indicator"""
     indicator_type = models.CharField(max_length=2, choices=IndicatorTypes.choices)
     name = models.TextField()
