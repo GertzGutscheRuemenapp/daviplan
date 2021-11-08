@@ -7,6 +7,8 @@ from .factories import (SymbolFormFactory, MapSymbolsFactory,
                         WMSLayerFactory, InternalWFSLayerFactory,
                         AreaFactory, SourceFactory, LayerGroupFactory)
 
+from .models import MapSymbol, WMSLayer
+
 from faker import Faker
 
 faker = Faker('de-DE')
@@ -59,7 +61,8 @@ class TestMapSymbolsAPI(_TestAPI, BasicModelTest, APITestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        symbol = cls.obj.symbol.pk
+        mapsymbol: MapSymbol = cls.obj
+        symbol = mapsymbol.symbol.pk
         cls.post_data = dict(symbol=symbol, fill_color=faker.color(),
                              stroke_color=faker.color())
         cls.put_data = dict(symbol=symbol, fill_color=faker.color(),
@@ -67,7 +70,6 @@ class TestMapSymbolsAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.patch_data = dict(symbol=symbol, stroke_color=faker.color())
 
 
-#""" Test for LayerGroup is not working!
 class TestLayerGroupAPI(_TestAPI, BasicModelTest, APITestCase):
 
     url_key = "layergroups"
@@ -81,6 +83,26 @@ class TestLayerGroupAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = dict(name='puttestname', order=3)
         cls.patch_data = dict(name='patchtestname', order=4)
 
+
+class WMSLayerAPI(_TestAPI, BasicModelTest, APITestCase):
+    """api test WMS Layer"""
+    url_key = "wmslayers"
+    factory = WMSLayerFactory
+
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        wmslayer: WMSLayer = cls.obj
+        group = wmslayer.group.pk
+        data = dict(url=faker.url(), name=faker.word(), layer_name=faker.word(),
+                    order=faker.integer(), group=group)
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
+
+
+
 """
 # Test for WMSLayer, InternalWFSLayer, Source
 is test for WMSLayer, InternalWFSLayer, Source necessary? already in class TestAreas
@@ -88,4 +110,4 @@ is test for WMSLayer, InternalWFSLayer, Source necessary? already in class TestA
 
 # Test for Area Level and Area -> same question, already in class TestAreas?
 
-   """
+"""

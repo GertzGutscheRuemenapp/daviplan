@@ -25,7 +25,7 @@ class LayerGroupSerializer(serializers.ModelSerializer):
 class WMSLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = WMSLayer
-        fields = ('id', 'url')
+        fields = ('id', 'name', 'group', 'layer_name', 'order', 'url')
 
 
 class InternalWFSLayerSerializer(serializers.ModelSerializer):
@@ -37,7 +37,7 @@ class InternalWFSLayerSerializer(serializers.ModelSerializer):
 class SourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Source
-        fields = ('source_type', 'date', 'id_field', 'url', 'layer')
+        fields = ('id', 'source_type', 'date', 'id_field', 'url', 'layer')
 
 
 class AreaLevelSerializer(serializers.ModelSerializer):
