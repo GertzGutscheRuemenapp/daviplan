@@ -81,5 +81,7 @@ class AreaFactory(DjangoModelFactory):
         model = Area
     area_level = factory.SubFactory(AreaLevelFactory)
     geom = Point(faker.latlng())
-    attributes = faker.json()
+    attributes = faker.json(data_columns={'gen': 'word',
+                                          'inhabitants': 'pyint',},
+                            num_rows=1)
 

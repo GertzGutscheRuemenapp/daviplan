@@ -8,6 +8,7 @@ class TestInfrastructure(TestCase):
 
     def test_service(self):
         service = ServiceFactory()
+        print(service.quota)
 
     def test_infrastructure(self):
         """"""
@@ -23,6 +24,7 @@ class TestInfrastructure(TestCase):
         """"""
         capacity = CapacityFactory()
         print(capacity)
+        print(capacity.place)
 
     def test_fclass(self):
         """"""

@@ -22,9 +22,12 @@ class TestAreas(TestCase):
         cls.layer = InternalWFSLayerFactory()
         cls.source = SourceFactory()
         cls.area = AreaFactory()
+        print(cls.area)
 
     def test_area(self):
         area = self.area
+        print(area.area_level)
+        print(repr(area.area_level))
 
 
 class _TestAPI:
@@ -96,7 +99,7 @@ class WMSLayerAPI(_TestAPI, BasicModelTest, APITestCase):
         wmslayer: WMSLayer = cls.obj
         group = wmslayer.group.pk
         data = dict(url=faker.url(), name=faker.word(), layer_name=faker.word(),
-                    order=faker.integer(), group=group)
+                    order=faker.random_int(), group=group)
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
