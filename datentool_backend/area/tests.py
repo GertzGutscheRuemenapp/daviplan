@@ -7,7 +7,7 @@ from .factories import (SymbolFormFactory, MapSymbolsFactory,
                         WMSLayerFactory, InternalWFSLayerFactory,
                         AreaFactory, SourceFactory, LayerGroupFactory)
 
-from .models import MapSymbol, WMSLayer
+from .models import MapSymbol, WMSLayer, InternalWFSLayer
 
 from faker import Faker
 
@@ -105,12 +105,26 @@ class WMSLayerAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.patch_data = data
 
 
+class InternalWFSLayerAPI(_TestAPI, BasicModelTest, APITestCase):
+    """api test Internal WFSLayer"""
+    url_key = "internalwfslayers"
+    factory = InternalWFSLayerFactory
 
-"""
-# Test for WMSLayer, InternalWFSLayer, Source
-is test for WMSLayer, InternalWFSLayer, Source necessary? already in class TestAreas
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        internalwfslayer: InternalWFSLayer = cls.obj
+        group = internalwfslayer.group.pk
+        internalwfslayer: InternalWFSLayer = cls.obj
+        symbol = internalwfslayer.symbol.pk
+
+        data = dict(symbol=symbol, name=faker.word(), layer_name=faker.word(),
+                    order=faker.random_int(), group=group)
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
+
+# ToDo: Test for API Source, Area Level and Area
 
 
-# Test for Area Level and Area -> same question, already in class TestAreas?
-
-"""

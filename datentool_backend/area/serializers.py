@@ -31,7 +31,7 @@ class WMSLayerSerializer(serializers.ModelSerializer):
 class InternalWFSLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = InternalWFSLayer
-        fields = ('id', 'symbol')
+        fields = ('id', 'name', 'group', 'layer_name', 'order', 'symbol')
 
 
 class SourceSerializer(serializers.ModelSerializer):
