@@ -12,13 +12,11 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     profile = ProfileSerializer(required=False)
-    url = serializers.HyperlinkedIdentityField(
-        view_name='user-detail', read_only=True)
     password = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = User
-        fields = ('id', 'url', 'username', 'email', 'first_name',
+        fields = ('id', 'username', 'email', 'first_name',
                   'last_name', 'is_superuser', 'profile', 'password')
 
     def create(self, validated_data):

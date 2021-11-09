@@ -79,8 +79,11 @@ class FieldType(NamedModel, models.Model):
 class FClass(models.Model):
     """a class in a classification"""
     classification = models.ForeignKey(FieldType, on_delete=models.RESTRICT)
-    order = models.IntegerField(unique=True)
+    order = models.IntegerField()
     value = models.TextField()
+
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__}: {self.classification.name}: {self.order} - {self.value}'
 
 
 class PlaceField(models.Model):

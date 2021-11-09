@@ -5,10 +5,13 @@ from datentool_backend.api_test import BasicModelTest
 
 from .factories import (SymbolFormFactory, MapSymbolsFactory,
                         WMSLayerFactory, InternalWFSLayerFactory,
-                        AreaFactory, SourceFactory, LayerGroupFactory)
+                        AreaFactory, AreaLevelFactory, SourceFactory,
+                        LayerGroupFactory)
 
-from .models import MapSymbol, WMSLayer, InternalWFSLayer
+from .models import (MapSymbol, WMSLayer, InternalWFSLayer, SourceTypes, Source,
+                     AreaLevel)
 
+import factory
 from faker import Faker
 
 faker = Faker('de-DE')
@@ -87,7 +90,7 @@ class TestLayerGroupAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.patch_data = dict(name='patchtestname', order=4)
 
 
-class WMSLayerAPI(_TestAPI, BasicModelTest, APITestCase):
+class TestWMSLayerAPI(_TestAPI, BasicModelTest, APITestCase):
     """api test WMS Layer"""
     url_key = "wmslayers"
     factory = WMSLayerFactory
@@ -105,7 +108,7 @@ class WMSLayerAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.patch_data = data
 
 
-class InternalWFSLayerAPI(_TestAPI, BasicModelTest, APITestCase):
+class TestInternalWFSLayerAPI(_TestAPI, BasicModelTest, APITestCase):
     """api test Internal WFSLayer"""
     url_key = "internalwfslayers"
     factory = InternalWFSLayerFactory
@@ -125,6 +128,52 @@ class InternalWFSLayerAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
-# ToDo: Test for API Source, Area Level and Area
+
+class TestSourceAPI(_TestAPI, BasicModelTest, APITestCase):
+    """api test Layer"""
+    url_key = "sources"
+    factory = SourceFactory
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        data = dict(source_type=faker.random_element(SourceTypes),
+                date=faker.date(), id_field=faker.uuid4(), url=faker.url(),
+                layer=faker.word())
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
+
+
+#class TestAreaLevelAPI(_TestAPI, BasicModelTest, APITestCase):
+    #url_key = "arealevels"
+    #factory = AreaLevelFactory
+
+    #@classmethod
+    #def setUpClass(cls):
+        #super().setUpClass()
+        #data = dict(name=faker.word(), order=faker.random_int(),
+                    #source=faker.word(), layer=faker.word())
+        #cls.post_data = data
+        #cls.put_data = data
+        #cls.patch_data = data
+
+
+
+#class TestAreaAPI(_TestAPI, BasicModelTest, APITestCase):
+    #url_key = "areas"
+    #factory = AreaFactory
+
+    #@classmethod
+    #def setUpClass(cls):
+        #super().setUpClass()
+        #data = dict(area_level=faker.word(), geom=faker.latlng(),
+                    #attributes=faker.json())
+
+        #cls.post_data = data
+        #cls.put_data = data
+        #cls.patch_data = data
+
 
 

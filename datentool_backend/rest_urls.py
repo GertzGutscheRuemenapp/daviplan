@@ -10,10 +10,10 @@ from .demand.views import (DemandRateSetViewSet, DemandRateViewSet)
 
 from .indicators.views import (ModeViewSet)
 
-from .infrastructure.views import InfrastructureViewSet
+from .infrastructure.views import InfrastructureViewSet, FieldTypeViewSet
 
 router = routers.SimpleRouter()
-router.register(r'users', UserViewSet, basename='user')
+router.register(r'users', UserViewSet, basename='users')
 router.register(r'settings', SiteSettingsViewSet, basename='settings')
 
 # areas
@@ -39,6 +39,8 @@ router.register(r'modes', DemandRateViewSet, basename='modes')
 # infrastructure
 router.register(r'infrastructures', InfrastructureViewSet,
                 basename='infrastructures')
+router.register(r'fieldtypes', FieldTypeViewSet,
+                basename='fieldtypes')
 
 
 
