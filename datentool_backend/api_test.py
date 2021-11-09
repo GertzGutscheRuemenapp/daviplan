@@ -6,6 +6,7 @@ from rest_framework import status
 
 from datentool_backend.user.factories import ProfileFactory
 from django.contrib.auth.models import Permission
+from datentool_backend.rest_urls import router
 
 
 class CompareAbsURIMixin:
@@ -102,6 +103,10 @@ class BasicModelReadTest(LoginTestCase, CompareAbsURIMixin):
         response = self.get_check_200(url, pk=self.obj.pk, **self.url_pks)
         for key in self.sub_urls:
             key_response = self.get_check_200(response.data[key])
+
+    def get_check_200(self, url, **kwargs):
+        assert url in [r.name for r in router.urls], f'URL {url} not in routes'
+        return super().get_check_200(url, **kwargs)
 
 
 class BasicModelTest(BasicModelReadTest):
