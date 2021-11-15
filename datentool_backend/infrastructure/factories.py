@@ -55,7 +55,7 @@ class ServiceFactory(DjangoModelFactory):
     name = faker.word()
     description = faker.sentence()
     infrastructure = factory.SubFactory(InfrastructureFactory)
-    #editable_by
+    # editable_by
     capacity_singular_unit = faker.word()
     capacity_plural_unit = faker.word()
     has_capacity = True

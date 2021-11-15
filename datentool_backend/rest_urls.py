@@ -10,7 +10,9 @@ from .demand.views import (DemandRateSetViewSet, DemandRateViewSet)
 
 from .indicators.views import (ModeViewSet)
 
-from .infrastructure.views import InfrastructureViewSet, FieldTypeViewSet
+from .infrastructure.views import (InfrastructureViewSet, FieldTypeViewSet,
+                                   QuotaViewSet, ServiceViewSet, PlaceViewSet,
+                                   CapacityViewSet, PlaceFieldViewSet)
 
 router = routers.SimpleRouter()
 router.register(r'users', UserViewSet, basename='users')
@@ -39,9 +41,11 @@ router.register(r'modes', DemandRateViewSet, basename='modes')
 # infrastructure
 router.register(r'infrastructures', InfrastructureViewSet,
                 basename='infrastructures')
-router.register(r'fieldtypes', FieldTypeViewSet,
-                basename='fieldtypes')
-
-
+router.register(r'quotas', QuotaViewSet, basename='quotas')
+router.register(r'services', ServiceViewSet, basename='services')
+router.register(r'places', PlaceViewSet, basename='places')
+router.register(r'capacities', CapacityViewSet, basename='capacities')
+router.register(r'fieldtypes', FieldTypeViewSet, basename='fieldtypes')
+router.register(r'placefields', PlaceFieldViewSet, basename='placefields')
 
 urlpatterns = router.urls

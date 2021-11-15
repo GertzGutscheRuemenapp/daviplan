@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from .models import Infrastructure, FieldType, FClass, FieldTypes
+from .models import (Infrastructure, FieldType, FClass, FieldTypes, Service,
+                     Quota, Place, Capacity, PlaceField)
 
 
 class InfrastructureSerializer(serializers.ModelSerializer):
@@ -9,6 +10,51 @@ class InfrastructureSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'description',
                    'editable_by', 'accessible_by',
                    'layer', 'symbol')
+
+
+class QuotaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Quota
+        fields = ('id', 'quota_type')
+
+
+class ServiceSerializer(serializers.ModelSerializer):
+    quota_type = QuotaSerializer(read_only=True, source='quota')
+    quota_id = serializers.IntegerField(write_only=True, source='quota')
+    class Meta:
+        model = Service
+        fields = ('id', 'name', 'description', 'infrastructure', 'editable_by',
+                  'capacity_singular_unit', 'capacity_plural_unit',
+                  'has_capacity', 'demand_singular_unit', 'demand_plural_unit',
+                  'quota_id', 'quota_type')
+
+    def create(self, validated_data):
+        quota_id = validated_data.pop('quota')
+        quota = Quota.objects.get(pk=quota_id)
+        validated_data['quota'] = quota
+        instance = super().create(validated_data)
+        instance.save()
+        return instance
+
+    def update(self, instance, validated_data):
+        quota_id = validated_data.pop('quota')
+        if quota_id is not None:
+            quota = Quota.objects.get(pk=quota_id)
+            validated_data['quota'] = quota
+        instance = super().update(instance, validated_data)
+        return instance
+
+
+class PlaceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Place
+        fields = ('id', 'name', 'infrastructure', 'geom', 'attributes')
+
+
+class CapacitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Capacity
+        fields = ('id', 'place', 'service', 'capacity', 'from_year')
 
 
 class FClassSerializer(serializers.ModelSerializer):
@@ -62,3 +108,9 @@ class FieldTypeSerializer(serializers.ModelSerializer):
                 if fclass.id not in classification_data_ids:
                     fclass.delete(keep_parents=True)
         return instance
+
+
+class PlaceFieldSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlaceField
+        fields = ('id', 'attribute', 'unit', 'infrastructure', 'field_type')
