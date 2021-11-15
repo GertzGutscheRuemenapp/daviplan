@@ -8,10 +8,10 @@ from .factories import (SymbolFormFactory, MapSymbolsFactory,
                         AreaFactory, AreaLevelFactory, SourceFactory,
                         LayerGroupFactory)
 
-from .models import (MapSymbol, WMSLayer, InternalWFSLayer, SourceTypes, Source,
-                     AreaLevel)
+from .models import (MapSymbol, WMSLayer, InternalWFSLayer, SourceTypes,
+                     AreaLevel, Area)
 
-import factory
+
 from faker import Faker
 
 faker = Faker('de-DE')
@@ -146,19 +146,22 @@ class TestSourceAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.patch_data = data
 
 
-#class TestAreaLevelAPI(_TestAPI, BasicModelTest, APITestCase):
-    #url_key = "arealevels"
-    #factory = AreaLevelFactory
+class TestAreaLevelAPI(_TestAPI, BasicModelTest, APITestCase):
+    url_key = "arealevels"
+    factory = AreaLevelFactory
 
-    #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
-        #data = dict(name=faker.word(), order=faker.random_int(),
-                    #source=faker.word(), layer=faker.word())
-        #cls.post_data = data
-        #cls.put_data = data
-        #cls.patch_data = data
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        area_level: AreaLevel = cls.obj
+        source = area_level.source.pk
+        layer = area_level.layer.pk
 
+        data = dict(name=faker.word(), order=faker.random_int(),
+                    source=source, layer=layer)
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
 
 
 #class TestAreaAPI(_TestAPI, BasicModelTest, APITestCase):
@@ -168,7 +171,11 @@ class TestSourceAPI(_TestAPI, BasicModelTest, APITestCase):
     #@classmethod
     #def setUpClass(cls):
         #super().setUpClass()
-        #data = dict(area_level=faker.word(), geom=faker.latlng(),
+        #area: Area = cls.obj
+        #area_level = area.area_level.pk
+        #geom = area.geom
+
+        #data = dict(area_level=area_level, geom=geom,
                     #attributes=faker.json())
 
         #cls.post_data = data
