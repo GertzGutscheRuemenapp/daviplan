@@ -60,18 +60,20 @@ class CapacitySerializer(serializers.ModelSerializer):
 
 
 class FClassSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = FClass
+        read_only_fields = ('id', 'classification', )
         fields = ('id', 'order', 'value', 'classification')
 
 
 class FieldTypeSerializer(serializers.ModelSerializer):
 
-    fclass_set = FClassSerializer(required=False, many=True)
+    classification = FClassSerializer(required=False, many=True, source='fclass_set')
 
     class Meta:
         model = FieldType
-        fields = ('id', 'name', 'field_type', 'fclass_set')
+        fields = ('id', 'name', 'field_type', 'classification')
 
     def create(self, validated_data):
         classification_data = validated_data.pop('fclass_set', {})

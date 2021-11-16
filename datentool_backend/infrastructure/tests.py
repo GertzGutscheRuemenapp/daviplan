@@ -1,4 +1,5 @@
 from collections import OrderedDict
+import json
 from django.test import TestCase
 from test_plus import APITestCase
 from datentool_backend.api_test import BasicModelTest
@@ -7,8 +8,10 @@ from ..user.factories import ProfileFactory
 
 from .factories import (InfrastructureFactory, ServiceFactory, CapacityFactory,
                         FClassFactory, PlaceFieldFactory, PlaceFactory,
-                        FieldTypeFactory)
-from .models import Infrastructure, Place, Capacity, FieldTypes, FClass
+                        FieldTypeFactory, QuotaFactory)
+from .models import (Infrastructure, Place, Capacity, FieldTypes, FClass,
+                     Service, PlaceField)
+from .serializers import FClassSerializer
 
 
 from faker import Faker
@@ -80,6 +83,52 @@ class TestInfrastructureAPI(_TestAPI, BasicModelTest, APITestCase):
         super().test_put_patch()
 
 
+class TestQuotaAPI(_TestAPI, BasicModelTest, APITestCase):
+    """Test to post, put and patch data"""
+    url_key = "quotas"
+    factory = QuotaFactory
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        cls.post_data = dict(quota_type=faker.word())
+        cls.put_data = dict(quota_type=faker.word())
+        cls.patch_data = dict(quota_type=faker.word())
+
+
+class TestServiceAPI(_TestAPI, BasicModelTest, APITestCase):
+    """Test to post, put and patch data"""
+    url_key = "services"
+    factory = ServiceFactory
+
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        service: Service = cls.obj
+        infrastructure = service.infrastructure.pk
+        editable_by = list(service.editable_by.all().values_list(flat=True))
+        quota_id = service.quota.pk
+        #quota_type = ServiceSerializer.quota_type.pk
+
+        data = dict(name=faker.word(),
+                    description=faker.word(),
+                    infrastructure=infrastructure,
+                    editable_by=editable_by,
+                    capacity_singular_unit=faker.word(),
+                    capacity_plural_unit=faker.word(),
+                    has_capacity=True,
+                    demand_singular_unit=faker.word(),
+                    demand_plural_unit=faker.word(),
+                    quota_id=quota_id,
+                    # quota_type=quota_type,
+                    )
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
+
+
 class TestPlaceAPI(_TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "places"
@@ -130,17 +179,41 @@ class TestCapacityAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.patch_data = data
 
 
-class TestFieldTypeAPI(_TestAPI, BasicModelTest, APITestCase):
+class TestFieldTypeNUMSTRAPI(_TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "fieldtypes"
-    factory = FieldTypeFactory
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.obj = FieldTypeFactory(field_type=FieldTypes.NUMBER)
+        data = dict(field_type=FieldTypes.NUMBER,
+                    name=faker.word(),
+                    )
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
 
-        data = dict(field_type=faker.random_element(FieldTypes),
-                    name=faker.word())
+
+class TestFieldTypeCLAAPI(_TestAPI, BasicModelTest, APITestCase):
+    """Test to post, put and patch data"""
+    url_key = "fieldtypes"
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        #cls.obj = FieldTypeFactory(field_type=FieldTypes.CLASSIFICATION)
+        #fclasses = [FClassFactory(classification=cls.obj),
+                    #FClassFactory(classification=cls.obj)]
+
+        fclass_set = [{'order': 1, 'value': faker.word(), },
+                      {'order': 2, 'value': faker.word(), },
+                      ]
+
+        data = dict(field_type=FieldTypes.CLASSIFICATION,
+                    name=faker.word(),
+                    classification=fclass_set,
+                    )
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
@@ -160,6 +233,26 @@ class TestFClassAPI(_TestAPI, BasicModelTest, APITestCase):
         data = dict(classification=classification,
                     order=faker.unique.pyint(max_value=100),
                     value=faker.unique.word())
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
+
+
+class TestPlaceFieldAPI(_TestAPI, BasicModelTest, APITestCase):
+    """Test to post, put and patch data"""
+    url_key = "placefields"
+    factory = PlaceFieldFactory
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        placefield: PlaceField = cls.obj
+        infrastructure = placefield.infrastructure.pk
+        field_type = placefield.field_type.pk
+        data = dict(attribute=faker.unique.word(), unit=faker.word(),
+                    infrastructure=infrastructure,
+                    field_type=field_type)
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data

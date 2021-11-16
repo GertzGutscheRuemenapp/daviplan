@@ -35,7 +35,9 @@ class Service(NamedModel, models.Model):
     name = models.TextField()
     description = models.TextField()
     infrastructure = models.ForeignKey(Infrastructure, on_delete=models.RESTRICT)
-    editable_by = models.ManyToManyField(Profile, related_name='service_editable_by')
+    editable_by = models.ManyToManyField(Profile,
+                                         related_name='service_editable_by',
+                                         blank=True)
     capacity_singular_unit = models.TextField()
     capacity_plural_unit = models.TextField()
     has_capacity = models.BooleanField()

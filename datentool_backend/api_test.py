@@ -106,7 +106,9 @@ class BasicModelReadTest(LoginTestCase, CompareAbsURIMixin):
 
     def get_check_200(self, url, **kwargs):
         assert url in [r.name for r in router.urls], f'URL {url} not in routes'
-        return super().get_check_200(url, **kwargs)
+        response = self.get(url, **kwargs)
+        self.response_200(response, msg=response.content)
+        return response
 
 
 class BasicModelTest(BasicModelReadTest):
@@ -122,11 +124,11 @@ class BasicModelTest(BasicModelReadTest):
         response = self.get_check_200(url, **kwargs)
 
         response = self.delete(url, **kwargs)
-        self.response_204()
+        self.response_204(msg=response.content)
 
         # it should be deleted and raise 404
         response = self.get(url, **kwargs)
-        self.response_404()
+        self.response_404(msg=response.content)
 
     def test_post(self):
         """Test post method for the detail-view"""
@@ -134,7 +136,7 @@ class BasicModelTest(BasicModelReadTest):
         # post
         response = self.post(url, **self.url_pks, data=self.post_data,
                              extra={'format': 'json'})
-        self.response_201()
+        self.response_201(msg=response.content)
         for key in self.post_data:
             if key not in response.data.keys() or key in self.do_not_check:
                 continue
@@ -168,7 +170,7 @@ class BasicModelTest(BasicModelReadTest):
         response = self.put(url, **kwargs,
                             data=self.put_data,
                             extra=formatjson)
-        self.response_200()
+        self.response_200(msg=response.content)
         assert response.status_code == status.HTTP_200_OK
         # check if values have changed
         response = self.get_check_200(url, **kwargs)
@@ -182,7 +184,7 @@ class BasicModelTest(BasicModelReadTest):
         # check status code for patch
         response = self.patch(url, **kwargs,
                               data=self.patch_data, extra=formatjson)
-        self.response_200()
+        self.response_200(msg=response.content)
 
         # check if name has changed
         response = self.get_check_200(url, **kwargs)
@@ -198,14 +200,14 @@ class BasicModelReadPermissionTest(BasicModelReadTest):
     def test_list_permission(self):
         self.profile.user.user_permissions.clear()
         response = self.get(self.url_key + '-list', **self.url_pks)
-        self.response_403()
+        self.response_403(msg=response.content)
 
     def test_get_permission(self):
         self.profile.user.user_permissions.clear()
         url = self.url_key + '-detail'
         kwargs = {**self.url_pks, 'pk': self.obj.pk, }
         response = self.get(url, **kwargs)
-        self.response_403()
+        self.response_403(msg=response.content)
 
 
 class BasicModelWritePermissionTest(BasicModelTest):
@@ -219,7 +221,7 @@ class BasicModelWritePermissionTest(BasicModelTest):
         # post
         response = self.post(url, **self.url_pks, data=self.post_data,
                              extra={'format': 'json'})
-        self.response_403()
+        self.response_403(msg=response.content)
 
     def test_delete_permission(self):
         """
@@ -229,7 +231,7 @@ class BasicModelWritePermissionTest(BasicModelTest):
         kwargs = {**self.url_pks, 'pk': self.obj.pk, }
         url = self.url_key + '-detail'
         response = self.delete(url, **kwargs)
-        self.response_403()
+        self.response_403(msg=response.content)
 
     def test_put_permission(self):
         self.profile.user.user_permissions.clear()
@@ -238,7 +240,7 @@ class BasicModelWritePermissionTest(BasicModelTest):
         formatjson = dict(format='json')
         response = self.put(url, **kwargs, data=self.put_data,
                             extra=formatjson)
-        self.response_403()
+        self.response_403(msg=response.content)
 
 
 class BasicModelPermissionTest(BasicModelReadPermissionTest,

@@ -27,6 +27,7 @@ class TestAreas(TestCase):
         cls.source = SourceFactory()
         cls.area = AreaFactory()
         print(cls.area)
+        print(cls.wfs_layer)
 
     def test_area(self):
         area = self.area

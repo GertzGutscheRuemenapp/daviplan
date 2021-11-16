@@ -103,6 +103,21 @@ class FieldTypeFactory(DjangoModelFactory):
     field_type = faker.random_element(FieldTypes)
     name = faker.word()
 
+    #@factory.post_generation
+    #def fclass_set(self, create, extracted, **kwargs):
+        #if not create or self.field_type != FieldTypes.CLASSIFICATION:
+            ## Simple build, do nothing.
+            #return
+
+        #if extracted:
+            ## A list of fclasses were passed in, use them
+            #for fclass in extracted:
+                #self.fclass_set.add(fclass)
+        #else:
+            #fclass = FClass.objects.first()
+            #if fclass is not None:
+                #self.fclass_set.add(fclass)
+
 
 class FClassFactory(DjangoModelFactory):
     """a class in a classification"""
