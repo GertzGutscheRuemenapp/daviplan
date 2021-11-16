@@ -58,8 +58,8 @@ class TestInfrastructureAPI(_TestAPI, BasicModelTest, APITestCase):
     def setUpClass(cls):
         super().setUpClass()
         infrastructure: Infrastructure = cls.obj
-        editable_by = infrastructure.editable_by
-        accessible_by = infrastructure.accessible_by
+        editable_by = list(infrastructure.editable_by.all().values_list(flat=True))
+        accessible_by = list(infrastructure.accessible_by.all().values_list(flat=True))
         layer = infrastructure.layer.pk
         symbol = infrastructure.symbol.pk
 
@@ -70,6 +70,14 @@ class TestInfrastructureAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
+
+    def test_patch_empty_editable_by(self):
+        """Test the patch with an empty list"""
+        patch_data2 = self.patch_data.copy()
+        patch_data2['editable_by'] = []
+        patch_data2['accessible_by'] = []
+        self.patch_data = patch_data2
+        super().test_put_patch()
 
 
 class TestPlaceAPI(_TestAPI, BasicModelTest, APITestCase):
@@ -116,7 +124,7 @@ class TestCapacityAPI(_TestAPI, BasicModelTest, APITestCase):
         service = capacity.service.pk
 
         data = dict(place=place, service=service,
-                    capacity=faker.pyfloat(positive=True), year=faker.year())
+                    capacity=faker.pyfloat(positive=True), from_year=faker.year())
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data

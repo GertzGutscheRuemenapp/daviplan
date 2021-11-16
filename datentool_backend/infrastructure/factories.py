@@ -3,7 +3,8 @@ import factory
 from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import Point
 from .models import (Infrastructure, Quota, Service, Place,
-                     Capacity, FieldTypes, FieldType, FClass, PlaceField)
+                     Capacity, FieldTypes, FieldType, FClass, PlaceField,
+                     Profile)
 from ..area.factories import InternalWFSLayerFactory, MapSymbolsFactory
 
 faker = Faker('de-DE')
@@ -28,6 +29,10 @@ class InfrastructureFactory(DjangoModelFactory):
             # A list of profiles were passed in, use them
             for profile in extracted:
                 self.editable_by.add(profile)
+        else:
+            profile = Profile.objects.first()
+            if profile is not None:
+                self.editable_by.add(profile)
 
     @factory.post_generation
     def accessible_by(self, create, extracted, **kwargs):
@@ -38,6 +43,10 @@ class InfrastructureFactory(DjangoModelFactory):
         if extracted:
             # A list of profiles were passed in, use them
             for profile in extracted:
+                self.accessible_by.add(profile)
+        else:
+            profile = Profile.objects.first()
+            if profile is not None:
                 self.accessible_by.add(profile)
 
 

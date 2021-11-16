@@ -12,9 +12,9 @@ class Infrastructure(NamedModel, models.Model):
     name = models.TextField()
     description = models.TextField()
     editable_by = models.ManyToManyField(
-        Profile, related_name='infrastructure_editable_by')
+        Profile, related_name='infrastructure_editable_by', blank=True)
     accessible_by = models.ManyToManyField(
-        Profile, related_name='infrastructure_accessible_by')
+        Profile, related_name='infrastructure_accessible_by', blank=True)
     # sensitive_data
     layer = models.ForeignKey(InternalWFSLayer, on_delete=models.RESTRICT)
     symbol = models.ForeignKey(MapSymbol, on_delete=models.RESTRICT)

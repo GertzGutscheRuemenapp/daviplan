@@ -62,7 +62,7 @@ class CapacitySerializer(serializers.ModelSerializer):
 class FClassSerializer(serializers.ModelSerializer):
     class Meta:
         model = FClass
-        fields = ('id', 'order', 'value')
+        fields = ('id', 'order', 'value', 'classification')
 
 
 class FieldTypeSerializer(serializers.ModelSerializer):
