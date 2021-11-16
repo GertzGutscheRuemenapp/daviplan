@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from django.test import TestCase
 from test_plus import APITestCase
 from datentool_backend.api_test import BasicModelTest
@@ -5,8 +6,9 @@ from datentool_backend.area.tests import _TestAPI
 from ..user.factories import ProfileFactory
 
 from .factories import (InfrastructureFactory, ServiceFactory, CapacityFactory,
-                        FClassFactory, PlaceFieldFactory)
-from .models import Infrastructure
+                        FClassFactory, PlaceFieldFactory, PlaceFactory,
+                        FieldTypeFactory)
+from .models import Infrastructure, Place, Capacity, FieldTypes, FClass
 
 
 from faker import Faker
@@ -48,7 +50,7 @@ class TestInfrastructure(TestCase):
 
 
 class TestInfrastructureAPI(_TestAPI, BasicModelTest, APITestCase):
-    """"""
+    """Test to post, put and patch data"""
     url_key = "infrastructures"
     factory = InfrastructureFactory
 
@@ -65,6 +67,91 @@ class TestInfrastructureAPI(_TestAPI, BasicModelTest, APITestCase):
                              editable_by=editable_by,
                              accessible_by=accessible_by, layer=layer,
                              symbol=symbol)
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
+
+
+class TestPlaceAPI(_TestAPI, BasicModelTest, APITestCase):
+    """Test to post, put and patch data"""
+    url_key = "places"
+    factory = PlaceFactory
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        place: Place = cls.obj
+        infrastructure = place.infrastructure.pk
+        geom = place.geom.ewkt
+
+        properties = OrderedDict(
+            name=faker.word(),
+            infrastructure=infrastructure,
+            attributes=faker.json(),
+        )
+        geojson = {
+            'type': 'Feature',
+            'geometry': geom,
+            'properties': properties,
+        }
+
+        cls.post_data = geojson
+        geojson_putpatch = geojson.copy()
+        geojson_putpatch['id'] = place.id
+
+        cls.put_data = geojson_putpatch
+        cls.patch_data = geojson_putpatch
+
+
+class TestCapacityAPI(_TestAPI, BasicModelTest, APITestCase):
+    """Test to post, put and patch data"""
+    url_key = "capacities"
+    factory = CapacityFactory
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        capacity: Capacity = cls.obj
+        place = capacity.place.pk
+        service = capacity.service.pk
+
+        data = dict(place=place, service=service,
+                    capacity=faker.pyfloat(positive=True), year=faker.year())
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
+
+
+class TestFieldTypeAPI(_TestAPI, BasicModelTest, APITestCase):
+    """Test to post, put and patch data"""
+    url_key = "fieldtypes"
+    factory = FieldTypeFactory
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        data = dict(field_type=faker.random_element(FieldTypes),
+                    name=faker.word())
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
+
+
+class TestFClassAPI(_TestAPI, BasicModelTest, APITestCase):
+    """Test to post, put and patch data"""
+    url_key = "fclasses"
+    factory = FClassFactory
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        fclass: FClass = cls.obj
+        classification = fclass.classification.pk
+        data = dict(classification=classification,
+                    order=faker.unique.pyint(max_value=100),
+                    value=faker.unique.word())
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data

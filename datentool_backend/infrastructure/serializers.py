@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from .models import (Infrastructure, FieldType, FClass, FieldTypes, Service,
                      Quota, Place, Capacity, PlaceField)
@@ -45,10 +46,11 @@ class ServiceSerializer(serializers.ModelSerializer):
         return instance
 
 
-class PlaceSerializer(serializers.ModelSerializer):
+class PlaceSerializer(GeoFeatureModelSerializer):
     class Meta:
         model = Place
-        fields = ('id', 'name', 'infrastructure', 'geom', 'attributes')
+        geo_field = 'geom'
+        fields = ('id', 'name', 'infrastructure', 'attributes')
 
 
 class CapacitySerializer(serializers.ModelSerializer):

@@ -1,10 +1,11 @@
 from rest_framework import viewsets
 
 from .models import (Infrastructure, FieldType, Service, Quota, Place, Capacity,
-                     PlaceField)
+                     PlaceField, FClass)
 from .serializers import (InfrastructureSerializer, FieldTypeSerializer,
                           ServiceSerializer, QuotaSerializer, PlaceSerializer,
-                          CapacitySerializer, PlaceFieldSerializer)
+                          CapacitySerializer, PlaceFieldSerializer,
+                          FClassSerializer)
 
 
 class InfrastructureViewSet(viewsets.ModelViewSet):
@@ -36,6 +37,11 @@ class FieldTypeViewSet(viewsets.ModelViewSet):
     queryset = FieldType.objects.all() # prefetch_related('classification_set',
                                          #         to_attr='classifications')
     serializer_class = FieldTypeSerializer
+
+
+class FClassViewSet(viewsets.ModelViewSet):
+    queryset = FClass.objects.all()
+    serializer_class = FClassSerializer
 
 
 class PlaceFieldViewSet(viewsets.ModelViewSet):

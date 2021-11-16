@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from django.test import TestCase
 from test_plus import APITestCase
 from datentool_backend.api_test import BasicModelTest
@@ -164,23 +165,32 @@ class TestAreaLevelAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.patch_data = data
 
 
-#class TestAreaAPI(_TestAPI, BasicModelTest, APITestCase):
-    #url_key = "areas"
-    #factory = AreaFactory
+class TestAreaAPI(_TestAPI, BasicModelTest, APITestCase):
+    url_key = "areas"
+    factory = AreaFactory
 
-    #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
-        #area: Area = cls.obj
-        #area_level = area.area_level.pk
-        #geom = area.geom
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        area: Area = cls.obj
+        area_level = area.area_level.pk
+        geom = area.geom.ewkt
+        properties = OrderedDict(
+            area_level=area_level,
+            attributes=faker.json(),
+        )
+        geojson = {
+            'type': 'Feature',
+            'geometry': geom,
+            'properties': properties,
+        }
 
-        #data = dict(area_level=area_level, geom=geom,
-                    #attributes=faker.json())
+        cls.post_data = geojson
+        geojson_putpatch = geojson.copy()
+        geojson_putpatch['id'] = area.id
 
-        #cls.post_data = data
-        #cls.put_data = data
-        #cls.patch_data = data
+        cls.put_data = geojson_putpatch
+        cls.patch_data = geojson_putpatch
 
 
 

@@ -12,7 +12,8 @@ from .indicators.views import (ModeViewSet)
 
 from .infrastructure.views import (InfrastructureViewSet, FieldTypeViewSet,
                                    QuotaViewSet, ServiceViewSet, PlaceViewSet,
-                                   CapacityViewSet, PlaceFieldViewSet)
+                                   CapacityViewSet, PlaceFieldViewSet,
+                                   FClassViewSet)
 
 router = routers.SimpleRouter()
 router.register(r'users', UserViewSet, basename='users')
@@ -46,6 +47,7 @@ router.register(r'services', ServiceViewSet, basename='services')
 router.register(r'places', PlaceViewSet, basename='places')
 router.register(r'capacities', CapacityViewSet, basename='capacities')
 router.register(r'fieldtypes', FieldTypeViewSet, basename='fieldtypes')
+router.register(r'fclasses', FClassViewSet, basename='fclasses')
 router.register(r'placefields', PlaceFieldViewSet, basename='placefields')
 
 urlpatterns = router.urls

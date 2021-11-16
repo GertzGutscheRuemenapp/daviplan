@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from .models import (SymbolForm, MapSymbol, LayerGroup, WMSLayer,
                      InternalWFSLayer, Source, AreaLevel, Area)
@@ -46,7 +47,8 @@ class AreaLevelSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'order', 'source', 'layer')
 
 
-class AreaSerializer(serializers.ModelSerializer):
+class AreaSerializer(GeoFeatureModelSerializer):
     class Meta:
         model = Area
-        fields = ('id', 'area_level', 'geom', 'attributes')
+        geo_field = 'geom'
+        fields = ('id', 'area_level', 'attributes')
