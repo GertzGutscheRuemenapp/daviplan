@@ -87,9 +87,9 @@ class TestLayerGroupAPI(_TestAPI, BasicModelTest, APITestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.post_data = dict(name='posttestname', order=2)
-        cls.put_data = dict(name='puttestname', order=3)
-        cls.patch_data = dict(name='patchtestname', order=4)
+        cls.post_data = dict(name='posttestname', order=faker.random_int())
+        cls.put_data = dict(name='puttestname', order=faker.random_int())
+        cls.patch_data = dict(name='patchtestname', order=faker.random_int())
 
 
 class TestWMSLayerAPI(_TestAPI, BasicModelTest, APITestCase):

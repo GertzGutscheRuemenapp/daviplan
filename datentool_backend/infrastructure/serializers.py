@@ -60,16 +60,24 @@ class CapacitySerializer(serializers.ModelSerializer):
 
 
 class FClassSerializer(serializers.ModelSerializer):
+    classification_id = serializers.PrimaryKeyRelatedField(
+        write_only=True,
+        required=False,
+        source='classification',
+        queryset = FieldType.objects.all())
 
     class Meta:
         model = FClass
         read_only_fields = ('id', 'classification', )
-        fields = ('id', 'order', 'value', 'classification')
+        write_only_fields = ('classification_id', )
+        fields = ('id', 'order', 'value',
+                  'classification', 'classification_id')
 
 
 class FieldTypeSerializer(serializers.ModelSerializer):
 
-    classification = FClassSerializer(required=False, many=True, source='fclass_set')
+    classification = FClassSerializer(required=False, many=True,
+                                      source='fclass_set')
 
     class Meta:
         model = FieldType
@@ -91,6 +99,7 @@ class FieldTypeSerializer(serializers.ModelSerializer):
         classification_data = validated_data.pop('fclass_set', {})
         instance = super().update(instance, validated_data)
         if classification_data and instance.field_type == FieldTypes.CLASSIFICATION:
+            classification_list = []
             for classification in classification_data:
                 if classification.get('id') is None:
                     fclass = FClass(order=classification['order'],
@@ -107,8 +116,9 @@ class FieldTypeSerializer(serializers.ModelSerializer):
                     except FClass.DoesNotExist:
                         print(f'FClass with id {id} in field-type '
                               '{instance.name} does not exist')
-            classification_data_ids = [f['id'] for f in classification_data]
-            for fclass in instance.fclass_set:
+                classification_list.append(fclass)
+            classification_data_ids = [f.id for f in classification_list]
+            for fclass in instance.fclass_set.all():
                 if fclass.id not in classification_data_ids:
                     fclass.delete(keep_parents=True)
         return instance

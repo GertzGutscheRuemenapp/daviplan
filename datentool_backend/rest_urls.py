@@ -8,7 +8,7 @@ from .area.views import (SymbolFormViewSet, MapSymbolsViewSet, LayerGroupViewSet
 
 from .demand.views import (DemandRateSetViewSet, DemandRateViewSet)
 
-from .indicators.views import (ModeViewSet)
+from .indicators.views import (ModeViewSet, ModeVariantViewSet)
 
 from .infrastructure.views import (InfrastructureViewSet, FieldTypeViewSet,
                                    QuotaViewSet, ServiceViewSet, PlaceViewSet,
@@ -37,7 +37,7 @@ router.register(r'demandrates', DemandRateViewSet, basename='demandrates')
 
 # indicator
 router.register(r'modes', ModeViewSet, basename='modes')
-router.register(r'modes', DemandRateViewSet, basename='modes')
+router.register(r'modevariants', ModeVariantViewSet, basename='modevariants')
 
 # infrastructure
 router.register(r'infrastructures', InfrastructureViewSet,

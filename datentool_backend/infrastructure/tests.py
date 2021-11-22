@@ -11,7 +11,6 @@ from .factories import (InfrastructureFactory, ServiceFactory, CapacityFactory,
                         FieldTypeFactory, QuotaFactory)
 from .models import (Infrastructure, Place, Capacity, FieldTypes, FClass,
                      Service, PlaceField)
-from .serializers import FClassSerializer
 
 
 from faker import Faker
@@ -202,7 +201,7 @@ class TestFieldTypeCLAAPI(_TestAPI, BasicModelTest, APITestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        #cls.obj = FieldTypeFactory(field_type=FieldTypes.CLASSIFICATION)
+        cls.obj = FieldTypeFactory(field_type=FieldTypes.CLASSIFICATION)
         #fclasses = [FClassFactory(classification=cls.obj),
                     #FClassFactory(classification=cls.obj)]
 
@@ -214,9 +213,45 @@ class TestFieldTypeCLAAPI(_TestAPI, BasicModelTest, APITestCase):
                     name=faker.word(),
                     classification=fclass_set,
                     )
+
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
+
+    def test_patch_fclass_with_deletion(self):
+        """test also, if deletion works"""
+
+        field_typ = FieldTypeFactory(field_type=FieldTypes.CLASSIFICATION)
+        fclass1 = FClassFactory(classification=field_typ, order=7, value='7')
+        fclass2 = FClassFactory(classification=field_typ, order=42, value='42')
+
+        self.assertEqual(field_typ.fclass_set.count(), 2)
+
+        url = self.url_key + '-detail'
+        kwargs = {**self.url_pks, 'pk': field_typ.pk, }
+        formatjson = dict(format='json')
+
+        # patch the fclass-set with new data
+
+        fclass_set = [{'order': 42, 'value': '422', },
+                      {'order': 2, 'value': '2', },
+                      {'order': 3, 'value': '3', },
+                      ]
+
+        patch_data = dict(classification=fclass_set)
+        # check status code for patch
+        response = self.patch(url, **kwargs,
+                              data=patch_data, extra=formatjson)
+        self.response_200(msg=response.content)
+
+        # test if fclasses are correctly updated, added and deleted
+        new_fclass_set = field_typ.fclass_set.all()
+        self.assertEqual(len(new_fclass_set), 3)
+        # check if the 7 is deleted
+        self.assertQuerysetEqual(new_fclass_set.filter(order=7), [])
+        self.assertEqual(new_fclass_set.get(order=42).value, '422')
+        self.assertEqual(new_fclass_set.get(order=2).value, '2')
+        self.assertEqual(new_fclass_set.get(order=3).value, '3')
 
 
 class TestFClassAPI(_TestAPI, BasicModelTest, APITestCase):
@@ -230,7 +265,7 @@ class TestFClassAPI(_TestAPI, BasicModelTest, APITestCase):
 
         fclass: FClass = cls.obj
         classification = fclass.classification.pk
-        data = dict(classification=classification,
+        data = dict(classification_id=classification,
                     order=faker.unique.pyint(max_value=100),
                     value=faker.unique.word())
         cls.post_data = data

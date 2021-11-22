@@ -1,8 +1,9 @@
 from django.http import HttpRequest
 
 from rest_framework_gis.fields import GeoJsonDict
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from rest_framework import status
+from django.db.models.query import QuerySet
 
 from datentool_backend.user.factories import ProfileFactory
 from django.contrib.auth.models import Permission
@@ -93,9 +94,17 @@ class BasicModelReadTest(LoginTestCase, CompareAbsURIMixin):
         If response_value is a GeoJson, then compare the texts
         """
         if isinstance(response_value, GeoJsonDict):
-            self.assertJSONEqual(force_text(response_value), expected)
+            self.assertJSONEqual(force_str(response_value), expected)
+        if isinstance(response_value, (list, QuerySet)):
+            self.assertEqual(len(response_value), len(expected))
+            for i, response_elem in enumerate(response_value):
+                expected_elem=expected[i]
+                if isinstance(response_elem, dict):
+                    self.assertDictContainsSubset(expected_elem, response_elem)
+                else:
+                    self.assertEqual(force_str(response_value), force_str(expected))
         else:
-            self.assertEqual(force_text(response_value), force_text(expected))
+            self.assertEqual(force_str(response_value), force_str(expected))
 
     def test_get_urls(self):
         """get all sub-elements of a list of urls"""
