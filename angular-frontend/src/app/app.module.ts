@@ -84,6 +84,7 @@ import { FilterTableComponent } from './elements/filter-table/filter-table.compo
 import { MatChipsModule } from "@angular/material/chips";
 import { CookieExpansionDirective } from './helpers/cookie-expansion.directive';
 import { SimpleDialogComponent } from './dialogs/simple-dialog/simple-dialog.component';
+import { HelpDialogComponent, HelpDialog } from './dialogs/help-dialog/help-dialog.component';
 
 @NgModule({
   declarations: [
@@ -136,7 +137,9 @@ import { SimpleDialogComponent } from './dialogs/simple-dialog/simple-dialog.com
     CheckTreeComponent,
     FilterTableComponent,
     CookieExpansionDirective,
-    SimpleDialogComponent
+    SimpleDialogComponent,
+    HelpDialogComponent,
+    HelpDialog
   ],
     imports: [
         BrowserModule,
