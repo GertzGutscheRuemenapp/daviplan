@@ -1,11 +1,19 @@
 import numpy as np
 from django.test import TestCase
+from test_plus import APITestCase
+from datentool_backend.api_test import BasicModelTest
+from datentool_backend.area.tests import _TestAPI
+
 from .models import PrognosisEntry, Year
 from .factories import (RasterCellFactory, AgeGroupFactory, AgeClassificationFactory,
                         GenderFactory, PopulationFactory,
                         DisaggPopRasterFactory, RasterCellPopulationAgeGenderFactory,
                         PrognosisEntryFactory, AreaFactory, PrognosisFactory,
-                        PopStatEntryFactory)
+                        PopStatEntryFactory, YearFactory)
+
+from faker import Faker
+
+faker = Faker('de-DE')
 
 
 class TestPopulation(TestCase):
@@ -67,3 +75,17 @@ class TestPopulation(TestCase):
         pop = PopulationFactory(genders=self.genders)
         self.assertQuerysetEqual(
             pop.genders.all(), self.genders, ordered=False)
+
+
+#class TestYearAPI(_TestAPI, BasicModelTest, APITestCase):
+    #""""""
+    #url_key = "years"
+    #factory = YearFactory
+
+    #@classmethod
+    #def setUpClass(cls):
+        #super().setUpClass()
+
+        #cls.post_data = dict(year=faker.unique.year())
+        #cls.put_data = dict(year=faker.unique.year())
+        #cls.patch_data = dict(year=faker.unique.year())

@@ -19,7 +19,12 @@ from .infrastructure.views import (InfrastructureViewSet, FieldTypeViewSet,
 from .logging.views import (CapacityUploadLogViewSet, PlaceUploadLogViewSet,
                             AreaUploadLogViewSet)
 from .population.views import (YearViewSet, RasterViewSet,
-                               PopulationRasterViewSet, RasterCellViewSet)
+                               PopulationRasterViewSet, GenderViewSet,
+                               AgeClassificationViewSet, AgeGroupViewSet,
+                               DisaggPopRasterViewSet, PrognosisViewSet,
+                               PrognosisEntryViewSet, PopulationViewSet,
+                               PopulationEntryViewSet, PopStatisticViewSet,
+                               PopStatEntryViewSet)
 
 
 router = routers.SimpleRouter()
@@ -74,7 +79,22 @@ router.register(r'years', YearViewSet, basename='years')
 router.register(r'rasters', RasterViewSet, basename='rasters')
 router.register(r'populationrasters', PopulationRasterViewSet,
                 basename='populationrasters')
-router.register(r'rastercells', RasterCellViewSet, basename='rastercells')
+router.register(r'genders', GenderViewSet, basename='genders')
+router.register(r'ageclassifications', AgeClassificationViewSet,
+                basename='ageclassifications')
+router.register(r'agegroups', AgeGroupViewSet, basename='agegroups')
+router.register(r'disaggpoprasters', DisaggPopRasterViewSet,
+                basename='disaggpoprasters')
+router.register(r'prognoses', PrognosisViewSet,
+                basename='prognoses')
+router.register(r'prognosisentries', PrognosisEntryViewSet,
+                basename='prognosisentries')
+router.register(r'populations', PopulationViewSet,basename='populations')
+router.register(r'populationentries', PopulationEntryViewSet,
+                basename='populationentries')
+router.register(r'popstatistics', PopStatisticViewSet, basename='popstatistics')
+router.register(r'popstatentryviewsets', PopStatEntryViewSet,
+                basename='popstatentryviewsets')
 
 
 
