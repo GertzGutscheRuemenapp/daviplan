@@ -15,3 +15,4 @@ class UserViewSet(viewsets.ModelViewSet):
             return self.request.user
 
         return super().get_object()
+

@@ -1,5 +1,10 @@
 from django.test import TestCase
+
+
 from .factories import (ProfileFactory, UserFactory, User)
+
+from faker import Faker
+faker = Faker('de-DE')
 
 
 class TestProfile(TestCase):
@@ -19,3 +24,5 @@ class TestProfile(TestCase):
 
         user2 = User.objects.create(username='Test')
         self.assertTrue(user2.profile.pk)
+
+

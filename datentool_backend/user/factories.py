@@ -1,8 +1,9 @@
 import factory
 from factory.django import DjangoModelFactory, mute_signals
+from django.contrib.gis.geos import Polygon
 from faker import Faker
 
-from .models import User, Profile, post_save
+from .models import User, Profile, post_save, Project
 
 
 faker = Faker('de-DE')
@@ -31,3 +32,4 @@ class UserFactory(DjangoModelFactory):
     # We pass in 'user' to link the generated Profile to our just-generated User
     # This will call ProfileFactory(user=our_new_user), thus skipping the SubFactory.
     profile = factory.RelatedFactory(ProfileFactory, factory_related_name='user')
+

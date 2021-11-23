@@ -16,9 +16,11 @@ from .infrastructure.views import (InfrastructureViewSet, FieldTypeViewSet,
                                    QuotaViewSet, ServiceViewSet, PlaceViewSet,
                                    CapacityViewSet, PlaceFieldViewSet,
                                    FClassViewSet)
-
 from .logging.views import (CapacityUploadLogViewSet, PlaceUploadLogViewSet,
                             AreaUploadLogViewSet)
+from .population.views import (YearViewSet, RasterViewSet,
+                               PopulationRasterViewSet, RasterCellViewSet)
+
 
 router = routers.SimpleRouter()
 router.register(r'users', UserViewSet, basename='users')
@@ -66,6 +68,14 @@ router.register(r'placeuploadlogs', PlaceUploadLogViewSet,
                 basename='placeuploadlogs')
 router.register(r'areauploadlogs', AreaUploadLogViewSet,
                 basename='areauploadlogs')
+
+# population
+router.register(r'years', YearViewSet, basename='years')
+router.register(r'rasters', RasterViewSet, basename='rasters')
+router.register(r'populationrasters', PopulationRasterViewSet,
+                basename='populationrasters')
+router.register(r'rastercells', RasterCellViewSet, basename='rastercells')
+
 
 
 urlpatterns = router.urls
