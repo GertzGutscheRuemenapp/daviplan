@@ -17,6 +17,9 @@ from .infrastructure.views import (InfrastructureViewSet, FieldTypeViewSet,
                                    CapacityViewSet, PlaceFieldViewSet,
                                    FClassViewSet)
 
+from .logging.views import (CapacityUploadLogViewSet, PlaceUploadLogViewSet,
+                            AreaUploadLogViewSet)
+
 router = routers.SimpleRouter()
 router.register(r'users', UserViewSet, basename='users')
 router.register(r'settings', SiteSettingsViewSet, basename='settings')
@@ -55,5 +58,14 @@ router.register(r'capacities', CapacityViewSet, basename='capacities')
 router.register(r'fieldtypes', FieldTypeViewSet, basename='fieldtypes')
 router.register(r'fclasses', FClassViewSet, basename='fclasses')
 router.register(r'placefields', PlaceFieldViewSet, basename='placefields')
+
+# logging
+router.register(r'capacityuploadlogs', CapacityUploadLogViewSet,
+                basename='capacityuploadlogs')
+router.register(r'placeuploadlogs', PlaceUploadLogViewSet,
+                basename='placeuploadlogs')
+router.register(r'areauploadlogs', AreaUploadLogViewSet,
+                basename='areauploadlogs')
+
 
 urlpatterns = router.urls
