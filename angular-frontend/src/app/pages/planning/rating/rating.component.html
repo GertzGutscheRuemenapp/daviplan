@@ -177,19 +177,11 @@
         <mat-icon style="font-size: 20px; margin-top: 0;">download</mat-icon>
       </button>
       <br>
-      <ng-template #help>
+      <app-help-button title="Diagrammdarstellung" position="right">
         <p>Das Diagramm zeigt die Kennwerte des ausgewählten Indikators für alle Gebiete der ausgewählten Gebietseinheit.</p>
         <p>Mit einem Klick auf den Vollbild-Button rechts oben können Sie sich das Diagramm vergrößert in einem Dialog anzeigen lassen.</p>
         <p>Über den Herunterladen-Button darunter können Sie sich das Diagramm als Bild (PNG) herunterladen.</p>
-      </ng-template>
-      <button mat-icon-button color="primary" class="small"
-              title="Hilfe"
-              [ngbPopover]="help"
-              popoverTitle="Diagrammdarstellung"
-              container="body"
-              [autoClose]="true">
-        <mat-icon>help_outline</mat-icon>
-      </button>
+      </app-help-button>
     </div>
   </div>
 </app-side-toggle>

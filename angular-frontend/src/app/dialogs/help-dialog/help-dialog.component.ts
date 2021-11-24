@@ -20,7 +20,7 @@ export class HelpDialog {
 @Component({
   selector: 'app-help-button',
   template: `
-    <button #helpButton mat-icon-button color="primary" class="small" (click)="onClick()">
+    <button #helpButton title="Hilfe" mat-icon-button color="primary" class="small" (click)="onClick()">
         <mat-icon>help_outline</mat-icon>
     </button>
     <div #content style="display: none;">
@@ -51,7 +51,9 @@ export class HelpDialogComponent implements OnInit {
       this.dialog.closeAll();
       const rect: DOMRect = this.helpButton.nativeElement.getBoundingClientRect();
       const position = {
-        left: (this.position === 'left') ? `${rect.left - this.width - 10}px`: `${rect.left + 40}px`,
+        left: (this.position === 'left') ? `${rect.left - this.width - 10}px`:
+              (this.position === 'center') ? `${rect.left - this.width / 2 }px`:
+              `${rect.left + 40}px`,
         top: `${rect.top + this.top}px`
       }
       this.dialogRef = this.dialog.open(HelpDialog, {

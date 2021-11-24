@@ -60,13 +60,9 @@
                 title="ausgewähltes Szenario entfernen">
           <mat-icon>close</mat-icon>
         </button>
-        <button mat-icon-button color="primary" class="small"
-                title="Hilfe"
-                ngbPopover="Sie können sich hier Ihre Erreichbarkeitsszenarien anzeigen lassen, diese editieren, neue hinzufügen und bestehende löschen. "
-                popoverTitle="Szenarioverwaltung"
-                [autoClose]="true">
-          <mat-icon>help_outline</mat-icon>
-        </button>
+        <app-help-button title="Szenarioverwaltung" position="center" [top]="50">
+          <p>Sie können sich hier Ihre Erreichbarkeitsszenarien anzeigen lassen, diese editieren, neue hinzufügen und bestehende löschen.</p>
+        </app-help-button>
       </div>
     </div>
   </div>

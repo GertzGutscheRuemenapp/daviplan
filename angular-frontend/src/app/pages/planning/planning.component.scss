@@ -37,7 +37,8 @@
   mat-form-field {
     width: 180px;
   }
-  button {
+  button, app-help-button {
+    position: relative;
     float: right;
     top: 28px;
   }

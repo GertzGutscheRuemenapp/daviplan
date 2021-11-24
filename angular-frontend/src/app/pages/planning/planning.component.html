@@ -133,14 +133,10 @@
         </mat-optgroup>
       </mat-select>
     </mat-form-field>
-    <button mat-icon-button color="primary" class="small"
-            title="Hilfe"
-            ngbPopover="Wählen Sie hier den Planungsprozess aus. Mit einem Klick auf das Stift-Symbol können Sie den ausgewählten Planungsprozess editieren. Über das Plus-Symbol können Sie Planungsprozesse hinzufügen."
-            popoverTitle="Planungsprozess"
-            container="body"
-            [autoClose]="true">
-      <mat-icon>help_outline</mat-icon>
-    </button>
+    <app-help-button title="Planungsprozess" position="right" [top]="50">
+      <p>Wählen Sie hier den Planungsprozess aus. </p>
+      <p> Mit einem Klick auf das Stift-Symbol können Sie den ausgewählten Planungsprozess editieren. Über das Plus-Symbol können Sie Planungsprozesse hinzufügen.</p>
+    </app-help-button>
     <button *ngIf="activeProject" class="process-button small"
             title="ausgewählten Planungsprozess editieren"
             mat-icon-button color="primary"
