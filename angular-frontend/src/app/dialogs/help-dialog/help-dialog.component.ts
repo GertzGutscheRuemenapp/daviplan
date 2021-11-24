@@ -1,6 +1,6 @@
-import { Component, ElementRef, Inject, Input, OnInit, ViewChild } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogConfig, MatDialogRef } from "@angular/material/dialog";
-import { faArrowsAlt } from '@fortawesome/free-solid-svg-icons';
+import { Component, ElementRef, Inject, Input, ViewChild } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from "@angular/material/dialog";
+import { faArrowsAlt, faQuestion } from '@fortawesome/free-solid-svg-icons';
 
 export interface DialogData {
   title: string;
@@ -19,16 +19,19 @@ export class HelpDialog {
 
 @Component({
   selector: 'app-help-button',
+  styles: ['mat-icon {margin-top: -2px;}'],
   template: `
-    <button #helpButton title="Hilfe" mat-icon-button color="primary" class="small" (click)="onClick()">
+    <button #helpButton title="Hilfe" mat-icon-button color="primary" class="small"
+            (click)="onClick($event)">
         <mat-icon>help_outline</mat-icon>
+<!--      <fa-icon [icon]="faQuestion" style="font-size: 12px;"></fa-icon>-->
     </button>
     <div #content style="display: none;">
       <ng-content></ng-content>
     </div>
   `
 })
-export class HelpDialogComponent implements OnInit {
+export class HelpDialogComponent {
   @Input() title: string = '';
   @Input() text: string = '';
   @Input() width: number = 350;
@@ -36,14 +39,13 @@ export class HelpDialogComponent implements OnInit {
   @Input() top: number = -50;
   @ViewChild('content') content!: ElementRef;
   @ViewChild('helpButton', { read: ElementRef }) helpButton!: ElementRef;
+  faQuestion = faQuestion;
   dialogRef?: MatDialogRef<HelpDialog>;
 
   constructor(public dialog: MatDialog) {}
 
-  ngOnInit() {
-  }
-
-  onClick() {
+  onClick(event: Event) {
+    event.stopPropagation();
     if (this.dialogRef && this.dialogRef.getState() === 0) {
       this.dialogRef.close();
     }

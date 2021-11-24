@@ -6,6 +6,9 @@
         <div class="davicon icon-GGR-davicons-Font-Simple-2-Szenario"></div>
       </div>
       Szenario
+      <app-help-button title="Szenario" position="right">
+        <p></p>
+      </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
 </mat-expansion-panel>
@@ -16,6 +19,9 @@
         <div class="davicon icon-GGR-davicons-Font-Simple-3-Standorte-Leistungen"></div>
       </div>
       Leistung
+      <app-help-button title="Leistung" position="right">
+        <p>Wählen Sie hier im Dropdown-Menü den Infrastrukturbereich und per Checkbox die Leistungen aus dem jeweiligen Infrastrukturbereich aus.</p>
+      </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
   <mat-form-field appearance="outline" class="small">
@@ -50,16 +56,6 @@
       </mat-radio-button>
     </mat-radio-group>
   </div>
-  <mat-expansion-panel class="text-panel">
-    <mat-expansion-panel-header>
-      <mat-icon color="primary" class="material-icons-outlined"
-                style="margin-right: 5px;">help_outline</mat-icon>
-      <span class="subtitle1">Hilfe</span>
-    </mat-expansion-panel-header>
-    <span class="info-text">
-      Wählen Sie hier im Dropdown-Menü den Infrastrukturbereich und per Checkbox die Leistungen aus dem jeweiligen Infrastrukturbereich aus.
-    </span>
-  </mat-expansion-panel>
 </mat-expansion-panel>
 <mat-expansion-panel cookieExpansion="exp-demand-areas">
   <mat-expansion-panel-header>
@@ -68,6 +64,9 @@
         <mat-icon class="material-icons-outlined">flip_to_front</mat-icon>
       </div>
       Gebietseinheit
+      <app-help-button title="Gebietseinheit" position="right">
+        <p>Wählen Sie hier im Dropdown-Menü die jeweilige Gebietseinheit aus.</p>
+      </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
   <mat-form-field appearance="outline" class="small">
@@ -77,16 +76,6 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
-  <mat-expansion-panel class="text-panel">
-    <mat-expansion-panel-header>
-      <mat-icon color="primary" class="material-icons-outlined"
-                style="margin-right: 5px;">help_outline</mat-icon>
-      <span class="subtitle1">Hilfe</span>
-    </mat-expansion-panel-header>
-    <span class="info-text">
-      Wählen Sie hier im Dropdown-Menü die jeweilige Gebietseinheit aus.
-    </span>
-  </mat-expansion-panel>
 </mat-expansion-panel>
 <mat-expansion-panel cookieExpansion="exp-demand-compare">
   <mat-expansion-panel-header>
@@ -95,6 +84,9 @@
         <div class="davicon icon-GGR-davicons-Font-Simple-4-Vergleichsdarstellung"></div>
       </div>
       Vergleichsdarstellung
+      <app-help-button title="Vergleichsdarstellung" position="right">
+        <p>Sie können die Nachfrage für das mit dem Zeitslider ausgewählte Jahr vergleichen: Entweder mit der Nachfrage für ein anderes Jahr für das Werte vorliegen oder aber mit der Nachfrage für ein anderes Szenario im selben Jahr. Die Darstellung erfolgt in der Karte.</p>
+      </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
   <mat-checkbox style="padding-left: 12px;" color="primary" [(ngModel)]="compareSupply" i18n>
@@ -131,14 +123,4 @@
       </mat-form-field>
     </mat-radio-group>
   </div>
-  <mat-expansion-panel class="text-panel">
-    <mat-expansion-panel-header>
-      <mat-icon color="primary" class="material-icons-outlined"
-                style="margin-right: 5px;">help_outline</mat-icon>
-      <span class="subtitle1">Hilfe</span>
-    </mat-expansion-panel-header>
-    <span class="info-text">
-      Sie können die Nachfrage für das mit dem Zeitslider ausgewählte Jahr vergleichen: Entweder mit der Nachfrage für ein anderes Jahr für das Werte vorliegen oder aber mit der Nachfrage für ein anderes Szenario im selben Jahr. Die Darstellung erfolgt in der Karte.
-    </span>
-  </mat-expansion-panel>
 </mat-expansion-panel>
