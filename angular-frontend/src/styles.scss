@@ -380,10 +380,12 @@ app-basedata, app-administration{
   color: #00000099;
   text-decoration: none;
   padding: 0 25px;
+  align-items: center;
+  //padding: 0 25px 8px;
+  //align-items: end;
   //height: calc(100% - 3px);
   //margin-top: 3px;
   display: flex;
-  align-items: center;
   justify-content: center;
   border-radius: 0px 0px 4px 4px;
   transition: color 0.2s, background-color 0.2s;

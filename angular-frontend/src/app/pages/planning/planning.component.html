@@ -19,14 +19,14 @@
             {{ activeProject.name }}
           </span>
           <span *ngIf="!activeProject">
-            -
+            -----
           </span>
         </mat-select-trigger>
         <mat-option [value]="-1" style="display: none;"></mat-option>
         <mat-optgroup label="Meine Planungsprozesse">
           <button title="Planungsprozess erstellen"
                   mat-icon-button color="primary" class="small"
-                  style="position: absolute; right: 6px; top: 5px;"
+                  style="position: absolute; right: 6px; top: 8px;"
                   (click)="onEditProject()">
             <mat-icon>add</mat-icon>
           </button>

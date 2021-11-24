@@ -30,15 +30,16 @@
   padding-left: 2px;
   height: 70px;
   margin-top: -10px;
+  border-right: 1px solid lightgrey;
   mat-form-field {
     width: 190px;
   }
   button {
     float: right;
-    top: 28px;
+    top: 27px;
     mat-icon {
-      margin-top: 3px;
-      margin-left: 3px;
+      //margin-top: 3px;
+      //margin-left: 3px;
     }
   }
   .mini-fab-icon {
@@ -126,7 +127,8 @@ mat-toolbar mat-form-field {
     left: $context-bar-width;
   }
   #process-select .mat-form-field-appearance-standard.mat-form-field-has-label .mat-select:not(.mat-select-empty) .mat-select-arrow-wrapper {
-    transform: none;
+    //transform: none;
+    transform: translateY(-30%);
   }
 /*  .sub-select-wrapper {
     mat-radio-button  {
