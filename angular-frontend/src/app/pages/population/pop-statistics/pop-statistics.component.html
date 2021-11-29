@@ -84,12 +84,27 @@
     </app-help-button>
     <img src="{{backend}}/static/img/Wanderung Screenshot.png" width="100%"/>
   </div>
-  <div class="diagram-wrapper" style="padding-bottom: 0;">
-    <h4>Gesamtgebiet</h4>
+  <div class="diagram-wrapper">
     <app-help-button title="Wanderungssaldo Gesamtgebiet" position="left"
                      style="position: absolute; right: 0; top: 10px; z-index: 1;">
       <p>Platzhalter Erklärung Diagramm</p>
     </app-help-button>
-    <img src="{{backend}}/static/img/Wanderungssaldo Screenshot.png" width="100%"/>
+    <div>
+      <app-multiline-chart #totalChart
+                           figureId="totalWanderungssaldo"
+                           [labels]="['Wanderungssaldo']"
+                           xLabel="Jahre"
+                           yLabel="Differenz"
+                           yTopLabel="mehr Zuzüge"
+                           yBottomLabel="mehr Fortzüge"
+                           [title]="'Wanderungssaldo'"
+                           [animate]="true"
+                           [data]="totalData"
+                           [yOrigin]="0"
+                           [yPadding]="10"
+                           [colors]="['blue']"
+                           subtitle="Gesamtgebiet">
+      </app-multiline-chart>
+    </div>
   </div>
 </div>

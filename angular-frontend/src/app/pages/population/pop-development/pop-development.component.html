@@ -168,12 +168,14 @@
     </app-help-button>
     <div>
       <app-multiline-chart #lineChart
+                           figureId="einwohnerrelativ"
                            [labels]="labels"
                            xLabel="Jahre"
                            yLabel="Einwohner relativ"
                            [title]="'relative Altersgruppenentwicklung'"
                            [xSeparator]="xSeparator"
                            [animate]="true"
+                           [yOrigin]="100"
                            unit="%"
                            subtitle="[Gebietseinheit]">
       </app-multiline-chart>

@@ -15,17 +15,23 @@ export interface MultilineData {
 export class MultilineChartComponent implements AfterViewInit {
 
   @Input() data?: MultilineData[];
+  @Input() figureId: String = 'multiline-chart';
   @Input() title: string = '';
   @Input() subtitle: string = '';
   @Input() labels?: string[];
   @Input() drawLegend: boolean = true;
   @Input() xLabel?: string;
   @Input() yLabel?: string;
+  @Input() yTopLabel?: string;
+  @Input() yBottomLabel?: string;
   @Input() width?: number;
   @Input() height?: number;
   @Input() unit?: string;
   @Input() min?: number;
   @Input() max?: number;
+  @Input() colors?: string[];
+  @Input() yPadding: number = 0;
+  @Input() yOrigin: number = 0;
   @Input() animate?: boolean;
   @Input() xSeparator?: { leftLabel?: string, rightLabel?:string, x: string, highlight?: boolean };
 
@@ -43,7 +49,7 @@ export class MultilineChartComponent implements AfterViewInit {
   }
 
   private createSvg(): void {
-    let figure = d3.select("figure#multiline-chart");
+    let figure = d3.select(`figure#${ this.figureId }`);
     if (!(this.width && this.height)){
       let node: any = figure.node()
       let bbox = node.getBoundingClientRect();
@@ -72,20 +78,23 @@ export class MultilineChartComponent implements AfterViewInit {
       .domain(groups)
       .padding(0);
 
+    let max = this.max || d3.max(data, d => { return d3.max(d.values) });
+    max! += this.yPadding;
+    let min = this.min || d3.min(data, d => { return d3.min(d.values) });
+    min! -= this.yPadding;
+    const y = d3.scaleLinear()
+      .domain([min!, max!])
+      .range([innerHeight, 0]);
+
     // x axis
     this.svg.append("g")
-      .attr("transform",`translate(${this.margin.left},${innerHeight + this.margin.top})`)
+      .attr("transform",`translate(${this.margin.left},${this.margin.top + y(this.yOrigin)})`)
       .call(d3.axisBottom(x))
       .selectAll("text")
       .attr("transform", "translate(-10,0)rotate(-45)")
       .style("text-anchor", "end");
 
-    let max = this.max || d3.max(data, d => { return d3.max(d.values) });
     // y axis
-    const y = d3.scaleLinear()
-      .domain([this.min || 0, max!])
-      .range([innerHeight, 0]);
-
     this.svg.append("g")
       .attr("transform", `translate(${this.margin.left},${this.margin.top})`)
       .call(
@@ -96,17 +105,33 @@ export class MultilineChartComponent implements AfterViewInit {
     if (this.yLabel)
       this.svg.append('text')
         .attr("y", 10)
-        .attr("x", -(this.margin.top + 30))
+        .attr("x", -(this.margin.top + 50))
         .attr('dy', '0.5em')
         .style('text-anchor', 'end')
         .attr('transform', 'rotate(-90)')
         .attr('font-size', '0.8em')
         .text(this.yLabel);
 
+    if (this.yTopLabel)
+      this.svg.append('text')
+        .attr("x", 0)
+        .attr("y", this.margin.top - 5)
+        .style('text-anchor', 'start')
+        .attr('font-size', '0.8em')
+        .text(this.yTopLabel);
+
+    if (this.yBottomLabel)
+      this.svg.append('text')
+        .attr("x", 0)
+        .attr("y", y(min!) + this.margin.top + 15)
+        .style('text-anchor', 'start')
+        .attr('font-size', '0.8em')
+        .text(this.yBottomLabel);
+
     if (this.xLabel)
       this.svg.append('text')
-        .attr("y", this.height! - 10)
-        .attr("x", this.width! - this.margin.right)
+        .attr("y", this.margin.top + y(this.yOrigin) + 20)
+        .attr("x", this.width! - this.margin.right + 10)
         .attr('dy', '0.5em')
         .style('text-anchor', 'end')
         .attr('font-size', '0.8em')
@@ -153,11 +178,12 @@ export class MultilineChartComponent implements AfterViewInit {
         .attr("transform", (d: null, i: number) => `translate(${x(groups[xIdx])}, ${y(groupData.values[i])})`);
       let text = groupData.group + '<br>';
       _this.labels?.forEach((label, i)=>{
-        text += `<b style="color: ${colorScale(i.toString())}">${label}</b>: ${groupData.values[i].toString().replace('.', ',')}${(_this.unit) ? _this.unit : ''}<br>`;
+        let color = (_this.colors)? _this.colors[i]: colorScale(i.toString());
+        text += `<b style="color: ${color}">${label}</b>: ${groupData.values[i].toString().replace('.', ',')}${(_this.unit) ? _this.unit : ''}<br>`;
       })
       tooltip.html(text);
-      tooltip.style('left', event.pageX + 15 + 'px')
-        .style('top', event.pageY + 10 + 'px');
+      tooltip.style('left', event.pageX - 70 + 'px')
+        .style('top', event.pageY + 20 + 'px');
     }
 
     this.labels.forEach((label, i)=>{
@@ -172,7 +198,7 @@ export class MultilineChartComponent implements AfterViewInit {
         .datum(di)
         .attr("class", "line")
         .attr("fill", "none")
-        .attr("stroke", colorScale(i.toString()))
+        .attr("stroke", (this.colors)? this.colors[i]: colorScale(i.toString()))
         .attr("stroke-width", 3)
         .attr("d", line);
 
@@ -188,7 +214,7 @@ export class MultilineChartComponent implements AfterViewInit {
 
       lineG.append("circle")
         .attr("r", 3)
-        .attr("fill", colorScale(i.toString()))
+        .attr("fill", (this.colors)? this.colors[i]: colorScale(i.toString()))
         .attr("transform", `translate(${x(groups[0])}, ${y(data[0].values[i])})`)
         .style("display", 'none');
     })
@@ -204,7 +230,7 @@ export class MultilineChartComponent implements AfterViewInit {
         .attr("y", (d: string, i: number) => 105 + (i * (size + 5))) // 100 is where the first dot appears. 25 is the distance between dots
         .attr("width", size)
         .attr("height", 3)
-        .style("fill", (d: string, i: number) => colorScale(i.toString()));
+        .style("fill", (d: string, i: number) => (this.colors)? this.colors[i]: colorScale(i.toString()));
 
       this.svg.selectAll("legendLabels")
         .data(this.labels.reverse())
@@ -213,7 +239,7 @@ export class MultilineChartComponent implements AfterViewInit {
         .attr('font-size', '0.7em')
         .attr("x", innerWidth + this.margin.left + size * 1.2)
         .attr("y", (d: string, i: number) => 100 + (i * (size + 5) + (size / 2)))
-        .style("fill", (d: string, i: number) => colorScale(i.toString()))
+        .style("fill", (d: string, i: number) => (this.colors)? this.colors[i]: colorScale(i.toString()))
         .text((d: string) => d)
         .attr("text-anchor", "left")
         .style("alignment-baseline", "middle")
