@@ -1,16 +1,48 @@
-<app-header-card [title]="'Projektgebiet'"
+<app-header-card [title]="'Projektdefinition'"
                  cookieId="exp-project-header"
-                 width="780px">
-  Für Ihre kommunale oder regionale Anwendung von daviplan müssen sie ein Projektgebiet festgelegt. Das Projektgebiet muss alle Gebietskörperschaften umfassen,
-  für die Sie Infrastrukturen erfassen, Einwohnerentwicklungen betrachten, Nachfrage abschätzen, Szenarien der Infrastrukturentwicklung durchspielen und
-  Versorgungsquoten ermitteln wollen. Auswertungen für Teilbereiche (z.B. einzelne Gemeinden oder Ortsteile) innerhalb dieses Projektgebiets sind möglich.
+                 width="930px">
+  <b><i>ToDo: Hilfetext anpassen</i></b>
+  <p>
+    Für Ihre kommunale oder regionale Anwendung von daviplan müssen sie ein Projektgebiet festgelegt. Das Projektgebiet muss alle Gebietskörperschaften umfassen,
+    für die Sie Infrastrukturen erfassen, Einwohnerentwicklungen betrachten, Nachfrage abschätzen, Szenarien der Infrastrukturentwicklung durchspielen und
+    Versorgungsquoten ermitteln wollen. Auswertungen für Teilbereiche (z.B. einzelne Gemeinden oder Ortsteile) innerhalb dieses Projektgebiets sind möglich.
+  </p>
 </app-header-card>
 <div fxLayout="row wrap">
-  <div fxLayout="column" fxFlex="800px">
-    <app-input-card subtitle="Manuelle Auswahl des Projektgebiets"
+  <div fxLayout="column" fxFlex="350px">
+    <app-input-card [title]="'Projektrahmendaten'"
+                    [editTemplate]="projectSettingsEdit"
+                    infoText="<b><i>ToDo: Hilfetext</i></b>">
+      <table>
+        <tr>
+          <td i18n>Betrachtungs-<br>zeitraum</td>
+          <td>2015 bis 2035</td>
+        </tr>
+        <tr>
+          <td i18n>Altersgruppen</td>
+          <td>
+            0 bis unter 18 <br>
+            18 bis unter 65 <br>
+            65 Jahre und älter
+          </td>
+        </tr>
+        <tr>
+          <td i18n>Geschlechts-<br>einteilung</td>
+          <td>
+            männlich <br>
+            weiblich <br>
+            divers
+          </td>
+        </tr>
+      </table>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="600px">
+    <app-input-card [title]="'Projektgebiet'"
+                    subtitle="Manuelle Auswahl des Projektgebiets"
                     [topRightHelp]="true"
                     infoText="Um Ihr Projektgebiet festzulegen oder zu verändern, klicken Sie bitte auf „Editieren“. Sie gelangen dann zu einer Kartendarstellung, in der Sie Ihr Projektgebiet aus einzelnen Gemeinden, Verwaltungsgemeinschaften und Landkreisen zusammensetzen können."
-                    [editTemplate]="projectEdit">
+                    [editTemplate]="projectAreaEdit">
       <div id="project-area-map" class="map-container">
         <app-map-controls></app-map-controls>
       </div>
@@ -18,6 +50,10 @@
   </div>
 </div>
 
-<ng-template #projectEdit>
+<ng-template #projectSettingsEdit>
+  Funktionalität für den Prototyp noch nicht hinterlegt.
+</ng-template>
+
+<ng-template #projectAreaEdit>
   Funktionalität für den Prototyp noch nicht hinterlegt.
 </ng-template>
