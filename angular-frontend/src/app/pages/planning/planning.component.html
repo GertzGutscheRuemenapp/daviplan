@@ -1,87 +1,32 @@
 <mat-toolbar class="sub-nav">
-  <!--  <div fxShow="true" fxHide.gt-sm="true">
-      <button mat-icon-button (click)="sidenav.toggle()">
-        <mat-icon>menu</mat-icon>
-      </button>
-    </div>-->
-  <span class="sub-links">
-    <a routerLink="/planung/nachfrage" routerLinkActive="active-link" i18n> Nachfrage </a>
-    <a routerLink="/planung/angebot" routerLinkActive="active-link" i18n> Angebot </a>
-    <a routerLink="/planung/erreichbarkeiten" routerLinkActive="active-link" i18n> Erreichbarkeiten </a>
-    <a routerLink="/planung/bewertung" routerLinkActive="active-link" i18n> Bewertung </a>
-  </span>
-  <app-help-button title="Infrastrukturplanung" position="center" [top]="50">
-    <p>allgemeiner erklärender Text zu Abschnitten/Bereichen der Planungsseite</p>
-  </app-help-button>
-</mat-toolbar>
-<div class="map-wrapper">
-  <div id="planning-map" class="map-container">
-    <div id="info" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">
-      <div class="handle" title="Anzeigeinformationen" cdkDragHandle>
-        <mat-icon color="primary">info</mat-icon>
-        <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
-      </div>
-      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-planning-description"
-                       [initiallyExpanded]="true">
-        <div style="padding: 10px; min-height: 70px;" [innerHTML]="this.mapControl?.mapDescription"></div>
-      </app-side-toggle>
-    </div>
-    <div id="time-slider" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">
-      <div class="handle" title="Anzeigezeit" cdkDragHandle>
-        <mat-icon color="primary">event</mat-icon>
-        <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
-      </div>
-      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-planning-timeslider"
-                       [initiallyExpanded]="true">
-        <div style="padding: 18px 10px 12px 10px">
-          <app-time-slider [prognosisEnd]="2013" [years]="[2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025]"></app-time-slider>
-        </div>
-      </app-side-toggle>
-    </div>
-    <app-map-controls></app-map-controls>
-  </div>
-</div>
-<ng-template #activeProjectPopover>
-  <ng-container *ngIf="activeProject">
-    <ng-container *ngIf="activeProject.description">
-      <i>{{activeProject.description }}</i>
-      <mat-divider></mat-divider>
-    </ng-container>
-    <div *ngIf="activeProject?.shared && !activeProject?.user">
-      geteilt mit ...
-    </div>
-    <div *ngIf="activeProject?.user">
-      {{(activeProject?.editable)? 'editierbar': 'nicht editierbar'}} <br>
-      geteilt durch <i>{{activeProject?.user}}</i>
-    </div>
-  </ng-container>
-  <div *ngIf="!activeProject" i18n>Wählen Sie hier einen Planungsprozess aus</div>
-</ng-template>
-<mat-sidenav #drawer class="context-bar"
-             [opened]="(isSM$ | async) === false">
   <div id="process-select">
     <div class="mini-fab-icon inverted primary">
       <div class="davicon icon-GGR-davicons-Font-Simple-1-Planungsprozess"></div>
     </div>
     <mat-form-field appearance="standard" class="small">
       <mat-label>Planungsprozess</mat-label>
-      <mat-select disableOptionCentering disableRipple
+      <mat-select #processSelect disableOptionCentering disableRipple
                   [ngbPopover]="activeProjectPopover"
                   [popoverTitle]="activeProject?.name"
                   placement="right"
                   container="body"
                   triggers="mouseenter:mouseleave"
                   panelClass="custom-option-panel"
+                  [value]="activeProject? activeProject.id: -1"
                   (selectionChange)="onProcessChange($event.value)">
         <mat-select-trigger>
           <span *ngIf="activeProject">
             {{ activeProject.name }}
           </span>
+          <span *ngIf="!activeProject">
+            -----
+          </span>
         </mat-select-trigger>
+        <mat-option [value]="-1" style="display: none;"></mat-option>
         <mat-optgroup label="Meine Planungsprozesse">
           <button title="Planungsprozess erstellen"
                   mat-icon-button color="primary" class="small"
-                  style="position: absolute; right: 6px; top: 5px;"
+                  style="position: absolute; right: 6px; top: 8px;"
                   (click)="onEditProject()">
             <mat-icon>add</mat-icon>
           </button>
@@ -153,6 +98,61 @@
       <mat-icon>add</mat-icon>
     </button>
   </div>
+  <span class="sub-links">
+    <a routerLink="/planung/nachfrage" routerLinkActive="active-link" i18n> Nachfrage </a>
+    <a routerLink="/planung/angebot" routerLinkActive="active-link" i18n> Angebot </a>
+    <a routerLink="/planung/erreichbarkeiten" routerLinkActive="active-link" i18n> Erreichbarkeiten </a>
+    <a routerLink="/planung/bewertung" routerLinkActive="active-link" i18n> Bewertung </a>
+  </span>
+  <app-help-button title="Infrastrukturplanung" position="center" [top]="50">
+    <p>allgemeiner erklärender Text zu Abschnitten/Bereichen der Planungsseite</p>
+  </app-help-button>
+</mat-toolbar>
+<div class="map-wrapper">
+  <div id="planning-map" class="map-container">
+    <div id="info" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">
+      <div class="handle" title="Anzeigeinformationen" cdkDragHandle>
+        <mat-icon color="primary">info</mat-icon>
+        <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
+      </div>
+      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-planning-description"
+                       [initiallyExpanded]="true">
+        <div style="padding: 10px; min-height: 70px;" [innerHTML]="this.mapControl?.mapDescription"></div>
+      </app-side-toggle>
+    </div>
+    <div id="time-slider" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">
+      <div class="handle" title="Anzeigezeit" cdkDragHandle>
+        <mat-icon color="primary">event</mat-icon>
+        <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
+      </div>
+      <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-planning-timeslider"
+                       [initiallyExpanded]="true">
+        <div style="padding: 18px 10px 12px 10px">
+          <app-time-slider [prognosisEnd]="2013" [years]="[2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025]"></app-time-slider>
+        </div>
+      </app-side-toggle>
+    </div>
+    <app-map-controls></app-map-controls>
+  </div>
+</div>
+<ng-template #activeProjectPopover>
+  <ng-container *ngIf="activeProject">
+    <ng-container *ngIf="activeProject.description">
+      <i>{{activeProject.description }}</i>
+      <mat-divider></mat-divider>
+    </ng-container>
+    <div *ngIf="activeProject?.shared && !activeProject?.user">
+      geteilt mit ...
+    </div>
+    <div *ngIf="activeProject?.user">
+      {{(activeProject?.editable)? 'editierbar': 'nicht editierbar'}} <br>
+      geteilt durch <i>{{activeProject?.user}}</i>
+    </div>
+  </ng-container>
+  <div *ngIf="!activeProject" i18n>Wählen Sie hier einen Planungsprozess aus</div>
+</ng-template>
+<mat-sidenav #drawer class="context-bar"
+             [opened]="(isSM$ | async) === false">
   <router-outlet>
   </router-outlet>
 </mat-sidenav>
