@@ -4,12 +4,15 @@ from test_plus import APITestCase
 from datentool_backend.api_test import BasicModelTest
 from datentool_backend.area.tests import _TestAPI
 
-from .models import PrognosisEntry, Year, PopulationRaster
+from .models import (PrognosisEntry, Year, PopulationRaster, AgeGroup,
+                     PopulationEntry, PopStatistic, PopStatEntry, DisaggPopRaster,
+                     Prognosis, Population)
 from .factories import (RasterCellFactory, AgeGroupFactory, AgeClassificationFactory,
                         GenderFactory, PopulationFactory, DisaggPopRasterFactory,
                         RasterCellPopulationAgeGenderFactory, PrognosisEntryFactory,
                         AreaFactory, PrognosisFactory, PopStatEntryFactory,
-                        RasterFactory, PopulationRasterFactory)
+                        RasterFactory, PopulationRasterFactory,
+                        PopulationEntryFactory, PopStatisticFactory)
 
 from faker import Faker
 
@@ -77,64 +80,50 @@ class TestPopulation(TestCase):
             pop.genders.all(), self.genders, ordered=False)
 
 
-#class TestYearAPI(_TestAPI, BasicModelTest, APITestCase):
-    #""""""
-    #url_key = "years"
-    #factory = YearFactory
+class TestRasterAPI(_TestAPI, BasicModelTest, APITestCase):
+    """"""
+    url_key = "rasters"
+    factory = RasterFactory
 
-    #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
 
-        #cls.post_data = dict(year=faker.unique.year())
-        #cls.put_data = dict(year=faker.unique.year())
-        #cls.patch_data = dict(year=faker.unique.year())
-
-
-#class TestRasterAPI(_TestAPI, BasicModelTest, APITestCase):
-    #""""""
-    #url_key = "rasters"
-    #factory = RasterFactory
-
-    #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
-
-        #cls.post_data = dict(name=faker.word())
-        #cls.put_data = dict(name=faker.word())
-        #cls.patch_data = dict(name=faker.word())
+        cls.post_data = dict(name=faker.word())
+        cls.put_data = dict(name=faker.word())
+        cls.patch_data = dict(name=faker.word())
 
 
-#class TestPopulationRasterAPI(_TestAPI, BasicModelTest, APITestCase):
-    #""""""
-    #url_key = "populationrasters"
-    #factory = PopulationRasterFactory
+class TestPopulationRasterAPI(_TestAPI, BasicModelTest, APITestCase):
+    """"""
+    url_key = "populationrasters"
+    factory = PopulationRasterFactory
 
-    #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
-        #populationraster: PopulationRaster = cls.obj
-        #raster = populationraster.raster.pk
-        #year = populationraster.year.pk
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        populationraster: PopulationRaster = cls.obj
+        raster = populationraster.raster.pk
+        year = populationraster.year.pk
 
-        #data = dict(name=faker.word(), raster=raster, year=year, default=faker.pybool())
-        #cls.post_data = data
-        #cls.put_data = data
-        #cls.patch_data = data
+        data = dict(name=faker.word(), raster=raster, year=year, default=faker.pybool())
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
 
 
-#class TestGenderAPI(_TestAPI, BasicModelTest, APITestCase):
-    #""""""
-    #url_key = "genders"
-    #factory = GenderFactory
+class TestGenderAPI(_TestAPI, BasicModelTest, APITestCase):
+    """"""
+    url_key = "gender"
+    factory = GenderFactory
 
-    #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
 
-        #cls.post_data = dict(name=faker.word())
-        #cls.put_data = dict(name=faker.word())
-        #cls.patch_data = dict(name=faker.word())
+        cls.post_data = dict(name=faker.word())
+        cls.put_data = dict(name=faker.word())
+        cls.patch_data = dict(name=faker.word())
 
 
 #class TestAgeClassificationAPI(_TestAPI, BasicModelTest, APITestCase):
@@ -149,3 +138,162 @@ class TestPopulation(TestCase):
         #cls.post_data = dict(name=faker.word())
         #cls.put_data = dict(name=faker.word())
         #cls.patch_data = dict(name=faker.word())
+
+
+class TestAgeGroupAPI(_TestAPI, BasicModelTest, APITestCase):
+    """"""
+    url_key = "agegroups"
+    factory = AgeGroupFactory
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        agegroup: AgeGroup = cls.obj
+        classification = agegroup.classification.pk
+
+        data = dict(classification=classification,
+                    from_age=faker.pyint(max_value=127),
+                    to_age=faker.pyint(max_value=127))
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
+
+
+class TestDisaggPopRasterAPI(_TestAPI, BasicModelTest, APITestCase):
+    """"""
+    url_key = "disaggpoprasters"
+    factory = DisaggPopRasterFactory
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        disaggpopraster: DisaggPopRaster = cls.obj
+        popraster = disaggpopraster.popraster.pk
+        genders = list(disaggpopraster.genders.all().values_list(flat=True))
+
+        data = dict(popraster=popraster, genders=genders)
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
+
+
+class TestPrognosisAPI(_TestAPI, BasicModelTest, APITestCase):
+    """"""
+    url_key = "prognoses"
+    factory = PrognosisFactory
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        prognosis: Prognosis = cls.obj
+        years = list(prognosis.years.all().values_list(flat=True))
+        raster = prognosis.raster.pk
+        age_classification = prognosis.age_classification.pk
+
+        data = dict(name=faker.word(), years=years, raster=raster,
+                    age_classification=age_classification, is_default=faker.pybool())
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
+
+
+class TestPrognosisEntryAPI(_TestAPI, BasicModelTest, APITestCase):
+    """"""
+    url_key = "prognosisentries"
+    factory = PrognosisEntryFactory
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        prognosisentry: PrognosisEntry = cls.obj
+        prognosis = prognosisentry.prognosis.pk
+        year = prognosisentry.year.pk
+        area = prognosisentry.area.pk
+        agegroup = prognosisentry.agegroup.pk
+        gender = prognosisentry.gender.pk
+
+        data = dict(prognosis=prognosis, year=year, area=area, agegroup=agegroup,
+                    gender=gender, value=faker.pyfloat(positive=True))
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
+
+
+class TestPopulationAPI(_TestAPI, BasicModelTest, APITestCase):
+    """"""
+    url_key = "populations"
+    factory = PopulationFactory
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        population: Population = cls.obj
+        area_level = population.area_level.pk
+        year = population.year.pk
+        genders = list(population.genders.all().values_list(flat=True))
+        raster = population.raster.pk
+
+        data = dict(area_level=area_level, year=year, genders=genders,
+                    raster=raster)
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
+
+
+#class TestPopulationEntryAPI(_TestAPI, BasicModelTest, APITestCase):
+    #""""""
+    #url_key = "populationentries"
+    #factory = PopulationEntryFactory
+
+    #@classmethod
+    #def setUpClass(cls):
+        #super().setUpClass()
+        #populationentry: PopulationEntry = cls.obj
+        #population = populationentry.population.pk
+        #area = populationentry.area.pk
+        #gender = populationentry.gender.pk
+
+        #data = dict(population=population, area=area, gender=gender,
+                    #age=faker.pyint(max_value=127), value=faker.pyfloat(positive=True))
+        #cls.post_data = data
+        #cls.put_data = data
+        #cls.patch_data = data
+
+
+class TestPopStatisticAPI(_TestAPI, BasicModelTest, APITestCase):
+    """"""
+    url_key = "popstatistics"
+    factory = PopStatisticFactory
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        popstatistic: PopStatistic = cls.obj
+        year = popstatistic.year.pk
+
+        cls.post_data = dict(year=year)
+        cls.put_data = dict(year=year)
+        cls.patch_data = dict(year=year)
+
+
+class TestPopStatEntryAPI(_TestAPI, BasicModelTest, APITestCase):
+    """"""
+    url_key = "popstatentries"
+    factory = PopStatEntryFactory
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        popstatentry: PopStatEntry = cls.obj
+        popstatistic = popstatentry.popstatistic.pk
+        area = popstatentry.area.pk
+
+        data = dict(popstatistic=popstatistic, area=area,
+                    age=faker.pyint(max_value=127),
+                    immigration=faker.pyfloat(positive=True),
+                    emigration=faker.pyfloat(positive=True),
+                    births=faker.pyfloat(positive=True),
+                    deaths=faker.pyfloat(positive=True))
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data

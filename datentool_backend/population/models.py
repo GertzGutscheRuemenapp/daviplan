@@ -73,7 +73,7 @@ class DisaggPopRaster(models.Model):
     """a raster with disaggregated population by age and gender"""
     popraster = models.ForeignKey(PopulationRaster,
                                on_delete=models.RESTRICT, null=True)
-    genders = models.ManyToManyField(Gender)
+    genders = models.ManyToManyField(Gender, blank=True)
 
 
 class RasterCellPopulationAgeGender(models.Model):
@@ -89,7 +89,7 @@ class RasterCellPopulationAgeGender(models.Model):
 class Prognosis(NamedModel, models.Model):
     """a prognosis"""
     name = models.TextField()
-    years = models.ManyToManyField(Year)
+    years = models.ManyToManyField(Year, blank=True)
     raster = models.ForeignKey(DisaggPopRaster, on_delete=models.RESTRICT)
     age_classification = models.ForeignKey(AgeClassification, on_delete=models.RESTRICT)
     is_default = models.BooleanField()
@@ -109,7 +109,7 @@ class Population(models.Model):
     """Population data for an area level"""
     area_level = models.ForeignKey(AreaLevel, on_delete=models.RESTRICT)
     year = models.ForeignKey(Year, on_delete=models.RESTRICT)
-    genders = models.ManyToManyField(Gender)
+    genders = models.ManyToManyField(Gender, blank=True)
     raster = models.ForeignKey(DisaggPopRaster, on_delete=models.RESTRICT)
 
 
@@ -118,7 +118,7 @@ class PopulationEntry(models.Model):
     population = models.ForeignKey(Population, on_delete=models.RESTRICT)
     area = models.ForeignKey(Area, on_delete=models.RESTRICT)
     gender = models.ForeignKey(Gender, on_delete=models.RESTRICT)
-    # age or agegroup???
+    age = models.IntegerField(null=True)
     value = models.FloatField()
 
 

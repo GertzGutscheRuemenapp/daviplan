@@ -6,11 +6,6 @@ from .models import (Raster, PopulationRaster, Gender, AgeClassification,
                      Population, PopulationEntry, PopStatistic, PopStatEntry)
 
 
-#class YearSerializer(serializers.ModelSerializer):
-    #model = Year
-    #fields = ('id', 'year')
-
-
 class RasterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Raster
@@ -77,7 +72,7 @@ class PopulationSerializer(serializers.ModelSerializer):
 class PopulationEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = PopulationEntry
-        fields = ('id', 'population', 'area', 'gender', 'value')
+        fields = ('id', 'population', 'area', 'gender', 'age', 'value')
 
 
 class PopStatisticSerializer(serializers.ModelSerializer):

@@ -210,7 +210,7 @@ class PopulationEntryFactory(DjangoModelFactory):
     population = factory.SubFactory(PopulationFactory)
     area = factory.SubFactory(AreaFactory)
     gender = factory.SubFactory(GenderFactory)
-    # age or agegroup???
+    age = faker.pyint(max_value=127)
     value = faker.pyfloat(positive=True)
 
 
