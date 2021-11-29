@@ -1,20 +1,14 @@
 from rest_framework import viewsets
 
-from .models import (Year, Raster, PopulationRaster, Gender, AgeClassification,
+from .models import (Raster, PopulationRaster, Gender, AgeClassification,
                      AgeGroup, DisaggPopRaster, Prognosis, PrognosisEntry,
                      Population, PopulationEntry, PopStatistic, PopStatEntry)
-from .serializers import (YearSerializer, RasterSerializer,
-                          PopulationRasterSerializer, GenderSerializer,
-                          AgeClassificationSerializer, AgeGroupSerializer,
-                          DisaggPopRasterSerializer, PrognosisSerializer,
-                          PrognosisEntrySerializer, PopulationSerializer,
-                          PopulationEntrySerializer, PopStatisticSerializer,
-                          PopStatEntrySerializer)
-
-
-class YearViewSet(viewsets.ModelViewSet):
-    queryset = Year.objects.all()
-    serializer_class = YearSerializer
+from .serializers import (RasterSerializer, PopulationRasterSerializer,
+                          GenderSerializer, AgeClassificationSerializer,
+                          AgeGroupSerializer, DisaggPopRasterSerializer,
+                          PrognosisSerializer, PrognosisEntrySerializer,
+                          PopulationSerializer, PopulationEntrySerializer,
+                          PopStatisticSerializer, PopStatEntrySerializer)
 
 
 class RasterViewSet(viewsets.ModelViewSet):

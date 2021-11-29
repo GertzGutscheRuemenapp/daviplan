@@ -18,8 +18,7 @@ from .infrastructure.views import (InfrastructureViewSet, FieldTypeViewSet,
                                    FClassViewSet)
 from .logging.views import (CapacityUploadLogViewSet, PlaceUploadLogViewSet,
                             AreaUploadLogViewSet)
-from .population.views import (YearViewSet, RasterViewSet,
-                               PopulationRasterViewSet, GenderViewSet,
+from .population.views import (RasterViewSet, PopulationRasterViewSet, GenderViewSet,
                                AgeClassificationViewSet, AgeGroupViewSet,
                                DisaggPopRasterViewSet, PrognosisViewSet,
                                PrognosisEntryViewSet, PopulationViewSet,
@@ -75,11 +74,10 @@ router.register(r'areauploadlogs', AreaUploadLogViewSet,
                 basename='areauploadlogs')
 
 # population
-router.register(r'years', YearViewSet, basename='years')
 router.register(r'rasters', RasterViewSet, basename='rasters')
 router.register(r'populationrasters', PopulationRasterViewSet,
                 basename='populationrasters')
-router.register(r'genders', GenderViewSet, basename='genders')
+router.register(r'gender', GenderViewSet, basename='gender')
 router.register(r'ageclassifications', AgeClassificationViewSet,
                 basename='ageclassifications')
 router.register(r'agegroups', AgeGroupViewSet, basename='agegroups')
@@ -93,8 +91,7 @@ router.register(r'populations', PopulationViewSet,basename='populations')
 router.register(r'populationentries', PopulationEntryViewSet,
                 basename='populationentries')
 router.register(r'popstatistics', PopStatisticViewSet, basename='popstatistics')
-router.register(r'popstatentryviewsets', PopStatEntryViewSet,
-                basename='popstatentryviewsets')
+router.register(r'popstatentries', PopStatEntryViewSet, basename='popstatentries')
 
 
 
