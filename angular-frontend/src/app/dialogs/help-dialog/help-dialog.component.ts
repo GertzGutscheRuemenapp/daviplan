@@ -1,10 +1,12 @@
-import { Component, ElementRef, Inject, Input, ViewChild } from '@angular/core';
+import { Component, ElementRef, Inject, Input, TemplateRef, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { faArrowsAlt, faQuestion } from '@fortawesome/free-solid-svg-icons';
 
 export interface DialogData {
   title: string;
   text: string;
+  template: TemplateRef<any>;
+  context: any;
 }
 
 @Component({
@@ -14,7 +16,9 @@ export interface DialogData {
 })
 export class HelpDialog {
   faArrows = faArrowsAlt;
-  constructor(public dialogRef: MatDialogRef<HelpDialog>, @Inject(MAT_DIALOG_DATA) public data: DialogData) {}
+  constructor(public dialogRef: MatDialogRef<HelpDialog>, @Inject(MAT_DIALOG_DATA) public data: DialogData) {
+    data.context = data.context || {};
+  }
 }
 
 @Component({
@@ -36,6 +40,8 @@ export class HelpDialogComponent {
   @Input() width: number = 350;
   @Input() position: string = 'right';
   @Input() top: number = -50;
+  @Input() template?: TemplateRef<any>;
+  @Input() context?: any;
   @ViewChild('content') content!: ElementRef;
   @ViewChild('helpButton', { read: ElementRef }) helpButton!: ElementRef;
   faQuestion = faQuestion;
@@ -63,7 +69,12 @@ export class HelpDialogComponent {
         hasBackdrop: false,
         autoFocus: false,
         position: position,
-        data: { title: this.title, text: this.content.nativeElement.innerHTML }
+        data: {
+          title: this.title,
+          text: this.content.nativeElement.innerHTML,
+          context: this.context,
+          template: this.template
+        }
       });
     }
   }
