@@ -61,7 +61,7 @@ const routes: Routes = [
         component: InfrastructureComponent
       },
       {
-        path: 'projektgebiet',
+        path: 'projektdefinition',
         component: ProjectAreaComponent
       },
       {

@@ -81,14 +81,6 @@
         </mat-optgroup>
       </mat-select>
     </mat-form-field>
-    <button mat-icon-button color="primary" class="small" style="margin-right: 10px;"
-            title="Hilfe"
-            ngbPopover="Wählen Sie hier den Planungsprozess aus. Mit einem Klick auf das Stift-Symbol können Sie den ausgewählten Planungsprozess editieren. Über das Plus-Symbol können Sie Planungsprozesse hinzufügen."
-            popoverTitle="Planungsprozess"
-            container="body"
-            [autoClose]="true">
-      <mat-icon>help_outline</mat-icon>
-    </button>
     <button *ngIf="activeProject" class="process-button small"
             title="ausgewählten Planungsprozess editieren"
             mat-icon-button color="primary"
@@ -101,6 +93,11 @@
             (click)="onEditProject()" i18n>
       <mat-icon>add</mat-icon>
     </button>
+    <app-help-button title="Planungsprozess"
+                     position="right" [top]="50">
+      <p>Wählen Sie hier den Planungsprozess aus. </p>
+      <p> Mit einem Klick auf das Stift-Symbol können Sie den ausgewählten Planungsprozess editieren. Über das Plus-Symbol können Sie Planungsprozesse hinzufügen.</p>
+    </app-help-button>
   </div>
   <span class="sub-links">
     <a routerLink="/planung/nachfrage" routerLinkActive="active-link" i18n> Nachfrage </a>
@@ -108,6 +105,9 @@
     <a routerLink="/planung/erreichbarkeiten" routerLinkActive="active-link" i18n> Erreichbarkeiten </a>
     <a routerLink="/planung/bewertung" routerLinkActive="active-link" i18n> Bewertung </a>
   </span>
+  <app-help-button title="Infrastrukturplanung" position="center" style="margin-left: 8px;" [top]="50">
+    <p>allgemeiner erklärender Text zu Abschnitten/Bereichen der Planungsseite</p>
+  </app-help-button>
 </mat-toolbar>
 <div class="map-wrapper">
   <div id="planning-map" class="map-container">

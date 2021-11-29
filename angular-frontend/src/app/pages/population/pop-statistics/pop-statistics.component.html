@@ -8,6 +8,17 @@
           <mat-icon class="material-icons-outlined">family_restroom</mat-icon>
         </div>
         Thema
+        <ng-template #themeHelp>
+          <p>Wählen Sie hier das Thema für die Karten- bzw. Diagrammdarstellungen aus.</p>
+          <p *ngIf="theme==='wanderung'">
+            Mit der Auswahl entweder der Zuzüge oder der Fortzüge (oder aber von Beidem) über die Checkboxen legen Sie den Indikator für die Kartendarstellung fest. Angezeigt werden je nach Auswahl nur die Zuzüge, nur die Fortzüge oder der Wanderungssaldo als Bilanz aus Zu- und Fortzügen. Die Diagrammdarstellungen umfassen stets alle drei Indikatoren.
+          </p>
+          <p *ngIf="theme==='natur'">
+            Mit der Auswahl entweder der Geburten oder der Sterbefälle (oder aber von Beidem) legen Sie den Indikator für die Kartendarstellung fest. Angezeigt werden je nach Auswahl nur die Geburten, nur die Sterbefälle oder der natürliche Bevölkerungssaldo als Bilanz aus Geburten und Sterbefällen. Die Diagrammdarstellungen umfassen stets alle drei Indikatoren.
+          </p>
+        </ng-template>
+        <app-help-button title="Thema" position="right" [template]="themeHelp">
+        </app-help-button>
       </mat-panel-title>
     </mat-expansion-panel-header>
     <div style="padding-bottom: 10px;">
@@ -38,22 +49,6 @@
         <mat-checkbox [checked]="false" color="primary">Fortzüge</mat-checkbox>
       </div>
     </div>
-    <mat-expansion-panel class="text-panel">
-      <mat-expansion-panel-header>
-        <mat-icon color="primary" class="material-icons-outlined"
-                  style="margin-right: 5px;">help_outline</mat-icon>
-        <span class="subtitle1">Hilfe</span>
-      </mat-expansion-panel-header>
-      <span class="info-text">
-        <p>Wählen Sie hier das Thema für die Karten- bzw. Diagrammdarstellungen aus.</p>
-        <p *ngIf="theme==='wanderung'">
-          Mit der Auswahl entweder der Zuzüge oder der Fortzüge (oder aber von Beidem) über die Checkboxen legen Sie den Indikator für die Kartendarstellung fest. Angezeigt werden je nach Auswahl nur die Zuzüge, nur die Fortzüge oder der Wanderungssaldo als Bilanz aus Zu- und Fortzügen. Die Diagrammdarstellungen umfassen stets alle drei Indikatoren.
-        </p>
-        <p *ngIf="theme==='natur'">
-          Mit der Auswahl entweder der Geburten oder der Sterbefälle (oder aber von Beidem) legen Sie den Indikator für die Kartendarstellung fest. Angezeigt werden je nach Auswahl nur die Geburten, nur die Sterbefälle oder der natürliche Bevölkerungssaldo als Bilanz aus Geburten und Sterbefällen. Die Diagrammdarstellungen umfassen stets alle drei Indikatoren.
-        </p>
-      </span>
-    </mat-expansion-panel>
   </mat-expansion-panel>
 </mat-sidenav>
 <button type="button"
@@ -76,44 +71,55 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
-    <mat-expansion-panel class="text-panel" style="margin-top: -30px; background: none;">
-      <mat-expansion-panel-header style="margin-left: 80%;">
-        <mat-icon color="primary" class="material-icons-outlined"
-                  style="margin-right: 5px;">help_outline</mat-icon>
-        <span class="subtitle1">Hilfe</span>
-      </mat-expansion-panel-header>
-      <div class="info-text" style="padding-bottom: 10px;">
-        <p>Wählen Sie aus dem Dropdown-Menü das Gebiet, für das Sie sich Ergebnisse in Diagrammen anzeigen lassen wollen.</p>
-        <p>Alternativ können Sie ein Gebiet auch in der Karte auswählen durch einen Klick auf selbiges.</p>
-      </div>
-    </mat-expansion-panel>
+    <app-help-button title="Gebiet" position="left" style="margin-left: 5px;" [top]="50">
+      <p>Wählen Sie aus dem Dropdown-Menü das Gebiet, für das Sie sich Ergebnisse in Diagrammen anzeigen lassen wollen.</p>
+      <p>Alternativ können Sie ein Gebiet auch in der Karte auswählen durch einen Klick auf selbiges.</p>
+    </app-help-button>
   </div>
   <br>
-  <div class="diagram-wrapper" style="padding-bottom: 0;">
-    <img src="{{backend}}/static/img/Wanderung Screenshot.png" width="100%"/>
-  </div>
-  <mat-expansion-panel class="text-panel">
-    <mat-expansion-panel-header style="margin-left: 80%;">
-      <mat-icon color="primary" class="material-icons-outlined"
-                style="margin-right: 5px;">help_outline</mat-icon>
-      <span class="subtitle1">Hilfe</span>
-    </mat-expansion-panel-header>
-    <div class="info-text" style="padding-bottom: 10px;">
-      Platzhalter Erklärung Diagramm
+  <div class="diagram-wrapper">
+    <app-help-button title="Wanderung" position="left"
+                     style="position: absolute; right: 0; top: 10px; z-index: 1;">
+      <p>Platzhalter Erklärung Diagramm</p>
+    </app-help-button>
+    <div>
+      <app-balance-chart #balanceChart
+                         figureId="areaSaldo"
+                         [labels]="['Zuzüge', 'Fortzüge']"
+                         [colors]="['orange', 'green']"
+                         xLabel="Jahre"
+                         yTopLabel="Zuzüge"
+                         yBottomLabel="Fortzüge"
+                         [title]="'Wanderung'"
+                         [animate]="true"
+                         [data]="data"
+                         [yOrigin]="0"
+                         [yPadding]="10"
+                         subtitle="[Gebietseinheit]">
+      </app-balance-chart>
     </div>
-  </mat-expansion-panel>
-  <div class="diagram-wrapper" style="padding-bottom: 0;">
-    <h4>Gesamtgebiet</h4>
-    <img src="{{backend}}/static/img/Wanderungssaldo Screenshot.png" width="100%"/>
   </div>
-  <mat-expansion-panel class="text-panel">
-    <mat-expansion-panel-header style="margin-left: 80%;">
-      <mat-icon color="primary" class="material-icons-outlined"
-                style="margin-right: 5px;">help_outline</mat-icon>
-      <span class="subtitle1">Hilfe</span>
-    </mat-expansion-panel-header>
-    <div class="info-text" style="padding-bottom: 10px;">
-      Platzhalter Erklärung Diagramm
+  <div class="diagram-wrapper">
+    <app-help-button title="Wanderungssaldo Gesamtgebiet" position="left"
+                     style="position: absolute; right: 0; top: 10px; z-index: 1;">
+      <p>Platzhalter Erklärung Diagramm</p>
+    </app-help-button>
+    <div>
+      <app-multiline-chart #totalChart
+                           figureId="totalSaldo"
+                           [labels]="['Wanderungssaldo']"
+                           xLabel="Jahre"
+                           yLabel="Differenz"
+                           yTopLabel="mehr Zuzüge"
+                           yBottomLabel="mehr Fortzüge"
+                           [title]="'Wanderungssaldo'"
+                           [animate]="true"
+                           [data]="totalData"
+                           [yOrigin]="0"
+                           [yPadding]="10"
+                           [colors]="['blue']"
+                           subtitle="Gesamtgebiet">
+      </app-multiline-chart>
     </div>
-  </mat-expansion-panel>
+  </div>
 </div>

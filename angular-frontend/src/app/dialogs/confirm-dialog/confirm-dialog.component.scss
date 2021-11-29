@@ -35,10 +35,12 @@ mat-dialog-content {
   .sub {
     color: grey;
     margin-bottom: 10px;
+    user-select: none;
   }
 
   h4 {
     color: $accent;
+    user-select: none;
   }
 
   .mat-dialog-content {

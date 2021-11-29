@@ -99,8 +99,8 @@ export class StackedBarchartComponent implements AfterViewInit {
 
     if (this.xLabel)
       this.svg.append('text')
-        .attr("y", this.height! - 10)
-        .attr("x", this.width! - this.margin.right)
+        .attr("y", this.height! - 30)
+        .attr("x", this.width! - this.margin.right + 10)
         .attr('dy', '0.5em')
         .style('text-anchor', 'end')
         .attr('font-size', '0.8em')
@@ -140,8 +140,8 @@ export class StackedBarchartComponent implements AfterViewInit {
     }
 
     function onMouseMove(this: any, event: MouseEvent){
-      tooltip.style('left', event.pageX + 15 + 'px')
-        .style('top', event.pageY + 10 + 'px');
+      tooltip.style('left', event.pageX - 30 + 'px')
+        .style('top', event.pageY + 20 + 'px');
     }
 
     // stacked bars

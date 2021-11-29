@@ -1,21 +1,21 @@
 import { AfterViewInit, Component, Input } from '@angular/core';
-import * as d3 from 'd3';
+import * as d3 from "d3";
 import { StackedData } from "../stacked-barchart/stacked-barchart.component";
 
-export interface MultilineData {
+export interface BalanceChartData {
   group: string,
-  values: number[]
+  values: [number, number]
 }
 
 @Component({
-  selector: 'app-multiline-chart',
-  templateUrl: './multiline-chart.component.html',
-  styleUrls: ['./multiline-chart.component.scss']
+  selector: 'app-balance-chart',
+  templateUrl: './balance-chart.component.html',
+  styleUrls: ['./balance-chart.component.scss']
 })
-export class MultilineChartComponent implements AfterViewInit {
+export class BalanceChartComponent implements AfterViewInit {
 
-  @Input() data?: MultilineData[];
-  @Input() figureId: String = 'multiline-chart';
+  @Input() data?: BalanceChartData[];
+  @Input() figureId: String = 'balance-chart';
   @Input() title: string = '';
   @Input() subtitle: string = '';
   @Input() labels?: string[];
@@ -33,7 +33,6 @@ export class MultilineChartComponent implements AfterViewInit {
   @Input() yPadding: number = 0;
   @Input() yOrigin: number = 0;
   @Input() animate?: boolean;
-  @Input() xSeparator?: { leftLabel?: string, rightLabel?:string, x: string, highlight?: boolean };
 
   private svg: any;
   private margin: {top: number, bottom: number, left: number, right: number } = {
@@ -63,7 +62,7 @@ export class MultilineChartComponent implements AfterViewInit {
       .append("g");
   }
 
-  public draw(data: MultilineData[]): void {
+  public draw(data: BalanceChartData[]): void {
     if (data.length == 0) return
 
     if (!this.labels)
@@ -76,7 +75,7 @@ export class MultilineChartComponent implements AfterViewInit {
     const x = d3.scaleBand()
       .range([0, innerWidth])
       .domain(groups)
-      .padding(0);
+      .padding(0.5);
 
     let max = this.max || d3.max(data, d => { return d3.max(d.values) });
     max! += this.yPadding;
@@ -85,6 +84,42 @@ export class MultilineChartComponent implements AfterViewInit {
     const y = d3.scaleLinear()
       .domain([min!, max!])
       .range([innerHeight, 0]);
+
+    // stacked bars
+    let bars = this.svg.selectAll("stacks")
+      .data(data)
+      .enter().append("g")
+      // .attr("x", (d: StackedData) => x(d.year.toString()))
+      .attr("transform", (d: BalanceChartData) => `translate(${x(d.group)! + this.margin.left}, ${this.margin.top})`)
+/*      .on("mouseover", onMouseOverBar)
+      .on("mouseout", onMouseOutBar)
+      .on("mousemove", onMouseMove)
+      .attr("opacity", (d: StackedData, i: number) => highlightOpacity(i))*/
+      .selectAll("rect")
+      .data((d: BalanceChartData) => {
+        return d.values;
+      })
+      .enter().append("rect")
+      .attr("width", x.bandwidth())
+      .attr("fill", (d: number, i: number) => (this.colors)? this.colors[i]: colorScale(i.toString()))
+      .attr("y", (d: number, i: number) => {
+        // if (this.animate) return innerHeight;
+        if (i === 0)
+          return y(d);
+        return y(0);
+      })
+      .attr("height", (d: number, i: number) => {
+        // if (this.animate) return innerHeight - y(0);
+        if (i === 0)
+          return y(0) - y(d);
+        return y(d) - y(0);
+      });
+
+    // if (this.animate)
+    //   bars.transition()
+    //     .duration(800)
+    //     .attr("y", (d: number) => y(d))
+    //     .attr("height", (d: number) => innerHeight - y(d));
 
     // x axis
     this.svg.append("g")
@@ -137,87 +172,35 @@ export class MultilineChartComponent implements AfterViewInit {
         .attr('font-size', '0.8em')
         .text(this.xLabel);
 
+    let sums = data.map(d => {
+      return {
+        group: d.group,
+        value: d.values[0] + d.values[1]
+      }
+    });
     let line = d3.line()
-      // .curve(d3.curveCardinal)
       .x((d: any) => x(d.group)!)
       .y((d: any) => y(d.value));
 
-    let _this = this;
-
-    let tooltip = d3.select('body')
-      .append('div')
-      .attr('class', 'd3-tooltip')
-      .style("display", 'none');
-
     let lineG = this.svg.append('g')
       .attr("transform", `translate(${this.margin.left + x.bandwidth()/2}, ${this.margin.top})`)
-      .on("mouseover", () => {
-        lineG.selectAll('circle').style("display", null);
-        tooltip.style("display", null);
-      })
-      .on("mouseout", () => {
-        lineG.selectAll('circle').style("display", 'none');
-        tooltip.style("display", 'none');
-      })
-      .on("mousemove", onMouseMove);
 
-    // helper rect to enlarge g for catching mouse moves
-    lineG.append('rect')
-      .attr("height", innerHeight)
-      .attr("width", innerWidth)
-      .attr("opacity", '0')
+    let path = lineG.append("path")
+      .datum(sums)
+      .attr("class", "line")
+      .attr("fill", "none")
+      .attr("stroke", "blue")
+      .attr("stroke-width", 3)
+      .attr("d", line);
 
-    function onMouseMove(this: any, event: MouseEvent){
-      let xPos = d3.pointer(event)[0],
-          xIdx = Math.floor((xPos + x.bandwidth()/2) / x.bandwidth()),
-          groupData = data![xIdx];
-      if (!groupData) return;
-      lineG.selectAll('circle')
+    if (this.animate) {
+      let length = path.node().getTotalLength();
+      path.attr("stroke-dasharray", length + " " + length)
+        .attr("stroke-dashoffset", length)
         .transition()
-        .duration(this.animate ? 60 : 0)
-        .attr("transform", (d: null, i: number) => `translate(${x(groups[xIdx])}, ${y(groupData.values[i])})`);
-      let text = groupData.group + '<br>';
-      _this.labels?.forEach((label, i)=>{
-        let color = (_this.colors)? _this.colors[i]: colorScale(i.toString());
-        text += `<b style="color: ${color}">${label}</b>: ${groupData.values[i].toString().replace('.', ',')}${(_this.unit) ? _this.unit : ''}<br>`;
-      })
-      tooltip.html(text);
-      tooltip.style('left', event.pageX - 70 + 'px')
-        .style('top', event.pageY + 20 + 'px');
+        .duration(1000)
+        .attr("stroke-dashoffset", 0);
     }
-
-    this.labels.forEach((label, i)=>{
-
-      let di = data.map(d => {
-        return {
-          group: d.group,
-          value: d.values[i]
-        }
-      });
-      let path = lineG.append("path")
-        .datum(di)
-        .attr("class", "line")
-        .attr("fill", "none")
-        .attr("stroke", (this.colors)? this.colors[i]: colorScale(i.toString()))
-        .attr("stroke-width", 3)
-        .attr("d", line);
-
-      if (this.animate) {
-        let length = path.node().getTotalLength();
-        path.attr("stroke-dasharray", length + " " + length)
-          .attr("stroke-dashoffset", length)
-          .transition()
-          .duration(1000)
-          // .ease(d3.easeQuadOut)
-          .attr("stroke-dashoffset", 0);
-      }
-
-      lineG.append("circle")
-        .attr("r", 3)
-        .attr("fill", (this.colors)? this.colors[i]: colorScale(i.toString()))
-        .attr("transform", `translate(${x(groups[0])}, ${y(data[0].values[i])})`)
-        .style("display", 'none');
-    })
 
     if (this.drawLegend) {
       let size = 15;
@@ -259,43 +242,5 @@ export class MultilineChartComponent implements AfterViewInit {
       .attr('dy', '1em')
       .text(this.subtitle);
 
-    if (this.xSeparator) {
-      let xSepPos = x(this.xSeparator.x)! + this.margin.left + x.bandwidth();
-      this.svg.append('line')
-        // .style('stroke', 'grey')
-        .attr('x1', xSepPos)
-        .attr('y1', this.margin.top)
-        .attr('x2', xSepPos)
-        .attr('y2', this.height)
-        .attr('class', 'separator');
-      if (this.xSeparator.leftLabel)
-        this.svg.append('text')
-          .attr("y", this.height! - 10)
-          .attr("x", xSepPos - 5)
-          .attr('dy', '0.5em')
-          .style('text-anchor', 'end')
-          .attr('font-size', '0.7em')
-          .attr('fill', 'grey')
-          .text(this.xSeparator.leftLabel);
-      if (this.xSeparator.rightLabel)
-        this.svg.append('text')
-          .attr("y", this.height! - 10)
-          .attr("x", xSepPos + 5)
-          .attr('dy', '0.5em')
-          .style('text-anchor', 'start')
-          .attr('font-size', '0.7em')
-          .attr('fill', 'grey')
-          .text(this.xSeparator.rightLabel);
-      if (this.xSeparator.highlight) {
-        this.svg.append('rect')
-          .attr("x", xSepPos)
-          .attr("y", this.margin.top - 10) // 100 is where the first dot appears. 25 is the distance between dots
-          .attr("width", innerWidth - x(this.xSeparator.x)! - x.bandwidth())
-          .attr("height", innerHeight + 10)
-          .attr("fill", 'white')
-          .attr("opacity", 0.5)
-          .attr('pointer-events', 'none')
-      }
-    }
   }
 }

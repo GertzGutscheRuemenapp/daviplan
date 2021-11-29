@@ -27,20 +27,23 @@
 
 #process-select {
   width: calc(#{$context-bar-width} - 15px);
-  padding-left: 2px;
+  padding: 0 9px 0 2px;
   height: 70px;
   margin-top: -10px;
   border-right: 1px solid lightgrey;
   mat-form-field {
     width: 190px;
   }
-  button {
+  button, app-help-button {
+    position: relative;
     float: right;
+  }
+  button {
     top: 27px;
-    mat-icon {
-      //margin-top: 3px;
-      //margin-left: 3px;
-    }
+  }
+  app-help-button {
+    top: 22px;
+    margin-right: 3px;
   }
   .mini-fab-icon {
     //top: 5px;
