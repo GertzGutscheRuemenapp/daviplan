@@ -1,9 +1,9 @@
 import factory
 from factory.django import DjangoModelFactory, mute_signals
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.geos import Polygon, LineString
 from faker import Faker
 
-from .models import User, Profile, post_save, Project
+from .models import User, Profile, post_save, Project, Scenario
 
 
 faker = Faker('de-DE')
@@ -33,3 +33,31 @@ class UserFactory(DjangoModelFactory):
     # This will call ProfileFactory(user=our_new_user), thus skipping the SubFactory.
     profile = factory.RelatedFactory(ProfileFactory, factory_related_name='user')
 
+
+#class ProjectFactory(DjangoModelFactory):
+    #class Meta:
+        #model = Project
+
+    #name = faker.word()
+    #owner = factory.SubFactory(ProfileFactory)
+    #allow_shared_change = faker.pybool()
+    #map_section = Polygon(((0, 0), (0, 10), (10, 10)))
+
+    #@factory.post_generation
+    #def users(self, create, extracted, **kwargs):
+        #if not create:
+            ## Simple build, do nothing.
+            #return
+
+        #if extracted:
+            ## A list of users were passed in, use them
+            #for users in extracted:
+                #self.users.add(users)
+
+
+#class ScenarioFactory(DjangoModelFactory):
+    #class Meta:
+        #model = Scenario
+
+    #name = faker.word()
+    #project = factory.SubFactory(ProjectFactory)

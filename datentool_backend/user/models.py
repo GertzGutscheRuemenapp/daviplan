@@ -38,7 +38,8 @@ class Project(NamedModel, models.Model):
     '''
     name = models.TextField()
     owner = models.ForeignKey(Profile, on_delete=models.RESTRICT)
-    users = models.ManyToManyField(Profile, related_name='shared_with_users')
+    users = models.ManyToManyField(Profile, related_name='shared_with_users',
+                                   blank=True)
     allow_shared_change = models.BooleanField()
     map_section = gis_models.PolygonField()
 

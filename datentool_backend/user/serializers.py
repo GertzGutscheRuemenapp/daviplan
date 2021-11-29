@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
-from .models import Profile
+from .models import Profile, Project, Scenario
 
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
@@ -43,6 +43,18 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         profile.save()
         return super().update(instance, validated_data)
 
+
+class ProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ('id', 'name', 'owner', 'users', 'allow_shared_change',
+                  'map_section')
+
+
+class ScenarioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Scenario
+        fields = ('id', 'name', 'project')
 
 
 

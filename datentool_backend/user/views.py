@@ -1,8 +1,8 @@
 from rest_framework import viewsets
 
 from django.contrib.auth.models import User
-from .serializers import UserSerializer
-
+from .serializers import UserSerializer, ProjectSerializer, ScenarioSerializer
+from .models import Project, Scenario
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -16,3 +16,12 @@ class UserViewSet(viewsets.ModelViewSet):
 
         return super().get_object()
 
+
+class ProjectViewSet(viewsets.ModelViewSet):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+
+
+class ScenarioViewSet(viewsets.ModelViewSet):
+    queryset = Scenario.objects.all()
+    serializer_class = ScenarioSerializer

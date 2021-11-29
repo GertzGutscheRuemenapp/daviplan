@@ -24,7 +24,7 @@ from .population.views import (RasterViewSet, PopulationRasterViewSet, GenderVie
                                PrognosisEntryViewSet, PopulationViewSet,
                                PopulationEntryViewSet, PopStatisticViewSet,
                                PopStatEntryViewSet)
-
+from .user.views import ProjectViewSet, ScenarioViewSet
 
 router = routers.SimpleRouter()
 router.register(r'users', UserViewSet, basename='users')
@@ -93,6 +93,9 @@ router.register(r'populationentries', PopulationEntryViewSet,
 router.register(r'popstatistics', PopStatisticViewSet, basename='popstatistics')
 router.register(r'popstatentries', PopStatEntryViewSet, basename='popstatentries')
 
+# users
+router.register(r'projects', ProjectViewSet, basename='projects')
+router.register(r'scenarios', ScenarioViewSet, basename='scenarios')
 
 
 urlpatterns = router.urls
