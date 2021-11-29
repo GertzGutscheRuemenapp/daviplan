@@ -628,22 +628,40 @@ mat-icon.warning {
   color: $warning;
 }
 
+mat-panel-title, #process-select {
+  app-help-button {
+    /*      pointer-events: none;
+          opacity: 0;
+          transition: 0.2s ease-out opacity;*/
+    margin-top: 3px;
 
+    button.mat-icon-button.small {
+      height: 22px;
+      width: 22px;
+      line-height: 22px;
 
-mat-panel-title app-help-button, #process-select app-help-button {
-  /*      pointer-events: none;
-        opacity: 0;
-        transition: 0.2s ease-out opacity;*/
-  margin-top: 3px;
-  button.mat-icon-button.small {
-    height: 22px;
-    width: 22px;
-    line-height: 22px;
-    mat-icon {
-      margin-left: -1px;
+      mat-icon {
+        margin-left: -1px;
+      }
     }
   }
 }
+
+app-help-button {
+  .mat-icon-button.mat-primary {
+    color: #8ecdff;
+  }
+  .mat-icon-button.mat-primary:hover {
+    color: $primary;
+  }
+}
+/*
+mat-panel-title:hover, #process-select:hover {
+  app-help-button .mat-icon-button.mat-primary{
+    color: $primary;
+  }
+}*/
+
 mat-panel-title app-help-button{
   position: absolute;
   right: 41px;
@@ -658,6 +676,10 @@ mat-panel-title app-help-button{
   height: 100%;
   box-shadow: 0px 5px 5px -1px rgb(0 0 0 / 20%), 0px 10px 10px 0px rgb(0 0 0 / 14%), 2px 18px 18px 0px rgb(0 0 0 / 12%) !important;
   padding-top: 10px;
+
+  mat-expansion-panel {
+    border-radius: 0;
+  }
 
   mat-expansion-panel .mat-expansion-panel-header-title {
     text-transform: uppercase;
@@ -853,13 +875,17 @@ mat-sidenav {
   }
 }
 
-.drag-indicator{
+.drag-indicator {
   position: absolute;
-  left: 25px; top: -2px;
-  color: lightgrey;
+  left: 2px; top: -4px;
+  color: $primary;
   font-size: 0.6em;
   opacity: 0;
   transition: opacity 0.5s;
+}
+
+app-help-dialog .drag-indicator {
+  color: white;
 }
 
 #info {
@@ -881,7 +907,7 @@ mat-sidenav {
   }
 }
 
-#info:hover, #time-slider:hover {
+#info:hover, #time-slider:hover, app-help-dialog:hover {
   .drag-indicator {
     opacity: 1;
   }
