@@ -77,12 +77,27 @@
     </app-help-button>
   </div>
   <br>
-  <div class="diagram-wrapper" style="padding-bottom: 0;">
+  <div class="diagram-wrapper">
     <app-help-button title="Wanderung" position="left"
                      style="position: absolute; right: 0; top: 10px; z-index: 1;">
       <p>Platzhalter Erklärung Diagramm</p>
     </app-help-button>
-    <img src="{{backend}}/static/img/Wanderung Screenshot.png" width="100%"/>
+    <div>
+      <app-balance-chart #balanceChart
+                         figureId="areaSaldo"
+                         [labels]="['Zuzüge', 'Fortzüge']"
+                         [colors]="['orange', 'green']"
+                         xLabel="Jahre"
+                         yTopLabel="Zuzüge"
+                         yBottomLabel="Fortzüge"
+                         [title]="'Wanderung'"
+                         [animate]="true"
+                         [data]="data"
+                         [yOrigin]="0"
+                         [yPadding]="10"
+                         subtitle="[Gebietseinheit]">
+      </app-balance-chart>
+    </div>
   </div>
   <div class="diagram-wrapper">
     <app-help-button title="Wanderungssaldo Gesamtgebiet" position="left"
@@ -91,7 +106,7 @@
     </app-help-button>
     <div>
       <app-multiline-chart #totalChart
-                           figureId="totalWanderungssaldo"
+                           figureId="totalSaldo"
                            [labels]="['Wanderungssaldo']"
                            xLabel="Jahre"
                            yLabel="Differenz"

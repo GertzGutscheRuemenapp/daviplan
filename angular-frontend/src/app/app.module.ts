@@ -85,6 +85,7 @@ import { MatChipsModule } from "@angular/material/chips";
 import { CookieExpansionDirective } from './helpers/cookie-expansion.directive';
 import { SimpleDialogComponent } from './dialogs/simple-dialog/simple-dialog.component';
 import { HelpDialogComponent, HelpDialog } from './dialogs/help-dialog/help-dialog.component';
+import { BalanceChartComponent } from './diagrams/balance-chart/balance-chart.component';
 
 @NgModule({
   declarations: [
@@ -139,7 +140,8 @@ import { HelpDialogComponent, HelpDialog } from './dialogs/help-dialog/help-dial
     CookieExpansionDirective,
     SimpleDialogComponent,
     HelpDialogComponent,
-    HelpDialog
+    HelpDialog,
+    BalanceChartComponent
   ],
     imports: [
         BrowserModule,
