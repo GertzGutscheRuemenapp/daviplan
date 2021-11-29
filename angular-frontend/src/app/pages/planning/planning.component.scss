@@ -4,12 +4,8 @@
   max-height: unset !important;
 }*/
 
-.context-bar {
-  box-shadow: 0px 65px 5px -1px rgb(0 0 0 / 20%), 0px 60px 10px 0px rgb(0 0 0 / 14%), 2px 78px 18px 0px rgb(0 0 0 / 12%) !important;
-}
-
 .sub-nav {
-  padding: 0 0 0 $context-bar-width;
+  //padding: 0 0 0 $context-bar-width;
 }
 
 .map-wrapper {
@@ -30,20 +26,39 @@
 }
 
 #process-select {
-  width: calc(#{$context-bar-width} - 12px);
-  padding-left: 18px;
+  width: calc(#{$context-bar-width} - 15px);
+  padding-left: 2px;
   height: 70px;
   margin-top: -10px;
+  border-right: 1px solid lightgrey;
   mat-form-field {
-    width: 180px;
+    width: 190px;
   }
   button {
     float: right;
-    top: 28px;
+    top: 27px;
+    mat-icon {
+      //margin-top: 3px;
+      //margin-left: 3px;
+    }
+  }
+  .mini-fab-icon {
+    //top: 5px;
   }
 }
 
+::ng-deep #process-select {
+  .mat-form-field-infix {
+    padding: 0.1em 0 1em 0;
+  }
+/*  .mat-select-placeholder::before {
+
+  }*/
+}
+
 ::ng-deep app-planning .context-bar {
+  position: fixed;
+  top: 60px + $sub-nav-height;
   mat-form-field, .sub-select-wrapper {
     width: calc(#{$context-bar-width} - 105px);
     margin-right: 5px;
@@ -69,8 +84,8 @@
 
 mat-toolbar mat-form-field {
   //font-size: 15px;
-  margin-right: 30px;
-  margin-top: 15px;
+  //margin-right: 30px;
+  margin-top: 10px;
 }
 
 .mat-option.selected, .mat-selected span {
@@ -112,7 +127,8 @@ mat-toolbar mat-form-field {
     left: $context-bar-width;
   }
   #process-select .mat-form-field-appearance-standard.mat-form-field-has-label .mat-select:not(.mat-select-empty) .mat-select-arrow-wrapper {
-    transform: none;
+    //transform: none;
+    transform: translateY(-30%);
   }
 /*  .sub-select-wrapper {
     mat-radio-button  {

@@ -141,7 +141,7 @@ body {
   color: $light-black;
   display: flex;
   div {
-    font-size: 28px;
+    font-size: 36px;
     padding: 10px 0 0 0 !important;
     display: inline-flex;
     p:first-child{
@@ -320,7 +320,10 @@ app-data-card td, app-dash-card td {
   background-color: white;
   display: flex;
   height: $sub-nav-height;
-  box-shadow: 0px 3px 5px -1px rgb(0 0 0 / 20%), 0px 6px 10px 0px rgb(0 0 0 / 14%), 0px 1px 18px 0px rgb(0 0 0 / 12%);
+  //box-shadow: 0px 3px 5px -1px rgb(0 0 0 / 20%), 0px 6px 10px 0px rgb(0 0 0 / 14%), 0px 1px 18px 0px rgb(0 0 0 / 12%);
+  box-shadow: 0px 3px 5px -1px rgb(0 0 0 / 20%), 350px 6px 10px 0px rgb(0 0 0 / 14%), 350px 1px 18px 0px rgb(0 0 0 / 12%);
+  border-bottom: 2px solid $primary;
+  //box-shadow: 0px 3px 5px -1px rgb(0 0 0 / 10%), 0px 3px 5px 0px rgb(0 0 0 / 9%), 0px 1px 8px 0px rgb(0 0 0 / 7%)
   position: relative;
   z-index: 11;
 }
@@ -366,7 +369,7 @@ app-basedata, app-administration{
   }
 }
 
-.sub-nav span {
+.sub-nav .sub-links {
   display: flex;
   height: 100%;
 }
@@ -377,12 +380,14 @@ app-basedata, app-administration{
   color: #00000099;
   text-decoration: none;
   padding: 0 25px;
+  align-items: center;
+  //padding: 0 25px 8px;
+  //align-items: end;
   //height: calc(100% - 3px);
   //margin-top: 3px;
   display: flex;
-  align-items: center;
   justify-content: center;
-  border-radius: 0px 0px 4px 4px;
+  //border-radius: 0px 0px 4px 4px;
   transition: color 0.2s, background-color 0.2s;
 }
 
@@ -615,7 +620,7 @@ mat-icon.warning {
 }
 
 .context-bar {
-  z-index: 12 !important;
+  //z-index: 12 !important;
   position: relative;
   width: $context-bar-width;
   overflow-y: auto;

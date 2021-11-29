@@ -10,6 +10,7 @@ import { User } from "../login/users";
 import { MatDialog } from "@angular/material/dialog";
 import { mockInfrastructures } from "../administration/infrastructure/infrastructure.component";
 import { mockUsers } from "../login/users";
+import { MatSelect } from "@angular/material/select";
 
 interface Project {
   user?: string;
@@ -42,11 +43,12 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   myProjects: Project[] = mockMyProjects;
   sharedProjects: Project[] = mockSharedProjects;
   activeProject?: Project;
-  createProcess = false;
+  // activeProject: Project = this.myProjects[0];
   infrastructures = mockInfrastructures;
   users = mockUsers;
   @ViewChild('processTemplate') processTemplate?: TemplateRef<any>;
   @ViewChild('removeProject') removeProjectTemplate?: TemplateRef<any>;
+  @ViewChild('processSelect') processSelect!: MatSelect;
   showScenarioMenu: boolean = false;
   mapControl?: MapControl;
   isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 39.9375em)')
@@ -63,7 +65,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     let wrapper = this.elRef.nativeElement.closest('mat-sidenav-content');
     this.renderer.setStyle(wrapper, 'overflow-y', 'hidden');
     this.mapControl = this.mapService.get('planning-map');
-    this.mapControl.mapDescription = 'Planungsprozess: xyz > Status Quo Fortschreibung <br> usw.'
+    this.mapControl.mapDescription = 'Planungsprozess: xyz > Status Quo Fortschreibung <br> usw.';
   }
 
   ngOnDestroy(): void {
@@ -73,6 +75,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   }
 
   onProcessChange(id: number): void {
+    if (id === undefined) return;
     let project = this.getProject(id);
     this.activeProject = project;
   }
