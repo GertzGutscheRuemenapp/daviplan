@@ -628,6 +628,27 @@ mat-icon.warning {
   color: $warning;
 }
 
+
+
+mat-panel-title app-help-button, #process-select app-help-button {
+  /*      pointer-events: none;
+        opacity: 0;
+        transition: 0.2s ease-out opacity;*/
+  margin-top: 3px;
+  button.mat-icon-button.small {
+    height: 22px;
+    width: 22px;
+    line-height: 22px;
+    mat-icon {
+      margin-left: -1px;
+    }
+  }
+}
+mat-panel-title app-help-button{
+  position: absolute;
+  right: 41px;
+}
+
 .context-bar {
   //z-index: 12 !important;
   position: relative;
@@ -642,36 +663,19 @@ mat-icon.warning {
     text-transform: uppercase;
   }
 
+  mat-panel-title {
+    height: 60px;
+  }
+
   mat-expansion-panel-header, mat-expansion-panel.mat-expanded mat-expansion-panel-header {
     height: 68px;
     padding: 0px 18px !important;
-    app-help-button {
+/*    app-help-button {
       opacity: 1;
       pointer-events: all;
-    }
+    }*/
   }
 
-  mat-panel-title {
-    height: 60px;
-
-    app-help-button {
-      //display: none;
-      pointer-events: none;
-      opacity: 0;
-      position: absolute;
-      right: 38px;
-      margin-top: 3px;
-      transition: 0.2s ease-out opacity;
-      button.mat-icon-button.small {
-        height: 18px;
-        width: 18px;
-        line-height: 18px;
-        mat-icon {
-          margin-left: -2px;
-        }
-      }
-    }
-  }
 
   .sub-select-box {
     margin-top: 18px;

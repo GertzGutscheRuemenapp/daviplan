@@ -19,7 +19,6 @@ export class HelpDialog {
 
 @Component({
   selector: 'app-help-button',
-  styles: ['mat-icon {margin-top: -2px;}'],
   template: `
     <button #helpButton title="Hilfe" mat-icon-button color="primary" class="small"
             (click)="onClick($event)">
