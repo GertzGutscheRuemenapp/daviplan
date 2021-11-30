@@ -8,17 +8,12 @@ from django.http import (HttpResponseBadRequest,
                          )
 from django.db.models import ProtectedError
 from django.utils.translation import ugettext as _
-from publications_bootstrap.models import Publication
-from repair.apps.login.serializers import PublicationSerializer
 from abc import ABC
 
 from django.shortcuts import get_object_or_404
 
 from rest_framework.response import Response
 from rest_framework.utils.serializer_helpers import ReturnDict
-from repair.apps.login.models import CaseStudy
-from repair.apps.utils.serializers import (BulkValidationError,
-                                           BulkSerializerMixin)
 
 
 class PostGetViewMixin:
@@ -341,13 +336,6 @@ class ModelPermissionViewSet(ModelReadPermissionMixin,
     permission is missing.
     """
 
-
-class PublicationView(ModelPermissionViewSet):
-    queryset = Publication.objects.all()
-    serializer_class = PublicationSerializer
-    pagination_class = None
-
-
 class ReadUpdateViewSet(mixins.RetrieveModelMixin,
                         mixins.UpdateModelMixin,
                         mixins.ListModelMixin,
@@ -410,5 +398,32 @@ class ReadUpdatePermissionViewSet(mixins.RetrieveModelMixin,
         return super().partial_update(request, **kwargs)
 
 
-class BasePermissionMixin(UserPassesTestMixin):
-    pass
+class BaseProfilePermissionMixin(UserPassesTestMixin):
+    """"""
+
+    def get_test_func(self):
+        """define the permission check function (default=can_edit_basedata)"""
+        return self.check_can_edit_basedata
+
+    def check_can_create_project(self) -> bool:
+        """Has write access to Project-Model"""
+        if self.request.method in ('GET'):
+            return True
+        else:
+            return self.request.user.profile.can_create_project
+
+    def check_can_edit_basedata(self) -> bool:
+        """Has write access to Basedata-Models"""
+        if self.request.method in ('GET'):
+            return True
+        else:
+            return self.request.user.profile.can_edit_basedata
+
+    def check_has_admin_access(self) -> bool:
+        """Has admin access (Read or write)"""
+        return self.request.user.profile.admin_access
+
+    def check_admin_access_and_basedata_edit(self) -> bool:
+        """Has admin access (Read or write) and basedata-edit"""
+        return self.check_can_edit_basedata() and self.check_has_admin_access()
+

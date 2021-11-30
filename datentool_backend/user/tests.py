@@ -91,26 +91,6 @@ class TestProjectAPI(_TestAPI, BasicModelTest, APITestCase):
         profile.can_create_project = original_permission
         profile.save()
 
-    #def test_admin_access_permission(self):
-        #"""Test the admin access of the profile"""
-        #profile = self.profile
-
-        ## Testprofile, with admin access (True)
-        #profile.admin_access = True
-        #profile.save()
-        #self.test_post()
-
-        ## Testprofile, without admin access (False)
-        #profile.admin_access = False
-        #profile.save()
-        #self.test_post()
-
-        #url = self.url_key + '-list'
-        ## post
-        #response = self.post(url, **self.url_pks, data=self.post_data,
-                             #extra={'format': 'json'})
-        #self.response_403(msg=response.content)
-
 
 class TestScenarioAPI(_TestAPI, BasicModelTest, APITestCase):
     """"""

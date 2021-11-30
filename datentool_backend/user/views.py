@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
 from django.contrib.auth.models import User
-from django.contrib.auth.mixins import UserPassesTestMixin
+from datentool_backend.utils.views import BaseProfilePermissionMixin
 from .serializers import UserSerializer, ProjectSerializer, ScenarioSerializer
 from .models import Project, Scenario
 
@@ -18,21 +18,12 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().get_object()
 
 
-class ProjectViewSet(UserPassesTestMixin, viewsets.ModelViewSet):
+class ProjectViewSet(BaseProfilePermissionMixin, viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
 
-    def test_func(self):
-        if self.request.method in ('GET'):
-            return True
-        else:
-            return self.request.user.profile.can_create_project
-
-    #def test_func(self):
-        #if self.request.method in ('GET'):
-            #return True
-        #else:
-            #return self.request.user.profile.admin_access
+    def get_test_func(self):
+        return self.check_can_create_project
 
 
 class ScenarioViewSet(viewsets.ModelViewSet):
