@@ -6,6 +6,9 @@
         <div class="davicon icon-GGR-davicons-Font-Simple-2-Szenario"></div>
       </div>
       Szenario
+      <app-help-button title="Szenario" position="right">
+        <p>Sie können sich hier Ihre Erreichbarkeitsszenarien anzeigen lassen, diese editieren, neue hinzufügen und bestehende löschen.</p>
+      </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
 </mat-expansion-panel>
@@ -16,6 +19,10 @@
         <div class="davicon icon-GGR-davicons-Font-Simple-3-Standorte-Leistungen"></div>
       </div>
       Leistung/en
+      <app-help-button title="Leistung/en" position="right">
+        <p>Wählen Sie hier im Dropdown-Menü den Infrastrukturbereich und per Checkbox die Leistungen aus dem jeweiligen Infrastrukturbereich aus. Mit dem Klick auf das Filtersymbol können Sie Filter auf Standorte setzen und bearbeiten.</p>
+        <p>Cluster, Verdrängung und Zoom auf alle stellen Darstellungsoptionen für die Karte dar. </p>
+      </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
   <div style="padding-bottom: 10px;">
@@ -73,17 +80,6 @@
       </li>
     </ul>
   </div>
-  <mat-expansion-panel class="text-panel">
-    <mat-expansion-panel-header>
-      <mat-icon color="primary" class="material-icons-outlined"
-                style="margin-right: 5px;">help_outline</mat-icon>
-      <span class="subtitle1">Hilfe</span>
-    </mat-expansion-panel-header>
-    <span class="info-text">
-      <p>Wählen Sie hier im Dropdown-Menü den Infrastrukturbereich und per Checkbox die Leistungen aus dem jeweiligen Infrastrukturbereich aus. Mit dem Klick auf das Filtersymbol können Sie Filter auf Standorte setzen und bearbeiten.</p>
-      <p>Cluster, Verdrängung und Zoom auf alle stellen Darstellungsoptionen für die Karte dar. </p>
-    </span>
-  </mat-expansion-panel>
 </mat-expansion-panel>
 <mat-expansion-panel cookieExpansion="exp-reach-indicator">
   <mat-expansion-panel-header>
@@ -92,6 +88,14 @@
         <div class="davicon icon-GGR-davicons-Font-Simple-5-Fortbewegung-Wegezeit"></div>
       </div>
       Indikator
+      <app-help-button title="Gebietseinheit" position="right">
+        Wählen Sie hier den Erreichbarkeitsindikator für die Darstellung in der Karte aus. Dargestelt stellt wird die Erreichbarkeit mit dem unten ausgewählten Verkehrsmittel. Sie haben dabei drei Optionen:
+        <ul>
+          <li>Erreichbarkeit eines Standortes mit ausgewählter Leistung von allen Wohnstandorten anzeigen (>gewünschten Standort mit Klick in die Karte auswählen)</li>
+          <li>Erreichbarkeit aller Standorte mit ausgewählter Leistung von einem Wohnstandort aus anzeigen (>gewünschten Wohnstandort mit Klick in die Karte auswählen)</li>
+          <li>Erreichbarkeit des jeweils nächsten Standortes mit ausgewählter Leistung für alle Wohnstandorte. </li>
+        </ul>
+      </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
   <div id="indicator-select"><!--  <div style="padding-left: 8px;">-->
@@ -124,21 +128,6 @@
       </mat-radio-button>
     </mat-radio-group>
   </div>
-  <mat-expansion-panel class="text-panel">
-    <mat-expansion-panel-header>
-      <mat-icon color="primary" class="material-icons-outlined"
-                style="margin-right: 5px;">help_outline</mat-icon>
-      <span class="subtitle1">Hilfe</span>
-    </mat-expansion-panel-header>
-    <span class="info-text">
-      Wählen Sie hier den Erreichbarkeitsindikator für die Darstellung in der Karte aus. Dargestelt stellt wird die Erreichbarkeit mit dem unten ausgewählten Verkehrsmittel. Sie haben dabei drei Optionen:
-      <ul>
-        <li>Erreichbarkeit eines Standortes mit ausgewählter Leistung von allen Wohnstandorten anzeigen (>gewünschten Standort mit Klick in die Karte auswählen)</li>
-        <li>Erreichbarkeit aller Standorte mit ausgewählter Leistung von einem Wohnstandort aus anzeigen (>gewünschten Wohnstandort mit Klick in die Karte auswählen)</li>
-        <li>Erreichbarkeit des jeweils nächsten Standortes mit ausgewählter Leistung für alle Wohnstandorte. </li>
-      </ul>
-    </span>
-  </mat-expansion-panel>
 </mat-expansion-panel>
 <mat-expansion-panel cookieExpansion="exp-reach-modes">
   <mat-expansion-panel-header>
@@ -147,6 +136,9 @@
         <mat-icon class="material-icons-outlined">directions_bus_filled</mat-icon>
       </div>
       Verkehrsmittel
+      <app-help-button title="Gebietseinheit" position="right">
+        <p>Wählen Sie hier das Verkehrsmittel für die Erreichbarkeitsdarstellung.</p>
+      </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
   <div id="mode-select" class="sub-select-wrapper" style="display: flex">
@@ -191,16 +183,6 @@
       </div>
     </div>
   </div>
-  <mat-expansion-panel class="text-panel">
-    <mat-expansion-panel-header>
-      <mat-icon color="primary" class="material-icons-outlined"
-                style="margin-right: 5px;">help_outline</mat-icon>
-      <span class="subtitle1">Hilfe</span>
-    </mat-expansion-panel-header>
-    <span class="info-text">
-      Wählen Sie hier das Verkehrsmittel für die Erreichbarkeitsdarstellung.
-    </span>
-  </mat-expansion-panel>
 </mat-expansion-panel>
 
 <ng-template #filterTemplate>

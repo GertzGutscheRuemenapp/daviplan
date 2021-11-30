@@ -12,7 +12,7 @@ $app-typography: mat.define-typography-config(
     //$subheading-2: mat.define-typography-level(26px, 26px, 400),
     //$subheading-1: mat.define-typography-level(24px, 24px, 400),
     // Todo: menu letter spacing 0.14px
-  $body-1: mat.define-typography-level(16px, 24px, 400, $letter-spacing: 0.14px),
+  $body-1: mat.define-typography-level(16px, 24px, 400),//, $letter-spacing: 0.14px),
   $body-2: mat.define-typography-level(16px, 20px, 400, $letter-spacing: 0.2px),
   $button: mat.define-typography-level(16px, 16px, 500, $letter-spacing: 1.42px),
 );
@@ -32,7 +32,7 @@ $app-theme: mat.define-light-theme((
 
 // main heading styles not defined in typography (messes up material inputs and elements otherwise)
 // instead overriden in all text-boxes
-.welcome, .info-text, ckeditor .ck-content, confirm-dialog, mat-card, #diagram-bar{
+.welcome, .info-text, ckeditor .ck-content, mat-dialog-container, mat-card, #diagram-bar{
   h1 {
     font-size: 54px !important;
     line-height: 54px !important;
@@ -141,7 +141,7 @@ body {
   color: $light-black;
   display: flex;
   div {
-    font-size: 28px;
+    font-size: 36px;
     padding: 10px 0 0 0 !important;
     display: inline-flex;
     p:first-child{
@@ -313,16 +313,28 @@ app-data-card td, app-dash-card td {
 }
 
 .main-nav {
-  box-shadow: 0px 0px 5px 1px #a7a7a7!important;
+  box-shadow: 0px 0px 5px 1px #a7a7a7;
 }
 
 .sub-nav {
   background-color: white;
   display: flex;
   height: $sub-nav-height;
-  box-shadow: 0px 3px 5px -1px rgb(0 0 0 / 20%), 0px 6px 10px 0px rgb(0 0 0 / 14%), 0px 1px 18px 0px rgb(0 0 0 / 12%);
+  //box-shadow: 0px 3px 5px -1px rgb(0 0 0 / 20%), 0px 6px 10px 0px rgb(0 0 0 / 14%), 0px 1px 18px 0px rgb(0 0 0 / 12%);
+  box-shadow: 0px 3px 5px -1px rgb(0 0 0 / 20%), 350px 6px 10px 0px rgb(0 0 0 / 14%), 350px 1px 18px 0px rgb(0 0 0 / 12%);
+  border-bottom: 2px solid $primary;
+  //box-shadow: 0px 3px 5px -1px rgb(0 0 0 / 10%), 0px 3px 5px 0px rgb(0 0 0 / 9%), 0px 1px 8px 0px rgb(0 0 0 / 7%)
   position: relative;
   z-index: 11;
+
+/*  app-help-button {
+    margin-top: 8px;
+    margin-left: 5px;
+    mat-icon {
+      margin-top: 4px;
+      margin-left: 3px;
+    }
+  }*/
 }
 
 mat-sidenav-content {
@@ -366,7 +378,7 @@ app-basedata, app-administration{
   }
 }
 
-.sub-nav span {
+.sub-nav .sub-links {
   display: flex;
   height: 100%;
 }
@@ -377,12 +389,14 @@ app-basedata, app-administration{
   color: #00000099;
   text-decoration: none;
   padding: 0 25px;
+  align-items: center;
+  //padding: 0 25px 8px;
+  //align-items: end;
   //height: calc(100% - 3px);
   //margin-top: 3px;
   display: flex;
-  align-items: center;
   justify-content: center;
-  border-radius: 0px 0px 4px 4px;
+  //border-radius: 0px 0px 4px 4px;
   transition: color 0.2s, background-color 0.2s;
 }
 
@@ -397,7 +411,8 @@ app-basedata, app-administration{
 }
 
 rect.highlight{
-  fill: mat.get-color-from-palette($app-primary, 400)!important;
+  //fill: mat.get-color-from-palette($app-primary, 400)!important;
+  fill: mat.get-color-from-palette($app-primary, 800)!important;
 }
 
 div.d3-tooltip, div.tooltip {
@@ -614,8 +629,47 @@ mat-icon.warning {
   color: $warning;
 }
 
+mat-panel-title, #process-select {
+  app-help-button {
+    /*      pointer-events: none;
+          opacity: 0;
+          transition: 0.2s ease-out opacity;*/
+    margin-top: 3px;
+
+    button.mat-icon-button.small {
+      height: 22px;
+      width: 22px;
+      line-height: 22px;
+
+      mat-icon {
+        margin-left: -1px;
+      }
+    }
+  }
+}
+
+app-help-button {
+  .mat-icon-button.mat-primary {
+    color: #8ecdff;
+  }
+  .mat-icon-button.mat-primary:hover {
+    color: $primary;
+  }
+}
+/*
+mat-panel-title:hover, #process-select:hover {
+  app-help-button .mat-icon-button.mat-primary{
+    color: $primary;
+  }
+}*/
+
+mat-panel-title app-help-button{
+  position: absolute;
+  right: 41px;
+}
+
 .context-bar {
-  z-index: 12 !important;
+  //z-index: 12 !important;
   position: relative;
   width: $context-bar-width;
   overflow-y: auto;
@@ -624,18 +678,27 @@ mat-icon.warning {
   box-shadow: 0px 5px 5px -1px rgb(0 0 0 / 20%), 0px 10px 10px 0px rgb(0 0 0 / 14%), 2px 18px 18px 0px rgb(0 0 0 / 12%) !important;
   padding-top: 10px;
 
-  mat-expansion-panel .mat-expansion-panel-header-title {
-    text-transform: uppercase;
+  mat-expansion-panel {
+    border-radius: 0;
   }
 
-  mat-expansion-panel-header, mat-expansion-panel.mat-expanded mat-expansion-panel-header {
-    height: 68px;
-    padding: 0px 18px !important;
+  mat-expansion-panel .mat-expansion-panel-header-title {
+    text-transform: uppercase;
   }
 
   mat-panel-title {
     height: 60px;
   }
+
+  mat-expansion-panel-header, mat-expansion-panel.mat-expanded mat-expansion-panel-header {
+    height: 68px;
+    padding: 0px 18px !important;
+/*    app-help-button {
+      opacity: 1;
+      pointer-events: all;
+    }*/
+  }
+
 
   .sub-select-box {
     margin-top: 18px;
@@ -813,13 +876,17 @@ mat-sidenav {
   }
 }
 
-.drag-indicator{
+.drag-indicator {
   position: absolute;
-  left: 25px; top: -2px;
-  color: lightgrey;
+  left: 2px; top: -4px;
+  color: $primary;
   font-size: 0.6em;
   opacity: 0;
   transition: opacity 0.5s;
+}
+
+app-help-dialog .drag-indicator {
+  color: white;
 }
 
 #info {
@@ -841,7 +908,7 @@ mat-sidenav {
   }
 }
 
-#info:hover, #time-slider:hover {
+#info:hover, #time-slider:hover, app-help-dialog:hover {
   .drag-indicator {
     opacity: 1;
   }

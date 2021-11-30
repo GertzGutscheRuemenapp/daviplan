@@ -6,6 +6,9 @@
         <div class="davicon icon-GGR-davicons-Font-Simple-2-Szenario"></div>
       </div>
       Szenario
+      <app-help-button title="Szenario" position="right">
+        <p>Sie können sich hier Ihre Szenarien anzeigen lassen, diese editieren, neue hinzufügen und bestehende löschen.</p>
+      </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
 </mat-expansion-panel>
@@ -16,6 +19,9 @@
         <mat-icon class="material-icons-outlined">lightbulb</mat-icon>
       </div>
       Indikator
+      <app-help-button title="Indikator" position="right">
+        <p>Wählen Sie hier aus den definierten Indikatoren für die Darstellung aus. Sie können hier zudem eigene Indikatoren hinzufügen oder löschen.</p>
+      </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
   <mat-form-field appearance="outline" class="small">
@@ -74,16 +80,6 @@
       </mat-optgroup>
     </mat-select>
   </mat-form-field>
-  <mat-expansion-panel class="text-panel">
-    <mat-expansion-panel-header>
-      <mat-icon color="primary" class="material-icons-outlined"
-                style="margin-right: 5px;">help_outline</mat-icon>
-      <span class="subtitle1">Hilfe</span>
-    </mat-expansion-panel-header>
-    <span class="info-text">
-      <p>Wählen Sie hier aus den definierten Indikatoren für die Darstellung aus. Sie können hier zudem eigene Indikatoren hinzufügen oder löschen.</p>
-    </span>
-  </mat-expansion-panel>
 </mat-expansion-panel>
 <mat-expansion-panel cookieExpansion="exp-rating-areas">
   <mat-expansion-panel-header>
@@ -92,6 +88,9 @@
         <mat-icon class="material-icons-outlined">flip_to_front</mat-icon>
       </div>
       Gebietseinheit
+      <app-help-button title="Gebietseinheit" position="right">
+        <p>Wählen Sie hier im Dropdown-Menü die jeweilige Gebietseinheit für die Darstellung aus.</p>
+      </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
   <mat-form-field appearance="outline" class="small">
@@ -101,16 +100,6 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
-  <mat-expansion-panel class="text-panel">
-    <mat-expansion-panel-header>
-      <mat-icon color="primary" class="material-icons-outlined"
-                style="margin-right: 5px;">help_outline</mat-icon>
-      <span class="subtitle1">Hilfe</span>
-    </mat-expansion-panel-header>
-    <span class="info-text">
-      <p>Wählen Sie hier im Dropdown-Menü die jeweilige Gebietseinheit für die Darstellung aus.</p>
-    </span>
-  </mat-expansion-panel>
 </mat-expansion-panel>
 <mat-expansion-panel cookieExpansion="exp-rating-compare">
   <mat-expansion-panel-header>
@@ -119,6 +108,9 @@
         <div class="davicon icon-GGR-davicons-Font-Simple-4-Vergleichsdarstellung"></div>
       </div>
       Vergleichsdarstellung
+      <app-help-button title="Gebietseinheit" position="right">
+        <p></p>
+      </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
   <mat-checkbox style="padding-left: 12px;" color="primary" [(ngModel)]="compareSupply" i18n> <!--style="margin-left: -12px"-->
@@ -156,6 +148,8 @@
     </mat-radio-group>
   </div>
 </mat-expansion-panel>
+<!--this div is only there to cover glitched shadow of chart toggle-->
+<div style="width: 100%; height: 20px; background-color: white;"></div>
 <app-side-toggle id="chart-toggle" icon="bar_chart" name="Diagramm"
                  cookieExpansion="exp-rating-diagram">
   <div class="diagram-wrapper">
@@ -177,19 +171,11 @@
         <mat-icon style="font-size: 20px; margin-top: 0;">download</mat-icon>
       </button>
       <br>
-      <ng-template #help>
+      <app-help-button title="Diagrammdarstellung" position="right">
         <p>Das Diagramm zeigt die Kennwerte des ausgewählten Indikators für alle Gebiete der ausgewählten Gebietseinheit.</p>
         <p>Mit einem Klick auf den Vollbild-Button rechts oben können Sie sich das Diagramm vergrößert in einem Dialog anzeigen lassen.</p>
         <p>Über den Herunterladen-Button darunter können Sie sich das Diagramm als Bild (PNG) herunterladen.</p>
-      </ng-template>
-      <button mat-icon-button color="primary" class="small"
-              title="Hilfe"
-              [ngbPopover]="help"
-              popoverTitle="Diagrammdarstellung"
-              container="body"
-              [autoClose]="true">
-        <mat-icon>help_outline</mat-icon>
-      </button>
+      </app-help-button>
     </div>
   </div>
 </app-side-toggle>

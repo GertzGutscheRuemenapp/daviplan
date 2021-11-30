@@ -4,7 +4,6 @@ import { StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart
 import { mockdata } from "../../population/pop-development/pop-development.component"
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
 
-
 export const mockPrognoses = ['Trendfortschreibung', 'mehr Zuwanderung', 'mehr Abwanderung'];
 
 @Component({

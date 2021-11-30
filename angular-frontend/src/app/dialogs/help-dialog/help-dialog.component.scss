@@ -1,0 +1,37 @@
+@import "~src/constants";
+
+#close-button {
+  position: absolute;
+  color: white;
+  background-color: transparent;
+  right: 5px;
+  top: 5px;
+  mat-icon {
+    margin-top: -4px;
+  }
+}
+#close-button:hover {
+  background-color: $primary-light;
+  color: $primary;
+}
+
+::ng-deep .help-container {
+  mat-dialog-container {
+    padding: 0;
+    box-shadow: 0px 5px 5px -3px rgb(0 0 0 / 15%), 0px 4px 6px 2px rgb(0 0 0 / 12%), 0px 4px 12px 4px rgb(0 0 0 / 10%);
+  }
+  .mat-dialog-title {
+    background-color: $primary;
+    padding: 8px 12px;
+    font-size: 16px;
+    color: white;
+    text-transform: uppercase;
+    display: flex;
+  }
+  mat-dialog-content {
+    padding: 0 12px 4px 12px;
+    line-height: 20px;
+    margin: 0;
+    font-size: 14px;
+  }
+}

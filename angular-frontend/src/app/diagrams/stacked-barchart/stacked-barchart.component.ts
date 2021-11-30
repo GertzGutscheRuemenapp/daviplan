@@ -99,8 +99,8 @@ export class StackedBarchartComponent implements AfterViewInit {
 
     if (this.xLabel)
       this.svg.append('text')
-        .attr("y", this.height! - 10)
-        .attr("x", this.width! - this.margin.right)
+        .attr("y", this.height! - 30)
+        .attr("x", this.width! - this.margin.right + 10)
         .attr('dy', '0.5em')
         .style('text-anchor', 'end')
         .attr('font-size', '0.8em')
@@ -118,7 +118,7 @@ export class StackedBarchartComponent implements AfterViewInit {
       stack.attr("opacity", 1);
       let data: StackedData = this.__data__;
       stack.selectAll('rect').classed('highlight', true);
-      let text = data.group + '<br>';
+      let text = `<b>${data.group}</b><br>`;
       _this.labels?.forEach((label, i)=>{
         text += `<b style="color: ${colorScale(i.toString())}">${label}</b>: ${data.values[i].toString().replace('.', ',')}<br>`;
       })
@@ -140,8 +140,8 @@ export class StackedBarchartComponent implements AfterViewInit {
     }
 
     function onMouseMove(this: any, event: MouseEvent){
-      tooltip.style('left', event.pageX + 15 + 'px')
-        .style('top', event.pageY + 10 + 'px');
+      tooltip.style('left', event.pageX - 30 + 'px')
+        .style('top', event.pageY + 20 + 'px');
     }
 
     // stacked bars
