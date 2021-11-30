@@ -1,6 +1,10 @@
 from rest_framework import routers
 from datentool_backend.user.views import UserViewSet
 from datentool_backend.site.views import SiteSettingsViewSet
+#  vector tiles
+from rest_framework_mvt.views import mvt_view_factory
+from django.urls import path
+from .population.models import RasterCell
 
 from .area.views import (SymbolFormViewSet, MapSymbolsViewSet, LayerGroupViewSet,
                          WMSLayerViewSet, InternalWFSLayerViewSet, SourceViewSet,
@@ -24,6 +28,7 @@ from .population.views import (RasterViewSet, PopulationRasterViewSet, GenderVie
                                PrognosisEntryViewSet, PopulationViewSet,
                                PopulationEntryViewSet, PopStatisticViewSet,
                                PopStatEntryViewSet)
+                               # ,RasterCellTileViewSet)
 from .user.views import ProjectViewSet, ScenarioViewSet
 
 router = routers.SimpleRouter()
@@ -92,6 +97,18 @@ router.register(r'populationentries', PopulationEntryViewSet,
                 basename='populationentries')
 router.register(r'popstatistics', PopStatisticViewSet, basename='popstatistics')
 router.register(r'popstatentries', PopStatEntryViewSet, basename='popstatentries')
+
+
+#urlpatterns = [path("api/rastercells/", mvt_view_factory(RasterCell)), ]
+
+
+#urlpatterns = [
+    #path('rastercells', RasterCellTileViewSet, name="rastercells"),
+#]
+
+#urlpatterns = [
+    #path('rastercells/<int:pk>/tile/<int:z>/<int:x>/<int:y>', RasterCellTileViewSet.as_view(), name="rastercells"),
+#]
 
 # users
 router.register(r'projects', ProjectViewSet, basename='projects')

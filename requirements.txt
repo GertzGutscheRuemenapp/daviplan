@@ -17,3 +17,4 @@ djangorestframework-gis
 pandas
 xlsxwriter
 sqlalchemy
+django-vectortiles

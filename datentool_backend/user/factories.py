@@ -1,6 +1,6 @@
 import factory
 from factory.django import DjangoModelFactory, mute_signals
-from django.contrib.gis.geos import Polygon, LineString
+from django.contrib.gis.geos import Polygon
 from faker import Faker
 
 from .models import User, Profile, post_save, Project, Scenario
