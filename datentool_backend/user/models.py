@@ -13,8 +13,8 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE,
                                 related_name='profile')
     admin_access = models.BooleanField(default=False)
-    can_create_scenarios = models.BooleanField(default=False)
-    can_edit_data = models.BooleanField(default=False)
+    can_create_project = models.BooleanField(default=False)
+    can_edit_basedata = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__}: {self.user.username}'
