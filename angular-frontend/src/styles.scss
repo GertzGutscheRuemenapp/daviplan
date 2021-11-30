@@ -517,6 +517,12 @@ button.mat-icon-button {
   color: $primary;
 }
 
+.mini-fab-icon.disabled {
+  color: lightgrey;
+  border: 2px solid lightgrey;
+  pointer-events: none;
+}
+
 .mini-fab-icon.inverted {
   background-color: $accent;
   color: white;
