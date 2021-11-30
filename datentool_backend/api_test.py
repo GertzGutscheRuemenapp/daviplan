@@ -49,7 +49,10 @@ class LoginTestCase:
         super().setUpClass()
         cls.profile = ProfileFactory(id=cls.user,
                                     user__id=cls.user,
-                                    user__username='Anonymus User')
+                                    user__username='Anonymus User',
+                                    can_create_project=True,
+                                    admin_access=True,
+                                    can_edit_basedata=True)
 
     def setUp(self):
         self.client.force_login(user=self.profile.user)

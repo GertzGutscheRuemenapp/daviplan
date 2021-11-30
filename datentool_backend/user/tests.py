@@ -45,7 +45,9 @@ class TestProjectAPI(_TestAPI, BasicModelTest, APITestCase):
         project: Project = cls.obj
         owner = project.owner.pk
         users = list(project.users.all().values_list(flat=True))
-        properties = OrderedDict(owner=owner, users=users, name=faker.word(),
+        properties = OrderedDict(owner=owner,
+                                 users=users,
+                                 name=faker.word(),
                                  allow_shared_change= faker.pybool())
         geojson = {
             'type': 'Feature',
@@ -64,6 +66,50 @@ class TestProjectAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.obj.delete()
         del cls.obj
         super().tearDownClass()
+
+    def test_project_creation_permission(self):
+        """Test the project creation permission of the profile"""
+        profile = self.profile
+
+        original_permission = profile.can_create_project
+
+        # Testprofile, with permission to create project (True)
+        profile.can_create_project = True
+        profile.save()
+        self.test_post()
+
+        # Testprofile, without permission to create project (False)
+        profile.can_create_project = False
+        profile.save()
+
+        url = self.url_key + '-list'
+        # post
+        response = self.post(url, **self.url_pks, data=self.post_data,
+                             extra={'format': 'json'})
+        self.response_403(msg=response.content)
+
+        profile.can_create_project = original_permission
+        profile.save()
+
+    #def test_admin_access_permission(self):
+        #"""Test the admin access of the profile"""
+        #profile = self.profile
+
+        ## Testprofile, with admin access (True)
+        #profile.admin_access = True
+        #profile.save()
+        #self.test_post()
+
+        ## Testprofile, without admin access (False)
+        #profile.admin_access = False
+        #profile.save()
+        #self.test_post()
+
+        #url = self.url_key + '-list'
+        ## post
+        #response = self.post(url, **self.url_pks, data=self.post_data,
+                             #extra={'format': 'json'})
+        #self.response_403(msg=response.content)
 
 
 class TestScenarioAPI(_TestAPI, BasicModelTest, APITestCase):

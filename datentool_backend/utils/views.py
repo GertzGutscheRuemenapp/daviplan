@@ -1,4 +1,5 @@
-from rest_framework import viewsets, exceptions, mixins , status
+from rest_framework import viewsets, exceptions, mixins, status
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.views import View
 from django.http import (HttpResponseBadRequest,
                          HttpResponse,
@@ -407,3 +408,7 @@ class ReadUpdatePermissionViewSet(mixins.RetrieveModelMixin,
         """
         self.check_permission(request, 'change')
         return super().partial_update(request, **kwargs)
+
+
+class BasePermissionMixin(UserPassesTestMixin):
+    pass
