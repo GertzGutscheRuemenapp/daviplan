@@ -1,21 +1,21 @@
 from django.db import models
-from django.contrib.gis.db import models as gis_models
-from ..infrastructure.models import Service
-from ..population.models import RasterCell
+from datentool_backend.base import NamedModel, JsonAttributes
+from datentool_backend.infrastructure.models import Service
+from datentool_backend.population.models import RasterCell
 
 
-class Modes(models.Model):
+class Mode(NamedModel, models.Model):
     '''
     modes available
     '''
     name = models.TextField()
 
 
-class ModeVariant(models.Model):
+class ModeVariant(JsonAttributes, NamedModel, models.Model):
     '''
     modes
     '''
-    mode = models.ForeignKey(Modes, on_delete=models.RESTRICT)
+    mode = models.ForeignKey(Mode, on_delete=models.RESTRICT)
     name = models.TextField()
     meta = models.JSONField()
     is_default = models.BooleanField()
@@ -31,7 +31,7 @@ class ReachabilityMatrix(models.Model):
     minutes = models.FloatField()
 
 
-class Router(models.Model):
+class Router(NamedModel, models.Model):
     """an OTP ROuter to use"""
     name = models.TextField()
     osm_file = models.TextField()
@@ -47,7 +47,7 @@ class IndicatorTypes(models.TextChoices):
     TYPE2 = 'T2', 'Type2'
 
 
-class Indicator(models.Model):
+class Indicator(JsonAttributes, NamedModel, models.Model):
     """An Indicator"""
     indicator_type = models.CharField(max_length=2, choices=IndicatorTypes.choices)
     name = models.TextField()

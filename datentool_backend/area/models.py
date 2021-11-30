@@ -1,16 +1,17 @@
+import json
 from django.db import models
 from django.contrib.gis.db import models as gis_models
-from ..user.models import Profile
+from datentool_backend.base import NamedModel, JsonAttributes
 
 
-class SymbolForm(models.Model):
+class SymbolForm(NamedModel, models.Model):
     '''
     Map Symbol Forms
     '''
     name = models.TextField()
 
 
-class MapSymbols(models.Model):
+class MapSymbol(models.Model):
     '''
     MapSymbols
     '''
@@ -19,13 +20,13 @@ class MapSymbols(models.Model):
     stroke_color = models.CharField(max_length=9)
 
 
-class LayerGroup(models.Model):
+class LayerGroup(NamedModel, models.Model):
     """a Layer Group"""
     name = models.TextField()
     order = models.IntegerField(unique=True)
 
 
-class Layer(models.Model):
+class Layer(NamedModel, models.Model):
     """a generic layer"""
     name = models.TextField()
     group = models.ForeignKey(LayerGroup, on_delete=models.RESTRICT)
@@ -40,10 +41,13 @@ class WMSLayer(Layer):
     """a WMS Layer"""
     url = models.URLField()
 
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__}: {self.url}'
+
 
 class InternalWFSLayer(Layer):
     """an internal WFS Layer"""
-    symbol = models.ForeignKey(MapSymbols, on_delete=models.RESTRICT)
+    symbol = models.ForeignKey(MapSymbol, on_delete=models.RESTRICT)
 
 
 class SourceTypes(models.TextChoices):
@@ -60,7 +64,7 @@ class Source(models.Model):
     layer = models.TextField(null=True, blank=True)
 
 
-class AreaLevel(models.Model):
+class AreaLevel(NamedModel, models.Model):
     """an area level"""
     name = models.TextField()
     order = models.IntegerField(unique=True)
@@ -68,8 +72,15 @@ class AreaLevel(models.Model):
     layer = models.ForeignKey(InternalWFSLayer, on_delete=models.RESTRICT)
 
 
-class Area(models.Model):
+class Area(JsonAttributes, models.Model):
     """an area"""
     area_level = models.ForeignKey(AreaLevel, on_delete=models.RESTRICT)
     geom = gis_models.GeometryField()
     attributes = models.JSONField()
+
+    def __str__(self) -> str:
+        attributes = self.get_attributes()
+        name = attributes.get('name',
+                              attributes.get('gen', self.pk))
+        return f'{self.__class__.__name__} ({self.area_level.name}): {name}'
+

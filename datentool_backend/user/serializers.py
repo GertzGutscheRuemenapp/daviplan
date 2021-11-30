@@ -1,24 +1,23 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from .models import Profile
+from .models import Profile, Project, Scenario
 
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Profile
-        fields =  ('admin_access', 'can_create_scenarios', 'can_edit_data')
+        fields =  ('admin_access', 'can_create_project', 'can_edit_basedata')
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     profile = ProfileSerializer(required=False)
-    url = serializers.HyperlinkedIdentityField(
-        view_name='user-detail', read_only=True)
     password = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = User
-        fields = ('id', 'url', 'username', 'email', 'first_name',
+        fields = ('id', 'username', 'email', 'first_name',
                   'last_name', 'is_superuser', 'profile', 'password')
 
     def create(self, validated_data):
@@ -45,6 +44,18 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         profile.save()
         return super().update(instance, validated_data)
 
+
+class ProjectSerializer(GeoFeatureModelSerializer):
+    class Meta:
+        model = Project
+        geo_field = 'map_section'
+        fields = ('id', 'name', 'owner', 'users', 'allow_shared_change')
+
+
+class ScenarioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Scenario
+        fields = ('id', 'name', 'project')
 
 
 

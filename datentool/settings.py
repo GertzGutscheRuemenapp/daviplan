@@ -46,10 +46,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
     'datentool_backend',
     'rest_framework',
     'rest_framework_simplejwt',
     'django_cleanup.apps.CleanupConfig',
+    'bulkmodel',
 ]
 
 MIDDLEWARE = [
@@ -125,7 +127,7 @@ DATABASES = {
         'PORT': DB_PORT,
         'OPTIONS': {
             'sslmode': 'require',
-            },
+        },
     },
     'spatialite': {
         'ENGINE': 'django.contrib.gis.db.backends.spatialite',

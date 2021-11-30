@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.gis.db import models as gis_models
+from datentool_backend.base import NamedModel
 
 
 class Profile(models.Model):
@@ -12,8 +13,11 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE,
                                 related_name='profile')
     admin_access = models.BooleanField(default=False)
-    can_create_scenarios = models.BooleanField(default=False)
-    can_edit_data = models.BooleanField(default=False)
+    can_create_project = models.BooleanField(default=False)
+    can_edit_basedata = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__}: {self.user.username}'
 
 
 @receiver(post_save, sender=User)
@@ -28,13 +32,14 @@ def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
 
 
-class Project(models.Model):
+class Project(NamedModel, models.Model):
     '''
     Basic Project Information
     '''
     name = models.TextField()
     owner = models.ForeignKey(Profile, on_delete=models.RESTRICT)
-    users = models.ManyToManyField(Profile, related_name='shared_with_users')
+    users = models.ManyToManyField(Profile, related_name='shared_with_users',
+                                   blank=True)
     allow_shared_change = models.BooleanField()
     map_section = gis_models.PolygonField()
 
@@ -43,7 +48,7 @@ class Project(models.Model):
         """set of infrastructures"""
 
 
-class Scenario(models.Model):
+class Scenario(NamedModel, models.Model):
     """BULE-Scenario"""
     name = models.TextField()
     project = models.ForeignKey(Project, on_delete=models.RESTRICT)
