@@ -6,6 +6,8 @@ from django.core.validators import (MaxLengthValidator,
 from datentool_backend.base import NamedModel
 from datentool_backend.area.models import AreaLevel, Area
 from bulkmodel.models import BulkModel
+#  Vector tile:
+from rest_framework_mvt.managers import MVTManager
 
 
 class Year(BulkModel):
@@ -35,6 +37,9 @@ class RasterCell(models.Model):
     cellcode = models.TextField(validators=[MaxLengthValidator(13)])
     pnt = gis_models.PointField()
     poly = gis_models.PolygonField()
+# vector tile
+    #objects = models.Manager()
+    #vector_tiles = MVTManager(geo_col='poly')
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__}: {self.raster.name}-{self.cellcode}'
@@ -118,7 +123,7 @@ class PopulationEntry(models.Model):
     population = models.ForeignKey(Population, on_delete=models.RESTRICT)
     area = models.ForeignKey(Area, on_delete=models.RESTRICT)
     gender = models.ForeignKey(Gender, on_delete=models.RESTRICT)
-    age = models.IntegerField(null=True)
+    age = models.IntegerField()
     value = models.FloatField()
 
 

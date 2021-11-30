@@ -1,6 +1,7 @@
 from rest_framework import viewsets
 
 from django.contrib.auth.models import User
+from django.contrib.auth.mixins import UserPassesTestMixin
 from .serializers import UserSerializer, ProjectSerializer, ScenarioSerializer
 from .models import Project, Scenario
 
@@ -17,9 +18,21 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().get_object()
 
 
-class ProjectViewSet(viewsets.ModelViewSet):
+class ProjectViewSet(UserPassesTestMixin, viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
+
+    def test_func(self):
+        if self.request.method in ('GET'):
+            return True
+        else:
+            return self.request.user.profile.can_create_project
+
+    #def test_func(self):
+        #if self.request.method in ('GET'):
+            #return True
+        #else:
+            #return self.request.user.profile.admin_access
 
 
 class ScenarioViewSet(viewsets.ModelViewSet):

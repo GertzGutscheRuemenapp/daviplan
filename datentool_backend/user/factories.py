@@ -1,6 +1,6 @@
 import factory
 from factory.django import DjangoModelFactory, mute_signals
-from django.contrib.gis.geos import Polygon, LineString
+from django.contrib.gis.geos import Polygon
 from faker import Faker
 
 from .models import User, Profile, post_save, Project, Scenario
@@ -15,8 +15,8 @@ class ProfileFactory(DjangoModelFactory):
         model = Profile
 
     admin_access = faker.pybool()
-    can_create_scenarios = faker.pybool()
-    can_edit_data = faker.pybool()
+    can_create_project = faker.pybool()
+    can_edit_basedata = faker.pybool()
     # We pass in profile=None to prevent UserFactory from creating another profile
     # (this disables the RelatedFactory)
     user = factory.SubFactory('datentool_backend.factories.UserFactory', profile=None)
@@ -39,7 +39,6 @@ class ProjectFactory(DjangoModelFactory):
         model = Project
 
     name = faker.word()
-    owner = factory.SubFactory(UserFactory)
     allow_shared_change = faker.pybool()
     map_section = Polygon(((0, 0), (0, 10), (10, 10), (0, 10), (0, 0)))
 
