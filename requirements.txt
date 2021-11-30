@@ -18,3 +18,4 @@ pandas
 xlsxwriter
 sqlalchemy
 django-vectortiles
+djangorestframework-mvt
