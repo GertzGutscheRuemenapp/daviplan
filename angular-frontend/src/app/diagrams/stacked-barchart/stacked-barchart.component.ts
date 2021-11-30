@@ -118,7 +118,7 @@ export class StackedBarchartComponent implements AfterViewInit {
       stack.attr("opacity", 1);
       let data: StackedData = this.__data__;
       stack.selectAll('rect').classed('highlight', true);
-      let text = data.group + '<br>';
+      let text = `<b>${data.group}</b><br>`;
       _this.labels?.forEach((label, i)=>{
         text += `<b style="color: ${colorScale(i.toString())}">${label}</b>: ${data.values[i].toString().replace('.', ',')}<br>`;
       })
