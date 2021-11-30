@@ -1,8 +1,7 @@
 from django.db import models
-from datentool_backend.base import NamedModel
 
 
-class SiteSetting(NamedModel, models.Model):
+class SiteSetting(models.Model):
     ''''''
     name = models.CharField(max_length=50, unique=True)
     title = models.TextField(default='Datentool')
