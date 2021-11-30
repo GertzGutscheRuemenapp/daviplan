@@ -1,4 +1,5 @@
 from django.http import HttpRequest
+from collections import OrderedDict
 
 from rest_framework_gis.fields import GeoJsonDict
 from django.utils.encoding import force_str
@@ -95,7 +96,7 @@ class BasicModelReadTest(LoginTestCase, CompareAbsURIMixin):
         """
         if isinstance(response_value, GeoJsonDict):
             self.assertJSONEqual(force_str(response_value), expected)
-        if isinstance(response_value, (list, QuerySet)):
+        elif isinstance(response_value, (list, QuerySet)):
             self.assertEqual(len(response_value), len(expected))
             for i, response_elem in enumerate(response_value):
                 expected_elem=expected[i]
@@ -103,6 +104,9 @@ class BasicModelReadTest(LoginTestCase, CompareAbsURIMixin):
                     self.assertDictContainsSubset(expected_elem, response_elem)
                 else:
                     self.assertEqual(force_str(response_value), force_str(expected))
+        elif isinstance(expected, (dict, OrderedDict)):
+            self.assertDictContainsSubset(response_value, expected)
+            self.assertDictContainsSubset(expected, response_value)
         else:
             self.assertEqual(force_str(response_value), force_str(expected))
 

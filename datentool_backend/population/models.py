@@ -41,8 +41,8 @@ class RasterCell(models.Model):
     #objects = models.Manager()
     #vector_tiles = MVTManager(geo_col='poly')
 
-    #def __str__(self) -> str:
-        #return f'{self.__class__.__name__}: {self.raster.name}-{self.cellcode}'
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__}: {self.raster.name}-{self.cellcode}'
 
 
 class RasterCellPopulation(models.Model):
