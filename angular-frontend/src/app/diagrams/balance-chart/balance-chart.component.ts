@@ -270,8 +270,8 @@ export class BalanceChartComponent implements AfterViewInit {
         .data(this.labels.reverse())
         .enter()
         .append("rect")
-        .attr("x", innerWidth + this.margin.left)
-        .attr("y", (d: string, i: number) => 105 + (i * (size + 5))) // 100 is where the first dot appears. 25 is the distance between dots
+        .attr("x", innerWidth)
+        .attr("y", (d: string, i: number) => 25 + (i * (size + 5)))
         .attr("width", size)
         .attr("height", 3)
         .style("fill", (d: string, i: number) => {
@@ -284,8 +284,8 @@ export class BalanceChartComponent implements AfterViewInit {
         .enter()
         .append("text")
         .attr('font-size', '0.7em')
-        .attr("x", innerWidth + this.margin.left + size * 1.2)
-        .attr("y", (d: string, i: number) => 100 + (i * (size + 5) + (size / 2)))
+        .attr("x", innerWidth + size * 1.2)
+        .attr("y", (d: string, i: number) => 20 + (i * (size + 5) + (size / 2)))
         .style("fill", (d: string, i: number) => {
           if (i == 2) return this.lineColor;
           return (this.colors) ? this.colors[i] : colorScale(i.toString())
