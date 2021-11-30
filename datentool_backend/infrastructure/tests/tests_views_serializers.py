@@ -4,12 +4,12 @@ from django.test import TestCase
 from test_plus import APITestCase
 from datentool_backend.api_test import BasicModelTest
 from datentool_backend.area.tests import _TestAPI
-from ..user.factories import ProfileFactory
+from datentool_backend.user.factories import ProfileFactory
 
-from .factories import (InfrastructureFactory, ServiceFactory, CapacityFactory,
+from datentool_backend.infrastructure.factories import (InfrastructureFactory, ServiceFactory, CapacityFactory,
                         FClassFactory, PlaceFieldFactory, PlaceFactory,
                         FieldTypeFactory, QuotaFactory)
-from .models import (Infrastructure, Place, Capacity, FieldTypes, FClass,
+from datentool_backend.infrastructure.models import (Infrastructure, Place, Capacity, FieldTypes, FClass,
                      Service, PlaceField)
 
 

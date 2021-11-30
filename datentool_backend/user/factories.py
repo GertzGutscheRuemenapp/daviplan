@@ -34,30 +34,19 @@ class UserFactory(DjangoModelFactory):
     profile = factory.RelatedFactory(ProfileFactory, factory_related_name='user')
 
 
-#class ProjectFactory(DjangoModelFactory):
-    #class Meta:
-        #model = Project
+class ProjectFactory(DjangoModelFactory):
+    class Meta:
+        model = Project
 
-    #name = faker.word()
-    #owner = factory.SubFactory(ProfileFactory)
-    #allow_shared_change = faker.pybool()
-    #map_section = Polygon(((0, 0), (0, 10), (10, 10)))
-
-    #@factory.post_generation
-    #def users(self, create, extracted, **kwargs):
-        #if not create:
-            ## Simple build, do nothing.
-            #return
-
-        #if extracted:
-            ## A list of users were passed in, use them
-            #for users in extracted:
-                #self.users.add(users)
+    name = faker.word()
+    owner = factory.SubFactory(UserFactory)
+    allow_shared_change = faker.pybool()
+    map_section = Polygon(((0, 0), (0, 10), (10, 10), (0, 10), (0, 0)))
 
 
-#class ScenarioFactory(DjangoModelFactory):
-    #class Meta:
-        #model = Scenario
+class ScenarioFactory(DjangoModelFactory):
+    class Meta:
+        model = Scenario
 
-    #name = faker.word()
-    #project = factory.SubFactory(ProjectFactory)
+    name = faker.word()
+    project = factory.SubFactory(ProjectFactory)

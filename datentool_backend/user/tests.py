@@ -5,8 +5,8 @@ from django.contrib.gis.geos import Polygon
 from datentool_backend.api_test import BasicModelTest
 from datentool_backend.area.tests import _TestAPI
 
-from .factories import (ProfileFactory, UserFactory, User, ProjectFactory,
-                        ScenarioFactory)
+from .factories import (ProfileFactory, UserFactory, User,
+                        ProjectFactory,ScenarioFactory)
 from .models import Project, Scenario
 
 from faker import Faker
@@ -46,9 +46,7 @@ class TestProfile(TestCase):
 
         #data = dict(name=faker.word(), owner=owner, users=users,
                     #allow_shared_change=faker.pybool(),
-                    #map_section=Polygon(((faker.pyint(), faker.pyint()),
-                                         #(faker.pyint(), faker.pyint()),
-                                         #(faker.pyint(), faker.pyint()))))
+                    #map_section=Polygon(((1, 1), (0, 10), (10, 10), (0, 10), (1, 1))))
         #cls.post_data = data
         #cls.put_data = data
         #cls.patch_data = data
