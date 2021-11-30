@@ -411,7 +411,8 @@ app-basedata, app-administration{
 }
 
 rect.highlight{
-  fill: mat.get-color-from-palette($app-primary, 400)!important;
+  //fill: mat.get-color-from-palette($app-primary, 400)!important;
+  fill: mat.get-color-from-palette($app-primary, 800)!important;
 }
 
 div.d3-tooltip, div.tooltip {

@@ -86,13 +86,15 @@
       <app-balance-chart #balanceChart
                          figureId="areaSaldo"
                          [labels]="['Zuzüge', 'Fortzüge']"
-                         [colors]="['orange', 'green']"
+                         [colors]="['#ffbc41', '#f467f3']"
+                         lineColor="#2196f3"
                          xLabel="Jahre"
                          yTopLabel="Zuzüge"
                          yBottomLabel="Fortzüge"
                          [title]="'Wanderung'"
                          [animate]="true"
                          [data]="data"
+                         lineLabel="Wanderungssaldo"
                          [yOrigin]="0"
                          [yPadding]="10"
                          subtitle="[Gebietseinheit]">
@@ -117,7 +119,7 @@
                            [data]="totalData"
                            [yOrigin]="0"
                            [yPadding]="10"
-                           [colors]="['blue']"
+                           [colors]="['#2196f3']"
                            subtitle="Gesamtgebiet">
       </app-multiline-chart>
     </div>

@@ -176,7 +176,7 @@ export class MultilineChartComponent implements AfterViewInit {
         .transition()
         .duration(this.animate ? 60 : 0)
         .attr("transform", (d: null, i: number) => `translate(${x(groups[xIdx])}, ${y(groupData.values[i])})`);
-      let text = groupData.group + '<br>';
+      let text = `<b>${groupData.group}</b><br>`;
       _this.labels?.forEach((label, i)=>{
         let color = (_this.colors)? _this.colors[i]: colorScale(i.toString());
         text += `<b style="color: ${color}">${label}</b>: ${groupData.values[i].toString().replace('.', ',')}${(_this.unit) ? _this.unit : ''}<br>`;
@@ -215,7 +215,6 @@ export class MultilineChartComponent implements AfterViewInit {
       lineG.append("circle")
         .attr("r", 3)
         .attr("fill", (this.colors)? this.colors[i]: colorScale(i.toString()))
-        .attr("transform", `translate(${x(groups[0])}, ${y(data[0].values[i])})`)
         .style("display", 'none');
     })
 

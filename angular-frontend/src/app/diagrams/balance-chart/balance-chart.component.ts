@@ -22,6 +22,8 @@ export class BalanceChartComponent implements AfterViewInit {
   @Input() drawLegend: boolean = true;
   @Input() xLabel?: string;
   @Input() yLabel?: string;
+  @Input() lineLabel: string = '';
+  @Input() lineColor: string = 'blue';
   @Input() yTopLabel?: string;
   @Input() yBottomLabel?: string;
   @Input() width?: number;
@@ -67,6 +69,7 @@ export class BalanceChartComponent implements AfterViewInit {
 
     if (!this.labels)
       this.labels = d3.range(0, data[0].values.length).map(d=>d.toString());
+    this.labels = this.labels.concat(this.lineLabel);
     let colorScale = d3.scaleOrdinal(d3.schemeSet2);
     let innerWidth = this.width! - this.margin.left - this.margin.right,
       innerHeight = this.height! - this.margin.top - this.margin.bottom;
@@ -84,6 +87,49 @@ export class BalanceChartComponent implements AfterViewInit {
     const y = d3.scaleLinear()
       .domain([min!, max!])
       .range([innerHeight, 0]);
+    let _this = this;
+    let lineG: any;
+
+    // tooltips
+    let tooltip = d3.select('body')
+      .append('div')
+      .attr('class', 'd3-tooltip')
+      .style("display", 'none');
+
+    function onMouseOverBar(this: any, event: MouseEvent) {
+      let stack = d3.select(this);
+      stack.attr("opacity", 1);
+      let data: StackedData = this.__data__;
+      let sum = data.values[0] + data.values[1];
+
+      lineG.selectAll('circle')
+        .style("display", null)
+        .attr("transform", (d: null, i: number) => `translate(${x(data.group)}, ${y(sum)})`);
+
+      stack.selectAll('rect').classed('highlight', true);
+      let text = `<b>${data.group}</b><br>`;
+      _this.labels?.forEach((label, i)=>{
+        let color = (i === 2)? _this.lineColor: (_this.colors)? _this.colors[i]: colorScale(i.toString());
+        let value = (i === 2)? sum: data.values[i];
+        text += `<b style="color: ${color}">${label}</b>: ${value.toString().replace('.', ',')}<br>`;
+      })
+      tooltip.style("display", null);
+      tooltip.html(text);
+    };
+
+    function onMouseOutBar(this: any, event: MouseEvent) {
+      let stack = d3.select(this);
+      let data: StackedData = this.__data__;
+      stack.selectAll('rect').classed('highlight', false);
+      tooltip.style("display", 'none');
+      lineG.selectAll('circle')
+        .style("display", 'none');
+    }
+
+    function onMouseMove(this: any, event: MouseEvent){
+      tooltip.style('left', event.pageX - 30 + 'px')
+        .style('top', event.pageY + 20 + 'px');
+    }
 
     // stacked bars
     let bars = this.svg.selectAll("stacks")
@@ -91,10 +137,9 @@ export class BalanceChartComponent implements AfterViewInit {
       .enter().append("g")
       // .attr("x", (d: StackedData) => x(d.year.toString()))
       .attr("transform", (d: BalanceChartData) => `translate(${x(d.group)! + this.margin.left}, ${this.margin.top})`)
-/*      .on("mouseover", onMouseOverBar)
+      .on("mouseover", onMouseOverBar)
       .on("mouseout", onMouseOutBar)
       .on("mousemove", onMouseMove)
-      .attr("opacity", (d: StackedData, i: number) => highlightOpacity(i))*/
       .selectAll("rect")
       .data((d: BalanceChartData) => {
         return d.values;
@@ -103,23 +148,31 @@ export class BalanceChartComponent implements AfterViewInit {
       .attr("width", x.bandwidth())
       .attr("fill", (d: number, i: number) => (this.colors)? this.colors[i]: colorScale(i.toString()))
       .attr("y", (d: number, i: number) => {
-        // if (this.animate) return innerHeight;
-        if (i === 0)
+        if (i === 0 && !this.animate)
           return y(d);
         return y(0);
       })
       .attr("height", (d: number, i: number) => {
-        // if (this.animate) return innerHeight - y(0);
+        if (this.animate) return 0;
         if (i === 0)
           return y(0) - y(d);
         return y(d) - y(0);
       });
 
-    // if (this.animate)
-    //   bars.transition()
-    //     .duration(800)
-    //     .attr("y", (d: number) => y(d))
-    //     .attr("height", (d: number) => innerHeight - y(d));
+    if (this.animate)
+      bars.transition()
+          .duration(800)
+          .attr("y", (d: number, i: number) => {
+            console.log(d)
+            if (i === 0)
+              return y(d);
+            return y(0);
+          })
+          .attr("height", (d: number, i: number) => {
+            if (i === 0)
+              return y(0) - y(d);
+            return y(d) - y(0);
+          });
 
     // x axis
     this.svg.append("g")
@@ -127,7 +180,9 @@ export class BalanceChartComponent implements AfterViewInit {
       .call(d3.axisBottom(x))
       .selectAll("text")
       .attr("transform", "translate(-10,0)rotate(-45)")
-      .style("text-anchor", "end");
+      .style("text-anchor", "end")
+      .style("pointer-events", "none")
+      .style("text-shadow", "white 1px 1px 0px, white -1px 0px 0px")
 
     // y axis
     this.svg.append("g")
@@ -182,16 +237,22 @@ export class BalanceChartComponent implements AfterViewInit {
       .x((d: any) => x(d.group)!)
       .y((d: any) => y(d.value));
 
-    let lineG = this.svg.append('g')
-      .attr("transform", `translate(${this.margin.left + x.bandwidth()/2}, ${this.margin.top})`)
+    lineG = this.svg.append('g')
+      .attr("transform", `translate(${this.margin.left + x.bandwidth()/2}, ${this.margin.top})`);
 
     let path = lineG.append("path")
       .datum(sums)
       .attr("class", "line")
       .attr("fill", "none")
-      .attr("stroke", "blue")
+      .attr("stroke", this.lineColor)
       .attr("stroke-width", 3)
       .attr("d", line);
+
+    lineG.append("circle")
+      .datum(sums)
+      .attr("r", 3)
+      .attr("fill", this.lineColor)
+      .style("display", 'none');
 
     if (this.animate) {
       let length = path.node().getTotalLength();
@@ -213,7 +274,10 @@ export class BalanceChartComponent implements AfterViewInit {
         .attr("y", (d: string, i: number) => 105 + (i * (size + 5))) // 100 is where the first dot appears. 25 is the distance between dots
         .attr("width", size)
         .attr("height", 3)
-        .style("fill", (d: string, i: number) => (this.colors)? this.colors[i]: colorScale(i.toString()));
+        .style("fill", (d: string, i: number) => {
+          if (i == 2) return this.lineColor;
+          return (this.colors) ? this.colors[i] : colorScale(i.toString())
+        });
 
       this.svg.selectAll("legendLabels")
         .data(this.labels.reverse())
@@ -222,7 +286,10 @@ export class BalanceChartComponent implements AfterViewInit {
         .attr('font-size', '0.7em')
         .attr("x", innerWidth + this.margin.left + size * 1.2)
         .attr("y", (d: string, i: number) => 100 + (i * (size + 5) + (size / 2)))
-        .style("fill", (d: string, i: number) => (this.colors)? this.colors[i]: colorScale(i.toString()))
+        .style("fill", (d: string, i: number) => {
+          if (i == 2) return this.lineColor;
+          return (this.colors) ? this.colors[i] : colorScale(i.toString())
+        })
         .text((d: string) => d)
         .attr("text-anchor", "left")
         .style("alignment-baseline", "middle")
