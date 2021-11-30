@@ -46,7 +46,7 @@ export class PopDevelopmentComponent implements AfterViewInit {
     leftLabel: $localize`Realdaten`,
     rightLabel: $localize`Prognose (Basisjahr: 2003)`,
     x: '2003',
-    highlight: true
+    highlight: false
   }
   isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 50em)')
     .pipe(

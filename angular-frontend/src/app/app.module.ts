@@ -66,7 +66,7 @@ import { RealDataComponent } from './pages/basedata/real-data/real-data.componen
 import { PrognosisDataComponent } from './pages/basedata/prognosis-data/prognosis-data.component';
 import { StatisticsComponent } from './pages/basedata/statistics/statistics.component';
 import { InfrastructureComponent } from './pages/administration/infrastructure/infrastructure.component';
-import { ProjectAreaComponent } from './pages/administration/project-area/project-area.component';
+import { ProjectDefinitionComponent } from './pages/administration/project-definition/project-definition.component';
 import { CoordinationComponent } from './pages/administration/coordination/coordination.component';
 import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
 import { LocationsComponent } from './pages/basedata/locations/locations.component';
@@ -125,7 +125,7 @@ import { BalanceChartComponent } from './diagrams/balance-chart/balance-chart.co
     PrognosisDataComponent,
     StatisticsComponent,
     InfrastructureComponent,
-    ProjectAreaComponent,
+    ProjectDefinitionComponent,
     CoordinationComponent,
     LocationsComponent,
     ServicesComponent,

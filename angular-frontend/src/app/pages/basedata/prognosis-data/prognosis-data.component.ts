@@ -22,7 +22,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
     leftLabel: $localize`Realdaten`,
     rightLabel: $localize`Prognose (Basisjahr: 2003)`,
     x: '2003',
-    highlight: true
+    highlight: false
   }
 
   constructor(private mapService: MapService) { }

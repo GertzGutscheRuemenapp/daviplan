@@ -21,7 +21,7 @@ import { RealDataComponent } from "./pages/basedata/real-data/real-data.componen
 import { PrognosisDataComponent } from "./pages/basedata/prognosis-data/prognosis-data.component";
 import { StatisticsComponent } from "./pages/basedata/statistics/statistics.component";
 import { InfrastructureComponent } from "./pages/administration/infrastructure/infrastructure.component";
-import { ProjectAreaComponent } from "./pages/administration/project-area/project-area.component";
+import { ProjectDefinitionComponent } from "./pages/administration/project-definition/project-definition.component";
 import { CoordinationComponent } from "./pages/administration/coordination/coordination.component";
 import { LocationsComponent } from "./pages/basedata/locations/locations.component";
 import { ServicesComponent } from "./pages/basedata/services/services.component";
@@ -62,7 +62,7 @@ const routes: Routes = [
       },
       {
         path: 'projektdefinition',
-        component: ProjectAreaComponent
+        component: ProjectDefinitionComponent
       },
       {
         path: 'koordination',
