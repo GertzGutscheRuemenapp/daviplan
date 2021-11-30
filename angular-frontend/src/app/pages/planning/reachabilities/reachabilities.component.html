@@ -172,10 +172,10 @@
         Auto
       </div>
     </div>
-    <div (click)="transportMode=4" title="ÖPNV"  [ngClass]="{'selected': transportMode === 4}">
-      <div class="mini-fab-icon primary"
+    <div title="ÖPNV (nicht verfügbar)" class="disabled" [ngClass]="{'selected': transportMode === 4}"> <!--(click)="transportMode=4"-->
+      <div class="mini-fab-icon primary disabled"
            [ngClass]="{'inverted': transportMode === 4}"
-           title="ÖPNV" style="cursor: pointer;">
+           style="cursor: pointer;">
         <div class="davicon icon-GGR-davicons-Font-Simple-18-OEPNV"></div>
       </div>
       <div style="margin-top: -4px;">

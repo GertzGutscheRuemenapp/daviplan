@@ -104,7 +104,7 @@
               (click)="onShowDemandQuotaSet()">
       info
     </mat-icon>
-    <mat-form-field appearance="standard" class="small">
+    <mat-form-field appearance="standard" class="small" style="width: 145px;">
       <mat-label>Nachfragequoten-Set</mat-label>
       <mat-select disableOptionCentering disableRipple [value]="quotas[1]">
         <mat-option *ngFor="let quota of quotas" [value]="quota">
@@ -119,7 +119,7 @@
               (click)="onShowDemandPlaceholder()">
       info
     </mat-icon>
-    <mat-form-field appearance="standard" class="small">
+    <mat-form-field appearance="standard" class="small" style="width: 145px;">
       <mat-label>Einwohnerentwicklung</mat-label>
       <mat-select disableOptionCentering disableRipple [value]="prognoses[1]">
         <mat-option *ngFor="let prognosis of prognoses" [value]="prognosis">
@@ -137,7 +137,7 @@
               (click)="onShowDemandQuotaSet()">
       info
     </mat-icon>
-    <mat-form-field appearance="standard" class="small">
+    <mat-form-field appearance="standard" class="small" style="width: 145px;">
       <mat-label>Nachfragequoten-Set</mat-label>
       <mat-select disableRipple [value]="quotas[0]">
         <mat-option [value]="quotas[0]">
@@ -152,7 +152,7 @@
               (click)="onShowDemandPlaceholder()">
       info
     </mat-icon>
-    <mat-form-field appearance="standard" class="small">
+    <mat-form-field appearance="standard" class="small" style="width: 145px;">
       <mat-label>Einwohnerentwicklung</mat-label>
       <mat-select disableRipple [value]="prognoses[0]">
         <mat-option [value]="prognoses[0]">
@@ -172,13 +172,36 @@
       info
     </mat-icon>-->
     <mat-form-field appearance="standard" class="small">
-      <mat-label>Verkehrsmittelvariante</mat-label>
+      <mat-label>Wegenetz Auto</mat-label>
       <mat-select disableOptionCentering disableRipple value="Ausbau der B232">
         <mat-option value="Dtl 2021">
           Dtl 2021
         </mat-option>
         <mat-option value="Ausbau der B232">
           Ausbau der B232
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="scenario-row">
+    <mat-form-field appearance="standard" class="small">
+      <mat-label>Wegenetz zu Fuß</mat-label>
+      <mat-select disableOptionCentering disableRipple value="Dtl 2021">
+        <mat-option value="Dtl 2021">
+          Dtl 2021
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="scenario-row">
+    <mat-form-field appearance="standard" class="small">
+      <mat-label>Wegenetz Fahrrad</mat-label>
+      <mat-select disableOptionCentering disableRipple value="mit Schnellradweg 2021">
+        <mat-option value="Dtl 2021">
+          Dtl 2021
+        </mat-option>
+        <mat-option value="mit Schnellradweg 2021">
+          mit Schnellradweg 2021
         </mat-option>
       </mat-select>
     </mat-form-field>
@@ -200,14 +223,32 @@
       </mat-select>
     </mat-form-field>
   </div>
+  <div class="scenario-row">
+    <mat-form-field appearance="standard" class="small">
+      <mat-label>Wegenetz zu Fuß</mat-label>
+      <mat-select disableOptionCentering disableRipple value="Dtl 2021">
+        <mat-option value="Dtl 2021">
+          Dtl 2021
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="scenario-row">
+    <mat-form-field appearance="standard" class="small">
+      <mat-label>Wegenetz Fahrrad</mat-label>
+      <mat-select disableOptionCentering disableRipple value="Dtl 2021">
+        <mat-option value="Dtl 2021">
+          Dtl 2021
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
 </ng-template>
 
 <ng-template #ratingScenario>
-  Platzhalter allgemeine Kennwerte
 </ng-template>
 
 <ng-template #ratingStatusQuo>
-  Platzhalter allgemeine Kennwerte
 </ng-template>
 
 <ng-template #supplyScenario>

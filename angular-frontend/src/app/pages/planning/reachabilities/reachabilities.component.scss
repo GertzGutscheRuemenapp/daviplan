@@ -21,6 +21,10 @@
     min-width: 55px;
     cursor: pointer;
   }
+  > div.disabled {
+    color: lightgrey;
+    cursor: not-allowed;
+  }
   div.selected {
     color: $primary;
   }
