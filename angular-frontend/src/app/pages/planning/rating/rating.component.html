@@ -25,6 +25,39 @@
     </mat-panel-title>
   </mat-expansion-panel-header>
   <mat-form-field appearance="outline" class="small">
+    <mat-label>Infrastrukturbereich</mat-label>
+    <mat-select disableOptionCentering disableRipple
+                [(value)]="selectedInfrastructure"
+                [ngbPopover]="selectedInfrastructure?.description"
+                placement="right"
+                container="body"
+                triggers="mouseenter:mouseleave">
+      <mat-option [value]="infrastructure" *ngFor="let infrastructure of infrastructures"
+                  [ngbPopover]="infrastructure.description"
+                  placement="right"
+                  container="body"
+                  triggers="mouseenter:mouseleave">
+        {{infrastructure.name}}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <div class="sub-select-wrapper">
+    <mat-radio-group>
+      <mat-radio-button *ngFor="let service of selectedInfrastructure.services; let first = first;"
+                        [value]="service"
+                        [checked]="first"
+                        style="margin-right: 100%;"
+                        color="primary"
+                        ngbPopover="Platzhalter Beschreibung der Leistung"
+                        placement="right"
+                        container="body"
+                        triggers="mouseenter:mouseleave">
+        {{service.name}}
+      </mat-radio-button>
+    </mat-radio-group>
+  </div>
+  <mat-form-field appearance="outline" class="small" style="margin-top: 12px;">
+    <mat-label>Indikator</mat-label>
     <mat-select disableOptionCentering panelClass="custom-option-panel"
                 disableRipple
                 (selectionChange)="onIndicatorChange($event.value)"
