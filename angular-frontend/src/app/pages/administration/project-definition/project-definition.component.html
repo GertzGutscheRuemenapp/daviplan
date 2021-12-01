@@ -21,7 +21,6 @@
       </table>
     </app-input-card>
     <app-input-card [title]="'Bevölkerung'"
-                    subtitle="Definition der Altersgruppen"
                     [editTemplate]="projectSettingsEdit"
                     infoText="<b><i>ToDo: Hilfetext</i></b>">
       <table>
@@ -33,25 +32,14 @@
             65 Jahre und älter
           </td>
         </tr>
+        <tr>
+          <td i18n>Geschlechts-<br>einteilung</td>
+          <td>
+            männlich <br>
+            weiblich
+          </td>
+        </tr>
       </table>
-      <div after>
-        <mat-divider style="margin: 10px 0 15px 0;"></mat-divider>
-        <app-input-card [editTemplate]="projectSettingsEdit"
-                        subtitle="Einteilung der Geschlechter"
-                        [borderless]="true"
-                        infoText="<b><i>ToDo: Hilfetext</i></b>">
-          <table>
-            <tr>
-              <td i18n>Geschlechter</td>
-              <td>
-                männlich <br>
-                weiblich <br>
-                divers
-              </td>
-            </tr>
-          </table>
-        </app-input-card>
-      </div>
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="600px">
