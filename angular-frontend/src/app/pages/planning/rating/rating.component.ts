@@ -28,6 +28,8 @@ export class RatingComponent implements OnInit {
   customIndicators = mockCustomIndicators;
   showScenarioMenu: any = false;
   activeIndicator = mockIndicators[0];
+  infrastructures = mockInfrastructures;
+  selectedInfrastructure = this.infrastructures[0];
 
   constructor(private dialog: MatDialog, public cookies: CookieService) {}
 

@@ -102,6 +102,10 @@ mat-toolbar mat-form-field {
   left: 10px;
 }
 
+::ng-deep #scenario-toggle .mat-content{
+  border-top: none;
+}
+
 ::ng-deep #scenario-toggle.mat-expanded {
   mat-expansion-panel-header {
     background-color: $primary !important;
