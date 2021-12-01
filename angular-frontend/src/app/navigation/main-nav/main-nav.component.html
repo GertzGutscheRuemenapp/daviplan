@@ -29,17 +29,10 @@
     Informationen
   </button>
   <mat-menu #infoMenu>
+    <a mat-menu-item routerLink="">Willkommen</a>
     <a mat-menu-item routerLink="/impressum">Impressum</a>
     <a mat-menu-item routerLink="/datenschutz">Datenschutz</a>
   </mat-menu>
-<!--    <a class="link"-->
-<!--       title="Information"-->
-<!--       [routerLink]="'/'+item.url"-->
-<!--       routerLinkActive="active-link"-->
-<!--       [routerLinkActiveOptions]="{exact: false}">-->
-<!--      {{item.name}}-->
-<!--    </a>-->
-
   <button mat-button [matMenuTriggerFor]="profileMenu">
     <mat-icon>person_outline</mat-icon>
     {{(user)? user.username: 'Profil'}}

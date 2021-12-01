@@ -34,6 +34,8 @@ import { PlanningComponent } from './pages/planning/planning.component';
 import { MatSelectModule } from "@angular/material/select";
 import { SupplyComponent } from './pages/planning/supply/supply.component';
 import { WelcomeComponent } from './pages/welcome.component';
+import { AboutComponent } from "./pages/about.component";
+import { PrivacyComponent } from "./pages/privacy.component";
 import { BasedataComponent } from './pages/basedata/basedata.component';
 import { MatExpansionModule } from "@angular/material/expansion";
 import { MatSliderModule } from "@angular/material/slider";
@@ -103,6 +105,8 @@ import { BalanceChartComponent } from './diagrams/balance-chart/balance-chart.co
     PlanningComponent,
     SupplyComponent,
     WelcomeComponent,
+    AboutComponent,
+    PrivacyComponent,
     BasedataComponent,
     PopulationComponent,
     PopDevelopmentComponent,
