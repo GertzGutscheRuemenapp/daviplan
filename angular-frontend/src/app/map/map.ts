@@ -1,10 +1,9 @@
-import { View, Feature, Map } from 'ol';
+import { View, Feature, Map, Overlay } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import { ScaleLine, defaults as DefaultControls } from 'ol/control';
 import OSM from 'ol/source/OSM';
 import Projection from 'ol/proj/Projection';
 import * as olProj from 'ol/proj'
-import * as olStyle from 'ol/style'
 import { Extent } from 'ol/extent';
 import { Layer } from 'ol/layer';
 import VectorSource from 'ol/source/Vector';
@@ -13,6 +12,9 @@ import GeoJSON from 'ol/format/GeoJSON';
 import { bbox as bboxStrategy } from 'ol/loadingstrategy';
 import TileWMS from 'ol/source/TileWMS';
 import XYZ from 'ol/source/XYZ';
+import { Stroke, Style, Fill } from 'ol/style';
+import { Select } from "ol/interaction";
+import { click, singleClick, always } from 'ol/events/condition';
 
 export class OlMap {
   target: string;
@@ -21,15 +23,20 @@ export class OlMap {
   layers: Record<string, Layer<any>> = {};
   mapProjection: string;
 
-  constructor( target: string, center: Coordinate = [13.3392,52.5192], zoom: number = 8, projection: string = 'EPSG:3857', showDefaultControls: boolean = false ) {
+  constructor( target: string, options: {
+    center?: Coordinate, zoom?: number, projection?: string,
+    showTooltips?: boolean, showDefaultControls?: boolean} = {}) {
     // this.layers = layers;
+    const zoom = options.zoom || 8;
+    const center = options.center || [13.3392,52.5192];
+    const projection = options.projection || 'EPSG:3857';
     this.target = target;
     this.view = new View({
       center: olProj.fromLonLat(center),
       zoom: zoom
     });
 
-    let controls = (showDefaultControls) ? DefaultControls().extend([
+    let controls = (options.showDefaultControls) ? DefaultControls().extend([
         new ScaleLine({}),
       ]) : DefaultControls({ zoom : false, //attribution : false,
     })
@@ -41,6 +48,34 @@ export class OlMap {
       controls: controls,
     });
     this.mapProjection = projection;
+
+    if (options.showTooltips) {
+      const div = document.getElementById(target);
+      let tooltip = document.createElement('div');
+      tooltip.classList.add('oltooltip');
+      div!.appendChild(tooltip);
+      const overlay = new Overlay({
+        element: tooltip,
+        offset: [10, 0],
+        positioning: 'bottom-left'
+      });
+      this.map.addOverlay(overlay);
+      this.map.on('pointermove', event => {
+        const pixel = event.pixel;
+        const text = this.map.forEachFeatureAtPixel(pixel, function (feature, layer) {
+          const field = layer.get('tooltip');
+          if (field){
+            return feature.get(field);
+          }
+        });
+        if (text) {
+          overlay.setPosition(event.coordinate);
+          tooltip.innerHTML = text;
+          tooltip.style.display = '';
+        } else tooltip.style.display = 'none';
+      });
+    }
+
   }
 
   addTileServer(options: { name: string, url: string, params?: any, visible?: boolean, opacity?: number, xyz?: boolean}): Layer<any>{
@@ -59,6 +94,58 @@ export class OlMap {
       source: source,
       visible: options.visible === true
     });
+
+    this.map.addLayer(layer);
+    this.layers[options.name] = layer;
+
+    return layer;
+  }
+
+  addWFS(options: {
+    name: string, url: any, params?: any,
+    visible?: boolean, opacity?: number, xyz?: boolean,
+    selectable?: boolean, tooltipField?: string }): Layer<any>{
+    if (this.layers[options.name] != null) this.removeLayer(options.name);
+    let source = new VectorSource({
+      format: new GeoJSON(),
+      url: options.url,
+      strategy: bboxStrategy,
+    });
+    let layer = new VectorLayer({
+      source: source,
+      visible: options.visible === true,
+      opacity: (options.opacity != undefined) ? options.opacity: 1,
+      style: new Style({
+        stroke: new Stroke({
+          color: 'rgba(0, 0, 0, 1.0)',
+          width: 1,
+        }),
+        fill: new Fill({
+          color: 'rgba(255, 255, 255, 0.8)'
+        }),
+      }),
+    });
+
+    if (options.selectable) {
+      const select = new Select({
+        condition: click,
+        layers: [layer],
+        style: new Style({
+          stroke: new Stroke({
+            color: 'rgb(255, 129, 0)',
+            width: 1,
+          }),
+          fill: new Fill({
+            color: 'rgba(250, 181, 51, 0.8)'
+          }),
+        }),
+        toggleCondition: always,
+        multi: true
+      })
+      this.map.addInteraction(select);
+    }
+
+    layer.set('tooltip', options.tooltipField)
 
     this.map.addLayer(layer);
     this.layers[options.name] = layer;

@@ -35,6 +35,7 @@ export class InputCardComponent implements AfterViewInit {
   @Input() borderless: boolean = false;
   @Input() topRightHelp: boolean = false;
   @Input() infoExpanded: boolean = false;
+  @Output() dialogOpened = new EventEmitter<any>();
   @Output() dialogClosed = new EventEmitter<boolean>();
   @Output() dialogConfirmed = new EventEmitter<boolean>();
 
@@ -64,6 +65,9 @@ export class InputCardComponent implements AfterViewInit {
         confirmButtonText: $localize`Speichern`
       }
     });
+    this.dialogRef.afterOpened().subscribe(x => {
+      this.dialogOpened.emit();
+    })
     this.dialogRef.afterClosed().subscribe((ok: boolean) => {
       this.dialogClosed.emit(!!ok);
     });
