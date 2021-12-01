@@ -1,9 +1,5 @@
 import { Injectable, EventEmitter } from '@angular/core';
 import { OlMap } from './map'
-import OSM from 'ol/source/OSM';
-import {User} from "../pages/login/users";
-import {Observable} from "rxjs";
-
 
 interface LayerSettings {
   id: number;
@@ -87,7 +83,7 @@ export class MapControl {
   }
 
   create(): void {
-    this.map = new OlMap(this.target);
+    this.map = new OlMap(this.target, { showTooltips: true });
     for (let layer of this.backgroundLayers) {
       this.map.addTileServer({
         name: this.mapId(layer),
