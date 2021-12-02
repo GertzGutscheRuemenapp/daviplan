@@ -22,10 +22,12 @@ export class OlMap {
   map: Map;
   layers: Record<string, Layer<any>> = {};
   mapProjection: string;
+  div: HTMLElement | null;
+  tooltipOverlay: Overlay;
 
   constructor( target: string, options: {
     center?: Coordinate, zoom?: number, projection?: string,
-    showTooltips?: boolean, showDefaultControls?: boolean} = {}) {
+    showDefaultControls?: boolean} = {}) {
     // this.layers = layers;
     const zoom = options.zoom || 8;
     const center = options.center || [13.3392,52.5192];
@@ -48,34 +50,19 @@ export class OlMap {
       controls: controls,
     });
     this.mapProjection = projection;
-
-    if (options.showTooltips) {
-      const div = document.getElementById(target);
-      let tooltip = document.createElement('div');
-      tooltip.classList.add('oltooltip');
-      div!.appendChild(tooltip);
-      const overlay = new Overlay({
-        element: tooltip,
-        offset: [10, 0],
-        positioning: 'bottom-left'
-      });
-      this.map.addOverlay(overlay);
-      this.map.on('pointermove', event => {
-        const pixel = event.pixel;
-        const text = this.map.forEachFeatureAtPixel(pixel, function (feature, layer) {
-          const field = layer.get('tooltip');
-          if (field){
-            return feature.get(field);
-          }
-        });
-        if (text) {
-          overlay.setPosition(event.coordinate);
-          tooltip.innerHTML = text;
-          tooltip.style.display = '';
-        } else tooltip.style.display = 'none';
-      });
-    }
-
+    this.div = document.getElementById(target);
+    let tooltip = document.createElement('div');
+    tooltip.classList.add('oltooltip');
+    this.div!.appendChild(tooltip);
+    this.tooltipOverlay = new Overlay({
+      element: tooltip,
+      offset: [10, 0],
+      positioning: 'bottom-left'
+    });
+    this.map.addOverlay(this.tooltipOverlay);
+    this.map.getViewport().addEventListener('mouseout', event => {
+      tooltip.style.display = 'none';
+    });
   }
 
   addTileServer(options: { name: string, url: string, params?: any, visible?: boolean, opacity?: number, xyz?: boolean}): Layer<any>{
@@ -126,6 +113,37 @@ export class OlMap {
       }),
     });
 
+    this.map.on("pointermove", event => {
+      const pixel = event.pixel;
+      const f = this.map.forEachFeatureAtPixel(pixel, function (feature, hlayer) {
+        if (feature && hlayer === layer) return feature;
+        return;
+      });
+      this.div!.style.cursor = f? 'pointer': '';
+    })
+
+    if (options.tooltipField || options.selectable) {
+      this.map.on('pointermove', event => {
+        const pixel = event.pixel;
+        const f = this.map.forEachFeatureAtPixel(pixel, function (feature, hlayer) {
+          if (feature && hlayer === layer) return feature;
+          else return;
+        });
+        if (options.tooltipField) {
+          let tooltip = this.tooltipOverlay.getElement()
+          if (f) {
+            this.tooltipOverlay.setPosition(event.coordinate);
+            tooltip!.innerHTML = f.get(options.tooltipField);
+            tooltip!.style.display = '';
+          }
+          else
+            tooltip!.style.display = 'none';
+        }
+        if (options.selectable){
+          this.div!.style.cursor = f? 'pointer': '';
+        }
+      });
+    }
     if (options.selectable) {
       const select = new Select({
         condition: click,
@@ -144,8 +162,6 @@ export class OlMap {
       })
       this.map.addInteraction(select);
     }
-
-    layer.set('tooltip', options.tooltipField)
 
     this.map.addLayer(layer);
     this.layers[options.name] = layer;
