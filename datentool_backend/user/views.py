@@ -5,6 +5,7 @@ from datentool_backend.utils.views import BaseProfilePermissionMixin
 from .serializers import UserSerializer, ProjectSerializer, ScenarioSerializer
 from .models import Project, Scenario
 
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer

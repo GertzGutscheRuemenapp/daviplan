@@ -1,6 +1,7 @@
 from rest_framework import routers
 from datentool_backend.user.views import UserViewSet
-from datentool_backend.site.views import SiteSettingsViewSet
+from datentool_backend.site.views import (SiteSettingViewSet,
+                                          ProjectSettingViewSet)
 #  vector tiles
 from rest_framework_mvt.views import mvt_view_factory
 from django.urls import path
@@ -33,7 +34,7 @@ from .user.views import ProjectViewSet, ScenarioViewSet
 
 router = routers.SimpleRouter()
 router.register(r'users', UserViewSet, basename='users')
-router.register(r'settings', SiteSettingsViewSet, basename='settings')
+router.register(r'settings', SiteSettingViewSet, basename='settings')
 
 # areas
 router.register(r'symbolforms', SymbolFormViewSet, basename='symbolforms')
@@ -113,6 +114,9 @@ router.register(r'popstatentries', PopStatEntryViewSet, basename='popstatentries
 # users
 router.register(r'projects', ProjectViewSet, basename='projects')
 router.register(r'scenarios', ScenarioViewSet, basename='scenarios')
+
+router.register(r'projectsetting', ProjectSettingViewSet,
+                basename='projectsetting')
 
 
 urlpatterns = router.urls

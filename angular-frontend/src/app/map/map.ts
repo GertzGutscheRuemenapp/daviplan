@@ -161,6 +161,7 @@ export class OlMap {
         multi: true
       })
       this.map.addInteraction(select);
+      // select.
     }
 
     this.map.addLayer(layer);

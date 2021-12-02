@@ -1,13 +1,18 @@
 from rest_framework import viewsets, permissions
 
-from .models import SiteSetting
-from .serializers import SiteSettingsSerializer
+from .models import SiteSetting, ProjectSetting
+from .serializers import SiteSettingSerializer, ProjectSettingSerializer
 
 
-class SiteSettingsViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+class ProjectSettingViewSet(viewsets.ModelViewSet):
+    queryset = ProjectSetting.objects.all()
+    serializer_class =  ProjectSettingSerializer
+
+
+class SiteSettingViewSet(viewsets.ModelViewSet):
+    #permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     queryset = SiteSetting.objects.all()
-    serializer_class = SiteSettingsSerializer
+    serializer_class = SiteSettingSerializer
 
     def get_object(self):
         pk = self.kwargs.get('pk')
