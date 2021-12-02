@@ -23,6 +23,7 @@
                            (click)="onSelect(areaLevel)"
                            [selected]="(selectedAreaLevel && (areaLevel.id === selectedAreaLevel.id))">
             <div class="option-text">{{ areaLevel.name }}</div>
+            <mat-icon *ngIf="areaLevel === defaultArea" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
           </mat-list-option>
           <mat-checkbox></mat-checkbox>
         </div>
@@ -35,10 +36,18 @@
                            (click)="onSelect(areaLevel)"
                            [selected]="(selectedAreaLevel && (areaLevel.id === selectedAreaLevel.id))">
             <div class="option-text">{{ areaLevel.name }}</div>
+            <mat-icon *ngIf="areaLevel === defaultArea" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
           </mat-list-option>
           <mat-checkbox></mat-checkbox>
         </div>
       </mat-selection-list>
+      <button mat-button color="primary"
+              class="multiline-button"
+              [disabled]="selectedAreaLevel?.preset && selectedAreaLevel !== presetLevels[0]"
+              (click)="defaultArea = selectedAreaLevel">
+        <mat-icon class="material-icons-outlined">verified</mat-icon>
+        Als Gebietseinheit für alle Einwohnerdaten festlegen
+      </button>
       <div style="margin-top: 10px;">
         <button mat-button color="primary"
                 class="mat-button-dv"
