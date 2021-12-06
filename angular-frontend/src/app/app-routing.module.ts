@@ -7,6 +7,8 @@ import { PlanningComponent } from "./pages/planning/planning.component";
 import { DemandComponent } from "./pages/planning/demand/demand.component";
 import { SupplyComponent } from "./pages/planning/supply/supply.component";
 import { WelcomeComponent } from "./pages/welcome.component";
+import { AboutComponent } from "./pages/about.component";
+import { PrivacyComponent } from "./pages/privacy.component";
 import { AuthGuard } from "./auth.service";
 import { BasedataComponent } from "./pages/basedata/basedata.component";
 import { PopulationComponent } from "./pages/population/population.component";
@@ -38,6 +40,16 @@ const routes: Routes = [
     component: WelcomeComponent,
     canActivate: [AuthGuard],
     pathMatch: 'full'
+  },
+  {
+    path: 'impressum',
+    component: AboutComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'datenschutz',
+    component: PrivacyComponent,
+    canActivate: [AuthGuard]
   },
   {
     path: 'admin',

@@ -1,4 +1,18 @@
 from django.db import models
+from django.contrib.gis.db.models import GeometryField
+from datentool_backend.models import AreaLevel
+from datentool_backend.utils.models import SingletonModel
+
+
+class ProjectSetting(SingletonModel):
+    project_area = GeometryField(null=True)
+    start_year = models.IntegerField(default=2000)
+    end_year = models.IntegerField(default=2020)
+
+
+class BaseDataSetting(SingletonModel):
+    default_pop_area_level = models.ForeignKey(AreaLevel, null=True,
+                                               on_delete=models.SET_NULL)
 
 
 class SiteSetting(models.Model):

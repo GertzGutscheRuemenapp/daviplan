@@ -24,15 +24,23 @@
     </a>
   </span>
   <span class="fill-space"></span>
-  <div id="account">
-    <ng-template #loggedOut>
-      <a routerLink="/login">Login</a>
-    </ng-template>
-    <div *ngIf="user; else loggedOut" style="display: flex;">
-      <mat-icon style="margin-top: 2px;">person</mat-icon><b *ngIf="user">{{user.username}}</b> &nbsp;&nbsp;&nbsp;
-      <a (click)="logout()" href="">Logout</a>
-    </div>
-  </div>
+  <button mat-button [matMenuTriggerFor]="infoMenu">
+    <mat-icon>info_outline</mat-icon>
+    Informationen
+  </button>
+  <mat-menu #infoMenu>
+    <a mat-menu-item routerLink="">Willkommen</a>
+    <a mat-menu-item routerLink="/impressum">Impressum</a>
+    <a mat-menu-item routerLink="/datenschutz">Datenschutz</a>
+  </mat-menu>
+  <button mat-button [matMenuTriggerFor]="profileMenu">
+    <mat-icon>person_outline</mat-icon>
+    {{(user)? user.username: 'Profil'}}
+  </button>
+  <mat-menu #profileMenu>
+    <a mat-menu-item *ngIf="!user" routerLink="/login">Login</a>
+    <a mat-menu-item *ngIf="user" (click)="logout()" href="">Logout</a>
+  </mat-menu>
 </mat-toolbar>
 <mat-sidenav-container fxFlexFill>
   <mat-sidenav class="main-collapse" color="primary" #sidenav fxLayout="column" mode="over" opened="false">

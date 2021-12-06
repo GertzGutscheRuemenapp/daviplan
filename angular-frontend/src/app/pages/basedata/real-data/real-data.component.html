@@ -10,20 +10,20 @@
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
-    <app-input-card [title]="'Gebietseinteilung'"
-                    [editTemplate]="areaLevelEdit"
-                    infoText="<p>Wenn Sie eine andere als die angezeigte Gebietseinteilung zur Grundlage einer Einwohnerdaten machen möchten, klicken Sie auf „Editieren“.</p>
-                    Beachten Sie dabei folgende wichtige Hinweise:
-                    <ol>
-                      <li>Eine Veränderung der Auswahl der Gebietseinteilung für die Einwohnerdaten löscht alle bereits eingelesenen Real- und Prognosedaten.</li>
-                      <li>Die Festlegung gilt auch für die Prognosedaten, die Sie im gleichnamigen Menüabschnitt hochladen können.</li>
-                    </o>">
+    <app-input-card [title]="'Online-Datenabruf '"
+                    infoText="<p>ToDo: nur verfügbar wenn: Gemeinden, Altersgruppen gemäß Regionalstatistik</p>"
+                    [subtitle]="'Abruf der Regionalstatistik'">
       <table>
         <tr>
-          <td i18n>Gebietseinheit</td>
-          <td>Gemeinden</td>
+          <td i18n>letzter Abruf</td>
+          <td>02.06.2022</td>
         </tr>
       </table>
+      <div style="margin-top: 10px">
+        <button mat-flat-button color="primary" i18n>
+          <mat-icon>refresh</mat-icon> Abrufen
+        </button>
+      </div>
     </app-input-card>
     <app-input-card [title]="'Jahre'"
                     subtitle="Jahre hinzufügen bzw. bereits hinzugefügte bearbeiten"

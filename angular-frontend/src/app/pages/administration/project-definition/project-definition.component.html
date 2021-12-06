@@ -20,8 +20,7 @@
         </tr>
       </table>
     </app-input-card>
-    <app-input-card [title]="'Bevölkerung'"
-                    subtitle="Definition der Altersgruppen"
+    <app-input-card [title]="'Altersgruppeneinteilung'"
                     [editTemplate]="projectSettingsEdit"
                     infoText="<b><i>ToDo: Hilfetext</i></b>">
       <table>
@@ -34,33 +33,17 @@
           </td>
         </tr>
       </table>
-      <div after>
-        <mat-divider style="margin: 10px 0 15px 0;"></mat-divider>
-        <app-input-card [editTemplate]="projectSettingsEdit"
-                        subtitle="Einteilung der Geschlechter"
-                        [borderless]="true"
-                        infoText="<b><i>ToDo: Hilfetext</i></b>">
-          <table>
-            <tr>
-              <td i18n>Geschlechter</td>
-              <td>
-                männlich <br>
-                weiblich <br>
-                divers
-              </td>
-            </tr>
-          </table>
-        </app-input-card>
-      </div>
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="600px">
-    <app-input-card [title]="'Projektgebiet'"
+    <app-input-card #areaCard
+                    [title]="'Projektgebiet'"
                     subtitle="Manuelle Auswahl des Projektgebiets"
                     [topRightHelp]="true"
                     infoText="Um Ihr Projektgebiet festzulegen oder zu verändern, klicken Sie bitte auf „Editieren“. Sie gelangen dann zu einer Kartendarstellung, in der Sie Ihr Projektgebiet aus einzelnen Gemeinden, Verwaltungsgemeinschaften und Landkreisen zusammensetzen können."
-                    [editTemplate]="projectAreaEdit">
-      <div id="project-area-map" class="map-container">
+                    [editTemplate]="projectAreaEdit"
+                    dialogWidth="600px">
+      <div id="project-preview-map" class="map-container">
         <app-map-controls></app-map-controls>
       </div>
     </app-input-card>
@@ -72,5 +55,7 @@
 </ng-template>
 
 <ng-template #projectAreaEdit>
-  Funktionalität für den Prototyp noch nicht hinterlegt.
+  <div id="project-area-select-map" class="map-container">
+    <app-map-controls></app-map-controls>
+  </div>
 </ng-template>

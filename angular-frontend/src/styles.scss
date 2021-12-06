@@ -680,12 +680,21 @@ mat-panel-title app-help-button{
   width: $context-bar-width;
   overflow-y: auto;
   background-color: white;
-  height: 100%;
+  //height: 100%;
   box-shadow: 0px 5px 5px -1px rgb(0 0 0 / 20%), 0px 10px 10px 0px rgb(0 0 0 / 14%), 2px 18px 18px 0px rgb(0 0 0 / 12%) !important;
   padding-top: 10px;
 
   mat-expansion-panel {
     border-radius: 0;
+  }
+
+  .mat-content {
+    height: 100%;
+    align-items: center;
+  }
+
+  mat-expansion-panel:not(:first-child) .mat-content{
+    border-top: 1px solid $primary-light;
   }
 
   mat-expansion-panel .mat-expansion-panel-header-title {
@@ -723,7 +732,7 @@ mat-panel-title app-help-button{
   }
   .mat-expansion-panel-body {
     padding: 15px 5px 15px 54px;
-    border-bottom: 1px solid $primary-light;
+    //border-bottom: 1px solid $primary-light;
   }
   .text-panel {
     margin-top: 10px;
@@ -1149,4 +1158,9 @@ mat-checkbox.reverse {
   mat-divider {
     margin: 5px 0;
   }
+}
+
+.oltooltip {
+  background: white;
+  padding: 4px;
 }

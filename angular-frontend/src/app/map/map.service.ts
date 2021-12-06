@@ -1,9 +1,5 @@
 import { Injectable, EventEmitter } from '@angular/core';
 import { OlMap } from './map'
-import OSM from 'ol/source/OSM';
-import {User} from "../pages/login/users";
-import {Observable} from "rxjs";
-
 
 interface LayerSettings {
   id: number;

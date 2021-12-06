@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from .serializers import UserSerializer, PlanningProcessSerializer, ScenarioSerializer
 from .models import PlanningProcess, Scenario
 
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
