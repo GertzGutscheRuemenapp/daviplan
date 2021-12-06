@@ -416,32 +416,58 @@ class ReadUpdatePermissionViewSet(mixins.RetrieveModelMixin,
         return super().partial_update(request, **kwargs)
 
 
-class BaseProfilePermissionMixin(UserPassesTestMixin):
-    """"""
+#class BaseProfilePermissionMixin(UserPassesTestMixin):
+    #""""""
+
+    #def get_test_func(self):
+        #"""define the permission check function (default=can_edit_basedata)"""
+        #return self.check_can_edit_basedata
+
+    # def check_can_create_process(self) -> bool:
+        #"""Has write access to Project-Model"""
+        #if self.request.method in ('GET'):
+            #return self.request.user is not None
+        #else:
+            # return self.request.user.profile.can_create_process
+
+    #def check_can_edit_basedata(self) -> bool:
+        #"""Has write access to Basedata-Models"""
+        #if self.request.method in ('GET'):
+            #return self.request.user is not None
+        #else:
+            #return self.request.user.profile.can_edit_basedata
+
+    #def check_has_admin_access(self) -> bool:
+        #"""Has admin access (Read or write)"""
+        #return self.request.user.profile.admin_access
+
+    #def check_admin_access_and_basedata_edit(self) -> bool:
+        #"""Has admin access (Read or write) and basedata-edit"""
+        #return self.check_can_edit_basedata() and self.check_has_admin_access()
+
+
+class can_create_process_ProfilePermission(UserPassesTestMixin):
+    """Has write access to Project-Model"""
 
     def get_test_func(self):
-        """define the permission check function (default=can_edit_basedata)"""
-        return self.check_can_edit_basedata
-
-    def check_can_create_project(self) -> bool:
-        """Has write access to Project-Model"""
         if self.request.method in ('GET'):
-            return True
+            return self.request.user is not None
         else:
-            return self.request.user.profile.can_create_project
+            return self.request.user.profile.can_create_process
 
-    def check_can_edit_basedata(self) -> bool:
-        """Has write access to Basedata-Models"""
+
+class can_edit_basedata_ProfilePermission(UserPassesTestMixin):
+    """Has write access to Basedata-Models"""
+
+    def get_test_func(self):
         if self.request.method in ('GET'):
-            return True
+                return self.request.user is not None
         else:
             return self.request.user.profile.can_edit_basedata
 
-    def check_has_admin_access(self) -> bool:
-        """Has admin access (Read or write)"""
+
+class has_admin_access_ProfilePermission(UserPassesTestMixin):
+    """Has admin access (Read or write)"""
+
+    def get_test_func(self):
         return self.request.user.profile.admin_access
-
-    def check_admin_access_and_basedata_edit(self) -> bool:
-        """Has admin access (Read or write) and basedata-edit"""
-        return self.check_can_edit_basedata() and self.check_has_admin_access()
-
