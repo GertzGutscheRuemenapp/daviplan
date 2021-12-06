@@ -102,16 +102,16 @@ class TestScenarioAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.obj = ScenarioFactory(project__owner=cls.profile)
 
         scenario: Scenario = cls.obj
-        project = scenario.project.pk
+        planning_process = scenario.planning_process.pk
 
-        cls.post_data = dict(name=faker.word(), project=project)
-        cls.put_data = dict(name=faker.word(), project=project)
-        cls.patch_data = dict(name=faker.word(), project=project)
+        cls.post_data = dict(name=faker.word(), planning_process=planning_process)
+        cls.put_data = dict(name=faker.word(), planning_process=planning_process)
+        cls.patch_data = dict(name=faker.word(), planning_process=planning_process)
 
     @classmethod
     def tearDownClass(cls):
-        project = cls.obj.project
+        planning_process = cls.obj.planning_process
         cls.obj.delete()
         del cls.obj
-        project.delete()
+        planning_process.delete()
         super().tearDownClass()

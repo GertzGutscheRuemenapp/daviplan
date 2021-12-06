@@ -51,7 +51,7 @@ class PlanningProcess(NamedModel, models.Model):
 class Scenario(NamedModel, models.Model):
     """BULE-Scenario"""
     name = models.TextField()
-    project = models.ForeignKey(PlanningProcess, on_delete=models.RESTRICT)
+    planning_process = models.ForeignKey(PlanningProcess, on_delete=models.RESTRICT)
 
     @property
     def demand(self):

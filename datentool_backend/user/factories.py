@@ -48,4 +48,4 @@ class ScenarioFactory(DjangoModelFactory):
         model = Scenario
 
     name = faker.word()
-    project = factory.SubFactory(PlanningProcessFactory)
+    planning_process = factory.SubFactory(PlanningProcessFactory)

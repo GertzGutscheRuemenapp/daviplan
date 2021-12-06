@@ -55,7 +55,7 @@ class PlanningProcessSerializer(GeoFeatureModelSerializer):
 class ScenarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Scenario
-        fields = ('id', 'name', 'project')
+        fields = ('id', 'name', 'planning_process')
 
 
 
