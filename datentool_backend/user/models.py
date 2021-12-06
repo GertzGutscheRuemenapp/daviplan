@@ -13,7 +13,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE,
                                 related_name='profile')
     admin_access = models.BooleanField(default=False)
-    can_create_project = models.BooleanField(default=False)
+    can_create_process = models.BooleanField(default=False)
     can_edit_basedata = models.BooleanField(default=False)
 
     def __str__(self) -> str:
@@ -32,7 +32,7 @@ def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
 
 
-class Project(NamedModel, models.Model):
+class PlanningProcess(NamedModel, models.Model):
     '''
     Basic Project Information
     '''
@@ -51,7 +51,7 @@ class Project(NamedModel, models.Model):
 class Scenario(NamedModel, models.Model):
     """BULE-Scenario"""
     name = models.TextField()
-    project = models.ForeignKey(Project, on_delete=models.RESTRICT)
+    planning_process = models.ForeignKey(PlanningProcess, on_delete=models.RESTRICT)
 
     @property
     def demand(self):

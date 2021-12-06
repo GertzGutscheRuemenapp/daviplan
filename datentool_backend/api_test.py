@@ -50,7 +50,7 @@ class LoginTestCase:
         cls.profile = ProfileFactory(id=cls.user,
                                     user__id=cls.user,
                                     user__username='Anonymus User',
-                                    can_create_project=True,
+                                    can_create_process=True,
                                     admin_access=True,
                                     can_edit_basedata=True)
 
