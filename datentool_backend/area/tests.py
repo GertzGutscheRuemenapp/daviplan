@@ -72,6 +72,28 @@ class TestSymbolFormAPI(_TestAPI, BasicModelTest, APITestCase):
         self.test_list()
         self.test_detail()
 
+    def test_can_edit_basedata(self):
+        profile = self.profile
+
+        original_permission = profile.can_edit_basedata
+
+        # Testprofile, with permission to edit basedata (True)
+        profile.can_edit_basedata = True
+        profile.save()
+        self.test_post()
+
+        # Testprofile, without permission to edit basedata (False)
+        profile.can_edit_basedata = False
+        profile.save()
+
+        url = self.url_key + '-list'
+        # post
+        response = self.post(url, **self.url_pks, data=self.post_data,
+                             extra={'format': 'json'})
+        self.response_201(msg=response.content)
+
+        profile.can_create_process = original_permission
+        profile.save()
 
 class TestMapSymbolsAPI(_TestAPI, BasicModelTest, APITestCase):
     """"""
