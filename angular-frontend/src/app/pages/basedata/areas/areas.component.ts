@@ -10,6 +10,7 @@ import { AreaLevel, mockAreaLevels, mockPresetLevels } from "./areas";
 export class AreasComponent implements AfterViewInit, OnDestroy {
   mapControl?: MapControl;
   selectedAreaLevel?: AreaLevel;
+  defaultArea?: AreaLevel;
   presetLevels!: AreaLevel[];
   areaLevels?: AreaLevel[];
   colorSelection: string = 'black';
@@ -21,6 +22,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     this.mapControl.setBackground(this.mapControl.getBackgroundLayers()[0].id)
     this.areaLevels = mockAreaLevels;
     this.presetLevels = mockPresetLevels;
+    this.defaultArea = mockPresetLevels[0];
     this.selectedAreaLevel = this.presetLevels[0];
     this.colorSelection = this.selectedAreaLevel.layer?.symbol?.fillColor || 'black';
     this.cdRef.detectChanges();

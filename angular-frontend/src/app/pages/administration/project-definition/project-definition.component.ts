@@ -21,10 +21,12 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   }
 
   setupAreaCard(): void {
+    const _this = this;
     this.areaCard.dialogOpened.subscribe(x => {
+      this.areaCard.setLoading(true);
       this.areaSelectMapControl = this.mapService.get('project-area-select-map');
       this.areaSelectMapControl.setBackground(this.areaSelectMapControl.getBackgroundLayers()[0].id)
-      this.areaSelectMapControl.map?.addWFS({
+      let layer = this.areaSelectMapControl.map?.addWFS({
         name: 'bkg-gemeinden',
         url: function (extent: any) {
           return (
@@ -40,9 +42,16 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
         selectable: true,
         tooltipField: 'gen'
       });
+      layer?.getSource().addEventListener('featuresloadend', function(){
+        _this.areaCard.setLoading(false);
+      })
+      // layer.
     })
     this.areaCard.dialogClosed.subscribe(x => {
       this.areaSelectMapControl?.destroy();
+    })
+    this.areaCard.dialogConfirmed.subscribe(ok => {
+      this.areaCard.closeDialog()
     })
   }
 

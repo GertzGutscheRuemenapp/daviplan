@@ -83,7 +83,7 @@ export class MapControl {
   }
 
   create(): void {
-    this.map = new OlMap(this.target, { showTooltips: true });
+    this.map = new OlMap(this.target);
     for (let layer of this.backgroundLayers) {
       this.map.addTileServer({
         name: this.mapId(layer),
