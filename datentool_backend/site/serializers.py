@@ -1,12 +1,14 @@
 from rest_framework import serializers
+from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from .models import SiteSetting, ProjectSetting, BaseDataSetting
 
 
-class ProjectSettingSerializer(serializers.ModelSerializer):
+class ProjectSettingSerializer(GeoFeatureModelSerializer):
     class Meta:
         model = ProjectSetting
-        fields = ('project_area', 'start_year', 'end_year')
+        geo_field = 'project_area'
+        fields = ('start_year', 'end_year')
 
 
 class BaseDataSettingSerializer(serializers.ModelSerializer):
