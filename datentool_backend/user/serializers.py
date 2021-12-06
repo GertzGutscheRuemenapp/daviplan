@@ -8,7 +8,7 @@ from .models import Profile, PlanningProcess, Scenario
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Profile
-        fields =  ('admin_access', 'can_create_project', 'can_edit_basedata')
+        fields = ('admin_access', 'can_create_process', 'can_edit_basedata')
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):

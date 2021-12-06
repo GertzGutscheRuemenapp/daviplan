@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
 from django.contrib.auth.models import User
-from datentool_backend.utils.views import BaseProfilePermissionMixin
+# from datentool_backend.utils.views import BaseProfilePermissionMixin
 from .serializers import UserSerializer, PlanningProcessSerializer, ScenarioSerializer
 from .models import PlanningProcess, Scenario
 
@@ -18,12 +18,13 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().get_object()
 
 
-class PlanningProcessViewSet(BaseProfilePermissionMixin, viewsets.ModelViewSet):
+class PlanningProcessViewSet(viewsets.ModelViewSet):
     queryset = PlanningProcess.objects.all()
     serializer_class = PlanningProcessSerializer
 
-    def get_test_func(self):
-        return self.check_can_create_project
+#  Rechte anhand des Profils vergeben
+    #def get_test_func(self):
+        #return self.check_can_create_process
 
 
 class ScenarioViewSet(viewsets.ModelViewSet):

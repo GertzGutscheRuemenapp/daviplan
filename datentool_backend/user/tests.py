@@ -71,15 +71,15 @@ class TestPlanningProjectAPI(_TestAPI, BasicModelTest, APITestCase):
         """Test the project creation permission of the profile"""
         profile = self.profile
 
-        original_permission = profile.can_create_project
+        original_permission = profile.can_create_process
 
         # Testprofile, with permission to create project (True)
-        profile.can_create_project = True
+        profile.can_create_process = True
         profile.save()
         self.test_post()
 
         # Testprofile, without permission to create project (False)
-        profile.can_create_project = False
+        profile.can_create_process = False
         profile.save()
 
         url = self.url_key + '-list'
@@ -88,7 +88,7 @@ class TestPlanningProjectAPI(_TestAPI, BasicModelTest, APITestCase):
                              extra={'format': 'json'})
         self.response_403(msg=response.content)
 
-        profile.can_create_project = original_permission
+        profile.can_create_process = original_permission
         profile.save()
 
 

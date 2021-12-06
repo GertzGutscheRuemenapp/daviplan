@@ -15,7 +15,7 @@ class ProfileFactory(DjangoModelFactory):
         model = Profile
 
     admin_access = faker.pybool()
-    can_create_project = faker.pybool()
+    can_create_process = faker.pybool()
     can_edit_basedata = faker.pybool()
     # We pass in profile=None to prevent UserFactory from creating another profile
     # (this disables the RelatedFactory)
@@ -48,4 +48,4 @@ class ScenarioFactory(DjangoModelFactory):
         model = Scenario
 
     name = faker.word()
-    project = factory.SubFactory(PlanningProcessFactoryFactory)
+    project = factory.SubFactory(PlanningProcessFactory)
