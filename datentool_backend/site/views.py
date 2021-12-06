@@ -3,16 +3,16 @@ from rest_framework import viewsets, permissions
 from .models import SiteSetting, ProjectSetting, BaseDataSetting
 from .serializers import (SiteSettingSerializer, ProjectSettingSerializer,
                           BaseDataSettingSerializer)
-from datentool_backend.utils.views import SingletonViewSet
+#from datentool_backend.utils.views import SingletonViewSet
 
 
-class ProjectSettingViewSet(SingletonViewSet):
+class ProjectSettingViewSet(viewsets.ModelViewSet):
     queryset = ProjectSetting.objects.all()
     model_class = ProjectSetting
     serializer_class =  ProjectSettingSerializer
 
 
-class BaseDataSettingViewSet(SingletonViewSet):
+class BaseDataSettingViewSet(viewsets.ModelViewSet):
     queryset = BaseDataSetting.objects.all()
     model_class = BaseDataSetting
     serializer_class =  BaseDataSettingSerializer

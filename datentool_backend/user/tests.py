@@ -33,7 +33,7 @@ class TestProfile(TestCase):
         self.assertTrue(user2.profile.pk)
 
 
-class TestPlanningProjectAPI(_TestAPI, BasicModelTest, APITestCase):
+class TestPlanningProjectAPI(_TestAPI, BasicModelTest, APITestCase):  # test, if user is none and if user is not owner are missing
     """"""
     url_key = "planningprocesses"
 
@@ -78,8 +78,8 @@ class TestPlanningProjectAPI(_TestAPI, BasicModelTest, APITestCase):
         del cls.obj3
         super().tearDownClass()
 
-    def test_project_creation_permission(self):
-        """Test the project creation permission of the profile"""
+    def test_process_creation_permission(self):
+        """Test the process creation permission of the profile"""
         profile = self.profile
 
         original_permission = profile.can_create_process

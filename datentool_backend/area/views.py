@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-# from datentool_backend.utils.views import CanEditBasedataPermission
+from datentool_backend.utils.views import IsLoggedInPermission
 
 from .models import (SymbolForm, MapSymbol, LayerGroup, WMSLayer,
                      InternalWFSLayer, Source, AreaLevel, Area)
@@ -9,7 +9,7 @@ from .serializers import (SymbolFormSerializer, MapSymbolsSerializer,
                           AreaLevelSerializer, AreaSerializer)
 
 
-class SymbolFormViewSet(viewsets.ModelViewSet):
+class SymbolFormViewSet(IsLoggedInPermission, viewsets.ModelViewSet):
     queryset = SymbolForm.objects.all()
     serializer_class = SymbolFormSerializer
 

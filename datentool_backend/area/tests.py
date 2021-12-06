@@ -60,6 +60,18 @@ class TestSymbolFormAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = dict(name='puttestname')
         cls.patch_data = dict(name='patchtestname')
 
+    def test_is_logged_in(self):
+        """test if user is logged in"""
+        profile = self.profile
+
+        self.client.logout()
+        response = self.get(self.url_key + '-list')
+        self.assert_http_302_found or self.assert_http_401_unauthorized(response, msg=response.content)
+
+        self.client.force_login(user=self.profile.user)
+        self.test_list()
+        self.test_detail()
+
 
 class TestMapSymbolsAPI(_TestAPI, BasicModelTest, APITestCase):
     """"""

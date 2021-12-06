@@ -16,24 +16,6 @@ from rest_framework.response import Response
 from rest_framework.utils.serializer_helpers import ReturnDict
 
 
-class SingletonViewSet(viewsets.ModelViewSet):
-    model_class = None
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.model_class.load()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
-
-    def update(self, request, *args, **kwargs):
-        instance = self.model_class.load()
-        serializer = self.get_serializer(instance, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors)
-
-
 class PostGetViewMixin:
     """
     mixin for querying resources with POST method to be able to put parameters
@@ -479,3 +461,10 @@ class HasAdminAccessPermission(UserPassesTestMixin):
 
     def test_func(self):
         return self.request.user.profile.admin_access
+
+
+class IsLoggedInPermission(UserPassesTestMixin):
+    """user is logged in """
+
+    def test_func(self):
+        return self.request.user.pk is not None
