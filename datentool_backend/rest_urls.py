@@ -1,12 +1,13 @@
 from rest_framework import routers
 from datentool_backend.user.views import UserViewSet
 from datentool_backend.site.views import (SiteSettingViewSet,
-                                          ProjectSettingViewSet)
+                                          ProjectSettingViewSet,
+                                          BaseDataSettingViewSet)
 #  vector tiles
 from rest_framework_mvt.views import mvt_view_factory
-from django.urls import path
-from .population.models import RasterCell
+from django.conf.urls import url
 
+from .population.models import RasterCell
 from .area.views import (SymbolFormViewSet, MapSymbolsViewSet, LayerGroupViewSet,
                          WMSLayerViewSet, InternalWFSLayerViewSet, SourceViewSet,
                          AreaLevelViewSet, AreaViewSet)
@@ -31,6 +32,7 @@ from .population.views import (RasterViewSet, PopulationRasterViewSet, GenderVie
                                PopStatEntryViewSet)
                                # ,RasterCellTileViewSet)
 from .user.views import ProjectViewSet, ScenarioViewSet
+from datentool_backend.utils.routers import SingletonRouter
 
 router = routers.SimpleRouter()
 router.register(r'users', UserViewSet, basename='users')
@@ -115,8 +117,10 @@ router.register(r'popstatentries', PopStatEntryViewSet, basename='popstatentries
 router.register(r'projects', ProjectViewSet, basename='projects')
 router.register(r'scenarios', ScenarioViewSet, basename='scenarios')
 
-router.register(r'projectsetting', ProjectSettingViewSet,
-                basename='projectsetting')
+srouter = SingletonRouter()
+srouter.register('projectsettings', ProjectSettingViewSet,
+                 basename='projectsettings')
+srouter.register('basedatasettings', BaseDataSettingViewSet,
+                 basename='basedatasettings')
 
-
-urlpatterns = router.urls
+urlpatterns = router.urls + srouter.urls
