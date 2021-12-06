@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from .models import Profile, Project, Scenario
+from .models import Profile, PlanningProcess, Scenario
 
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
@@ -45,9 +45,9 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         return super().update(instance, validated_data)
 
 
-class ProjectSerializer(GeoFeatureModelSerializer):
+class PlanningProcessSerializer(GeoFeatureModelSerializer):
     class Meta:
-        model = Project
+        model = PlanningProcess
         geo_field = 'map_section'
         fields = ('id', 'name', 'owner', 'users', 'allow_shared_change')
 

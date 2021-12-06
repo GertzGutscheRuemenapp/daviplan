@@ -408,14 +408,14 @@ class BaseProfilePermissionMixin(UserPassesTestMixin):
     def check_can_create_project(self) -> bool:
         """Has write access to Project-Model"""
         if self.request.method in ('GET'):
-            return True
+            return self.request.user is not None
         else:
             return self.request.user.profile.can_create_project
 
     def check_can_edit_basedata(self) -> bool:
         """Has write access to Basedata-Models"""
         if self.request.method in ('GET'):
-            return True
+            return self.request.user is not None
         else:
             return self.request.user.profile.can_edit_basedata
 

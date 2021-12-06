@@ -32,7 +32,7 @@ def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
 
 
-class Project(NamedModel, models.Model):
+class PlanningProcess(NamedModel, models.Model):
     '''
     Basic Project Information
     '''
@@ -51,7 +51,7 @@ class Project(NamedModel, models.Model):
 class Scenario(NamedModel, models.Model):
     """BULE-Scenario"""
     name = models.TextField()
-    project = models.ForeignKey(Project, on_delete=models.RESTRICT)
+    project = models.ForeignKey(PlanningProcess, on_delete=models.RESTRICT)
 
     @property
     def demand(self):

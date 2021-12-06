@@ -3,7 +3,7 @@ from factory.django import DjangoModelFactory, mute_signals
 from django.contrib.gis.geos import Polygon
 from faker import Faker
 
-from .models import User, Profile, post_save, Project, Scenario
+from .models import User, Profile, post_save, PlanningProcess, Scenario
 
 
 faker = Faker('de-DE')
@@ -34,9 +34,9 @@ class UserFactory(DjangoModelFactory):
     profile = factory.RelatedFactory(ProfileFactory, factory_related_name='user')
 
 
-class ProjectFactory(DjangoModelFactory):
+class PlanningProcessFactory(DjangoModelFactory):
     class Meta:
-        model = Project
+        model = PlanningProcess
 
     name = faker.word()
     allow_shared_change = faker.pybool()
@@ -48,4 +48,4 @@ class ScenarioFactory(DjangoModelFactory):
         model = Scenario
 
     name = faker.word()
-    project = factory.SubFactory(ProjectFactory)
+    project = factory.SubFactory(PlanningProcessFactoryFactory)

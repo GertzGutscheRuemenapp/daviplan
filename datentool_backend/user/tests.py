@@ -7,8 +7,8 @@ from datentool_backend.api_test import BasicModelTest
 from datentool_backend.area.tests import _TestAPI
 
 from .factories import (ProfileFactory, UserFactory, User,
-                        ProjectFactory,ScenarioFactory)
-from .models import Project, Scenario
+                        PlanningProcessFactory, ScenarioFactory)
+from .models import PlanningProcess, Scenario
 
 from faker import Faker
 faker = Faker('de-DE')
@@ -33,31 +33,31 @@ class TestProfile(TestCase):
         self.assertTrue(user2.profile.pk)
 
 
-class TestProjectAPI(_TestAPI, BasicModelTest, APITestCase):
+class TestPlanningProjectAPI(_TestAPI, BasicModelTest, APITestCase):
     """"""
-    url_key = "projects"
+    url_key = "planningprocesses"
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.obj = ProjectFactory(owner=cls.profile)
+        cls.obj = PlanningProcessFactory(owner=cls.profile)
 
-        project: Project = cls.obj
-        owner = project.owner.pk
-        users = list(project.users.all().values_list(flat=True))
+        planningprocess: PlanningProcess = cls.obj
+        owner = planningprocess.owner.pk
+        users = list(planningprocess.users.all().values_list(flat=True))
         properties = OrderedDict(owner=owner,
                                  users=users,
                                  name=faker.word(),
                                  allow_shared_change= faker.pybool())
         geojson = {
             'type': 'Feature',
-            'geometry': project.map_section.ewkt,
+            'geometry': planningprocess.map_section.ewkt,
             'properties': properties,
         }
 
         cls.post_data = geojson
         geojson_putpatch = geojson.copy()
-        geojson_putpatch['id'] = project.id
+        geojson_putpatch['id'] = planningprocess.id
         cls.put_data = geojson_putpatch
         cls.patch_data = geojson_putpatch
 
