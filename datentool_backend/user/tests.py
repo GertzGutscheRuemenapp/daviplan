@@ -33,7 +33,7 @@ class TestProfile(TestCase):
         self.assertTrue(user2.profile.pk)
 
 
-class TestPlanningProjectAPI(_TestAPI, BasicModelTest, APITestCase):  # test, if user is none and if user is not owner are missing
+class TestPlanningProcessAPI(_TestAPI, BasicModelTest, APITestCase):  # test, if user is none and if user is not owner are missing
     """"""
     url_key = "planningprocesses"
 

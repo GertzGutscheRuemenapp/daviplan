@@ -428,30 +428,13 @@ class ReadUpdatePermissionViewSet(mixins.RetrieveModelMixin,
         #return self.check_can_edit_basedata() and self.check_has_admin_access()
 
 
-class CanCreateProcessPermission(UserPassesTestMixin):
-    """Has write access to Project-Model"""
-
-    def test_func(self):
-        if self.request.method in ('GET'):
-            if self.detail:
-                owner = self.get_object().owner
-                return self.request.user.profile == owner
-            else:
-                return len(self.get_queryset()) > 0
-        else:
-            return self.request.user.profile.can_create_process
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        return qs.filter(owner=self.request.user.profile)
-
 
 class CanEditBasedataPermission(UserPassesTestMixin):
     """Has write access to Basedata-Models"""
 
     def test_func(self):
         if self.request.method in ('GET'):
-                return self.request.user is not None
+                return True
         else:
             return self.request.user.profile.can_edit_basedata
 
@@ -462,9 +445,3 @@ class HasAdminAccessPermission(UserPassesTestMixin):
     def test_func(self):
         return self.request.user.profile.admin_access
 
-
-class IsLoggedInPermission(UserPassesTestMixin):
-    """user is logged in """
-
-    def test_func(self):
-        return self.request.user.pk is not None
