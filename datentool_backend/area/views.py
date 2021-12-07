@@ -24,26 +24,26 @@ class LayerGroupViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
     serializer_class = LayerGroupSerializer
 
 
-class WMSLayerViewSet(viewsets.ModelViewSet):
+class WMSLayerViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
     queryset = WMSLayer.objects.all()
     serializer_class = WMSLayerSerializer
 
 
-class InternalWFSLayerViewSet(viewsets.ModelViewSet):
+class InternalWFSLayerViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
     queryset = InternalWFSLayer.objects.all()
     serializer_class = InternalWFSLayerSerializer
 
 
-class SourceViewSet(viewsets.ModelViewSet):
+class SourceViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
     queryset = Source.objects.all()
     serializer_class = SourceSerializer
 
 
-class AreaLevelViewSet(viewsets.ModelViewSet):
+class AreaLevelViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
     queryset = AreaLevel.objects.all()
     serializer_class = AreaLevelSerializer
 
 
-class AreaViewSet(viewsets.ModelViewSet):
+class AreaViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
     queryset = Area.objects.all()
     serializer_class = AreaSerializer

@@ -37,7 +37,7 @@ class TestAreas(TestCase):
 
 
 class _TestAPI:
-    """"""
+    """test if view and serializer are working correctly """
     url_key = ""
     factory = SymbolFormFactory
 
@@ -50,7 +50,6 @@ class _TestAPI:
 
 
 class TestSymbolFormAPI(_TestAPI, BasicModelTest, APITestCase):
-    """ test if view and serializer are working correctly """
     url_key = "symbolforms"
     factory = SymbolFormFactory
 
@@ -62,11 +61,11 @@ class TestSymbolFormAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.patch_data = dict(name='patchtestname')
 
     def test_is_logged_in(self):
-        """test for permission rights, logged_in user has permission to read"""
+        """test for permission rights, logged_in user has only permission to read"""
 
         self.client.logout()
         response = self.get(self.url_key + '-list')
-        self.assert_http_302_found or self.assert_http_401_unauthorized(response, msg=response.content)
+        self.assert_http_401_unauthorized(response, msg=response.content)
 
         self.client.force_login(user=self.profile.user)
         self.test_list()
@@ -91,9 +90,9 @@ class TestSymbolFormAPI(_TestAPI, BasicModelTest, APITestCase):
         # post
         response = self.post(url, **self.url_pks, data=self.post_data,
                              extra={'format': 'json'})
-        self.response_201(msg=response.content)
+        self.response_403(msg=response.content)
 
-        profile.can_create_process = original_permission
+        profile.can_edit_basedata = original_permission
         profile.save()
 
 class TestMapSymbolsAPI(_TestAPI, BasicModelTest, APITestCase):
@@ -117,7 +116,7 @@ class TestMapSymbolsAPI(_TestAPI, BasicModelTest, APITestCase):
 
         self.client.logout()
         response = self.get(self.url_key + '-list')
-        self.assert_http_302_found or self.assert_http_401_unauthorized(response, msg=response.content)
+        self.assert_http_401_unauthorized(response, msg=response.content)
 
         self.client.force_login(user=self.profile.user)
         self.test_list()
@@ -143,9 +142,9 @@ class TestMapSymbolsAPI(_TestAPI, BasicModelTest, APITestCase):
         # post
         response = self.post(url, **self.url_pks, data=self.post_data,
                              extra={'format': 'json'})
-        self.response_201(msg=response.content)
+        self.response_403(msg=response.content)
 
-        profile.can_create_process = original_permission
+        profile.can_edit_basedata = original_permission
         profile.save()
 
 
@@ -160,8 +159,6 @@ class TestLayerGroupAPI(_TestAPI, BasicModelTest, APITestCase):
         existing_order = cls.obj.order
         cls.orders = iter(range(existing_order + 1, 100000))
 
-        #order = factory.Sequence(lambda n: faker.pyint(min_value=existing_order,
-                                                       #max_value=10))
         cls.post_data = dict(name='posttestname', order=next(cls.orders))
         cls.put_data = dict(name='puttestname', order=next(cls.orders))
         cls.patch_data = dict(name='patchtestname', order=next(cls.orders))
@@ -171,17 +168,11 @@ class TestLayerGroupAPI(_TestAPI, BasicModelTest, APITestCase):
 
         self.client.logout()
         response = self.get(self.url_key + '-list')
-        self.assert_http_401_unauthorized(response, msg=response.content) #or self.assert_http_302_found(response, msg=response.content)
+        self.assert_http_401_unauthorized(response, msg=response.content)
 
         self.client.force_login(user=self.profile.user)
         self.test_list()
         self.test_detail()
-
-    #@classmethod
-    #def tearDownClass(cls):
-        #cls.obj.delete()
-        #del cls.obj
-        #super().tearDownClass()
 
     def test_can_edit_basedata(self):
         """test for permission rights, user who can_edit_basedata has write permission """
@@ -233,11 +224,36 @@ class TestWMSLayerAPI(_TestAPI, BasicModelTest, APITestCase):
 
         self.client.logout()
         response = self.get(self.url_key + '-list')
-        self.assert_http_302_found or self.assert_http_401_unauthorized(response, msg=response.content)
+        self.assert_http_401_unauthorized(response, msg=response.content)
 
         self.client.force_login(user=self.profile.user)
         self.test_list()
         self.test_detail()
+
+    def test_can_edit_basedata(self):
+        """test for permission rights, user who can_edit_basedata has write permission """
+
+        profile = self.profile
+
+        original_permission = profile.can_edit_basedata
+
+        # Testprofile, with permission to edit basedata
+        profile.can_edit_basedata = True
+        profile.save()
+        self.test_post()
+
+        # Testprofile, without permission to edit basedata
+        profile.can_edit_basedata = False
+        profile.save()
+
+        url = self.url_key + '-list'
+        # post
+        response = self.post(url, **self.url_pks, data=self.post_data,
+                             extra={'format': 'json'})
+        self.response_403(msg=response.content)
+
+        profile.can_edit_basedata = original_permission
+        profile.save()
 
 
 class TestInternalWFSLayerAPI(_TestAPI, BasicModelTest, APITestCase):
@@ -260,6 +276,42 @@ class TestInternalWFSLayerAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
+    def test_is_logged_in(self):
+        """test for permission rights, logged_in user has only permission to read"""
+
+        self.client.logout()
+        response = self.get(self.url_key + '-list')
+        self.assert_http_401_unauthorized(response, msg=response.content)
+
+        self.client.force_login(user=self.profile.user)
+        self.test_list()
+        self.test_detail()
+
+    def test_can_edit_basedata(self):
+        """test for permission rights, user who can_edit_basedata has write permission """
+
+        profile = self.profile
+
+        original_permission = profile.can_edit_basedata
+
+        # Testprofile, with permission to edit basedata
+        profile.can_edit_basedata = True
+        profile.save()
+        self.test_post()
+
+        # Testprofile, without permission to edit basedata
+        profile.can_edit_basedata = False
+        profile.save()
+
+        url = self.url_key + '-list'
+        # post
+        response = self.post(url, **self.url_pks, data=self.post_data,
+                             extra={'format': 'json'})
+        self.response_403(msg=response.content)
+
+        profile.can_edit_basedata = original_permission
+        profile.save()
+
 
 class TestSourceAPI(_TestAPI, BasicModelTest, APITestCase):
     """api test Layer"""
@@ -276,6 +328,42 @@ class TestSourceAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
+
+    def test_is_logged_in(self):
+        """test for permission rights, logged_in user has only permission to read"""
+
+        self.client.logout()
+        response = self.get(self.url_key + '-list')
+        self.assert_http_401_unauthorized(response, msg=response.content)
+
+        self.client.force_login(user=self.profile.user)
+        self.test_list()
+        self.test_detail()
+
+    def test_can_edit_basedata(self):
+        """test for permission rights, user who can_edit_basedata has write permission """
+
+        profile = self.profile
+
+        original_permission = profile.can_edit_basedata
+
+        # Testprofile, with permission to edit basedata
+        profile.can_edit_basedata = True
+        profile.save()
+        self.test_post()
+
+        # Testprofile, without permission to edit basedata
+        profile.can_edit_basedata = False
+        profile.save()
+
+        url = self.url_key + '-list'
+        # post
+        response = self.post(url, **self.url_pks, data=self.post_data,
+                             extra={'format': 'json'})
+        self.response_403(msg=response.content)
+
+        profile.can_edit_basedata = original_permission
+        profile.save()
 
 
 class TestAreaLevelAPI(_TestAPI, BasicModelTest, APITestCase):
@@ -295,6 +383,42 @@ class TestAreaLevelAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
+
+    def test_is_logged_in(self):
+        """test for permission rights, logged_in user has only permission to read"""
+
+        self.client.logout()
+        response = self.get(self.url_key + '-list')
+        self.assert_http_401_unauthorized(response, msg=response.content)
+
+        self.client.force_login(user=self.profile.user)
+        self.test_list()
+        self.test_detail()
+
+    def test_can_edit_basedata(self):
+        """test for permission rights, user who can_edit_basedata has write permission """
+
+        profile = self.profile
+
+        original_permission = profile.can_edit_basedata
+
+        # Testprofile, with permission to edit basedata
+        profile.can_edit_basedata = True
+        profile.save()
+        self.test_post()
+
+        # Testprofile, without permission to edit basedata
+        profile.can_edit_basedata = False
+        profile.save()
+
+        url = self.url_key + '-list'
+        # post
+        response = self.post(url, **self.url_pks, data=self.post_data,
+                             extra={'format': 'json'})
+        self.response_403(msg=response.content)
+
+        profile.can_edit_basedata = original_permission
+        profile.save()
 
 
 class TestAreaAPI(_TestAPI, BasicModelTest, APITestCase):
@@ -325,5 +449,38 @@ class TestAreaAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = geojson_putpatch
         cls.patch_data = geojson_putpatch
 
+    def test_is_logged_in(self):
+        """test for permission rights, logged_in user has only permission to read"""
 
+        self.client.logout()
+        response = self.get(self.url_key + '-list')
+        self.assert_http_401_unauthorized(response, msg=response.content)
 
+        self.client.force_login(user=self.profile.user)
+        self.test_list()
+        self.test_detail()
+
+    def test_can_edit_basedata(self):
+        """test for permission rights, user who can_edit_basedata has write permission """
+
+        profile = self.profile
+
+        original_permission = profile.can_edit_basedata
+
+        # Testprofile, with permission to edit basedata
+        profile.can_edit_basedata = True
+        profile.save()
+        self.test_post()
+
+        # Testprofile, without permission to edit basedata
+        profile.can_edit_basedata = False
+        profile.save()
+
+        url = self.url_key + '-list'
+        # post
+        response = self.post(url, **self.url_pks, data=self.post_data,
+                             extra={'format': 'json'})
+        self.response_403(msg=response.content)
+
+        profile.can_edit_basedata = original_permission
+        profile.save()

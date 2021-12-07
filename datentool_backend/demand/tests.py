@@ -27,7 +27,6 @@ class TestDemandRateSetAPI(_TestAPI, BasicModelTest, APITestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        demandrateset: DemandRateSet = cls.obj
 
         data = dict(name=faker.word(), is_default=faker.pybool())
         cls.post_data = data
