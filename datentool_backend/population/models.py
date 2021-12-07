@@ -61,14 +61,17 @@ class Gender(NamedModel, models.Model):
     name = models.TextField()
 
 
-class AgeClassification(NamedModel, models.Model):
-    """an age classification"""
-    name = models.TextField()
+class RegStatAgeGroup(NamedModel, models.Model):
+
+    def __init__(self, from_age, to_age, name, regstat_code):
+        self.from_age = from_age
+        self.to_age = to_age
+        self.name = name
+        self.regstat_code = regstat_code
 
 
 class AgeGroup(models.Model):
     """an age group in an age classification"""
-    classification = models.ForeignKey(AgeClassification, on_delete=models.RESTRICT)
     from_age = models.IntegerField(validators=[MinValueValidator(0),
                                                MaxValueValidator(127)])
     to_age = models.IntegerField(validators=[MinValueValidator(0),
@@ -97,7 +100,6 @@ class Prognosis(NamedModel, models.Model):
     name = models.TextField()
     years = models.ManyToManyField(Year, blank=True)
     raster = models.ForeignKey(DisaggPopRaster, on_delete=models.RESTRICT)
-    age_classification = models.ForeignKey(AgeClassification, on_delete=models.RESTRICT)
     is_default = models.BooleanField()
 
 

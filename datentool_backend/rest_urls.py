@@ -25,7 +25,7 @@ from .infrastructure.views import (InfrastructureViewSet, FieldTypeViewSet,
 from .logging.views import (CapacityUploadLogViewSet, PlaceUploadLogViewSet,
                             AreaUploadLogViewSet)
 from .population.views import (RasterViewSet, PopulationRasterViewSet, GenderViewSet,
-                               AgeClassificationViewSet, AgeGroupViewSet,
+                               AgeGroupViewSet,
                                DisaggPopRasterViewSet, PrognosisViewSet,
                                PrognosisEntryViewSet, PopulationViewSet,
                                PopulationEntryViewSet, PopStatisticViewSet,
@@ -86,8 +86,8 @@ router.register(r'rasters', RasterViewSet, basename='rasters')
 router.register(r'populationrasters', PopulationRasterViewSet,
                 basename='populationrasters')
 router.register(r'gender', GenderViewSet, basename='gender')
-router.register(r'ageclassifications', AgeClassificationViewSet,
-                basename='ageclassifications')
+#router.register(r'ageclassifications', AgeClassificationViewSet,
+                #basename='ageclassifications')
 router.register(r'agegroups', AgeGroupViewSet, basename='agegroups')
 router.register(r'disaggpoprasters', DisaggPopRasterViewSet,
                 basename='disaggpoprasters')

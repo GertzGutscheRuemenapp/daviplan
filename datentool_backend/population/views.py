@@ -5,16 +5,15 @@ from rest_framework import viewsets
 #from django.views.generic import ListView
 #from vectortiles.postgis.views import MVTView
 
-from .models import (Raster, PopulationRaster, Gender, AgeClassification,
-                     AgeGroup, DisaggPopRaster, Prognosis, PrognosisEntry,
-                     Population, PopulationEntry, PopStatistic, PopStatEntry,
-                     RasterCell)
+from .models import (Raster, PopulationRaster, Gender, AgeGroup, DisaggPopRaster,
+                     Prognosis, PrognosisEntry, Population, PopulationEntry,
+                     PopStatistic, PopStatEntry, RasterCell)
 from .serializers import (RasterSerializer, PopulationRasterSerializer,
-                          GenderSerializer, AgeClassificationSerializer,
-                          AgeGroupSerializer, DisaggPopRasterSerializer,
-                          PrognosisSerializer, PrognosisEntrySerializer,
-                          PopulationSerializer, PopulationEntrySerializer,
-                          PopStatisticSerializer, PopStatEntrySerializer)
+                          GenderSerializer, AgeGroupSerializer,
+                          DisaggPopRasterSerializer,PrognosisSerializer,
+                          PrognosisEntrySerializer, PopulationSerializer,
+                          PopulationEntrySerializer, PopStatisticSerializer,
+                          PopStatEntrySerializer)
 
 
 class RasterViewSet(viewsets.ModelViewSet):
@@ -50,11 +49,6 @@ class PopulationRasterViewSet(viewsets.ModelViewSet):
 class GenderViewSet(viewsets.ModelViewSet):
     queryset = Gender.objects.all()
     serializer_class = GenderSerializer
-
-
-class AgeClassificationViewSet(viewsets.ModelViewSet):
-    queryset = AgeClassification.objects.all()
-    serializer_class = AgeClassificationSerializer
 
 
 class AgeGroupViewSet(viewsets.ModelViewSet):

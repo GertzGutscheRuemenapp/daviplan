@@ -28,10 +28,8 @@ class TestDemandRateSetAPI(_TestAPI, BasicModelTest, APITestCase):
     def setUpClass(cls):
         super().setUpClass()
         demandrateset: DemandRateSet = cls.obj
-        age_classification = demandrateset.age_classification.pk
 
-        data = dict(name=faker.word(), is_default=faker.pybool(),
-                    age_classification=age_classification)
+        data = dict(name=faker.word(), is_default=faker.pybool())
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data

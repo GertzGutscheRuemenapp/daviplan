@@ -1,15 +1,12 @@
 from django.db import models
 from datentool_backend.base import NamedModel
-from datentool_backend.population.models import (AgeGroup,
-                                                 AgeClassification,
-                                                 Year)
+from datentool_backend.population.models import (AgeGroup, Year)
 
 class DemandRateSet(NamedModel, models.Model):
     """ set of demand """
     name = models.TextField()
     is_default = models.BooleanField()
-    age_classification = models.ForeignKey(AgeClassification,
-                                           on_delete=models.RESTRICT)
+
 
 class DemandRate(models.Model):
     """ demand rate """
