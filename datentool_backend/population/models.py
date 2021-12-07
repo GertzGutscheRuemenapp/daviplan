@@ -61,15 +61,6 @@ class Gender(NamedModel, models.Model):
     name = models.TextField()
 
 
-class RegStatAgeGroup(NamedModel, models.Model):
-
-    def __init__(self, from_age, to_age, name, regstat_code):
-        self.from_age = from_age
-        self.to_age = to_age
-        self.name = name
-        self.regstat_code = regstat_code
-
-
 class AgeGroup(models.Model):
     """an age group in an age classification"""
     from_age = models.IntegerField(validators=[MinValueValidator(0),
