@@ -6,3 +6,4 @@ htmlcov
 .coverage
 /datentool.wpr
 /datentool.wpu
+.idea

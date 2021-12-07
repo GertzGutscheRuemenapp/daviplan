@@ -1,4 +1,4 @@
-import { View, Feature, Map, Overlay } from 'ol';
+import { View, Feature, Map, Overlay, Collection } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import { ScaleLine, defaults as DefaultControls } from 'ol/control';
 import OSM from 'ol/source/OSM';
@@ -15,6 +15,7 @@ import XYZ from 'ol/source/XYZ';
 import { Stroke, Style, Fill } from 'ol/style';
 import { Select } from "ol/interaction";
 import { click, singleClick, always } from 'ol/events/condition';
+import { EventEmitter } from "@angular/core";
 
 export class OlMap {
   target: string;
@@ -24,6 +25,8 @@ export class OlMap {
   mapProjection: string;
   div: HTMLElement | null;
   tooltipOverlay: Overlay;
+  // emits all selected features
+  selected = new EventEmitter<Collection<Feature<any>>>();
 
   constructor( target: string, options: {
     center?: Coordinate, zoom?: number, projection?: string,
@@ -88,27 +91,33 @@ export class OlMap {
     return layer;
   }
 
-  addWFS(options: {
-    name: string, url: any, params?: any,
-    visible?: boolean, opacity?: number, xyz?: boolean,
-    selectable?: boolean, tooltipField?: string }): Layer<any>{
-    if (this.layers[options.name] != null) this.removeLayer(options.name);
-    let source = new VectorSource({
-      format: new GeoJSON(),
-      url: options.url,
-      strategy: bboxStrategy,
-    });
+  addVectorLayer(name: string, options?: {
+    url?: any, params?: any,
+    visible?: boolean, opacity?: number,
+    selectable?: boolean, tooltipField?: string,
+    stroke?: {color?: string, width?: number, dash?: number[], selectedColor?: string, selectedDash?: number[]},
+    fill?: {color?: string, selectedColor?: string},
+  }): Layer<any> {
+
+    if (this.layers[name] != null) this.removeLayer(name);
+    let sourceOpt = options?.url? {
+        format: new GeoJSON(),
+        url: (options?.url)? options?.url: undefined,
+        strategy: (options?.url)? bboxStrategy: undefined,
+      }: {};
+    let source = new VectorSource(sourceOpt);
     let layer = new VectorLayer({
       source: source,
-      visible: options.visible === true,
-      opacity: (options.opacity != undefined) ? options.opacity: 1,
+      visible: options?.visible === true,
+      opacity: (options?.opacity != undefined) ? options?.opacity: 1,
       style: new Style({
         stroke: new Stroke({
-          color: 'rgba(0, 0, 0, 1.0)',
-          width: 1,
+          color:  options?.stroke?.color || 'rgba(0, 0, 0, 1.0)',
+          width: options?.stroke?.width || 1,
+          lineDash: options?.stroke?.dash
         }),
         fill: new Fill({
-          color: 'rgba(255, 255, 255, 0.8)'
+          color: options?.fill?.color || 'rgba(0, 0, 0, 0)'
         }),
       }),
     });
@@ -122,14 +131,14 @@ export class OlMap {
       this.div!.style.cursor = f? 'pointer': '';
     })
 
-    if (options.tooltipField || options.selectable) {
+    if (options?.tooltipField || options?.selectable) {
       this.map.on('pointermove', event => {
         const pixel = event.pixel;
         const f = this.map.forEachFeatureAtPixel(pixel, function (feature, hlayer) {
           if (feature && hlayer === layer) return feature;
           else return;
         });
-        if (options.tooltipField) {
+        if (options?.tooltipField) {
           let tooltip = this.tooltipOverlay.getElement()
           if (f) {
             this.tooltipOverlay.setPosition(event.coordinate);
@@ -139,33 +148,36 @@ export class OlMap {
           else
             tooltip!.style.display = 'none';
         }
-        if (options.selectable){
+        if (options?.selectable){
           this.div!.style.cursor = f? 'pointer': '';
         }
       });
     }
-    if (options.selectable) {
+    if (options?.selectable) {
       const select = new Select({
         condition: click,
         layers: [layer],
         style: new Style({
           stroke: new Stroke({
-            color: 'rgb(255, 129, 0)',
-            width: 1,
+            color: options.stroke?.selectedColor || 'rgb(255, 129, 0)',
+            width: options.stroke?.width || 1,
+            lineDash: options?.stroke?.selectedDash
           }),
           fill: new Fill({
-            color: 'rgba(250, 181, 51, 0.8)'
+            color: options.fill?.selectedColor || 'rgba(0, 0, 0, 0)'
           }),
         }),
         toggleCondition: always,
         multi: true
       })
       this.map.addInteraction(select);
-      // select.
+      select.on('select', event => {
+        this.selected.emit(select.getFeatures());
+      })
     }
 
     this.map.addLayer(layer);
-    this.layers[options.name] = layer;
+    this.layers[name] = layer;
 
     return layer;
   }
