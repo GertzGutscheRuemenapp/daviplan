@@ -35,7 +35,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
     def update(self, instance, validated_data):
         profile_data = validated_data.pop('profile', {})
-        password = validated_data.pop('password')
+        password = validated_data.pop('password', None)
         if password:
             instance.set_password(password)
         profile = instance.profile

@@ -42,7 +42,7 @@
                     [topRightHelp]="true"
                     infoText="Um Ihr Projektgebiet festzulegen oder zu verändern, klicken Sie bitte auf „Editieren“. Sie gelangen dann zu einer Kartendarstellung, in der Sie Ihr Projektgebiet aus einzelnen Gemeinden, Verwaltungsgemeinschaften und Landkreisen zusammensetzen können."
                     [editTemplate]="projectAreaEdit"
-                    dialogWidth="600px">
+                    dialogWidth="900px">
       <div id="project-preview-map" class="map-container">
         <app-map-controls></app-map-controls>
       </div>
@@ -55,6 +55,9 @@
 </ng-template>
 
 <ng-template #projectAreaEdit>
+  <mat-error *ngFor="let error of projectAreaErrors" class="alert">
+    {{ error }}
+  </mat-error>
   <div id="project-area-select-map" class="map-container">
     <app-map-controls></app-map-controls>
   </div>

@@ -27,14 +27,6 @@ REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'].extend([
     'rest_framework.authentication.SessionAuthentication',
 ])
 
-# GDAL
-if os.name == 'nt':
-    # alternate install via conda
-    os.environ['GDAL_DATA'] = os.path.join(sys.prefix, 'Library',
-                                           'share', 'gdal')
-    os.environ['PATH'] = ';'.join([os.environ['PATH'],
-                                   os.path.join(sys.prefix, 'Library', 'bin')])
-
 DATABASES['default']['OPTIONS']['sslmode'] = 'prefer'
 
 # default secret key, for dev only!
