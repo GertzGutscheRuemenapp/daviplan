@@ -55,6 +55,9 @@
 </ng-template>
 
 <ng-template #projectAreaEdit>
+  <mat-error *ngFor="let error of projectAreaErrors" class="alert">
+    {{ error }}
+  </mat-error>
   <div id="project-area-select-map" class="map-container">
     <app-map-controls></app-map-controls>
   </div>

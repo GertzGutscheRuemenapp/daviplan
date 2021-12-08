@@ -68,6 +68,16 @@ export class OlMap {
     });
   }
 
+  getLayer(name: string): Layer<any>{
+    return this.layers[name];
+  }
+
+  centerOnLayer(name: string): void{
+    const layer = this.layers[name],
+          source = layer.getSource();
+    this.map.getView().fit(source.getExtent());
+  }
+
   addTileServer(options: { name: string, url: string, params?: any, visible?: boolean, opacity?: number, xyz?: boolean}): Layer<any>{
 
     if (this.layers[options.name] != null) this.removeLayer(options.name)
@@ -122,15 +132,6 @@ export class OlMap {
       }),
     });
 
-    this.map.on("pointermove", event => {
-      const pixel = event.pixel;
-      const f = this.map.forEachFeatureAtPixel(pixel, function (feature, hlayer) {
-        if (feature && hlayer === layer) return feature;
-        return;
-      });
-      this.div!.style.cursor = f? 'pointer': '';
-    })
-
     if (options?.tooltipField || options?.selectable) {
       this.map.on('pointermove', event => {
         const pixel = event.pixel;
@@ -142,7 +143,8 @@ export class OlMap {
           let tooltip = this.tooltipOverlay.getElement()
           if (f) {
             this.tooltipOverlay.setPosition(event.coordinate);
-            tooltip!.innerHTML = f.get(options.tooltipField);
+            let coords = this.map.getCoordinateFromPixel(pixel);
+            tooltip!.innerHTML = f.get(options.tooltipField) + `<br>${coords[0]}, ${coords[1]}`;
             tooltip!.style.display = '';
           }
           else
@@ -174,12 +176,35 @@ export class OlMap {
       select.on('select', event => {
         this.selected.emit(select.getFeatures());
       })
+      layer.set('select', select);
     }
 
     this.map.addLayer(layer);
     this.layers[name] = layer;
 
     return layer;
+  }
+
+  getFeature(layerName: string, id: string){
+    const layer = this.layers[layerName],
+          features = layer.getSource().getFeatures();
+    for (let i = 0; i < features.length; i++){
+      const feature = features[i];
+      if (feature.getId() == id) return feature
+    }
+    return null;
+  }
+
+  selectFeature(layerName: string, id: string){
+    const feature = this.getFeature(layerName, id),
+          layer = this.layers[layerName],
+          select = layer.get('select');
+    select.getFeatures().push(feature);
+    /*select.dispatchEvent({
+      type: 'select',
+      selected: [feature],
+      deselected: []
+    });*/
   }
 
   removeLayer(name: string){
