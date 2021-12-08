@@ -1,11 +1,11 @@
 from django.db import models
-from django.contrib.gis.db.models import GeometryField
+from django.contrib.gis.db.models import MultiPolygonField
 from datentool_backend.models import AreaLevel
 from datentool_backend.utils.models import SingletonModel
 
 
 class ProjectSetting(SingletonModel):
-    project_area = GeometryField(null=True)
+    project_area = MultiPolygonField(null=True, srid=25832)
     start_year = models.IntegerField(default=2000)
     end_year = models.IntegerField(default=2020)
 

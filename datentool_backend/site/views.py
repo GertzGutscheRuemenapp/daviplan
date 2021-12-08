@@ -9,17 +9,17 @@ from datentool_backend.utils.views import SingletonViewSet
 class ProjectSettingViewSet(SingletonViewSet):
     queryset = ProjectSetting.objects.all()
     model_class = ProjectSetting
-    serializer_class =  ProjectSettingSerializer
+    serializer_class = ProjectSettingSerializer
 
 
 class BaseDataSettingViewSet(SingletonViewSet):
     queryset = BaseDataSetting.objects.all()
     model_class = BaseDataSetting
-    serializer_class =  BaseDataSettingSerializer
+    serializer_class = BaseDataSettingSerializer
 
 
 class SiteSettingViewSet(viewsets.ModelViewSet):
-    #permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     queryset = SiteSetting.objects.all()
     serializer_class = SiteSettingSerializer
 
