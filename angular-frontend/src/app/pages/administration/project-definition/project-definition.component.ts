@@ -131,38 +131,37 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
           stroke: { color: 'black', selectedColor: 'black' },
           fill: { color: 'rgba(255, 255, 255, 0.5)', selectedColor: 'yellow' }
       });
-      if (hasProjectArea) {
-        const _this = this;
-        let done = false;
-        selectLayer?.getSource().addEventListener('featuresloadend', function () {
-          if (done) return;
-          done = true;
-          _this.areaCard.setLoading(false);
-          let mapEPSG = `EPSG:${_this.previewMapControl?.srid}`;
-          let clonedPG = _this.projectGeom!.clone();
-          clonedPG.transform(mapEPSG, 'EPSG:4326');
-          const projectPoly = turf.multiPolygon(clonedPG.getCoordinates());
-          const select = selectLayer?.get('select');
-          selectLayer?.getSource().getFeatures().forEach((feature: Feature<any>) => {
-            let fs: turf.Feature<any>[] = [];
-            let cloned = feature.clone();
-            cloned.getGeometry().transform(mapEPSG, 'EPSG:4326');
-            cloned.getGeometry().getCoordinates().forEach((coords: any) => {
-              let poly = turf.polygon(coords);
-              // let buffered = buffer(poly, -1, {units: 'kilometers'});
-              fs.push(poly);
-            })
-            const coll = turf.featureCollection(fs),
-                  pos = pointOnSurface(coll);
-            // const featPoly = turf.multiPolygon(feature.getGeometry().getCoordinates());
-            // let intersection = intersect(featPoly, projectPoly);
-            let intersection = booleanWithin(pos, projectPoly);
-            if (intersection) {
-              select.getFeatures().push(feature);
-            }
+      const _this = this;
+      let done = false;
+      selectLayer?.getSource().addEventListener('featuresloadend', function () {
+        if (done) return;
+        done = true;
+        _this.areaCard.setLoading(false);
+        if(!hasProjectArea) return;
+        let mapEPSG = `EPSG:${_this.previewMapControl?.srid}`;
+        let clonedPG = _this.projectGeom!.clone();
+        clonedPG.transform(mapEPSG, 'EPSG:4326');
+        const projectPoly = turf.multiPolygon(clonedPG.getCoordinates());
+        const select = selectLayer?.get('select');
+        selectLayer?.getSource().getFeatures().forEach((feature: Feature<any>) => {
+          let fs: turf.Feature<any>[] = [];
+          let cloned = feature.clone();
+          cloned.getGeometry().transform(mapEPSG, 'EPSG:4326');
+          cloned.getGeometry().getCoordinates().forEach((coords: any) => {
+            let poly = turf.polygon(coords);
+            // let buffered = buffer(poly, -1, {units: 'kilometers'});
+            fs.push(poly);
           })
-        });
-      }
+          const coll = turf.featureCollection(fs),
+                pos = pointOnSurface(coll);
+          // const featPoly = turf.multiPolygon(feature.getGeometry().getCoordinates());
+          // let intersection = intersect(featPoly, projectPoly);
+          let intersection = booleanWithin(pos, projectPoly);
+          if (intersection) {
+            select.getFeatures().push(feature);
+          }
+        })
+      });
     })
     this.areaCard.dialogClosed.subscribe(x => {
       this.areaSelectMapControl?.destroy();
