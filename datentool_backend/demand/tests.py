@@ -1,7 +1,7 @@
 from django.test import TestCase
 from test_plus import APITestCase
 from datentool_backend.api_test import BasicModelTest
-from datentool_backend.area.tests import _TestAPI
+from datentool_backend.area.tests import _TestAPI, _TestPermissions
 
 from .factories import DemandRateSetFactory, DemandRateFactory
 from .models import DemandRate
@@ -12,14 +12,13 @@ faker = Faker('de-DE')
 
 
 class TestDemand(TestCase):
-
     def test_demand_rate_set(self):
         demand_rate_set = DemandRateSetFactory()
         demand_rate = DemandRateFactory(demand_rate_set=demand_rate_set)
         print(demand_rate)
 
 
-class TestDemandRateSetAPI(_TestAPI, BasicModelTest, APITestCase):
+class TestDemandRateSetAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "demandratesets"
     factory = DemandRateSetFactory
@@ -35,40 +34,14 @@ class TestDemandRateSetAPI(_TestAPI, BasicModelTest, APITestCase):
 
     def test_is_logged_in(self):
         """read_only"""
-
-        self.client.logout()
-        response = self.get(self.url_key + '-list')
-        self.assert_http_401_unauthorized(response, msg=response.content)
-
-        self.client.force_login(user=self.profile.user)
-        self.test_list()
-        self.test_detail()
+        super().is_logged_in()
 
     def test_can_edit_basedata(self):
         """ write permission """
-        profile = self.profile
+        super().can_edit_basedata()
 
-        original_permission = profile.can_edit_basedata
 
-        # Testprofile, with permission to edit basedata
-        profile.can_edit_basedata = True
-        profile.save()
-        self.test_post()
-
-        # Testprofile, without permission to edit basedata
-        profile.can_edit_basedata = False
-        profile.save()
-
-        url = self.url_key + '-list'
-        # post
-        response = self.post(url, **self.url_pks, data=self.post_data,
-                             extra={'format': 'json'})
-        self.response_403(msg=response.content)
-
-        profile.can_edit_basedata = original_permission
-        profile.save()
-
-class TestDemandRateAPI(_TestAPI, BasicModelTest, APITestCase):
+class TestDemandRateAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "demandrates"
     factory = DemandRateFactory
@@ -89,35 +62,8 @@ class TestDemandRateAPI(_TestAPI, BasicModelTest, APITestCase):
 
     def test_is_logged_in(self):
         """read_only"""
-
-        self.client.logout()
-        response = self.get(self.url_key + '-list')
-        self.assert_http_401_unauthorized(response, msg=response.content)
-
-        self.client.force_login(user=self.profile.user)
-        self.test_list()
-        self.test_detail()
+        super().is_logged_in()
 
     def test_can_edit_basedata(self):
-        """write permission"""
-        profile = self.profile
-
-        original_permission = profile.can_edit_basedata
-
-        # Testprofile, with permission to edit basedata
-        profile.can_edit_basedata = True
-        profile.save()
-        self.test_post()
-
-        # Testprofile, without permission to edit basedata
-        profile.can_edit_basedata = False
-        profile.save()
-
-        url = self.url_key + '-list'
-        # post
-        response = self.post(url, **self.url_pks, data=self.post_data,
-                             extra={'format': 'json'})
-        self.response_403(msg=response.content)
-
-        profile.can_edit_basedata = original_permission
-        profile.save()
+        """ write permission """
+        super().can_edit_basedata()
