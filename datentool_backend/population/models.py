@@ -36,8 +36,8 @@ class RasterCell(models.Model):
     """a raster cell with geometry"""
     raster = models.ForeignKey(Raster, on_delete=models.RESTRICT)
     cellcode = models.TextField(validators=[MaxLengthValidator(13)])
-    pnt = gis_models.PointField()
-    poly = gis_models.PolygonField()
+    pnt = gis_models.PointField(geography=True)
+    poly = gis_models.PolygonField(geography=True)
 # vector tile
     #objects = models.Manager()
     #vector_tiles = MVTManager(geo_col='poly')
