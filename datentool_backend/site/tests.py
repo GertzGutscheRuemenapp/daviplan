@@ -32,27 +32,25 @@ class TestBaseDataSetting(BasicModelSingletonTest, APITestCase):
         cls.patch_data = data
 
 
-#class TestProjectSetting(_TestAPI, BasicModelSingletonTest, APITestCase):
-    #""""""
-    #url_key = "projectsettings"
-    #factory = ProjectSettingFactory
+class TestProjectSetting(_TestAPI, BasicModelSingletonTest, APITestCase):
+    """"""
+    url_key = "projectsettings"
+    factory = ProjectSettingFactory
 
-    #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
 
-        #ewkt = """SRID = 4326; MULTIPOLYGON(
-        #(
-        #((0 0, 0 2, 2 2, 2 0, 0 0)),
-        #((3 3, 3 7, 7 7, 7 3, 3 3), (4 4, 4 5, 5 5, 5 4, 4 4))
-        #)
-       #"""
+        ewkt = 'SRID=4326;MULTIPOLYGON (\
+((0 0, 0 2, 2 2, 2 0, 0 0)),\
+ ((3 3, 3 7, 7 7, 7 3, 3 3), (4 4, 4 5, 5 5, 5 4, 4 4))\
+)'
 
-        #data = dict(from_year=2002,
-                    #to_year=2033,
-                    #project_area=ewkt
-                    #)
+        data = dict(from_year=2002,
+                    to_year=2033,
+                    project_area=ewkt
+                    )
 
-        #cls.post_data = data
-        #cls.put_data = data
-        #cls.patch_data = data
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
