@@ -1,10 +1,6 @@
 from django.contrib import admin
-from .models import (
-    SiteSetting)
+from .models import (SiteSetting, ProjectSetting, BaseDataSetting)
 
-# Register your models here.
-class SiteSettingAdmin(admin.ModelAdmin):
-    """"""
-
-
-admin.site.register(SiteSetting, SiteSettingAdmin)
+admin.site.register(ProjectSetting)
+admin.site.register(SiteSetting)
+admin.site.register(BaseDataSetting)

@@ -10,13 +10,14 @@
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
-    <app-input-card [title]="'Betrachtungszeitraum'"
-                    [editTemplate]="projectSettingsEdit"
+    <app-input-card #yearCard
+                    [title]="'Betrachtungszeitraum'"
+                    [editTemplate]="yearEdit"
                     infoText="<b><i>ToDo: Hilfetext</i></b>">
       <table>
         <tr>
           <td i18n>Betrachtungs-<br>zeitraum</td>
-          <td>2015 bis 2035</td>
+          <td>{{projectSettings?.startYear}} bis {{projectSettings?.endYear}}</td>
         </tr>
       </table>
     </app-input-card>
@@ -42,7 +43,7 @@
                     [topRightHelp]="true"
                     infoText="Um Ihr Projektgebiet festzulegen oder zu verändern, klicken Sie bitte auf „Editieren“. Sie gelangen dann zu einer Kartendarstellung, in der Sie Ihr Projektgebiet aus einzelnen Gemeinden, Verwaltungsgemeinschaften und Landkreisen zusammensetzen können."
                     [editTemplate]="projectAreaEdit"
-                    dialogWidth="600px">
+                    dialogWidth="900px">
       <div id="project-preview-map" class="map-container">
         <app-map-controls></app-map-controls>
       </div>
@@ -50,11 +51,33 @@
   </div>
 </div>
 
+<ng-template #yearEdit>
+  <form [formGroup]="yearForm">
+    <div *ngIf="yearForm.errors">
+      <mat-error *ngFor="let error of Object.values(yearForm.errors)" class="alert">
+        {{ error }}
+      </mat-error>
+    </div>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label i18n>Startjahr</mat-label>
+      <input matInput type="number" min="1900" max="3000" formControlName="startYear" required/>
+      <mat-error *ngIf="yearForm.get('startYear')?.errors?.tooHigh" i18n>Das Startjahr muss vor dem Endjahr liegen</mat-error>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label i18n>Endjahr</mat-label>
+      <input matInput type="number" min="1900" max="3000" formControlName="endYear" required/>
+    </mat-form-field>
+  </form>
+</ng-template>
+
 <ng-template #projectSettingsEdit>
   Funktionalität für den Prototyp noch nicht hinterlegt.
 </ng-template>
 
 <ng-template #projectAreaEdit>
+  <mat-error *ngFor="let error of projectAreaErrors" class="alert">
+    {{ error }}
+  </mat-error>
   <div id="project-area-select-map" class="map-container">
     <app-map-controls></app-map-controls>
   </div>

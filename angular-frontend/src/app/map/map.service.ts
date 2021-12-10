@@ -55,6 +55,7 @@ export class MapService {
 }
 
 export class MapControl {
+  srid = 3857;
   target = '';
   destroyed = new EventEmitter<string>();
   map?: OlMap;
@@ -83,7 +84,7 @@ export class MapControl {
   }
 
   create(): void {
-    this.map = new OlMap(this.target);
+    this.map = new OlMap(this.target, {projection: `EPSG:${this.srid}`});
     for (let layer of this.backgroundLayers) {
       this.map.addTileServer({
         name: this.mapId(layer),

@@ -11,9 +11,27 @@ from django.utils.translation import ugettext as _
 from abc import ABC
 
 from django.shortcuts import get_object_or_404
-
 from rest_framework.response import Response
 from rest_framework.utils.serializer_helpers import ReturnDict
+
+
+class SingletonViewSet(viewsets.ModelViewSet):
+    model_class = None
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.model_class.load()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.model_class.load()
+        partial = kwargs.pop('partial', False)
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
 
 
 class PostGetViewMixin:
