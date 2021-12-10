@@ -52,21 +52,17 @@ class TestPlanningProcessAPI(_TestAPI, BasicModelTest, APITestCase):  # test, if
         planningprocess: PlanningProcess = cls.obj
         owner = planningprocess.owner.pk
         users = list(planningprocess.users.all().values_list(flat=True))
-        properties = OrderedDict(owner=owner,
-                                 users=users,
-                                 name=faker.word(),
-                                 allow_shared_change= faker.pybool())
-        geojson = {
-            'type': 'Feature',
-            'geometry': planningprocess.map_section.ewkt,
-            'properties': properties,
-        }
 
-        cls.post_data = geojson
-        geojson_putpatch = geojson.copy()
-        geojson_putpatch['id'] = planningprocess.id
-        cls.put_data = geojson_putpatch
-        cls.patch_data = geojson_putpatch
+        data = dict(owner=owner,
+                    users=users,
+                    name=faker.word(),
+                    allow_shared_change= faker.pybool())
+
+        cls.post_data = data
+        data_putpatch = data.copy()
+        data_putpatch['id'] = planningprocess.id
+        cls.put_data = data_putpatch
+        cls.patch_data = data_putpatch
 
     @classmethod
     def tearDownClass(cls):
