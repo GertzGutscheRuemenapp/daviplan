@@ -51,19 +51,22 @@ class TestPopulation(TestCase):
         pe = list()
         area = AreaFactory()
         prognosis = PrognosisFactory(years=self.years, raster__genders=self.genders)
+        agegroups = [AgeGroupFactory(), AgeGroupFactory(), AgeGroupFactory()]
         years = prognosis.years.all()
         genders = prognosis.raster.genders.all()
-        for year in years:
-            for gender in genders:
-                pe.append(PrognosisEntryFactory.build(prognosis=prognosis,
+        for agegroup in agegroups:
+            for year in years:
+                for gender in genders:
+                    pe.append(PrognosisEntryFactory.build(prognosis=prognosis,
                                                           year=year,
                                                           area=area,
+                                                          agegroup=agegroup,
                                                           gender=gender))
 
         PrognosisEntry.objects.bulk_create(pe)
         pe_set = prognosis.prognosisentry_set.all()
         values = np.array(pe_set.values_list('value')).\
-            reshape(len(years), len(genders))
+            reshape(len(agegroups), len(years), len(genders))
         print(values)
 
     def test_popstatistic(self):
