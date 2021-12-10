@@ -5,7 +5,7 @@ import factory
 from factory.django import DjangoModelFactory
 from .models import (Year, Raster, PopulationRaster,
                      RasterCell, RasterCellPopulation,
-                     Gender, AgeClassification, AgeGroup,
+                     Gender, AgeGroup,
                      DisaggPopRaster, RasterCellPopulationAgeGender,
                      Prognosis, PrognosisEntry,
                      Population, PopulationEntry,
@@ -87,35 +87,34 @@ class GenderFactory(DjangoModelFactory):
     name = factory.Sequence(lambda n: faker.unique.word())
 
 
-class AgeClassificationFactory(DjangoModelFactory):
-    class Meta:
-        model = AgeClassification
+#class AgeClassificationFactory(DjangoModelFactory):
+    #class Meta:
+        #model = AgeClassification
 
-    name = faker.word()
+    #name = faker.word()
 
-    @factory.post_generation
-    def agegroups(self, create, extracted, **kwargs):
-        if not create:
-            # Simple build, do nothing.
-            return
+    #@factory.post_generation
+    #def agegroups(self, create, extracted, **kwargs):
+        #if not create:
+            ## Simple build, do nothing.
+            #return
 
-        n_agegroups = faker.pyint(min_value=1, max_value=10)
-        limits = np.random.choice(np.arange(1, 128), (n_agegroups, ), False)
-        limits.sort()
-        start = 0
-        age_groups = []
-        for end in limits:
-            age_groups.append(
-                AgeGroup(classification=self, from_age=start, to_age=end - 1))
-            start = end
-        AgeGroup.objects.bulk_create(age_groups)
+        #n_agegroups = faker.pyint(min_value=1, max_value=10)
+        #limits = np.random.choice(np.arange(1, 128), (n_agegroups, ), False)
+        #limits.sort()
+        #start = 0
+        #age_groups = []
+        #for end in limits:
+            #age_groups.append(
+                #AgeGroup(classification=self, from_age=start, to_age=end - 1))
+            #start = end
+        #AgeGroup.objects.bulk_create(age_groups)
 
 
 class AgeGroupFactory(DjangoModelFactory):
     class Meta:
         model = AgeGroup
 
-    classification = factory.SubFactory(AgeClassificationFactory)
     from_age = faker.pyint(max_value=127)
     to_age = faker.pyint(max_value=127)
 
@@ -157,7 +156,6 @@ class PrognosisFactory(DjangoModelFactory):
 
     name = faker.unique.word()
     raster = factory.SubFactory(DisaggPopRasterFactory)
-    age_classification = factory.SubFactory(AgeClassificationFactory)
     is_default = faker.pybool()
 
     @factory.post_generation

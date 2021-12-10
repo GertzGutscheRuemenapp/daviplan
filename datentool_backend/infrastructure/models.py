@@ -50,7 +50,7 @@ class Place(JsonAttributes, NamedModel, models.Model):
     """location of an infrastructure"""
     name = models.TextField()
     infrastructure = models.ForeignKey(Infrastructure, on_delete=models.RESTRICT)
-    geom = gis_models.PointField()
+    geom = gis_models.PointField(geography=True)
     attributes = models.JSONField()
 
     def __str__(self) -> str:

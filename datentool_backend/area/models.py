@@ -75,7 +75,7 @@ class AreaLevel(NamedModel, models.Model):
 class Area(JsonAttributes, models.Model):
     """an area"""
     area_level = models.ForeignKey(AreaLevel, on_delete=models.RESTRICT)
-    geom = gis_models.GeometryField()
+    geom = gis_models.MultiPolygonField(geography=True)
     attributes = models.JSONField()
 
     def __str__(self) -> str:

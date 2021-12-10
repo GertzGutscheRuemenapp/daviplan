@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.contrib.gis.db import models as gis_models
 from datentool_backend.base import NamedModel
 
 
@@ -41,7 +40,6 @@ class PlanningProcess(NamedModel, models.Model):
     users = models.ManyToManyField(Profile, related_name='shared_with_users',
                                    blank=True)
     allow_shared_change = models.BooleanField()
-    map_section = gis_models.PolygonField()
 
     @property
     def infrastructures(self):

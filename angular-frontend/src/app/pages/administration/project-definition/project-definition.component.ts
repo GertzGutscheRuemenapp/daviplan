@@ -22,6 +22,12 @@ export interface ProjectSettings {
   endYear: number
 }
 
+export interface AgeGroup {
+  id: number,
+  fromAge: number,
+  toAge: number
+}
+
 proj4.defs("EPSG:25832", "+proj=utm +zone=32 +ellps=GRS80 +units=m +no_defs");
 register(proj4);
 
@@ -35,12 +41,17 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   areaSelectMapControl?: MapControl;
   projectGeom?: MultiPolygon;
   __projectGeom?: MultiPolygon;
+  ageGroups?: AgeGroup[];
+  __ageGroups: AgeGroup[] = [];
+  ageGroupDefaults: AgeGroup[] = [];
   projectAreaErrors = [];
   projectSettings?: ProjectSettings;
   yearForm!: FormGroup;
+  ageGroupForm!: FormGroup;
   Object = Object;
   @ViewChild('areaCard') areaCard!: InputCardComponent;
   @ViewChild('yearCard') yearCard!: InputCardComponent;
+  @ViewChild('ageGroupCard') ageGroupCard!: InputCardComponent;
 
   constructor(private mapService: MapService, private formBuilder: FormBuilder, private http: HttpClient,
               private rest: RestAPI) { }
@@ -52,12 +63,26 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       this.setupYearCard();
       this.updatePreviewLayer();
     });
+    this.fetchAgeGroups().subscribe(settings => {
+      this.setupAgeGroupCard();
+    });
   }
 
   fetchProjectSettings(): Observable<ProjectSettings> {
     let query = this.http.get<ProjectSettings>(this.rest.URLS.projectSettings);
     query.subscribe(projectSettings => {
       this.projectSettings = projectSettings;
+    })
+    return query;
+  }
+
+  fetchAgeGroups(): Observable<AgeGroup[]> {
+    this.http.get<AgeGroup[]>(this.rest.URLS.ageGroups, {params: {defaults: true}}).subscribe(ageGroups => {
+      this.ageGroupDefaults = ageGroups;
+    })
+    let query = this.http.get<AgeGroup[]>(this.rest.URLS.ageGroups);
+    query.subscribe(ageGroups => {
+      this.ageGroups = ageGroups;
     })
     return query;
   }
@@ -72,18 +97,29 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  setupAgeGroupCard(): void {
+    this.__ageGroups = this.ageGroups!;
+
+    this.ageGroupCard.dialogConfirmed.subscribe(ok => {
+    })
+    this.yearCard.dialogClosed.subscribe((ok)=>{
+      // reset form on cancel
+      if (!ok){
+      }
+    })
+  }
+
   setupYearCard(): void {
     this.yearForm = this.formBuilder.group({
       startYear: this.projectSettings!.startYear,
       endYear: this.projectSettings!.endYear
     });
-
     this.yearCard.dialogConfirmed.subscribe(()=>{
       this.yearForm.setErrors(null);
       this.yearForm.markAllAsTouched();
       if (this.yearForm.invalid) return;
       const startYear = this.yearForm.value.startYear,
-            endYear = this.yearForm.value.endYear;
+        endYear = this.yearForm.value.endYear;
       if (endYear <= startYear) {
         this.yearForm.controls['startYear'].setErrors({'tooHigh': true});
         return;
@@ -233,6 +269,10 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
         this.projectAreaErrors = error.error;
       });
     })
+  }
+
+  resetAgeGroups(): void {
+    this.__ageGroups = Object.assign([], this.ageGroupDefaults);
   }
 
   ngOnDestroy(): void {

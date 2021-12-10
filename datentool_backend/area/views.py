@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from datentool_backend.utils.views import CanEditBasedataPermission
 
 from .models import (SymbolForm, MapSymbol, LayerGroup, WMSLayer,
                      InternalWFSLayer, Source, AreaLevel, Area)
@@ -8,41 +9,41 @@ from .serializers import (SymbolFormSerializer, MapSymbolsSerializer,
                           AreaLevelSerializer, AreaSerializer)
 
 
-class SymbolFormViewSet(viewsets.ModelViewSet):
+class SymbolFormViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
     queryset = SymbolForm.objects.all()
     serializer_class = SymbolFormSerializer
 
 
-class MapSymbolsViewSet(viewsets.ModelViewSet):
+class MapSymbolsViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
     queryset = MapSymbol.objects.all()
     serializer_class = MapSymbolsSerializer
 
 
-class LayerGroupViewSet(viewsets.ModelViewSet):
+class LayerGroupViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
     queryset = LayerGroup.objects.all()
     serializer_class = LayerGroupSerializer
 
 
-class WMSLayerViewSet(viewsets.ModelViewSet):
+class WMSLayerViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
     queryset = WMSLayer.objects.all()
     serializer_class = WMSLayerSerializer
 
 
-class InternalWFSLayerViewSet(viewsets.ModelViewSet):
+class InternalWFSLayerViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
     queryset = InternalWFSLayer.objects.all()
     serializer_class = InternalWFSLayerSerializer
 
 
-class SourceViewSet(viewsets.ModelViewSet):
+class SourceViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
     queryset = Source.objects.all()
     serializer_class = SourceSerializer
 
 
-class AreaLevelViewSet(viewsets.ModelViewSet):
+class AreaLevelViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
     queryset = AreaLevel.objects.all()
     serializer_class = AreaLevelSerializer
 
 
-class AreaViewSet(viewsets.ModelViewSet):
+class AreaViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
     queryset = Area.objects.all()
     serializer_class = AreaSerializer

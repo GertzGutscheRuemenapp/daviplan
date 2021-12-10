@@ -7,7 +7,7 @@ from datentool_backend.area.tests import _TestAPI
 from .models import (PrognosisEntry, Year, PopulationRaster, AgeGroup,
                      PopulationEntry, PopStatistic, PopStatEntry, DisaggPopRaster,
                      Prognosis, Population)
-from .factories import (RasterCellFactory, AgeGroupFactory, AgeClassificationFactory,
+from .factories import (RasterCellFactory, AgeGroupFactory,
                         GenderFactory, PopulationFactory, DisaggPopRasterFactory,
                         RasterCellPopulationAgeGenderFactory, PrognosisEntryFactory,
                         AreaFactory, PrognosisFactory, PopStatEntryFactory,
@@ -28,7 +28,6 @@ class TestPopulation(TestCase):
         #cls.years = Year.objects.all()
         cls.cell = RasterCellFactory()
         cls.genders = [GenderFactory() for i in range(3)]
-        cls.age_classification = AgeClassificationFactory()
         cls.disagg_popraster = DisaggPopRasterFactory(genders=cls.genders)
 
     def test_cell(self):
@@ -38,14 +37,14 @@ class TestPopulation(TestCase):
         rp = RasterCellPopulationAgeGenderFactory()
         self.assertEqual(rp.cell.raster, rp.disaggraster.popraster.raster)
 
-    def test_age_group(self):
-        """Test the age groups"""
-        from_age = 0
-        for ag in self.age_classification.agegroup_set.all():
-            self.assertEqual(ag.from_age, from_age)
-            self.assertLessEqual(ag.from_age, ag.to_age)
-            from_age = ag.to_age + 1
-        self.assertLessEqual(ag.to_age, 127)
+    #def test_age_group(self):
+        #"""Test the age groups"""
+        #from_age = 0
+        #for ag in self.age_classification.agegroup_set.all():
+            #self.assertEqual(ag.from_age, from_age)
+            #self.assertLessEqual(ag.from_age, ag.to_age)
+            #from_age = ag.to_age + 1
+        #self.assertLessEqual(ag.to_age, 127)
 
     def test_prognosis(self):
         """Test the prognosis"""
@@ -54,20 +53,17 @@ class TestPopulation(TestCase):
         prognosis = PrognosisFactory(years=self.years, raster__genders=self.genders)
         years = prognosis.years.all()
         genders = prognosis.raster.genders.all()
-        agegroups = prognosis.age_classification.agegroup_set.all()
         for year in years:
             for gender in genders:
-                for ag in agegroups:
-                    pe.append(PrognosisEntryFactory.build(prognosis=prognosis,
+                pe.append(PrognosisEntryFactory.build(prognosis=prognosis,
                                                           year=year,
                                                           area=area,
-                                                          gender=gender,
-                                                          agegroup=ag))
+                                                          gender=gender))
 
         PrognosisEntry.objects.bulk_create(pe)
         pe_set = prognosis.prognosisentry_set.all()
         values = np.array(pe_set.values_list('value')).\
-            reshape(len(years), len(genders), len(agegroups))
+            reshape(len(years), len(genders))
         print(values)
 
     def test_popstatistic(self):
@@ -149,10 +145,9 @@ class TestAgeGroupAPI(_TestAPI, BasicModelTest, APITestCase):
     def setUpClass(cls):
         super().setUpClass()
         agegroup: AgeGroup = cls.obj
-        classification = agegroup.classification.pk
+        #classification = agegroup.classification.pk
 
-        data = dict(classification=classification,
-                    from_age=faker.pyint(max_value=127),
+        data = dict(from_age=faker.pyint(max_value=127),
                     to_age=faker.pyint(max_value=127))
         cls.post_data = data
         cls.put_data = data
@@ -188,10 +183,9 @@ class TestPrognosisAPI(_TestAPI, BasicModelTest, APITestCase):
         prognosis: Prognosis = cls.obj
         years = list(prognosis.years.all().values_list(flat=True))
         raster = prognosis.raster.pk
-        age_classification = prognosis.age_classification.pk
 
         data = dict(name=faker.word(), years=years, raster=raster,
-                    age_classification=age_classification, is_default=faker.pybool())
+                    is_default=faker.pybool())
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data

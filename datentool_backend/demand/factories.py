@@ -2,8 +2,7 @@ from faker import Faker
 import factory
 from factory.django import DjangoModelFactory
 from .models import DemandRateSet, DemandRate
-from ..population.factories import (AgeClassificationFactory,
-                                    AgeGroupFactory,
+from ..population.factories import (AgeGroupFactory,
                                     YearFactory)
 
 faker = Faker('de-DE')
@@ -14,7 +13,6 @@ class DemandRateSetFactory(DjangoModelFactory):
         model = DemandRateSet
     name = faker.word()
     is_default = faker.pybool()
-    age_classification = factory.SubFactory(AgeClassificationFactory)
 
 
 class DemandRateFactory(DjangoModelFactory):
