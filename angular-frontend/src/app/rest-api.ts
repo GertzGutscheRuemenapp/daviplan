@@ -12,7 +12,8 @@ export class RestAPI {
     users: `${ this.API_ENDPOINT }/users/`,
     currentUser: `${ this.API_ENDPOINT }/users/current/`,
     settings: `${ this.API_ENDPOINT }/settings/default/`,
-    projectSettings: `${ this.API_ENDPOINT }/projectsettings/`
+    projectSettings: `${ this.API_ENDPOINT }/projectsettings/`,
+    ageGroups: `${ this.API_ENDPOINT }/agegroups/`
   }
   // ToDo: functions with generalized HTTP calls in here
 }

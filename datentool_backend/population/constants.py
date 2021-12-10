@@ -18,7 +18,7 @@ class RegStatAgeGroup:
             return f'unter {self.to_age + 1} Jahre'
         if self.to_age >= self.INF:
             return f'{self.from_age} Jahre und mehr'
-        return f'{self.to_age} bis unter {self.to_age + 1}'
+        return f'{self.from_age} bis unter {self.to_age + 1}'
 
     @property
     def code(self):

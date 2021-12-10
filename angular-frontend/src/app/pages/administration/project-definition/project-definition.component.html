@@ -21,16 +21,24 @@
         </tr>
       </table>
     </app-input-card>
-    <app-input-card [title]="'Altersgruppeneinteilung'"
-                    [editTemplate]="projectSettingsEdit"
+    <app-input-card #ageGroupCard
+                    [title]="'Altersgruppeneinteilung'"
+                    [editTemplate]="ageGroupsEdit"
+                    dialogWidth="450px"
                     infoText="<b><i>ToDo: Hilfetext</i></b>">
       <table>
         <tr>
           <td i18n>Altersgruppen</td>
           <td>
-            0 bis unter 18 <br>
-            18 bis unter 65 <br>
-            65 Jahre und älter
+            <ng-container *ngFor="let ageGroup of ageGroups">
+              <ng-container *ngIf="ageGroup.toAge < 999">
+                {{ageGroup.fromAge}} bis unter {{ageGroup.toAge}} Jahre
+              </ng-container>
+              <ng-container *ngIf="ageGroup.toAge >= 999">
+                {{ageGroup.fromAge}} Jahre und älter
+              </ng-container>
+              <br>
+            </ng-container>
           </td>
         </tr>
       </table>
@@ -60,19 +68,59 @@
     </div>
     <mat-form-field appearance="outline" class="full">
       <mat-label i18n>Startjahr</mat-label>
-      <input matInput type="number" min="1900" max="3000" formControlName="startYear" required/>
+      <input matInput type="number" min="1900" max="3000" formControlName="startYear" required>
       <mat-error *ngIf="yearForm.get('startYear')?.errors?.tooHigh" i18n>Das Startjahr muss vor dem Endjahr liegen</mat-error>
     </mat-form-field>
     <mat-form-field appearance="outline" class="full">
       <mat-label i18n>Endjahr</mat-label>
-      <input matInput type="number" min="1900" max="3000" formControlName="endYear" required/>
+      <input matInput type="number" min="1900" max="3000" formControlName="endYear" required>
     </mat-form-field>
   </form>
 </ng-template>
 
-<ng-template #projectSettingsEdit>
-  Funktionalität für den Prototyp noch nicht hinterlegt.
+<ng-template #ageGroupsEdit>
+  <div class="age-group-container">
+    <div class="age-row" *ngFor="let ageGroup of __ageGroups; let i = index;">
+      <mat-form-field appearance="outline" class="small">
+        <mat-label i18n>von</mat-label>
+        <input matInput type="number"
+               [min]="(i===0)? 0: __ageGroups![i-1].toAge + 1"
+               [max]="ageGroup.toAge - 1"
+               [(ngModel)]="ageGroup.fromAge"
+               required>
+      </mat-form-field>
+      &nbsp;-&nbsp;
+      <mat-form-field appearance="outline" class="small">
+        <mat-label i18n>bis</mat-label>
+        <input matInput type="number"
+               [min]="ageGroup.fromAge + 1"
+               [max]="(i===__ageGroups.length-1)? 999: __ageGroups![i+1].fromAge - 1"
+               [(ngModel)]="ageGroup.toAge"
+               required>
+        <mat-error *ngIf="yearForm.get('startYear')?.errors?.tooHigh" i18n>Das Startjahr muss vor dem Endjahr liegen</mat-error>
+      </mat-form-field>
+      Jahre
+      <button mat-button color="primary"
+              class="mat-button-dv"
+              title="Altersgruppe entfernen"
+              style="margin-left: 5px;">
+        <mat-icon>remove</mat-icon>
+      </button>
+    </div>
+  </div>
+  <button mat-button color="primary"
+          class="mat-button-dv"
+          title="Altersgruppe hinzufügen" i18n>
+    <mat-icon>add</mat-icon>Altersgruppe hinzufügen
+  </button>
+  <button mat-button color="primary"
+          class="mat-button-dv"
+          style="margin: 15px 0px;"
+          (click)="resetAgeGroups()" i18n>
+    <mat-icon>refresh</mat-icon>auf Defaults der Regionalstatistik zurücksetzen
+  </button>
 </ng-template>
+<!--max="{{(i===__ageGroups.length)? 999: }}-->
 
 <ng-template #projectAreaEdit>
   <mat-error *ngFor="let error of projectAreaErrors" class="alert">
