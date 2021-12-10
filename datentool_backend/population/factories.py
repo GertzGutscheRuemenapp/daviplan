@@ -181,6 +181,7 @@ class PrognosisEntryFactory(DjangoModelFactory):
     gender = factory.SubFactory(GenderFactory)
     value = factory.Sequence(lambda n: faker.pyfloat(positive=True))
 
+
 class PopulationFactory(DjangoModelFactory):
     class Meta:
         model = Population

@@ -80,9 +80,8 @@ class PlaceFactory(DjangoModelFactory):
 
     name = faker.unique.word()
     infrastructure = factory.SubFactory(InfrastructureFactory)
-    geom = Point(faker.latlng())
-    attributes = faker.json(num_rows=3, indent=True)
-
+    geom = Point((faker.latlng()[1], faker.latlng()[0]))
+    attributes=faker.json(num_rows=3, indent=True)
 
 class CapacityFactory(DjangoModelFactory):
     """Capacity of an infrastructure for a service"""
