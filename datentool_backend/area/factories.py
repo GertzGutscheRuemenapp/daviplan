@@ -1,7 +1,7 @@
 from faker import Faker
 import factory
 from factory.django import DjangoModelFactory
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import MultiPolygon, Polygon
 from .models import (SymbolForm, MapSymbol, LayerGroup, Layer,
                      WMSLayer, InternalWFSLayer, SourceTypes, Source,
                      AreaLevel, Area)
@@ -80,7 +80,8 @@ class AreaFactory(DjangoModelFactory):
     class Meta:
         model = Area
     area_level = factory.SubFactory(AreaLevelFactory)
-    geom = Point(faker.latlng())
+    geom = MultiPolygon(Polygon(((0, 0), (0, 10), (10, 10), (10, 0), (0, 0))),
+                        Polygon(((20, 20), (20, 30), (30, 30), (30, 20), (20, 20))))
     attributes = faker.json(data_columns={'gen': 'word',
                                           'inhabitants': 'pyint',},
                             num_rows=1)
