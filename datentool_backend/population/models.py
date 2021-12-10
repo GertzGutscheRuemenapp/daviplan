@@ -1,4 +1,3 @@
-from typing import List
 from django.db import models
 from django.contrib.gis.db import models as gis_models
 from django.core.validators import (MaxLengthValidator,
@@ -136,40 +135,3 @@ class PopStatEntry(models.Model):
     births = models.FloatField()
     deaths = models.FloatField()
 
-
-class RegStatAgeGroup:
-    """Agegroup of Regionalstatistik"""
-    def __init__(self,
-                 from_age: int,
-                 to_age: int,
-                 name: str,
-                 regstatcode: str):
-        self.from_age = from_age
-        self.to_age = to_age
-        self.name = name
-        self.regstatcode = regstatcode
-
-
-class RegStatAgeGroups:
-    """Agegroups of Regionalstatistik"""
-    def __init__(self):
-        self.agegroups = [
-            RegStatAgeGroup(0, 2, 'unter 3', 'XYABCSAS'),
-            RegStatAgeGroup(3, 5, '3-5', 'XYABCSAS'),
-            RegStatAgeGroup(6, 9, '6-9', 'XYABCSAS'),
-            RegStatAgeGroup(10, 14, '10-15', 'XYABCSAS'),
-            RegStatAgeGroup(75, 999, 'ab 75', 'XYABCSAS'),
-
-        ]
-
-    def check_agegroups(self, agegroups: List[AgeGroup]):
-        """check if the agegroups are compatible to the regionalstatistik"""
-        if len(agegroups) != len(self.agegroups):
-            return False
-        for i, agegroup in enumerate(agegroups):
-            regstat_agegroup = self.agegroups[i]
-            if age_group.from_age != regstat_agegroup.from_age:
-                return False
-            if age_group.to_age != regstat_agegroup.to_age:
-                return False
-        return True

@@ -8,6 +8,7 @@ from rest_framework import viewsets
 from .models import (Raster, PopulationRaster, Gender, AgeGroup, DisaggPopRaster,
                      Prognosis, PrognosisEntry, Population, PopulationEntry,
                      PopStatistic, PopStatEntry, RasterCell)
+from .constants import RegStatAgeGroups
 from .serializers import (RasterSerializer, PopulationRasterSerializer,
                           GenderSerializer, AgeGroupSerializer,
                           DisaggPopRasterSerializer,PrognosisSerializer,
@@ -24,10 +25,6 @@ class RasterViewSet(viewsets.ModelViewSet):
 class PopulationRasterViewSet(viewsets.ModelViewSet):
     queryset = PopulationRaster.objects.all()
     serializer_class = PopulationRasterSerializer
-
-
-
-
 
 
 #class RasterCellTileViewSet(MVTView, DetailView):
@@ -54,6 +51,12 @@ class GenderViewSet(viewsets.ModelViewSet):
 class AgeGroupViewSet(viewsets.ModelViewSet):
     queryset = AgeGroup.objects.all()
     serializer_class = AgeGroupSerializer
+
+    def list(self, request, *args, **kwargs):
+        show_defaults = request.query_params.get('defaults', False)
+        if (show_defaults):
+            pass
+        return super().list(request, *args, **kwargs)
 
 
 class DisaggPopRasterViewSet(viewsets.ModelViewSet):
