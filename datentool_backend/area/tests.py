@@ -2,6 +2,7 @@ from collections import OrderedDict
 from django.test import TestCase
 from test_plus import APITestCase
 from datentool_backend.api_test import BasicModelTest
+import factory
 
 
 from .factories import (SymbolFormFactory, MapSymbolsFactory,
@@ -36,7 +37,7 @@ class TestAreas(TestCase):
 
 
 class _TestAPI:
-    """"""
+    """test if view and serializer are working correctly """
     url_key = ""
     factory = SymbolFormFactory
 
@@ -48,8 +49,42 @@ class _TestAPI:
         cls.url_pk = dict(pk=cls.obj.pk)
 
 
-class TestSymbolFormAPI(_TestAPI, BasicModelTest, APITestCase):
-    """"""
+class _TestPermissions():
+    """ test users permissions"""
+    def is_logged_in(self):
+        self.client.logout()
+        response = self.get(self.url_key + '-list')
+        self.assert_http_401_unauthorized(response, msg=response.content)
+
+        self.client.force_login(user=self.profile.user)
+        self.test_list()
+        self.test_detail()
+
+    def can_edit_basedata(self):
+        profile = self.profile
+
+        original_permission = profile.can_edit_basedata
+
+        # Testprofile, with permission to edit basedata
+        profile.can_edit_basedata = True
+        profile.save()
+        self.test_post()
+
+        # Testprofile, without permission to edit basedata
+        profile.can_edit_basedata = False
+        profile.save()
+
+        url = self.url_key + '-list'
+        # post
+        response = self.post(url, **self.url_pks, data=self.post_data,
+                                 extra={'format': 'json'})
+        self.response_403(msg=response.content)
+
+        profile.can_edit_basedata = original_permission
+        profile.save()
+
+
+class TestSymbolFormAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     url_key = "symbolforms"
     factory = SymbolFormFactory
 
@@ -60,9 +95,17 @@ class TestSymbolFormAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = dict(name='puttestname')
         cls.patch_data = dict(name='patchtestname')
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-class TestMapSymbolsAPI(_TestAPI, BasicModelTest, APITestCase):
-    """"""
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
+
+
+class TestMapSymbolsAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+    """test if view and serializer are working correctly"""
     url_key = "mapsymbols"
     factory = MapSymbolsFactory
 
@@ -77,23 +120,41 @@ class TestMapSymbolsAPI(_TestAPI, BasicModelTest, APITestCase):
                              stroke_color=faker.color())
         cls.patch_data = dict(symbol=symbol, stroke_color=faker.color())
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-class TestLayerGroupAPI(_TestAPI, BasicModelTest, APITestCase):
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
 
+
+class TestLayerGroupAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+    """test if view and serializer are working correctly"""
     url_key = "layergroups"
     factory = LayerGroupFactory
-
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.post_data = dict(name='posttestname', order=faker.random_int())
-        cls.put_data = dict(name='puttestname', order=faker.random_int())
-        cls.patch_data = dict(name='patchtestname', order=faker.random_int())
+        existing_order = cls.obj.order
+        cls.orders = iter(range(existing_order + 1, 100000))
+
+        cls.post_data = dict(name='posttestname', order=next(cls.orders))
+        cls.put_data = dict(name='puttestname', order=next(cls.orders))
+        cls.patch_data = dict(name='patchtestname', order=next(cls.orders))
+
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
+
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
 
 
-class TestWMSLayerAPI(_TestAPI, BasicModelTest, APITestCase):
-    """api test WMS Layer"""
+class TestWMSLayerAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+    """test if view and serializer are working correctly"""
     url_key = "wmslayers"
     factory = WMSLayerFactory
 
@@ -109,9 +170,17 @@ class TestWMSLayerAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-class TestInternalWFSLayerAPI(_TestAPI, BasicModelTest, APITestCase):
-    """api test Internal WFSLayer"""
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
+
+
+class TestInternalWFSLayerAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+    """test if view and serializer are working correctly"""
     url_key = "internalwfslayers"
     factory = InternalWFSLayerFactory
 
@@ -130,8 +199,16 @@ class TestInternalWFSLayerAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-class TestSourceAPI(_TestAPI, BasicModelTest, APITestCase):
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
+
+
+class TestSourceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """api test Layer"""
     url_key = "sources"
     factory = SourceFactory
@@ -147,8 +224,17 @@ class TestSourceAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-class TestAreaLevelAPI(_TestAPI, BasicModelTest, APITestCase):
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
+
+
+class TestAreaLevelAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+    """test if view and serializer are working correctly"""
     url_key = "arealevels"
     factory = AreaLevelFactory
 
@@ -165,8 +251,17 @@ class TestAreaLevelAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-class TestAreaAPI(_TestAPI, BasicModelTest, APITestCase):
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
+
+
+class TestAreaAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+    """test if view and serializer are working correctly"""
     url_key = "areas"
     factory = AreaFactory
 
@@ -193,5 +288,10 @@ class TestAreaAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = geojson_putpatch
         cls.patch_data = geojson_putpatch
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()

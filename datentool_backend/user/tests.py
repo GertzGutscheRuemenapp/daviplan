@@ -33,14 +33,21 @@ class TestProfile(TestCase):
         self.assertTrue(user2.profile.pk)
 
 
-class TestPlanningProjectAPI(_TestAPI, BasicModelTest, APITestCase):
+class TestPlanningProcessAPI(_TestAPI, BasicModelTest, APITestCase):  # test, if user is none and if user is not owner are missing
     """"""
     url_key = "planningprocesses"
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.user2 = ProfileFactory()  # second user to extend test_project_creation_permission
+        cls.user3 = ProfileFactory()  # third user to extend test_project_creation_permission
+
+        # assign user profiles to planningprocesses, to test permission rights
         cls.obj = PlanningProcessFactory(owner=cls.profile)
+        cls.obj2 = PlanningProcessFactory(owner=cls.profile)
+        cls.obj3 = PlanningProcessFactory(owner=cls.user2)
+
 
         planningprocess: PlanningProcess = cls.obj
         owner = planningprocess.owner.pk
@@ -64,11 +71,15 @@ class TestPlanningProjectAPI(_TestAPI, BasicModelTest, APITestCase):
     @classmethod
     def tearDownClass(cls):
         cls.obj.delete()
+        cls.obj2.delete()
+        cls.obj3.delete()
         del cls.obj
+        del cls.obj2
+        del cls.obj3
         super().tearDownClass()
 
-    def test_project_creation_permission(self):
-        """Test the project creation permission of the profile"""
+    def test_process_creation_permission(self):
+        """Test the process creation permission of the profile"""
         profile = self.profile
 
         original_permission = profile.can_create_process
@@ -99,7 +110,7 @@ class TestScenarioAPI(_TestAPI, BasicModelTest, APITestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.obj = ScenarioFactory(project__owner=cls.profile)
+        cls.obj = ScenarioFactory(planning_process__owner=cls.profile)
 
         scenario: Scenario = cls.obj
         planning_process = scenario.planning_process.pk

@@ -6,7 +6,7 @@ from .models import (DemandRateSet, DemandRate)
 class DemandRateSetSerializer(serializers.ModelSerializer):
     class Meta:
         model = DemandRateSet
-        fields = ('id', 'name', 'is_default', 'age_classification')
+        fields = ('id', 'name', 'is_default')
 
 
 class DemandRateSerializer(serializers.ModelSerializer):

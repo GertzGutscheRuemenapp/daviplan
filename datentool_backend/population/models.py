@@ -35,8 +35,8 @@ class RasterCell(models.Model):
     """a raster cell with geometry"""
     raster = models.ForeignKey(Raster, on_delete=models.RESTRICT)
     cellcode = models.TextField(validators=[MaxLengthValidator(13)])
-    pnt = gis_models.PointField()
-    poly = gis_models.PolygonField()
+    pnt = gis_models.PointField(geography=True)
+    poly = gis_models.PolygonField(geography=True)
 # vector tile
     #objects = models.Manager()
     #vector_tiles = MVTManager(geo_col='poly')
@@ -60,14 +60,8 @@ class Gender(NamedModel, models.Model):
     name = models.TextField()
 
 
-class AgeClassification(NamedModel, models.Model):
-    """an age classification"""
-    name = models.TextField()
-
-
 class AgeGroup(models.Model):
     """an age group in an age classification"""
-    classification = models.ForeignKey(AgeClassification, on_delete=models.RESTRICT)
     from_age = models.IntegerField(validators=[MinValueValidator(0),
                                                MaxValueValidator(127)])
     to_age = models.IntegerField(validators=[MinValueValidator(0),
@@ -96,7 +90,6 @@ class Prognosis(NamedModel, models.Model):
     name = models.TextField()
     years = models.ManyToManyField(Year, blank=True)
     raster = models.ForeignKey(DisaggPopRaster, on_delete=models.RESTRICT)
-    age_classification = models.ForeignKey(AgeClassification, on_delete=models.RESTRICT)
     is_default = models.BooleanField()
 
 
@@ -141,3 +134,4 @@ class PopStatEntry(models.Model):
     emigration = models.FloatField()
     births = models.FloatField()
     deaths = models.FloatField()
+

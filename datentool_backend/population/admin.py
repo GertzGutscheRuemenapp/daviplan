@@ -1,8 +1,7 @@
 from django.forms import ModelForm
 from django.contrib import admin
-from .models import (
-    Year, Raster, PopulationRaster, RasterCell, RasterCellPopulation,
-    Gender, AgeClassification, AgeGroup,
+from .models import (Year, Raster, PopulationRaster, RasterCell, RasterCellPopulation,
+    Gender, AgeGroup,
     DisaggPopRaster, RasterCellPopulationAgeGender,
     Prognosis, PrognosisEntry,
     Population, PopulationEntry,
@@ -42,10 +41,6 @@ class RasterCellPopulationAdmin(admin.ModelAdmin):
 
 
 class GenderAdmin(admin.ModelAdmin):
-    """"""
-
-
-class AgeClassificationAdmin(admin.ModelAdmin):
     """"""
 
 
@@ -90,7 +85,6 @@ admin.site.register(PopulationRaster, PopulationRasterAdmin)
 admin.site.register(RasterCell, RasterAdmin)
 admin.site.register(RasterCellPopulation, RasterCellPopulationAdmin)
 admin.site.register(Gender, GenderAdmin)
-admin.site.register(AgeClassification, AgeClassificationAdmin)
 admin.site.register(AgeGroup, AgeGroupAdmin)
 admin.site.register(DisaggPopRaster, DisaggPopRasterAdmin)
 admin.site.register(RasterCellPopulationAgeGender, RasterCellPopulationAgeGenderAdmin)

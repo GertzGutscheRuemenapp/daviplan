@@ -1,20 +1,23 @@
 from rest_framework import viewsets
+from rest_framework.exceptions import ParseError
+from rest_framework.response import Response
+from rest_framework.decorators import action
 # import for vector-tile functionality
 #from django.views.generic import DetailView
 #from vectortiles.mixins import BaseVectorTileView
 #from django.views.generic import ListView
 #from vectortiles.postgis.views import MVTView
 
-from .models import (Raster, PopulationRaster, Gender, AgeClassification,
-                     AgeGroup, DisaggPopRaster, Prognosis, PrognosisEntry,
-                     Population, PopulationEntry, PopStatistic, PopStatEntry,
-                     RasterCell)
+from .models import (Raster, PopulationRaster, Gender, AgeGroup, DisaggPopRaster,
+                     Prognosis, PrognosisEntry, Population, PopulationEntry,
+                     PopStatistic, PopStatEntry, RasterCell)
+from .constants import RegStatAgeGroups, RegStatAgeGroup
 from .serializers import (RasterSerializer, PopulationRasterSerializer,
-                          GenderSerializer, AgeClassificationSerializer,
-                          AgeGroupSerializer, DisaggPopRasterSerializer,
-                          PrognosisSerializer, PrognosisEntrySerializer,
-                          PopulationSerializer, PopulationEntrySerializer,
-                          PopStatisticSerializer, PopStatEntrySerializer)
+                          GenderSerializer, AgeGroupSerializer,
+                          DisaggPopRasterSerializer,PrognosisSerializer,
+                          PrognosisEntrySerializer, PopulationSerializer,
+                          PopulationEntrySerializer, PopStatisticSerializer,
+                          PopStatEntrySerializer)
 
 
 class RasterViewSet(viewsets.ModelViewSet):
@@ -25,10 +28,6 @@ class RasterViewSet(viewsets.ModelViewSet):
 class PopulationRasterViewSet(viewsets.ModelViewSet):
     queryset = PopulationRaster.objects.all()
     serializer_class = PopulationRasterSerializer
-
-
-
-
 
 
 #class RasterCellTileViewSet(MVTView, DetailView):
@@ -52,14 +51,34 @@ class GenderViewSet(viewsets.ModelViewSet):
     serializer_class = GenderSerializer
 
 
-class AgeClassificationViewSet(viewsets.ModelViewSet):
-    queryset = AgeClassification.objects.all()
-    serializer_class = AgeClassificationSerializer
-
-
 class AgeGroupViewSet(viewsets.ModelViewSet):
     queryset = AgeGroup.objects.all()
     serializer_class = AgeGroupSerializer
+
+    def list(self, request, *args, **kwargs):
+        # return the default age-groups (Regionalstatistik) when query parameter
+        # ?defaults is set to true
+        show_defaults = request.query_params.get('defaults')
+        if show_defaults and show_defaults.lower() == 'true':
+            res = [{'fromAge': a.from_age, 'toAge': a.to_age,
+                    'code': a.code, 'label': a.name}
+                   for a in RegStatAgeGroups.agegroups]
+            return Response(res)
+        return super().list(request, *args, **kwargs)
+
+    @action(methods=['POST'], detail=False)
+    def check(self, request, **kwargs):
+        """
+        route to compare posted age-groups with default age-groups
+        (Regionalstatistik) in any order
+        """
+        try:
+            age_groups = [RegStatAgeGroup(a['fromAge'], a['toAge'])
+                          for a in request.data]
+        except KeyError:
+            raise ParseError()
+        valid = RegStatAgeGroups.check(age_groups)
+        return Response({'valid': valid})
 
 
 class DisaggPopRasterViewSet(viewsets.ModelViewSet):

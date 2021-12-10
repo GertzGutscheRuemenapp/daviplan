@@ -1,9 +1,9 @@
 from rest_framework import serializers
 #from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from .models import (Raster, PopulationRaster, Gender, AgeClassification,
-                     AgeGroup, DisaggPopRaster, Prognosis, PrognosisEntry,
-                     Population, PopulationEntry, PopStatistic, PopStatEntry)
+from .models import (Raster, PopulationRaster, Gender, AgeGroup, DisaggPopRaster,
+                     Prognosis, PrognosisEntry, Population, PopulationEntry,
+                     PopStatistic, PopStatEntry)
 
 
 class RasterSerializer(serializers.ModelSerializer):
@@ -31,16 +31,10 @@ class GenderSerializer(serializers.ModelSerializer):
         fields = ('id', 'name')
 
 
-class AgeClassificationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AgeClassification
-        fields = ('id', 'name')
-
-
 class AgeGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = AgeGroup
-        fields = ('id', 'classification', 'from_age', 'to_age')
+        fields = ('id', 'from_age', 'to_age')
 
 
 class DisaggPopRasterSerializer(serializers.ModelSerializer):
@@ -52,8 +46,7 @@ class DisaggPopRasterSerializer(serializers.ModelSerializer):
 class PrognosisSerializer(serializers.ModelSerializer):
     class Meta:
         model = Prognosis
-        fields = ('id', 'name', 'years', 'raster', 'age_classification',
-                  'is_default')
+        fields = ('id', 'name', 'years', 'raster', 'is_default')
 
 
 class PrognosisEntrySerializer(serializers.ModelSerializer):
