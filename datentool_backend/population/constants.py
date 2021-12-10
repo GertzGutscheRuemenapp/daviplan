@@ -29,7 +29,7 @@ class RegStatAgeGroup:
         return (f'ALT{age_to_str(self.from_age, length=3)}'
                 f'B{age_to_str(self.to_age + 1)}')
 
-    def __eq__(self, other):
+    def __eq__(self, other):  # Union[RegStatAgeGroup, AgeGroup]
         # if other age surpasses custom "infinite" value
         # take the "infinite" value
         to_age = other.to_age if other.to_age <= self.INF else self.INF
@@ -70,11 +70,11 @@ class RegStatAgeGroups:
         if len(agegroups) != len(cls.agegroups):
             return False
         for agegroup in agegroups:
-            found = False;
+            found = False
             for regstat_agegroup in cls.agegroups:
                 if regstat_agegroup == agegroup:
                     found = True
-                    break;
+                    break
             if not found:
                 return False
         return True
