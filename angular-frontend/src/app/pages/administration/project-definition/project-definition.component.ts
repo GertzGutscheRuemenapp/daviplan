@@ -9,10 +9,12 @@ import pointOnSurface from '@turf/point-on-surface';
 import booleanWithin from "@turf/boolean-within";
 import * as turf from '@turf/helpers';
 import { GeoJSON, WKT } from "ol/format";
-import { Profile, User } from "../../login/users";
 import proj4 from 'proj4';
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
+import { FormBuilder, FormGroup } from "@angular/forms";
+import { SiteSettings } from "../../../settings.service";
+import { Observable } from "rxjs";
 
 export interface ProjectSettings {
   projectArea: string,
@@ -35,38 +37,29 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   __projectGeom?: MultiPolygon;
   projectAreaErrors = [];
   projectSettings?: ProjectSettings;
+  yearForm!: FormGroup;
+  Object = Object;
   @ViewChild('areaCard') areaCard!: InputCardComponent;
+  @ViewChild('yearCard') yearCard!: InputCardComponent;
 
-  constructor(private mapService: MapService, private http: HttpClient, private rest: RestAPI) { }
+  constructor(private mapService: MapService, private formBuilder: FormBuilder, private http: HttpClient,
+              private rest: RestAPI) { }
 
   ngAfterViewInit(): void {
     this.setupPreviewMap();
     this.setupAreaCard();
-    this.fetchProjectSettings();
+    this.fetchProjectSettings().subscribe(settings => {
+      this.setupYearCard();
+      this.updatePreviewLayer();
+    });
   }
 
-  fetchProjectSettings(): void {
-    this.http.get<ProjectSettings>(this.rest.URLS.projectSettings).subscribe(projectSettings => {
+  fetchProjectSettings(): Observable<ProjectSettings> {
+    let query = this.http.get<ProjectSettings>(this.rest.URLS.projectSettings);
+    query.subscribe(projectSettings => {
       this.projectSettings = projectSettings;
-      let previewLayer = this.previewMapControl?.map?.getLayer('project-area');
-      if (previewLayer) {
-        const format = new WKT();
-        if (projectSettings.projectArea) {
-          const wktSplit = projectSettings.projectArea.split(';'),
-                epsg = wktSplit[0].replace('SRID=','EPSG:'),
-                wkt = wktSplit[1];
-
-          let feature = format.readFeature(wkt);
-          feature.getGeometry().transform(epsg, `EPSG:${this.previewMapControl?.srid}`);
-          this.projectGeom = feature.getGeometry();
-          const source = previewLayer.getSource();
-          source.clear();
-          source.addFeature(feature);
-          if (this.projectGeom?.getArea())
-            this.previewMapControl?.map?.centerOnLayer('project-area');
-        }
-      }
     })
+    return query;
   }
 
   setupPreviewMap(): void {
@@ -74,14 +67,75 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     this.previewMapControl.setBackground(this.previewMapControl.getBackgroundLayers()[0].id);
     this.previewMapControl.map?.addVectorLayer('project-area',{
       visible: true,
-      stroke: { color: 'orange' },
-      fill: { color: 'yellow' },
-      opacity: 0.5
+      stroke: { color: 'red', width: 3 },
+      fill: { color: 'rgba(255, 255, 0, 0.5)' }
     });
   }
 
+  setupYearCard(): void {
+    this.yearForm = this.formBuilder.group({
+      startYear: this.projectSettings!.startYear,
+      endYear: this.projectSettings!.endYear
+    });
+
+    this.yearCard.dialogConfirmed.subscribe(()=>{
+      this.yearForm.setErrors(null);
+      this.yearForm.markAllAsTouched();
+      if (this.yearForm.invalid) return;
+      const startYear = this.yearForm.value.startYear,
+            endYear = this.yearForm.value.endYear;
+      if (endYear <= startYear) {
+        this.yearForm.controls['startYear'].setErrors({'tooHigh': true});
+        return;
+      }
+      let attributes: any = {
+        startYear: startYear,
+        endYear: endYear
+      }
+      this.yearCard.setLoading(true);
+      this.http.patch<ProjectSettings>(this.rest.URLS.projectSettings, attributes
+      ).subscribe(settings => {
+        this.yearCard.closeDialog(true);
+        this.projectSettings = settings;
+      },(error) => {
+        // ToDo: set specific errors to fields
+        this.yearForm.setErrors(error.error);
+        this.yearCard.setLoading(false);
+      });
+    })
+    this.yearCard.dialogClosed.subscribe((ok)=>{
+      // reset form on cancel
+      if (!ok){
+        this.yearForm.reset({
+          startYear: this.projectSettings!.startYear,
+          endYear: this.projectSettings!.endYear
+        });
+      }
+    })
+  }
+
+  updatePreviewLayer(){
+    let previewLayer = this.previewMapControl?.map?.getLayer('project-area');
+    if (previewLayer) {
+      const format = new WKT();
+      if (this.projectSettings!.projectArea) {
+        const wktSplit = this.projectSettings!.projectArea.split(';'),
+          epsg = wktSplit[0].replace('SRID=','EPSG:'),
+          wkt = wktSplit[1];
+
+        let feature = format.readFeature(wkt);
+        feature.getGeometry().transform(epsg, `EPSG:${this.previewMapControl?.srid}`);
+        this.projectGeom = feature.getGeometry();
+        const source = previewLayer.getSource();
+        source.clear();
+        source.addFeature(feature);
+        if (this.projectGeom?.getArea())
+          this.previewMapControl?.map?.centerOnLayer('project-area');
+      }
+    }
+  }
+
   setupAreaCard(): void {
-    const _this = this;
     this.areaCard.dialogOpened.subscribe(x => {
       this.projectAreaErrors = [];
       this.areaCard.setLoading(true);
@@ -89,7 +143,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       this.areaSelectMapControl.setBackground(this.areaSelectMapControl.getBackgroundLayers()[0].id)
 
       let projectLayer = this.areaSelectMapControl.map?.addVectorLayer('project-area', {
-        stroke: { color: 'red', width: 5 },
+        stroke: { color: 'red', width: 3 },
         visible: true
       });
       let projectArea = new Feature(this.projectGeom);
@@ -171,9 +225,10 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       let wkt = this.__projectGeom? `SRID=${this.areaSelectMapControl?.srid};` + format.writeGeometry(this.__projectGeom) : null
       this.http.patch<ProjectSettings>(`${this.rest.URLS.projectSettings}`,
         { projectArea: wkt }
-      ).subscribe(data => {
+      ).subscribe(settings => {
         this.areaCard?.closeDialog(true);
-        this.fetchProjectSettings();
+        this.projectSettings = settings;
+        this.updatePreviewLayer();
       },(error) => {
         this.projectAreaErrors = error.error;
       });
