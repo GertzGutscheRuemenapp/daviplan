@@ -1,5 +1,6 @@
-from typing import List
+from typing import List, Union
 from .models import AgeGroup
+
 
 class RegStatAgeGroup:
     """Agegroup of Regionalstatistik"""
@@ -25,7 +26,17 @@ class RegStatAgeGroup:
             return str(age).rjust(length, '0')
         if self.to_age >= self.INF:
             return f'ALT{age_to_str(self.from_age, length=3)}UM'
-        return f'ALT{age_to_str(self.from_age, length=3)}B{age_to_str(self.to_age + 1)}'
+        return (f'ALT{age_to_str(self.from_age, length=3)}'
+                f'B{age_to_str(self.to_age + 1)}')
+
+    def __eq__(self, other):
+        # if other age surpasses custom "infinite" value
+        # take the "infinite" value
+        to_age = other.to_age if other.to_age <= self.INF else self.INF
+        return self.from_age == other.from_age and self.to_age == to_age
+
+    def __ne__(self, other):
+        return not self == other
 
 
 class RegStatAgeGroups:
@@ -50,14 +61,20 @@ class RegStatAgeGroups:
         RegStatAgeGroup(75, RegStatAgeGroup.INF)
     ]
 
-    def check_agegroups(self, agegroups: List[AgeGroup]):
-        """check if the agegroups are compatible to the regionalstatistik"""
-        if len(agegroups) != len(self.agegroups):
+    @classmethod
+    def check(cls, agegroups: List[AgeGroup]):
+        """
+        check if the agegroups are compatible to the regionalstatistik
+        in any order
+        """
+        if len(agegroups) != len(cls.agegroups):
             return False
-        for i, agegroup in enumerate(agegroups):
-            regstat_agegroup = self.agegroups[i]
-            if age_group.from_age != regstat_agegroup.from_age:
-                return False
-            if age_group.to_age != regstat_agegroup.to_age:
+        for agegroup in agegroups:
+            found = False;
+            for regstat_agegroup in cls.agegroups:
+                if regstat_agegroup == agegroup:
+                    found = True
+                    break;
+            if not found:
                 return False
         return True
