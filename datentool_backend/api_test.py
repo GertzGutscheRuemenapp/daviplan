@@ -150,6 +150,8 @@ class BasicModelPutPatchTest:
     """Test Put and Patch"""
     put_data = dict()
     patch_data = dict()
+    expected_put_data = dict()
+    expected_patch_data = dict()
 
     def test_put_patch(self):
         """Test get, put, patch methods for the detail-view"""
@@ -174,7 +176,7 @@ class BasicModelPutPatchTest:
             if key not in response.data.keys() or key in self.do_not_check:
                 continue
             response_value = response.data[key]
-            expected = self.put_data[key]
+            expected = self.expected_put_data.get(key, self.put_data[key])
             self.assert_response_equals_expected(response_value, expected)
 
         # check status code for patch
@@ -188,7 +190,7 @@ class BasicModelPutPatchTest:
             if key not in response.data.keys() or key in self.do_not_check:
                 continue
             response_value = response.data[key]
-            expected = self.patch_data[key]
+            expected = self.expected_patch_data.get(key, self.patch_data[key])
             self.assert_response_equals_expected(response_value, expected)
 
 
