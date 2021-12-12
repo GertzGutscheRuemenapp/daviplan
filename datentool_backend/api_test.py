@@ -197,6 +197,7 @@ class BasicModelPutPatchTest:
 class BasicModelPostDeleteTest:
     post_urls = []
     post_data = dict()
+    expected_post_data = dict()
 
     def test_delete(self):
         """Test delete method for the detail-view"""
@@ -222,7 +223,7 @@ class BasicModelPostDeleteTest:
             if key not in response.data.keys() or key in self.do_not_check:
                 continue
             response_value = response.data[key]
-            expected = self.post_data[key]
+            expected = self.expected_post_data.get(key, self.post_data[key])
             self.assert_response_equals_expected(response_value, expected)
 
         # get the created object
