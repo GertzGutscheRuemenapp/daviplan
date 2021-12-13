@@ -1,10 +1,10 @@
 from rest_framework import serializers
-from rest_framework_gis.serializers import GeoFeatureModelSerializer
-
 from .models import SiteSetting, ProjectSetting, BaseDataSetting
+from datentool_backend.utils.geograpy_fields import MultiPolygonGeographyField
 
 
 class ProjectSettingSerializer(serializers.ModelSerializer):
+    project_area = MultiPolygonGeographyField()
     class Meta:
         model = ProjectSetting
         fields = ('project_area', 'start_year', 'end_year')

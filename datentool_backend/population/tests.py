@@ -2,10 +2,10 @@ import numpy as np
 from django.test import TestCase
 from test_plus import APITestCase
 from datentool_backend.api_test import BasicModelTest
-from datentool_backend.area.tests import _TestAPI
+from datentool_backend.area.tests import (_TestAPI, _TestPermissions)
 
-from .models import (PrognosisEntry, Year, PopulationRaster, AgeGroup,
-                     PopulationEntry, PopStatistic, PopStatEntry, DisaggPopRaster,
+from .models import (PrognosisEntry, Year, PopulationRaster, PopulationEntry,
+                     PopStatistic, PopStatEntry, DisaggPopRaster,
                      Prognosis, Population)
 from .factories import (RasterCellFactory, AgeGroupFactory,
                         GenderFactory, PopulationFactory, DisaggPopRasterFactory,
@@ -51,19 +51,22 @@ class TestPopulation(TestCase):
         pe = list()
         area = AreaFactory()
         prognosis = PrognosisFactory(years=self.years, raster__genders=self.genders)
+        agegroups = [AgeGroupFactory(), AgeGroupFactory(), AgeGroupFactory()]
         years = prognosis.years.all()
         genders = prognosis.raster.genders.all()
-        for year in years:
-            for gender in genders:
-                pe.append(PrognosisEntryFactory.build(prognosis=prognosis,
+        for agegroup in agegroups:
+            for year in years:
+                for gender in genders:
+                    pe.append(PrognosisEntryFactory.build(prognosis=prognosis,
                                                           year=year,
                                                           area=area,
+                                                          agegroup=agegroup,
                                                           gender=gender))
 
         PrognosisEntry.objects.bulk_create(pe)
         pe_set = prognosis.prognosisentry_set.all()
         values = np.array(pe_set.values_list('value')).\
-            reshape(len(years), len(genders))
+            reshape(len(agegroups), len(years), len(genders))
         print(values)
 
     def test_popstatistic(self):
@@ -76,7 +79,7 @@ class TestPopulation(TestCase):
             pop.genders.all(), self.genders, ordered=False)
 
 
-class TestRasterAPI(_TestAPI, BasicModelTest, APITestCase):
+class TestRasterAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "rasters"
     factory = RasterFactory
@@ -89,8 +92,16 @@ class TestRasterAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = dict(name=faker.word())
         cls.patch_data = dict(name=faker.word())
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-class TestPopulationRasterAPI(_TestAPI, BasicModelTest, APITestCase):
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
+
+
+class TestPopulationRasterAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "populationrasters"
     factory = PopulationRasterFactory
@@ -107,8 +118,16 @@ class TestPopulationRasterAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-class TestGenderAPI(_TestAPI, BasicModelTest, APITestCase):
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
+
+
+class TestGenderAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "gender"
     factory = GenderFactory
@@ -121,22 +140,16 @@ class TestGenderAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = dict(name=faker.word())
         cls.patch_data = dict(name=faker.word())
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-#class TestAgeClassificationAPI(_TestAPI, BasicModelTest, APITestCase):
-    #""""""
-    #url_key = "ageclassifications"
-    #factory = AgeClassificationFactory
-
-    #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
-
-        #cls.post_data = dict(name=faker.word())
-        #cls.put_data = dict(name=faker.word())
-        #cls.patch_data = dict(name=faker.word())
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
 
 
-class TestAgeGroupAPI(_TestAPI, BasicModelTest, APITestCase):
+class TestAgeGroupAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "agegroups"
     factory = AgeGroupFactory
@@ -144,7 +157,7 @@ class TestAgeGroupAPI(_TestAPI, BasicModelTest, APITestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        agegroup: AgeGroup = cls.obj
+        #agegroup: AgeGroup = cls.obj
         #classification = agegroup.classification.pk
 
         data = dict(from_age=faker.pyint(max_value=127),
@@ -153,8 +166,16 @@ class TestAgeGroupAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-class TestDisaggPopRasterAPI(_TestAPI, BasicModelTest, APITestCase):
+    def test_admin_access(self):
+        """write permission if user has admin_access"""
+        super().admin_access()
+
+
+class TestDisaggPopRasterAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "disaggpoprasters"
     factory = DisaggPopRasterFactory
@@ -171,8 +192,16 @@ class TestDisaggPopRasterAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-class TestPrognosisAPI(_TestAPI, BasicModelTest, APITestCase):
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
+
+
+class TestPrognosisAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "prognoses"
     factory = PrognosisFactory
@@ -190,8 +219,16 @@ class TestPrognosisAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-class TestPrognosisEntryAPI(_TestAPI, BasicModelTest, APITestCase):
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
+
+
+class TestPrognosisEntryAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "prognosisentries"
     factory = PrognosisEntryFactory
@@ -212,8 +249,16 @@ class TestPrognosisEntryAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-class TestPopulationAPI(_TestAPI, BasicModelTest, APITestCase):
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
+
+
+class TestPopulationAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "populations"
     factory = PopulationFactory
@@ -233,6 +278,14 @@ class TestPopulationAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
+
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
+
 
 #class TestPopulationEntryAPI(_TestAPI, BasicModelTest, APITestCase):
     #""""""
@@ -247,14 +300,17 @@ class TestPopulationAPI(_TestAPI, BasicModelTest, APITestCase):
         #area = populationentry.area.pk
         #gender = populationentry.gender.pk
 
-        #data = dict(population=population, area=area, gender=gender,
-                    #age=faker.pyint(max_value=127), value=faker.pyfloat(positive=True))
+        #data = dict(population=population,
+                    #area=area,
+                    #gender=gender,
+                    #age=faker.pyint(max_value=127),
+                    #value=faker.pyfloat(positive=True))
         #cls.post_data = data
         #cls.put_data = data
         #cls.patch_data = data
 
 
-class TestPopStatisticAPI(_TestAPI, BasicModelTest, APITestCase):
+class TestPopStatisticAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "popstatistics"
     factory = PopStatisticFactory
@@ -269,8 +325,16 @@ class TestPopStatisticAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = dict(year=year)
         cls.patch_data = dict(year=year)
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-class TestPopStatEntryAPI(_TestAPI, BasicModelTest, APITestCase):
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
+
+
+class TestPopStatEntryAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "popstatentries"
     factory = PopStatEntryFactory
@@ -291,3 +355,11 @@ class TestPopStatEntryAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
+
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
+
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()

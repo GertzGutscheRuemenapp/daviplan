@@ -8,7 +8,7 @@ from django.db.models.query import QuerySet
 
 from datentool_backend.user.factories import ProfileFactory
 from django.contrib.auth.models import Permission
-from datentool_backend.rest_urls import router
+from datentool_backend.rest_urls import urlpatterns
 
 
 class CompareAbsURIMixin:
@@ -71,7 +71,7 @@ class LoginTestCase:
         super().tearDownClass()
 
 
-class BasicModelReadTest(LoginTestCase, CompareAbsURIMixin):
+class BasicModelDetailTest(LoginTestCase, CompareAbsURIMixin):
     baseurl = 'http://testserver'
     url_key = ""
     sub_urls = []
@@ -79,17 +79,16 @@ class BasicModelReadTest(LoginTestCase, CompareAbsURIMixin):
     url_pk = dict()
     do_not_check = []
 
-    def test_list(self):
-        """Test that the list view can be returned successfully"""
-        self.get_check_200(self.url_key + '-list', **self.url_pks)
+    @property
+    def kwargs(self):
+        return {**self.url_pks, 'pk': self.obj.pk}
 
     def test_detail(self):
         """Test get, put, patch methods for the detail-view"""
         url = self.url_key + '-detail'
-        kwargs = {**self.url_pks, 'pk': self.obj.pk}
 
         # test get
-        response = self.get_check_200(url, **kwargs)
+        response = self.get_check_200(url, **self.kwargs)
         assert response.data['id'] == self.obj.pk
 
     def assert_response_equals_expected(self, response_value, expected):
@@ -113,6 +112,32 @@ class BasicModelReadTest(LoginTestCase, CompareAbsURIMixin):
         else:
             self.assertEqual(force_str(response_value), force_str(expected))
 
+    def get_check_200(self, url, **kwargs):
+        assert url in [r.name for r in urlpatterns], f'URL {url} not in routes'
+        response = self.get(url, **kwargs)
+        self.response_200(response, msg=response.content)
+        return response
+
+
+class SingletonRoute:
+    """"""
+    @property
+    def kwargs(self):
+        return {**self.url_pks}
+
+    def test_detail(self):
+        """Test get, put, patch methods for the detail-view"""
+        url = self.url_key + '-detail'
+
+        # test get
+        response = self.get_check_200(url, **self.kwargs)
+
+
+class BasicModelReadTest(BasicModelDetailTest):
+    def test_list(self):
+        """Test that the list view can be returned successfully"""
+        self.get_check_200(self.url_key + '-list', **self.url_pks)
+
     def test_get_urls(self):
         """get all sub-elements of a list of urls"""
         url = self.url_key + '-detail'
@@ -120,22 +145,63 @@ class BasicModelReadTest(LoginTestCase, CompareAbsURIMixin):
         for key in self.sub_urls:
             key_response = self.get_check_200(response.data[key])
 
-    def get_check_200(self, url, **kwargs):
-        assert url in [r.name for r in router.urls], f'URL {url} not in routes'
-        response = self.get(url, **kwargs)
-        self.response_200(response, msg=response.content)
-        return response
 
-
-class BasicModelTest(BasicModelReadTest):
-    post_urls = []
-    post_data = dict()
+class BasicModelPutPatchTest:
+    """Test Put and Patch"""
     put_data = dict()
     patch_data = dict()
+    expected_put_data = dict()
+    expected_patch_data = dict()
+
+    def test_put_patch(self):
+        """Test get, put, patch methods for the detail-view"""
+        url = self.url_key + '-detail'
+        kwargs = self.kwargs
+        formatjson = dict(format='json')
+
+        # test get
+        response = self.get_check_200(url, **kwargs)
+        if 'id' in response.data:
+            assert response.data['id'] == self.obj.pk
+
+        # check status code for put
+        response = self.put(url, **kwargs,
+                            data=self.put_data,
+                            extra=formatjson)
+        self.response_200(msg=response.content)
+        assert response.status_code == status.HTTP_200_OK
+        # check if values have changed
+        response = self.get_check_200(url, **kwargs)
+        for key in self.put_data:
+            if key not in response.data.keys() or key in self.do_not_check:
+                continue
+            response_value = response.data[key]
+            expected = self.expected_put_data.get(key, self.put_data[key])
+            self.assert_response_equals_expected(response_value, expected)
+
+        # check status code for patch
+        response = self.patch(url, **kwargs,
+                              data=self.patch_data, extra=formatjson)
+        self.response_200(msg=response.content)
+
+        # check if name has changed
+        response = self.get_check_200(url, **kwargs)
+        for key in self.patch_data:
+            if key not in response.data.keys() or key in self.do_not_check:
+                continue
+            response_value = response.data[key]
+            expected = self.expected_patch_data.get(key, self.patch_data[key])
+            self.assert_response_equals_expected(response_value, expected)
+
+
+class BasicModelPostDeleteTest:
+    post_urls = []
+    post_data = dict()
+    expected_post_data = dict()
 
     def test_delete(self):
         """Test delete method for the detail-view"""
-        kwargs = {**self.url_pks, 'pk': self.obj.pk, }
+        kwargs = self.kwargs
         url = self.url_key + '-detail'
         response = self.get_check_200(url, **kwargs)
 
@@ -157,7 +223,7 @@ class BasicModelTest(BasicModelReadTest):
             if key not in response.data.keys() or key in self.do_not_check:
                 continue
             response_value = response.data[key]
-            expected = self.post_data[key]
+            expected = self.expected_post_data.get(key, self.post_data[key])
             self.assert_response_equals_expected(response_value, expected)
 
         # get the created object
@@ -172,44 +238,17 @@ class BasicModelTest(BasicModelReadTest):
         for url in self.post_urls:
             response = self.get_check_200(url)
 
-    def test_put_patch(self):
-        """Test get, put, patch methods for the detail-view"""
-        url = self.url_key + '-detail'
-        kwargs = {**self.url_pks, 'pk': self.obj.pk, }
-        formatjson = dict(format='json')
 
-        # test get
-        response = self.get_check_200(url, **kwargs)
-        assert response.data['id'] == self.obj.pk
+class BasicModelTest(BasicModelPutPatchTest,
+                     BasicModelPostDeleteTest,
+                     BasicModelReadTest):
+    """Tests all REST Methods"""
 
-        # check status code for put
-        response = self.put(url, **kwargs,
-                            data=self.put_data,
-                            extra=formatjson)
-        self.response_200(msg=response.content)
-        assert response.status_code == status.HTTP_200_OK
-        # check if values have changed
-        response = self.get_check_200(url, **kwargs)
-        for key in self.put_data:
-            if key not in response.data.keys() or key in self.do_not_check:
-                continue
-            response_value = response.data[key]
-            expected = self.put_data[key]
-            self.assert_response_equals_expected(response_value, expected)
 
-        # check status code for patch
-        response = self.patch(url, **kwargs,
-                              data=self.patch_data, extra=formatjson)
-        self.response_200(msg=response.content)
-
-        # check if name has changed
-        response = self.get_check_200(url, **kwargs)
-        for key in self.patch_data:
-            if key not in response.data.keys() or key in self.do_not_check:
-                continue
-            response_value = response.data[key]
-            expected = self.patch_data[key]
-            self.assert_response_equals_expected(response_value, expected)
+class BasicModelSingletonTest(SingletonRoute,
+                              BasicModelPutPatchTest,
+                              BasicModelDetailTest):
+    """Tests Get-Detail, Put and Patch Methods"""
 
 
 class BasicModelReadPermissionTest(BasicModelReadTest):

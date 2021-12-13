@@ -45,10 +45,9 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         return super().update(instance, validated_data)
 
 
-class PlanningProcessSerializer(GeoFeatureModelSerializer):
+class PlanningProcessSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlanningProcess
-        geo_field = 'map_section'
         fields = ('id', 'name', 'owner', 'users', 'allow_shared_change')
 
 
