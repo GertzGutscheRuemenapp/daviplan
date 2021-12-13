@@ -51,7 +51,7 @@ class TestInfrastructure(TestCase):
         print(place_field)
 
 
-class TestInfrastructureAPI(_TestAPI, BasicModelTest, APITestCase):
+class TestInfrastructureAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "infrastructures"
     factory = InfrastructureFactory
@@ -80,6 +80,14 @@ class TestInfrastructureAPI(_TestAPI, BasicModelTest, APITestCase):
         patch_data2['accessible_by'] = []
         self.patch_data = patch_data2
         super().test_put_patch()
+
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
+
+    def test_admin_access(self):
+        """write permission if user has admin_access"""
+        super().admin_access()
 
 
 class TestQuotaAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):

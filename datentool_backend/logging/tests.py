@@ -1,6 +1,6 @@
 from django.test import TestCase
 from test_plus import APITestCase
-from datentool_backend.api_test import BasicModelTest
+from datentool_backend.api_test import BasicModelReadTest
 from datentool_backend.area.tests import _TestAPI
 
 from .factories import (CapacityUploadLogFactory, PlaceUploadLogFactory,
@@ -31,59 +31,20 @@ class TestLogs(TestCase):
         log = AreaUploadLogFactory()
 
 
-class TestCapacityUploadLogAPI(_TestAPI, BasicModelTest, APITestCase):
+class TestCapacityUploadLogAPI(_TestAPI, BasicModelReadTest, APITestCase):
     """"""
     url_key = "capacityuploadlogs"
     factory = CapacityUploadLogFactory
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        capacityuploadlog: CapacityUploadLog = cls.obj
-        service = capacityuploadlog.service.pk
-        user = capacityuploadlog.user.pk
 
-        data = dict(user=user, date = faker.date(), text = faker.sentence(),
-                    service=service)
-        cls.post_data = data
-        cls.put_data = data
-        cls.patch_data = data
-
-
-class TestPlaceUploadLogAPI(_TestAPI, BasicModelTest, APITestCase):
+class TestPlaceUploadLogAPI(_TestAPI, BasicModelReadTest, APITestCase):
     """"""
     url_key = "placeuploadlogs"
     factory = PlaceUploadLogFactory
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        placeuploadlog: PlaceUploadLog = cls.obj
-        infrastructure = placeuploadlog.infrastructure.pk
-        user = placeuploadlog.user.pk
 
-        data = dict(user=user, date = faker.date(), text = faker.sentence(),
-                    infrastructure=infrastructure)
-        cls.post_data = data
-        cls.put_data = data
-        cls.patch_data = data
-
-
-class TestAreaUploadLogAPI(_TestAPI, BasicModelTest, APITestCase):
+class TestAreaUploadLogAPI(_TestAPI, BasicModelReadTest, APITestCase):
     """"""
     url_key = "areauploadlogs"
     factory = AreaUploadLogFactory
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        areauploadlog: AreaUploadLog = cls.obj
-        level = areauploadlog.level.pk
-        user = areauploadlog.user.pk
-
-        data = dict(user=user, date = faker.date(), text = faker.sentence(),
-                    level=level)
-        cls.post_data = data
-        cls.put_data = data
-        cls.patch_data = data
 

@@ -2,10 +2,10 @@ import numpy as np
 from django.test import TestCase
 from test_plus import APITestCase
 from datentool_backend.api_test import BasicModelTest
-from datentool_backend.area.tests import _TestAPI, _TestPermissions
+from datentool_backend.area.tests import (_TestAPI, _TestPermissions)
 
-from .models import (PrognosisEntry, Year, PopulationRaster, AgeGroup,
-                     PopulationEntry, PopStatistic, PopStatEntry, DisaggPopRaster,
+from .models import (PrognosisEntry, Year, PopulationRaster, PopulationEntry,
+                     PopStatistic, PopStatEntry, DisaggPopRaster,
                      Prognosis, Population)
 from .factories import (RasterCellFactory, AgeGroupFactory,
                         GenderFactory, PopulationFactory, DisaggPopRasterFactory,
@@ -149,7 +149,7 @@ class TestGenderAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         super().can_edit_basedata()
 
 
-class TestAgeGroupAPI(_TestAPI, BasicModelTest, APITestCase):
+class TestAgeGroupAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "agegroups"
     factory = AgeGroupFactory
@@ -157,7 +157,7 @@ class TestAgeGroupAPI(_TestAPI, BasicModelTest, APITestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        agegroup: AgeGroup = cls.obj
+        #agegroup: AgeGroup = cls.obj
         #classification = agegroup.classification.pk
 
         data = dict(from_age=faker.pyint(max_value=127),
@@ -165,6 +165,14 @@ class TestAgeGroupAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
+
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
+
+    def test_admin_access(self):
+        """write permission if user has admin_access"""
+        super().admin_access()
 
 
 class TestDisaggPopRasterAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
@@ -278,6 +286,7 @@ class TestPopulationAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase)
         """ write permission """
         super().can_edit_basedata()
 
+
 #class TestPopulationEntryAPI(_TestAPI, BasicModelTest, APITestCase):
     #""""""
     #url_key = "populationentries"
@@ -291,8 +300,11 @@ class TestPopulationAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase)
         #area = populationentry.area.pk
         #gender = populationentry.gender.pk
 
-        #data = dict(population=population, area=area, gender=gender,
-                    #age=faker.pyint(max_value=127), value=faker.pyfloat(positive=True))
+        #data = dict(population=population,
+                    #area=area,
+                    #gender=gender,
+                    #age=faker.pyint(max_value=127),
+                    #value=faker.pyfloat(positive=True))
         #cls.post_data = data
         #cls.put_data = data
         #cls.patch_data = data

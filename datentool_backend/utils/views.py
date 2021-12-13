@@ -461,5 +461,13 @@ class HasAdminAccessPermission(UserPassesTestMixin):
     """Has admin access (Read or write)"""
 
     def test_func(self):
-        return self.request.user.profile.admin_access
+        return (self.request.user.pk is not None
+                and self.request.user.profile.admin_access)
 
+
+#class ReadOnlyEditBasedataAdminAccess(UserPassesTestMixin):
+    #"""no write permission, user with can edit_basedata and admin_access read_only"""
+
+    #def test_func(self):
+        #if self.request.method in ('GET'):
+            #return self.request.user

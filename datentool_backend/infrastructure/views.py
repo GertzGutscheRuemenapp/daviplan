@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-from datentool_backend.utils.views import CanEditBasedataPermission
+from datentool_backend.utils.views import CanEditBasedataPermission, HasAdminAccessPermission
 from .models import (Infrastructure, FieldType, Service, Quota, Place, Capacity,
                      PlaceField, FClass)
 from .serializers import (InfrastructureSerializer, FieldTypeSerializer,
@@ -8,7 +8,7 @@ from .serializers import (InfrastructureSerializer, FieldTypeSerializer,
                           FClassSerializer)
 
 
-class InfrastructureViewSet(viewsets.ModelViewSet):
+class InfrastructureViewSet(HasAdminAccessPermission, viewsets.ModelViewSet):
     queryset = Infrastructure.objects.all()
     serializer_class = InfrastructureSerializer
 

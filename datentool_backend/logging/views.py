@@ -5,16 +5,16 @@ from .serializers import (CapacityUploadLogSerializer, PlaceUploadLogSerializer,
                           AreaUploadLogSerializer)
 
 
-class CapacityUploadLogViewSet(viewsets.ModelViewSet):
+class CapacityUploadLogViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CapacityUploadLog.objects.all()
     serializer_class = CapacityUploadLogSerializer
 
 
-class PlaceUploadLogViewSet(viewsets.ModelViewSet):
+class PlaceUploadLogViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = PlaceUploadLog.objects.all()
     serializer_class = PlaceUploadLogSerializer
 
 
-class AreaUploadLogViewSet(viewsets.ModelViewSet):
+class AreaUploadLogViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = AreaUploadLog.objects.all()
     serializer_class = AreaUploadLogSerializer

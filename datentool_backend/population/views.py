@@ -7,7 +7,8 @@ from rest_framework.decorators import action
 #from vectortiles.mixins import BaseVectorTileView
 #from django.views.generic import ListView
 #from vectortiles.postgis.views import MVTView
-from datentool_backend.utils.views import CanEditBasedataPermission
+from datentool_backend.utils.views import (CanEditBasedataPermission,
+                                           HasAdminAccessPermission)
 from .models import (Raster, PopulationRaster, Gender, AgeGroup, DisaggPopRaster,
                      Prognosis, PrognosisEntry, Population, PopulationEntry,
                      PopStatistic, PopStatEntry, RasterCell)
@@ -51,7 +52,7 @@ class GenderViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
     serializer_class = GenderSerializer
 
 
-class AgeGroupViewSet(viewsets.ModelViewSet):
+class AgeGroupViewSet(HasAdminAccessPermission, viewsets.ModelViewSet):
     queryset = AgeGroup.objects.all()
     serializer_class = AgeGroupSerializer
 
