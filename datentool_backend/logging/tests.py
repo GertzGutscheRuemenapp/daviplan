@@ -46,7 +46,7 @@ class _TestReadOnly():
         # post
         response = self.post(url, **self.url_pks, data=self.post_data,
                                  extra={'format': 'json'})
-        self.response_405(msg=response.content)
+        self.response_403(msg=response.content)
 
         # Testprofile, without permission to edit basedata
         profile.can_edit_basedata = False
@@ -56,7 +56,7 @@ class _TestReadOnly():
         # post
         response = self.post(url, **self.url_pks, data=self.post_data,
                                  extra={'format': 'json'})
-        self.response_405(msg=response.content)
+        self.response_403(msg=response.content)
 
         profile.can_edit_basedata = original_permission
         profile.save()
@@ -74,7 +74,7 @@ class _TestReadOnly():
         # post
         response = self.post(url, **self.url_pks, data=self.post_data,
                                  extra={'format': 'json'})
-        self.response_405(msg=response.content)
+        self.response_403(msg=response.content)
 
         # Testprofile, without admin_acces
         profile.admin_access = False
@@ -84,7 +84,7 @@ class _TestReadOnly():
         # post
         response = self.post(url, **self.url_pks, data=self.post_data,
                                  extra={'format': 'json'})
-        self.response_405(msg=response.content)
+        self.response_403(msg=response.content)
 
         profile.admin_access = original_permission
         profile.save()
