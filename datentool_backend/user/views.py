@@ -2,12 +2,15 @@ from rest_framework import viewsets
 from django.db.models import Q
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.auth.models import User
-from datentool_backend.utils.views import HasAdminAccessPermission
-from .serializers import UserSerializer, PlanningProcessSerializer, ScenarioSerializer
+from datentool_backend.utils.views import (HasAdminAccessPermission,
+                                           HasAdminAccessOrReadOnly)
+from .serializers import (UserSerializer, PlanningProcessSerializer,
+                          ScenarioSerializer)
 from .models import PlanningProcess, Scenario
 
 
 class UserViewSet(HasAdminAccessPermission, viewsets.ModelViewSet):
+    permission_classes = [HasAdminAccessOrReadOnly]
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
