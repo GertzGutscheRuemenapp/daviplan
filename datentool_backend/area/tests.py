@@ -54,7 +54,7 @@ class _TestPermissions():
     def is_logged_in(self):
         self.client.logout()
         response = self.get(self.url_key + '-list')
-        self.assert_http_401_unauthorized(response, msg=response.content)
+        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
 
         self.client.force_login(user=self.profile.user)
         self.test_list()
@@ -81,6 +81,29 @@ class _TestPermissions():
         self.response_403(msg=response.content)
 
         profile.can_edit_basedata = original_permission
+        profile.save()
+
+    def admin_access(self):
+        profile = self.profile
+
+        original_permission = profile.admin_access
+
+        # Testprofile, with admin_acces
+        profile.admin_access = True
+        profile.save()
+        self.test_post()
+
+        # Testprofile, without admin_acces
+        profile.admin_access = False
+        profile.save()
+
+        url = self.url_key + '-list'
+        # post
+        response = self.post(url, **self.url_pks, data=self.post_data,
+                                 extra={'format': 'json'})
+        self.response_403(msg=response.content)
+
+        profile.admin_access = original_permission
         profile.save()
 
 

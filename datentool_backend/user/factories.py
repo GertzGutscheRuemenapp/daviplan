@@ -40,7 +40,6 @@ class PlanningProcessFactory(DjangoModelFactory):
 
     name = faker.word()
     allow_shared_change = faker.pybool()
-    map_section = Polygon(((0, 0), (0, 10), (10, 10), (0, 10), (0, 0)))
 
 
 class ScenarioFactory(DjangoModelFactory):

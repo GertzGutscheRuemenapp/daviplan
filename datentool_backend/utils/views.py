@@ -451,9 +451,9 @@ class CanEditBasedataPermission(UserPassesTestMixin):
     """Has write access to Basedata-Models"""
 
     def test_func(self):
-        if self.request.method in ('GET'):
-                return True
-        else:
+        if self.request.user.superuser == True:
+            return True
+        elif self.request.method in ('GET'):
             return self.request.user.profile.can_edit_basedata
 
 
@@ -461,5 +461,26 @@ class HasAdminAccessPermission(UserPassesTestMixin):
     """Has admin access (Read or write)"""
 
     def test_func(self):
-        return self.request.user.profile.admin_access
+        if self.request.user.superuser == True:
+            return True
+        else:
+            return (self.request.user.pk is not None
+            and self.request.user.profile.admin_access)
 
+
+class ReadOnlyEditBasedataAdminAccess(UserPassesTestMixin):
+    """no write permission, user with "can edit_basedata" or "admin_access" read_only"""
+
+    def test_func(self):
+        if self.request.method in ('GET'):
+            return (self.request.user.pk is not None and self.request.user.profile.admin_access or
+                    self.request.user.profile.can_edit_basedata)
+
+
+        # if self.request.user.pk is not None:
+            # return True
+        # elif self.request.user.superuser == True:
+            # return True
+        # elif self.request.method in ('GET'):
+            # return (self.request.user.profile.admin_access or
+                    # self.request.user.profile.can_edit_basedata)

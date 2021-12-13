@@ -142,7 +142,12 @@ DATABASES = {
 if os.name == 'nt':
     # preset for GDAL installation via OSGeo4W as recommended by Django, see
     # https://docs.djangoproject.com/en/3.2/ref/contrib/gis/install/#windows
-    OSGEO4W_ROOT = 'C:\OSGeo4W64'
+    osgeo4w_directories = [r'C:\OSGeo4W64', r'C:\OSGeo4W']
+    for OSGEO4W_ROOT in osgeo4w_directories:
+        if os.path.exists(OSGEO4W_ROOT):
+            break
+    else:
+        raise IOError(f'OSGeo4W not installed in {osgeo4w_directories}')
     os.environ['GDAL_DATA'] = os.path.join(OSGEO4W_ROOT, 'share','gdal')
     os.environ['PROJ_LIB'] = os.path.join(OSGEO4W_ROOT, 'share', 'proj')
     os.environ['PATH'] = ';'.join([os.environ['PATH'],
