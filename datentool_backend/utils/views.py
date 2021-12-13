@@ -1,4 +1,4 @@
-from rest_framework import viewsets, exceptions, mixins, status
+from rest_framework import viewsets, exceptions, mixins, status, permissions
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.views import View
 from django.http import (HttpResponseBadRequest,
@@ -445,6 +445,13 @@ class ReadUpdatePermissionViewSet(mixins.RetrieveModelMixin,
         #"""Has admin access (Read or write) and basedata-edit"""
         #return self.check_can_edit_basedata() and self.check_has_admin_access()
 
+
+class HasAdminAccessOrReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and (
+                request.method in permissions.SAFE_METHODS or
+                request.user.is_superuser or
+                request.user.profile.admin_access)
 
 
 class CanEditBasedataPermission(UserPassesTestMixin):
