@@ -2,7 +2,7 @@ import numpy as np
 from django.test import TestCase
 from test_plus import APITestCase
 from datentool_backend.api_test import BasicModelTest
-from datentool_backend.area.tests import _TestAPI
+from datentool_backend.area.tests import _TestAPI, _TestPermissions
 
 from .models import (PrognosisEntry, Year, PopulationRaster, AgeGroup,
                      PopulationEntry, PopStatistic, PopStatEntry, DisaggPopRaster,
@@ -79,7 +79,7 @@ class TestPopulation(TestCase):
             pop.genders.all(), self.genders, ordered=False)
 
 
-class TestRasterAPI(_TestAPI, BasicModelTest, APITestCase):
+class TestRasterAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "rasters"
     factory = RasterFactory
@@ -92,8 +92,16 @@ class TestRasterAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = dict(name=faker.word())
         cls.patch_data = dict(name=faker.word())
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-class TestPopulationRasterAPI(_TestAPI, BasicModelTest, APITestCase):
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
+
+
+class TestPopulationRasterAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "populationrasters"
     factory = PopulationRasterFactory
@@ -110,8 +118,16 @@ class TestPopulationRasterAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-class TestGenderAPI(_TestAPI, BasicModelTest, APITestCase):
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
+
+
+class TestGenderAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "gender"
     factory = GenderFactory
@@ -124,19 +140,13 @@ class TestGenderAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = dict(name=faker.word())
         cls.patch_data = dict(name=faker.word())
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-#class TestAgeClassificationAPI(_TestAPI, BasicModelTest, APITestCase):
-    #""""""
-    #url_key = "ageclassifications"
-    #factory = AgeClassificationFactory
-
-    #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
-
-        #cls.post_data = dict(name=faker.word())
-        #cls.put_data = dict(name=faker.word())
-        #cls.patch_data = dict(name=faker.word())
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
 
 
 class TestAgeGroupAPI(_TestAPI, BasicModelTest, APITestCase):
@@ -157,7 +167,7 @@ class TestAgeGroupAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.patch_data = data
 
 
-class TestDisaggPopRasterAPI(_TestAPI, BasicModelTest, APITestCase):
+class TestDisaggPopRasterAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "disaggpoprasters"
     factory = DisaggPopRasterFactory
@@ -174,8 +184,16 @@ class TestDisaggPopRasterAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-class TestPrognosisAPI(_TestAPI, BasicModelTest, APITestCase):
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
+
+
+class TestPrognosisAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "prognoses"
     factory = PrognosisFactory
@@ -193,8 +211,16 @@ class TestPrognosisAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-class TestPrognosisEntryAPI(_TestAPI, BasicModelTest, APITestCase):
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
+
+
+class TestPrognosisEntryAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "prognosisentries"
     factory = PrognosisEntryFactory
@@ -215,8 +241,16 @@ class TestPrognosisEntryAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-class TestPopulationAPI(_TestAPI, BasicModelTest, APITestCase):
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
+
+
+class TestPopulationAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "populations"
     factory = PopulationFactory
@@ -236,6 +270,13 @@ class TestPopulationAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
+
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
 
 #class TestPopulationEntryAPI(_TestAPI, BasicModelTest, APITestCase):
     #""""""
@@ -257,7 +298,7 @@ class TestPopulationAPI(_TestAPI, BasicModelTest, APITestCase):
         #cls.patch_data = data
 
 
-class TestPopStatisticAPI(_TestAPI, BasicModelTest, APITestCase):
+class TestPopStatisticAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "popstatistics"
     factory = PopStatisticFactory
@@ -272,8 +313,16 @@ class TestPopStatisticAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.put_data = dict(year=year)
         cls.patch_data = dict(year=year)
 
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
 
-class TestPopStatEntryAPI(_TestAPI, BasicModelTest, APITestCase):
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
+
+
+class TestPopStatEntryAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "popstatentries"
     factory = PopStatEntryFactory
@@ -294,3 +343,11 @@ class TestPopStatEntryAPI(_TestAPI, BasicModelTest, APITestCase):
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
+
+    def test_is_logged_in(self):
+        """read_only"""
+        super().is_logged_in()
+
+    def test_can_edit_basedata(self):
+        """ write permission """
+        super().can_edit_basedata()
