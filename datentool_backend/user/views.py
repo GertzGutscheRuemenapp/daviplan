@@ -9,7 +9,7 @@ from .serializers import (UserSerializer, PlanningProcessSerializer,
 from .models import PlanningProcess, Scenario
 
 
-class UserViewSet(HasAdminAccessPermission, viewsets.ModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [HasAdminAccessOrReadOnly]
     queryset = User.objects.all()
     serializer_class = UserSerializer
