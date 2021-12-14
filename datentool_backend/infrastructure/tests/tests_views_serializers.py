@@ -89,6 +89,25 @@ class TestInfrastructureAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestC
         """write permission if user has admin_access"""
         super().admin_access()
 
+    #def test_can_patch_symbol(self):
+        #"""user, who can_edit_basedata have the permission to patch the symbol"""
+        #profile = self.profile
+        #original_permission = profile.can_edit_basedata
+
+        ## Testprofile, with permission to edit basedata
+        #profile.can_edit_basedata = True
+        #profile.save()
+
+        ##patch_data3 = self.patch_data.copy()
+        ##patch_data3['symbol'] = 1
+        ##self.patch_data = patch_data3
+        #self.test_put_patch()
+
+        ## Testprofile, without permission to edit basedata
+        #profile.can_edit_basedata = False
+        #profile.save()
+        #self.test_put_patch()
+
 
 class TestQuotaAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""

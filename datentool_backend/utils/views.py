@@ -453,6 +453,14 @@ class HasAdminAccessOrReadOnly(permissions.BasePermission):
                 request.user.is_superuser or
                 request.user.profile.admin_access)
 
+    #def has_object_permission(self, request, view, obj):
+        #return request.user.is_authenticated and (
+            #request.user.id == obj.id or
+            #request.user.is_superuser or
+            #request.user.profile.admin_access
+        #)
+
+
 
 class CanEditBasedataPermission(UserPassesTestMixin):
     """Has write access to Basedata-Models"""
@@ -460,7 +468,7 @@ class CanEditBasedataPermission(UserPassesTestMixin):
     def test_func(self):
         if self.request.user.is_superuser == True:
             return True
-        elif self.request.method in ('GET'):
+        elif self.request.method in permissions.SAFE_METHODS:
             return True
         else:
             return self.request.user.profile.can_edit_basedata
@@ -470,6 +478,9 @@ class HasAdminAccessPermission(UserPassesTestMixin):
     """Has admin access (Read or write)"""
 
     def test_func(self):
+        if (request.method in permissions.SAFE_METHODS and
+            self.request.user.is_authenticated):
+            return True
         if self.request.user.is_superuser == True:
             return True
         return (self.request.user.pk is not None

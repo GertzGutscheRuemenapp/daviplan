@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-from datentool_backend.utils.views import CanEditBasedataPermission, HasAdminAccessPermission
+from datentool_backend.utils.views import CanEditBasedataPermission, UserPassesTestMixin
 from .models import (Infrastructure, FieldType, Service, Quota, Place, Capacity,
                      PlaceField, FClass)
 from .serializers import (InfrastructureSerializer, FieldTypeSerializer,
@@ -8,16 +8,26 @@ from .serializers import (InfrastructureSerializer, FieldTypeSerializer,
                           FClassSerializer)
 
 
-class InfrastructureViewSet(HasAdminAccessPermission, viewsets.ModelViewSet):
+class InfrastructureViewSet(viewsets.ModelViewSet): # UserPassesTestMixin,
     queryset = Infrastructure.objects.all()
     serializer_class = InfrastructureSerializer
 
-    # Permission for admin_access; users, who can_edit_basedata can only patch the symbol
+    ##Permission for admin_access; user, who "can_edit_basedata" can only patch the symbol
     #def test_func(self):
         #if self.request.user.is_superuser == True:
             #return True
-        #return (self.request.user.pk is not None
-                #and self.request.user.profile.admin_access)
+        #elif (self.request.method in ('PATCH')
+              #and self.request.user.pk is not None
+              #and self.request.user.profile.can_edit_basedata):
+            #return True
+        #else:
+            #return (self.request.user.pk is not None
+                    #and self.request.user.profile.admin_access)
+
+
+
+
+
 
 
 class QuotaViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
