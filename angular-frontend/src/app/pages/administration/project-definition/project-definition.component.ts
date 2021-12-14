@@ -47,7 +47,6 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   projectAreaErrors = [];
   projectSettings?: ProjectSettings;
   yearForm!: FormGroup;
-  ageGroupForm!: FormGroup;
   Object = Object;
   @ViewChild('areaCard') areaCard!: InputCardComponent;
   @ViewChild('yearCard') yearCard!: InputCardComponent;
