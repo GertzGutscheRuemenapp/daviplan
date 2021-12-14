@@ -347,7 +347,6 @@ class TestPopStatEntryAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCas
         area = popstatentry.area.pk
 
         data = dict(popstatistic=popstatistic, area=area,
-                    age=faker.pyint(max_value=127),
                     immigration=faker.pyfloat(positive=True),
                     emigration=faker.pyfloat(positive=True),
                     births=faker.pyfloat(positive=True),

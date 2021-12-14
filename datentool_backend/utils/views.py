@@ -477,7 +477,7 @@ class HasAdminAccessPermission(UserPassesTestMixin):
 
 
 class ReadOnlyEditBasedataAdminAccess(UserPassesTestMixin):
-    """no write permission, user with "can edit_basedata" or "admin_access" read_only"""
+    """no write permission, user with "can edit_basedata" or "admin_access" can read_only"""
 
     def test_func(self):
         if self.request.method in ('GET'):

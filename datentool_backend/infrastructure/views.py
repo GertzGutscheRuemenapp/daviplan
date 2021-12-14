@@ -12,6 +12,13 @@ class InfrastructureViewSet(HasAdminAccessPermission, viewsets.ModelViewSet):
     queryset = Infrastructure.objects.all()
     serializer_class = InfrastructureSerializer
 
+    # Permission for admin_access; users, who can_edit_basedata can only patch the symbol
+    #def test_func(self):
+        #if self.request.user.is_superuser == True:
+            #return True
+        #return (self.request.user.pk is not None
+                #and self.request.user.profile.admin_access)
+
 
 class QuotaViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
     queryset = Quota.objects.all()
