@@ -478,7 +478,7 @@ class HasAdminAccessPermission(UserPassesTestMixin):
     """Has admin access (Read or write)"""
 
     def test_func(self):
-        if (request.method in permissions.SAFE_METHODS and
+        if (self.request.method in permissions.SAFE_METHODS and
             self.request.user.is_authenticated):
             return True
         if self.request.user.is_superuser == True:
