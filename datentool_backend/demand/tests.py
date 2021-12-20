@@ -26,8 +26,10 @@ class TestDemandRateSetAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCa
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        demandrateset: DemandRateSet = cls.obj
+        service = demandrateset.service.pk
 
-        data = dict(name=faker.word(), is_default=faker.pybool())
+        data = dict(name=faker.word(), is_default=faker.pybool(), service=service)
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
