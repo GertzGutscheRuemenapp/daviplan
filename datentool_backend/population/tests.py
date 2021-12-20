@@ -1,4 +1,5 @@
 import numpy as np
+from unittest import skip
 from django.test import TestCase
 from test_plus import APITestCase
 from datentool_backend.api_test import BasicModelTest
@@ -92,14 +93,6 @@ class TestRasterAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.put_data = dict(name=faker.word())
         cls.patch_data = dict(name=faker.word())
 
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
-
 
 class TestPopulationRasterAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
@@ -118,14 +111,6 @@ class TestPopulationRasterAPI(_TestPermissions, _TestAPI, BasicModelTest, APITes
         cls.put_data = data
         cls.patch_data = data
 
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
-
 
 class TestGenderAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
@@ -140,13 +125,6 @@ class TestGenderAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.put_data = dict(name=faker.word())
         cls.patch_data = dict(name=faker.word())
 
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
 
 
 class TestAgeGroupAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
@@ -166,9 +144,9 @@ class TestAgeGroupAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
+    @skip('AgeGroup should only have write access with admin access, not with can_edit_basedata')
+    def test_can_edit_basedata(self):
+        pass
 
     def test_admin_access(self):
         """write permission if user has admin_access"""
@@ -192,14 +170,6 @@ class TestDisaggPopRasterAPI(_TestPermissions, _TestAPI, BasicModelTest, APITest
         cls.put_data = data
         cls.patch_data = data
 
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
-
 
 class TestPrognosisAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
@@ -218,14 +188,6 @@ class TestPrognosisAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
 
 
 class TestPrognosisEntryAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
@@ -249,14 +211,6 @@ class TestPrognosisEntryAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestC
         cls.put_data = data
         cls.patch_data = data
 
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
-
 
 class TestPopulationAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
@@ -277,14 +231,6 @@ class TestPopulationAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase)
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
 
 
 #class TestPopulationEntryAPI(_TestAPI, BasicModelTest, APITestCase):
@@ -325,14 +271,6 @@ class TestPopStatisticAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCas
         cls.put_data = dict(year=year)
         cls.patch_data = dict(year=year)
 
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
-
 
 class TestPopStatEntryAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
@@ -354,11 +292,3 @@ class TestPopStatEntryAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCas
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()

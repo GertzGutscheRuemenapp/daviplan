@@ -461,6 +461,11 @@ class HasAdminAccessOrReadOnly(permissions.BasePermission):
         #)
 
 
+class CanEditBasedata(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return (request.user.is_authenticated and
+                request.user.profile.can_edit_basedata)
+
 
 class CanEditBasedataPermission(UserPassesTestMixin):
     """Has write access to Basedata-Models"""
@@ -482,6 +487,12 @@ class CanEditBasedataPermission(UserPassesTestMixin):
             #return True
         #else:
             #return self.request.user.profile.can_edit_basedata
+
+
+class HasAdminAccess(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return (request.user.is_authenticated
+                and request.user.profile.admin_access)
 
 
 class HasAdminAccessPermission(UserPassesTestMixin):

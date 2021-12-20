@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 from django.db.models import Q
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.auth.models import User
@@ -23,19 +23,25 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().get_object()
 
 
-class PlanningProcessViewSet(UserPassesTestMixin, viewsets.ModelViewSet):
+class CanCreateProcessPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.method in ('GET'):
+            return True
+        else:
+            return request.user.profile.can_create_process
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in ('GET'):
+            owner = obj.owner
+            return request.user.profile == owner
+        else:
+            return request.user.profile.can_create_process
+
+
+class PlanningProcessViewSet(viewsets.ModelViewSet):
     queryset = PlanningProcess.objects.all()
     serializer_class = PlanningProcessSerializer
-
-    def test_func(self):
-        if self.request.method in ('GET'):
-            if self.detail:
-                owner = self.get_object().owner
-                return self.request.user.profile == owner
-            else:
-                return len(self.get_queryset()) > 0
-        else:
-            return self.request.user.profile.can_create_process
+    permission_classes = [permissions.IsAuthenticated & CanCreateProcessPermission]
 
     def get_queryset(self):
         qs = super().get_queryset()

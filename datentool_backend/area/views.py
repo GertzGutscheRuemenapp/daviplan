@@ -1,5 +1,7 @@
 from rest_framework import viewsets
-from datentool_backend.utils.views import CanEditBasedataPermission
+from datentool_backend.utils.views import (CanEditBasedataPermission,
+                                           CanEditBasedata,
+                                           HasAdminAccessOrReadOnly)
 
 from .models import (SymbolForm, MapSymbol, LayerGroup, WMSLayer,
                      InternalWFSLayer, Source, AreaLevel, Area)
@@ -9,14 +11,16 @@ from .serializers import (SymbolFormSerializer, MapSymbolsSerializer,
                           AreaLevelSerializer, AreaSerializer)
 
 
-class SymbolFormViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class SymbolFormViewSet(viewsets.ModelViewSet):
     queryset = SymbolForm.objects.all()
     serializer_class = SymbolFormSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class MapSymbolsViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class MapSymbolsViewSet(viewsets.ModelViewSet):
     queryset = MapSymbol.objects.all()
     serializer_class = MapSymbolsSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
 class LayerGroupViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):

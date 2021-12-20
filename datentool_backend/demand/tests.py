@@ -32,14 +32,6 @@ class TestDemandRateSetAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCa
         cls.put_data = data
         cls.patch_data = data
 
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
-
 
 class TestDemandRateAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
@@ -59,11 +51,3 @@ class TestDemandRateAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase)
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()

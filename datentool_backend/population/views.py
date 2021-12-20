@@ -8,7 +8,10 @@ from rest_framework.decorators import action
 #from django.views.generic import ListView
 #from vectortiles.postgis.views import MVTView
 from datentool_backend.utils.views import (CanEditBasedataPermission,
-                                           HasAdminAccessPermission)
+                                           HasAdminAccessPermission,
+                                           HasAdminAccess,
+                                           CanEditBasedata,
+                                           HasAdminAccessOrReadOnly)
 from .models import (Raster, PopulationRaster, Gender, AgeGroup, DisaggPopRaster,
                      Prognosis, PrognosisEntry, Population, PopulationEntry,
                      PopStatistic, PopStatEntry, RasterCell)
@@ -52,9 +55,10 @@ class GenderViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
     serializer_class = GenderSerializer
 
 
-class AgeGroupViewSet(HasAdminAccessPermission, viewsets.ModelViewSet):
+class AgeGroupViewSet(viewsets.ModelViewSet):
     queryset = AgeGroup.objects.all()
     serializer_class = AgeGroupSerializer
+    permission_classes = [HasAdminAccessOrReadOnly, HasAdminAccess]
 
     def list(self, request, *args, **kwargs):
         # return the default age-groups (Regionalstatistik) when query parameter

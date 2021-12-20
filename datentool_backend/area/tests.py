@@ -51,7 +51,7 @@ class _TestAPI:
 
 class _TestPermissions():
     """ test users permissions"""
-    def is_logged_in(self):
+    def test_is_logged_in(self):
         self.client.logout()
         response = self.get(self.url_key + '-list')
         self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
@@ -60,13 +60,15 @@ class _TestPermissions():
         self.test_list()
         self.test_detail()
 
-    def can_edit_basedata(self):
+    def test_can_edit_basedata(self):
         profile = self.profile
 
         original_permission = profile.can_edit_basedata
+        original_admin_access = profile.admin_access
 
         # Testprofile, with permission to edit basedata
         profile.can_edit_basedata = True
+        profile.admin_access = False
         profile.save()
         self.test_post()
 
@@ -81,6 +83,7 @@ class _TestPermissions():
         self.response_403(msg=response.content)
 
         profile.can_edit_basedata = original_permission
+        profile.admin_access = original_admin_access
         profile.save()
 
     def admin_access(self):
@@ -118,14 +121,6 @@ class TestSymbolFormAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase)
         cls.put_data = dict(name='puttestname')
         cls.patch_data = dict(name='patchtestname')
 
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
-
 
 class TestMapSymbolsAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """test if view and serializer are working correctly"""
@@ -143,14 +138,6 @@ class TestMapSymbolsAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase)
                              stroke_color=faker.color())
         cls.patch_data = dict(symbol=symbol, stroke_color=faker.color())
 
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
-
 
 class TestLayerGroupAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """test if view and serializer are working correctly"""
@@ -166,14 +153,6 @@ class TestLayerGroupAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase)
         cls.post_data = dict(name='posttestname', order=next(cls.orders))
         cls.put_data = dict(name='puttestname', order=next(cls.orders))
         cls.patch_data = dict(name='patchtestname', order=next(cls.orders))
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
 
 
 class TestWMSLayerAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
@@ -192,14 +171,6 @@ class TestWMSLayerAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
 
 
 class TestInternalWFSLayerAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
@@ -222,14 +193,6 @@ class TestInternalWFSLayerAPI(_TestPermissions, _TestAPI, BasicModelTest, APITes
         cls.put_data = data
         cls.patch_data = data
 
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
-
 
 class TestSourceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """api test Layer"""
@@ -246,14 +209,6 @@ class TestSourceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
 
 
 class TestAreaLevelAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
@@ -273,14 +228,6 @@ class TestAreaLevelAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
 
 
 class TestAreaAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
@@ -310,11 +257,3 @@ class TestAreaAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
 
         cls.put_data = geojson_putpatch
         cls.patch_data = geojson_putpatch
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
