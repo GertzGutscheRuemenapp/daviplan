@@ -466,12 +466,22 @@ class CanEditBasedataPermission(UserPassesTestMixin):
     """Has write access to Basedata-Models"""
 
     def test_func(self):
+        if (self.request.method in permissions.SAFE_METHODS
+                and self.request.user.is_authenticated):
+            return True
         if self.request.user.is_superuser == True:
             return True
-        elif self.request.method in permissions.SAFE_METHODS:
-            return True
-        else:
-            return self.request.user.profile.can_edit_basedata
+        return (self.request.user.is_authenticated and
+                self.request.user.profile.can_edit_basedata)
+
+#  altes CanEditBasedataPermission
+    #def test_func(self):
+        #if self.request.user.is_superuser == True:
+            #return True
+        #elif self.request.method in permissions.SAFE_METHODS:
+            #return True
+        #else:
+            #return self.request.user.profile.can_edit_basedata
 
 
 class HasAdminAccessPermission(UserPassesTestMixin):
@@ -487,14 +497,26 @@ class HasAdminAccessPermission(UserPassesTestMixin):
                 and self.request.user.profile.admin_access)
 
 
-class ReadOnlyEditBasedataAdminAccess(UserPassesTestMixin):
+class ReadOnlyAccess(UserPassesTestMixin):
     """no write permission, user with "can edit_basedata" or "admin_access" can read_only"""
 
     def test_func(self):
-        if self.request.method in ('GET'):
-            return (self.request.user.pk is not None and (
-                    self.request.user.profile.admin_access or
-                    self.request.user.profile.can_edit_basedata or
-                    self.request.user.is_superuser)
-                    )
+        if (self.request.method in permissions.SAFE_METHODS
+                and self.request.user.is_authenticated):
+            return True
+        if (self.request.user.is_superuser == True
+                and self.request.method in permissions.SAFE_METHODS):
+            return True
+        if (self.request.method in permissions.SAFE_METHODS and
+            (self.request.user.profile.admin_access or
+             self.request.user.profile.can_edit_basedata)):
+            return True
 
+
+        #  altes ReadOnlyAccess
+        #if self.request.method in ('GET'):
+            #return (self.request.user.pk is not None and (
+                    #self.request.user.profile.admin_access or
+                    #self.request.user.profile.can_edit_basedata or
+                    #self.request.user.is_superuser)
+                    #)
