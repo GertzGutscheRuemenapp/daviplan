@@ -52,7 +52,7 @@ class GenderViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
     serializer_class = GenderSerializer
 
 
-class AgeGroupViewSet(HasAdminAccessPermission, viewsets.ModelViewSet):
+class AgeGroupViewSet(viewsets.ModelViewSet):
     queryset = AgeGroup.objects.all()
     serializer_class = AgeGroupSerializer
 

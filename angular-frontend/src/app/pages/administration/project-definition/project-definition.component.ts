@@ -100,6 +100,10 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     this.__ageGroups = this.ageGroups!;
 
     this.ageGroupCard.dialogConfirmed.subscribe(ok => {
+      this.ageGroupCard.setLoading(true);
+      this.__ageGroups.forEach(group => {
+
+      })
     })
     this.yearCard.dialogClosed.subscribe((ok)=>{
       // reset form on cancel
@@ -227,27 +231,16 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
         done = true;
         _this.areaCard.setLoading(false);
         if(!hasProjectArea) return;
-        let mapEPSG = `EPSG:${_this.previewMapControl?.srid}`;
-        let clonedPG = _this.projectGeom!.clone();
-        clonedPG.transform(mapEPSG, 'EPSG:4326');
-        const projectPoly = turf.multiPolygon(clonedPG.getCoordinates());
         const select = selectLayer?.get('select');
         selectLayer?.getSource().getFeatures().forEach((feature: Feature<any>) => {
-          let fs: turf.Feature<any>[] = [];
-          let cloned = feature.clone();
-          cloned.getGeometry().transform(mapEPSG, 'EPSG:4326');
-          cloned.getGeometry().getCoordinates().forEach((coords: any) => {
-            let poly = turf.polygon(coords);
-            // let buffered = buffer(poly, -1, {units: 'kilometers'});
-            fs.push(poly);
-          })
-          const coll = turf.featureCollection(fs),
-                pos = pointOnSurface(coll);
-          // const featPoly = turf.multiPolygon(feature.getGeometry().getCoordinates());
-          // let intersection = intersect(featPoly, projectPoly);
-          let intersection = booleanWithin(pos, projectPoly);
-          if (intersection) {
-            select.getFeatures().push(feature);
+          let poss = feature.getGeometry().getInteriorPoints().getCoordinates();
+          for (let i = 0; i < poss.length; i++) {
+            let coords = poss[i],
+                intersection = _this.projectGeom!.intersectsCoordinate(coords);
+            if (intersection) {
+              select.getFeatures().push(feature);
+              break;
+            }
           }
         })
       });
