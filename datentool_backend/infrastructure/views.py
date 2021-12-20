@@ -1,5 +1,5 @@
-from rest_framework import viewsets
-from datentool_backend.utils.views import CanEditBasedataPermission, UserPassesTestMixin
+from rest_framework import viewsets, permissions
+from datentool_backend.utils.views import HasAdminAccessOrReadOnly, CanEditBasedata
 from .models import (Infrastructure, FieldType, Service, Quota, Place, Capacity,
                      PlaceField, FClass)
 from .serializers import (InfrastructureSerializer, FieldTypeSerializer,
@@ -8,59 +8,63 @@ from .serializers import (InfrastructureSerializer, FieldTypeSerializer,
                           FClassSerializer)
 
 
-class InfrastructureViewSet(viewsets.ModelViewSet): # UserPassesTestMixin,
+#class CanPatchSymbol(permissions.BasePermission):
+    #"""Permission Class for InfrastructureViewSet, patch of symbol, if user is authenticated """
+    #def has_object_permission(self, request, view, obj):
+        #if (request.user.is_authenticated
+                #and request.user.profile.can_edit_basedata):
+            #if (request.method in ('PATCH') and request.symbol == obj.symbol):
+                #return request.user.profile.can_edit_basedata
+
+    #def has_object_permission(self, request, view, obj):
+        #if (request.method in ('PATCH') and request.symbol == obj.symbol):
+            #return request.user.profile.can_edit_basedata
+
+
+class InfrastructureViewSet(viewsets.ModelViewSet):
     queryset = Infrastructure.objects.all()
     serializer_class = InfrastructureSerializer
-
-    ##Permission for admin_access; user, who "can_edit_basedata" can only patch the symbol
-    #def test_func(self):
-        #if self.request.user.is_superuser == True:
-            #return True
-        #elif (self.request.method in ('PATCH')
-              #and self.request.user.pk is not None
-              #and self.request.user.profile.can_edit_basedata):
-            #return True
-        #else:
-            #return (self.request.user.pk is not None
-                    #and self.request.user.profile.admin_access)
+    # permission_classes = [HasAdminAccessOrReadOnly | CanPatchSymbol]
 
 
-
-
-
-
-
-class QuotaViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class QuotaViewSet(viewsets.ModelViewSet):
     queryset = Quota.objects.all()
     serializer_class = QuotaSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class ServiceViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class ServiceViewSet(viewsets.ModelViewSet):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class PlaceViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class PlaceViewSet(viewsets.ModelViewSet):
     queryset = Place.objects.all()
     serializer_class = PlaceSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class CapacityViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class CapacityViewSet(viewsets.ModelViewSet):
     queryset = Capacity.objects.all()
     serializer_class = CapacitySerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class FieldTypeViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class FieldTypeViewSet(viewsets.ModelViewSet):
     queryset = FieldType.objects.all() # prefetch_related('classification_set',
                                          #         to_attr='classifications')
     serializer_class = FieldTypeSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class FClassViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class FClassViewSet(viewsets.ModelViewSet):
     queryset = FClass.objects.all()
     serializer_class = FClassSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class PlaceFieldViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class PlaceFieldViewSet(viewsets.ModelViewSet):
     queryset = PlaceField.objects.all()
     serializer_class = PlaceFieldSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
