@@ -23,31 +23,35 @@ class MapSymbolsViewSet(viewsets.ModelViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class LayerGroupViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class LayerGroupViewSet(viewsets.ModelViewSet):
     queryset = LayerGroup.objects.all()
     serializer_class = LayerGroupSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
-
-class WMSLayerViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class WMSLayerViewSet(viewsets.ModelViewSet):
     queryset = WMSLayer.objects.all()
     serializer_class = WMSLayerSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class InternalWFSLayerViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class InternalWFSLayerViewSet(viewsets.ModelViewSet):
     queryset = InternalWFSLayer.objects.all()
     serializer_class = InternalWFSLayerSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
-
-class SourceViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class SourceViewSet(viewsets.ModelViewSet):
     queryset = Source.objects.all()
     serializer_class = SourceSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class AreaLevelViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class AreaLevelViewSet(viewsets.ModelViewSet):
     queryset = AreaLevel.objects.all()
     serializer_class = AreaLevelSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class AreaViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class AreaViewSet(viewsets.ModelViewSet):
     queryset = Area.objects.all()
     serializer_class = AreaSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
