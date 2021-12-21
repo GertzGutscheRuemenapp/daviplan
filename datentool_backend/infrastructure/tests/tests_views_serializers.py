@@ -9,9 +9,9 @@ from datentool_backend.user.factories import ProfileFactory
 
 from datentool_backend.infrastructure.factories import (InfrastructureFactory, ServiceFactory, CapacityFactory,
                         FClassFactory, PlaceFieldFactory, PlaceFactory,
-                        FieldTypeFactory)
+                        FieldTypeFactory, ScenarioCapacityFactory, ScenarioPlaceFactory)
 from datentool_backend.infrastructure.models import (Infrastructure, Place, Capacity, FieldTypes, FClass,
-                     Service, PlaceField)
+                     Service, PlaceField, ScenarioCapacity, ScenarioPlace)
 
 
 from faker import Faker

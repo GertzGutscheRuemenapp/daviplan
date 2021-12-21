@@ -99,29 +99,29 @@ class TestPlanningProcessAPI(_TestAPI, BasicModelTest, APITestCase):  # test, if
         profile.save()
 
 
-class TestScenarioAPI(_TestAPI, BasicModelTest, APITestCase):
-    """"""
-    url_key = "scenarios"
+#class TestScenarioAPI(_TestAPI, BasicModelTest, APITestCase):
+    #""""""
+    #url_key = "scenarios"
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.obj = ScenarioFactory(planning_process__owner=cls.profile)
+    #@classmethod
+    #def setUpClass(cls):
+        #super().setUpClass()
+        #cls.obj = ScenarioFactory(planning_process__owner=cls.profile)
 
-        scenario: Scenario = cls.obj
-        planning_process = scenario.planning_process.pk
+        #scenario: Scenario = cls.obj
+        #planning_process = scenario.planning_process.pk
 
-        cls.post_data = dict(name=faker.word(), planning_process=planning_process)
-        cls.put_data = dict(name=faker.word(), planning_process=planning_process)
-        cls.patch_data = dict(name=faker.word(), planning_process=planning_process)
+        #cls.post_data = dict(name=faker.word(), planning_process=planning_process)
+        #cls.put_data = dict(name=faker.word(), planning_process=planning_process)
+        #cls.patch_data = dict(name=faker.word(), planning_process=planning_process)
 
-    @classmethod
-    def tearDownClass(cls):
-        planning_process = cls.obj.planning_process
-        cls.obj.delete()
-        del cls.obj
-        planning_process.delete()
-        super().tearDownClass()
+    #@classmethod
+    #def tearDownClass(cls):
+        #planning_process = cls.obj.planning_process
+        #cls.obj.delete()
+        #del cls.obj
+        #planning_process.delete()
+        #super().tearDownClass()
 
 
     #def test_is_logged_in(self):

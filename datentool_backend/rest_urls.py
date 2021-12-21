@@ -12,7 +12,8 @@ from .area.views import (SymbolFormViewSet, MapSymbolsViewSet, LayerGroupViewSet
                          WMSLayerViewSet, InternalWFSLayerViewSet, SourceViewSet,
                          AreaLevelViewSet, AreaViewSet)
 
-from .demand.views import (DemandRateSetViewSet, DemandRateViewSet)
+from .demand.views import (DemandRateSetViewSet, DemandRateViewSet,
+                           ScenarioDemandRateViewSet)
 
 from .indicators.views import (ModeViewSet, ModeVariantViewSet,
                                ReachabilityMatrixViewSet, RouterViewSet,
@@ -21,7 +22,8 @@ from .indicators.views import (ModeViewSet, ModeVariantViewSet,
 from .infrastructure.views import (InfrastructureViewSet, FieldTypeViewSet,
                                    ServiceViewSet, PlaceViewSet,
                                    CapacityViewSet, PlaceFieldViewSet,
-                                   FClassViewSet)
+                                   FClassViewSet, ScenarioCapacityViewSet,
+                                   ScenarioPlaceViewSet)
 from .logging.views import (CapacityUploadLogViewSet, PlaceUploadLogViewSet,
                             AreaUploadLogViewSet)
 from .population.views import (RasterViewSet, PopulationRasterViewSet, GenderViewSet,
@@ -53,7 +55,8 @@ router.register(r'areas', AreaViewSet, basename='areas')
 router.register(r'demandratesets', DemandRateSetViewSet,
                 basename='demandratesets')
 router.register(r'demandrates', DemandRateViewSet, basename='demandrates')
-
+router.register(r'scenariodemandrates', ScenarioDemandRateViewSet,
+                basename='scenariodemandrates')
 # indicator
 router.register(r'modes', ModeViewSet, basename='modes')
 router.register(r'modevariants', ModeVariantViewSet, basename='modevariants')
@@ -67,7 +70,9 @@ router.register(r'infrastructures', InfrastructureViewSet,
                 basename='infrastructures')
 router.register(r'services', ServiceViewSet, basename='services')
 router.register(r'places', PlaceViewSet, basename='places')
+router.register(r'scenarioplaces', ScenarioPlaceViewSet, basename='scenarioplaces')
 router.register(r'capacities', CapacityViewSet, basename='capacities')
+router.register(r'scenariocapacities', ScenarioCapacityViewSet, basename='scenariocapacities')
 router.register(r'fieldtypes', FieldTypeViewSet, basename='fieldtypes')
 router.register(r'fclasses', FClassViewSet, basename='fclasses')
 router.register(r'placefields', PlaceFieldViewSet, basename='placefields')
@@ -85,8 +90,6 @@ router.register(r'rasters', RasterViewSet, basename='rasters')
 router.register(r'populationrasters', PopulationRasterViewSet,
                 basename='populationrasters')
 router.register(r'gender', GenderViewSet, basename='gender')
-#router.register(r'ageclassifications', AgeClassificationViewSet,
-                #basename='ageclassifications')
 router.register(r'agegroups', AgeGroupViewSet, basename='agegroups')
 router.register(r'disaggpoprasters', DisaggPopRasterViewSet,
                 basename='disaggpoprasters')

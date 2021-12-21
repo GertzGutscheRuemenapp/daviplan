@@ -4,7 +4,7 @@ from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import Point
 from .models import (Infrastructure, Service, Place,
                      Capacity, FieldTypes, FieldType, FClass, PlaceField,
-                     Profile)
+                     Profile, ScenarioPlace, ScenarioCapacity)
 from ..area.factories import InternalWFSLayerFactory, MapSymbolsFactory
 
 faker = Faker('de-DE')
@@ -74,7 +74,17 @@ class PlaceFactory(DjangoModelFactory):
     name = faker.unique.word()
     infrastructure = factory.SubFactory(InfrastructureFactory)
     geom = Point((faker.latlng()[1], faker.latlng()[0]))
-    attributes=faker.json(num_rows=3, indent=True)
+    attributes = faker.json(num_rows=3, indent=True)
+
+
+class ScenarioPlaceFactory(DjangoModelFactory):
+    """location of an infrastructure in a scenario"""
+    class Meta:
+        model = ScenarioPlace
+
+    scenario = faker.word()
+    status_quo = faker.word()
+
 
 class CapacityFactory(DjangoModelFactory):
     """Capacity of an infrastructure for a service"""
@@ -85,6 +95,15 @@ class CapacityFactory(DjangoModelFactory):
     service = factory.SubFactory(ServiceFactory)
     capacity = faker.pyfloat(positive=True)
     from_year = faker.year()
+
+
+class ScenarioCapacityFactory(DjangoModelFactory):
+    """capacity of an infrastructure for a service"""
+    class Meta:
+        model = ScenarioCapacity
+
+    scenario = faker.word()
+    status_quo = faker.pyint()
 
 
 class FieldTypeFactory(DjangoModelFactory):

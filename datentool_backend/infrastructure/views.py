@@ -1,11 +1,12 @@
 from rest_framework import viewsets, permissions
 from datentool_backend.utils.views import HasAdminAccessOrReadOnly, CanEditBasedata
 from .models import (Infrastructure, FieldType, Service, Place, Capacity,
-                     PlaceField, FClass)
+                     PlaceField, FClass, ScenarioCapacity, ScenarioPlace)
 from .serializers import (InfrastructureSerializer, FieldTypeSerializer,
                           ServiceSerializer, PlaceSerializer,
                           CapacitySerializer, PlaceFieldSerializer,
-                          FClassSerializer)
+                          FClassSerializer, ScenarioPlaceSerializer,
+                          ScenarioCapacitySerializer)
 
 
 #class CanPatchSymbol(permissions.BasePermission):
@@ -39,10 +40,22 @@ class PlaceViewSet(viewsets.ModelViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
+class ScenarioPlaceViewSet(viewsets.ModelViewSet):
+    queryset = ScenarioPlace.objects.all()
+    serializer_class = ScenarioPlaceSerializer
+    #permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+
 class CapacityViewSet(viewsets.ModelViewSet):
     queryset = Capacity.objects.all()
     serializer_class = CapacitySerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+
+class ScenarioCapacityViewSet(viewsets.ModelViewSet):
+    queryset = ScenarioCapacity.objects.all()
+    serializer_class = ScenarioCapacitySerializer
+    #permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
 class FieldTypeViewSet(viewsets.ModelViewSet):

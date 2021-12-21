@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from .models import (Infrastructure, FieldType, FClass, FieldTypes, Service,
-                     Place, Capacity, PlaceField)
+                     Place, Capacity, PlaceField, ScenarioPlace, ScenarioCapacity)
 
 
 class InfrastructureSerializer(serializers.ModelSerializer):
@@ -31,10 +31,25 @@ class PlaceSerializer(GeoFeatureModelSerializer):
         fields = ('id', 'name', 'infrastructure', 'attributes')
 
 
+class ScenarioPlaceSerializer(GeoFeatureModelSerializer):
+    class Meta:
+        model = ScenarioPlace
+        geo_field = 'geom'
+        fields = ('id', 'name', 'infrastructure', 'attributes', "scenario",
+                  "status_quo")
+
+
 class CapacitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Capacity
         fields = ('id', 'place', 'service', 'capacity', 'from_year')
+
+
+class ScenarioCapacitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ScenarioCapacity
+        fields = ('id', 'place', 'service', 'capacity', 'from_year', "scenario",
+                  "status_quo")
 
 
 class FClassSerializer(serializers.ModelSerializer):
