@@ -64,6 +64,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   areaLayers = areaLayers;
   selectedAreaLayer: BKGLayer = areaLayers[0];
   baseAreaLayer: BKGLayer = areaLayers[areaLayers.length - 1];
+  selectedBaseAreas = new Map<string, Feature<any>>();
   private _baseSelectLayer?: Layer<any>;
   @ViewChild('areaCard') areaCard!: InputCardComponent;
   @ViewChild('yearCard') yearCard!: InputCardComponent;
@@ -228,8 +229,8 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
             selectable: true,
             opacity: (al === _this.baseAreaLayer)? 0 : 0.5,
             tooltipField: 'gen',
-            stroke: { color: 'black', selectedColor: 'rgba(0, 0, 0, 0)' },
-            fill: { color: 'rgba(0, 0, 0, 0)', selectedColor: (al === _this.baseAreaLayer)? 'yellow': 'red' }
+            stroke: { color: 'black', selectedColor: 'black' },
+            fill: { color: 'rgba(0, 0, 0, 0)', selectedColor: 'rgba(0, 0, 0, 0)' }
           });
         layer?.set('showTooltip', al === this.selectedAreaLayer);
         layer?.get('select').setActive(al === this.selectedAreaLayer);
@@ -244,15 +245,14 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
         if (init) return;
         init = true;
         if (!hasProjectArea) return;
-        const select = _this._baseSelectLayer?.get('select');
-        _this._baseSelectLayer?.getSource().getFeatures().forEach((feature: Feature<any>) => {
+        const baseFeatures = _this._baseSelectLayer?.getSource().getFeatures();
+        baseFeatures.forEach((feature: Feature<any>) => {
           let poss = feature.getGeometry().getInteriorPoints().getCoordinates();
           for (let i = 0; i < poss.length; i++) {
             let coords = poss[i],
                 intersection = _this.projectGeom!.intersectsCoordinate(coords);
             if (intersection) {
-              select.getFeatures().push(feature);
-              break;
+              _this.selectedBaseAreas.set(feature.get('debkg_id'), feature)
             }
           }
         })
@@ -283,63 +283,78 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   changeAreaLayer(): void {
     const _this = this;
     this.areaLayers.forEach(al => {
-      const layer = this.areaSelectMapControl?.map?.getLayer(al.tag);
-      const select = layer?.get('select');
+      const layer = this.areaSelectMapControl?.map?.getLayer(al.tag),
+            select = layer?.get('select');
       if (al !== _this.baseAreaLayer) {
         layer?.setVisible(al === _this.selectedAreaLayer);
         select.getFeatures().clear();
       }
-/*      else
-        layer?.setOpacity((al === _this.selectedAreaLayer) ? 0.5 : 0);*/
+      else
+        layer?.setOpacity((al === _this.selectedAreaLayer) ? 0.5 : 0);
       select.setActive(al === this.selectedAreaLayer);
       layer?.set('showTooltip', al === this.selectedAreaLayer);
     })
   }
 
   featuresSelected(layer: Layer<any>, selected: Feature<any>[], deselected: Feature<any>[]){
+    let selectedBaseFeatures: Feature<any>[] = [],
+        deselectedBaseFeatures: Feature<any>[] = [];
+
     if (layer !== this._baseSelectLayer){
       selected.forEach(feature => {
-        let baseFeatures = feature.get('intersect');
-        if (!baseFeatures) {
-          baseFeatures = this.getBaseIntersections(feature);
-          feature.set('intersect', baseFeatures);
-        }
-        this.areaSelectMapControl?.map?.selectFeatures(this.baseAreaLayer.tag, baseFeatures);
+        let intersections =  this.getBaseIntersections(feature);
+        selectedBaseFeatures = selectedBaseFeatures.concat(intersections);
+      })
+      deselected.forEach(feature => {
+        let intersections =  this.getBaseIntersections(feature);
+        deselectedBaseFeatures = selectedBaseFeatures.concat(intersections);
       })
     }
-    else{
-/*      let features = this._baseSelectLayer?.get('select').getFeatures();
-      let mergedGeom: turf.Feature<turf.MultiPolygon | turf.Polygon> | null = null;
-      features.forEach((f: Feature<any>) => {
-        // const json = format.writeGeometryObject(f.getGeometry());
-        const poly = turf.multiPolygon(f.getGeometry().getCoordinates());
-        mergedGeom = mergedGeom ? union(poly, mergedGeom) : poly;
-      })
-      const format = new GeoJSON();
+    else {
+      selectedBaseFeatures = selected;
+      deselectedBaseFeatures = deselected;
+    }
+
+    selectedBaseFeatures.forEach(feature => {
+      this.selectedBaseAreas.set(feature.get('debkg_id'), feature);
+    })
+    deselectedBaseFeatures.forEach(feature => {
+      this.selectedBaseAreas.delete(feature.get('debkg_id'));
+    })
+    let mergedGeom: turf.Feature<turf.MultiPolygon | turf.Polygon> | null = null;
+    this.selectedBaseAreas.forEach((f: Feature<any>) => {
+      // const json = format.writeGeometryObject(f.getGeometry());
+      const poly = turf.multiPolygon(f.getGeometry().getCoordinates());
+      mergedGeom = mergedGeom ? union(poly, mergedGeom) : poly;
+    })
+    const format = new GeoJSON();
+    // @ts-ignore
+    this.__projectGeom = mergedGeom ? format.readFeature(mergedGeom.geometry).getGeometry() : new MultiPolygon([]);
+    if (this.__projectGeom instanceof Polygon)
       // @ts-ignore
-      this.__projectGeom = mergedGeom ? format.readFeature(mergedGeom.geometry).getGeometry() : new MultiPolygon([]);
-      if (this.__projectGeom instanceof Polygon)
-        // @ts-ignore
-        this.__projectGeom = new MultiPolygon([this.__projectGeom.getCoordinates()]);
-      this.projectAreaFeature?.setGeometry(this.__projectGeom);*/
-    }
+      this.__projectGeom = new MultiPolygon([this.__projectGeom.getCoordinates()]);
+    this.projectAreaFeature?.setGeometry(this.__projectGeom);
   }
 
   getBaseIntersections(feature: Feature<any>): Feature<any>[]{
-    const _this = this;
-    let intersecting: Feature<any>[] = [];
-    this._baseSelectLayer?.getSource().getFeatures().forEach((baseFeature: Feature<any>) => {
-      let poss = baseFeature.getGeometry().getInteriorPoints().getCoordinates();
-      for (let i = 0; i < poss.length; i++) {
-        let coords = poss[i],
-          intersection = feature.getGeometry().intersectsCoordinate(coords);
-        if (intersection) {
-          intersecting.push(feature);
-          break;
+    let intersections = feature.get('intersect');
+    if (!intersections) {
+      intersections = [];
+      const baseFeatures = this._baseSelectLayer?.getSource().getFeatures();
+      baseFeatures.forEach((baseFeature: Feature<any>) => {
+        let poss = baseFeature.getGeometry().getInteriorPoints().getCoordinates();
+        for (let i = 0; i < poss.length; i++) {
+          let coords = poss[i],
+            intersection = feature.getGeometry().intersectsCoordinate(coords);
+          if (intersection) {
+            intersections.push(baseFeature);
+            break;
+          }
         }
-      }
-    })
-    return intersecting;
+      })
+      feature.set('intersect', intersections);
+    }
+    return intersections;
   }
 
   ngOnDestroy(): void {

@@ -136,7 +136,7 @@ export class OlMap {
     if (options?.tooltipField || options?.selectable) {
       layer.set('showTooltip', true);
       this.map.on('pointermove', event => {
-        const showTooltip = layer.get('showTooltip');
+        const showTooltip = layer.get('showTooltip') && layer.getVisible();
         if (!showTooltip) return;
         const pixel = event.pixel;
         const f = this.map.forEachFeatureAtPixel(pixel, function (feature, hlayer) {
@@ -147,8 +147,8 @@ export class OlMap {
           let tooltip = this.tooltipOverlay.getElement()
           if (f) {
             this.tooltipOverlay.setPosition(event.coordinate);
-            let coords = this.map.getCoordinateFromPixel(pixel);
-            tooltip!.innerHTML = f.get(options.tooltipField) + `<br>${coords[0]}, ${coords[1]}`;
+            // let coords = this.map.getCoordinateFromPixel(pixel);
+            tooltip!.innerHTML = f.get(options.tooltipField); // + `<br>${coords[0]}, ${coords[1]}`;
             tooltip!.style.display = '';
           }
           else
@@ -219,11 +219,11 @@ export class OlMap {
       features.push(f);
       select.getFeatures().push(f);
     })
-    // select.dispatchEvent({
-    //   type: 'select',
-    //   selected: features,
-    //   deselected: []
-    // });
+    select.dispatchEvent({
+      type: 'select',
+      selected: features,
+      deselected: []
+    });
   }
 
   deselectFeatures(){
