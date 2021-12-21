@@ -16,6 +16,7 @@ import { Stroke, Style, Fill } from 'ol/style';
 import { Select } from "ol/interaction";
 import { click, singleClick, always } from 'ol/events/condition';
 import { EventEmitter } from "@angular/core";
+import { layer } from "@fortawesome/fontawesome-svg-core";
 
 export class OlMap {
   target: string;
@@ -26,7 +27,7 @@ export class OlMap {
   div: HTMLElement | null;
   tooltipOverlay: Overlay;
   // emits all selected features
-  selected = new EventEmitter<Collection<Feature<any>>>();
+  selected = new EventEmitter<{ layer: Layer<any>, selected: Feature<any>[], deselected: Feature<any>[] }>();
 
   constructor( target: string, options: {
     center?: Coordinate, zoom?: number, projection?: string,
@@ -133,7 +134,10 @@ export class OlMap {
     });
 
     if (options?.tooltipField || options?.selectable) {
+      layer.set('showTooltip', true);
       this.map.on('pointermove', event => {
+        const showTooltip = layer.get('showTooltip');
+        if (!showTooltip) return;
         const pixel = event.pixel;
         const f = this.map.forEachFeatureAtPixel(pixel, function (feature, hlayer) {
           if (feature && hlayer === layer) return feature;
@@ -174,7 +178,7 @@ export class OlMap {
       })
       this.map.addInteraction(select);
       select.on('select', event => {
-        this.selected.emit(select.getFeatures());
+        this.selected.emit({ layer: layer, selected: event.selected, deselected: event.deselected });
       })
       layer.set('select', select);
     }
@@ -183,6 +187,12 @@ export class OlMap {
     this.layers[name] = layer;
 
     return layer;
+  }
+
+  toggleSelect(layerName: string, active: boolean){
+    const layer = this.getLayer(layerName),
+          select = layer.get('select');
+    select.setActive(active);
   }
 
   getFeature(layerName: string, id: string){
@@ -195,16 +205,29 @@ export class OlMap {
     return null;
   }
 
-  selectFeature(layerName: string, id: string){
-    const feature = this.getFeature(layerName, id),
-          layer = this.layers[layerName],
+  selectFeatures(layerName: string, ids: string[] | Feature<any>[]){
+    const layer = this.layers[layerName],
           select = layer.get('select');
-    select.getFeatures().push(feature);
-    /*select.dispatchEvent({
-      type: 'select',
-      selected: [feature],
-      deselected: []
-    });*/
+
+    let features: Feature<any>[] = [];
+    ids.forEach(f => {
+      if (f instanceof String) {
+        // @ts-ignore
+        f = this.getFeature(layerName, f);
+      }
+      // @ts-ignore
+      features.push(f);
+      select.getFeatures().push(f);
+    })
+    // select.dispatchEvent({
+    //   type: 'select',
+    //   selected: features,
+    //   deselected: []
+    // });
+  }
+
+  deselectFeatures(){
+
   }
 
   removeLayer(name: string){

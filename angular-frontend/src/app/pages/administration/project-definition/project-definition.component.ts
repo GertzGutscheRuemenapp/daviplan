@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular
 import { MapControl, MapService } from "../../../map/map.service";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { Geometry, GeometryCollection, MultiPolygon, Polygon } from "ol/geom";
-import { Feature } from 'ol';
+import { Collection, Feature } from 'ol';
 import { register } from 'ol/proj/proj4'
 import union from '@turf/union';
 import pointOnSurface from '@turf/point-on-surface';
@@ -15,6 +15,7 @@ import { RestAPI } from "../../../rest-api";
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { SiteSettings } from "../../../settings.service";
 import { Observable } from "rxjs";
+import { Layer } from "ol/layer";
 
 export interface ProjectSettings {
   projectArea: string,
@@ -27,6 +28,17 @@ export interface AgeGroup {
   fromAge: number,
   toAge: number
 }
+
+interface BKGLayer {
+  name: string,
+  tag: string
+}
+
+const areaLayers: BKGLayer[] = [
+  { name: 'Kreise', tag: 'vg250_krs' },
+  { name: 'Verwaltungsgebiete', tag: 'vg250_vwg' },
+  { name: 'Gemeinden', tag: 'vg250_gem' },
+]
 
 proj4.defs("EPSG:25832", "+proj=utm +zone=32 +ellps=GRS80 +units=m +no_defs");
 register(proj4);
@@ -41,6 +53,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   areaSelectMapControl?: MapControl;
   projectGeom?: MultiPolygon;
   __projectGeom?: MultiPolygon;
+  projectAreaFeature?: Feature<any>;
   ageGroups?: AgeGroup[];
   __ageGroups: AgeGroup[] = [];
   ageGroupDefaults: AgeGroup[] = [];
@@ -48,6 +61,10 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   projectSettings?: ProjectSettings;
   yearForm!: FormGroup;
   Object = Object;
+  areaLayers = areaLayers;
+  selectedAreaLayer: BKGLayer = areaLayers[0];
+  baseAreaLayer: BKGLayer = areaLayers[areaLayers.length - 1];
+  private _baseSelectLayer?: Layer<any>;
   @ViewChild('areaCard') areaCard!: InputCardComponent;
   @ViewChild('yearCard') yearCard!: InputCardComponent;
   @ViewChild('ageGroupCard') ageGroupCard!: InputCardComponent;
@@ -177,7 +194,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   setupAreaCard(): void {
     this.areaCard.dialogOpened.subscribe(x => {
       this.projectAreaErrors = [];
-      this.areaCard.setLoading(true);
+      // this.areaCard.setLoading(true);
       this.areaSelectMapControl = this.mapService.get('project-area-select-map');
       this.areaSelectMapControl.setBackground(this.areaSelectMapControl.getBackgroundLayers()[0].id)
 
@@ -185,54 +202,50 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
         stroke: { color: 'red', width: 3 },
         visible: true
       });
-      let projectArea = new Feature(this.projectGeom);
-      projectLayer?.getSource().addFeature(projectArea);
+      this.projectAreaFeature = new Feature(this.projectGeom);
+      projectLayer?.getSource().addFeature(this.projectAreaFeature);
       const hasProjectArea = this.projectGeom?.getArea();
       if (hasProjectArea)
         this.areaSelectMapControl.map?.centerOnLayer('project-area');
-      const format = new GeoJSON();
-      this.areaSelectMapControl.map?.selected.subscribe(features => {
-        let mergedGeom: turf.Feature<turf.MultiPolygon | turf.Polygon> | null = null;
-        features.forEach(f => {
-          // const json = format.writeGeometryObject(f.getGeometry());
-          const poly = turf.multiPolygon(f.getGeometry().getCoordinates());
-          mergedGeom = mergedGeom? union(poly, mergedGeom): poly;
-        })
-        // @ts-ignore
-        this.__projectGeom = mergedGeom? format.readFeature(mergedGeom.geometry).getGeometry(): new MultiPolygon([]);
-        if (this.__projectGeom instanceof Polygon)
-          // @ts-ignore
-          this.__projectGeom = new MultiPolygon([this.__projectGeom.getCoordinates()]);
-        projectArea.setGeometry(this.__projectGeom);
+      this.areaSelectMapControl.map?.selected.subscribe(event => {
+        this.featuresSelected(event.layer, event.selected, event.deselected);
       })
-
-      let selectLayer = this.areaSelectMapControl.map?.addVectorLayer(
-        'bkg-gemeinden', {
-          url: function (extent: any) {
-            return (
-              'https://sgx.geodatenzentrum.de/wfs_vg250?service=WFS&' +
-              'version=1.1.0&request=GetFeature&typename=vg250_gem&' +
-              'outputFormat=application/json&srsname=EPSG:3857&' +
-              'bbox=' +
-              extent.join(',') +
-              ',EPSG:3857'
-            )},
-          visible: true,
-          selectable: true,
-          opacity: 0.5,
-          tooltipField: 'gen',
-          stroke: { color: 'black', selectedColor: 'black' },
-          fill: { color: 'rgba(255, 255, 255, 0.5)', selectedColor: 'yellow' }
-      });
       const _this = this;
-      let done = false;
-      selectLayer?.getSource().addEventListener('featuresloadend', function () {
-        if (done) return;
-        done = true;
+
+      this.areaLayers.forEach(al => {
+        const layer = _this.areaSelectMapControl!.map?.addVectorLayer(
+          al.tag, {
+            url: function (extent: any) {
+              return (
+                'https://sgx.geodatenzentrum.de/wfs_vg250?service=WFS&' +
+                `version=1.1.0&request=GetFeature&typename=${al.tag}&` +
+                'outputFormat=application/json&srsname=EPSG:3857&' +
+                'bbox=' +
+                extent.join(',') +
+                ',EPSG:3857'
+              )},
+            visible: al === _this.baseAreaLayer || al === _this.selectedAreaLayer,
+            selectable: true,
+            opacity: (al === _this.baseAreaLayer)? 0 : 0.5,
+            tooltipField: 'gen',
+            stroke: { color: 'black', selectedColor: 'rgba(0, 0, 0, 0)' },
+            fill: { color: 'rgba(0, 0, 0, 0)', selectedColor: (al === _this.baseAreaLayer)? 'yellow': 'red' }
+          });
+        layer?.set('showTooltip', al === this.selectedAreaLayer);
+        layer?.get('select').setActive(al === this.selectedAreaLayer);
+      })
+      this._baseSelectLayer = this.areaSelectMapControl.map?.getLayer(this.baseAreaLayer.tag);
+      this._baseSelectLayer?.getSource().addEventListener('featuresloadstart', function () {
+        _this.areaCard.setLoading(true);
+      });
+      let init = false;
+      this._baseSelectLayer?.getSource().addEventListener('featuresloadend', function () {
         _this.areaCard.setLoading(false);
-        if(!hasProjectArea) return;
-        const select = selectLayer?.get('select');
-        selectLayer?.getSource().getFeatures().forEach((feature: Feature<any>) => {
+        if (init) return;
+        init = true;
+        if (!hasProjectArea) return;
+        const select = _this._baseSelectLayer?.get('select');
+        _this._baseSelectLayer?.getSource().getFeatures().forEach((feature: Feature<any>) => {
           let poss = feature.getGeometry().getInteriorPoints().getCoordinates();
           for (let i = 0; i < poss.length; i++) {
             let coords = poss[i],
@@ -265,6 +278,68 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
 
   resetAgeGroups(): void {
     this.__ageGroups = Object.assign([], this.ageGroupDefaults);
+  }
+
+  changeAreaLayer(): void {
+    const _this = this;
+    this.areaLayers.forEach(al => {
+      const layer = this.areaSelectMapControl?.map?.getLayer(al.tag);
+      const select = layer?.get('select');
+      if (al !== _this.baseAreaLayer) {
+        layer?.setVisible(al === _this.selectedAreaLayer);
+        select.getFeatures().clear();
+      }
+/*      else
+        layer?.setOpacity((al === _this.selectedAreaLayer) ? 0.5 : 0);*/
+      select.setActive(al === this.selectedAreaLayer);
+      layer?.set('showTooltip', al === this.selectedAreaLayer);
+    })
+  }
+
+  featuresSelected(layer: Layer<any>, selected: Feature<any>[], deselected: Feature<any>[]){
+    if (layer !== this._baseSelectLayer){
+      selected.forEach(feature => {
+        let baseFeatures = feature.get('intersect');
+        if (!baseFeatures) {
+          baseFeatures = this.getBaseIntersections(feature);
+          feature.set('intersect', baseFeatures);
+        }
+        this.areaSelectMapControl?.map?.selectFeatures(this.baseAreaLayer.tag, baseFeatures);
+      })
+    }
+    else{
+/*      let features = this._baseSelectLayer?.get('select').getFeatures();
+      let mergedGeom: turf.Feature<turf.MultiPolygon | turf.Polygon> | null = null;
+      features.forEach((f: Feature<any>) => {
+        // const json = format.writeGeometryObject(f.getGeometry());
+        const poly = turf.multiPolygon(f.getGeometry().getCoordinates());
+        mergedGeom = mergedGeom ? union(poly, mergedGeom) : poly;
+      })
+      const format = new GeoJSON();
+      // @ts-ignore
+      this.__projectGeom = mergedGeom ? format.readFeature(mergedGeom.geometry).getGeometry() : new MultiPolygon([]);
+      if (this.__projectGeom instanceof Polygon)
+        // @ts-ignore
+        this.__projectGeom = new MultiPolygon([this.__projectGeom.getCoordinates()]);
+      this.projectAreaFeature?.setGeometry(this.__projectGeom);*/
+    }
+  }
+
+  getBaseIntersections(feature: Feature<any>): Feature<any>[]{
+    const _this = this;
+    let intersecting: Feature<any>[] = [];
+    this._baseSelectLayer?.getSource().getFeatures().forEach((baseFeature: Feature<any>) => {
+      let poss = baseFeature.getGeometry().getInteriorPoints().getCoordinates();
+      for (let i = 0; i < poss.length; i++) {
+        let coords = poss[i],
+          intersection = feature.getGeometry().intersectsCoordinate(coords);
+        if (intersection) {
+          intersecting.push(feature);
+          break;
+        }
+      }
+    })
+    return intersecting;
   }
 
   ngOnDestroy(): void {

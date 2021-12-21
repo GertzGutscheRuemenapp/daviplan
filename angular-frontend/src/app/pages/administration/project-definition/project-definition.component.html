@@ -122,6 +122,16 @@
 </ng-template>
 
 <ng-template #projectAreaEdit>
+  <mat-form-field appearance="outline" class="small">
+    <mat-label>Verwaltungsebene</mat-label>
+    <mat-select disableOptionCentering disableRipple
+                (selectionChange)="changeAreaLayer()"
+                [(value)]="selectedAreaLayer">
+      <mat-option [value]="layer" *ngFor="let layer of areaLayers">
+        {{layer.name}}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
   <mat-error *ngFor="let error of projectAreaErrors" class="alert">
     {{ error }}
   </mat-error>
