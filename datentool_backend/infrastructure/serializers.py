@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from .models import (Infrastructure, FieldType, FClass, FieldTypes, Service,
-                     Quota, Place, Capacity, PlaceField)
+                     Place, Capacity, PlaceField)
 
 
 class InfrastructureSerializer(serializers.ModelSerializer):
@@ -13,37 +13,15 @@ class InfrastructureSerializer(serializers.ModelSerializer):
                    'layer', 'symbol')
 
 
-class QuotaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Quota
-        fields = ('id', 'quota_type')
-
-
 class ServiceSerializer(serializers.ModelSerializer):
-    quota_type = QuotaSerializer(read_only=True, source='quota')
-    quota_id = serializers.IntegerField(write_only=True, source='quota')
+    #quota_id = serializers.IntegerField(write_only=True, source='quota')
     class Meta:
         model = Service
         fields = ('id', 'name', 'description', 'infrastructure', 'editable_by',
                   'capacity_singular_unit', 'capacity_plural_unit',
                   'has_capacity', 'demand_singular_unit', 'demand_plural_unit',
-                  'quota_id', 'quota_type')
-
-    def create(self, validated_data):
-        quota_id = validated_data.pop('quota')
-        quota = Quota.objects.get(pk=quota_id)
-        validated_data['quota'] = quota
-        instance = super().create(validated_data)
-        instance.save()
-        return instance
-
-    def update(self, instance, validated_data):
-        quota_id = validated_data.pop('quota')
-        if quota_id is not None:
-            quota = Quota.objects.get(pk=quota_id)
-            validated_data['quota'] = quota
-        instance = super().update(instance, validated_data)
-        return instance
+                  #'quota_id',
+                  'quota_type')
 
 
 class PlaceSerializer(GeoFeatureModelSerializer):

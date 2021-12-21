@@ -9,7 +9,7 @@ from datentool_backend.user.factories import ProfileFactory
 
 from datentool_backend.infrastructure.factories import (InfrastructureFactory, ServiceFactory, CapacityFactory,
                         FClassFactory, PlaceFieldFactory, PlaceFactory,
-                        FieldTypeFactory, QuotaFactory)
+                        FieldTypeFactory)
 from datentool_backend.infrastructure.models import (Infrastructure, Place, Capacity, FieldTypes, FClass,
                      Service, PlaceField)
 
@@ -23,7 +23,7 @@ class TestInfrastructure(TestCase):
 
     def test_service(self):
         service = ServiceFactory()
-        print(service.quota)
+        print(service.quota_type)
 
     def test_infrastructure(self):
         """"""
@@ -111,19 +111,6 @@ class TestInfrastructureAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestC
         #self.test_put_patch()
 
 
-class TestQuotaAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
-    """Test to post, put and patch data"""
-    url_key = "quotas"
-    factory = QuotaFactory
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-
-        cls.post_data = dict(quota_type=faker.word())
-        cls.put_data = dict(quota_type=faker.word())
-        cls.patch_data = dict(quota_type=faker.word())
-
 
 class TestServiceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
@@ -137,7 +124,7 @@ class TestServiceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         service: Service = cls.obj
         infrastructure = service.infrastructure.pk
         editable_by = list(service.editable_by.all().values_list(flat=True))
-        quota_id = service.quota.pk
+        #quota_id = service.pk
 
         data = dict(name=faker.word(),
                     description=faker.word(),
@@ -148,7 +135,8 @@ class TestServiceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
                     has_capacity=True,
                     demand_singular_unit=faker.word(),
                     demand_plural_unit=faker.word(),
-                    quota_id=quota_id)
+                    #quota_id=quota_id,
+                    quota_type=faker.word())
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data

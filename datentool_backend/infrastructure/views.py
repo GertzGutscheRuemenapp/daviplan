@@ -1,9 +1,9 @@
 from rest_framework import viewsets, permissions
 from datentool_backend.utils.views import HasAdminAccessOrReadOnly, CanEditBasedata
-from .models import (Infrastructure, FieldType, Service, Quota, Place, Capacity,
+from .models import (Infrastructure, FieldType, Service, Place, Capacity,
                      PlaceField, FClass)
 from .serializers import (InfrastructureSerializer, FieldTypeSerializer,
-                          ServiceSerializer, QuotaSerializer, PlaceSerializer,
+                          ServiceSerializer, PlaceSerializer,
                           CapacitySerializer, PlaceFieldSerializer,
                           FClassSerializer)
 
@@ -25,12 +25,6 @@ class InfrastructureViewSet(viewsets.ModelViewSet):
     queryset = Infrastructure.objects.all()
     serializer_class = InfrastructureSerializer
     # permission_classes = [HasAdminAccessOrReadOnly | CanPatchSymbol]
-
-
-class QuotaViewSet(viewsets.ModelViewSet):
-    queryset = Quota.objects.all()
-    serializer_class = QuotaSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
 class ServiceViewSet(viewsets.ModelViewSet):

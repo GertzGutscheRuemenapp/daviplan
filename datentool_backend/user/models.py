@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from datentool_backend.base import NamedModel
-
+#from datentool_backend.infrastructure.models import Place, Capacity
 
 
 class Profile(models.Model):
@@ -60,16 +60,3 @@ class Scenario(NamedModel, models.Model):
     def modes(self):
         """the modes used in the scenario"""
 
-
-class ScenarioPlace(NamedModel, models.Model):
-    scenario = models.ForeignKey("user.Scenario", on_delete=models.RESTRICT)
-    status_quo = models.ForeignKey("infrastructure.Place", null=True, on_delete=models.RESTRICT)
-
-
-class ScenarioCapacity(NamedModel, models.Model):
-    scenario = models.ForeignKey("user.Scenario", on_delete=models.RESTRICT)
-    status_quo = models.ForeignKey("infrastructure.Capacity", null=True, on_delete=models.RESTRICT)
-
-
-class ScenarioDemandRate(NamedModel, models.Model):
-    scenario = models.ForeignKey("user.Scenario", on_delete=models.RESTRICT)

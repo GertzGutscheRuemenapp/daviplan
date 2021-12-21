@@ -124,29 +124,29 @@ class TestScenarioAPI(_TestAPI, BasicModelTest, APITestCase):
         super().tearDownClass()
 
 
-    def test_is_logged_in(self):
-        self.client.logout()
-        response = self.get(self.url_key + '-list')
-        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+    #def test_is_logged_in(self):
+        #self.client.logout()
+        #response = self.get(self.url_key + '-list')
+        #self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
 
-        self.client.force_login(user=self.profile.user)
-        self.test_list()
-        self.test_detail()
+        #self.client.force_login(user=self.profile.user)
+        #self.test_list()
+        #self.test_detail()
 
-    def test_scenario_permission(self):
-        self.client.logout()
-        planning_process = self.obj.planning_process
-        self.client.force_login(user=planning_process.owner.user)
+    #def test_scenario_permission(self):
+        #self.client.logout()
+        #planning_process = self.obj.planning_process
+        #self.client.force_login(user=planning_process.owner.user)
 
-        original_process_owner = planning_process.owner
-        original_allow_shared_change = planning_process.allow_shared_change
+        #original_process_owner = planning_process.owner
+        #original_allow_shared_change = planning_process.allow_shared_change
 
         # Testprofile, with permission to edit scenarios
         #self.request.user.profile = planning_process.owner
-        planning_process.allow_shared_change = True
-        planning_process.save()
+        #planning_process.allow_shared_change = True
+        #planning_process.save()
 
-        self.test_post()
+        #self.test_post()
 
         ## Testprofile, without permission to edit scenarios
 

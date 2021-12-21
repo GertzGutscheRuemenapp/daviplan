@@ -19,7 +19,7 @@ from .indicators.views import (ModeViewSet, ModeVariantViewSet,
                                IndicatorViewSet)
 
 from .infrastructure.views import (InfrastructureViewSet, FieldTypeViewSet,
-                                   QuotaViewSet, ServiceViewSet, PlaceViewSet,
+                                   ServiceViewSet, PlaceViewSet,
                                    CapacityViewSet, PlaceFieldViewSet,
                                    FClassViewSet)
 from .logging.views import (CapacityUploadLogViewSet, PlaceUploadLogViewSet,
@@ -65,7 +65,6 @@ router.register(r'indicators', IndicatorViewSet, basename='indicators')
 # infrastructure
 router.register(r'infrastructures', InfrastructureViewSet,
                 basename='infrastructures')
-router.register(r'quotas', QuotaViewSet, basename='quotas')
 router.register(r'services', ServiceViewSet, basename='services')
 router.register(r'places', PlaceViewSet, basename='places')
 router.register(r'capacities', CapacityViewSet, basename='capacities')

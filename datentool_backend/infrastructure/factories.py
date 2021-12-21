@@ -2,7 +2,7 @@ from faker import Faker
 import factory
 from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import Point
-from .models import (Infrastructure, Quota, Service, Place,
+from .models import (Infrastructure, Service, Place,
                      Capacity, FieldTypes, FieldType, FClass, PlaceField,
                      Profile)
 from ..area.factories import InternalWFSLayerFactory, MapSymbolsFactory
@@ -50,13 +50,6 @@ class InfrastructureFactory(DjangoModelFactory):
                 self.accessible_by.add(profile)
 
 
-class QuotaFactory(DjangoModelFactory):
-    class Meta:
-        model = Quota
-
-    quota_type = faker.word()
-
-
 class ServiceFactory(DjangoModelFactory):
     class Meta:
         model = Service
@@ -70,7 +63,7 @@ class ServiceFactory(DjangoModelFactory):
     has_capacity = True
     demand_singular_unit = faker.word()
     demand_plural_unit = faker.word()
-    quota = factory.SubFactory(QuotaFactory)
+    quota_type = faker.word()
 
 
 class PlaceFactory(DjangoModelFactory):
