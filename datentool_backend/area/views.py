@@ -1,6 +1,5 @@
 from rest_framework import viewsets
-from datentool_backend.utils.views import (CanEditBasedataPermission,
-                                           CanEditBasedata,
+from datentool_backend.utils.views import (CanEditBasedata,
                                            HasAdminAccessOrReadOnly)
 
 from .models import (SymbolForm, MapSymbol, LayerGroup, WMSLayer,

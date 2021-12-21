@@ -4,7 +4,7 @@ from django.contrib.gis.geos import Polygon
 from collections import OrderedDict
 
 from datentool_backend.api_test import BasicModelTest
-from datentool_backend.area.tests import _TestAPI
+from datentool_backend.area.tests import _TestAPI, _TestPermissions
 
 from .factories import (ProfileFactory, UserFactory, User,
                         PlanningProcessFactory, ScenarioFactory)
@@ -122,3 +122,37 @@ class TestScenarioAPI(_TestAPI, BasicModelTest, APITestCase):
         del cls.obj
         planning_process.delete()
         super().tearDownClass()
+
+
+    def test_is_logged_in(self):
+        self.client.logout()
+        response = self.get(self.url_key + '-list')
+        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+
+        self.client.force_login(user=self.profile.user)
+        self.test_list()
+        self.test_detail()
+
+    def test_scenario_permission(self):
+        self.client.logout()
+        planning_process = self.obj.planning_process
+        self.client.force_login(user=planning_process.owner.user)
+
+        original_process_owner = planning_process.owner
+        original_allow_shared_change = planning_process.allow_shared_change
+
+        # Testprofile, with permission to edit scenarios
+        #self.request.user.profile = planning_process.owner
+        planning_process.allow_shared_change = True
+        planning_process.save()
+
+        self.test_post()
+
+        ## Testprofile, without permission to edit scenarios
+
+        ## post
+        #response = self.post(url, **self.url_pks, data=self.post_data,
+                             #extra={'format': 'json'})
+        #self.response_403(msg=response.content)
+
+

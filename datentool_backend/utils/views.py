@@ -437,17 +437,17 @@ class CanEditBasedata(permissions.BasePermission):
                 request.user.profile.can_edit_basedata)
 
 
-class CanEditBasedataPermission(UserPassesTestMixin):
-    """Has write access to Basedata-Models"""
+#class CanEditBasedataPermission(UserPassesTestMixin):
+    #"""Has write access to Basedata-Models"""
 
-    def test_func(self):
-        if (self.request.method in permissions.SAFE_METHODS
-                and self.request.user.is_authenticated):
-            return True
-        if self.request.user.is_superuser == True:
-            return True
-        return (self.request.user.is_authenticated and
-                self.request.user.profile.can_edit_basedata)
+    #def test_func(self):
+        #if (self.request.method in permissions.SAFE_METHODS
+                #and self.request.user.is_authenticated):
+            #return True
+        #if self.request.user.is_superuser == True:
+            #return True
+        #return (self.request.user.is_authenticated and
+                #self.request.user.profile.can_edit_basedata)
 
 
 class HasAdminAccess(permissions.BasePermission):
@@ -456,17 +456,17 @@ class HasAdminAccess(permissions.BasePermission):
                 and request.user.profile.admin_access)
 
 
-class HasAdminAccessPermission(UserPassesTestMixin):
-    """Has admin access (Read or write)"""
+#class HasAdminAccessPermission(UserPassesTestMixin):
+    #"""Has admin access (Read or write)"""
 
-    def test_func(self):
-        if (self.request.method in permissions.SAFE_METHODS and
-            self.request.user.is_authenticated):
-            return True
-        if self.request.user.is_superuser == True:
-            return True
-        return (self.request.user.pk is not None
-                and self.request.user.profile.admin_access)
+    #def test_func(self):
+        #if (self.request.method in permissions.SAFE_METHODS and
+            #self.request.user.is_authenticated):
+            #return True
+        #if self.request.user.is_superuser == True:
+            #return True
+        #return (self.request.user.pk is not None
+                #and self.request.user.profile.admin_access)
 
 
 class ReadOnlyAccess(UserPassesTestMixin):
