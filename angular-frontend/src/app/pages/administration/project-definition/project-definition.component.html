@@ -51,7 +51,7 @@
                     [topRightHelp]="true"
                     infoText="Um Ihr Projektgebiet festzulegen oder zu verändern, klicken Sie bitte auf „Editieren“. Sie gelangen dann zu einer Kartendarstellung, in der Sie Ihr Projektgebiet aus einzelnen Gemeinden, Verwaltungsgemeinschaften und Landkreisen zusammensetzen können."
                     [editTemplate]="projectAreaEdit"
-                    dialogWidth="900px">
+                    dialogWidth="1200px">
       <div id="project-preview-map" class="map-container">
         <app-map-controls></app-map-controls>
       </div>
@@ -122,10 +122,48 @@
 </ng-template>
 
 <ng-template #projectAreaEdit>
-  <mat-error *ngFor="let error of projectAreaErrors" class="alert">
-    {{ error }}
-  </mat-error>
-  <div id="project-area-select-map" class="map-container">
-    <app-map-controls></app-map-controls>
+  <div style="display: flex">
+    <div style="width: 70%;">
+      <mat-form-field appearance="outline" class="small">
+        <mat-label>Verwaltungsebene</mat-label>
+        <mat-select disableOptionCentering disableRipple
+                    [disabled] = "!showAreaLayers"
+                    (selectionChange)="changeAreaLayer()"
+                    [(value)]="selectedAreaLayer">
+          <mat-option [value]="layer" *ngFor="let layer of areaLayers">
+            {{layer.name}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-slide-toggle color="primary"
+                        style="margin-left: 10px;"
+                        [(ngModel)]="showAreaLayers"
+                        (ngModelChange)="toggleLayerVisibility()">
+        Gebietsauswahl {{showAreaLayers? 'aktiv': 'deaktiviert' }}
+      </mat-slide-toggle>
+      <mat-error *ngFor="let error of projectAreaErrors" class="alert">
+        {{ error }}
+      </mat-error>
+      <div id="project-area-select-map" class="map-container">
+        <app-map-controls></app-map-controls>
+      </div>
+    </div>
+    <div style="width: 30%;">
+      <b i18n>ausgewählte Gemeinden</b>
+      <button (click)="removeAreaSelections()"
+              [disabled] = "!showAreaLayers">
+        Alle abwählen
+      </button>
+      <div id="base-area-list" [style.display]="showAreaLayers? '': 'none'">
+        <ul>
+          <li title="aus/abwählen"
+              (click)= "toggleFeatureSelection(baseFeat)"
+              *ngFor="let baseFeat of baseAreasInExtent"
+              [class.inSelection] = "baseFeat.get('inSelection')">
+            {{baseFeat.get('gen')}}
+          </li>
+        </ul>
+      </div>
+    </div>
   </div>
 </ng-template>

@@ -5,9 +5,26 @@
 }
 
 #project-area-select-map {
-  width: 100%;
   height: 700px;
   position: relative;
+  width: 100%;
+}
+
+#base-area-list {
+  overflow-y: auto;
+  max-height: 700px;
+  padding: 0 10px;
+
+  li {
+    cursor: pointer;
+  }
+
+  li:not(.inSelection) {
+    color: grey;
+  }
+  li.inSelection {
+    font-weight: bold;
+  }
 }
 
 .age-group-container {
