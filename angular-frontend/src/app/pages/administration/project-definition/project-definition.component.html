@@ -24,7 +24,7 @@
     <app-input-card #ageGroupCard
                     [title]="'Altersgruppeneinteilung'"
                     [editTemplate]="ageGroupsEdit"
-                    dialogWidth="450px"
+                    dialogWidth="400px"
                     infoText="<b><i>ToDo: Hilfetext</i></b>">
       <table>
         <tr>
@@ -82,39 +82,51 @@
   <div class="age-group-container">
     <div class="age-row" *ngFor="let ageGroup of __ageGroups; let i = index;">
       <mat-form-field appearance="outline" class="small">
-        <mat-label i18n>von</mat-label>
+        <mat-label i18n>{{(i < __ageGroups.length - 1) ? 'von': 'ab'}}</mat-label>
         <input matInput type="number"
                [min]="(i===0)? 0: __ageGroups![i-1].toAge + 1"
                [max]="ageGroup.toAge - 1"
                [(ngModel)]="ageGroup.fromAge"
                required>
       </mat-form-field>
-      &nbsp;-&nbsp;
-      <mat-form-field appearance="outline" class="small">
-        <mat-label i18n>bis</mat-label>
-        <input matInput type="number"
-               [min]="ageGroup.fromAge + 1"
-               [max]="(i===__ageGroups.length-1)? 999: __ageGroups![i+1].fromAge - 1"
-               [(ngModel)]="ageGroup.toAge"
-               required>
-        <mat-error *ngIf="yearForm.get('startYear')?.errors?.tooHigh" i18n>Das Startjahr muss vor dem Endjahr liegen</mat-error>
-      </mat-form-field>
+      <ng-container *ngIf="(i < __ageGroups.length-1)">
+        &nbsp;-&nbsp;
+        <mat-form-field appearance="outline" class="small">
+          <mat-label i18n>bis</mat-label>
+          <input matInput type="number"
+                 [min]="ageGroup.fromAge + 1"
+                 [max]="__ageGroups![i+1].fromAge - 1"
+                 [(ngModel)]="ageGroup.toAge"
+                 required>
+          <mat-error *ngIf="yearForm.get('startYear')?.errors?.tooHigh" i18n>
+            Das Startjahr muss vor dem Endjahr liegen
+          </mat-error>
+        </mat-form-field>
+      </ng-container>
       Jahre
       <button mat-button color="primary"
               class="mat-button-dv"
+              (click)="removeAgeGroup(ageGroup)"
               title="Altersgruppe entfernen"
-              style="margin-left: 5px;">
+              style="float: right;">
         <mat-icon>remove</mat-icon>
       </button>
     </div>
   </div>
   <button mat-button color="primary"
           class="mat-button-dv"
+          (click)="addAgeGroup()"
           title="Altersgruppe hinzufügen" i18n>
     <mat-icon>add</mat-icon>Altersgruppe hinzufügen
   </button>
   <button mat-button color="primary"
           class="mat-button-dv"
+          (click)="removeAllAgeGroups()"
+          title="Alle Altersgruppen entfernen" i18n>
+    <mat-icon>remove</mat-icon>Alle entfernen
+  </button>
+  <button mat-button color="primary"
+          class="mat-button-dv multiline-button"
           style="margin: 15px 0px;"
           (click)="resetAgeGroups()" i18n>
     <mat-icon>refresh</mat-icon>auf Defaults der Regionalstatistik zurücksetzen

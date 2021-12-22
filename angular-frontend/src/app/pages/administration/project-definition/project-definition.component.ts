@@ -16,6 +16,7 @@ import { FormBuilder, FormGroup } from "@angular/forms";
 import { SiteSettings } from "../../../settings.service";
 import { Observable } from "rxjs";
 import { Layer } from "ol/layer";
+import { last } from "rxjs/operators";
 
 export interface ProjectSettings {
   projectArea: string,
@@ -24,7 +25,7 @@ export interface ProjectSettings {
 }
 
 export interface AgeGroup {
-  id: number,
+  id?: number,
   fromAge: number,
   toAge: number
 }
@@ -53,7 +54,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   areaSelectMapControl?: MapControl;
   projectGeom?: MultiPolygon;
   mergedSelectArea?: Feature<any>;
-  ageGroups?: AgeGroup[];
+  ageGroups: AgeGroup[] = [];
   __ageGroups: AgeGroup[] = [];
   ageGroupDefaults: AgeGroup[] = [];
   projectAreaErrors = [];
@@ -287,7 +288,33 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   }
 
   resetAgeGroups(): void {
-    this.__ageGroups = Object.assign([], this.ageGroupDefaults);
+    this.__ageGroups = JSON.parse(JSON.stringify(this.ageGroupDefaults));
+  }
+
+  addAgeGroup(): void {
+    if (this.__ageGroups.length > 0) {
+      const lastAgeGroup = this.__ageGroups[this.__ageGroups?.length - 1];
+      lastAgeGroup.toAge = lastAgeGroup.fromAge + 1;
+      this.__ageGroups.push({ fromAge: lastAgeGroup.toAge + 1, toAge: 999});
+    }
+    else {
+      this.__ageGroups = [{ fromAge: 0, toAge: 999 }];
+    }
+  }
+
+  removeAgeGroup(ageGroup: AgeGroup): void {
+    const index = this.__ageGroups.indexOf(ageGroup);
+    if (index == -1) return;
+    if (index > 0)
+      this.__ageGroups[index - 1].toAge = (index < this.__ageGroups.length - 1)? ageGroup.toAge: 999;
+    else
+      this.__ageGroups[index + 1].fromAge = 0;
+    this.__ageGroups.splice(index, 1);
+  }
+
+  removeAllAgeGroups(): void {
+    this.__ageGroups = [];
+    this.addAgeGroup();
   }
 
   /**
@@ -424,7 +451,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       (a, b) => a.get('gen').localeCompare(b.get('gen')));
   }
 
-  toggleLayerVisibility(): void {
+  toggleLayerVisibility(): void{
     this.areaLayers.forEach(al => {
       const layer = this.areaSelectMapControl?.map?.getLayer(al.tag);
       layer?.setVisible(this.showAreaLayers);
@@ -433,7 +460,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       this.updateAreasInExtent();
   }
 
-  toggleFeatureSelection(feature: Feature<any>): void {
+  toggleFeatureSelection(feature: Feature<any>): void{
     const isSelected = this.selectedBaseAreaMap.has(feature.get('debkg_id'));
     if (isSelected)
       this.selectedBaseAreaMap.delete(feature.get('debkg_id'));
