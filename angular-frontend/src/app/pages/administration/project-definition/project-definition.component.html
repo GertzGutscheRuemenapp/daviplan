@@ -122,30 +122,34 @@
 </ng-template>
 
 <ng-template #projectAreaEdit>
-  <mat-form-field appearance="outline" class="small">
-    <mat-label>Verwaltungsebene</mat-label>
-    <mat-select disableOptionCentering disableRipple
-                (selectionChange)="changeAreaLayer()"
-                [(value)]="selectedAreaLayer">
-      <mat-option [value]="layer" *ngFor="let layer of areaLayers">
-        {{layer.name}}
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
-  <mat-error *ngFor="let error of projectAreaErrors" class="alert">
-    {{ error }}
-  </mat-error>
   <div style="display: flex">
-    <div id="project-area-select-map" class="map-container">
-      <app-map-controls></app-map-controls>
+    <div style="width: 70%;">
+      <mat-form-field appearance="outline" class="small">
+        <mat-label>Verwaltungsebene</mat-label>
+        <mat-select disableOptionCentering disableRipple
+                    (selectionChange)="changeAreaLayer()"
+                    [(value)]="selectedAreaLayer">
+          <mat-option [value]="layer" *ngFor="let layer of areaLayers">
+            {{layer.name}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-error *ngFor="let error of projectAreaErrors" class="alert">
+        {{ error }}
+      </mat-error>
+      <div id="project-area-select-map" class="map-container">
+        <app-map-controls></app-map-controls>
+      </div>
     </div>
-    <div id="base-area-list">
+    <div style="width: 30%;">
       <b i18n>ausgewählte Gemeinden</b>
-      <ul>
-        <li *ngFor="let baseFeat of selectedBaseAreas | keyvalue">
-          {{baseFeat.value.get('gen')}}
-        </li>
-      </ul>
+      <div id="base-area-list">
+        <ul>
+          <li *ngFor="let baseFeat of sortedBaseAreas">
+            {{baseFeat.get('gen')}}
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 </ng-template>

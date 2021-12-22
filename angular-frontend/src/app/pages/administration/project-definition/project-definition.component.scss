@@ -5,13 +5,15 @@
 }
 
 #project-area-select-map {
-  width: 70%;
   height: 700px;
   position: relative;
+  width: 100%;
 }
 
 #base-area-list {
-  width: 30%;
+  overflow-y: auto;
+  max-height: 700px;
+  padding: 0 10px;
 }
 
 .age-group-container {
