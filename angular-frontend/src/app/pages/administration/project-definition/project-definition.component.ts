@@ -110,8 +110,8 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     this.previewMapControl.setBackground(this.previewMapControl.getBackgroundLayers()[0].id);
     this.previewMapControl.map?.addVectorLayer('project-area',{
       visible: true,
-      stroke: { color: 'red', width: 3 },
-      fill: { color: 'rgba(255, 255, 0, 0.5)' }
+      stroke: { color: '#2196F3', width: 3 },
+      fill: { color: 'rgba(33, 150, 243, 0.5)' }
     });
   }
 
@@ -200,8 +200,8 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       this.areaSelectMapControl.setBackground(this.areaSelectMapControl.getBackgroundLayers()[0].id)
 
       let projectLayer = this.areaSelectMapControl.map?.addVectorLayer('project-area', {
-        stroke: { color: 'red', width: 3 },
-        fill: { color: 'rgba(255, 255, 0, 0.5)' },
+        stroke: { color: '#2196F3', width: 3 },
+        fill: { color: 'rgba(33, 150, 243, 0.5)' },
         visible: true
       });
       this.mergedSelectArea = new Feature(this.projectGeom);
