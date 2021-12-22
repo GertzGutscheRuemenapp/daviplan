@@ -14,6 +14,17 @@
   overflow-y: auto;
   max-height: 700px;
   padding: 0 10px;
+
+  li {
+    cursor: pointer;
+  }
+
+  li:not(.inSelection) {
+    color: grey;
+  }
+  li.inSelection {
+    font-weight: bold;
+  }
 }
 
 .age-group-container {

@@ -17,6 +17,8 @@ import { Select } from "ol/interaction";
 import { click, singleClick, always } from 'ol/events/condition';
 import { EventEmitter } from "@angular/core";
 import { layer } from "@fortawesome/fontawesome-svg-core";
+import { Polygon } from "ol/geom";
+import {fromExtent} from 'ol/geom/Polygon';
 
 export class OlMap {
   target: string;
@@ -71,6 +73,11 @@ export class OlMap {
 
   getLayer(name: string): Layer<any>{
     return this.layers[name];
+  }
+
+  getExtent(): Polygon {
+    const extent = this.map.getView().calculateExtent(this.map.getSize());
+    return fromExtent(extent);
   }
 
   centerOnLayer(name: string): void{
@@ -154,7 +161,7 @@ export class OlMap {
           else
             tooltip!.style.display = 'none';
         }
-        if (options?.selectable){
+        if (options?.selectable && layer.getVisible()){
           this.div!.style.cursor = f? 'pointer': '';
         }
       });

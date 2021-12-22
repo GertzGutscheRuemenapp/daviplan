@@ -127,6 +127,7 @@
       <mat-form-field appearance="outline" class="small">
         <mat-label>Verwaltungsebene</mat-label>
         <mat-select disableOptionCentering disableRipple
+                    [disabled] = "!showAreaLayers"
                     (selectionChange)="changeAreaLayer()"
                     [(value)]="selectedAreaLayer">
           <mat-option [value]="layer" *ngFor="let layer of areaLayers">
@@ -134,6 +135,12 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
+      <mat-slide-toggle color="primary"
+                        style="margin-left: 10px;"
+                        [(ngModel)]="showAreaLayers"
+                        (ngModelChange)="toggleLayerVisibility()">
+        Gebietsauswahl {{showAreaLayers? 'aktiv': 'deaktiviert' }}
+      </mat-slide-toggle>
       <mat-error *ngFor="let error of projectAreaErrors" class="alert">
         {{ error }}
       </mat-error>
@@ -143,9 +150,16 @@
     </div>
     <div style="width: 30%;">
       <b i18n>ausgewählte Gemeinden</b>
-      <div id="base-area-list">
+      <button (click)="removeAreaSelections()"
+              [disabled] = "!showAreaLayers">
+        Alle abwählen
+      </button>
+      <div id="base-area-list" [style.display]="showAreaLayers? '': 'none'">
         <ul>
-          <li *ngFor="let baseFeat of sortedBaseAreas">
+          <li title="aus/abwählen"
+              (click)= "toggleFeatureSelection(baseFeat)"
+              *ngFor="let baseFeat of baseAreasInExtent"
+              [class.inSelection] = "baseFeat.get('inSelection')">
             {{baseFeat.get('gen')}}
           </li>
         </ul>

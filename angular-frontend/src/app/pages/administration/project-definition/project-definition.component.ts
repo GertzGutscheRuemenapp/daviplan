@@ -52,7 +52,6 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   previewMapControl?: MapControl;
   areaSelectMapControl?: MapControl;
   projectGeom?: MultiPolygon;
-  __projectGeom?: MultiPolygon;
   mergedSelectArea?: Feature<any>;
   ageGroups?: AgeGroup[];
   __ageGroups: AgeGroup[] = [];
@@ -65,7 +64,8 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   selectedAreaLayer: BKGLayer = areaLayers[0];
   baseAreaLayer: BKGLayer = areaLayers[areaLayers.length - 1];
   selectedBaseAreaMap = new Map<string, Feature<any>>();
-  sortedBaseAreas: Feature<any>[] = [];
+  baseAreasInExtent: Feature<any>[] = [];
+  showAreaLayers = false;
   private _baseSelectLayer?: Layer<any>;
   @ViewChild('areaCard') areaCard!: InputCardComponent;
   @ViewChild('yearCard') yearCard!: InputCardComponent;
@@ -227,7 +227,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
                 extent.join(',') +
                 ',EPSG:3857'
               )},
-            visible: true,
+            visible: (al === this.baseAreaLayer)? true: false,
             selectable: true,
             opacity: (al === _this.selectedAreaLayer)? 0.5 : 0,
             tooltipField: 'gen',
@@ -244,22 +244,31 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
           }
         })
       })
+      this.areaSelectMapControl.map?.map.getView().on('change', function(){
+        if (_this.showAreaLayers) _this.updateAreasInExtent();
+      })
       this._baseSelectLayer = this.areaSelectMapControl.map?.getLayer(this.baseAreaLayer.tag);
       this._baseSelectLayer?.getSource().addEventListener('featuresloadstart', function () {
         _this.areaCard.setLoading(true);
       });
+      this._baseSelectLayer?.getSource().addEventListener('featuresloadend', function () {
+        if (_this.showAreaLayers) _this.updateAreasInExtent();
+      });
       this._baseSelectLayer?.getSource().once('featuresloadend', function () {
+        _this.areaCard.setLoading(false);
         if (!hasProjectArea) return;
-        let intersections = _this.getIntersections(_this.mergedSelectArea!, _this._baseSelectLayer!);
+        let intersections = _this.getIntersections(_this.mergedSelectArea!.getGeometry(), _this._baseSelectLayer!);
         intersections.forEach((feature: Feature<any>) => {
+          feature.set('inSelection', true);
           _this.selectedBaseAreaMap.set(feature.get('debkg_id'), feature)
         })
-        _this.sortedBaseAreas = _this.getSortedBaseAreas()
+        _this._baseSelectLayer?.setVisible(false);
       });
     })
     this.areaCard.dialogClosed.subscribe(x => {
       this.areaSelectMapControl?.destroy();
       this.selectedAreaLayer = this.areaLayers[0];
+      this.showAreaLayers = false;
     })
     this.areaCard.dialogConfirmed.subscribe(ok => {
       const format = new WKT();
@@ -298,7 +307,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
           select = layer?.get('select');
     select.getFeatures().clear();
     if (this.mergedSelectArea) {
-      let intersections = this.getIntersections(this.mergedSelectArea, layer!);
+      let intersections = this.getIntersections(this.mergedSelectArea.getGeometry(), layer!);
       select.getFeatures().extend(intersections);
     }
     this.areaCard.setLoading(false);
@@ -333,12 +342,17 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     }
 
     selectedBaseFeatures.forEach(feature => {
+      feature.set('inSelection', true);
       this.selectedBaseAreaMap.set(feature.get('debkg_id'), feature);
     })
     deselectedBaseFeatures.forEach(feature => {
+      feature.set('inSelection', false);
       this.selectedBaseAreaMap.delete(feature.get('debkg_id'));
     })
-    this.sortedBaseAreas = this.getSortedBaseAreas();
+    this.updateMergedSelectArea();
+  }
+
+  updateMergedSelectArea(){
     let mergedGeom: turf.Feature<turf.MultiPolygon | turf.Polygon> | null = null;
     this.selectedBaseAreaMap.forEach((f: Feature<any>) => {
       // const json = format.writeGeometryObject(f.getGeometry());
@@ -358,17 +372,17 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   /**
    * get intersections of feature with all features of given layer
    *
-   * @param feature
+   * @param geom
    * @param layer
    */
-  getIntersections(feature: Feature<any>, layer: Layer<any>): Feature<any>[]{
+  getIntersections(geom: Geometry, layer: Layer<any>): Feature<any>[]{
     const features = layer.getSource().getFeatures();
     let intersections: Feature<any>[] = [];
     features.forEach((f: Feature<any>) => {
       let poss = f.getGeometry().getInteriorPoints().getCoordinates();
       for (let i = 0; i < poss.length; i++) {
         let coords = poss[i],
-          intersection = feature.getGeometry().intersectsCoordinate(coords);
+          intersection = geom.intersectsCoordinate(coords);
         if (intersection) {
           intersections.push(f);
           break;
@@ -387,7 +401,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   getBaseIntersections(feature: Feature<any>): Feature<any>[]{
     let intersections = feature.get('intersect');
     if (!intersections) {
-      intersections = this.getIntersections(feature, this._baseSelectLayer!);
+      intersections = this.getIntersections(feature.getGeometry(), this._baseSelectLayer!);
       feature.set('intersect', intersections);
     }
     return intersections;
@@ -397,8 +411,43 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     this.previewMapControl?.destroy();
   }
 
-  getSortedBaseAreas(): Feature<any>[]{
-    return Array.from(this.selectedBaseAreaMap.values()).sort(
+  updateAreasInExtent(): void {
+    const _this = this,
+          extent = this.areaSelectMapControl?.map?.getExtent(),
+          intersections = this.getIntersections(extent!, this._baseSelectLayer!);
+    let areas = Array.from(this.selectedBaseAreaMap.values());
+    intersections.forEach(feature => {
+      if (!_this.selectedBaseAreaMap.has(feature.get('debkg_id')))
+        areas.push(feature);
+    })
+    this.baseAreasInExtent = areas.sort(
       (a, b) => a.get('gen').localeCompare(b.get('gen')));
+  }
+
+  toggleLayerVisibility(): void {
+    this.areaLayers.forEach(al => {
+      const layer = this.areaSelectMapControl?.map?.getLayer(al.tag);
+      layer?.setVisible(this.showAreaLayers);
+    })
+    if (this.showAreaLayers)
+      this.updateAreasInExtent();
+  }
+
+  toggleFeatureSelection(feature: Feature<any>): void {
+    const isSelected = this.selectedBaseAreaMap.has(feature.get('debkg_id'));
+    if (isSelected)
+      this.selectedBaseAreaMap.delete(feature.get('debkg_id'));
+    else
+      this.selectedBaseAreaMap.set(feature.get('debkg_id'), feature);
+    feature.set('inSelection', !isSelected);
+    this.updateMergedSelectArea();
+  }
+
+  removeAreaSelections(): void {
+    this.selectedBaseAreaMap.forEach((feature, key) => {
+      feature.set('inSelection', false);
+    })
+    this.selectedBaseAreaMap.clear();
+    this.updateMergedSelectArea();
   }
 }
