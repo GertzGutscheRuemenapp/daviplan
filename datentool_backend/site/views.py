@@ -19,7 +19,7 @@ class BaseDataSettingViewSet(SingletonViewSet):
 
 
 class SiteSettingViewSet(viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     queryset = SiteSetting.objects.all()
     serializer_class = SiteSettingSerializer
 

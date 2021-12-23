@@ -29,7 +29,12 @@
 
 .age-group-container {
   max-height: 50vh;
+  min-height: 200px;
   overflow-y: auto;
+  width: 340px;
+  margin: auto;
+  border: 1px solid lightgrey;
+  padding: 5px 0 5px 5px;
 }
 
 .age-row {
