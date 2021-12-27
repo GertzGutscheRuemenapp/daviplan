@@ -1,4 +1,5 @@
 from rest_framework import viewsets, permissions
+from django.shortcuts import get_object_or_404
 from datentool_backend.utils.views import HasAdminAccessOrReadOnly, CanEditBasedata
 from .models import (Infrastructure, FieldType, Service, Place, Capacity,
                      PlaceField, FClass, ScenarioCapacity, ScenarioPlace)
@@ -11,21 +12,34 @@ from .serializers import (InfrastructureSerializer, FieldTypeSerializer,
 
 #class CanPatchSymbol(permissions.BasePermission):
     #"""Permission Class for InfrastructureViewSet, patch of symbol, if user is authenticated """
-    #def has_object_permission(self, request, view, obj):
-        #if (request.user.is_authenticated
-                #and request.user.profile.can_edit_basedata):
-            #if (request.method in ('PATCH') and request.symbol == obj.symbol):
-                #return request.user.profile.can_edit_basedata
+    #def has_permission(self, request, view):
+        #if request.user.is_authenticated and (
+            #request.method in permissions.SAFE_METHODS or
+            #request.user.is_superuser):
+            #return True
 
     #def has_object_permission(self, request, view, obj):
-        #if (request.method in ('PATCH') and request.symbol == obj.symbol):
-            #return request.user.profile.can_edit_basedata
+        #if request.user.is_superuser:
+            #return True
+        #if (request.user.is_authenticated and
+            #request.method in permissions.SAFE_METHODS):
+            #return True
+        #if (request.user.profile.can_edit_basedata and
+            #request.method in ('PATCH')):
+            #symbol = get_object_or_404(self.get_queryset(), symbol=self.kwargs["symbol"])
+            #return symbol
+
+
+    #def has_object_permission(self, request, view, obj):
+        #if (request.user.profile.can_edit_basedata):
+            #if (request.method in ('PATCH') and request.symbol == obj.symbol):
+                #return request.user.profile.can_edit_basedata
 
 
 class InfrastructureViewSet(viewsets.ModelViewSet):
     queryset = Infrastructure.objects.all()
     serializer_class = InfrastructureSerializer
-    # permission_classes = [HasAdminAccessOrReadOnly | CanPatchSymbol]
+    #permission_classes = [HasAdminAccessOrReadOnly | CanPatchSymbol]
 
 
 class ServiceViewSet(viewsets.ModelViewSet):

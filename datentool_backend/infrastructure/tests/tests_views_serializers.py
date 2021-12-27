@@ -1,5 +1,6 @@
 from collections import OrderedDict
 import json
+from rest_framework import status
 from unittest import skip
 from django.test import TestCase
 from test_plus import APITestCase
@@ -87,12 +88,12 @@ class TestInfrastructureAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestC
         pass
 
 
-    #def test_admin_access(self):
-        #"""write permission if user has admin_access"""
-        #super().admin_access()
+    def test_admin_access(self):
+        """write permission if user has admin_access"""
+        super().admin_access()
 
     #def test_can_patch_symbol(self):
-        #"""user, who can_edit_basedata have the permission to patch the symbol"""
+        #"""user, who can_edit_basedata has permission to patch the symbol"""
         #profile = self.profile
         #original_permission = profile.can_edit_basedata
 
@@ -100,15 +101,44 @@ class TestInfrastructureAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestC
         #profile.can_edit_basedata = True
         #profile.save()
 
-        ##patch_data3 = self.patch_data.copy()
-        ##patch_data3['symbol'] = 1
-        ##self.patch_data = patch_data3
-        #self.test_put_patch()
+        #self.test_post()
+        #data_putpatch2 = self.patch_data.copy()
+        #data_putpatch2['symbol'] = 1
+
+        #self.patch_data = data_putpatch2
+        #super().test_put_patch()
 
         ## Testprofile, without permission to edit basedata
         #profile.can_edit_basedata = False
         #profile.save()
-        #self.test_put_patch()
+
+        ## post
+        #url = self.url_key + '-list'
+        #response = self.post(url, **self.url_pks, data=self.post_data,
+                                 #extra={'format': 'json'})
+        #self.response_201(msg=response.content)
+
+        ## put_patch
+        #url = self.url_key + '-detail'
+        #kwargs = self.kwargs
+        #formatjson = dict(format='json')
+
+        ## check status code for put
+        #response = self.put(url, **kwargs,
+                            #data=self.put_data,
+                            #extra=formatjson)
+        #response.data['symbol'] = 1
+        #self.response_403(msg=response.content)
+        #assert response.status_code == status.HTTP_403_FORBIDDEN
+
+        ## check status code for patch
+        #response = self.patch(url, **kwargs,
+                              #data=self.patch_data, extra=formatjson)
+        #response.data['symbol'] = 1
+        #self.response_403(msg=response.content)
+
+        #profile.admin_access = original_permission
+        #profile.save()
 
 
 
@@ -173,6 +203,41 @@ class TestPlaceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.patch_data = geojson_putpatch
 
 
+#class TestScenarioPlaceAPI(_TestAPI, BasicModelTest, APITestCase):
+    #"""Test to post, put and patch data"""
+    #url_key = "scenarioplaces"
+    #factory = ScenarioPlaceFactory
+
+    #@classmethod
+    #def setUpClass(cls):
+        #super().setUpClass()
+        #scenarioplace: ScenarioPlace = cls.obj
+        #infrastructure = scenarioplace.infrastructure.pk
+        #geom = scenarioplace.geom.ewkt
+        #scenario = scenarioplace.scenario.pk
+        #status_quo = scenarioplace.status_quo.pk
+
+        #properties = OrderedDict(
+            #name=faker.word(),
+            #infrastructure=infrastructure,
+            #attributes=faker.json(),
+            #scenario=scenario,
+            #status_quo=status_quo
+        #)
+        #geojson = {
+            #'type': 'Feature',
+            #'geometry': geom,
+            #'properties': properties,
+        #}
+
+        #cls.post_data = geojson
+        #geojson_putpatch = geojson.copy()
+        #geojson_putpatch['id'] = scenarioplace.id
+
+        #cls.put_data = geojson_putpatch
+        #cls.patch_data = geojson_putpatch
+
+
 class TestCapacityAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "capacities"
@@ -190,6 +255,28 @@ class TestCapacityAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
+
+
+#class TestScenarioCapacityAPI(_TestAPI, BasicModelTest, APITestCase):
+    #"""Test to post, put and patch data"""
+    #url_key = "scenariocapacities"
+    #factory = ScenarioCapacityFactory
+
+    #@classmethod
+    #def setUpClass(cls):
+        #super().setUpClass()
+        #scenariocapacity: ScenarioCapacity = cls.obj
+        #place = scenariocapacity.place.pk
+        #service = scenariocapacity.service.pk
+        #scenario = scenariocapacity.scenario.pk
+        #status_quo = scenariocapacity.status_quo.pk
+
+        #data = dict(place=place, service=service,
+                    #capacity=faker.pyfloat(positive=True), from_year=faker.year(),
+                    #scenario=scenario, status_quo=status_quo)
+        #cls.post_data = data
+        #cls.put_data = data
+        #cls.patch_data = data
 
 
 class TestFieldTypeNUMSTRAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):

@@ -6,6 +6,7 @@ from .models import (Infrastructure, Service, Place,
                      Capacity, FieldTypes, FieldType, FClass, PlaceField,
                      Profile, ScenarioPlace, ScenarioCapacity)
 from ..area.factories import InternalWFSLayerFactory, MapSymbolsFactory
+from .. user.factories import ScenarioFactory
 
 faker = Faker('de-DE')
 
@@ -82,8 +83,8 @@ class ScenarioPlaceFactory(DjangoModelFactory):
     class Meta:
         model = ScenarioPlace
 
-    scenario = faker.word()
-    status_quo = faker.word()
+    scenario = factory.SubFactory(ScenarioFactory)
+    status_quo = factory.SubFactory(PlaceFactory)
 
 
 class CapacityFactory(DjangoModelFactory):
@@ -102,8 +103,8 @@ class ScenarioCapacityFactory(DjangoModelFactory):
     class Meta:
         model = ScenarioCapacity
 
-    scenario = faker.word()
-    status_quo = faker.pyint()
+    scenario = factory.SubFactory(ScenarioFactory)
+    status_quo = factory.SubFactory(CapacityFactory)
 
 
 class FieldTypeFactory(DjangoModelFactory):

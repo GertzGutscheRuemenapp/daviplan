@@ -5,6 +5,7 @@ from .models import DemandRateSet, DemandRate, ScenarioDemandRate
 from ..population.factories import (AgeGroupFactory,
                                     YearFactory)
 from ..infrastructure.factories import ServiceFactory
+from ..user.factories import ScenarioFactory
 
 faker = Faker('de-DE')
 
@@ -29,4 +30,4 @@ class DemandRateFactory(DjangoModelFactory):
 class ScenarioDemandRateFactory(DjangoModelFactory):
     class Meta:
         model = ScenarioDemandRate
-    scenario = faker.word()
+    scenario = factory.SubFactory(ScenarioFactory)

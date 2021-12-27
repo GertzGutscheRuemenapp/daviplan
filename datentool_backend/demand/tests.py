@@ -3,8 +3,8 @@ from test_plus import APITestCase
 from datentool_backend.api_test import BasicModelTest
 from datentool_backend.area.tests import _TestAPI, _TestPermissions
 
-from .factories import DemandRateSetFactory, DemandRateFactory
-from .models import DemandRate
+from .factories import DemandRateSetFactory, DemandRateFactory, ScenarioDemandRateFactory
+from .models import DemandRate, DemandRateSet, ScenarioDemandRate
 
 from faker import Faker
 
@@ -53,3 +53,25 @@ class TestDemandRateAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase)
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
+
+
+#class TestScenarioDemandRateAPI(_TestAPI, BasicModelTest, APITestCase):
+    #"""Test to post, put and patch data"""
+    #url_key = "scenariodemandrates"
+    #factory = ScenarioDemandRateFactory
+
+    #@classmethod
+    #def setUpClass(cls):
+        #super().setUpClass()
+        #scenariodemandrate: ScenarioDemandRate= cls.obj
+        #year = scenariodemandrate.year.pk
+        #age_group = scenariodemandrate.age_group.pk
+        #demand_rate_set = scenariodemandrate.demand_rate_set.pk
+        #scenario = scenariodemandrate.scenario.pk
+
+        #data = dict(year=year, age_group=age_group,
+                    #demand_rate_set=demand_rate_set, value=faker.pyfloat(),
+                    #scenario = scenario)
+        #cls.post_data = data
+        #cls.put_data = data
+        #cls.patch_data = data
