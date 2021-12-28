@@ -87,7 +87,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       this.setupYearCard();
       this.updatePreviewLayer();
     });
-    this.fetchAgeGroups().subscribe(settings => {
+    this.fetchAgeGroups().subscribe(ageGroups => {
       this.setupAgeGroupCard();
     });
   }
@@ -125,12 +125,26 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     this.__ageGroups = JSON.parse(JSON.stringify(this.ageGroups!));
 
     this.ageGroupCard.dialogConfirmed.subscribe(ok => {
-      const valid = this.validateAgeGroups(this.__ageGroups);
+      const valid = this.validateAgeGroups(this.__ageGroups),
+            _this = this;
       if (!valid) {
         this.ageGroupErrors = ['Die Altersgruppen müssen lückenlos sein und dürfen sich nicht überschneiden'];
         return;
       }
       const matchesDefaults = this.compareAgeGroupsDefault(this.__ageGroups);
+      function postAgeGroups(){
+        _this.ageGroupCard.setLoading(true);
+        _this.http.post<AgeGroup[]>(`${_this.rest.URLS.ageGroups}replace/`, _this.__ageGroups
+        ).subscribe(ageGroups => {
+          _this.ageGroupCard.closeDialog(true);
+          _this.ageGroups = ageGroups;
+        },(error) => {
+          // ToDo: set specific errors to fields
+          _this.ageGroupErrors = [error.error.detail];
+          _this.ageGroupCard.setLoading(false);
+        });
+      }
+
       if (!matchesDefaults){
         const dialogRef = this.dialog.open(ConfirmDialogComponent, {
           width: '400px',
@@ -145,14 +159,17 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
           },
           panelClass: 'warning'
         });
+        dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+          if (confirmed === true) {
+            postAgeGroups();
+          }
+        });
       }
       else {
-        // this.ageGroupCard.setLoading(true);
-
-
+        postAgeGroups();
       }
     })
-    this.yearCard.dialogClosed.subscribe((ok)=>{
+    this.ageGroupCard.dialogClosed.subscribe((ok)=>{
       // reset form on cancel
       if (!ok){
       }
@@ -344,10 +361,6 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       }
     }
     return true;
-  }
-
-  postAgeGroups(ageGroups: AgeGroup[]): void {
-
   }
 
   resetAgeGroups(): void {

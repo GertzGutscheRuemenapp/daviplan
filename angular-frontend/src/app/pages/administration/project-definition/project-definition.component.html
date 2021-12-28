@@ -32,7 +32,7 @@
           <td>
             <ng-container *ngFor="let ageGroup of ageGroups">
               <ng-container *ngIf="ageGroup.toAge < 999">
-                {{ageGroup.fromAge}} bis unter {{ageGroup.toAge}} Jahre
+                {{ageGroup.fromAge}} bis unter {{ageGroup.toAge + 1}} Jahre
               </ng-container>
               <ng-container *ngIf="ageGroup.toAge >= 999">
                 {{ageGroup.fromAge}} Jahre und älter
@@ -85,40 +85,42 @@
     </mat-error>
   </div>
   <div class="age-group-container" #ageGroupContainer>
-    <div class="age-row" *ngFor="let ageGroup of __ageGroups; let i = index;">
-      <mat-form-field appearance="outline" class="small">
-        <mat-label i18n>{{(i < __ageGroups.length - 1) ? 'von': 'ab'}}</mat-label>
-        <input matInput type="number"
-               [disabled]="i===0"
-               [min]="(i===0)? 0: __ageGroups![i-1].toAge + 1"
-               [max]="ageGroup.toAge - 1"
-               [(ngModel)]="ageGroup.fromAge"
-               (change)="ageGroupErrors = []"
-               required>
-      </mat-form-field>
-      <ng-container *ngIf="(i < __ageGroups.length-1)">
-        &nbsp;-&nbsp;
+    <div>
+      <div class="age-row" *ngFor="let ageGroup of __ageGroups; let i = index;">
         <mat-form-field appearance="outline" class="small">
-          <mat-label i18n>bis</mat-label>
+          <mat-label i18n>{{(i < __ageGroups.length - 1) ? 'von': 'ab'}}</mat-label>
           <input matInput type="number"
-                 [min]="ageGroup.fromAge + 1"
-                 [max]="__ageGroups![i+1].fromAge - 1"
-                 [(ngModel)]="ageGroup.toAge"
+                 [disabled]="i===0"
+                 [min]="(i===0)? 0: __ageGroups![i-1].toAge + 1"
+                 [max]="ageGroup.toAge - 1"
+                 [(ngModel)]="ageGroup.fromAge"
                  (change)="ageGroupErrors = []"
                  required>
-          <mat-error *ngIf="yearForm.get('startYear')?.errors?.tooHigh" i18n>
-            Das Startjahr muss vor dem Endjahr liegen
-          </mat-error>
         </mat-form-field>
-      </ng-container>
-      Jahre
-      <button mat-button color="primary"
-              class="mat-button-dv"
-              (click)="removeAgeGroup(ageGroup)"
-              title="Altersgruppe entfernen"
-              style="float: right;">
-        <mat-icon>remove</mat-icon>
-      </button>
+        <ng-container *ngIf="(i < __ageGroups.length-1)">
+          &nbsp;-&nbsp;
+          <mat-form-field appearance="outline" class="small">
+            <mat-label i18n>bis</mat-label>
+            <input matInput type="number"
+                   [min]="ageGroup.fromAge + 1"
+                   [max]="__ageGroups![i+1].fromAge - 1"
+                   [(ngModel)]="ageGroup.toAge"
+                   (change)="ageGroupErrors = []"
+                   required>
+            <mat-error *ngIf="yearForm.get('startYear')?.errors?.tooHigh" i18n>
+              Das Startjahr muss vor dem Endjahr liegen
+            </mat-error>
+          </mat-form-field>
+        </ng-container>
+        Jahre
+        <button mat-button color="primary"
+                class="mat-button-dv"
+                (click)="removeAgeGroup(ageGroup)"
+                title="Altersgruppe entfernen"
+                style="float: right;">
+          <mat-icon>remove</mat-icon>
+        </button>
+      </div>
     </div>
   </div>
   <div>
