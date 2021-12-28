@@ -68,13 +68,21 @@ class AgeGroupViewSet(viewsets.ModelViewSet):
         return super().list(request, *args, **kwargs)
 
     @action(methods=['POST'], detail=False)
+    def replace(self, request, **kwargs):
+        AgeGroup.objects.all().delete()
+        for a in request.data:
+            g = AgeGroup(from_age=a['from_age'], to_age=a['to_age'])
+            g.save()
+        return self.list(request)
+
+    @action(methods=['POST'], detail=False)
     def check(self, request, **kwargs):
         """
         route to compare posted age-groups with default age-groups
         (Regionalstatistik) in any order
         """
         try:
-            age_groups = [RegStatAgeGroup(a['fromAge'], a['toAge'])
+            age_groups = [RegStatAgeGroup(a, a['toAge'])
                           for a in request.data]
         except KeyError:
             raise ParseError()
