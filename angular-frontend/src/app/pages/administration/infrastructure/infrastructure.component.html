@@ -8,6 +8,7 @@
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="400px">
     <app-input-card [title]="'Definierte Infrastrukturbereiche'"
+                    #infrastructureCard
                     subtitle="Diese Infrastrukturbereiche sollen behandelt werden:"
                     infoText="<p>Klicken Sie auf „Hinzufügen“, um der Liste einen Infrastrukturbereich hinzuzufügen. Sie können den neuen Infrastrukturbereich frei definieren oder auf eine der Vorlagen zurückgreifen, die Ihnen dann angezeigt werden.</p>
                     <p>Um einen Infrastrukturbereich umzubenennen oder seine Beschreibung zu verändern, klicken Sie im Bereich „Eigenschaften des ausgewählten Infrastrukturbereichs“ auf „Editieren“.</p>">
@@ -16,7 +17,7 @@
                             id="infrastructure-select">
           <mat-list-option *ngFor="let infrastructure of infrastructures"
                            (click)="selectedInfrastructure = infrastructure"
-                           [selected]="(infrastructure.id === selectedInfrastructure.id)">
+                           [selected]="(infrastructure.id === selectedInfrastructure?.id)">
             <div class="option-text">{{infrastructure.name}}</div>
           </mat-list-option>
         </mat-selection-list>
@@ -31,11 +32,13 @@
       </div>
       <div style="margin-top: 10px;">
         <button mat-button color="primary"
+                (click)="addInfrastructure()"
                 class="mat-button-dv" i18n>
           <mat-icon>add</mat-icon>hinzufügen
         </button>
         <button mat-button color="primary"
                 style="margin-left: 40px;"
+                (click)="removeInfrastructure()"
                 class="mat-button-dv" i18n>
           <mat-icon>close</mat-icon>entfernen
         </button>
@@ -62,5 +65,21 @@
 </div>
 
 <ng-template #infrastructureEdit>
-  Funktionalität für den Prototyp noch nicht hinterlegt.
+  <form [formGroup]="infrastructureForm">
+    <div *ngIf="infrastructureForm.errors">
+      <mat-error *ngFor="let error of Object.values(infrastructureForm.errors)" class="alert">
+        {{ error }}
+      </mat-error>
+    </div>
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Name</mat-label>
+        <input matInput formControlName="name" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Beschreibung</mat-label>
+        <input matInput formControlName="description">
+      </mat-form-field>
+    </div>
+  </form>
 </ng-template>

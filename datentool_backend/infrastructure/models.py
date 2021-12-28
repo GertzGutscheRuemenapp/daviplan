@@ -16,8 +16,8 @@ class Infrastructure(NamedModel, models.Model):
     accessible_by = models.ManyToManyField(
         Profile, related_name='infrastructure_accessible_by', blank=True)
     # sensitive_data
-    layer = models.ForeignKey(InternalWFSLayer, on_delete=models.RESTRICT)
-    symbol = models.ForeignKey(MapSymbol, on_delete=models.RESTRICT)
+    layer = models.ForeignKey(InternalWFSLayer, on_delete=models.CASCADE())
+    symbol = models.ForeignKey(MapSymbol, on_delete=models.CASCADE)
 
 
 class Quota(models.Model):

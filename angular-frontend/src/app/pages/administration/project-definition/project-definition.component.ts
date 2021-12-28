@@ -541,6 +541,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   }
 
   toggleFeatureSelection(feature: Feature<any>): void{
+    this.areaCard.setLoading(true);
     const isSelected = this.selectedBaseAreaMap.has(feature.get('debkg_id'));
     if (isSelected)
       this.selectedBaseAreaMap.delete(feature.get('debkg_id'));
@@ -548,6 +549,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       this.selectedBaseAreaMap.set(feature.get('debkg_id'), feature);
     feature.set('inSelection', !isSelected);
     this.updateMergedSelectArea();
+    this.areaCard.setLoading(false);
   }
 
   removeAreaSelections(): void {
