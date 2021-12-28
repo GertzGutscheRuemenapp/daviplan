@@ -83,7 +83,7 @@ class TestInfrastructureAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestC
         self.patch_data = patch_data2
         super().test_put_patch()
 
-    @skip('not fixed yet')
+    @skip('is replaced by test_can_patch_symbol')
     def test_can_edit_basedata(self):
         pass
 
@@ -92,54 +92,79 @@ class TestInfrastructureAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestC
         """write permission if user has admin_access"""
         super().admin_access()
 
-    #def test_can_patch_symbol(self):
-        #"""user, who can_edit_basedata has permission to patch the symbol"""
-        #profile = self.profile
-        #original_permission = profile.can_edit_basedata
+    def test_can_patch_symbol(self):
+        """user, who can_edit_basedata has permission to patch the symbol"""
+        profile = self.profile
+        permission_basedata = profile.can_edit_basedata
+        permission_admin = profile.admin_access
 
-        ## Testprofile, with permission to edit basedata
-        #profile.can_edit_basedata = True
-        #profile.save()
+        # Testprofile, with permission to edit basedata
+        profile.can_edit_basedata = True
+        profile.admin_access = False
+        profile.save()
 
-        #self.test_post()
-        #data_putpatch2 = self.patch_data.copy()
-        #data_putpatch2['symbol'] = 1
+        # test post
+        url = self.url_key + '-list'
 
-        #self.patch_data = data_putpatch2
-        #super().test_put_patch()
+        response = self.post(url, **self.url_pks, data=self.post_data,
+                                 extra={'format': 'json'})
+        self.response_403(msg=response.content)
 
-        ## Testprofile, without permission to edit basedata
-        #profile.can_edit_basedata = False
-        #profile.save()
+        # test put
+        url = self.url_key + '-detail'
+        kwargs = self.kwargs
+        formatjson = dict(format='json')
 
-        ## post
-        #url = self.url_key + '-list'
-        #response = self.post(url, **self.url_pks, data=self.post_data,
-                                 #extra={'format': 'json'})
-        #self.response_201(msg=response.content)
+        response = self.put(url, **kwargs,
+                            data=self.put_data,
+                            extra=formatjson)
+        self.response_403(msg=response.content)
 
-        ## put_patch
-        #url = self.url_key + '-detail'
-        #kwargs = self.kwargs
-        #formatjson = dict(format='json')
+        # check status code for patch
+        self.patch_data = {'symbol': 1}
+        response = self.patch(url, **kwargs,
+                              data=self.patch_data, extra=formatjson)
+        self.response_200(msg=response.content)
 
-        ## check status code for put
-        #response = self.put(url, **kwargs,
-                            #data=self.put_data,
-                            #extra=formatjson)
-        #response.data['symbol'] = 1
-        #self.response_403(msg=response.content)
-        #assert response.status_code == status.HTTP_403_FORBIDDEN
+        # Other fields should not be edited
+        self.patch_data['description'] = 'A new description'
+        response = self.patch(url, **kwargs,
+                              data=self.patch_data, extra=formatjson)
+        self.response_403(msg=response.content)
 
-        ## check status code for patch
-        #response = self.patch(url, **kwargs,
-                              #data=self.patch_data, extra=formatjson)
-        #response.data['symbol'] = 1
-        #self.response_403(msg=response.content)
 
-        #profile.admin_access = original_permission
-        #profile.save()
+        # Testprofile, without permission to edit basedata
+        profile.can_edit_basedata = False
+        profile.save()
 
+        # test post
+        url = self.url_key + '-list'
+        response = self.post(url, **self.url_pks, data=self.post_data,
+                                 extra={'format': 'json'})
+        self.response_403(msg=response.content)
+
+        # test put_patch
+        url = self.url_key + '-detail'
+        kwargs = self.kwargs
+        formatjson = dict(format='json')
+
+        # check status code for put
+        response = self.put(url, **kwargs,
+                    data=self.put_data,
+                    extra=formatjson)
+        self.response_403(msg=response.content)
+
+        # check status code for patch
+        self.patch_data = {'symbol': 1}
+
+        response = self.patch(url, **kwargs,
+                              data=self.patch_data, extra=formatjson)
+        self.response_403(msg=response.content)
+
+
+        profile.admin_access = permission_admin
+        profile.can_edit_basedata = permission_basedata
+        profile.save()
 
 
 class TestServiceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
