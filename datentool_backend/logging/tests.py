@@ -1,6 +1,6 @@
 from django.test import TestCase
 from test_plus import APITestCase
-from datentool_backend.api_test import BasicModelReadTest
+from datentool_backend.api_test import BasicModelReadTest, BasicModelPutPatchTest
 from datentool_backend.area.tests import _TestAPI
 
 from .factories import (CapacityUploadLogFactory, PlaceUploadLogFactory,
@@ -33,61 +33,159 @@ class TestLogs(TestCase):
 
 class _TestReadOnly():
     """Test if user can read_only if attributes can_edit_basedata or has_admin_access are true"""
-    def read_only_basedata(self):
+    def test_basedata_read_only(self):
         profile = self.profile
 
-        original_permission = profile.can_edit_basedata
+        original_basedata = profile.can_edit_basedata
+        original_admin_access = profile.admin_access
 
-        # Testprofile, with permission to edit basedata
+        # Testprofile, with permission to edit basedata, without admin_acces
         profile.can_edit_basedata = True
+        profile.admin_access = False
         profile.save()
 
+        # test post
         url = self.url_key + '-list'
-        # post
         response = self.post(url, **self.url_pks, data=self.post_data,
                                  extra={'format': 'json'})
         self.response_403(msg=response.content)
+
+        # test get, put, patch:
+        url = self.url_key + '-detail'
+        kwargs = self.kwargs
+        formatjson = dict(format='json')
+
+        # test get
+        response = self.get_check_200(url, **kwargs)
+        if 'id' in response.data:
+            assert response.data['id'] == self.obj.pk
+
+        # test put
+        response = self.put(url, **kwargs,
+                            data=self.put_data,
+                            extra=formatjson)
+        self.response_403(msg=response.content)
+
+        # check status code for patch
+        response = self.patch(url, **kwargs,
+                              data=self.patch_data, extra=formatjson)
+        self.response_403(msg=response.content)
+
 
         # Testprofile, without permission to edit basedata
         profile.can_edit_basedata = False
         profile.save()
 
+        # test post
         url = self.url_key + '-list'
-        # post
         response = self.post(url, **self.url_pks, data=self.post_data,
                                  extra={'format': 'json'})
         self.response_403(msg=response.content)
 
-        profile.can_edit_basedata = original_permission
+        # test get, put, patch
+        url = self.url_key + '-detail'
+        kwargs = self.kwargs
+        formatjson = dict(format='json')
+
+        # test get
+        response = self.get(url, **kwargs)
+        self.response_403(msg=response.content)
+
+        # test put
+        response = self.put(url, **kwargs,
+                            data=self.put_data,
+                            extra=formatjson)
+        self.response_403(msg=response.content)
+
+        # check status code for patch
+        response = self.patch(url, **kwargs,
+                              data=self.patch_data, extra=formatjson)
+        self.response_403(msg=response.content)
+
+        profile.can_edit_basedata = original_basedata
+        profile.admin_access = original_admin_access
         profile.save()
 
-    def read_only_admin_access(self):
+    def test_admin_read_only(self):
         profile = self.profile
 
-        original_permission = profile.admin_access
+        original_basedata = profile.can_edit_basedata
+        original_admin_access = profile.admin_access
+        profile.save()
 
-        # Testprofile, with admin_acces
+        # Testprofile, with admin_acces, without can_edit_basedata
+        profile.can_edit_basedata = False
         profile.admin_access = True
         profile.save()
 
+        # test post
         url = self.url_key + '-list'
-        # post
         response = self.post(url, **self.url_pks, data=self.post_data,
                                  extra={'format': 'json'})
+        self.response_403(msg=response.content)
+
+        # test get, put, patch:
+        url = self.url_key + '-detail'
+        kwargs = self.kwargs
+        formatjson = dict(format='json')
+
+        # test get
+        response = self.get_check_200(url, **kwargs)
+        if 'id' in response.data:
+            assert response.data['id'] == self.obj.pk
+
+        # test put
+        response = self.put(url, **kwargs,
+                            data=self.put_data,
+                            extra=formatjson)
+        self.response_403(msg=response.content)
+
+        # check status code for patch
+        response = self.patch(url, **kwargs,
+                              data=self.patch_data, extra=formatjson)
         self.response_403(msg=response.content)
 
         # Testprofile, without admin_acces
         profile.admin_access = False
         profile.save()
 
+        # test post
         url = self.url_key + '-list'
-        # post
         response = self.post(url, **self.url_pks, data=self.post_data,
                                  extra={'format': 'json'})
         self.response_403(msg=response.content)
 
-        profile.admin_access = original_permission
+        # test get, put, patch
+        url = self.url_key + '-detail'
+        kwargs = self.kwargs
+        formatjson = dict(format='json')
+
+        # test get
+        response = self.get(url, **kwargs)
+        self.response_403(msg=response.content)
+        # test put
+        response = self.put(url, **kwargs,
+                            data=self.put_data,
+                            extra=formatjson)
+        self.response_403(msg=response.content)
+
+        # check status code for patch
+        response = self.patch(url, **kwargs,
+                              data=self.patch_data, extra=formatjson)
+        self.response_403(msg=response.content)
+
+        profile.can_edit_basedata = original_basedata
+        profile.admin_access = original_admin_access
         profile.save()
+
+    def test_is_logged_in(self):
+        self.client.logout()
+        response = self.get(self.url_key + '-list')
+        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+
+        self.client.force_login(user=self.profile.user)
+        self.test_list()
+        self.test_detail()
 
 
 class TestCapacityUploadLogAPI(_TestReadOnly, _TestAPI, BasicModelReadTest, APITestCase):
@@ -108,13 +206,6 @@ class TestCapacityUploadLogAPI(_TestReadOnly, _TestAPI, BasicModelReadTest, APIT
         cls.put_data = data
         cls.patch_data = data
 
-    def test_read_only_basedata(self):
-        super().read_only_basedata()
-
-    def test_read_only_admin_access(self):
-        super().read_only_admin_access()
-
-
 
 class TestPlaceUploadLogAPI(_TestReadOnly, _TestAPI, BasicModelReadTest, APITestCase):
     """"""
@@ -134,12 +225,6 @@ class TestPlaceUploadLogAPI(_TestReadOnly, _TestAPI, BasicModelReadTest, APITest
         cls.put_data = data
         cls.patch_data = data
 
-    def test_read_only_basedata(self):
-        super().read_only_basedata()
-
-    def test_read_only_admin_access(self):
-        super().read_only_admin_access()
-
 
 class TestAreaUploadLogAPI(_TestReadOnly, _TestAPI, BasicModelReadTest, APITestCase):
     """"""
@@ -158,9 +243,3 @@ class TestAreaUploadLogAPI(_TestReadOnly, _TestAPI, BasicModelReadTest, APITestC
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
-
-    def test_read_only_basedata(self):
-        super().read_only_basedata()
-
-    def test_read_only_admin_access(self):
-        super().read_only_admin_access()

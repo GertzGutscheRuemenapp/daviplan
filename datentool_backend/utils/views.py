@@ -469,6 +469,7 @@ class HasAdminAccess(permissions.BasePermission):
                 #and self.request.user.profile.admin_access)
 
 
+
 class ReadOnlyAccess(UserPassesTestMixin):
     """no write permission, user with "can edit_basedata" or "admin_access" can read_only"""
 
