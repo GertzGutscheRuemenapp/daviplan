@@ -1,5 +1,5 @@
-from rest_framework import viewsets, permissions
-
+from rest_framework import viewsets
+from datentool_backend.utils.views import HasAdminAccessOrReadOnly
 from .models import SiteSetting, ProjectSetting, BaseDataSetting
 from .serializers import (SiteSettingSerializer, ProjectSettingSerializer,
                           BaseDataSettingSerializer)
@@ -10,6 +10,7 @@ class ProjectSettingViewSet(SingletonViewSet):
     queryset = ProjectSetting.objects.all()
     model_class = ProjectSetting
     serializer_class = ProjectSettingSerializer
+    permission_classes = [HasAdminAccessOrReadOnly]
 
 
 class BaseDataSettingViewSet(SingletonViewSet):

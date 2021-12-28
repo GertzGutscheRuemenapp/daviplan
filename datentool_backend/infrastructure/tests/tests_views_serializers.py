@@ -87,7 +87,6 @@ class TestInfrastructureAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestC
     def test_can_edit_basedata(self):
         pass
 
-
     def test_admin_access(self):
         """write permission if user has admin_access"""
         super().admin_access()

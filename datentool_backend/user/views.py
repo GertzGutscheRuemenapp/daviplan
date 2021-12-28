@@ -46,7 +46,6 @@ class PlanningProcessViewSet(viewsets.ModelViewSet):
         return qs.filter(owner=self.request.user.profile)
 
 
-
 class CanEditScenarioPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and (
