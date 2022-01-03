@@ -15,8 +15,7 @@ class BaseDataSetting(SingletonModel):
                                                on_delete=models.SET_NULL)
 
 
-class SiteSetting(models.Model):
-    ''''''
+class SiteSetting(SingletonModel):
     name = models.CharField(max_length=50, unique=True)
     title = models.TextField(default='Datentool')
     contact_mail = models.EmailField(default='', null=True, blank=True)

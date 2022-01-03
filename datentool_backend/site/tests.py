@@ -6,7 +6,9 @@ from unittest import skip
 from datentool_backend.api_test import BasicModelSingletonTest
 from datentool_backend.area.tests import _TestAPI
 
-from datentool_backend.site.factories import (ProjectSettingFactory, BaseDataSettingFactory)
+from datentool_backend.site.factories import (ProjectSettingFactory,
+                                              BaseDataSettingFactory,
+                                              SiteSettingFactory)
 from datentool_backend.site.models import ProjectSetting, BaseDataSetting
 from datentool_backend.area.factories import AreaLevelFactory
 
@@ -112,3 +114,16 @@ class TestProjectSetting(_TestAPI, BasicModelSingletonTest, APITestCase):
     #""""""
     #url_key = "sitesettings"
     #factory = SiteSettingFactory
+
+    #@classmethod
+    #def setUpClass(cls):
+        #super().setUpClass()
+
+        #data = dict(name=faker.word(), title=faker.word(),
+                    #contact_mail=faker.email(),
+                    #logo=faker.image_url('https://picsum.photos/788/861'),
+                    #primary_color=faker.color(hue='blue'),
+                    #secondary_color=faker.color(hue='red'),
+                    #welcome_text=faker.text())
+        #cls.put_data = data
+        #cls.patch_data = data

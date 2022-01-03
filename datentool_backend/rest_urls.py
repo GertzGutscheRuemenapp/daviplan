@@ -38,7 +38,6 @@ from datentool_backend.utils.routers import SingletonRouter
 
 router = routers.SimpleRouter()
 router.register(r'users', UserViewSet, basename='users')
-router.register(r'settings', SiteSettingViewSet, basename='settings')
 
 # areas
 router.register(r'symbolforms', SymbolFormViewSet, basename='symbolforms')
@@ -119,10 +118,12 @@ router.register(r'popstatentries', PopStatEntryViewSet, basename='popstatentries
 router.register(r'planningprocesses', PlanningProcessViewSet, basename='planningprocesses')
 router.register(r'scenarios', ScenarioViewSet, basename='scenarios')
 
+# site
 srouter = SingletonRouter()
 srouter.register('projectsettings', ProjectSettingViewSet,
                  basename='projectsettings')
 srouter.register('basedatasettings', BaseDataSettingViewSet,
                  basename='basedatasettings')
+srouter.register('sitesettings', SiteSettingViewSet, basename='sitesettings')
 
 urlpatterns = router.urls + srouter.urls
