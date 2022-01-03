@@ -1,8 +1,8 @@
 from django.db import models
 from django.contrib.gis.db import models as gis_models
 from datentool_backend.base import NamedModel, JsonAttributes
-from datentool_backend.user.models import Profile
-from datentool_backend.area.models import InternalWFSLayer, MapSymbol
+from datentool_backend.user.models import Profile, Scenario
+from datentool_backend.area.models import InternalWFSLayer
 
 
 class Infrastructure(NamedModel, models.Model):
@@ -10,12 +10,13 @@ class Infrastructure(NamedModel, models.Model):
     Infrastructure that provide services
     '''
     name = models.TextField()
-    description = models.TextField()
+    description = models.TextField(blank=True)
     editable_by = models.ManyToManyField(
         Profile, related_name='infrastructure_editable_by', blank=True)
     accessible_by = models.ManyToManyField(
         Profile, related_name='infrastructure_accessible_by', blank=True)
     # sensitive_data
+<<<<<<< HEAD
     layer = models.ForeignKey(InternalWFSLayer, on_delete=models.CASCADE())
     symbol = models.ForeignKey(MapSymbol, on_delete=models.CASCADE)
 
@@ -26,6 +27,9 @@ class Quota(models.Model):
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__}: {self.quota_type}'
+=======
+    layer = models.OneToOneField(InternalWFSLayer, on_delete=models.CASCADE)
+>>>>>>> main
 
 
 class Service(NamedModel, models.Model):
@@ -33,8 +37,10 @@ class Service(NamedModel, models.Model):
     A Service provided by an infrastructure
     '''
     name = models.TextField()
+    quota_type = models.TextField()
     description = models.TextField()
-    infrastructure = models.ForeignKey(Infrastructure, on_delete=models.RESTRICT)
+    infrastructure = models.ForeignKey(Infrastructure,
+                                       on_delete=models.RESTRICT)
     editable_by = models.ManyToManyField(Profile,
                                          related_name='service_editable_by',
                                          blank=True)
@@ -43,18 +49,26 @@ class Service(NamedModel, models.Model):
     has_capacity = models.BooleanField()
     demand_singular_unit = models.TextField()
     demand_plural_unit = models.TextField()
-    quota = models.ForeignKey(Quota, on_delete=models.RESTRICT)
 
 
 class Place(JsonAttributes, NamedModel, models.Model):
     """location of an infrastructure"""
     name = models.TextField()
-    infrastructure = models.ForeignKey(Infrastructure, on_delete=models.RESTRICT)
+    infrastructure = models.ForeignKey(Infrastructure,
+                                       on_delete=models.RESTRICT)
     geom = gis_models.PointField(geography=True)
     attributes = models.JSONField()
 
     def __str__(self) -> str:
-        return f'{self.__class__.__name__} ({self.infrastructure.name}): {self.name}'
+        return (f'{self.__class__.__name__} ({self.infrastructure.name}): '
+                f'{self.name}')
+
+
+class ScenarioPlace(Place):
+    scenario = models.ForeignKey(Scenario, on_delete=models.RESTRICT)
+    status_quo = models.ForeignKey(Place, null=True,
+                                   related_name='scenario_places',
+                                   on_delete=models.RESTRICT)
 
 
 class Capacity(models.Model):
@@ -63,6 +77,13 @@ class Capacity(models.Model):
     service = models.ForeignKey(Service, on_delete=models.RESTRICT)
     capacity = models.FloatField()
     from_year = models.IntegerField()
+
+
+class ScenarioCapacity(Capacity):
+    scenario = models.ForeignKey(Scenario, on_delete=models.RESTRICT)
+    status_quo = models.ForeignKey(Capacity, null=True,
+                                   related_name='scenario_capacities',
+                                   on_delete=models.RESTRICT)
 
 
 class FieldTypes(models.TextChoices):
@@ -85,7 +106,8 @@ class FClass(models.Model):
     value = models.TextField()
 
     def __str__(self) -> str:
-        return f'{self.__class__.__name__}: {self.classification.name}: {self.order} - {self.value}'
+        return (f'{self.__class__.__name__}: {self.classification.name}: '
+                f'{self.order} - {self.value}')
 
 
 class PlaceField(models.Model):

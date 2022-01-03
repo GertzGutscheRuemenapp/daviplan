@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from datentool_backend.base import NamedModel
+#from datentool_backend.infrastructure.models import Place, Capacity
 
 
 class Profile(models.Model):
@@ -58,3 +59,4 @@ class Scenario(NamedModel, models.Model):
     @property
     def modes(self):
         """the modes used in the scenario"""
+

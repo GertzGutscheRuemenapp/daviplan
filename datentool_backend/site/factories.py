@@ -3,7 +3,7 @@ from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import Polygon, MultiPolygon
 from faker import Faker
 
-from .models import ProjectSetting, BaseDataSetting
+from .models import ProjectSetting, BaseDataSetting, SiteSetting
 from datentool_backend.area.factories import AreaLevelFactory
 
 
@@ -25,3 +25,17 @@ class BaseDataSettingFactory(DjangoModelFactory):
         model = BaseDataSetting
 
     default_pop_area_level = factory.SubFactory(AreaLevelFactory)
+
+
+class SiteSettingFactory(DjangoModelFactory):
+    class Meta:
+        model = SiteSetting
+
+    name = faker.unique.word()
+    title = faker.word()
+    contact_mail = faker.email()
+    logo = faker.image_url('https://picsum.photos/788/861')
+    primary_color = faker.hex_color()
+    secondary_color = faker.hex_color()
+    welcome_text = faker.text()
+

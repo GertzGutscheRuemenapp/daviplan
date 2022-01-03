@@ -112,6 +112,19 @@ class BasicModelDetailTest(LoginTestCase, CompareAbsURIMixin):
         else:
             self.assertEqual(force_str(response_value), force_str(expected))
 
+    def compare_data(self, left, right):
+        """
+        recursive comparison of two data dictionaries (response and expectation)
+        """
+        for key in left:
+            if key not in right or key in self.do_not_check:
+                continue
+            if isinstance(left[key], dict):
+                # recursive check if nested
+                self.compare_data(left[key], right[key])
+            else:
+                self.assert_response_equals_expected(left[key], right[key])
+
     def get_check_200(self, url, **kwargs):
         assert url in [r.name for r in urlpatterns], f'URL {url} not in routes'
         response = self.get(url, **kwargs)
@@ -172,12 +185,10 @@ class BasicModelPutPatchTest:
         assert response.status_code == status.HTTP_200_OK
         # check if values have changed
         response = self.get_check_200(url, **kwargs)
-        for key in self.put_data:
-            if key not in response.data.keys() or key in self.do_not_check:
-                continue
-            response_value = response.data[key]
-            expected = self.expected_put_data.get(key, self.put_data[key])
-            self.assert_response_equals_expected(response_value, expected)
+
+        expected = self.put_data.copy()
+        expected.update(self.expected_put_data)
+        self.compare_data(response.data, expected)
 
         # check status code for patch
         response = self.patch(url, **kwargs,
@@ -186,12 +197,10 @@ class BasicModelPutPatchTest:
 
         # check if name has changed
         response = self.get_check_200(url, **kwargs)
-        for key in self.patch_data:
-            if key not in response.data.keys() or key in self.do_not_check:
-                continue
-            response_value = response.data[key]
-            expected = self.expected_patch_data.get(key, self.patch_data[key])
-            self.assert_response_equals_expected(response_value, expected)
+
+        expected = self.patch_data.copy()
+        expected.update(self.expected_patch_data)
+        self.compare_data(response.data, expected)
 
 
 class BasicModelPostDeleteTest:
@@ -219,12 +228,10 @@ class BasicModelPostDeleteTest:
         response = self.post(url, **self.url_pks, data=self.post_data,
                              extra={'format': 'json'})
         self.response_201(msg=response.content)
-        for key in self.post_data:
-            if key not in response.data.keys() or key in self.do_not_check:
-                continue
-            response_value = response.data[key]
-            expected = self.expected_post_data.get(key, self.post_data[key])
-            self.assert_response_equals_expected(response_value, expected)
+
+        expected = self.post_data.copy()
+        expected.update(self.expected_post_data)
+        self.compare_data(response.data, expected)
 
         # get the created object
         new_id = response.data['id']

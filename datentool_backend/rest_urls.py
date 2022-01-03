@@ -8,20 +8,22 @@ from rest_framework_mvt.views import mvt_view_factory
 from django.conf.urls import url
 
 from .population.models import RasterCell
-from .area.views import (SymbolFormViewSet, MapSymbolsViewSet, LayerGroupViewSet,
+from .area.views import (LayerGroupViewSet,
                          WMSLayerViewSet, InternalWFSLayerViewSet, SourceViewSet,
                          AreaLevelViewSet, AreaViewSet)
 
-from .demand.views import (DemandRateSetViewSet, DemandRateViewSet)
+from .demand.views import (DemandRateSetViewSet, DemandRateViewSet,
+                           ScenarioDemandRateViewSet)
 
 from .indicators.views import (ModeViewSet, ModeVariantViewSet,
                                ReachabilityMatrixViewSet, RouterViewSet,
                                IndicatorViewSet)
 
 from .infrastructure.views import (InfrastructureViewSet, FieldTypeViewSet,
-                                   QuotaViewSet, ServiceViewSet, PlaceViewSet,
+                                   ServiceViewSet, PlaceViewSet,
                                    CapacityViewSet, PlaceFieldViewSet,
-                                   FClassViewSet)
+                                   FClassViewSet, ScenarioCapacityViewSet,
+                                   ScenarioPlaceViewSet)
 from .logging.views import (CapacityUploadLogViewSet, PlaceUploadLogViewSet,
                             AreaUploadLogViewSet)
 from .population.views import (RasterViewSet, PopulationRasterViewSet, GenderViewSet,
@@ -36,11 +38,8 @@ from datentool_backend.utils.routers import SingletonRouter
 
 router = routers.SimpleRouter()
 router.register(r'users', UserViewSet, basename='users')
-router.register(r'settings', SiteSettingViewSet, basename='settings')
 
 # areas
-router.register(r'symbolforms', SymbolFormViewSet, basename='symbolforms')
-router.register(r'mapsymbols', MapSymbolsViewSet, basename='mapsymbols')
 router.register(r'layergroups', LayerGroupViewSet, basename='layergroups')
 router.register(r'wmslayers', WMSLayerViewSet, basename='wmslayers')
 router.register(r'internalwfslayers', InternalWFSLayerViewSet,
@@ -53,7 +52,8 @@ router.register(r'areas', AreaViewSet, basename='areas')
 router.register(r'demandratesets', DemandRateSetViewSet,
                 basename='demandratesets')
 router.register(r'demandrates', DemandRateViewSet, basename='demandrates')
-
+router.register(r'scenariodemandrates', ScenarioDemandRateViewSet,
+                basename='scenariodemandrates')
 # indicator
 router.register(r'modes', ModeViewSet, basename='modes')
 router.register(r'modevariants', ModeVariantViewSet, basename='modevariants')
@@ -65,10 +65,11 @@ router.register(r'indicators', IndicatorViewSet, basename='indicators')
 # infrastructure
 router.register(r'infrastructures', InfrastructureViewSet,
                 basename='infrastructures')
-router.register(r'quotas', QuotaViewSet, basename='quotas')
 router.register(r'services', ServiceViewSet, basename='services')
 router.register(r'places', PlaceViewSet, basename='places')
+router.register(r'scenarioplaces', ScenarioPlaceViewSet, basename='scenarioplaces')
 router.register(r'capacities', CapacityViewSet, basename='capacities')
+router.register(r'scenariocapacities', ScenarioCapacityViewSet, basename='scenariocapacities')
 router.register(r'fieldtypes', FieldTypeViewSet, basename='fieldtypes')
 router.register(r'fclasses', FClassViewSet, basename='fclasses')
 router.register(r'placefields', PlaceFieldViewSet, basename='placefields')
@@ -86,8 +87,6 @@ router.register(r'rasters', RasterViewSet, basename='rasters')
 router.register(r'populationrasters', PopulationRasterViewSet,
                 basename='populationrasters')
 router.register(r'gender', GenderViewSet, basename='gender')
-#router.register(r'ageclassifications', AgeClassificationViewSet,
-                #basename='ageclassifications')
 router.register(r'agegroups', AgeGroupViewSet, basename='agegroups')
 router.register(r'disaggpoprasters', DisaggPopRasterViewSet,
                 basename='disaggpoprasters')
@@ -117,10 +116,12 @@ router.register(r'popstatentries', PopStatEntryViewSet, basename='popstatentries
 router.register(r'planningprocesses', PlanningProcessViewSet, basename='planningprocesses')
 router.register(r'scenarios', ScenarioViewSet, basename='scenarios')
 
+# site
 srouter = SingletonRouter()
 srouter.register('projectsettings', ProjectSettingViewSet,
                  basename='projectsettings')
 srouter.register('basedatasettings', BaseDataSettingViewSet,
                  basename='basedatasettings')
+srouter.register('sitesettings', SiteSettingViewSet, basename='sitesettings')
 
 urlpatterns = router.urls + srouter.urls

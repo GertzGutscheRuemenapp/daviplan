@@ -129,7 +129,6 @@ class PopStatEntry(models.Model):
     """statistic entry for an area"""
     popstatistic = models.ForeignKey(PopStatistic, on_delete=models.RESTRICT)
     area = models.ForeignKey(Area, on_delete=models.RESTRICT)
-    age = models.IntegerField()
     immigration = models.FloatField()
     emigration = models.FloatField()
     births = models.FloatField()
