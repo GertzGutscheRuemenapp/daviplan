@@ -31,10 +31,11 @@ class SiteSettingFactory(DjangoModelFactory):
     class Meta:
         model = SiteSetting
 
-    name = faker.word()
+    name = faker.unique.word()
     title = faker.word()
     contact_mail = faker.email()
     logo = faker.image_url('https://picsum.photos/788/861')
-    primary_color = faker.color(hue='red')
-    secondary_color = faker.color(hue='blue')
+    primary_color = faker.hex_color()
+    secondary_color = faker.hex_color()
     welcome_text = faker.text()
+

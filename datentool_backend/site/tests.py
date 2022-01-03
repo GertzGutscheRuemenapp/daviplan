@@ -174,7 +174,7 @@ class TestProjectSetting(_TestAPI, BasicModelSingletonTest, APITestCase):
     #def setUpClass(cls):
         #super().setUpClass()
 
-        #data = dict(name=faker.word(), title=faker.word(),
+        #data = dict(name=faker.unique.word(), title=faker.word(),
                     #contact_mail=faker.email(),
                     #logo=faker.image_url('https://picsum.photos/788/861'),
                     #primary_color=faker.color(hue='blue'),

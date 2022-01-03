@@ -23,5 +23,5 @@ class SiteSettingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SiteSetting
-        fields = ('id', 'name', 'title', 'contact_mail', 'logo',
+        fields = ('name', 'title', 'contact_mail', 'logo',
                   'primary_color', 'secondary_color', 'welcome_text')
