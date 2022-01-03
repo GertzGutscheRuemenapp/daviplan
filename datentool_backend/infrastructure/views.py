@@ -24,6 +24,8 @@ class CanPatchSymbol(permissions.BasePermission):
         return False
 
     def has_object_permission(self, request, view, obj):
+        if request.user.is_superuser or request.user.profile.admin_access:
+            return True
         if request.method == 'GET':
             return True
         if (request.user.profile.can_edit_basedata and

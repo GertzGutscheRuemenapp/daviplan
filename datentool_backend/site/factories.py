@@ -27,15 +27,15 @@ class BaseDataSettingFactory(DjangoModelFactory):
     default_pop_area_level = factory.SubFactory(AreaLevelFactory)
 
 
-class SiteSettingFactory(DjangoModelFactory):
-    class Meta:
-        model = SiteSetting
+#class SiteSettingFactory(DjangoModelFactory):
+    #class Meta:
+        #model = SiteSetting
 
-    url = faker.url()
-    name = faker.word()
-    title = faker.word()
-    contact_mail = faker.email()
-    logo = faker.imageUrl(640, 480, 'animals', true);
-    primary_color = faker.hexColor()
-    secondary_color =faker.hexColor()
-    welcome_text = faker.text()
+    #url = faker.url()
+    #name = faker.word()
+    #title = faker.word()
+    #contact_mail = faker.email()
+    #logo = faker.image(null, 640, 480)
+    #primary_color = faker.hexColor()
+    #secondary_color = faker.hexColor()
+    #welcome_text = faker.text()
