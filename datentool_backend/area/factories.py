@@ -2,7 +2,7 @@ from faker import Faker
 import factory
 from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import MultiPolygon, Polygon
-from .models import (SymbolForm, MapSymbol, LayerGroup, Layer,
+from .models import (MapSymbol, LayerGroup, Layer,
                      WMSLayer, InternalWFSLayer, SourceTypes, Source,
                      AreaLevel, Area)
 
@@ -10,18 +10,12 @@ from .models import (SymbolForm, MapSymbol, LayerGroup, Layer,
 faker = Faker('de-DE')
 
 
-class SymbolFormFactory(DjangoModelFactory):
-    class Meta:
-        model = SymbolForm
-
-    name = faker.word()
-
-
 class MapSymbolsFactory(DjangoModelFactory):
     class Meta:
         model = MapSymbol
 
-    symbol = factory.SubFactory(SymbolFormFactory)
+    # ToDo: random choice?
+    symbol = MapSymbol.Symbol.SQUARE
     fill_color = faker.color()
     stroke_color = faker.color()
 
@@ -29,7 +23,6 @@ class MapSymbolsFactory(DjangoModelFactory):
 class LayerGroupFactory(DjangoModelFactory):
     class Meta:
         model = LayerGroup
-        django_get_or_create = ('order',)
 
     name = faker.word()
     order = factory.Sequence(lambda n: faker.pyint(max_value=10))
@@ -38,7 +31,6 @@ class LayerGroupFactory(DjangoModelFactory):
 class LayerFactory(DjangoModelFactory):
     class Meta:
         model = Layer
-        django_get_or_create = ('order',)
     name = faker.word()
     group = factory.SubFactory(LayerGroupFactory)
     layer_name = faker.word()

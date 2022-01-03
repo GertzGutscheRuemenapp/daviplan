@@ -41,14 +41,6 @@ class TestModeAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data = dict(name=faker.word())
         cls.patch_data = data = dict(name=faker.word())
 
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
-
 
 class TestModeVariantAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
@@ -67,14 +59,6 @@ class TestModeVariantAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
 
 
 class TestReachabilityMatrixAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
@@ -96,14 +80,6 @@ class TestReachabilityMatrixAPI(_TestPermissions, _TestAPI, BasicModelTest, APIT
         cls.put_data = data
         cls.patch_data = data
 
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
-
 
 class TestRouterAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
@@ -121,14 +97,6 @@ class TestRouterAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
 
 
 class TestIndicatorAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
@@ -149,11 +117,3 @@ class TestIndicatorAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()

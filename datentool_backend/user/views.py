@@ -1,9 +1,7 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 from django.db.models import Q
-from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.auth.models import User
-from datentool_backend.utils.views import (HasAdminAccessPermission,
-                                           HasAdminAccessOrReadOnly)
+from datentool_backend.utils.views import HasAdminAccessOrReadOnly
 from .serializers import (UserSerializer, PlanningProcessSerializer,
                           ScenarioSerializer)
 from .models import PlanningProcess, Scenario
@@ -23,31 +21,71 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().get_object()
 
 
-class PlanningProcessViewSet(UserPassesTestMixin, viewsets.ModelViewSet):
+class CanCreateProcessPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.method in ('GET'):
+            return True
+        else:
+            return request.user.profile.can_create_process
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in ('GET'):
+            owner = obj.owner
+            return request.user.profile == owner
+        else:
+            return request.user.profile.can_create_process
+
+
+class PlanningProcessViewSet(viewsets.ModelViewSet):
     queryset = PlanningProcess.objects.all()
     serializer_class = PlanningProcessSerializer
-
-    def test_func(self):
-        if self.request.method in ('GET'):
-            if self.detail:
-                owner = self.get_object().owner
-                return self.request.user.profile == owner
-            else:
-                return len(self.get_queryset()) > 0
-        else:
-            return self.request.user.profile.can_create_process
+    permission_classes = [permissions.IsAuthenticated & CanCreateProcessPermission]
 
     def get_queryset(self):
         qs = super().get_queryset()
         return qs.filter(owner=self.request.user.profile)
 
 
-class ScenarioViewSet(viewsets.ModelViewSet): # +UserPassesTestMixin
+class CanEditScenarioPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and (
+            request.method in permissions.SAFE_METHODS
+            or request.user.is_superuser)
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS and (
+            obj.owner == request.user.profile or
+            request.user.profile in obj.planning_process.users):
+            return True
+        if self.detail:
+            owner_is_user = request.user.profile == obj.owner
+            user_in_users = request.user.profile in obj.planning_process.users
+            allow_shared_change = obj.planning_process.allow_shared_change
+            return owner_is_user or (allow_shared_change and user_in_users)
+        else:
+            owner_is_user = len(self.get_queryset()) > 0
+
+
+class ScenarioViewSet(viewsets.ModelViewSet):
     queryset = Scenario.objects.all()
     serializer_class = ScenarioSerializer
+    #permission_classes = [permissions.IsAuthenticated & CanEditScenarioPermission]
+
+    #def get_queryset(self):
+        #qs = super().get_queryset()
+        #condition = Q(planning_process__users__contains=self.request.user.profile)| \
+            #Q(planning_process__owner=self.request.user.profile)
+        #return qs.filter(condition)
+
+
+    #def get_queryset(self):
+        #qs = super().get_queryset()
+        #condition = Q(planning_process__owner=self.request.user.profile) | \
+            #Q(planning_process__users__contains=self.request.user.profile)
+        #return qs.filter(condition)
 
     #def test_func(self):
-        #if self.request.method in ('GET'):
+        # if self.request.method in ('GET'):
             #return True
         #else:
             #if self.detail:

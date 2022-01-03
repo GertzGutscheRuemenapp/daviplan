@@ -1,5 +1,7 @@
 from collections import OrderedDict
 import json
+from rest_framework import status
+from unittest import skip
 from django.test import TestCase
 from test_plus import APITestCase
 from datentool_backend.api_test import BasicModelTest
@@ -8,9 +10,10 @@ from datentool_backend.user.factories import ProfileFactory
 
 from datentool_backend.infrastructure.factories import (InfrastructureFactory, ServiceFactory, CapacityFactory,
                         FClassFactory, PlaceFieldFactory, PlaceFactory,
-                        FieldTypeFactory, QuotaFactory)
+                        FieldTypeFactory, ScenarioCapacityFactory, ScenarioPlaceFactory)
 from datentool_backend.infrastructure.models import (Infrastructure, Place, Capacity, FieldTypes, FClass,
-                     Service, PlaceField)
+                     Service, PlaceField, ScenarioCapacity, ScenarioPlace)
+from datentool_backend.area.serializers import InternalWFSLayerSerializer
 
 
 from faker import Faker
@@ -22,7 +25,7 @@ class TestInfrastructure(TestCase):
 
     def test_service(self):
         service = ServiceFactory()
-        print(service.quota)
+        print(service.quota_type)
 
     def test_infrastructure(self):
         """"""
@@ -36,7 +39,9 @@ class TestInfrastructure(TestCase):
 
     def test_capacity(self):
         """"""
-        capacity = CapacityFactory()
+        infrastructure = InfrastructureFactory()
+        capacity = CapacityFactory(place__infrastructure=infrastructure,
+                                   service__infrastructure=infrastructure)
         print(capacity)
         print(capacity.place)
 
@@ -62,13 +67,13 @@ class TestInfrastructureAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestC
         infrastructure: Infrastructure = cls.obj
         editable_by = list(infrastructure.editable_by.all().values_list(flat=True))
         accessible_by = list(infrastructure.accessible_by.all().values_list(flat=True))
-        layer = infrastructure.layer.pk
-        symbol = infrastructure.symbol.pk
+        layer_data = InternalWFSLayerSerializer(infrastructure.layer).data
+        del(layer_data['group'])
+        del(layer_data['id'])
 
         data = dict(name=faker.word(), description=faker.word(),
-                             editable_by=editable_by,
-                             accessible_by=accessible_by, layer=layer,
-                             symbol=symbol)
+                    editable_by=editable_by,
+                    accessible_by=accessible_by, layer=layer_data)
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
@@ -81,35 +86,88 @@ class TestInfrastructureAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestC
         self.patch_data = patch_data2
         super().test_put_patch()
 
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
+    @skip('is replaced by test_can_patch_symbol')
+    def test_can_edit_basedata(self):
+        pass
 
     def test_admin_access(self):
         """write permission if user has admin_access"""
         super().admin_access()
 
+    def test_can_patch_layer(self):
+        """user, who can_edit_basedata has permission to patch the symbol"""
+        profile = self.profile
+        permission_basedata = profile.can_edit_basedata
+        permission_admin = profile.admin_access
 
-class TestQuotaAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
-    """Test to post, put and patch data"""
-    url_key = "quotas"
-    factory = QuotaFactory
+        # Testprofile, with permission to edit basedata
+        profile.can_edit_basedata = True
+        profile.admin_access = False
+        profile.save()
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+        # test post
+        url = self.url_key + '-list'
 
-        cls.post_data = dict(quota_type=faker.word())
-        cls.put_data = dict(quota_type=faker.word())
-        cls.patch_data = dict(quota_type=faker.word())
+        response = self.post(url, **self.url_pks, data=self.post_data,
+                                 extra={'format': 'json'})
+        self.response_403(msg=response.content)
 
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
+        # test put
+        url = self.url_key + '-detail'
+        kwargs = self.kwargs
+        formatjson = dict(format='json')
 
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
+        response = self.put(url, **kwargs,
+                            data=self.put_data,
+                            extra=formatjson)
+        self.response_403(msg=response.content)
+
+        # check status code for patch
+        self.patch_data = {'layer': {
+            'name': 'test', 'symbol': {'symbol': 'line'}}}
+        response = self.patch(url, **kwargs,
+                              data=self.patch_data, extra=formatjson)
+        self.response_200(msg=response.content)
+
+        # Other fields should not be edited
+        self.patch_data['description'] = 'A new description'
+        response = self.patch(url, **kwargs,
+                              data=self.patch_data, extra=formatjson)
+        self.response_403(msg=response.content)
+
+        # Testprofile, without permission to edit basedata
+        profile.can_edit_basedata = False
+        profile.save()
+
+        # test post
+        url = self.url_key + '-list'
+        response = self.post(url, **self.url_pks, data=self.post_data,
+                                 extra={'format': 'json'})
+        self.response_403(msg=response.content)
+
+        # test put_patch
+        url = self.url_key + '-detail'
+        kwargs = self.kwargs
+        formatjson = dict(format='json')
+
+        # check status code for put
+        response = self.put(url, **kwargs,
+                    data=self.put_data,
+                    extra=formatjson)
+        self.response_403(msg=response.content)
+
+        # check status code for patch
+        self.patch_data = {'layer': {
+            'name': 'test', 'symbol': {'symbol': 'line'}}}
+
+        response = self.patch(url, **kwargs,
+                              data=self.patch_data, extra=formatjson)
+        self.response_403(msg=response.content)
+
+
+        profile.admin_access = permission_admin
+        profile.can_edit_basedata = permission_basedata
+        profile.save()
 
 
 class TestServiceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
@@ -124,7 +182,7 @@ class TestServiceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         service: Service = cls.obj
         infrastructure = service.infrastructure.pk
         editable_by = list(service.editable_by.all().values_list(flat=True))
-        quota_id = service.quota.pk
+        #quota_id = service.pk
 
         data = dict(name=faker.word(),
                     description=faker.word(),
@@ -135,18 +193,11 @@ class TestServiceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
                     has_capacity=True,
                     demand_singular_unit=faker.word(),
                     demand_plural_unit=faker.word(),
-                    quota_id=quota_id)
+                    #quota_id=quota_id,
+                    quota_type=faker.word())
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
 
 
 class TestPlaceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
@@ -179,24 +230,54 @@ class TestPlaceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.put_data = geojson_putpatch
         cls.patch_data = geojson_putpatch
 
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
 
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
+#class TestScenarioPlaceAPI(_TestAPI, BasicModelTest, APITestCase):
+    #"""Test to post, put and patch data"""
+    #url_key = "scenarioplaces"
+    #factory = ScenarioPlaceFactory
+
+    #@classmethod
+    #def setUpClass(cls):
+        #super().setUpClass()
+        #scenarioplace: ScenarioPlace = cls.obj
+        #infrastructure = scenarioplace.infrastructure.pk
+        #geom = scenarioplace.geom.ewkt
+        #scenario = scenarioplace.scenario.pk
+        #status_quo = scenarioplace.status_quo.pk
+
+        #properties = OrderedDict(
+            #name=faker.word(),
+            #infrastructure=infrastructure,
+            #attributes=faker.json(),
+            #scenario=scenario,
+            #status_quo=status_quo
+        #)
+        #geojson = {
+            #'type': 'Feature',
+            #'geometry': geom,
+            #'properties': properties,
+        #}
+
+        #cls.post_data = geojson
+        #geojson_putpatch = geojson.copy()
+        #geojson_putpatch['id'] = scenarioplace.id
+
+        #cls.put_data = geojson_putpatch
+        #cls.patch_data = geojson_putpatch
 
 
 class TestCapacityAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "capacities"
-    factory = CapacityFactory
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        capacity: Capacity = cls.obj
+        infrastructure = InfrastructureFactory()
+        capacity = CapacityFactory(place__infrastructure=infrastructure,
+                                   service__infrastructure=infrastructure)
+
+        cls.obj =  capacity
         place = capacity.place.pk
         service = capacity.service.pk
 
@@ -206,13 +287,27 @@ class TestCapacityAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
 
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
+#class TestScenarioCapacityAPI(_TestAPI, BasicModelTest, APITestCase):
+    #"""Test to post, put and patch data"""
+    #url_key = "scenariocapacities"
+    #factory = ScenarioCapacityFactory
+
+    #@classmethod
+    #def setUpClass(cls):
+        #super().setUpClass()
+        #scenariocapacity: ScenarioCapacity = cls.obj
+        #place = scenariocapacity.place.pk
+        #service = scenariocapacity.service.pk
+        #scenario = scenariocapacity.scenario.pk
+        #status_quo = scenariocapacity.status_quo.pk
+
+        #data = dict(place=place, service=service,
+                    #capacity=faker.pyfloat(positive=True), from_year=faker.year(),
+                    #scenario=scenario, status_quo=status_quo)
+        #cls.post_data = data
+        #cls.put_data = data
+        #cls.patch_data = data
 
 
 class TestFieldTypeNUMSTRAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
@@ -229,14 +324,6 @@ class TestFieldTypeNUMSTRAPI(_TestPermissions, _TestAPI, BasicModelTest, APITest
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
 
 
 class TestFieldTypeCLAAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
@@ -298,14 +385,6 @@ class TestFieldTypeCLAAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCas
         self.assertEqual(new_fclass_set.get(order=2).value, '2')
         self.assertEqual(new_fclass_set.get(order=3).value, '3')
 
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
-
 
 class TestFClassAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
@@ -324,14 +403,6 @@ class TestFClassAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
 
 
 class TestPlaceFieldAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
@@ -352,11 +423,3 @@ class TestPlaceFieldAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase)
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()

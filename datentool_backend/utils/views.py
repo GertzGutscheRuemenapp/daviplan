@@ -11,6 +11,7 @@ from django.utils.translation import ugettext as _
 from abc import ABC
 
 from django.shortcuts import get_object_or_404
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.utils.serializer_helpers import ReturnDict
 
@@ -31,7 +32,7 @@ class SingletonViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
 
 
 class PostGetViewMixin:
@@ -416,80 +417,73 @@ class ReadUpdatePermissionViewSet(mixins.RetrieveModelMixin,
         return super().partial_update(request, **kwargs)
 
 
-#class BaseProfilePermissionMixin(UserPassesTestMixin):
-    #""""""
-
-    #def get_test_func(self):
-        #"""define the permission check function (default=can_edit_basedata)"""
-        #return self.check_can_edit_basedata
-
-    # def check_can_create_process(self) -> bool:
-        #"""Has write access to Project-Model"""
-        #if self.request.method in ('GET'):
-            #return self.request.user is not None
-        #else:
-            # return self.request.user.profile.can_create_process
-
-    #def check_can_edit_basedata(self) -> bool:
-        #"""Has write access to Basedata-Models"""
-        #if self.request.method in ('GET'):
-            #return self.request.user is not None
-        #else:
-            #return self.request.user.profile.can_edit_basedata
-
-    #def check_has_admin_access(self) -> bool:
-        #"""Has admin access (Read or write)"""
-        #return self.request.user.profile.admin_access
-
-    #def check_admin_access_and_basedata_edit(self) -> bool:
-        #"""Has admin access (Read or write) and basedata-edit"""
-        #return self.check_can_edit_basedata() and self.check_has_admin_access()
-
-
 class HasAdminAccessOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and (
-                request.method in permissions.SAFE_METHODS or
+            request.method in permissions.SAFE_METHODS or
                 request.user.is_superuser or
-                request.user.profile.admin_access)
+            request.user.profile.admin_access)
+
+    # def has_object_permission(self, request, view, obj):
+        # return request.user.is_authenticated and (
+            # request.user.id == obj.id or
+            # request.user.is_superuser or
+            # request.user.profile.admin_access
+        # )
 
 
-class CanEditBasedataPermission(UserPassesTestMixin):
-    """Has write access to Basedata-Models"""
+class CanEditBasedata(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return (request.user.is_authenticated and
+                request.user.profile.can_edit_basedata)
+
+
+#class CanEditBasedataPermission(UserPassesTestMixin):
+    #"""Has write access to Basedata-Models"""
+
+    #def test_func(self):
+        #if (self.request.method in permissions.SAFE_METHODS
+                #and self.request.user.is_authenticated):
+            #return True
+        #if self.request.user.is_superuser == True:
+            #return True
+        #return (self.request.user.is_authenticated and
+                #self.request.user.profile.can_edit_basedata)
+
+
+class HasAdminAccess(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return (request.user.is_authenticated
+                and request.user.profile.admin_access)
+
+
+#class HasAdminAccessPermission(UserPassesTestMixin):
+    #"""Has admin access (Read or write)"""
+
+    #def test_func(self):
+        #if (self.request.method in permissions.SAFE_METHODS and
+            #self.request.user.is_authenticated):
+            #return True
+        #if self.request.user.is_superuser == True:
+            #return True
+        #return (self.request.user.pk is not None
+                #and self.request.user.profile.admin_access)
+
+
+
+class ReadOnlyAccess(UserPassesTestMixin):
+    """no write permission, user with "can edit_basedata" or "admin_access" can read_only"""
 
     def test_func(self):
-        if self.request.user.superuser == True:
+        if (self.request.method in permissions.SAFE_METHODS
+                and self.request.user.is_authenticated):
             return True
-        elif self.request.method in ('GET'):
-            return self.request.user.profile.can_edit_basedata
-
-
-class HasAdminAccessPermission(UserPassesTestMixin):
-    """Has admin access (Read or write)"""
-
-    def test_func(self):
-        if self.request.user.is_superuser == True:
+        if (self.request.user.is_superuser == True
+                and self.request.method in permissions.SAFE_METHODS):
             return True
-        return (self.request.user.pk is not None
-                and self.request.user.profile.admin_access)
+        if (self.request.method in permissions.SAFE_METHODS and
+            (self.request.user.profile.admin_access or
+             self.request.user.profile.can_edit_basedata)):
+            return True
 
 
-class ReadOnlyEditBasedataAdminAccess(UserPassesTestMixin):
-    """no write permission, user with "can edit_basedata" or "admin_access" read_only"""
-
-    def test_func(self):
-        if self.request.method in ('GET'):
-            return (self.request.user.pk is not None and (
-                    self.request.user.profile.admin_access or
-                    self.request.user.profile.can_edit_basedata or
-                    self.request.user.is_superuser)
-                    )
-
-
-        # if self.request.user.pk is not None:
-            # return True
-        # elif self.request.user.superuser == True:
-            # return True
-        # elif self.request.method in ('GET'):
-            # return (self.request.user.profile.admin_access or
-                    # self.request.user.profile.can_edit_basedata)

@@ -7,8 +7,9 @@ from rest_framework.decorators import action
 #from vectortiles.mixins import BaseVectorTileView
 #from django.views.generic import ListView
 #from vectortiles.postgis.views import MVTView
-from datentool_backend.utils.views import (CanEditBasedataPermission,
-                                           HasAdminAccessPermission)
+from datentool_backend.utils.views import (HasAdminAccess,
+                                           CanEditBasedata,
+                                           HasAdminAccessOrReadOnly)
 from .models import (Raster, PopulationRaster, Gender, AgeGroup, DisaggPopRaster,
                      Prognosis, PrognosisEntry, Population, PopulationEntry,
                      PopStatistic, PopStatEntry, RasterCell)
@@ -21,14 +22,16 @@ from .serializers import (RasterSerializer, PopulationRasterSerializer,
                           PopStatEntrySerializer)
 
 
-class RasterViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class RasterViewSet(viewsets.ModelViewSet):
     queryset = Raster.objects.all()
     serializer_class = RasterSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class PopulationRasterViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class PopulationRasterViewSet(viewsets.ModelViewSet):
     queryset = PopulationRaster.objects.all()
     serializer_class = PopulationRasterSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
 #class RasterCellTileViewSet(MVTView, DetailView):
@@ -47,14 +50,16 @@ class PopulationRasterViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
         #return BaseVectorTileView.get(self,request=request, z=kwargs.get('z'), x=kwargs.get('x'), y=kwargs.get('y'))
 
 
-class GenderViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class GenderViewSet(viewsets.ModelViewSet):
     queryset = Gender.objects.all()
     serializer_class = GenderSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
 class AgeGroupViewSet(viewsets.ModelViewSet):
     queryset = AgeGroup.objects.all()
     serializer_class = AgeGroupSerializer
+    permission_classes = [HasAdminAccessOrReadOnly, HasAdminAccess]
 
     def list(self, request, *args, **kwargs):
         # return the default age-groups (Regionalstatistik) when query parameter
@@ -82,36 +87,43 @@ class AgeGroupViewSet(viewsets.ModelViewSet):
         return Response({'valid': valid})
 
 
-class DisaggPopRasterViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class DisaggPopRasterViewSet(viewsets.ModelViewSet):
     queryset = DisaggPopRaster.objects.all()
     serializer_class = DisaggPopRasterSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class PrognosisViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class PrognosisViewSet(viewsets.ModelViewSet):
     queryset = Prognosis.objects.all()
     serializer_class = PrognosisSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class PrognosisEntryViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class PrognosisEntryViewSet(viewsets.ModelViewSet):
     queryset = PrognosisEntry.objects.all()
     serializer_class = PrognosisEntrySerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class PopulationViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class PopulationViewSet(viewsets.ModelViewSet):
     queryset = Population.objects.all()
     serializer_class = PopulationSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class PopulationEntryViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class PopulationEntryViewSet(viewsets.ModelViewSet):
     queryset = PopulationEntry.objects.all()
     serializer_class = PopulationEntrySerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class PopStatisticViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class PopStatisticViewSet(viewsets.ModelViewSet):
     queryset = PopStatistic.objects.all()
     serializer_class = PopStatisticSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class PopStatEntryViewSet(CanEditBasedataPermission, viewsets.ModelViewSet):
+class PopStatEntryViewSet(viewsets.ModelViewSet):
     queryset = PopStatEntry.objects.all()
     serializer_class = PopStatEntrySerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]

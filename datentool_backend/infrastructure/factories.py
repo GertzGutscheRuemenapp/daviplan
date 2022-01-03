@@ -2,10 +2,11 @@ from faker import Faker
 import factory
 from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import Point
-from .models import (Infrastructure, Quota, Service, Place,
+from .models import (Infrastructure, Service, Place,
                      Capacity, FieldTypes, FieldType, FClass, PlaceField,
-                     Profile)
+                     Profile, ScenarioPlace, ScenarioCapacity)
 from ..area.factories import InternalWFSLayerFactory, MapSymbolsFactory
+from .. user.factories import ScenarioFactory
 
 faker = Faker('de-DE')
 
@@ -17,7 +18,6 @@ class InfrastructureFactory(DjangoModelFactory):
     description = faker.sentence()
     # sensitive_data
     layer = factory.SubFactory(InternalWFSLayerFactory)
-    symbol = factory.SubFactory(MapSymbolsFactory)
 
     @factory.post_generation
     def editable_by(self, create, extracted, **kwargs):
@@ -50,13 +50,6 @@ class InfrastructureFactory(DjangoModelFactory):
                 self.accessible_by.add(profile)
 
 
-class QuotaFactory(DjangoModelFactory):
-    class Meta:
-        model = Quota
-
-    quota_type = faker.word()
-
-
 class ServiceFactory(DjangoModelFactory):
     class Meta:
         model = Service
@@ -70,7 +63,7 @@ class ServiceFactory(DjangoModelFactory):
     has_capacity = True
     demand_singular_unit = faker.word()
     demand_plural_unit = faker.word()
-    quota = factory.SubFactory(QuotaFactory)
+    quota_type = faker.word()
 
 
 class PlaceFactory(DjangoModelFactory):
@@ -81,7 +74,17 @@ class PlaceFactory(DjangoModelFactory):
     name = faker.unique.word()
     infrastructure = factory.SubFactory(InfrastructureFactory)
     geom = Point((faker.latlng()[1], faker.latlng()[0]))
-    attributes=faker.json(num_rows=3, indent=True)
+    attributes = faker.json(num_rows=3, indent=True)
+
+
+class ScenarioPlaceFactory(DjangoModelFactory):
+    """location of an infrastructure in a scenario"""
+    class Meta:
+        model = ScenarioPlace
+
+    scenario = factory.SubFactory(ScenarioFactory)
+    status_quo = factory.SubFactory(PlaceFactory)
+
 
 class CapacityFactory(DjangoModelFactory):
     """Capacity of an infrastructure for a service"""
@@ -92,6 +95,15 @@ class CapacityFactory(DjangoModelFactory):
     service = factory.SubFactory(ServiceFactory)
     capacity = faker.pyfloat(positive=True)
     from_year = faker.year()
+
+
+class ScenarioCapacityFactory(DjangoModelFactory):
+    """capacity of an infrastructure for a service"""
+    class Meta:
+        model = ScenarioCapacity
+
+    scenario = factory.SubFactory(ScenarioFactory)
+    status_quo = factory.SubFactory(CapacityFactory)
 
 
 class FieldTypeFactory(DjangoModelFactory):

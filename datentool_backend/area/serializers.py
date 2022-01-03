@@ -1,20 +1,14 @@
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from .models import (SymbolForm, MapSymbol, LayerGroup, WMSLayer,
+from .models import (MapSymbol, LayerGroup, WMSLayer,
                      InternalWFSLayer, Source, AreaLevel, Area)
-
-
-class SymbolFormSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SymbolForm
-        fields =  ('id', 'name', )
 
 
 class MapSymbolsSerializer(serializers.ModelSerializer):
     class Meta:
         model = MapSymbol
-        fields =  ('id', 'symbol', 'fill_color', 'stroke_color')
+        fields =  ('symbol', 'fill_color', 'stroke_color')
 
 
 class LayerGroupSerializer(serializers.ModelSerializer):
@@ -30,9 +24,12 @@ class WMSLayerSerializer(serializers.ModelSerializer):
 
 
 class InternalWFSLayerSerializer(serializers.ModelSerializer):
+    symbol = MapSymbolsSerializer()
+
     class Meta:
         model = InternalWFSLayer
         fields = ('id', 'name', 'group', 'layer_name', 'order', 'symbol')
+        read_only_fields = ('group', 'symbol')
 
 
 class SourceSerializer(serializers.ModelSerializer):

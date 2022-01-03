@@ -2,16 +2,16 @@ from collections import OrderedDict
 from django.test import TestCase
 from test_plus import APITestCase
 from datentool_backend.api_test import BasicModelTest
-import factory
 
 
-from .factories import (SymbolFormFactory, MapSymbolsFactory,
+from .factories import (MapSymbolsFactory,
                         WMSLayerFactory, InternalWFSLayerFactory,
                         AreaFactory, AreaLevelFactory, SourceFactory,
                         LayerGroupFactory)
 
 from .models import (MapSymbol, WMSLayer, InternalWFSLayer, SourceTypes,
                      AreaLevel, Area)
+from .serializers import MapSymbolsSerializer
 
 
 from faker import Faker
@@ -39,19 +39,21 @@ class TestAreas(TestCase):
 class _TestAPI:
     """test if view and serializer are working correctly """
     url_key = ""
-    factory = SymbolFormFactory
+    # replace with concrete factory in sub-class
+    factory = None
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.obj = cls.factory()
         cls.url_pks = dict()
-        cls.url_pk = dict(pk=cls.obj.pk)
+        if cls.factory:
+            cls.obj = cls.factory()
+            cls.url_pk = dict(pk=cls.obj.pk)
 
 
 class _TestPermissions():
     """ test users permissions"""
-    def is_logged_in(self):
+    def test_is_logged_in(self):
         self.client.logout()
         response = self.get(self.url_key + '-list')
         self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
@@ -60,13 +62,15 @@ class _TestPermissions():
         self.test_list()
         self.test_detail()
 
-    def can_edit_basedata(self):
+    def test_can_edit_basedata(self):
         profile = self.profile
 
         original_permission = profile.can_edit_basedata
+        original_admin_access = profile.admin_access
 
         # Testprofile, with permission to edit basedata
         profile.can_edit_basedata = True
+        profile.admin_access = False
         profile.save()
         self.test_post()
 
@@ -81,6 +85,7 @@ class _TestPermissions():
         self.response_403(msg=response.content)
 
         profile.can_edit_basedata = original_permission
+        profile.admin_access = original_admin_access
         profile.save()
 
     def admin_access(self):
@@ -107,51 +112,6 @@ class _TestPermissions():
         profile.save()
 
 
-class TestSymbolFormAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
-    url_key = "symbolforms"
-    factory = SymbolFormFactory
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.post_data = dict(name='posttestname')
-        cls.put_data = dict(name='puttestname')
-        cls.patch_data = dict(name='patchtestname')
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
-
-
-class TestMapSymbolsAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
-    """test if view and serializer are working correctly"""
-    url_key = "mapsymbols"
-    factory = MapSymbolsFactory
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        mapsymbol: MapSymbol = cls.obj
-        symbol = mapsymbol.symbol.pk
-        cls.post_data = dict(symbol=symbol, fill_color=faker.color(),
-                             stroke_color=faker.color())
-        cls.put_data = dict(symbol=symbol, fill_color=faker.color(),
-                             stroke_color=faker.color())
-        cls.patch_data = dict(symbol=symbol, stroke_color=faker.color())
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
-
-
 class TestLayerGroupAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """test if view and serializer are working correctly"""
     url_key = "layergroups"
@@ -167,20 +127,11 @@ class TestLayerGroupAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase)
         cls.put_data = dict(name='puttestname', order=next(cls.orders))
         cls.patch_data = dict(name='patchtestname', order=next(cls.orders))
 
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
-
 
 class TestWMSLayerAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """test if view and serializer are working correctly"""
     url_key = "wmslayers"
     factory = WMSLayerFactory
-
 
     @classmethod
     def setUpClass(cls):
@@ -193,42 +144,26 @@ class TestWMSLayerAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
+# will be read only (ToDo: read test?)
+#class TestInternalWFSLayerAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+    #"""test if view and serializer are working correctly"""
+    #url_key = "internalwfslayers"
+    #factory = InternalWFSLayerFactory
 
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
+    #@classmethod
+    #def setUpClass(cls):
+        #super().setUpClass()
+        ##internalwfslayer: InternalWFSLayer = cls.obj
+        ##group = internalwfslayer.group.pk
+        ##symbol = MapSymbolsFactory.create()
+        ##symbol_serializer = MapSymbolsSerializer(symbol)
 
-
-class TestInternalWFSLayerAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
-    """test if view and serializer are working correctly"""
-    url_key = "internalwfslayers"
-    factory = InternalWFSLayerFactory
-
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        internalwfslayer: InternalWFSLayer = cls.obj
-        group = internalwfslayer.group.pk
-        internalwfslayer: InternalWFSLayer = cls.obj
-        symbol = internalwfslayer.symbol.pk
-
-        data = dict(symbol=symbol, name=faker.word(), layer_name=faker.word(),
-                    order=faker.random_int(), group=group)
-        cls.post_data = data
-        cls.put_data = data
-        cls.patch_data = data
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
+        #data = dict(name=faker.word(),
+                    #layer_name=faker.word(),
+                    #order=faker.random_int())
+        #cls.post_data = data
+        #cls.put_data = data
+        #cls.patch_data = data
 
 
 class TestSourceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
@@ -246,14 +181,6 @@ class TestSourceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
 
 
 class TestAreaLevelAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
@@ -273,14 +200,6 @@ class TestAreaLevelAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()
 
 
 class TestAreaAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
@@ -310,11 +229,3 @@ class TestAreaAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
 
         cls.put_data = geojson_putpatch
         cls.patch_data = geojson_putpatch
-
-    def test_is_logged_in(self):
-        """read_only"""
-        super().is_logged_in()
-
-    def test_can_edit_basedata(self):
-        """ write permission """
-        super().can_edit_basedata()

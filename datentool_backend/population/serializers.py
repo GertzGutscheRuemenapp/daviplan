@@ -77,5 +77,5 @@ class PopStatisticSerializer(serializers.ModelSerializer):
 class PopStatEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = PopStatEntry
-        fields = ('id', 'popstatistic', 'area', 'age', 'immigration', 'emigration',
+        fields = ('id', 'popstatistic', 'area', 'immigration', 'emigration',
                   'births', 'deaths')

@@ -4,26 +4,26 @@ from django.contrib.gis.db import models as gis_models
 from datentool_backend.base import NamedModel, JsonAttributes
 
 
-class SymbolForm(NamedModel, models.Model):
-    '''
-    Map Symbol Forms
-    '''
-    name = models.TextField()
-
-
 class MapSymbol(models.Model):
     '''
     MapSymbols
     '''
-    symbol = models.ForeignKey(SymbolForm, on_delete=models.RESTRICT)
-    fill_color = models.CharField(max_length=9)
-    stroke_color = models.CharField(max_length=9)
+    class Symbol(models.TextChoices):
+        LINE = 'line'
+        CIRCLE = 'circle'
+        SQUARE = 'square'
+        STAR = 'star'
+
+    symbol = models.CharField(max_length=9, choices=Symbol.choices,
+                              default=Symbol.CIRCLE)
+    fill_color = models.CharField(max_length=9, default='#FFFFFF')
+    stroke_color = models.CharField(max_length=9, default='#000000')
 
 
 class LayerGroup(NamedModel, models.Model):
     """a Layer Group"""
     name = models.TextField()
-    order = models.IntegerField(unique=True)
+    order = models.IntegerField(default=0)
 
 
 class Layer(NamedModel, models.Model):
@@ -31,7 +31,7 @@ class Layer(NamedModel, models.Model):
     name = models.TextField()
     group = models.ForeignKey(LayerGroup, on_delete=models.RESTRICT)
     layer_name = models.TextField()
-    order = models.IntegerField(unique=True)
+    order = models.IntegerField(default=0)
 
     class Meta:
         abstract = True
@@ -47,13 +47,14 @@ class WMSLayer(Layer):
 
 class InternalWFSLayer(Layer):
     """an internal WFS Layer"""
-    symbol = models.ForeignKey(MapSymbol, on_delete=models.RESTRICT)
+    symbol = models.ForeignKey(MapSymbol, on_delete=models.CASCADE)
 
 
 class SourceTypes(models.TextChoices):
     """SourceTypes"""
     WFS = 'WFS', 'WFS Source'
     FILE = 'FILE', 'File Source'
+
 
 class Source(models.Model):
     """a generic source"""

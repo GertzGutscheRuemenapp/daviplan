@@ -11,7 +11,7 @@ export class RestAPI {
     refreshToken: `${ this.API_ENDPOINT }/token/refresh/`,
     users: `${ this.API_ENDPOINT }/users/`,
     currentUser: `${ this.API_ENDPOINT }/users/current/`,
-    settings: `${ this.API_ENDPOINT }/settings/default/`,
+    settings: `${ this.API_ENDPOINT }/sitesettings/`,
     projectSettings: `${ this.API_ENDPOINT }/projectsettings/`,
     ageGroups: `${ this.API_ENDPOINT }/agegroups/`
   }
