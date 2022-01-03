@@ -18,4 +18,4 @@ conda install -c conda-forge gdal=3.1 (global)
  - add argument --watch to reload on change
 
 ### export fixtures for area (very slow when creating it with hypothesis)
-dumpdata datentool_backend.symbolform datentool_backend.mapsymbols datentool_backend.layergroup datentool_backend.internalwfslayer datentool_backend.source datentool_backend.arealevel datentool_backend.area --indent 2 >test.json
+dumpdata datentool_backend.mapsymbols datentool_backend.layergroup datentool_backend.internalwfslayer datentool_backend.source datentool_backend.arealevel datentool_backend.area --indent 2 >test.json

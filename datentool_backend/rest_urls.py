@@ -8,7 +8,7 @@ from rest_framework_mvt.views import mvt_view_factory
 from django.conf.urls import url
 
 from .population.models import RasterCell
-from .area.views import (SymbolFormViewSet, MapSymbolsViewSet, LayerGroupViewSet,
+from .area.views import (LayerGroupViewSet,
                          WMSLayerViewSet, InternalWFSLayerViewSet, SourceViewSet,
                          AreaLevelViewSet, AreaViewSet)
 
@@ -40,8 +40,6 @@ router = routers.SimpleRouter()
 router.register(r'users', UserViewSet, basename='users')
 
 # areas
-router.register(r'symbolforms', SymbolFormViewSet, basename='symbolforms')
-router.register(r'mapsymbols', MapSymbolsViewSet, basename='mapsymbols')
 router.register(r'layergroups', LayerGroupViewSet, basename='layergroups')
 router.register(r'wmslayers', WMSLayerViewSet, basename='wmslayers')
 router.register(r'internalwfslayers', InternalWFSLayerViewSet,

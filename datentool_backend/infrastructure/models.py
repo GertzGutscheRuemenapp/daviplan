@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.gis.db import models as gis_models
 from datentool_backend.base import NamedModel, JsonAttributes
 from datentool_backend.user.models import Profile, Scenario
-from datentool_backend.area.models import InternalWFSLayer, MapSymbol
+from datentool_backend.area.models import InternalWFSLayer
 
 
 class Infrastructure(NamedModel, models.Model):
@@ -10,14 +10,13 @@ class Infrastructure(NamedModel, models.Model):
     Infrastructure that provide services
     '''
     name = models.TextField()
-    description = models.TextField()
+    description = models.TextField(blank=True)
     editable_by = models.ManyToManyField(
         Profile, related_name='infrastructure_editable_by', blank=True)
     accessible_by = models.ManyToManyField(
         Profile, related_name='infrastructure_accessible_by', blank=True)
     # sensitive_data
-    layer = models.ForeignKey(InternalWFSLayer, on_delete=models.RESTRICT)
-    symbol = models.ForeignKey(MapSymbol, on_delete=models.RESTRICT)
+    layer = models.OneToOneField(InternalWFSLayer, on_delete=models.CASCADE)
 
 
 class Service(NamedModel, models.Model):
@@ -27,7 +26,8 @@ class Service(NamedModel, models.Model):
     name = models.TextField()
     quota_type = models.TextField()
     description = models.TextField()
-    infrastructure = models.ForeignKey(Infrastructure, on_delete=models.RESTRICT)
+    infrastructure = models.ForeignKey(Infrastructure,
+                                       on_delete=models.RESTRICT)
     editable_by = models.ManyToManyField(Profile,
                                          related_name='service_editable_by',
                                          blank=True)
@@ -41,12 +41,14 @@ class Service(NamedModel, models.Model):
 class Place(JsonAttributes, NamedModel, models.Model):
     """location of an infrastructure"""
     name = models.TextField()
-    infrastructure = models.ForeignKey(Infrastructure, on_delete=models.RESTRICT)
+    infrastructure = models.ForeignKey(Infrastructure,
+                                       on_delete=models.RESTRICT)
     geom = gis_models.PointField(geography=True)
     attributes = models.JSONField()
 
     def __str__(self) -> str:
-        return f'{self.__class__.__name__} ({self.infrastructure.name}): {self.name}'
+        return (f'{self.__class__.__name__} ({self.infrastructure.name}): '
+                f'{self.name}')
 
 
 class ScenarioPlace(Place):
@@ -91,7 +93,8 @@ class FClass(models.Model):
     value = models.TextField()
 
     def __str__(self) -> str:
-        return f'{self.__class__.__name__}: {self.classification.name}: {self.order} - {self.value}'
+        return (f'{self.__class__.__name__}: {self.classification.name}: '
+                f'{self.order} - {self.value}')
 
 
 class PlaceField(models.Model):

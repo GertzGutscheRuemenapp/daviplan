@@ -2,15 +2,69 @@ from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from .models import (Infrastructure, FieldType, FClass, FieldTypes, Service,
-                     Place, Capacity, PlaceField, ScenarioPlace, ScenarioCapacity)
+                     Place, Capacity, PlaceField, ScenarioPlace,
+                     InternalWFSLayer, ScenarioCapacity)
+from datentool_backend.area.serializers import InternalWFSLayerSerializer
+from datentool_backend.area.models import LayerGroup, MapSymbol
 
 
 class InfrastructureSerializer(serializers.ModelSerializer):
+    layer = InternalWFSLayerSerializer(required=False)
+    layer_group = 'Infrastruktur-Standorte'
+
     class Meta:
         model = Infrastructure
         fields = ('id', 'name', 'description',
-                   'editable_by', 'accessible_by',
-                   'layer', 'symbol')
+                  'editable_by', 'accessible_by',
+                  'layer')
+
+    def create(self, validated_data):
+        layer_data = validated_data.pop('layer', {})
+        symbol_data = layer_data.pop('symbol', {})
+        symbol = MapSymbol.objects.create(**symbol_data)
+
+        group, created = LayerGroup.objects.get_or_create(name=self.layer_group)
+        l_name = layer_data.pop('name', validated_data['name'])
+        l_layer_name = layer_data.pop('layer_name', validated_data['name'])
+        layer = InternalWFSLayer.objects.create(
+            symbol=symbol, name=l_name, layer_name=l_layer_name,
+            group=group, **layer_data)
+
+        editable_by = validated_data.pop('editable_by')
+        accessible_by = validated_data.pop('accessible_by')
+        infrastructure = Infrastructure.objects.create(layer=layer,
+                                                       **validated_data)
+        infrastructure.editable_by.set(editable_by)
+        infrastructure.accessible_by.set(accessible_by)
+
+        return infrastructure
+
+    def update(self, instance, validated_data):
+        layer_data = validated_data.pop('layer', {})
+        symbol_data = layer_data.pop('symbol', {})
+
+        editable_by = validated_data.pop('editable_by', None)
+        accessible_by = validated_data.pop('accessible_by', None)
+        super().update(instance, validated_data)
+        if editable_by is not None:
+            instance.editable_by.set(editable_by)
+        if accessible_by is not None:
+            instance.accessible_by.set(accessible_by)
+        instance.save()
+
+        layer = instance.layer
+        layer.name = layer_data.get('name', layer.name)
+        layer.layer_name = layer_data.get('layer_name', layer.layer_name)
+        layer.save()
+
+        symbol = layer.symbol
+        symbol.symbol = symbol_data.get('symbol', symbol.symbol)
+        symbol.fill_color = symbol_data.get('fill_color', symbol.fill_color)
+        symbol.stroke_color = symbol_data.get('stroke_color',
+                                              symbol.stroke_color)
+        symbol.save()
+
+        return instance
 
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -20,7 +74,6 @@ class ServiceSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'description', 'infrastructure', 'editable_by',
                   'capacity_singular_unit', 'capacity_plural_unit',
                   'has_capacity', 'demand_singular_unit', 'demand_plural_unit',
-                  #'quota_id',
                   'quota_type')
 
 

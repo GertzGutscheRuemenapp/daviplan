@@ -1,12 +1,5 @@
 [
 {
-  "model": "datentool_backend.symbolform",
-  "pk": 1,
-  "fields": {
-    "name": "MySymbolForm"
-  }
-},
-{
   "model": "datentool_backend.mapsymbol",
   "pk": 1,
   "fields": {
@@ -31,6 +24,17 @@
     "group": 1,
     "layer_name": "super layer",
     "order": 1,
+    "symbol": 1
+  }
+},
+{
+  "model": "datentool_backend.internalwfslayer",
+  "pk": 2,
+  "fields": {
+    "name": "test",
+    "group": 1,
+    "layer_name": "test",
+    "order": 2,
     "symbol": 1
   }
 },

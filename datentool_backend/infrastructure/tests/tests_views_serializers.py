@@ -13,6 +13,7 @@ from datentool_backend.infrastructure.factories import (InfrastructureFactory, S
                         FieldTypeFactory, ScenarioCapacityFactory, ScenarioPlaceFactory)
 from datentool_backend.infrastructure.models import (Infrastructure, Place, Capacity, FieldTypes, FClass,
                      Service, PlaceField, ScenarioCapacity, ScenarioPlace)
+from datentool_backend.area.serializers import InternalWFSLayerSerializer
 
 
 from faker import Faker
@@ -38,7 +39,9 @@ class TestInfrastructure(TestCase):
 
     def test_capacity(self):
         """"""
-        capacity = CapacityFactory()
+        infrastructure = InfrastructureFactory()
+        capacity = CapacityFactory(place__infrastructure=infrastructure,
+                                   service__infrastructure=infrastructure)
         print(capacity)
         print(capacity.place)
 
@@ -64,13 +67,13 @@ class TestInfrastructureAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestC
         infrastructure: Infrastructure = cls.obj
         editable_by = list(infrastructure.editable_by.all().values_list(flat=True))
         accessible_by = list(infrastructure.accessible_by.all().values_list(flat=True))
-        layer = infrastructure.layer.pk
-        symbol = infrastructure.symbol.pk
+        layer_data = InternalWFSLayerSerializer(infrastructure.layer).data
+        del(layer_data['group'])
+        del(layer_data['id'])
 
         data = dict(name=faker.word(), description=faker.word(),
-                             editable_by=editable_by,
-                             accessible_by=accessible_by, layer=layer,
-                             symbol=symbol)
+                    editable_by=editable_by,
+                    accessible_by=accessible_by, layer=layer_data)
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
@@ -91,7 +94,7 @@ class TestInfrastructureAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestC
         """write permission if user has admin_access"""
         super().admin_access()
 
-    def test_can_patch_symbol(self):
+    def test_can_patch_layer(self):
         """user, who can_edit_basedata has permission to patch the symbol"""
         profile = self.profile
         permission_basedata = profile.can_edit_basedata
@@ -120,7 +123,8 @@ class TestInfrastructureAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestC
         self.response_403(msg=response.content)
 
         # check status code for patch
-        self.patch_data = {'symbol': 1}
+        self.patch_data = {'layer': {
+            'name': 'test', 'symbol': {'symbol': 'line'}}}
         response = self.patch(url, **kwargs,
                               data=self.patch_data, extra=formatjson)
         self.response_200(msg=response.content)
@@ -130,7 +134,6 @@ class TestInfrastructureAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestC
         response = self.patch(url, **kwargs,
                               data=self.patch_data, extra=formatjson)
         self.response_403(msg=response.content)
-
 
         # Testprofile, without permission to edit basedata
         profile.can_edit_basedata = False
@@ -154,7 +157,8 @@ class TestInfrastructureAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestC
         self.response_403(msg=response.content)
 
         # check status code for patch
-        self.patch_data = {'symbol': 1}
+        self.patch_data = {'layer': {
+            'name': 'test', 'symbol': {'symbol': 'line'}}}
 
         response = self.patch(url, **kwargs,
                               data=self.patch_data, extra=formatjson)
@@ -265,12 +269,15 @@ class TestPlaceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
 class TestCapacityAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "capacities"
-    factory = CapacityFactory
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        capacity: Capacity = cls.obj
+        infrastructure = InfrastructureFactory()
+        capacity = CapacityFactory(place__infrastructure=infrastructure,
+                                   service__infrastructure=infrastructure)
+
+        cls.obj =  capacity
         place = capacity.place.pk
         service = capacity.service.pk
 

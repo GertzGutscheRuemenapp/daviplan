@@ -18,7 +18,6 @@ class InfrastructureFactory(DjangoModelFactory):
     description = faker.sentence()
     # sensitive_data
     layer = factory.SubFactory(InternalWFSLayerFactory)
-    symbol = factory.SubFactory(MapSymbolsFactory)
 
     @factory.post_generation
     def editable_by(self, create, extracted, **kwargs):

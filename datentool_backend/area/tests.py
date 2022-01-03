@@ -2,16 +2,16 @@ from collections import OrderedDict
 from django.test import TestCase
 from test_plus import APITestCase
 from datentool_backend.api_test import BasicModelTest
-import factory
 
 
-from .factories import (SymbolFormFactory, MapSymbolsFactory,
+from .factories import (MapSymbolsFactory,
                         WMSLayerFactory, InternalWFSLayerFactory,
                         AreaFactory, AreaLevelFactory, SourceFactory,
                         LayerGroupFactory)
 
 from .models import (MapSymbol, WMSLayer, InternalWFSLayer, SourceTypes,
                      AreaLevel, Area)
+from .serializers import MapSymbolsSerializer
 
 
 from faker import Faker
@@ -39,14 +39,16 @@ class TestAreas(TestCase):
 class _TestAPI:
     """test if view and serializer are working correctly """
     url_key = ""
-    factory = SymbolFormFactory
+    # replace with concrete factory in sub-class
+    factory = None
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.obj = cls.factory()
         cls.url_pks = dict()
-        cls.url_pk = dict(pk=cls.obj.pk)
+        if cls.factory:
+            cls.obj = cls.factory()
+            cls.url_pk = dict(pk=cls.obj.pk)
 
 
 class _TestPermissions():
@@ -110,35 +112,6 @@ class _TestPermissions():
         profile.save()
 
 
-class TestSymbolFormAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
-    url_key = "symbolforms"
-    factory = SymbolFormFactory
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.post_data = dict(name='posttestname')
-        cls.put_data = dict(name='puttestname')
-        cls.patch_data = dict(name='patchtestname')
-
-
-class TestMapSymbolsAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
-    """test if view and serializer are working correctly"""
-    url_key = "mapsymbols"
-    factory = MapSymbolsFactory
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        mapsymbol: MapSymbol = cls.obj
-        symbol = mapsymbol.symbol.pk
-        cls.post_data = dict(symbol=symbol, fill_color=faker.color(),
-                             stroke_color=faker.color())
-        cls.put_data = dict(symbol=symbol, fill_color=faker.color(),
-                             stroke_color=faker.color())
-        cls.patch_data = dict(symbol=symbol, stroke_color=faker.color())
-
-
 class TestLayerGroupAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """test if view and serializer are working correctly"""
     url_key = "layergroups"
@@ -160,7 +133,6 @@ class TestWMSLayerAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     url_key = "wmslayers"
     factory = WMSLayerFactory
 
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -172,26 +144,26 @@ class TestWMSLayerAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
+# will be read only (ToDo: read test?)
+#class TestInternalWFSLayerAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+    #"""test if view and serializer are working correctly"""
+    #url_key = "internalwfslayers"
+    #factory = InternalWFSLayerFactory
 
-class TestInternalWFSLayerAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
-    """test if view and serializer are working correctly"""
-    url_key = "internalwfslayers"
-    factory = InternalWFSLayerFactory
+    #@classmethod
+    #def setUpClass(cls):
+        #super().setUpClass()
+        ##internalwfslayer: InternalWFSLayer = cls.obj
+        ##group = internalwfslayer.group.pk
+        ##symbol = MapSymbolsFactory.create()
+        ##symbol_serializer = MapSymbolsSerializer(symbol)
 
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        internalwfslayer: InternalWFSLayer = cls.obj
-        group = internalwfslayer.group.pk
-        internalwfslayer: InternalWFSLayer = cls.obj
-        symbol = internalwfslayer.symbol.pk
-
-        data = dict(symbol=symbol, name=faker.word(), layer_name=faker.word(),
-                    order=faker.random_int(), group=group)
-        cls.post_data = data
-        cls.put_data = data
-        cls.patch_data = data
+        #data = dict(name=faker.word(),
+                    #layer_name=faker.word(),
+                    #order=faker.random_int())
+        #cls.post_data = data
+        #cls.put_data = data
+        #cls.patch_data = data
 
 
 class TestSourceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
