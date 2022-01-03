@@ -33,6 +33,61 @@ class TestBaseDataSetting(BasicModelSingletonTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
+    def test_can_edit_basedata(self):
+        profile = self.profile
+
+        original_permission = profile.can_edit_basedata
+        original_admin_access = profile.admin_access
+
+        # Testprofile, with permission to edit basedata
+        profile.can_edit_basedata = True
+        profile.admin_access = False
+        profile.save()
+
+        # test put
+        url = self.url_key + '-detail'
+        kwargs = self.kwargs
+        formatjson = dict(format='json')
+
+        response = self.put(url, **kwargs,
+                            data=self.put_data,
+                            extra=formatjson)
+        self.response_200(msg=response.content)
+
+        # check status code for patch
+        response = self.patch(url, **kwargs,
+                              data=self.patch_data, extra=formatjson)
+        self.response_200(msg=response.content)
+
+        # Testprofile, without permission to edit basedata
+        profile.can_edit_basedata = False
+        profile.save()
+
+        # test get:
+        response = self.get_check_200(url, **kwargs)
+        if 'id' in response.data:
+            assert response.data['id'] == self.obj.pk
+
+        # test put_patch
+        url = self.url_key + '-detail'
+        kwargs = self.kwargs
+        formatjson = dict(format='json')
+
+        # check status code for put
+        response = self.put(url, **kwargs,
+                    data=self.put_data,
+                    extra=formatjson)
+        self.response_403(msg=response.content)
+
+        # check status code for patch
+        response = self.patch(url, **kwargs,
+                              data=self.patch_data, extra=formatjson)
+        self.response_403(msg=response.content)
+
+        profile.can_edit_basedata = original_permission
+        profile.admin_access = original_admin_access
+        profile.save()
+
 
 class TestProjectSetting(_TestAPI, BasicModelSingletonTest, APITestCase):
     """"""

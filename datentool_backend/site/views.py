@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-from datentool_backend.utils.views import HasAdminAccessOrReadOnly
+from datentool_backend.utils.views import HasAdminAccessOrReadOnly, CanEditBasedata
 from .models import SiteSetting, ProjectSetting, BaseDataSetting
 from .serializers import (SiteSettingSerializer, ProjectSettingSerializer,
                           BaseDataSettingSerializer)
@@ -17,6 +17,7 @@ class BaseDataSettingViewSet(SingletonViewSet):
     queryset = BaseDataSetting.objects.all()
     model_class = BaseDataSetting
     serializer_class = BaseDataSettingSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
 class SiteSettingViewSet(SingletonViewSet):
@@ -24,7 +25,7 @@ class SiteSettingViewSet(SingletonViewSet):
     model_class = SiteSetting
     serializer_class = SiteSettingSerializer
 
-    #def get_object(self):
+    # def get_object(self):
         #pk = self.kwargs.get('pk')
 
         #if pk == 'default':
