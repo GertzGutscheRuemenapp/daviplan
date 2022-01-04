@@ -138,6 +138,7 @@ export class TokenInterceptor implements HttpInterceptor {
           return next.handle(this.addAuthorizationHeader(request, res.access));
         }),
         catchError(err => {
+          this.refreshingInProgress = false;
           return this.logoutAndRedirect(err);
         })
       );
