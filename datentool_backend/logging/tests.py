@@ -1,6 +1,8 @@
 from django.test import TestCase
 from test_plus import APITestCase
-from datentool_backend.api_test import BasicModelReadTest, BasicModelPutPatchTest
+from datentool_backend.api_test import (BasicModelReadTest,
+                                        BasicModelPutPatchTest,
+                                        ReadOnlyWithAdminBasedataAccessTest)
 from datentool_backend.area.tests import _TestAPI
 
 from .factories import (CapacityUploadLogFactory, PlaceUploadLogFactory,
@@ -184,11 +186,13 @@ class _TestReadOnly():
         self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
 
         self.client.force_login(user=self.profile.user)
+
         self.test_list()
         self.test_detail()
 
 
-class TestCapacityUploadLogAPI(_TestReadOnly, _TestAPI, BasicModelReadTest, APITestCase):
+class TestCapacityUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest,
+                               _TestReadOnly, _TestAPI, BasicModelReadTest, APITestCase):
     """"""
     url_key = "capacityuploadlogs"
     factory = CapacityUploadLogFactory
@@ -207,7 +211,7 @@ class TestCapacityUploadLogAPI(_TestReadOnly, _TestAPI, BasicModelReadTest, APIT
         cls.patch_data = data
 
 
-class TestPlaceUploadLogAPI(_TestReadOnly, _TestAPI, BasicModelReadTest, APITestCase):
+class TestPlaceUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestReadOnly, _TestAPI, BasicModelReadTest, APITestCase):
     """"""
     url_key = "placeuploadlogs"
     factory = PlaceUploadLogFactory
@@ -226,7 +230,7 @@ class TestPlaceUploadLogAPI(_TestReadOnly, _TestAPI, BasicModelReadTest, APITest
         cls.patch_data = data
 
 
-class TestAreaUploadLogAPI(_TestReadOnly, _TestAPI, BasicModelReadTest, APITestCase):
+class TestAreaUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestReadOnly, _TestAPI, BasicModelReadTest, APITestCase):
     """"""
     url_key = "areauploadlogs"
     factory = AreaUploadLogFactory
