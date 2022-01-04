@@ -16,7 +16,8 @@ from .demand.views import (DemandRateSetViewSet, DemandRateViewSet,
                            ScenarioDemandRateViewSet)
 
 from .indicators.views import (ModeViewSet, ModeVariantViewSet,
-                               ReachabilityMatrixViewSet, RouterViewSet,
+                               #ReachabilityMatrixViewSet,
+                               RouterViewSet,
                                IndicatorViewSet)
 
 from .infrastructure.views import (InfrastructureViewSet, FieldTypeViewSet,
@@ -57,8 +58,8 @@ router.register(r'scenariodemandrates', ScenarioDemandRateViewSet,
 # indicator
 router.register(r'modes', ModeViewSet, basename='modes')
 router.register(r'modevariants', ModeVariantViewSet, basename='modevariants')
-router.register(r'reachabilitymatrices', ReachabilityMatrixViewSet,
-                basename='reachabilitymatrices')
+#router.register(r'reachabilitymatrices', ReachabilityMatrixViewSet,
+                #basename='reachabilitymatrices')
 router.register(r'routers', RouterViewSet, basename='routers')
 router.register(r'indicators', IndicatorViewSet, basename='indicators')
 

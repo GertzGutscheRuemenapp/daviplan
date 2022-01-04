@@ -1,9 +1,12 @@
 from rest_framework import viewsets
 
 from datentool_backend.utils.views import HasAdminAccessOrReadOnly, CanEditBasedata
-from .models import (Mode, ModeVariant, ReachabilityMatrix, Router, Indicator)
+from .models import (Mode, ModeVariant,
+                     # ReachabilityMatrix,
+                     Router, Indicator)
 from .serializers import (ModeSerializer, ModeVariantSerializer,
-                          ReachabilityMatrixSerializer, RouterSerializer,
+                          #ReachabilityMatrixSerializer,
+                          RouterSerializer,
                           IndicatorSerializer)
 
 
@@ -19,10 +22,10 @@ class ModeVariantViewSet(viewsets.ModelViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class ReachabilityMatrixViewSet(viewsets.ModelViewSet):
-    queryset = ReachabilityMatrix.objects.all()
-    serializer_class = ReachabilityMatrixSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+#class ReachabilityMatrixViewSet(viewsets.ModelViewSet):
+    #queryset = ReachabilityMatrix.objects.all()
+    #serializer_class = ReachabilityMatrixSerializer
+    #permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
 class RouterViewSet(viewsets.ModelViewSet):

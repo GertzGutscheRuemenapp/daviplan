@@ -1,6 +1,8 @@
 from django.db import models
+from django.contrib.gis.db import models as gis_models
 from datentool_backend.base import NamedModel, JsonAttributes
-from datentool_backend.infrastructure.models import Service
+from datentool_backend.infrastructure.models import (Service, Place,
+                                                     Infrastructure)
 from datentool_backend.population.models import RasterCell
 
 
@@ -11,6 +13,12 @@ class Mode(NamedModel, models.Model):
     name = models.TextField()
 
 
+class Stop(NamedModel, models.Model):
+    """location of a public transport stop"""
+    name = models.TextField()
+    geom = gis_models.PointField(geography=True)
+
+
 class ModeVariant(JsonAttributes, NamedModel, models.Model):
     '''
     modes
@@ -19,14 +27,51 @@ class ModeVariant(JsonAttributes, NamedModel, models.Model):
     name = models.TextField()
     meta = models.JSONField()
     is_default = models.BooleanField()
+    cutoff_time = models.ManyToManyField(Infrastructure, through='CutOffTime')
 
 
-class ReachabilityMatrix(models.Model):
-    """Reachabliliy Matrix between raster cells with a mode variante"""
-    from_cell = models.ForeignKey(RasterCell, on_delete=models.RESTRICT,
-                                  related_name='from_cell')
-    to_cell = models.ForeignKey(RasterCell, on_delete=models.RESTRICT,
-                                related_name='to_cell')
+class CutOffTime(models.Model):
+    mode_variant = models.ForeignKey(ModeVariant, on_delete=models.CASCADE)
+    infrastructure = models.ForeignKey(Infrastructure, on_delete=models.CASCADE)
+    minutes = models.FloatField()
+
+
+class MatrixCellPlace(models.Model):
+    """Reachabliliy Matrix between raster cell and place with a mode variante"""
+    cell = models.ForeignKey(RasterCell, on_delete=models.RESTRICT,
+                             related_name='cell_place')
+    place = models.ForeignKey(Place, on_delete=models.RESTRICT,
+                              related_name='place_cell')
+    variant = models.ForeignKey(ModeVariant, on_delete=models.RESTRICT)
+    minutes = models.FloatField()
+
+
+class MatrixCellStop(models.Model):
+    """Reachabliliy Matrix between raster cell and stop with a mode variante"""
+    cell = models.ForeignKey(RasterCell, on_delete=models.RESTRICT,
+                             related_name='cell_stop')
+    stop = models.ForeignKey(Stop, on_delete=models.RESTRICT,
+                             related_name='stop_cell')
+    variant = models.ForeignKey(ModeVariant, on_delete=models.RESTRICT)
+    minutes = models.FloatField()
+
+
+class MatrixPlaceStop(models.Model):
+    """Reachabliliy Matrix between a place and stop with a mode variante"""
+    place = models.ForeignKey(Place, on_delete=models.RESTRICT,
+                             related_name='place_stop')
+    stop = models.ForeignKey(Stop, on_delete=models.RESTRICT,
+                             related_name='stop_place')
+    variant = models.ForeignKey(ModeVariant, on_delete=models.RESTRICT)
+    minutes = models.FloatField()
+
+
+class MatrixStopStop(models.Model):
+    """Reachabliliy Matrix between a stop and a stop with a mode variante"""
+    from_stop = models.ForeignKey(Stop, on_delete=models.RESTRICT,
+                                  related_name='from_stop')
+    to_stop = models.ForeignKey(Stop, on_delete=models.RESTRICT,
+                                related_name='to_stop')
     variant = models.ForeignKey(ModeVariant, on_delete=models.RESTRICT)
     minutes = models.FloatField()
 
