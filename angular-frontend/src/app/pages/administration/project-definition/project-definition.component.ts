@@ -115,8 +115,8 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     this.previewMapControl.setBackground(this.previewMapControl.getBackgroundLayers()[0].id);
     this.previewMapControl.map?.addVectorLayer('project-area',{
       visible: true,
-      stroke: { color: '#2196F3', width: 3 },
-      fill: { color: 'rgba(33, 150, 243, 0.5)' }
+      stroke: { color: '#DA9A22', width: 3 },
+      fill: { color: 'rgba(218, 154, 34, 0.7)' }
     });
   }
 
@@ -247,7 +247,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
 
       const projectLayer = this.areaSelectMapControl.map?.addVectorLayer('project-area', {
         stroke: { color: 'rgba(0, 0, 0, 0)' },
-        fill: { color: 'rgba(33, 150, 243, 0.5)' },
+        fill: { color: 'rgba(218, 154, 34, 0.7)' },
         visible: true
       });
 
@@ -307,6 +307,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
         if (!hasProjectArea) return;
         let intersections = _this.getIntersections(_this.projectGeom!, _this._baseSelectLayer!);
         intersections.forEach((feature: Feature<any>) => {
+          if (feature.get('gf') != 4) return;
           feature.set('inSelection', true);
           _this.selectedBaseAreaMapping.set(feature.get('debkg_id'), feature)
         })
@@ -439,6 +440,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
 
     if (layer !== this._baseSelectLayer){
       selected.forEach(feature => {
+        if (feature.get('gf') != 4) return;
         let intersections =  this.getBaseIntersections(feature);
         selectedBaseFeatures = selectedBaseFeatures.concat(intersections);
       })
@@ -453,6 +455,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     }
 
     selectedBaseFeatures.forEach(feature => {
+      if (feature.get('gf') != 4) return;
       feature.set('inSelection', true);
       this.selectedBaseAreaMapping.set(feature.get('debkg_id'), feature);
     })
@@ -537,7 +540,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
           intersections = this.getIntersections(extent!, this._baseSelectLayer!);
     let areas = Array.from(this.selectedBaseAreaMapping.values());
     intersections.forEach(feature => {
-      if (!_this.selectedBaseAreaMapping.has(feature.get('debkg_id')))
+      if (!_this.selectedBaseAreaMapping.has(feature.get('debkg_id')) && (feature.get('gf') == 4))
         areas.push(feature);
     })
     this.baseAreasInExtent = areas.sort(
