@@ -430,6 +430,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
    */
   featuresSelected(layer: Layer<any>, selected: Feature<any>[], deselected: Feature<any>[]){
     this.areaCard.setLoading(true);
+
     let selectedBaseFeatures: Feature<any>[] = [],
         deselectedBaseFeatures: Feature<any>[] = [];
 
@@ -457,6 +458,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       this.selectedBaseAreaMap.delete(feature.get('debkg_id'));
     })
     this.updateMergedSelectArea();
+    this.areaCard.setLoading(false);
   }
 
   updateMergedSelectArea(){
@@ -473,7 +475,6 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       // @ts-ignore
       projectGeom = new MultiPolygon([projectGeom.getCoordinates()]);
     this.mergedSelectArea?.setGeometry(projectGeom);
-    this.areaCard.setLoading(false);
   }
 
   /**
@@ -553,10 +554,12 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   }
 
   removeAreaSelections(): void {
+    this.areaCard.setLoading(true);
     this.selectedBaseAreaMap.forEach((feature, key) => {
       feature.set('inSelection', false);
     })
     this.selectedBaseAreaMap.clear();
     this.updateMergedSelectArea();
+    this.areaCard.setLoading(false);
   }
 }
