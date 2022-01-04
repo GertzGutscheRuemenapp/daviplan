@@ -32,7 +32,6 @@ export class SettingsComponent implements AfterViewInit {
   settings?: SiteSettings;
   titleForm!: FormGroup;
   contactForm!: FormGroup;
-  logoForm!: FormGroup;
   welcomeTextInput: string = '';
   welcomeTextErrors: any = {};
   logoErrors: any = {};

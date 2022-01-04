@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Inject, Input, Output, TemplateRef } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Inject, Input, Output, TemplateRef } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 interface DialogData {
@@ -21,9 +21,10 @@ interface DialogData {
   styleUrls: ['./confirm-dialog.component.scss']
 })
 
-export class ConfirmDialogComponent {
+export class ConfirmDialogComponent implements AfterViewInit  {
   public isLoading: boolean = false;
   @Output() confirmed = new EventEmitter<boolean>();
+  initReady = false;
 
   constructor(public dialogRef: MatDialogRef<ConfirmDialogComponent>,
               @Inject(MAT_DIALOG_DATA) public data: DialogData) {
@@ -39,5 +40,10 @@ export class ConfirmDialogComponent {
     if (this.data.closeOnConfirm)
       this.dialogRef.close(true);
     this.confirmed.emit();
+  }
+
+  ngAfterViewInit() {
+    // workaround for disabling closing-animation of help panel in dialog
+    setTimeout(() => this.initReady = true);
   }
 }
