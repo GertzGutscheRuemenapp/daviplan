@@ -24,11 +24,5 @@ class SiteSettingViewSet(SingletonViewSet):
     queryset = SiteSetting.objects.all()
     model_class = SiteSetting
     serializer_class = SiteSettingSerializer
+    permission_classes = [HasAdminAccessOrReadOnly]
 
-    # def get_object(self):
-        #pk = self.kwargs.get('pk')
-
-        #if pk == 'default':
-            #return SiteSetting.objects.get_or_create(name='default')[0]
-
-        #return super().get_object()

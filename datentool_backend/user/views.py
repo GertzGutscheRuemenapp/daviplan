@@ -48,63 +48,70 @@ class PlanningProcessViewSet(viewsets.ModelViewSet):
 
 class CanEditScenarioPermission(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated and (
-            request.method in permissions.SAFE_METHODS
-            or request.user.is_superuser)
+        if not request.user.is_authenticated:
+            return False
+        if request.method == 'POST':
+            if request.user.is_superuser:
+                return True
+            planning_process = PlanningProcess.objects.get(
+                id=request.data.get('planning_process'))
+            owner_is_user = request.user.profile == planning_process.owner
+            user_in_users = request.user.profile in planning_process.users.all()
+            allow_shared_change = planning_process.allow_shared_change
+            return owner_is_user or (allow_shared_change and user_in_users)
+        return True
 
     def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS and (
-            obj.owner == request.user.profile or
-            request.user.profile in obj.planning_process.users):
+        if request.method in permissions.SAFE_METHODS:
             return True
-        if self.detail:
-            owner_is_user = request.user.profile == obj.owner
-            user_in_users = request.user.profile in obj.planning_process.users
-            allow_shared_change = obj.planning_process.allow_shared_change
-            return owner_is_user or (allow_shared_change and user_in_users)
-        else:
-            owner_is_user = len(self.get_queryset()) > 0
+        owner_is_user = request.user.profile == obj.planning_process.owner
+        user_in_users = request.user.profile in obj.planning_process.users.all()
+        allow_shared_change = obj.planning_process.allow_shared_change
+        return owner_is_user or (allow_shared_change and user_in_users)
+
+
 
 
 class ScenarioViewSet(viewsets.ModelViewSet):
     queryset = Scenario.objects.all()
     serializer_class = ScenarioSerializer
-    #permission_classes = [permissions.IsAuthenticated & CanEditScenarioPermission]
-
-    #def get_queryset(self):
-        #qs = super().get_queryset()
-        #condition = Q(planning_process__users__contains=self.request.user.profile)| \
-            #Q(planning_process__owner=self.request.user.profile)
-        #return qs.filter(condition)
+    permission_classes = [permissions.IsAuthenticated & CanEditScenarioPermission]
 
 
-    #def get_queryset(self):
-        #qs = super().get_queryset()
-        #condition = Q(planning_process__owner=self.request.user.profile) | \
-            #Q(planning_process__users__contains=self.request.user.profile)
-        #return qs.filter(condition)
+    def get_queryset(self):
+        qs = super().get_queryset()
+        condition_user_in_user = Q(planning_process__users__in=[self.request.user.profile])
+        condition_owner_in_user = Q(planning_process__owner=self.request.user.profile)
 
-    #def test_func(self):
-        # if self.request.method in ('GET'):
+        return qs.filter(condition_user_in_user | condition_owner_in_user)
+
+
+
+
+
+
+#class CanEditScenarioPermission(permissions.BasePermission):
+    #def has_permission(self, request, view):
+        #return request.user.is_authenticated and (
+            #request.method in permissions.SAFE_METHODS
+            #or request.user.is_superuser)
+
+    #def has_object_permission(self, request, view, obj):
+        #if request.method in permissions.SAFE_METHODS and (
+            #obj.owner == request.user.profile or
+            #request.user.profile in obj.planning_process.users):
             #return True
+        #if self.detail:
+            #owner_is_user = request.user.profile == obj.owner
+            #user_in_users = request.user.profile in obj.planning_process.users
+            #allow_shared_change = obj.planning_process.allow_shared_change
+            #return owner_is_user or (allow_shared_change and user_in_users)
         #else:
-            #if self.detail:
-                #scenario = self.get_object()
-                #owner = scenario.owner
-                #owner_is_user = self.request.user.profile == owner
-                #allow_shared_change = scenario.planning_process.allow_shared_change
-                #user_in_users = self.request.user.profile in scenario.planning_process.users
-                #return owner_is_user or (allow_shared_change and user_in_users)
-
-            #else:
-                #owner_is_user = len(self.get_queryset()) > 0
-
-
-
-            #return self.request.user.profile.can_create_process
+            #owner_is_user = len(self.get_queryset()) > 0
 
     #def get_queryset(self):
         #qs = super().get_queryset()
         #condition = Q(planning_process__owner=self.request.user.profile) | \
             #Q(planning_process__users__contains=self.request.user.profile)
         #return qs.filter(condition)
+

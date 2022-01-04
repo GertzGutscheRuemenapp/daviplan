@@ -438,48 +438,21 @@ class CanEditBasedata(permissions.BasePermission):
                 request.user.profile.can_edit_basedata)
 
 
-#class CanEditBasedataPermission(UserPassesTestMixin):
-    #"""Has write access to Basedata-Models"""
-
-    #def test_func(self):
-        #if (self.request.method in permissions.SAFE_METHODS
-                #and self.request.user.is_authenticated):
-            #return True
-        #if self.request.user.is_superuser == True:
-            #return True
-        #return (self.request.user.is_authenticated and
-                #self.request.user.profile.can_edit_basedata)
-
-
 class HasAdminAccess(permissions.BasePermission):
     def has_permission(self, request, view):
         return (request.user.is_authenticated
                 and request.user.profile.admin_access)
 
 
-#class HasAdminAccessPermission(UserPassesTestMixin):
-    #"""Has admin access (Read or write)"""
-
-    #def test_func(self):
-        #if (self.request.method in permissions.SAFE_METHODS and
-            #self.request.user.is_authenticated):
-            #return True
-        #if self.request.user.is_superuser == True:
-            #return True
-        #return (self.request.user.pk is not None
-                #and self.request.user.profile.admin_access)
-
-
-
 class ReadOnlyAccess(UserPassesTestMixin):
     """no write permission, user with "can edit_basedata" or "admin_access" can read_only"""
 
     def test_func(self):
-        if (self.request.method in permissions.SAFE_METHODS
-                and self.request.user.is_authenticated):
+        if (self.request.method in permissions.SAFE_METHODS and
+                self.request.user.is_authenticated):
             return True
-        if (self.request.user.is_superuser == True
-                and self.request.method in permissions.SAFE_METHODS):
+        if (self.request.user.is_superuser == True and
+                self.request.method in permissions.SAFE_METHODS):
             return True
         if (self.request.method in permissions.SAFE_METHODS and
             (self.request.user.profile.admin_access or

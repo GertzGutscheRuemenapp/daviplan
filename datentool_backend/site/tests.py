@@ -207,6 +207,9 @@ class TestSiteSetting(_TestAPI, BasicModelSingletonTest, APITestCase):
             assert response.data['id'] == self.obj.pk
 
         # check status code for put
+        logo = self.patch_data['logo']
+        logo.seek(0)
+
         response = self.put(url, **kwargs,
                             data=self.put_data,
                             extra=format_multipart)
@@ -239,3 +242,84 @@ class TestSiteSetting(_TestAPI, BasicModelSingletonTest, APITestCase):
         self.assertEqual(os.path.splitext(logo)[1], os.path.splitext(logo_file.name)[1])
         expected.update(self.expected_patch_data)
         self.compare_data(response.data, expected)
+
+    def test_admin_access(self):
+        """write permission if user has admin_access, check methods put, patch"""
+        profile = self.profile
+        permission_admin = profile.admin_access
+
+        # Testprofile, with admin_access
+        profile.admin_access = True
+        profile.save()
+
+        url = self.url_key + '-detail'
+        kwargs = self.kwargs
+        format_multipart = dict(format='multipart')
+
+        # test get
+        response = self.get_check_200(url, **kwargs)
+        if 'id' in response.data:
+            assert response.data['id'] == self.obj.pk
+
+        # check status code for put
+        response = self.put(url, **kwargs,
+                            data=self.put_data,
+                            extra=format_multipart)
+        self.response_200(msg=response.content)
+        assert response.status_code == status.HTTP_200_OK
+        # check if values have changed
+        response = self.get_check_200(url, **kwargs)
+
+        logo = response.data.pop('logo')
+
+        expected = self.put_data.copy()
+        logo_file = expected.pop('logo')
+        self.assertEqual(os.path.splitext(logo)[1], os.path.splitext(logo_file.name)[1])
+        expected.update(self.expected_put_data)
+        self.compare_data(response.data, expected)
+
+        # check status code for patch
+        logo = self.patch_data['logo']
+        logo.seek(0)
+        response = self.patch(url, **kwargs,
+                              data=self.patch_data, extra=format_multipart)
+        self.response_200(msg=response.content)
+
+        # check if name has changed
+        response = self.get_check_200(url, **kwargs)
+        logo = response.data.pop('logo')
+
+        expected = self.patch_data.copy()
+        logo_file = expected.pop('logo')
+        self.assertEqual(os.path.splitext(logo)[1], os.path.splitext(logo_file.name)[1])
+        expected.update(self.expected_patch_data)
+        self.compare_data(response.data, expected)
+
+        # Testprofile, without admin_access
+        profile.admin_access = False
+        profile.save()
+
+        url = self.url_key + '-detail'
+        kwargs = self.kwargs
+        format_multipart = dict(format='multipart')
+
+        # test get
+        response = self.get_check_200(url, **kwargs)
+        if 'id' in response.data:
+            assert response.data['id'] == self.obj.pk
+
+        # check status code for put
+        response = self.put(url, **kwargs,
+                            data=self.put_data,
+                            extra=format_multipart)
+        self.response_403(msg=response.content)
+
+        # check status code for patch
+        logo = self.patch_data['logo']
+        logo.seek(0)
+        response = self.patch(url, **kwargs,
+                              data=self.patch_data, extra=format_multipart)
+        self.response_403(msg=response.content)
+
+        profile.admin_access = permission_admin
+        profile.save()
