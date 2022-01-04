@@ -196,6 +196,19 @@ export class OlMap {
     return layer;
   }
 
+  addFeatures(layername: string, features: Feature<any>[]){
+    const layer = this.layers[layername],
+          source = layer.getSource();
+    features.forEach(feature => {
+      source.addFeature(feature);
+    })
+  }
+
+  clear(layername: string){
+    const layer = this.layers[layername];
+    layer.getSource().clear();
+  }
+
   toggleSelect(layerName: string, active: boolean){
     const layer = this.getLayer(layerName),
           select = layer.get('select');

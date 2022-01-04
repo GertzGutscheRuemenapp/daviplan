@@ -38,6 +38,7 @@ export class InfrastructureComponent implements AfterViewInit  {
   infrastructureForm: FormGroup;
   @ViewChild('infrastructureCard') infrastructureCard?: InputCardComponent;
   @ViewChild('infrastructureEdit') infrastructureEditTemplate?: TemplateRef<any>;
+  @ViewChild('removeInfrastructureTemplate') removeInfrastructureTemplate?: TemplateRef<any>;
   Object = Object;
 
   constructor(private http: HttpClient, private rest: RestAPI,
@@ -130,6 +131,32 @@ export class InfrastructureComponent implements AfterViewInit  {
   }
 
   removeInfrastructure(): void {
+    if (!this.selectedInfrastructure)
+      return;
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: $localize`Die Infrastruktur wirklich entfernen?`,
+        confirmButtonText: $localize`Infrastruktur entfernen`,
+        template: this.removeInfrastructureTemplate,
+        closeOnConfirm: true
+      },
+      panelClass: 'warning'
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed === true) {
+        this.http.delete(`${this.rest.URLS.infrastructures}${this.selectedInfrastructure?.id}/`
+        ).subscribe(res => {
+          const idx = this.infrastructures.indexOf(this.selectedInfrastructure!);
+          if (idx > -1) {
+            this.infrastructures.splice(idx, 1);
+          }
+          this.selectedInfrastructure = undefined;
+        },(error) => {
+          console.log('there was an error sending the query', error);
+        });
+      }
+    });
 
   }
 }

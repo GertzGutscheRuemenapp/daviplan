@@ -30,8 +30,8 @@ class InfrastructureSerializer(serializers.ModelSerializer):
             symbol=symbol, name=l_name, layer_name=l_layer_name,
             group=group, **layer_data)
 
-        editable_by = validated_data.pop('editable_by')
-        accessible_by = validated_data.pop('accessible_by')
+        editable_by = validated_data.pop('editable_by', [])
+        accessible_by = validated_data.pop('accessible_by', [])
         infrastructure = Infrastructure.objects.create(layer=layer,
                                                        **validated_data)
         infrastructure.editable_by.set(editable_by)
