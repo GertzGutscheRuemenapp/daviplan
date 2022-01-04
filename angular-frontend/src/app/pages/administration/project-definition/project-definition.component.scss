@@ -10,26 +10,56 @@
   width: 100%;
 }
 
-#base-area-list {
+#selected-area-list, #available-area-list {
   overflow-y: auto;
-  max-height: 700px;
-  padding: 0 10px;
+  max-height: 270px;
+  border: 1px solid lightgrey;
 
   li {
     cursor: pointer;
   }
 
-  li:not(.inSelection) {
+  mat-icon {
+    display: none;
+    font-size: 14px;
+    height: 14px;
+    width: 15px;
+    position: relative;
+    top: 2px;
+  }
+
+  li:hover mat-icon {
+    display: inline-block;
+  }
+
+}
+
+#selected-area-list {
+  max-height: 300px;
+
+  li {
+    font-weight: bold;
+  }
+
+  li:hover {
+    color: red;
+  }
+}
+
+#available-area-list {
+  max-height: 370px;
+
+  li {
     color: grey;
   }
-  li.inSelection {
-    font-weight: bold;
+
+  li:hover {
+    color: #2196f3;
   }
 }
 
 .age-group-container {
   max-height: 50vh;
-  min-height: 200px;
   overflow-y: auto;
   border: 1px solid lightgrey;
   padding: 5px 0 5px 5px;

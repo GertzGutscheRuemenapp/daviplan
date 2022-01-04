@@ -148,7 +148,7 @@
 
 <ng-template #projectAreaEdit>
   <div style="display: flex">
-    <div style="width: 70%;">
+    <div style="width: 65%;">
       <mat-form-field appearance="outline" class="small">
         <mat-label>Verwaltungsebene</mat-label>
         <mat-select disableOptionCentering disableRipple
@@ -173,21 +173,41 @@
         <app-map-controls></app-map-controls>
       </div>
     </div>
-    <div style="width: 30%;">
-      <b i18n>ausgewählte Gemeinden</b>
-      <button (click)="removeAreaSelections()"
-              [disabled] = "!showAreaLayers">
-        Alle abwählen
-      </button>
-      <div id="base-area-list"
-           [style.display]="showAreaLayers? '': 'none'">
+    <mat-divider vertical style="height: 780px; margin: 0 14px;"></mat-divider>
+    <div style="width: 32%;"
+         [style.display]="showAreaLayers? '': 'none'">
+      <h4 style="font-size: 20px!important; margin-bottom: 5px;" i18n>Ausgewählte Gemeinden</h4>
+      <div id="selected-area-list">
         <ul>
-          <li title="aus/abwählen"
-              (click)= "toggleFeatureSelection(baseFeat)"
-              *ngFor="let baseFeat of baseAreasInExtent"
-              [class.inSelection] = "baseFeat.get('inSelection')">
-            {{baseFeat.get('gen')}}
-          </li>
+          <ng-container *ngFor="let baseFeat of baseAreasInExtent">
+            <li title="aus der Auswahl entfernen"
+                (click)= "toggleFeatureSelection(baseFeat)"
+                *ngIf="baseFeat.get('inSelection')">
+              {{baseFeat.get('gen')}}
+              <mat-icon>close</mat-icon>
+            </li>
+          </ng-container>
+        </ul>
+      </div>
+      <button mat-button color="primary"
+              class="mat-button-dv"
+              (click)="removeAreaSelections()"
+              style="margin: 0 0 10px 10px"
+              title="gesamte Auswahl entfernen" i18n>
+        <mat-icon>close</mat-icon>Alle abwählen
+      </button>
+      <br>
+      <h4 style="font-size: 20px!important; margin-bottom: 5px;" i18n>Nicht ausgewählte Gemeinden</h4>
+      <div id="available-area-list">
+        <ul>
+          <ng-container *ngFor="let baseFeat of baseAreasInExtent">
+            <li title="zur Auswahl hinzufügen"
+                (click)= "toggleFeatureSelection(baseFeat)"
+                *ngIf="!baseFeat.get('inSelection')">
+              {{baseFeat.get('gen')}}
+              <mat-icon>add</mat-icon>
+            </li>
+          </ng-container>
         </ul>
       </div>
     </div>

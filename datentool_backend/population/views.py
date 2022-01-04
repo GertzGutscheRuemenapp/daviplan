@@ -59,7 +59,7 @@ class GenderViewSet(viewsets.ModelViewSet):
 class AgeGroupViewSet(viewsets.ModelViewSet):
     queryset = AgeGroup.objects.all()
     serializer_class = AgeGroupSerializer
-    permission_classes = [HasAdminAccessOrReadOnly, HasAdminAccess]
+    permission_classes = [HasAdminAccessOrReadOnly]
 
     def list(self, request, *args, **kwargs):
         # return the default age-groups (Regionalstatistik) when query parameter
