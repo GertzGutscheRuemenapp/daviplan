@@ -16,20 +16,7 @@ class Infrastructure(NamedModel, models.Model):
     accessible_by = models.ManyToManyField(
         Profile, related_name='infrastructure_accessible_by', blank=True)
     # sensitive_data
-<<<<<<< HEAD
-    layer = models.ForeignKey(InternalWFSLayer, on_delete=models.CASCADE())
-    symbol = models.ForeignKey(MapSymbol, on_delete=models.CASCADE)
-
-
-class Quota(models.Model):
-    """kind of capacity"""
-    quota_type = models.TextField()
-
-    def __str__(self) -> str:
-        return f'{self.__class__.__name__}: {self.quota_type}'
-=======
     layer = models.OneToOneField(InternalWFSLayer, on_delete=models.CASCADE)
->>>>>>> main
 
 
 class Service(NamedModel, models.Model):
