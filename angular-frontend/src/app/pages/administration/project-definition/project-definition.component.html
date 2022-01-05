@@ -24,7 +24,7 @@
     <app-input-card #ageGroupCard
                     [title]="'Altersgruppeneinteilung'"
                     [editTemplate]="ageGroupsEdit"
-                    dialogWidth="450px"
+                    dialogWidth="470px"
                     infoText="<b><i>ToDo: Hilfetext</i></b>">
       <table>
         <tr>
@@ -32,7 +32,7 @@
           <td>
             <ng-container *ngFor="let ageGroup of ageGroups">
               <ng-container *ngIf="ageGroup.toAge < 999">
-                {{ageGroup.fromAge}} bis unter {{ageGroup.toAge}} Jahre
+                {{ageGroup.fromAge}} bis unter {{ageGroup.toAge + 1}} Jahre
               </ng-container>
               <ng-container *ngIf="ageGroup.toAge >= 999">
                 {{ageGroup.fromAge}} Jahre und älter
@@ -51,7 +51,7 @@
                     [topRightHelp]="true"
                     infoText="Um Ihr Projektgebiet festzulegen oder zu verändern, klicken Sie bitte auf „Editieren“. Sie gelangen dann zu einer Kartendarstellung, in der Sie Ihr Projektgebiet aus einzelnen Gemeinden, Verwaltungsgemeinschaften und Landkreisen zusammensetzen können."
                     [editTemplate]="projectAreaEdit"
-                    dialogWidth="900px">
+                    dialogWidth="1200px">
       <div id="project-preview-map" class="map-container">
         <app-map-controls></app-map-controls>
       </div>
@@ -79,54 +79,149 @@
 </ng-template>
 
 <ng-template #ageGroupsEdit>
-  <div class="age-group-container">
-    <div class="age-row" *ngFor="let ageGroup of __ageGroups; let i = index;">
-      <mat-form-field appearance="outline" class="small">
-        <mat-label i18n>von</mat-label>
-        <input matInput type="number"
-               [min]="(i===0)? 0: __ageGroups![i-1].toAge + 1"
-               [max]="ageGroup.toAge - 1"
-               [(ngModel)]="ageGroup.fromAge"
-               required>
-      </mat-form-field>
-      &nbsp;-&nbsp;
-      <mat-form-field appearance="outline" class="small">
-        <mat-label i18n>bis</mat-label>
-        <input matInput type="number"
-               [min]="ageGroup.fromAge + 1"
-               [max]="(i===__ageGroups.length-1)? 999: __ageGroups![i+1].fromAge - 1"
-               [(ngModel)]="ageGroup.toAge"
-               required>
-        <mat-error *ngIf="yearForm.get('startYear')?.errors?.tooHigh" i18n>Das Startjahr muss vor dem Endjahr liegen</mat-error>
-      </mat-form-field>
-      Jahre
-      <button mat-button color="primary"
-              class="mat-button-dv"
-              title="Altersgruppe entfernen"
-              style="margin-left: 5px;">
-        <mat-icon>remove</mat-icon>
-      </button>
+  <div *ngIf="ageGroupErrors.length > 0">
+    <mat-error *ngFor="let error of Object.values(ageGroupErrors)" class="alert">
+      {{ error }}
+    </mat-error>
+  </div>
+  <div class="age-group-container" #ageGroupContainer>
+    <div>
+      <div class="age-row" *ngFor="let ageGroup of __ageGroups; let i = index;">
+        <mat-form-field appearance="outline" class="small">
+          <mat-label i18n>{{(i < __ageGroups.length - 1) ? 'von': 'ab'}}</mat-label>
+          <input matInput type="number"
+                 [disabled]="i===0"
+                 [min]="(i===0)? 0: __ageGroups![i-1].toAge + 1"
+                 [max]="ageGroup.toAge - 1"
+                 [(ngModel)]="ageGroup.fromAge"
+                 (change)="ageGroupErrors = []"
+                 required>
+        </mat-form-field>
+        <ng-container *ngIf="(i < __ageGroups.length-1)">
+          &nbsp;-&nbsp;
+          <mat-form-field appearance="outline" class="small">
+            <mat-label i18n>bis</mat-label>
+            <input matInput type="number"
+                   [min]="ageGroup.fromAge + 1"
+                   [max]="__ageGroups![i+1].fromAge - 1"
+                   [(ngModel)]="ageGroup.toAge"
+                   (change)="ageGroupErrors = []"
+                   required>
+            <mat-error *ngIf="yearForm.get('startYear')?.errors?.tooHigh" i18n>
+              Das Startjahr muss vor dem Endjahr liegen
+            </mat-error>
+          </mat-form-field>
+        </ng-container>
+        Jahre
+        <button mat-button color="primary"
+                class="mat-button-dv"
+                (click)="removeAgeGroup(ageGroup)"
+                title="Altersgruppe entfernen"
+                style="float: right;">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
     </div>
   </div>
+  <div>
+    <button mat-button color="primary"
+            class="mat-button-dv"
+            (click)="addAgeGroup()"
+            title="Altersgruppe hinzufügen" i18n>
+      <mat-icon>add</mat-icon>hinzufügen
+    </button>
+    <button mat-button color="primary"
+            class="mat-button-dv"
+            (click)="removeAllAgeGroups()"
+            style="margin-left: 30px;"
+            title="Alle Altersgruppen entfernen" i18n>
+      <mat-icon>close</mat-icon>Alle entfernen
+    </button>
+  </div>
   <button mat-button color="primary"
-          class="mat-button-dv"
-          title="Altersgruppe hinzufügen" i18n>
-    <mat-icon>add</mat-icon>Altersgruppe hinzufügen
-  </button>
-  <button mat-button color="primary"
-          class="mat-button-dv"
+          class="mat-button-dv multiline-button"
           style="margin: 15px 0px;"
           (click)="resetAgeGroups()" i18n>
     <mat-icon>refresh</mat-icon>auf Defaults der Regionalstatistik zurücksetzen
   </button>
 </ng-template>
-<!--max="{{(i===__ageGroups.length)? 999: }}-->
 
 <ng-template #projectAreaEdit>
-  <mat-error *ngFor="let error of projectAreaErrors" class="alert">
-    {{ error }}
-  </mat-error>
-  <div id="project-area-select-map" class="map-container">
-    <app-map-controls></app-map-controls>
+  <div style="display: flex">
+    <div style="width: 65%;">
+      <mat-form-field appearance="outline" class="small">
+        <mat-label>Verwaltungsebene</mat-label>
+        <mat-select disableOptionCentering disableRipple
+                    [disabled] = "!showAreaLayers"
+                    (selectionChange)="changeAreaLayer()"
+                    [(value)]="selectedAreaLayer">
+          <mat-option [value]="layer" *ngFor="let layer of areaLayers">
+            {{layer.name}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-slide-toggle color="primary"
+                        style="margin-left: 10px;"
+                        [(ngModel)]="showAreaLayers"
+                        (ngModelChange)="toggleLayerVisibility()">
+        Gebietsauswahl {{showAreaLayers? 'aktiv': 'deaktiviert' }}
+      </mat-slide-toggle>
+      <mat-error *ngFor="let error of projectAreaErrors" class="alert">
+        {{ error }}
+      </mat-error>
+      <div id="project-area-select-map" class="map-container">
+        <app-map-controls></app-map-controls>
+      </div>
+    </div>
+    <mat-divider vertical style="height: 780px; margin: 0 14px;"></mat-divider>
+    <div style="width: 32%;"
+         [style.display]="showAreaLayers? '': 'none'">
+      <h4 style="font-size: 20px!important; margin-bottom: 5px;" i18n>Ausgewählte Gemeinden</h4>
+      <div id="selected-area-list">
+        <ul>
+          <ng-container *ngFor="let baseFeat of baseAreasInExtent">
+            <li title="aus der Auswahl entfernen"
+                (click)= "toggleFeatureSelection(baseFeat)"
+                *ngIf="baseFeat.get('inSelection')">
+              {{baseFeat.get('gen')}}
+              <mat-icon>close</mat-icon>
+            </li>
+          </ng-container>
+        </ul>
+      </div>
+      <button mat-button color="primary"
+              class="mat-button-dv"
+              (click)="removeAreaSelections()"
+              style="margin: 0 0 10px 10px"
+              title="gesamte Auswahl entfernen" i18n>
+        <mat-icon>close</mat-icon>Alle abwählen
+      </button>
+      <br>
+      <h4 style="font-size: 20px!important; margin-bottom: 5px;" i18n>Nicht ausgewählte Gemeinden</h4>
+      <div id="available-area-list">
+        <ul>
+          <ng-container *ngFor="let baseFeat of baseAreasInExtent">
+            <li title="zur Auswahl hinzufügen"
+                (click)= "toggleFeatureSelection(baseFeat)"
+                *ngIf="!baseFeat.get('inSelection')">
+              {{baseFeat.get('gen')}}
+              <mat-icon>add</mat-icon>
+            </li>
+          </ng-container>
+        </ul>
+      </div>
+    </div>
   </div>
+</ng-template>
+
+<ng-template #ageGroupWarning>
+  <div style="display: flex; align-items: end;">
+    <p style="width: 80%">
+      Die Altersgruppen stimmen nicht mit den Altersgruppen der Regionalstatistik überein.
+    </p>
+    <mat-icon class="material-icons-outlined warning" style="font-size: 40px; align-self: baseline;">report_problem</mat-icon>
+  </div>
+  <p>
+    Sollen die definierten Altersgruppen dennoch übernommen werden?
+  </p>
 </ng-template>

@@ -16,6 +16,9 @@ import { Stroke, Style, Fill } from 'ol/style';
 import { Select } from "ol/interaction";
 import { click, singleClick, always } from 'ol/events/condition';
 import { EventEmitter } from "@angular/core";
+import { layer } from "@fortawesome/fontawesome-svg-core";
+import { Polygon } from "ol/geom";
+import {fromExtent} from 'ol/geom/Polygon';
 
 export class OlMap {
   target: string;
@@ -26,7 +29,7 @@ export class OlMap {
   div: HTMLElement | null;
   tooltipOverlay: Overlay;
   // emits all selected features
-  selected = new EventEmitter<Collection<Feature<any>>>();
+  selected = new EventEmitter<{ layer: Layer<any>, selected: Feature<any>[], deselected: Feature<any>[] }>();
 
   constructor( target: string, options: {
     center?: Coordinate, zoom?: number, projection?: string,
@@ -70,6 +73,11 @@ export class OlMap {
 
   getLayer(name: string): Layer<any>{
     return this.layers[name];
+  }
+
+  getExtent(): Polygon {
+    const extent = this.map.getView().calculateExtent(this.map.getSize());
+    return fromExtent(extent);
   }
 
   centerOnLayer(name: string): void{
@@ -133,7 +141,10 @@ export class OlMap {
     });
 
     if (options?.tooltipField || options?.selectable) {
+      layer.set('showTooltip', true);
       this.map.on('pointermove', event => {
+        const showTooltip = layer.get('showTooltip') && layer.getVisible();
+        if (!showTooltip) return;
         const pixel = event.pixel;
         const f = this.map.forEachFeatureAtPixel(pixel, function (feature, hlayer) {
           if (feature && hlayer === layer) return feature;
@@ -143,14 +154,14 @@ export class OlMap {
           let tooltip = this.tooltipOverlay.getElement()
           if (f) {
             this.tooltipOverlay.setPosition(event.coordinate);
-            let coords = this.map.getCoordinateFromPixel(pixel);
-            tooltip!.innerHTML = f.get(options.tooltipField) + `<br>${coords[0]}, ${coords[1]}`;
+            // let coords = this.map.getCoordinateFromPixel(pixel);
+            tooltip!.innerHTML = f.get(options.tooltipField); // + `<br>${coords[0]}, ${coords[1]}`;
             tooltip!.style.display = '';
           }
           else
             tooltip!.style.display = 'none';
         }
-        if (options?.selectable){
+        if (options?.selectable && layer.getVisible()){
           this.div!.style.cursor = f? 'pointer': '';
         }
       });
@@ -174,7 +185,7 @@ export class OlMap {
       })
       this.map.addInteraction(select);
       select.on('select', event => {
-        this.selected.emit(select.getFeatures());
+        this.selected.emit({ layer: layer, selected: event.selected, deselected: event.deselected });
       })
       layer.set('select', select);
     }
@@ -183,6 +194,25 @@ export class OlMap {
     this.layers[name] = layer;
 
     return layer;
+  }
+
+  addFeatures(layername: string, features: Feature<any>[]){
+    const layer = this.layers[layername],
+          source = layer.getSource();
+    features.forEach(feature => {
+      source.addFeature(feature);
+    })
+  }
+
+  clear(layername: string){
+    const layer = this.layers[layername];
+    layer.getSource().clear();
+  }
+
+  toggleSelect(layerName: string, active: boolean){
+    const layer = this.getLayer(layerName),
+          select = layer.get('select');
+    select.setActive(active);
   }
 
   getFeature(layerName: string, id: string){
@@ -195,16 +225,29 @@ export class OlMap {
     return null;
   }
 
-  selectFeature(layerName: string, id: string){
-    const feature = this.getFeature(layerName, id),
-          layer = this.layers[layerName],
+  selectFeatures(layerName: string, ids: string[] | Feature<any>[]){
+    const layer = this.layers[layerName],
           select = layer.get('select');
-    select.getFeatures().push(feature);
-    /*select.dispatchEvent({
+
+    let features: Feature<any>[] = [];
+    ids.forEach(f => {
+      if (f instanceof String) {
+        // @ts-ignore
+        f = this.getFeature(layerName, f);
+      }
+      // @ts-ignore
+      features.push(f);
+      select.getFeatures().push(f);
+    })
+    select.dispatchEvent({
       type: 'select',
-      selected: [feature],
+      selected: features,
       deselected: []
-    });*/
+    });
+  }
+
+  deselectFeatures(){
+
   }
 
   removeLayer(name: string){

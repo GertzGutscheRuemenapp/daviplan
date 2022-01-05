@@ -8,6 +8,7 @@
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="400px">
     <app-input-card [title]="'Definierte Infrastrukturbereiche'"
+                    #infrastructureCard
                     subtitle="Diese Infrastrukturbereiche sollen behandelt werden:"
                     infoText="<p>Klicken Sie auf „Hinzufügen“, um der Liste einen Infrastrukturbereich hinzuzufügen. Sie können den neuen Infrastrukturbereich frei definieren oder auf eine der Vorlagen zurückgreifen, die Ihnen dann angezeigt werden.</p>
                     <p>Um einen Infrastrukturbereich umzubenennen oder seine Beschreibung zu verändern, klicken Sie im Bereich „Eigenschaften des ausgewählten Infrastrukturbereichs“ auf „Editieren“.</p>">
@@ -16,7 +17,7 @@
                             id="infrastructure-select">
           <mat-list-option *ngFor="let infrastructure of infrastructures"
                            (click)="selectedInfrastructure = infrastructure"
-                           [selected]="(infrastructure.id === selectedInfrastructure.id)">
+                           [selected]="(infrastructure.id === selectedInfrastructure?.id)">
             <div class="option-text">{{infrastructure.name}}</div>
           </mat-list-option>
         </mat-selection-list>
@@ -31,18 +32,20 @@
       </div>
       <div style="margin-top: 10px;">
         <button mat-button color="primary"
+                (click)="addInfrastructure()"
                 class="mat-button-dv" i18n>
           <mat-icon>add</mat-icon>hinzufügen
         </button>
         <button mat-button color="primary"
                 style="margin-left: 40px;"
+                (click)="removeInfrastructure()"
                 class="mat-button-dv" i18n>
           <mat-icon>close</mat-icon>entfernen
         </button>
       </div>
     </app-input-card>
   </div>
-  <div fxLayout="column" fxFlex="600px">
+  <div fxLayout="column" fxFlex="600px" [ngClass]="{'hidden': !selectedInfrastructure}">
     <app-input-card [title]="'Eigenschaften des ausgewählten Infrastrukturbereichs'"
                     infoText="<p>Um einen Infrastrukturbereich umzubenennen oder seine Beschreibung zu verändern, klicken Sie auf „Editieren“.</p>
                     <p>Die Beschreibung erscheint als Zusatzinformation in Form eines Tooltips in den Auswahllisten des Hauptmenübereichs „Infrastrukturplanung“. Sie sollte daher möglichst kurz sein.</p>"
@@ -62,5 +65,31 @@
 </div>
 
 <ng-template #infrastructureEdit>
-  Funktionalität für den Prototyp noch nicht hinterlegt.
+  <form [formGroup]="infrastructureForm">
+    <div *ngIf="infrastructureForm.errors">
+      <mat-error *ngFor="let error of Object.values(infrastructureForm.errors)" class="alert">
+        {{ error }}
+      </mat-error>
+    </div>
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Name</mat-label>
+        <input matInput formControlName="name" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Beschreibung</mat-label>
+        <input matInput formControlName="description">
+      </mat-form-field>
+    </div>
+  </form>
+</ng-template>
+
+<ng-template #removeInfrastructureTemplate>
+  <div style="display: flex; align-items: end;">
+    <mat-form-field appearance="fill" class="warning" style="width: 300px; margin-right: 10px;">
+      <input disabled matInput [value]="selectedInfrastructure?.name">
+    </mat-form-field>
+    <mat-icon class="material-icons-outlined warning" style="font-size: 40px; align-self: baseline;">report_problem</mat-icon>
+  </div>
+  <p style="font-size: 0.8em; margin: -15px 0 0 10px;"> Die Entfernung ist dauerhaft und endgültig</p>
 </ng-template>

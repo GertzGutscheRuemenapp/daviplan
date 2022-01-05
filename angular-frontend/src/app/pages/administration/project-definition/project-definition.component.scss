@@ -5,14 +5,68 @@
 }
 
 #project-area-select-map {
-  width: 100%;
   height: 700px;
   position: relative;
+  width: 100%;
+}
+
+#selected-area-list, #available-area-list {
+  overflow-y: auto;
+  max-height: 270px;
+  border: 1px solid lightgrey;
+
+  li {
+    cursor: pointer;
+  }
+
+  mat-icon {
+    display: none;
+    font-size: 14px;
+    height: 14px;
+    width: 15px;
+    position: relative;
+    top: 2px;
+  }
+
+  li:hover mat-icon {
+    display: inline-block;
+  }
+
+}
+
+#selected-area-list {
+  max-height: 300px;
+
+  li {
+    font-weight: bold;
+  }
+
+  li:hover {
+    color: red;
+  }
+}
+
+#available-area-list {
+  max-height: 370px;
+
+  li {
+    color: grey;
+  }
+
+  li:hover {
+    color: #2196f3;
+  }
 }
 
 .age-group-container {
   max-height: 50vh;
   overflow-y: auto;
+  border: 1px solid lightgrey;
+  padding: 5px 0 5px 5px;
+  > div {
+    width: 340px;
+    margin: auto;
+  }
 }
 
 .age-row {
