@@ -5,14 +5,13 @@
 }
 
 #project-area-select-map {
-  height: 700px;
+  height: 600px;
   position: relative;
   width: 100%;
 }
 
 #selected-area-list, #available-area-list {
   overflow-y: auto;
-  max-height: 270px;
   border: 1px solid lightgrey;
 
   li {
@@ -35,7 +34,7 @@
 }
 
 #selected-area-list {
-  max-height: 300px;
+  max-height: 240px;
 
   li {
     font-weight: bold;
@@ -47,7 +46,7 @@
 }
 
 #available-area-list {
-  max-height: 370px;
+  max-height: 300px;
 
   li {
     color: grey;
