@@ -1,7 +1,7 @@
 version: 2.1
 machine:
   environment:
-    DJANGO_SETTINGS_MODULE: datentool.settings_test.py
+    DJANGO_SETTINGS_MODULE: datentool.settings_test
 jobs:
   django testing:
     docker:
@@ -16,7 +16,7 @@ jobs:
       - run:
           name: Migrate Test Database
           command: |
-            python manage.py migrate --settings=datentool.settings_test.py
+            python manage.py migrate --settings=datentool.settings_test
       - store_artifacts:
           path: test-reports/
           destination: tr1
@@ -25,7 +25,7 @@ jobs:
       - run:
           name: codecov
           command: |
-            python manage.py test --settings=datentool.settings_test.py
+            python manage.py test --settings=datentool.settings_test
 
 workflows:
   version: 2
