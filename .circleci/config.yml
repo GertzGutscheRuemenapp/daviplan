@@ -16,7 +16,7 @@ jobs:
       - run:
           name: Migrate Test Database
           command: |
-            python manage.py migrate
+            python manage.py migrate --settings=datentool.settings_test.py
       - store_artifacts:
           path: test-reports/
           destination: tr1
@@ -25,7 +25,7 @@ jobs:
       - run:
           name: codecov
           command: |
-            python manage.py test
+            python manage.py test --settings=datentool.settings_test.py
 
 workflows:
   version: 2
