@@ -36,7 +36,7 @@ export class InfrastructureComponent implements AfterViewInit  {
   infrastructures: Infrastructure[] = [];
   selectedInfrastructure?: Infrastructure;
   infrastructureForm: FormGroup;
-  @ViewChild('infrastructureCard') infrastructureCard?: InputCardComponent;
+  @ViewChild('infrastructureEditCard') infrastructureEditCard?: InputCardComponent;
   @ViewChild('infrastructureEdit') infrastructureEditTemplate?: TemplateRef<any>;
   @ViewChild('removeInfrastructureTemplate') removeInfrastructureTemplate?: TemplateRef<any>;
   Object = Object;
@@ -64,13 +64,13 @@ export class InfrastructureComponent implements AfterViewInit  {
   }
 
   setupInfrastructureCard(): void {
-    this.infrastructureCard?.dialogOpened.subscribe(ok => {
+    this.infrastructureEditCard?.dialogOpened.subscribe(ok => {
       this.infrastructureForm.reset({
         name: this.selectedInfrastructure?.name,
-        description: this.selectedInfrastructure?.name,
+        description: this.selectedInfrastructure?.description,
       });
     })
-    this.infrastructureCard?.dialogConfirmed.subscribe((ok)=>{
+    this.infrastructureEditCard?.dialogConfirmed.subscribe((ok)=>{
       this.infrastructureForm.setErrors(null);
       // display errors for all fields even if not touched
       this.infrastructureForm.markAllAsTouched();
@@ -79,17 +79,19 @@ export class InfrastructureComponent implements AfterViewInit  {
         name: this.infrastructureForm.value.name,
         description: this.infrastructureForm.value.description
       }
-      this.infrastructureCard?.setLoading(true);
+      this.infrastructureEditCard?.setLoading(true);
       this.http.patch<Infrastructure>(`${this.rest.URLS.infrastructures}${this.selectedInfrastructure?.id}/`, attributes
       ).subscribe(infrastructure => {
-        this.infrastructureCard?.closeDialog(true);
+        this.selectedInfrastructure!.name = infrastructure.name;
+        this.selectedInfrastructure!.description = infrastructure.description;
+        this.infrastructureEditCard?.closeDialog(true);
       },(error) => {
         // ToDo: set specific errors to fields
         this.infrastructureForm.setErrors(error.error);
-        this.infrastructureCard?.setLoading(false);
+        this.infrastructureEditCard?.setLoading(false);
       });
     })
-    this.infrastructureCard?.dialogClosed.subscribe(ok => {
+    this.infrastructureEditCard?.dialogClosed.subscribe(ok => {
       this.infrastructureForm.reset()
     })
   }

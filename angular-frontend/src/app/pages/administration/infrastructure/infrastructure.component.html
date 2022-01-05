@@ -47,6 +47,7 @@
   </div>
   <div fxLayout="column" fxFlex="600px" [ngClass]="{'hidden': !selectedInfrastructure}">
     <app-input-card [title]="'Eigenschaften des ausgewählten Infrastrukturbereichs'"
+                    #infrastructureEditCard
                     infoText="<p>Um einen Infrastrukturbereich umzubenennen oder seine Beschreibung zu verändern, klicken Sie auf „Editieren“.</p>
                     <p>Die Beschreibung erscheint als Zusatzinformation in Form eines Tooltips in den Auswahllisten des Hauptmenübereichs „Infrastrukturplanung“. Sie sollte daher möglichst kurz sein.</p>"
                     [editTemplate]="infrastructureEdit">
