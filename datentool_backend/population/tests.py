@@ -2,7 +2,7 @@ import numpy as np
 from unittest import skip
 from django.test import TestCase
 from test_plus import APITestCase
-from datentool_backend.api_test import BasicModelTest
+from datentool_backend.api_test import BasicModelTest, WriteOnlyWithCanEditBaseDataTest
 from datentool_backend.area.tests import (_TestAPI, _TestPermissions)
 
 from .models import (PrognosisEntry, Year, PopulationRaster, PopulationEntry,
@@ -80,7 +80,8 @@ class TestPopulation(TestCase):
             pop.genders.all(), self.genders, ordered=False)
 
 
-class TestRasterAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestRasterAPI(WriteOnlyWithCanEditBaseDataTest,
+                    _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "rasters"
     factory = RasterFactory
@@ -94,7 +95,8 @@ class TestRasterAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.patch_data = dict(name=faker.word())
 
 
-class TestPopulationRasterAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestPopulationRasterAPI(WriteOnlyWithCanEditBaseDataTest,
+                              _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "populationrasters"
     factory = PopulationRasterFactory
@@ -112,7 +114,8 @@ class TestPopulationRasterAPI(_TestPermissions, _TestAPI, BasicModelTest, APITes
         cls.patch_data = data
 
 
-class TestGenderAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestGenderAPI(WriteOnlyWithCanEditBaseDataTest,
+                    _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "gender"
     factory = GenderFactory
@@ -144,7 +147,7 @@ class TestAgeGroupAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
-    @skip('AgeGroup should only have write access with admin access, not with can_edit_basedata')
+    @skip('only write access with admin access, not with can_edit_basedata')
     def test_can_edit_basedata(self):
         pass
 
@@ -153,7 +156,8 @@ class TestAgeGroupAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         super().admin_access()
 
 
-class TestDisaggPopRasterAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestDisaggPopRasterAPI(WriteOnlyWithCanEditBaseDataTest,
+                             _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "disaggpoprasters"
     factory = DisaggPopRasterFactory
@@ -171,7 +175,8 @@ class TestDisaggPopRasterAPI(_TestPermissions, _TestAPI, BasicModelTest, APITest
         cls.patch_data = data
 
 
-class TestPrognosisAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestPrognosisAPI(WriteOnlyWithCanEditBaseDataTest,
+                       _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "prognoses"
     factory = PrognosisFactory
@@ -190,7 +195,8 @@ class TestPrognosisAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.patch_data = data
 
 
-class TestPrognosisEntryAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestPrognosisEntryAPI(WriteOnlyWithCanEditBaseDataTest,
+                            _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "prognosisentries"
     factory = PrognosisEntryFactory
@@ -212,7 +218,8 @@ class TestPrognosisEntryAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestC
         cls.patch_data = data
 
 
-class TestPopulationAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestPopulationAPI(WriteOnlyWithCanEditBaseDataTest,
+                        _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "populations"
     factory = PopulationFactory
@@ -233,7 +240,7 @@ class TestPopulationAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase)
         cls.patch_data = data
 
 
-#class TestPopulationEntryAPI(_TestAPI, BasicModelTest, APITestCase):
+# class TestPopulationEntryAPI(WriteOnlyWithCanEditBaseDataTest, _TestAPI, BasicModelTest, APITestCase):
     #""""""
     #url_key = "populationentries"
     #factory = PopulationEntryFactory
@@ -256,7 +263,8 @@ class TestPopulationAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase)
         #cls.patch_data = data
 
 
-class TestPopStatisticAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestPopStatisticAPI(WriteOnlyWithCanEditBaseDataTest,
+                          _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "popstatistics"
     factory = PopStatisticFactory
@@ -272,7 +280,8 @@ class TestPopStatisticAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCas
         cls.patch_data = dict(year=year)
 
 
-class TestPopStatEntryAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestPopStatEntryAPI(WriteOnlyWithCanEditBaseDataTest,
+                          _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "popstatentries"
     factory = PopStatEntryFactory

@@ -1,6 +1,7 @@
 from django.test import TestCase
 from test_plus import APITestCase
-from datentool_backend.api_test import BasicModelTest
+from datentool_backend.api_test import (BasicModelTest,
+                                        WriteOnlyWithCanEditBaseDataTest)
 from datentool_backend.area.tests import _TestAPI, _TestPermissions
 
 from faker import Faker
@@ -9,8 +10,12 @@ faker = Faker('de-DE')
 
 
 from .factories import (ModeFactory, ModeVariantFactory, RouterFactory,
-                        IndicatorFactory, ReachabilityMatrixFactory)
-from .models import (ModeVariant, ReachabilityMatrix, IndicatorTypes, Indicator)
+                        IndicatorFactory,
+                        #ReachabilityMatrixFactory,
+                        )
+from .models import (ModeVariant,
+                     # ReachabilityMatrix,
+                     IndicatorTypes, Indicator)
 
 
 class TestIndicator(TestCase):
@@ -24,11 +29,12 @@ class TestIndicator(TestCase):
     def test_indicator(self):
         indicator = IndicatorFactory()
 
-    def test_matrix(self):
-        matrix = ReachabilityMatrixFactory()
+    #def test_matrix(self):
+        #matrix = ReachabilityMatrixFactory()
 
 
-class TestModeAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestModeAPI(WriteOnlyWithCanEditBaseDataTest,
+                  _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "modes"
     factory = ModeFactory
@@ -42,7 +48,8 @@ class TestModeAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.patch_data = data = dict(name=faker.word())
 
 
-class TestModeVariantAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestModeVariantAPI(WriteOnlyWithCanEditBaseDataTest,
+                         _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "modevariants"
     factory = ModeVariantFactory
@@ -61,27 +68,28 @@ class TestModeVariantAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase
         cls.patch_data = data
 
 
-class TestReachabilityMatrixAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
-    """Test to post, put and patch data"""
-    url_key = "reachabilitymatrices"
-    factory = ReachabilityMatrixFactory
+#class TestReachabilityMatrixAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+    #"""Test to post, put and patch data"""
+    #url_key = "reachabilitymatrices"
+    #factory = ReachabilityMatrixFactory
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        reachabilitymatrix: ReachabilityMatrix = cls.obj
-        from_cell = reachabilitymatrix.from_cell.pk
-        to_cell = reachabilitymatrix.to_cell.pk
-        variant = reachabilitymatrix.variant.pk
+    #@classmethod
+    #def setUpClass(cls):
+        # super().setUpClass()
+        #reachabilitymatrix: ReachabilityMatrix = cls.obj
+        #from_cell = reachabilitymatrix.from_cell.pk
+        #to_cell = reachabilitymatrix.to_cell.pk
+        #variant = reachabilitymatrix.variant.pk
 
-        data = dict(from_cell=from_cell, to_cell=to_cell, variant=variant,
-                    minutes=faker.pyfloat(positive=True))
-        cls.post_data = data
-        cls.put_data = data
-        cls.patch_data = data
+        #data = dict(from_cell=from_cell, to_cell=to_cell, variant=variant,
+                    #minutes=faker.pyfloat(positive=True))
+        #cls.post_data = data
+        #cls.put_data = data
+        #cls.patch_data = data
 
 
-class TestRouterAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestRouterAPI(WriteOnlyWithCanEditBaseDataTest,
+                    _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "routers"
     factory = RouterFactory
@@ -99,7 +107,8 @@ class TestRouterAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.patch_data = data
 
 
-class TestIndicatorAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestIndicatorAPI(WriteOnlyWithCanEditBaseDataTest,
+                       _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "indicators"
     factory = IndicatorFactory

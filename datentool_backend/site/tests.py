@@ -3,7 +3,8 @@ from test_plus import APITestCase
 from django.contrib.gis.geos import Polygon, MultiPolygon
 from collections import OrderedDict
 from unittest import skip
-from datentool_backend.api_test import BasicModelSingletonTest
+from datentool_backend.api_test import (BasicModelSingletonTest,
+                                        SingletonWriteOnlyWithCanEditBaseDataTest)
 from datentool_backend.area.tests import _TestAPI
 
 from datentool_backend.site.factories import (ProjectSettingFactory,
@@ -22,7 +23,8 @@ from faker import Faker
 faker = Faker('de-DE')
 
 
-class TestBaseDataSetting(BasicModelSingletonTest, APITestCase):
+class TestBaseDataSetting(SingletonWriteOnlyWithCanEditBaseDataTest,
+                          BasicModelSingletonTest, APITestCase):
 
     url_key = "basedatasettings"
 
@@ -39,60 +41,60 @@ class TestBaseDataSetting(BasicModelSingletonTest, APITestCase):
         cls.put_data = data
         cls.patch_data = data
 
-    def test_can_edit_basedata(self):
-        profile = self.profile
 
-        original_permission = profile.can_edit_basedata
-        original_admin_access = profile.admin_access
+    #def test_can_edit_basedata(self):
+        #profile = self.profile
 
-        # Testprofile, with permission to edit basedata
-        profile.can_edit_basedata = True
-        profile.admin_access = False
-        profile.save()
+        #original_permission = profile.can_edit_basedata
+        #original_admin_access = profile.admin_access
+        ## Testprofile, with permission to edit basedata
+        #profile.can_edit_basedata = True
+        #profile.admin_access = False
+        #profile.save()
 
-        # test put
-        url = self.url_key + '-detail'
-        kwargs = self.kwargs
-        formatjson = dict(format='json')
+        ## test put
+        #url = self.url_key + '-detail'
+        #kwargs = self.kwargs
+        #formatjson = dict(format='json')
 
-        response = self.put(url, **kwargs,
-                            data=self.put_data,
-                            extra=formatjson)
-        self.response_200(msg=response.content)
+        #response = self.put(url, **kwargs,
+                            #data=self.put_data,
+                            #extra=formatjson)
+        #self.response_200(msg=response.content)
 
-        # check status code for patch
-        response = self.patch(url, **kwargs,
-                              data=self.patch_data, extra=formatjson)
-        self.response_200(msg=response.content)
+        ## check status code for patch
+        #response = self.patch(url, **kwargs,
+                              #data=self.patch_data, extra=formatjson)
+        #self.response_200(msg=response.content)
 
-        # Testprofile, without permission to edit basedata
-        profile.can_edit_basedata = False
-        profile.save()
+        ## Testprofile, without permission to edit basedata
+        #profile.can_edit_basedata = False
+        #profile.save()
 
-        # test get:
-        response = self.get_check_200(url, **kwargs)
-        if 'id' in response.data:
-            assert response.data['id'] == self.obj.pk
+        ## test get:
+        #response = self.get_check_200(url, **kwargs)
+        #if 'id' in response.data:
+            #assert response.data['id'] == self.obj.pk
 
-        # test put_patch
-        url = self.url_key + '-detail'
-        kwargs = self.kwargs
-        formatjson = dict(format='json')
+        ## test put_patch
+        #url = self.url_key + '-detail'
+        #kwargs = self.kwargs
+        #formatjson = dict(format='json')
 
-        # check status code for put
-        response = self.put(url, **kwargs,
-                    data=self.put_data,
-                    extra=formatjson)
-        self.response_403(msg=response.content)
+        ## check status code for put
+        #response = self.put(url, **kwargs,
+                    #data=self.put_data,
+                    #extra=formatjson)
+        #self.response_403(msg=response.content)
 
-        # check status code for patch
-        response = self.patch(url, **kwargs,
-                              data=self.patch_data, extra=formatjson)
-        self.response_403(msg=response.content)
+        ## check status code for patch
+        #response = self.patch(url, **kwargs,
+                              #data=self.patch_data, extra=formatjson)
+        #self.response_403(msg=response.content)
 
-        profile.can_edit_basedata = original_permission
-        profile.admin_access = original_admin_access
-        profile.save()
+        #profile.can_edit_basedata = original_permission
+        #profile.admin_access = original_admin_access
+        #profile.save()
 
 
 class TestProjectSetting(_TestAPI, BasicModelSingletonTest, APITestCase):
@@ -207,6 +209,9 @@ class TestSiteSetting(_TestAPI, BasicModelSingletonTest, APITestCase):
             assert response.data['id'] == self.obj.pk
 
         # check status code for put
+        logo = self.patch_data['logo']
+        logo.seek(0)
+
         response = self.put(url, **kwargs,
                             data=self.put_data,
                             extra=format_multipart)
@@ -239,3 +244,84 @@ class TestSiteSetting(_TestAPI, BasicModelSingletonTest, APITestCase):
         self.assertEqual(os.path.splitext(logo)[1], os.path.splitext(logo_file.name)[1])
         expected.update(self.expected_patch_data)
         self.compare_data(response.data, expected)
+
+    def test_admin_access(self):
+        """write permission if user has admin_access, check methods put, patch"""
+        profile = self.profile
+        permission_admin = profile.admin_access
+
+        # Testprofile, with admin_access
+        profile.admin_access = True
+        profile.save()
+
+        url = self.url_key + '-detail'
+        kwargs = self.kwargs
+        format_multipart = dict(format='multipart')
+
+        # test get
+        response = self.get_check_200(url, **kwargs)
+        if 'id' in response.data:
+            assert response.data['id'] == self.obj.pk
+
+        # check status code for put
+        response = self.put(url, **kwargs,
+                            data=self.put_data,
+                            extra=format_multipart)
+        self.response_200(msg=response.content)
+        assert response.status_code == status.HTTP_200_OK
+        # check if values have changed
+        response = self.get_check_200(url, **kwargs)
+
+        logo = response.data.pop('logo')
+
+        expected = self.put_data.copy()
+        logo_file = expected.pop('logo')
+        self.assertEqual(os.path.splitext(logo)[1], os.path.splitext(logo_file.name)[1])
+        expected.update(self.expected_put_data)
+        self.compare_data(response.data, expected)
+
+        # check status code for patch
+        logo = self.patch_data['logo']
+        logo.seek(0)
+        response = self.patch(url, **kwargs,
+                              data=self.patch_data, extra=format_multipart)
+        self.response_200(msg=response.content)
+
+        # check if name has changed
+        response = self.get_check_200(url, **kwargs)
+        logo = response.data.pop('logo')
+
+        expected = self.patch_data.copy()
+        logo_file = expected.pop('logo')
+        self.assertEqual(os.path.splitext(logo)[1], os.path.splitext(logo_file.name)[1])
+        expected.update(self.expected_patch_data)
+        self.compare_data(response.data, expected)
+
+        # Testprofile, without admin_access
+        profile.admin_access = False
+        profile.save()
+
+        url = self.url_key + '-detail'
+        kwargs = self.kwargs
+        format_multipart = dict(format='multipart')
+
+        # test get
+        response = self.get_check_200(url, **kwargs)
+        if 'id' in response.data:
+            assert response.data['id'] == self.obj.pk
+
+        # check status code for put
+        response = self.put(url, **kwargs,
+                            data=self.put_data,
+                            extra=format_multipart)
+        self.response_403(msg=response.content)
+
+        # check status code for patch
+        logo = self.patch_data['logo']
+        logo.seek(0)
+        response = self.patch(url, **kwargs,
+                              data=self.patch_data, extra=format_multipart)
+        self.response_403(msg=response.content)
+
+        profile.admin_access = permission_admin
+        profile.save()

@@ -50,9 +50,9 @@ class LoginTestCase:
         cls.profile = ProfileFactory(id=cls.user,
                                     user__id=cls.user,
                                     user__username='Anonymus User',
-                                    can_create_process=True,
-                                    admin_access=True,
-                                    can_edit_basedata=True)
+                                    can_create_process=False,
+                                    admin_access=False,
+                                    can_edit_basedata=False)
 
     def setUp(self):
         self.client.force_login(user=self.profile.user)
@@ -84,6 +84,17 @@ class BasicModelDetailTest(LoginTestCase, CompareAbsURIMixin):
         return {**self.url_pks, 'pk': self.obj.pk}
 
     def test_detail(self):
+        self._test_detail()
+
+    def _test_detail_forbidden(self):
+        """Test get, put, patch methods for the detail-view"""
+        url = self.url_key + '-detail'
+        kwargs = self.kwargs
+        # test get
+        response = self.get(url, **kwargs)
+        self.response_403(msg=response.content)
+
+    def _test_detail(self):
         """Test get, put, patch methods for the detail-view"""
         url = self.url_key + '-detail'
 
@@ -148,10 +159,32 @@ class SingletonRoute:
 
 class BasicModelReadTest(BasicModelDetailTest):
     def test_list(self):
+        self._test_list()
+
+    def _test_list_forbidden(self):
+        """Test that the list view can not be returned successfully"""
+        url = self.url_key + '-list'
+        kwargs = self.kwargs
+        # test get
+        response = self.get(url, **kwargs)
+        self.response_403(msg=response.content)
+
+    def _test_list(self):
         """Test that the list view can be returned successfully"""
         self.get_check_200(self.url_key + '-list', **self.url_pks)
 
     def test_get_urls(self):
+        self._test_get_urls()
+
+    def _test_get_urls_forbidden(self):
+        """get all sub-elements of a list of urls"""
+        url = self.url_key + '-detail'
+        kwargs = self.kwargs
+        # test get
+        response = self.get(url, **kwargs)
+        self.response_403(msg=response.content)
+
+    def _test_get_urls(self):
         """get all sub-elements of a list of urls"""
         url = self.url_key + '-detail'
         response = self.get_check_200(url, pk=self.obj.pk, **self.url_pks)
@@ -167,6 +200,22 @@ class BasicModelPutPatchTest:
     expected_patch_data = dict()
 
     def test_put_patch(self):
+        self._test_put_patch()
+
+    def _test_put_patch_forbidden(self):
+        """Test that put, patch methods are forbidden and return 403"""
+        url = self.url_key + '-detail'
+        kwargs = self.kwargs
+        formatjson = dict(format='json')
+        response = self.put(url, **kwargs,
+                            data=self.put_data,
+                            extra=formatjson)
+        self.response_403(msg=response.content)
+        response = self.patch(url, **kwargs,
+                              data=self.patch_data, extra=formatjson)
+        self.response_403(msg=response.content)
+
+    def _test_put_patch(self):
         """Test get, put, patch methods for the detail-view"""
         url = self.url_key + '-detail'
         kwargs = self.kwargs
@@ -209,6 +258,9 @@ class BasicModelPostDeleteTest:
     expected_post_data = dict()
 
     def test_delete(self):
+        self._test_delete()
+
+    def _test_delete(self):
         """Test delete method for the detail-view"""
         kwargs = self.kwargs
         url = self.url_key + '-detail'
@@ -221,7 +273,17 @@ class BasicModelPostDeleteTest:
         response = self.get(url, **kwargs)
         self.response_404(msg=response.content)
 
+    def _test_delete_forbidden(self):
+        """Test that delete is forbidden"""
+        kwargs = self.kwargs
+        url = self.url_key + '-detail'
+        response = self.delete(url, **kwargs)
+        self.response_403(msg=response.content)
+
     def test_post(self):
+        self._test_post()
+
+    def _test_post(self):
         """Test post method for the detail-view"""
         url = self.url_key + '-list'
         # post
@@ -238,7 +300,18 @@ class BasicModelPostDeleteTest:
         url = self.url_key + '-detail'
         self.get_check_200(url, pk=new_id, **self.url_pks)
 
+    def _test_post_forbidden(self):
+        """Test that if post is forbidden, 403 is returned"""
+        url = self.url_key + '-list'
+        # post
+        response = self.post(url, **self.url_pks, data=self.post_data,
+                             extra={'format': 'json'})
+        self.response_403(msg=response.content)
+
     def test_post_url_exist(self):
+        self._test_post_url_exist()
+
+    def _test_post_url_exist(self):
         """post all sub-elements of a list of urls"""
         url = self.url_key + '-detail'
         response = self.get_check_200(url, pk=self.obj.pk, **self.url_pks)
@@ -310,3 +383,126 @@ class BasicModelPermissionTest(BasicModelReadPermissionTest,
     """
     Test of read and write permissions
     """
+
+
+class WriteOnlyWithCanEditBaseDataTest:
+
+    def test_delete(self):
+        """Test delete with and without can_edit_basedata permissions"""
+        self.profile.can_edit_basedata = True
+        self.profile.save()
+        self._test_delete()
+        self.profile.can_edit_basedata = False
+        self.profile.save()
+        self._test_delete_forbidden()
+
+    def test_post(self):
+        """Test post with and without can_edit_basedata permissions"""
+        self.profile.can_edit_basedata = True
+        self.profile.save()
+        self._test_post()
+        self.profile.can_edit_basedata = False
+        self.profile.save()
+        self._test_post_forbidden()
+
+    def test_put_patch(self):
+        """Test post with and without can_edit_basedata permissions"""
+        self.profile.can_edit_basedata = True
+        self.profile.save()
+        self._test_put_patch()
+        self.profile.can_edit_basedata = False
+        self.profile.save()
+        self._test_put_patch_forbidden()
+
+
+class WriteOnlyWithAdminAccessTest:
+
+    def test_delete(self):
+        """Test delete with and without can_edit_basedata permissions"""
+        self.profile.admin_access = True
+        self.profile.save()
+        self._test_delete()
+        self.profile.admin_access = False
+        self.profile.save()
+        self._test_delete_forbidden()
+
+    def test_post(self):
+        """Test post with and without can_edit_basedata permissions"""
+        self.profile.admin_access = True
+        self.profile.save()
+        self._test_post()
+        self.profile.admin_access = False
+        self.profile.save()
+        self._test_post_forbidden()
+
+    def test_put_patch(self):
+        """Test post with and without can_edit_basedata permissions"""
+        self.profile.admin_access = True
+        self.profile.save()
+        self._test_put_patch()
+        self.profile.admin_access = False
+        self.profile.save()
+        self._test_put_patch_forbidden()
+
+
+class ReadOnlyWithAdminBasedataAccessTest:
+
+    def test_detail(self):
+        """Test detail with and without can_edit_basedata permissions or admin_access"""
+        self.profile.admin_access = True
+        self.profile.save()
+        self._test_detail()
+        self.profile.admin_access = False
+        self.profile.save()
+        self._test_detail_forbidden()
+
+        self.profile.can_edit_basedata = True
+        self.profile.save()
+        self._test_detail()
+        self.profile.can_edit_basedata = False
+        self.profile.save()
+        self._test_detail_forbidden()
+
+    def test_get_urls(self):
+        """Test post with and without can_edit_basedata permissions"""
+        self.profile.admin_access = True
+        self.profile.save()
+        self.test_get_urls()
+        self.profile.admin_access = False
+        self.profile.save()
+        self.test_get_urls_forbidden()
+
+        self.profile.can_edit_basedata = True
+        self.profile.save()
+        self.test_get_urls()
+        self.profile.can_edit_basedata = False
+        self.profile.save()
+        self.test_get_urls_forbidden()
+
+    def test_list(self):
+        """Test post with and without can_edit_basedata permissions"""
+        self.profile.admin_access = True
+        self.profile.save()
+        self._test_list()
+        self.profile.admin_access = False
+        self.profile.save()
+        self._test_list_forbidden()
+
+        self.profile.can_edit_basedata = True
+        self.profile.save()
+        self._test_list()
+        self.profile.can_edit_basedata = False
+        self.profile.save()
+        self._test_list_forbidden()
+
+
+class SingletonWriteOnlyWithCanEditBaseDataTest:
+
+    def test_put_patch(self):
+        """Test post with and without can_edit_basedata permissions"""
+        self.profile.can_edit_basedata = True
+        self.profile.save()
+        self._test_put_patch()
+        self.profile.can_edit_basedata = False
+        self.profile.save()
+        self._test_put_patch_forbidden()

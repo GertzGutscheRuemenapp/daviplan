@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
-from .models import (Mode, ModeVariant, ReachabilityMatrix, Router, Indicator)
+from .models import (Mode, ModeVariant,
+                     #ReachabilityMatrix,
+                     Router, Indicator)
 
 
 class ModeSerializer(serializers.ModelSerializer):
@@ -15,11 +17,10 @@ class ModeVariantSerializer(serializers.ModelSerializer):
         fields = ('id', 'mode', 'name', 'meta', 'is_default')
 
 
-class ReachabilityMatrixSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ReachabilityMatrix
-        fields = ('id', 'from_cell', 'to_cell', 'variant', 'minutes')
-
+# class ReachabilityMatrixSerializer(serializers.ModelSerializer):
+    # class Meta:
+        #model = ReachabilityMatrix
+        #fields = ('id', 'from_cell', 'to_cell', 'variant', 'minutes')
 
 class RouterSerializer(serializers.ModelSerializer):
     class Meta:

@@ -4,7 +4,9 @@ from rest_framework import status
 from unittest import skip
 from django.test import TestCase
 from test_plus import APITestCase
-from datentool_backend.api_test import BasicModelTest
+from datentool_backend.api_test import (BasicModelTest,
+                                        WriteOnlyWithCanEditBaseDataTest,
+                                        WriteOnlyWithAdminAccessTest)
 from datentool_backend.area.tests import _TestAPI, _TestPermissions
 from datentool_backend.user.factories import ProfileFactory
 
@@ -56,7 +58,8 @@ class TestInfrastructure(TestCase):
         print(place_field)
 
 
-class TestInfrastructureAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestInfrastructureAPI(WriteOnlyWithAdminAccessTest,
+                            _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "infrastructures"
     factory = InfrastructureFactory
@@ -95,7 +98,10 @@ class TestInfrastructureAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestC
         super().admin_access()
 
     def test_can_patch_layer(self):
-        """user, who can_edit_basedata has permission to patch the symbol"""
+        """
+        user, who can_edit_basedata has permission
+        to patch the layer with its symbol
+        """
         profile = self.profile
         permission_basedata = profile.can_edit_basedata
         permission_admin = profile.admin_access
@@ -170,7 +176,8 @@ class TestInfrastructureAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestC
         profile.save()
 
 
-class TestServiceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestServiceAPI(WriteOnlyWithCanEditBaseDataTest,
+                     _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "services"
     factory = ServiceFactory
@@ -200,7 +207,8 @@ class TestServiceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.patch_data = data
 
 
-class TestPlaceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
+                   _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "places"
     factory = PlaceFactory
@@ -266,7 +274,8 @@ class TestPlaceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         #cls.patch_data = geojson_putpatch
 
 
-class TestCapacityAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,
+                      _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "capacities"
 
@@ -310,7 +319,8 @@ class TestCapacityAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         #cls.patch_data = data
 
 
-class TestFieldTypeNUMSTRAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestFieldTypeNUMSTRAPI(WriteOnlyWithCanEditBaseDataTest,
+                             _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "fieldtypes"
 
@@ -326,7 +336,8 @@ class TestFieldTypeNUMSTRAPI(_TestPermissions, _TestAPI, BasicModelTest, APITest
         cls.patch_data = data
 
 
-class TestFieldTypeCLAAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestFieldTypeCLAAPI(WriteOnlyWithCanEditBaseDataTest,
+                          _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "fieldtypes"
 
@@ -352,6 +363,8 @@ class TestFieldTypeCLAAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCas
 
     def test_patch_fclass_with_deletion(self):
         """test also, if deletion works"""
+        self.profile.can_edit_basedata = True
+        self.profile.save()
 
         field_typ = FieldTypeFactory(field_type=FieldTypes.CLASSIFICATION)
         fclass1 = FClassFactory(classification=field_typ, order=7, value='7')
@@ -385,8 +398,11 @@ class TestFieldTypeCLAAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCas
         self.assertEqual(new_fclass_set.get(order=2).value, '2')
         self.assertEqual(new_fclass_set.get(order=3).value, '3')
 
+        self.profile.can_edit_basedata = False
+        self.profile.save()
 
-class TestFClassAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestFClassAPI(WriteOnlyWithCanEditBaseDataTest,
+                    _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "fclasses"
     factory = FClassFactory
@@ -405,7 +421,8 @@ class TestFClassAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.patch_data = data
 
 
-class TestPlaceFieldAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestPlaceFieldAPI(WriteOnlyWithCanEditBaseDataTest,
+                        _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "placefields"
     factory = PlaceFieldFactory

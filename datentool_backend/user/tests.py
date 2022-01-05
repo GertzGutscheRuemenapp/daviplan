@@ -99,50 +99,56 @@ class TestPlanningProcessAPI(_TestAPI, BasicModelTest, APITestCase):  # test, if
         profile.save()
 
 
-#class TestScenarioAPI(_TestAPI, BasicModelTest, APITestCase):
-    #""""""
-    #url_key = "scenarios"
+class TestScenarioAPI(_TestAPI, BasicModelTest, APITestCase):
+    """"""
+    url_key = "scenarios"
 
-    #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
-        #cls.obj = ScenarioFactory(planning_process__owner=cls.profile)
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.obj = ScenarioFactory(planning_process__owner=cls.profile)
 
-        #scenario: Scenario = cls.obj
-        #planning_process = scenario.planning_process.pk
+        scenario: Scenario = cls.obj
+        planning_process = scenario.planning_process.pk
 
-        #cls.post_data = dict(name=faker.word(), planning_process=planning_process)
-        #cls.put_data = dict(name=faker.word(), planning_process=planning_process)
-        #cls.patch_data = dict(name=faker.word(), planning_process=planning_process)
+        cls.post_data = dict(name=faker.word(), planning_process=planning_process)
+        cls.put_data = dict(name=faker.word(), planning_process=planning_process)
+        cls.patch_data = dict(name=faker.word(), planning_process=planning_process)
 
-    #@classmethod
-    #def tearDownClass(cls):
-        #planning_process = cls.obj.planning_process
-        #cls.obj.delete()
-        #del cls.obj
-        #planning_process.delete()
-        #super().tearDownClass()
+    @classmethod
+    def tearDownClass(cls):
+        planning_process = cls.obj.planning_process
+        cls.obj.delete()
+        del cls.obj
+        planning_process.delete()
+        super().tearDownClass()
 
 
-    #def test_is_logged_in(self):
-        #self.client.logout()
-        #response = self.get(self.url_key + '-list')
-        #self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+    def test_is_logged_in(self):
+        self.client.logout()
+        response = self.get(self.url_key + '-list')
+        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
 
-        #self.client.force_login(user=self.profile.user)
-        #self.test_list()
-        #self.test_detail()
+        self.client.force_login(user=self.profile.user)
+        self.test_list()
+        self.test_detail()
 
     #def test_scenario_permission(self):
+        ## original data
+        #planning_process = cls.obj.planning_process
+
+        #original_process_owner = planning_process.owner
+        #original_process_users = planning_process.users.all()
+        #original_allow_shared_change = planning_process.allow_shared_change
+
+
         #self.client.logout()
         #planning_process = self.obj.planning_process
         #self.client.force_login(user=planning_process.owner.user)
 
-        #original_process_owner = planning_process.owner
-        #original_allow_shared_change = planning_process.allow_shared_change
 
-        # Testprofile, with permission to edit scenarios
-        #self.request.user.profile = planning_process.owner
+        ## Testprofile, with permission to edit scenarios
+        #request.user.profile = planning_process.owner
         #planning_process.allow_shared_change = True
         #planning_process.save()
 
@@ -154,5 +160,3 @@ class TestPlanningProcessAPI(_TestAPI, BasicModelTest, APITestCase):  # test, if
         #response = self.post(url, **self.url_pks, data=self.post_data,
                              #extra={'format': 'json'})
         #self.response_403(msg=response.content)
-
-

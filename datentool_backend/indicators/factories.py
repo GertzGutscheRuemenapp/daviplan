@@ -1,11 +1,13 @@
 from faker import Faker
 import factory
 from factory.django import DjangoModelFactory
-from .models import (Mode, ModeVariant, Router,
-                     ReachabilityMatrix, Indicator, IndicatorTypes)
+from .models import (Mode, ModeVariant, Router, Stop,
+                     MatrixCellPlace, MatrixCellStop, MatrixPlaceStop,
+                     MatrixStopStop, Indicator, IndicatorTypes)
 
 from ..population.factories import RasterCellFactory
-from ..infrastructure.factories import ServiceFactory
+from ..infrastructure.factories import (ServiceFactory, PlaceFactory,
+                                        InfrastructureFactory)
 
 
 faker = Faker('de-DE')
@@ -28,15 +30,23 @@ class ModeVariantFactory(DjangoModelFactory):
     is_default = faker.pybool()
 
 
-class ReachabilityMatrixFactory(DjangoModelFactory):
+class StopFactory(DjangoModelFactory):
     class Meta:
-        model = ReachabilityMatrix
-        django_get_or_create = ('from_cell', 'to_cell', 'variant')
+        model = Stop
 
-    from_cell = factory.SubFactory(RasterCellFactory)
-    to_cell = factory.SubFactory(RasterCellFactory)
-    variant = factory.SubFactory(ModeVariantFactory)
-    minutes = faker.pyfloat(positive=True, max_value=100)
+    mode = factory.SubFactory(ModeFactory)
+    name = faker.word()
+
+
+#class MatrixCellPlaceFactory(DjangoModelFactory):
+    #class Meta:
+        #model = MatrixCellPlace
+        #django_get_or_create = ('cell', 'place', 'variant')
+
+    #cell = factory.SubFactory(RasterCellFactory)
+    #place = factory.SubFactory(PlaceFactory)
+    #variant = factory.SubFactory(ModeVariantFactory)
+    #minutes = faker.pyfloat(positive=True, max_value=100)
 
 
 class RouterFactory(DjangoModelFactory):
