@@ -179,7 +179,7 @@ elif sys.platform == 'darwin':
                                      'lib', 'libproj.dylib')
 
 if sys.platform == 'linux':
-    SPATIALITE_LIBRARY_PATH = 'mod_spatialite.so'
+    SPATIALITE_LIBRARY_PATH = '/usr/lib/x86_64-linux-gnu/mod_spatialite.so'
 else:
     SPATIALITE_LIBRARY_PATH = 'mod_spatialite'
 
