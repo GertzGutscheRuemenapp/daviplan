@@ -1,0 +1,34 @@
+version: 2.1
+machine:
+  environment:
+    DJANGO_SETTINGS_MODULE: datentool.settings_test
+jobs:
+  django testing:
+    docker:
+      - image: gertzgutscheruemenapp/daviplan:testing
+    steps:
+      - checkout
+      - run: mkdir test-reports
+      - run:
+          name: Resolve Python dependencies
+          command: |
+            pip install -r requirements.txt
+      - run:
+          name: Migrate Test Database
+          command: |
+            python manage.py migrate --settings=datentool.settings_test
+      - store_artifacts:
+          path: test-reports/
+          destination: tr1
+      - store_test_results:
+          path: test-reports/
+      - run:
+          name: codecov
+          command: |
+            python manage.py test --settings=datentool.settings_test
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - django testing
