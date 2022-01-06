@@ -98,6 +98,26 @@
 </div>
 
 <ng-template #editLayer>
+  <form [formGroup]="layerForm">
+    <div *ngIf="layerGroupForm.errors">
+      <mat-error *ngFor="let error of Object.values(layerGroupForm.errors)" class="alert">
+        {{ error }}
+      </mat-error>
+    </div>
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Name</mat-label>
+        <input matInput formControlName="name" required>
+      </mat-form-field>
+    </div>
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>URL</mat-label>
+        <input matInput formControlName="url" required>
+      </mat-form-field>
+    </div>
+    <button (click)="requestURL()">URL abfragen</button>
+  </form>
 </ng-template>
 
 <ng-template #editLayerGroup>

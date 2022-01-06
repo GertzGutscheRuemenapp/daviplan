@@ -8,6 +8,7 @@ import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
+import WMSCapabilities from 'ol/format/WMSCapabilities';
 
 export interface LayerGroup {
   id: number,
@@ -44,6 +45,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   layerGroups: LayerGroup[] = [];
   mapControl?: MapControl;
   layerGroupForm: FormGroup;
+  layerForm: FormGroup;
 
   selectedLayer?: Layer;
   selectedGroup?: LayerGroup;
@@ -51,6 +53,11 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
 
   constructor(private mapService: MapService, private http: HttpClient, private dialog: MatDialog,
               private rest: RestAPI, private formBuilder: FormBuilder) {
+    this.layerForm = this.formBuilder.group({
+      name: new FormControl(''),
+      url: new FormControl(''),
+      // layer_name: new FormControl('')
+    });
     this.layerGroupForm = this.formBuilder.group({
       name: new FormControl('')
     });
@@ -63,13 +70,9 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       })
     })
     this.layerTree.addItemClicked.subscribe(node => {
-      let child: Layer = { name: 'hallo', id: 1, order: 1, group: node.id!, url: 'asdsda' };
       const parent = this.getGroup(node.id);
       if (!parent) return;
-      if (!parent.children) parent.children = [];
-      parent.children.push(child);
-      this.layerTree.refresh();
-      // this.layerTree.addChild(node, { name: 'hallo' });
+      this.addLayer(parent);
     })
     this.layerTree.selected.subscribe(node => {
       this.selectedLayer = (node.expandable) ? undefined : this.getLayer(node.id);
@@ -199,6 +202,37 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         dialogRef.componentInstance.isLoading = false;
       });
     });
+  }
+
+  addLayer(parent: LayerGroup): void {
+    let dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '500px',
+      disableClose: true,
+      data: {
+        title: `Neuer Layer in "${parent.name}"`,
+        template: this.editLayerTemplate,
+        closeOnConfirm: false
+      }
+    });
+  }
+
+  requestURL(): void {
+    const url = this.layerForm.value.url;
+    if (!url) return;
+    const parser = new WMSCapabilities(),
+          split = url.split('?'),
+          baseURL = split[0];
+    let options: string[] = (split.length > 1)? split[1].split('&'): [];
+    options = options.concat(['request=GetCapabilities', 'version=2.0.0', 'service=wms']);
+    const capURL = `${baseURL}?${options.join('&')}`;
+    fetch(capURL, {referrer: "https://monitor.ioer.de", // no-referrer, origin, same-origin...
+      mode: "cors"}).then(res => {
+      console.log(res)
+    }).catch((error) => {
+      console.log(error)
+    });
+
   }
 
   ngOnDestroy(): void {
