@@ -14,7 +14,7 @@ class MapSymbolsSerializer(serializers.ModelSerializer):
 class LayerGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = LayerGroup
-        fields = ('id', 'name', 'order')
+        fields = ('id', 'name', 'order', 'external')
 
 
 class WMSLayerSerializer(serializers.ModelSerializer):

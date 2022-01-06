@@ -23,7 +23,8 @@ class InfrastructureSerializer(serializers.ModelSerializer):
         symbol_data = layer_data.pop('symbol', {})
         symbol = MapSymbol.objects.create(**symbol_data)
 
-        group, created = LayerGroup.objects.get_or_create(name=self.layer_group)
+        group, created = LayerGroup.objects.get_or_create(
+            name=self.layer_group, external=False)
         l_name = layer_data.pop('name', validated_data['name'])
         l_layer_name = layer_data.pop('layer_name', validated_data['name'])
         existing = Infrastructure.objects.all().order_by('layer__order')

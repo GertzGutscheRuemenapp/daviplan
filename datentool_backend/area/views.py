@@ -1,7 +1,8 @@
 from rest_framework import viewsets
+from url_filter.integrations.drf import DjangoFilterBackend
+
 from datentool_backend.utils.views import (CanEditBasedata,
                                            HasAdminAccessOrReadOnly)
-
 from .models import (MapSymbol, LayerGroup, WMSLayer,
                      InternalWFSLayer, Source, AreaLevel, Area)
 from .serializers import (MapSymbolsSerializer,
@@ -20,6 +21,8 @@ class LayerGroupViewSet(viewsets.ModelViewSet):
     queryset = LayerGroup.objects.all()
     serializer_class = LayerGroupSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    filter_backends = [DjangoFilterBackend]
+    filter_fields = ['external']
 
 
 class WMSLayerViewSet(viewsets.ModelViewSet):

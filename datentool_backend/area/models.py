@@ -24,6 +24,7 @@ class LayerGroup(NamedModel, models.Model):
     """a Layer Group"""
     name = models.TextField()
     order = models.IntegerField(default=0)
+    external = models.BooleanField(default=False)
 
 
 class Layer(NamedModel, models.Model):
