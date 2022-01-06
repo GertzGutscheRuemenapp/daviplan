@@ -11,10 +11,8 @@ import proj4 from 'proj4';
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { FormBuilder, FormGroup } from "@angular/forms";
-import { SiteSettings } from "../../../settings.service";
 import { Observable } from "rxjs";
 import { Layer } from "ol/layer";
-import { last } from "rxjs/operators";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 
@@ -273,7 +271,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
                 extent.join(',') +
                 ',EPSG:3857'
               )},
-            visible: (al === this.baseAreaLayer)? true: false,
+            visible: al === this.baseAreaLayer,
             selectable: true,
             opacity: (al === _this.selectedAreaLayer)? 0.5 : 0,
             tooltipField: 'gen',

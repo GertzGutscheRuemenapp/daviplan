@@ -31,7 +31,6 @@ class InternalWFSLayerSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'group', 'layer_name', 'order', 'symbol')
         read_only_fields = ('group', 'symbol')
 
-
 class SourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Source

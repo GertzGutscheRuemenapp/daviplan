@@ -9,7 +9,7 @@ from datentool_backend.area.models import LayerGroup, MapSymbol
 
 
 class InfrastructureSerializer(serializers.ModelSerializer):
-    layer = InternalWFSLayerSerializer(required=False)
+    layer = InternalWFSLayerSerializer(allow_null=True, required=False)
     layer_group = 'Infrastruktur-Standorte'
 
     class Meta:
@@ -26,8 +26,10 @@ class InfrastructureSerializer(serializers.ModelSerializer):
         group, created = LayerGroup.objects.get_or_create(name=self.layer_group)
         l_name = layer_data.pop('name', validated_data['name'])
         l_layer_name = layer_data.pop('layer_name', validated_data['name'])
+        existing = Infrastructure.objects.all().order_by('layer__order')
+        order = layer_data.pop('order', existing.last().layer.order + 1)
         layer = InternalWFSLayer.objects.create(
-            symbol=symbol, name=l_name, layer_name=l_layer_name,
+            symbol=symbol, name=l_name, layer_name=l_layer_name, order=order,
             group=group, **layer_data)
 
         editable_by = validated_data.pop('editable_by', [])
@@ -55,6 +57,7 @@ class InfrastructureSerializer(serializers.ModelSerializer):
         layer = instance.layer
         layer.name = layer_data.get('name', layer.name)
         layer.layer_name = layer_data.get('layer_name', layer.layer_name)
+        layer.order = layer_data.get('order', layer.order)
         layer.save()
 
         symbol = layer.symbol

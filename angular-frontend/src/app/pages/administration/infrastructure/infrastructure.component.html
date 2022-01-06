@@ -22,10 +22,16 @@
           </mat-list-option>
         </mat-selection-list>
         <div class="order-controls">
-          <button mat-icon-button>
+          <button mat-icon-button
+                  title="In der Sortierung eins nach oben"
+                  [disabled] = "!selectedInfrastructure || (selectedInfrastructure === this.infrastructures[0])"
+                  (click)="moveSelectedUp()">
             <mat-icon>expand_less</mat-icon>
           </button>
-          <button mat-icon-button>
+          <button mat-icon-button
+                  title="In der Sortierung eins nach unten"
+                  [disabled] = "!selectedInfrastructure || (selectedInfrastructure === this.infrastructures[this.infrastructures.length - 1])"
+                  (click)="moveSelectedDown()">
             <mat-icon>expand_more</mat-icon>
           </button>
         </div>

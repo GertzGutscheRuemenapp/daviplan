@@ -13,11 +13,19 @@ interface Service {
   name: string;
 }
 
+interface InternalLayer {
+  order: number,
+  name: string,
+  layer_name: string,
+  url: string
+}
+
 interface Infrastructure {
   id: number,
   name: string;
   description: string;
   services: Service[];
+  layer?: InternalLayer;
 }
 
 export const mockInfrastructures: Infrastructure[] = [
@@ -26,6 +34,12 @@ export const mockInfrastructures: Infrastructure[] = [
   { id: 3, name: 'Ärzte', description: 'Haus- und fachärztliche Versorgung. Fachärzte eingeschränkt auf Kinderärzte, Frauenärzte, Augenärzte und Internisten.', services: [{ id: 5, name: 'Allgemeinmedizinerin' }, { id: 6, name: 'Internistin' }, { id: 7, name: 'Hautärztin' }]},
   { id: 4, name: 'Feuerwehr', description: 'Nicht-polizeiliche Gefahrenabwehr, insbesondere durch die freiwilligen Feuerwehren.', services: [{ id: 8, name: 'Brandschutz???' }, { id: 9, name: '????' }]},
 ]
+
+function arrayMove(array: any[], fromIndex: number, toIndex: number) {
+  const element = array[fromIndex];
+  array.splice(fromIndex, 1);
+  array.splice(toIndex, 0, element);
+}
 
 @Component({
   selector: 'app-infrastructure',
@@ -57,7 +71,7 @@ export class InfrastructureComponent implements AfterViewInit  {
   fetchInfrastructures(): Observable<Infrastructure[]> {
     let query = this.http.get<Infrastructure[]>(this.rest.URLS.infrastructures);
     query.subscribe((infrastructures) => {
-      this.infrastructures = infrastructures;
+      this.infrastructures = this.sortInfrastructures(infrastructures);
       this.selectedInfrastructure = (infrastructures.length > 0)? infrastructures[0]: undefined;
     });
     return query;
@@ -154,11 +168,46 @@ export class InfrastructureComponent implements AfterViewInit  {
             this.infrastructures.splice(idx, 1);
           }
           this.selectedInfrastructure = undefined;
+          this.patchOrder();
         },(error) => {
           console.log('there was an error sending the query', error);
         });
       }
     });
+  }
 
+  sortInfrastructures(infrastructures: Infrastructure[]): Infrastructure[] {
+    return infrastructures.sort((a, b) =>
+      (a.layer!.order > b.layer!.order)? 1: (a.layer!.order < b.layer!.order)? -1: 0);
+  }
+
+  /**
+   * patches layer.order of infrastructures to their current place in the array
+   *
+   */
+  patchOrder(): void {
+    for ( let i = 0; i < this.infrastructures.length; i += 1){
+      const infrastructure = this.infrastructures[i];
+      this.http.patch<Infrastructure>(`${this.rest.URLS.infrastructures}${infrastructure.id}/`,
+        { layer: { order: i + 1 } }).subscribe(res => {
+          infrastructure.layer!.order = res.layer!.order;
+      });
+    }
+  }
+
+  moveSelectedUp(): void {
+    if (!this.selectedInfrastructure) return;
+    const idx = this.infrastructures.indexOf(this.selectedInfrastructure);
+    if (idx <= 0) return;
+    arrayMove(this.infrastructures, idx, idx - 1);
+    this.patchOrder();
+  }
+
+  moveSelectedDown(): void {
+    if (!this.selectedInfrastructure) return;
+    const idx = this.infrastructures.indexOf(this.selectedInfrastructure);
+    if (idx === -1 || idx === this.infrastructures.length - 1) return;
+    arrayMove(this.infrastructures, idx, idx + 1);
+    this.patchOrder();
   }
 }
