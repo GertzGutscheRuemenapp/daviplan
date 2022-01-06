@@ -9,7 +9,7 @@ interface LayerSettings {
   xyz?: boolean;
 }
 
-export interface Layer {
+export interface MapLayer {
   id: number;
   name: string;
   color?: string;
@@ -70,8 +70,8 @@ export class MapControl {
     this.backgroundLayers.forEach(layer => this.layers[layer.id] = layer);
   }
 
-  getBackgroundLayers(): Layer[] {
-    let layers: Layer[] = this.backgroundLayers.map(layer => { return { id: layer.id, name: layer.name } })
+  getBackgroundLayers(): MapLayer[] {
+    let layers: MapLayer[] = this.backgroundLayers.map(layer => { return { id: layer.id, name: layer.name } })
     return layers;
   }
 

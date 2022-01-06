@@ -1,5 +1,5 @@
 import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
-import { MapControl, MapService, Layer } from "../map.service";
+import { MapControl, MapService, MapLayer } from "../map.service";
 
 const mockLayerGroups: Record<string, { info?: string, layers: any[] }> = {
   // Leistungen: [
@@ -45,7 +45,7 @@ export class LegendComponent implements AfterViewInit {
   mapControl!: MapControl;
   activeBackground?: number;
   backgroundOpacity = 1;
-  backgroundLayers: Layer[] = [];
+  backgroundLayers: MapLayer[] = [];
   layerGroups = mockLayerGroups;
   activeGroups: string[] = [];
   editMode: boolean = true;

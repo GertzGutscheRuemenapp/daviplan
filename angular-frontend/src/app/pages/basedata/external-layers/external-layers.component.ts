@@ -1,6 +1,34 @@
-import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { CheckTreeComponent } from "../../../elements/check-tree/check-tree.component";
 import { MapControl, MapService } from "../../../map/map.service";
+import { HttpClient } from "@angular/common/http";
+import { RestAPI } from "../../../rest-api";
+import { Observable } from "rxjs";
+import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
+import { InputCardComponent } from "../../../dash/input-card.component";
+import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
+import { MatDialog } from "@angular/material/dialog";
+
+export interface LayerGroup {
+  id: number,
+  order: number,
+  name: string,
+  external: boolean,
+  children?: Layer[]
+}
+
+export interface Layer {
+  id: number,
+  group: number,
+  order: number,
+  url: string,
+  name: string
+}
+
+function sortBy(array: any[], attr: string): any[]{
+  return array.sort((a, b) =>
+    (a[attr] > b[attr])? 1: (a[attr] < b[attr])? -1: 0);
+}
 
 @Component({
   selector: 'app-external-layers',
@@ -9,30 +37,112 @@ import { MapControl, MapService } from "../../../map/map.service";
 })
 export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   @ViewChild('layerTree') layerTree!: CheckTreeComponent;
-  layerGroups = [
-    {name: 'Ökologie', id: 11, children: [{id: 1, name: 'Naturschutzgebiete'}, {id: 2, name: 'Wälder'}, {id: 8, name: 'unzerschnittene Freiräume'}, {id: 8, name: 'Wasserschutzgebiete'}]},
-    {name: 'Verkehr', id: 12, children: [{id: 3, name: 'ÖPNV'}, {id: 4, name: 'Lärmkarte'}, {id: 5, name: 'Fahrradwege'}]},
-    {name: 'Infrastruktur', id: 13, children: [{id: 6, name: 'Hochspannungsmasten'}, {id: 7, name: 'ALKIS Gebäudedaten'}]}
-  ]
+  @ViewChild('editLayer') editLayerTemplate?: TemplateRef<any>;
+  @ViewChild('editLayerGroup') editLayerGroupTemplate?: TemplateRef<any>;
+  @ViewChild('layerCard') layerCard?: InputCardComponent;
+  @ViewChild('layerGroupCard') layerGroupCard?: InputCardComponent;
+  layerGroups: LayerGroup[] = [];
   mapControl?: MapControl;
+  layerGroupForm: FormGroup;
 
-  selectedLayer: any = undefined;
-  selectedGroup: any = undefined;
+  selectedLayer?: Layer;
+  selectedGroup?: LayerGroup;
+  Object = Object;
 
-  constructor(private mapService: MapService) { }
+  constructor(private mapService: MapService, private http: HttpClient, private dialog: MatDialog,
+              private rest: RestAPI, private formBuilder: FormBuilder) {
+    this.layerGroupForm = this.formBuilder.group({
+      name: new FormControl('')
+    });
+  }
 
   ngAfterViewInit(): void {
+    this.fetchLayerGroups().subscribe(res => {
+      this.fetchLayers().subscribe(res => {
+        this.layerTree.setItems(this.layerGroups);
+      })
+    })
+    this.layerTree.addItemClicked.subscribe(node => {
+      let child: Layer = { name: 'hallo', id: 1, order: 1, group: node.id!, url: 'asdsda' };
+      const parent = this.getGroup(node.id);
+      if (!parent) return;
+      if (!parent.children) parent.children = [];
+      parent.children.push(child);
+      this.layerTree.refresh();
+      // this.layerTree.addChild(node, { name: 'hallo' });
+    })
     this.layerTree.selected.subscribe(node => {
       this.selectedLayer = (node.expandable) ? undefined : this.getLayer(node.id);
       this.selectedGroup = (node.expandable) ? this.getGroup(node.id) : undefined;
-      console.log(this.selectedLayer);
     })
     this.mapControl = this.mapService.get('base-layers-map');
+    this.setupLayerGroupCard();
+    this.setupLayerCard();
   }
 
-  getLayer(id: number | undefined): any {
+  fetchLayerGroups(): Observable<LayerGroup[]> {
+    const query = this.http.get<LayerGroup[]>(`${this.rest.URLS.layerGroups}?external=true`);
+    query.subscribe((layerGroups) => {
+      layerGroups.forEach(layerGroup => {
+        layerGroup.children = [];
+      })
+      this.layerGroups = sortBy(layerGroups, 'order');
+    });
+    return query;
+  }
+
+  fetchLayers(): Observable<Layer[]> {
+    const query = this.http.get<Layer[]>(this.rest.URLS.layers);
+    query.subscribe((layers) => {
+      layers.forEach(layer => {
+        const group = this.getGroup(layer.group);
+        if (group) {
+          group.children!.push(layer);
+        }
+      })
+    });
+    return query;
+  }
+
+  setupLayerCard(): void {
+
+  }
+
+  setupLayerGroupCard(): void {
+    this.layerGroupCard?.dialogOpened.subscribe(ok => {
+      this.layerGroupForm.reset({
+        name: this.selectedGroup?.name
+      });
+    })
+    this.layerGroupCard?.dialogConfirmed.subscribe((ok)=>{
+      this.layerGroupForm.setErrors(null);
+      // display errors for all fields even if not touched
+      this.layerGroupForm.markAllAsTouched();
+      if (this.layerGroupForm.invalid) return;
+      let attributes: any = {
+        name: this.layerGroupForm.value.name
+      }
+      this.layerGroupCard?.setLoading(true);
+      this.http.patch<LayerGroup>(`${this.rest.URLS.layerGroups}${this.selectedGroup?.id}/`, attributes
+      ).subscribe(group => {
+        this.selectedGroup!.name = group.name;
+        this.layerTree.refresh();
+        this.layerGroupCard?.closeDialog(true);
+      },(error) => {
+        // ToDo: set specific errors to fields
+        this.layerGroupForm.setErrors(error.error);
+        this.layerGroupCard?.setLoading(false);
+      });
+    })
+    this.layerGroupCard?.dialogClosed.subscribe(ok => {
+      this.layerGroupForm.reset()
+    })
+  }
+
+  getLayer(id: number | undefined): Layer | undefined {
     if (id === undefined) return;
     for (let group of this.layerGroups) {
+      if (!group.children || group.children.length == 0) return;
       for (let layer of group.children){
         if (layer.id === id) {
           return layer;
@@ -42,7 +152,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     return;
   }
 
-  getGroup(id: number | undefined): any {
+  getGroup(id: number | undefined): LayerGroup | undefined {
     if (id === undefined) return;
     for (let group of this.layerGroups) {
         if (group.id === id) {
@@ -50,6 +160,45 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       }
     }
     return;
+  }
+
+  addGroup(): void {
+    let dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '300px',
+      disableClose: true,
+      data: {
+        title: 'Neue Layergruppe',
+        template: this.editLayerGroupTemplate,
+        closeOnConfirm: false
+      }
+    });
+    dialogRef.afterClosed().subscribe(ok => {
+      this.layerGroupForm.reset();
+    });
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      this.layerGroupForm.setErrors(null);
+      // display errors for all fields even if not touched
+      this.layerGroupForm.markAllAsTouched();
+      if (this.layerGroupForm.invalid) return;
+      let attributes: any = {
+        name: this.layerGroupForm.value.name,
+        order: this.layerGroups.length + 1,
+        external: true
+      }
+      dialogRef.componentInstance.isLoading = true;
+      this.http.post<LayerGroup>(this.rest.URLS.layerGroups, attributes
+      ).subscribe(group => {
+        group.children = [];
+        this.layerGroups.push(group);
+        this.selectedGroup = group;
+        this.layerTree.refresh();
+        dialogRef.close();
+      },(error) => {
+        this.layerGroupForm.setErrors(error.error);
+        dialogRef.componentInstance.isLoading = false;
+      });
+    });
   }
 
   ngOnDestroy(): void {

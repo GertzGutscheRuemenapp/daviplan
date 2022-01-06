@@ -35,8 +35,8 @@
       <label class="node-label">{{node.name}}</label>
     </div>
     <button class="add-item-button" color="primary"
-            mat-icon-button (click)="addNewItem(node)"
-            title="Layer zur Gruppe hinzufügen"><mat-icon>add</mat-icon>
+            mat-icon-button (click)="_onAddItemClicked(node)"
+            [title]="addItemTitle"><mat-icon>add</mat-icon>
     </button>
   </mat-tree-node>
 </mat-tree>
