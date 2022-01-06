@@ -171,7 +171,7 @@ export class CheckTreeComponent implements OnInit {
   }
 
   /** Toggle the to-do item selection. Select/deselect all the descendants node */
-  todoItemSelectionToggle(node: TreeItemFlatNode): void {
+  itemSelectionToggle(node: TreeItemFlatNode): void {
     this.checklistSelection.toggle(node);
     const descendants = this.treeControl.getDescendants(node);
     this.checklistSelection.isSelected(node)
@@ -184,7 +184,7 @@ export class CheckTreeComponent implements OnInit {
   }
 
   /** Toggle a leaf to-do item selection. Check all the parents to see if they changed */
-  todoLeafItemSelectionToggle(node: TreeItemFlatNode): void {
+  leafItemSelectionToggle(node: TreeItemFlatNode): void {
     this.checklistSelection.toggle(node);
     this.checkAllParentsSelection(node);
   }
@@ -237,7 +237,10 @@ export class CheckTreeComponent implements OnInit {
       n.isSelected = node === n;
     }
     if(this.isExpandable(node)) {
-      this.treeControl.expand(node);
+      if (this.treeControl.isExpanded(node))
+        this.treeControl.collapse(node);
+      else
+        this.treeControl.expand(node);
     }
     this.selected.emit(node);
   }

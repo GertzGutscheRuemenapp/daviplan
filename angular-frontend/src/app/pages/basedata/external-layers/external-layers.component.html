@@ -31,14 +31,15 @@
       </div>
       <div style="margin-top: 10px;">
         <button mat-button color="primary"
-                class="mat-button-dv" i18n>
-          <mat-icon>add</mat-icon>Layergruppe hinzufügen
+                class="mat-button-dv"
+                title="Layergruppe hinzufügen" i18n>
+          <mat-icon>add</mat-icon>Gruppe hinzufügen
         </button>
         <button mat-button color="primary"
                 style="margin-left: 30px;"
                 class="mat-button-dv"
                 [disabled]="(!(selectedLayer || selectedGroup)) ? true : null" i18n>
-          <mat-icon>close</mat-icon>entfernen
+          <mat-icon>close</mat-icon>{{selectedLayer? 'Layer': selectedGroup? 'Gruppe': ''}} entfernen
         </button>
       </div>
     </app-input-card>
