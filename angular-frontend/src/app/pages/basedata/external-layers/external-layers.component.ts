@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { CheckTreeComponent } from "../../../elements/check-tree/check-tree.component";
 import { MapControl, MapService } from "../../../map/map.service";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { Observable } from "rxjs";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
@@ -226,12 +226,18 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     let options: string[] = (split.length > 1)? split[1].split('&'): [];
     options = options.concat(['request=GetCapabilities', 'version=2.0.0', 'service=wms']);
     const capURL = `${baseURL}?${options.join('&')}`;
-    fetch(capURL, {referrer: "https://monitor.ioer.de", // no-referrer, origin, same-origin...
-      mode: "cors"}).then(res => {
-      console.log(res)
-    }).catch((error) => {
-      console.log(error)
-    });
+    // fetch(capURL, {referrer: "https://monitor.ioer.de", // no-referrer, origin, same-origin...
+    //   mode: "cors"}).then(res => {
+    //   console.log(res)
+    // }).catch((error) => {
+    //   console.log(error)
+    // });
+    this.http.post(`${this.rest.URLS.layers}proxy/`, { url: capURL }, { responseType: 'text' }).subscribe(res => {
+      console.log(res);
+      const result = parser.read(res);
+    }, error => {
+      this.layerForm.setErrors(error.error);
+    })
 
   }
 
