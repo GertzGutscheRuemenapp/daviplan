@@ -16,7 +16,8 @@ export class RestAPI {
     ageGroups: `${ this.API_ENDPOINT }/agegroups/`,
     infrastructures: `${ this.API_ENDPOINT }/infrastructures/`,
     layerGroups: `${ this.API_ENDPOINT }/layergroups/`,
-    layers: `${ this.API_ENDPOINT }/wmslayers/`
+    layers: `${ this.API_ENDPOINT }/wmslayers/`,
+    getCapabilities: `${ this.API_ENDPOINT }/wmslayers/getcapabilities/`
   }
   // ToDo: functions with generalized HTTP calls in here
 }

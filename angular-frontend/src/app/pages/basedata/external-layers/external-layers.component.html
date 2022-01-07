@@ -106,14 +106,27 @@
     </div>
     <div fxLayout="column">
       <mat-form-field appearance="fill">
-        <mat-label i18n>Name</mat-label>
-        <input matInput formControlName="name" required>
-      </mat-form-field>
-    </div>
-    <div fxLayout="column">
-      <mat-form-field appearance="fill">
         <mat-label i18n>URL</mat-label>
         <input matInput formControlName="url" required>
+      </mat-form-field>
+    </div>
+    <mat-radio-group>
+      <mat-radio-button *ngFor="let layer of availableLayers; let first = first;"
+                        [value]="layer.layer_name"
+                        [checked]="first"
+                        style="margin-right: 100%;"
+                        color="primary"
+                        [ngbPopover]="layer.description || 'kein Beschreibungstext'"
+                        placement="right"
+                        container="body"
+                        triggers="mouseenter:mouseleave">
+        {{ layer.name }}
+      </mat-radio-button>
+    </mat-radio-group>
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Name</mat-label>
+        <input matInput formControlName="name" required>
       </mat-form-field>
     </div>
     <button (click)="requestURL()">URL abfragen</button>

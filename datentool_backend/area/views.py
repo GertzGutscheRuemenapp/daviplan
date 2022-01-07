@@ -1,9 +1,11 @@
 from rest_framework import viewsets
 from url_filter.integrations.drf import DjangoFilterBackend
-from rest_framework.exceptions import ParseError
+from rest_framework.exceptions import (ParseError, NotFound, APIException,
+                                       PermissionDenied)
 from rest_framework.decorators import action
-from django.http import HttpResponse
-import requests
+from django.http import JsonResponse
+from owslib.wms import WebMapService
+from requests.exceptions import MissingSchema, ConnectionError
 
 from datentool_backend.utils.views import (CanEditBasedata,
                                            HasAdminAccessOrReadOnly)
@@ -35,14 +37,39 @@ class WMSLayerViewSet(viewsets.ModelViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
     @action(methods=['POST'], detail=False)
-    def proxy(self, request, **kwargs):
+    def getcapabilities(self, request, **kwargs):
+        user = request.user
+        if not (user.is_authenticated or
+                user.superuser or
+                user.profile.admin_access or
+                user.profile.can_edit_basedata):
+            raise PermissionDenied
         url = request.data.get('url')
+        version = request.data.get('version', '1.3.0')
         if not url:
-            raise ParseError()
-        response = requests.get(url)
-        content_type = response.headers['content-type']
-        return HttpResponse(response.content, content_type=content_type,
-                            status=response.status_code)
+            raise ParseError('keine URL angegeben')
+        try:
+            wms = WebMapService(url, version=version)
+        except MissingSchema:
+            raise ParseError('ungültige URL')
+        except ConnectionError:
+            raise NotFound('URL nicht erreichbar')
+        except Exception:
+            raise APIException('ein Fehler ist bei der Abfrage der '
+                               'Capabilities aufgetreten')
+        layers = []
+        for layer_name, layer in wms.contents.items():
+            layers.append({
+                'name':  layer_name,
+                'title': layer.title,
+                'abstract': layer.abstract,
+                'bbox': layer.boundingBoxWGS84,
+            })
+        return JsonResponse({
+            'version': wms.version,
+            'layers': layers,
+            'url': wms.url
+        })
 
 
 class InternalWFSLayerViewSet(viewsets.ModelViewSet):

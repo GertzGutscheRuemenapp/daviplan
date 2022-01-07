@@ -23,7 +23,9 @@ export interface Layer {
   group: number,
   order: number,
   url: string,
-  name: string
+  name: string,
+  layer_name: string,
+  description: string
 }
 
 function sortBy(array: any[], attr: string): any[]{
@@ -50,6 +52,8 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   selectedLayer?: Layer;
   selectedGroup?: LayerGroup;
   Object = Object;
+
+  availableLayers: Layer[] = [];
 
   constructor(private mapService: MapService, private http: HttpClient, private dialog: MatDialog,
               private rest: RestAPI, private formBuilder: FormBuilder) {
@@ -178,6 +182,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     });
     dialogRef.afterClosed().subscribe(ok => {
       this.layerGroupForm.reset();
+      this.availableLayers = [];
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
       this.layerGroupForm.setErrors(null);
@@ -232,9 +237,19 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     // }).catch((error) => {
     //   console.log(error)
     // });
-    this.http.post(`${this.rest.URLS.layers}proxy/`, { url: capURL }, { responseType: 'text' }).subscribe(res => {
-      console.log(res);
-      const result = parser.read(res);
+    this.http.post(this.rest.URLS.getCapabilities, { url: url }).subscribe((res: any) => {
+      this.availableLayers = res.layers.map((l: any) => {
+        const layer: Layer = {
+          id: -1,
+          name: l.title,
+          layer_name: l.name,
+          url: l.url,
+          order: 0,
+          group: -1,
+          description: l.abstract
+        };
+        return layer;
+      })
     }, error => {
       this.layerForm.setErrors(error.error);
     })
