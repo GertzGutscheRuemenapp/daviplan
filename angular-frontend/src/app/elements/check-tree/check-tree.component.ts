@@ -241,17 +241,19 @@ export class CheckTreeComponent implements OnInit {
     return null;
   }
 
-  select(node: TreeItemFlatNode) {
+  select(node: TreeItemFlatNode | TreeItemNode) {
+    let flatNode: TreeItemFlatNode | undefined = (!(node instanceof TreeItemFlatNode)) ? this.nestedNodeMap.get(node) : node;
+    if (!flatNode) return;
     for (let n of this.flatNodeMap.keys()){
-      n.isSelected = node === n;
+      n.isSelected = flatNode === n;
     }
-    if(this.expandOnClick && this.isExpandable(node)) {
-      if (this.treeControl.isExpanded(node))
-        this.treeControl.collapse(node);
+    if(this.expandOnClick && this.isExpandable(flatNode)) {
+      if (this.treeControl.isExpanded(flatNode))
+        this.treeControl.collapse(flatNode);
       else
-        this.treeControl.expand(node);
+        this.treeControl.expand(flatNode);
     }
-    this.selected.emit(node);
+    this.selected.emit(flatNode);
   }
 
   _onAddItemClicked(node: TreeItemFlatNode) {

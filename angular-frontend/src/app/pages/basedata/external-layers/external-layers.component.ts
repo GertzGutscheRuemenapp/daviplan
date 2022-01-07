@@ -24,7 +24,7 @@ export interface Layer {
   order: number,
   url: string,
   name: string,
-  layer_name: string,
+  layerName: string,
   description: string
 }
 
@@ -40,14 +40,15 @@ function sortBy(array: any[], attr: string): any[]{
 })
 export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   @ViewChild('layerTree') layerTree!: CheckTreeComponent;
-  @ViewChild('editLayer') editLayerTemplate?: TemplateRef<any>;
-  @ViewChild('editLayerGroup') editLayerGroupTemplate?: TemplateRef<any>;
+  @ViewChild('addLayerTemplate') addLayerTemplate?: TemplateRef<any>;
+  @ViewChild('editLayerTemplate') editLayerTemplate?: TemplateRef<any>;
+  @ViewChild('editLayerGroupTemplate') editLayerGroupTemplate?: TemplateRef<any>;
   @ViewChild('layerCard') layerCard?: InputCardComponent;
   @ViewChild('layerGroupCard') layerGroupCard?: InputCardComponent;
   layerGroups: LayerGroup[] = [];
   mapControl?: MapControl;
   layerGroupForm: FormGroup;
-  layerForm: FormGroup;
+  addLayerForm: FormGroup;
 
   selectedLayer?: Layer;
   selectedGroup?: LayerGroup;
@@ -57,11 +58,14 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
 
   constructor(private mapService: MapService, private http: HttpClient, private dialog: MatDialog,
               private rest: RestAPI, private formBuilder: FormBuilder) {
-    this.layerForm = this.formBuilder.group({
+    this.addLayerForm = this.formBuilder.group({
       name: new FormControl(''),
       url: new FormControl(''),
-      // layer_name: new FormControl('')
+      layerName: new FormControl(''),
+      description: new FormControl('')
     });
+    this.addLayerForm.controls['layerName'].disable();
+    this.addLayerForm.controls['url'].disable();
     this.layerGroupForm = this.formBuilder.group({
       name: new FormControl('')
     });
@@ -149,7 +153,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   getLayer(id: number | undefined): Layer | undefined {
     if (id === undefined) return;
     for (let group of this.layerGroups) {
-      if (!group.children || group.children.length == 0) return;
+      if (!group.children) continue;
       for (let layer of group.children){
         if (layer.id === id) {
           return layer;
@@ -199,8 +203,8 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       ).subscribe(group => {
         group.children = [];
         this.layerGroups.push(group);
-        this.selectedGroup = group;
         this.layerTree.refresh();
+        this.layerTree.select(group);
         dialogRef.close();
       },(error) => {
         this.layerGroupForm.setErrors(error.error);
@@ -210,50 +214,78 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   }
 
   addLayer(parent: LayerGroup): void {
+    this.addLayerForm.reset();
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
-      width: '500px',
+      width: '900px',
       disableClose: true,
       data: {
         title: `Neuer Layer in "${parent.name}"`,
-        template: this.editLayerTemplate,
+        template: this.addLayerTemplate,
         closeOnConfirm: false
       }
     });
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      this.addLayerForm.setErrors(null);
+      this.addLayerForm.markAllAsTouched();
+      if (this.addLayerForm.invalid) return;
+      let attributes: any = {
+        name: this.addLayerForm.value.name,
+        layerName: this.addLayerForm.get('layerName')!.value,
+        url: this.addLayerForm.get('url')!.value,
+        description: this.addLayerForm.value.description || '',
+        order: parent.children?.length,
+        group: parent.id
+      }
+      dialogRef.componentInstance.isLoading = true;
+      this.http.post<Layer>(this.rest.URLS.layers, attributes
+      ).subscribe(layer => {
+        const group = this.getGroup(layer.group);
+        group?.children?.push(layer);
+        this.layerTree.refresh();
+        this.layerTree.select(layer);
+        dialogRef.close();
+      },(error) => {
+        this.addLayerForm.setErrors(error.error);
+        dialogRef.componentInstance.isLoading = false;
+      });
+    });
   }
 
-  requestURL(): void {
-    const url = this.layerForm.value.url;
+  requestCapabilities(url: string): void {
+    this.layerCard?.setLoading(true);
     if (!url) return;
-    const parser = new WMSCapabilities(),
-          split = url.split('?'),
-          baseURL = split[0];
-    let options: string[] = (split.length > 1)? split[1].split('&'): [];
-    options = options.concat(['request=GetCapabilities', 'version=2.0.0', 'service=wms']);
-    const capURL = `${baseURL}?${options.join('&')}`;
-    // fetch(capURL, {referrer: "https://monitor.ioer.de", // no-referrer, origin, same-origin...
-    //   mode: "cors"}).then(res => {
-    //   console.log(res)
-    // }).catch((error) => {
-    //   console.log(error)
-    // });
     this.http.post(this.rest.URLS.getCapabilities, { url: url }).subscribe((res: any) => {
-      this.availableLayers = res.layers.map((l: any) => {
-        const layer: Layer = {
-          id: -1,
+      this.availableLayers = []
+      for (let i = 0; i < res.layers.length; i += 1) {
+        const l = res.layers[i],
+              layer: Layer = {
+          id: i,
           name: l.title,
-          layer_name: l.name,
-          url: l.url,
+          layerName: l.name,
+          url: res.url,
           order: 0,
           group: -1,
           description: l.abstract
         };
-        return layer;
-      })
+        this.availableLayers.push(layer);
+        if (res.layers.length > 0)
+          this.avLayerSelected(0);
+        this.layerCard?.setLoading(false);
+      }
     }, error => {
-      this.layerForm.setErrors(error.error);
+      this.addLayerForm.setErrors(error.error);
+      this.layerCard?.setLoading(false);
     })
+  }
 
+  avLayerSelected(idx: number): void {
+    const layer = this.availableLayers[idx],
+          controls = this.addLayerForm.controls;
+    controls['name'].patchValue(layer.name);
+    controls['description'].patchValue(layer.description);
+    controls['layerName'].patchValue(layer.layerName);
+    controls['url'].patchValue(layer.url);
   }
 
   ngOnDestroy(): void {

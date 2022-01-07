@@ -11,6 +11,7 @@
 }
 
 #selected-area-list, #available-area-list {
+  min-height: 100px;
   user-select: none;
   overflow-y: auto;
   border: 1px solid lightgrey;

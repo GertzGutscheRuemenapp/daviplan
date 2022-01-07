@@ -19,3 +19,12 @@
    margin-top: 10px;
  }
 
+#available-layer-list {
+  min-height: 100px;
+  max-height: 350px;
+  user-select: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid lightgrey;
+  padding: 5px 10px;
+}

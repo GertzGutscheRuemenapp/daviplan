@@ -5,7 +5,8 @@ from rest_framework.exceptions import (ParseError, NotFound, APIException,
 from rest_framework.decorators import action
 from django.http import JsonResponse
 from owslib.wms import WebMapService
-from requests.exceptions import MissingSchema, ConnectionError
+from requests.exceptions import (MissingSchema, ConnectionError,
+                                        HTTPError)
 
 from datentool_backend.utils.views import (CanEditBasedata,
                                            HasAdminAccessOrReadOnly)
@@ -51,9 +52,12 @@ class WMSLayerViewSet(viewsets.ModelViewSet):
         try:
             wms = WebMapService(url, version=version)
         except MissingSchema:
-            raise ParseError('ungültige URL')
+            raise ParseError(
+                'ungültiges URL-Schema (http:// bzw. https:// vergessen?)')
         except ConnectionError:
             raise NotFound('URL nicht erreichbar')
+        except HTTPError as e:
+            raise APIException(str(e))
         except Exception:
             raise APIException('ein Fehler ist bei der Abfrage der '
                                'Capabilities aufgetreten')

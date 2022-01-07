@@ -33,6 +33,7 @@ class Layer(NamedModel, models.Model):
     group = models.ForeignKey(LayerGroup, on_delete=models.RESTRICT)
     layer_name = models.TextField()
     order = models.IntegerField(default=0)
+    description = models.TextField(default='', blank=True)
 
     class Meta:
         abstract = True

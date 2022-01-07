@@ -50,7 +50,7 @@
     <app-input-card [title]="'Eigenschaften des ausgewählten Layers'"
                     #layerCard
                     [ngClass]="{'hidden': !selectedLayer}"
-                    [editTemplate]="editLayer"
+                    [editTemplate]="editLayerTemplate"
                     infoText="<p>Klicken Sie auf „Editieren“, um die URL des WMS-Dienstes (und weitere ggf. relevante Informationen) einzutragen oder diese zu verändern.</p>
                     <p>Mit „Editieren“ können Sie auch den in den daviplan-Karten angezeigten Namen des ausgewählten externen Layers verändern.</p>">
       <table>
@@ -67,7 +67,7 @@
     <app-input-card [title]="'Eigenschaften der ausgewählten Layergruppe'"
                     #layerGroupCard
                     [ngClass]="{'hidden': !selectedGroup}"
-                    [editTemplate]="editLayerGroup"
+                    [editTemplate]="editLayerGroupTemplate"
                     infoText="<p>Klicken Sie auf „Editieren“, um den in den daviplan-Karten angezeigten Namen der ausgewählten Layergruppe zu verändern.</p>">
       <table>
         <tr>
@@ -97,43 +97,78 @@
   </div>
 </div>
 
-<ng-template #editLayer>
-  <form [formGroup]="layerForm">
-    <div *ngIf="layerGroupForm.errors">
-      <mat-error *ngFor="let error of Object.values(layerGroupForm.errors)" class="alert">
+<ng-template #addLayerTemplate>
+  <div fxLayout="column" fxFlex="400px">
+    <div *ngIf="addLayerForm.errors">
+      <mat-error *ngFor="let error of Object.values(addLayerForm.errors)" class="alert">
         {{ error }}
       </mat-error>
     </div>
     <div fxLayout="column">
       <mat-form-field appearance="fill">
         <mat-label i18n>URL</mat-label>
-        <input matInput formControlName="url" required>
+        <input matInput #url>
       </mat-form-field>
     </div>
-    <mat-radio-group>
-      <mat-radio-button *ngFor="let layer of availableLayers; let first = first;"
-                        [value]="layer.layer_name"
-                        [checked]="first"
-                        style="margin-right: 100%;"
-                        color="primary"
-                        [ngbPopover]="layer.description || 'kein Beschreibungstext'"
-                        placement="right"
-                        container="body"
-                        triggers="mouseenter:mouseleave">
-        {{ layer.name }}
-      </mat-radio-button>
-    </mat-radio-group>
-    <div fxLayout="column">
+    <button mat-button color="primary"
+            style="align-self: baseline;"
+            class="mat-button-dv"
+            (click)="requestCapabilities(url.value)"
+            title="verfügbare Layer von URL abfragen" i18n>
+      <mat-icon>public</mat-icon>URL abfragen
+    </button>
+    <br>
+    Verfügbare Layer
+    <div id="available-layer-list">
+      <mat-radio-group>
+        <ng-container *ngFor="let layer of availableLayers; let first = first;">
+          <ng-template #popContent>
+            <p><b>{{ layer.name }}</b></p>
+            <p>{{ layer.description || 'kein Beschreibungstext' }}</p>
+          </ng-template>
+          <mat-radio-button [value]="layer.id"
+                            (change)="avLayerSelected($event.value)"
+                            [checked]="first"
+                            style="margin-right: 100%;"
+                            color="primary"
+                            [ngbPopover]="popContent"
+                            placement="right"
+                            container="body"
+                            triggers="mouseenter:mouseleave">
+            {{ layer.layerName }}
+          </mat-radio-button>
+        </ng-container>
+      </mat-radio-group>
+    </div>
+  </div>
+  <mat-divider vertical style="align-self: stretch; margin: 0 14px;"></mat-divider>
+  <form [formGroup]="addLayerForm">
+    <div fxLayout="column" fxFlex="400px">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Layer</mat-label>
+        <input matInput formControlName="layerName" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>URL</mat-label>
+        <input matInput formControlName="url" required>
+      </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label i18n>Name</mat-label>
         <input matInput formControlName="name" required>
       </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Beschreibung</mat-label>
+        <textarea matInput formControlName="description" rows="10"></textarea>
+      </mat-form-field>
     </div>
-    <button (click)="requestURL()">URL abfragen</button>
   </form>
 </ng-template>
 
-<ng-template #editLayerGroup>
+
+<ng-template #editLayerTemplate>
+</ng-template>
+
+<ng-template #editLayerGroupTemplate>
   <form [formGroup]="layerGroupForm">
     <div *ngIf="layerGroupForm.errors">
       <mat-error *ngFor="let error of Object.values(layerGroupForm.errors)" class="alert">
