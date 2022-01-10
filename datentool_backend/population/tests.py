@@ -2,7 +2,9 @@ import numpy as np
 from unittest import skip
 from django.test import TestCase
 from test_plus import APITestCase
-from datentool_backend.api_test import BasicModelTest, WriteOnlyWithCanEditBaseDataTest
+from datentool_backend.api_test import (BasicModelTest,
+                                        WriteOnlyWithCanEditBaseDataTest,
+                                        WriteOnlyWithAdminAccessTest)
 from datentool_backend.area.tests import (_TestAPI, _TestPermissions)
 
 from .models import (PrognosisEntry, Year, PopulationRaster, PopulationEntry,
@@ -130,7 +132,8 @@ class TestGenderAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 
-class TestAgeGroupAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestAgeGroupAPI(WriteOnlyWithAdminAccessTest,
+                      _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "agegroups"
     factory = AgeGroupFactory

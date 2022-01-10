@@ -3,8 +3,9 @@ from test_plus import APITestCase
 from django.contrib.gis.geos import Polygon
 from collections import OrderedDict
 
-from datentool_backend.api_test import BasicModelTest
-from datentool_backend.area.tests import _TestAPI, _TestPermissions
+from datentool_backend.api_test import (BasicModelTest,
+                                        WriteOnlyWithCanCreateProcessTest)
+from datentool_backend.area.tests import _TestAPI
 
 from .factories import (ProfileFactory, UserFactory, User,
                         PlanningProcessFactory, ScenarioFactory)
@@ -33,7 +34,8 @@ class TestProfile(TestCase):
         self.assertTrue(user2.profile.pk)
 
 
-class TestPlanningProcessAPI(_TestAPI, BasicModelTest, APITestCase):  # test, if user is none and if user is not owner are missing
+class TestPlanningProcessAPI(WriteOnlyWithCanCreateProcessTest,
+                             _TestAPI, BasicModelTest, APITestCase):  # test, if user is none and if user is not owner are missing
     """"""
     url_key = "planningprocesses"
 
@@ -74,29 +76,29 @@ class TestPlanningProcessAPI(_TestAPI, BasicModelTest, APITestCase):  # test, if
         del cls.obj3
         super().tearDownClass()
 
-    def test_process_creation_permission(self):
-        """Test the process creation permission of the profile"""
-        profile = self.profile
+    #def test_process_creation_permission(self):
+        #"""Test the process creation permission of the profile"""
+        #profile = self.profile
 
-        original_permission = profile.can_create_process
+        #original_permission = profile.can_create_process
 
-        # Testprofile, with permission to create project (True)
-        profile.can_create_process = True
-        profile.save()
-        self.test_post()
+        ## Testprofile, with permission to create project (True)
+        #profile.can_create_process = True
+        #profile.save()
+        #self.test_post()
 
-        # Testprofile, without permission to create project (False)
-        profile.can_create_process = False
-        profile.save()
+        ## Testprofile, without permission to create project (False)
+        #profile.can_create_process = False
+        #profile.save()
 
-        url = self.url_key + '-list'
-        # post
-        response = self.post(url, **self.url_pks, data=self.post_data,
-                             extra={'format': 'json'})
-        self.response_403(msg=response.content)
+        #url = self.url_key + '-list'
+        ## post
+        #response = self.post(url, **self.url_pks, data=self.post_data,
+                             #extra={'format': 'json'})
+        #self.response_403(msg=response.content)
 
-        profile.can_create_process = original_permission
-        profile.save()
+        #profile.can_create_process = original_permission
+        #profile.save()
 
 
 class TestScenarioAPI(_TestAPI, BasicModelTest, APITestCase):

@@ -70,8 +70,6 @@ class CanEditScenarioPermission(permissions.BasePermission):
         return owner_is_user or (allow_shared_change and user_in_users)
 
 
-
-
 class ScenarioViewSet(viewsets.ModelViewSet):
     queryset = Scenario.objects.all()
     serializer_class = ScenarioSerializer

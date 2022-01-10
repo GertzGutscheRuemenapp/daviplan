@@ -4,7 +4,8 @@ from django.contrib.gis.geos import Polygon, MultiPolygon
 from collections import OrderedDict
 from unittest import skip
 from datentool_backend.api_test import (BasicModelSingletonTest,
-                                        SingletonWriteOnlyWithCanEditBaseDataTest)
+                                        SingletonWriteOnlyWithCanEditBaseDataTest,
+                                        SingletonWriteOnlyWithAdminAccessTest)
 from datentool_backend.area.tests import _TestAPI
 
 from datentool_backend.site.factories import (ProjectSettingFactory,
@@ -42,62 +43,8 @@ class TestBaseDataSetting(SingletonWriteOnlyWithCanEditBaseDataTest,
         cls.patch_data = data
 
 
-    #def test_can_edit_basedata(self):
-        #profile = self.profile
-
-        #original_permission = profile.can_edit_basedata
-        #original_admin_access = profile.admin_access
-        ## Testprofile, with permission to edit basedata
-        #profile.can_edit_basedata = True
-        #profile.admin_access = False
-        #profile.save()
-
-        ## test put
-        #url = self.url_key + '-detail'
-        #kwargs = self.kwargs
-        #formatjson = dict(format='json')
-
-        #response = self.put(url, **kwargs,
-                            #data=self.put_data,
-                            #extra=formatjson)
-        #self.response_200(msg=response.content)
-
-        ## check status code for patch
-        #response = self.patch(url, **kwargs,
-                              #data=self.patch_data, extra=formatjson)
-        #self.response_200(msg=response.content)
-
-        ## Testprofile, without permission to edit basedata
-        #profile.can_edit_basedata = False
-        #profile.save()
-
-        ## test get:
-        #response = self.get_check_200(url, **kwargs)
-        #if 'id' in response.data:
-            #assert response.data['id'] == self.obj.pk
-
-        ## test put_patch
-        #url = self.url_key + '-detail'
-        #kwargs = self.kwargs
-        #formatjson = dict(format='json')
-
-        ## check status code for put
-        #response = self.put(url, **kwargs,
-                    #data=self.put_data,
-                    #extra=formatjson)
-        #self.response_403(msg=response.content)
-
-        ## check status code for patch
-        #response = self.patch(url, **kwargs,
-                              #data=self.patch_data, extra=formatjson)
-        #self.response_403(msg=response.content)
-
-        #profile.can_edit_basedata = original_permission
-        #profile.admin_access = original_admin_access
-        #profile.save()
-
-
-class TestProjectSetting(_TestAPI, BasicModelSingletonTest, APITestCase):
+class TestProjectSetting(SingletonWriteOnlyWithAdminAccessTest,
+                         _TestAPI, BasicModelSingletonTest, APITestCase):
     """"""
     url_key = "projectsettings"
     factory = ProjectSettingFactory
@@ -135,42 +82,42 @@ class TestProjectSetting(_TestAPI, BasicModelSingletonTest, APITestCase):
 
         cls.expected_patch_data = dict(project_area=ewkt_wgs84)
 
-    def test_admin_access(self):
-        """write permission if user has admin_access, check methods put, patch"""
-        profile = self.profile
-        permission_admin = profile.admin_access
+    #def test_admin_access(self):
+        #"""write permission if user has admin_access, check methods put, patch"""
+        #profile = self.profile
+        #permission_admin = profile.admin_access
 
-        # Testprofile, with admin_access
-        profile.admin_access = True
-        profile.save()
+        ## Testprofile, with admin_access
+        #profile.admin_access = True
+        #profile.save()
 
-        self.test_put_patch()
+        #self.test_put_patch()
 
-        # Testprofile, without admin_access
-        profile.admin_access = False
-        profile.save()
+        ## Testprofile, without admin_access
+        #profile.admin_access = False
+        #profile.save()
 
-        # test get, put, patch
-        url = self.url_key + '-detail'
-        kwargs = self.kwargs
-        formatjson = dict(format='json')
+        ## test get, put, patch
+        #url = self.url_key + '-detail'
+        #kwargs = self.kwargs
+        #formatjson = dict(format='json')
 
-        # test get
-        response = self.get(url, **kwargs)
-        self.response_200(msg=response.content)
-        # test put
-        response = self.put(url, **kwargs,
-                                data=self.put_data,
-                                extra=formatjson)
-        self.response_403(msg=response.content)
+        ## test get
+        #response = self.get(url, **kwargs)
+        #self.response_200(msg=response.content)
+        ## test put
+        #response = self.put(url, **kwargs,
+                                #data=self.put_data,
+                                #extra=formatjson)
+        #self.response_403(msg=response.content)
 
-        # check status code for patch
-        response = self.patch(url, **kwargs,
-                                  data=self.patch_data, extra=formatjson)
-        self.response_403(msg=response.content)
+        ## check status code for patch
+        #response = self.patch(url, **kwargs,
+                                  #data=self.patch_data, extra=formatjson)
+        #self.response_403(msg=response.content)
 
-        profile.admin_access = permission_admin
-        profile.save()
+        #profile.admin_access = permission_admin
+        #profile.save()
 
 
 class TestSiteSetting(_TestAPI, BasicModelSingletonTest, APITestCase):
@@ -202,6 +149,12 @@ class TestSiteSetting(_TestAPI, BasicModelSingletonTest, APITestCase):
         url = self.url_key + '-detail'
         kwargs = self.kwargs
         format_multipart = dict(format='multipart')
+        # Permission: has admin_access
+        profile = self.profile
+        permission_admin = profile.admin_access
+
+        profile.admin_access = True
+        profile.save()
 
         # test get
         response = self.get_check_200(url, **kwargs)
@@ -244,6 +197,10 @@ class TestSiteSetting(_TestAPI, BasicModelSingletonTest, APITestCase):
         self.assertEqual(os.path.splitext(logo)[1], os.path.splitext(logo_file.name)[1])
         expected.update(self.expected_patch_data)
         self.compare_data(response.data, expected)
+
+        # Resetting admin_access permission
+        profile.admin_access = permission_admin
+        profile.save()
 
     def test_admin_access(self):
         """write permission if user has admin_access, check methods put, patch"""

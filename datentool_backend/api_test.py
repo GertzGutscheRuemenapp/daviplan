@@ -164,9 +164,8 @@ class BasicModelReadTest(BasicModelDetailTest):
     def _test_list_forbidden(self):
         """Test that the list view can not be returned successfully"""
         url = self.url_key + '-list'
-        kwargs = self.kwargs
         # test get
-        response = self.get(url, **kwargs)
+        response = self.get(url, **self.url_pks)
         self.response_403(msg=response.content)
 
     def _test_list(self):
@@ -467,17 +466,17 @@ class ReadOnlyWithAdminBasedataAccessTest:
         """Test post with and without can_edit_basedata permissions"""
         self.profile.admin_access = True
         self.profile.save()
-        self.test_get_urls()
+        self._test_get_urls()
         self.profile.admin_access = False
         self.profile.save()
-        self.test_get_urls_forbidden()
+        self._test_get_urls_forbidden()
 
         self.profile.can_edit_basedata = True
         self.profile.save()
-        self.test_get_urls()
+        self._test_get_urls()
         self.profile.can_edit_basedata = False
         self.profile.save()
-        self.test_get_urls_forbidden()
+        self._test_get_urls_forbidden()
 
     def test_list(self):
         """Test post with and without can_edit_basedata permissions"""
@@ -499,10 +498,52 @@ class ReadOnlyWithAdminBasedataAccessTest:
 class SingletonWriteOnlyWithCanEditBaseDataTest:
 
     def test_put_patch(self):
-        """Test post with and without can_edit_basedata permissions"""
+        """Test for Singletons, put and patch with and without can_edit_basedata permissions"""
         self.profile.can_edit_basedata = True
         self.profile.save()
         self._test_put_patch()
         self.profile.can_edit_basedata = False
+        self.profile.save()
+        self._test_put_patch_forbidden()
+
+
+class SingletonWriteOnlyWithAdminAccessTest:
+
+    def test_put_patch(self):
+        """Test for Singletons, put and patch with and without admin_access"""
+        self.profile.admin_access= True
+        self.profile.save()
+        self._test_put_patch()
+        self.profile.admin_access= False
+        self.profile.save()
+        self._test_put_patch_forbidden()
+
+
+class WriteOnlyWithCanCreateProcessTest:
+
+    def test_delete(self):
+        """Test delete with and without can_create_process"""
+        self.profile.can_create_process = True
+        self.profile.save()
+        self._test_delete()
+        self.profile.can_create_process = False
+        self.profile.save()
+        self._test_delete_forbidden()
+
+    def test_post(self):
+        """Test post with and without can_edit_basedata permissions"""
+        self.profile.can_create_process = True
+        self.profile.save()
+        self._test_post()
+        self.profile.can_create_process = False
+        self.profile.save()
+        self._test_post_forbidden()
+
+    def test_put_patch(self):
+        """Test post with and without can_edit_basedata permissions"""
+        self.profile.can_create_process = True
+        self.profile.save()
+        self._test_put_patch()
+        self.profile.can_create_process = False
         self.profile.save()
         self._test_put_patch_forbidden()

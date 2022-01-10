@@ -191,8 +191,7 @@ class _TestReadOnly():
         self.test_detail()
 
 
-class TestCapacityUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest,
-                               _TestReadOnly, _TestAPI, BasicModelReadTest, APITestCase):
+class TestCapacityUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestAPI, BasicModelReadTest, APITestCase):
     """"""
     url_key = "capacityuploadlogs"
     factory = CapacityUploadLogFactory
@@ -211,7 +210,7 @@ class TestCapacityUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest,
         cls.patch_data = data
 
 
-class TestPlaceUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestReadOnly, _TestAPI, BasicModelReadTest, APITestCase):
+class TestPlaceUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestAPI, BasicModelReadTest, APITestCase):
     """"""
     url_key = "placeuploadlogs"
     factory = PlaceUploadLogFactory
@@ -230,7 +229,7 @@ class TestPlaceUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestReadOnly, 
         cls.patch_data = data
 
 
-class TestAreaUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestReadOnly, _TestAPI, BasicModelReadTest, APITestCase):
+class TestAreaUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestAPI, BasicModelReadTest, APITestCase):
     """"""
     url_key = "areauploadlogs"
     factory = AreaUploadLogFactory
