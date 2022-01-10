@@ -32,8 +32,10 @@ class CanCreateProcessPermission(permissions.BasePermission):
         if request.method in ('GET'):
             owner = obj.owner
             return request.user.profile == owner
-        else:
-            return request.user.profile.can_create_process
+        if request.method == 'POST':
+            if request.user.is_superuser:
+                return True
+            return request.user.profile.can_create_process and request.user.profile == owner
 
 
 class PlanningProcessViewSet(viewsets.ModelViewSet):

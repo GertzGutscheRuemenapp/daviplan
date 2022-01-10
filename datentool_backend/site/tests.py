@@ -82,43 +82,6 @@ class TestProjectSetting(SingletonWriteOnlyWithAdminAccessTest,
 
         cls.expected_patch_data = dict(project_area=ewkt_wgs84)
 
-    #def test_admin_access(self):
-        #"""write permission if user has admin_access, check methods put, patch"""
-        #profile = self.profile
-        #permission_admin = profile.admin_access
-
-        ## Testprofile, with admin_access
-        #profile.admin_access = True
-        #profile.save()
-
-        #self.test_put_patch()
-
-        ## Testprofile, without admin_access
-        #profile.admin_access = False
-        #profile.save()
-
-        ## test get, put, patch
-        #url = self.url_key + '-detail'
-        #kwargs = self.kwargs
-        #formatjson = dict(format='json')
-
-        ## test get
-        #response = self.get(url, **kwargs)
-        #self.response_200(msg=response.content)
-        ## test put
-        #response = self.put(url, **kwargs,
-                                #data=self.put_data,
-                                #extra=formatjson)
-        #self.response_403(msg=response.content)
-
-        ## check status code for patch
-        #response = self.patch(url, **kwargs,
-                                  #data=self.patch_data, extra=formatjson)
-        #self.response_403(msg=response.content)
-
-        #profile.admin_access = permission_admin
-        #profile.save()
-
 
 class TestSiteSetting(_TestAPI, BasicModelSingletonTest, APITestCase):
     """"""

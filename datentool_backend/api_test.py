@@ -584,42 +584,4 @@ class SingletonWriteOnlyWithAdminAccessTest:
         self.test_detail()
 
 
-class WriteOnlyWithCanCreateProcessTest:
 
-    def test_delete(self):
-        """Test delete with and without can_create_process"""
-        self.profile.can_create_process = True
-        self.profile.save()
-        self._test_delete()
-        self.profile.can_create_process = False
-        self.profile.save()
-        self._test_delete_forbidden()
-
-    def test_post(self):
-        """Test post with and without can_edit_basedata permissions"""
-        self.profile.can_create_process = True
-        self.profile.save()
-        self._test_post()
-        self.profile.can_create_process = False
-        self.profile.save()
-        self._test_post_forbidden()
-
-    def test_put_patch(self):
-        """Test post with and without can_edit_basedata permissions"""
-        self.profile.can_create_process = True
-        self.profile.save()
-        self._test_put_patch()
-        self.profile.can_create_process = False
-        self.profile.save()
-        self._test_put_patch_forbidden()
-
-    def test_is_logged_in(self):
-        """Test read, if user is authenticated"""
-        self.client.logout()
-        response = self.get(self.url_key + '-list')
-        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
-
-        self.client.force_login(user=self.profile.user)
-
-        self.test_list()
-        self.test_detail()
