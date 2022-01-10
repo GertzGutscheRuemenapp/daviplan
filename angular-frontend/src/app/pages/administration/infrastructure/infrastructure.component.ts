@@ -2,12 +2,12 @@ import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core'
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { Observable } from "rxjs";
-import { User } from "../../login/users";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
+import { arrayMove } from "../../../helpers/utils";
 
 interface Service {
   id: number,
@@ -35,12 +35,6 @@ export const mockInfrastructures: Infrastructure[] = [
   { id: 3, name: 'Ärzte', description: 'Haus- und fachärztliche Versorgung. Fachärzte eingeschränkt auf Kinderärzte, Frauenärzte, Augenärzte und Internisten.', services: [{ id: 5, name: 'Allgemeinmedizinerin' }, { id: 6, name: 'Internistin' }, { id: 7, name: 'Hautärztin' }]},
   { id: 4, name: 'Feuerwehr', description: 'Nicht-polizeiliche Gefahrenabwehr, insbesondere durch die freiwilligen Feuerwehren.', services: [{ id: 8, name: 'Brandschutz???' }, { id: 9, name: '????' }]},
 ]
-
-function arrayMove(array: any[], fromIndex: number, toIndex: number) {
-  const element = array[fromIndex];
-  array.splice(fromIndex, 1);
-  array.splice(toIndex, 0, element);
-}
 
 @Component({
   selector: 'app-infrastructure',

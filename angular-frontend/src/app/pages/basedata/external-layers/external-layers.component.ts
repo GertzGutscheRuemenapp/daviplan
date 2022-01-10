@@ -1,15 +1,16 @@
 import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { CheckTreeComponent } from "../../../elements/check-tree/check-tree.component";
 import { MapControl, MapService } from "../../../map/map.service";
-import { HttpClient, HttpHeaders } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { Observable } from "rxjs";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
-import WMSCapabilities from 'ol/format/WMSCapabilities';
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
+import { arrayMove } from "../../../helpers/utils";
+import { sortBy } from "../../../helpers/utils";
 
 export interface LayerGroup {
   id: number,
@@ -29,9 +30,8 @@ export interface Layer {
   description: string
 }
 
-function sortBy(array: any[], attr: string): any[]{
-  return array.sort((a, b) =>
-    (a[attr] > b[attr])? 1: (a[attr] < b[attr])? -1: 0);
+function isLayer(obj: any): obj is Layer{
+  return 'layerName' in obj;
 }
 
 @Component({
@@ -347,7 +347,42 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         });
       }
     });
+  }
 
+  /**
+   * patches layer.order of infrastructures to their current place in the array
+   *
+   */
+  patchOrder(array: Layer[] | LayerGroup[]): void {
+    if (array.length === 0) return;
+    const url = isLayer(array[0]) ? this.rest.URLS.layers: this.rest.URLS.layerGroups;
+    for ( let i = 0; i < array.length; i += 1){
+      const obj = array[i];
+      this.http.patch<any>(`${url}${obj.id}/`,
+        { order: i + 1 }).subscribe(res => {
+        obj.order = res.order;
+        this.layerTree.refresh();
+      });
+    }
+  }
+
+  moveSelected(direction: string): void {
+    const selected = this.selectedLayer? this.selectedLayer: this.selectedGroup? this.selectedGroup: undefined;
+    if (!selected) return;
+    const array = this.selectedLayer? this.getGroup(this.selectedLayer.group)!.children!: this.layerGroups;
+    // @ts-ignore
+    const idx = array.indexOf(selected);
+    if (direction === 'up'){
+      if (idx <= 0) return;
+      arrayMove(array, idx, idx - 1);
+    }
+    else if (direction === 'down'){
+      if (idx === -1 || idx === array.length - 1) return;
+      arrayMove(array, idx, idx + 1);
+    }
+    else return;
+
+    this.patchOrder(array);
   }
 
   ngOnDestroy(): void {
