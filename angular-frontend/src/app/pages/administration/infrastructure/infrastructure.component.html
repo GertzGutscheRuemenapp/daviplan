@@ -90,13 +90,3 @@
     </div>
   </form>
 </ng-template>
-
-<ng-template #removeInfrastructureTemplate>
-  <div style="display: flex; align-items: end;">
-    <mat-form-field appearance="fill" class="warning" style="width: 300px; margin-right: 10px;">
-      <input disabled matInput [value]="selectedInfrastructure?.name">
-    </mat-form-field>
-    <mat-icon class="material-icons-outlined warning" style="font-size: 40px; align-self: baseline;">report_problem</mat-icon>
-  </div>
-  <p style="font-size: 0.8em; margin: -15px 0 0 10px;"> Die Entfernung ist dauerhaft und endgültig</p>
-</ng-template>

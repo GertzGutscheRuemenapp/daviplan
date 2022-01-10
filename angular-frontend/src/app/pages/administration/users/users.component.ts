@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
 import { User } from '../../login/users';
 import { ConfirmDialogComponent } from '../../../dialogs/confirm-dialog/confirm-dialog.component';
+import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { InputCardComponent } from '../../../dash/input-card.component'
 import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
 import { RestAPI } from "../../../rest-api";
@@ -20,7 +21,6 @@ export class UsersComponent implements AfterViewInit  {
   @ViewChild('accountCard') accountCard?: InputCardComponent;
   @ViewChild('permissionCard') permissionCard?: InputCardComponent;
   @ViewChild('createUser') createUserTemplate?: TemplateRef<any>;
-  @ViewChild('removeUser') removeUserTemplate?: TemplateRef<any>;
   faEye = faEye;
   faEyeSlash = faEyeSlash;
   accountForm!: FormGroup;
@@ -226,15 +226,12 @@ export class UsersComponent implements AfterViewInit  {
   onDeleteUser() {
    if (!this.selectedUser)
       return;
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '400px',
+    const dialogRef = this.dialog.open(RemoveDialogComponent, {
       data: {
         title: $localize`Das Konto wirklich entfernen?`,
         confirmButtonText: $localize`Konto entfernen`,
-        template: this.removeUserTemplate,
-        closeOnConfirm: true
-      },
-      panelClass: 'warning'
+        value: this.selectedUser?.username
+      }
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed === true) {

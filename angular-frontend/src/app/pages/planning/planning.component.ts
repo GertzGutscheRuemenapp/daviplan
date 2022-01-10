@@ -11,6 +11,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { mockInfrastructures } from "../administration/infrastructure/infrastructure.component";
 import { mockUsers } from "../login/users";
 import { MatSelect } from "@angular/material/select";
+import { RemoveDialogComponent } from "../../dialogs/remove-dialog/remove-dialog.component";
 
 interface Project {
   user?: string;
@@ -47,7 +48,6 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   infrastructures = mockInfrastructures;
   users = mockUsers;
   @ViewChild('processTemplate') processTemplate?: TemplateRef<any>;
-  @ViewChild('removeProject') removeProjectTemplate?: TemplateRef<any>;
   @ViewChild('processSelect') processSelect!: MatSelect;
   showScenarioMenu: boolean = false;
   mapControl?: MapControl;
@@ -107,16 +107,14 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   }
 
   onDeleteProject(project: Project) {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+    const dialogRef = this.dialog.open(RemoveDialogComponent, {
       width: '460px',
       data: {
         title: $localize`Den Planungsprozess wirklich entfernen?`,
         confirmButtonText: $localize`Planungsprozess entfernen`,
-        context: { project: project },
-        template: this.removeProjectTemplate,
+        value: project.name,
         closeOnConfirm: true
-      },
-      panelClass: 'warning'
+      }
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
     });

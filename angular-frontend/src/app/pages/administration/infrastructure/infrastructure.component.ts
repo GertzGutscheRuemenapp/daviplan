@@ -7,6 +7,7 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { MatDialog } from "@angular/material/dialog";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { InputCardComponent } from "../../../dash/input-card.component";
+import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 
 interface Service {
   id: number,
@@ -52,7 +53,6 @@ export class InfrastructureComponent implements AfterViewInit  {
   infrastructureForm: FormGroup;
   @ViewChild('infrastructureEditCard') infrastructureEditCard?: InputCardComponent;
   @ViewChild('infrastructureEdit') infrastructureEditTemplate?: TemplateRef<any>;
-  @ViewChild('removeInfrastructureTemplate') removeInfrastructureTemplate?: TemplateRef<any>;
   Object = Object;
 
   constructor(private http: HttpClient, private rest: RestAPI,
@@ -149,15 +149,12 @@ export class InfrastructureComponent implements AfterViewInit  {
   removeInfrastructure(): void {
     if (!this.selectedInfrastructure)
       return;
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '400px',
+    const dialogRef = this.dialog.open(RemoveDialogComponent, {
       data: {
         title: $localize`Die Infrastruktur wirklich entfernen?`,
         confirmButtonText: $localize`Infrastruktur entfernen`,
-        template: this.removeInfrastructureTemplate,
-        closeOnConfirm: true
-      },
-      panelClass: 'warning'
+        value: this.selectedInfrastructure?.name
+      }
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed === true) {

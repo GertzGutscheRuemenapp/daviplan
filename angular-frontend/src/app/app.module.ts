@@ -88,6 +88,7 @@ import { CookieExpansionDirective } from './helpers/cookie-expansion.directive';
 import { SimpleDialogComponent } from './dialogs/simple-dialog/simple-dialog.component';
 import { HelpDialogComponent, HelpDialog } from './dialogs/help-dialog/help-dialog.component';
 import { BalanceChartComponent } from './diagrams/balance-chart/balance-chart.component';
+import { RemoveDialogComponent } from './dialogs/remove-dialog/remove-dialog.component';
 
 @NgModule({
   declarations: [
@@ -145,7 +146,8 @@ import { BalanceChartComponent } from './diagrams/balance-chart/balance-chart.co
     SimpleDialogComponent,
     HelpDialogComponent,
     HelpDialog,
-    BalanceChartComponent
+    BalanceChartComponent,
+    RemoveDialogComponent
   ],
     imports: [
         BrowserModule,
