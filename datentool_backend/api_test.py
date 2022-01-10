@@ -413,6 +413,17 @@ class WriteOnlyWithCanEditBaseDataTest:
         self.profile.save()
         self._test_put_patch_forbidden()
 
+    def test_is_logged_in(self):
+        """Test read, if user is authenticated"""
+        self.client.logout()
+        response = self.get(self.url_key + '-list')
+        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+
+        self.client.force_login(user=self.profile.user)
+
+        self.test_list()
+        self.test_detail()
+
 
 class WriteOnlyWithAdminAccessTest:
 
@@ -443,6 +454,17 @@ class WriteOnlyWithAdminAccessTest:
         self.profile.save()
         self._test_put_patch_forbidden()
 
+    def test_is_logged_in(self):
+        """Test read, if user is authenticated"""
+        self.client.logout()
+        response = self.get(self.url_key + '-list')
+        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+
+        self.client.force_login(user=self.profile.user)
+
+        self.test_list()
+        self.test_detail()
+
 
 class ReadOnlyWithAdminBasedataAccessTest:
 
@@ -463,7 +485,7 @@ class ReadOnlyWithAdminBasedataAccessTest:
         self._test_detail_forbidden()
 
     def test_get_urls(self):
-        """Test post with and without can_edit_basedata permissions"""
+        """Test get_urls with and without can_edit_basedata permissions"""
         self.profile.admin_access = True
         self.profile.save()
         self._test_get_urls()
@@ -479,7 +501,7 @@ class ReadOnlyWithAdminBasedataAccessTest:
         self._test_get_urls_forbidden()
 
     def test_list(self):
-        """Test post with and without can_edit_basedata permissions"""
+        """Test list with and without can_edit_basedata permissions"""
         self.profile.admin_access = True
         self.profile.save()
         self._test_list()
@@ -494,6 +516,29 @@ class ReadOnlyWithAdminBasedataAccessTest:
         self.profile.save()
         self._test_list_forbidden()
 
+    def test_is_logged_in(self):
+        """Test get, if user is authenticated"""
+        self.client.logout()
+        response = self.get(self.url_key + '-list')
+        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+
+        self.client.force_login(user=self.profile.user)
+        # test_list() with check of admin_access
+        self.profile.admin_access = True
+        self.profile.save()
+        self._test_list()
+        self.profile.admin_access = False
+        self.profile.save()
+        self._test_list_forbidden()
+
+        # test_detail()
+        self.profile.admin_access = True
+        self.profile.save()
+        self._test_detail()
+        self.profile.admin_access = False
+        self.profile.save()
+        self._test_detail_forbidden()
+
 
 class SingletonWriteOnlyWithCanEditBaseDataTest:
 
@@ -506,6 +551,16 @@ class SingletonWriteOnlyWithCanEditBaseDataTest:
         self.profile.save()
         self._test_put_patch_forbidden()
 
+    def test_is_logged_in(self):
+        """Test read, if user is authenticated"""
+        self.client.logout()
+        response = self.get(self.url_key + '-list')
+        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+
+        self.client.force_login(user=self.profile.user)
+
+        self.test_detail()
+
 
 class SingletonWriteOnlyWithAdminAccessTest:
 
@@ -517,6 +572,16 @@ class SingletonWriteOnlyWithAdminAccessTest:
         self.profile.admin_access= False
         self.profile.save()
         self._test_put_patch_forbidden()
+
+    def test_is_logged_in(self):
+        """Test read, if user is authenticated"""
+        self.client.logout()
+        response = self.get(self.url_key + '-list')
+        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+
+        self.client.force_login(user=self.profile.user)
+
+        self.test_detail()
 
 
 class WriteOnlyWithCanCreateProcessTest:
@@ -547,3 +612,14 @@ class WriteOnlyWithCanCreateProcessTest:
         self.profile.can_create_process = False
         self.profile.save()
         self._test_put_patch_forbidden()
+
+    def test_is_logged_in(self):
+        """Test read, if user is authenticated"""
+        self.client.logout()
+        response = self.get(self.url_key + '-list')
+        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+
+        self.client.force_login(user=self.profile.user)
+
+        self.test_list()
+        self.test_detail()
