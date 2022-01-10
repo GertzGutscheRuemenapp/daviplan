@@ -15,7 +15,7 @@
                     infoText="Damit die Nutzer*innen von daviplan beim Öffnen der Layer- und Legendensteuerung der einzelnen Karten den Überblick behalten, werden (auch) die externen Layer in Layergruppen gruppiert angezeigt.</p>
                     <p>Bevor Sie einen ersten externen Layer hinzufügen können, müssen Sie daher erst eine Layergruppe hinzufügen, indem Sie auf „Layergruppe hinzufügen“ klicken. Geben Sie der Layergruppe einen kurzen sprechenden Namen (z.B. „Flächennutzungsplanung“, „Verkehr“ oder „Naturschutz“). Die Name der Layergruppen erscheinen in allen Karten als Zwischenüberschrift der Legendenstruktur.</p>
                     <p>Nachdem Sie eine Layergruppe hinzugefügt haben, können Sie einen externen Layer hinzufügen, indem Sie auf das „+“-Symbol hinter dem Namen der Layergruppe klicken. Geben Sie auch dem Layer einen kurzen sprechenden Namen. Unter diesem Namen erscheint der Layer in den Kartenlegenden und kann dort von den einzelnen Nutzer*innen ein- oder ausgeschaltet werden. Gehen Sie anschließend zur Box „Eigenschaften des ausgewählten Layers“ und tragen Sie dort die URL des WMS-Dienstes ein. Hier können Sie auch den angezeigten Namen des Layers noch nachträglich verändern.</p>
-                    <p>Um einen externen Layer wieder zu löschen, wählen Sie diesen in der Liste aus und klicken auf „Entfernen“. Auf diese Weisen können Sie auch ganze Layergruppen  löschen.</p>">
+                    <p>Um einen externen Layer wieder zu löschen, wählen Sie diesen in der Liste aus und klicken auf „Layer Entfernen“. Auf diese Weisen können Sie auch ganze Layergruppen  löschen.</p>">
       <div style="display: inline-flex;">
         <div id="layer-select">
           <app-check-tree #layerTree
@@ -41,6 +41,7 @@
         </button>
         <button mat-button color="primary"
                 style="margin-left: 30px;"
+                (click)="removeNode()"
                 class="mat-button-dv"
                 [disabled]="(!(selectedLayer || selectedGroup)) ? true : null" i18n>
           <mat-icon>close</mat-icon>{{selectedLayer? 'Layer': selectedGroup? 'Gruppe': ''}} entfernen

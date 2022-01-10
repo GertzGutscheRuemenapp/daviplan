@@ -194,7 +194,7 @@ export class SettingsComponent implements AfterViewInit {
       }
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
-      if (confirmed === true) {
+      if (confirmed) {
         this.http.patch<SiteSettings>(this.rest.URLS.settings, { logo: null }
         ).subscribe( settings => this.settingsService.fetchSiteSettings() )
       }

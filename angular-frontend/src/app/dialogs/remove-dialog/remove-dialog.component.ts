@@ -7,7 +7,8 @@ interface DialogData {
   value: any,
   confirmButtonText: string,
   cancelButtonText: string,
-  closeOnConfirm: boolean
+  closeOnConfirm: boolean,
+  message: string
 }
 
 @Component({

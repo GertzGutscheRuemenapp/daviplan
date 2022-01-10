@@ -234,7 +234,7 @@ export class UsersComponent implements AfterViewInit  {
       }
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
-      if (confirmed === true) {
+      if (confirmed) {
         this.http.delete(`${this.rest.URLS.users}${this.selectedUser?.id}/`
         ).subscribe(res => {
           this.refresh();

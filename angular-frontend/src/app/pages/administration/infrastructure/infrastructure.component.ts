@@ -157,7 +157,7 @@ export class InfrastructureComponent implements AfterViewInit  {
       }
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
-      if (confirmed === true) {
+      if (confirmed) {
         this.http.delete(`${this.rest.URLS.infrastructures}${this.selectedInfrastructure?.id}/`
         ).subscribe(res => {
           const idx = this.infrastructures.indexOf(this.selectedInfrastructure!);

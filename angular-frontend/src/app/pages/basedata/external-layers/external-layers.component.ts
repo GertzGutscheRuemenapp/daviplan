@@ -9,6 +9,7 @@ import { InputCardComponent } from "../../../dash/input-card.component";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import WMSCapabilities from 'ol/format/WMSCapabilities';
+import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 
 export interface LayerGroup {
   id: number,
@@ -286,6 +287,67 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     controls['description'].patchValue(layer.description);
     controls['layerName'].patchValue(layer.layerName);
     controls['url'].patchValue(layer.url);
+  }
+
+  removeNode(): void {
+    if (this.selectedLayer) this.removeLayer(this.selectedLayer);
+    if (this.selectedGroup) this.removeGroup(this.selectedGroup);
+  }
+
+  removeLayer(layer: Layer){
+    const dialogRef = this.dialog.open(RemoveDialogComponent, {
+      data: {
+        title: $localize`Den Layer wirklich entfernen?`,
+        confirmButtonText: $localize`Layer entfernen`,
+        value: layer.name
+      }
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.http.delete(`${this.rest.URLS.layers}${layer.id}/`
+        ).subscribe(res => {
+          for (let group of this.layerGroups) {
+            if (!group.children) continue;
+            const idx = group.children.indexOf(layer);
+            if (idx >= 0) {
+              group.children.splice(idx, 1);
+              this.selectedLayer = undefined;
+              this.layerTree.refresh();
+            }
+          }
+        },(error) => {
+          console.log('there was an error sending the query', error);
+        });
+      }
+    });
+  }
+
+  removeGroup(group: LayerGroup){
+    const dialogRef = this.dialog.open(RemoveDialogComponent, {
+      width: '420px',
+      data: {
+        title: $localize`Die Layergruppe wirklich entfernen?`,
+        confirmButtonText: $localize`Layergruppe entfernen`,
+        message: (group.children && group.children.length > 0) ? `Achtung: Die Layergruppe enthält ${group.children.length} Layer, die bei der Entfernung der Gruppe ebenfalls dauerhaft entfernt werden.`: '',
+        value: group.name
+      }
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.http.delete(`${this.rest.URLS.layerGroups}${group.id}/`
+        ).subscribe(res => {
+          const idx = this.layerGroups.indexOf(group);
+          if (idx >= 0) {
+            this.layerGroups.splice(idx, 1);
+            this.selectedGroup = undefined;
+            this.layerTree.refresh();
+          }
+        },(error) => {
+          console.log('there was an error sending the query', error);
+        });
+      }
+    });
+
   }
 
   ngOnDestroy(): void {

@@ -155,7 +155,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
           panelClass: 'warning'
         });
         dialogRef.afterClosed().subscribe((confirmed: boolean) => {
-          if (confirmed === true) {
+          if (confirmed) {
             postAgeGroups();
           }
         });
