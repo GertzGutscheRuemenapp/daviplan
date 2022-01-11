@@ -1,7 +1,8 @@
 from rest_framework import serializers
+from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from .models import (Mode, ModeVariant,
-                     #ReachabilityMatrix,
+from .models import (Mode, ModeVariant, Stop,
+                     # ReachabilityMatrix,
                      Router, Indicator)
 
 
@@ -21,6 +22,13 @@ class ModeVariantSerializer(serializers.ModelSerializer):
     # class Meta:
         #model = ReachabilityMatrix
         #fields = ('id', 'from_cell', 'to_cell', 'variant', 'minutes')
+
+class StopSerializer(GeoFeatureModelSerializer):
+    class Meta:
+        model = Stop
+        geo_field = 'geom'
+        fields = ('id', 'name')
+
 
 class RouterSerializer(serializers.ModelSerializer):
     class Meta:

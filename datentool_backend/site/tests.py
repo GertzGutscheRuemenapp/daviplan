@@ -30,8 +30,8 @@ class TestBaseDataSetting(SingletonWriteOnlyWithCanEditBaseDataTest,
     url_key = "basedatasettings"
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         cls.area_level1 = AreaLevelFactory(order=2)
         cls.area_level2 = AreaLevelFactory(order=3)
         cls.obj = BaseDataSettingFactory(default_pop_area_level=cls.area_level1)
@@ -50,8 +50,8 @@ class TestProjectSetting(SingletonWriteOnlyWithAdminAccessTest,
     factory = ProjectSettingFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
 
         ewkt = 'SRID=4326;MULTIPOLYGON (\
 ((0 0, 0 2, 2 2, 2 0, 0 0)),\
@@ -89,8 +89,8 @@ class TestSiteSetting(_TestAPI, BasicModelSingletonTest, APITestCase):
     factory = SiteSettingFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
 
         file = io.BytesIO()
         image = Image.new('RGBA', size=(100, 100), color=(155, 0, 0))

@@ -65,8 +65,8 @@ class TestInfrastructureAPI(WriteOnlyWithAdminAccessTest,
     factory = InfrastructureFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         infrastructure: Infrastructure = cls.obj
         editable_by = list(infrastructure.editable_by.all().values_list(flat=True))
         accessible_by = list(infrastructure.accessible_by.all().values_list(flat=True))
@@ -184,8 +184,8 @@ class TestServiceAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         service: Service = cls.obj
         infrastructure = service.infrastructure.pk
         editable_by = list(service.editable_by.all().values_list(flat=True))
@@ -214,8 +214,8 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = PlaceFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         place: Place = cls.obj
         infrastructure = place.infrastructure.pk
         geom = place.geom.ewkt
@@ -245,8 +245,8 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
     #factory = ScenarioPlaceFactory
 
     #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
+    #def setUpTestData(cls):
+        #super().setUpTestData()
         #scenarioplace: ScenarioPlace = cls.obj
         #infrastructure = scenarioplace.infrastructure.pk
         #geom = scenarioplace.geom.ewkt
@@ -280,8 +280,8 @@ class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,
     url_key = "capacities"
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         infrastructure = InfrastructureFactory()
         capacity = CapacityFactory(place__infrastructure=infrastructure,
                                    service__infrastructure=infrastructure)
@@ -303,8 +303,8 @@ class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,
     #factory = ScenarioCapacityFactory
 
     #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
+    #def setUpTestData(cls):
+        #super().setUpTestData()
         #scenariocapacity: ScenarioCapacity = cls.obj
         #place = scenariocapacity.place.pk
         #service = scenariocapacity.service.pk
@@ -325,8 +325,8 @@ class TestFieldTypeNUMSTRAPI(WriteOnlyWithCanEditBaseDataTest,
     url_key = "fieldtypes"
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         cls.obj = FieldTypeFactory(field_type=FieldTypes.NUMBER)
         data = dict(field_type=FieldTypes.NUMBER,
                     name=faker.word(),
@@ -342,8 +342,8 @@ class TestFieldTypeCLAAPI(WriteOnlyWithCanEditBaseDataTest,
     url_key = "fieldtypes"
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         cls.obj = FieldTypeFactory(field_type=FieldTypes.CLASSIFICATION)
         #fclasses = [FClassFactory(classification=cls.obj),
                     #FClassFactory(classification=cls.obj)]
@@ -408,8 +408,8 @@ class TestFClassAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = FClassFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
 
         fclass: FClass = cls.obj
         classification = fclass.classification.pk
@@ -428,8 +428,8 @@ class TestPlaceFieldAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = PlaceFieldFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
 
         placefield: PlaceField = cls.obj
         infrastructure = placefield.infrastructure.pk

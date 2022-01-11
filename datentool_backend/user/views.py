@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions
 from django.db.models import Q
 from django.contrib.auth.models import User
-from datentool_backend.utils.views import HasAdminAccessOrReadOnly
+from datentool_backend.utils.views import HasAdminAccessOrReadOnly, ProtectCascadeMixin
 from .serializers import (UserSerializer, PlanningProcessSerializer,
                           ScenarioSerializer)
 from .models import PlanningProcess, Scenario, Profile
@@ -37,20 +37,25 @@ class CanCreateProcessPermission(permissions.BasePermission):
             return request.user.profile.can_create_process
 
     def has_object_permission(self, request, view, obj):
-        if request.method in ('GET'):
+        if request.method in permissions.SAFE_METHODS:
+            return (request.user.profile == obj.owner or
+                    request.user.profile in obj.users.all())
+        else:
             owner = obj.owner
             return request.user.profile == owner
 
 
-
-class PlanningProcessViewSet(viewsets.ModelViewSet):
+class PlanningProcessViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = PlanningProcess.objects.all()
     serializer_class = PlanningProcessSerializer
     permission_classes = [permissions.IsAuthenticated & CanCreateProcessPermission]
 
     def get_queryset(self):
         qs = super().get_queryset()
-        return qs.filter(owner=self.request.user.profile)
+        condition_user_in_user = Q(users__in=[self.request.user.profile])
+        condition_owner_in_user = Q(owner=self.request.user.profile)
+        return qs.filter(condition_user_in_user |
+                         condition_owner_in_user).distinct()
 
 
 class CanEditScenarioPermission(permissions.BasePermission):
@@ -77,7 +82,7 @@ class CanEditScenarioPermission(permissions.BasePermission):
         return owner_is_user or (allow_shared_change and user_in_users)
 
 
-class ScenarioViewSet(viewsets.ModelViewSet):
+class ScenarioViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Scenario.objects.all()
     serializer_class = ScenarioSerializer
     permission_classes = [CanEditScenarioPermission]

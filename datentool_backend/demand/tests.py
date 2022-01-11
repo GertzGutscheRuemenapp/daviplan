@@ -26,8 +26,8 @@ class TestDemandRateSetAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = DemandRateSetFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         demandrateset: DemandRateSet = cls.obj
         service = demandrateset.service.pk
 
@@ -44,8 +44,8 @@ class TestDemandRateAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = DemandRateFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         demandrate: DemandRate = cls.obj
         year = demandrate.year.pk
         age_group = demandrate.age_group.pk
@@ -64,8 +64,8 @@ class TestDemandRateAPI(WriteOnlyWithCanEditBaseDataTest,
     #factory = ScenarioDemandRateFactory
 
     #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
+    #def setUpTestData(cls):
+        #super().setUpTestData()
         #scenariodemandrate: ScenarioDemandRate= cls.obj
         #year = scenariodemandrate.year.pk
         #age_group = scenariodemandrate.age_group.pk

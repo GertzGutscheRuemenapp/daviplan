@@ -2,11 +2,12 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from datentool_backend.base import NamedModel
+from datentool_backend.base import NamedModel, DatentoolModelMixin
+from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 #from datentool_backend.infrastructure.models import Place, Capacity
 
 
-class Profile(models.Model):
+class Profile(DatentoolModelMixin, models.Model):
     '''
     adds additional user information
     '''
@@ -32,7 +33,7 @@ def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
 
 
-class PlanningProcess(NamedModel, models.Model):
+class PlanningProcess(DatentoolModelMixin, NamedModel, models.Model):
     '''
     Basic Project Information
     '''
@@ -47,10 +48,11 @@ class PlanningProcess(NamedModel, models.Model):
         """set of infrastructures"""
 
 
-class Scenario(NamedModel, models.Model):
+class Scenario(DatentoolModelMixin, NamedModel, models.Model):
     """BULE-Scenario"""
     name = models.TextField()
-    planning_process = models.ForeignKey(PlanningProcess, on_delete=models.RESTRICT)
+    planning_process = models.ForeignKey(PlanningProcess,
+                                         on_delete=PROTECT_CASCADE)
 
     @property
     def demand(self):

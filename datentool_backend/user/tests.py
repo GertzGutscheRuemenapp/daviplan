@@ -1,14 +1,14 @@
+from unittest import skip
 from django.test import TestCase
 from test_plus import APITestCase
-from django.contrib.gis.geos import Polygon
-from collections import OrderedDict
+from typing import List, Set
 
-from datentool_backend.api_test import (BasicModelTest)
+from datentool_backend.api_test import (BasicModelTest, LoginTestCase)
 from datentool_backend.area.tests import _TestAPI
 
 from .factories import (ProfileFactory, UserFactory, User,
                         PlanningProcessFactory, ScenarioFactory)
-from .models import PlanningProcess, Scenario
+from .models import PlanningProcess, Scenario, Profile
 
 from faker import Faker
 faker = Faker('de-DE')
@@ -19,76 +19,160 @@ class PostOnlyWithCanCreateProcessTest:  # ToDo test get, if user is not owner
 
     def test_delete(self):
         """Test delete with and without can_create_process"""
-        self.profile.can_create_process = True
-        self.profile.save()
-        self._test_delete_forbidden()
         self.profile.can_create_process = False
         self.profile.save()
         self._test_delete_forbidden()
+        self.profile.can_create_process = True
+        self.profile.save()
+        self._test_delete()
 
     def test_post(self):
         """Test post with and without can_edit_basedata permissions"""
-        self.profile.can_create_process = True
-        self.profile.save()
-        self._test_post()
         self.profile.can_create_process = False
         self.profile.save()
         self._test_post_forbidden()
-
-    def test_put_patch(self):
-        """Test post with and without can_edit_basedata permissions"""
         self.profile.can_create_process = True
         self.profile.save()
-        self._test_put_patch_forbidden()
+        self._test_post()
+
+    def test_put_patch(self):
+        """Test put/patch with and without can_edit_basedata permissions"""
         self.profile.can_create_process = False
         self.profile.save()
         self._test_put_patch_forbidden()
+        self.profile.can_create_process = True
+        self.profile.save()
+        self._test_put_patch()
 
     def test_is_logged_in(self):
         """Test read, if user is authenticated"""
         self.client.logout()
         response = self.get(self.url_key + '-list')
-        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+        self.response_302 or self.assert_http_401_unauthorized(
+            response, msg=response.content)
 
         self.client.force_login(user=self.profile.user)
 
         self.test_list()
         self.test_detail()
 
-    def test_user_not_owner(self):
+    def test_user_not_owner_post(self):
         """Test, no post permission if user is not owner"""
         # Request user profile is the owner and profile can_create_process
         self.profile.can_create_process = True
         self.profile.save()
+        profile2 = ProfileFactory(can_create_process=True)
 
-        self.patch_data['owner'] = self.obj.owner.pk
-        self.patch_data['owner'] = self.obj.owner.pk
         self.post_data['owner'] = self.obj.owner.pk
+        self._test_post()
 
+        self.post_data['owner'] = profile2.pk
+        self._test_post_forbidden()
+
+    def test_user_not_owner_putpatch(self):
+        """Test, no put/patch permission if user is not owner"""
+        # Request user profile is the owner and profile can_create_process
+        self.profile.can_create_process = True
+        self.profile.save()
+        profile2 = ProfileFactory(can_create_process=True)
+
+        self.client.logout()
+        self.client.force_login(user=profile2.user)
+        self._test_post_forbidden()
+        self.client.logout()
+
+        self.client.force_login(user=self.profile.user)
+        self._test_put_patch()
+
+    def test_user_not_owner_delete(self):
+        """Test, no delete permission if user is not owner"""
+        # Request user profile is the owner and profile can_create_process
+        planning_process = self.obj
+        self.profile.can_create_process = True
+        self.profile.save()
+
+        # create a second user who can create processes
+        profile2 = ProfileFactory(can_create_process=True)
+        # add him to the users of the planning_process
+        # (otherwise) the process is not visible
+        planning_process.users.add(profile2)
+
+        # login as profile2
+        self.client.logout()
+        self.client.force_login(user=profile2.user)
+        # this should be forbidden, because profile2 is in
+        # planning_process.users, but not the owner
         self._test_delete_forbidden()
-        super()._test_put_patch_forbidden()
-        super()._test_post()
+        self.client.logout()
 
-        # test_get
-        url = self.url_key + '-detail'
-        kwargs = self.kwargs
-        response = self.get(url, **kwargs)
-        self.response_200(msg=response.content)
+        # this should word, because profile2 is in
+        # planning_process.users, but not the owner
+        self.client.force_login(user=self.profile.user)
+        self.test_delete()
 
-         # Request user profile is not the owner and profile can_create_process
-        self.put_data['owner'] = self.obj3.owner.pk
-        self.patch_data['owner'] = self.obj3.owner.pk
-        self.post_data['owner'] = self.obj3.owner.pk
 
-        self._test_delete_forbidden()
-        super()._test_put_patch_forbidden()
-        super()._test_post_forbidden()
-        # test_get
-        #url = self.url_key + '-detail'
-        #kwargs = self.kwargs
-        #response = self.get(url, **kwargs)
-        # self.response_403(msg=response.content)
+    def test_user_not_owner_or_in_users_get(self):
+        """Test, no get permission if user is not owner or in users"""
 
+        def _test_get_list_and_detail(self,
+                                      current_profile: Profile,
+                                      all_pp_ids: Set[int]):
+
+            def get_owner_or_user_ids(profile: Profile) -> List[int]:
+                owner = profile.planningprocess_set.all()
+                users = profile.shared_with_users.all()
+                owner_or_user = (owner | users).distinct()
+                return owner_or_user.values_list('id', flat=True)
+
+            # test_get list
+            url = self.url_key + '-list'
+            url_detail = self.url_key + '-detail'
+
+
+            self.client.force_login(user=current_profile.user)
+            # List view
+            response = self.get(url)
+            self.response_200(msg=response.content)
+            # the ids of the visible planning processes
+            response_ids = [p['id'] for p in response.data]
+            #  the planning_process-ids where the user is owner or in users
+            pp_ids = get_owner_or_user_ids(current_profile)
+            #  compare
+            self.assertQuerysetEqual(pp_ids, response_ids, ordered=False)
+            #  check if detail-view for all visible planning_processes work
+            for pp_id in pp_ids:
+                response = self.get(url_detail, pk=pp_id)
+                self.response_200(msg=response.content)
+            #  check if detail-view for all non-visible planning_processes fail
+            for pp_id in all_pp_ids - set(pp_ids):
+                response = self.get(url_detail, pk=pp_id)
+                self.response_404(msg=response.content)
+            self.client.logout()
+
+        self.client.logout()
+        # create more profiles
+        profile1 = self.profile
+        profile2 = ProfileFactory(can_create_process=False, admin_access=False)
+        profile3 = ProfileFactory(can_create_process=False, admin_access=False)
+        profile4 = ProfileFactory(can_create_process=False, admin_access=False)
+
+        #  assign the profiles to some new planning processes
+        pp1 = PlanningProcessFactory(owner=profile1)
+        pp1.users.set([profile1, profile3])
+        pp2 = PlanningProcessFactory(owner=profile1)
+        pp2.users.set([profile2, profile3])
+        pp3 = PlanningProcessFactory(owner=profile1)
+        pp1.users.set([profile3])
+
+        # get all planning professes
+        all_pp_ids = set(
+            PlanningProcess.objects.all().values_list('id', flat=True))
+
+        #  check the permissions for each profile
+        for profile in [profile1, profile2, profile3, profile4]:
+            _test_get_list_and_detail(self, profile, all_pp_ids)
+
+        self.client.force_login(user=self.profile.user)
 
 
 class TestProfile(TestCase):
@@ -116,8 +200,8 @@ class TestPlanningProcessAPI(PostOnlyWithCanCreateProcessTest,
     url_key = "planningprocesses"
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         cls.user2 = ProfileFactory()  # second user to extend test_project_creation_permission
         cls.user3 = ProfileFactory()  # third user to extend test_project_creation_permission
 
@@ -152,6 +236,52 @@ class TestPlanningProcessAPI(PostOnlyWithCanCreateProcessTest,
         del cls.obj3
         super().tearDownClass()
 
+
+class TestPlanningProcessProtectCascade(_TestAPI, LoginTestCase, APITestCase):
+    url_key = "planningprocesses"
+
+    def test_protection_of_referenced_objects(self):
+        """
+        Test if the deletion of an object fails, if there are related objects
+        using on_delete=PROTECT_CASCADE and we use use_protection=True
+        """
+        self.profile.can_create_process = True
+        self.profile.save()
+        planning_process = PlanningProcessFactory(owner=self.profile)
+        scenario = ScenarioFactory(planning_process=planning_process)
+        kwargs = dict(pk=planning_process.pk)
+        url = self.url_key + '-detail'
+        response = self.get_check_200(url, **kwargs)
+
+        response = self.delete(url, **kwargs)
+        self.response_403(msg=response.content)
+        scenario.delete()
+        response = self.delete(url, **kwargs)
+        self.response_204(msg=response.content)
+
+
+    def test_without_protection_of_referenced_objects(self):
+        """
+        Test if the deletion of an object works, if there are related objects
+        using on_delete=PROTECT_CASCADE and we use use_protection=False
+        """
+        self.profile.can_create_process = True
+        self.profile.save()
+        planning_process = PlanningProcessFactory(owner=self.profile)
+        scenario = ScenarioFactory(planning_process=planning_process)
+        kwargs = dict(pk=planning_process.pk)
+        url = self.url_key + '-detail'
+        response = self.get_check_200(url, **kwargs)
+
+        #  with override_protection=True it should fail
+        response = self.delete(url, data=dict(override_protection=False), **kwargs)
+        self.response_403(msg=response.content)
+
+        #  with override_protection=True it should work
+        response = self.delete(url, data=dict(override_protection=True), **kwargs)
+        self.response_204(msg=response.content)
+        #  assert that the referenced scenario is deleted
+        self.assertEqual(Scenario.objects.count(), 0)
 
 #class EditScenarioPermissionTest:
     #"""Permission test for ScenarioViewSet"""
@@ -204,8 +334,8 @@ class TestScenarioAPI(_TestAPI, BasicModelTest, APITestCase):
     url_key = "scenarios"
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         cls.obj = ScenarioFactory(planning_process__owner=cls.profile)
 
         scenario: Scenario = cls.obj

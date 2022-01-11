@@ -197,8 +197,8 @@ class TestCapacityUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestAPI, Ba
     factory = CapacityUploadLogFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         capacityuploadlog: CapacityUploadLog = cls.obj
         service = capacityuploadlog.service.pk
         user = capacityuploadlog.user.pk
@@ -216,8 +216,8 @@ class TestPlaceUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestAPI, Basic
     factory = PlaceUploadLogFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         placeuploadlog: PlaceUploadLog = cls.obj
         infrastructure = placeuploadlog.infrastructure.pk
         user = placeuploadlog.user.pk
@@ -235,8 +235,8 @@ class TestAreaUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestAPI, BasicM
     factory = AreaUploadLogFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         areauploadlog: AreaUploadLog = cls.obj
         level = areauploadlog.level.pk
         user = areauploadlog.user.pk
