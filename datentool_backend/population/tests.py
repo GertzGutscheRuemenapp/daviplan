@@ -10,7 +10,7 @@ from datentool_backend.area.tests import (_TestAPI, _TestPermissions)
 from .models import (PrognosisEntry, Year, PopulationRaster, PopulationEntry,
                      PopStatistic, PopStatEntry, DisaggPopRaster,
                      Prognosis, Population)
-from .factories import (RasterCellFactory, AgeGroupFactory,
+from .factories import (YearFactory, RasterCellFactory, AgeGroupFactory,
                         GenderFactory, PopulationFactory, DisaggPopRasterFactory,
                         RasterCellPopulationAgeGenderFactory, PrognosisEntryFactory,
                         AreaFactory, PrognosisFactory, PopStatEntryFactory,
@@ -26,9 +26,11 @@ class TestPopulation(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.years = Year.objects.bulk_create([Year(year=y) for y in range(2010, 2015)],
-                                              return_queryset=True)
-        #cls.years = Year.objects.all()
+        cls.years = Year.objects.bulk_create([Year(year=y)
+                                              for y in range(2010, 2015)],
+                                              #return_queryset=True,
+                                              )
+        cls.years = Year.objects.all()
         cls.cell = RasterCellFactory()
         cls.genders = [GenderFactory() for i in range(3)]
         cls.disagg_popraster = DisaggPopRasterFactory(genders=cls.genders)
@@ -80,6 +82,21 @@ class TestPopulation(TestCase):
         pop = PopulationFactory(genders=self.genders)
         self.assertQuerysetEqual(
             pop.genders.all(), self.genders, ordered=False)
+
+
+class TestYearAPI(WriteOnlyWithCanEditBaseDataTest,
+                    _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+    """"""
+    url_key = "years"
+    factory = YearFactory
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+
+        cls.post_data = dict(year=1990)
+        cls.put_data = dict(year=1995)
+        cls.patch_data = dict(year=2000)
 
 
 class TestRasterAPI(WriteOnlyWithCanEditBaseDataTest,

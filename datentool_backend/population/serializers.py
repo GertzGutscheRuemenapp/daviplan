@@ -1,9 +1,15 @@
 from rest_framework import serializers
 #from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from .models import (Raster, PopulationRaster, Gender, AgeGroup, DisaggPopRaster,
+from .models import (Year, Raster, PopulationRaster, Gender, AgeGroup, DisaggPopRaster,
                      Prognosis, PrognosisEntry, Population, PopulationEntry,
                      PopStatistic, PopStatEntry)
+
+
+class YearSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Year
+        fields = ('id', 'year')
 
 
 class RasterSerializer(serializers.ModelSerializer):

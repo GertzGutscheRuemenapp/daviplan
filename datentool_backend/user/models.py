@@ -7,7 +7,7 @@ from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 #from datentool_backend.infrastructure.models import Place, Capacity
 
 
-class Profile(models.Model):
+class Profile(DatentoolModelMixin, models.Model):
     '''
     adds additional user information
     '''
@@ -48,7 +48,7 @@ class PlanningProcess(DatentoolModelMixin, NamedModel, models.Model):
         """set of infrastructures"""
 
 
-class Scenario(NamedModel, models.Model):
+class Scenario(DatentoolModelMixin, NamedModel, models.Model):
     """BULE-Scenario"""
     name = models.TextField()
     planning_process = models.ForeignKey(PlanningProcess,
