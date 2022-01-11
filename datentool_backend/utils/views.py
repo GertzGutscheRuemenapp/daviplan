@@ -35,6 +35,39 @@ class SingletonViewSet(viewsets.ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
 
 
+class ProtectCascadeMixin:
+    def destroy(self, request, **kwargs):
+        """
+        try to delete an object. If it is protected,
+        because of referencing objects, only delete, if
+        override_protection is provided in the request-data or the query_params
+        """
+        # param to override protection may be in the url or inside the form data
+        override_protection = request.query_params.get(
+            'override_protection', False) or request.data.get(
+            'override_protection', False)
+        self.use_protection = override_protection not in ('true', 'True', True)
+        try:
+            response = super().destroy(request, **kwargs)
+        except ProtectedError as err:
+            qs = err.protected_objects
+            show = 5
+            n_objects = qs.count()
+            msg_n_referenced = '{} {}:'.format(n_objects,
+                                               _('Referencing Object(s)')
+                                               )
+            msg = '<br/>'.join(list(err.args[:1]) +
+                               [msg_n_referenced] +
+                               [repr(row).strip('<>') for row in qs[:show]] +
+                               ['...' if n_objects > show else '']
+                               )
+            return HttpResponseForbidden(content=msg)
+        return response
+
+    def perform_destroy(self, instance):
+        instance.delete(use_protection=self.use_protection)
+
+
 class PostGetViewMixin:
     """
     mixin for querying resources with POST method to be able to put parameters
@@ -255,166 +288,6 @@ class CasestudyViewSetMixin(CasestudyReadOnlyViewSetMixin):
                 response.write(content)
                 return response
         return super().list(request, **kwargs)
-
-
-class CheckPermissionMixin:
-
-    def check_permission(self, request, permission_name):
-        """
-        Check if the user has the right permission for the request. If not:
-        Throw PermissionDenied() exception
-        """
-        # get permission code for the model
-        app_label = self.serializer_class.Meta.model._meta.app_label
-        view_name = self.serializer_class.Meta.model._meta.object_name
-        permission = '{}.{}_{}'.format(app_label.lower(),
-                                       permission_name,
-                                       view_name.lower())
-        # check if user has the required permission
-        if not request.user.has_perm(permission):
-            raise exceptions.PermissionDenied()
-
-
-class ModelReadPermissionMixin(CheckPermissionMixin):
-
-    def list(self, request, **kwargs):
-        """
-        Check if user is permitted for list view.
-        """
-        self.check_permission(request, 'view')
-        return super().list(request, **kwargs)
-
-    def retrieve(self, request, **kwargs):
-        """
-        Check if user is permitted for detail view.
-        """
-        self.check_permission(request, 'view')
-        return super().retrieve(request, **kwargs)
-
-
-class ModelWritePermissionMixin(CheckPermissionMixin):
-
-    def create(self, request, **kwargs):
-        """
-        Check if user is permitted to create this object.
-        """
-        self.check_permission(request, 'add')
-        return super().create(request, **kwargs)
-
-    def destroy(self, request, **kwargs):
-        """
-        Check if user is permitted to destroy the object.
-        """
-        # param to override protection may be in the url or inside the form data
-        override_protection = request.query_params.get(
-            'override_protection', False) or request.data.get(
-            'override_protection', False)
-        self.use_protection = override_protection not in ('true', 'True', True)
-        self.check_permission(request, 'delete')
-        try:
-            response = super().destroy(request, **kwargs)
-        except ProtectedError as err:
-            qs = err.protected_objects
-            show = 5
-            n_objects = qs.count()
-            msg_n_referenced = '{} {}:'.format(n_objects,
-                                               _('Referencing Object(s)')
-                                               )
-            msg = '<br/>'.join(list(err.args[:1]) +
-                               [msg_n_referenced] +
-                               [repr(row).strip('<>') for row in qs[:show]] +
-                               ['...' if n_objects > show else '']
-                               )
-            return HttpResponseForbidden(content=msg)
-        return response
-
-    def perform_destroy(self, instance):
-        instance.delete(use_protection=self.use_protection)
-
-    def update(self, request, **kwargs):
-        """
-        Check if user is permitted to update the object.
-        """
-        self.check_permission(request, 'change')
-        return super().update(request, **kwargs)
-
-    def partial_update(self, request, **kwargs):
-        """
-        Check if user is permitted to partial_update the object.
-        """
-        self.check_permission(request, 'change')
-        return super().partial_update(request, **kwargs)
-
-
-class ModelPermissionViewSet(ModelReadPermissionMixin,
-                             ModelWritePermissionMixin,
-                             viewsets.ModelViewSet):
-    """
-    Check if a user has the required permissions for create(), delete(),
-    update(), retrieve() and list(). Throw exceptions.PermissionDenied() if
-    permission is missing.
-    """
-
-class ReadUpdateViewSet(mixins.RetrieveModelMixin,
-                        mixins.UpdateModelMixin,
-                        mixins.ListModelMixin,
-                        viewsets.GenericViewSet):
-    """
-    A viewset that provides default `retrieve()`, `update()`,
-    `partial_update()`,  and `list()` actions.
-    No `create()` or `destroy()`
-    """
-
-
-class ReadUpdatePermissionViewSet(mixins.RetrieveModelMixin,
-                                  mixins.UpdateModelMixin,
-                                  mixins.ListModelMixin,
-                                  viewsets.GenericViewSet):
-    """
-    Check if a user has the required permissions for update(), retrieve() and
-    list(). Throw exceptions.PermissionDenied() if permission is missing.
-    """
-    def check_permission(self, request, permission_name):
-        """
-        Check if the user has the right permission for the request. If not:
-        Throw PermissionDenied() exception
-        """
-        # get permission code for the model
-        app_label = self.serializer_class.Meta.model._meta.app_label
-        view_name = self.serializer_class.Meta.model._meta.object_name
-        permission = '{}.{}_{}'.format(app_label.lower(),
-                                       permission_name, view_name.lower())
-        # check if user has the required permission
-        if not request.user.has_perm(permission):
-            raise exceptions.PermissionDenied()
-
-    def list(self, request, **kwargs):
-        """
-        Check if user is permitted for list view.
-        """
-        self.check_permission(request, 'view')
-        return super().list(request, **kwargs)
-
-    def retrieve(self, request, **kwargs):
-        """
-        Check if user is permitted for detail view.
-        """
-        self.check_permission(request, 'view')
-        return super().retrieve(request, **kwargs)
-
-    def update(self, request, **kwargs):
-        """
-        Check if user is permitted to update the object.
-        """
-        self.check_permission(request, 'change')
-        return super().update(request, **kwargs)
-
-    def partial_update(self, request, **kwargs):
-        """
-        Check if user is permitted to partial_update the object.
-        """
-        self.check_permission(request, 'change')
-        return super().partial_update(request, **kwargs)
 
 
 class HasAdminAccessOrReadOnly(permissions.BasePermission):
