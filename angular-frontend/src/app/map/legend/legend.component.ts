@@ -1,37 +1,7 @@
 import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
-import { MapControl, MapService, MapLayer } from "../map.service";
-
-const mockLayerGroups: Record<string, { info?: string, layers: any[] }> = {
-  // Leistungen: [
-  //   { name: 'Kita', checked: true },
-  //   { name: 'Krippe', checked: true },
-  // ],
-  Standorte: {
-    info: '',
-    layers: [
-      { name: 'Schulen', checked: false, color: 'grey', symbol: 'dot' },
-      { name: 'Feuerwehr', checked: true, color: 'red', symbol: 'dot' },
-      { name: 'Kinderbeutreuung', checked: false, color: 'lightblue', symbol: 'dot' },
-      { name: 'Ärzte', checked: true, color: 'lightgreen', symbol: 'dot' },
-    ]
-  },
-  Gebietsgrenzen: {
-    info: '',
-    layers: [
-      { name: 'Gemeinden', checked: false, color: 'orange', symbol: 'line' },
-      { name: 'Kreise', checked: true, color: 'yellow', symbol: 'line' },
-      { name: 'Verwaltungsgemeinschaften', checked: false, color: 'red', symbol: 'line' },
-      { name: 'Bundesländer', checked: false, color: 'black', symbol: 'line' },
-    ]
-  },
-  Ökologie: {
-    info: '',
-    layers: [
-      { name: 'Wälder', checked: false },
-      { name: 'Gewässer', checked: false }
-    ]
-  }
-}
+import { MapControl, MapService } from "../map.service";
+import { LayerGroup, Layer } from "../../pages/basedata/external-layers/external-layers.component";
+import { HttpClient } from "@angular/common/http";
 
 @Component({
   selector: 'app-legend',
@@ -45,9 +15,9 @@ export class LegendComponent implements AfterViewInit {
   mapControl!: MapControl;
   activeBackground?: number;
   backgroundOpacity = 1;
-  backgroundLayers: MapLayer[] = [];
-  layerGroups = mockLayerGroups;
-  activeGroups: string[] = [];
+  backgroundLayers: Layer[] = [];
+  layerGroups: LayerGroup[] = [];
+  activeGroups: LayerGroup[] = [];
   editMode: boolean = true;
   Object = Object;
 
@@ -61,15 +31,23 @@ export class LegendComponent implements AfterViewInit {
 
   initSelect(): void {
     this.backgroundLayers = this.mapControl.getBackgroundLayers();
+    this.mapService.getLayers().subscribe(groups => {
+      this.layerGroups = groups;
+    })
     this.activeBackground = this.backgroundLayers[0].id;
     this.mapControl.setBackground(this.activeBackground);
     this.filterActiveGroups();
     this.cdRef.detectChanges();
   }
 
+  onLayerToggle(layer: Layer): void {
+    layer.checked = !layer.checked;
+    this.mapControl.toggleLayer(layer.id, layer.checked);
+  }
+
   // ToDo: use template filter
   filterActiveGroups(): void {
-    this.activeGroups = Object.keys(this.layerGroups).filter(g => this.layerGroups[g].layers.filter(l => l.checked).length > 0);
+    // this.activeGroups = Object.keys(this.layerGroups).filter(g => this.layerGroups[g].layers.filter(l => l.checked).length > 0);
   }
 
   opacityChanged(id: number, value: number | null): void {

@@ -27,7 +27,8 @@ export interface Layer {
   url: string,
   name: string,
   layerName: string,
-  description: string
+  description: string,
+  checked?: boolean
 }
 
 function isLayer(obj: any): obj is Layer{
@@ -205,6 +206,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         group.children = [];
         this.layerGroups.push(group);
         this.layerTree.refresh();
+        this.mapService.fetchLayers();
         this.layerTree.select(group);
         dialogRef.close();
       },(error) => {
@@ -244,6 +246,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         const group = this.getGroup(layer.group);
         group?.children?.push(layer);
         this.layerTree.refresh();
+        this.mapService.fetchLayers();
         this.layerTree.select(layer);
         dialogRef.close();
       },(error) => {
@@ -313,6 +316,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
               group.children.splice(idx, 1);
               this.selectedLayer = undefined;
               this.layerTree.refresh();
+              this.mapService.fetchLayers();
             }
           }
         },(error) => {
@@ -341,6 +345,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
             this.layerGroups.splice(idx, 1);
             this.selectedGroup = undefined;
             this.layerTree.refresh();
+            this.mapService.fetchLayers();
           }
         },(error) => {
           console.log('there was an error sending the query', error);

@@ -20,25 +20,22 @@
     </button>
   </div>
   <div class="legend-body">
-    <div *ngFor="let group of Object.keys(layerGroups)">
+    <div *ngFor="let group of layerGroups">
       <mat-expansion-panel [style.display]="editMode || (activeGroups.indexOf(group) >= 0) ? '': 'none'" expanded>
         <mat-expansion-panel-header>
           <mat-panel-title>
-            {{group}}
+            {{group.name}}
           </mat-panel-title>
         </mat-expansion-panel-header>
-  <!--      <div class="legend-entry" *ngIf="editMode">
-          <div class="legend-layer-control" style="text-transform: uppercase; margin-left: auto; color: #00000061;" i18n>Anzeige</div>
-        </div>-->
-        <div *ngFor="let layer of layerGroups[group].layers">
+        <div *ngFor="let layer of group.children">
           <div class="legend-entry" [ngClass]="{'checked': layer.checked}"
                                     *ngIf="editMode || layer.checked">
-            <div class="symbol" [style.background]="layer.color || 'white'" [class]="layer.symbol"></div>
+<!--            <div class="symbol" [style.background]="layer.color || 'white'" [class]="layer.symbol"></div>-->
             <div class="legend-layer-title" [title]=layer.name>{{ layer.name }}</div>
             <div class="legend-layer-control" *ngIf="editMode">
-              <mat-checkbox color="primary" [checked]="layer.checked"
-                                            (change)="layer.checked = !layer.checked; filterActiveGroups();"
-                                            title="Layer anzeigen/verstecken">
+              <mat-checkbox color="primary" [checked]="layer.checked || false"
+                            (change)="onLayerToggle(layer)"
+                            title="Layer anzeigen/verstecken">
               </mat-checkbox>
               <mat-slider aria-label="Transparenz" color="primary"
                           [disabled]="!layer.checked"
