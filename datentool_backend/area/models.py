@@ -30,6 +30,7 @@ class LayerGroup(NamedModel, models.Model):
 class Layer(NamedModel, models.Model):
     """a generic layer"""
     name = models.TextField()
+    active =  models.BooleanField(default=False)
     group = models.ForeignKey(LayerGroup, on_delete=models.RESTRICT)
     layer_name = models.TextField()
     order = models.IntegerField(default=0)

@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
-import { CheckTreeComponent } from "../../../elements/check-tree/check-tree.component";
+import { CheckTreeComponent, TreeItemNode } from "../../../elements/check-tree/check-tree.component";
 import { MapControl, MapService } from "../../../map/map.service";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
@@ -28,6 +28,7 @@ export interface Layer {
   name: string,
   layerName: string,
   description: string,
+  active?: boolean,
   checked?: boolean
 }
 
@@ -76,7 +77,13 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.fetchLayerGroups().subscribe(res => {
       this.fetchLayers().subscribe(res => {
-        this.layerTree.setItems(this.layerGroups);
+        const items: TreeItemNode[] = this.layerGroups.map(group => { return {
+          id: group.id,
+          name: group.name,
+          children: group.children? group.children.map(layer => { return {
+            id: layer.id, name: layer.name, checked: layer.active } }): [] }
+        })
+        this.layerTree.setItems(items);
       })
     })
     this.layerTree.addItemClicked.subscribe(node => {
@@ -84,9 +91,12 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       if (!parent) return;
       this.addLayer(parent);
     })
-    this.layerTree.selected.subscribe(node => {
+    this.layerTree.itemSelected.subscribe(node => {
       this.selectedLayer = (node.expandable) ? undefined : this.getLayer(node.id);
       this.selectedGroup = (node.expandable) ? this.getGroup(node.id) : undefined;
+    })
+    this.layerTree.itemChecked.subscribe(evt => {
+      this.toggleActive(this.getLayer(evt.item.id)!, evt.checked);
     })
     this.mapControl = this.mapService.get('base-layers-map');
     this.setupLayerGroupCard();
@@ -107,6 +117,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   fetchLayers(): Observable<Layer[]> {
     const query = this.http.get<Layer[]>(this.rest.URLS.layers);
     query.subscribe((layers) => {
+      layers = sortBy(layers, 'order');
       layers.forEach(layer => {
         const group = this.getGroup(layer.group);
         if (group) {
@@ -140,6 +151,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       ).subscribe(group => {
         this.selectedGroup!.name = group.name;
         this.layerTree.refresh();
+        this.mapService.fetchLayers();
         this.layerGroupCard?.closeDialog(true);
       },(error) => {
         // ToDo: set specific errors to fields
@@ -389,6 +401,13 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
 
     this.patchOrder(array);
   }
+
+  toggleActive(layer: Layer, active: boolean): void {
+    this.http.patch<Layer>(`${this.rest.URLS.layers}${layer.id}/`,
+      { active: active }).subscribe(res => {
+        this.mapService.fetchLayers();
+    });
+  };
 
   ngOnDestroy(): void {
     this.mapControl?.destroy();

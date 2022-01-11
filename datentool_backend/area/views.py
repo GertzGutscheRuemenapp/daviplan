@@ -36,6 +36,7 @@ class WMSLayerViewSet(viewsets.ModelViewSet):
     queryset = WMSLayer.objects.all()
     serializer_class = WMSLayerSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    filter_fields = ['active']
 
     @action(methods=['POST'], detail=False)
     def getcapabilities(self, request, **kwargs):

@@ -33,6 +33,9 @@ export class LegendComponent implements AfterViewInit {
     this.backgroundLayers = this.mapControl.getBackgroundLayers();
     this.mapService.getLayers().subscribe(groups => {
       this.layerGroups = groups;
+      groups.forEach(group => group.children!.forEach(layer => {
+        if (layer.checked) this.mapControl.toggleLayer(layer.id, true);
+      }))
     })
     this.activeBackground = this.backgroundLayers[0].id;
     this.mapControl.setBackground(this.activeBackground);
@@ -43,11 +46,12 @@ export class LegendComponent implements AfterViewInit {
   onLayerToggle(layer: Layer): void {
     layer.checked = !layer.checked;
     this.mapControl.toggleLayer(layer.id, layer.checked);
+    this.filterActiveGroups();
   }
 
   // ToDo: use template filter
   filterActiveGroups(): void {
-    // this.activeGroups = Object.keys(this.layerGroups).filter(g => this.layerGroups[g].layers.filter(l => l.checked).length > 0);
+    this.activeGroups = this.layerGroups.filter(g => g.children!.filter(l => l.checked).length > 0);
   }
 
   opacityChanged(id: number, value: number | null): void {

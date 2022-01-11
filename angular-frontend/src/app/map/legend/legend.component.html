@@ -31,7 +31,12 @@
           <div class="legend-entry" [ngClass]="{'checked': layer.checked}"
                                     *ngIf="editMode || layer.checked">
 <!--            <div class="symbol" [style.background]="layer.color || 'white'" [class]="layer.symbol"></div>-->
-            <div class="legend-layer-title" [title]=layer.name>{{ layer.name }}</div>
+            <div class="legend-layer-title"
+                 [title]=layer.name
+                 [style.cursor]="(editMode)? 'pointer': ''"
+                 (click)="editMode && onLayerToggle(layer)">
+              {{ layer.name }}
+            </div>
             <div class="legend-layer-control" *ngIf="editMode">
               <mat-checkbox color="primary" [checked]="layer.checked || false"
                             (change)="onLayerToggle(layer)"

@@ -21,8 +21,8 @@ class WMSLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = WMSLayer
         fields = ('id', 'name', 'group', 'layer_name', 'order', 'url',
-                  'description')
-        optional_fields = ('description', )
+                  'description', 'active')
+        optional_fields = ('description', 'active')
 
 
 class InternalWFSLayerSerializer(serializers.ModelSerializer):

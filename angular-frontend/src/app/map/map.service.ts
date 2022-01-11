@@ -9,7 +9,7 @@ import { RestAPI } from "../rest-api";
 import { sortBy } from "../helpers/utils";
 import { subscribe } from "graphql";
 
-interface LayerSettings {
+interface BackgroundLayer {
   id: number;
   name: string;
   url: string;
@@ -17,7 +17,7 @@ interface LayerSettings {
   xyz?: boolean;
 }
 
-const mockBackgroundLayers: LayerSettings[] = [
+const mockBackgroundLayers: BackgroundLayer[] = [
   {
     id: -1,
     name: 'OSM',
@@ -30,6 +30,12 @@ const mockBackgroundLayers: LayerSettings[] = [
     url: 'https://sgx.geodatenzentrum.de/wms_topplus_open',
     params: { layers: 'web' },
   },
+  {
+    id: -3,
+    name: 'TopPlus grau',
+    url: 'https://sgx.geodatenzentrum.de/wms_topplus_open',
+    params: { layers: 'web_grau' },
+  }
 ]
 
 @Injectable({
@@ -37,7 +43,7 @@ const mockBackgroundLayers: LayerSettings[] = [
 })
 export class MapService {
   private controls: Record<string, MapControl> = {};
-  backgroundLayers: LayerSettings[] = mockBackgroundLayers;
+  backgroundLayers: BackgroundLayer[] = mockBackgroundLayers;
   layerGroups?: BehaviorSubject<Array<LayerGroup>>;
 
   constructor(private http: HttpClient, private rest: RestAPI) {}
@@ -65,7 +71,8 @@ export class MapService {
   fetchLayers() {
     this.http.get<LayerGroup[]>(this.rest.URLS.layerGroups).subscribe( groups => {
       groups = sortBy(groups, 'order');
-      this.http.get<Layer[]>(this.rest.URLS.layers).subscribe(layers => {
+      this.http.get<Layer[]>(`${this.rest.URLS.layers}?active=true`).subscribe(layers => {
+        layers = sortBy(layers, 'order');
         layers.forEach(layer => {
           layer.checked = false;
           const group = groups.find(group => { return group.id === layer.group });
@@ -98,9 +105,10 @@ export class MapControl {
   }
 
   getBackgroundLayers(): Layer[] {
-    // ToDo: replace with fetched ones or redefine background-layers
+
     let layers: Layer[] = this.mapService.backgroundLayers.map(layer => {
       return { id: layer.id, name: layer.name, order: 0,
+        // ToDo: ugly, info not needed
         layerName:'', url: layer.url, group: 0, description:''} })
     return layers;
   }
@@ -109,7 +117,7 @@ export class MapControl {
     this.mapService.backgroundLayers.forEach(layer => this.map?.setVisible(this.mapId(layer), layer.id === id));
   }
 
-  private mapId(layer: LayerSettings | Layer): string {
+  private mapId(layer: BackgroundLayer | Layer): string {
     return `${layer.name}-${layer.id}`;
   }
 
@@ -127,7 +135,7 @@ export class MapControl {
     }
     this.mapService.getLayers().subscribe(layerGroups => {
       layerGroups.forEach(group => {
-        for (let layer of group.children!) {
+        for (let layer of group.children!.slice().reverse()) {
           this.map!.addTileServer({
             name: this.mapId(layer),
             url: layer.url,
