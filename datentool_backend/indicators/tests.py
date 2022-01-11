@@ -40,8 +40,8 @@ class TestModeAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = ModeFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
 
         cls.post_data = data = dict(name=faker.word())
         cls.put_data = data = dict(name=faker.word())
@@ -55,8 +55,8 @@ class TestModeVariantAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = ModeVariantFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         modevariant: ModeVariant = cls.obj
         mode = modevariant.mode.pk
 
@@ -74,8 +74,8 @@ class TestModeVariantAPI(WriteOnlyWithCanEditBaseDataTest,
     #factory = ReachabilityMatrixFactory
 
     #@classmethod
-    #def setUpClass(cls):
-        # super().setUpClass()
+    # def setUpTestData(cls):
+        # super().setUpTestData()
         #reachabilitymatrix: ReachabilityMatrix = cls.obj
         #from_cell = reachabilitymatrix.from_cell.pk
         #to_cell = reachabilitymatrix.to_cell.pk
@@ -95,8 +95,8 @@ class TestRouterAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = RouterFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
 
         data = dict(name = faker.word(), osm_file = faker.file_path(),
                     tiff_file = faker.file_path(), gtfs_file = faker.file_path(),
@@ -114,8 +114,8 @@ class TestIndicatorAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = IndicatorFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
 
         indicator: Indicator = cls.obj
         service = indicator.service.pk

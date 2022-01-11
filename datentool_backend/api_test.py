@@ -6,7 +6,7 @@ from django.utils.encoding import force_str
 from rest_framework import status
 from django.db.models.query import QuerySet
 
-from datentool_backend.user.factories import ProfileFactory
+from datentool_backend.user.factories import ProfileFactory, Profile
 from django.contrib.auth.models import Permission
 from datentool_backend.rest_urls import urlpatterns
 
@@ -43,10 +43,11 @@ class LoginTestCase:
 
     user = 99
     permissions = Permission.objects.all()
+    profile: Profile
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         cls.profile = ProfileFactory(id=cls.user,
                                     user__id=cls.user,
                                     user__username='Anonymus User',
@@ -264,6 +265,7 @@ class BasicModelPostDeleteTest:
         kwargs = self.kwargs
         url = self.url_key + '-detail'
         response = self.get_check_200(url, **kwargs)
+        data = response.data
 
         response = self.delete(url, **kwargs)
         self.response_204(msg=response.content)

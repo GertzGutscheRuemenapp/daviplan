@@ -44,8 +44,8 @@ class _TestAPI:
     factory = None
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         cls.url_pks = dict()
         if cls.factory:
             cls.obj = cls.factory()
@@ -120,8 +120,8 @@ class TestLayerGroupAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = LayerGroupFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         existing_order = cls.obj.order
         cls.orders = iter(range(existing_order + 1, 100000))
 
@@ -137,8 +137,8 @@ class TestWMSLayerAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = WMSLayerFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         wmslayer: WMSLayer = cls.obj
         group = wmslayer.group.pk
         data = dict(url=faker.url(), name=faker.word(), layer_name=faker.word(),
@@ -154,8 +154,8 @@ class TestWMSLayerAPI(WriteOnlyWithCanEditBaseDataTest,
     #factory = InternalWFSLayerFactory
 
     #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
+    # def setUpTestData(cls):
+        # super().setUpTestData()
         ##internalwfslayer: InternalWFSLayer = cls.obj
         ##group = internalwfslayer.group.pk
         ##symbol = MapSymbolsFactory.create()
@@ -176,8 +176,8 @@ class TestSourceAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = SourceFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
 
         data = dict(source_type=faker.random_element(SourceTypes),
                 date=faker.date(), id_field=faker.uuid4(), url=faker.url(),
@@ -194,8 +194,8 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = AreaLevelFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         area_level: AreaLevel = cls.obj
         source = area_level.source.pk
         layer = area_level.layer.pk
@@ -214,8 +214,8 @@ class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = AreaFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         area: Area = cls.obj
         area_level = area.area_level.pk
         geom = area.geom.ewkt

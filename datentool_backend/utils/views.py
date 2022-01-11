@@ -1,8 +1,6 @@
-from rest_framework import viewsets, exceptions, mixins, status, permissions
+from rest_framework import viewsets, exceptions, status, permissions
 from django.contrib.auth.mixins import UserPassesTestMixin
-from django.views import View
-from django.http import (HttpResponseBadRequest,
-                         HttpResponse,
+from django.http import (HttpResponse,
                          HttpResponseForbidden,
                          JsonResponse,
                          )
@@ -14,6 +12,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.utils.serializer_helpers import ReturnDict
+from datentool_backend.utils.serializers import (BulkValidationError, )
 
 
 class SingletonViewSet(viewsets.ModelViewSet):
@@ -50,9 +49,9 @@ class ProtectCascadeMixin:
         try:
             response = super().destroy(request, **kwargs)
         except ProtectedError as err:
-            qs = err.protected_objects
+            qs = list(err.protected_objects)
             show = 5
-            n_objects = qs.count()
+            n_objects = len(qs)
             msg_n_referenced = '{} {}:'.format(n_objects,
                                                _('Referencing Object(s)')
                                                )
@@ -107,10 +106,8 @@ class CasestudyReadOnlyViewSetMixin(ABC):
 
     class-variables
     --------------
-       casestudy_only - if True, get only items of the current casestudy
        additional_filters - dict, keyword arguments for additional filters
     """
-    casestudy_only = True
     additional_filters = {}
     serializer_class = None
     serializers = {}
@@ -120,28 +117,10 @@ class CasestudyReadOnlyViewSetMixin(ABC):
         return self.serializers.get(self.action,
                                     self.serializer_class)
 
-    def check_casestudy(self, kwargs, request):
-        """check if user has permission to access the casestudy and
-        set the casestudy as a session attribute if its in the kwargs"""
-        # anonymous if not logged in
-        user_id = -1 if request.user.id is None else request.user.id
-        # pk if route is /api/casestudies/ else casestudy_pk
-        casestudy_id = kwargs.get('casestudy_pk') or kwargs.get('pk')
-        try:
-            casestudy = CaseStudy.objects.defer('geom', 'focusarea').get(id=casestudy_id)
-            if not casestudy.userincasestudy_set.all().filter(user__id=user_id):
-                raise exceptions.PermissionDenied()
-        except CaseStudy.DoesNotExist:
-            # maybe casestudy is about to be posted-> go on
-            pass
-        # check if user is in casestudy, raise exception, if not
-        request.session['url_pks'] = kwargs
+
 
     def list(self, request, **kwargs):
-        self.check_permission(request, 'view')
         SerializerClass = self.get_serializer_class()
-        if self.casestudy_only:
-            self.check_casestudy(kwargs, request)
 
         # special format requested -> let the plugin handle that
         if ('format' in request.query_params):
@@ -164,10 +143,7 @@ class CasestudyReadOnlyViewSetMixin(ABC):
         return Response(data)
 
     def retrieve(self, request, **kwargs):
-        self.check_permission(request, 'view')
         SerializerClass = self.get_serializer_class()
-        if self.casestudy_only:
-            self.check_casestudy(kwargs, request)
         pk = kwargs.pop('pk')
         queryset = self._filter(kwargs, query_params=request.query_params,
                                 SerializerClass=SerializerClass)
@@ -246,8 +222,6 @@ class CasestudyViewSetMixin(CasestudyReadOnlyViewSetMixin):
     """
     def create(self, request, **kwargs):
         """check permission for casestudy"""
-        if self.casestudy_only:
-            self.check_casestudy(kwargs, request)
         try:
             return super().create(request, **kwargs)
         except BulkValidationError as e:

@@ -89,8 +89,8 @@ class TestRasterAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = RasterFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
 
         cls.post_data = dict(name=faker.word())
         cls.put_data = dict(name=faker.word())
@@ -104,8 +104,8 @@ class TestPopulationRasterAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = PopulationRasterFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         populationraster: PopulationRaster = cls.obj
         raster = populationraster.raster.pk
         year = populationraster.year.pk
@@ -123,8 +123,8 @@ class TestGenderAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = GenderFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
 
         cls.post_data = dict(name=faker.word())
         cls.put_data = dict(name=faker.word())
@@ -139,8 +139,8 @@ class TestAgeGroupAPI(WriteOnlyWithAdminAccessTest,
     factory = AgeGroupFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         #agegroup: AgeGroup = cls.obj
         #classification = agegroup.classification.pk
 
@@ -166,8 +166,8 @@ class TestDisaggPopRasterAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = DisaggPopRasterFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         disaggpopraster: DisaggPopRaster = cls.obj
         popraster = disaggpopraster.popraster.pk
         genders = list(disaggpopraster.genders.all().values_list(flat=True))
@@ -185,8 +185,8 @@ class TestPrognosisAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = PrognosisFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         prognosis: Prognosis = cls.obj
         years = list(prognosis.years.all().values_list(flat=True))
         raster = prognosis.raster.pk
@@ -205,8 +205,8 @@ class TestPrognosisEntryAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = PrognosisEntryFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         prognosisentry: PrognosisEntry = cls.obj
         prognosis = prognosisentry.prognosis.pk
         year = prognosisentry.year.pk
@@ -228,8 +228,8 @@ class TestPopulationAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = PopulationFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         population: Population = cls.obj
         area_level = population.area_level.pk
         year = population.year.pk
@@ -249,8 +249,8 @@ class TestPopulationAPI(WriteOnlyWithCanEditBaseDataTest,
     #factory = PopulationEntryFactory
 
     #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
+    #def setUpTestData(cls):
+        #super().setUpTestData()
         #populationentry: PopulationEntry = cls.obj
         #population = populationentry.population.pk
         #area = populationentry.area.pk
@@ -273,8 +273,8 @@ class TestPopStatisticAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = PopStatisticFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         popstatistic: PopStatistic = cls.obj
         year = popstatistic.year.pk
 
@@ -290,8 +290,8 @@ class TestPopStatEntryAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = PopStatEntryFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         popstatentry: PopStatEntry = cls.obj
         popstatistic = popstatentry.popstatistic.pk
         area = popstatentry.area.pk
