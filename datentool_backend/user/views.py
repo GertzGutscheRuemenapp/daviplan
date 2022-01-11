@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from datentool_backend.utils.views import HasAdminAccessOrReadOnly
 from .serializers import (UserSerializer, PlanningProcessSerializer,
                           ScenarioSerializer)
-from .models import PlanningProcess, Scenario
+from .models import PlanningProcess, Scenario, Profile
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -25,6 +25,14 @@ class CanCreateProcessPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.method in ('GET'):
             return True
+
+        if request.method in ['POST']:
+            if request.user.is_superuser:
+                return True
+            owner = Profile.objects.get(pk=request.data.get('owner'))
+            if (request.user.profile.can_create_process
+                    and request.user.profile == owner):
+                return True
         else:
             return request.user.profile.can_create_process
 
@@ -32,12 +40,7 @@ class CanCreateProcessPermission(permissions.BasePermission):
         if request.method in ('GET'):
             owner = obj.owner
             return request.user.profile == owner
-        if request.method == 'POST':
-            if request.user.is_superuser:
-                return True
-            if (request.user.profile.can_create_process and
-                request.user.profile == obj.owner):
-                return True
+
 
 
 class PlanningProcessViewSet(viewsets.ModelViewSet):
@@ -77,8 +80,7 @@ class CanEditScenarioPermission(permissions.BasePermission):
 class ScenarioViewSet(viewsets.ModelViewSet):
     queryset = Scenario.objects.all()
     serializer_class = ScenarioSerializer
-    permission_classes = [permissions.IsAuthenticated & CanEditScenarioPermission]
-
+    permission_classes = [CanEditScenarioPermission]
 
     def get_queryset(self):
         qs = super().get_queryset()

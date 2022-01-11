@@ -1,6 +1,7 @@
 from rest_framework import viewsets, permissions
 from django.shortcuts import get_object_or_404
 from datentool_backend.utils.views import HasAdminAccessOrReadOnly, CanEditBasedata
+from datentool_backend.user.views import CanEditScenarioPermission
 from .models import (Infrastructure, FieldType, Service, Place, Capacity,
                      PlaceField, FClass, ScenarioCapacity, ScenarioPlace)
 from .serializers import (InfrastructureSerializer, FieldTypeSerializer,
@@ -58,7 +59,7 @@ class PlaceViewSet(viewsets.ModelViewSet):
 class ScenarioPlaceViewSet(viewsets.ModelViewSet):
     queryset = ScenarioPlace.objects.all()
     serializer_class = ScenarioPlaceSerializer
-    #permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    #permission_classes = [CanEditScenarioPermission]
 
 
 class CapacityViewSet(viewsets.ModelViewSet):
@@ -70,7 +71,7 @@ class CapacityViewSet(viewsets.ModelViewSet):
 class ScenarioCapacityViewSet(viewsets.ModelViewSet):
     queryset = ScenarioCapacity.objects.all()
     serializer_class = ScenarioCapacitySerializer
-    #permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    #permission_classes = [CanEditScenarioPermission]
 
 
 class FieldTypeViewSet(viewsets.ModelViewSet):
