@@ -1,4 +1,4 @@
-import { ViewContainerRef, Directive, HostListener, Input, OnInit, Component, EventEmitter } from '@angular/core';
+import { ViewContainerRef, Directive, Input, OnInit } from '@angular/core';
 import { MatExpansionPanel } from "@angular/material/expansion";
 import { CookieService } from "./cookies.service";
 import { SideToggleComponent } from "../elements/side-toggle/side-toggle.component";
@@ -11,7 +11,7 @@ export class CookieExpansionDirective implements OnInit {
   @Input() initiallyExpanded = false;
   component!: MatExpansionPanel | SideToggleComponent;
 
-  constructor(private host: ViewContainerRef , private cookies: CookieService) {
+  constructor(private host: ViewContainerRef, private cookies: CookieService) {
     // @ts-ignore
     this.component = this.host._hostLView[this.host._hostTNode.directiveStart];
   }

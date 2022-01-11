@@ -62,7 +62,8 @@
       <div class="legend-entry">
         <div class="legend-layer-title">
           <mat-form-field appearance="outline" class="small" style="width: 180px;">
-            <mat-select disableRipple [(ngModel)]="activeBackground" (selectionChange)="this.mapControl.setBackground($event.value); opacityChanged(activeBackground!, backgroundOpacity);">
+            <mat-select disableRipple [(ngModel)]="activeBackground" (selectionChange)="this.setBackground($event.value); opacityChanged(activeBackground!, backgroundOpacity);">
+              <mat-option [value]="-1000"> kein Hintergrund </mat-option>
               <mat-option *ngFor="let layer of backgroundLayers" [value]="layer.id"> {{layer.name}} </mat-option>
             </mat-select>
           </mat-form-field>
