@@ -285,7 +285,7 @@ class TestPlanningProcessProtectCascade(_TestAPI, LoginTestCase, APITestCase):
 
 #class EditScenarioPermissionTest:
     #"""Permission test for ScenarioViewSet"""
-    #def test_permission(self):
+    #def test_user_in_users(self):
         #planning_process = self.obj.planning_process
         #original_allow_shared_change = planning_process.allow_shared_change
 
@@ -294,14 +294,39 @@ class TestPlanningProcessProtectCascade(_TestAPI, LoginTestCase, APITestCase):
         #self.patch_data['owner'] = 1
         #self.post_data['owner'] = 1
 
-        ## allow_shared_change is True, User in Users is True
+        ## allow_shared_change is True, User in Users is default True
         #planning_process.allow_shared_change = True
-        #self.put_data['user'] = self.obj.users[1]
-        #self.patch_data['user'] = self.obj.users[1]
-        #self.post_data['user'] = self.obj.users[1]
 
+        ## get
+        #url = self.url_key + '-detail'
+        #kwargs = self.kwargs
+        #response = self.get(url, **kwargs)
+        #self.response_200(msg=response.content)
+
+        # self._test_delete_forbidden()
         #super()._test_put_patch()
         #super()._test_post()
+
+        # allow_shared_change is True, User in Users is False
+        #self.client.logout()
+        #self.client.force_login(user=self.profile.user)
+
+        #self.put_data['users'] = ProfileFactory()
+        #self.patch_data['users'] = ProfileFactory()
+        #self.post_data['users'] = ProfileFactory()
+        # planning_process.users.add(self.put_data['users'])
+
+        # get
+        #url = self.url_key + '-detail'
+        #kwargs = self.kwargs
+        #response = self.get(url, **kwargs)
+        #self.response_403(msg=response.content)
+
+        # self._test_delete_forbidden()
+        #super()._test_put_patch_forbidden()
+        #super()._test_post_forbidden()
+
+
 
 
 class TestScenarioAPI(_TestAPI, BasicModelTest, APITestCase):
@@ -329,103 +354,3 @@ class TestScenarioAPI(_TestAPI, BasicModelTest, APITestCase):
         super().tearDownClass()
 
 
-
-        # planning_process.users.add(request.user.profile)
-        #user_in_users = request.user.profile in planning_process.users.all()
-
-
-        # self.obj.planning_process.users.add(request.user.profile)
-        ##user_in_users = request.user.profile in obj.planning_process.users.all()
-        # user_in_users
-
-    # def test_delete(self):
-        #"""Test delete with and without allow_shared_change"""
-        #self.profile.allow_shared_change = True
-        # self.profile.save()
-        # self._test_delete_forbidden()
-        #self.profile.allow_shared_change = False
-        # self.profile.save()
-        # self._test_delete_forbidden()
-
-    # def test_post(self):
-        #"""Test post with and without allow_shared_change permissions"""
-        #self.profile.allow_shared_change = True
-        # self.profile.save()
-        # self._test_post()
-        #self.profile.allow_shared_change = False
-        # self.profile.save()
-        # self._test_post_forbidden()
-
-    # def test_put_patch(self):
-        #"""Test post with and without allow_shared_change permissions"""
-        #self.profile.allow_shared_change = True
-        # self.profile.save()
-        # self._test_put_patch_forbidden()
-        #self.profile.allow_shared_change = False
-        # self.profile.save()
-        # self._test_put_patch_forbidden()
-
-    # def test_is_logged_in(self):
-        #"""Test read, if user is authenticated"""
-        # self.client.logout()
-        #response = self.get(self.url_key + '-list')
-        #self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
-
-        # self.client.force_login(user=self.profile.user)
-
-        # self.test_list()
-        # self.test_detail()
-
-    # def test_user_not_owner(self):
-        # """# Request user profile is/not the owner;
-        # allow_shared_change is False -> first statement shall be tested,
-        # second has to be false"""
-        # Request user profile is the owner
-        #self.profile.allow_shared_change = False
-        # self.profile.save()
-
-        #self.patch_data['owner'] = self.obj.owner.pk
-        #self.patch_data['owner'] = self.obj.owner.pk
-        #self.post_data['owner'] = self.obj.owner.pk
-
-        # self._test_delete()
-        # super()._test_put_patch()
-        # super()._test_post()
-
-        # test_get
-        #url = self.url_key + '-detail'
-        #kwargs = self.kwargs
-        #response = self.get(url, **kwargs)
-        # self.response_200(msg=response.content)
-
-         # Request user profile is not the owner
-        #self.put_data['owner'] = self.obj3.owner.pk
-        #self.patch_data['owner'] = self.obj3.owner.pk
-        #self.post_data['owner'] = self.obj3.owner.pk
-
-        # self._test_delete_forbidden()
-        # super()._test_put_patch_forbidden()
-        # super()._test_post_forbidden()
-        # test_get
-        #url = self.url_key + '-detail'
-        #kwargs = self.kwargs
-        #response = self.get(url, **kwargs)
-        # self.response_403(msg=response.content)
-
-
-    # def test_scenario_permission(self):
-        # original data
-        #planning_process = cls.obj.planning_process
-
-        #original_process_owner = planning_process.owner
-        #original_process_users = planning_process.users.all()
-        #original_allow_shared_change = planning_process.allow_shared_change
-
-        # self.client.logout()
-        #planning_process = self.obj.planning_process
-        # self.client.force_login(user=planning_process.owner.user)
-
-        # Testprofile, with permission to edit scenarios
-        #request.user.profile = planning_process.owner
-        #planning_process.allow_shared_change = True
-        # planning_process.save()
