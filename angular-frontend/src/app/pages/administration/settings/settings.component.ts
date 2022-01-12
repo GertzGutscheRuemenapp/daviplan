@@ -9,6 +9,7 @@ import '@ckeditor/ckeditor5-build-classic/build/translations/de';
 import * as ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import { FileHandle } from "../../../helpers/dragndrop.directive";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
+import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 
 @Component({
   selector: 'app-settings',
@@ -28,7 +29,6 @@ export class SettingsComponent implements AfterViewInit {
   @ViewChild('logoEdit') logoEdit!: InputCardComponent;
   @ViewChild('logoTemplate') logoTemplate!: TemplateRef<any>;
   @ViewChild('logoEditButton') logoEditButton!: HTMLElement;
-  @ViewChild('removeTemplate') removeTemplate!: TemplateRef<any>;
   settings?: SiteSettings;
   titleForm!: FormGroup;
   contactForm!: FormGroup;
@@ -186,49 +186,20 @@ export class SettingsComponent implements AfterViewInit {
   }
 
   removeLogo(): void {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '400px',
+    const dialogRef = this.dialog.open(RemoveDialogComponent, {
       data: {
         title: $localize`Soll das Logo entfernt werden?`,
         confirmButtonText: $localize`Logo entfernen`,
-        template: this.removeTemplate,
-        closeOnConfirm: true,
-        context: { input: this.logoFileName(), warning: true }
-      },
-      panelClass: 'warning'
+        value: this.logoFileName()
+      }
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
-      if (confirmed === true) {
+      if (confirmed) {
         this.http.patch<SiteSettings>(this.rest.URLS.settings, { logo: null }
         ).subscribe( settings => this.settingsService.fetchSiteSettings() )
       }
     });
   }
-
-/*
-  removeEmail(): void {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '400px',
-      data: {
-        title: $localize`Soll die Kontakt E-Mail entfernt werden?`,
-        confirmButtonText: $localize`E-Mail entfernen`,
-        template: this.removeTemplate,
-        closeOnConfirm: true,
-        context: { input: this.settings?.contactMail, warning: false }
-      },
-      panelClass: 'warning'
-    });
-    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
-      if (confirmed === true) {
-        this.http.patch<SiteSettings>(this.rest.URLS.settings, { contactMail: "" }
-        ).subscribe( settings => {
-          this.settingsService.fetchSiteSettings();
-          this.contactForm.reset();
-        })
-      }
-    });
-  }
-*/
 
   logoFileName(): string | undefined {
     if (!this.settings?.logo) return;

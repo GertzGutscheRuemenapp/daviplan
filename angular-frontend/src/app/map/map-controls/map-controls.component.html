@@ -1,70 +1,73 @@
-<div id="leftDialBack" [ngClass]="{'expanded': expanded}">
-  <div></div>
-</div>
-<eco-fab-speed-dial #leftDial direction="left" [fixed]="true">
-  <eco-fab-speed-dial-actions>
-    <button mat-mini-fab
-            class="no-shadow"
-            color="primary"
-            title="Karte ausdrucken"
-            (click)="action('action4')">
-      <mat-icon>print</mat-icon>
-    </button>
-    <button mat-mini-fab
-            class="no-shadow"
-            color="primary"
-            title="Karte als Grafik herunterladen"
-            (click)="action('action3')">
-      <mat-icon>download</mat-icon>
-    </button>
-    <button mat-mini-fab
-            class="no-shadow"
-            color="primary"
-            title="Aktuellen Kartenausschnitt speichern"
-            (click)="action('action2')">
-      <mat-icon>bookmark_add</mat-icon>
-    </button>
-    <button mat-mini-fab
-            class="no-shadow"
-            color="primary"
-            title="Karte auf einen gespeicherten Kartenausschnitt zoomen"
-            (click)="action('action1')">
-      <mat-icon>bookmark</mat-icon>
-    </button>
-  </eco-fab-speed-dial-actions>
-</eco-fab-speed-dial>
-<eco-fab-speed-dial #rightDial direction="down" [fixed]="true">
-  <eco-fab-speed-dial-trigger [spin]="true">
-    <button mat-fab
-            class="bordered"
-            color="primary"
-            title="Kartenfunktionen ein-/ausblenden"
-            (click)="trigger()">
-      <mat-icon>apps</mat-icon>
-    </button>
-  </eco-fab-speed-dial-trigger>
+<div (mouseenter)="showOnHover && toggle()" (mouseleave)="showOnHover && toggle()">
 
-  <eco-fab-speed-dial-actions>
-    <button mat-mini-fab
-            color="primary"
-            class="no-shadow"
-            title="In die Karte hineinzoomen"
-            (click)="action('action5')">
-      <mat-icon>zoom_in</mat-icon>
-    </button>
-    <button mat-mini-fab
-            color="primary"
-            class="no-shadow"
-            title="Aus der Karte herauszoomen"
-            (click)="action('action6')">
-      <mat-icon>zoom_out</mat-icon>
-    </button>
-    <button mat-mini-fab
-            class="no-shadow"
-            color="primary"
-            title="Karte im Vollbildmodus darstellen"
-            (click)="action('action7')">
-      <mat-icon>fullscreen</mat-icon>
-    </button>
-  </eco-fab-speed-dial-actions>
-</eco-fab-speed-dial>
+  <div id="leftDialBack" [ngClass]="{'expanded': expanded}">
+    <div></div>
+  </div>
+  <eco-fab-speed-dial #leftDial direction="left" [fixed]="true">
+    <eco-fab-speed-dial-actions>
+      <button mat-mini-fab
+              class="no-shadow"
+              color="primary"
+              title="Karte ausdrucken"
+              (click)="action('action4')">
+        <mat-icon>print</mat-icon>
+      </button>
+      <button mat-mini-fab
+              class="no-shadow"
+              color="primary"
+              title="Karte als Grafik herunterladen"
+              (click)="action('action3')">
+        <mat-icon>download</mat-icon>
+      </button>
+      <button mat-mini-fab
+              class="no-shadow"
+              color="primary"
+              title="Aktuellen Kartenausschnitt speichern"
+              (click)="action('action2')">
+        <mat-icon>bookmark_add</mat-icon>
+      </button>
+      <button mat-mini-fab
+              class="no-shadow"
+              color="primary"
+              title="Karte auf einen gespeicherten Kartenausschnitt zoomen"
+              (click)="action('action1')">
+        <mat-icon>bookmark</mat-icon>
+      </button>
+    </eco-fab-speed-dial-actions>
+  </eco-fab-speed-dial>
+  <eco-fab-speed-dial #rightDial direction="down" [fixed]="true">
+    <eco-fab-speed-dial-trigger [spin]="true">
+      <button mat-fab
+              class="bordered"
+              color="primary"
+              title="Kartenfunktionen ein-/ausblenden"
+              (click)="toggle()">
+        <mat-icon>apps</mat-icon>
+      </button>
+    </eco-fab-speed-dial-trigger>
+
+    <eco-fab-speed-dial-actions>
+      <button mat-mini-fab
+              color="primary"
+              class="no-shadow"
+              title="In die Karte hineinzoomen"
+              (click)="action('action5')">
+        <mat-icon>zoom_in</mat-icon>
+      </button>
+      <button mat-mini-fab
+              color="primary"
+              class="no-shadow"
+              title="Aus der Karte herauszoomen"
+              (click)="action('action6')">
+        <mat-icon>zoom_out</mat-icon>
+      </button>
+      <button mat-mini-fab
+              class="no-shadow"
+              color="primary"
+              title="Karte im Vollbildmodus darstellen"
+              (click)="action('action7')">
+        <mat-icon>fullscreen</mat-icon>
+      </button>
+    </eco-fab-speed-dial-actions>
+  </eco-fab-speed-dial>
+</div>

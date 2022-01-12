@@ -15,6 +15,7 @@ export class TreeItemNode {
   id?: number;
   children?: TreeItemNode[];
   name!: string;
+  checked?: boolean;
 }
 
 /** Flat to-do item node with expandable and level information */
@@ -34,7 +35,6 @@ export class TreeItemFlatNode {
 @Injectable({ providedIn: 'root' })
 export class ChecklistDatabase {
   dataChange = new BehaviorSubject<TreeItemNode[]>([]);
-
   get data(): TreeItemNode[] { return this.dataChange.value; }
 
   constructor() {}
@@ -43,7 +43,6 @@ export class ChecklistDatabase {
     // Build the tree nodes from Json object. The result is a list of `TodoItemNode` with nested
     //     file node as children.
     const data = items;//this.buildFileTree(items, 0);
-
     // Notify the change.
     this.dataChange.next(data);
   }
@@ -71,15 +70,14 @@ export class ChecklistDatabase {
   }
 
   /** Add an item to to-do list */
-  insertItem(parent: TreeItemNode, name: string) {
+  insertItem(child: TreeItemNode, parent: TreeItemNode | undefined = undefined ) {
+    if (!parent) return;
     if (parent.children) {
-      parent.children.push({name: name} as TreeItemNode);
+      parent.children.push();
       this.dataChange.next(this.data);
     }
   }
-
-  updateItem(node: TreeItemNode, name: string) {
-    node.name = name;
+  refresh(): void{
     this.dataChange.next(this.data);
   }
 }
@@ -91,27 +89,22 @@ export class ChecklistDatabase {
 })
 export class CheckTreeComponent implements OnInit {
   @Input() items: TreeItemNode[] = [];
-  @Output() selected = new EventEmitter<TreeItemFlatNode>();
+  @Input() expandOnClick: boolean = false;
+  @Input() addItemTitle: string = '';
+  @Output() itemSelected = new EventEmitter<TreeItemFlatNode>();
+  @Output() addItemClicked = new EventEmitter<TreeItemFlatNode>();
+  @Output() itemChecked = new EventEmitter<{ item: TreeItemFlatNode, checked: boolean }>();
   /** Map from flat node to nested node. This helps us finding the nested node to be modified */
   flatNodeMap = new Map<TreeItemFlatNode, TreeItemNode>();
-
   /** Map from nested node to flattened node. This helps us to keep the same object for selection */
   nestedNodeMap = new Map<TreeItemNode, TreeItemFlatNode>();
 
-  /** A selected parent node to be inserted */
-  selectedParent: TreeItemFlatNode | null = null;
-
-  /** The new item's name */
-  newItemName = '';
-
   treeControl!: FlatTreeControl<TreeItemFlatNode>;
-
   treeFlattener!: MatTreeFlattener<TreeItemNode, TreeItemFlatNode>;
-
   dataSource!: MatTreeFlatDataSource<TreeItemNode, TreeItemFlatNode>;
 
   /** The selection for checklist */
-  checklistSelection = new SelectionModel<TreeItemFlatNode>(true /* multiple */);
+  checklistSelection = new SelectionModel<TreeItemFlatNode>(true );
 
   constructor(private _database: ChecklistDatabase) { }
 
@@ -127,15 +120,33 @@ export class CheckTreeComponent implements OnInit {
     });
   }
 
+  setItems(items: TreeItemNode[]): void {
+    this.items = items;
+    this._database.initialize(items);
+    const _this = this;
+    function setChecked(its: TreeItemNode[]){
+      its.forEach(it => {
+        if (it.children)
+          setChecked(it.children);
+        else if (it.checked)
+          _this.checklistSelection.select(_this.nestedNodeMap.get(it)!);
+      })
+    }
+    setChecked(items);
+  }
+
+  addChild(parent: TreeItemNode, child: TreeItemNode) {
+    this._database.insertItem(child, parent);
+  }
+
+  refresh(): void {
+    this._database.refresh();
+  }
+
   getLevel = (node: TreeItemFlatNode) => node.level;
-
   isExpandable = (node: TreeItemFlatNode) => node.expandable;
-
   getChildren = (node: TreeItemNode): TreeItemNode[] | undefined => node.children;
-
   hasChild = (_: number, _nodeData: TreeItemFlatNode) => _nodeData.expandable;
-
-  hasNoContent = (_: number, _nodeData: TreeItemFlatNode) => _nodeData.name === '';
 
   /**
    * Transformer to convert nested node to flat node. Record the nodes in maps for later use.
@@ -148,7 +159,7 @@ export class CheckTreeComponent implements OnInit {
     flatNode.name = node.name;
     flatNode.level = level;
     flatNode.id = node.id;
-    flatNode.expandable = !!node.children?.length;
+    flatNode.expandable = !!node.children;
     this.flatNodeMap.set(flatNode, node);
     this.nestedNodeMap.set(node, flatNode);
     return flatNode;
@@ -170,8 +181,8 @@ export class CheckTreeComponent implements OnInit {
     return result && !this.descendantsAllSelected(node);
   }
 
-  /** Toggle the to-do item selection. Select/deselect all the descendants node */
-  todoItemSelectionToggle(node: TreeItemFlatNode): void {
+  /** Toggle the item selection. Select/deselect all the descendants node */
+  itemSelectionToggle(node: TreeItemFlatNode): void {
     this.checklistSelection.toggle(node);
     const descendants = this.treeControl.getDescendants(node);
     this.checklistSelection.isSelected(node)
@@ -183,10 +194,11 @@ export class CheckTreeComponent implements OnInit {
     this.checkAllParentsSelection(node);
   }
 
-  /** Toggle a leaf to-do item selection. Check all the parents to see if they changed */
-  todoLeafItemSelectionToggle(node: TreeItemFlatNode): void {
+  /** Toggle a leaf item selection. Check all the parents to see if they changed */
+  leafItemSelectionToggle(node: TreeItemFlatNode): void {
     this.checklistSelection.toggle(node);
     this.checkAllParentsSelection(node);
+    this.itemChecked.emit({ item: node, checked: this.checklistSelection.isSelected(node) });
   }
 
   /* Checks all the parents when a leaf node is selected/unselected */
@@ -232,21 +244,23 @@ export class CheckTreeComponent implements OnInit {
     return null;
   }
 
-  select(node: TreeItemFlatNode) {
+  select(node: TreeItemFlatNode | TreeItemNode) {
+    let flatNode: TreeItemFlatNode | undefined = (!(node instanceof TreeItemFlatNode)) ? this.nestedNodeMap.get(node) : node;
+    if (!flatNode) return;
     for (let n of this.flatNodeMap.keys()){
-      n.isSelected = node === n;
+      n.isSelected = flatNode === n;
     }
-    if(this.isExpandable(node)) {
-      this.treeControl.expand(node);
+    if(this.expandOnClick && this.isExpandable(flatNode)) {
+      if (this.treeControl.isExpanded(flatNode))
+        this.treeControl.collapse(flatNode);
+      else
+        this.treeControl.expand(flatNode);
     }
-    this.selected.emit(node);
+    this.itemSelected.emit(flatNode);
   }
 
-  /** Select the category so we can insert the new item. */
-  addNewItem(node: TreeItemFlatNode) {
-    // const parentNode = this.flatNodeMap.get(node);
-    // this._database.insertItem(parentNode!, '');
-    // this.treeControl.expand(node);
+  _onAddItemClicked(node: TreeItemFlatNode) {
+    this.addItemClicked.emit(node);
   }
 }
 

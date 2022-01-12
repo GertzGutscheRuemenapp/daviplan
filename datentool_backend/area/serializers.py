@@ -14,13 +14,15 @@ class MapSymbolsSerializer(serializers.ModelSerializer):
 class LayerGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = LayerGroup
-        fields = ('id', 'name', 'order')
+        fields = ('id', 'name', 'order', 'external')
 
 
 class WMSLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = WMSLayer
-        fields = ('id', 'name', 'group', 'layer_name', 'order', 'url')
+        fields = ('id', 'name', 'group', 'layer_name', 'order', 'url',
+                  'description', 'active')
+        optional_fields = ('description', 'active')
 
 
 class InternalWFSLayerSerializer(serializers.ModelSerializer):
@@ -30,7 +32,6 @@ class InternalWFSLayerSerializer(serializers.ModelSerializer):
         model = InternalWFSLayer
         fields = ('id', 'name', 'group', 'layer_name', 'order', 'symbol')
         read_only_fields = ('group', 'symbol')
-
 
 class SourceSerializer(serializers.ModelSerializer):
     class Meta:

@@ -1,0 +1,26 @@
+<h4 *ngIf="data.title" mat-dialog-title>{{ data.title }}</h4>
+<mat-dialog-content>
+  <p *ngIf="data.message">
+    {{ data.message }}
+  </p>
+  <div style="display: flex; align-items: end;">
+    <mat-form-field appearance="fill" class="warning" style="width: 300px; margin-right: 10px;">
+      <input disabled matInput [value]="data.value">
+    </mat-form-field>
+    <mat-icon class="material-icons-outlined warning" style="font-size: 40px; align-self: baseline;">report_problem</mat-icon>
+  </div>
+  <p style="font-size: 0.8em; margin: -15px 0 0 10px;"> Die Entfernung ist dauerhaft und endgültig</p>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button class="mat-button-dv"
+          color="primary"
+          mat-dialog-close
+          style="margin-right: 20px;">
+    {{ data.cancelButtonText }}
+  </button>
+  <button mat-button class="mat-button-dv"
+          color="primary"
+          (click)="onConfirmClick()">
+    {{ data.confirmButtonText }}
+  </button>
+</mat-dialog-actions>

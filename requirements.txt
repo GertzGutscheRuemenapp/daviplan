@@ -19,3 +19,5 @@ xlsxwriter
 sqlalchemy
 django-vectortiles
 djangorestframework-mvt
+django-url-filter
+owslib

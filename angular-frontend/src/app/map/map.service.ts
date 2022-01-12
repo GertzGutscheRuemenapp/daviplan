@@ -1,7 +1,15 @@
 import { Injectable, EventEmitter } from '@angular/core';
+import { Layer, LayerGroup } from '../pages/basedata/external-layers/external-layers.component';
 import { OlMap } from './map'
+import { BehaviorSubject, Observable } from "rxjs";
+import { User } from "../pages/login/users";
+import { HttpClient } from "@angular/common/http";
+import { mergeMap } from "rxjs/operators";
+import { RestAPI } from "../rest-api";
+import { sortBy } from "../helpers/utils";
+import { subscribe } from "graphql";
 
-interface LayerSettings {
+interface BackgroundLayer {
   id: number;
   name: string;
   url: string;
@@ -9,27 +17,25 @@ interface LayerSettings {
   xyz?: boolean;
 }
 
-export interface Layer {
-  id: number;
-  name: string;
-  color?: string;
-  opacity?: number;
-  checked?: boolean;
-}
-
-const mockBackgroundLayers: LayerSettings[] = [
+const mockBackgroundLayers: BackgroundLayer[] = [
   {
-    id: 1,
+    id: -1,
     name: 'OSM',
     url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     xyz: true
   },
   {
-    id: 2,
+    id: -2,
     name: 'TopPlus',
     url: 'https://sgx.geodatenzentrum.de/wms_topplus_open',
     params: { layers: 'web' },
   },
+  {
+    id: -3,
+    name: 'TopPlus grau',
+    url: 'https://sgx.geodatenzentrum.de/wms_topplus_open',
+    params: { layers: 'web_grau' },
+  }
 ]
 
 @Injectable({
@@ -37,20 +43,49 @@ const mockBackgroundLayers: LayerSettings[] = [
 })
 export class MapService {
   private controls: Record<string, MapControl> = {};
-  backgroundLayers: LayerSettings[] = mockBackgroundLayers;
+  backgroundLayers: BackgroundLayer[] = mockBackgroundLayers;
+  layerGroups?: BehaviorSubject<Array<LayerGroup>>;
 
-  constructor() { }
+  constructor(private http: HttpClient, private rest: RestAPI) {}
 
   // ToDo: return Observable?
   get(target: string): MapControl {
     let control = this.controls[target];
     if(!control){
-      control = new MapControl(this.backgroundLayers, target);
+      control = new MapControl(target, this);
       control.destroyed.subscribe(target => delete this.controls[target]);
       control.create();
       this.controls[target] = control;
     }
     return control;
+  }
+
+  getLayers(): BehaviorSubject<Array<LayerGroup>>{
+    if (!this.layerGroups) {
+      this.layerGroups = new BehaviorSubject<LayerGroup[]>([]);
+      this.fetchLayers();
+    }
+    return this.layerGroups;
+  }
+
+  fetchLayers() {
+    this.http.get<LayerGroup[]>(this.rest.URLS.layerGroups).subscribe( groups => {
+      groups = sortBy(groups, 'order');
+      this.http.get<Layer[]>(`${this.rest.URLS.layers}?active=true`).subscribe(layers => {
+        layers = sortBy(layers, 'order');
+        layers.forEach(layer => {
+          layer.checked = false;
+          const group = groups.find(group => { return group.id === layer.group });
+          if (group) {
+            if (!group.children) group.children = [];
+            group.children.push(layer);
+          }
+        })
+        // remove empty groups
+        groups = groups.filter(group => { return !!group.children });
+        this.layerGroups!.next(groups);
+      })
+    })
   }
 }
 
@@ -60,32 +95,35 @@ export class MapControl {
   destroyed = new EventEmitter<string>();
   map?: OlMap;
   mapDescription = '';
-  private layers: Record<number, LayerSettings> = [];
-  private readonly backgroundLayers: LayerSettings[] = [];
-  private backgroundOpacity: number = 1;
+  private layers: Record<number, Layer> = [];
 
-  constructor(backgroundLayers: LayerSettings[], target: string) {
-    this.backgroundLayers = backgroundLayers;
+  constructor(target: string, private mapService: MapService) {
     this.target = target;
-    this.backgroundLayers.forEach(layer => this.layers[layer.id] = layer);
+    this.mapService.backgroundLayers.forEach(layer => {
+      this.layers[layer.id] = <Layer>layer;
+    });
   }
 
   getBackgroundLayers(): Layer[] {
-    let layers: Layer[] = this.backgroundLayers.map(layer => { return { id: layer.id, name: layer.name } })
+
+    let layers: Layer[] = this.mapService.backgroundLayers.map(layer => {
+      return { id: layer.id, name: layer.name, order: 0,
+        // ToDo: ugly, info not needed
+        layerName:'', url: layer.url, group: 0, description:''} })
     return layers;
   }
 
   setBackground(id: number): void {
-    this.backgroundLayers.forEach(layer => this.map?.setVisible(this.mapId(layer), layer.id === id));
+    this.mapService.backgroundLayers.forEach(layer => this.map?.setVisible(this.mapId(layer), layer.id === id));
   }
 
-  private mapId(layer: LayerSettings): string {
+  private mapId(layer: BackgroundLayer | Layer): string {
     return `${layer.name}-${layer.id}`;
   }
 
   create(): void {
     this.map = new OlMap(this.target, {projection: `EPSG:${this.srid}`});
-    for (let layer of this.backgroundLayers) {
+    for (let layer of this.mapService.backgroundLayers) {
       this.map.addTileServer({
         name: this.mapId(layer),
         url: layer.url,
@@ -95,6 +133,25 @@ export class MapControl {
         xyz: layer.xyz
       });
     }
+    this.mapService.getLayers().subscribe(layerGroups => {
+      layerGroups.forEach(group => {
+        for (let layer of group.children!.slice().reverse()) {
+          const mapLayer = this.map!.addTileServer({
+            name: this.mapId(layer),
+            url: layer.url,
+            params: { layers: layer.layerName},
+            visible: false,
+            opacity: 1
+          });
+          if (!layer.legendUrl) {
+            let url = mapLayer.getSource().getLegendUrl(1, { layer: layer.layerName });
+            if (url) url += '&SLD_VERSION=1.1.0';
+            layer.legendUrl = url;
+          }
+          this.layers[layer.id] = layer;
+        }
+      })
+    })
   }
 
   setLayerAttr(id: number, options: {opacity?: number, visible?: boolean}): void {
@@ -102,6 +159,12 @@ export class MapControl {
     if (!layer) return;
     if (options.opacity != undefined) this.map?.setOpacity(this.mapId(layer), options.opacity);
     if (options.visible != undefined) this.map?.setVisible(this.mapId(layer), options.visible);
+  }
+
+  toggleLayer(id: number, active: boolean): void {
+    let layer = this.layers[id];
+    if (!layer) return;
+    this.map?.setVisible(this.mapId(layer), active);
   }
 
   destroy(): void {

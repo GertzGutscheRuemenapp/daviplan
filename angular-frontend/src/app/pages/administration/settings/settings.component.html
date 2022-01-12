@@ -144,13 +144,3 @@
     </div>
   </div>
 </ng-template>
-
-<ng-template #removeTemplate let-input="input" let-warning="warning">
-  <div style="display: flex;">
-    <mat-form-field appearance="fill" class="warning" style="width: 300px; margin-right: 10px;">
-      <input disabled matInput [value]="input">
-    </mat-form-field>
-    <mat-icon class="material-icons-outlined warning" style="font-size: 40px; align-self: baseline;">report_problem</mat-icon>
-  </div>
-  <p *ngIf="warning" style="font-size: 0.8em; margin: -15px 0 0 10px;"> Die Entfernung ist dauerhaft und endgültig</p>
-</ng-template>

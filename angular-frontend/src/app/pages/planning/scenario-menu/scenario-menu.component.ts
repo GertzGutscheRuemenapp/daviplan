@@ -4,6 +4,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { mockQuotas } from "../../basedata/demand-quotas/demand-quotas.component";
 import { mockPrognoses } from "../../basedata/prognosis-data/prognosis-data.component";
 import { environment } from "../../../../environments/environment";
+import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 
 @Component({
   selector: 'app-scenario-menu',
@@ -15,7 +16,6 @@ export class ScenarioMenuComponent implements OnInit {
   @ViewChildren('scenario') scenarioCards?: QueryList<ElementRef>;
   scenarios: string[] = ['Szenario 1', 'Szenario 2']
   activeScenario: string = 'Status Quo';
-  @ViewChild('removeScenario') removeScenarioTemplate?: TemplateRef<any>;
   @ViewChild('editScenario') editScenarioTemplate?: TemplateRef<any>;
   @ViewChild('createScenario') createScenarioTemplate?: TemplateRef<any>;
   @ViewChild('supplyScenarioTable') supplyScenarioTableTemplate?: TemplateRef<any>;
@@ -45,15 +45,12 @@ export class ScenarioMenuComponent implements OnInit {
   }
 
   onDeleteScenario() {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '400px',
+    const dialogRef = this.dialog.open(RemoveDialogComponent, {
       data: {
         title: $localize`Das Szenario wirklich entfernen?`,
         confirmButtonText: $localize`Szenario entfernen`,
-        template: this.removeScenarioTemplate,
-        closeOnConfirm: true
-      },
-      panelClass: 'warning'
+        value: this.activeScenario
+      }
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
     });

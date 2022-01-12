@@ -1,6 +1,6 @@
 <app-header-card [title]="'Externe Layer'"
                  cookieId="exp-ext-layers-header"
-                 width="1230px">
+                 width="1280px">
   <p>Viele Ansichten von daviplan enthalten Karten, in denen die Einwohner- und Infrastrukturbezogenen Informationen dargestellt und ausgewertet werden.</p>
   <p>Sie haben die Möglichkeit, den Nutzer*innen darüber hinaus weitere Informationen („Layer“) in den Karten anzuzeigen. Die Nutzer*innen können diese Zusatzinformationen dann individuell in den Karten über die Legendensteuerung ein- oder ausschalten.</p>
   <p>Zusätzliche Layer werden als WMS-Dienste eingebunden. Ein direktes Hochladen von Shape-Files oder anderen GIS-Formaten für lokal gespeicherte Layer ist nicht möglich.</p>
@@ -9,68 +9,88 @@
   <p>Eine Veränderung der Kartendarstellung ist nur bei den WMS-Dienst-Bereitstellenden direkt möglich. Die Nutzer*innen haben lediglich die Möglichkeit, die Transparenz der einzelnen Layer einzustellen.</p>
 </app-header-card>
 <div fxLayout="row wrap">
-  <div fxLayout="column" fxFlex="450px">
+  <div fxLayout="column" fxFlex="500px">
     <app-input-card [title]="'Layer'"
                     subtitle="Externe Layer eintragen und in Layergruppen sortieren"
                     infoText="Damit die Nutzer*innen von daviplan beim Öffnen der Layer- und Legendensteuerung der einzelnen Karten den Überblick behalten, werden (auch) die externen Layer in Layergruppen gruppiert angezeigt.</p>
                     <p>Bevor Sie einen ersten externen Layer hinzufügen können, müssen Sie daher erst eine Layergruppe hinzufügen, indem Sie auf „Layergruppe hinzufügen“ klicken. Geben Sie der Layergruppe einen kurzen sprechenden Namen (z.B. „Flächennutzungsplanung“, „Verkehr“ oder „Naturschutz“). Die Name der Layergruppen erscheinen in allen Karten als Zwischenüberschrift der Legendenstruktur.</p>
                     <p>Nachdem Sie eine Layergruppe hinzugefügt haben, können Sie einen externen Layer hinzufügen, indem Sie auf das „+“-Symbol hinter dem Namen der Layergruppe klicken. Geben Sie auch dem Layer einen kurzen sprechenden Namen. Unter diesem Namen erscheint der Layer in den Kartenlegenden und kann dort von den einzelnen Nutzer*innen ein- oder ausgeschaltet werden. Gehen Sie anschließend zur Box „Eigenschaften des ausgewählten Layers“ und tragen Sie dort die URL des WMS-Dienstes ein. Hier können Sie auch den angezeigten Namen des Layers noch nachträglich verändern.</p>
-                    <p>Um einen externen Layer wieder zu löschen, wählen Sie diesen in der Liste aus und klicken auf „Entfernen“. Auf diese Weisen können Sie auch ganze Layergruppen  löschen.</p>">
+                    <p>Um einen externen Layer wieder zu löschen, wählen Sie diesen in der Liste aus und klicken auf „Layer Entfernen“. Auf diese Weisen können Sie auch ganze Layergruppen  löschen.</p>">
       <div style="display: inline-flex;">
         <div id="layer-select">
-          <app-check-tree #layerTree [items]="layerGroups"></app-check-tree>
+          <app-check-tree #layerTree
+                          [items]="layerGroups"
+                          addItemTitle="Layer zur Gruppe hinzufügen">
+          </app-check-tree>
         </div>
         <div class="order-controls">
-          <button mat-icon-button>
+          <button mat-icon-button
+                  title="In der Sortierung eins nach oben"
+                  [disabled] = "(!selectedGroup || selectedGroup === layerGroups[0]) && (!selectedLayer || getGroup(selectedLayer.group)!.children!.indexOf(selectedLayer) < 1)"
+                  (click)="moveSelected('up')">
             <mat-icon>expand_less</mat-icon>
           </button>
-          <button mat-icon-button>
+          <button mat-icon-button
+                  title="In der Sortierung eins nach unten"
+                  [disabled] = "(!selectedGroup || selectedGroup === layerGroups[layerGroups.length - 1]) && (!selectedLayer || getGroup(selectedLayer.group)!.children!.indexOf(selectedLayer) >= getGroup(selectedLayer.group)!.children!.length - 1)"
+                  (click)="moveSelected('down')">
             <mat-icon>expand_more</mat-icon>
           </button>
         </div>
       </div>
       <div style="margin-top: 10px;">
         <button mat-button color="primary"
-                class="mat-button-dv" i18n>
-          <mat-icon>add</mat-icon>Layergruppe hinzufügen
+                class="mat-button-dv"
+                (click)="addGroup()"
+                title="Layergruppe hinzufügen" i18n>
+          <mat-icon>add</mat-icon>Gruppe hinzufügen
         </button>
         <button mat-button color="primary"
                 style="margin-left: 30px;"
+                (click)="removeNode()"
                 class="mat-button-dv"
                 [disabled]="(!(selectedLayer || selectedGroup)) ? true : null" i18n>
-          <mat-icon>close</mat-icon>entfernen
+          <mat-icon>close</mat-icon>{{selectedLayer? 'Layer': selectedGroup? 'Gruppe': ''}} entfernen
         </button>
       </div>
     </app-input-card>
-    <ng-container *ngIf="selectedLayer">
-      <app-input-card [title]="'Eigenschaften des ausgewählten Layers'"
-                      [editTemplate]="editLayer"
-                      infoText="<p>Klicken Sie auf „Editieren“, um die URL des WMS-Dienstes (und weitere ggf. relevante Informationen) einzutragen oder diese zu verändern.</p>
-                      <p>Mit „Editieren“ können Sie auch den in den daviplan-Karten angezeigten Namen des ausgewählten externen Layers verändern.</p>">
-        <table>
-          <tr>
-            <td>Name</td>
-            <td>{{selectedLayer?.name}}</td>
-          </tr>
-          <tr>
-            <td>URL</td>
-            <td>https://monitor.ioer.de/cgi-bin/wms?MAP=O06RG_wms</td>
-          </tr>
-        </table>
-      </app-input-card>
-    </ng-container>
-    <ng-container *ngIf="selectedGroup">
-      <app-input-card [title]="'Eigenschaften der ausgewählten Layergruppe'"
-                      [editTemplate]="editLayerGroup"
-                      infoText="<p>Klicken Sie auf „Editieren“, um den in den daviplan-Karten angezeigten Namen der ausgewählten Layergruppe zu verändern.</p>">
-        <table>
-          <tr>
-            <td>Name</td>
-            <td>{{selectedGroup?.name}}</td>
-          </tr>
-        </table>
-      </app-input-card>
-    </ng-container>
+    <app-input-card [title]="'Eigenschaften des ausgewählten Layers'"
+                    #layerCard
+                    [ngClass]="{'hidden': !selectedLayer}"
+                    [editTemplate]="editLayerTemplate"
+                    infoText="<p>Klicken Sie auf „Editieren“, um die URL des WMS-Dienstes (und weitere ggf. relevante Informationen) einzutragen oder diese zu verändern.</p>
+                    <p>Mit „Editieren“ können Sie auch den in den daviplan-Karten angezeigten Namen des ausgewählten externen Layers verändern.</p>">
+      <table>
+        <tr>
+          <td>URL</td>
+          <td style="color: #00000061">{{selectedLayer?.url}}</td>
+        </tr>
+        <tr>
+          <td>Layer</td>
+          <td style="color: #00000061">{{selectedLayer?.layerName}}</td>
+        </tr>
+        <tr>
+          <td>Name</td>
+          <td>{{selectedLayer?.name}}</td>
+        </tr>
+        <tr>
+          <td>Beschreibung</td>
+          <td>{{selectedLayer?.description || '-'}}</td>
+        </tr>
+      </table>
+    </app-input-card>
+    <app-input-card [title]="'Eigenschaften der ausgewählten Layergruppe'"
+                    #layerGroupCard
+                    [ngClass]="{'hidden': !selectedGroup}"
+                    [editTemplate]="editLayerGroupTemplate"
+                    infoText="<p>Klicken Sie auf „Editieren“, um den in den daviplan-Karten angezeigten Namen der ausgewählten Layergruppe zu verändern.</p>">
+      <table>
+        <tr>
+          <td>Name</td>
+          <td>{{selectedGroup?.name}}</td>
+        </tr>
+      </table>
+    </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="800px">
     <app-input-card [title]="'Kartenansicht'"
@@ -92,10 +112,100 @@
   </div>
 </div>
 
-<ng-template #editLayer>
-  Funktionalität für den Prototyp noch nicht hinterlegt.
+<ng-template #addLayerTemplate>
+  <div fxLayout="column" fxFlex="400px">
+    <div *ngIf="addLayerForm.errors">
+      <mat-error *ngFor="let error of Object.values(addLayerForm.errors)" class="alert">
+        {{ error }}
+      </mat-error>
+    </div>
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>URL</mat-label>
+        <input matInput #url>
+      </mat-form-field>
+    </div>
+    <button mat-button color="primary"
+            style="align-self: baseline;"
+            class="mat-button-dv"
+            (click)="requestCapabilities(url.value)"
+            title="verfügbare Layer von URL abfragen" i18n>
+      <mat-icon>public</mat-icon>URL abfragen
+    </button>
+    <br>
+    Verfügbare Layer
+    <div id="available-layer-list">
+      <mat-radio-group>
+        <ng-container *ngFor="let layer of availableLayers; let first = first;">
+          <ng-template #popContent>
+            <p><b>{{ layer.name }}</b></p>
+            <p>{{ layer.description || 'kein Beschreibungstext' }}</p>
+          </ng-template>
+          <mat-radio-button [value]="layer.id"
+                            (change)="avLayerSelected($event.value)"
+                            [checked]="first"
+                            style="margin-right: 100%;"
+                            color="primary"
+                            [ngbPopover]="popContent"
+                            placement="right"
+                            container="body"
+                            triggers="mouseenter:mouseleave">
+            {{ layer.layerName }}
+          </mat-radio-button>
+        </ng-container>
+      </mat-radio-group>
+    </div>
+  </div>
+  <mat-divider vertical style="align-self: stretch; margin: 0 14px;"></mat-divider>
+  <form [formGroup]="addLayerForm">
+    <div fxLayout="column" fxFlex="400px">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Layer</mat-label>
+        <input matInput formControlName="layerName" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>URL</mat-label>
+        <input matInput formControlName="url" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Name</mat-label>
+        <input matInput formControlName="name" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Beschreibung</mat-label>
+        <textarea matInput formControlName="description" rows="10"></textarea>
+      </mat-form-field>
+    </div>
+  </form>
 </ng-template>
 
-<ng-template #editLayerGroup>
-  Funktionalität für den Prototyp noch nicht hinterlegt.
+<ng-template #editLayerTemplate>
+  <form [formGroup]="editLayerForm">
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Name</mat-label>
+        <input matInput formControlName="name" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Beschreibung</mat-label>
+        <textarea matInput formControlName="description" rows="10"></textarea>
+      </mat-form-field>
+    </div>
+  </form>
+</ng-template>
+
+<ng-template #editLayerGroupTemplate>
+  <form [formGroup]="layerGroupForm">
+    <div *ngIf="layerGroupForm.errors">
+      <mat-error *ngFor="let error of Object.values(layerGroupForm.errors)" class="alert">
+        {{ error }}
+      </mat-error>
+    </div>
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Name</mat-label>
+        <input matInput formControlName="name" required>
+      </mat-form-field>
+    </div>
+  </form>
 </ng-template>

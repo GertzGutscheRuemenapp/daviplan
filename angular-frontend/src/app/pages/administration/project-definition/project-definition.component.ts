@@ -5,18 +5,14 @@ import { Geometry, GeometryCollection, MultiPolygon, Polygon } from "ol/geom";
 import { Collection, Feature } from 'ol';
 import { register } from 'ol/proj/proj4'
 import union from '@turf/union';
-import pointOnSurface from '@turf/point-on-surface';
-import booleanWithin from "@turf/boolean-within";
 import * as turf from '@turf/helpers';
 import { GeoJSON, WKT } from "ol/format";
 import proj4 from 'proj4';
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { FormBuilder, FormGroup } from "@angular/forms";
-import { SiteSettings } from "../../../settings.service";
 import { Observable } from "rxjs";
 import { Layer } from "ol/layer";
-import { last } from "rxjs/operators";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 
@@ -39,7 +35,7 @@ interface BKGLayer {
 
 const areaLayers: BKGLayer[] = [
   { name: 'Kreise', tag: 'vg250_krs' },
-  { name: 'Verwaltungsgebiete', tag: 'vg250_vwg' },
+  { name: 'Verwaltungsgemeinschaften', tag: 'vg250_vwg' },
   { name: 'Gemeinden', tag: 'vg250_gem' },
 ]
 
@@ -159,7 +155,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
           panelClass: 'warning'
         });
         dialogRef.afterClosed().subscribe((confirmed: boolean) => {
-          if (confirmed === true) {
+          if (confirmed) {
             postAgeGroups();
           }
         });
@@ -275,7 +271,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
                 extent.join(',') +
                 ',EPSG:3857'
               )},
-            visible: (al === this.baseAreaLayer)? true: false,
+            visible: al === this.baseAreaLayer,
             selectable: true,
             opacity: (al === _this.selectedAreaLayer)? 0.5 : 0,
             tooltipField: 'gen',
@@ -517,15 +513,17 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
 
 
   /**
-   * Returns cached features of base area layer intersecting the given feature
+   * Returns features of base area layer intersecting the given feature
    *
    * @param feature
+   * @param cached - cache results of intersections (ToDo: causes problems for areas
+   * that exceed current extent)
    */
-  getBaseIntersections(feature: Feature<any>): Feature<any>[]{
-    let intersections = feature.get('intersect');
+  getBaseIntersections(feature: Feature<any>, cached: boolean = false): Feature<any>[]{
+    let intersections = cached? undefined: feature.get('intersect');
     if (!intersections) {
       intersections = this.getIntersections(feature.getGeometry(), this._baseSelectLayer!);
-      feature.set('intersect', intersections);
+      if (cached) feature.set('intersect', intersections);
     }
     return intersections;
   }

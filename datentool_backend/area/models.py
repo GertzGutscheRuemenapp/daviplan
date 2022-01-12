@@ -26,14 +26,17 @@ class LayerGroup(DatentoolModelMixin, NamedModel, models.Model):
     """a Layer Group"""
     name = models.TextField()
     order = models.IntegerField(default=0)
+    external = models.BooleanField(default=False)
 
 
 class Layer(DatentoolModelMixin, NamedModel, models.Model):
     """a generic layer"""
     name = models.TextField()
+    active =  models.BooleanField(default=False)
     group = models.ForeignKey(LayerGroup, on_delete=PROTECT_CASCADE)
     layer_name = models.TextField()
     order = models.IntegerField(default=0)
+    description = models.TextField(default='', blank=True)
 
     class Meta:
         abstract = True

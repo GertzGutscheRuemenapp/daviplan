@@ -1,37 +1,9 @@
-import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
-import { MapControl, MapService, Layer } from "../map.service";
-
-const mockLayerGroups: Record<string, { info?: string, layers: any[] }> = {
-  // Leistungen: [
-  //   { name: 'Kita', checked: true },
-  //   { name: 'Krippe', checked: true },
-  // ],
-  Standorte: {
-    info: '',
-    layers: [
-      { name: 'Schulen', checked: false, color: 'grey', symbol: 'dot' },
-      { name: 'Feuerwehr', checked: true, color: 'red', symbol: 'dot' },
-      { name: 'Kinderbeutreuung', checked: false, color: 'lightblue', symbol: 'dot' },
-      { name: 'Ärzte', checked: true, color: 'lightgreen', symbol: 'dot' },
-    ]
-  },
-  Gebietsgrenzen: {
-    info: '',
-    layers: [
-      { name: 'Gemeinden', checked: false, color: 'orange', symbol: 'line' },
-      { name: 'Kreise', checked: true, color: 'yellow', symbol: 'line' },
-      { name: 'Verwaltungsgemeinschaften', checked: false, color: 'red', symbol: 'line' },
-      { name: 'Bundesländer', checked: false, color: 'black', symbol: 'line' },
-    ]
-  },
-  Ökologie: {
-    info: '',
-    layers: [
-      { name: 'Wälder', checked: false },
-      { name: 'Gewässer', checked: false }
-    ]
-  }
-}
+import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { MapControl, MapService } from "../map.service";
+import { LayerGroup, Layer } from "../../pages/basedata/external-layers/external-layers.component";
+import { CookieService } from "../../helpers/cookies.service";
+import { FloatingDialog } from "../../dialogs/help-dialog/help-dialog.component";
+import { MatDialog } from "@angular/material/dialog";
 
 @Component({
   selector: 'app-legend',
@@ -39,19 +11,20 @@ const mockLayerGroups: Record<string, { info?: string, layers: any[] }> = {
   styleUrls: ['./legend.component.scss']
 })
 export class LegendComponent implements AfterViewInit {
-
   @Input() target!: string;
+  @ViewChild('legendImage') legendImageTemplate?: TemplateRef<any>;
   layers: any;
   mapControl!: MapControl;
   activeBackground?: number;
   backgroundOpacity = 1;
   backgroundLayers: Layer[] = [];
-  layerGroups = mockLayerGroups;
-  activeGroups: string[] = [];
+  layerGroups: LayerGroup[] = [];
+  activeGroups: LayerGroup[] = [];
   editMode: boolean = true;
   Object = Object;
 
-  constructor(private mapService: MapService, private cdRef:ChangeDetectorRef) {
+  constructor(public dialog: MatDialog, private mapService: MapService,
+              private cdRef:ChangeDetectorRef, private cookies: CookieService) {
   }
 
   ngAfterViewInit (): void {
@@ -61,19 +34,53 @@ export class LegendComponent implements AfterViewInit {
 
   initSelect(): void {
     this.backgroundLayers = this.mapControl.getBackgroundLayers();
-    this.activeBackground = this.backgroundLayers[0].id;
-    this.mapControl.setBackground(this.activeBackground);
+    const background = parseInt(<string>this.cookies.get(`background-layer`) || this.backgroundLayers[0].id.toString());
+    this.activeBackground = background;
+    this.mapControl.setBackground(background);
+
+    this.mapService.getLayers().subscribe(groups => {
+      this.layerGroups = groups;
+      groups.forEach(group => group.children!.forEach(layer => {
+        layer.checked = <boolean>(this.cookies.get(`legend-layer-checked-${layer.id}`) || false);
+        if (layer.checked) this.mapControl.toggleLayer(layer.id, true);
+      }))
+    })
     this.filterActiveGroups();
     this.cdRef.detectChanges();
   }
 
+  onLayerToggle(layer: Layer): void {
+    layer.checked = !layer.checked;
+    this.cookies.set(`legend-layer-checked-${layer.id}`, layer.checked);
+    this.mapControl.toggleLayer(layer.id, layer.checked);
+    this.filterActiveGroups();
+  }
+
   // ToDo: use template filter
   filterActiveGroups(): void {
-    this.activeGroups = Object.keys(this.layerGroups).filter(g => this.layerGroups[g].layers.filter(l => l.checked).length > 0);
+    this.activeGroups = this.layerGroups.filter(g => g.children!.filter(l => l.checked).length > 0);
   }
 
   opacityChanged(id: number, value: number | null): void {
     if(value === null) return;
     this.mapControl?.setLayerAttr(id, { opacity: value });
+  }
+
+  setBackground(id: number) {
+    this.cookies.set(`background-layer`, id);
+    this.mapControl.setBackground(id);
+  }
+
+  showLegendImage(layer: Layer): void {
+    this.dialog.open(FloatingDialog, {
+      panelClass: 'help-container',
+      hasBackdrop: false,
+      autoFocus: false,
+      data: {
+        title: layer.name,
+        context: { layer: layer },
+        template: this.legendImageTemplate
+      }
+    });
   }
 }
