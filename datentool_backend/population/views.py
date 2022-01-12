@@ -9,26 +9,34 @@ from rest_framework.decorators import action
 #from vectortiles.postgis.views import MVTView
 from datentool_backend.utils.views import (HasAdminAccess,
                                            CanEditBasedata,
-                                           HasAdminAccessOrReadOnly)
-from .models import (Raster, PopulationRaster, Gender, AgeGroup, DisaggPopRaster,
+                                           HasAdminAccessOrReadOnly,
+                                           ProtectCascadeMixin)
+from .models import (Year, Raster, PopulationRaster, Gender, AgeGroup, DisaggPopRaster,
                      Prognosis, PrognosisEntry, Population, PopulationEntry,
-                     PopStatistic, PopStatEntry, RasterCell)
+                     PopStatistic, PopStatEntry, RasterCell, )
 from .constants import RegStatAgeGroups, RegStatAgeGroup
-from .serializers import (RasterSerializer, PopulationRasterSerializer,
+from .serializers import (YearSerializer, RasterSerializer,
+                          PopulationRasterSerializer,
                           GenderSerializer, AgeGroupSerializer,
-                          DisaggPopRasterSerializer,PrognosisSerializer,
+                          DisaggPopRasterSerializer, PrognosisSerializer,
                           PrognosisEntrySerializer, PopulationSerializer,
                           PopulationEntrySerializer, PopStatisticSerializer,
                           PopStatEntrySerializer)
 
 
-class RasterViewSet(viewsets.ModelViewSet):
+class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+    queryset = Year.objects.all()
+    serializer_class = YearSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+
+class RasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Raster.objects.all()
     serializer_class = RasterSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class PopulationRasterViewSet(viewsets.ModelViewSet):
+class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = PopulationRaster.objects.all()
     serializer_class = PopulationRasterSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
@@ -50,13 +58,13 @@ class PopulationRasterViewSet(viewsets.ModelViewSet):
         #return BaseVectorTileView.get(self,request=request, z=kwargs.get('z'), x=kwargs.get('x'), y=kwargs.get('y'))
 
 
-class GenderViewSet(viewsets.ModelViewSet):
+class GenderViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Gender.objects.all()
     serializer_class = GenderSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class AgeGroupViewSet(viewsets.ModelViewSet):
+class AgeGroupViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = AgeGroup.objects.all()
     serializer_class = AgeGroupSerializer
     permission_classes = [HasAdminAccessOrReadOnly]
@@ -95,13 +103,13 @@ class AgeGroupViewSet(viewsets.ModelViewSet):
         return Response({'valid': valid})
 
 
-class DisaggPopRasterViewSet(viewsets.ModelViewSet):
+class DisaggPopRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = DisaggPopRaster.objects.all()
     serializer_class = DisaggPopRasterSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class PrognosisViewSet(viewsets.ModelViewSet):
+class PrognosisViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Prognosis.objects.all()
     serializer_class = PrognosisSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]

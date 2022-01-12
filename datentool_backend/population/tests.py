@@ -2,13 +2,15 @@ import numpy as np
 from unittest import skip
 from django.test import TestCase
 from test_plus import APITestCase
-from datentool_backend.api_test import BasicModelTest, WriteOnlyWithCanEditBaseDataTest
+from datentool_backend.api_test import (BasicModelTest,
+                                        WriteOnlyWithCanEditBaseDataTest,
+                                        WriteOnlyWithAdminAccessTest)
 from datentool_backend.area.tests import (_TestAPI, _TestPermissions)
 
 from .models import (PrognosisEntry, Year, PopulationRaster, PopulationEntry,
                      PopStatistic, PopStatEntry, DisaggPopRaster,
                      Prognosis, Population)
-from .factories import (RasterCellFactory, AgeGroupFactory,
+from .factories import (YearFactory, RasterCellFactory, AgeGroupFactory,
                         GenderFactory, PopulationFactory, DisaggPopRasterFactory,
                         RasterCellPopulationAgeGenderFactory, PrognosisEntryFactory,
                         AreaFactory, PrognosisFactory, PopStatEntryFactory,
@@ -24,9 +26,11 @@ class TestPopulation(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.years = Year.objects.bulk_create([Year(year=y) for y in range(2010, 2015)],
-                                              return_queryset=True)
-        #cls.years = Year.objects.all()
+        cls.years = Year.objects.bulk_create([Year(year=y)
+                                              for y in range(2010, 2015)],
+                                              #return_queryset=True,
+                                              )
+        cls.years = Year.objects.all()
         cls.cell = RasterCellFactory()
         cls.genders = [GenderFactory() for i in range(3)]
         cls.disagg_popraster = DisaggPopRasterFactory(genders=cls.genders)
@@ -80,6 +84,21 @@ class TestPopulation(TestCase):
             pop.genders.all(), self.genders, ordered=False)
 
 
+class TestYearAPI(WriteOnlyWithCanEditBaseDataTest,
+                    _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+    """"""
+    url_key = "years"
+    factory = YearFactory
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+
+        cls.post_data = dict(year=1990)
+        cls.put_data = dict(year=1995)
+        cls.patch_data = dict(year=2000)
+
+
 class TestRasterAPI(WriteOnlyWithCanEditBaseDataTest,
                     _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
@@ -87,8 +106,8 @@ class TestRasterAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = RasterFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
 
         cls.post_data = dict(name=faker.word())
         cls.put_data = dict(name=faker.word())
@@ -102,8 +121,8 @@ class TestPopulationRasterAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = PopulationRasterFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         populationraster: PopulationRaster = cls.obj
         raster = populationraster.raster.pk
         year = populationraster.year.pk
@@ -121,8 +140,8 @@ class TestGenderAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = GenderFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
 
         cls.post_data = dict(name=faker.word())
         cls.put_data = dict(name=faker.word())
@@ -130,14 +149,15 @@ class TestGenderAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 
-class TestAgeGroupAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestAgeGroupAPI(WriteOnlyWithAdminAccessTest,
+                      _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """"""
     url_key = "agegroups"
     factory = AgeGroupFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         #agegroup: AgeGroup = cls.obj
         #classification = agegroup.classification.pk
 
@@ -163,8 +183,8 @@ class TestDisaggPopRasterAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = DisaggPopRasterFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         disaggpopraster: DisaggPopRaster = cls.obj
         popraster = disaggpopraster.popraster.pk
         genders = list(disaggpopraster.genders.all().values_list(flat=True))
@@ -182,8 +202,8 @@ class TestPrognosisAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = PrognosisFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         prognosis: Prognosis = cls.obj
         years = list(prognosis.years.all().values_list(flat=True))
         raster = prognosis.raster.pk
@@ -202,8 +222,8 @@ class TestPrognosisEntryAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = PrognosisEntryFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         prognosisentry: PrognosisEntry = cls.obj
         prognosis = prognosisentry.prognosis.pk
         year = prognosisentry.year.pk
@@ -225,8 +245,8 @@ class TestPopulationAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = PopulationFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         population: Population = cls.obj
         area_level = population.area_level.pk
         year = population.year.pk
@@ -246,8 +266,8 @@ class TestPopulationAPI(WriteOnlyWithCanEditBaseDataTest,
     #factory = PopulationEntryFactory
 
     #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
+    #def setUpTestData(cls):
+        #super().setUpTestData()
         #populationentry: PopulationEntry = cls.obj
         #population = populationentry.population.pk
         #area = populationentry.area.pk
@@ -270,8 +290,8 @@ class TestPopStatisticAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = PopStatisticFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         popstatistic: PopStatistic = cls.obj
         year = popstatistic.year.pk
 
@@ -287,8 +307,8 @@ class TestPopStatEntryAPI(WriteOnlyWithCanEditBaseDataTest,
     factory = PopStatEntryFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         popstatentry: PopStatEntry = cls.obj
         popstatistic = popstatentry.popstatistic.pk
         area = popstatentry.area.pk

@@ -1,8 +1,13 @@
 from rest_framework import viewsets, permissions
 from django.shortcuts import get_object_or_404
-from datentool_backend.utils.views import HasAdminAccessOrReadOnly, CanEditBasedata
+from datentool_backend.utils.views import (HasAdminAccessOrReadOnly,
+                                           CanEditBasedata,
+                                           ProtectCascadeMixin)
+from datentool_backend.user.views import CanEditScenarioPermission
+
 from .models import (Infrastructure, FieldType, Service, Place, Capacity,
                      PlaceField, FClass, ScenarioCapacity, ScenarioPlace)
+
 from .serializers import (InfrastructureSerializer, FieldTypeSerializer,
                           ServiceSerializer, PlaceSerializer,
                           CapacitySerializer, PlaceFieldSerializer,
@@ -37,31 +42,31 @@ class CanPatchLayer(permissions.BasePermission):
         return False
 
 
-class InfrastructureViewSet(viewsets.ModelViewSet):
+class InfrastructureViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Infrastructure.objects.all()
     serializer_class = InfrastructureSerializer
     permission_classes = [CanPatchLayer]
 
 
-class ServiceViewSet(viewsets.ModelViewSet):
+class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class PlaceViewSet(viewsets.ModelViewSet):
+class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Place.objects.all()
     serializer_class = PlaceSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class ScenarioPlaceViewSet(viewsets.ModelViewSet):
+class ScenarioPlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = ScenarioPlace.objects.all()
     serializer_class = ScenarioPlaceSerializer
-    #permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    #permission_classes = [CanEditScenarioPermission]
 
 
-class CapacityViewSet(viewsets.ModelViewSet):
+class CapacityViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Capacity.objects.all()
     serializer_class = CapacitySerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
@@ -70,10 +75,10 @@ class CapacityViewSet(viewsets.ModelViewSet):
 class ScenarioCapacityViewSet(viewsets.ModelViewSet):
     queryset = ScenarioCapacity.objects.all()
     serializer_class = ScenarioCapacitySerializer
-    #permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    #permission_classes = [CanEditScenarioPermission]
 
 
-class FieldTypeViewSet(viewsets.ModelViewSet):
+class FieldTypeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = FieldType.objects.all() # prefetch_related('classification_set',
                                          #         to_attr='classifications')
     serializer_class = FieldTypeSerializer

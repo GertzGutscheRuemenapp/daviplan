@@ -6,7 +6,7 @@ from django.utils.encoding import force_str
 from rest_framework import status
 from django.db.models.query import QuerySet
 
-from datentool_backend.user.factories import ProfileFactory
+from datentool_backend.user.factories import ProfileFactory, Profile
 from django.contrib.auth.models import Permission
 from datentool_backend.rest_urls import urlpatterns
 
@@ -43,10 +43,11 @@ class LoginTestCase:
 
     user = 99
     permissions = Permission.objects.all()
+    profile: Profile
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         cls.profile = ProfileFactory(id=cls.user,
                                     user__id=cls.user,
                                     user__username='Anonymus User',
@@ -164,9 +165,8 @@ class BasicModelReadTest(BasicModelDetailTest):
     def _test_list_forbidden(self):
         """Test that the list view can not be returned successfully"""
         url = self.url_key + '-list'
-        kwargs = self.kwargs
         # test get
-        response = self.get(url, **kwargs)
+        response = self.get(url, **self.url_pks)
         self.response_403(msg=response.content)
 
     def _test_list(self):
@@ -265,6 +265,7 @@ class BasicModelPostDeleteTest:
         kwargs = self.kwargs
         url = self.url_key + '-detail'
         response = self.get_check_200(url, **kwargs)
+        data = response.data
 
         response = self.delete(url, **kwargs)
         self.response_204(msg=response.content)
@@ -414,6 +415,17 @@ class WriteOnlyWithCanEditBaseDataTest:
         self.profile.save()
         self._test_put_patch_forbidden()
 
+    def test_is_logged_in(self):
+        """Test read, if user is authenticated"""
+        self.client.logout()
+        response = self.get(self.url_key + '-list')
+        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+
+        self.client.force_login(user=self.profile.user)
+
+        self.test_list()
+        self.test_detail()
+
 
 class WriteOnlyWithAdminAccessTest:
 
@@ -444,6 +456,17 @@ class WriteOnlyWithAdminAccessTest:
         self.profile.save()
         self._test_put_patch_forbidden()
 
+    def test_is_logged_in(self):
+        """Test read, if user is authenticated"""
+        self.client.logout()
+        response = self.get(self.url_key + '-list')
+        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+
+        self.client.force_login(user=self.profile.user)
+
+        self.test_list()
+        self.test_detail()
+
 
 class ReadOnlyWithAdminBasedataAccessTest:
 
@@ -464,23 +487,23 @@ class ReadOnlyWithAdminBasedataAccessTest:
         self._test_detail_forbidden()
 
     def test_get_urls(self):
-        """Test post with and without can_edit_basedata permissions"""
+        """Test get_urls with and without can_edit_basedata permissions"""
         self.profile.admin_access = True
         self.profile.save()
-        self.test_get_urls()
+        self._test_get_urls()
         self.profile.admin_access = False
         self.profile.save()
-        self.test_get_urls_forbidden()
+        self._test_get_urls_forbidden()
 
         self.profile.can_edit_basedata = True
         self.profile.save()
-        self.test_get_urls()
+        self._test_get_urls()
         self.profile.can_edit_basedata = False
         self.profile.save()
-        self.test_get_urls_forbidden()
+        self._test_get_urls_forbidden()
 
     def test_list(self):
-        """Test post with and without can_edit_basedata permissions"""
+        """Test list with and without can_edit_basedata permissions"""
         self.profile.admin_access = True
         self.profile.save()
         self._test_list()
@@ -494,15 +517,73 @@ class ReadOnlyWithAdminBasedataAccessTest:
         self.profile.can_edit_basedata = False
         self.profile.save()
         self._test_list_forbidden()
+
+    def test_is_logged_in(self):
+        """Test get, if user is authenticated"""
+        self.client.logout()
+        response = self.get(self.url_key + '-list')
+        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+
+        self.client.force_login(user=self.profile.user)
+        # test_list() with check of admin_access
+        self.profile.admin_access = True
+        self.profile.save()
+        self._test_list()
+        self.profile.admin_access = False
+        self.profile.save()
+        self._test_list_forbidden()
+
+        # test_detail()
+        self.profile.admin_access = True
+        self.profile.save()
+        self._test_detail()
+        self.profile.admin_access = False
+        self.profile.save()
+        self._test_detail_forbidden()
 
 
 class SingletonWriteOnlyWithCanEditBaseDataTest:
 
     def test_put_patch(self):
-        """Test post with and without can_edit_basedata permissions"""
+        """Test for Singletons, put and patch with and without can_edit_basedata permissions"""
         self.profile.can_edit_basedata = True
         self.profile.save()
         self._test_put_patch()
         self.profile.can_edit_basedata = False
         self.profile.save()
         self._test_put_patch_forbidden()
+
+    def test_is_logged_in(self):
+        """Test read, if user is authenticated"""
+        self.client.logout()
+        response = self.get(self.url_key + '-list')
+        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+
+        self.client.force_login(user=self.profile.user)
+
+        self.test_detail()
+
+
+class SingletonWriteOnlyWithAdminAccessTest:
+
+    def test_put_patch(self):
+        """Test for Singletons, put and patch with and without admin_access"""
+        self.profile.admin_access= True
+        self.profile.save()
+        self._test_put_patch()
+        self.profile.admin_access= False
+        self.profile.save()
+        self._test_put_patch_forbidden()
+
+    def test_is_logged_in(self):
+        """Test read, if user is authenticated"""
+        self.client.logout()
+        response = self.get(self.url_key + '-list')
+        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+
+        self.client.force_login(user=self.profile.user)
+
+        self.test_detail()
+
+
+

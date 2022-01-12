@@ -7,7 +7,7 @@ RUN apt-get -y update \
     && apt-get -y install nodejs \
     && apt-get -y install python3-pip \
     && apt-get -y install libpq-dev \
-    && apt-get -y install binutils libproj-dev libgeos-dev
+    && apt-get -y install binutils libproj-dev libgeos-dev \
     && apt-get -y install libsqlite3-mod-spatialite
 
 RUN npm i npm@latest -g

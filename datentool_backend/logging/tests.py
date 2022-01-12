@@ -191,15 +191,14 @@ class _TestReadOnly():
         self.test_detail()
 
 
-class TestCapacityUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest,
-                               _TestReadOnly, _TestAPI, BasicModelReadTest, APITestCase):
+class TestCapacityUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestAPI, BasicModelReadTest, APITestCase):
     """"""
     url_key = "capacityuploadlogs"
     factory = CapacityUploadLogFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         capacityuploadlog: CapacityUploadLog = cls.obj
         service = capacityuploadlog.service.pk
         user = capacityuploadlog.user.pk
@@ -211,14 +210,14 @@ class TestCapacityUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest,
         cls.patch_data = data
 
 
-class TestPlaceUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestReadOnly, _TestAPI, BasicModelReadTest, APITestCase):
+class TestPlaceUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestAPI, BasicModelReadTest, APITestCase):
     """"""
     url_key = "placeuploadlogs"
     factory = PlaceUploadLogFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         placeuploadlog: PlaceUploadLog = cls.obj
         infrastructure = placeuploadlog.infrastructure.pk
         user = placeuploadlog.user.pk
@@ -230,14 +229,14 @@ class TestPlaceUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestReadOnly, 
         cls.patch_data = data
 
 
-class TestAreaUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestReadOnly, _TestAPI, BasicModelReadTest, APITestCase):
+class TestAreaUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestAPI, BasicModelReadTest, APITestCase):
     """"""
     url_key = "areauploadlogs"
     factory = AreaUploadLogFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         areauploadlog: AreaUploadLog = cls.obj
         level = areauploadlog.level.pk
         user = areauploadlog.user.pk

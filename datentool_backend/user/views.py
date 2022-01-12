@@ -1,10 +1,10 @@
 from rest_framework import viewsets, permissions
 from django.db.models import Q
 from django.contrib.auth.models import User
-from datentool_backend.utils.views import HasAdminAccessOrReadOnly
+from datentool_backend.utils.views import HasAdminAccessOrReadOnly, ProtectCascadeMixin
 from .serializers import (UserSerializer, PlanningProcessSerializer,
                           ScenarioSerializer)
-from .models import PlanningProcess, Scenario
+from .models import PlanningProcess, Scenario, Profile
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -25,25 +25,37 @@ class CanCreateProcessPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.method in ('GET'):
             return True
+
+        if request.method in ['POST']:
+            if request.user.is_superuser:
+                return True
+            owner = Profile.objects.get(pk=request.data.get('owner'))
+            if (request.user.profile.can_create_process
+                    and request.user.profile == owner):
+                return True
         else:
             return request.user.profile.can_create_process
 
     def has_object_permission(self, request, view, obj):
-        if request.method in ('GET'):
+        if request.method in permissions.SAFE_METHODS:
+            return (request.user.profile == obj.owner or
+                    request.user.profile in obj.users.all())
+        else:
             owner = obj.owner
             return request.user.profile == owner
-        else:
-            return request.user.profile.can_create_process
 
 
-class PlanningProcessViewSet(viewsets.ModelViewSet):
+class PlanningProcessViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = PlanningProcess.objects.all()
     serializer_class = PlanningProcessSerializer
     permission_classes = [permissions.IsAuthenticated & CanCreateProcessPermission]
 
     def get_queryset(self):
         qs = super().get_queryset()
-        return qs.filter(owner=self.request.user.profile)
+        condition_user_in_user = Q(users__in=[self.request.user.profile])
+        condition_owner_in_user = Q(owner=self.request.user.profile)
+        return qs.filter(condition_user_in_user |
+                         condition_owner_in_user).distinct()
 
 
 class CanEditScenarioPermission(permissions.BasePermission):
@@ -70,13 +82,10 @@ class CanEditScenarioPermission(permissions.BasePermission):
         return owner_is_user or (allow_shared_change and user_in_users)
 
 
-
-
-class ScenarioViewSet(viewsets.ModelViewSet):
+class ScenarioViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Scenario.objects.all()
     serializer_class = ScenarioSerializer
-    permission_classes = [permissions.IsAuthenticated & CanEditScenarioPermission]
-
+    permission_classes = [CanEditScenarioPermission]
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -84,34 +93,3 @@ class ScenarioViewSet(viewsets.ModelViewSet):
         condition_owner_in_user = Q(planning_process__owner=self.request.user.profile)
 
         return qs.filter(condition_user_in_user | condition_owner_in_user)
-
-
-
-
-
-
-#class CanEditScenarioPermission(permissions.BasePermission):
-    #def has_permission(self, request, view):
-        #return request.user.is_authenticated and (
-            #request.method in permissions.SAFE_METHODS
-            #or request.user.is_superuser)
-
-    #def has_object_permission(self, request, view, obj):
-        #if request.method in permissions.SAFE_METHODS and (
-            #obj.owner == request.user.profile or
-            #request.user.profile in obj.planning_process.users):
-            #return True
-        #if self.detail:
-            #owner_is_user = request.user.profile == obj.owner
-            #user_in_users = request.user.profile in obj.planning_process.users
-            #allow_shared_change = obj.planning_process.allow_shared_change
-            #return owner_is_user or (allow_shared_change and user_in_users)
-        #else:
-            #owner_is_user = len(self.get_queryset()) > 0
-
-    #def get_queryset(self):
-        #qs = super().get_queryset()
-        #condition = Q(planning_process__owner=self.request.user.profile) | \
-            #Q(planning_process__users__contains=self.request.user.profile)
-        #return qs.filter(condition)
-

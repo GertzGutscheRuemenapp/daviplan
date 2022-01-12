@@ -183,8 +183,6 @@ if sys.platform == 'linux':
 else:
     SPATIALITE_LIBRARY_PATH = 'mod_spatialite'
 
-
-
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
