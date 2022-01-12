@@ -1,11 +1,16 @@
 version: 2.1
 machine:
   environment:
-    DJANGO_SETTINGS_MODULE: datentool.settings_test
+    DJANGO_SETTINGS_MODULE: datentool.settings_circleci
 jobs:
   django testing:
     docker:
       - image: gertzgutscheruemenapp/daviplan:testing
+      - image: circleci/postgres:9.6.5-alpine-ram
+        environment:
+          POSTGRES_USER: ubuntu
+          POSTGRES_DB: circle_test
+          POSTGRES_PASSWORD: ""
     steps:
       - checkout
       - run: mkdir test-reports
@@ -16,7 +21,7 @@ jobs:
       - run:
           name: Migrate Test Database
           command: |
-            python manage.py migrate --settings=datentool.settings_test
+            python manage.py migrate --settings=datentool.settings_circleci
       - store_artifacts:
           path: test-reports/
           destination: tr1
@@ -25,7 +30,7 @@ jobs:
       - run:
           name: codecov
           command: |
-            python manage.py test --settings=datentool.settings_test
+            python manage.py test --settings=datentool.settings_circleci
 
 workflows:
   version: 2
