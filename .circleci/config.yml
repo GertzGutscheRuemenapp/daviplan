@@ -6,7 +6,7 @@ jobs:
   django testing:
     docker:
       - image: gertzgutscheruemenapp/daviplan:testing
-      - image: circleci/postgres:11-postgis-ram
+      - image: circleci/postgres:13-postgis-ram
         environment:
           POSTGRES_USER: postgres
           POSTGRES_DB: circle_test
@@ -18,6 +18,14 @@ jobs:
           name: Resolve Python dependencies
           command: |
             pip install -r requirements.txt
+      - run:
+          name: install dockerize
+          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+          environment:
+            DOCKERIZE_VERSION: v0.6.1
+      - run:
+          name: Wait for db
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
       - run:
           name: Migrate Test Database
           command: |
