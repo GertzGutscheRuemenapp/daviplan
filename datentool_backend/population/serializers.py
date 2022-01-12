@@ -71,7 +71,7 @@ class PopulationSerializer(serializers.ModelSerializer):
 class PopulationEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = PopulationEntry
-        fields = ('id', 'population', 'area', 'gender', 'age', 'value')
+        fields = ('id', 'population', 'area', 'gender', 'age_group', 'value')
 
 
 class PopStatisticSerializer(serializers.ModelSerializer):
