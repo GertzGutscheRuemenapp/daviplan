@@ -8,9 +8,9 @@ jobs:
       - image: gertzgutscheruemenapp/daviplan:testing
       - image: circleci/postgres:9.6.5-alpine-ram
         environment:
-          POSTGRES_USER: ubuntu
+          POSTGRES_USER: postgres
           POSTGRES_DB: circle_test
-          POSTGRES_PASSWORD: ""
+          POSTGRES_PASSWORD: postgres
     steps:
       - checkout
       - run: mkdir test-reports
@@ -18,6 +18,9 @@ jobs:
           name: Resolve Python dependencies
           command: |
             pip install -r requirements.txt
+      - run:
+          name: Wait for Postgres to start
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
       - run:
           name: Migrate Test Database
           command: |
