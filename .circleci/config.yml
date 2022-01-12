@@ -6,7 +6,7 @@ jobs:
   django testing:
     docker:
       - image: gertzgutscheruemenapp/daviplan:testing
-      - image: circleci/postgres:9.6.5-alpine-ram
+      - image: circleci/postgres:11-postgis-ram
         environment:
           POSTGRES_USER: postgres
           POSTGRES_DB: circle_test
