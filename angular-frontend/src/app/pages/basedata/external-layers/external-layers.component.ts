@@ -3,7 +3,7 @@ import { CheckTreeComponent, TreeItemNode } from "../../../elements/check-tree/c
 import { MapControl, MapService } from "../../../map/map.service";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
-import { Observable } from "rxjs";
+import { forkJoin, Observable } from "rxjs";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
@@ -77,13 +77,18 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.fetchLayerGroups().subscribe(res => {
       this.fetchLayers().subscribe(res => {
-        const items: TreeItemNode[] = this.layerGroups.map(group => { return {
-          id: group.id,
-          name: group.name,
-          children: group.children? group.children.map(layer => { return {
-            id: layer.id, name: layer.name, checked: layer.active } }): [] }
-        })
-        this.layerTree.setItems(items);
+        // const items: TreeItemNode[] = this.layerGroups.map(group => { return {
+        //   id: group.id,
+        //   name: group.name,
+        //   children: group.children? group.children.map(layer => { return {
+        //     id: layer.id, name: layer.name, checked: layer.active } }): [] }
+        // })
+        this.layerGroups.forEach(group => {
+            group.children?.forEach(layer => {
+              if (layer.active) layer.checked = true;
+            })
+        });
+        this.layerTree.setItems(this.layerGroups);
       })
     })
     this.layerTree.addItemClicked.subscribe(node => {
@@ -373,14 +378,20 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   patchOrder(array: Layer[] | LayerGroup[]): void {
     if (array.length === 0) return;
     const url = isLayer(array[0]) ? this.rest.URLS.layers: this.rest.URLS.layerGroups;
+    let observables: Observable<any>[] = [];
     for ( let i = 0; i < array.length; i += 1){
       const obj = array[i];
-      this.http.patch<any>(`${url}${obj.id}/`,
-        { order: i + 1 }).subscribe(res => {
+      const request = this.http.patch<any>(`${url}${obj.id}/`, { order: i + 1 });
+      request.subscribe(res => {
         obj.order = res.order;
-        this.layerTree.refresh();
       });
+      // ToDo: chain - refresh and fetchlayers at the end
+      observables.push(request);
     }
+    forkJoin(...observables).subscribe(next => {
+      this.mapService.fetchLayers();
+      this.layerTree.refresh();
+    })
   }
 
   moveSelected(direction: string): void {
