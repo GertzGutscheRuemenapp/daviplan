@@ -1,0 +1,50 @@
+version: 2.1
+machine:
+  environment:
+    DJANGO_SETTINGS_MODULE: datentool.settings_circleci
+jobs:
+  django testing:
+    docker:
+      - image: gertzgutscheruemenapp/daviplan:testing
+      - image: circleci/postgres:13-postgis-ram
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: circle_test
+          POSTGRES_PASSWORD: postgres
+    steps:
+      - checkout
+      - run: mkdir test-reports
+      - run:
+          name: Resolve Python dependencies
+          command: |
+            pip install -r requirements.txt
+      - run:
+          name: install wget
+          command: apt-get install wget
+      - run:
+          name: install dockerize
+          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+          environment:
+            DOCKERIZE_VERSION: v0.6.1
+      - run:
+          name: Wait for db
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
+      - run:
+          name: Migrate Test Database
+          command: |
+            python manage.py migrate --settings=datentool.settings_circleci
+      - store_artifacts:
+          path: test-reports/
+          destination: tr1
+      - store_test_results:
+          path: test-reports/
+      - run:
+          name: codecov
+          command: |
+            python manage.py test --settings=datentool.settings_circleci
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - django testing

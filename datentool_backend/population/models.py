@@ -5,12 +5,14 @@ from django.core.validators import (MaxLengthValidator,
 
 from datentool_backend.base import NamedModel
 from datentool_backend.area.models import AreaLevel, Area
-from bulkmodel.models import BulkModel
+from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
+from datentool_backend.base import NamedModel, DatentoolModelMixin
+
 #  Vector tile:
 from rest_framework_mvt.managers import MVTManager
 
 
-class Year(BulkModel):
+class Year(DatentoolModelMixin, models.Model):
     """years available"""
     year = models.IntegerField()
 
@@ -18,22 +20,22 @@ class Year(BulkModel):
         return f'{self.__class__.__name__}: {self.year}'
 
 
-class Raster(NamedModel, models.Model):
+class Raster(DatentoolModelMixin, NamedModel, models.Model):
     """a raster"""
     name = models.TextField()
 
 
-class PopulationRaster(NamedModel, models.Model):
+class PopulationRaster(DatentoolModelMixin, NamedModel, models.Model):
     """a raster with population data"""
     name = models.TextField()
-    raster = models.ForeignKey(Raster, on_delete=models.RESTRICT)
-    year = models.ForeignKey(Year, on_delete=models.RESTRICT)
+    raster = models.ForeignKey(Raster, on_delete=PROTECT_CASCADE)
+    year = models.ForeignKey(Year, on_delete=PROTECT_CASCADE)
     default = models.BooleanField(default=False)
 
 
-class RasterCell(models.Model):
+class RasterCell(DatentoolModelMixin, models.Model):
     """a raster cell with geometry"""
-    raster = models.ForeignKey(Raster, on_delete=models.RESTRICT)
+    raster = models.ForeignKey(Raster, on_delete=PROTECT_CASCADE)
     cellcode = models.TextField(validators=[MaxLengthValidator(13)])
     pnt = gis_models.PointField(geography=True)
     poly = gis_models.PolygonField(geography=True)
@@ -47,20 +49,20 @@ class RasterCell(models.Model):
 
 class RasterCellPopulation(models.Model):
     """the population in a cell in a certain PopulationRaster"""
-    popraster = models.ForeignKey(PopulationRaster, on_delete=models.RESTRICT)
-    cell = models.ForeignKey(RasterCell, on_delete=models.RESTRICT)
+    popraster = models.ForeignKey(PopulationRaster, on_delete=PROTECT_CASCADE)
+    cell = models.ForeignKey(RasterCell, on_delete=PROTECT_CASCADE)
     value = models.FloatField()
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__}: {self.popraster.name}-{self.cell.cellcode}'
 
 
-class Gender(NamedModel, models.Model):
+class Gender(DatentoolModelMixin, NamedModel, models.Model):
     """the genders available"""
     name = models.TextField()
 
 
-class AgeGroup(models.Model):
+class AgeGroup(DatentoolModelMixin, models.Model):
     """an age group in an age classification"""
     from_age = models.IntegerField(validators=[MinValueValidator(0),
                                                MaxValueValidator(127)])
@@ -68,24 +70,24 @@ class AgeGroup(models.Model):
                                              MaxValueValidator(127)])
 
 
-class DisaggPopRaster(models.Model):
+class DisaggPopRaster(DatentoolModelMixin, models.Model):
     """a raster with disaggregated population by age and gender"""
     popraster = models.ForeignKey(PopulationRaster,
-                               on_delete=models.RESTRICT, null=True)
+                               on_delete=PROTECT_CASCADE, null=True)
     genders = models.ManyToManyField(Gender, blank=True)
 
 
 class RasterCellPopulationAgeGender(models.Model):
     """a raster cell with a disaggregated value"""
-    disaggraster = models.ForeignKey(DisaggPopRaster, on_delete=models.RESTRICT)
+    disaggraster = models.ForeignKey(DisaggPopRaster, on_delete=PROTECT_CASCADE)
     year = models.IntegerField()
-    cell = models.ForeignKey(RasterCell, on_delete=models.RESTRICT)
+    cell = models.ForeignKey(RasterCell, on_delete=PROTECT_CASCADE)
     age = models.IntegerField()
-    gender = models.ForeignKey(Gender, on_delete=models.RESTRICT)
+    gender = models.ForeignKey(Gender, on_delete=PROTECT_CASCADE)
     value = models.FloatField()
 
 
-class Prognosis(NamedModel, models.Model):
+class Prognosis(DatentoolModelMixin, NamedModel, models.Model):
     """a prognosis"""
     name = models.TextField()
     years = models.ManyToManyField(Year, blank=True)
@@ -95,40 +97,40 @@ class Prognosis(NamedModel, models.Model):
 
 class PrognosisEntry(models.Model):
     """a prognosis entry"""
-    prognosis = models.ForeignKey(Prognosis, on_delete=models.RESTRICT)
-    year = models.ForeignKey(Year, on_delete=models.RESTRICT)
-    area = models.ForeignKey(Area, on_delete=models.RESTRICT)
-    agegroup = models.ForeignKey(AgeGroup, on_delete=models.RESTRICT)
-    gender = models.ForeignKey(Gender, on_delete=models.RESTRICT)
+    prognosis = models.ForeignKey(Prognosis, on_delete=PROTECT_CASCADE)
+    year = models.ForeignKey(Year, on_delete=PROTECT_CASCADE)
+    area = models.ForeignKey(Area, on_delete=PROTECT_CASCADE)
+    agegroup = models.ForeignKey(AgeGroup, on_delete=PROTECT_CASCADE)
+    gender = models.ForeignKey(Gender, on_delete=PROTECT_CASCADE)
     value = models.FloatField()
 
 
-class Population(models.Model):
+class Population(DatentoolModelMixin, models.Model):
     """Population data for an area level"""
-    area_level = models.ForeignKey(AreaLevel, on_delete=models.RESTRICT)
-    year = models.ForeignKey(Year, on_delete=models.RESTRICT)
+    area_level = models.ForeignKey(AreaLevel, on_delete=PROTECT_CASCADE)
+    year = models.ForeignKey(Year, on_delete=PROTECT_CASCADE)
     genders = models.ManyToManyField(Gender, blank=True)
-    raster = models.ForeignKey(DisaggPopRaster, on_delete=models.RESTRICT)
+    raster = models.ForeignKey(DisaggPopRaster, on_delete=PROTECT_CASCADE)
 
 
 class PopulationEntry(models.Model):
     """population value for a certain area"""
-    population = models.ForeignKey(Population, on_delete=models.RESTRICT)
-    area = models.ForeignKey(Area, on_delete=models.RESTRICT)
-    gender = models.ForeignKey(Gender, on_delete=models.RESTRICT)
+    population = models.ForeignKey(Population, on_delete=PROTECT_CASCADE)
+    area = models.ForeignKey(Area, on_delete=PROTECT_CASCADE)
+    gender = models.ForeignKey(Gender, on_delete=PROTECT_CASCADE)
     age = models.IntegerField()
     value = models.FloatField()
 
 
-class PopStatistic(models.Model):
+class PopStatistic(DatentoolModelMixin, models.Model):
     """population statistic for a certain year"""
-    year = models.ForeignKey(Year, on_delete=models.RESTRICT)
+    year = models.ForeignKey(Year, on_delete=PROTECT_CASCADE)
 
 
 class PopStatEntry(models.Model):
     """statistic entry for an area"""
-    popstatistic = models.ForeignKey(PopStatistic, on_delete=models.RESTRICT)
-    area = models.ForeignKey(Area, on_delete=models.RESTRICT)
+    popstatistic = models.ForeignKey(PopStatistic, on_delete=PROTECT_CASCADE)
+    area = models.ForeignKey(Area, on_delete=PROTECT_CASCADE)
     immigration = models.FloatField()
     emigration = models.FloatField()
     births = models.FloatField()

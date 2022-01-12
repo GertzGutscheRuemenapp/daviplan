@@ -1,8 +1,9 @@
 from collections import OrderedDict
 from django.test import TestCase
 from test_plus import APITestCase
-from datentool_backend.api_test import BasicModelTest
-
+from datentool_backend.api_test import (BasicModelTest,
+                                        WriteOnlyWithCanEditBaseDataTest,
+                                        )
 
 from .factories import (MapSymbolsFactory,
                         WMSLayerFactory, InternalWFSLayerFactory,
@@ -43,8 +44,8 @@ class _TestAPI:
     factory = None
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         cls.url_pks = dict()
         if cls.factory:
             cls.obj = cls.factory()
@@ -112,14 +113,15 @@ class _TestPermissions():
         profile.save()
 
 
-class TestLayerGroupAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestLayerGroupAPI(WriteOnlyWithCanEditBaseDataTest,
+                        _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """test if view and serializer are working correctly"""
     url_key = "layergroups"
     factory = LayerGroupFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         existing_order = cls.obj.order
         cls.orders = iter(range(existing_order + 1, 100000))
 
@@ -128,14 +130,15 @@ class TestLayerGroupAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase)
         cls.patch_data = dict(name='patchtestname', order=next(cls.orders))
 
 
-class TestWMSLayerAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestWMSLayerAPI(WriteOnlyWithCanEditBaseDataTest,
+                      _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """test if view and serializer are working correctly"""
     url_key = "wmslayers"
     factory = WMSLayerFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         wmslayer: WMSLayer = cls.obj
         group = wmslayer.group.pk
         data = dict(url=faker.url(), name=faker.word(), layer_name=faker.word(),
@@ -151,8 +154,8 @@ class TestWMSLayerAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     #factory = InternalWFSLayerFactory
 
     #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
+    # def setUpTestData(cls):
+        # super().setUpTestData()
         ##internalwfslayer: InternalWFSLayer = cls.obj
         ##group = internalwfslayer.group.pk
         ##symbol = MapSymbolsFactory.create()
@@ -166,14 +169,15 @@ class TestWMSLayerAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         #cls.patch_data = data
 
 
-class TestSourceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestSourceAPI(WriteOnlyWithCanEditBaseDataTest,
+                    _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """api test Layer"""
     url_key = "sources"
     factory = SourceFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
 
         data = dict(source_type=faker.random_element(SourceTypes),
                 date=faker.date(), id_field=faker.uuid4(), url=faker.url(),
@@ -183,14 +187,15 @@ class TestSourceAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.patch_data = data
 
 
-class TestAreaLevelAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
+                       _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """test if view and serializer are working correctly"""
     url_key = "arealevels"
     factory = AreaLevelFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         area_level: AreaLevel = cls.obj
         source = area_level.source.pk
         layer = area_level.layer.pk
@@ -202,14 +207,15 @@ class TestAreaLevelAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
         cls.patch_data = data
 
 
-class TestAreaAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
+                  _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """test if view and serializer are working correctly"""
     url_key = "areas"
     factory = AreaFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         area: Area = cls.obj
         area_level = area.area_level.pk
         geom = area.geom.ewkt
@@ -229,3 +235,5 @@ class TestAreaAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
 
         cls.put_data = geojson_putpatch
         cls.patch_data = geojson_putpatch
+
+

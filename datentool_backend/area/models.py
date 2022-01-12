@@ -2,9 +2,11 @@ import json
 from django.db import models
 from django.contrib.gis.db import models as gis_models
 from datentool_backend.base import NamedModel, JsonAttributes
+from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
+from datentool_backend.base import NamedModel, DatentoolModelMixin
 
 
-class MapSymbol(models.Model):
+class MapSymbol(DatentoolModelMixin, models.Model):
     '''
     MapSymbols
     '''
@@ -20,18 +22,18 @@ class MapSymbol(models.Model):
     stroke_color = models.CharField(max_length=9, default='#000000')
 
 
-class LayerGroup(NamedModel, models.Model):
+class LayerGroup(DatentoolModelMixin, NamedModel, models.Model):
     """a Layer Group"""
     name = models.TextField()
     order = models.IntegerField(default=0)
     external = models.BooleanField(default=False)
 
 
-class Layer(NamedModel, models.Model):
+class Layer(DatentoolModelMixin, NamedModel, models.Model):
     """a generic layer"""
     name = models.TextField()
     active =  models.BooleanField(default=False)
-    group = models.ForeignKey(LayerGroup, on_delete=models.RESTRICT)
+    group = models.ForeignKey(LayerGroup, on_delete=PROTECT_CASCADE)
     layer_name = models.TextField()
     order = models.IntegerField(default=0)
     description = models.TextField(default='', blank=True)
@@ -50,7 +52,7 @@ class WMSLayer(Layer):
 
 class InternalWFSLayer(Layer):
     """an internal WFS Layer"""
-    symbol = models.ForeignKey(MapSymbol, on_delete=models.CASCADE)
+    symbol = models.ForeignKey(MapSymbol, on_delete=PROTECT_CASCADE)
 
 
 class SourceTypes(models.TextChoices):
@@ -59,7 +61,7 @@ class SourceTypes(models.TextChoices):
     FILE = 'FILE', 'File Source'
 
 
-class Source(models.Model):
+class Source(DatentoolModelMixin, models.Model):
     """a generic source"""
     source_type = models.CharField(max_length=4, choices=SourceTypes.choices)
     date = models.DateField()
@@ -68,17 +70,17 @@ class Source(models.Model):
     layer = models.TextField(null=True, blank=True)
 
 
-class AreaLevel(NamedModel, models.Model):
+class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
     """an area level"""
     name = models.TextField()
     order = models.IntegerField(unique=True)
-    source = models.ForeignKey(Source, on_delete=models.RESTRICT)
-    layer = models.ForeignKey(InternalWFSLayer, on_delete=models.RESTRICT)
+    source = models.ForeignKey(Source, on_delete=PROTECT_CASCADE)
+    layer = models.ForeignKey(InternalWFSLayer, on_delete=PROTECT_CASCADE)
 
 
-class Area(JsonAttributes, models.Model):
+class Area(DatentoolModelMixin, JsonAttributes, models.Model):
     """an area"""
-    area_level = models.ForeignKey(AreaLevel, on_delete=models.RESTRICT)
+    area_level = models.ForeignKey(AreaLevel, on_delete=PROTECT_CASCADE)
     geom = gis_models.MultiPolygonField(geography=True)
     attributes = models.JSONField()
 

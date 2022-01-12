@@ -1,6 +1,7 @@
 from django.test import TestCase
 from test_plus import APITestCase
-from datentool_backend.api_test import BasicModelTest
+from datentool_backend.api_test import (BasicModelTest,
+                                        WriteOnlyWithCanEditBaseDataTest)
 from datentool_backend.area.tests import _TestAPI, _TestPermissions
 
 from .factories import DemandRateSetFactory, DemandRateFactory, ScenarioDemandRateFactory
@@ -18,14 +19,15 @@ class TestDemand(TestCase):
         print(demand_rate)
 
 
-class TestDemandRateSetAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestDemandRateSetAPI(WriteOnlyWithCanEditBaseDataTest,
+                           _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "demandratesets"
     factory = DemandRateSetFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         demandrateset: DemandRateSet = cls.obj
         service = demandrateset.service.pk
 
@@ -35,14 +37,15 @@ class TestDemandRateSetAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCa
         cls.patch_data = data
 
 
-class TestDemandRateAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+class TestDemandRateAPI(WriteOnlyWithCanEditBaseDataTest,
+                        _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "demandrates"
     factory = DemandRateFactory
 
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         demandrate: DemandRate = cls.obj
         year = demandrate.year.pk
         age_group = demandrate.age_group.pk
@@ -61,8 +64,8 @@ class TestDemandRateAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase)
     #factory = ScenarioDemandRateFactory
 
     #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
+    #def setUpTestData(cls):
+        #super().setUpTestData()
         #scenariodemandrate: ScenarioDemandRate= cls.obj
         #year = scenariodemandrate.year.pk
         #age_group = scenariodemandrate.age_group.pk

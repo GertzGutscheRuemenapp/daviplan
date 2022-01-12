@@ -1,28 +1,41 @@
 from rest_framework import viewsets
 
-from datentool_backend.utils.views import HasAdminAccessOrReadOnly, CanEditBasedata
-from .models import (Mode, ModeVariant, ReachabilityMatrix, Router, Indicator)
+from datentool_backend.utils.views import (HasAdminAccessOrReadOnly,
+                                           CanEditBasedata,
+                                           ProtectCascadeMixin)
+from .models import (Mode, ModeVariant,
+                     Stop,
+                     # ReachabilityMatrix,
+                     Router, Indicator)
 from .serializers import (ModeSerializer, ModeVariantSerializer,
-                          ReachabilityMatrixSerializer, RouterSerializer,
+                          StopSerializer,
+                          #ReachabilityMatrixSerializer,
+                          RouterSerializer,
                           IndicatorSerializer)
 
 
-class ModeViewSet(viewsets.ModelViewSet):
+class ModeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Mode.objects.all()
     serializer_class = ModeSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class ModeVariantViewSet(viewsets.ModelViewSet):
+class ModeVariantViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = ModeVariant.objects.all()
     serializer_class = ModeVariantSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class ReachabilityMatrixViewSet(viewsets.ModelViewSet):
-    queryset = ReachabilityMatrix.objects.all()
-    serializer_class = ReachabilityMatrixSerializer
+class StopViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+    queryset = Stop.objects.all()
+    serializer_class = StopSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+
+#class ReachabilityMatrixViewSet(viewsets.ModelViewSet):
+    #queryset = ReachabilityMatrix.objects.all()
+    #serializer_class = ReachabilityMatrixSerializer
+    #permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
 class RouterViewSet(viewsets.ModelViewSet):

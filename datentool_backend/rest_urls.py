@@ -16,7 +16,8 @@ from .demand.views import (DemandRateSetViewSet, DemandRateViewSet,
                            ScenarioDemandRateViewSet)
 
 from .indicators.views import (ModeViewSet, ModeVariantViewSet,
-                               ReachabilityMatrixViewSet, RouterViewSet,
+                               #ReachabilityMatrixViewSet,
+                               RouterViewSet,
                                IndicatorViewSet)
 
 from .infrastructure.views import (InfrastructureViewSet, FieldTypeViewSet,
@@ -26,7 +27,8 @@ from .infrastructure.views import (InfrastructureViewSet, FieldTypeViewSet,
                                    ScenarioPlaceViewSet)
 from .logging.views import (CapacityUploadLogViewSet, PlaceUploadLogViewSet,
                             AreaUploadLogViewSet)
-from .population.views import (RasterViewSet, PopulationRasterViewSet, GenderViewSet,
+from .population.views import (YearViewSet, RasterViewSet,
+                               PopulationRasterViewSet, GenderViewSet,
                                AgeGroupViewSet,
                                DisaggPopRasterViewSet, PrognosisViewSet,
                                PrognosisEntryViewSet, PopulationViewSet,
@@ -57,8 +59,8 @@ router.register(r'scenariodemandrates', ScenarioDemandRateViewSet,
 # indicator
 router.register(r'modes', ModeViewSet, basename='modes')
 router.register(r'modevariants', ModeVariantViewSet, basename='modevariants')
-router.register(r'reachabilitymatrices', ReachabilityMatrixViewSet,
-                basename='reachabilitymatrices')
+#router.register(r'reachabilitymatrices', ReachabilityMatrixViewSet,
+                #basename='reachabilitymatrices')
 router.register(r'routers', RouterViewSet, basename='routers')
 router.register(r'indicators', IndicatorViewSet, basename='indicators')
 
@@ -83,6 +85,7 @@ router.register(r'areauploadlogs', AreaUploadLogViewSet,
                 basename='areauploadlogs')
 
 # population
+router.register(r'years', YearViewSet, basename='years')
 router.register(r'rasters', RasterViewSet, basename='rasters')
 router.register(r'populationrasters', PopulationRasterViewSet,
                 basename='populationrasters')

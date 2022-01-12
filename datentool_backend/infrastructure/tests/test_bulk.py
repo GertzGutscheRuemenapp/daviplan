@@ -47,8 +47,8 @@
     #filename_locations_duplicates = 'test_adminloc_duplicates.csv'
 
     #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
+    #def setUpTestData(cls):
+        #super().setUpTestData()
 
         #cls.keyflow = cls.kic
         #cls.casestudy = cls.uic.casestudy
@@ -301,8 +301,8 @@
     #filename_astock = 'T3.2_Flows_actorstock.tsv'
 
     #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
+    #def setUpTestData(cls):
+        #super().setUpTestData()
 
         #cls.keyflow = cls.kic
         #cls.casestudy = cls.uic.casestudy
@@ -412,8 +412,8 @@
     #filename_products_missing_mat = 'products_missing_mat.tsv'
 
     #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
+    #def setUpTestData(cls):
+        #super().setUpTestData()
 
         #cls.keyflow = cls.kic
         #cls.casestudy = cls.uic.casestudy
