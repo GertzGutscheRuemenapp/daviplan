@@ -136,13 +136,18 @@ export class MapControl {
     this.mapService.getLayers().subscribe(layerGroups => {
       layerGroups.forEach(group => {
         for (let layer of group.children!.slice().reverse()) {
-          this.map!.addTileServer({
+          const mapLayer = this.map!.addTileServer({
             name: this.mapId(layer),
             url: layer.url,
             params: { layers: layer.layerName},
             visible: false,
             opacity: 1
           });
+          if (!layer.legendUrl) {
+            let url = mapLayer.getSource().getLegendUrl(1, { layer: layer.layerName });
+            if (url) url += '&SLD_VERSION=1.1.0';
+            layer.legendUrl = url;
+          }
           this.layers[layer.id] = layer;
         }
       })

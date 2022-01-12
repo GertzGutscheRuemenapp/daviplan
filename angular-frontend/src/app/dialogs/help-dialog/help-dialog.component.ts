@@ -5,6 +5,7 @@ import { faArrowsAlt, faQuestion } from '@fortawesome/free-solid-svg-icons';
 export interface DialogData {
   title: string;
   text: string;
+  headerIcon: string;
   template: TemplateRef<any>;
   context: any;
 }
@@ -14,9 +15,9 @@ export interface DialogData {
   templateUrl: './help-dialog.component.html',
   styleUrls: ['./help-dialog.component.scss']
 })
-export class HelpDialog {
+export class FloatingDialog {
   faArrows = faArrowsAlt;
-  constructor(public dialogRef: MatDialogRef<HelpDialog>, @Inject(MAT_DIALOG_DATA) public data: DialogData) {
+  constructor(public dialogRef: MatDialogRef<FloatingDialog>, @Inject(MAT_DIALOG_DATA) public data: DialogData) {
     data.context = data.context || {};
   }
 }
@@ -45,7 +46,7 @@ export class HelpDialogComponent {
   @ViewChild('content') content!: ElementRef;
   @ViewChild('helpButton', { read: ElementRef }) helpButton!: ElementRef;
   faQuestion = faQuestion;
-  dialogRef?: MatDialogRef<HelpDialog>;
+  dialogRef?: MatDialogRef<FloatingDialog>;
 
   constructor(public dialog: MatDialog) {}
 
@@ -63,7 +64,7 @@ export class HelpDialogComponent {
               `${rect.left + 40}px`,
         top: `${rect.top + this.top}px`
       }
-      this.dialogRef = this.dialog.open(HelpDialog, {
+      this.dialogRef = this.dialog.open(FloatingDialog, {
         width: `${this.width}px`,
         panelClass: 'help-container',
         hasBackdrop: false,
@@ -73,7 +74,8 @@ export class HelpDialogComponent {
           title: this.title,
           text: this.content.nativeElement.innerHTML,
           context: this.context,
-          template: this.template
+          template: this.template,
+          headerIcon: 'help_outline'
         }
       });
     }

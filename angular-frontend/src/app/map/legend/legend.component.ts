@@ -1,8 +1,9 @@
-import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../map.service";
 import { LayerGroup, Layer } from "../../pages/basedata/external-layers/external-layers.component";
-import { HttpClient } from "@angular/common/http";
 import { CookieService } from "../../helpers/cookies.service";
+import { FloatingDialog } from "../../dialogs/help-dialog/help-dialog.component";
+import { MatDialog } from "@angular/material/dialog";
 
 @Component({
   selector: 'app-legend',
@@ -10,8 +11,8 @@ import { CookieService } from "../../helpers/cookies.service";
   styleUrls: ['./legend.component.scss']
 })
 export class LegendComponent implements AfterViewInit {
-
   @Input() target!: string;
+  @ViewChild('legendImage') legendImageTemplate?: TemplateRef<any>;
   layers: any;
   mapControl!: MapControl;
   activeBackground?: number;
@@ -22,7 +23,8 @@ export class LegendComponent implements AfterViewInit {
   editMode: boolean = true;
   Object = Object;
 
-  constructor(private mapService: MapService, private cdRef:ChangeDetectorRef, private cookies: CookieService) {
+  constructor(public dialog: MatDialog, private mapService: MapService,
+              private cdRef:ChangeDetectorRef, private cookies: CookieService) {
   }
 
   ngAfterViewInit (): void {
@@ -67,5 +69,18 @@ export class LegendComponent implements AfterViewInit {
   setBackground(id: number) {
     this.cookies.set(`background-layer`, id);
     this.mapControl.setBackground(id);
+  }
+
+  showLegendImage(layer: Layer): void {
+    this.dialog.open(FloatingDialog, {
+      panelClass: 'help-container',
+      hasBackdrop: false,
+      autoFocus: false,
+      data: {
+        title: layer.name,
+        context: { layer: layer },
+        template: this.legendImageTemplate
+      }
+    });
   }
 }

@@ -29,7 +29,8 @@ export interface Layer {
   layerName: string,
   description: string,
   active?: boolean,
-  checked?: boolean
+  checked?: boolean,
+  legendUrl?: string
 }
 
 function isLayer(obj: any): obj is Layer{

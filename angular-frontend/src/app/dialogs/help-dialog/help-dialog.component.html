@@ -1,7 +1,7 @@
 <div style="position: relative; cursor: move;" cdkDrag cdkDragRootElement=".cdk-overlay-pane" cdkDragHandle>
   <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
   <h5 mat-dialog-title>
-    <mat-icon style="margin-right: 8px;">help_outline</mat-icon>
+    <mat-icon *ngIf="data.headerIcon" style="margin-right: 8px;">{{ data.headerIcon }}</mat-icon>
     {{ data.title }}
   </h5>
   <button class="inverse small" mat-icon-button mat-dialog-close id="close-button">

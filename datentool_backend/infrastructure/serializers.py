@@ -31,7 +31,7 @@ class InfrastructureSerializer(serializers.ModelSerializer):
         order = layer_data.pop('order', existing.last().layer.order + 1)
         layer = InternalWFSLayer.objects.create(
             symbol=symbol, name=l_name, layer_name=l_layer_name, order=order,
-            group=group, **layer_data)
+            group=group, active=True, **layer_data)
 
         editable_by = validated_data.pop('editable_by', [])
         accessible_by = validated_data.pop('accessible_by', [])
