@@ -19,9 +19,6 @@ jobs:
           command: |
             pip install -r requirements.txt
       - run:
-          name: Wait for Postgres to start
-          command: dockerize -wait tcp://localhost:5432 -timeout 1m
-      - run:
           name: Migrate Test Database
           command: |
             python manage.py migrate --settings=datentool.settings_circleci
