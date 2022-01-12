@@ -52,6 +52,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   mapControl?: MapControl;
   layerGroupForm: FormGroup;
   addLayerForm: FormGroup;
+  editLayerForm: FormGroup;
 
   selectedLayer?: Layer;
   selectedGroup?: LayerGroup;
@@ -65,6 +66,10 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       name: new FormControl(''),
       url: new FormControl(''),
       layerName: new FormControl(''),
+      description: new FormControl('')
+    });
+    this.editLayerForm = this.formBuilder.group({
+      name: new FormControl(''),
       description: new FormControl('')
     });
     this.addLayerForm.controls['layerName'].disable();
@@ -134,7 +139,37 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   }
 
   setupLayerCard(): void {
-
+    this.layerCard?.dialogOpened.subscribe(ok => {
+      this.editLayerForm.reset({
+        name: this.selectedLayer?.name,
+        description: this.selectedLayer?.description
+      });
+    })
+    this.layerCard?.dialogConfirmed.subscribe((ok)=>{
+      this.editLayerForm.setErrors(null);
+      // display errors for all fields even if not touched
+      this.editLayerForm.markAllAsTouched();
+      if (this.editLayerForm.invalid) return;
+      let attributes: any = {
+        name: this.editLayerForm.value.name
+      }
+      this.layerCard?.setLoading(true);
+      this.http.patch<Layer>(`${this.rest.URLS.layers}${this.selectedLayer?.id}/`, attributes
+      ).subscribe(layer => {
+        this.selectedLayer!.name = layer.name;
+        this.selectedLayer!.description = layer.description;
+        this.layerTree.refresh();
+        this.mapService.fetchLayers();
+        this.layerCard?.closeDialog(true);
+      },(error) => {
+        // ToDo: set specific errors to fields
+        this.editLayerForm.setErrors(error.error);
+        this.layerCard?.setLoading(false);
+      });
+    })
+    this.layerCard?.dialogClosed.subscribe(ok => {
+      this.editLayerForm.reset()
+    })
   }
 
   setupLayerGroupCard(): void {

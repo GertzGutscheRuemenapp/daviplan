@@ -62,12 +62,20 @@
                     <p>Mit „Editieren“ können Sie auch den in den daviplan-Karten angezeigten Namen des ausgewählten externen Layers verändern.</p>">
       <table>
         <tr>
+          <td>URL</td>
+          <td style="color: #00000061">{{selectedLayer?.url}}</td>
+        </tr>
+        <tr>
+          <td>Layer</td>
+          <td style="color: #00000061">{{selectedLayer?.layerName}}</td>
+        </tr>
+        <tr>
           <td>Name</td>
           <td>{{selectedLayer?.name}}</td>
         </tr>
         <tr>
-          <td>URL</td>
-          <td>{{selectedLayer?.url}}</td>
+          <td>Beschreibung</td>
+          <td>{{selectedLayer?.description || '-'}}</td>
         </tr>
       </table>
     </app-input-card>
@@ -171,8 +179,19 @@
   </form>
 </ng-template>
 
-
 <ng-template #editLayerTemplate>
+  <form [formGroup]="editLayerForm">
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Name</mat-label>
+        <input matInput formControlName="name" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Beschreibung</mat-label>
+        <textarea matInput formControlName="description" rows="10"></textarea>
+      </mat-form-field>
+    </div>
+  </form>
 </ng-template>
 
 <ng-template #editLayerGroupTemplate>
