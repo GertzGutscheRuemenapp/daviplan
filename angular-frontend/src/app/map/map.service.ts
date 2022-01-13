@@ -1,39 +1,45 @@
 import { Injectable, EventEmitter } from '@angular/core';
 import { Layer, LayerGroup } from '../pages/basedata/external-layers/external-layers.component';
 import { OlMap } from './map'
-import { BehaviorSubject, Observable } from "rxjs";
-import { User } from "../pages/login/users";
+import { BehaviorSubject } from "rxjs";
 import { HttpClient } from "@angular/common/http";
-import { mergeMap } from "rxjs/operators";
 import { RestAPI } from "../rest-api";
 import { sortBy } from "../helpers/utils";
-import { subscribe } from "graphql";
 
 interface BackgroundLayer {
   id: number;
   name: string;
   url: string;
+  legendUrl?: string;
+  description?: string;
+  attribution?: string;
   params?: any;
   xyz?: boolean;
 }
 
-const mockBackgroundLayers: BackgroundLayer[] = [
+const backgroundLayers: BackgroundLayer[] = [
   {
     id: -1,
     name: 'OSM',
     url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    description: 'Offizielle Weltkarte von OpenStreetMap',
+    attribution: '©<a target="_blank" href="https://www.openstreetmap.org/copyright">OpenStreetMap-Mitwirkende<a>',
     xyz: true
   },
   {
     id: -2,
-    name: 'TopPlus',
+    name: 'TopPlusOpen',
     url: 'https://sgx.geodatenzentrum.de/wms_topplus_open',
+    description: 'Weltweite einheitliche Webkarte vom BKG. Normalausgabe',
+    legendUrl: 'https://sgx.geodatenzentrum.de/wms_topplus_open?styles=&sld_version=1.1.0&version=1.1.1&request=GetLegendGraphic&format=image%2Fpng&service=WMS&layer=web',
     params: { layers: 'web' },
   },
   {
     id: -3,
-    name: 'TopPlus grau',
+    name: 'TopPlusOpen grau',
     url: 'https://sgx.geodatenzentrum.de/wms_topplus_open',
+    legendUrl: 'https://sgx.geodatenzentrum.de/wms_topplus_open?styles=&sld_version=1.1.0&version=1.1.1&request=GetLegendGraphic&format=image%2Fpng&service=WMS&layer=web_grau',
+    description: 'Weltweite einheitliche Webkarte vom BKG. Graustufendarstellung',
     params: { layers: 'web_grau' },
   }
 ]
@@ -43,10 +49,12 @@ const mockBackgroundLayers: BackgroundLayer[] = [
 })
 export class MapService {
   private controls: Record<string, MapControl> = {};
-  backgroundLayers: BackgroundLayer[] = mockBackgroundLayers;
+  backgroundLayers: BackgroundLayer[] = backgroundLayers;
   layerGroups?: BehaviorSubject<Array<LayerGroup>>;
 
-  constructor(private http: HttpClient, private rest: RestAPI) {}
+  constructor(private http: HttpClient, private rest: RestAPI) {
+
+  }
 
   // ToDo: return Observable?
   get(target: string): MapControl {
@@ -105,11 +113,10 @@ export class MapControl {
   }
 
   getBackgroundLayers(): Layer[] {
-
     let layers: Layer[] = this.mapService.backgroundLayers.map(layer => {
-      return { id: layer.id, name: layer.name, order: 0,
+      return { id: layer.id, name: layer.name, order: 0, description: layer.description || '', legendUrl: layer.legendUrl || '',
         // ToDo: ugly, info not needed
-        layerName:'', url: layer.url, group: 0, description:''} })
+        layerName:'', url: layer.url, group: 0} })
     return layers;
   }
 
@@ -124,13 +131,14 @@ export class MapControl {
   create(): void {
     this.map = new OlMap(this.target, {projection: `EPSG:${this.srid}`});
     for (let layer of this.mapService.backgroundLayers) {
-      this.map.addTileServer({
+      const mapLayer = this.map.addTileServer({
         name: this.mapId(layer),
         url: layer.url,
         params: layer.params,
         visible: false,
         opacity: 1,
-        xyz: layer.xyz
+        xyz: layer.xyz,
+        attribution: layer.attribution
       });
     }
     this.mapService.getLayers().subscribe(layerGroups => {

@@ -56,7 +56,6 @@ export class HelpDialogComponent {
       this.dialogRef.close();
     }
     else {
-      this.dialog.closeAll();
       const rect: DOMRect = this.helpButton.nativeElement.getBoundingClientRect();
       const position = {
         left: (this.position === 'left') ? `${rect.left - this.width - 10}px`:

@@ -20,6 +20,11 @@ export interface LayerGroup {
   children?: Layer[]
 }
 
+export interface Symbol {
+  color: string,
+  symbol: string
+}
+
 export interface Layer {
   id: number,
   group: number,
@@ -30,7 +35,9 @@ export interface Layer {
   description: string,
   active?: boolean,
   checked?: boolean,
-  legendUrl?: string
+  legendUrl?: string,
+  opacity?: number,
+  symbol?: Symbol
 }
 
 function isLayer(obj: any): obj is Layer{

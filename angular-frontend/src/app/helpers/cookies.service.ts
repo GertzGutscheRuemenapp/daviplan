@@ -10,7 +10,7 @@ export class CookieService {
 
   toggle(name: string, path?: string | undefined) {
     let val = (!this.ngxCookies.check(name) || this.ngxCookies.get(name) === 'false')? 'true': 'false';
-    this.ngxCookies.set(name, val, { path: path });
+    this.ngxCookies.set(name, val, { path: path, expires: 3650 });
   }
 
   public get(name: string): string | boolean {

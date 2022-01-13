@@ -12,10 +12,13 @@
     </ng-template>
     <app-help-button style="margin: 0 5px;" [template]="legendPopover" title="Legende" position="left" [top]="-100">
     </app-help-button>
-    <button title="In den Editiermodus umschalten" color="primary" *ngIf="!editMode" (click)="editMode = !editMode" mat-icon-button style="box-shadow: none; margin-left: auto;">
+    <button title="In den Editiermodus umschalten" color="primary" *ngIf="!editMode" (click)="toggleEditMode()" mat-icon-button style="box-shadow: none; margin-left: auto;">
       <mat-icon>list</mat-icon>
     </button>
-    <button title="In den kompakten Modus umschalten" color="primary" *ngIf="editMode" (click)="editMode = !editMode" mat-mini-fab style="box-shadow: none; margin-left: auto;">
+    <button title="In den kompakten Modus umschalten"
+            color="primary" *ngIf="editMode"
+            (click)="toggleEditMode()"
+            mat-mini-fab style="box-shadow: none; margin-left: auto;">
       <mat-icon>list</mat-icon>
     </button>
   </div>
@@ -28,27 +31,33 @@
           </mat-panel-title>
         </mat-expansion-panel-header>
         <div *ngFor="let layer of group.children">
-          <div class="legend-entry" [ngClass]="{'checked': layer.checked}"
-                                    *ngIf="editMode || layer.checked">
-<!--            <div class="symbol" [style.background]="layer.color || 'white'" [class]="layer.symbol"></div>-->
-            <ng-template #popover>
-              <b>{{ layer.name }}</b>
-              <p *ngIf="layer.description">{{ layer.description }}</p>
-            </ng-template>
-            <mat-icon *ngIf="layer.legendUrl"
-                      class="legend-image-link"
-                      title="Legendenbild anzeigen"
-                      (click)="showLegendImage(layer)">
-              collections
-            </mat-icon>
-            <div class="legend-layer-title"
+          <div class="legend-entry"
+               [ngClass]="{'checked': layer.checked}"
+               *ngIf="editMode || layer.checked">
+            <div class="entry-header"
                  [ngbPopover]="popover"
                  placement="left"
                  container="body"
-                 triggers="mouseenter:mouseleave"
-                 [style.cursor]="(editMode)? 'pointer': ''"
-                 (click)="editMode && onLayerToggle(layer)">
-              {{ layer.name }}
+                 triggers="mouseenter:mouseleave">
+              <ng-template #popover>
+                <b>{{ layer.name }}</b>
+                <p *ngIf="layer.description">{{ layer.description }}</p>
+              </ng-template>
+              <div class="entry-prefix">
+                <div *ngIf="layer.symbol"
+                     class="symbol" [style.background]="layer.symbol.color || 'white'" [class]="layer.symbol.symbol"></div>
+                <mat-icon *ngIf="layer.legendUrl"
+                          class="legend-image-link"
+                          title="Legendenbild anzeigen"
+                          (click)="toggleLegendImage(layer)">
+                  image
+                </mat-icon>
+              </div>
+              <div class="entry-title"
+                   [style.cursor]="(editMode)? 'pointer': ''"
+                   (click)="editMode && onLayerToggle(layer)">
+                {{ layer.name }}
+              </div>
             </div>
             <div class="legend-layer-control" *ngIf="editMode">
               <mat-checkbox color="primary" [checked]="layer.checked || false"
@@ -57,8 +66,9 @@
               </mat-checkbox>
               <mat-slider aria-label="Transparenz" color="primary"
                           [disabled]="!layer.checked"
-                          (input)="opacityChanged(layer.id, $event.value!)"
-                          min="0" max="1" value="1" step="0.001"
+                          (input)="opacityChanged(layer, $event.value!)"
+                          min="0" max="1" step="0.001"
+                          [value]="layer.opacity"
                           title="Transparenz">
               </mat-slider>
             </div>
@@ -72,21 +82,57 @@
           Hintergrundkarte
         </mat-panel-title>
       </mat-expansion-panel-header>
+      <ng-template #backSelectPopover>
+        <b>{{ activeBackground?.name }}</b>
+        <p *ngIf="activeBackground?.description">{{ activeBackground?.description }}</p>
+      </ng-template>
       <div class="legend-entry">
-        <div class="legend-layer-title">
-          <mat-form-field appearance="outline" class="small" style="width: 180px;">
-            <mat-select disableRipple [(ngModel)]="activeBackground" (selectionChange)="this.setBackground($event.value); opacityChanged(activeBackground!, backgroundOpacity);">
-              <mat-option [value]="-1000"> kein Hintergrund </mat-option>
-              <mat-option *ngFor="let layer of backgroundLayers" [value]="layer.id"> {{layer.name}} </mat-option>
-            </mat-select>
-          </mat-form-field>
+        <div class="entry-header"
+             [ngbPopover]="backSelectPopover"
+             [disablePopover]="!activeBackground"
+             placement="left"
+             container="body"
+             triggers="mouseenter:mouseleave">
+          <div class="entry-prefix">
+            <mat-icon *ngIf="activeBackground?.legendUrl"
+                      class="legend-image-link"
+                      title="Legendenbild anzeigen"
+                      style="margin-top: 10px;"
+                      (click)="toggleLegendImage(activeBackground!)">
+              image
+            </mat-icon>
+          </div>
+          <div class="entry-title">
+            <mat-form-field appearance="outline" class="small">
+              <mat-select disableRipple [(ngModel)]="activeBackgroundId"
+                          (selectionChange)="
+                            setBackground($event.value);
+                            opacityChanged(activeBackground!, backgroundOpacity);">
+                <mat-option [value]="-1000"> kein Hintergrund </mat-option>
+                <ng-container *ngFor="let layer of backgroundLayers">
+                  <ng-template #popover>
+                    <b>{{ layer.name }}</b>
+                    <p *ngIf="layer.description">{{ layer.description }}</p>
+                  </ng-template>
+                  <mat-option [ngbPopover]="popover"
+                              placement="left"
+                              container="body"
+                              triggers="mouseenter:mouseleave"
+                              [value]="layer.id">
+                    {{layer.name}}
+                  </mat-option>
+                </ng-container>
+              </mat-select>
+            </mat-form-field>
+          </div>
         </div>
-        <div class="legend-layer-control" *ngIf="editMode" style="padding-left: 10px;">
+        <div class="legend-layer-control" *ngIf="editMode && activeBackground" style="padding-left: 10px;">
           <mat-slider aria-label="Transparenz" color="primary"
                       style="margin-top: 10px;"
                       [(ngModel)]="backgroundOpacity"
+                      [value]="activeBackground!.opacity"
                       (input)="opacityChanged(activeBackground!, $event.value)"
-                      min="0" max="1" value="1" step="0.001">
+                      min="0" max="1" step="0.001">
           </mat-slider>
         </div>
       </div>

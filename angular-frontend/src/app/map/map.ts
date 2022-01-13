@@ -1,10 +1,7 @@
 import { View, Feature, Map, Overlay, Collection } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import { ScaleLine, defaults as DefaultControls } from 'ol/control';
-import OSM from 'ol/source/OSM';
-import Projection from 'ol/proj/Projection';
 import * as olProj from 'ol/proj'
-import { Extent } from 'ol/extent';
 import { Layer } from 'ol/layer';
 import VectorSource from 'ol/source/Vector';
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
@@ -16,7 +13,6 @@ import { Stroke, Style, Fill } from 'ol/style';
 import { Select } from "ol/interaction";
 import { click, singleClick, always } from 'ol/events/condition';
 import { EventEmitter } from "@angular/core";
-import { layer } from "@fortawesome/fontawesome-svg-core";
 import { Polygon } from "ol/geom";
 import {fromExtent} from 'ol/geom/Polygon';
 
@@ -86,15 +82,24 @@ export class OlMap {
     this.map.getView().fit(source.getExtent());
   }
 
-  addTileServer(options: { name: string, url: string, params?: any, visible?: boolean, opacity?: number, xyz?: boolean}): Layer<any>{
+  addTileServer(options: { name: string, url: string, params?: any,
+    visible?: boolean, opacity?: number, xyz?: boolean, attribution?: string}): Layer<any>{
 
     if (this.layers[options.name] != null) this.removeLayer(options.name)
 
-    let source = (options.xyz) ? new XYZ({ url: options.url }) :
+    const attributions = options.attribution? [options.attribution]: [];
+    let source = (options.xyz) ?
+      new XYZ({
+        url: options.url,
+        attributions: attributions,
+        attributionsCollapsible: false
+      }) :
       new TileWMS({
-      url: options.url,
-      params: options.params || {},
-      serverType: 'geoserver',
+        url: options.url,
+        params: options.params || {},
+        serverType: 'geoserver',
+        attributions: attributions,
+        attributionsCollapsible: false
     })
 
     let layer = new TileLayer({
