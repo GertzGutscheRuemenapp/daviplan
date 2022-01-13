@@ -17,15 +17,17 @@ export class LegendComponent implements AfterViewInit {
   mapControl!: MapControl;
   activeBackgroundId: number = -1000;
   activeBackground?: Layer;
-  backgroundOpacity = 1;
+  backgroundOpacity: number;
   backgroundLayers: Layer[] = [];
   layerGroups: LayerGroup[] = [];
   activeGroups: LayerGroup[] = [];
-  editMode: boolean = true;
+  editMode: boolean;
   Object = Object;
 
   constructor(public dialog: MatDialog, private mapService: MapService,
               private cdRef:ChangeDetectorRef, private cookies: CookieService) {
+    this.backgroundOpacity = parseFloat(<string>this.cookies.get(`background-layer-opacity`) || '1');
+    this.editMode = <boolean>this.cookies.get('legend-edit-mode') || false;
   }
 
   ngAfterViewInit (): void {
@@ -43,6 +45,8 @@ export class LegendComponent implements AfterViewInit {
       this.layerGroups = groups;
       groups.forEach(group => group.children!.forEach(layer => {
         layer.checked = <boolean>(this.cookies.get(`legend-layer-checked-${layer.id}`) || false);
+        layer.opacity = parseFloat(<string>this.cookies.get(`legend-layer-opacity-${layer.id}`) || '1');
+        this.mapControl.setLayerAttr(layer.id, { opacity: layer.opacity });
         if (layer.checked) this.mapControl.toggleLayer(layer.id, true);
       }))
       this.filterActiveGroups();
@@ -63,14 +67,21 @@ export class LegendComponent implements AfterViewInit {
   }
 
   opacityChanged(layer: Layer, value: number | null): void {
-    if(value === null) return;
+    if(value === null || !layer) return;
+    if (layer === this.activeBackground)
+      this.cookies.set('background-layer-opacity', value);
+    else
+      this.cookies.set(`legend-layer-opacity-${layer.id}`, value);
     this.mapControl?.setLayerAttr(layer.id, { opacity: value });
   }
 
   setBackground(id: number) {
     this.activeBackground = this.backgroundLayers.find(l => { return l.id === id });
     this.cookies.set(`background-layer`, id);
-    this.mapControl.setBackground(id);
+    if (this.activeBackground){
+      this.mapControl.setBackground(id);
+      this.mapControl.setLayerAttr(this.activeBackground.id, { opacity: this.backgroundOpacity });
+    }
   }
 
   showLegendImage(layer: Layer): void {
@@ -84,5 +95,10 @@ export class LegendComponent implements AfterViewInit {
         template: this.legendImageTemplate
       }
     });
+  }
+
+  toggleEditMode(): void {
+    this.editMode = !this.editMode;
+    this.cookies.set('legend-edit-mode', this.editMode)
   }
 }

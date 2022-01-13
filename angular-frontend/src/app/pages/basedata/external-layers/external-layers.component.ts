@@ -30,7 +30,8 @@ export interface Layer {
   description: string,
   active?: boolean,
   checked?: boolean,
-  legendUrl?: string
+  legendUrl?: string,
+  opacity?: number
 }
 
 function isLayer(obj: any): obj is Layer{
