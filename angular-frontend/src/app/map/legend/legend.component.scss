@@ -1,5 +1,9 @@
 @import "~src/constants";
 
+.entry-prefix {
+  width: 15%;
+}
+
 .symbol {
   width: 20px;
   margin: 4px;
@@ -37,24 +41,32 @@
   align-items: center;
   text-transform: uppercase;
 }
-.legend.edit{
-  width: 420px;
-}
+
 .legend-entry {
   display: flex;
 }
 
 .legend-layer-title{
   overflow: hidden;
+  width: 83%;
   white-space: nowrap;
   text-overflow: ellipsis;
+  .mat-form-field {
+    width: 95%;
+  }
 }
 
-.legend.edit .legend-layer-title {
-  border-right: 1px solid lightgrey;
-  width: 55%;
-  padding-right: 5px;
-  color: grey;
+.legend.edit {
+  width: 420px;
+  .entry-prefix {
+    width: 8%;
+  }
+  .legend-layer-title {
+    border-right: 1px solid lightgrey;
+    width: 53%;
+    padding-right: 5px;
+    color: grey;
+  }
 }
 .legend-layer-control {
   width: 35%;
@@ -63,7 +75,7 @@
     height: 30px;
   }
   ::ng-deep .mat-slider-wrapper {
-    top: 15px;
+    top: 11px;
   }
 }
 .checked .legend-layer-title, .legend-layer-title:hover {

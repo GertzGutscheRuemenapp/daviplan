@@ -15,7 +15,8 @@ export class LegendComponent implements AfterViewInit {
   @ViewChild('legendImage') legendImageTemplate?: TemplateRef<any>;
   layers: any;
   mapControl!: MapControl;
-  activeBackground?: number;
+  activeBackgroundId: number = -1000;
+  activeBackground?: Layer;
   backgroundOpacity = 1;
   backgroundLayers: Layer[] = [];
   layerGroups: LayerGroup[] = [];
@@ -34,9 +35,9 @@ export class LegendComponent implements AfterViewInit {
 
   initSelect(): void {
     this.backgroundLayers = this.mapControl.getBackgroundLayers();
-    const background = parseInt(<string>this.cookies.get(`background-layer`) || this.backgroundLayers[0].id.toString());
-    this.activeBackground = background;
-    this.mapControl.setBackground(background);
+    const backgroundId = parseInt(<string>this.cookies.get(`background-layer`) || this.backgroundLayers[0].id.toString());
+    this.activeBackgroundId = backgroundId;
+    this.setBackground(backgroundId);
 
     this.mapService.getLayers().subscribe(groups => {
       this.layerGroups = groups;
@@ -44,8 +45,8 @@ export class LegendComponent implements AfterViewInit {
         layer.checked = <boolean>(this.cookies.get(`legend-layer-checked-${layer.id}`) || false);
         if (layer.checked) this.mapControl.toggleLayer(layer.id, true);
       }))
+      this.filterActiveGroups();
     })
-    this.filterActiveGroups();
     this.cdRef.detectChanges();
   }
 
@@ -61,12 +62,13 @@ export class LegendComponent implements AfterViewInit {
     this.activeGroups = this.layerGroups.filter(g => g.children!.filter(l => l.checked).length > 0);
   }
 
-  opacityChanged(id: number, value: number | null): void {
+  opacityChanged(layer: Layer, value: number | null): void {
     if(value === null) return;
-    this.mapControl?.setLayerAttr(id, { opacity: value });
+    this.mapControl?.setLayerAttr(layer.id, { opacity: value });
   }
 
   setBackground(id: number) {
+    this.activeBackground = this.backgroundLayers.find(l => { return l.id === id });
     this.cookies.set(`background-layer`, id);
     this.mapControl.setBackground(id);
   }
