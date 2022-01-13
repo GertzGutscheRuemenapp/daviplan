@@ -159,7 +159,8 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       this.editLayerForm.markAllAsTouched();
       if (this.editLayerForm.invalid) return;
       let attributes: any = {
-        name: this.editLayerForm.value.name
+        name: this.editLayerForm.value.name,
+        description: this.editLayerForm.value.description
       }
       this.layerCard?.setLoading(true);
       this.http.patch<Layer>(`${this.rest.URLS.layers}${this.selectedLayer?.id}/`, attributes
@@ -278,6 +279,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
 
   addLayer(parent: LayerGroup): void {
     this.addLayerForm.reset();
+    this.availableLayers = [];
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
       width: '900px',
@@ -317,7 +319,6 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   }
 
   requestCapabilities(url: string): void {
-    this.layerCard?.setLoading(true);
     if (!url) return;
     this.http.post(this.rest.URLS.getCapabilities, { url: url }).subscribe((res: any) => {
       this.availableLayers = []
@@ -335,11 +336,9 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         this.availableLayers.push(layer);
         if (res.layers.length > 0)
           this.avLayerSelected(0);
-        this.layerCard?.setLoading(false);
       }
     }, error => {
       this.addLayerForm.setErrors(error.error);
-      this.layerCard?.setLoading(false);
     })
   }
 
@@ -398,7 +397,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.layerGroups}${group.id}/`
+        this.http.delete(`${this.rest.URLS.layerGroups}${group.id}/?override_protection=true`
         ).subscribe(res => {
           const idx = this.layerGroups.indexOf(group);
           if (idx >= 0) {

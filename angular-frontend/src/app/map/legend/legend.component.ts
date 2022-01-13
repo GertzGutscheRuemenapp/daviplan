@@ -94,7 +94,7 @@ export class LegendComponent implements AfterViewInit {
   toggleLegendImage(layer: Layer): void {
     let dialogRef = this.legendImageDialogs[layer.id];
     if (dialogRef && dialogRef.getState() === 0)
-      dialogRef.close();    
+      dialogRef.close();
     else
       this.legendImageDialogs[layer.id] = this.dialog.open(FloatingDialog, {
         panelClass: 'help-container',
