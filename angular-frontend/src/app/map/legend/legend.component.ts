@@ -3,7 +3,7 @@ import { MapControl, MapService } from "../map.service";
 import { LayerGroup, Layer } from "../../pages/basedata/external-layers/external-layers.component";
 import { CookieService } from "../../helpers/cookies.service";
 import { FloatingDialog } from "../../dialogs/help-dialog/help-dialog.component";
-import { MatDialog } from "@angular/material/dialog";
+import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 
 @Component({
   selector: 'app-legend',
@@ -12,8 +12,9 @@ import { MatDialog } from "@angular/material/dialog";
 })
 export class LegendComponent implements AfterViewInit {
   @Input() target!: string;
+  @Input() showInternal?: boolean = false;
   @ViewChild('legendImage') legendImageTemplate?: TemplateRef<any>;
-  layers: any;
+  legendImageDialogs: Record<number, MatDialogRef<any>> = [];
   mapControl!: MapControl;
   activeBackgroundId: number = -1000;
   activeBackground?: Layer;
@@ -42,13 +43,19 @@ export class LegendComponent implements AfterViewInit {
     this.setBackground(backgroundId);
 
     this.mapService.getLayers().subscribe(groups => {
-      this.layerGroups = groups;
-      groups.forEach(group => group.children!.forEach(layer => {
-        layer.checked = <boolean>(this.cookies.get(`legend-layer-checked-${layer.id}`) || false);
-        layer.opacity = parseFloat(<string>this.cookies.get(`legend-layer-opacity-${layer.id}`) || '1');
-        this.mapControl.setLayerAttr(layer.id, { opacity: layer.opacity });
-        if (layer.checked) this.mapControl.toggleLayer(layer.id, true);
-      }))
+      let layerGroups: LayerGroup[] = [];
+      groups.forEach(group => {
+        if (!group.children || !(group.external || this.showInternal))
+          return;
+        group.children!.forEach(layer => {
+          layer.checked = <boolean>(this.cookies.get(`legend-layer-checked-${layer.id}`) || false);
+          layer.opacity = parseFloat(<string>this.cookies.get(`legend-layer-opacity-${layer.id}`) || '1');
+          this.mapControl.setLayerAttr(layer.id, { opacity: layer.opacity });
+          if (layer.checked) this.mapControl.toggleLayer(layer.id, true);
+        });
+        layerGroups.push(group);
+      });
+      this.layerGroups = layerGroups;
       this.filterActiveGroups();
     })
     this.cdRef.detectChanges();
@@ -84,17 +91,21 @@ export class LegendComponent implements AfterViewInit {
     }
   }
 
-  showLegendImage(layer: Layer): void {
-    this.dialog.open(FloatingDialog, {
-      panelClass: 'help-container',
-      hasBackdrop: false,
-      autoFocus: false,
-      data: {
-        title: layer.name,
-        context: { layer: layer },
-        template: this.legendImageTemplate
-      }
-    });
+  toggleLegendImage(layer: Layer): void {
+    let dialogRef = this.legendImageDialogs[layer.id];
+    if (dialogRef && dialogRef.getState() === 0)
+      dialogRef.close();    
+    else
+      this.legendImageDialogs[layer.id] = this.dialog.open(FloatingDialog, {
+        panelClass: 'help-container',
+        hasBackdrop: false,
+        autoFocus: false,
+        data: {
+          title: layer.name,
+          context: { layer: layer },
+          template: this.legendImageTemplate
+        }
+      });
   }
 
   toggleEditMode(): void {

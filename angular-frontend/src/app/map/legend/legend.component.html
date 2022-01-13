@@ -44,11 +44,12 @@
                 <p *ngIf="layer.description">{{ layer.description }}</p>
               </ng-template>
               <div class="entry-prefix">
-                <!--            <div class="symbol" [style.background]="layer.color || 'white'" [class]="layer.symbol"></div>-->
+                <div *ngIf="layer.symbol"
+                     class="symbol" [style.background]="layer.symbol.color || 'white'" [class]="layer.symbol.symbol"></div>
                 <mat-icon *ngIf="layer.legendUrl"
                           class="legend-image-link"
                           title="Legendenbild anzeigen"
-                          (click)="showLegendImage(layer)">
+                          (click)="toggleLegendImage(layer)">
                   image
                 </mat-icon>
               </div>
@@ -97,7 +98,7 @@
                       class="legend-image-link"
                       title="Legendenbild anzeigen"
                       style="margin-top: 10px;"
-                      (click)="showLegendImage(activeBackground!)">
+                      (click)="toggleLegendImage(activeBackground!)">
               image
             </mat-icon>
           </div>
