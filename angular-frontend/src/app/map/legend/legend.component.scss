@@ -1,9 +1,5 @@
 @import "~src/constants";
 
-.entry-prefix {
-  width: 15%;
-}
-
 .symbol {
   width: 20px;
   margin: 4px;
@@ -46,9 +42,18 @@
   display: flex;
 }
 
-.legend-layer-title{
+.entry-header {
+  width: 100%;
+}
+
+.entry-prefix {
+  width: 30px;
+  float: left;
+}
+
+.entry-title {
+  width: calc(100% - 30px);
   overflow: hidden;
-  width: 83%;
   white-space: nowrap;
   text-overflow: ellipsis;
   .mat-form-field {
@@ -58,12 +63,9 @@
 
 .legend.edit {
   width: 420px;
-  .entry-prefix {
-    width: 8%;
-  }
-  .legend-layer-title {
+  .entry-header {
     border-right: 1px solid lightgrey;
-    width: 53%;
+    width: 60%;
     padding-right: 5px;
     color: grey;
   }
@@ -78,7 +80,7 @@
     top: 11px;
   }
 }
-.checked .legend-layer-title, .legend-layer-title:hover {
+.checked .entry-title, .entry-title:hover {
   color: $primary !important;
 }
 
