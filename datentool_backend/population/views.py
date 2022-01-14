@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -65,7 +65,7 @@ class GenderViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
 
 class AgeGroupViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = AgeGroup.objects.all()
+    queryset = AgeGroup.objects.all().order_by('from_age')
     serializer_class = AgeGroupSerializer
     permission_classes = [HasAdminAccessOrReadOnly]
 
@@ -80,7 +80,8 @@ class AgeGroupViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             return Response(res)
         return super().list(request, *args, **kwargs)
 
-    @action(methods=['POST'], detail=False)
+    @action(methods=['POST'], detail=False,
+            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def replace(self, request, **kwargs):
         AgeGroup.objects.all().delete()
         for a in request.data:
@@ -88,14 +89,15 @@ class AgeGroupViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             g.save()
         return self.list(request)
 
-    @action(methods=['POST'], detail=False)
+    @action(methods=['POST'], detail=False,
+            permission_classes=[permissions.IsAuthenticated])
     def check(self, request, **kwargs):
         """
         route to compare posted age-groups with default age-groups
         (Regionalstatistik) in any order
         """
         try:
-            age_groups = [RegStatAgeGroup(a, a['toAge'])
+            age_groups = [RegStatAgeGroup(a['from_age'], a['to_age'])
                           for a in request.data]
         except KeyError:
             raise ParseError()

@@ -172,21 +172,10 @@ class FieldTypeSerializer(serializers.ModelSerializer):
         if classification_data and instance.field_type == FieldTypes.CLASSIFICATION:
             classification_list = []
             for classification in classification_data:
-                if classification.get('id') is None:
-                    fclass = FClass(order=classification['order'],
-                                    classification=instance,
-                                    value=classification['value'])
-                    fclass.save()
-                else:
-                    try:
-                        fclass = FClass.objects.get(id=classification['id'],
-                                                    classification=instance)
-                        fclass.order = classification['order']
-                        fclass.value = classification['value']
-                        fclass.save()
-                    except FClass.DoesNotExist:
-                        print(f'FClass with id {id} in field-type '
-                              '{instance.name} does not exist')
+                fclass = FClass(order=classification['order'],
+                                classification=instance,
+                                value=classification['value'])
+                fclass.save()
                 classification_list.append(fclass)
             classification_data_ids = [f.id for f in classification_list]
             for fclass in instance.fclass_set.all():

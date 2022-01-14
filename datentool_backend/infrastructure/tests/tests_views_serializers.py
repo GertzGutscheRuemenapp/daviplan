@@ -354,8 +354,6 @@ class TestFieldTypeCLAAPI(WriteOnlyWithCanEditBaseDataTest,
     def setUpTestData(cls):
         super().setUpTestData()
         cls.obj = FieldTypeFactory(field_type=FieldTypes.CLASSIFICATION)
-        #fclasses = [FClassFactory(classification=cls.obj),
-                    #FClassFactory(classification=cls.obj)]
 
         fclass_set = [{'order': 1, 'value': faker.word(), },
                       {'order': 2, 'value': faker.word(), },

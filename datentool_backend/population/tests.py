@@ -16,6 +16,7 @@ from .factories import (YearFactory, RasterCellFactory, AgeGroupFactory,
                         AreaFactory, PrognosisFactory, PopStatEntryFactory,
                         RasterFactory, PopulationRasterFactory,
                         PopulationEntryFactory, PopStatisticFactory)
+from .constants import RegStatAgeGroup, RegStatAgeGroups
 
 from faker import Faker
 
@@ -158,8 +159,6 @@ class TestAgeGroupAPI(WriteOnlyWithAdminAccessTest,
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        #agegroup: AgeGroup = cls.obj
-        #classification = agegroup.classification.pk
 
         data = dict(from_age=faker.pyint(max_value=127),
                     to_age=faker.pyint(max_value=127))
@@ -174,6 +173,114 @@ class TestAgeGroupAPI(WriteOnlyWithAdminAccessTest,
     def test_admin_access(self):
         """write permission if user has admin_access"""
         super().admin_access()
+
+    def test_default_agegroups(self):
+        """test default agegroups"""
+        response = self.get_check_200(self.url_key + '-list',
+                                      data={'defaults': True, })
+        print(response.data)
+        assert(len(response.data) == len(RegStatAgeGroups.agegroups))
+
+    def test_check_and_replace_agegroups(self):
+        """check the agegroups"""
+        # logout to see if check is not allowed
+        self.client.logout()
+        response = self.post(self.url_key + '-check')
+        self.assert_http_401_unauthorized(response)
+
+        # login and check that the current agegroups are not valid
+        self.client.force_login(self.profile.user)
+
+        response = self.get_check_200(self.url_key + '-list')
+        current_agegroups = response.data
+
+        response = self.post(self.url_key + '-check',
+                             data=current_agegroups,
+                             extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        self.assertEqual(response.data['valid'], False)
+
+        # logout to see if check is not allowed
+        self.client.logout()
+        response = self.post(self.url_key + '-replace')
+        self.assert_http_401_unauthorized(response)
+
+        # login without can_edit_basedata is not allowed
+        self.client.force_login(self.profile.user)
+        response = self.post(self.url_key + '-replace')
+        self.assert_http_403_forbidden(response)
+
+        #  with can_edit_basedata it should work
+        self.profile.can_edit_basedata = True
+        self.profile.save()
+
+        #  get the default agegroups
+        response = self.get_check_200(self.url_key + '-list',
+                                      data={'defaults': True, })
+        default_agegroups = response.data
+
+
+        #  post them to the replace route
+        response = self.post(self.url_key + '-replace',
+                             data=default_agegroups,
+                             extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        assert(len(response.data) == len(RegStatAgeGroups.agegroups))
+
+        response = self.get_check_200(self.url_key + '-list')
+        current_agegroups = response.data
+
+        #  now the check should work
+        response = self.post(self.url_key + '-check',
+                             data=current_agegroups,
+                             extra={'format': 'json'})
+
+        self.assert_http_200_ok(response)
+        self.assertEqual(response.data['valid'], True)
+
+        # change some agegroup definition
+        pk1 = current_agegroups[-1]['id']
+        pk2 = current_agegroups[-2]['id']
+
+        self.profile.admin_access = True
+        self.profile.save()
+        response = self.patch(self.url_key + '-detail', pk=pk1,
+                              data={'fromAge': 83, }, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        response = self.patch(self.url_key + '-detail', pk=pk2,
+                              data={'toAge': 82, }, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+
+        #  get the whole agegroups
+        response = self.get_check_200(self.url_key + '-list')
+        current_agegroups = response.data
+
+        #  check if they are still valid
+        response = self.post(self.url_key + '-check',
+                             data=current_agegroups,
+                             extra={'format': 'json'})
+
+        #  they should fail now
+        self.assert_http_200_ok(response)
+        self.assertEqual(response.data['valid'], False)
+
+
+class TestRegStatAgeGroup(TestCase):
+
+    def test_repr_of_agegroups(self):
+        """Test the representation of agegroups"""
+        ag1 = RegStatAgeGroup(from_age=4, to_age=8)
+        print(ag1.name)
+        print(ag1.code)
+
+    def test_compare_agegroups(self):
+        """Test to compare agegroups"""
+        ag1 = RegStatAgeGroup(from_age=4, to_age=8)
+        ag2 = RegStatAgeGroup(from_age=9, to_age=12)
+        ag3 = RegStatAgeGroup(from_age=9, to_age=12)
+        assert ag2 == ag3
+        assert ag1 != ag2
+        assert ag1 != ag3
 
 
 class TestDisaggPopRasterAPI(WriteOnlyWithCanEditBaseDataTest,
