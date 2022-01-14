@@ -91,9 +91,9 @@ export class CheckTreeComponent implements OnInit {
   @Input() items: TreeItemNode[] = [];
   @Input() expandOnClick: boolean = false;
   @Input() addItemTitle: string = '';
-  @Output() itemSelected = new EventEmitter<TreeItemFlatNode>();
-  @Output() addItemClicked = new EventEmitter<TreeItemFlatNode>();
-  @Output() itemChecked = new EventEmitter<{ item: TreeItemFlatNode, checked: boolean }>();
+  @Output() itemSelected = new EventEmitter<TreeItemNode>();
+  @Output() addItemClicked = new EventEmitter<TreeItemNode>();
+  @Output() itemChecked = new EventEmitter<{ item: TreeItemNode, checked: boolean }>();
   /** Map from flat node to nested node. This helps us finding the nested node to be modified */
   flatNodeMap = new Map<TreeItemFlatNode, TreeItemNode>();
   /** Map from nested node to flattened node. This helps us to keep the same object for selection */
@@ -182,23 +182,32 @@ export class CheckTreeComponent implements OnInit {
   }
 
   /** Toggle the item selection. Select/deselect all the descendants node */
-  itemSelectionToggle(node: TreeItemFlatNode): void {
-    this.checklistSelection.toggle(node);
-    const descendants = this.treeControl.getDescendants(node);
-    this.checklistSelection.isSelected(node)
+  itemSelectionToggle(flatNode: TreeItemFlatNode): void {
+    this.checklistSelection.toggle(flatNode);
+    const descendants = this.treeControl.getDescendants(flatNode);
+    this.checklistSelection.isSelected(flatNode)
       ? this.checklistSelection.select(...descendants)
       : this.checklistSelection.deselect(...descendants);
 
-    // Force update for the parent
-    descendants.forEach(child => this.checklistSelection.isSelected(child));
-    this.checkAllParentsSelection(node);
+    descendants.forEach(child => {
+      const isSelected = this.checklistSelection.isSelected(child);
+      const node = this.flatNodeMap.get(child)!;
+      node.checked = isSelected;
+    });
+    this.checkAllParentsSelection(flatNode);
+    const node = this.flatNodeMap.get(flatNode)!;
+    const isSelected = this.checklistSelection.isSelected(flatNode);
+    this.itemChecked.emit({ item: node, checked: isSelected });
   }
 
   /** Toggle a leaf item selection. Check all the parents to see if they changed */
-  leafItemSelectionToggle(node: TreeItemFlatNode): void {
-    this.checklistSelection.toggle(node);
-    this.checkAllParentsSelection(node);
-    this.itemChecked.emit({ item: node, checked: this.checklistSelection.isSelected(node) });
+  leafItemSelectionToggle(flatNode: TreeItemFlatNode): void {
+    this.checklistSelection.toggle(flatNode);
+    this.checkAllParentsSelection(flatNode);
+    const node = this.flatNodeMap.get(flatNode)!;
+    const isSelected = this.checklistSelection.isSelected(flatNode);
+    node.checked = isSelected;
+    this.itemChecked.emit({ item: node, checked: isSelected });
   }
 
   /* Checks all the parents when a leaf node is selected/unselected */
@@ -256,11 +265,11 @@ export class CheckTreeComponent implements OnInit {
       else
         this.treeControl.expand(flatNode);
     }
-    this.itemSelected.emit(flatNode);
+    this.itemSelected.emit(this.flatNodeMap.get(flatNode));
   }
 
-  _onAddItemClicked(node: TreeItemFlatNode) {
-    this.addItemClicked.emit(node);
+  _onAddItemClicked(flatNode: TreeItemFlatNode) {
+    this.addItemClicked.emit(this.flatNodeMap.get(flatNode));
   }
 }
 

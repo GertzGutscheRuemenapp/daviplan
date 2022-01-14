@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
-import { CheckTreeComponent, TreeItemNode } from "../../../elements/check-tree/check-tree.component";
+import { CheckTreeComponent, TreeItemFlatNode, TreeItemNode } from "../../../elements/check-tree/check-tree.component";
 import { MapControl, MapService } from "../../../map/map.service";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
@@ -110,11 +110,11 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       this.addLayer(parent);
     })
     this.layerTree.itemSelected.subscribe(node => {
-      this.selectedLayer = (node.expandable) ? undefined : this.getLayer(node.id);
-      this.selectedGroup = (node.expandable) ? this.getGroup(node.id) : undefined;
+      this.selectedLayer = (node.children) ? undefined : this.getLayer(node.id);
+      this.selectedGroup = (node.children) ? this.getGroup(node.id) : undefined;
     })
     this.layerTree.itemChecked.subscribe(evt => {
-      this.toggleActive(this.getLayer(evt.item.id)!, evt.checked);
+      this.toggleActive(evt.item, evt.checked);
     })
     this.mapControl = this.mapService.get('base-layers-map');
     this.setupLayerGroupCard();
@@ -455,11 +455,17 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     this.patchOrder(array);
   }
 
-  toggleActive(layer: Layer, active: boolean): void {
-    this.http.patch<Layer>(`${this.rest.URLS.layers}${layer.id}/`,
-      { active: active }).subscribe(res => {
-        this.mapService.fetchLayers();
-    });
+  toggleActive(node: TreeItemNode, active: boolean): void {
+    const layers: Layer[] = (node.children)? this.getGroup(node.id)!.children || []: [this.getLayer(node.id)!];
+    let observables: Observable<any>[] = [];
+    layers.forEach(layer => {
+      const req = this.http.patch<Layer>(`${this.rest.URLS.layers}${layer.id}/`,
+        { active: active });
+      observables.push(req);
+    })
+    forkJoin(...observables).subscribe(next => {
+      this.mapService.fetchLayers();
+    })
   };
 
   ngOnDestroy(): void {
