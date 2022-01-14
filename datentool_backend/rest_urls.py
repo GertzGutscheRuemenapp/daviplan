@@ -44,7 +44,7 @@ router.register(r'users', UserViewSet, basename='users')
 # areas
 router.register(r'layergroups', LayerGroupViewSet, basename='layergroups')
 router.register(r'wmslayers', WMSLayerViewSet, basename='wmslayers')
-router.register(r'internalwfslayers', InternalWFSLayerViewSet,
+router.register(r'internallayers', InternalWFSLayerViewSet,
                 basename='internalwfslayers')
 router.register(r'sources', SourceViewSet, basename='sources')
 router.register(r'arealevels', AreaLevelViewSet, basename='arealevels')

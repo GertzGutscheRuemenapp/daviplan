@@ -21,7 +21,8 @@ export interface LayerGroup {
 }
 
 export interface Symbol {
-  color: string,
+  fillColor: string,
+  strokeColor: string,
   symbol: string
 }
 

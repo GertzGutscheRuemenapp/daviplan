@@ -45,7 +45,7 @@
               </ng-template>
               <div class="entry-prefix">
                 <div *ngIf="layer.symbol"
-                     class="symbol" [style.background]="layer.symbol.color || 'white'" [class]="layer.symbol.symbol"></div>
+                     class="symbol" [style.background]="layer.symbol.fillColor || 'white'" [class]="layer.symbol.symbol"></div>
                 <mat-icon *ngIf="layer.legendUrl"
                           class="legend-image-link"
                           title="Legendenbild anzeigen"

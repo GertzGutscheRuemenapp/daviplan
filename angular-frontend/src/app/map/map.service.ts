@@ -1,7 +1,7 @@
 import { Injectable, EventEmitter } from '@angular/core';
 import { Layer, LayerGroup } from '../pages/basedata/external-layers/external-layers.component';
 import { OlMap } from './map'
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../rest-api";
 import { sortBy } from "../helpers/utils";
@@ -79,8 +79,13 @@ export class MapService {
   fetchLayers() {
     this.http.get<LayerGroup[]>(this.rest.URLS.layerGroups).subscribe( groups => {
       groups = sortBy(groups, 'order');
-      this.http.get<Layer[]>(`${this.rest.URLS.layers}?active=true`).subscribe(layers => {
-        layers = sortBy(layers, 'order');
+      let observables: Observable<any>[] = [];
+      observables.push(this.http.get<Layer[]>(`${this.rest.URLS.layers}?active=true`));
+      observables.push(this.http.get<Layer[]>(`${this.rest.URLS.internalLayers}?active=true`));
+      forkJoin(...observables).subscribe((merged: Array<Layer[]>) => {
+        // @ts-ignore
+        const flat = [].concat.apply([], merged);
+        const layers = sortBy(flat, 'order');
         layers.forEach(layer => {
           layer.checked = false;
           const group = groups.find(group => { return group.id === layer.group });
@@ -103,20 +108,22 @@ export class MapControl {
   destroyed = new EventEmitter<string>();
   map?: OlMap;
   mapDescription = '';
-  private layers: Record<number, Layer> = [];
+  private mapLayers: Record<number, Layer> = [];
 
   constructor(target: string, private mapService: MapService) {
     this.target = target;
     this.mapService.backgroundLayers.forEach(layer => {
-      this.layers[layer.id] = <Layer>layer;
+      this.mapLayers[layer.id] = <Layer>layer;
     });
   }
 
   getBackgroundLayers(): Layer[] {
     let layers: Layer[] = this.mapService.backgroundLayers.map(layer => {
-      return { id: layer.id, name: layer.name, order: 0, description: layer.description || '', legendUrl: layer.legendUrl || '',
-        // ToDo: ugly, info not needed
-        layerName:'', url: layer.url, group: 0} })
+      return { id: layer.id, name: layer.name, order: 0,
+        description: layer.description || '', legendUrl: layer.legendUrl || '',
+        url: layer.url,
+        // ToDo: info not needed
+        layerName:'', group: 0} })
     return layers;
   }
 
@@ -143,6 +150,7 @@ export class MapControl {
     }
     this.mapService.getLayers().subscribe(layerGroups => {
       layerGroups.forEach(group => {
+        if (!group.external) return;
         for (let layer of group.children!.slice().reverse()) {
           const mapLayer = this.map!.addTileServer({
             name: this.mapId(layer),
@@ -151,26 +159,26 @@ export class MapControl {
             visible: false,
             opacity: 1
           });
-          if (!layer.legendUrl) {
+          if (group.external && !layer.legendUrl) {
             let url = mapLayer.getSource().getLegendUrl(1, { layer: layer.layerName });
             if (url) url += '&SLD_VERSION=1.1.0';
             layer.legendUrl = url;
           }
-          this.layers[layer.id] = layer;
+          this.mapLayers[layer.id] = layer;
         }
       })
     })
   }
 
-  setLayerAttr(id: number, options: {opacity?: number, visible?: boolean}): void {
-    let layer = this.layers[id];
+  setLayerAttr(id: number, options: { opacity?: number, visible?: boolean }): void {
+    let layer = this.mapLayers[id];
     if (!layer) return;
     if (options.opacity != undefined) this.map?.setOpacity(this.mapId(layer), options.opacity);
     if (options.visible != undefined) this.map?.setVisible(this.mapId(layer), options.visible);
   }
 
   toggleLayer(id: number, active: boolean): void {
-    let layer = this.layers[id];
+    let layer = this.mapLayers[id];
     if (!layer) return;
     this.map?.setVisible(this.mapId(layer), active);
   }

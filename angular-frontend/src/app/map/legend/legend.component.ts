@@ -12,7 +12,7 @@ import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 })
 export class LegendComponent implements AfterViewInit {
   @Input() target!: string;
-  @Input() showInternal?: boolean = false;
+  @Input() showInternal?: boolean = true;
   @ViewChild('legendImage') legendImageTemplate?: TemplateRef<any>;
   legendImageDialogs: Record<number, MatDialogRef<any>> = [];
   mapControl!: MapControl;
