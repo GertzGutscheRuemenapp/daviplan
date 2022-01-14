@@ -69,17 +69,26 @@ class TestInfrastructureAPI(WriteOnlyWithAdminAccessTest,
         super().setUpTestData()
         infrastructure: Infrastructure = cls.obj
         editable_by = list(infrastructure.editable_by.all().values_list(flat=True))
-        accessible_by = list(infrastructure.accessible_by.all().values_list(flat=True))
+        accessible_by = [{'profile': p, 'allow_sensitive_data': True}
+                         for p in
+            infrastructure.accessible_by.all().values_list(flat=True)]
         layer_data = InternalWFSLayerSerializer(infrastructure.layer).data
         del(layer_data['group'])
         del(layer_data['id'])
 
-        data = dict(name=faker.word(), description=faker.word(),
+        data = dict(name=faker.word(),
+                    description=faker.word(),
                     editable_by=editable_by,
-                    accessible_by=accessible_by, layer=layer_data)
+                    accessible_by=accessible_by,
+                    layer=layer_data)
         cls.post_data = data
         cls.put_data = data
-        cls.patch_data = data
+        #  for patch, test if different value for allow_sensitive_data is passed
+        cls.patch_data = data.copy()
+        accessible_by = [{'profile': p, 'allow_sensitive_data': False}
+                         for p in
+            infrastructure.accessible_by.all().values_list(flat=True)]
+        cls.patch_data['accessible_by'] = accessible_by
 
     def test_patch_empty_editable_by(self):
         """Test the patch with an empty list"""
@@ -434,9 +443,12 @@ class TestPlaceFieldAPI(WriteOnlyWithCanEditBaseDataTest,
         placefield: PlaceField = cls.obj
         infrastructure = placefield.infrastructure.pk
         field_type = placefield.field_type.pk
-        data = dict(attribute=faker.unique.word(), unit=faker.word(),
+        data = dict(attribute=faker.unique.word(),
+                    unit=faker.word(),
                     infrastructure=infrastructure,
-                    field_type=field_type)
+                    field_type=field_type,
+                    sensitive=True)
         cls.post_data = data
         cls.put_data = data
-        cls.patch_data = data
+        cls.patch_data = data.copy()
+        cls.patch_data['sensitive'] = False

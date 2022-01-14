@@ -3,14 +3,23 @@ from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from .models import (Infrastructure, FieldType, FClass, FieldTypes, Service,
                      Place, Capacity, PlaceField, ScenarioPlace,
-                     InternalWFSLayer, ScenarioCapacity)
+                     InternalWFSLayer, ScenarioCapacity, InfrastructureAccess)
 from datentool_backend.area.serializers import InternalWFSLayerSerializer
 from datentool_backend.area.models import LayerGroup, MapSymbol
 
 
+class InfrastructureAccessSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InfrastructureAccess
+        fields = ('id', 'infrastructure', 'profile', 'allow_sensitive_data')
+        read_only_fields = ('id', 'infrastructure', )
+
+
 class InfrastructureSerializer(serializers.ModelSerializer):
-    layer = InternalWFSLayerSerializer(allow_null=True, required=False)
+    layer = InternalWFSLayerSerializer(allow_null=True)
     layer_group = 'Infrastruktur-Standorte'
+    accessible_by = InfrastructureAccessSerializer(many=True,
+                                                   source='infrastructureaccess_set')
 
     class Meta:
         model = Infrastructure
@@ -34,11 +43,17 @@ class InfrastructureSerializer(serializers.ModelSerializer):
             group=group, active=True, **layer_data)
 
         editable_by = validated_data.pop('editable_by', [])
-        accessible_by = validated_data.pop('accessible_by', [])
+        accessible_by = validated_data.pop('infrastructureaccess_set', [])
         infrastructure = Infrastructure.objects.create(layer=layer,
                                                        **validated_data)
         infrastructure.editable_by.set(editable_by)
-        infrastructure.accessible_by.set(accessible_by)
+        infrastructure.accessible_by.set([a['profile'] for a in accessible_by])
+        for profile_access in accessible_by:
+            infrastructure_access = InfrastructureAccess.objects.get(
+                infrastructure=infrastructure,
+                profile=profile_access['profile'])
+            infrastructure_access.allow_sensitive_data = profile_access['allow_sensitive_data']
+            infrastructure_access.save()
 
         return infrastructure
 
@@ -47,12 +62,18 @@ class InfrastructureSerializer(serializers.ModelSerializer):
         symbol_data = layer_data.pop('symbol', {})
 
         editable_by = validated_data.pop('editable_by', None)
-        accessible_by = validated_data.pop('accessible_by', None)
+        accessible_by = validated_data.pop('infrastructureaccess_set', None)
         super().update(instance, validated_data)
         if editable_by is not None:
             instance.editable_by.set(editable_by)
         if accessible_by is not None:
-            instance.accessible_by.set(accessible_by)
+            instance.accessible_by.set([a['profile'] for a in accessible_by])
+            for profile_access in accessible_by:
+                infrastructure_access = InfrastructureAccess.objects.get(
+                    infrastructure=instance,
+                    profile=profile_access['profile'])
+                infrastructure_access.allow_sensitive_data = profile_access['allow_sensitive_data']
+                infrastructure_access.save()
         instance.save()
 
         layer = instance.layer
@@ -177,4 +198,5 @@ class FieldTypeSerializer(serializers.ModelSerializer):
 class PlaceFieldSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlaceField
-        fields = ('id', 'attribute', 'unit', 'infrastructure', 'field_type')
+        fields = ('id', 'attribute', 'unit', 'infrastructure',
+                  'field_type', 'sensitive')

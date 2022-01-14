@@ -16,9 +16,16 @@ class Infrastructure(DatentoolModelMixin, NamedModel, models.Model):
     editable_by = models.ManyToManyField(
         Profile, related_name='infrastructure_editable_by', blank=True)
     accessible_by = models.ManyToManyField(
-        Profile, related_name='infrastructure_accessible_by', blank=True)
+        Profile, related_name='infrastructure_accessible_by', blank=True,
+        through='InfrastructureAccess')
     # sensitive_data
     layer = models.OneToOneField(InternalWFSLayer, on_delete=PROTECT_CASCADE)
+
+
+class InfrastructureAccess(models.Model):
+    infrastructure = models.ForeignKey(Infrastructure, on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    allow_sensitive_data = models.BooleanField(default=False)
 
 
 class Service(DatentoolModelMixin, NamedModel, models.Model):
@@ -105,6 +112,7 @@ class PlaceField(models.Model):
     unit = models.TextField()
     infrastructure = models.ForeignKey(Infrastructure, on_delete=PROTECT_CASCADE)
     field_type = models.ForeignKey(FieldType, on_delete=PROTECT_CASCADE)
+    sensitive = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__}: {self.attribute}'
