@@ -10,11 +10,29 @@ from datentool_backend.api_test import (BasicModelTest,
 from datentool_backend.area.tests import _TestAPI, _TestPermissions
 from datentool_backend.user.factories import ProfileFactory
 
-from datentool_backend.infrastructure.factories import (InfrastructureFactory, ServiceFactory, CapacityFactory,
-                        FClassFactory, PlaceFieldFactory, PlaceFactory,
-                        FieldTypeFactory, ScenarioCapacityFactory, ScenarioPlaceFactory)
-from datentool_backend.infrastructure.models import (Infrastructure, Place, Capacity, FieldTypes, FClass,
-                     Service, PlaceField, ScenarioCapacity, ScenarioPlace)
+from datentool_backend.infrastructure.factories import (
+    InfrastructureFactory,
+    ServiceFactory,
+    CapacityFactory,
+    FClassFactory,
+    PlaceFieldFactory,
+    PlaceFactory,
+    FieldTypeFactory,
+    ScenarioCapacityFactory,
+    ScenarioPlaceFactory,
+)
+from datentool_backend.infrastructure.models import (
+    Infrastructure,
+    Place,
+    Capacity,
+    FieldTypes,
+    FClass,
+    Service,
+    PlaceField,
+    ScenarioCapacity,
+    ScenarioPlace,
+    InfrastructureAccess,
+)
 from datentool_backend.area.serializers import InternalWFSLayerSerializer
 
 
@@ -246,6 +264,51 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
 
         cls.put_data = geojson_putpatch
         cls.patch_data = geojson_putpatch
+
+    def test_sensitive_data(self):
+        """Test if sensitive data is correctly shown"""
+        pr1 = ProfileFactory()
+        pr2 = ProfileFactory()
+        place: Place = self.obj
+        attributes = {'harmless': 123, 'very_secret': 456,}
+        place.attributes = json.dumps(attributes)
+        place.save()
+        infr: Infrastructure = place.infrastructure
+        infr.accessible_by.set([pr1, pr2])
+        infr.save()
+
+        i1 = InfrastructureAccess.objects.get(infrastructure=infr, profile=pr1)
+        i1.allow_sensitive_data = False
+        i1.save()
+
+        i2 = InfrastructureAccess.objects.get(infrastructure=infr, profile=pr2)
+        i2.allow_sensitive_data = True
+        i2.save()
+
+
+        field_type = FieldTypeFactory(field_type=FieldTypes.NUMBER)
+        field1 = PlaceFieldFactory(attribute='harmless', sensitive=False,
+                                   field_type=field_type,
+                                   infrastructure=infr)
+        field2 = PlaceFieldFactory(attribute='very_secret', sensitive=True,
+                                   field_type=field_type,
+                                   infrastructure=infr)
+
+        self.client.logout()
+        self.client.force_login(pr1.user)
+        response = self.get(self.url_key+'-detail', **self.kwargs)
+        attrs = json.loads(response.data['properties']['attributes'])
+        self.assertDictEqual(attrs, {'harmless': 123})
+
+        self.client.logout()
+        self.client.force_login(pr2.user)
+        response = self.get(self.url_key+'-detail', **self.kwargs)
+        attrs = json.loads(response.data['properties']['attributes'])
+        self.assertDictEqual(attrs, attributes)
+
+        self.client.logout()
+        self.client.force_login(self.profile.user)
+
 
 
 #class TestScenarioPlaceAPI(_TestAPI, BasicModelTest, APITestCase):

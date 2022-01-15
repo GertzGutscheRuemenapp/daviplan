@@ -1,9 +1,8 @@
 from rest_framework import viewsets, permissions
-from django.shortcuts import get_object_or_404
+
 from datentool_backend.utils.views import (HasAdminAccessOrReadOnly,
                                            CanEditBasedata,
                                            ProtectCascadeMixin)
-from datentool_backend.user.views import CanEditScenarioPermission
 
 from .models import (Infrastructure, FieldType, Service, Place, Capacity,
                      PlaceField, FClass, ScenarioCapacity, ScenarioPlace)

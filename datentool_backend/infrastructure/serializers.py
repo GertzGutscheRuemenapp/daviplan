@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
+from rest_framework.fields import JSONField
+import json
 
 from .models import (Infrastructure, FieldType, FClass, FieldTypes, Service,
                      Place, Capacity, PlaceField, ScenarioPlace,
@@ -102,7 +104,25 @@ class ServiceSerializer(serializers.ModelSerializer):
                   'quota_type')
 
 
+class PlaceAttributeField(JSONField):
+    """remove sensitive fields if the user is not allowed to see them"""
+    def get_attribute(self, instance):
+        place = instance
+        value = super().get_attribute(instance)
+        value_dict = json.loads(value)
+        profile = self.context['request'].user.profile
+        infra_access =InfrastructureAccess.objects.get(
+            infrastructure=place.infrastructure, profile=profile)
+        if not infra_access.allow_sensitive_data:
+            fields = PlaceField.objects.filter(infrastructure=place.infrastructure)
+            for field in fields:
+                if field.sensitive:
+                    value_dict.pop(field.attribute)
+        return json.dumps(value_dict)
+
+
 class PlaceSerializer(GeoFeatureModelSerializer):
+    attributes = PlaceAttributeField()
     class Meta:
         model = Place
         geo_field = 'geom'
