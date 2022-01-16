@@ -94,6 +94,15 @@ class FieldType(DatentoolModelMixin, NamedModel, models.Model):
     field_type = models.CharField(max_length=3, choices=FieldTypes.choices)
     name = models.TextField()
 
+    def validate_datatype(self, data) -> bool:
+        """validate the datatype of the given data"""
+        if self.field_type == FieldTypes.NUMBER:
+            return isinstance(data, (int, float))
+        if self.field_type == FieldTypes.STRING:
+            return isinstance(data, (str, bytes))
+        if self.field_type == FieldTypes.CLASSIFICATION:
+            return data in self.fclass_set.values_list('value', flat=True)
+
 
 class FClass(models.Model):
     """a class in a classification"""

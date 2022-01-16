@@ -5,7 +5,7 @@ from django.contrib.gis.geos import Point
 from .models import (Infrastructure, Service, Place,
                      Capacity, FieldTypes, FieldType, FClass, PlaceField,
                      Profile, ScenarioPlace, ScenarioCapacity)
-from ..area.factories import InternalWFSLayerFactory, MapSymbolsFactory
+from ..area.factories import InternalWFSLayerFactory
 from .. user.factories import ScenarioFactory
 
 faker = Faker('de-DE')
@@ -149,3 +149,4 @@ class PlaceFieldFactory(DjangoModelFactory):
     unit = faker.word()
     infrastructure = factory.SubFactory(InfrastructureFactory)
     field_type = factory.SubFactory(FieldTypeFactory)
+    sensitive = faker.pybool()

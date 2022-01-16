@@ -1,7 +1,8 @@
+import json
+from rest_framework.validators import ValidationError
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from rest_framework.fields import JSONField
-import json
+from rest_framework.fields import JSONField, empty
 
 from .models import (Infrastructure, FieldType, FClass, FieldTypes, Service,
                      Place, Capacity, PlaceField, ScenarioPlace,
@@ -117,16 +118,106 @@ class PlaceAttributeField(JSONField):
             fields = PlaceField.objects.filter(infrastructure=place.infrastructure)
             for field in fields:
                 if field.sensitive:
-                    value_dict.pop(field.attribute)
+                    value_dict.pop(field.attribute, None)
         return json.dumps(value_dict)
+
+    def run_validation(self, data=empty):
+        """
+        Validate a simple representation and return the internal value.
+
+        The provided data may be `empty` if no representation was included
+        in the input.
+
+        May raise `SkipField` if the field should not be included in the
+        validated data.
+        """
+        (is_empty_value, data) = self.validate_empty_values(data)
+        if is_empty_value:
+            return data
+        # convert to dict
+        value = self.to_internal_value(data)
+        # run validators that might change the entries in the dict
+        self.run_validators(value)
+        # convert back to json
+        value = json.dumps(value)
+        return value
+
+    def to_internal_value(self, data):
+        """convert to dict if data is gives as json"""
+        if isinstance(data, str):
+            data = json.loads(data)
+        data = super().to_internal_value(data)
+        return data
+
+
+class PlaceAttributeValidator:
+    """validate the place attribute"""
+    requires_context = True
+
+    def __call__(self, value, field):
+        """"""
+        new_attributes = value
+        place = field.parent.instance
+        if place:
+            infrastructure = place.infrastructure
+        else:
+            properties = field.parent.initial_data.get('properties')
+            if not properties:
+                infrastructure_id = field.parent.initial_data.get('infrastructure')
+            else:
+                infrastructure_id = properties.get('infrastructure')
+            if infrastructure_id is None:
+                raise ValidationError('No infrastructure_id provided')
+            infrastructure = Infrastructure.objects.get(pk=infrastructure_id)
+
+        infr_name = infrastructure.name
+
+        for field_name, field_value in new_attributes.items():
+            # check if the fields exist as a PlaceField
+            try:
+                place_field = PlaceField.objects.get(
+                    attribute=field_name,
+                    infrastructure=infrastructure)
+            except PlaceField.DoesNotExist:
+                msg = f'Field {field_name} is no PlaceField for Infrastructure {infr_name}'
+                raise ValidationError(msg)
+            # check if the value is of correct type
+            field_type = place_field.field_type
+            if not field_type.validate_datatype(field_value):
+                ft = FieldTypes(field_type.field_type)
+                msg = f'''Field '{field_name}' for Infrastructure '{infr_name}'
+                should be of {field_type}({ft.label})'''
+                if field_type.field_type == FieldTypes.CLASSIFICATION:
+                    fclasses = list(
+                        FClass.objects.filter(classification=field_type)
+                        .values_list('value', flat=True))
+                    msg += f'.The value {field_value!r} is not in the valid classes {fclasses}.'
+                else:
+                    msg += f''', but the value is {field_value!r}.'''
+                raise ValidationError(msg)
+
+        if place:
+            # update the new attributes with existing attributes,
+            # if the field is not specified
+            attributes = json.loads(place.attributes)
+            for k, v in attributes.items():
+                if k not in new_attributes:
+                    new_attributes[k] = v
 
 
 class PlaceSerializer(GeoFeatureModelSerializer):
-    attributes = PlaceAttributeField()
+    attributes = PlaceAttributeField(validators=[PlaceAttributeValidator()])
     class Meta:
         model = Place
         geo_field = 'geom'
         fields = ('id', 'name', 'infrastructure', 'attributes')
+
+
+class PlaceUpdateAttributeSerializer(serializers.ModelSerializer):
+    attributes = PlaceAttributeField(validators=[PlaceAttributeValidator()])
+    class Meta:
+        model = Place
+        fields = ('name', 'attributes')
 
 
 class ScenarioPlaceSerializer(GeoFeatureModelSerializer):

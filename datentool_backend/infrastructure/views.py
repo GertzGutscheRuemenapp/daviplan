@@ -1,4 +1,6 @@
 from rest_framework import viewsets, permissions
+from rest_framework.response import Response
+from rest_framework.decorators import action
 
 from datentool_backend.utils.views import (HasAdminAccessOrReadOnly,
                                            CanEditBasedata,
@@ -9,6 +11,7 @@ from .models import (Infrastructure, FieldType, Service, Place, Capacity,
 
 from .serializers import (InfrastructureSerializer, FieldTypeSerializer,
                           ServiceSerializer, PlaceSerializer,
+                          PlaceUpdateAttributeSerializer,
                           CapacitySerializer, PlaceFieldSerializer,
                           FClassSerializer, ScenarioPlaceSerializer,
                           ScenarioCapacitySerializer)
@@ -56,7 +59,35 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Place.objects.all()
     serializer_class = PlaceSerializer
+    serializer_action_class = {'update_attributes': PlaceUpdateAttributeSerializer}
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+    def get_serializer_class(self):
+        return self.serializer_action_class.get(self.action,
+                                                super().get_serializer_class() )
+
+    @action(methods=['PATCH', 'PUT'], detail=True,
+            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+    def update_attributes(self, request, **kwargs):
+        """
+        route to update attributes of a place
+        """
+        partial = kwargs.pop('partial', True)
+        instance = self.get_object()
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(instance,
+                                      data=request.data,
+                                      partial=partial,
+                                      context={'request': self.request,})
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
 
 
 class ScenarioPlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
