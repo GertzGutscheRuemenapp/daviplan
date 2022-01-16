@@ -7,15 +7,31 @@ from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithAdminAccessTest)
 from datentool_backend.area.tests import (_TestAPI, _TestPermissions)
 
-from .models import (PrognosisEntry, Year, PopulationRaster, PopulationEntry,
-                     PopStatistic, PopStatEntry, DisaggPopRaster,
-                     Prognosis, Population)
-from .factories import (YearFactory, RasterCellFactory, AgeGroupFactory,
-                        GenderFactory, PopulationFactory, DisaggPopRasterFactory,
-                        RasterCellPopulationAgeGenderFactory, PrognosisEntryFactory,
-                        AreaFactory, PrognosisFactory, PopStatEntryFactory,
-                        RasterFactory, PopulationRasterFactory,
-                        PopulationEntryFactory, PopStatisticFactory)
+from .models import (PrognosisEntry,
+                     Year,
+                     PopulationRaster,
+                     PopulationEntry,
+                     PopStatistic,
+                     PopStatEntry,
+                     DisaggPopRaster,
+                     Prognosis,
+                     Population)
+from .factories import (YearFactory,
+                        RasterCellFactory,
+                        AgeGroupFactory,
+                        GenderFactory,
+                        PopulationFactory,
+                        DisaggPopRasterFactory,
+                        RasterCellPopulationFactory,
+                        RasterCellPopulationAgeGenderFactory,
+                        PrognosisEntryFactory,
+                        AreaFactory,
+                        PrognosisFactory,
+                        PopStatEntryFactory,
+                        RasterFactory,
+                        PopulationRasterFactory,
+                        PopulationEntryFactory,
+                        PopStatisticFactory)
 from .constants import RegStatAgeGroup, RegStatAgeGroups
 
 from faker import Faker
@@ -32,6 +48,7 @@ class TestPopulation(TestCase):
                                               #return_queryset=True,
                                               )
         cls.years = Year.objects.all()
+        str(cls.years[0])
         cls.cell = RasterCellFactory()
         cls.genders = [GenderFactory() for i in range(3)]
         cls.disagg_popraster = DisaggPopRasterFactory(genders=cls.genders)
@@ -42,15 +59,7 @@ class TestPopulation(TestCase):
             self.disagg_popraster.genders.all(), self.genders, ordered=False)
         rp = RasterCellPopulationAgeGenderFactory()
         self.assertEqual(rp.cell.raster, rp.disaggraster.popraster.raster)
-
-    #def test_age_group(self):
-        #"""Test the age groups"""
-        #from_age = 0
-        #for ag in self.age_classification.agegroup_set.all():
-            #self.assertEqual(ag.from_age, from_age)
-            #self.assertLessEqual(ag.from_age, ag.to_age)
-            #from_age = ag.to_age + 1
-        #self.assertLessEqual(ag.to_age, 127)
+        str(rp.cell)
 
     def test_prognosis(self):
         """Test the prognosis"""
@@ -73,16 +82,18 @@ class TestPopulation(TestCase):
         pe_set = prognosis.prognosisentry_set.all()
         values = np.array(pe_set.values_list('value')).\
             reshape(len(agegroups), len(years), len(genders))
-        print(values)
 
     def test_popstatistic(self):
         ps = PopStatEntryFactory()
-        print(ps.area.attributes)
 
     def test_population(self):
         pop = PopulationFactory(genders=self.genders)
         self.assertQuerysetEqual(
             pop.genders.all(), self.genders, ordered=False)
+
+    def test_raster_population(self):
+        rcp = RasterCellPopulationFactory()
+        print(rcp)
 
 
 class TestYearAPI(WriteOnlyWithCanEditBaseDataTest,
@@ -125,6 +136,7 @@ class TestPopulationRasterAPI(WriteOnlyWithCanEditBaseDataTest,
     def setUpTestData(cls):
         super().setUpTestData()
         populationraster: PopulationRaster = cls.obj
+        str(cls.obj)
         raster = populationraster.raster.pk
         year = populationraster.year.pk
 
@@ -178,7 +190,6 @@ class TestAgeGroupAPI(WriteOnlyWithAdminAccessTest,
         """test default agegroups"""
         response = self.get_check_200(self.url_key + '-list',
                                       data={'defaults': True, })
-        print(response.data)
         assert(len(response.data) == len(RegStatAgeGroups.agegroups))
 
     def test_check_and_replace_agegroups(self):
@@ -270,8 +281,8 @@ class TestRegStatAgeGroup(TestCase):
     def test_repr_of_agegroups(self):
         """Test the representation of agegroups"""
         ag1 = RegStatAgeGroup(from_age=4, to_age=8)
-        print(ag1.name)
-        print(ag1.code)
+        str(ag1)
+        repr(ag1)
 
     def test_compare_agegroups(self):
         """Test to compare agegroups"""

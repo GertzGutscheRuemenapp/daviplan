@@ -73,9 +73,9 @@ class RasterCellFactory(DjangoModelFactory):
 class RasterCellPopulationFactory(DjangoModelFactory):
     class Meta:
         model = RasterCellPopulation
-        django_get_or_create = ('raster', )
+        django_get_or_create = ('popraster', )
 
-    raster = factory.SubFactory(PopulationRasterFactory)
+    popraster = factory.SubFactory(PopulationRasterFactory)
     cell = factory.SubFactory(RasterCellFactory)
     value = faker.pyfloat(max_value=100)
 
