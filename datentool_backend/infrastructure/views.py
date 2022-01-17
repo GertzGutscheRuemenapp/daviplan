@@ -1,7 +1,8 @@
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
-
+from django.db.models import ProtectedError
+import json
 from datentool_backend.utils.views import (HasAdminAccessOrReadOnly,
                                            CanEditBasedata,
                                            ProtectCascadeMixin)
@@ -115,13 +116,43 @@ class FieldTypeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class FClassViewSet(viewsets.ModelViewSet):
+class FClassViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = FClass.objects.all()
     serializer_class = FClassSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
+    def perform_destroy(self, instance):
+        """check, if there are referenced attributes"""
+        place_fields = instance.classification.placefield_set.distinct()
+        for place_field in place_fields:
+            places = Place.objects.filter(infrastructure=place_field.infrastructure)
+            for place in places:
+                attr_dict = json.loads(place.attributes)
+                if attr_dict.get(place_field.attribute) == instance.value:
+                    if self.use_protection:
+                        msg = f'Cannot delete {instance} because {place} has attributes {place.attributes} using it'
+                        raise ProtectedError(msg, [place])
+                    attr_dict.pop(place_field.attribute)
+                    place.attributes = json.dumps(attr_dict)
+                    place.save()
+        instance.delete()
 
-class PlaceFieldViewSet(viewsets.ModelViewSet):
+
+class PlaceFieldViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = PlaceField.objects.all()
     serializer_class = PlaceFieldSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+    def perform_destroy(self, instance):
+        """check, if there are referenced attributes"""
+        places = Place.objects.filter(infrastructure=instance.infrastructure)
+        for place in places:
+            attr_dict = json.loads(place.attributes)
+            if instance.attribute in attr_dict:
+                if self.use_protection:
+                    msg = f'Cannot delete "{instance}" because {place} has the attributes {place.attributes} using it'
+                    raise ProtectedError(msg, [place])
+                attr_dict.pop(instance.attribute)
+                place.attributes = json.dumps(attr_dict)
+                place.save()
+        instance.delete()

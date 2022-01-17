@@ -273,7 +273,7 @@ class TestPlanningProcessProtectCascade(_TestAPI, LoginTestCase, APITestCase):
         url = self.url_key + '-detail'
         response = self.get_check_200(url, **kwargs)
 
-        #  with override_protection=True it should fail
+        #  with override_protection=False it should fail
         response = self.delete(url, data=dict(override_protection=False), **kwargs)
         self.response_403(msg=response.content)
 

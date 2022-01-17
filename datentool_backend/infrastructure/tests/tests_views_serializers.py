@@ -1,3 +1,4 @@
+from typing import Tuple
 from collections import OrderedDict
 import json
 from rest_framework import status
@@ -22,6 +23,7 @@ from datentool_backend.infrastructure.factories import (
     ScenarioPlaceFactory,
 )
 from datentool_backend.infrastructure.models import (
+    Profile,
     Infrastructure,
     Place,
     Capacity,
@@ -329,13 +331,12 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         self.client.logout()
         self.client.force_login(self.profile.user)
 
-    def test_update_attributes(self):
-        """Test update of attributes"""
+    def setup_place(self) -> Tuple[Profile, Place]:
         pr1 = ProfileFactory(can_edit_basedata=True)
         place: Place = self.obj
         attributes = {'int_field': 123,
                       'text_field': 'ABC',
-                      'class_field': 'Category_1',}
+                      'class_field': 'Category_1', }
         place.attributes = json.dumps(attributes)
         place.save()
         infr: Infrastructure = place.infrastructure
@@ -354,23 +355,32 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
             field_type__field_type=FieldTypes.CLASSIFICATION,
             infrastructure=infr)
 
-        fclass1 = FClassFactory(classification=field3.field_type, order=1, value='Category_1')
-        fclass2 = FClassFactory(classification=field3.field_type, order=2, value='Category_2')
+        fclass1 = FClassFactory(classification=field3.field_type,
+                                order=1,
+                                value='Category_1')
+        fclass2 = FClassFactory(classification=field3.field_type,
+                                order=2,
+                                value='Category_2')
+        return pr1, place
+
+    def test_update_attributes(self):
+        """Test update of attributes"""
+        pr1, place = self.setup_place()
 
         patch_data = {'name': 'NewName',
                       'attributes': {'int_field': 456,
                       'text_field': 'DEF',
-                      'class_field': 'Category_2',}
+                      'class_field': 'Category_2', }
                       }
 
-        response = self.patch(self.url_key+'-update-attributes', pk=place.pk,
+        response = self.patch(self.url_key + '-update-attributes', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_403(msg=response.content)
 
         self.client.logout()
         self.client.force_login(pr1.user)
 
-        response = self.patch(self.url_key+'-update-attributes', pk=place.pk,
+        response = self.patch(self.url_key + '-update-attributes', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_200(msg=response.content)
 
@@ -379,7 +389,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         self.compare_data(attrs, patch_data)
 
         # check if the changed data is really in the database
-        response = self.get_check_200(self.url_key+'-detail', pk=place.pk)
+        response = self.get_check_200(self.url_key + '-detail', pk=place.pk)
         attrs = json.loads(response.data['properties']['attributes'])
         self.compare_data(attrs, patch_data)
 
@@ -436,8 +446,100 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         attrs = json.loads(response.data['attributes'])
         self.compare_data(attrs, patch_data)
 
+    def test_delete_placefield_and_fclass(self):
+        """
+        Test, if the deletion of a PlaceField
+        and a FClass cascades to the Place Attributes
+        """
+        profile, place1 = self.setup_place()
+        self.client.logout()
+        self.client.force_login(profile.user)
 
-#class TestScenarioPlaceAPI(_TestAPI, BasicModelTest, APITestCase):
+        attributes2 = {'int_field': 789,
+                       'class_field': 'Category_2', }
+        place2 = PlaceFactory(infrastructure=place1.infrastructure,
+                              attributes=json.dumps(attributes2))
+
+        place_fields = PlaceField.objects.filter(
+            infrastructure=place1.infrastructure,
+            attribute__in=['int_field', 'text_field', 'class_field'])
+
+        for place_field in place_fields:
+            # deleting the place field should fail,
+            # if there are attributes of this place_field
+            response = self.delete('placefields-detail', pk=place_field.pk)
+            self.response_403(msg=response.content)
+
+        field_name = 'int_field'
+        int_field = PlaceField.objects.get(attribute=field_name,
+            infrastructure=place1.infrastructure)
+
+        # deleting the place field should cascadedly delete the attribute
+        # from the place attributes
+        response = self.delete('placefields-detail',
+                               pk=int_field.pk,
+                               data=dict(override_protection=True))
+        self.response_204(msg=response.content)
+
+        place_attributes = Place.objects.filter(
+            infrastructure=place1.infrastructure).values_list('attributes',
+                                                              flat=True)
+        for attr in place_attributes:
+            attr_dict = json.loads(attr)
+            msg = f'{field_name} should be removed from the place attributes {attr_dict}'
+            self.assertFalse(field_name in attr_dict, msg)
+
+        field_name = 'text_field'
+        text_field = PlaceField.objects.get(attribute=field_name,
+                                            infrastructure=place1.infrastructure)
+        # remove the text_field from place1, so there is no text_field defined
+        attributes = {'class_field': 'Category_1', }
+        place1.attributes = json.dumps(attributes)
+        place1.save()
+
+        # it should delete the text_field even without override_protection,
+        # because it is not referenced any more
+        response = self.delete('placefields-detail',
+                               pk=text_field.pk,
+                               data=dict(override_protection=False))
+        self.response_204(msg=response.content)
+
+        field_name = 'class_field'
+        class_field = PlaceField.objects.get(attribute=field_name,
+                                             infrastructure=place1.infrastructure)
+        # deleting a FClass category should fail,
+        # if there are attributes using this category
+        fclass1 = FClass.objects.get(classification=class_field.field_type, value='Category_1')
+        response = self.delete('fclasses-detail',
+                               pk=fclass1.pk,
+                               data=dict(override_protection=False))
+        self.response_403(msg=response.content)
+
+        # deleting a FClass category should work with override_protection,
+        response = self.delete('fclasses-detail',
+                               pk=fclass1.pk,
+                               data=dict(override_protection=True))
+        self.response_204(msg=response.content)
+
+        # the attribute should have been removed now in place1
+        place_attributes = Place.objects.get(pk=place1.pk).attributes
+        attr_dict = json.loads(place_attributes)
+        msg = f'{field_name} should be removed from the place attributes {attr_dict}'
+        self.assertFalse(field_name in attr_dict, msg)
+
+        #  create a new Category_3
+        fclass3 = FClassFactory(classification=class_field.field_type,
+                                order=1,
+                                value='Category_3')
+
+        # this is not used, so it should be deleted also without override_protection
+        response = self.delete('fclasses-detail',
+                               pk=fclass3.pk,
+                               data=dict(override_protection=False))
+        self.response_204(msg=response.content)
+
+
+# class TestScenarioPlaceAPI(_TestAPI, BasicModelTest, APITestCase):
     #"""Test to post, put and patch data"""
     #url_key = "scenarioplaces"
     #factory = ScenarioPlaceFactory
