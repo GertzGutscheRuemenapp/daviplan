@@ -71,7 +71,7 @@ class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         queryset = Place.objects.all()
         service = self.request.query_params.get('service')
         if service:
-            queryset = queryset.filter(service_capacity=service)
+            queryset = queryset.filter(service_capacity=service).distinct()
         return queryset
 
     @action(methods=['PATCH', 'PUT'], detail=True,

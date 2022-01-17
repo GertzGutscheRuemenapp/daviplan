@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Set
 from collections import OrderedDict
 import json
 from rest_framework import status
@@ -545,25 +545,57 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         place1.service_capacity.set([service1, service2])
         place2.service_capacity.set([service3, service2])
 
-        response = self.get(self.url_key + '-list', data=dict(service=service1.id))
+        #  default capacity has from_year=0 and capacity=0
+        # add two more capacities
+        cap_s3_p2 = CapacityFactory(service=service3, place=place2,
+                                    from_year=2023, capacity=123)
+        cap_s3_p2 = CapacityFactory(service=service3, place=place2,
+                                    from_year=2021, capacity=55)
+        capacities_s3_p2 = Capacity.objects.filter(place=place2,
+                                                   service=service3)
+
+        #  test if the correct places which offer a service are returned
+        self.check_place_with_capacity(service1, {place1.id})
+        self.check_place_with_capacity(service2, {place1.id, place2.id})
+        self.check_place_with_capacity(service3, {place2.id})
+
+        year_expected = {2020: 0,
+                         2021: 55,
+                         2022: 55,
+                         2023: 123,
+                         2024: 123,
+                         }
+
+        #  test if the correct capacity is returned for different years
+        for year, expected in year_expected.items():
+            response = self.get(self.url_key + '-detail', pk=place2.pk,
+                                data=dict(service=service3.id, year=year))
+            capacity = response.data['properties']['capacity']
+            self.assertListEqual([c['capacity'] for c in capacity], [expected])
+
+        #  without the year
+        response = self.get(self.url_key + '-detail', pk=place2.pk,
+                            data=dict(service=service3.id))
+        capacity = response.data['properties']['capacity']
+        self.assertListEqual([c['capacity'] for c in capacity], [0])
+
+        #  this should fail, because there is no service3 offered at place1
+        response = self.get(self.url_key + '-detail', pk=place1.pk,
+                            data=dict(service=service3.id, year=2024))
+        self.response_404(response)
+
+    def check_place_with_capacity(self, service: Service,
+                                  place_ids: Set[int],
+                                  year: int = None):
+        response = self.get(self.url_key + '-list',
+                            data=dict(service=service.id))
         self.response_200(msg=response.content)
-        self.assertSetEqual({p['id'] for p in response.data['features']}, {place1.id})
-        feature_capacities = [f['properties']['capacity'] for f in response.data['features']]
+        self.assertSetEqual({p['id'] for p in response.data['features']},
+                            place_ids)
+        feature_capacities = [f['properties']['capacity']
+                              for f in response.data['features']]
         for fc in feature_capacities:
-            assert service1.id in [c['service'] for c in fc]
-
-        response = self.get(self.url_key + '-list', data=dict(service=service2.id))
-        self.assertSetEqual({p['id'] for p in response.data['features']}, {place1.id, place2.id})
-        feature_capacities = [f['properties']['capacity'] for f in response.data['features']]
-        for fc in feature_capacities:
-            assert service2.id in [c['service'] for c in fc]
-
-        response = self.get(self.url_key + '-list', data=dict(service=service3.id))
-        self.assertSetEqual({p['id'] for p in response.data['features']}, {place2.id})
-        feature_capacities = [f['properties']['capacity'] for f in response.data['features']]
-        for fc in feature_capacities:
-            assert service3.id in [c['service'] for c in fc]
-
+            assert all((c['service'] == service.id for c in fc))
 
 # class TestScenarioPlaceAPI(_TestAPI, BasicModelTest, APITestCase):
     #"""Test to post, put and patch data"""
