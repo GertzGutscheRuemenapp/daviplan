@@ -3,6 +3,8 @@ from rest_framework.validators import ValidationError
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from rest_framework.fields import JSONField, empty
+from django.db.models import Window
+from django.db.models.functions import Coalesce, Lead
 
 from .models import (Infrastructure, FieldType, FClass, FieldTypes, Service,
                      Place, Capacity, PlaceField, ScenarioPlace,
@@ -222,9 +224,29 @@ class ScenarioPlaceSerializer(GeoFeatureModelSerializer):
                   "scenario", "status_quo")
 
 
+class CapacityListSerializer(serializers.ListSerializer):
+
+    def to_representation(self, instance):
+        request = self.context.get('request')
+        if request:
+            #  filter the capacity returned for the specific service
+            service_id = request.query_params.get('service')
+            if service_id:
+                instance = instance.filter(service_id=service_id)
+
+            #  filter the queryset by year
+            year = request.query_params.get('year', 0)
+            instance = instance\
+                .filter(from_year__lte=year)\
+                .filter(to_year__gte=year)
+
+        return super().to_representation(instance)
+
+
 class CapacitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Capacity
+        list_serializer_class = CapacityListSerializer
         fields = ('id', 'place', 'service', 'capacity', 'from_year')
 
 

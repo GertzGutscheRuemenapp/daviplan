@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models import Window, F
+from django.db.models.functions import Lead, RowNumber
 from django.contrib.gis.db import models as gis_models
 from datentool_backend.base import NamedModel, JsonAttributes
 from datentool_backend.user.models import Profile, Scenario
@@ -75,6 +77,41 @@ class Capacity(DatentoolModelMixin, models.Model):
     service = models.ForeignKey(Service, on_delete=PROTECT_CASCADE)
     capacity = models.FloatField(default=0)
     from_year = models.IntegerField(default=0)
+    to_year = models.IntegerField(default=99999999)
+
+    class Meta:
+        unique_together = ['place', 'service', 'from_year']
+
+    def save(self, *args, **kwargs):
+        """
+        Update to_year in the last row and
+        from_year in the current row before saving
+        """
+        last_row = Capacity.objects.filter(place=self.place,
+                                     service=self.service,
+                                     from_year__lt=self.from_year)\
+            .annotate(rn=Window(expression=RowNumber(),
+                                order_by=F('from_year').desc()))\
+            .order_by('rn')\
+            .first()
+        if last_row:
+            last_row.to_year = self.from_year - 1
+            super(Capacity, last_row).save()
+
+        next_row = Capacity.objects.filter(place=self.place,
+                                           service=self.service,
+                                           from_year__gt=self.from_year)\
+            .annotate(rn=Window(expression=RowNumber(),
+                                order_by=F('from_year').asc()))\
+            .order_by('rn')\
+            .first()
+        if next_row:
+            self.to_year = next_row.from_year - 1
+
+        super().save(*args, **kwargs)
+
+
+
 
 
 class ScenarioCapacity(Capacity):
