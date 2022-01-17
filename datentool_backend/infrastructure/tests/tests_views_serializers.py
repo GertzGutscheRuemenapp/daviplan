@@ -623,26 +623,26 @@ class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.patch_data = data
 
 
-# class TestScenarioCapacityAPI(_TestAPI, BasicModelTest, APITestCase):
-    #"""Test to post, put and patch data"""
-    #url_key = "scenariocapacities"
-    #factory = ScenarioCapacityFactory
+class TestScenarioCapacityAPI(_TestAPI, BasicModelTest, APITestCase):
+    """Test to post, put and patch data"""
+    url_key = "scenariocapacities"
+    factory = ScenarioCapacityFactory
 
-    # @classmethod
-    # def setUpTestData(cls):
-        # super().setUpTestData()
-        #scenariocapacity: ScenarioCapacity = cls.obj
-        #place = scenariocapacity.place.pk
-        #service = scenariocapacity.service.pk
-        #scenario = scenariocapacity.scenario.pk
-        #status_quo = scenariocapacity.status_quo.pk
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        scenariocapacity: ScenarioCapacity = cls.obj
+        place = scenariocapacity.place.pk
+        service = scenariocapacity.service.pk
+        scenario = scenariocapacity.scenario.pk
+        status_quo = scenariocapacity.status_quo.pk
 
-        # data = dict(place=place, service=service,
-                    # capacity=faker.pyfloat(positive=True), from_year=faker.year(),
-                    # scenario=scenario, status_quo=status_quo)
-        #cls.post_data = data
-        #cls.put_data = data
-        #cls.patch_data = data
+        data = dict(place=place, service=service,
+                    capacity=faker.pyfloat(positive=True), from_year=faker.year(),
+                    scenario=scenario, status_quo=status_quo)
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
 
 
 class TestFieldTypeNUMSTRAPI(WriteOnlyWithCanEditBaseDataTest,

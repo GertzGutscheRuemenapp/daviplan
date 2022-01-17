@@ -13,7 +13,7 @@ from datentool_backend.utils.views import (HasAdminAccess,
                                            ProtectCascadeMixin)
 from .models import (Year, Raster, PopulationRaster, Gender, AgeGroup, DisaggPopRaster,
                      Prognosis, PrognosisEntry, Population, PopulationEntry,
-                     PopStatistic, PopStatEntry, RasterCell, )
+                     PopStatistic, PopStatEntry, RasterCell)
 from .constants import RegStatAgeGroups, RegStatAgeGroup
 from .serializers import (YearSerializer, RasterSerializer,
                           PopulationRasterSerializer,
@@ -42,20 +42,20 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-#class RasterCellTileViewSet(MVTView, DetailView):
+# class RasterCellTileViewSet(MVTView, DetailView):
     #"""Due to Cellcode geometry, implementation of vector tiles"""
     #model = Raster
     #vector_tile_fields = ('name', )
 
-    #def get_vector_tile_layer_name(self):
-        #return self.get_object().name
+    # def get_vector_tile_layer_name(self):
+        # return self.get_object().name
 
-    #def get_vector_tile_queryset(self):
-        #return self.get_object().rastercell.all()
+    # def get_vector_tile_queryset(self):
+        # return self.get_object().rastercell.all()
 
-    #def get(self, request, *args, **kwargs):
+    # def get(self, request, *args, **kwargs):
         #self.object = self.get_object()
-        #return BaseVectorTileView.get(self,request=request, z=kwargs.get('z'), x=kwargs.get('x'), y=kwargs.get('y'))
+        # return BaseVectorTileView.get(self,request=request, z=kwargs.get('z'), x=kwargs.get('x'), y=kwargs.get('y'))
 
 
 class GenderViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

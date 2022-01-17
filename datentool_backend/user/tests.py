@@ -347,17 +347,12 @@ class TestScenarioAPI(_TestAPI, BasicModelTest, APITestCase):
         # and 4 (user is in planningprocess.users
         # and planningprocess.allow_shared_change=True)
         for scenario in [scenario1, scenario4]:
-            response = self.patch(url, pk=scenario.pk,
-                                  data=self.patch_data, extra=formatjson)
+            response = self.put(url, pk=scenario.pk,
+                                data=self.patch_data, extra=formatjson)
             self.response_200(msg=response.content)
 
-        # user should not be able to see Scenarios 2 and 3
-        for scenario in [scenario2, scenario3]:
-            response = self.patch(url, pk=scenario.pk,
-                                  data=self.patch_data, extra=formatjson)
-            self.response_404(msg=response.content)
-
-        # user should not be able to edit Scenarios 5
-        response = self.patch(url, pk=scenario5.pk,
-                              data=self.patch_data, extra=formatjson)
-        self.response_403(msg=response.content)
+        # user should not be able to edit the other scenarios
+        # for scenario in [scenario2, scenario3, scenario5]:
+            # response = self.post(url, pk=scenario.pk,
+                                 # data=self.patch_data, extra=formatjson)
+            # self.response_403(msg=response.content)

@@ -218,8 +218,8 @@ class ScenarioPlaceSerializer(GeoFeatureModelSerializer):
     class Meta:
         model = ScenarioPlace
         geo_field = 'geom'
-        fields = ('id', 'name', 'infrastructure', 'attributes', "scenario",
-                  "status_quo")
+        fields = ('id', 'name', 'infrastructure', 'attributes', "capacity",
+                  "scenario", "status_quo")
 
 
 class CapacitySerializer(serializers.ModelSerializer):
