@@ -548,10 +548,21 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         response = self.get(self.url_key + '-list', data=dict(service=service1.id))
         self.response_200(msg=response.content)
         self.assertSetEqual({p['id'] for p in response.data['features']}, {place1.id})
+        feature_capacities = [f['properties']['capacity'] for f in response.data['features']]
+        for fc in feature_capacities:
+            assert service1.id in [c['service'] for c in fc]
+
         response = self.get(self.url_key + '-list', data=dict(service=service2.id))
         self.assertSetEqual({p['id'] for p in response.data['features']}, {place1.id, place2.id})
+        feature_capacities = [f['properties']['capacity'] for f in response.data['features']]
+        for fc in feature_capacities:
+            assert service2.id in [c['service'] for c in fc]
+
         response = self.get(self.url_key + '-list', data=dict(service=service3.id))
         self.assertSetEqual({p['id'] for p in response.data['features']}, {place2.id})
+        feature_capacities = [f['properties']['capacity'] for f in response.data['features']]
+        for fc in feature_capacities:
+            assert service3.id in [c['service'] for c in fc]
 
 
 # class TestScenarioPlaceAPI(_TestAPI, BasicModelTest, APITestCase):

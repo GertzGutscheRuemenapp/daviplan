@@ -206,15 +206,6 @@ class PlaceAttributeValidator:
                     new_attributes[k] = v
 
 
-class PlaceSerializer(GeoFeatureModelSerializer):
-    attributes = PlaceAttributeField(validators=[PlaceAttributeValidator()])
-
-    class Meta:
-        model = Place
-        geo_field = 'geom'
-        fields = ('id', 'name', 'infrastructure', 'attributes')
-
-
 class PlaceUpdateAttributeSerializer(serializers.ModelSerializer):
     attributes = PlaceAttributeField(validators=[PlaceAttributeValidator()])
 
@@ -235,6 +226,17 @@ class CapacitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Capacity
         fields = ('id', 'place', 'service', 'capacity', 'from_year')
+
+
+class PlaceSerializer(GeoFeatureModelSerializer):
+    attributes = PlaceAttributeField(validators=[PlaceAttributeValidator()])
+    capacity = CapacitySerializer(required=False, many=True,
+                                  source='capacity_set')
+
+    class Meta:
+        model = Place
+        geo_field = 'geom'
+        fields = ('id', 'name', 'infrastructure', 'attributes', 'capacity')
 
 
 class ScenarioCapacitySerializer(serializers.ModelSerializer):
