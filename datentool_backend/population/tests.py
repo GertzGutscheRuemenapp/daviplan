@@ -25,6 +25,7 @@ from .factories import (YearFactory,
                         RasterCellPopulationFactory,
                         RasterCellPopulationAgeGenderFactory,
                         PrognosisEntryFactory,
+                        AreaLevelFactory,
                         AreaFactory,
                         PrognosisFactory,
                         PopStatEntryFactory,
@@ -378,27 +379,31 @@ class TestPopulationAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.patch_data = data
 
 
-# class TestPopulationEntryAPI(WriteOnlyWithCanEditBaseDataTest, _TestAPI, BasicModelTest, APITestCase):
-    #""""""
-    #url_key = "populationentries"
-    #factory = PopulationEntryFactory
+class TestPopulationEntryAPI(WriteOnlyWithCanEditBaseDataTest, _TestPermissions,
+                             _TestAPI, BasicModelTest, APITestCase):
+    """"""
+    url_key = "populationentries"
 
-    #@classmethod
-    #def setUpTestData(cls):
-        #super().setUpTestData()
-        #populationentry: PopulationEntry = cls.obj
-        #population = populationentry.population.pk
-        #area = populationentry.area.pk
-        #gender = populationentry.gender.pk
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        area_level= AreaLevelFactory()
+        cls.obj = PopulationEntryFactory(population__area_level=area_level,
+                                          area__area_level=area_level)
+        populationentry: PopulationEntry = cls.obj
+        population = populationentry.population.pk
+        area = populationentry.area.pk
+        gender = populationentry.gender.pk
+        age_group = populationentry.age_group.pk
 
-        #data = dict(population=population,
-                    #area=area,
-                    #gender=gender,
-                    #age=faker.pyint(max_value=127),
-                    #value=faker.pyfloat(positive=True))
-        #cls.post_data = data
-        #cls.put_data = data
-        #cls.patch_data = data
+        data = dict(population=population,
+                    area=area,
+                    gender=gender,
+                    age_group=age_group,
+                    value=faker.pyfloat(positive=True))
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
 
 
 class TestPopStatisticAPI(WriteOnlyWithCanEditBaseDataTest,

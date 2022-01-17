@@ -63,7 +63,7 @@ class AreaLevelFactory(DjangoModelFactory):
     class Meta:
         model = AreaLevel
     name = faker.word()
-    order = faker.pyint(max_value=10)
+    order = faker.unique.pyint(max_value=10)
     source = factory.SubFactory(SourceFactory)
     layer = factory.SubFactory(InternalWFSLayerFactory)
 
