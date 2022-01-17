@@ -250,15 +250,24 @@ class CapacitySerializer(serializers.ModelSerializer):
         fields = ('id', 'place', 'service', 'capacity', 'from_year')
 
 
+class CapacityAmountSerializer(serializers.FloatField):
+    def to_representation(self, item) -> str:
+        return super().to_representation(item.capacity)
+
+
 class PlaceSerializer(GeoFeatureModelSerializer):
     attributes = PlaceAttributeField(validators=[PlaceAttributeValidator()])
     capacity = CapacitySerializer(required=False, many=True,
                                   source='capacity_set')
+    capacities = CapacityListSerializer(required=False,
+                                        child=CapacityAmountSerializer(),
+                                        source='capacity_set')
+
 
     class Meta:
         model = Place
         geo_field = 'geom'
-        fields = ('id', 'name', 'infrastructure', 'attributes', 'capacity')
+        fields = ('id', 'name', 'infrastructure', 'attributes', 'capacity', 'capacities')
 
 
 class ScenarioCapacitySerializer(serializers.ModelSerializer):

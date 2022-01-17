@@ -571,7 +571,11 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
             response = self.get(self.url_key + '-detail', pk=place2.pk,
                                 data=dict(service=service3.id, year=year))
             capacity = response.data['properties']['capacity']
+            #  Todo: check if frontend needs the whole capacity information
+            # or only the capacity values
             self.assertListEqual([c['capacity'] for c in capacity], [expected])
+            self.assertListEqual(response.data['properties']['capacities'],
+                                 [expected])
 
         #  without the year
         response = self.get(self.url_key + '-detail', pk=place2.pk,
