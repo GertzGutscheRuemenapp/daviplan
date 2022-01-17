@@ -107,12 +107,13 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 class PlaceAttributeField(JSONField):
     """remove sensitive fields if the user is not allowed to see them"""
+
     def get_attribute(self, instance):
         place = instance
         value = super().get_attribute(instance)
         value_dict = json.loads(value)
         profile = self.context['request'].user.profile
-        infra_access =InfrastructureAccess.objects.get(
+        infra_access = InfrastructureAccess.objects.get(
             infrastructure=place.infrastructure, profile=profile)
         if not infra_access.allow_sensitive_data:
             fields = PlaceField.objects.filter(infrastructure=place.infrastructure)
@@ -207,6 +208,7 @@ class PlaceAttributeValidator:
 
 class PlaceSerializer(GeoFeatureModelSerializer):
     attributes = PlaceAttributeField(validators=[PlaceAttributeValidator()])
+
     class Meta:
         model = Place
         geo_field = 'geom'
@@ -215,6 +217,7 @@ class PlaceSerializer(GeoFeatureModelSerializer):
 
 class PlaceUpdateAttributeSerializer(serializers.ModelSerializer):
     attributes = PlaceAttributeField(validators=[PlaceAttributeValidator()])
+
     class Meta:
         model = Place
         fields = ('name', 'attributes')
@@ -246,7 +249,7 @@ class FClassSerializer(serializers.ModelSerializer):
         write_only=True,
         required=False,
         source='classification',
-        queryset = FieldType.objects.all())
+        queryset=FieldType.objects.all())
 
     class Meta:
         model = FClass

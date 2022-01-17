@@ -52,6 +52,8 @@ class Place(DatentoolModelMixin, JsonAttributes, NamedModel, models.Model):
     name = models.TextField()
     infrastructure = models.ForeignKey(Infrastructure,
                                        on_delete=PROTECT_CASCADE)
+    service_capacity = models.ManyToManyField(Service, related_name='place_services',
+                                              blank=True, through='Capacity')
     geom = gis_models.PointField(geography=True)
     attributes = models.JSONField()
 
@@ -71,8 +73,8 @@ class Capacity(DatentoolModelMixin, models.Model):
     """Capacity of an infrastructure for a service"""
     place = models.ForeignKey(Place, on_delete=PROTECT_CASCADE)
     service = models.ForeignKey(Service, on_delete=PROTECT_CASCADE)
-    capacity = models.FloatField()
-    from_year = models.IntegerField()
+    capacity = models.FloatField(default=0)
+    from_year = models.IntegerField(default=0)
 
 
 class ScenarioCapacity(Capacity):

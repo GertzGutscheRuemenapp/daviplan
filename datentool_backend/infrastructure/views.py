@@ -32,15 +32,15 @@ class CanPatchLayer(permissions.BasePermission):
         return False
 
     def has_object_permission(self, request, view, obj):
-        if (request.user.is_superuser or request.user.profile.admin_access or
-            request.method in permissions.SAFE_METHODS):
+        if (request.user.is_superuser or request.user.profile.admin_access
+                or request.method in permissions.SAFE_METHODS):
             return True
         if (request.user.profile.can_edit_basedata and
-            request.method in ('PATCH',) and (
-                        len(request.data.keys()) == 0 or
-                        set(request.data.keys()) <= set(['layer'])
+                request.method in ('PATCH',) and (
+                    len(request.data.keys()) == 0
+                    or set(request.data.keys()) <= set(['layer'])
                 )
-        ):
+            ):
             return True
         return False
 
@@ -58,14 +58,21 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
 
 class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = Place.objects.all()
+
     serializer_class = PlaceSerializer
     serializer_action_class = {'update_attributes': PlaceUpdateAttributeSerializer}
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
     def get_serializer_class(self):
         return self.serializer_action_class.get(self.action,
-                                                super().get_serializer_class() )
+                                                super().get_serializer_class())
+
+    def get_queryset(self):
+        queryset = Place.objects.all()
+        service = self.request.query_params.get('service')
+        if service:
+            queryset = queryset.filter(service_capacity=service)
+        return queryset
 
     @action(methods=['PATCH', 'PUT'], detail=True,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
@@ -79,7 +86,7 @@ class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         serializer = serializer_class(instance,
                                       data=request.data,
                                       partial=partial,
-                                      context={'request': self.request,})
+                                      context={'request': self.request, })
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
@@ -110,7 +117,7 @@ class ScenarioCapacityViewSet(viewsets.ModelViewSet):
 
 
 class FieldTypeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = FieldType.objects.all() # prefetch_related('classification_set',
+    queryset = FieldType.objects.all()  # prefetch_related('classification_set',
                                          #         to_attr='classifications')
     serializer_class = FieldTypeSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
