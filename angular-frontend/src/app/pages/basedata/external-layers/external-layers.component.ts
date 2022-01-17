@@ -115,13 +115,16 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       this.selectedGroup = (node.children) ? this.getGroup(node.id) : undefined;
     })
     this.layerTree.itemChecked.subscribe(evt => {
-      this.toggleActive(evt.item, evt.checked);
+      this.onToggleActive(evt.item, evt.checked);
     })
     this.mapControl = this.mapService.get('base-layers-map');
     this.setupLayerGroupCard();
     this.setupLayerCard();
   }
 
+  /**
+   * fetch layer groups (wo layers)
+   */
   fetchLayerGroups(): Observable<LayerGroup[]> {
     const query = this.http.get<LayerGroup[]>(`${this.rest.URLS.layerGroups}?external=true`);
     query.subscribe((layerGroups) => {
@@ -133,6 +136,9 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     return query;
   }
 
+  /**
+   * fetch layers
+   */
   fetchLayers(): Observable<Layer[]> {
     const query = this.http.get<Layer[]>(this.rest.URLS.layers);
     query.subscribe((layers) => {
@@ -147,6 +153,9 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     return query;
   }
 
+  /**
+   * setup edit-layer card, form and dialog
+   */
   setupLayerCard(): void {
     this.layerCard?.dialogOpened.subscribe(ok => {
       this.editLayerForm.reset({
@@ -182,6 +191,9 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     })
   }
 
+  /**
+   * setup edit-layer-group card, form and dialog
+   */
   setupLayerGroupCard(): void {
     this.layerGroupCard?.dialogOpened.subscribe(ok => {
       this.layerGroupForm.reset({
@@ -214,6 +226,11 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     })
   }
 
+  /**
+   * get layer with given id from already fetched layers
+   *
+   * @param id
+   */
   getLayer(id: number | undefined): Layer | undefined {
     if (id === undefined) return;
     for (let group of this.layerGroups) {
@@ -227,6 +244,11 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     return;
   }
 
+  /**
+   * get layer-group with given id from already fetched groups
+   *
+   * @param id
+   */
   getGroup(id: number | undefined): LayerGroup | undefined {
     if (id === undefined) return;
     for (let group of this.layerGroups) {
@@ -237,6 +259,9 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     return;
   }
 
+  /**
+   * open dialog to create new layer-group, post to backend on confirm
+   */
   addGroup(): void {
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
@@ -278,6 +303,9 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * open dialog to create new layer, post to backend on confirm
+   */
   addLayer(parent: LayerGroup): void {
     this.addLayerForm.reset();
     this.availableLayers = [];
@@ -319,6 +347,11 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * request WMS-capabilities from given url (via backend as proxy)
+   *
+   * @param url
+   */
   requestCapabilities(url: string): void {
     if (!url) return;
     this.http.post(this.rest.URLS.getCapabilities, { url: url }).subscribe((res: any) => {
@@ -336,14 +369,19 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         };
         this.availableLayers.push(layer);
         if (res.layers.length > 0)
-          this.avLayerSelected(0);
+          this.onAvLayerSelected(0);
       }
     }, error => {
       this.addLayerForm.setErrors(error.error);
     })
   }
 
-  avLayerSelected(idx: number): void {
+  /**
+   * handle selection of an available layer in add-layer dialog (capabilities)
+   *
+   * @param idx
+   */
+  onAvLayerSelected(idx: number): void {
     const layer = this.availableLayers[idx],
           controls = this.addLayerForm.controls;
     controls['name'].patchValue(layer.name);
@@ -352,11 +390,19 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     controls['url'].patchValue(layer.url);
   }
 
-  removeNode(): void {
+  /**
+   * handle removal of node in layer-tree
+   */
+  onRemoveNode(): void {
     if (this.selectedLayer) this.removeLayer(this.selectedLayer);
     if (this.selectedGroup) this.removeGroup(this.selectedGroup);
   }
 
+  /**
+   * ask if given layer shall be removed and post delete to backend on confirm
+   *
+   * @param layer
+   */
   removeLayer(layer: Layer){
     const dialogRef = this.dialog.open(RemoveDialogComponent, {
       data: {
@@ -386,6 +432,11 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * ask if given group shall be removed and post delete to backend on confirm
+   *
+   * @param group
+   */
   removeGroup(group: LayerGroup){
     const dialogRef = this.dialog.open(RemoveDialogComponent, {
       width: '420px',
@@ -415,7 +466,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * patches layer.order of infrastructures to their current place in the array
+   * patches layer-order of infrastructures to their current place in the array
    *
    */
   patchOrder(array: Layer[] | LayerGroup[]): void {
@@ -437,6 +488,11 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     })
   }
 
+  /**
+   * move currently selected layer up or down in layer tree
+   *
+   * @param direction - 'up' or 'down'
+   */
   moveSelected(direction: string): void {
     const selected = this.selectedLayer? this.selectedLayer: this.selectedGroup? this.selectedGroup: undefined;
     if (!selected) return;
@@ -456,7 +512,14 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     this.patchOrder(array);
   }
 
-  toggleActive(node: TreeItemNode, active: boolean): void {
+  /**
+   * handle the toggle of the checkbox of a group or layer in the layer-tree
+   * and post the current state to backend
+   *
+   * @param node
+   * @param active
+   */
+  onToggleActive(node: TreeItemNode, active: boolean): void {
     const layers: Layer[] = (node.children)? this.getGroup(node.id)!.children || []: [this.getLayer(node.id)!];
     let observables: Observable<any>[] = [];
     layers.forEach(layer => {
