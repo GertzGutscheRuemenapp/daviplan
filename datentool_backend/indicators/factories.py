@@ -3,8 +3,8 @@ import factory
 from factory.django import DjangoModelFactory
 from .models import (Mode, ModeVariant, Router, Stop,
                      MatrixCellPlace, MatrixCellStop, MatrixPlaceStop,
-                     MatrixStopStop, Indicator, IndicatorTypes)
-
+                     MatrixStopStop, Indicator, IndicatorTypes, CutOffTime)
+from datentool_backend.infrastructure.models import (Infrastructure)
 from ..population.factories import RasterCellFactory
 from ..infrastructure.factories import (ServiceFactory, PlaceFactory,
                                         InfrastructureFactory)
@@ -38,8 +38,8 @@ class StopFactory(DjangoModelFactory):
     name = faker.word()
 
 
-#class MatrixCellPlaceFactory(DjangoModelFactory):
-    #class Meta:
+# class MatrixCellPlaceFactory(DjangoModelFactory):
+    # class Meta:
         #model = MatrixCellPlace
         #django_get_or_create = ('cell', 'place', 'variant')
 
@@ -67,3 +67,13 @@ class IndicatorFactory(DjangoModelFactory):
     name = faker.word()
     parameters = faker.json(num_rows=3, indent=True)
     service = factory.SubFactory(ServiceFactory)
+
+
+class CutOffTimeFactory(DjangoModelFactory):
+    class Meta:
+        model = CutOffTime
+    mode_variant = factory.SubFactory(ModeVariant)
+    infrastructure = factory.SubFactory(Infrastructure)
+    minutes = faker.pyfloat()
+
+
