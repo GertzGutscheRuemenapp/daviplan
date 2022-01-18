@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../map.service";
-import { LayerGroup, Layer } from "../../pages/basedata/external-layers/external-layers.component";
+import { LayerGroup, Layer } from "../../backendInterfaces";
 import { CookieService } from "../../helpers/cookies.service";
 import { FloatingDialog } from "../../dialogs/help-dialog/help-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";

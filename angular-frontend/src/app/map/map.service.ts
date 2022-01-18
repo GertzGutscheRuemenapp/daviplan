@@ -1,5 +1,5 @@
 import { Injectable, EventEmitter } from '@angular/core';
-import { Layer, LayerGroup } from '../pages/basedata/external-layers/external-layers.component';
+import { Layer, LayerGroup } from '../backendInterfaces';
 import { OlMap } from './map'
 import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { HttpClient } from "@angular/common/http";

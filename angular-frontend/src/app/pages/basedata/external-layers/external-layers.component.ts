@@ -11,35 +11,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { arrayMove } from "../../../helpers/utils";
 import { sortBy } from "../../../helpers/utils";
-
-export interface LayerGroup {
-  id: number,
-  order: number,
-  name: string,
-  external: boolean,
-  children?: Layer[]
-}
-
-export interface Symbol {
-  fillColor: string,
-  strokeColor: string,
-  symbol: string
-}
-
-export interface Layer {
-  id: number,
-  group: number,
-  order: number,
-  url: string,
-  name: string,
-  layerName: string,
-  description: string,
-  active?: boolean,
-  checked?: boolean,
-  legendUrl?: string,
-  opacity?: number,
-  symbol?: Symbol
-}
+import { LayerGroup, Layer } from "../../../backendInterfaces";
 
 function isLayer(obj: any): obj is Layer{
   return 'layerName' in obj;

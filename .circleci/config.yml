@@ -19,15 +19,15 @@ jobs:
           command: |
             pip install -r requirements.txt
       - run:
-          name: install wget
+          name: Install wget
           command: apt-get install wget
       - run:
-          name: install dockerize
+          name: Install dockerize
           command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
           environment:
             DOCKERIZE_VERSION: v0.6.1
       - run:
-          name: Wait for db
+          name: Wait for Database
           command: dockerize -wait tcp://localhost:5432 -timeout 1m
       - run:
           name: Migrate Test Database
@@ -39,7 +39,7 @@ jobs:
       - store_test_results:
           path: test-reports/
       - run:
-          name: codecov
+          name: Run tests
           command: |
             python manage.py test --settings=datentool.settings_circleci
 

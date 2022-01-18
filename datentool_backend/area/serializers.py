@@ -33,6 +33,7 @@ class InternalWFSLayerSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'group', 'layer_name', 'order', 'symbol')
         read_only_fields = ('group', 'symbol')
 
+
 class SourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Source
@@ -40,6 +41,8 @@ class SourceSerializer(serializers.ModelSerializer):
 
 
 class AreaLevelSerializer(serializers.ModelSerializer):
+    layer = InternalWFSLayerSerializer(allow_null=True, required=False)
+    source = SourceSerializer(allow_null=True, required=False)
     class Meta:
         model = AreaLevel
         fields = ('id', 'name', 'order', 'source', 'layer')
