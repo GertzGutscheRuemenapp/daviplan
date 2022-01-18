@@ -11,12 +11,13 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.DeleteModel(
+            name='ScenarioCapacity',
+        ),
         migrations.AddField(
             model_name='capacity',
             name='scenario',
             field=models.ForeignKey(null=True, on_delete=datentool_backend.utils.protect_cascade.PROTECT_CASCADE, to='datentool_backend.scenario'),
         ),
-        migrations.DeleteModel(
-            name='ScenarioCapacity',
-        ),
+
     ]
