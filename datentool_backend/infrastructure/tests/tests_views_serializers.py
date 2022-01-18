@@ -36,7 +36,7 @@ from datentool_backend.infrastructure.models import (
     InfrastructureAccess,
 )
 from datentool_backend.area.serializers import InternalWFSLayerSerializer
-
+from datentool_backend.user.models import Scenario
 
 from faker import Faker
 
@@ -601,32 +601,33 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         for fc in feature_capacities:
             assert all((c['service'] == service.id for c in fc))
 
-# class TestScenarioPlaceAPI(_TestAPI, BasicModelTest, APITestCase):
+
+#class TestScenarioPlaceAPI(_TestAPI, BasicModelTest, APITestCase):
     #"""Test to post, put and patch data"""
     #url_key = "scenarioplaces"
     #factory = ScenarioPlaceFactory
 
-    # @classmethod
-    # def setUpTestData(cls):
-        # super().setUpTestData()
+    #@classmethod
+    #def setUpTestData(cls):
+        #super().setUpTestData()
         #scenarioplace: ScenarioPlace = cls.obj
         #infrastructure = scenarioplace.infrastructure.pk
         #geom = scenarioplace.geom.ewkt
         #scenario = scenarioplace.scenario.pk
         #status_quo = scenarioplace.status_quo.pk
 
-        # properties = OrderedDict(
-            # name=faker.word(),
-            # infrastructure=infrastructure,
-            # attributes=faker.json(),
-            # scenario=scenario,
-            # status_quo=status_quo
-        # )
-        # geojson = {
-            # 'type': 'Feature',
-            # 'geometry': geom,
-            # 'properties': properties,
-        # }
+        #properties = OrderedDict(
+            #name=faker.word(),
+            #infrastructure=infrastructure,
+            #attributes=faker.json(),
+            #scenario=scenario,
+            #status_quo=status_quo
+        #)
+        #geojson = {
+            #'type': 'Feature',
+            #'geometry': geom,
+            #'properties': properties,
+        #}
 
         #cls.post_data = geojson
         #geojson_putpatch = geojson.copy()
@@ -659,26 +660,25 @@ class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.patch_data = data
 
 
-class TestScenarioCapacityAPI(_TestAPI, BasicModelTest, APITestCase):
-    """Test to post, put and patch data"""
-    url_key = "scenariocapacities"
-    factory = ScenarioCapacityFactory
+#class TestScenarioCapacityAPI(_TestAPI, BasicModelTest, APITestCase):
+    #"""Test to post, put and patch data"""
+    #url_key = "scenariocapacities"
 
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        scenariocapacity: ScenarioCapacity = cls.obj
-        place = scenariocapacity.place.pk
-        service = scenariocapacity.service.pk
-        scenario = scenariocapacity.scenario.pk
-        status_quo = scenariocapacity.status_quo.pk
+    #@classmethod
+    #def setUpTestData(cls):
+        #super().setUpTestData()
+        #cls.obj = ScenarioCapacityFactory(scenario=Scenario.owner)
+        #place = scenariocapacity.place.pk
+        #service = scenariocapacity.service.pk
+        #scenario = scenariocapacity.scenario.pk
+        #status_quo = scenariocapacity.status_quo.pk
 
-        data = dict(place=place, service=service,
-                    capacity=faker.pyfloat(positive=True), from_year=faker.year(),
-                    scenario=scenario, status_quo=status_quo)
-        cls.post_data = data
-        cls.put_data = data
-        cls.patch_data = data
+        #data = dict(place=place, service=service,
+                    #capacity=faker.pyfloat(positive=True), from_year=faker.year(),
+                    #scenario=scenario, status_quo=status_quo)
+        #cls.post_data = data
+        #cls.put_data = data
+        #cls.patch_data = data
 
 
 class TestFieldTypeNUMSTRAPI(WriteOnlyWithCanEditBaseDataTest,

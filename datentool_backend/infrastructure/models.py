@@ -90,10 +90,8 @@ class Capacity(DatentoolModelMixin, models.Model):
         last_row = Capacity.objects.filter(place=self.place,
                                      service=self.service,
                                      from_year__lt=self.from_year)\
-            .annotate(rn=Window(expression=RowNumber(),
-                                order_by=F('from_year').desc()))\
-            .order_by('rn')\
-            .first()
+            .order_by('from_year')\
+            .last()
         if last_row:
             last_row.to_year = self.from_year - 1
             super(Capacity, last_row).save()
@@ -101,9 +99,7 @@ class Capacity(DatentoolModelMixin, models.Model):
         next_row = Capacity.objects.filter(place=self.place,
                                            service=self.service,
                                            from_year__gt=self.from_year)\
-            .annotate(rn=Window(expression=RowNumber(),
-                                order_by=F('from_year').asc()))\
-            .order_by('rn')\
+            .order_by('from_year')\
             .first()
         if next_row:
             self.to_year = next_row.from_year - 1
