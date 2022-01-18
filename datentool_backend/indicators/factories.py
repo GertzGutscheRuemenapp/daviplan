@@ -72,8 +72,18 @@ class IndicatorFactory(DjangoModelFactory):
 class CutOffTimeFactory(DjangoModelFactory):
     class Meta:
         model = CutOffTime
-    mode_variant = factory.SubFactory(ModeVariant)
-    infrastructure = factory.SubFactory(Infrastructure)
+    mode_variant = factory.SubFactory(ModeVariantFactory)
+    infrastructure = factory.SubFactory(InfrastructureFactory)
     minutes = faker.pyfloat()
+
+
+#class MatrixCellStopFactory(DjangoModelFactory):
+    #class Meta:
+        #model = MatrixCellStop
+    #cell = factory.SubFactory(RasterCellFactory)
+    #stop = factory.SubFactory(StopFactory)
+    #variant = factory.SubFactory(ModeVariantFactory)
+    #minutes = faker.pyfloat(positive=True)
+
 
 
