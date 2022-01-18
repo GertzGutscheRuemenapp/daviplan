@@ -5,6 +5,7 @@ from rest_framework import status
 from unittest import skip
 from django.test import TestCase
 from test_plus import APITestCase
+from django.contrib.gis.geos import Point
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         WriteOnlyWithAdminAccessTest)
@@ -274,11 +275,18 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         }
 
         cls.post_data = geojson
-        geojson_putpatch = geojson.copy()
-        geojson_putpatch['id'] = place.id
+        geojson_put = geojson.copy()
+        geojson_put['id'] = place.id
+        cls.put_data = geojson_put
 
-        cls.put_data = geojson_putpatch
-        cls.patch_data = geojson_putpatch
+        geojson_patch = geojson_put.copy()
+        pnt = Point(x=10, y=50, srid=4326)
+        geojson_patch['geometry'] = pnt.ewkt
+
+        expected_patched = {'geometry': pnt.transform(3857, clone=True).ewkt}
+
+        cls.patch_data = geojson_patch
+        cls.expected_patch_data = expected_patched
 
     def test_sensitive_data(self):
         """Test if sensitive data is correctly shown"""

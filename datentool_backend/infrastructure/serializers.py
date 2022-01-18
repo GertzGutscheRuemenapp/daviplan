@@ -9,6 +9,7 @@ from django.db.models.functions import Coalesce, Lead
 from .models import (Infrastructure, FieldType, FClass, FieldTypes, Service,
                      Place, Capacity, PlaceField,
                      InternalWFSLayer, InfrastructureAccess)
+from datentool_backend.utils.geometry_fields import GeometrySRIDField
 from datentool_backend.area.serializers import InternalWFSLayerSerializer
 from datentool_backend.area.models import LayerGroup, MapSymbol
 
@@ -255,6 +256,7 @@ class CapacityAmountSerializer(serializers.FloatField):
 
 
 class PlaceSerializer(GeoFeatureModelSerializer):
+    geom = GeometrySRIDField(srid=3857)
     attributes = PlaceAttributeField(validators=[PlaceAttributeValidator()])
     capacity = CapacitySerializer(required=False, many=True,
                                   source='capacity_set')

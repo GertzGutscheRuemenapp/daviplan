@@ -1,3 +1,4 @@
+from typing import Tuple
 from faker import Faker
 import factory
 from factory.django import DjangoModelFactory
@@ -66,6 +67,13 @@ class ServiceFactory(DjangoModelFactory):
     quota_type = faker.word()
 
 
+def _get_point_from_latlon(latlng: Tuple[float, float], srid: int) -> Point:
+    """convert cellcode to polygon"""
+    pnt_wgs = Point((latlng[1], latlng[0]), srid=4326)
+    pnt_transformed = pnt_wgs.transform(srid, clone=True)
+    return pnt_transformed
+
+
 class PlaceFactory(DjangoModelFactory):
     """location of an infrastructure"""
     class Meta:
@@ -73,9 +81,8 @@ class PlaceFactory(DjangoModelFactory):
 
     name = faker.unique.word()
     infrastructure = factory.SubFactory(InfrastructureFactory)
-    geom = Point((faker.latlng()[1], faker.latlng()[0]))
+    geom = _get_point_from_latlon(faker.latlng(), 3857)
     attributes = faker.json(num_rows=3, indent=True)
-    #scenario = factory.SubFactory(ScenarioFactory)
 
 
 class CapacityFactory(DjangoModelFactory):
@@ -96,21 +103,6 @@ class FieldTypeFactory(DjangoModelFactory):
 
     field_type = faker.random_element(FieldTypes)
     name = faker.word()
-
-    # @factory.post_generation
-    # def fclass_set(self, create, extracted, **kwargs):
-        # if not create or self.field_type != FieldTypes.CLASSIFICATION:
-            # Simple build, do nothing.
-            # return
-
-        # if extracted:
-            # A list of fclasses were passed in, use them
-            # for fclass in extracted:
-                # self.fclass_set.add(fclass)
-        # else:
-            #fclass = FClass.objects.first()
-            # if fclass is not None:
-                # self.fclass_set.add(fclass)
 
 
 class FClassFactory(DjangoModelFactory):
