@@ -8,7 +8,7 @@ from django.db.models.functions import Coalesce, Lead
 
 from .models import (Infrastructure, FieldType, FClass, FieldTypes, Service,
                      Place, Capacity, PlaceField, ScenarioPlace,
-                     InternalWFSLayer, ScenarioCapacity, InfrastructureAccess)
+                     InternalWFSLayer, InfrastructureAccess)
 from datentool_backend.area.serializers import InternalWFSLayerSerializer
 from datentool_backend.area.models import LayerGroup, MapSymbol
 
@@ -240,6 +240,13 @@ class CapacityListSerializer(serializers.ListSerializer):
                 .filter(from_year__lte=year)\
                 .filter(to_year__gte=year)
 
+            scenario = request.query_params.get('scenario')
+            instance_scenario = instance\
+                .filter(scenario=scenario)
+            if instance_scenario is empty:
+                default_scenario = instance.filter(scenario=None)
+            instance = instance_scenario or default_scenario
+
         return super().to_representation(instance)
 
 
@@ -269,12 +276,6 @@ class PlaceSerializer(GeoFeatureModelSerializer):
         geo_field = 'geom'
         fields = ('id', 'name', 'infrastructure', 'attributes', 'capacity', 'capacities')
 
-
-class ScenarioCapacitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ScenarioCapacity
-        fields = ('id', 'place', 'service', 'capacity', 'from_year', "scenario",
-                  "status_quo")
 
 
 class FClassSerializer(serializers.ModelSerializer):

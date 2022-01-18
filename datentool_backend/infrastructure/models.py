@@ -78,6 +78,8 @@ class Capacity(DatentoolModelMixin, models.Model):
     capacity = models.FloatField(default=0)
     from_year = models.IntegerField(default=0)
     to_year = models.IntegerField(default=99999999)
+    scenario = models.ForeignKey(Scenario, on_delete=PROTECT_CASCADE, null=True)
+
 
     class Meta:
         unique_together = ['place', 'service', 'from_year']
@@ -107,14 +109,6 @@ class Capacity(DatentoolModelMixin, models.Model):
         super().save(*args, **kwargs)
 
 
-
-
-
-class ScenarioCapacity(Capacity):
-    scenario = models.ForeignKey(Scenario, on_delete=PROTECT_CASCADE)
-    status_quo = models.ForeignKey(Capacity, null=True,
-                                   related_name='scenario_capacities',
-                                   on_delete=PROTECT_CASCADE)
 
 
 class FieldTypes(models.TextChoices):

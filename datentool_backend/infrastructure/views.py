@@ -8,14 +8,13 @@ from datentool_backend.utils.views import (HasAdminAccessOrReadOnly,
                                            ProtectCascadeMixin)
 
 from .models import (Infrastructure, FieldType, Service, Place, Capacity,
-                     PlaceField, FClass, ScenarioCapacity, ScenarioPlace)
+                     PlaceField, FClass, ScenarioPlace)
 
 from .serializers import (InfrastructureSerializer, FieldTypeSerializer,
                           ServiceSerializer, PlaceSerializer,
                           PlaceUpdateAttributeSerializer,
                           CapacitySerializer, PlaceFieldSerializer,
-                          FClassSerializer, ScenarioPlaceSerializer,
-                          ScenarioCapacitySerializer)
+                          FClassSerializer, ScenarioPlaceSerializer)
 
 
 class CanPatchLayer(permissions.BasePermission):
@@ -108,12 +107,6 @@ class CapacityViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Capacity.objects.all()
     serializer_class = CapacitySerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-
-
-class ScenarioCapacityViewSet(viewsets.ModelViewSet):
-    queryset = ScenarioCapacity.objects.all()
-    serializer_class = ScenarioCapacitySerializer
-    #permission_classes = [CanEditScenarioPermission]
 
 
 class FieldTypeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

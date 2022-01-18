@@ -19,7 +19,6 @@ from datentool_backend.infrastructure.factories import (
     PlaceFieldFactory,
     PlaceFactory,
     FieldTypeFactory,
-    ScenarioCapacityFactory,
     ScenarioPlaceFactory,
 )
 from datentool_backend.infrastructure.models import (
@@ -31,7 +30,6 @@ from datentool_backend.infrastructure.models import (
     FClass,
     Service,
     PlaceField,
-    ScenarioCapacity,
     ScenarioPlace,
     InfrastructureAccess,
 )
@@ -658,27 +656,6 @@ class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
-
-
-#class TestScenarioCapacityAPI(_TestAPI, BasicModelTest, APITestCase):
-    #"""Test to post, put and patch data"""
-    #url_key = "scenariocapacities"
-
-    #@classmethod
-    #def setUpTestData(cls):
-        #super().setUpTestData()
-        #cls.obj = ScenarioCapacityFactory(scenario=Scenario.owner)
-        #place = scenariocapacity.place.pk
-        #service = scenariocapacity.service.pk
-        #scenario = scenariocapacity.scenario.pk
-        #status_quo = scenariocapacity.status_quo.pk
-
-        #data = dict(place=place, service=service,
-                    #capacity=faker.pyfloat(positive=True), from_year=faker.year(),
-                    #scenario=scenario, status_quo=status_quo)
-        #cls.post_data = data
-        #cls.put_data = data
-        #cls.patch_data = data
 
 
 class TestFieldTypeNUMSTRAPI(WriteOnlyWithCanEditBaseDataTest,
