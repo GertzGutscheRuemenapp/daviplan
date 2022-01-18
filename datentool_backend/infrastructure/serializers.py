@@ -7,7 +7,7 @@ from django.db.models import Window
 from django.db.models.functions import Coalesce, Lead
 
 from .models import (Infrastructure, FieldType, FClass, FieldTypes, Service,
-                     Place, Capacity, PlaceField, ScenarioPlace,
+                     Place, Capacity, PlaceField,
                      InternalWFSLayer, InfrastructureAccess)
 from datentool_backend.area.serializers import InternalWFSLayerSerializer
 from datentool_backend.area.models import LayerGroup, MapSymbol
@@ -216,14 +216,6 @@ class PlaceUpdateAttributeSerializer(serializers.ModelSerializer):
         fields = ('name', 'attributes')
 
 
-class ScenarioPlaceSerializer(GeoFeatureModelSerializer):
-    class Meta:
-        model = ScenarioPlace
-        geo_field = 'geom'
-        fields = ('id', 'name', 'infrastructure', 'attributes', "capacity",
-                  "scenario", "status_quo")
-
-
 class CapacityListSerializer(serializers.ListSerializer):
 
     def to_representation(self, instance):
@@ -236,16 +228,16 @@ class CapacityListSerializer(serializers.ListSerializer):
 
             #  filter the queryset by year
             year = request.query_params.get('year', 0)
-            instance = instance\
+            instance_year = instance\
                 .filter(from_year__lte=year)\
                 .filter(to_year__gte=year)
 
+            # filter the queryset by scenario
             scenario = request.query_params.get('scenario')
-            instance_scenario = instance\
+            instance = instance_year\
                 .filter(scenario=scenario)
-            if instance_scenario is empty:
-                default_scenario = instance.filter(scenario=None)
-            instance = instance_scenario or default_scenario
+            if not instance:
+                instance = instance_year.filter(scenario=None)
 
         return super().to_representation(instance)
 
@@ -254,7 +246,7 @@ class CapacitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Capacity
         list_serializer_class = CapacityListSerializer
-        fields = ('id', 'place', 'service', 'capacity', 'from_year')
+        fields = ('id', 'place', 'service', 'capacity', 'from_year', 'scenario')
 
 
 class CapacityAmountSerializer(serializers.FloatField):
@@ -274,7 +266,8 @@ class PlaceSerializer(GeoFeatureModelSerializer):
     class Meta:
         model = Place
         geo_field = 'geom'
-        fields = ('id', 'name', 'infrastructure', 'attributes', 'capacity', 'capacities')
+        fields = ('id', 'name', 'infrastructure', 'attributes', 'capacity',
+                  'capacities', 'scenario')
 
 
 
