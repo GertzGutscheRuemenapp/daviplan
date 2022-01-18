@@ -279,10 +279,13 @@ class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
         }
 
         cls.post_data = geojson
-        geojson_putpatch = geojson.copy()
-        geojson_putpatch['id'] = area.id
+        geojson_put = geojson.copy()
+        geojson_put['id'] = area.id
+        cls.put_data = geojson_put
 
-        cls.put_data = geojson_putpatch
-        cls.patch_data = geojson_putpatch
+        geojson_patch = geojson.copy()
+        geojson_patch['geometry'] = area.geom.transform(25832, clone=True).ewkt
+        cls.patch_data = geojson_patch
+        cls.expected_patch_data = {'geometry': area.geom.ewkt,}
 
 
