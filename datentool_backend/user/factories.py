@@ -8,8 +8,15 @@ from .models import User, Profile, post_save, PlanningProcess, Scenario
 
 faker = Faker('de-DE')
 
+#@mute_signals(post_save)
+class UserFactory(DjangoModelFactory):
+    class Meta:
+        model = User
 
-@mute_signals(post_save)
+    username = factory.Sequence(lambda n: faker.unique.name())
+
+
+#@mute_signals(post_save)
 class ProfileFactory(DjangoModelFactory):
     class Meta:
         model = Profile
@@ -19,25 +26,20 @@ class ProfileFactory(DjangoModelFactory):
     can_edit_basedata = faker.pybool()
     # We pass in profile=None to prevent UserFactory from creating another profile
     # (this disables the RelatedFactory)
-    user = factory.SubFactory('datentool_backend.factories.UserFactory', profile=None)
+    user = factory.SubFactory(UserFactory)
 
 
-@mute_signals(post_save)
-class UserFactory(DjangoModelFactory):
-    class Meta:
-        model = User
-
-    username = factory.Sequence(lambda n: faker.unique.name())
 
     # We pass in 'user' to link the generated Profile to our just-generated User
     # This will call ProfileFactory(user=our_new_user), thus skipping the SubFactory.
-    profile = factory.RelatedFactory(ProfileFactory, factory_related_name='user')
+    #profile = factory.RelatedFactory(ProfileFactory, factory_related_name='user')
 
 
 class PlanningProcessFactory(DjangoModelFactory):
     class Meta:
         model = PlanningProcess
 
+    owner = factory.SubFactory(ProfileFactory)
     name = faker.word()
     allow_shared_change = faker.pybool()
 

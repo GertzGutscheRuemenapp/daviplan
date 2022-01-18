@@ -182,14 +182,14 @@ class TestProfile(TestCase):
     def test_profile(self):
         profile = self.profile
 
-    def test_user(self):
-        user = UserFactory()
-        self.assertTrue(user.profile)
-        user.profile.admin_access = False
-        user.save()
+    #def test_user(self):
+        #user = UserFactory()
+        #self.assertTrue(user.profile)
+        #user.profile.admin_access = False
+        #user.save()
 
-        user2 = User.objects.create(username='Test')
-        self.assertTrue(user2.profile.pk)
+        #user2 = User.objects.create(username='Test')
+        #self.assertTrue(user2.profile.pk)
 
 
 class TestPlanningProcessAPI(PostOnlyWithCanCreateProcessTest,
