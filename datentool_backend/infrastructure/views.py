@@ -8,13 +8,13 @@ from datentool_backend.utils.views import (HasAdminAccessOrReadOnly,
                                            ProtectCascadeMixin)
 
 from .models import (Infrastructure, FieldType, Service, Place, Capacity,
-                     PlaceField, FClass, ScenarioPlace)
+                     PlaceField, FClass)
 
 from .serializers import (InfrastructureSerializer, FieldTypeSerializer,
                           ServiceSerializer, PlaceSerializer,
                           PlaceUpdateAttributeSerializer,
                           CapacitySerializer, PlaceFieldSerializer,
-                          FClassSerializer, ScenarioPlaceSerializer)
+                          FClassSerializer)
 
 
 class CanPatchLayer(permissions.BasePermission):
@@ -73,6 +73,15 @@ class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             queryset = queryset.filter(service_capacity=service).distinct()
         return queryset
 
+        #  user place_number in the query to get the default place...
+        #scenario = self.request.query_params.get('scenario')
+        #queryset_scenario = queryset\
+            #.filter(scenario=scenario)
+        #if not queryset_scenario:
+            #queryset_scenario = queryset.filter(scenario=None)
+
+        #return queryset_scenario
+
     @action(methods=['PATCH', 'PUT'], detail=True,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def update_attributes(self, request, **kwargs):
@@ -95,12 +104,6 @@ class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             instance._prefetched_objects_cache = {}
 
         return Response(serializer.data)
-
-
-class ScenarioPlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = ScenarioPlace.objects.all()
-    serializer_class = ScenarioPlaceSerializer
-    #permission_classes = [CanEditScenarioPermission]
 
 
 class CapacityViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

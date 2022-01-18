@@ -4,7 +4,7 @@ from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import Point
 from .models import (Infrastructure, Service, Place,
                      Capacity, FieldTypes, FieldType, FClass, PlaceField,
-                     Profile, ScenarioPlace)
+                     Profile)
 from ..area.factories import InternalWFSLayerFactory
 from .. user.factories import ScenarioFactory
 
@@ -75,26 +75,19 @@ class PlaceFactory(DjangoModelFactory):
     infrastructure = factory.SubFactory(InfrastructureFactory)
     geom = Point((faker.latlng()[1], faker.latlng()[0]))
     attributes = faker.json(num_rows=3, indent=True)
-
-
-class ScenarioPlaceFactory(DjangoModelFactory):
-    """location of an infrastructure in a scenario"""
-    class Meta:
-        model = ScenarioPlace
-
-    scenario = factory.SubFactory(ScenarioFactory)
-    status_quo = factory.SubFactory(PlaceFactory)
+    #scenario = factory.SubFactory(ScenarioFactory)
 
 
 class CapacityFactory(DjangoModelFactory):
     """Capacity of an infrastructure for a service"""
     class Meta:
-        model = Capacity
+        model=Capacity
 
     place = factory.SubFactory(PlaceFactory)
     service = factory.SubFactory(ServiceFactory)
     capacity = faker.pyfloat(positive=True)
-    from_year = faker.year()
+    from_year = 0
+    #scenario = factory.SubFactory(ScenarioFactory)
 
 
 class FieldTypeFactory(DjangoModelFactory):

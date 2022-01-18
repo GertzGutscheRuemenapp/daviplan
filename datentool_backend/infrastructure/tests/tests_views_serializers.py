@@ -9,7 +9,7 @@ from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         WriteOnlyWithAdminAccessTest)
 from datentool_backend.area.tests import _TestAPI, _TestPermissions
-from datentool_backend.user.factories import ProfileFactory
+from datentool_backend.user.factories import ProfileFactory, ScenarioFactory, PlanningProcessFactory
 
 from datentool_backend.infrastructure.factories import (
     InfrastructureFactory,
@@ -18,8 +18,7 @@ from datentool_backend.infrastructure.factories import (
     FClassFactory,
     PlaceFieldFactory,
     PlaceFactory,
-    FieldTypeFactory,
-    ScenarioPlaceFactory,
+    FieldTypeFactory
 )
 from datentool_backend.infrastructure.models import (
     Profile,
@@ -30,11 +29,9 @@ from datentool_backend.infrastructure.models import (
     FClass,
     Service,
     PlaceField,
-    ScenarioPlace,
     InfrastructureAccess,
 )
 from datentool_backend.area.serializers import InternalWFSLayerSerializer
-from datentool_backend.user.models import Scenario
 
 from faker import Faker
 
@@ -599,40 +596,93 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         for fc in feature_capacities:
             assert all((c['service'] == service.id for c in fc))
 
+    def test_check_capacity_for_scenario(self):
+        #scenario1_owner = ScenarioFactory(PlanningProcessFactory.owner)
+        scenario1 = ScenarioFactory()
+        scenario2 = ScenarioFactory(planning_process=scenario1.planning_process)
+        scenario3 = ScenarioFactory(planning_process=scenario1.planning_process)
 
-#class TestScenarioPlaceAPI(_TestAPI, BasicModelTest, APITestCase):
-    #"""Test to post, put and patch data"""
-    #url_key = "scenarioplaces"
-    #factory = ScenarioPlaceFactory
+        place1: Place = self.obj
+        service = ServiceFactory(infrastructure=place1.infrastructure)
 
-    #@classmethod
-    #def setUpTestData(cls):
-        #super().setUpTestData()
-        #scenarioplace: ScenarioPlace = cls.obj
-        #infrastructure = scenarioplace.infrastructure.pk
-        #geom = scenarioplace.geom.ewkt
-        #scenario = scenarioplace.scenario.pk
-        #status_quo = scenarioplace.status_quo.pk
 
-        #properties = OrderedDict(
-            #name=faker.word(),
-            #infrastructure=infrastructure,
-            #attributes=faker.json(),
-            #scenario=scenario,
-            #status_quo=status_quo
-        #)
-        #geojson = {
-            #'type': 'Feature',
-            #'geometry': geom,
-            #'properties': properties,
-        #}
+        capacity1 = CapacityFactory(place=place1, service=service,
+                                    from_year=2025, capacity=77)
 
-        #cls.post_data = geojson
-        #geojson_putpatch = geojson.copy()
-        #geojson_putpatch['id'] = scenarioplace.id
+        capacity1 = CapacityFactory(place=place1, service=service,
+                                    capacity=50)
+        capacity2 = CapacityFactory(place=place1, service=service,
+                                    capacity=100, scenario=scenario1)
 
-        #cls.put_data = geojson_putpatch
-        #cls.patch_data = geojson_putpatch
+        capacity3 = CapacityFactory(place=place1, service=service,
+                                    capacity=100,
+                                    scenario=scenario3)
+
+        capacity4 = CapacityFactory(place=place1, service=service,
+                                    from_year=2022, capacity=200,
+                                    scenario=scenario3)
+
+        capacity5 = CapacityFactory(place=place1, service=service,
+                                    from_year=2030, capacity=0,
+                                    scenario=scenario3)
+
+        response = self.get(self.url_key + '-detail', pk=place1.pk,
+                            data=dict(service=service.id))
+        expected = 50
+        self.assertListEqual(response.data['properties']['capacities'],
+                             [expected])
+
+        response = self.get(self.url_key + '-detail', pk=place1.pk,
+                            data=dict(service=service.id, scenario=scenario1.pk))
+        expected = 100
+        self.assertListEqual(response.data['properties']['capacities'],
+                             [expected])
+
+        response = self.get(self.url_key + '-detail', pk=place1.pk,
+                            data=dict(service=service.id, scenario=scenario2.pk))
+        expected = 50
+        self.assertListEqual(response.data['properties']['capacities'],
+                             [expected])
+
+        response = self.get(self.url_key + '-detail', pk=place1.pk,
+                            data=dict(service=service.id,
+                                      scenario=scenario2.pk,
+                                      year=2026))
+        expected = 77
+        self.assertListEqual(response.data['properties']['capacities'],
+                             [expected])
+
+        response = self.get(self.url_key + '-detail', pk=place1.pk,
+                            data=dict(service=service.id, scenario=scenario3.pk,
+                                      year=2021))
+        expected = 100
+        self.assertListEqual(response.data['properties']['capacities'],
+                             [expected])
+
+
+        response = self.get(self.url_key + '-detail', pk=place1.pk,
+                            data=dict(service=service.id, scenario=scenario3.pk,
+                                      year=2022))
+        expected = 200
+        self.assertListEqual(response.data['properties']['capacities'],
+                             [expected])
+
+
+        response = self.get(self.url_key + '-detail', pk=place1.pk,
+                            data=dict(service=service.id, scenario=scenario3.pk,
+                                      year=2025))
+        expected = 200
+        self.assertListEqual(response.data['properties']['capacities'],
+                             [expected])
+
+
+        response = self.get(self.url_key + '-detail', pk=place1.pk,
+                            data=dict(service=service.id, scenario=scenario3.pk,
+                                      year=2030))
+        expected = 0
+        self.assertListEqual(response.data['properties']['capacities'],
+                             [expected])
+
 
 
 class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,

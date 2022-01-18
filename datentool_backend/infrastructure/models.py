@@ -58,17 +58,11 @@ class Place(DatentoolModelMixin, JsonAttributes, NamedModel, models.Model):
                                               blank=True, through='Capacity')
     geom = gis_models.PointField(geography=True)
     attributes = models.JSONField()
+    scenario = models.ForeignKey(Scenario, on_delete=PROTECT_CASCADE, null=True)
 
     def __str__(self) -> str:
         return (f'{self.__class__.__name__} ({self.infrastructure.name}): '
                 f'{self.name}')
-
-
-class ScenarioPlace(Place):
-    scenario = models.ForeignKey(Scenario, on_delete=PROTECT_CASCADE)
-    status_quo = models.ForeignKey(Place, null=True,
-                                   related_name='scenario_places',
-                                   on_delete=PROTECT_CASCADE)
 
 
 class Capacity(DatentoolModelMixin, models.Model):
@@ -82,7 +76,7 @@ class Capacity(DatentoolModelMixin, models.Model):
 
 
     class Meta:
-        unique_together = ['place', 'service', 'from_year']
+        unique_together = ['place', 'service', 'from_year', 'scenario']
 
     def save(self, *args, **kwargs):
         """
@@ -91,7 +85,8 @@ class Capacity(DatentoolModelMixin, models.Model):
         """
         last_row = Capacity.objects.filter(place=self.place,
                                      service=self.service,
-                                     from_year__lt=self.from_year)\
+                                     from_year__lt=self.from_year,
+                                     scenario=self.scenario)\
             .order_by('from_year')\
             .last()
         if last_row:
@@ -100,7 +95,8 @@ class Capacity(DatentoolModelMixin, models.Model):
 
         next_row = Capacity.objects.filter(place=self.place,
                                            service=self.service,
-                                           from_year__gt=self.from_year)\
+                                           from_year__gt=self.from_year,
+                                           scenario=self.scenario)\
             .order_by('from_year')\
             .first()
         if next_row:
