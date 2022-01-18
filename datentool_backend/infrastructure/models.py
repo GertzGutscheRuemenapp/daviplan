@@ -56,7 +56,7 @@ class Place(DatentoolModelMixin, JsonAttributes, NamedModel, models.Model):
                                        on_delete=PROTECT_CASCADE)
     service_capacity = models.ManyToManyField(Service, related_name='place_services',
                                               blank=True, through='Capacity')
-    geom = gis_models.PointField(geography=True)
+    geom = gis_models.PointField(srid=3857)
     attributes = models.JSONField()
     scenario = models.ForeignKey(Scenario, on_delete=PROTECT_CASCADE, null=True)
 

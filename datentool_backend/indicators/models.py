@@ -18,7 +18,7 @@ class Mode(DatentoolModelMixin, NamedModel, models.Model):
 class Stop(DatentoolModelMixin, NamedModel, models.Model):
     """location of a public transport stop"""
     name = models.TextField()
-    geom = gis_models.PointField(geography=True)
+    geom = gis_models.PointField(srid=3857)
 
 
 class ModeVariant(DatentoolModelMixin, JsonAttributes, NamedModel, models.Model):

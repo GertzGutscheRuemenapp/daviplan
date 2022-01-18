@@ -47,8 +47,8 @@ def _get_poly_from_cellcode(rc: 'RasterCell') -> Polygon:
     points = [Point(x=east * 100 + dx, y=north * 100 + dy, srid=3035)
               for dx, dy in offsets]
     poly = Polygon(points, srid=3035)
-    poly_wgs = poly.transform(4326, clone=True)
-    return poly_wgs
+    poly_webmercator = poly.transform(3857, clone=True)
+    return poly_webmercator
 
 
 def _get_point_from_poly(rc: 'RasterCell') -> Point:

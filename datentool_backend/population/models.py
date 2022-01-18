@@ -37,8 +37,8 @@ class RasterCell(DatentoolModelMixin, models.Model):
     """a raster cell with geometry"""
     raster = models.ForeignKey(Raster, on_delete=PROTECT_CASCADE)
     cellcode = models.TextField(validators=[MaxLengthValidator(13)])
-    pnt = gis_models.PointField(geography=True)
-    poly = gis_models.PolygonField(geography=True)
+    pnt = gis_models.PointField(srid=3857)
+    poly = gis_models.PolygonField(srid=3857)
 # vector tile
     #objects = models.Manager()
     #vector_tiles = MVTManager(geo_col='poly')
