@@ -7,9 +7,19 @@
   margin: 0;
 }
 
-::ng-deep app-areas #level-select {
+#level-select {
+  width: 86%;
   min-height: 200px;
   max-height: 400px;
+  user-select: none;
+}
+
+.order-controls {
+  width: 12%;
+  padding-left: 5px;
+}
+
+::ng-deep app-areas #level-select {
   .option-wrapper {
     position: relative;
   }
@@ -30,6 +40,7 @@
     top: 5px;
   }
 }
+
 
 #base-areas-map {
   width: 100%;

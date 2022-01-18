@@ -31,9 +31,17 @@ export interface Layer {
   symbol?: Symbol
 }
 
+export interface Source {
+  id: number;
+  sourceType: string;
+  date: string;
+  url: string;
+}
+
 export interface AreaLevel {
   id: number;
   name: string;
+  source?: Source;
   layer?: Layer;
   preset?: boolean;
 }

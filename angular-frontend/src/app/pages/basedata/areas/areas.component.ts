@@ -6,7 +6,6 @@ import { sortBy } from "../../../helpers/utils";
 import { HttpClient } from "@angular/common/http";
 import { MatDialog } from "@angular/material/dialog";
 import { RestAPI } from "../../../rest-api";
-import { mockAreaLevels } from "./areas";
 
 
 @Component({
@@ -18,11 +17,11 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   mapControl?: MapControl;
   selectedAreaLevel?: AreaLevel;
   basedataSettings?: BasedataSettings;
-  presetLevels!: AreaLevel[];
-  areaLevels?: AreaLevel[];
+  presetLevels: AreaLevel[] = [];
+  areaLevels: AreaLevel[] = [];
   colorSelection: string = 'black';
 
-  constructor(private mapService: MapService, private cdRef:ChangeDetectorRef, private http: HttpClient, private dialog: MatDialog,
+  constructor(private mapService: MapService,private http: HttpClient, private dialog: MatDialog,
               private rest: RestAPI) { }
 
   ngAfterViewInit(): void {
@@ -33,7 +32,6 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       this.fetchLayerGroups().subscribe(res => {
         this.selectedAreaLevel = this.presetLevels[0];
         this.colorSelection = this.selectedAreaLevel.layer?.symbol?.fillColor || 'black';
-        this.areaLevels = mockAreaLevels;
       })
     })
   }

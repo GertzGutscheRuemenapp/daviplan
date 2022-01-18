@@ -13,36 +13,53 @@
                               <p>In der Box „Darstellung der ausgewählten Gebietseinteilung“ können Sie den angezeigten Namen und die Linienfarbe der Gebietseinteilung verändern.</p>
                               <p>Wiederholen Sie dieses Vorgehen für jede amtliche Gebietseinteilung, die Sie nutzen möchten.</p>
                               <p>Um optional eine eigene Gebietseinteilungen (Shape-File, WFS-Dienst) hinzuzufügen, klicken Sie auf „Hinzufügen“. Diese erscheint danach in der Liste der Gebietseinheiten unterhalb einer Trennlinie zu den vier vorgegebenen Gebietseinheiten. Wenn Sie diese in der Liste auswählen, wird Sie in der Karte angezeigt und Sie können ihre Darstellung anpassen.</p>">
-      <mat-selection-list [multiple]="false"
-                          id="level-select">
-        <mat-optgroup>
-          Administrative Ebenen
-        </mat-optgroup>
-        <div class="option-wrapper" *ngFor="let areaLevel of presetLevels">
-          <mat-list-option [value]="areaLevel"
-                           (click)="onSelect(areaLevel)"
-                           [selected]="(selectedAreaLevel && (areaLevel.id === selectedAreaLevel.id))">
-            <div class="option-text">{{ areaLevel.name }}</div>
-            <mat-icon *ngIf="areaLevel.id === basedataSettings?.defaultPopAreaLevel" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
-          </mat-list-option>
-          <mat-checkbox color="primary"></mat-checkbox>
+      <div style="display: inline-flex;">
+        <mat-selection-list [multiple]="false"
+                            id="level-select">
+          <mat-optgroup>
+            Administrative Ebenen
+          </mat-optgroup>
+          <div class="option-wrapper" *ngFor="let areaLevel of presetLevels">
+            <mat-list-option [value]="areaLevel"
+                             (click)="onSelect(areaLevel)"
+                             [selected]="(selectedAreaLevel && (areaLevel.id === selectedAreaLevel.id))">
+              <div class="option-text">{{ areaLevel.name }}</div>
+              <mat-icon *ngIf="areaLevel.id === basedataSettings?.defaultPopAreaLevel" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
+            </mat-list-option>
+            <mat-checkbox color="primary"></mat-checkbox>
+          </div>
+          <mat-divider></mat-divider>
+          <mat-optgroup>
+            Eigene Gebietseinteilungen
+          </mat-optgroup>
+          <div class="option-wrapper" *ngFor="let areaLevel of areaLevels">
+            <mat-list-option [value]="areaLevel"
+                             (click)="onSelect(areaLevel)"
+                             [selected]="(selectedAreaLevel && (areaLevel.id === selectedAreaLevel.id))">
+              <div class="option-text">{{ areaLevel.name }}</div>
+              <mat-icon *ngIf="areaLevel.id === basedataSettings?.defaultPopAreaLevel" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
+            </mat-list-option>
+            <mat-checkbox color="primary"></mat-checkbox>
+          </div>
+        </mat-selection-list>
+        <div class="order-controls">
+          <button mat-icon-button
+                  title="In der Sortierung eins nach oben">
+  <!--                [disabled] = "(!selectedGroup || selectedGroup === layerGroups[0]) && (!selectedLayer || getGroup(selectedLayer.group)!.children!.indexOf(selectedLayer) < 1)"
+                  (click)="moveSelected('up')">-->
+            <mat-icon>expand_less</mat-icon>
+          </button>
+          <button mat-icon-button
+                  title="In der Sortierung eins nach unten">
+  <!--                [disabled] = "(!selectedGroup || selectedGroup === layerGroups[layerGroups.length - 1]) && (!selectedLayer || getGroup(selectedLayer.group)!.children!.indexOf(selectedLayer) >= getGroup(selectedLayer.group)!.children!.length - 1)"
+                  (click)="moveSelected('down')">-->
+            <mat-icon>expand_more</mat-icon>
+          </button>
         </div>
-        <mat-divider></mat-divider>
-        <mat-optgroup>
-          Eigene Gebietseinteilungen
-        </mat-optgroup>
-        <div class="option-wrapper" *ngFor="let areaLevel of areaLevels">
-          <mat-list-option [value]="areaLevel"
-                           (click)="onSelect(areaLevel)"
-                           [selected]="(selectedAreaLevel && (areaLevel.id === selectedAreaLevel.id))">
-            <div class="option-text">{{ areaLevel.name }}</div>
-            <mat-icon *ngIf="areaLevel.id === basedataSettings?.defaultPopAreaLevel" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
-          </mat-list-option>
-          <mat-checkbox color="primary"></mat-checkbox>
-        </div>
-      </mat-selection-list>
+      </div>
       <button mat-button color="primary"
               class="multiline-button"
+              style="width: 86%;"
               [disabled]="selectedAreaLevel?.preset && selectedAreaLevel !== presetLevels[0]"
               (click)="basedataSettings!.defaultPopAreaLevel = selectedAreaLevel!.id">
         <mat-icon class="material-icons-outlined">verified</mat-icon>
@@ -97,17 +114,21 @@
             </tr>
             <tr>
               <td i18n>Quelle</td>
-              <td>WFS-Dienst</td>
+              <td>
+                {{selectedAreaLevel?.source?.sourceType}}
+              </td>
             </tr>
             <tr>
               <td i18n>URL</td>
               <td style="max-width: 100px; overflow: hidden; text-overflow: ellipsis;">
-                https://sgx.geodatenzentrum.de/wfs/bvmsdfkdfhnsdflfnsdnlk
+                {{selectedAreaLevel?.source?.url}}
               </td>
             </tr>
             <tr>
               <td i18n>letzter Abruf</td>
-              <td>02.06.2022</td>
+              <td>
+                {{selectedAreaLevel?.source?.date}}
+              </td>
             </tr>
           </table>
           <button class="mat-button-dv"
