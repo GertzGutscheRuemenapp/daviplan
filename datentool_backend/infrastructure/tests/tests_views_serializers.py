@@ -700,9 +700,11 @@ class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.obj = capacity
         place = capacity.place.pk
         service = capacity.service.pk
+        scenario = capacity.scenario.pk
 
         data = dict(place=place, service=service,
-                    capacity=faker.pyfloat(positive=True), from_year=faker.year())
+                    capacity=faker.pyfloat(positive=True), from_year=faker.year(),
+                    scenario=scenario)
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
