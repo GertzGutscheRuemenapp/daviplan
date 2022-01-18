@@ -53,7 +53,7 @@
                     [editTemplate]="projectAreaEdit"
                     dialogWidth="1200px">
       <div id="project-preview-map" class="map-container">
-        <app-map-controls></app-map-controls>
+        <app-map-controls target="project-preview-map"></app-map-controls>
       </div>
     </app-input-card>
   </div>
@@ -170,7 +170,7 @@
         {{ error }}
       </mat-error>
       <div id="project-area-select-map" class="map-container">
-        <app-map-controls></app-map-controls>
+        <app-map-controls target="project-area-select-map"></app-map-controls>
       </div>
     </div>
     <mat-divider vertical style="height: 650px; margin: 0 14px;"></mat-divider>

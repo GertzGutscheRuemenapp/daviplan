@@ -188,4 +188,5 @@ export class MapControl {
     this.map.unset();
     this.destroyed.emit(this.target);
   }
+
 }
