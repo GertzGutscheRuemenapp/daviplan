@@ -87,7 +87,6 @@ class CapacityFactory(DjangoModelFactory):
     service = factory.SubFactory(ServiceFactory)
     capacity = faker.pyfloat(positive=True)
     from_year = 0
-    scenario = factory.SubFactory(ScenarioFactory)
 
 
 class FieldTypeFactory(DjangoModelFactory):

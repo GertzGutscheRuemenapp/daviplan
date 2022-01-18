@@ -606,7 +606,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         service = ServiceFactory(infrastructure=place1.infrastructure)
 
 
-        capacity1 = CapacityFactory(place=place1, service=service,
+        capacity0 = CapacityFactory(place=place1, service=service,
                                     from_year=2025, capacity=77)
 
         capacity1 = CapacityFactory(place=place1, service=service,
@@ -700,7 +700,7 @@ class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.obj = capacity
         place = capacity.place.pk
         service = capacity.service.pk
-        scenario = capacity.scenario.pk
+        scenario = None
 
         data = dict(place=place, service=service,
                     capacity=faker.pyfloat(positive=True), from_year=faker.year(),
