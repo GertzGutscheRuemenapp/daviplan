@@ -7,15 +7,33 @@ from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithAdminAccessTest)
 from datentool_backend.area.tests import (_TestAPI, _TestPermissions)
 
-from .models import (PrognosisEntry, Year, PopulationRaster, PopulationEntry,
-                     PopStatistic, PopStatEntry, DisaggPopRaster,
-                     Prognosis, Population)
-from .factories import (YearFactory, RasterCellFactory, AgeGroupFactory,
-                        GenderFactory, PopulationFactory, DisaggPopRasterFactory,
-                        RasterCellPopulationAgeGenderFactory, PrognosisEntryFactory,
-                        AreaFactory, PrognosisFactory, PopStatEntryFactory,
-                        RasterFactory, PopulationRasterFactory,
-                        PopulationEntryFactory, PopStatisticFactory)
+from .models import (PrognosisEntry,
+                     Year,
+                     PopulationRaster,
+                     PopulationEntry,
+                     PopStatistic,
+                     PopStatEntry,
+                     DisaggPopRaster,
+                     Prognosis,
+                     Population)
+from .factories import (YearFactory,
+                        RasterCellFactory,
+                        AgeGroupFactory,
+                        GenderFactory,
+                        PopulationFactory,
+                        DisaggPopRasterFactory,
+                        RasterCellPopulationFactory,
+                        RasterCellPopulationAgeGenderFactory,
+                        PrognosisEntryFactory,
+                        AreaLevelFactory,
+                        AreaFactory,
+                        PrognosisFactory,
+                        PopStatEntryFactory,
+                        RasterFactory,
+                        PopulationRasterFactory,
+                        PopulationEntryFactory,
+                        PopStatisticFactory)
+from .constants import RegStatAgeGroup, RegStatAgeGroups
 
 from faker import Faker
 
@@ -31,6 +49,7 @@ class TestPopulation(TestCase):
                                               #return_queryset=True,
                                               )
         cls.years = Year.objects.all()
+        str(cls.years[0])
         cls.cell = RasterCellFactory()
         cls.genders = [GenderFactory() for i in range(3)]
         cls.disagg_popraster = DisaggPopRasterFactory(genders=cls.genders)
@@ -41,15 +60,7 @@ class TestPopulation(TestCase):
             self.disagg_popraster.genders.all(), self.genders, ordered=False)
         rp = RasterCellPopulationAgeGenderFactory()
         self.assertEqual(rp.cell.raster, rp.disaggraster.popraster.raster)
-
-    #def test_age_group(self):
-        #"""Test the age groups"""
-        #from_age = 0
-        #for ag in self.age_classification.agegroup_set.all():
-            #self.assertEqual(ag.from_age, from_age)
-            #self.assertLessEqual(ag.from_age, ag.to_age)
-            #from_age = ag.to_age + 1
-        #self.assertLessEqual(ag.to_age, 127)
+        str(rp.cell)
 
     def test_prognosis(self):
         """Test the prognosis"""
@@ -72,16 +83,18 @@ class TestPopulation(TestCase):
         pe_set = prognosis.prognosisentry_set.all()
         values = np.array(pe_set.values_list('value')).\
             reshape(len(agegroups), len(years), len(genders))
-        print(values)
 
     def test_popstatistic(self):
         ps = PopStatEntryFactory()
-        print(ps.area.attributes)
 
     def test_population(self):
         pop = PopulationFactory(genders=self.genders)
         self.assertQuerysetEqual(
             pop.genders.all(), self.genders, ordered=False)
+
+    def test_raster_population(self):
+        rcp = RasterCellPopulationFactory()
+        print(rcp)
 
 
 class TestYearAPI(WriteOnlyWithCanEditBaseDataTest,
@@ -124,6 +137,7 @@ class TestPopulationRasterAPI(WriteOnlyWithCanEditBaseDataTest,
     def setUpTestData(cls):
         super().setUpTestData()
         populationraster: PopulationRaster = cls.obj
+        str(cls.obj)
         raster = populationraster.raster.pk
         year = populationraster.year.pk
 
@@ -158,8 +172,6 @@ class TestAgeGroupAPI(WriteOnlyWithAdminAccessTest,
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        #agegroup: AgeGroup = cls.obj
-        #classification = agegroup.classification.pk
 
         data = dict(from_age=faker.pyint(max_value=127),
                     to_age=faker.pyint(max_value=127))
@@ -174,6 +186,113 @@ class TestAgeGroupAPI(WriteOnlyWithAdminAccessTest,
     def test_admin_access(self):
         """write permission if user has admin_access"""
         super().admin_access()
+
+    def test_default_agegroups(self):
+        """test default agegroups"""
+        response = self.get_check_200(self.url_key + '-list',
+                                      data={'defaults': True, })
+        assert(len(response.data) == len(RegStatAgeGroups.agegroups))
+
+    def test_check_and_replace_agegroups(self):
+        """check the agegroups"""
+        # logout to see if check is not allowed
+        self.client.logout()
+        response = self.post(self.url_key + '-check')
+        self.assert_http_401_unauthorized(response)
+
+        # login and check that the current agegroups are not valid
+        self.client.force_login(self.profile.user)
+
+        response = self.get_check_200(self.url_key + '-list')
+        current_agegroups = response.data
+
+        response = self.post(self.url_key + '-check',
+                             data=current_agegroups,
+                             extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        self.assertEqual(response.data['valid'], False)
+
+        # logout to see if check is not allowed
+        self.client.logout()
+        response = self.post(self.url_key + '-replace')
+        self.assert_http_401_unauthorized(response)
+
+        # login without can_edit_basedata is not allowed
+        self.client.force_login(self.profile.user)
+        response = self.post(self.url_key + '-replace')
+        self.assert_http_403_forbidden(response)
+
+        #  with can_edit_basedata it should work
+        self.profile.can_edit_basedata = True
+        self.profile.save()
+
+        #  get the default agegroups
+        response = self.get_check_200(self.url_key + '-list',
+                                      data={'defaults': True, })
+        default_agegroups = response.data
+
+
+        #  post them to the replace route
+        response = self.post(self.url_key + '-replace',
+                             data=default_agegroups,
+                             extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        assert(len(response.data) == len(RegStatAgeGroups.agegroups))
+
+        response = self.get_check_200(self.url_key + '-list')
+        current_agegroups = response.data
+
+        #  now the check should work
+        response = self.post(self.url_key + '-check',
+                             data=current_agegroups,
+                             extra={'format': 'json'})
+
+        self.assert_http_200_ok(response)
+        self.assertEqual(response.data['valid'], True)
+
+        # change some agegroup definition
+        pk1 = current_agegroups[-1]['id']
+        pk2 = current_agegroups[-2]['id']
+
+        self.profile.admin_access = True
+        self.profile.save()
+        response = self.patch(self.url_key + '-detail', pk=pk1,
+                              data={'fromAge': 83, }, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        response = self.patch(self.url_key + '-detail', pk=pk2,
+                              data={'toAge': 82, }, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+
+        #  get the whole agegroups
+        response = self.get_check_200(self.url_key + '-list')
+        current_agegroups = response.data
+
+        #  check if they are still valid
+        response = self.post(self.url_key + '-check',
+                             data=current_agegroups,
+                             extra={'format': 'json'})
+
+        #  they should fail now
+        self.assert_http_200_ok(response)
+        self.assertEqual(response.data['valid'], False)
+
+
+class TestRegStatAgeGroup(TestCase):
+
+    def test_repr_of_agegroups(self):
+        """Test the representation of agegroups"""
+        ag1 = RegStatAgeGroup(from_age=4, to_age=8)
+        str(ag1)
+        repr(ag1)
+
+    def test_compare_agegroups(self):
+        """Test to compare agegroups"""
+        ag1 = RegStatAgeGroup(from_age=4, to_age=8)
+        ag2 = RegStatAgeGroup(from_age=9, to_age=12)
+        ag3 = RegStatAgeGroup(from_age=9, to_age=12)
+        assert ag2 == ag3
+        assert ag1 != ag2
+        assert ag1 != ag3
 
 
 class TestDisaggPopRasterAPI(WriteOnlyWithCanEditBaseDataTest,
@@ -260,27 +379,31 @@ class TestPopulationAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.patch_data = data
 
 
-# class TestPopulationEntryAPI(WriteOnlyWithCanEditBaseDataTest, _TestAPI, BasicModelTest, APITestCase):
-    #""""""
-    #url_key = "populationentries"
-    #factory = PopulationEntryFactory
+class TestPopulationEntryAPI(WriteOnlyWithCanEditBaseDataTest, _TestPermissions,
+                             _TestAPI, BasicModelTest, APITestCase):
+    """"""
+    url_key = "populationentries"
 
-    #@classmethod
-    #def setUpTestData(cls):
-        #super().setUpTestData()
-        #populationentry: PopulationEntry = cls.obj
-        #population = populationentry.population.pk
-        #area = populationentry.area.pk
-        #gender = populationentry.gender.pk
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        area_level= AreaLevelFactory()
+        cls.obj = PopulationEntryFactory(population__area_level=area_level,
+                                          area__area_level=area_level)
+        populationentry: PopulationEntry = cls.obj
+        population = populationentry.population.pk
+        area = populationentry.area.pk
+        gender = populationentry.gender.pk
+        age_group = populationentry.age_group.pk
 
-        #data = dict(population=population,
-                    #area=area,
-                    #gender=gender,
-                    #age=faker.pyint(max_value=127),
-                    #value=faker.pyfloat(positive=True))
-        #cls.post_data = data
-        #cls.put_data = data
-        #cls.patch_data = data
+        data = dict(population=population,
+                    area=area,
+                    gender=gender,
+                    age_group=age_group,
+                    value=faker.pyfloat(positive=True))
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
 
 
 class TestPopStatisticAPI(WriteOnlyWithCanEditBaseDataTest,

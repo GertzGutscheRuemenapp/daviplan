@@ -4,7 +4,6 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from datentool_backend.base import NamedModel, DatentoolModelMixin
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
-#from datentool_backend.infrastructure.models import Place, Capacity
 
 
 class Profile(DatentoolModelMixin, models.Model):
@@ -21,16 +20,17 @@ class Profile(DatentoolModelMixin, models.Model):
         return f'{self.__class__.__name__}: {self.user.username}'
 
 
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    '''auto create profiles for new users'''
-    if created:
-        Profile.objects.create(user=instance)
+#@receiver(post_save, sender=User)
+#def create_user_profile(sender, instance, created, **kwargs):
+    #'''auto create profiles for new users'''
+    #if created:
+        #Profile.objects.create(user=instance)
 
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    '''save profile when user is saved'''
-    instance.profile.save()
+
+#@receiver(post_save, sender=User)
+#def save_user_profile(sender, instance, **kwargs):
+    #'''save profile when user is saved'''
+    #instance.profile.save()
 
 
 class PlanningProcess(DatentoolModelMixin, NamedModel, models.Model):

@@ -38,6 +38,12 @@ class RegStatAgeGroup:
     def __ne__(self, other):
         return not self == other
 
+    def __repr__(self) -> str:
+        return self.code
+
+    def __str__(self) -> str:
+        return self.name
+
 
 class RegStatAgeGroups:
     """Agegroups of Regionalstatistik"""
