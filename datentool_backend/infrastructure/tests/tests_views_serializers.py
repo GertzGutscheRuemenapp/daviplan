@@ -605,7 +605,6 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
             assert all((c['service'] == service.id for c in fc))
 
     def test_check_capacity_for_scenario(self):
-        #scenario1_owner = ScenarioFactory(PlanningProcessFactory.owner)
         scenario1 = ScenarioFactory()
         scenario2 = ScenarioFactory(planning_process=scenario1.planning_process)
         scenario3 = ScenarioFactory(planning_process=scenario1.planning_process)
