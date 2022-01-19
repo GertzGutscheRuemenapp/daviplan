@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
+from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
 
 from .models import (MapSymbol, LayerGroup, WMSLayer,
                      InternalWFSLayer, Source, AreaLevel, Area)
@@ -49,6 +50,7 @@ class AreaLevelSerializer(serializers.ModelSerializer):
 
 
 class AreaSerializer(GeoFeatureModelSerializer):
+    geom = MultiPolygonGeometrySRIDField(srid=3857)
     class Meta:
         model = Area
         geo_field = 'geom'

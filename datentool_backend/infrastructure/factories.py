@@ -1,11 +1,12 @@
+from typing import Tuple
 from faker import Faker
 import factory
 from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import Point
 from .models import (Infrastructure, Service, Place,
                      Capacity, FieldTypes, FieldType, FClass, PlaceField,
-                     Profile, ScenarioPlace, ScenarioCapacity)
-from ..area.factories import InternalWFSLayerFactory, MapSymbolsFactory
+                     Profile)
+from ..area.factories import InternalWFSLayerFactory
 from .. user.factories import ScenarioFactory
 
 faker = Faker('de-DE')
@@ -66,6 +67,13 @@ class ServiceFactory(DjangoModelFactory):
     quota_type = faker.word()
 
 
+def _get_point_from_latlon(latlng: Tuple[float, float], srid: int) -> Point:
+    """convert cellcode to polygon"""
+    pnt_wgs = Point((latlng[1], latlng[0]), srid=4326)
+    pnt_transformed = pnt_wgs.transform(srid, clone=True)
+    return pnt_transformed
+
+
 class PlaceFactory(DjangoModelFactory):
     """location of an infrastructure"""
     class Meta:
@@ -73,37 +81,19 @@ class PlaceFactory(DjangoModelFactory):
 
     name = faker.unique.word()
     infrastructure = factory.SubFactory(InfrastructureFactory)
-    geom = Point((faker.latlng()[1], faker.latlng()[0]))
+    geom = _get_point_from_latlon(faker.latlng(), 3857)
     attributes = faker.json(num_rows=3, indent=True)
-
-
-class ScenarioPlaceFactory(DjangoModelFactory):
-    """location of an infrastructure in a scenario"""
-    class Meta:
-        model = ScenarioPlace
-
-    scenario = factory.SubFactory(ScenarioFactory)
-    status_quo = factory.SubFactory(PlaceFactory)
 
 
 class CapacityFactory(DjangoModelFactory):
     """Capacity of an infrastructure for a service"""
     class Meta:
-        model = Capacity
+        model=Capacity
 
     place = factory.SubFactory(PlaceFactory)
     service = factory.SubFactory(ServiceFactory)
     capacity = faker.pyfloat(positive=True)
-    from_year = faker.year()
-
-
-class ScenarioCapacityFactory(DjangoModelFactory):
-    """capacity of an infrastructure for a service"""
-    class Meta:
-        model = ScenarioCapacity
-
-    scenario = factory.SubFactory(ScenarioFactory)
-    status_quo = factory.SubFactory(CapacityFactory)
+    from_year = 0
 
 
 class FieldTypeFactory(DjangoModelFactory):
@@ -113,21 +103,6 @@ class FieldTypeFactory(DjangoModelFactory):
 
     field_type = faker.random_element(FieldTypes)
     name = faker.word()
-
-    #@factory.post_generation
-    #def fclass_set(self, create, extracted, **kwargs):
-        #if not create or self.field_type != FieldTypes.CLASSIFICATION:
-            ## Simple build, do nothing.
-            #return
-
-        #if extracted:
-            ## A list of fclasses were passed in, use them
-            #for fclass in extracted:
-                #self.fclass_set.add(fclass)
-        #else:
-            #fclass = FClass.objects.first()
-            #if fclass is not None:
-                #self.fclass_set.add(fclass)
 
 
 class FClassFactory(DjangoModelFactory):
@@ -149,3 +124,4 @@ class PlaceFieldFactory(DjangoModelFactory):
     unit = faker.word()
     infrastructure = factory.SubFactory(InfrastructureFactory)
     field_type = factory.SubFactory(FieldTypeFactory)
+    sensitive = faker.pybool()

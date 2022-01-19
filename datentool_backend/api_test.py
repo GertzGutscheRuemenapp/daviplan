@@ -5,6 +5,7 @@ from rest_framework_gis.fields import GeoJsonDict
 from django.utils.encoding import force_str
 from rest_framework import status
 from django.db.models.query import QuerySet
+from datentool_backend.utils.geometry_fields import compare_geometries, NoWKTError
 
 from datentool_backend.user.factories import ProfileFactory, Profile
 from django.contrib.auth.models import Permission
@@ -122,7 +123,10 @@ class BasicModelDetailTest(LoginTestCase, CompareAbsURIMixin):
             self.assertDictContainsSubset(response_value, expected)
             self.assertDictContainsSubset(expected, response_value)
         else:
-            self.assertEqual(force_str(response_value), force_str(expected))
+            try:
+                compare_geometries(response_value, expected, tolerance=0.1)
+            except NoWKTError:
+                self.assertEqual(force_str(response_value), force_str(expected))
 
     def compare_data(self, left, right):
         """

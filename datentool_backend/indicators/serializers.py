@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
+from datentool_backend.utils.geometry_fields import GeometrySRIDField
 
 from .models import (Mode, ModeVariant, Stop,
                      # ReachabilityMatrix,
@@ -24,6 +25,8 @@ class ModeVariantSerializer(serializers.ModelSerializer):
         #fields = ('id', 'from_cell', 'to_cell', 'variant', 'minutes')
 
 class StopSerializer(GeoFeatureModelSerializer):
+    geom = GeometrySRIDField(srid=3857)
+
     class Meta:
         model = Stop
         geo_field = 'geom'

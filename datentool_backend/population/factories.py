@@ -47,8 +47,8 @@ def _get_poly_from_cellcode(rc: 'RasterCell') -> Polygon:
     points = [Point(x=east * 100 + dx, y=north * 100 + dy, srid=3035)
               for dx, dy in offsets]
     poly = Polygon(points, srid=3035)
-    poly_wgs = poly.transform(4326, clone=True)
-    return poly_wgs
+    poly_webmercator = poly.transform(3857, clone=True)
+    return poly_webmercator
 
 
 def _get_point_from_poly(rc: 'RasterCell') -> Point:
@@ -73,9 +73,9 @@ class RasterCellFactory(DjangoModelFactory):
 class RasterCellPopulationFactory(DjangoModelFactory):
     class Meta:
         model = RasterCellPopulation
-        django_get_or_create = ('raster', )
+        django_get_or_create = ('popraster', )
 
-    raster = factory.SubFactory(PopulationRasterFactory)
+    popraster = factory.SubFactory(PopulationRasterFactory)
     cell = factory.SubFactory(RasterCellFactory)
     value = faker.pyfloat(max_value=100)
 
@@ -185,7 +185,7 @@ class PopulationEntryFactory(DjangoModelFactory):
     population = factory.SubFactory(PopulationFactory)
     area = factory.SubFactory(AreaFactory)
     gender = factory.SubFactory(GenderFactory)
-    age = faker.pyint(max_value=127)
+    age_group = factory.SubFactory(AgeGroupFactory)
     value = faker.pyfloat(positive=True)
 
 
