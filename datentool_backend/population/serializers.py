@@ -1,5 +1,6 @@
 from rest_framework import serializers
 #from rest_framework_gis.serializers import GeoFeatureModelSerializer
+#from datentool_backend.utils.geometry_fields import GeometrySRIDField
 
 from .models import (Year, Raster, PopulationRaster, Gender, AgeGroup, DisaggPopRaster,
                      Prognosis, PrognosisEntry, Population, PopulationEntry,
@@ -25,9 +26,11 @@ class PopulationRasterSerializer(serializers.ModelSerializer):
 
 # ToDo VectorTile
 #class RasterCellSerializer(GeoFeatureModelSerializer):
+    #pnt = GeometrySRIDField(srid=3857)
+    #poly = GeometrySRIDField(srid=3857)
     #class Meta:
         #model = RasterCell
-        #geo_field = 'point', 'poly'
+        #geo_field = 'pnt', 'poly'
         #fields = ('id', 'raster', 'cellcode')
 
 

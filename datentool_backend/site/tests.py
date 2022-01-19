@@ -58,6 +58,11 @@ class TestProjectSetting(SingletonWriteOnlyWithAdminAccessTest,
  ((3 3, 3 7, 7 7, 7 3, 3 3), (4 4, 4 5, 5 5, 5 4, 4 4))\
 )'
 
+        geom = MultiPolygon.from_ewkt(ewkt)
+        geom.transform(3857)
+        ewkt_web_mercator = geom.ewkt
+
+        cls.expected_put_data = dict(project_area=ewkt_web_mercator)
 
         cls.put_data = dict(from_year=2002,
                     to_year=2033,
@@ -77,10 +82,10 @@ class TestProjectSetting(SingletonWriteOnlyWithAdminAccessTest,
 
         geom = Polygon.from_ewkt(ewkt_25832)
         geom = MultiPolygon(geom, srid=geom.srid)
-        geom.transform(4326)
-        ewkt_wgs84 = geom.ewkt
+        geom.transform(3857)
+        ewkt_web_mercator = geom.ewkt
 
-        cls.expected_patch_data = dict(project_area=ewkt_wgs84)
+        cls.expected_patch_data = dict(project_area=ewkt_web_mercator)
 
 
 class TestSiteSetting(_TestAPI, BasicModelSingletonTest, APITestCase):

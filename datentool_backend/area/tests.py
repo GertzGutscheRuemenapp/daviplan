@@ -147,6 +147,55 @@ class TestWMSLayerAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.put_data = data
         cls.patch_data = data
 
+    def test_get_capabilities(self):
+        data = {'url': ''}
+        self.client.logout()
+        response = self.post(self.url_key + '-getcapabilities', data={'url': ''},
+                             extra={'format': 'json'})
+        self.assert_http_401_unauthorized(response)
+
+        self.client.force_login(self.profile.user)
+        response = self.post(self.url_key + '-getcapabilities', data={'url': ''},
+                             extra={'format': 'json'})
+        self.assert_http_403_forbidden(response)
+
+        self.profile.can_edit_basedata = True
+        self.profile.save()
+
+        response = self.post(self.url_key + '-getcapabilities', data={'url': ''},
+                             extra={'format': 'json'})
+        self.assert_http_400_bad_request(response)
+
+        response = self.post(
+            self.url_key + '-getcapabilities',
+            data={'url': 'sgx.geodatenzentrum.de/wms_clc5_2018'},
+            extra={'format': 'json'})
+        self.assert_http_400_bad_request(response)
+
+        url = 'https://sgx.geodatenzentrum.de/wms_clc5_2018'
+        response = self.post(
+            self.url_key + '-getcapabilities',
+            data={'url': url},
+            extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+
+        # response is json, convert to dictionary
+        response_dict = response.json()
+        assert 'version' in response_dict
+        assert 'layers' in response_dict
+        assert 'url' in response_dict
+        self.assertURLEqual(response_dict['url'], url)
+        layers = response_dict['layers']
+        self.assertGreaterEqual(len(layers), 1)
+        layer = layers[0]
+        # compare the keys of the layer
+        self.assertSetEqual(set(layer),
+                            {'name', 'title', 'abstract', 'bbox'})
+        bbox = layer['bbox']
+        self.assertEqual(len(bbox), 4)
+        for coord in bbox:
+            self.assertIsInstance(coord, float)
+
 # will be read only (ToDo: read test?)
 #class TestInternalWFSLayerAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
     #"""test if view and serializer are working correctly"""
@@ -206,6 +255,39 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.put_data = data
         cls.patch_data = data
 
+    def test_assert_response_equals_expected(self):
+        expected = OrderedDict(a=1, b=2, c=3)
+        response_value = OrderedDict(c=3, b=2, a=1)
+        self.assert_response_equals_expected(response_value, expected)
+
+        response_value['b'] = -1
+        with self.assertRaises(AssertionError):
+            self.assert_response_equals_expected(response_value, expected)
+
+        del response_value['b']
+        with self.assertRaises(AssertionError):
+            self.assert_response_equals_expected(response_value, expected)
+
+        response_value['b'] = 2
+        self.assert_response_equals_expected(response_value, expected)
+
+        response_value['d'] = 99
+        with self.assertRaises(AssertionError):
+            self.assert_response_equals_expected(response_value, expected)
+
+        expected = '4'
+        response_value = 4
+        self.assert_response_equals_expected(response_value, expected)
+
+        expected = 4
+        response_value = 4
+        self.assert_response_equals_expected(response_value, expected)
+
+        expected = 4.0
+        response_value = '4'
+        with self.assertRaises(AssertionError):
+            self.assert_response_equals_expected(response_value, expected)
+
 
 class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
                   _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
@@ -230,10 +312,13 @@ class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
         }
 
         cls.post_data = geojson
-        geojson_putpatch = geojson.copy()
-        geojson_putpatch['id'] = area.id
+        geojson_put = geojson.copy()
+        geojson_put['id'] = area.id
+        cls.put_data = geojson_put
 
-        cls.put_data = geojson_putpatch
-        cls.patch_data = geojson_putpatch
+        geojson_patch = geojson.copy()
+        geojson_patch['geometry'] = area.geom.transform(25832, clone=True).ewkt
+        cls.patch_data = geojson_patch
+        cls.expected_patch_data = {'geometry': area.geom.ewkt,}
 
 

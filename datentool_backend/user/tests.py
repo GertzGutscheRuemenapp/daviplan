@@ -110,7 +110,6 @@ class PostOnlyWithCanCreateProcessTest:  # ToDo test get, if user is not owner
         self.client.force_login(user=self.profile.user)
         self.test_delete()
 
-
     def test_user_not_owner_or_in_users_get(self):
         """Test, no get permission if user is not owner or in users"""
 
@@ -127,7 +126,6 @@ class PostOnlyWithCanCreateProcessTest:  # ToDo test get, if user is not owner
             # test_get list
             url = self.url_key + '-list'
             url_detail = self.url_key + '-detail'
-
 
             self.client.force_login(user=current_profile.user)
             # List view
@@ -184,14 +182,14 @@ class TestProfile(TestCase):
     def test_profile(self):
         profile = self.profile
 
-    def test_user(self):
-        user = UserFactory()
-        self.assertTrue(user.profile)
-        user.profile.admin_access = False
-        user.save()
+    #def test_user(self):
+        #user = UserFactory()
+        #self.assertTrue(user.profile)
+        #user.profile.admin_access = False
+        #user.save()
 
-        user2 = User.objects.create(username='Test')
-        self.assertTrue(user2.profile.pk)
+        #user2 = User.objects.create(username='Test')
+        #self.assertTrue(user2.profile.pk)
 
 
 class TestPlanningProcessAPI(PostOnlyWithCanCreateProcessTest,
@@ -210,7 +208,6 @@ class TestPlanningProcessAPI(PostOnlyWithCanCreateProcessTest,
         cls.obj2 = PlanningProcessFactory(owner=cls.profile)
         cls.obj3 = PlanningProcessFactory(owner=cls.user2)
 
-
         planningprocess: PlanningProcess = cls.obj
         owner = planningprocess.owner.pk
         users = list(planningprocess.users.all().values_list(flat=True))
@@ -218,7 +215,7 @@ class TestPlanningProcessAPI(PostOnlyWithCanCreateProcessTest,
         data = dict(owner=owner,
                     users=users,
                     name=faker.word(),
-                    allow_shared_change= faker.pybool())
+                    allow_shared_change=faker.pybool())
 
         cls.post_data = data
         data_putpatch = data.copy()
@@ -259,7 +256,6 @@ class TestPlanningProcessProtectCascade(_TestAPI, LoginTestCase, APITestCase):
         response = self.delete(url, **kwargs)
         self.response_204(msg=response.content)
 
-
     def test_without_protection_of_referenced_objects(self):
         """
         Test if the deletion of an object works, if there are related objects
@@ -273,7 +269,7 @@ class TestPlanningProcessProtectCascade(_TestAPI, LoginTestCase, APITestCase):
         url = self.url_key + '-detail'
         response = self.get_check_200(url, **kwargs)
 
-        #  with override_protection=True it should fail
+        #  with override_protection=False it should fail
         response = self.delete(url, data=dict(override_protection=False), **kwargs)
         self.response_403(msg=response.content)
 
@@ -283,50 +279,9 @@ class TestPlanningProcessProtectCascade(_TestAPI, LoginTestCase, APITestCase):
         #  assert that the referenced scenario is deleted
         self.assertEqual(Scenario.objects.count(), 0)
 
-#class EditScenarioPermissionTest:
-    #"""Permission test for ScenarioViewSet"""
-    #def test_user_in_users(self):
-        #planning_process = self.obj.planning_process
-        #original_allow_shared_change = planning_process.allow_shared_change
 
-        ## User is not owner
-        #self.put_data['owner'] = 1
-        #self.patch_data['owner'] = 1
-        #self.post_data['owner'] = 1
-
-        ## allow_shared_change is True, User in Users is default True
-        #planning_process.allow_shared_change = True
-
-        ## get
-        #url = self.url_key + '-detail'
-        #kwargs = self.kwargs
-        #response = self.get(url, **kwargs)
-        #self.response_200(msg=response.content)
-
-        # self._test_delete_forbidden()
-        #super()._test_put_patch()
-        #super()._test_post()
-
-        # allow_shared_change is True, User in Users is False
-        #self.client.logout()
-        #self.client.force_login(user=self.profile.user)
-
-        #self.put_data['users'] = ProfileFactory()
-        #self.patch_data['users'] = ProfileFactory()
-        #self.post_data['users'] = ProfileFactory()
-        # planning_process.users.add(self.put_data['users'])
-
-        # get
-        #url = self.url_key + '-detail'
-        #kwargs = self.kwargs
-        #response = self.get(url, **kwargs)
-        #self.response_403(msg=response.content)
-
-        # self._test_delete_forbidden()
-        #super()._test_put_patch_forbidden()
-        #super()._test_post_forbidden()
-
-
+class EditScenarioPermissionTest:
+    """Permission test for ScenarioViewSet"""
 
 
 class TestScenarioAPI(_TestAPI, BasicModelTest, APITestCase):
@@ -353,4 +308,68 @@ class TestScenarioAPI(_TestAPI, BasicModelTest, APITestCase):
         planning_process.delete()
         super().tearDownClass()
 
+    def test_user_in_users(self):
+        first_profile = self.profile
+        other_profile = ProfileFactory()
+        scenario1: Scenario = self.obj
+
+        scenario2 = ScenarioFactory(planning_process__owner=other_profile,
+                                    planning_process__allow_shared_change=True)
+        scenario3 = ScenarioFactory(planning_process__owner=other_profile,
+                                    planning_process__allow_shared_change=False)
+
+        scenario4 = ScenarioFactory(planning_process__owner=other_profile,
+                                    planning_process__allow_shared_change=True)
+        scenario5 = ScenarioFactory(planning_process__owner=other_profile,
+                                    planning_process__allow_shared_change=False)
+
+        scenario4.planning_process.users.add(first_profile)
+        scenario4.planning_process.save()
+
+        scenario5.planning_process.users.add(first_profile)
+        scenario5.planning_process.save()
+
+        # get
+        url = self.url_key + '-list'
+        response = self.get(url)
+        self.response_200(msg=response.content)
+        # result should be only Scenario1 (user is owner)
+        # and 4 and 5 (user is in planningprocess.users)
+        self.assertSetEqual({s['id'] for s in response.data},
+                            {scenario1.id, scenario4.id, scenario5.id})
+
+        # should be able to change only Scenario1 and 4
+        self.patch_data['name'] = 'NewName'
+        url = self.url_key + '-detail'
+        formatjson = dict(format='json')
+
+        # should be able to change only Scenario1 (user is owner)
+        # and 4 (user is in planningprocess.users
+        # and planningprocess.allow_shared_change=True)
+        for scenario in [scenario1, scenario4]:
+            response = self.put(url, pk=scenario.pk,
+                                data=self.patch_data, extra=formatjson)
+            self.response_200(msg=response.content)
+
+        # user should not be able to edit Scenarios 5
+        response = self.patch(url, pk=scenario5.pk,
+                              data=self.patch_data, extra=formatjson)
+        self.response_403(msg=response.content)
+
+        # user should not be able to create new scenarios
+        # with the planningprocess of Scenarios 2, 3 and 5
+        for scenario in [scenario2, scenario3, scenario5]:
+            response = self.post(self.url_key + '-list', data=dict(
+                name=faker.word(),
+                planning_process=scenario.planning_process.pk),
+                extra=formatjson)
+            self.response_403(msg=response.content)
+
+        # user should be able to create new scenario where he in pp.users and
+        # pp.allow_shared_change=True
+        response = self.post(self.url_key + '-list', data=dict(
+            name=faker.word(),
+            planning_process=scenario4.planning_process.pk),
+            extra=formatjson)
+        self.response_201(msg=response.content)
 

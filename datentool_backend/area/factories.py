@@ -63,7 +63,7 @@ class AreaLevelFactory(DjangoModelFactory):
     class Meta:
         model = AreaLevel
     name = faker.word()
-    order = faker.pyint(max_value=10)
+    order = faker.unique.pyint(max_value=10)
     source = factory.SubFactory(SourceFactory)
     layer = factory.SubFactory(InternalWFSLayerFactory)
 
@@ -73,7 +73,8 @@ class AreaFactory(DjangoModelFactory):
         model = Area
     area_level = factory.SubFactory(AreaLevelFactory)
     geom = MultiPolygon(Polygon(((0, 0), (0, 10), (10, 10), (10, 0), (0, 0))),
-                        Polygon(((20, 20), (20, 30), (30, 30), (30, 20), (20, 20))))
+                        Polygon(((20, 20), (20, 30), (30, 30), (30, 20), (20, 20))),
+                        srid=4326).transform(3857, clone=True)
     attributes = faker.json(data_columns={'gen': 'word',
                                           'inhabitants': 'pyint',},
                             num_rows=1)

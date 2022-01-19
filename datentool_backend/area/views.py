@@ -84,14 +84,9 @@ class WMSLayerViewSet(viewsets.ModelViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
     filter_fields = ['active']
 
-    @action(methods=['POST'], detail=False)
+    @action(methods=['POST'], detail=False,
+            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def getcapabilities(self, request, **kwargs):
-        user = request.user
-        if not (user.is_authenticated or
-                user.superuser or
-                user.profile.admin_access or
-                user.profile.can_edit_basedata):
-            raise PermissionDenied
         url = request.data.get('url')
         version = request.data.get('version', '1.3.0')
         if not url:

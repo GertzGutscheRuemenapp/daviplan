@@ -10,10 +10,11 @@ faker = Faker('de-DE')
 
 
 from .factories import (ModeFactory, ModeVariantFactory, RouterFactory,
-                        IndicatorFactory,
-                        #ReachabilityMatrixFactory,
+                        IndicatorFactory, CutOffTimeFactory
+                        # , MatrixCellStopFactory
+                        # ReachabilityMatrixFactory,
                         )
-from .models import (ModeVariant,
+from .models import (ModeVariant, CutOffTime,
                      # ReachabilityMatrix,
                      IndicatorTypes, Indicator)
 
@@ -31,6 +32,13 @@ class TestIndicator(TestCase):
 
     #def test_matrix(self):
         #matrix = ReachabilityMatrixFactory()
+
+    def test_cut_off_time(self):
+        cut_off_time = CutOffTimeFactory()
+
+    #def test_matrix_cell_stop(self):
+        #matrix_cell_stop = MatrixCellStopFactory()
+
 
 
 class TestModeAPI(WriteOnlyWithCanEditBaseDataTest,
