@@ -83,6 +83,7 @@ export class LegendComponent implements AfterViewInit {
   }
 
   setBackground(id: number) {
+    let source = this.mapControl.map?.getLayer('test').getSource()
     this.activeBackground = this.backgroundLayers.find(l => { return l.id === id });
     this.cookies.set(`background-layer`, id);
     if (this.activeBackground){
@@ -94,7 +95,7 @@ export class LegendComponent implements AfterViewInit {
   toggleLegendImage(layer: Layer): void {
     let dialogRef = this.legendImageDialogs[layer.id];
     if (dialogRef && dialogRef.getState() === 0)
-      dialogRef.close();    
+      dialogRef.close();
     else
       this.legendImageDialogs[layer.id] = this.dialog.open(FloatingDialog, {
         panelClass: 'help-container',

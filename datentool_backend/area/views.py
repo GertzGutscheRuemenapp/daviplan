@@ -1,7 +1,6 @@
 from rest_framework import viewsets
 from url_filter.integrations.drf import DjangoFilterBackend
-from rest_framework.exceptions import (ParseError, NotFound, APIException,
-                                       PermissionDenied)
+from rest_framework.exceptions import (ParseError, NotFound, APIException)
 from vectortiles.postgis.views import MVTView, BaseVectorTileView
 from django.views.generic import DetailView
 from rest_framework.decorators import action
@@ -21,36 +20,10 @@ from .serializers import (MapSymbolsSerializer,
                           InternalWFSLayerSerializer, SourceSerializer,
                           AreaLevelSerializer, AreaSerializer)
 
-from gisserver.features import FeatureType, ServiceDescription, field
-from gisserver.geometries import CRS, WGS84
-from gisserver.views import WFSView
-RD_NEW = CRS.from_srid(3857)
-
-
-class AreaLevelWFSView(WFSView):
-
-    xml_namespace = "http://example.org/gisserver"
-
-    # The service metadata
-    service_description = ServiceDescription(
-        title="Places",
-        abstract="Unittesting",
-        keywords=["django-gisserver"],
-        provider_name="Django",
-        provider_site="https://www.example.com/",
-        contact_person="django-gisserver",
-    )
-    feature_types = [
-        FeatureType(
-            Area.objects.all(),
-            fields=["id",
-                    field("arealevel.name", model_attribute="area_level")],
-            other_crs=[RD_NEW]
-        ),
-    ]
 
 class AreaLevelTileView(MVTView, DetailView):
     model = AreaLevel
+    vector_tile_fields = ('id', 'area_level', 'attributes')
 
     def get_vector_tile_layer_name(self):
         return self.get_object().name

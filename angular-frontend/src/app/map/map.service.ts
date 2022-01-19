@@ -142,13 +142,10 @@ export class MapControl {
         attribution: layer.attribution
       });
     }
-    const testLayer = this.map.addTileServer({
-      name: 'test',
-      url: `${environment.backend}/arealevels/1/tile/{z}/{x}/{y}`,
-      visible: true,
-      opacity: 1,
-      xyz: true,
-    });
+    // const testLayer = this.map.addVectorTileLayer({
+    //   name: 'test',
+    //   url: `${environment.backend}/tiles/arealevels/1/tile/{z}/{x}/{y}/`
+    // });
     this.mapService.getLayers().subscribe(layerGroups => {
       layerGroups.forEach(group => {
         for (let layer of group.children!.slice().reverse()) {
