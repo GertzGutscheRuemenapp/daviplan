@@ -5,7 +5,7 @@ from django.utils.encoding import force_str
 from django.contrib.gis.geos import (GEOSGeometry,
                                      Point, MultiPoint,
                                      LineString, MultiLineString,
-                                     Polygon, MultiPolygon)
+                                     Polygon, MultiPolygon, GEOSException)
 
 class MultiPolygonGeometrySRIDField(GeometryField):
     """A Geometry-Field that forces Multipolygon and the given srid"""
@@ -54,14 +54,14 @@ def compare_geometries(wkt1: str, wkt2: str, tolerance: float):
     and if yes if they are more or less equal
     """
     # check first if the wkt are identical
-    if force_str(wkt1) == force_str(wkt2):
+    if wkt1 == wkt2:
         return
 
     # otherwise try to convert them to geometries
     try:
         geom1 = GEOSGeometry(wkt1)
         geom2 = GEOSGeometry(wkt2)
-    except (ValueError, TypeError) as err:
+    except (ValueError, TypeError, GEOSException) as err:
         #  no valid geometries
         raise NoWKTError()
 
@@ -75,7 +75,7 @@ def compare_geometries(wkt1: str, wkt2: str, tolerance: float):
         for i, pnt in enumerate(geom1):
             assert pnt.distance(geom2[i]) < tolerance, 'Distance of the points too big'
     elif isinstance(geom1, (LineString, MultiLineString)):
-        assert geom1.length - geom1.length < tolerance, 'Length of the Linestring do not match'
+        assert abs(geom1.length - geom2.length) < tolerance, 'Length of the Linestring do not match'
     elif isinstance(geom1, (Polygon, MultiPolygon)):
         assert geom1.sym_difference(geom2).area < tolerance, 'Area of the symmetric difference of the areas too big'
 

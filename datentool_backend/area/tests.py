@@ -255,6 +255,39 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.put_data = data
         cls.patch_data = data
 
+    def test_assert_response_equals_expected(self):
+        expected = OrderedDict(a=1, b=2, c=3)
+        response_value = OrderedDict(c=3, b=2, a=1)
+        self.assert_response_equals_expected(response_value, expected)
+
+        response_value['b'] = -1
+        with self.assertRaises(AssertionError):
+            self.assert_response_equals_expected(response_value, expected)
+
+        del response_value['b']
+        with self.assertRaises(AssertionError):
+            self.assert_response_equals_expected(response_value, expected)
+
+        response_value['b'] = 2
+        self.assert_response_equals_expected(response_value, expected)
+
+        response_value['d'] = 99
+        with self.assertRaises(AssertionError):
+            self.assert_response_equals_expected(response_value, expected)
+
+        expected = '4'
+        response_value = 4
+        self.assert_response_equals_expected(response_value, expected)
+
+        expected = 4
+        response_value = 4
+        self.assert_response_equals_expected(response_value, expected)
+
+        expected = 4.0
+        response_value = '4'
+        with self.assertRaises(AssertionError):
+            self.assert_response_equals_expected(response_value, expected)
+
 
 class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
                   _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
