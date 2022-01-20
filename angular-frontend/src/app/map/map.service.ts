@@ -5,6 +5,7 @@ import { BehaviorSubject } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../rest-api";
 import { sortBy } from "../helpers/utils";
+import { environment } from "../../environments/environment";
 
 interface BackgroundLayer {
   id: number;
@@ -141,6 +142,10 @@ export class MapControl {
         attribution: layer.attribution
       });
     }
+    // const testLayer = this.map.addVectorTileLayer({
+    //   name: 'test',
+    //   url: `${environment.backend}/tiles/arealevels/1/tile/{z}/{x}/{y}/`
+    // });
     this.mapService.getLayers().subscribe(layerGroups => {
       layerGroups.forEach(group => {
         for (let layer of group.children!.slice().reverse()) {
