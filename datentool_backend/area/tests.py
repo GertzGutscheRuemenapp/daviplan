@@ -219,6 +219,39 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.put_data = data
         cls.patch_data = data
 
+    def test_preset_protection(self):
+        url = self.url_key + '-detail'
+        formatjson = dict(format='json')
+
+        self.profile.admin_access = True
+        self.profile.save()
+        self.obj.is_preset = True
+        self.obj.save()
+
+        response = self.delete(url, **self.kwargs)
+        self.assert_http_403_forbidden(response)
+
+        patch_data = {'name': 'test'}
+        response = self.patch(url, **self.kwargs, data=patch_data,
+                              extra=formatjson)
+        self.assert_http_403_forbidden(response)
+
+        date = datetime.now().strftime('%d.%m.%Y')
+        patch_data = {'source': {'source_type': 'WFS', 'date': date}}
+        response = self.patch(url, **self.kwargs, data=patch_data,
+                              extra=formatjson)
+        self.assert_http_403_forbidden(response)
+
+        patch_data = {'source': {'date': date}}
+        response = self.patch(url, **self.kwargs, data=patch_data,
+                              extra=formatjson)
+        self.assert_http_200_ok(response)
+
+        self.obj.is_preset = False
+        self.obj.save()
+        self.profile.admin_access = False
+        self.profile.save()
+
     def test_symbol_source(self):
         url = self.url_key + '-detail'
         formatjson = dict(format='json')
@@ -229,18 +262,21 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
         patch_data = self.patch_data.copy()
         patch_data['symbol'] = None
         patch_data['source'] = None
-        response = self.patch(url, **self.kwargs,
-                              data=patch_data, extra=formatjson)
+        response = self.patch(url, **self.kwargs, data=patch_data,
+                              extra=formatjson)
         self.assertIsNone(response.data['symbol'])
         self.assertIsNone(response.data['source'])
 
         # check if symbol is recreated
         patch_data['symbol'] = {'symbol': 'square'}
         patch_data['source'] = {'source_type': 'WFS'}
-        response = self.patch(url, **self.kwargs,
-                              data=patch_data, extra=formatjson)
+        response = self.patch(url, **self.kwargs, data=patch_data,
+                              extra=formatjson)
         self.assertEqual(response.data['symbol']['symbol'], 'square')
         self.assertEqual(response.data['source']['source_type'], 'WFS')
+
+        self.profile.admin_access = False
+        self.profile.save()
 
     def test_assert_response_equals_expected(self):
         expected = OrderedDict(a=1, b=2, c=3)
