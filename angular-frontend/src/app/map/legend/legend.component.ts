@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../map.service";
-import { LayerGroup, Layer } from "../../pages/basedata/external-layers/external-layers.component";
+import { LayerGroup, Layer } from "../../backendInterfaces";
 import { CookieService } from "../../helpers/cookies.service";
 import { FloatingDialog } from "../../dialogs/help-dialog/help-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
@@ -12,7 +12,7 @@ import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 })
 export class LegendComponent implements AfterViewInit {
   @Input() target!: string;
-  @Input() showInternal?: boolean = false;
+  @Input() showInternal?: boolean = true;
   @ViewChild('legendImage') legendImageTemplate?: TemplateRef<any>;
   legendImageDialogs: Record<number, MatDialogRef<any>> = [];
   mapControl!: MapControl;
@@ -61,6 +61,11 @@ export class LegendComponent implements AfterViewInit {
     this.cdRef.detectChanges();
   }
 
+  /**
+   * handle changed check state of layer
+   *
+   * @param layer
+   */
   onLayerToggle(layer: Layer): void {
     layer.checked = !layer.checked;
     this.cookies.set(`legend-layer-checked-${layer.id}`, layer.checked);
@@ -82,7 +87,13 @@ export class LegendComponent implements AfterViewInit {
     this.mapControl?.setLayerAttr(layer.id, { opacity: value });
   }
 
+  /**
+   * set layer with given id as background layer (only one at a time)
+   *
+   * @param id
+   */
   setBackground(id: number) {
+    let source = this.mapControl.map?.getLayer('test').getSource()
     this.activeBackground = this.backgroundLayers.find(l => { return l.id === id });
     this.cookies.set(`background-layer`, id);
     if (this.activeBackground){
@@ -91,10 +102,15 @@ export class LegendComponent implements AfterViewInit {
     }
   }
 
+  /**
+   * open a dialog with the legend image of given layer
+   *
+   * @param layer
+   */
   toggleLegendImage(layer: Layer): void {
     let dialogRef = this.legendImageDialogs[layer.id];
     if (dialogRef && dialogRef.getState() === 0)
-      dialogRef.close();    
+      dialogRef.close();
     else
       this.legendImageDialogs[layer.id] = this.dialog.open(FloatingDialog, {
         panelClass: 'help-container',

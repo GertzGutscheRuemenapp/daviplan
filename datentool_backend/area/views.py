@@ -1,7 +1,8 @@
 from rest_framework import viewsets
 from url_filter.integrations.drf import DjangoFilterBackend
-from rest_framework.exceptions import (ParseError, NotFound, APIException,
-                                       PermissionDenied)
+from rest_framework.exceptions import (ParseError, NotFound, APIException)
+from vectortiles.postgis.views import MVTView, BaseVectorTileView
+from django.views.generic import DetailView
 from rest_framework.decorators import action
 from django.http import JsonResponse
 from owslib.wms import WebMapService
@@ -12,17 +13,32 @@ from datentool_backend.utils.views import (CanEditBasedata,
                                            HasAdminAccessOrReadOnly,
                                            ProtectCascadeMixin)
 
-from .models import (MapSymbol, LayerGroup, WMSLayer,
-                     InternalWFSLayer, Source, AreaLevel, Area)
-from .serializers import (MapSymbolsSerializer,
+from .models import (MapSymbol, LayerGroup, WMSLayer, Source, AreaLevel, Area)
+from .serializers import (MapSymbolSerializer,
                           LayerGroupSerializer, WMSLayerSerializer,
-                          InternalWFSLayerSerializer, SourceSerializer,
+                          SourceSerializer,
                           AreaLevelSerializer, AreaSerializer)
+
+
+class AreaLevelTileView(MVTView, DetailView):
+    model = AreaLevel
+    vector_tile_fields = ('id', 'area_level', 'attributes')
+
+    def get_vector_tile_layer_name(self):
+        return self.get_object().name
+
+    def get_vector_tile_queryset(self):
+        return self.get_object().area_set.all()
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return BaseVectorTileView.get(self, request=request, z=kwargs.get('z'),
+                                      x=kwargs.get('x'), y=kwargs.get('y'))
 
 
 class MapSymbolsViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = MapSymbol.objects.all()
-    serializer_class = MapSymbolsSerializer
+    serializer_class = MapSymbolSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
@@ -72,18 +88,6 @@ class WMSLayerViewSet(viewsets.ModelViewSet):
             'layers': layers,
             'url': wms.url
         })
-
-
-class InternalWFSLayerViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = InternalWFSLayer.objects.all()
-    serializer_class = InternalWFSLayerSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-
-
-class SourceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = Source.objects.all()
-    serializer_class = SourceSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
 class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

@@ -16,7 +16,7 @@
               class="no-shadow"
               color="primary"
               title="Karte als Grafik herunterladen"
-              (click)="action('action3')">
+              (click)="savePNG()">
         <mat-icon>download</mat-icon>
       </button>
       <button mat-mini-fab
@@ -51,21 +51,21 @@
               color="primary"
               class="no-shadow"
               title="In die Karte hineinzoomen"
-              (click)="action('action5')">
+              (click)="zoomIn()">
         <mat-icon>zoom_in</mat-icon>
       </button>
       <button mat-mini-fab
               color="primary"
               class="no-shadow"
               title="Aus der Karte herauszoomen"
-              (click)="action('action6')">
+              (click)="zoomOut()">
         <mat-icon>zoom_out</mat-icon>
       </button>
       <button mat-mini-fab
               class="no-shadow"
               color="primary"
               title="Karte im Vollbildmodus darstellen"
-              (click)="action('action7')">
+              (click)="toggleFullscreen()">
         <mat-icon>fullscreen</mat-icon>
       </button>
     </eco-fab-speed-dial-actions>
