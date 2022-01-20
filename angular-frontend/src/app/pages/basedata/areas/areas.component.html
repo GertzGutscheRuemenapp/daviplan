@@ -87,11 +87,19 @@
       <table *ngIf="selectedAreaLevel">
         <tr>
           <td i18n>Name</td>
-          <td>{{selectedAreaLevel?.name}}</td>
+          <td [style.color]="selectedAreaLevel.preset? 'grey': ''">{{selectedAreaLevel?.name}}</td>
         </tr>
         <tr>
           <td i18n>Linienfarbe</td>
-          <td><div class="symbol square" [style.backgroundColor]="selectedAreaLevel?.symbol?.strokeColor"></div></td>
+          <td>
+            <div *ngIf="selectedAreaLevel?.symbol"
+                 class="symbol square"
+                 [style.backgroundColor]="selectedAreaLevel?.symbol?.strokeColor">
+            </div>
+            <div *ngIf="!selectedAreaLevel?.symbol">
+              keine Darstellung
+            </div>
+          </td>
         </tr>
       </table>
     </app-input-card>
