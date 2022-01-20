@@ -13,11 +13,10 @@ from datentool_backend.utils.views import (CanEditBasedata,
                                            HasAdminAccessOrReadOnly,
                                            ProtectCascadeMixin)
 
-from .models import (MapSymbol, LayerGroup, WMSLayer,
-                     InternalWFSLayer, Source, AreaLevel, Area)
-from .serializers import (MapSymbolsSerializer,
+from .models import (MapSymbol, LayerGroup, WMSLayer, Source, AreaLevel, Area)
+from .serializers import (MapSymbolSerializer,
                           LayerGroupSerializer, WMSLayerSerializer,
-                          InternalWFSLayerSerializer, SourceSerializer,
+                          SourceSerializer,
                           AreaLevelSerializer, AreaSerializer)
 
 
@@ -39,7 +38,7 @@ class AreaLevelTileView(MVTView, DetailView):
 
 class MapSymbolsViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = MapSymbol.objects.all()
-    serializer_class = MapSymbolsSerializer
+    serializer_class = MapSymbolSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
@@ -89,18 +88,6 @@ class WMSLayerViewSet(viewsets.ModelViewSet):
             'layers': layers,
             'url': wms.url
         })
-
-
-class InternalWFSLayerViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = InternalWFSLayer.objects.all()
-    serializer_class = InternalWFSLayerSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-
-
-class SourceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = Source.objects.all()
-    serializer_class = SourceSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
 class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

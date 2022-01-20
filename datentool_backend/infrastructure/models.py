@@ -3,8 +3,8 @@ from django.db.models import Window, F
 from django.db.models.functions import Lead, RowNumber
 from django.contrib.gis.db import models as gis_models
 from datentool_backend.base import NamedModel, JsonAttributes
+from datentool_backend.area.models import MapSymbol
 from datentool_backend.user.models import Profile, Scenario
-from datentool_backend.area.models import InternalWFSLayer
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.base import NamedModel, DatentoolModelMixin
 
@@ -21,7 +21,8 @@ class Infrastructure(DatentoolModelMixin, NamedModel, models.Model):
         Profile, related_name='infrastructure_accessible_by', blank=True,
         through='InfrastructureAccess')
     # sensitive_data
-    layer = models.OneToOneField(InternalWFSLayer, on_delete=PROTECT_CASCADE)
+    order = models.IntegerField(unique=False, default=0)
+    symbol = models.ForeignKey(MapSymbol, on_delete=models.SET_NULL, null=True)
 
 
 class InfrastructureAccess(models.Model):

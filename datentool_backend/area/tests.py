@@ -1,18 +1,19 @@
 from collections import OrderedDict
 from django.test import TestCase
 from test_plus import APITestCase
+from datetime import datetime
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         )
+from datentool_backend.area.serializers import (MapSymbolSerializer,
+                                                SourceSerializer)
 
-from .factories import (MapSymbolsFactory,
-                        WMSLayerFactory, InternalWFSLayerFactory,
-                        AreaFactory, AreaLevelFactory, SourceFactory,
+from .factories import (WMSLayerFactory, AreaFactory,
+                        AreaLevelFactory, SourceFactory,
                         LayerGroupFactory)
 
-from .models import (MapSymbol, WMSLayer, InternalWFSLayer, SourceTypes,
+from .models import (WMSLayer, SourceTypes,
                      AreaLevel, Area)
-from .serializers import MapSymbolsSerializer
 
 
 from faker import Faker
@@ -25,7 +26,6 @@ class TestAreas(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.wfs_layer = WMSLayerFactory()
-        cls.layer = InternalWFSLayerFactory()
         cls.source = SourceFactory()
         cls.area = AreaFactory()
         print(cls.area)
@@ -196,45 +196,6 @@ class TestWMSLayerAPI(WriteOnlyWithCanEditBaseDataTest,
         for coord in bbox:
             self.assertIsInstance(coord, float)
 
-# will be read only (ToDo: read test?)
-#class TestInternalWFSLayerAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
-    #"""test if view and serializer are working correctly"""
-    #url_key = "internalwfslayers"
-    #factory = InternalWFSLayerFactory
-
-    #@classmethod
-    # def setUpTestData(cls):
-        # super().setUpTestData()
-        ##internalwfslayer: InternalWFSLayer = cls.obj
-        ##group = internalwfslayer.group.pk
-        ##symbol = MapSymbolsFactory.create()
-        ##symbol_serializer = MapSymbolsSerializer(symbol)
-
-        #data = dict(name=faker.word(),
-                    #layer_name=faker.word(),
-                    #order=faker.random_int())
-        #cls.post_data = data
-        #cls.put_data = data
-        #cls.patch_data = data
-
-
-class TestSourceAPI(WriteOnlyWithCanEditBaseDataTest,
-                    _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
-    """api test Layer"""
-    url_key = "sources"
-    factory = SourceFactory
-
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-
-        data = dict(source_type=faker.random_element(SourceTypes),
-                date=faker.date(), id_field=faker.uuid4(), url=faker.url(),
-                layer=faker.word())
-        cls.post_data = data
-        cls.put_data = data
-        cls.patch_data = data
-
 
 class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
                        _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
@@ -246,47 +207,73 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
     def setUpTestData(cls):
         super().setUpTestData()
         area_level: AreaLevel = cls.obj
-        source = area_level.source.pk
-        layer = area_level.layer.pk
+        source_data = SourceSerializer(area_level.source).data
+        # workaround: for some reason
+        source_data['date'] = datetime.strptime(
+            source_data['date'], '%Y-%m-%d').strftime('%d.%m.%Y')
+        symbol_data = MapSymbolSerializer(area_level.symbol).data
 
         data = dict(name=faker.word(), order=faker.random_int(),
-                    source=source, layer=layer)
+                    source=source_data, symbol=symbol_data)
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
 
-    def test_assert_response_equals_expected(self):
-        expected = OrderedDict(a=1, b=2, c=3)
-        response_value = OrderedDict(c=3, b=2, a=1)
-        self.assert_response_equals_expected(response_value, expected)
+    def test_symbol_source(self):
+        url = self.url_key + '-detail'
+        formatjson = dict(format='json')
+        self.profile.admin_access = True
+        self.profile.save()
 
-        response_value['b'] = -1
-        with self.assertRaises(AssertionError):
-            self.assert_response_equals_expected(response_value, expected)
+        # check if symbol and source are nullable
+        patch_data = self.patch_data.copy()
+        patch_data['symbol'] = None
+        patch_data['source'] = None
+        response = self.patch(url, **self.kwargs,
+                              data=patch_data, extra=formatjson)
+        self.assertIsNone(response.data['symbol'])
+        self.assertIsNone(response.data['source'])
 
-        del response_value['b']
-        with self.assertRaises(AssertionError):
-            self.assert_response_equals_expected(response_value, expected)
+        # check if symbol is recreated
+        patch_data['symbol'] = {'symbol': 'square'}
+        patch_data['source'] = {'source_type': 'WFS'}
+        response = self.patch(url, **self.kwargs,
+                              data=patch_data, extra=formatjson)
+        self.assertEqual(response.data['symbol']['symbol'], 'square')
+        self.assertEqual(response.data['source']['source_type'], 'WFS')
 
-        response_value['b'] = 2
-        self.assert_response_equals_expected(response_value, expected)
+    #def test_assert_response_equals_expected(self):
+        #expected = OrderedDict(a=1, b=2, c=3)
+        #response_value = OrderedDict(c=3, b=2, a=1)
+        #self.assert_response_equals_expected(response_value, expected)
 
-        response_value['d'] = 99
-        with self.assertRaises(AssertionError):
-            self.assert_response_equals_expected(response_value, expected)
+        #response_value['b'] = -1
+        #with self.assertRaises(AssertionError):
+            #self.assert_response_equals_expected(response_value, expected)
 
-        expected = '4'
-        response_value = 4
-        self.assert_response_equals_expected(response_value, expected)
+        #del response_value['b']
+        #with self.assertRaises(AssertionError):
+            #self.assert_response_equals_expected(response_value, expected)
 
-        expected = 4
-        response_value = 4
-        self.assert_response_equals_expected(response_value, expected)
+        #response_value['b'] = 2
+        #self.assert_response_equals_expected(response_value, expected)
 
-        expected = 4.0
-        response_value = '4'
-        with self.assertRaises(AssertionError):
-            self.assert_response_equals_expected(response_value, expected)
+        #response_value['d'] = 99
+        #with self.assertRaises(AssertionError):
+            #self.assert_response_equals_expected(response_value, expected)
+
+        #expected = '4'
+        #response_value = 4
+        #self.assert_response_equals_expected(response_value, expected)
+
+        #expected = 4
+        #response_value = 4
+        #self.assert_response_equals_expected(response_value, expected)
+
+        #expected = 4.0
+        #response_value = '4'
+        #with self.assertRaises(AssertionError):
+            #self.assert_response_equals_expected(response_value, expected)
 
 
 class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,

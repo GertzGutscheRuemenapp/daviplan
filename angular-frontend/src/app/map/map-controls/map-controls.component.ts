@@ -1,27 +1,45 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Input, OnInit, ViewChild } from '@angular/core';
 import { EcoFabSpeedDialComponent } from "@ecodev/fab-speed-dial";
+import { MapControl, MapService } from "../map.service";
 
 @Component({
   selector: 'app-map-controls',
   templateUrl: './map-controls.component.html',
   styleUrls: ['./map-controls.component.scss']
 })
-export class MapControlsComponent implements OnInit {
+export class MapControlsComponent implements AfterViewInit {
+  @Input() target!: string;
+  @Input() showOnHover?: boolean = false;
 
   @ViewChild('leftDial') leftDial?: EcoFabSpeedDialComponent;
   @ViewChild('rightDial') rightDial?: EcoFabSpeedDialComponent;
   @ViewChild('leftDialBack') leftDialBack?: HTMLElement;
-  @Input() showOnHover?: boolean = false;
 
+  mapControl!: MapControl;
   expanded: boolean = false;
 
-  constructor() { }
+  constructor(private mapService: MapService) { }
 
-  ngOnInit(): void {
+  ngAfterViewInit (): void {
+    this.mapControl = this.mapService.get(this.target);
   }
 
-  action(a: string): void {
+  action(a: string): void {}
 
+  zoomIn(): void {
+    this.mapControl?.map?.zoom(1);
+  }
+
+  zoomOut(): void {
+    this.mapControl?.map?.zoom(-1);
+  }
+
+  toggleFullscreen(): void {
+    this.mapControl?.map?.toggleFullscreen();
+  }
+
+  savePNG(): void {
+    this.mapControl?.map?.savePNG();
   }
 
   toggle(): void {

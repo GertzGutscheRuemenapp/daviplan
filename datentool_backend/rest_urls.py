@@ -8,8 +8,7 @@ from rest_framework_mvt.views import mvt_view_factory
 from django.conf.urls import url
 
 from .population.models import RasterCell
-from .area.views import (LayerGroupViewSet,
-                         WMSLayerViewSet, InternalWFSLayerViewSet, SourceViewSet,
+from .area.views import (LayerGroupViewSet, WMSLayerViewSet,
                          AreaLevelViewSet, AreaViewSet)
 
 from .demand.views import (DemandRateSetViewSet, DemandRateViewSet,
@@ -43,9 +42,6 @@ router.register(r'users', UserViewSet, basename='users')
 # areas
 router.register(r'layergroups', LayerGroupViewSet, basename='layergroups')
 router.register(r'wmslayers', WMSLayerViewSet, basename='wmslayers')
-router.register(r'internalwfslayers', InternalWFSLayerViewSet,
-                basename='internalwfslayers')
-router.register(r'sources', SourceViewSet, basename='sources')
 router.register(r'arealevels', AreaLevelViewSet, basename='arealevels')
 router.register(r'areas', AreaViewSet, basename='areas')
 

@@ -1,6 +1,12 @@
 import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
-import { AreaLevel, mockAreaLevels, mockPresetLevels } from "./areas";
+import { AreaLevel, BasedataSettings } from "../../../backendInterfaces";
+import { Observable } from "rxjs";
+import { sortBy } from "../../../helpers/utils";
+import { HttpClient } from "@angular/common/http";
+import { MatDialog } from "@angular/material/dialog";
+import { RestAPI } from "../../../rest-api";
+
 
 @Component({
   selector: 'app-areas',
@@ -10,22 +16,46 @@ import { AreaLevel, mockAreaLevels, mockPresetLevels } from "./areas";
 export class AreasComponent implements AfterViewInit, OnDestroy {
   mapControl?: MapControl;
   selectedAreaLevel?: AreaLevel;
-  defaultArea?: AreaLevel;
-  presetLevels!: AreaLevel[];
-  areaLevels?: AreaLevel[];
+  basedataSettings?: BasedataSettings;
+  presetLevels: AreaLevel[] = [];
+  areaLevels: AreaLevel[] = [];
   colorSelection: string = 'black';
 
-  constructor(private mapService: MapService, private cdRef:ChangeDetectorRef) { }
+  constructor(private mapService: MapService,private http: HttpClient, private dialog: MatDialog,
+              private rest: RestAPI) { }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-areas-map');
-    this.mapControl.setBackground(this.mapControl.getBackgroundLayers()[0].id)
-    this.areaLevels = mockAreaLevels;
-    this.presetLevels = mockPresetLevels;
-    this.defaultArea = mockPresetLevels[0];
-    this.selectedAreaLevel = this.presetLevels[0];
-    this.colorSelection = this.selectedAreaLevel.layer?.symbol?.fillColor || 'black';
-    this.cdRef.detectChanges();
+    this.mapControl.setBackground(this.mapControl.getBackgroundLayers()[0].id);
+
+    this.fetchBasedataSettings().subscribe(res => {
+      this.fetchLayerGroups().subscribe(res => {
+        this.selectedAreaLevel = this.presetLevels[0];
+        this.colorSelection = this.selectedAreaLevel.layer?.symbol?.fillColor || 'black';
+      })
+    })
+  }
+
+  /**
+   * fetch basedata-settings
+   */
+  fetchBasedataSettings(): Observable<BasedataSettings> {
+    const query = this.http.get<BasedataSettings>(this.rest.URLS.basedataSettings);
+    query.subscribe((basedataSettings) => {
+      this.basedataSettings = basedataSettings;
+    });
+    return query;
+  }
+
+  /**
+   * fetch areas
+   */
+  fetchLayerGroups(): Observable<AreaLevel[]> {
+    const query = this.http.get<AreaLevel[]>(this.rest.URLS.arealevels);
+    query.subscribe((areaLevels) => {
+      this.presetLevels = sortBy(areaLevels, 'order');
+    });
+    return query;
   }
 
   ngOnDestroy(): void {

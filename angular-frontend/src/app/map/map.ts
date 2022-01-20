@@ -15,8 +15,8 @@ import { click, singleClick, always } from 'ol/events/condition';
 import { EventEmitter } from "@angular/core";
 import { Polygon } from "ol/geom";
 import { fromExtent } from 'ol/geom/Polygon';
+import { saveAs } from 'file-saver';
 import MVT from 'ol/format/MVT';
-
 import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
 
@@ -31,9 +31,9 @@ export class OlMap {
   // emits all selected features
   selected = new EventEmitter<{ layer: Layer<any>, selected: Feature<any>[], deselected: Feature<any>[] }>();
 
-  constructor( target: string, options: {
-    center?: Coordinate, zoom?: number, projection?: string,
-    showDefaultControls?: boolean} = {}) {
+  constructor( target: string,
+               options: { center?: Coordinate, zoom?: number, projection?: string,
+                 showDefaultControls?: boolean} = {}) {
     // this.layers = layers;
     const zoom = options.zoom || 8;
     const center = options.center || [13.3392,52.5192];
@@ -86,6 +86,28 @@ export class OlMap {
     this.map.getView().fit(source.getExtent());
   }
 
+  /**
+   * animated zoom into/out of map
+   *
+   * @param zoom - positive: increase zoom, negative: decrease zoom by number
+   * @param duration - animation duration
+   */
+  zoom(zoom: number, duration: number = 250): void {
+    this.view.animate({
+      zoom: this.view.getZoom()! + zoom,
+      duration: duration
+    })
+  }
+
+  toggleFullscreen(): void {
+    if (document.fullscreenElement === this.div){
+      document.exitFullscreen();
+    }
+    else {
+      this.div!.requestFullscreen();
+    }
+  }
+
   addTileServer(options: { name: string, url: string, params?: any,
     visible?: boolean, opacity?: number, xyz?: boolean, attribution?: string}): Layer<any>{
 
@@ -96,14 +118,16 @@ export class OlMap {
       new XYZ({
         url: options.url,
         attributions: attributions,
-        attributionsCollapsible: false
+        attributionsCollapsible: false,
+        crossOrigin: 'anonymous'
       }) :
       new TileWMS({
         url: options.url,
         params: options.params || {},
         serverType: 'geoserver',
         attributions: attributions,
-        attributionsCollapsible: false
+        attributionsCollapsible: false,
+        crossOrigin: 'anonymous'
     })
 
     let layer = new TileLayer({
@@ -300,4 +324,69 @@ export class OlMap {
     let layer = this.layers[name];
     layer?.setOpacity(opacity);
   }
+
+  savePNG(): void {
+    function isTainted(canvas: HTMLCanvasElement) {
+      const context = canvas.getContext( '2d' )!;
+      try {
+        var pixel = context.getImageData(0, 0, 1, 1);
+        return false;
+      } catch(err: any) {
+        return (err.code === 18);
+      }
+    }
+    this.map.once('rendercomplete', evt => {
+      const mapCanvas = document.createElement('canvas');
+      const size = this.map.getSize()!;
+      mapCanvas.width = size[0];
+      mapCanvas.height = size[1];
+      const mapContext = mapCanvas.getContext('2d')!;
+      mapContext.fillStyle = 'white';
+      mapContext.fillRect(0, 0, mapCanvas.width, mapCanvas.height);
+      const canvasList: HTMLCanvasElement[] = Array.from(
+        this.map.getViewport().querySelectorAll('.ol-layer canvas, canvas.ol-layer'));
+      canvasList.forEach( (canvas: HTMLCanvasElement) => {
+        console.log(isTainted(canvas))
+          if (canvas.width > 0) {
+            const opacity =
+              canvas.parentElement?.style?.opacity || canvas.style.opacity;
+            mapContext.globalAlpha = opacity === '' ? 1 : Number(opacity);
+
+            let matrix: any;
+            const transform = canvas.style.transform;
+            if (transform) {
+              // Get the transform parameters from the style's transform matrix
+              matrix = transform.match(/^matrix\(([^\(]*)\)$/)![1]
+                .split(',')
+                .map(Number);
+            } else {
+              matrix = [
+                parseFloat(canvas.style.width) / canvas.width,
+                0,
+                0,
+                parseFloat(canvas.style.height) / canvas.height,
+                0,
+                0,
+              ];
+            }
+            // Apply the transform to the export map context
+            CanvasRenderingContext2D.prototype.setTransform.apply(
+              mapContext,
+              matrix
+            );
+            mapContext.drawImage(canvas, 0, 0);
+          }
+        }
+      );
+      if (navigator.hasOwnProperty('msSaveBlob')) {
+        // link download attribute does not work on MS browsers
+        // @ts-ignore
+        navigator.msSaveBlob(mapCanvas.msToBlob(), 'map.png');
+      } else {
+        saveAs(mapCanvas.toDataURL(), 'map.png');
+      }
+    });
+    this.map.renderSync();
+  }
+
 }

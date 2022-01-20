@@ -47,7 +47,7 @@
         </button>
         <button mat-button color="primary"
                 style="margin-left: 30px;"
-                (click)="removeNode()"
+                (click)="onRemoveNode()"
                 class="mat-button-dv"
                 [disabled]="(!(selectedLayer || selectedGroup)) ? true : null" i18n>
           <mat-icon>close</mat-icon>{{selectedLayer? 'Layer': selectedGroup? 'Gruppe': ''}} entfernen
@@ -100,13 +100,13 @@
                     <p>Die Nutzer*innen haben in den einzelnen Karten lediglich die Möglichkeit, die Transparenz der einzelnen Layer einzustellen.</p>">
 
       <div id="base-layers-map" class="map-container">
-        <app-map-controls></app-map-controls>
+        <app-map-controls target="base-layers-map"></app-map-controls>
         <app-side-toggle id="legend"
                          icon="layers"
                          name="Legenden- und Layersteuerung"
                          expanded
                          direction="left">
-          <app-legend target="base-layers-map"></app-legend>
+          <app-legend target="base-layers-map" [showInternal]="false"></app-legend>
         </app-side-toggle>
       </div>
     </app-input-card>
@@ -143,7 +143,7 @@
             <p>{{ layer.description || 'kein Beschreibungstext' }}</p>
           </ng-template>
           <mat-radio-button [value]="layer.id"
-                            (change)="avLayerSelected($event.value)"
+                            (change)="onAvLayerSelected($event.value)"
                             [checked]="first"
                             style="margin-right: 100%;"
                             color="primary"

@@ -17,7 +17,7 @@ from .serializers import (InfrastructureSerializer, FieldTypeSerializer,
                           FClassSerializer)
 
 
-class CanPatchLayer(permissions.BasePermission):
+class CanPatchSymbol(permissions.BasePermission):
     """Permission Class for InfrastructureViewSet, patch of symbol, if user is
     authenticated and can edit basedata """
 
@@ -37,7 +37,7 @@ class CanPatchLayer(permissions.BasePermission):
         if (request.user.profile.can_edit_basedata and
                 request.method in ('PATCH',) and (
                     len(request.data.keys()) == 0
-                    or set(request.data.keys()) <= set(['layer'])
+                    or set(request.data.keys()) <= set(['symbol'])
                 )
             ):
             return True
@@ -47,7 +47,7 @@ class CanPatchLayer(permissions.BasePermission):
 class InfrastructureViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Infrastructure.objects.all()
     serializer_class = InfrastructureSerializer
-    permission_classes = [CanPatchLayer]
+    permission_classes = [CanPatchSymbol]
 
 
 class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

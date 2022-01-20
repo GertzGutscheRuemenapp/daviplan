@@ -1,10 +1,9 @@
 from django.contrib import admin
 from .models import (
     AreaLevel, Area, MapSymbol,
-    WMSLayer, InternalWFSLayer, Source, LayerGroup)
+    WMSLayer, Source, LayerGroup)
 
 admin.site.register(Source)
-admin.site.register(InternalWFSLayer)
 admin.site.register(MapSymbol)
 admin.site.register(WMSLayer)
 admin.site.register(Area)
