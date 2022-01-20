@@ -6,7 +6,6 @@ from django.contrib.gis.geos import Point
 from .models import (Infrastructure, Service, Place,
                      Capacity, FieldTypes, FieldType, FClass, PlaceField,
                      Profile)
-from ..area.factories import InternalWFSLayerFactory
 from .. user.factories import ScenarioFactory
 
 faker = Faker('de-DE')
@@ -18,7 +17,6 @@ class InfrastructureFactory(DjangoModelFactory):
     name = faker.word()
     description = faker.sentence()
     # sensitive_data
-    layer = factory.SubFactory(InternalWFSLayerFactory)
 
     @factory.post_generation
     def editable_by(self, create, extracted, **kwargs):

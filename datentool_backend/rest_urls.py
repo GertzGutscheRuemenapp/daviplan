@@ -9,7 +9,7 @@ from django.conf.urls import url
 
 from .population.models import RasterCell
 from .area.views import (LayerGroupViewSet,
-                         WMSLayerViewSet, InternalWFSLayerViewSet, SourceViewSet,
+                         WMSLayerViewSet, SourceViewSet,
                          AreaLevelViewSet, AreaViewSet)
 
 from .demand.views import (DemandRateSetViewSet, DemandRateViewSet,
@@ -43,8 +43,6 @@ router.register(r'users', UserViewSet, basename='users')
 # areas
 router.register(r'layergroups', LayerGroupViewSet, basename='layergroups')
 router.register(r'wmslayers', WMSLayerViewSet, basename='wmslayers')
-router.register(r'internallayers', InternalWFSLayerViewSet,
-                basename='internalwfslayers')
 router.register(r'sources', SourceViewSet, basename='sources')
 router.register(r'arealevels', AreaLevelViewSet, basename='arealevels')
 router.register(r'areas', AreaViewSet, basename='areas')

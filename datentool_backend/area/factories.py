@@ -3,7 +3,7 @@ import factory
 from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import MultiPolygon, Polygon
 from .models import (MapSymbol, LayerGroup, Layer,
-                     WMSLayer, InternalWFSLayer, SourceTypes, Source,
+                     WMSLayer, SourceTypes, Source,
                      AreaLevel, Area)
 
 
@@ -43,12 +43,6 @@ class WMSLayerFactory(LayerFactory):
     url = faker.url()
 
 
-class InternalWFSLayerFactory(LayerFactory):
-    class Meta:
-        model = InternalWFSLayer
-    symbol = factory.SubFactory(MapSymbolsFactory)
-
-
 class SourceFactory(DjangoModelFactory):
     class Meta:
         model = Source
@@ -65,7 +59,6 @@ class AreaLevelFactory(DjangoModelFactory):
     name = faker.word()
     order = faker.unique.pyint(max_value=10)
     source = factory.SubFactory(SourceFactory)
-    layer = factory.SubFactory(InternalWFSLayerFactory)
 
 
 class AreaFactory(DjangoModelFactory):

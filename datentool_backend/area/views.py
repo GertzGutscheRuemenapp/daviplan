@@ -13,11 +13,10 @@ from datentool_backend.utils.views import (CanEditBasedata,
                                            HasAdminAccessOrReadOnly,
                                            ProtectCascadeMixin)
 
-from .models import (MapSymbol, LayerGroup, WMSLayer,
-                     InternalWFSLayer, Source, AreaLevel, Area)
+from .models import (MapSymbol, LayerGroup, WMSLayer, Source, AreaLevel, Area)
 from .serializers import (MapSymbolsSerializer,
                           LayerGroupSerializer, WMSLayerSerializer,
-                          InternalWFSLayerSerializer, SourceSerializer,
+                          SourceSerializer,
                           AreaLevelSerializer, AreaSerializer)
 
 
@@ -89,12 +88,6 @@ class WMSLayerViewSet(viewsets.ModelViewSet):
             'layers': layers,
             'url': wms.url
         })
-
-
-class InternalWFSLayerViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = InternalWFSLayer.objects.all()
-    serializer_class = InternalWFSLayerSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
 class SourceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

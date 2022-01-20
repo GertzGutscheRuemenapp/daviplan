@@ -7,10 +7,8 @@ from django.db.models import Window
 from django.db.models.functions import Coalesce, Lead
 
 from .models import (Infrastructure, FieldType, FClass, FieldTypes, Service,
-                     Place, Capacity, PlaceField,
-                     InternalWFSLayer, InfrastructureAccess)
+                     Place, Capacity, PlaceField, InfrastructureAccess)
 from datentool_backend.utils.geometry_fields import GeometrySRIDField
-from datentool_backend.area.serializers import InternalWFSLayerSerializer
 from datentool_backend.area.models import LayerGroup, MapSymbol
 
 
@@ -22,7 +20,6 @@ class InfrastructureAccessSerializer(serializers.ModelSerializer):
 
 
 class InfrastructureSerializer(serializers.ModelSerializer):
-    layer = InternalWFSLayerSerializer(allow_null=True)
     layer_group = 'Infrastruktur-Standorte'
     accessible_by = InfrastructureAccessSerializer(many=True,
                                                    source='infrastructureaccess_set')
@@ -44,9 +41,6 @@ class InfrastructureSerializer(serializers.ModelSerializer):
         l_layer_name = layer_data.pop('layer_name', validated_data['name'])
         existing = Infrastructure.objects.all().order_by('layer__order')
         order = layer_data.pop('order', existing.last().layer.order + 1)
-        layer = InternalWFSLayer.objects.create(
-            symbol=symbol, name=l_name, layer_name=l_layer_name, order=order,
-            group=group, active=True, **layer_data)
 
         editable_by = validated_data.pop('editable_by', [])
         accessible_by = validated_data.pop('infrastructureaccess_set', [])

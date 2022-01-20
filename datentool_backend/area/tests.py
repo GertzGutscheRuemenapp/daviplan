@@ -5,12 +5,11 @@ from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         )
 
-from .factories import (MapSymbolsFactory,
-                        WMSLayerFactory, InternalWFSLayerFactory,
-                        AreaFactory, AreaLevelFactory, SourceFactory,
+from .factories import (MapSymbolsFactory, WMSLayerFactory, AreaFactory,
+                        AreaLevelFactory, SourceFactory,
                         LayerGroupFactory)
 
-from .models import (MapSymbol, WMSLayer, InternalWFSLayer, SourceTypes,
+from .models import (MapSymbol, WMSLayer, SourceTypes,
                      AreaLevel, Area)
 from .serializers import MapSymbolsSerializer
 
@@ -25,7 +24,6 @@ class TestAreas(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.wfs_layer = WMSLayerFactory()
-        cls.layer = InternalWFSLayerFactory()
         cls.source = SourceFactory()
         cls.area = AreaFactory()
         print(cls.area)
@@ -196,27 +194,6 @@ class TestWMSLayerAPI(WriteOnlyWithCanEditBaseDataTest,
         for coord in bbox:
             self.assertIsInstance(coord, float)
 
-# will be read only (ToDo: read test?)
-#class TestInternalWFSLayerAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
-    #"""test if view and serializer are working correctly"""
-    #url_key = "internalwfslayers"
-    #factory = InternalWFSLayerFactory
-
-    #@classmethod
-    # def setUpTestData(cls):
-        # super().setUpTestData()
-        ##internalwfslayer: InternalWFSLayer = cls.obj
-        ##group = internalwfslayer.group.pk
-        ##symbol = MapSymbolsFactory.create()
-        ##symbol_serializer = MapSymbolsSerializer(symbol)
-
-        #data = dict(name=faker.word(),
-                    #layer_name=faker.word(),
-                    #order=faker.random_int())
-        #cls.post_data = data
-        #cls.put_data = data
-        #cls.patch_data = data
-
 
 class TestSourceAPI(WriteOnlyWithCanEditBaseDataTest,
                     _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
@@ -246,11 +223,11 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
     def setUpTestData(cls):
         super().setUpTestData()
         area_level: AreaLevel = cls.obj
-        source = area_level.source.pk
+        source_data = SourceSerializer(area_level.source).data
         layer = area_level.layer.pk
 
         data = dict(name=faker.word(), order=faker.random_int(),
-                    source=source, layer=layer)
+                    source=source_data, layer=layer)
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data

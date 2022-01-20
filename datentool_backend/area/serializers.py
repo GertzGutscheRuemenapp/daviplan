@@ -3,7 +3,7 @@ from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
 
 from .models import (MapSymbol, LayerGroup, WMSLayer,
-                     InternalWFSLayer, Source, AreaLevel, Area)
+                     Source, AreaLevel, Area)
 
 
 class MapSymbolsSerializer(serializers.ModelSerializer):
@@ -26,15 +26,6 @@ class WMSLayerSerializer(serializers.ModelSerializer):
         optional_fields = ('description', 'active')
 
 
-class InternalWFSLayerSerializer(serializers.ModelSerializer):
-    symbol = MapSymbolsSerializer()
-
-    class Meta:
-        model = InternalWFSLayer
-        fields = ('id', 'name', 'group', 'layer_name', 'order', 'symbol')
-        read_only_fields = ('group', 'symbol')
-
-
 class SourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Source
@@ -42,7 +33,6 @@ class SourceSerializer(serializers.ModelSerializer):
 
 
 class AreaLevelSerializer(serializers.ModelSerializer):
-    layer = InternalWFSLayerSerializer(allow_null=True, required=False)
     source = SourceSerializer(allow_null=True, required=False)
     class Meta:
         model = AreaLevel

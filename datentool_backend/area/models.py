@@ -50,11 +50,6 @@ class WMSLayer(Layer):
         return f'{self.__class__.__name__}: {self.url}'
 
 
-class InternalWFSLayer(Layer):
-    """an internal WFS Layer"""
-    symbol = models.ForeignKey(MapSymbol, on_delete=PROTECT_CASCADE)
-
-
 class SourceTypes(models.TextChoices):
     """SourceTypes"""
     WFS = 'WFS', 'WFS Source'
@@ -73,9 +68,9 @@ class Source(DatentoolModelMixin, models.Model):
 class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
     """an area level"""
     name = models.TextField()
-    order = models.IntegerField(unique=True)
-    source = models.ForeignKey(Source, on_delete=PROTECT_CASCADE)
-    layer = models.ForeignKey(InternalWFSLayer, on_delete=PROTECT_CASCADE)
+    order = models.IntegerField(unique=False, default=0)
+    symbol = models.ForeignKey(MapSymbol, on_delete=models.SET_NULL, null=True)
+    source = models.ForeignKey(Source, on_delete=models.SET_NULL, null=True)
 
 
 class Area(DatentoolModelMixin, JsonAttributes, models.Model):

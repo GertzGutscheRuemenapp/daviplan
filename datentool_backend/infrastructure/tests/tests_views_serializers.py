@@ -32,7 +32,6 @@ from datentool_backend.infrastructure.models import (
     PlaceField,
     InfrastructureAccess,
 )
-from datentool_backend.area.serializers import InternalWFSLayerSerializer
 
 from faker import Faker
 
@@ -88,7 +87,6 @@ class TestInfrastructureAPI(WriteOnlyWithAdminAccessTest,
         accessible_by = [{'profile': p, 'allow_sensitive_data': True}
                          for p in
                          infrastructure.accessible_by.all().values_list(flat=True)]
-        layer_data = InternalWFSLayerSerializer(infrastructure.layer).data
         del(layer_data['group'])
         del(layer_data['id'])
 
