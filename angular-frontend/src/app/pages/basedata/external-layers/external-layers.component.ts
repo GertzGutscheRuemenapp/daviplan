@@ -11,7 +11,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { arrayMove } from "../../../helpers/utils";
 import { sortBy } from "../../../helpers/utils";
-import { LayerGroup, Layer } from "../../../backendInterfaces";
+import { LayerGroup, Layer } from "../../../rest-interfaces";
 
 function isLayer(obj: any): obj is Layer{
   return 'layerName' in obj;

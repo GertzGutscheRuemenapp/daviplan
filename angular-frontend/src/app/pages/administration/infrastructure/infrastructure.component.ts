@@ -8,17 +8,11 @@ import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { arrayMove } from "../../../helpers/utils";
+import { Symbol } from "../../../rest-interfaces"
 
 interface Service {
   id: number,
   name: string;
-}
-
-interface InternalLayer {
-  order: number,
-  name: string,
-  layer_name: string,
-  url: string
 }
 
 interface Infrastructure {
@@ -26,14 +20,15 @@ interface Infrastructure {
   name: string;
   description: string;
   services: Service[];
-  layer?: InternalLayer;
+  order: number;
+  symbol?: Symbol;
 }
 
 export const mockInfrastructures: Infrastructure[] = [
-  { id: 1, name: 'Kinderbetreuung', description: 'Betreuung von Kindern in Einrichtungen, ohne Tagespflege', services: [{ id: 1, name: 'Kita' }, { id: 2, name: 'Krippe' }]},
-  { id: 2, name: 'Schulen', description: 'Allgemeinbildende Schulen ohne Privatschulen und ohne berufsbildende Schulen', services: [{ id: 3, name: 'Grundschule' }, { id: 4, name: 'Gymnasium' }]},
-  { id: 3, name: 'Ärzte', description: 'Haus- und fachärztliche Versorgung. Fachärzte eingeschränkt auf Kinderärzte, Frauenärzte, Augenärzte und Internisten.', services: [{ id: 5, name: 'Allgemeinmedizinerin' }, { id: 6, name: 'Internistin' }, { id: 7, name: 'Hautärztin' }]},
-  { id: 4, name: 'Feuerwehr', description: 'Nicht-polizeiliche Gefahrenabwehr, insbesondere durch die freiwilligen Feuerwehren.', services: [{ id: 8, name: 'Brandschutz???' }, { id: 9, name: '????' }]},
+  { id: 1, order: 1, name: 'Kinderbetreuung', description: 'Betreuung von Kindern in Einrichtungen, ohne Tagespflege', services: [{ id: 1, name: 'Kita' }, { id: 2, name: 'Krippe' }]},
+  { id: 2, order: 2, name: 'Schulen', description: 'Allgemeinbildende Schulen ohne Privatschulen und ohne berufsbildende Schulen', services: [{ id: 3, name: 'Grundschule' }, { id: 4, name: 'Gymnasium' }]},
+  { id: 3, order: 3, name: 'Ärzte', description: 'Haus- und fachärztliche Versorgung. Fachärzte eingeschränkt auf Kinderärzte, Frauenärzte, Augenärzte und Internisten.', services: [{ id: 5, name: 'Allgemeinmedizinerin' }, { id: 6, name: 'Internistin' }, { id: 7, name: 'Hautärztin' }]},
+  { id: 4, order: 4, name: 'Feuerwehr', description: 'Nicht-polizeiliche Gefahrenabwehr, insbesondere durch die freiwilligen Feuerwehren.', services: [{ id: 8, name: 'Brandschutz???' }, { id: 9, name: '????' }]},
 ]
 
 @Component({
@@ -169,7 +164,7 @@ export class InfrastructureComponent implements AfterViewInit  {
 
   sortInfrastructures(infrastructures: Infrastructure[]): Infrastructure[] {
     return infrastructures.sort((a, b) =>
-      (a.layer!.order > b.layer!.order)? 1: (a.layer!.order < b.layer!.order)? -1: 0);
+      (a.order > b.order)? 1: (a.order < b.order)? -1: 0);
   }
 
   /**
@@ -180,8 +175,8 @@ export class InfrastructureComponent implements AfterViewInit  {
     for ( let i = 0; i < this.infrastructures.length; i += 1){
       const infrastructure = this.infrastructures[i];
       this.http.patch<Infrastructure>(`${this.rest.URLS.infrastructures}${infrastructure.id}/`,
-        { layer: { order: i + 1 } }).subscribe(res => {
-          infrastructure.layer!.order = res.layer!.order;
+        { order: i + 1 }).subscribe(res => {
+          infrastructure.order = res.order;
       });
     }
   }

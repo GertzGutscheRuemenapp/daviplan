@@ -1,5 +1,4 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { mockAreaLevels, mockPresetLevels } from "../areas/areas";
 import { MapControl, MapService } from "../../../map/map.service";
 import { environment } from "../../../../environments/environment";
 

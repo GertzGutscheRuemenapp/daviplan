@@ -1,5 +1,5 @@
 import { Injectable, EventEmitter } from '@angular/core';
-import { Layer, LayerGroup } from '../backendInterfaces';
+import { Layer, LayerGroup } from '../rest-interfaces';
 import { OlMap } from './map'
 import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { HttpClient } from "@angular/common/http";
@@ -82,7 +82,6 @@ export class MapService {
       groups = sortBy(groups, 'order');
       let observables: Observable<any>[] = [];
       observables.push(this.http.get<Layer[]>(`${this.rest.URLS.layers}?active=true`));
-      observables.push(this.http.get<Layer[]>(`${this.rest.URLS.internalLayers}?active=true`));
       forkJoin(...observables).subscribe((merged: Array<Layer[]>) => {
         // @ts-ignore
         const flat = [].concat.apply([], merged);
