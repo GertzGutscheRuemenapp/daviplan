@@ -22,7 +22,8 @@ class Infrastructure(DatentoolModelMixin, NamedModel, models.Model):
         through='InfrastructureAccess')
     # sensitive_data
     order = models.IntegerField(unique=False, default=0)
-    symbol = models.ForeignKey(MapSymbol, on_delete=models.SET_NULL, null=True)
+    symbol = models.OneToOneField(MapSymbol, on_delete=models.SET_NULL,
+                                  null=True, blank=True)
 
 
 class InfrastructureAccess(models.Model):

@@ -18,7 +18,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   selectedAreaLevel?: AreaLevel;
   basedataSettings?: BasedataSettings;
   presetLevels: AreaLevel[] = [];
-  areaLevels: AreaLevel[] = [];
+  customAreaLevels: AreaLevel[] = [];
   colorSelection: string = 'black';
 
   constructor(private mapService: MapService,private http: HttpClient, private dialog: MatDialog,
@@ -29,7 +29,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     this.mapControl.setBackground(this.mapControl.getBackgroundLayers()[0].id);
 
     this.fetchBasedataSettings().subscribe(res => {
-      this.fetchLayerGroups().subscribe(res => {
+      this.fetchAreas().subscribe(res => {
         this.selectedAreaLevel = this.presetLevels[0];
         this.colorSelection = this.selectedAreaLevel.symbol?.fillColor || 'black';
       })
@@ -50,10 +50,19 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   /**
    * fetch areas
    */
-  fetchLayerGroups(): Observable<AreaLevel[]> {
+  fetchAreas(): Observable<AreaLevel[]> {
     const query = this.http.get<AreaLevel[]>(this.rest.URLS.arealevels);
     query.subscribe((areaLevels) => {
-      this.presetLevels = sortBy(areaLevels, 'order');
+      this.presetLevels = [];
+      this.customAreaLevels = [];
+      areaLevels.forEach(level => {
+        if (level.isPreset)
+          this.presetLevels.push(level);
+        else
+          this.customAreaLevels.push(level);
+      })
+      this.presetLevels = sortBy(this.presetLevels, 'order');
+      this.customAreaLevels = sortBy(this.customAreaLevels, 'order');
     });
     return query;
   }

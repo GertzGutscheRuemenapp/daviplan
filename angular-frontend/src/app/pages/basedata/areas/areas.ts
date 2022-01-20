@@ -10,7 +10,7 @@ export const mockPresetLevels: AreaLevel[] = [
       fillColor: 'orange',
       strokeColor: 'orange'
     },
-    preset: true
+    isPreset: true
   },
   {
     id: 2,
@@ -21,7 +21,7 @@ export const mockPresetLevels: AreaLevel[] = [
       fillColor: 'red',
       strokeColor: 'red'
     },
-    preset: true
+    isPreset: true
   },
   {
     id: 3,
@@ -32,7 +32,7 @@ export const mockPresetLevels: AreaLevel[] = [
       fillColor: 'yellow',
       strokeColor: 'yellow'
     },
-    preset: true
+    isPreset: true
   },
   {
     id: 1,
@@ -43,7 +43,7 @@ export const mockPresetLevels: AreaLevel[] = [
       fillColor: 'black',
       strokeColor: 'black'
     },
-    preset: true
+    isPreset: true
   },
 ];
 

@@ -38,10 +38,13 @@ class SourceSerializer(serializers.ModelSerializer):
 class AreaLevelSerializer(serializers.ModelSerializer):
     source = SourceSerializer(allow_null=True, required=False)
     symbol = MapSymbolSerializer(allow_null=True, required=False)
+    area_count = serializers.IntegerField(source='area_set.count',
+                                          read_only=True)
+
     class Meta:
         model = AreaLevel
         fields = ('id', 'name', 'order', 'source', 'symbol', 'is_active',
-                  'is_preset')
+                  'is_preset', 'area_count')
         read_only_fields = ('is_preset', )
 
     def create(self, validated_data):

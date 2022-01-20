@@ -44,5 +44,7 @@ export interface AreaLevel {
   order: number;
   source?: Source;
   symbol?: Symbol;
-  preset?: boolean;
+  isPreset?: boolean;
+  isActive?: boolean;
+  areaCount?: number;
 }
