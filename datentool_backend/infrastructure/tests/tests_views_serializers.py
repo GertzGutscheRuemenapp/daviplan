@@ -10,7 +10,9 @@ from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         WriteOnlyWithAdminAccessTest)
 from datentool_backend.area.tests import _TestAPI, _TestPermissions
-from datentool_backend.user.factories import ProfileFactory, ScenarioFactory, PlanningProcessFactory
+from datentool_backend.user.factories import (ProfileFactory, ScenarioFactory,
+                                              PlanningProcessFactory)
+from datentool_backend.area.serializers import MapSymbolSerializer
 
 from datentool_backend.infrastructure.factories import (
     InfrastructureFactory,
@@ -87,14 +89,14 @@ class TestInfrastructureAPI(WriteOnlyWithAdminAccessTest,
         accessible_by = [{'profile': p, 'allow_sensitive_data': True}
                          for p in
                          infrastructure.accessible_by.all().values_list(flat=True)]
-        del(layer_data['group'])
-        del(layer_data['id'])
+        symbol_data = MapSymbolSerializer(infrastructure.symbol).data
 
         data = dict(name=faker.word(),
                     description=faker.word(),
+                    order=faker.pyint(max_value=10),
                     editable_by=editable_by,
                     accessible_by=accessible_by,
-                    layer=layer_data)
+                    symbol=symbol_data)
         cls.post_data = data
         cls.put_data = data
         #  for patch, test if different value for allow_sensitive_data is passed
@@ -152,11 +154,23 @@ class TestInfrastructureAPI(WriteOnlyWithAdminAccessTest,
         self.response_403(msg=response.content)
 
         # check status code for patch
-        self.patch_data = {'layer': {
-            'name': 'test', 'symbol': {'symbol': 'line'}}}
+        self.patch_data = {'symbol': {'symbol': 'line'}}
         response = self.patch(url, **kwargs,
                               data=self.patch_data, extra=formatjson)
         self.response_200(msg=response.content)
+        self.assertEqual(response.data['symbol']['symbol'], 'line')
+
+        # check if symbol is nullable
+        self.patch_data = { 'symbol': None }
+        response = self.patch(url, **kwargs,
+                              data=self.patch_data, extra=formatjson)
+        self.assertIsNone(response.data['symbol'])
+
+        # check if symbol is recreated
+        self.patch_data = {'symbol': {'symbol': 'square'}}
+        response = self.patch(url, **kwargs,
+                              data=self.patch_data, extra=formatjson)
+        self.assertEqual(response.data['symbol']['symbol'], 'square')
 
         # Other fields should not be edited
         self.patch_data['description'] = 'A new description'
@@ -186,8 +200,7 @@ class TestInfrastructureAPI(WriteOnlyWithAdminAccessTest,
         self.response_403(msg=response.content)
 
         # check status code for patch
-        self.patch_data = {'layer': {
-            'name': 'test', 'symbol': {'symbol': 'line'}}}
+        self.patch_data = {'symbol': {'symbol': 'line'}}
 
         response = self.patch(url, **kwargs,
                               data=self.patch_data, extra=formatjson)

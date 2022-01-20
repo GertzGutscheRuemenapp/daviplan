@@ -10,6 +10,7 @@ from .models import (Infrastructure, FieldType, FClass, FieldTypes, Service,
                      Place, Capacity, PlaceField, InfrastructureAccess)
 from datentool_backend.utils.geometry_fields import GeometrySRIDField
 from datentool_backend.area.models import LayerGroup, MapSymbol
+from datentool_backend.area.serializers import MapSymbolSerializer
 
 
 class InfrastructureAccessSerializer(serializers.ModelSerializer):
@@ -20,50 +21,44 @@ class InfrastructureAccessSerializer(serializers.ModelSerializer):
 
 
 class InfrastructureSerializer(serializers.ModelSerializer):
-    layer_group = 'Infrastruktur-Standorte'
-    accessible_by = InfrastructureAccessSerializer(many=True,
-                                                   source='infrastructureaccess_set')
+    symbol = MapSymbolSerializer(allow_null=True, required=False)
+    accessible_by = InfrastructureAccessSerializer(
+        many=True, source='infrastructureaccess_set', required=False)
 
     class Meta:
         model = Infrastructure
         fields = ('id', 'name', 'description',
                   'editable_by', 'accessible_by',
-                  'layer')
+                  'order', 'symbol')
 
     def create(self, validated_data):
-        layer_data = validated_data.pop('layer', {})
-        symbol_data = layer_data.pop('symbol', {})
-        symbol = MapSymbol.objects.create(**symbol_data)
-
-        group, created = LayerGroup.objects.get_or_create(
-            name=self.layer_group, external=False)
-        l_name = layer_data.pop('name', validated_data['name'])
-        l_layer_name = layer_data.pop('layer_name', validated_data['name'])
-        existing = Infrastructure.objects.all().order_by('layer__order')
-        order = layer_data.pop('order', existing.last().layer.order + 1)
+        symbol_data = validated_data.pop('symbol', None)
+        symbol = MapSymbol.objects.create(**symbol_data) \
+            if symbol_data else None
 
         editable_by = validated_data.pop('editable_by', [])
         accessible_by = validated_data.pop('infrastructureaccess_set', [])
-        infrastructure = Infrastructure.objects.create(layer=layer,
-                                                       **validated_data)
-        infrastructure.editable_by.set(editable_by)
-        infrastructure.accessible_by.set([a['profile'] for a in accessible_by])
+        instance = Infrastructure.objects.create(
+            symbol=symbol, **validated_data)
+        instance.editable_by.set(editable_by)
+        instance.accessible_by.set([a['profile'] for a in accessible_by])
         for profile_access in accessible_by:
             infrastructure_access = InfrastructureAccess.objects.get(
-                infrastructure=infrastructure,
+                infrastructure=instance,
                 profile=profile_access['profile'])
             infrastructure_access.allow_sensitive_data = profile_access['allow_sensitive_data']
             infrastructure_access.save()
 
-        return infrastructure
+        return instance
 
     def update(self, instance, validated_data):
-        layer_data = validated_data.pop('layer', {})
-        symbol_data = layer_data.pop('symbol', {})
+        # symbol is nullable
+        update_symbol = 'symbol' in validated_data
+        symbol_data = validated_data.pop('symbol', None)
 
         editable_by = validated_data.pop('editable_by', None)
         accessible_by = validated_data.pop('infrastructureaccess_set', None)
-        super().update(instance, validated_data)
+        instance = super().update(instance, validated_data)
         if editable_by is not None:
             instance.editable_by.set(editable_by)
         if accessible_by is not None:
@@ -74,21 +69,23 @@ class InfrastructureSerializer(serializers.ModelSerializer):
                     profile=profile_access['profile'])
                 infrastructure_access.allow_sensitive_data = profile_access['allow_sensitive_data']
                 infrastructure_access.save()
+
+        if update_symbol:
+            symbol = instance.symbol
+            if symbol_data:
+                if not symbol:
+                    symbol = MapSymbol.objects.create(**symbol_data)
+                    instance.symbol = symbol
+                else:
+                    for k, v in symbol_data.items():
+                        setattr(symbol, k, v)
+                    symbol.save()
+            # symbol passed but is None -> intention to set it to null
+            else:
+                symbol.delete()
+                instance.symbol = None
+
         instance.save()
-
-        layer = instance.layer
-        layer.name = layer_data.get('name', layer.name)
-        layer.layer_name = layer_data.get('layer_name', layer.layer_name)
-        layer.order = layer_data.get('order', layer.order)
-        layer.save()
-
-        symbol = layer.symbol
-        symbol.symbol = symbol_data.get('symbol', symbol.symbol)
-        symbol.fill_color = symbol_data.get('fill_color', symbol.fill_color)
-        symbol.stroke_color = symbol_data.get('stroke_color',
-                                              symbol.stroke_color)
-        symbol.save()
-
         return instance
 
 

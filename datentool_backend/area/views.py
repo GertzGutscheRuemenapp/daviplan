@@ -14,7 +14,7 @@ from datentool_backend.utils.views import (CanEditBasedata,
                                            ProtectCascadeMixin)
 
 from .models import (MapSymbol, LayerGroup, WMSLayer, Source, AreaLevel, Area)
-from .serializers import (MapSymbolsSerializer,
+from .serializers import (MapSymbolSerializer,
                           LayerGroupSerializer, WMSLayerSerializer,
                           SourceSerializer,
                           AreaLevelSerializer, AreaSerializer)
@@ -38,7 +38,7 @@ class AreaLevelTileView(MVTView, DetailView):
 
 class MapSymbolsViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = MapSymbol.objects.all()
-    serializer_class = MapSymbolsSerializer
+    serializer_class = MapSymbolSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
@@ -88,12 +88,6 @@ class WMSLayerViewSet(viewsets.ModelViewSet):
             'layers': layers,
             'url': wms.url
         })
-
-
-class SourceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = Source.objects.all()
-    serializer_class = SourceSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
 class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

@@ -7,6 +7,7 @@ from .models import (Infrastructure, Service, Place,
                      Capacity, FieldTypes, FieldType, FClass, PlaceField,
                      Profile)
 from .. user.factories import ScenarioFactory
+from datentool_backend.area.factories import MapSymbolFactory
 
 faker = Faker('de-DE')
 
@@ -17,6 +18,8 @@ class InfrastructureFactory(DjangoModelFactory):
     name = faker.word()
     description = faker.sentence()
     # sensitive_data
+    symbol = factory.SubFactory(MapSymbolFactory)
+    order = faker.unique.pyint(max_value=10)
 
     @factory.post_generation
     def editable_by(self, create, extracted, **kwargs):

@@ -10,12 +10,11 @@ from .models import (MapSymbol, LayerGroup, Layer,
 faker = Faker('de-DE')
 
 
-class MapSymbolsFactory(DjangoModelFactory):
+class MapSymbolFactory(DjangoModelFactory):
     class Meta:
         model = MapSymbol
 
-    # ToDo: random choice?
-    symbol = MapSymbol.Symbol.SQUARE
+    symbol = faker.random_element(MapSymbol.Symbol)
     fill_color = faker.color()
     stroke_color = faker.color()
 
@@ -58,6 +57,7 @@ class AreaLevelFactory(DjangoModelFactory):
         model = AreaLevel
     name = faker.word()
     order = faker.unique.pyint(max_value=10)
+    symbol = factory.SubFactory(MapSymbolFactory)
     source = factory.SubFactory(SourceFactory)
 
 
