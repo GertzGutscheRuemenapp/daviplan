@@ -9,13 +9,16 @@ import GeoJSON from 'ol/format/GeoJSON';
 import { bbox as bboxStrategy } from 'ol/loadingstrategy';
 import TileWMS from 'ol/source/TileWMS';
 import XYZ from 'ol/source/XYZ';
-import { Stroke, Style, Fill } from 'ol/style';
+import { Stroke, Style, Fill, Icon } from 'ol/style';
 import { Select } from "ol/interaction";
 import { click, singleClick, always } from 'ol/events/condition';
 import { EventEmitter } from "@angular/core";
 import { Polygon } from "ol/geom";
-import {fromExtent} from 'ol/geom/Polygon';
+import { fromExtent } from 'ol/geom/Polygon';
 import { saveAs } from 'file-saver';
+import MVT from 'ol/format/MVT';
+import VectorTileLayer from 'ol/layer/VectorTile';
+import VectorTileSource from 'ol/source/VectorTile';
 
 export class OlMap {
   target: string;
@@ -136,6 +139,27 @@ export class OlMap {
     this.map.addLayer(layer);
     this.layers[options.name] = layer;
 
+    return layer;
+  }
+
+  addVectorTileLayer(options: {
+    name: string, url: string }): Layer<any> {
+    const source = new VectorTileSource({
+      format: new MVT(),
+      url: options.url
+    });
+    const layer =
+        new VectorTileLayer({
+          declutter: true,
+          source: source
+        })
+    this.map.addLayer(layer);
+    this.layers[options.name] = layer;
+    source.on('tileloadend', function(evt) {
+      const z = evt.tile.getTileCoord()[0];
+      // @ts-ignore
+      const features = evt.tile.getFeatures();
+    });
     return layer;
   }
 

@@ -93,6 +93,7 @@ export class LegendComponent implements AfterViewInit {
    * @param id
    */
   setBackground(id: number) {
+    let source = this.mapControl.map?.getLayer('test').getSource()
     this.activeBackground = this.backgroundLayers.find(l => { return l.id === id });
     this.cookies.set(`background-layer`, id);
     if (this.activeBackground){

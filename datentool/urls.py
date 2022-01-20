@@ -24,6 +24,8 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView
 )
 
+from datentool_backend.views import AreaLevelTileView
+
 from .views import HomePageView
 
 urlpatterns = [
@@ -34,8 +36,10 @@ urlpatterns = [
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path('api/token/refresh/', TokenRefreshView.as_view(),
          name='token_refresh'),
+    path('tiles/arealevels/<int:pk>/tile/<int:z>/<int:x>/<int:y>/',
+         AreaLevelTileView.as_view(), name="layer-tile"),
     # match all routes to the home page (entry point to angular) to let angular
-    # handle the routing, /api and /static routes are atill handled by django
+    # handle the routing, /api and /static routes are still handled by django
     # automatically, for some reason /media is not, so it is excluded here
     url('^(?!media).*', HomePageView.as_view(), name='home'),
 ]
