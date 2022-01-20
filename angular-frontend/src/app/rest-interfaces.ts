@@ -41,7 +41,8 @@ export interface Source {
 export interface AreaLevel {
   id: number;
   name: string;
+  order: number;
   source?: Source;
-  layer?: Layer;
+  symbol?: Symbol;
   preset?: boolean;
 }

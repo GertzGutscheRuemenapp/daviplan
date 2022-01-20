@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../map.service";
-import { LayerGroup, Layer } from "../../backendInterfaces";
+import { LayerGroup, Layer } from "../../rest-interfaces";
 import { CookieService } from "../../helpers/cookies.service";
 import { FloatingDialog } from "../../dialogs/help-dialog/help-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
@@ -93,7 +93,6 @@ export class LegendComponent implements AfterViewInit {
    * @param id
    */
   setBackground(id: number) {
-    let source = this.mapControl.map?.getLayer('test').getSource()
     this.activeBackground = this.backgroundLayers.find(l => { return l.id === id });
     this.cookies.set(`background-layer`, id);
     if (this.activeBackground){

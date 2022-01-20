@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
-import { AreaLevel, BasedataSettings } from "../../../backendInterfaces";
+import { AreaLevel, BasedataSettings } from "../../../rest-interfaces";
 import { Observable } from "rxjs";
 import { sortBy } from "../../../helpers/utils";
 import { HttpClient } from "@angular/common/http";
@@ -31,7 +31,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     this.fetchBasedataSettings().subscribe(res => {
       this.fetchLayerGroups().subscribe(res => {
         this.selectedAreaLevel = this.presetLevels[0];
-        this.colorSelection = this.selectedAreaLevel.layer?.symbol?.fillColor || 'black';
+        this.colorSelection = this.selectedAreaLevel.symbol?.fillColor || 'black';
       })
     })
   }
@@ -64,7 +64,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
 
   onSelect(areaLevel: AreaLevel): void {
     this.selectedAreaLevel = areaLevel;
-    this.colorSelection = this.selectedAreaLevel.layer?.symbol?.fillColor || 'black';
+    this.colorSelection = this.selectedAreaLevel.symbol?.fillColor || 'black';
   }
 
   onCreateArea(): void {
