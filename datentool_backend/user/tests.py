@@ -3,10 +3,11 @@ from django.test import TestCase
 from test_plus import APITestCase
 from typing import List, Set
 
-from datentool_backend.api_test import (BasicModelTest, LoginTestCase)
+from datentool_backend.api_test import (BasicModelTest, LoginTestCase,
+                                        WriteOnlyWithAdminAccessTest)
 from datentool_backend.area.tests import _TestAPI
 
-from .factories import (ProfileFactory, UserFactory, User,
+from .factories import (ProfileFactory, User, UserFactory,
                         PlanningProcessFactory, ScenarioFactory)
 from .models import PlanningProcess, Scenario, Profile
 
@@ -175,21 +176,60 @@ class PostOnlyWithCanCreateProcessTest:  # ToDo test get, if user is not owner
 
 class TestProfile(TestCase):
 
+    def test_profile_factory(self):
+        profile = ProfileFactory()
+        str(profile)
+        self.assertTrue(profile.pk)
+        self.assertTrue(profile.user.pk)
+
+    def test_planningprocess_factory(self):
+        planning_process = PlanningProcessFactory()
+        profile = planning_process.owner
+        self.assertTrue(profile.pk)
+        self.assertTrue(profile.user.pk)
+
+        scenario = ScenarioFactory()
+        planning_process = scenario.planning_process
+        profile = planning_process.owner
+        self.assertTrue(profile.pk)
+        self.assertTrue(profile.user.pk)
+
+    def test_user(self):
+        user2 = User.objects.create(username='Test')
+        self.assertTrue(user2.profile.pk)
+
+        user2.profile.can_edit_basedata = True
+        user2.save()
+
+        profile2 = Profile.objects.get(user=user2)
+        self.assertTrue(profile2.can_edit_basedata)
+
+
+class TestUserAPI(WriteOnlyWithAdminAccessTest,
+                  _TestAPI, BasicModelTest, APITestCase):
+    """Test user view"""
+    url_key = "users"
+
     @classmethod
     def setUpTestData(cls):
-        cls.profile = ProfileFactory()
+        super().setUpTestData()
+        cls.profile.admin_access = True
+        cls.profile.save()
 
-    def test_profile(self):
-        profile = self.profile
+        cls.obj = ProfileFactory().user
 
-    #def test_user(self):
-        #user = UserFactory()
-        #self.assertTrue(user.profile)
-        #user.profile.admin_access = False
-        #user.save()
+        cls.post_data = {'username': 'NewUser',
+                         'password': 'Secret',
+                         'profile': {'can_create_process': True,},}
 
-        #user2 = User.objects.create(username='Test')
-        #self.assertTrue(user2.profile.pk)
+
+        cls.put_data = {'username': 'RenamedUser',
+                         'password': 'Other',
+                         'profile': {'can_edit_basedata': True,},}
+
+        cls.patch_data = {'username': 'changed',
+                         'profile': {'admin_access': False,
+                                     'can_edit_basedata': False,},}
 
 
 class TestPlanningProcessAPI(PostOnlyWithCanCreateProcessTest,
