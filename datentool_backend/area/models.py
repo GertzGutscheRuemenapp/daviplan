@@ -69,8 +69,10 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
     """an area level"""
     name = models.TextField()
     order = models.IntegerField(unique=False, default=0)
-    symbol = models.ForeignKey(MapSymbol, on_delete=models.SET_NULL, null=True)
-    source = models.ForeignKey(Source, on_delete=models.SET_NULL, null=True)
+    symbol = models.OneToOneField(MapSymbol, on_delete=models.SET_NULL,
+                                  null=True, blank=True)
+    source = models.OneToOneField(Source, on_delete=models.SET_NULL, null=True,
+                                  blank=True)
     is_active = models.BooleanField(default=True)
     is_preset = models.BooleanField(default=False)
 

@@ -26,20 +26,20 @@
               <div class="option-text">{{ areaLevel.name }}</div>
               <mat-icon *ngIf="areaLevel.id === basedataSettings?.defaultPopAreaLevel" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
             </mat-list-option>
-            <mat-checkbox color="primary"></mat-checkbox>
+            <mat-checkbox color="primary" [checked]="areaLevel.isActive!"></mat-checkbox>
           </div>
           <mat-divider></mat-divider>
           <mat-optgroup>
             Eigene Gebietseinteilungen
           </mat-optgroup>
-          <div class="option-wrapper" *ngFor="let areaLevel of areaLevels">
+          <div class="option-wrapper" *ngFor="let areaLevel of customAreaLevels">
             <mat-list-option [value]="areaLevel"
                              (click)="onSelect(areaLevel)"
                              [selected]="(selectedAreaLevel && (areaLevel.id === selectedAreaLevel.id))">
               <div class="option-text">{{ areaLevel.name }}</div>
               <mat-icon *ngIf="areaLevel.id === basedataSettings?.defaultPopAreaLevel" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
             </mat-list-option>
-            <mat-checkbox color="primary"></mat-checkbox>
+            <mat-checkbox color="primary" [checked]="areaLevel.isActive!"></mat-checkbox>
           </div>
         </mat-selection-list>
         <div class="order-controls">
@@ -60,7 +60,7 @@
       <button mat-button color="primary"
               class="multiline-button"
               style="width: 86%;"
-              [disabled]="selectedAreaLevel?.preset && selectedAreaLevel !== presetLevels[0]"
+              [disabled]="selectedAreaLevel?.isPreset && selectedAreaLevel !== presetLevels[0]"
               (click)="basedataSettings!.defaultPopAreaLevel = selectedAreaLevel!.id">
         <mat-icon class="material-icons-outlined">verified</mat-icon>
         Als Gebietseinheit für alle Einwohnerdaten festlegen
@@ -74,7 +74,7 @@
         <button mat-button color="primary"
                 style="margin-left: 40px;"
                 class="mat-button-dv"
-                [disabled]="selectedAreaLevel?.preset"
+                [disabled]="selectedAreaLevel?.isPreset"
                 (click)="onCreateArea()" i18n>
           <mat-icon>close</mat-icon>entfernen
         </button>
@@ -87,11 +87,19 @@
       <table *ngIf="selectedAreaLevel">
         <tr>
           <td i18n>Name</td>
-          <td>{{selectedAreaLevel?.name}}</td>
+          <td [style.color]="selectedAreaLevel.isPreset? 'grey': ''">{{selectedAreaLevel?.name}}</td>
         </tr>
         <tr>
           <td i18n>Linienfarbe</td>
-          <td><div class="symbol square" [style.backgroundColor]="selectedAreaLevel?.symbol?.strokeColor"></div></td>
+          <td>
+            <div *ngIf="selectedAreaLevel?.symbol"
+                 class="symbol square"
+                 [style.backgroundColor]="selectedAreaLevel?.symbol?.strokeColor">
+            </div>
+            <div *ngIf="!selectedAreaLevel?.symbol">
+              keine Darstellung
+            </div>
+          </td>
         </tr>
       </table>
     </app-input-card>
@@ -110,7 +118,7 @@
           <table style="margin-top: 15px;">
             <tr>
               <td i18n>Gebiete (Features)</td>
-              <td>12</td>
+              <td>{{selectedAreaLevel?.areaCount}}</td>
             </tr>
             <tr>
               <td i18n>Quelle</td>
@@ -165,7 +173,7 @@
       <mat-label i18n>Name</mat-label>
       <input matInput formControlName="username"
                       [value]="selectedAreaLevel?.name"
-                      [disabled]="selectedAreaLevel?.preset || false">
+                      [disabled]="selectedAreaLevel?.isPreset || false">
     </mat-form-field>
     <table>
       <tr>
