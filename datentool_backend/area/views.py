@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 from url_filter.integrations.drf import DjangoFilterBackend
 from rest_framework.exceptions import (ParseError, NotFound, APIException)
 from vectortiles.postgis.views import MVTView, BaseVectorTileView
@@ -89,11 +89,28 @@ class WMSLayerViewSet(viewsets.ModelViewSet):
             'url': wms.url
         })
 
+class ProtectPresetPermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        # presets can not be deleted and name and source type (except date)
+        # can not be changed
+        if (obj.is_preset and
+            (
+                request.method == 'DELETE' or
+                'name' in request.data or
+                (
+                    'source' in request.data and
+                    set(request.data['source']) > set(['date'])
+                )
+            )):
+            return False
+        return True
+
 
 class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = AreaLevel.objects.all()
     serializer_class = AreaLevelSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    permission_classes = [ProtectPresetPermission &
+                          (HasAdminAccessOrReadOnly | CanEditBasedata)]
 
 
 class AreaViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

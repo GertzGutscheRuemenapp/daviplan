@@ -71,6 +71,8 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
     order = models.IntegerField(unique=False, default=0)
     symbol = models.ForeignKey(MapSymbol, on_delete=models.SET_NULL, null=True)
     source = models.ForeignKey(Source, on_delete=models.SET_NULL, null=True)
+    is_active = models.BooleanField(default=True)
+    is_preset = models.BooleanField(default=False)
 
 
 class Area(DatentoolModelMixin, JsonAttributes, models.Model):

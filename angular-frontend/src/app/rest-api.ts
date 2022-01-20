@@ -19,7 +19,6 @@ export class RestAPI {
     arealevels: `${ this.API_ENDPOINT }/arealevels/`,
     layerGroups: `${ this.API_ENDPOINT }/layergroups/`,
     layers: `${ this.API_ENDPOINT }/wmslayers/`,
-    internalLayers: `${ this.API_ENDPOINT }/internallayers/`,
     getCapabilities: `${ this.API_ENDPOINT }/wmslayers/getcapabilities/`
   }
   // ToDo: functions with generalized HTTP calls in here

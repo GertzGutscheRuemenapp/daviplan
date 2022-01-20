@@ -40,7 +40,9 @@ class AreaLevelSerializer(serializers.ModelSerializer):
     symbol = MapSymbolSerializer(allow_null=True, required=False)
     class Meta:
         model = AreaLevel
-        fields = ('id', 'name', 'order', 'source', 'symbol')
+        fields = ('id', 'name', 'order', 'source', 'symbol', 'is_active',
+                  'is_preset')
+        read_only_fields = ('is_preset', )
 
     def create(self, validated_data):
         symbol_data = validated_data.pop('symbol', None)

@@ -59,6 +59,8 @@ class AreaLevelFactory(DjangoModelFactory):
     order = faker.unique.pyint(max_value=10)
     symbol = factory.SubFactory(MapSymbolFactory)
     source = factory.SubFactory(SourceFactory)
+    is_preset = False
+    is_active = True
 
 
 class AreaFactory(DjangoModelFactory):
