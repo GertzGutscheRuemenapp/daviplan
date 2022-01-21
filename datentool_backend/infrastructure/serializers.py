@@ -46,8 +46,8 @@ class ScenarioSerializer(serializers.ModelSerializer):
                   'modevariants', 'demandratesets')
 
     def update(self, instance, validated_data):
-        mode_set = validated_data.pop('scenariomode_set')
-        service_set = validated_data.pop('scenarioservice_set')
+        mode_set = validated_data.pop('scenariomode_set', [])
+        service_set = validated_data.pop('scenarioservice_set', [])
         super().update(instance, validated_data)
 
         ## delete
@@ -74,8 +74,8 @@ class ScenarioSerializer(serializers.ModelSerializer):
         return instance
 
     def create(self, validated_data):
-        mode_set = validated_data.pop('scenariomode_set')
-        service_set = validated_data.pop('scenarioservice_set')
+        mode_set = validated_data.pop('scenariomode_set', [])
+        service_set = validated_data.pop('scenarioservice_set', [])
         instance = super().create(validated_data)
         for mode in mode_set:
             ScenarioMode.objects.create(scenario=instance,
