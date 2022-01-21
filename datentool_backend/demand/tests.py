@@ -2,7 +2,7 @@ from django.test import TestCase
 from test_plus import APITestCase
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest)
-from datentool_backend.area.tests import _TestAPI, _TestPermissions
+from datentool_backend.area.tests import TestAPIMixin, TestPermissionsMixin
 
 from .factories import DemandRateSetFactory, DemandRateFactory, ScenarioDemandRateFactory
 from .models import DemandRate, DemandRateSet, ScenarioDemandRate
@@ -20,7 +20,7 @@ class TestDemand(TestCase):
 
 
 class TestDemandRateSetAPI(WriteOnlyWithCanEditBaseDataTest,
-                           _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                           TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "demandratesets"
     factory = DemandRateSetFactory
@@ -38,7 +38,7 @@ class TestDemandRateSetAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 class TestDemandRateAPI(WriteOnlyWithCanEditBaseDataTest,
-                        _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                        TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "demandrates"
     factory = DemandRateFactory

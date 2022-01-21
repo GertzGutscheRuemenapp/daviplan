@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from .models import Profile, PlanningProcess, Scenario
+from .models import Profile, Year, PlanningProcess, Scenario
 
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
@@ -43,6 +43,12 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             setattr(profile, k, v)
         profile.save()
         return super().update(instance, validated_data)
+
+
+class YearSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Year
+        fields = ('id', 'year')
 
 
 class PlanningProcessSerializer(serializers.ModelSerializer):

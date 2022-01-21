@@ -1,10 +1,21 @@
 from rest_framework import viewsets, permissions
 from django.db.models import Q
 from django.contrib.auth.models import User
-from datentool_backend.utils.views import HasAdminAccessOrReadOnly, ProtectCascadeMixin
-from .serializers import (UserSerializer, PlanningProcessSerializer,
-                          ScenarioSerializer)
-from .models import PlanningProcess, Scenario, Profile
+
+from datentool_backend.utils.views import ProtectCascadeMixin
+from datentool_backend.utils.permissions import(CanEditBasedata,
+                                                HasAdminAccessOrReadOnly,
+                                                )
+from .serializers import (UserSerializer,
+                          YearSerializer,
+                          PlanningProcessSerializer,
+                          ScenarioSerializer,
+                          )
+from .models import (Profile,
+                     Year,
+                     PlanningProcess,
+                     Scenario,
+                     )
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -43,6 +54,12 @@ class CanCreateProcessPermission(permissions.BasePermission):
         else:
             owner = obj.owner
             return request.user.profile == owner
+
+
+class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+    queryset = Year.objects.all()
+    serializer_class = YearSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
 class PlanningProcessViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

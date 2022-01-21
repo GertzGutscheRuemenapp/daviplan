@@ -1,11 +1,13 @@
 from django.db import models
 from datentool_backend.base import NamedModel
-from datentool_backend.population.models import (AgeGroup, Year)
+from datentool_backend.population.models import (AgeGroup, )
 from datentool_backend.infrastructure.models import (Service)
-from datentool_backend.user.models import Scenario
+from datentool_backend.user.models import Scenario, Year
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.base import NamedModel, DatentoolModelMixin
-from datentool_backend.utils.views import (CanEditBasedata, HasAdminAccessOrReadOnly)
+from datentool_backend.utils.permissions import (CanEditBasedata,
+                                                 HasAdminAccessOrReadOnly,
+                                                 )
 
 
 class DemandRateSet(DatentoolModelMixin, NamedModel, models.Model):

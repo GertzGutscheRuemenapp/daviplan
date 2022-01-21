@@ -2,7 +2,7 @@ import factory
 from factory.django import DjangoModelFactory, mute_signals
 from faker import Faker
 
-from .models import User, Profile, post_save, PlanningProcess, Scenario
+from .models import User, Profile, post_save, Year, PlanningProcess, Scenario
 
 
 faker = Faker('de-DE')
@@ -26,6 +26,13 @@ class ProfileFactory(DjangoModelFactory):
     can_create_process = faker.pybool()
     can_edit_basedata = faker.pybool()
     user = factory.SubFactory(UserFactory, profile=None)
+
+
+class YearFactory(DjangoModelFactory):
+    class Meta:
+        model = Year
+
+    year = faker.unique.year()
 
 
 class PlanningProcessFactory(DjangoModelFactory):

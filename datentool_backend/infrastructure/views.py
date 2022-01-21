@@ -1,20 +1,32 @@
+import json
+
+from django.db.models import ProtectedError
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from django.db.models import ProtectedError
-import json
-from datentool_backend.utils.views import (HasAdminAccessOrReadOnly,
-                                           CanEditBasedata,
-                                           ProtectCascadeMixin)
 
-from .models import (Infrastructure, FieldType, Service, Place, Capacity,
-                     PlaceField, FClass)
+from datentool_backend.utils.views import ProtectCascadeMixin
+from datentool_backend.utils.permissions import (
+    HasAdminAccessOrReadOnly, CanEditBasedata)
 
-from .serializers import (InfrastructureSerializer, FieldTypeSerializer,
-                          ServiceSerializer, PlaceSerializer,
+from .models import (Infrastructure,
+                     FieldType,
+                     Service,
+                     Place,
+                     Capacity,
+                     PlaceField,
+                     FClass,
+                     )
+
+from .serializers import (InfrastructureSerializer,
+                          FieldTypeSerializer,
+                          ServiceSerializer,
+                          PlaceSerializer,
                           PlaceUpdateAttributeSerializer,
-                          CapacitySerializer, PlaceFieldSerializer,
-                          FClassSerializer)
+                          CapacitySerializer,
+                          PlaceFieldSerializer,
+                          FClassSerializer,
+                          )
 
 
 class CanPatchSymbol(permissions.BasePermission):

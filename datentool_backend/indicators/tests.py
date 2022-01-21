@@ -2,19 +2,23 @@ from django.test import TestCase
 from test_plus import APITestCase
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest)
-from datentool_backend.area.tests import _TestAPI, _TestPermissions
+from datentool_backend.area.tests import TestAPIMixin, TestPermissionsMixin
 
 from faker import Faker
 
 faker = Faker('de-DE')
 
 
-from .factories import (ModeFactory, ModeVariantFactory, RouterFactory,
-                        IndicatorFactory, CutOffTimeFactory
-                        # , MatrixCellStopFactory
+from .factories import (ModeFactory,
+                        ModeVariantFactory,
+                        RouterFactory,
+                        IndicatorFactory,
+                        CutOffTimeFactory,
+                        # MatrixCellStopFactory,
                         # ReachabilityMatrixFactory,
                         )
-from .models import (ModeVariant, CutOffTime,
+from .models import (ModeVariant,
+                     # CutOffTime,
                      # ReachabilityMatrix,
                      IndicatorTypes, Indicator)
 
@@ -42,7 +46,7 @@ class TestIndicator(TestCase):
 
 
 class TestModeAPI(WriteOnlyWithCanEditBaseDataTest,
-                  _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                  TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "modes"
     factory = ModeFactory
@@ -57,7 +61,7 @@ class TestModeAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 class TestModeVariantAPI(WriteOnlyWithCanEditBaseDataTest,
-                         _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                         TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "modevariants"
     factory = ModeVariantFactory
@@ -97,7 +101,7 @@ class TestModeVariantAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 class TestRouterAPI(WriteOnlyWithCanEditBaseDataTest,
-                    _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                    TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "routers"
     factory = RouterFactory
@@ -116,7 +120,7 @@ class TestRouterAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 class TestIndicatorAPI(WriteOnlyWithCanEditBaseDataTest,
-                       _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                       TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "indicators"
     factory = IndicatorFactory

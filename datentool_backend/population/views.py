@@ -2,32 +2,36 @@ from rest_framework import viewsets, permissions
 from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 from rest_framework.decorators import action
-# import for vector-tile functionality
-#from django.views.generic import DetailView
-#from vectortiles.mixins import BaseVectorTileView
-#from django.views.generic import ListView
-#from vectortiles.postgis.views import MVTView
-from datentool_backend.utils.views import (HasAdminAccess,
-                                           CanEditBasedata,
-                                           HasAdminAccessOrReadOnly,
-                                           ProtectCascadeMixin)
-from .models import (Year, Raster, PopulationRaster, Gender, AgeGroup, DisaggPopRaster,
-                     Prognosis, PrognosisEntry, Population, PopulationEntry,
-                     PopStatistic, PopStatEntry, RasterCell)
+
+from datentool_backend.utils.views import ProtectCascadeMixin
+from datentool_backend.utils.permissions import (
+    HasAdminAccessOrReadOnly, CanEditBasedata)
+
+from .models import (Raster,
+                     PopulationRaster,
+                     Gender,
+                     AgeGroup,
+                     DisaggPopRaster,
+                     Prognosis,
+                     PrognosisEntry,
+                     Population,
+                     PopulationEntry,
+                     PopStatistic,
+                     PopStatEntry,
+                     )
 from .constants import RegStatAgeGroups, RegStatAgeGroup
-from .serializers import (YearSerializer, RasterSerializer,
+from .serializers import (RasterSerializer,
                           PopulationRasterSerializer,
-                          GenderSerializer, AgeGroupSerializer,
-                          DisaggPopRasterSerializer, PrognosisSerializer,
-                          PrognosisEntrySerializer, PopulationSerializer,
-                          PopulationEntrySerializer, PopStatisticSerializer,
-                          PopStatEntrySerializer)
-
-
-class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = Year.objects.all()
-    serializer_class = YearSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+                          GenderSerializer,
+                          AgeGroupSerializer,
+                          DisaggPopRasterSerializer,
+                          PrognosisSerializer,
+                          PrognosisEntrySerializer,
+                          PopulationSerializer,
+                          PopulationEntrySerializer,
+                          PopStatisticSerializer,
+                          PopStatEntrySerializer,
+                          )
 
 
 class RasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
@@ -40,22 +44,6 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = PopulationRaster.objects.all()
     serializer_class = PopulationRasterSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-
-
-# class RasterCellTileViewSet(MVTView, DetailView):
-    #"""Due to Cellcode geometry, implementation of vector tiles"""
-    #model = Raster
-    #vector_tile_fields = ('name', )
-
-    # def get_vector_tile_layer_name(self):
-        # return self.get_object().name
-
-    # def get_vector_tile_queryset(self):
-        # return self.get_object().rastercell.all()
-
-    # def get(self, request, *args, **kwargs):
-        #self.object = self.get_object()
-        # return BaseVectorTileView.get(self,request=request, z=kwargs.get('z'), x=kwargs.get('x'), y=kwargs.get('y'))
 
 
 class GenderViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

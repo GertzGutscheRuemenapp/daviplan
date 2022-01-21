@@ -5,19 +5,12 @@ from django.core.validators import (MaxLengthValidator,
 
 from datentool_backend.base import NamedModel
 from datentool_backend.area.models import AreaLevel, Area
+from datentool_backend.user.models import Year
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.base import NamedModel, DatentoolModelMixin
 
 #  Vector tile:
 from rest_framework_mvt.managers import MVTManager
-
-
-class Year(DatentoolModelMixin, models.Model):
-    """years available"""
-    year = models.IntegerField()
-
-    def __str__(self) -> str:
-        return f'{self.__class__.__name__}: {self.year}'
 
 
 class Raster(DatentoolModelMixin, NamedModel, models.Model):

@@ -25,7 +25,7 @@ from .infrastructure.views import (InfrastructureViewSet, FieldTypeViewSet,
                                    FClassViewSet)
 from .logging.views import (CapacityUploadLogViewSet, PlaceUploadLogViewSet,
                             AreaUploadLogViewSet)
-from .population.views import (YearViewSet, RasterViewSet,
+from .population.views import (RasterViewSet,
                                PopulationRasterViewSet, GenderViewSet,
                                AgeGroupViewSet,
                                DisaggPopRasterViewSet, PrognosisViewSet,
@@ -33,7 +33,9 @@ from .population.views import (YearViewSet, RasterViewSet,
                                PopulationEntryViewSet, PopStatisticViewSet,
                                PopStatEntryViewSet)
                                # ,RasterCellTileViewSet)
-from .user.views import PlanningProcessViewSet, ScenarioViewSet
+from .user.views import (PlanningProcessViewSet,
+                         ScenarioViewSet,
+                         YearViewSet,)
 from datentool_backend.utils.routers import SingletonRouter
 
 router = routers.SimpleRouter()

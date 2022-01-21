@@ -1,17 +1,23 @@
 from rest_framework import viewsets
 
-from datentool_backend.utils.views import (HasAdminAccessOrReadOnly,
-                                           CanEditBasedata,
-                                           ProtectCascadeMixin)
-from .models import (Mode, ModeVariant,
+from datentool_backend.utils.views import ProtectCascadeMixin
+from datentool_backend.utils.permissions import (
+    HasAdminAccessOrReadOnly, CanEditBasedata)
+
+from .models import (Mode,
+                     ModeVariant,
                      Stop,
                      # ReachabilityMatrix,
-                     Router, Indicator)
-from .serializers import (ModeSerializer, ModeVariantSerializer,
+                     Router,
+                     Indicator,
+                     )
+from .serializers import (ModeSerializer,
+                          ModeVariantSerializer,
                           StopSerializer,
-                          #ReachabilityMatrixSerializer,
+                          # ReachabilityMatrixSerializer,
                           RouterSerializer,
-                          IndicatorSerializer)
+                          IndicatorSerializer,
+                          )
 
 
 class ModeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

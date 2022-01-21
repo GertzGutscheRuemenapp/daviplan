@@ -1,21 +1,105 @@
-from unittest import skip
-from django.test import TestCase
-from test_plus import APITestCase
 from typing import List, Set
 
-from datentool_backend.api_test import (BasicModelTest, LoginTestCase,
-                                        WriteOnlyWithAdminAccessTest)
-from datentool_backend.area.tests import _TestAPI
+from django.test import TestCase
+from test_plus import APITestCase
 
-from .factories import (ProfileFactory, User, UserFactory,
-                        PlanningProcessFactory, ScenarioFactory)
-from .models import PlanningProcess, Scenario, Profile
+from datentool_backend.api_test import (BasicModelTest,
+                                        LoginTestCase,
+                                        WriteOnlyWithAdminAccessTest,
+                                        WriteOnlyWithCanEditBaseDataTest,
+                                        TestAPIMixin,
+                                        TestPermissionsMixin,
+                                        )
+
+from .factories import (ProfileFactory,
+                        YearFactory,
+                        PlanningProcessFactory,
+                        ScenarioFactory,
+                        )
+from .models import (User,
+                     Profile,
+                     PlanningProcess,
+                     Scenario,
+                     )
 
 from faker import Faker
 faker = Faker('de-DE')
 
 
-class PostOnlyWithCanCreateProcessTest:  # ToDo test get, if user is not owner
+class TestProfile(TestCase):
+
+    def test_profile_factory(self):
+        profile = ProfileFactory()
+        str(profile)
+        self.assertTrue(profile.pk)
+        self.assertTrue(profile.user.pk)
+
+    def test_planningprocess_factory(self):
+        planning_process = PlanningProcessFactory()
+        profile = planning_process.owner
+        self.assertTrue(profile.pk)
+        self.assertTrue(profile.user.pk)
+
+        scenario = ScenarioFactory()
+        planning_process = scenario.planning_process
+        profile = planning_process.owner
+        self.assertTrue(profile.pk)
+        self.assertTrue(profile.user.pk)
+
+    def test_user(self):
+        user2 = User.objects.create(username='Test')
+        self.assertTrue(user2.profile.pk)
+
+        user2.profile.can_edit_basedata = True
+        user2.save()
+
+        profile2 = Profile.objects.get(user=user2)
+        self.assertTrue(profile2.can_edit_basedata)
+
+
+class TestUserAPI(WriteOnlyWithAdminAccessTest,
+                  TestAPIMixin, BasicModelTest, APITestCase):
+    """Test user view"""
+    url_key = "users"
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.profile.admin_access = True
+        cls.profile.save()
+
+        cls.obj = ProfileFactory().user
+
+        cls.post_data = {'username': 'NewUser',
+                         'password': 'Secret',
+                         'profile': {'can_create_process': True,},}
+
+
+        cls.put_data = {'username': 'RenamedUser',
+                         'password': 'Other',
+                         'profile': {'can_edit_basedata': True,},}
+
+        cls.patch_data = {'username': 'changed',
+                         'profile': {'admin_access': False,
+                                     'can_edit_basedata': False,},}
+
+
+class TestYearAPI(WriteOnlyWithCanEditBaseDataTest,
+                    TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
+    """"""
+    url_key = "years"
+    factory = YearFactory
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+
+        cls.post_data = dict(year=1990)
+        cls.put_data = dict(year=1995)
+        cls.patch_data = dict(year=2000)
+
+
+class PostOnlyWithCanCreateProcessTest:
     """Permission test for PlanningProcessViewSet"""
 
     def test_delete(self):
@@ -174,66 +258,8 @@ class PostOnlyWithCanCreateProcessTest:  # ToDo test get, if user is not owner
         self.client.force_login(user=self.profile.user)
 
 
-class TestProfile(TestCase):
-
-    def test_profile_factory(self):
-        profile = ProfileFactory()
-        str(profile)
-        self.assertTrue(profile.pk)
-        self.assertTrue(profile.user.pk)
-
-    def test_planningprocess_factory(self):
-        planning_process = PlanningProcessFactory()
-        profile = planning_process.owner
-        self.assertTrue(profile.pk)
-        self.assertTrue(profile.user.pk)
-
-        scenario = ScenarioFactory()
-        planning_process = scenario.planning_process
-        profile = planning_process.owner
-        self.assertTrue(profile.pk)
-        self.assertTrue(profile.user.pk)
-
-    def test_user(self):
-        user2 = User.objects.create(username='Test')
-        self.assertTrue(user2.profile.pk)
-
-        user2.profile.can_edit_basedata = True
-        user2.save()
-
-        profile2 = Profile.objects.get(user=user2)
-        self.assertTrue(profile2.can_edit_basedata)
-
-
-class TestUserAPI(WriteOnlyWithAdminAccessTest,
-                  _TestAPI, BasicModelTest, APITestCase):
-    """Test user view"""
-    url_key = "users"
-
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        cls.profile.admin_access = True
-        cls.profile.save()
-
-        cls.obj = ProfileFactory().user
-
-        cls.post_data = {'username': 'NewUser',
-                         'password': 'Secret',
-                         'profile': {'can_create_process': True,},}
-
-
-        cls.put_data = {'username': 'RenamedUser',
-                         'password': 'Other',
-                         'profile': {'can_edit_basedata': True,},}
-
-        cls.patch_data = {'username': 'changed',
-                         'profile': {'admin_access': False,
-                                     'can_edit_basedata': False,},}
-
-
 class TestPlanningProcessAPI(PostOnlyWithCanCreateProcessTest,
-                             _TestAPI, BasicModelTest, APITestCase):
+                             TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "planningprocesses"
 
@@ -274,7 +300,7 @@ class TestPlanningProcessAPI(PostOnlyWithCanCreateProcessTest,
         super().tearDownClass()
 
 
-class TestPlanningProcessProtectCascade(_TestAPI, LoginTestCase, APITestCase):
+class TestPlanningProcessProtectCascade(TestAPIMixin, LoginTestCase, APITestCase):
     url_key = "planningprocesses"
 
     def test_protection_of_referenced_objects(self):
@@ -320,11 +346,7 @@ class TestPlanningProcessProtectCascade(_TestAPI, LoginTestCase, APITestCase):
         self.assertEqual(Scenario.objects.count(), 0)
 
 
-class EditScenarioPermissionTest:
-    """Permission test for ScenarioViewSet"""
-
-
-class TestScenarioAPI(_TestAPI, BasicModelTest, APITestCase):
+class TestScenarioAPI(TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "scenarios"
 

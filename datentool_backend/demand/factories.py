@@ -2,10 +2,9 @@ from faker import Faker
 import factory
 from factory.django import DjangoModelFactory
 from .models import DemandRateSet, DemandRate, ScenarioDemandRate
-from ..population.factories import (AgeGroupFactory,
-                                    YearFactory)
+from ..population.factories import (AgeGroupFactory, )
 from ..infrastructure.factories import ServiceFactory
-from ..user.factories import ScenarioFactory
+from ..user.factories import ScenarioFactory, YearFactory
 
 faker = Faker('de-DE')
 

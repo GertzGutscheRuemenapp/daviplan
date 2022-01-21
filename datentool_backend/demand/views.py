@@ -1,8 +1,8 @@
 from rest_framework import viewsets
-from datentool_backend.utils.views import (HasAdminAccessOrReadOnly,
-                                           CanEditBasedata,
-                                           ProtectCascadeMixin)
-from datentool_backend.user.views import CanEditScenarioPermission
+from datentool_backend.utils.views import ProtectCascadeMixin
+from datentool_backend.utils.permissions import (
+    HasAdminAccessOrReadOnly, CanEditBasedata)
+
 from .models import (DemandRateSet, DemandRate, ScenarioDemandRate)
 from .serializers import (DemandRateSetSerializer,
                           DemandRateSerializer,
@@ -24,4 +24,3 @@ class DemandRateViewSet(viewsets.ModelViewSet):
 class ScenarioDemandRateViewSet(viewsets.ModelViewSet):
     queryset = ScenarioDemandRate.objects.all()
     serializer_class = ScenarioDemandRateSerializer
-    #permission_classes = [CanEditScenarioPermission]

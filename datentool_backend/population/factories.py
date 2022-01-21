@@ -3,7 +3,7 @@ from django.contrib.gis.geos import Point, Polygon
 from faker import Faker
 import factory
 from factory.django import DjangoModelFactory
-from .models import (Year, Raster, PopulationRaster,
+from .models import (Raster, PopulationRaster,
                      RasterCell, RasterCellPopulation,
                      Gender, AgeGroup,
                      DisaggPopRaster, RasterCellPopulationAgeGender,
@@ -11,16 +11,10 @@ from .models import (Year, Raster, PopulationRaster,
                      Population, PopulationEntry,
                      PopStatistic, PopStatEntry,
                      )
-from ..area.factories import AreaFactory, AreaLevelFactory
+from datentool_backend.area.factories import AreaFactory, AreaLevelFactory
+from datentool_backend.user.factories import YearFactory
 
 faker = Faker('de-DE')
-
-class YearFactory(DjangoModelFactory):
-    class Meta:
-        model = Year
-
-    year = faker.unique.year()
-
 
 class RasterFactory(DjangoModelFactory):
     class Meta:

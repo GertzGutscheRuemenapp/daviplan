@@ -1,24 +1,21 @@
-from django.test import TestCase
+import io
+import os
+
 from test_plus import APITestCase
 from django.contrib.gis.geos import Polygon, MultiPolygon
-from collections import OrderedDict
-from unittest import skip
+from rest_framework import status
+from PIL import Image
+
 from datentool_backend.api_test import (BasicModelSingletonTest,
                                         SingletonWriteOnlyWithCanEditBaseDataTest,
-                                        SingletonWriteOnlyWithAdminAccessTest)
-from datentool_backend.area.tests import _TestAPI
+                                        SingletonWriteOnlyWithAdminAccessTest,
+                                        TestAPIMixin)
 
 from datentool_backend.site.factories import (ProjectSettingFactory,
                                               BaseDataSettingFactory,
                                               SiteSettingFactory)
-from datentool_backend.site.models import ProjectSetting, BaseDataSetting
-from datentool_backend.area.factories import AreaLevelFactory
-from django.core.files.uploadedfile import SimpleUploadedFile
-from rest_framework import status
-from PIL import Image
-import io
-import os
 
+from datentool_backend.area.factories import AreaLevelFactory
 
 from faker import Faker
 faker = Faker('de-DE')
@@ -44,7 +41,7 @@ class TestBaseDataSetting(SingletonWriteOnlyWithCanEditBaseDataTest,
 
 
 class TestProjectSetting(SingletonWriteOnlyWithAdminAccessTest,
-                         _TestAPI, BasicModelSingletonTest, APITestCase):
+                         TestAPIMixin, BasicModelSingletonTest, APITestCase):
     """"""
     url_key = "projectsettings"
     factory = ProjectSettingFactory
@@ -88,7 +85,7 @@ class TestProjectSetting(SingletonWriteOnlyWithAdminAccessTest,
         cls.expected_patch_data = dict(project_area=ewkt_web_mercator)
 
 
-class TestSiteSetting(_TestAPI, BasicModelSingletonTest, APITestCase):
+class TestSiteSetting(TestAPIMixin, BasicModelSingletonTest, APITestCase):
     """"""
     url_key = "sitesettings"
     factory = SiteSettingFactory

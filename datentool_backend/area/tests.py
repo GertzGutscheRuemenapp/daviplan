@@ -4,16 +4,22 @@ from test_plus import APITestCase
 from datetime import datetime
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
+                                        TestAPIMixin,
+                                        TestPermissionsMixin,
                                         )
 from datentool_backend.area.serializers import (MapSymbolSerializer,
                                                 SourceSerializer)
 
-from .factories import (WMSLayerFactory, AreaFactory,
-                        AreaLevelFactory, SourceFactory,
+from .factories import (WMSLayerFactory,
+                        AreaFactory,
+                        AreaLevelFactory,
+                        SourceFactory,
                         LayerGroupFactory)
 
-from .models import (WMSLayer, SourceTypes,
-                     AreaLevel, Area)
+from .models import (WMSLayer,
+                     AreaLevel,
+                     Area,
+                     )
 
 
 from faker import Faker
@@ -37,84 +43,8 @@ class TestAreas(TestCase):
         print(repr(area.area_level))
 
 
-class _TestAPI:
-    """test if view and serializer are working correctly """
-    url_key = ""
-    # replace with concrete factory in sub-class
-    factory = None
-
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        cls.url_pks = dict()
-        if cls.factory:
-            cls.obj = cls.factory()
-            cls.url_pk = dict(pk=cls.obj.pk)
-
-
-class _TestPermissions():
-    """ test users permissions"""
-    def test_is_logged_in(self):
-        self.client.logout()
-        response = self.get(self.url_key + '-list')
-        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
-
-        self.client.force_login(user=self.profile.user)
-        self.test_list()
-        self.test_detail()
-
-    def test_can_edit_basedata(self):
-        profile = self.profile
-
-        original_permission = profile.can_edit_basedata
-        original_admin_access = profile.admin_access
-
-        # Testprofile, with permission to edit basedata
-        profile.can_edit_basedata = True
-        profile.admin_access = False
-        profile.save()
-        self.test_post()
-
-        # Testprofile, without permission to edit basedata
-        profile.can_edit_basedata = False
-        profile.save()
-
-        url = self.url_key + '-list'
-        # post
-        response = self.post(url, **self.url_pks, data=self.post_data,
-                                 extra={'format': 'json'})
-        self.response_403(msg=response.content)
-
-        profile.can_edit_basedata = original_permission
-        profile.admin_access = original_admin_access
-        profile.save()
-
-    def admin_access(self):
-        profile = self.profile
-
-        original_permission = profile.admin_access
-
-        # Testprofile, with admin_acces
-        profile.admin_access = True
-        profile.save()
-        self.test_post()
-
-        # Testprofile, without admin_acces
-        profile.admin_access = False
-        profile.save()
-
-        url = self.url_key + '-list'
-        # post
-        response = self.post(url, **self.url_pks, data=self.post_data,
-                                 extra={'format': 'json'})
-        self.response_403(msg=response.content)
-
-        profile.admin_access = original_permission
-        profile.save()
-
-
 class TestLayerGroupAPI(WriteOnlyWithCanEditBaseDataTest,
-                        _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                        TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """test if view and serializer are working correctly"""
     url_key = "layergroups"
     factory = LayerGroupFactory
@@ -131,7 +61,7 @@ class TestLayerGroupAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 class TestWMSLayerAPI(WriteOnlyWithCanEditBaseDataTest,
-                      _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                      TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """test if view and serializer are working correctly"""
     url_key = "wmslayers"
     factory = WMSLayerFactory
@@ -150,19 +80,19 @@ class TestWMSLayerAPI(WriteOnlyWithCanEditBaseDataTest,
     def test_get_capabilities(self):
         data = {'url': ''}
         self.client.logout()
-        response = self.post(self.url_key + '-getcapabilities', data={'url': ''},
+        response = self.post(self.url_key + '-getcapabilities', data=data,
                              extra={'format': 'json'})
         self.assert_http_401_unauthorized(response)
 
         self.client.force_login(self.profile.user)
-        response = self.post(self.url_key + '-getcapabilities', data={'url': ''},
+        response = self.post(self.url_key + '-getcapabilities', data=data,
                              extra={'format': 'json'})
         self.assert_http_403_forbidden(response)
 
         self.profile.can_edit_basedata = True
         self.profile.save()
 
-        response = self.post(self.url_key + '-getcapabilities', data={'url': ''},
+        response = self.post(self.url_key + '-getcapabilities', data=data,
                              extra={'format': 'json'})
         self.assert_http_400_bad_request(response)
 
@@ -198,7 +128,7 @@ class TestWMSLayerAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
-                       _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                       TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """test if view and serializer are working correctly"""
     url_key = "arealevels"
     factory = AreaLevelFactory
@@ -313,7 +243,7 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
-                  _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                  TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """test if view and serializer are working correctly"""
     url_key = "areas"
     factory = AreaFactory

@@ -4,8 +4,11 @@ from django.test import TestCase
 from test_plus import APITestCase
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
-                                        WriteOnlyWithAdminAccessTest)
-from datentool_backend.area.tests import (_TestAPI, _TestPermissions)
+                                        WriteOnlyWithAdminAccessTest,
+                                        TestAPIMixin,
+                                        TestPermissionsMixin,
+                                        )
+
 
 from .models import (PrognosisEntry,
                      Year,
@@ -55,7 +58,6 @@ class TestPopulation(TestCase):
         cls.disagg_popraster = DisaggPopRasterFactory(genders=cls.genders)
 
     def test_cell(self):
-        cell = self.cell
         self.assertQuerysetEqual(
             self.disagg_popraster.genders.all(), self.genders, ordered=False)
         rp = RasterCellPopulationAgeGenderFactory()
@@ -97,23 +99,8 @@ class TestPopulation(TestCase):
         print(rcp)
 
 
-class TestYearAPI(WriteOnlyWithCanEditBaseDataTest,
-                    _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
-    """"""
-    url_key = "years"
-    factory = YearFactory
-
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-
-        cls.post_data = dict(year=1990)
-        cls.put_data = dict(year=1995)
-        cls.patch_data = dict(year=2000)
-
-
 class TestRasterAPI(WriteOnlyWithCanEditBaseDataTest,
-                    _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                    TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "rasters"
     factory = RasterFactory
@@ -128,7 +115,7 @@ class TestRasterAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 class TestPopulationRasterAPI(WriteOnlyWithCanEditBaseDataTest,
-                              _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                              TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "populationrasters"
     factory = PopulationRasterFactory
@@ -148,7 +135,7 @@ class TestPopulationRasterAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 class TestGenderAPI(WriteOnlyWithCanEditBaseDataTest,
-                    _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                    TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "gender"
     factory = GenderFactory
@@ -164,7 +151,7 @@ class TestGenderAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 class TestAgeGroupAPI(WriteOnlyWithAdminAccessTest,
-                      _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                      TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "agegroups"
     factory = AgeGroupFactory
@@ -296,7 +283,7 @@ class TestRegStatAgeGroup(TestCase):
 
 
 class TestDisaggPopRasterAPI(WriteOnlyWithCanEditBaseDataTest,
-                             _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                             TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "disaggpoprasters"
     factory = DisaggPopRasterFactory
@@ -315,7 +302,7 @@ class TestDisaggPopRasterAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 class TestPrognosisAPI(WriteOnlyWithCanEditBaseDataTest,
-                       _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                       TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "prognoses"
     factory = PrognosisFactory
@@ -335,7 +322,7 @@ class TestPrognosisAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 class TestPrognosisEntryAPI(WriteOnlyWithCanEditBaseDataTest,
-                            _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                            TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "prognosisentries"
     factory = PrognosisEntryFactory
@@ -358,7 +345,7 @@ class TestPrognosisEntryAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 class TestPopulationAPI(WriteOnlyWithCanEditBaseDataTest,
-                        _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                        TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "populations"
     factory = PopulationFactory
@@ -379,8 +366,8 @@ class TestPopulationAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.patch_data = data
 
 
-class TestPopulationEntryAPI(WriteOnlyWithCanEditBaseDataTest, _TestPermissions,
-                             _TestAPI, BasicModelTest, APITestCase):
+class TestPopulationEntryAPI(WriteOnlyWithCanEditBaseDataTest, TestPermissionsMixin,
+                             TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "populationentries"
 
@@ -407,7 +394,7 @@ class TestPopulationEntryAPI(WriteOnlyWithCanEditBaseDataTest, _TestPermissions,
 
 
 class TestPopStatisticAPI(WriteOnlyWithCanEditBaseDataTest,
-                          _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                          TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "popstatistics"
     factory = PopStatisticFactory
@@ -424,7 +411,7 @@ class TestPopStatisticAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 class TestPopStatEntryAPI(WriteOnlyWithCanEditBaseDataTest,
-                          _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                          TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "popstatentries"
     factory = PopStatEntryFactory

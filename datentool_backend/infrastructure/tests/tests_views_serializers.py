@@ -1,17 +1,19 @@
 from typing import Tuple, Set
 from collections import OrderedDict
 import json
-from rest_framework import status
 from unittest import skip
+
 from django.test import TestCase
 from test_plus import APITestCase
 from django.contrib.gis.geos import Point
+
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         WriteOnlyWithAdminAccessTest)
-from datentool_backend.area.tests import _TestAPI, _TestPermissions
-from datentool_backend.user.factories import (ProfileFactory, ScenarioFactory,
-                                              PlanningProcessFactory)
+from datentool_backend.api_test import TestAPIMixin, TestPermissionsMixin
+from datentool_backend.user.factories import (ProfileFactory,
+                                              ScenarioFactory,
+                                              )
 from datentool_backend.area.serializers import MapSymbolSerializer
 
 from datentool_backend.infrastructure.factories import (
@@ -76,7 +78,7 @@ class TestInfrastructure(TestCase):
 
 
 class TestInfrastructureAPI(WriteOnlyWithAdminAccessTest,
-                            _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                            TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "infrastructures"
     factory = InfrastructureFactory
@@ -212,7 +214,7 @@ class TestInfrastructureAPI(WriteOnlyWithAdminAccessTest,
 
 
 class TestServiceAPI(WriteOnlyWithCanEditBaseDataTest,
-                     _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                     TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "services"
     factory = ServiceFactory
@@ -242,7 +244,7 @@ class TestServiceAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
-                   _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                   TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "places"
 
@@ -704,7 +706,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,
-                      _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                      TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "capacities"
 
@@ -729,7 +731,7 @@ class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 class TestFieldTypeNUMSTRAPI(WriteOnlyWithCanEditBaseDataTest,
-                             _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                             TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "fieldtypes"
 
@@ -746,7 +748,7 @@ class TestFieldTypeNUMSTRAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 class TestFieldTypeCLAAPI(WriteOnlyWithCanEditBaseDataTest,
-                          _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                          TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "fieldtypes"
 
@@ -810,7 +812,7 @@ class TestFieldTypeCLAAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 class TestFClassAPI(WriteOnlyWithCanEditBaseDataTest,
-                    _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                    TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "fclasses"
     factory = FClassFactory
@@ -830,7 +832,7 @@ class TestFClassAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 class TestPlaceFieldAPI(WriteOnlyWithCanEditBaseDataTest,
-                        _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                        TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "placefields"
     factory = PlaceFieldFactory
