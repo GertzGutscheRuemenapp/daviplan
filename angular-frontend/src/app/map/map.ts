@@ -108,21 +108,21 @@ export class OlMap {
     }
   }
 
-  addTileServer(options: { name: string, url: string, params?: any,
-    visible?: boolean, opacity?: number, xyz?: boolean, attribution?: string}): Layer<any>{
+  addTileServer(name: string, url: string, options: { params?: any,
+    visible?: boolean, opacity?: number, xyz?: boolean, attribution?: string } = {}): Layer<any>{
 
-    if (this.layers[options.name] != null) this.removeLayer(options.name)
+    if (this.layers[name] != null) this.removeLayer(name)
 
     const attributions = options.attribution? [options.attribution]: [];
     let source = (options.xyz) ?
       new XYZ({
-        url: options.url,
+        url: url,
         attributions: attributions,
         attributionsCollapsible: false,
         crossOrigin: 'anonymous'
       }) :
       new TileWMS({
-        url: options.url,
+        url: url,
         params: options.params || {},
         serverType: 'geoserver',
         attributions: attributions,
@@ -137,39 +137,53 @@ export class OlMap {
     });
 
     this.map.addLayer(layer);
-    this.layers[options.name] = layer;
+    this.layers[name] = layer;
 
     return layer;
   }
 
-  addVectorTileLayer(options: {
-    name: string, url: string }): Layer<any> {
+  addVectorTileLayer(name: string, url: string, options: {
+      params?: any,
+      visible?: boolean, opacity?: number,
+      stroke?: { color?: string, width?: number, dash?: number[], selectedColor?: string, selectedDash?: number[] },
+      fill?: { color?: string, selectedColor?: string }
+    } = {}): Layer<any> {
     const source = new VectorTileSource({
       format: new MVT(),
-      url: options.url
+      url: url
     });
-    const layer =
-        new VectorTileLayer({
-          declutter: true,
-          source: source
+    const layer = new VectorTileLayer({
+      source: source,
+      visible: options?.visible === true,
+      opacity: (options?.opacity != undefined) ? options?.opacity: 1,
+      style: new Style({
+        stroke: new Stroke({
+          color:  options?.stroke?.color || 'rgba(0, 0, 0, 1.0)',
+          width: options?.stroke?.width || 1,
+          lineDash: options?.stroke?.dash
+        }),
+        fill: new Fill({
+          color: options?.fill?.color || 'rgba(0, 0, 0, 0)'
         })
+      })
+    })
     this.map.addLayer(layer);
-    this.layers[options.name] = layer;
-    source.on('tileloadend', function(evt) {
-      const z = evt.tile.getTileCoord()[0];
-      // @ts-ignore
-      const features = evt.tile.getFeatures();
-    });
+    this.layers[name] = layer;
+    // source.on('tileloadend', function(evt) {
+    //   const z = evt.tile.getTileCoord()[0];
+    //   // @ts-ignore
+    //   const features = evt.tile.getFeatures();
+    // });
     return layer;
   }
 
-  addVectorLayer(name: string, options?: {
-    url?: any, params?: any,
-    visible?: boolean, opacity?: number,
-    selectable?: boolean, tooltipField?: string,
-    stroke?: {color?: string, width?: number, dash?: number[], selectedColor?: string, selectedDash?: number[]},
-    fill?: {color?: string, selectedColor?: string},
-  }): Layer<any> {
+  addVectorLayer(name: string, options: {
+      url?: any, params?: any,
+      visible?: boolean, opacity?: number,
+      selectable?: boolean, tooltipField?: string,
+      stroke?: { color?: string, width?: number, dash?: number[], selectedColor?: string, selectedDash?: number[] },
+      fill?: { color?: string, selectedColor?: string },
+    } = {}): Layer<any> {
 
     if (this.layers[name] != null) this.removeLayer(name);
     let sourceOpt = options?.url? {

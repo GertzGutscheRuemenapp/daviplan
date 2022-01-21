@@ -17,7 +17,8 @@ export class LegendComponent implements AfterViewInit {
   @ViewChild('legendImage') legendImageTemplate?: TemplateRef<any>;
   legendImageDialogs: Record<number, MatDialogRef<any>> = [];
   mapControl!: MapControl;
-  activeBackgroundId: number = -1000;
+  // -10000 = no background
+  activeBackgroundId: number = -100000;
   activeBackground?: Layer;
   backgroundOpacity: number;
   backgroundLayers: Layer[] = [];
@@ -46,7 +47,7 @@ export class LegendComponent implements AfterViewInit {
     this.mapService.getLayers().subscribe(groups => {
       let layerGroups: LayerGroup[] = [];
       groups.forEach(group => {
-        if (!group.children)
+        if (!group.children || (!this.showExternal && group.external) || (!this.showInternal && !group.external))
           return;
         group.children!.forEach(layer => {
           layer.checked = <boolean>(this.cookies.get(`legend-layer-checked-${layer.id}`) || false);
@@ -93,10 +94,10 @@ export class LegendComponent implements AfterViewInit {
    * @param id
    */
   setBackground(id: number) {
+    this.mapControl.setBackground(id);
     this.activeBackground = this.backgroundLayers.find(l => { return l.id === id });
     this.cookies.set(`background-layer`, id);
     if (this.activeBackground){
-      this.mapControl.setBackground(id);
       this.mapControl.setLayerAttr(this.activeBackground.id, { opacity: this.backgroundOpacity });
     }
   }

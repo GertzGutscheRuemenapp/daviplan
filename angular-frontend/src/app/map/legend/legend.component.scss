@@ -3,6 +3,8 @@
 .symbol {
   width: 20px;
   margin: 4px;
+  border: 2px solid white;
+  background-color: white;
 }
 .symbol.square {
   height: 20px;
@@ -11,9 +13,10 @@
   height: 20px;
   border-radius: 10px;
 }
+
 .symbol.line {
   height: 3px;
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .legend-image-link {
@@ -48,6 +51,7 @@
 
 .entry-prefix {
   width: 30px;
+  height: 100%;
   float: left;
 }
 

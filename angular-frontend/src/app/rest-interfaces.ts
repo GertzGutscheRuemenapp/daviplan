@@ -6,7 +6,8 @@ export interface LayerGroup {
   id: number,
   order: number,
   name: string,
-  children?: Layer[]
+  children?: Layer[],
+  external?: boolean
 }
 
 export interface Symbol {

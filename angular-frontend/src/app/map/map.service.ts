@@ -85,17 +85,23 @@ export class MapService {
         levels = sortBy(levels, 'order');
         const group: LayerGroup = { id: -1, name: 'Gebiete', order: 2 };
         let i = -100;
-        let layers = levels.map(level => {
+        let layers: Layer[] = [];
+        levels.forEach(level => {
+          // skip levels with no symbol (aka should not be displayed)
+          if (!level.symbol) return;
+          // areas have no fill
+          level.symbol.fillColor = '';
           const layer: Layer = {
             id: i,
             type: "vector-tiles",
             order: i,
             url: level.tileUrl!,
             name: level.name,
-            description: `Gebiete der Gebietseinheit ${level.name}`
+            description: `Gebiete der Gebietseinheit ${level.name}`,
+            symbol: level.symbol
           }
           i -= 1;
-          return layer;
+          layers.push(layer);
         });
         group.children = layers;
         subscriber.next([group]);
@@ -151,21 +157,22 @@ export class MapControl {
 
   addLayer(layer: Layer, visible: boolean = true) {
     if (layer.type === 'vector-tiles') {
-       this.map!.addVectorTileLayer({
-          name: layer.name,
-          url: layer.url
-        });
+       this.map!.addVectorTileLayer(this.mapId(layer), layer.url,{
+         visible: false,
+         opacity: 1,
+         stroke: { color: layer.symbol?.strokeColor, width: 2 },
+         fill: { color: layer.symbol?.fillColor }
+       });
     }
     else {
-      const mapLayer = this.map!.addTileServer({
-        name: MapControl.mapId(layer),
-        url: layer.url,
-        params: { visible: visible, layers: layer.layerName },
-        visible: false,
-        opacity: 1,
-        xyz: layer.type == 'tiles',
-        attribution: layer.attribution
-      });
+      const mapLayer = this.map!.addTileServer(
+        this.mapId(layer),  layer.url, {
+          params: { layers: layer.layerName },
+          visible: false,
+          opacity: 1,
+          xyz: layer.type == 'tiles',
+          attribution: layer.attribution
+        });
       if (layer.type === 'wms' && !layer.legendUrl) {
           let url = mapLayer.getSource().getLegendUrl(1, { layer: layer.layerName });
           if (url) url += '&SLD_VERSION=1.1.0';
@@ -175,11 +182,12 @@ export class MapControl {
     this.layerMap[layer.id] = layer;
   }
 
-  setBackground(id: number): void {
-    this.mapService.backgroundLayers.forEach(layer => this.map?.setVisible(MapControl.mapId(layer), layer.id === id));
+  setBackground(id: number | undefined): void {
+    this.mapService.backgroundLayers.forEach(layer => this.map?.setVisible(
+      this.mapId(layer), layer.id === id));
   }
 
-  private static mapId(layer: Layer): string {
+  private mapId(layer: Layer): string {
     return `${layer.name}-${layer.id}`;
   }
 
@@ -200,14 +208,14 @@ export class MapControl {
   setLayerAttr(id: number, options: { opacity?: number, visible?: boolean }): void {
     let layer = this.layerMap[id];
     if (!layer) return;
-    if (options.opacity != undefined) this.map?.setOpacity(MapControl.mapId(layer), options.opacity);
-    if (options.visible != undefined) this.map?.setVisible(MapControl.mapId(layer), options.visible);
+    if (options.opacity != undefined) this.map?.setOpacity(this.mapId(layer), options.opacity);
+    if (options.visible != undefined) this.map?.setVisible(this.mapId(layer), options.visible);
   }
 
   toggleLayer(id: number, active: boolean): void {
     let layer = this.layerMap[id];
     if (!layer) return;
-    this.map?.setVisible(MapControl.mapId(layer), active);
+    this.map?.setVisible(this.mapId(layer), active);
   }
 
   destroy(): void {
