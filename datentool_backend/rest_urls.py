@@ -14,9 +14,8 @@ from .area.views import (LayerGroupViewSet, WMSLayerViewSet,
 from .demand.views import (DemandRateSetViewSet, DemandRateViewSet,
                            )
 
-from .indicators.views import (ModeViewSet, ModeVariantViewSet,
-                               #ReachabilityMatrixViewSet,
-                               RouterViewSet,
+from .modes.views import (ModeViewSet, ModeVariantViewSet,)
+from .indicators.views import (RouterViewSet,
                                IndicatorViewSet)
 
 from .infrastructure.views import (ScenarioViewSet,

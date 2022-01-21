@@ -1,6 +1,7 @@
-from typing import Tuple
 from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import Point
+
+from datentool_backend.utils.geometry_fields import get_point_from_latlon
 
 from .models import (Scenario,
                      Place,
@@ -29,12 +30,6 @@ class ScenarioFactory(DjangoModelFactory):
     planning_process = factory.SubFactory(PlanningProcessFactory)
 
 
-def _get_point_from_latlon(latlng: Tuple[float, float], srid: int) -> Point:
-    """convert cellcode to polygon"""
-    pnt_wgs = Point((latlng[1], latlng[0]), srid=4326)
-    pnt_transformed = pnt_wgs.transform(srid, clone=True)
-    return pnt_transformed
-
 
 class PlaceFactory(DjangoModelFactory):
     """location of an infrastructure"""
@@ -43,7 +38,7 @@ class PlaceFactory(DjangoModelFactory):
 
     name = faker.unique.word()
     infrastructure = factory.SubFactory(InfrastructureFactory)
-    geom = _get_point_from_latlon(faker.latlng(), 3857)
+    geom = get_point_from_latlon(faker.latlng(), 3857)
     attributes = faker.json(num_rows=3, indent=True)
 
 
