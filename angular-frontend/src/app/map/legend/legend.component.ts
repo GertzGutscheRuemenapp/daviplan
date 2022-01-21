@@ -12,11 +12,13 @@ import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 })
 export class LegendComponent implements AfterViewInit {
   @Input() target!: string;
-  @Input() showInternal?: boolean = true;
+  @Input() showInternal: boolean = true;
+  @Input() showExternal: boolean = true;
   @ViewChild('legendImage') legendImageTemplate?: TemplateRef<any>;
   legendImageDialogs: Record<number, MatDialogRef<any>> = [];
   mapControl!: MapControl;
-  activeBackgroundId: number = -1000;
+  // -10000 = no background
+  activeBackgroundId: number = -100000;
   activeBackground?: Layer;
   backgroundOpacity: number;
   backgroundLayers: Layer[] = [];
@@ -28,11 +30,12 @@ export class LegendComponent implements AfterViewInit {
   constructor(public dialog: MatDialog, private mapService: MapService,
               private cdRef:ChangeDetectorRef, private cookies: CookieService) {
     this.backgroundOpacity = parseFloat(<string>this.cookies.get(`background-layer-opacity`) || '1');
-    this.editMode = <boolean>this.cookies.get('legend-edit-mode') || false;
+    this.editMode = <boolean>this.cookies.get(`${this.target}-legend-edit-mode`) || true;
   }
 
   ngAfterViewInit (): void {
     this.mapControl = this.mapService.get(this.target);
+    this.mapControl.zoomToProject();
     this.initSelect();
   }
 
@@ -45,7 +48,7 @@ export class LegendComponent implements AfterViewInit {
     this.mapService.getLayers().subscribe(groups => {
       let layerGroups: LayerGroup[] = [];
       groups.forEach(group => {
-        if (!group.children || !(group.external || this.showInternal))
+        if (!group.children || (!this.showExternal && group.external) || (!this.showInternal && !group.external))
           return;
         group.children!.forEach(layer => {
           layer.checked = <boolean>(this.cookies.get(`legend-layer-checked-${layer.id}`) || false);
@@ -58,7 +61,6 @@ export class LegendComponent implements AfterViewInit {
       this.layerGroups = layerGroups;
       this.filterActiveGroups();
     })
-    this.cdRef.detectChanges();
   }
 
   /**
@@ -93,10 +95,10 @@ export class LegendComponent implements AfterViewInit {
    * @param id
    */
   setBackground(id: number) {
+    this.mapControl.setBackground(id);
     this.activeBackground = this.backgroundLayers.find(l => { return l.id === id });
     this.cookies.set(`background-layer`, id);
     if (this.activeBackground){
-      this.mapControl.setBackground(id);
       this.mapControl.setLayerAttr(this.activeBackground.id, { opacity: this.backgroundOpacity });
     }
   }

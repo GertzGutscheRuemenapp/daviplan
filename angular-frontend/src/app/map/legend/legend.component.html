@@ -45,7 +45,11 @@
               </ng-template>
               <div class="entry-prefix">
                 <div *ngIf="layer.symbol"
-                     class="symbol" [style.background]="layer.symbol.fillColor || 'white'" [class]="layer.symbol.symbol"></div>
+                     class="symbol"
+                     [style.background]="layer.symbol.fillColor || 'white'"
+                     [style.border-color]="layer.symbol.strokeColor || 'white'"
+                     [class]="layer.symbol.symbol">
+                </div>
                 <mat-icon *ngIf="layer.legendUrl"
                           class="legend-image-link"
                           title="Legendenbild anzeigen"
@@ -108,7 +112,7 @@
                           (selectionChange)="
                             setBackground($event.value);
                             opacityChanged(activeBackground!, backgroundOpacity);">
-                <mat-option [value]="-1000"> kein Hintergrund </mat-option>
+                <mat-option [value]="-100000"> kein Hintergrund </mat-option>
                 <ng-container *ngFor="let layer of backgroundLayers">
                   <ng-template #popover>
                     <b>{{ layer.name }}</b>
