@@ -35,6 +35,7 @@ export class LegendComponent implements AfterViewInit {
 
   ngAfterViewInit (): void {
     this.mapControl = this.mapService.get(this.target);
+    this.mapControl.zoomToProject();
     this.initSelect();
   }
 

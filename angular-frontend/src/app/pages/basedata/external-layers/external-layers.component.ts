@@ -185,7 +185,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       ).subscribe(group => {
         this.selectedGroup!.name = group.name;
         this.layerTree.refresh();
-        this.mapControl?.refresh();;
+        this.mapControl?.refresh();
         this.layerGroupCard?.closeDialog(true);
       },(error) => {
         // ToDo: set specific errors to fields

@@ -5,6 +5,10 @@ import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../rest-api";
 import { sortBy } from "../helpers/utils";
+import { ProjectSettings } from "../pages/administration/project-definition/project-definition.component";
+import { WKT } from "ol/format";
+import { MultiPolygon } from "ol/geom";
+import { SettingsService } from "../settings.service";
 
 const backgroundLayers: Layer[] = [
   {
@@ -43,14 +47,18 @@ export class MapService {
   private controls: Record<string, MapControl> = {};
   backgroundLayers: Layer[] = backgroundLayers;
   layerGroups?: BehaviorSubject<Array<LayerGroup>>;
+  projectSettings?: ProjectSettings;
 
-  constructor(private http: HttpClient, private rest: RestAPI) { }
+  constructor(private http: HttpClient, private rest: RestAPI, private settings: SettingsService) {
+    this.http.get<ProjectSettings>(this.rest.URLS.projectSettings).subscribe(projectSettings => {
+      this.projectSettings = projectSettings;
+    })
+  }
 
-  // ToDo: return Observable?
   get(target: string): MapControl {
     let control = this.controls[target];
     if(!control){
-      control = new MapControl(target, this);
+      control = new MapControl(target, this, this.settings);
       control.destroyed.subscribe(target => delete this.controls[target]);
       control.init();
       this.controls[target] = control;
@@ -143,7 +151,7 @@ export class MapControl {
   mapDescription = '';
   private layerMap: Record<number, Layer> = [];
 
-  constructor(target: string, private mapService: MapService) {
+  constructor(target: string, private mapService: MapService, private settings: SettingsService) {
     this.target = target;
   }
 
@@ -216,6 +224,28 @@ export class MapControl {
     let layer = this.layerMap[id];
     if (!layer) return;
     this.map?.setVisible(this.mapId(layer), active);
+  }
+
+  zoomTo(layer: Layer): void {
+    const mapLayer = this.map?.getLayer(this.mapId(layer)),
+          _this = this;
+    mapLayer!.getSource().once('featuresloadend', (evt: any) => {
+      this.map?.centerOnLayer(this.mapId(layer));
+    })
+  }
+
+  zoomToProject(): void {
+    this.settings.projectSettings$.subscribe(settings => {
+      if (!settings.projectArea) return;
+      const format = new WKT();
+      const wktSplit = settings.projectArea.split(';'),
+            epsg = wktSplit[0].replace('SRID=','EPSG:'),
+            wkt = wktSplit[1];
+
+      const feature = format.readFeature(wkt);
+      feature.getGeometry().transform(epsg, `EPSG:${this.srid}`);
+      this.map?.map.getView().fit(feature.getGeometry().getExtent());
+    })
   }
 
   destroy(): void {
