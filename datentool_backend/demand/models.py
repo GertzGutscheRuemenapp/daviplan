@@ -35,6 +35,7 @@ class DemandRate(models.Model):
     """ demand rate """
     year = models.ForeignKey(Year, on_delete=PROTECT_CASCADE)
     age_group = models.ForeignKey(AgeGroup, on_delete=PROTECT_CASCADE)
+    gender = models.ForeignKey(Gender, on_delete=PROTECT_CASCADE)
     demand_rate_set = models.ForeignKey(DemandRateSet, on_delete=PROTECT_CASCADE)
     value = models.FloatField(null=True)
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]

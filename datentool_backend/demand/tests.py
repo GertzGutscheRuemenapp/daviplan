@@ -206,9 +206,10 @@ class TestDemandRateAPI(WriteOnlyWithCanEditBaseDataTest,
         demandrate: DemandRate = cls.obj
         year = demandrate.year.pk
         age_group = demandrate.age_group.pk
+        gender = demandrate.gender.pk
         demand_rate_set = demandrate.demand_rate_set.pk
 
-        data = dict(year=year, age_group=age_group,
+        data = dict(year=year, age_group=age_group, gender=gender,
                     demand_rate_set=demand_rate_set)
         cls.post_data = data
         cls.put_data = data

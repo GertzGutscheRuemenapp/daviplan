@@ -24,5 +24,5 @@ class DemandRateSetSerializer(serializers.ModelSerializer):
 class DemandRateSerializer(serializers.ModelSerializer):
     class Meta:
         model = DemandRate
-        fields = ('id', 'year', 'age_group', 'demand_rate_set', 'value')
+        fields = ('id', 'year', 'age_group', 'gender', 'demand_rate_set', 'value')
 

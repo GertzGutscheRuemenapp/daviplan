@@ -36,5 +36,6 @@ class DemandRateFactory(DjangoModelFactory):
         model = DemandRate
     year = factory.SubFactory(YearFactory)
     age_group = factory.SubFactory(AgeGroupFactory)
+    gender = factory.SubFactory(GenderFactory)
     demand_rate_set = factory.SubFactory(DemandRateSetFactory)
     value = faker.pyfloat()
