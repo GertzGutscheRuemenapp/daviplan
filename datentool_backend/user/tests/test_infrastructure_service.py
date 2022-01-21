@@ -191,7 +191,6 @@ class TestServiceAPI(WriteOnlyWithCanEditBaseDataTest,
         service: Service = cls.obj
         infrastructure = service.infrastructure.pk
         editable_by = list(service.editable_by.all().values_list(flat=True))
-        #quota_id = service.pk
 
         data = dict(name=faker.word(),
                     description=faker.word(),
@@ -202,8 +201,10 @@ class TestServiceAPI(WriteOnlyWithCanEditBaseDataTest,
                     has_capacity=True,
                     demand_singular_unit=faker.word(),
                     demand_plural_unit=faker.word(),
-                    # quota_id=quota_id,
-                    quota_type=faker.word())
+                    quota_type=faker.word(),
+                    demand_name=faker.word(),
+                    demand_description=faker.word(),
+                    )
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data

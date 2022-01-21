@@ -10,8 +10,13 @@ from datentool_backend.api_test import (BasicModelTest,
 from datentool_backend.user.factories import (ProfileFactory,
                                               PlanningProcessFactory,
                                               )
-from datentool_backend.infrastructure.models import Scenario
+from datentool_backend.infrastructure.models import (Scenario,
+                                                     ScenarioMode,
+                                                     ScenarioService,
+                                                     )
 from datentool_backend.infrastructure.factories import ScenarioFactory
+from datentool_backend.modes.factories import ModeVariantFactory
+from datentool_backend.demand.factories import DemandRateSetFactory
 
 from faker import Faker
 faker = Faker('de-DE')
@@ -38,10 +43,17 @@ class TestScenarioAPI(TestAPIMixin, BasicModelTest, APITestCase):
 
         scenario: Scenario = cls.obj
         planning_process = scenario.planning_process.pk
+        prognosis = scenario.prognosis.pk
 
-        cls.post_data = dict(name=faker.word(), planning_process=planning_process)
-        cls.put_data = dict(name=faker.word(), planning_process=planning_process)
-        cls.patch_data = dict(name=faker.word(), planning_process=planning_process)
+        cls.post_data = dict(name=faker.word(),
+                             planning_process=planning_process,
+                             prognosis=prognosis)
+        cls.put_data = dict(name=faker.word(),
+                            planning_process=planning_process,
+                             prognosis=prognosis)
+        cls.patch_data = dict(name=faker.word(),
+                              planning_process=planning_process,
+                              prognosis=prognosis)
 
     @classmethod
     def tearDownClass(cls):
@@ -104,7 +116,9 @@ class TestScenarioAPI(TestAPIMixin, BasicModelTest, APITestCase):
         for scenario in [scenario2, scenario3, scenario5]:
             response = self.post(self.url_key + '-list', data=dict(
                 name=faker.word(),
-                planning_process=scenario.planning_process.pk),
+                planning_process=scenario.planning_process.pk,
+                prognosis=scenario.prognosis.pk,
+            ),
                 extra=formatjson)
             self.response_403(msg=response.content)
 
@@ -112,9 +126,52 @@ class TestScenarioAPI(TestAPIMixin, BasicModelTest, APITestCase):
         # pp.allow_shared_change=True
         response = self.post(self.url_key + '-list', data=dict(
             name=faker.word(),
-            planning_process=scenario4.planning_process.pk),
+            planning_process=scenario4.planning_process.pk,
+            prognosis=scenario4.prognosis.pk,
+            ),
             extra=formatjson)
         self.response_201(msg=response.content)
+
+    def test_scenario_mode(self):
+        scenario: Scenario = self.obj
+
+        demandrateset1 = DemandRateSetFactory()
+        demandrateset2 = DemandRateSetFactory()
+        demandrateset3 = DemandRateSetFactory(service=demandrateset1.service)
+
+        ScenarioService.objects.create(scenario=scenario,
+                                       service=demandrateset1.service,
+                                       demandrateset=demandrateset1)
+
+        modevariant1 = ModeVariantFactory()
+        modevariant2 = ModeVariantFactory()
+        modevariant3 = ModeVariantFactory(mode=modevariant2.mode)
+
+        ScenarioMode.objects.create(scenario=scenario,
+                                    mode=modevariant1.mode,
+                                    variant=modevariant1)
+        ScenarioMode.objects.create(scenario=scenario,
+                                    mode=modevariant2.mode,
+                                    variant=modevariant2)
+        response = self.get(self.url_key + '-detail', pk=scenario.pk)
+        self.response_200(msg=response.content)
+
+        patch_data = self.patch_data.copy()
+
+        patch_data['modevariants'] = [{'mode': modevariant2.mode_id,
+                                       'variant': modevariant3.id, }]
+        patch_data['demandratesets'] = [{'service': demandrateset1.service_id,
+                                         'demandrateset': demandrateset3.id, }]
+
+        response = self.patch(self.url_key + '-detail', pk=scenario.pk,
+                              data=patch_data, extra=dict(format='json'))
+        self.response_200(msg=response.content)
+        self.compare_data(response.data, patch_data)
+
+        response = self.post(self.url_key + '-list',
+                              data=patch_data, extra=dict(format='json'))
+        self.response_201(msg=response.content)
+        self.compare_data(response.data, patch_data)
 
 
 class TestPlanningProcessProtectCascade(TestAPIMixin, LoginTestCase, APITestCase):

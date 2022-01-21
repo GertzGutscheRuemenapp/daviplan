@@ -16,6 +16,7 @@ from datentool_backend.user.factories import (PlanningProcessFactory,
                                               InfrastructureFactory,
                                               ServiceFactory,
                                               )
+from datentool_backend.population.factories import PrognosisFactory
 
 import factory
 from faker import Faker
@@ -28,7 +29,7 @@ class ScenarioFactory(DjangoModelFactory):
 
     name = faker.word()
     planning_process = factory.SubFactory(PlanningProcessFactory)
-
+    prognosis = factory.SubFactory(PrognosisFactory)
 
 
 class PlaceFactory(DjangoModelFactory):

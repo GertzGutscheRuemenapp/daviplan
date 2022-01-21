@@ -106,5 +106,6 @@ class ServiceFactory(DjangoModelFactory):
     demand_singular_unit = faker.word()
     demand_plural_unit = faker.word()
     quota_type = faker.word()
-
+    demand_name = faker.word()
+    demand_description = faker.word()
 

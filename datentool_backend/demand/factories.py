@@ -2,7 +2,7 @@ from faker import Faker
 import factory
 from factory.django import DjangoModelFactory
 from .models import AgeGroup, Gender, DemandRateSet, DemandRate
-from datentool_backend.infrastructure.factories import ServiceFactory
+from datentool_backend.user.factories import ServiceFactory
 from datentool_backend.user.factories import YearFactory
 
 faker = Faker('de-DE')

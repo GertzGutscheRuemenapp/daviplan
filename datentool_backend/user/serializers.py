@@ -147,6 +147,6 @@ class ServiceSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'description', 'infrastructure', 'editable_by',
                   'capacity_singular_unit', 'capacity_plural_unit',
                   'has_capacity', 'demand_singular_unit', 'demand_plural_unit',
-                  'quota_type')
+                  'quota_type', 'demand_name', 'demand_description')
 
 

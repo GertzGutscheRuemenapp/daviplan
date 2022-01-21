@@ -5,22 +5,88 @@ from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from rest_framework.fields import JSONField, empty
 
 from .models import (Scenario,
+                     ScenarioMode,
+                     ScenarioService,
                      FieldType,
                      FClass,
                      FieldTypes,
-                     Service,
                      Place,
                      Capacity,
                      PlaceField,
                      )
 from datentool_backend.utils.geometry_fields import GeometrySRIDField
-from datentool_backend.user.models import Infrastructure, InfrastructureAccess
+from datentool_backend.user.models import (Service,
+                                           Infrastructure,
+                                           InfrastructureAccess,
+                                           )
+from datentool_backend.demand.models import DemandRateSet
+
+
+class ScenarioModeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ScenarioMode
+        fields = ('mode', 'variant')
+
+
+class ScenarioDemandRateSetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ScenarioService
+        fields = ('service', 'demandrateset')
 
 
 class ScenarioSerializer(serializers.ModelSerializer):
+    modevariants = ScenarioModeSerializer(
+        many=True, source='scenariomode_set', required=False)
+    demandratesets = ScenarioDemandRateSetSerializer(
+        many=True, source='scenarioservice_set', required=False)
+
     class Meta:
         model = Scenario
-        fields = ('id', 'name', 'planning_process')
+        fields = ('id', 'name', 'planning_process', 'prognosis',
+                  'modevariants', 'demandratesets')
+
+    def update(self, instance, validated_data):
+        mode_set = validated_data.pop('scenariomode_set')
+        service_set = validated_data.pop('scenarioservice_set')
+        super().update(instance, validated_data)
+
+        ## delete
+        #existing_scenario_modes\
+            #.exclude(id__in=[m.mode for m in modevariants])\
+            #.delete()
+
+        #  delete all and recreate
+        existing_scenario_modes = ScenarioMode.objects.filter(scenario=instance)
+        existing_scenario_modes.delete()
+        for mode in mode_set:
+            ScenarioMode.objects.create(scenario=instance,
+                                        mode=mode['mode'],
+                                        variant=mode['variant'])
+
+        #  delete all and recreate
+        existing_scenario_service = ScenarioService.objects.filter(scenario=instance)
+        existing_scenario_service.delete()
+        for service in service_set:
+            ScenarioService.objects.create(scenario=instance,
+                                           service=service['service'],
+                                           demandrateset=service['demandrateset'])
+
+        return instance
+
+    def create(self, validated_data):
+        mode_set = validated_data.pop('scenariomode_set')
+        service_set = validated_data.pop('scenarioservice_set')
+        instance = super().create(validated_data)
+        for mode in mode_set:
+            ScenarioMode.objects.create(scenario=instance,
+                                        mode=mode['mode'],
+                                        variant=mode['variant'])
+        for service in service_set:
+            ScenarioService.objects.create(scenario=instance,
+                                           service=service['service'],
+                                           demandrateset=service['demandrateset'])
+        return instance
+
 
 
 class PlaceAttributeField(JSONField):

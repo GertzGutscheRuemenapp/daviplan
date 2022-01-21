@@ -3,8 +3,7 @@ from django.core.validators import (MaxLengthValidator,
                                     MinValueValidator, MaxValueValidator)
 
 from datentool_backend.base import NamedModel
-from datentool_backend.infrastructure.models import (Service)
-from datentool_backend.user.models import Year
+from datentool_backend.user.models import (Year, Service)
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.base import NamedModel, DatentoolModelMixin
 from datentool_backend.utils.permissions import (CanEditBasedata,

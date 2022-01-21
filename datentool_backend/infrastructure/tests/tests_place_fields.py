@@ -15,7 +15,8 @@ from datentool_backend.user.factories import (ProfileFactory,
                                               InfrastructureFactory,
                                               ServiceFactory,
                                               )
-from datentool_backend.user.models import (Infrastructure,
+from datentool_backend.user.models import (Profile,
+                                           Infrastructure,
                                            InfrastructureAccess,
                                            Service,
                                            )
@@ -30,7 +31,6 @@ from datentool_backend.infrastructure.factories import (
     FieldTypeFactory
 )
 from datentool_backend.infrastructure.models import (
-    Profile,
     Place,
     Capacity,
     FieldTypes,

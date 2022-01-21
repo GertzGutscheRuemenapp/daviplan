@@ -87,8 +87,8 @@ class TestYearAPI(WriteOnlyWithCanEditBaseDataTest,
         super().setUpTestData()
 
         cls.post_data = dict(year=1990)
-        cls.put_data = dict(year=1995)
-        cls.patch_data = dict(year=2000)
+        cls.put_data = dict(year=1995, is_default=False)
+        cls.patch_data = dict(year=2000, is_default=True)
 
 
 class PostOnlyWithCanCreateProcessTest:

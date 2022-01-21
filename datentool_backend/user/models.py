@@ -98,3 +98,5 @@ class Service(DatentoolModelMixin, NamedModel, models.Model):
     has_capacity = models.BooleanField()
     demand_singular_unit = models.TextField()
     demand_plural_unit = models.TextField()
+    demand_name = models.TextField(null=True)
+    demand_description = models.TextField(null=True)
