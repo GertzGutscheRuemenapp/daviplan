@@ -6,7 +6,6 @@ export interface LayerGroup {
   id: number,
   order: number,
   name: string,
-  external: boolean,
   children?: Layer[]
 }
 
@@ -44,6 +43,7 @@ export interface AreaLevel {
   id: number;
   name: string;
   order: number;
+  tileUrl?: string;
   source?: Source;
   symbol?: Symbol;
   isPreset?: boolean;

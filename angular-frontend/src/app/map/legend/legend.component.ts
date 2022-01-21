@@ -43,24 +43,22 @@ export class LegendComponent implements AfterViewInit {
     this.activeBackgroundId = backgroundId;
     this.setBackground(backgroundId);
 
-    if (this.showExternal) {
-      this.mapService.getExternalLayers().subscribe(groups => {
-        let layerGroups: LayerGroup[] = [];
-        groups.forEach(group => {
-          if (!group.children || !(group.external || this.showInternal))
-            return;
-          group.children!.forEach(layer => {
-            layer.checked = <boolean>(this.cookies.get(`legend-layer-checked-${layer.id}`) || false);
-            layer.opacity = parseFloat(<string>this.cookies.get(`legend-layer-opacity-${layer.id}`) || '1');
-            this.mapControl.setLayerAttr(layer.id, { opacity: layer.opacity });
-            if (layer.checked) this.mapControl.toggleLayer(layer.id, true);
-          });
-          layerGroups.push(group);
+    this.mapService.getLayers().subscribe(groups => {
+      let layerGroups: LayerGroup[] = [];
+      groups.forEach(group => {
+        if (!group.children)
+          return;
+        group.children!.forEach(layer => {
+          layer.checked = <boolean>(this.cookies.get(`legend-layer-checked-${layer.id}`) || false);
+          layer.opacity = parseFloat(<string>this.cookies.get(`legend-layer-opacity-${layer.id}`) || '1');
+          this.mapControl.setLayerAttr(layer.id, { opacity: layer.opacity });
+          if (layer.checked) this.mapControl.toggleLayer(layer.id, true);
         });
-        this.layerGroups = layerGroups;
-        this.filterActiveGroups();
-      })
-    }
+        layerGroups.push(group);
+      });
+      this.layerGroups = layerGroups;
+      this.filterActiveGroups();
+    })
   }
 
   /**

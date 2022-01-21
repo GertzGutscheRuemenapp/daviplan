@@ -1,5 +1,5 @@
 import { Injectable, EventEmitter } from '@angular/core';
-import { Layer, LayerGroup } from '../rest-interfaces';
+import { AreaLevel, Layer, LayerGroup } from '../rest-interfaces';
 import { OlMap } from './map'
 import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { HttpClient } from "@angular/common/http";
@@ -42,8 +42,7 @@ const backgroundLayers: Layer[] = [
 export class MapService {
   private controls: Record<string, MapControl> = {};
   backgroundLayers: Layer[] = backgroundLayers;
-  externalLayerGroups?: BehaviorSubject<Array<LayerGroup>>;
-  internalLayerGroups?: BehaviorSubject<Array<LayerGroup>>;
+  layerGroups?: BehaviorSubject<Array<LayerGroup>>;
 
   constructor(private http: HttpClient, private rest: RestAPI) { }
 
@@ -59,39 +58,70 @@ export class MapService {
     return control;
   }
 
-  getExternalLayers(): BehaviorSubject<Array<LayerGroup>>{
-    if (!this.externalLayerGroups) {
-      this.externalLayerGroups = new BehaviorSubject<LayerGroup[]>([]);
-      this.fetchExternalLayers();
+  getLayers(): BehaviorSubject<Array<LayerGroup>>{
+    if (!this.layerGroups) {
+      this.layerGroups = new BehaviorSubject<LayerGroup[]>([]);
+      this.fetchLayers({ internal: true, external: true });
     }
-    return this.externalLayerGroups;
+    return this.layerGroups;
   }
 
-  private fetchInternalLayers() {
-
+  fetchLayers( options: { internal?: boolean, external?: boolean } = {}): void {
+    const observables: Observable<LayerGroup[]>[] = [];
+    if (options.internal)
+      observables.push(this.fetchInternalLayers());
+    if (options.external)
+      observables.push(this.fetchExternalLayers());
+    forkJoin(...observables).subscribe((merged: Array<LayerGroup[]>) => {
+      // @ts-ignore
+      const flatGroups = [].concat.apply([], merged);
+      this.layerGroups!.next(flatGroups);
+    })
   }
 
-  fetchExternalLayers(): Observable<LayerGroup> {
-    const observable = new Observable<LayerGroup>();
-    this.http.get<LayerGroup[]>(this.rest.URLS.layerGroups).subscribe( groups => {
-      groups = sortBy(groups, 'order');
-      let observables: Observable<any>[] = [];
-      observables.push(this.http.get<Layer[]>(`${this.rest.URLS.layers}?active=true`));
-      forkJoin(...observables).subscribe((merged: Array<Layer[]>) => {
-        // @ts-ignore
-        const flat = [].concat.apply([], merged);
-        const layers = sortBy(flat, 'order');
-        layers.forEach(layer => {
-          layer.checked = false;
-          const group = groups.find(group => { return group.id === layer.group });
-          if (group) {
-            if (!group.children) group.children = [];
-            group.children.push(layer);
+  private fetchInternalLayers(): Observable<LayerGroup[]> {
+    const observable = new Observable<LayerGroup[]>(subscriber => {
+      this.http.get<AreaLevel[]>(`${this.rest.URLS.arealevels}?active=true`).subscribe(levels => {
+        levels = sortBy(levels, 'order');
+        const group: LayerGroup = { id: -1, name: 'Gebiete', order: 2 };
+        let i = -100;
+        let layers = levels.map(level => {
+          const layer: Layer = {
+            id: i,
+            type: "vector-tiles",
+            order: i,
+            url: level.tileUrl!,
+            name: level.name,
+            description: `Gebiete der Gebietseinheit ${level.name}`
           }
+          i -= 1;
+          return layer;
+        });
+        group.children = layers;
+        subscriber.next([group]);
+        subscriber.complete();
+      })
+    })
+    return observable;
+  }
+
+  private fetchExternalLayers(): Observable<LayerGroup[]> {
+    const observable = new Observable<LayerGroup[]>(subscriber => {
+      this.http.get<LayerGroup[]>(this.rest.URLS.layerGroups).subscribe( groups => {
+        groups = sortBy(groups, 'order');
+        this.http.get<Layer[]>(`${this.rest.URLS.layers}?active=true`).subscribe( layers => {
+          layers = sortBy(layers, 'order');
+          layers.forEach(layer => {
+            layer.checked = false;
+            const group = groups.find(group => { return group.id === layer.group });
+            if (group) {
+              if (!group.children) group.children = [];
+              group.children.push(layer);
+            }
+          })
+          subscriber.next(groups);
+          subscriber.complete();
         })
-        // remove empty groups
-        groups = groups.filter(group => { return !!group.children });
-        this.externalLayerGroups!.next(groups);
       })
     })
     return observable;
@@ -112,10 +142,7 @@ export class MapControl {
   }
 
   refresh(options: { internal?: boolean, external?: boolean } = {}): void {
-    if (options.external)
-      this.mapService.fetchExternalLayers();
-    if (options.internal)
-      this.mapService.fetchExternalLayers();
+    this.mapService.fetchLayers(options);
   }
 
   getBackgroundLayers(): Layer[] {
@@ -161,7 +188,7 @@ export class MapControl {
     for (let layer of this.mapService.backgroundLayers) {
       this.addLayer(layer, true);
     }
-    this.mapService.getExternalLayers().subscribe(layerGroups => {
+    this.mapService.getLayers().subscribe(layerGroups => {
       layerGroups.forEach(group => {
         for (let layer of group.children!.slice().reverse()) {
           this.addLayer(layer, false);

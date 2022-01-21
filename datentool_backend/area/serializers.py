@@ -53,8 +53,11 @@ class AreaLevelSerializer(serializers.ModelSerializer):
         # x,y,z have to be passed to reverse
         url = reverse('layer-tile', kwargs={'pk': obj.id, 'z': 0,
                                             'x': 0, 'y': 0})
-        # split off trailing x,y,z and add generic specs
+        # split off trailing x,y,z
         url = url.split('/0/0/0')[0]
+        # incl. host
+        url = self.context['request'].build_absolute_uri(url)
+        # add generic x,y,z specs
         url += '/{z}/{x}/{y}/'
         return url
 
