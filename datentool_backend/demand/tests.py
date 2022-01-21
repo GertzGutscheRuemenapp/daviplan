@@ -4,8 +4,8 @@ from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest)
 from datentool_backend.area.tests import TestAPIMixin, TestPermissionsMixin
 
-from .factories import DemandRateSetFactory, DemandRateFactory, ScenarioDemandRateFactory
-from .models import DemandRate, DemandRateSet, ScenarioDemandRate
+from .factories import DemandRateSetFactory, DemandRateFactory
+from .models import DemandRate, DemandRateSet
 
 from faker import Faker
 

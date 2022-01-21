@@ -1,2 +1,3 @@
-from .tests_views_serializers import *
-#from .test_bulk import *
+from .tests_place_fields import *
+from .test_scenario import *
+

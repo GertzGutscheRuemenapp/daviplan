@@ -1,24 +1,9 @@
 from django.contrib import admin
-from .models import (Profile, Year, PlanningProcess, Scenario)
-
-# Register your models here.
-
-# Register your models here.
-@admin.register(Profile)
-class ProfileAdmin(admin.ModelAdmin):
-    """"""
+from .models import (Profile, Year, PlanningProcess, Infrastructure, Service)
 
 
-@admin.register(Year)
-class YearAdmin(admin.ModelAdmin):
-    """"""
-
-
-@admin.register(PlanningProcess)
-class PlanningProcessAdmin(admin.ModelAdmin):
-    """"""
-
-
-@admin.register(Scenario)
-class ScenarioAdmin(admin.ModelAdmin):
-    """"""
+admin.site.register(Profile)
+admin.site.register(Year)
+admin.site.register(PlanningProcess)
+admin.site.register(Infrastructure)
+admin.site.register(Service)

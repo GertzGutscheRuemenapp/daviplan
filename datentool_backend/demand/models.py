@@ -2,7 +2,7 @@ from django.db import models
 from datentool_backend.base import NamedModel
 from datentool_backend.population.models import (AgeGroup, )
 from datentool_backend.infrastructure.models import (Service)
-from datentool_backend.user.models import Scenario, Year
+from datentool_backend.user.models import Year
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.base import NamedModel, DatentoolModelMixin
 from datentool_backend.utils.permissions import (CanEditBasedata,
@@ -25,9 +25,3 @@ class DemandRate(models.Model):
     demand_rate_set = models.ForeignKey(DemandRateSet, on_delete=PROTECT_CASCADE)
     value = models.FloatField(null=True)
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-
-
-class ScenarioDemandRate(DemandRate):
-    scenario = models.ForeignKey(Scenario, on_delete=PROTECT_CASCADE)
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-

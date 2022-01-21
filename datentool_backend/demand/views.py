@@ -3,10 +3,9 @@ from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 
-from .models import (DemandRateSet, DemandRate, ScenarioDemandRate)
+from .models import (DemandRateSet, DemandRate)
 from .serializers import (DemandRateSetSerializer,
-                          DemandRateSerializer,
-                          ScenarioDemandRateSerializer)
+                          DemandRateSerializer)
 
 
 class DemandRateSetViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
@@ -20,7 +19,3 @@ class DemandRateViewSet(viewsets.ModelViewSet):
     serializer_class = DemandRateSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
-
-class ScenarioDemandRateViewSet(viewsets.ModelViewSet):
-    queryset = ScenarioDemandRate.objects.all()
-    serializer_class = ScenarioDemandRateSerializer

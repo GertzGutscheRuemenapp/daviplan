@@ -12,15 +12,16 @@ from .area.views import (LayerGroupViewSet, WMSLayerViewSet,
                          AreaLevelViewSet, AreaViewSet)
 
 from .demand.views import (DemandRateSetViewSet, DemandRateViewSet,
-                           ScenarioDemandRateViewSet)
+                           )
 
 from .indicators.views import (ModeViewSet, ModeVariantViewSet,
                                #ReachabilityMatrixViewSet,
                                RouterViewSet,
                                IndicatorViewSet)
 
-from .infrastructure.views import (InfrastructureViewSet, FieldTypeViewSet,
-                                   ServiceViewSet, PlaceViewSet,
+from .infrastructure.views import (ScenarioViewSet,
+                                   FieldTypeViewSet,
+                                    PlaceViewSet,
                                    CapacityViewSet, PlaceFieldViewSet,
                                    FClassViewSet)
 from .logging.views import (CapacityUploadLogViewSet, PlaceUploadLogViewSet,
@@ -34,8 +35,9 @@ from .population.views import (RasterViewSet,
                                PopStatEntryViewSet)
                                # ,RasterCellTileViewSet)
 from .user.views import (PlanningProcessViewSet,
-                         ScenarioViewSet,
-                         YearViewSet,)
+                         YearViewSet,
+                         InfrastructureViewSet,
+                         ServiceViewSet, )
 from datentool_backend.utils.routers import SingletonRouter
 
 router = routers.SimpleRouter()
@@ -51,8 +53,7 @@ router.register(r'areas', AreaViewSet, basename='areas')
 router.register(r'demandratesets', DemandRateSetViewSet,
                 basename='demandratesets')
 router.register(r'demandrates', DemandRateViewSet, basename='demandrates')
-router.register(r'scenariodemandrates', ScenarioDemandRateViewSet,
-                basename='scenariodemandrates')
+
 # indicator
 router.register(r'modes', ModeViewSet, basename='modes')
 router.register(r'modevariants', ModeVariantViewSet, basename='modevariants')
@@ -62,9 +63,7 @@ router.register(r'routers', RouterViewSet, basename='routers')
 router.register(r'indicators', IndicatorViewSet, basename='indicators')
 
 # infrastructure
-router.register(r'infrastructures', InfrastructureViewSet,
-                basename='infrastructures')
-router.register(r'services', ServiceViewSet, basename='services')
+router.register(r'scenarios', ScenarioViewSet, basename='scenarios')
 router.register(r'places', PlaceViewSet, basename='places')
 router.register(r'capacities', CapacityViewSet, basename='capacities')
 router.register(r'fieldtypes', FieldTypeViewSet, basename='fieldtypes')
@@ -112,7 +111,9 @@ router.register(r'popstatentries', PopStatEntryViewSet, basename='popstatentries
 
 # users
 router.register(r'planningprocesses', PlanningProcessViewSet, basename='planningprocesses')
-router.register(r'scenarios', ScenarioViewSet, basename='scenarios')
+router.register(r'infrastructures', InfrastructureViewSet,
+                basename='infrastructures')
+router.register(r'services', ServiceViewSet, basename='services')
 
 # site
 srouter = SingletonRouter()

@@ -1,71 +1,32 @@
 from typing import Tuple
-from faker import Faker
-import factory
 from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import Point
-from .models import (Infrastructure, Service, Place,
-                     Capacity, FieldTypes, FieldType, FClass, PlaceField,
-                     Profile)
-from .. user.factories import ScenarioFactory
-from datentool_backend.area.factories import MapSymbolFactory
 
+from .models import (Scenario,
+                     Place,
+                     Capacity,
+                     FieldTypes,
+                     FieldType,
+                     FClass,
+                     PlaceField,
+                     )
+
+from datentool_backend.user.factories import (PlanningProcessFactory,
+                                              InfrastructureFactory,
+                                              ServiceFactory,
+                                              )
+
+import factory
+from faker import Faker
 faker = Faker('de-DE')
 
 
-class InfrastructureFactory(DjangoModelFactory):
+class ScenarioFactory(DjangoModelFactory):
     class Meta:
-        model = Infrastructure
-    name = faker.word()
-    description = faker.sentence()
-    # sensitive_data
-    symbol = factory.SubFactory(MapSymbolFactory)
-    order = faker.unique.pyint(max_value=10)
-
-    @factory.post_generation
-    def editable_by(self, create, extracted, **kwargs):
-        if not create:
-            # Simple build, do nothing.
-            return
-
-        if extracted:
-            # A list of profiles were passed in, use them
-            for profile in extracted:
-                self.editable_by.add(profile)
-        else:
-            profile = Profile.objects.first()
-            if profile is not None:
-                self.editable_by.add(profile)
-
-    @factory.post_generation
-    def accessible_by(self, create, extracted, **kwargs):
-        if not create:
-            # Simple build, do nothing.
-            return
-
-        if extracted:
-            # A list of profiles were passed in, use them
-            for profile in extracted:
-                self.accessible_by.add(profile)
-        else:
-            profile = Profile.objects.first()
-            if profile is not None:
-                self.accessible_by.add(profile)
-
-
-class ServiceFactory(DjangoModelFactory):
-    class Meta:
-        model = Service
+        model = Scenario
 
     name = faker.word()
-    description = faker.sentence()
-    infrastructure = factory.SubFactory(InfrastructureFactory)
-    # editable_by
-    capacity_singular_unit = faker.word()
-    capacity_plural_unit = faker.word()
-    has_capacity = True
-    demand_singular_unit = faker.word()
-    demand_plural_unit = faker.word()
-    quota_type = faker.word()
+    planning_process = factory.SubFactory(PlanningProcessFactory)
 
 
 def _get_point_from_latlon(latlng: Tuple[float, float], srid: int) -> Point:
