@@ -4,10 +4,8 @@ services:
 
   postgis:
     image: postgis/postgis:13-3.1-alpine
-    restart: always
+    restart: unless-stopped
     environment:
-      # ToDo: this might be a security issue,
-      # does not allow connection otherwise atm
       POSTGRES_HOST_AUTH_METHOD: trust
       POSTGRES_DB: datentool
     volumes:
@@ -15,11 +13,10 @@ services:
 
   web:
     env_file: .env
-    build: .
-    image: datentool
+    image: gertzgutscheruemenapp/daviplan:testing
     links:
       - postgis:db
-    command: bash -c "cd /root/datentool && git pull && pip install -r requirements.txt && cd angular-frontend && npm ci && ng build --stats_json --build-optimizer && cd /root/datentool && python manage.py migrate --run-syncdb && python manage.py loaddata users && python manage.py runserver 0.0.0.0:8000"
+    command: bash -c "cd /root/datentool && git pull && pip install -r requirements.txt && cd angular-frontend && npm ci && ng build --stats_json --build-optimizer && cd /root/datentool && python manage.py migrate --run-syncdb && python manage.py runserver 0.0.0.0:8000"
     ports:
       - "${EXT_PORT}:8000"
     restart: unless-stopped

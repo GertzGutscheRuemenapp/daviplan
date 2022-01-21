@@ -1,11 +1,14 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
-import { AreaLevel, BasedataSettings } from "../../../rest-interfaces";
+import { AreaLevel, BasedataSettings, Layer } from "../../../rest-interfaces";
 import { Observable } from "rxjs";
 import { sortBy } from "../../../helpers/utils";
 import { HttpClient } from "@angular/common/http";
 import { MatDialog } from "@angular/material/dialog";
 import { RestAPI } from "../../../rest-api";
+import { InputCardComponent } from "../../../dash/input-card.component";
+import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
+import { MatCheckbox } from "@angular/material/checkbox";
 
 
 @Component({
@@ -14,19 +17,23 @@ import { RestAPI } from "../../../rest-api";
   styleUrls: ['../../../map/legend/legend.component.scss','./areas.component.scss']
 })
 export class AreasComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('editArealevelCard') editArealevelCard!: InputCardComponent;
+  @ViewChild('enableLayerCheck') enableLayerCheck?: MatCheckbox;
   mapControl?: MapControl;
   selectedAreaLevel?: AreaLevel;
   basedataSettings?: BasedataSettings;
   presetLevels: AreaLevel[] = [];
   customAreaLevels: AreaLevel[] = [];
   colorSelection: string = 'black';
+  editArealevelErrors: string[] = [];
+  Object = Object;
 
   constructor(private mapService: MapService,private http: HttpClient, private dialog: MatDialog,
-              private rest: RestAPI) { }
+              private rest: RestAPI, private formBuilder: FormBuilder) {
+  }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-areas-map');
-    this.mapControl.setBackground(this.mapControl.getBackgroundLayers()[0].id);
 
     this.fetchBasedataSettings().subscribe(res => {
       this.fetchAreas().subscribe(res => {
@@ -34,6 +41,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         this.colorSelection = this.selectedAreaLevel.symbol?.fillColor || 'black';
       })
     })
+    this.setupLayerCard();
   }
 
   /**
@@ -67,13 +75,33 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     return query;
   }
 
-  ngOnDestroy(): void {
-    this.mapControl?.destroy();
+  setupLayerCard(): void {
+    this.editArealevelCard.dialogOpened.subscribe(ok => {
+      this.colorSelection = this.selectedAreaLevel?.symbol?.strokeColor || 'black';
+      this.editArealevelErrors = [];
+    })
+    this.editArealevelCard.dialogConfirmed.subscribe((ok)=>{
+      const attributes: any = this.enableLayerCheck!.checked? {
+        symbol: {
+          strokeColor: this.colorSelection
+        }
+      }: {
+        symbol: null
+      }
+      this.editArealevelCard.setLoading(true);
+      this.http.patch<AreaLevel>(`${this.rest.URLS.arealevels}${this.selectedAreaLevel?.id}/`, attributes
+      ).subscribe(arealevel => {
+        this.selectedAreaLevel!.symbol = arealevel.symbol;
+        this.editArealevelCard.closeDialog(true);
+      },(error) => {
+        this.editArealevelErrors = [error.error.detail];
+        this.editArealevelCard.setLoading(false);
+      });
+    })
   }
 
-  onSelect(areaLevel: AreaLevel): void {
-    this.selectedAreaLevel = areaLevel;
-    this.colorSelection = this.selectedAreaLevel.symbol?.fillColor || 'black';
+  ngOnDestroy(): void {
+    this.mapControl?.destroy();
   }
 
   onCreateArea(): void {

@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
 from datetime import date as dt_date
+from django.urls import reverse
 
 from .models import (MapSymbol, LayerGroup, WMSLayer,
                      Source, AreaLevel, Area)
@@ -40,15 +41,30 @@ class AreaLevelSerializer(serializers.ModelSerializer):
     symbol = MapSymbolSerializer(allow_null=True, required=False)
     area_count = serializers.IntegerField(source='area_set.count',
                                           read_only=True)
+    tile_url = serializers.SerializerMethodField()
 
     class Meta:
         model = AreaLevel
         fields = ('id', 'name', 'order', 'source', 'symbol', 'is_active',
-                  'is_preset', 'area_count')
+                  'is_preset', 'area_count', 'tile_url')
         read_only_fields = ('is_preset', )
 
+    def get_tile_url(self, obj):
+        # x,y,z have to be passed to reverse
+        url = reverse('layer-tile', kwargs={'pk': obj.id, 'z': 0,
+                                            'x': 0, 'y': 0})
+        # split off trailing x,y,z
+        url = url.split('/0/0/0')[0]
+        # incl. host
+        url = self.context['request'].build_absolute_uri(url)
+        # add generic x,y,z specs
+        url += '/{z}/{x}/{y}/'
+        return url
+
     def create(self, validated_data):
-        symbol_data = validated_data.pop('symbol', None)
+        symbol_data = validated_data.pop('symbol', {})
+        if not 'symbol' in symbol_data:
+            symbol_data['symbol'] = 'line'
         symbol = MapSymbol.objects.create(**symbol_data) \
             if symbol_data else None
         source_data = validated_data.pop('source', None)
@@ -74,6 +90,8 @@ class AreaLevelSerializer(serializers.ModelSerializer):
             symbol = instance.symbol
             if symbol_data:
                 if not symbol:
+                    if not 'symbol' in symbol_data:
+                        symbol_data['symbol'] = 'line'
                     symbol = MapSymbol.objects.create(**symbol_data)
                     instance.symbol = symbol
                 else:
