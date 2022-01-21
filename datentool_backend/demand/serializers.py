@@ -1,6 +1,18 @@
 from rest_framework import serializers
 
-from .models import (DemandRateSet, DemandRate)
+from .models import (AgeGroup, Gender, DemandRateSet, DemandRate)
+
+
+class GenderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Gender
+        fields = ('id', 'name')
+
+
+class AgeGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AgeGroup
+        fields = ('id', 'from_age', 'to_age')
 
 
 class DemandRateSetSerializer(serializers.ModelSerializer):

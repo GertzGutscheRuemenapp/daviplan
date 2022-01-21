@@ -1,8 +1,7 @@
 from rest_framework import serializers
-#from rest_framework_gis.serializers import GeoFeatureModelSerializer
-#from datentool_backend.utils.geometry_fields import GeometrySRIDField
 
-from .models import (Raster, PopulationRaster, Gender, AgeGroup, DisaggPopRaster,
+
+from .models import (Raster, PopulationRaster, DisaggPopRaster,
                      Prognosis, PrognosisEntry, Population, PopulationEntry,
                      PopStatistic, PopStatEntry)
 
@@ -26,18 +25,6 @@ class PopulationRasterSerializer(serializers.ModelSerializer):
         #model = RasterCell
         #geo_field = 'pnt', 'poly'
         #fields = ('id', 'raster', 'cellcode')
-
-
-class GenderSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Gender
-        fields = ('id', 'name')
-
-
-class AgeGroupSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AgeGroup
-        fields = ('id', 'from_age', 'to_age')
 
 
 class DisaggPopRasterSerializer(serializers.ModelSerializer):

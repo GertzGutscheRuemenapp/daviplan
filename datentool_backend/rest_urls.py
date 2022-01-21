@@ -11,7 +11,10 @@ from .population.models import RasterCell
 from .area.views import (LayerGroupViewSet, WMSLayerViewSet,
                          AreaLevelViewSet, AreaViewSet)
 
-from .demand.views import (DemandRateSetViewSet, DemandRateViewSet,
+from .demand.views import (GenderViewSet,
+                           AgeGroupViewSet,
+                           DemandRateSetViewSet,
+                           DemandRateViewSet,
                            )
 
 from .modes.views import (ModeViewSet, ModeVariantViewSet,)
@@ -21,16 +24,20 @@ from .indicators.views import (RouterViewSet,
 from .infrastructure.views import (ScenarioViewSet,
                                    FieldTypeViewSet,
                                     PlaceViewSet,
-                                   CapacityViewSet, PlaceFieldViewSet,
+                                   CapacityViewSet,
+                                   PlaceFieldViewSet,
                                    FClassViewSet)
-from .logging.views import (CapacityUploadLogViewSet, PlaceUploadLogViewSet,
+from .logging.views import (CapacityUploadLogViewSet,
+                            PlaceUploadLogViewSet,
                             AreaUploadLogViewSet)
 from .population.views import (RasterViewSet,
-                               PopulationRasterViewSet, GenderViewSet,
-                               AgeGroupViewSet,
-                               DisaggPopRasterViewSet, PrognosisViewSet,
-                               PrognosisEntryViewSet, PopulationViewSet,
-                               PopulationEntryViewSet, PopStatisticViewSet,
+                               PopulationRasterViewSet,
+                               DisaggPopRasterViewSet,
+                               PrognosisViewSet,
+                               PrognosisEntryViewSet,
+                               PopulationViewSet,
+                               PopulationEntryViewSet,
+                               PopStatisticViewSet,
                                PopStatEntryViewSet)
                                # ,RasterCellTileViewSet)
 from .user.views import (PlanningProcessViewSet,

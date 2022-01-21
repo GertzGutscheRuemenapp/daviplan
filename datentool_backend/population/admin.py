@@ -4,8 +4,6 @@ from .models import (
     PopulationRaster,
     RasterCell,
     RasterCellPopulation,
-    Gender,
-    AgeGroup,
     DisaggPopRaster,
     RasterCellPopulationAgeGender,
     Prognosis,
@@ -20,8 +18,6 @@ admin.site.register(Raster)
 admin.site.register(PopulationRaster)
 admin.site.register(RasterCell)
 admin.site.register(RasterCellPopulation)
-admin.site.register(Gender)
-admin.site.register(AgeGroup)
 admin.site.register(DisaggPopRaster)
 admin.site.register(RasterCellPopulationAgeGender)
 admin.site.register(Prognosis)

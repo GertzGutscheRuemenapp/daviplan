@@ -1,12 +1,26 @@
 from faker import Faker
 import factory
 from factory.django import DjangoModelFactory
-from .models import DemandRateSet, DemandRate
-from datentool_backend.population.factories import (AgeGroupFactory, )
+from .models import AgeGroup, Gender, DemandRateSet, DemandRate
 from datentool_backend.infrastructure.factories import ServiceFactory
 from datentool_backend.user.factories import YearFactory
 
 faker = Faker('de-DE')
+
+
+class GenderFactory(DjangoModelFactory):
+    class Meta:
+        model = Gender
+
+    name = factory.Sequence(lambda n: faker.unique.word())
+
+
+class AgeGroupFactory(DjangoModelFactory):
+    class Meta:
+        model = AgeGroup
+
+    from_age = faker.pyint(max_value=127)
+    to_age = faker.pyint(max_value=127)
 
 
 class DemandRateSetFactory(DjangoModelFactory):
