@@ -150,7 +150,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         this.selectedLayer!.name = layer.name;
         this.selectedLayer!.description = layer.description;
         this.layerTree.refresh();
-        this.mapService.fetchLayers();
+        this.mapControl?.refresh({ external: true });
         this.layerCard?.closeDialog(true);
       },(error) => {
         // ToDo: set specific errors to fields
@@ -185,7 +185,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       ).subscribe(group => {
         this.selectedGroup!.name = group.name;
         this.layerTree.refresh();
-        this.mapService.fetchLayers();
+        this.mapControl?.refresh({ external: true });;
         this.layerGroupCard?.closeDialog(true);
       },(error) => {
         // ToDo: set specific errors to fields
@@ -265,7 +265,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         group.children = [];
         this.layerGroups.push(group);
         this.layerTree.refresh();
-        this.mapService.fetchLayers();
+        this.mapControl?.refresh();
         this.layerTree.select(group);
         dialogRef.close();
       },(error) => {
@@ -309,7 +309,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         const group = this.getGroup(layer.group);
         group?.children?.push(layer);
         this.layerTree.refresh();
-        this.mapService.fetchLayers();
+        this.mapControl?.refresh({ external: true });
         this.layerTree.select(layer);
         dialogRef.close();
       },(error) => {
@@ -394,7 +394,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
               group.children.splice(idx, 1);
               this.selectedLayer = undefined;
               this.layerTree.refresh();
-              this.mapService.fetchLayers();
+              this.mapControl?.refresh({ external: true });
             }
           }
         },(error) => {
@@ -428,7 +428,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
             this.layerGroups.splice(idx, 1);
             this.selectedGroup = undefined;
             this.layerTree.refresh();
-            this.mapService.fetchLayers();
+            this.mapControl?.refresh({ external: true });
           }
         },(error) => {
           console.log('there was an error sending the query', error);
@@ -455,7 +455,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       observables.push(request);
     }
     forkJoin(...observables).subscribe(next => {
-      this.mapService.fetchLayers();
+      this.mapControl?.refresh({ external: true });
       this.layerTree.refresh();
     })
   }
@@ -500,7 +500,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       observables.push(req);
     })
     forkJoin(...observables).subscribe(next => {
-      this.mapService.fetchLayers();
+      this.mapControl?.refresh({ external: true });
     })
   };
 

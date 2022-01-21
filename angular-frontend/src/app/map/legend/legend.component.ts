@@ -12,7 +12,8 @@ import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 })
 export class LegendComponent implements AfterViewInit {
   @Input() target!: string;
-  @Input() showInternal?: boolean = true;
+  @Input() showInternal: boolean = true;
+  @Input() showExternal: boolean = true;
   @ViewChild('legendImage') legendImageTemplate?: TemplateRef<any>;
   legendImageDialogs: Record<number, MatDialogRef<any>> = [];
   mapControl!: MapControl;
@@ -28,7 +29,7 @@ export class LegendComponent implements AfterViewInit {
   constructor(public dialog: MatDialog, private mapService: MapService,
               private cdRef:ChangeDetectorRef, private cookies: CookieService) {
     this.backgroundOpacity = parseFloat(<string>this.cookies.get(`background-layer-opacity`) || '1');
-    this.editMode = <boolean>this.cookies.get('legend-edit-mode') || false;
+    this.editMode = <boolean>this.cookies.get(`${this.target}-legend-edit-mode`) || true;
   }
 
   ngAfterViewInit (): void {
@@ -42,23 +43,24 @@ export class LegendComponent implements AfterViewInit {
     this.activeBackgroundId = backgroundId;
     this.setBackground(backgroundId);
 
-    this.mapService.getLayers().subscribe(groups => {
-      let layerGroups: LayerGroup[] = [];
-      groups.forEach(group => {
-        if (!group.children || !(group.external || this.showInternal))
-          return;
-        group.children!.forEach(layer => {
-          layer.checked = <boolean>(this.cookies.get(`legend-layer-checked-${layer.id}`) || false);
-          layer.opacity = parseFloat(<string>this.cookies.get(`legend-layer-opacity-${layer.id}`) || '1');
-          this.mapControl.setLayerAttr(layer.id, { opacity: layer.opacity });
-          if (layer.checked) this.mapControl.toggleLayer(layer.id, true);
+    if (this.showExternal) {
+      this.mapService.getExternalLayers().subscribe(groups => {
+        let layerGroups: LayerGroup[] = [];
+        groups.forEach(group => {
+          if (!group.children || !(group.external || this.showInternal))
+            return;
+          group.children!.forEach(layer => {
+            layer.checked = <boolean>(this.cookies.get(`legend-layer-checked-${layer.id}`) || false);
+            layer.opacity = parseFloat(<string>this.cookies.get(`legend-layer-opacity-${layer.id}`) || '1');
+            this.mapControl.setLayerAttr(layer.id, { opacity: layer.opacity });
+            if (layer.checked) this.mapControl.toggleLayer(layer.id, true);
+          });
+          layerGroups.push(group);
         });
-        layerGroups.push(group);
-      });
-      this.layerGroups = layerGroups;
-      this.filterActiveGroups();
-    })
-    this.cdRef.detectChanges();
+        this.layerGroups = layerGroups;
+        this.filterActiveGroups();
+      })
+    }
   }
 
   /**

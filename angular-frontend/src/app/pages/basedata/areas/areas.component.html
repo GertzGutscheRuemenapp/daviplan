@@ -21,7 +21,7 @@
           </mat-optgroup>
           <div class="option-wrapper" *ngFor="let areaLevel of presetLevels">
             <mat-list-option [value]="areaLevel"
-                             (click)="onSelect(areaLevel)"
+                             (click)="selectedAreaLevel = areaLevel"
                              [selected]="(selectedAreaLevel && (areaLevel.id === selectedAreaLevel.id))">
               <div class="option-text">{{ areaLevel.name }}</div>
               <mat-icon *ngIf="areaLevel.id === basedataSettings?.defaultPopAreaLevel" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
@@ -34,7 +34,7 @@
           </mat-optgroup>
           <div class="option-wrapper" *ngFor="let areaLevel of customAreaLevels">
             <mat-list-option [value]="areaLevel"
-                             (click)="onSelect(areaLevel)"
+                             (click)="selectedAreaLevel = areaLevel"
                              [selected]="(selectedAreaLevel && (areaLevel.id === selectedAreaLevel.id))">
               <div class="option-text">{{ areaLevel.name }}</div>
               <mat-icon *ngIf="areaLevel.id === basedataSettings?.defaultPopAreaLevel" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
@@ -80,7 +80,8 @@
         </button>
       </div>
     </app-input-card>
-    <app-input-card [title]="'Darstellung der ausgewählten Gebietseinteilung'"
+    <app-input-card #editArealevelCard
+                    [title]="'Darstellung der ausgewählten Gebietseinteilung'"
                     [editTemplate]="propertiesEdit"
                     [subtitle]="'In allen Karten der Anwendung so darstellen'"
                     infoText="<p>Über die Schaltfläche „Editieren“ können Sie festlegen, wie die gerade ausgewählte Gebietseinteilung in allen Karten dieser Anwendung, d.h. auch in den Bereichen „Bevölkerung“ und „Infrastrukturplanung“ des Hauptmenüs dargestellt und bezeichnet werden soll.</p>">
@@ -93,6 +94,7 @@
           <td i18n>Linienfarbe</td>
           <td>
             <div *ngIf="selectedAreaLevel?.symbol"
+                 style="margin-bottom: -5px;"
                  class="symbol square"
                  [style.backgroundColor]="selectedAreaLevel?.symbol?.strokeColor">
             </div>
@@ -108,8 +110,7 @@
     <app-input-card [title]="'Daten der ausgewählten Gebietseinteilung'"
                     [topRightHelp]="true"
                     [dialogTitle]="'Kontakt E-Mail ändern'"
-                    infoText="<p>Klicken Sie auf „Daten abrufen bzw. aktualisieren“, um die Daten erstmalig oder – zum Aktualisieren – erneut vom Bundesamt für Kartographie und Geodäsie (BKG) herunterzuladen. Den Zeitpunkt der letzten Aktualisierung können Sie der Aktualisierungshistorie entnehmen.</p>
-                              <p>Die Darstellung in der Karte können Sie in der Box „Darstellung der ausgewählten Gebietseinteilung“ anpassen.</p>">
+                    infoText="<p>Klicken Sie auf „Daten abrufen bzw. aktualisieren“, um die Daten erstmalig oder – zum Aktualisieren – erneut vom Bundesamt für Kartographie und Geodäsie (BKG) herunterzuladen. Den Zeitpunkt der letzten Aktualisierung können Sie der Aktualisierungshistorie entnehmen.</p>">
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
           <span class="subtitle1 sub">
@@ -161,29 +162,58 @@
           <app-log></app-log>
         </div>
       </div>
+    </app-input-card>
+    <app-input-card [title]="'Kartenvorschau'"
+                    [topRightHelp]="true"
+                    infoText="<p>Die Karte zeigt die Gebiete der aktuell ausgewählten Gebietseinheiten als ausgefüllte Flächen.<p>
+                    <p>Zusätzlich zeigt sie auf Wunsch alle zur Darstellung freigegeben Gebietseinheiten, auswählbar über die Legende.
+                    Die Darstellung der einzelnen Gebietseinheiten in der Karte können Sie in der Box „Darstellung der ausgewählten Gebietseinteilung“ anpassen.</p>">
       <div id="base-areas-map" class="map-container">
         <app-map-controls target="base-areas-map"></app-map-controls>
+        <app-side-toggle id="legend"
+                         icon="layers"
+                         direction="left"
+                         name="Legenden- und Layersteuerung"
+                         cookieExpansion="base-areas-legend" [initiallyExpanded]="true">
+          <app-legend target="base-areas-map"
+                      [showInternal]="true"
+                      [showExternal]="false">
+          </app-legend>
+        </app-side-toggle>
       </div>
     </app-input-card>
   </div>
 </div>
 
 <ng-template #propertiesEdit>
+  <div style="min-height: 130px">
+    <div *ngIf="editArealevelErrors.length > 0">
+      <mat-error *ngFor="let error of Object.values(editArealevelErrors)" class="alert">
+        {{ error }}
+      </mat-error>
+    </div>
     <mat-form-field appearance="fill" style="width: 100%">
       <mat-label i18n>Name</mat-label>
       <input matInput formControlName="username"
                       [value]="selectedAreaLevel?.name"
                       [disabled]="selectedAreaLevel?.isPreset || false">
     </mat-form-field>
-    <table>
+    <mat-checkbox color="primary"
+                  #enableLayerCheck
+                  [checked]="!!selectedAreaLevel?.symbol?.strokeColor"
+                  title="Gebietseinheit als Layer in Karte zur Verfügung stellen">
+      Gebietseinheit als Layer zur Verfügung stellen
+    </mat-checkbox>
+    <table *ngIf="enableLayerCheck.checked" style="margin-top: 10px;">
       <tr>
         <td i18n>Linienfarbe</td>
         <td>
           <div class="symbol square"
                [(colorPicker)]="colorSelection"
                [style.backgroundColor]="colorSelection"
-               style="cursor: pointer">
+               style="cursor: pointer; margin-bottom: -5px;">
           </div></td>
       </tr>
     </table>
+  </div>
 </ng-template>

@@ -18,17 +18,19 @@ export interface Symbol {
 
 export interface Layer {
   id: number,
-  group: number,
   order: number,
   url: string,
   name: string,
-  layerName: string,
   description: string,
+  group?: number,
+  layerName?: string,
+  attribution?: string,
   active?: boolean,
   checked?: boolean,
   legendUrl?: string,
   opacity?: number,
-  symbol?: Symbol
+  symbol?: Symbol,
+  type?: "wms" | "vector-tiles" | "tiles";
 }
 
 export interface Source {

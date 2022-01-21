@@ -5,43 +5,34 @@ import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../rest-api";
 import { sortBy } from "../helpers/utils";
-import { environment } from "../../environments/environment";
 
-interface BackgroundLayer {
-  id: number;
-  name: string;
-  url: string;
-  legendUrl?: string;
-  description?: string;
-  attribution?: string;
-  params?: any;
-  xyz?: boolean;
-}
-
-const backgroundLayers: BackgroundLayer[] = [
+const backgroundLayers: Layer[] = [
   {
     id: -1,
     name: 'OSM',
     url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     description: 'Offizielle Weltkarte von OpenStreetMap',
     attribution: '©<a target="_blank" href="https://www.openstreetmap.org/copyright">OpenStreetMap-Mitwirkende<a>',
-    xyz: true
+    type: 'tiles',
+    order: 1,
+
   },
   {
     id: -2,
     name: 'TopPlusOpen',
     url: 'https://sgx.geodatenzentrum.de/wms_topplus_open',
     description: 'Weltweite einheitliche Webkarte vom BKG. Normalausgabe',
-    legendUrl: 'https://sgx.geodatenzentrum.de/wms_topplus_open?styles=&sld_version=1.1.0&version=1.1.1&request=GetLegendGraphic&format=image%2Fpng&service=WMS&layer=web',
-    params: { layers: 'web' },
+    type: 'wms',
+    order: 2,
+    layerName: 'web'
   },
   {
     id: -3,
     name: 'TopPlusOpen grau',
     url: 'https://sgx.geodatenzentrum.de/wms_topplus_open',
-    legendUrl: 'https://sgx.geodatenzentrum.de/wms_topplus_open?styles=&sld_version=1.1.0&version=1.1.1&request=GetLegendGraphic&format=image%2Fpng&service=WMS&layer=web_grau',
     description: 'Weltweite einheitliche Webkarte vom BKG. Graustufendarstellung',
-    params: { layers: 'web_grau' },
+    order: 3,
+    layerName: 'web_grau'
   }
 ]
 
@@ -50,12 +41,11 @@ const backgroundLayers: BackgroundLayer[] = [
 })
 export class MapService {
   private controls: Record<string, MapControl> = {};
-  backgroundLayers: BackgroundLayer[] = backgroundLayers;
-  layerGroups?: BehaviorSubject<Array<LayerGroup>>;
+  backgroundLayers: Layer[] = backgroundLayers;
+  externalLayerGroups?: BehaviorSubject<Array<LayerGroup>>;
+  internalLayerGroups?: BehaviorSubject<Array<LayerGroup>>;
 
-  constructor(private http: HttpClient, private rest: RestAPI) {
-
-  }
+  constructor(private http: HttpClient, private rest: RestAPI) { }
 
   // ToDo: return Observable?
   get(target: string): MapControl {
@@ -63,21 +53,26 @@ export class MapService {
     if(!control){
       control = new MapControl(target, this);
       control.destroyed.subscribe(target => delete this.controls[target]);
-      control.create();
+      control.init();
       this.controls[target] = control;
     }
     return control;
   }
 
-  getLayers(): BehaviorSubject<Array<LayerGroup>>{
-    if (!this.layerGroups) {
-      this.layerGroups = new BehaviorSubject<LayerGroup[]>([]);
-      this.fetchLayers();
+  getExternalLayers(): BehaviorSubject<Array<LayerGroup>>{
+    if (!this.externalLayerGroups) {
+      this.externalLayerGroups = new BehaviorSubject<LayerGroup[]>([]);
+      this.fetchExternalLayers();
     }
-    return this.layerGroups;
+    return this.externalLayerGroups;
   }
 
-  fetchLayers() {
+  private fetchInternalLayers() {
+
+  }
+
+  fetchExternalLayers(): Observable<LayerGroup> {
+    const observable = new Observable<LayerGroup>();
     this.http.get<LayerGroup[]>(this.rest.URLS.layerGroups).subscribe( groups => {
       groups = sortBy(groups, 'order');
       let observables: Observable<any>[] = [];
@@ -96,10 +91,12 @@ export class MapService {
         })
         // remove empty groups
         groups = groups.filter(group => { return !!group.children });
-        this.layerGroups!.next(groups);
+        this.externalLayerGroups!.next(groups);
       })
     })
+    return observable;
   }
+
 }
 
 export class MapControl {
@@ -108,83 +105,82 @@ export class MapControl {
   destroyed = new EventEmitter<string>();
   map?: OlMap;
   mapDescription = '';
-  private mapLayers: Record<number, Layer> = [];
+  private layerMap: Record<number, Layer> = [];
 
   constructor(target: string, private mapService: MapService) {
     this.target = target;
-    this.mapService.backgroundLayers.forEach(layer => {
-      this.mapLayers[layer.id] = <Layer>layer;
-    });
+  }
+
+  refresh(options: { internal?: boolean, external?: boolean } = {}): void {
+    if (options.external)
+      this.mapService.fetchExternalLayers();
+    if (options.internal)
+      this.mapService.fetchExternalLayers();
   }
 
   getBackgroundLayers(): Layer[] {
-    let layers: Layer[] = this.mapService.backgroundLayers.map(layer => {
-      return { id: layer.id, name: layer.name, order: 0,
-        description: layer.description || '', legendUrl: layer.legendUrl || '',
+    return this.mapService.backgroundLayers;
+  }
+
+  addLayer(layer: Layer, visible: boolean = true) {
+    if (layer.type === 'vector-tiles') {
+       this.map!.addVectorTileLayer({
+          name: layer.name,
+          url: layer.url
+        });
+    }
+    else {
+      const mapLayer = this.map!.addTileServer({
+        name: MapControl.mapId(layer),
         url: layer.url,
-        // ToDo: info not needed
-        layerName:'', group: 0} })
-    return layers;
+        params: { visible: visible, layers: layer.layerName },
+        visible: false,
+        opacity: 1,
+        xyz: layer.type == 'tiles',
+        attribution: layer.attribution
+      });
+      if (layer.type === 'wms' && !layer.legendUrl) {
+          let url = mapLayer.getSource().getLegendUrl(1, { layer: layer.layerName });
+          if (url) url += '&SLD_VERSION=1.1.0';
+          layer.legendUrl = url;
+        }
+    }
+    this.layerMap[layer.id] = layer;
   }
 
   setBackground(id: number): void {
-    this.mapService.backgroundLayers.forEach(layer => this.map?.setVisible(this.mapId(layer), layer.id === id));
+    this.mapService.backgroundLayers.forEach(layer => this.map?.setVisible(MapControl.mapId(layer), layer.id === id));
   }
 
-  private mapId(layer: BackgroundLayer | Layer): string {
+  private static mapId(layer: Layer): string {
     return `${layer.name}-${layer.id}`;
   }
 
-  create(): void {
+  init(): void {
     this.map = new OlMap(this.target, {projection: `EPSG:${this.srid}`});
     for (let layer of this.mapService.backgroundLayers) {
-      const mapLayer = this.map.addTileServer({
-        name: this.mapId(layer),
-        url: layer.url,
-        params: layer.params,
-        visible: false,
-        opacity: 1,
-        xyz: layer.xyz,
-        attribution: layer.attribution
-      });
+      this.addLayer(layer, true);
     }
-    // const testLayer = this.map.addVectorTileLayer({
-    //   name: 'test',
-    //   url: `${environment.backend}/tiles/arealevels/1/tile/{z}/{x}/{y}/`
-    // });
-    this.mapService.getLayers().subscribe(layerGroups => {
+    this.mapService.getExternalLayers().subscribe(layerGroups => {
       layerGroups.forEach(group => {
-        if (!group.external) return;
         for (let layer of group.children!.slice().reverse()) {
-          const mapLayer = this.map!.addTileServer({
-            name: this.mapId(layer),
-            url: layer.url,
-            params: { layers: layer.layerName},
-            visible: false,
-            opacity: 1
-          });
-          if (group.external && !layer.legendUrl) {
-            let url = mapLayer.getSource().getLegendUrl(1, { layer: layer.layerName });
-            if (url) url += '&SLD_VERSION=1.1.0';
-            layer.legendUrl = url;
-          }
-          this.mapLayers[layer.id] = layer;
+          this.addLayer(layer, false);
         }
       })
     })
   }
 
   setLayerAttr(id: number, options: { opacity?: number, visible?: boolean }): void {
-    let layer = this.mapLayers[id];
+    let layer = this.layerMap[id];
     if (!layer) return;
-    if (options.opacity != undefined) this.map?.setOpacity(this.mapId(layer), options.opacity);
-    if (options.visible != undefined) this.map?.setVisible(this.mapId(layer), options.visible);
+    if (options.opacity != undefined) this.map?.setOpacity(MapControl.mapId(layer), options.opacity);
+    if (options.visible != undefined) this.map?.setVisible(MapControl.mapId(layer), options.visible);
   }
 
   toggleLayer(id: number, active: boolean): void {
-    let layer = this.mapLayers[id];
+    let layer = this.layerMap[id];
     if (!layer) return;
-    this.map?.setVisible(this.mapId(layer), active);
+    this.map?.setVisible(MapControl.mapId(layer), active);
   }
 
   destroy(): void {
