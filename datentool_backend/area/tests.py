@@ -1,3 +1,4 @@
+from unittest import skipIf
 from collections import OrderedDict
 from django.test import TestCase
 from test_plus import APITestCase
@@ -77,6 +78,7 @@ class TestWMSLayerAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.put_data = data
         cls.patch_data = data
 
+    #@skipIf(condition, reason) ToDo skip if no internet connection
     def test_get_capabilities(self):
         data = {'url': ''}
         self.client.logout()

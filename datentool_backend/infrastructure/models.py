@@ -1,5 +1,7 @@
 from django.db import models
+from django.db.models import Q
 from django.contrib.gis.db import models as gis_models
+from sql_util.utils import SubqueryCount, SubquerySum, Exists
 
 from datentool_backend.base import (NamedModel,
                                     JsonAttributes,
@@ -99,7 +101,45 @@ class Capacity(DatentoolModelMixin, models.Model):
 
         super().save(*args, **kwargs)
 
+    @staticmethod
+    def filter_queryset(queryset,
+                        service_id: int=None,
+                        scenario_id: int=None,
+                        year: int=None):
+        """filter queryset by scenario and year, if given"""
+        scenario_filter = Q(scenario=scenario_id)
+        if service_id:
+            scenario_filter = scenario_filter & Q(service=service_id)
 
+        places_with_scenario = Place.objects.filter(Exists(
+            'capacity', filter=scenario_filter))
+
+        fallback_capacities = queryset.filter(scenario=None)
+        capacities_in_places_with_scenario = queryset.filter(place=places_with_scenario)
+        scenario_capacities_with_fallback = capacities_in_places_with_scenario.union(
+            fallback_capacities)
+
+        filter_args = [Q(from_year__lte=year),
+                       Q(to_year__gte=year),
+                       Q(scenario=scenario_id),
+                       ]
+        if service_id:
+            filter_args.append(Q(service=service_id))
+        queryset = scenario_capacities_with_fallback.filter(*filter_args)
+
+        #if service_id:
+            #queryset = queryset.filter(service=service_id)
+        ## ToDo: mark if place has scenario defined for service
+        ## if yes, take scenario=scenario_id else take scenario=None
+        ## places_with_scenario = queryset.filter(scenario=scenario_id).values('place').annotate(cnt=Count('*')).values('cnt')
+
+        #queryset_year = queryset\
+            #.filter(from_year__lte=year)\
+            #.filter(to_year__gte=year)
+
+        #queryset = queryset_year\
+            #.filter(scenario_id=scenario_id)
+        return queryset
 
 
 class FieldTypes(models.TextChoices):
