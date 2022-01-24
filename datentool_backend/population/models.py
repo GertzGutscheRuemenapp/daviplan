@@ -1,8 +1,6 @@
 from django.db import models
 from django.contrib.gis.db import models as gis_models
 from django.core.validators import MaxLengthValidator
-#  Vector tile:
-from rest_framework_mvt.managers import MVTManager
 
 from datentool_backend.base import NamedModel, DatentoolModelMixin
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
@@ -31,9 +29,6 @@ class RasterCell(DatentoolModelMixin, models.Model):
     cellcode = models.TextField(validators=[MaxLengthValidator(13)])
     pnt = gis_models.PointField(srid=3857)
     poly = gis_models.PolygonField(srid=3857)
-# vector tile
-    #objects = models.Manager()
-    #vector_tiles = MVTManager(geo_col='poly')
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__}: {self.raster.name}-{self.cellcode}'

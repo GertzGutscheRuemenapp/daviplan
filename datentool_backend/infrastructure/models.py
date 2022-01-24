@@ -75,10 +75,10 @@ class Capacity(DatentoolModelMixin, models.Model):
         place = getattr(self.place, 'pk', '_')
         service = getattr(self.service, 'pk', '_')
         scenario = getattr(self.scenario, 'pk', '_')
-        return (f'{self.__class__.__name__} (Pl{place}-Se{service}-Sc{scenario} Y{self.from_year}-{self.to_year}): '
+        return (f'{self.__class__.__name__} '
+                f'(Pl{place}-Se{service}-Sc{scenario} '
+                f'Y{self.from_year}-{self.to_year}): '
                 f'{self.capacity}')
-
-
 
     class Meta:
         unique_together = ['place', 'service', 'from_year', 'scenario']
