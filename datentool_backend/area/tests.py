@@ -21,7 +21,7 @@ from .models import (WMSLayer,
                      Area,
                      )
 
-
+from django.urls import reverse
 from faker import Faker
 
 faker = Faker('de-DE')
@@ -240,6 +240,12 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
         response_value = '4'
         with self.assertRaises(AssertionError):
             self.assert_response_equals_expected(response_value, expected)
+
+    def test_get_tile_view(self):
+        url = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 12,
+                                             'x': 1316, 'y': 2166})
+        response = self.get(url)
+        self.assert_http_200_ok or self.assert_http_204_no_content(response)
 
 
 class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
