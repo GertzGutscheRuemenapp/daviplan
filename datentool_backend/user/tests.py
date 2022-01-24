@@ -1,7 +1,7 @@
-from unittest import skip
 from django.test import TestCase
 from test_plus import APITestCase
 from typing import List, Set
+from django.urls import reverse
 
 from datentool_backend.api_test import (BasicModelTest, LoginTestCase,
                                         WriteOnlyWithAdminAccessTest)
@@ -231,6 +231,49 @@ class TestUserAPI(WriteOnlyWithAdminAccessTest,
                          'profile': {'admin_access': False,
                                      'can_edit_basedata': False,},}
 
+    def test_settings(self):
+        post_data = {'test_attr': 'test_value', 'another_attr': ['42', '12'],
+                     'and_another': 'hello'}
+        patch_data = {'another_attr': ['75', '12']}
+
+        # test that accessing the settings of another user is prohibited
+        different_user = ProfileFactory()
+        url = reverse(self.url_key + '-detail',
+                      kwargs={'pk': different_user.id})
+        url += 'usersettings/'
+        response = self.get(url)
+        self.response_403(msg=response.content)
+        response = self.delete(url)
+        self.response_403(msg=response.content)
+        response = self.delete(url)
+        self.response_403(msg=response.content)
+        response = self.post(url, data=post_data)
+        self.response_403(msg=response.content)
+        response = self.patch(url, data=patch_data)
+        self.response_403(msg=response.content)
+        different_user.user.delete()
+
+        # test changes of settings of logged-in user
+        url = reverse(self.url_key + '-detail', kwargs={'pk': self.user})
+        url += 'usersettings/'
+
+        response = self.post(url, data=post_data)
+        self.response_200(msg=response.content)
+        self.compare_data(response.data, post_data)
+        response = self.patch(url, data=patch_data)
+        self.response_200(msg=response.data)
+        assert(response.data['another_attr'] == patch_data['another_attr'])
+
+        # test filter
+        keys = ['test_attr', 'and_another']
+        response = self.get(url + f'?keys={",".join(keys)}')
+        self.response_200(msg=response.content)
+        assert(set(response.data.keys()) == set(keys))
+
+        response = self.delete(url)
+        self.response_200(msg=response.content)
+        assert(response.data == {})
+
 
 class TestPlanningProcessAPI(PostOnlyWithCanCreateProcessTest,
                              _TestAPI, BasicModelTest, APITestCase):
@@ -240,8 +283,10 @@ class TestPlanningProcessAPI(PostOnlyWithCanCreateProcessTest,
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        cls.user2 = ProfileFactory()  # second user to extend test_project_creation_permission
-        cls.user3 = ProfileFactory()  # third user to extend test_project_creation_permission
+        # second user to extend test_project_creation_permission
+        cls.user2 = ProfileFactory()
+        # third user to extend test_project_creation_permission
+        cls.user3 = ProfileFactory()
 
         # assign user profiles to planningprocesses, to test permission rights
         cls.obj = PlanningProcessFactory(owner=cls.profile)
@@ -310,11 +355,13 @@ class TestPlanningProcessProtectCascade(_TestAPI, LoginTestCase, APITestCase):
         response = self.get_check_200(url, **kwargs)
 
         #  with override_protection=False it should fail
-        response = self.delete(url, data=dict(override_protection=False), **kwargs)
+        response = self.delete(url, data=dict(override_protection=False),
+                               **kwargs)
         self.response_403(msg=response.content)
 
         #  with override_protection=True it should work
-        response = self.delete(url, data=dict(override_protection=True), **kwargs)
+        response = self.delete(url, data=dict(override_protection=True),
+                               **kwargs)
         self.response_204(msg=response.content)
         #  assert that the referenced scenario is deleted
         self.assertEqual(Scenario.objects.count(), 0)
@@ -336,9 +383,12 @@ class TestScenarioAPI(_TestAPI, BasicModelTest, APITestCase):
         scenario: Scenario = cls.obj
         planning_process = scenario.planning_process.pk
 
-        cls.post_data = dict(name=faker.word(), planning_process=planning_process)
-        cls.put_data = dict(name=faker.word(), planning_process=planning_process)
-        cls.patch_data = dict(name=faker.word(), planning_process=planning_process)
+        cls.post_data = dict(name=faker.word(),
+                             planning_process=planning_process)
+        cls.put_data = dict(name=faker.word(),
+                            planning_process=planning_process)
+        cls.patch_data = dict(name=faker.word(),
+                              planning_process=planning_process)
 
     @classmethod
     def tearDownClass(cls):

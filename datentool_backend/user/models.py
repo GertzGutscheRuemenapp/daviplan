@@ -15,6 +15,7 @@ class Profile(DatentoolModelMixin, models.Model):
     admin_access = models.BooleanField(default=False)
     can_create_process = models.BooleanField(default=False)
     can_edit_basedata = models.BooleanField(default=False)
+    settings = models.JSONField(default=dict)
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__}: {self.user.username}'
@@ -34,7 +35,6 @@ def save_user_profile(sender, instance, **kwargs):
         instance.profile.save()
     except Profile.DoesNotExist:
         pass
-
 
 
 class PlanningProcess(DatentoolModelMixin, NamedModel, models.Model):
