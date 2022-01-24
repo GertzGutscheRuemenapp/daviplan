@@ -205,21 +205,27 @@ class CapacityListSerializer(serializers.ListSerializer):
         if request:
             #  filter the capacity returned for the specific service
             service_id = request.query_params.get('service')
-            if service_id:
-                instance = instance.filter(service_id=service_id)
-
-            #  filter the queryset by year
             year = request.query_params.get('year', 0)
-            instance_year = instance\
-                .filter(from_year__lte=year)\
-                .filter(to_year__gte=year)
-
-            # filter the queryset by scenario
             scenario = request.query_params.get('scenario')
-            instance = instance_year\
-                .filter(scenario=scenario)
-            if not instance:
-                instance = instance_year.filter(scenario=None)
+
+            instance = Capacity.filter_queryset(instance,
+                                                service_id=service_id,
+                                                scenario_id=scenario,
+                                                year=year)
+
+            #if service_id:
+                #instance = instance.filter(service_id=service_id)
+
+            ##  filter the queryset by year
+            #instance_year = instance\
+                #.filter(from_year__lte=year)\
+                #.filter(to_year__gte=year)
+
+            ## filter the queryset by scenario
+            #instance = instance_year\
+                #.filter(scenario=scenario)
+            #if not instance:
+                #instance = instance_year.filter(scenario=None)
 
         return super().to_representation(instance)
 

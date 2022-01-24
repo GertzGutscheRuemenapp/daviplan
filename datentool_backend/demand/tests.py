@@ -209,30 +209,10 @@ class TestDemandRateAPI(WriteOnlyWithCanEditBaseDataTest,
         gender = demandrate.gender.pk
         demand_rate_set = demandrate.demand_rate_set.pk
 
-        data = dict(year=year, age_group=age_group, gender=gender,
+        data = dict(year=year,
+                    age_group=age_group,
+                    gender=gender,
                     demand_rate_set=demand_rate_set)
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
-
-
-#class TestScenarioDemandRateAPI(_TestAPI, BasicModelTest, APITestCase):
-    #"""Test to post, put and patch data"""
-    #url_key = "scenariodemandrates"
-    #factory = ScenarioDemandRateFactory
-
-    #@classmethod
-    #def setUpTestData(cls):
-        #super().setUpTestData()
-        #scenariodemandrate: ScenarioDemandRate= cls.obj
-        #year = scenariodemandrate.year.pk
-        #age_group = scenariodemandrate.age_group.pk
-        #demand_rate_set = scenariodemandrate.demand_rate_set.pk
-        #scenario = scenariodemandrate.scenario.pk
-
-        #data = dict(year=year, age_group=age_group,
-                    #demand_rate_set=demand_rate_set, value=faker.pyfloat(),
-                    #scenario = scenario)
-        #cls.post_data = data
-        #cls.put_data = data
-        #cls.patch_data = data
