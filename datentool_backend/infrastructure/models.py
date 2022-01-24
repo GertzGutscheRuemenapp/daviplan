@@ -113,8 +113,7 @@ class Capacity(DatentoolModelMixin, models.Model):
     def filter_queryset(queryset,
                         service_id: int = None,
                         scenario_id: int = None,
-                        year: int = None,
-                        min_capacity: float = None):
+                        year: int = None):
         """filter queryset by scenario and year, if given"""
         # filter capacities by service, if this is requested
         if service_id is not None:
@@ -124,9 +123,6 @@ class Capacity(DatentoolModelMixin, models.Model):
         queryset_year = queryset\
             .filter(from_year__lte=year)\
             .filter(to_year__gte=year)
-
-        if min_capacity is not None:
-            queryset_year = queryset_year.filter(capacity__gt=min_capacity)
 
         base_scenario_capacities = queryset_year.filter(scenario=None)
 
@@ -146,16 +142,17 @@ class Capacity(DatentoolModelMixin, models.Model):
         # defined for the scenario (and service)
         places_with_scenario = Place.objects.filter(Exists(
             'capacity', filter=scenario_filter))
+        # ... and those not
         places_without_scenario = Place.objects.exclude(Exists(
             'capacity', filter=scenario_filter))
 
-        capacities_in_places_with_scenario = queryset_year.filter(
-            place__in=places_with_scenario, scenario=scenario_id)
-        fallback_capacities = base_scenario_capacities.filter(
-            place__in=places_without_scenario)
-        scenario_capacities_with_fallback = capacities_in_places_with_scenario.union(
-            fallback_capacities)
-        return scenario_capacities_with_fallback
+        # get the capacities defined for the scenario,
+        # and for the places wihout scenario, the capacities from the base scenario
+        res_queryset = queryset_year\
+            .filter((Q(scenario=scenario_id) & Q(place__in=places_with_scenario)) |
+                    (Q(scenario=None) & Q(place__in=places_without_scenario))
+                    )
+        return res_queryset
 
 
 class FieldTypes(models.TextChoices):

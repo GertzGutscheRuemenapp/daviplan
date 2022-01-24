@@ -57,13 +57,14 @@ class AreaIndicatorViewSet(viewsets.ReadOnlyModelViewSet):
                                               service_id=service_id,
                                               scenario_id=scenario,
                                               year=year,
-                                              min_capacity=0,
                                               )
+        # only those with capacity - value > 0
+        capacities = capacities.filter(capacity__gt=0)
 
         places = Place.objects.all()
         places_with_capacity = places.annotate(
             has_capacity=Exists(capacities.filter(place=OuterRef('pk'))))\
-            .filter(has_capacity=True)\
+            .filter(has_capacity=True)
 
         places_in_area = places_with_capacity\
             .filter(geom__intersects=OuterRef('geom'))\

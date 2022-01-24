@@ -160,11 +160,13 @@ class TestAreaIndicatorAPI(TestAPIMixin, BasicModelReadTest, APITestCase):
     def test_numer_of_places_in_base_scenario(self):
         """Test the number of places with capacity by year for a service"""
 
+        # only 1 in scenario, because capacity of place2 is set to 0
+        self.count_capacitites([1, 1], service=self.service1, scenario=self.scenario)
+
         # in the base scenario there should be 2 places in area1
         # and 1 with capacity in area2 for service1
         self.count_capacitites([2, 1], service=self.service1)
-        # only 1 in scenario, because capacity of place2 is set to 0
-        self.count_capacitites([1, 1], service=self.service1, scenario=self.scenario)
+
         self.count_capacitites([2, 1], service=self.service1, scenario=self.scenario, year=2022)
 
         # in the base scenario there should be 1 place in area1 for service2
