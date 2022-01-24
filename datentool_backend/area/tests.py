@@ -22,6 +22,8 @@ from .models import (WMSLayer,
                      )
 
 from django.urls import reverse
+from django.contrib.gis.geos import MultiPolygon, Polygon
+
 from faker import Faker
 
 faker = Faker('de-DE')
@@ -242,10 +244,35 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
             self.assert_response_equals_expected(response_value, expected)
 
     def test_get_tile_view(self):
-        url = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 12,
-                                             'x': 1316, 'y': 2166})
-        response = self.get(url)
-        self.assert_http_200_ok or self.assert_http_204_no_content(response)
+        area_level1 = AreaLevelFactory()
+        area1 = AreaFactory(area_level=area_level1)
+        #geom = MultiPolygon(Polygon(((1475464, 6888464), (1515686, 6889190), (1516363, 6864002), (1475512, 6864389), (1475464, 6888464))),
+                        #srid=4326).transform(3857, clone=True)
+        #geom = MultiPolygon(Polygon(((6888464, 1475464), (6889190, 1515686), (6864002, 1516363), (6864389, 1475512), (6888464, 1475464))),
+                        #srid=4326).transform(3857, clone=True)
+        #area2 = AreaFactory(area_level=area_level1, geom=geom)
+
+
+        self.obj = area_level1
+
+        url1 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 1,
+                                             'x': 0, 'y': 1})
+        response = self.get(url1)
+        self.assert_http_200_ok(response)
+
+        #url2 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 474349824,
+                                             #'x': 1491669, 'y': 6878950})
+
+        # self.assert_http_204_no_content(response)
+
+
+        for z in range(1, 18):
+
+            url = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': z,
+                                             'x': 0, 'y': 1})
+            response = self.get(url)
+            print(response.status_code)
+
 
 
 class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
