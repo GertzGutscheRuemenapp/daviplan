@@ -132,6 +132,7 @@ class BasicModelDetailTest(LoginTestCase, CompareAbsURIMixin):
         """
         recursive comparison of two data dictionaries (response and expectation)
         """
+        left = dict(left)
         for key in left:
             if key not in right or key in self.do_not_check:
                 continue

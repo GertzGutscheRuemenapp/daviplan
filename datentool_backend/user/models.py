@@ -17,6 +17,7 @@ class Profile(DatentoolModelMixin, models.Model):
     admin_access = models.BooleanField(default=False)
     can_create_process = models.BooleanField(default=False)
     can_edit_basedata = models.BooleanField(default=False)
+    settings = models.JSONField(default=dict)
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__}: {self.user.username}'

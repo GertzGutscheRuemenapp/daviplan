@@ -1,4 +1,5 @@
 from rest_framework import permissions
+from django.contrib.auth.models import User
 
 
 class ReadOnlyPermission(permissions.BasePermission):
@@ -41,3 +42,11 @@ class HasAdminAccess(permissions.BasePermission):
     def has_permission(self, request, view):
         return (request.user.is_authenticated
                 and request.user.profile.admin_access)
+
+
+class IsOwner(permissions.BasePermission):
+    ''' object can only be requested in any way if it is owned by the user '''
+    def has_object_permission(self, request, view, obj):
+        if isinstance(obj, User):
+            return obj.id == request.user.id
+        return request.user.id == obj.user.id

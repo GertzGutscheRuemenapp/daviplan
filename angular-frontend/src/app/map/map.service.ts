@@ -7,7 +7,6 @@ import { RestAPI } from "../rest-api";
 import { sortBy } from "../helpers/utils";
 import { ProjectSettings } from "../pages/administration/project-definition/project-definition.component";
 import { WKT } from "ol/format";
-import { MultiPolygon } from "ol/geom";
 import { SettingsService } from "../settings.service";
 
 const backgroundLayers: Layer[] = [
@@ -91,6 +90,7 @@ export class MapService {
     const observable = new Observable<LayerGroup[]>(subscriber => {
       this.http.get<AreaLevel[]>(`${this.rest.URLS.arealevels}?active=true`).subscribe(levels => {
         levels = sortBy(levels, 'order');
+        let groups = [];
         const group: LayerGroup = { id: -1, name: 'Gebiete', order: 2 };
         let i = -100;
         let layers: Layer[] = [];
@@ -111,8 +111,11 @@ export class MapService {
           i -= 1;
           layers.push(layer);
         });
-        group.children = layers;
-        subscriber.next([group]);
+        if (layers) {
+          group.children = layers;
+          groups.push(group);
+        }
+        subscriber.next(groups);
         subscriber.complete();
       })
     })
@@ -140,7 +143,6 @@ export class MapService {
     })
     return observable;
   }
-
 }
 
 export class MapControl {
@@ -206,6 +208,7 @@ export class MapControl {
     }
     this.mapService.getLayers().subscribe(layerGroups => {
       layerGroups.forEach(group => {
+        if (!group.children) return;
         for (let layer of group.children!.slice().reverse()) {
           this.addLayer(layer, false);
         }
