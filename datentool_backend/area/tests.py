@@ -246,11 +246,11 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
     def test_get_tile_view(self):
         area_level1 = AreaLevelFactory()
         area1 = AreaFactory(area_level=area_level1)
-        #geom = MultiPolygon(Polygon(((1475464, 6888464), (1515686, 6889190), (1516363, 6864002), (1475512, 6864389), (1475464, 6888464))),
-                        #srid=4326).transform(3857, clone=True)
+        geom = MultiPolygon(Polygon(((1475464, 6888464), (1515686, 6889190), (1516363, 6864002), (1475512, 6864389), (1475464, 6888464))),
+                        srid=3857)
         #geom = MultiPolygon(Polygon(((6888464, 1475464), (6889190, 1515686), (6864002, 1516363), (6864389, 1475512), (6888464, 1475464))),
                         #srid=4326).transform(3857, clone=True)
-        #area2 = AreaFactory(area_level=area_level1, geom=geom)
+        area2 = AreaFactory(area_level=area_level1, geom=geom)
 
 
         self.obj = area_level1
@@ -260,19 +260,16 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
         response = self.get(url1)
         self.assert_http_200_ok(response)
 
-        #url2 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 474349824,
-                                             #'x': 1491669, 'y': 6878950})
+        url2 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 10,
+                                             'x': 550, 'y': 336})
+        response = self.get(url2)
 
-        # self.assert_http_204_no_content(response)
+        self.assert_http_200_ok(response)
 
-
-        for z in range(1, 18):
-
-            url = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': z,
-                                             'x': 0, 'y': 1})
-            response = self.get(url)
-            print(response.status_code)
-
+        url3 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 12,
+                                             'x': 2903, 'y': 1345})
+        response = self.get(url3)
+        self.assert_http_204_no_content(response)
 
 
 class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
