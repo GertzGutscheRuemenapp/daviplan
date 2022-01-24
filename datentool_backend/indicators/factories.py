@@ -4,12 +4,13 @@ from factory.django import DjangoModelFactory
 from datentool_backend.utils.geometry_fields import get_point_from_latlon
 
 from .models import (ModeVariant, Router, Stop,
-                    Indicator, IndicatorTypes)
+                    Indicator, IndicatorTypes, MatrixCellPlace, MatrixCellStop,
+                    MatrixPlaceStop, MatrixStopStop)
 
-from datentool_backend.modes.factories import ModeFactory
-from datentool_backend.user.factories import (InfrastructureFactory,
-                                              ServiceFactory,
-                                              )
+from datentool_backend.modes.factories import ModeVariantFactory
+from datentool_backend.infrastructure.factories import PlaceFactory
+from datentool_backend.population.factories import RasterCellFactory
+from datentool_backend.user.factories import (ServiceFactory)
 
 from faker import Faker
 faker = Faker('de-DE')
@@ -41,3 +42,39 @@ class IndicatorFactory(DjangoModelFactory):
     name = faker.word()
     parameters = faker.json(num_rows=3, indent=True)
     service = factory.SubFactory(ServiceFactory)
+
+
+class MatrixCellPlaceFactory(DjangoModelFactory):
+    class Meta:
+        model = MatrixCellPlace
+    cell = factory.SubFactory(RasterCellFactory)
+    place = factory.SubFactory(PlaceFactory)
+    variant = factory.SubFactory(ModeVariantFactory)
+    minutes = faker.pyfloat()
+
+
+class MatrixCellStopFactory(DjangoModelFactory):
+    class Meta:
+        model = MatrixCellStop
+    cell = factory.SubFactory(RasterCellFactory)
+    stop = factory.SubFactory(StopFactory)
+    variant = factory.SubFactory(ModeVariantFactory)
+    minutes = faker.pyfloat()
+
+
+class MatrixPlaceStopFactory(DjangoModelFactory):
+    class Meta:
+        model = MatrixPlaceStop
+    place = factory.SubFactory(PlaceFactory)
+    stop = factory.SubFactory(StopFactory)
+    variant = factory.SubFactory(ModeVariantFactory)
+    minutes = faker.pyfloat()
+
+
+class MatrixStopStopFactory(DjangoModelFactory):
+    class Meta:
+        model = MatrixStopStop
+    from_stop = factory.SubFactory(StopFactory)
+    to_stop = factory.SubFactory(StopFactory)
+    variant = factory.SubFactory(ModeVariantFactory)
+    minutes = faker.pyfloat()

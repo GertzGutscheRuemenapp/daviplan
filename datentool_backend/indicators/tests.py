@@ -9,9 +9,9 @@ from faker import Faker
 faker = Faker('de-DE')
 
 
-from .factories import (RouterFactory,
-                        IndicatorFactory,
-                        )
+from .factories import (RouterFactory, IndicatorFactory, MatrixCellPlaceFactory,
+                        MatrixCellStopFactory, MatrixPlaceStopFactory,
+                        MatrixStopStopFactory)
 from .models import (IndicatorTypes, Indicator)
 
 
@@ -22,6 +22,18 @@ class TestIndicator(TestCase):
 
     def test_indicator(self):
         indicator = IndicatorFactory()
+
+    def test_matrix_cell_place(self):
+        matrix_cell_place = MatrixCellPlaceFactory()
+
+    def test_matrix_cell_stop(self):
+        matrix_cell_stop = MatrixCellStopFactory()
+
+    def test_matrix_place_stop(self):
+        matrix_place_stop = MatrixPlaceStopFactory()
+
+    def test_matrix_stop_stop(self):
+        matrix_stop_stop = MatrixStopStopFactory()
 
 
 class TestRouterAPI(WriteOnlyWithCanEditBaseDataTest,
