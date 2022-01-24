@@ -1,4 +1,4 @@
-from rest_framework import viewsets, exceptions, status, permissions
+from rest_framework import viewsets, status
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import (HttpResponse,
                          HttpResponseForbidden,
@@ -262,48 +262,6 @@ class CasestudyViewSetMixin(CasestudyReadOnlyViewSetMixin):
                 response.write(content)
                 return response
         return super().list(request, **kwargs)
-
-
-class HasAdminAccessOrReadOnly(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return request.user.is_authenticated and (
-            request.method in permissions.SAFE_METHODS or
-                request.user.is_superuser or
-            request.user.profile.admin_access)
-
-    # def has_object_permission(self, request, view, obj):
-        # return request.user.is_authenticated and (
-            # request.user.id == obj.id or
-            # request.user.is_superuser or
-            # request.user.profile.admin_access
-        # )
-
-
-class IsOwner(permissions.BasePermission):
-    ''' object can only be requested in any way if it is owned by the user '''
-    def has_object_permission(self, request, view, obj):
-        if isinstance(obj, User):
-            return obj.id == request.user.id
-        return request.user.id == obj.user.id
-
-
-class HasAdminAccessOrReadOnlyAny(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return (request.method in permissions.SAFE_METHODS or
-                request.user.is_superuser or
-                request.user.profile.admin_access)
-
-
-class CanEditBasedata(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return (request.user.is_authenticated and
-                request.user.profile.can_edit_basedata)
-
-
-class HasAdminAccess(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return (request.user.is_authenticated
-                and request.user.profile.admin_access)
 
 
 class ReadOnlyAccess(UserPassesTestMixin):

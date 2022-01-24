@@ -1,14 +1,7 @@
 from django.contrib import admin
-from .models import (DemandRateSet, DemandRate, ScenarioDemandRate)
+from .models import (AgeGroup, Gender, DemandRateSet, DemandRate, )
 
-# Register your models here.
-class DemandRateSetAdmin(admin.ModelAdmin):
-    """"""
-
-
-class DemandRateAdmin(admin.ModelAdmin):
-    """"""
-
-admin.site.register(DemandRateSet, DemandRateSetAdmin)
-admin.site.register(DemandRate, DemandRateAdmin)
-admin.site.register(ScenarioDemandRate)
+admin.site.register(Gender)
+admin.site.register(AgeGroup)
+admin.site.register(DemandRateSet)
+admin.site.register(DemandRate)

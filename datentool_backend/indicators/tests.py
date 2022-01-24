@@ -2,27 +2,20 @@ from django.test import TestCase
 from test_plus import APITestCase
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest)
-from datentool_backend.area.tests import _TestAPI, _TestPermissions
+from datentool_backend.area.tests import TestAPIMixin, TestPermissionsMixin
 
 from faker import Faker
 
 faker = Faker('de-DE')
 
 
-from .factories import (ModeFactory, ModeVariantFactory, RouterFactory,
-                        IndicatorFactory, CutOffTimeFactory
-                        # , MatrixCellStopFactory
-                        # ReachabilityMatrixFactory,
-                        )
-from .models import (ModeVariant, CutOffTime,
-                     # ReachabilityMatrix,
-                     IndicatorTypes, Indicator)
+from .factories import (RouterFactory, IndicatorFactory, MatrixCellPlaceFactory,
+                        MatrixCellStopFactory, MatrixPlaceStopFactory,
+                        MatrixStopStopFactory)
+from .models import (IndicatorTypes, Indicator)
 
 
 class TestIndicator(TestCase):
-
-    def test_mode_variant(self):
-        mode_variant = ModeVariantFactory()
 
     def test_router(self):
         router = RouterFactory()
@@ -30,74 +23,21 @@ class TestIndicator(TestCase):
     def test_indicator(self):
         indicator = IndicatorFactory()
 
-    #def test_matrix(self):
-        #matrix = ReachabilityMatrixFactory()
+    def test_matrix_cell_place(self):
+        matrix_cell_place = MatrixCellPlaceFactory()
 
-    def test_cut_off_time(self):
-        cut_off_time = CutOffTimeFactory()
+    def test_matrix_cell_stop(self):
+        matrix_cell_stop = MatrixCellStopFactory()
 
-    #def test_matrix_cell_stop(self):
-        #matrix_cell_stop = MatrixCellStopFactory()
+    def test_matrix_place_stop(self):
+        matrix_place_stop = MatrixPlaceStopFactory()
 
-
-
-class TestModeAPI(WriteOnlyWithCanEditBaseDataTest,
-                  _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
-    """Test to post, put and patch data"""
-    url_key = "modes"
-    factory = ModeFactory
-
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-
-        cls.post_data = data = dict(name=faker.word())
-        cls.put_data = data = dict(name=faker.word())
-        cls.patch_data = data = dict(name=faker.word())
-
-
-class TestModeVariantAPI(WriteOnlyWithCanEditBaseDataTest,
-                         _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
-    """Test to post, put and patch data"""
-    url_key = "modevariants"
-    factory = ModeVariantFactory
-
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        modevariant: ModeVariant = cls.obj
-        mode = modevariant.mode.pk
-
-        data = dict(mode=mode, name=faker.word(),
-                    meta=faker.json(),
-                    is_default=faker.pybool())
-        cls.post_data = data
-        cls.put_data = data
-        cls.patch_data = data
-
-
-#class TestReachabilityMatrixAPI(_TestPermissions, _TestAPI, BasicModelTest, APITestCase):
-    #"""Test to post, put and patch data"""
-    #url_key = "reachabilitymatrices"
-    #factory = ReachabilityMatrixFactory
-
-    #@classmethod
-    # def setUpTestData(cls):
-        # super().setUpTestData()
-        #reachabilitymatrix: ReachabilityMatrix = cls.obj
-        #from_cell = reachabilitymatrix.from_cell.pk
-        #to_cell = reachabilitymatrix.to_cell.pk
-        #variant = reachabilitymatrix.variant.pk
-
-        #data = dict(from_cell=from_cell, to_cell=to_cell, variant=variant,
-                    #minutes=faker.pyfloat(positive=True))
-        #cls.post_data = data
-        #cls.put_data = data
-        #cls.patch_data = data
+    def test_matrix_stop_stop(self):
+        matrix_stop_stop = MatrixStopStopFactory()
 
 
 class TestRouterAPI(WriteOnlyWithCanEditBaseDataTest,
-                    _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                    TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "routers"
     factory = RouterFactory
@@ -116,7 +56,7 @@ class TestRouterAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
 class TestIndicatorAPI(WriteOnlyWithCanEditBaseDataTest,
-                       _TestPermissions, _TestAPI, BasicModelTest, APITestCase):
+                       TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "indicators"
     factory = IndicatorFactory

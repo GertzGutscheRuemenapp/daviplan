@@ -1,9 +1,8 @@
 from django.test import TestCase
 from test_plus import APITestCase
 from datentool_backend.api_test import (BasicModelReadTest,
-                                        BasicModelPutPatchTest,
                                         ReadOnlyWithAdminBasedataAccessTest)
-from datentool_backend.area.tests import _TestAPI
+from datentool_backend.api_test import TestAPIMixin
 
 from .factories import (CapacityUploadLogFactory, PlaceUploadLogFactory,
                         AreaUploadLogFactory)
@@ -191,7 +190,7 @@ class _TestReadOnly():
         self.test_detail()
 
 
-class TestCapacityUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestAPI, BasicModelReadTest, APITestCase):
+class TestCapacityUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, TestAPIMixin, BasicModelReadTest, APITestCase):
     """"""
     url_key = "capacityuploadlogs"
     factory = CapacityUploadLogFactory
@@ -210,7 +209,7 @@ class TestCapacityUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestAPI, Ba
         cls.patch_data = data
 
 
-class TestPlaceUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestAPI, BasicModelReadTest, APITestCase):
+class TestPlaceUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, TestAPIMixin, BasicModelReadTest, APITestCase):
     """"""
     url_key = "placeuploadlogs"
     factory = PlaceUploadLogFactory
@@ -229,7 +228,7 @@ class TestPlaceUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestAPI, Basic
         cls.patch_data = data
 
 
-class TestAreaUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, _TestAPI, BasicModelReadTest, APITestCase):
+class TestAreaUploadLogAPI(ReadOnlyWithAdminBasedataAccessTest, TestAPIMixin, BasicModelReadTest, APITestCase):
     """"""
     url_key = "areauploadlogs"
     factory = AreaUploadLogFactory

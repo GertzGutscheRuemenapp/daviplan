@@ -1,41 +1,21 @@
 from django.db import models
 from django.contrib.gis.db import models as gis_models
-from datentool_backend.base import NamedModel, JsonAttributes
-from datentool_backend.infrastructure.models import (Service, Place,
-                                                     Infrastructure)
-from datentool_backend.population.models import RasterCell
+from datentool_backend.base import (NamedModel,
+                                    JsonAttributes,
+                                    DatentoolModelMixin,
+                                    )
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
-from datentool_backend.base import NamedModel, DatentoolModelMixin
 
-
-class Mode(DatentoolModelMixin, NamedModel, models.Model):
-    '''
-    modes available
-    '''
-    name = models.TextField()
+from datentool_backend.user.models import Service
+from datentool_backend.infrastructure.models import Place
+from datentool_backend.modes.models import ModeVariant
+from datentool_backend.population.models import RasterCell
 
 
 class Stop(DatentoolModelMixin, NamedModel, models.Model):
     """location of a public transport stop"""
     name = models.TextField()
     geom = gis_models.PointField(srid=3857)
-
-
-class ModeVariant(DatentoolModelMixin, JsonAttributes, NamedModel, models.Model):
-    '''
-    modes
-    '''
-    mode = models.ForeignKey(Mode, on_delete=PROTECT_CASCADE)
-    name = models.TextField()
-    meta = models.JSONField()
-    is_default = models.BooleanField()
-    cutoff_time = models.ManyToManyField(Infrastructure, through='CutOffTime')
-
-
-class CutOffTime(models.Model):
-    mode_variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
-    infrastructure = models.ForeignKey(Infrastructure, on_delete=PROTECT_CASCADE)
-    minutes = models.FloatField()
 
 
 class MatrixCellPlace(models.Model):

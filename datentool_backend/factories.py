@@ -1,5 +1,6 @@
-from .user.factories import *
 from .area.factories import *
+from .user.factories import *
+from .modes.factories import *
 from .population.factories import *
 from .infrastructure.factories import *
 from .indicators.factories import *

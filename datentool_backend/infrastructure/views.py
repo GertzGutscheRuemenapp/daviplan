@@ -1,59 +1,46 @@
+import json
+
+from django.db.models import ProtectedError
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from django.db.models import ProtectedError
-import json
-from datentool_backend.utils.views import (HasAdminAccessOrReadOnly,
-                                           CanEditBasedata,
-                                           ProtectCascadeMixin)
+from django.db.models import Q
 
-from .models import (Infrastructure, FieldType, Service, Place, Capacity,
-                     PlaceField, FClass)
+from datentool_backend.utils.views import ProtectCascadeMixin
+from datentool_backend.utils.permissions import (
+    HasAdminAccessOrReadOnly, CanEditBasedata,)
 
-from .serializers import (InfrastructureSerializer, FieldTypeSerializer,
-                          ServiceSerializer, PlaceSerializer,
+from .permissions import CanEditScenarioPermission
+
+from .models import (Scenario,
+                     FieldType,
+                     Place,
+                     Capacity,
+                     PlaceField,
+                     FClass,
+                     )
+
+from .serializers import (ScenarioSerializer,
+                          FieldTypeSerializer,
+                          PlaceSerializer,
                           PlaceUpdateAttributeSerializer,
-                          CapacitySerializer, PlaceFieldSerializer,
-                          FClassSerializer)
+                          CapacitySerializer,
+                          PlaceFieldSerializer,
+                          FClassSerializer,
+                          )
 
 
-class CanPatchSymbol(permissions.BasePermission):
-    """Permission Class for InfrastructureViewSet, patch of symbol, if user is
-    authenticated and can edit basedata """
+class ScenarioViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+    queryset = Scenario.objects.all()
+    serializer_class = ScenarioSerializer
+    permission_classes = [CanEditScenarioPermission]
 
-    def has_permission(self, request, view):
-        if not request.user.is_authenticated:
-            return False
-        if request.user.is_superuser or request.user.profile.admin_access:
-            return True
-        if request.method in ['PATCH'] + list(permissions.SAFE_METHODS):
-            return True
-        return False
+    def get_queryset(self):
+        qs = super().get_queryset()
+        condition_user_in_user = Q(planning_process__users__in=[self.request.user.profile])
+        condition_owner_in_user = Q(planning_process__owner=self.request.user.profile)
 
-    def has_object_permission(self, request, view, obj):
-        if (request.user.is_superuser or request.user.profile.admin_access
-                or request.method in permissions.SAFE_METHODS):
-            return True
-        if (request.user.profile.can_edit_basedata and
-                request.method in ('PATCH',) and (
-                    len(request.data.keys()) == 0
-                    or set(request.data.keys()) <= set(['symbol'])
-                )
-            ):
-            return True
-        return False
-
-
-class InfrastructureViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = Infrastructure.objects.all()
-    serializer_class = InfrastructureSerializer
-    permission_classes = [CanPatchSymbol]
-
-
-class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = Service.objects.all()
-    serializer_class = ServiceSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+        return qs.filter(condition_user_in_user | condition_owner_in_user)
 
 
 class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

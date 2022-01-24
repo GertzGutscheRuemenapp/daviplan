@@ -1,26 +1,20 @@
-import numpy as np
-from django.contrib.gis.geos import Point, Polygon
-from faker import Faker
 import factory
 from factory.django import DjangoModelFactory
-from .models import (Year, Raster, PopulationRaster,
+from django.contrib.gis.geos import Point, Polygon
+
+from .models import (Raster, PopulationRaster,
                      RasterCell, RasterCellPopulation,
-                     Gender, AgeGroup,
                      DisaggPopRaster, RasterCellPopulationAgeGender,
                      Prognosis, PrognosisEntry,
                      Population, PopulationEntry,
                      PopStatistic, PopStatEntry,
                      )
-from ..area.factories import AreaFactory, AreaLevelFactory
+from datentool_backend.area.factories import AreaFactory, AreaLevelFactory
+from datentool_backend.user.factories import YearFactory
+from datentool_backend.demand.factories import AgeGroupFactory, GenderFactory
 
+from faker import Faker
 faker = Faker('de-DE')
-
-class YearFactory(DjangoModelFactory):
-    class Meta:
-        model = Year
-
-    year = faker.unique.year()
-
 
 class RasterFactory(DjangoModelFactory):
     class Meta:
@@ -78,21 +72,6 @@ class RasterCellPopulationFactory(DjangoModelFactory):
     popraster = factory.SubFactory(PopulationRasterFactory)
     cell = factory.SubFactory(RasterCellFactory)
     value = faker.pyfloat(max_value=100)
-
-
-class GenderFactory(DjangoModelFactory):
-    class Meta:
-        model = Gender
-
-    name = factory.Sequence(lambda n: faker.unique.word())
-
-
-class AgeGroupFactory(DjangoModelFactory):
-    class Meta:
-        model = AgeGroup
-
-    from_age = faker.pyint(max_value=127)
-    to_age = faker.pyint(max_value=127)
 
 
 class DisaggPopRasterFactory(DjangoModelFactory):

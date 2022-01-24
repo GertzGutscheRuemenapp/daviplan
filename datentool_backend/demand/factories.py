@@ -1,13 +1,26 @@
 from faker import Faker
 import factory
 from factory.django import DjangoModelFactory
-from .models import DemandRateSet, DemandRate, ScenarioDemandRate
-from ..population.factories import (AgeGroupFactory,
-                                    YearFactory)
-from ..infrastructure.factories import ServiceFactory
-from ..user.factories import ScenarioFactory
+from .models import AgeGroup, Gender, DemandRateSet, DemandRate
+from datentool_backend.user.factories import ServiceFactory
+from datentool_backend.user.factories import YearFactory
 
 faker = Faker('de-DE')
+
+
+class GenderFactory(DjangoModelFactory):
+    class Meta:
+        model = Gender
+
+    name = factory.Sequence(lambda n: faker.unique.word())
+
+
+class AgeGroupFactory(DjangoModelFactory):
+    class Meta:
+        model = AgeGroup
+
+    from_age = faker.pyint(max_value=127)
+    to_age = faker.pyint(max_value=127)
 
 
 class DemandRateSetFactory(DjangoModelFactory):
@@ -23,11 +36,6 @@ class DemandRateFactory(DjangoModelFactory):
         model = DemandRate
     year = factory.SubFactory(YearFactory)
     age_group = factory.SubFactory(AgeGroupFactory)
+    gender = factory.SubFactory(GenderFactory)
     demand_rate_set = factory.SubFactory(DemandRateSetFactory)
     value = faker.pyfloat()
-
-
-class ScenarioDemandRateFactory(DjangoModelFactory):
-    class Meta:
-        model = ScenarioDemandRate
-    scenario = factory.SubFactory(ScenarioFactory)
