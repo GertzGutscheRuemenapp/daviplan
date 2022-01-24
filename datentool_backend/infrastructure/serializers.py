@@ -3,100 +3,90 @@ from rest_framework.validators import ValidationError
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from rest_framework.fields import JSONField, empty
-from django.db.models import Window
-from django.db.models.functions import Coalesce, Lead
 
-from .models import (Infrastructure, FieldType, FClass, FieldTypes, Service,
-                     Place, Capacity, PlaceField, InfrastructureAccess)
+from .models import (Scenario,
+                     ScenarioMode,
+                     ScenarioService,
+                     FieldType,
+                     FClass,
+                     FieldTypes,
+                     Place,
+                     Capacity,
+                     PlaceField,
+                     )
 from datentool_backend.utils.geometry_fields import GeometrySRIDField
-from datentool_backend.area.models import LayerGroup, MapSymbol
-from datentool_backend.area.serializers import MapSymbolSerializer
+from datentool_backend.user.models import (Service,
+                                           Infrastructure,
+                                           InfrastructureAccess,
+                                           )
+from datentool_backend.demand.models import DemandRateSet
 
 
-class InfrastructureAccessSerializer(serializers.ModelSerializer):
+class ScenarioModeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = InfrastructureAccess
-        fields = ('id', 'infrastructure', 'profile', 'allow_sensitive_data')
-        read_only_fields = ('id', 'infrastructure', )
+        model = ScenarioMode
+        fields = ('mode', 'variant')
 
 
-class InfrastructureSerializer(serializers.ModelSerializer):
-    symbol = MapSymbolSerializer(allow_null=True, required=False)
-    accessible_by = InfrastructureAccessSerializer(
-        many=True, source='infrastructureaccess_set', required=False)
+class ScenarioDemandRateSetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ScenarioService
+        fields = ('service', 'demandrateset')
+
+
+class ScenarioSerializer(serializers.ModelSerializer):
+    modevariants = ScenarioModeSerializer(
+        many=True, source='scenariomode_set', required=False)
+    demandratesets = ScenarioDemandRateSetSerializer(
+        many=True, source='scenarioservice_set', required=False)
 
     class Meta:
-        model = Infrastructure
-        fields = ('id', 'name', 'description',
-                  'editable_by', 'accessible_by',
-                  'order', 'symbol')
-
-    def create(self, validated_data):
-        symbol_data = validated_data.pop('symbol', None)
-        symbol = MapSymbol.objects.create(**symbol_data) \
-            if symbol_data else None
-
-        editable_by = validated_data.pop('editable_by', [])
-        accessible_by = validated_data.pop('infrastructureaccess_set', [])
-        instance = Infrastructure.objects.create(
-            symbol=symbol, **validated_data)
-        instance.editable_by.set(editable_by)
-        instance.accessible_by.set([a['profile'] for a in accessible_by])
-        for profile_access in accessible_by:
-            infrastructure_access = InfrastructureAccess.objects.get(
-                infrastructure=instance,
-                profile=profile_access['profile'])
-            infrastructure_access.allow_sensitive_data = profile_access['allow_sensitive_data']
-            infrastructure_access.save()
-
-        return instance
+        model = Scenario
+        fields = ('id', 'name', 'planning_process', 'prognosis',
+                  'modevariants', 'demandratesets')
 
     def update(self, instance, validated_data):
-        # symbol is nullable
-        update_symbol = 'symbol' in validated_data
-        symbol_data = validated_data.pop('symbol', None)
+        mode_set = validated_data.pop('scenariomode_set', [])
+        service_set = validated_data.pop('scenarioservice_set', [])
+        super().update(instance, validated_data)
 
-        editable_by = validated_data.pop('editable_by', None)
-        accessible_by = validated_data.pop('infrastructureaccess_set', None)
-        instance = super().update(instance, validated_data)
-        if editable_by is not None:
-            instance.editable_by.set(editable_by)
-        if accessible_by is not None:
-            instance.accessible_by.set([a['profile'] for a in accessible_by])
-            for profile_access in accessible_by:
-                infrastructure_access = InfrastructureAccess.objects.get(
-                    infrastructure=instance,
-                    profile=profile_access['profile'])
-                infrastructure_access.allow_sensitive_data = profile_access['allow_sensitive_data']
-                infrastructure_access.save()
+        ## delete
+        #existing_scenario_modes\
+            #.exclude(id__in=[m.mode for m in modevariants])\
+            #.delete()
 
-        if update_symbol:
-            symbol = instance.symbol
-            if symbol_data:
-                if not symbol:
-                    symbol = MapSymbol.objects.create(**symbol_data)
-                    instance.symbol = symbol
-                else:
-                    for k, v in symbol_data.items():
-                        setattr(symbol, k, v)
-                    symbol.save()
-            # symbol passed but is None -> intention to set it to null
-            else:
-                symbol.delete()
-                instance.symbol = None
+        #  delete all and recreate
+        existing_scenario_modes = ScenarioMode.objects.filter(scenario=instance)
+        existing_scenario_modes.delete()
+        for mode in mode_set:
+            ScenarioMode.objects.create(scenario=instance,
+                                        mode=mode['mode'],
+                                        variant=mode['variant'])
 
-        instance.save()
+        #  delete all and recreate
+        existing_scenario_service = ScenarioService.objects.filter(scenario=instance)
+        existing_scenario_service.delete()
+        for service in service_set:
+            ScenarioService.objects.create(scenario=instance,
+                                           service=service['service'],
+                                           demandrateset=service['demandrateset'])
+
         return instance
 
+    def create(self, validated_data):
+        mode_set = validated_data.pop('scenariomode_set', [])
+        service_set = validated_data.pop('scenarioservice_set', [])
+        instance = super().create(validated_data)
+        for mode in mode_set:
+            ScenarioMode.objects.create(scenario=instance,
+                                        mode=mode['mode'],
+                                        variant=mode['variant'])
+        for service in service_set:
+            ScenarioService.objects.create(scenario=instance,
+                                           service=service['service'],
+                                           demandrateset=service['demandrateset'])
+        return instance
 
-class ServiceSerializer(serializers.ModelSerializer):
-    #quota_id = serializers.IntegerField(write_only=True, source='quota')
-    class Meta:
-        model = Service
-        fields = ('id', 'name', 'description', 'infrastructure', 'editable_by',
-                  'capacity_singular_unit', 'capacity_plural_unit',
-                  'has_capacity', 'demand_singular_unit', 'demand_plural_unit',
-                  'quota_type')
 
 
 class PlaceAttributeField(JSONField):

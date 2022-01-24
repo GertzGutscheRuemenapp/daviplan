@@ -1,11 +1,13 @@
-import sys
+from typing import Tuple
+
 from rest_framework_gis.fields import GeometryField
-from django.utils.encoding import force_str
 
 from django.contrib.gis.geos import (GEOSGeometry,
                                      Point, MultiPoint,
                                      LineString, MultiLineString,
-                                     Polygon, MultiPolygon, GEOSException)
+                                     Polygon, MultiPolygon,
+                                     GEOSException)
+
 
 class MultiPolygonGeometrySRIDField(GeometryField):
     """A Geometry-Field that forces Multipolygon and the given srid"""
@@ -80,3 +82,8 @@ def compare_geometries(wkt1: str, wkt2: str, tolerance: float):
         assert geom1.sym_difference(geom2).area < tolerance, 'Area of the symmetric difference of the areas too big'
 
 
+def get_point_from_latlon(latlng: Tuple[float, float], srid: int) -> Point:
+    """convert cellcode to polygon"""
+    pnt_wgs = Point((latlng[1], latlng[0]), srid=4326)
+    pnt_transformed = pnt_wgs.transform(srid, clone=True)
+    return pnt_transformed

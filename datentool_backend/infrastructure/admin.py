@@ -1,10 +1,14 @@
 from django.contrib import admin
 from .models import (
-    Infrastructure, Service, Place,
-    Capacity, FieldType, FClass, PlaceField)
+    Scenario,
+    Place,
+    Capacity,
+    FieldType,
+    FClass,
+    PlaceField,
+)
 
-admin.site.register(Infrastructure)
-admin.site.register(Service)
+admin.site.register(Scenario)
 admin.site.register(Place)
 admin.site.register(Capacity)
 admin.site.register(FieldType)

@@ -29,13 +29,13 @@ class RegStatAgeGroup:
         return (f'ALT{age_to_str(self.from_age, length=3)}'
                 f'B{age_to_str(self.to_age + 1)}')
 
-    def __eq__(self, other):  # Union[RegStatAgeGroup, AgeGroup]
+    def __eq__(self, other: Union['RegStatAgeGroup', AgeGroup]) -> bool:
         # if other age surpasses custom "infinite" value
         # take the "infinite" value
         to_age = other.to_age if other.to_age <= self.INF else self.INF
         return self.from_age == other.from_age and self.to_age == to_age
 
-    def __ne__(self, other):
+    def __ne__(self, other: Union['RegStatAgeGroup', AgeGroup]) -> bool:
         return not self == other
 
     def __repr__(self) -> str:

@@ -1,85 +1,28 @@
 from django.contrib import admin
-from .models import (Year, Raster, PopulationRaster, RasterCell, RasterCellPopulation,
-    Gender, AgeGroup,
-    DisaggPopRaster, RasterCellPopulationAgeGender,
-    Prognosis, PrognosisEntry,
-    Population, PopulationEntry,
-    PopStatistic, PopStatEntry,
-)
+from .models import (
+    Raster,
+    PopulationRaster,
+    RasterCell,
+    RasterCellPopulation,
+    DisaggPopRaster,
+    RasterCellPopulationAgeGender,
+    Prognosis,
+    PrognosisEntry,
+    Population,
+    PopulationEntry,
+    PopStatistic,
+    PopStatEntry,
+    )
 
-
-# Register your models here.
-class YearAdmin(admin.ModelAdmin):
-    """"""
-
-
-class RasterAdmin(admin.ModelAdmin):
-    """"""
-
-
-class PopulationRasterAdmin(admin.ModelAdmin):
-    """"""
-
-
-class RasterCellAdmin(admin.ModelAdmin):
-    """"""
-
-
-class RasterCellPopulationAdmin(admin.ModelAdmin):
-    """"""
-
-
-class GenderAdmin(admin.ModelAdmin):
-    """"""
-
-
-class AgeGroupAdmin(admin.ModelAdmin):
-    """"""
-
-
-class DisaggPopRasterAdmin(admin.ModelAdmin):
-    """"""
-
-
-class RasterCellPopulationAgeGenderAdmin(admin.ModelAdmin):
-    """"""
-
-
-class PrognosisAdmin(admin.ModelAdmin):
-    """"""
-
-
-class PrognosisEntryAdmin(admin.ModelAdmin):
-    """"""
-
-
-class PopulationAdmin(admin.ModelAdmin):
-    """"""
-
-
-class PopulationEntryAdmin(admin.ModelAdmin):
-    """"""
-
-
-class PopStatisticAdmin(admin.ModelAdmin):
-    """"""
-
-
-class PopStatEntryAdmin(admin.ModelAdmin):
-    """"""
-
-admin.site.register(Year, YearAdmin)
-admin.site.register(Raster, RasterAdmin)
-admin.site.register(PopulationRaster, PopulationRasterAdmin)
-admin.site.register(RasterCell, RasterAdmin)
-admin.site.register(RasterCellPopulation, RasterCellPopulationAdmin)
-admin.site.register(Gender, GenderAdmin)
-admin.site.register(AgeGroup, AgeGroupAdmin)
-admin.site.register(DisaggPopRaster, DisaggPopRasterAdmin)
-admin.site.register(RasterCellPopulationAgeGender, RasterCellPopulationAgeGenderAdmin)
-admin.site.register(Prognosis, PrognosisAdmin)
-admin.site.register(PrognosisEntry, PrognosisEntryAdmin)
-admin.site.register(Population, PopulationAdmin)
-admin.site.register(PopulationEntry, PopulationEntryAdmin)
-admin.site.register(PopStatistic, PopStatisticAdmin)
-admin.site.register(PopStatEntry, PopStatEntryAdmin)
+admin.site.register(Raster)
+admin.site.register(PopulationRaster)
+admin.site.register(RasterCell)
+admin.site.register(RasterCellPopulation)
+admin.site.register(DisaggPopRaster)
+admin.site.register(RasterCellPopulationAgeGender)
+admin.site.register(Prognosis)
+admin.site.register(PrognosisEntry)
+admin.site.register(Population)
+admin.site.register(PopulationEntry)
+admin.site.register(PopStatistic)
+admin.site.register(PopStatEntry)

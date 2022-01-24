@@ -9,15 +9,22 @@ from owslib.wms import WebMapService
 from requests.exceptions import (MissingSchema, ConnectionError,
                                         HTTPError)
 
-from datentool_backend.utils.views import (CanEditBasedata,
-                                           HasAdminAccessOrReadOnly,
-                                           ProtectCascadeMixin)
+from datentool_backend.utils.views import ProtectCascadeMixin
+from datentool_backend.utils.permissions import (
+    HasAdminAccessOrReadOnly, CanEditBasedata)
 
-from .models import (MapSymbol, LayerGroup, WMSLayer, Source, AreaLevel, Area)
+from .models import (MapSymbol,
+                     LayerGroup,
+                     WMSLayer,
+                     AreaLevel,
+                     Area,
+                     )
 from .serializers import (MapSymbolSerializer,
-                          LayerGroupSerializer, WMSLayerSerializer,
-                          SourceSerializer,
-                          AreaLevelSerializer, AreaSerializer)
+                          LayerGroupSerializer,
+                          WMSLayerSerializer,
+                          AreaLevelSerializer,
+                          AreaSerializer,
+                          )
 
 
 class AreaLevelTileView(MVTView, DetailView):

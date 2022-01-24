@@ -591,4 +591,78 @@ class SingletonWriteOnlyWithAdminAccessTest:
         self.test_detail()
 
 
+class TestAPIMixin:
+    """test if view and serializer are working correctly """
+    url_key = ""
+    # replace with concrete factory in sub-class
+    factory = None
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.url_pks = dict()
+        if cls.factory:
+            cls.obj = cls.factory()
+            cls.url_pk = dict(pk=cls.obj.pk)
+
+
+class TestPermissionsMixin():
+    """ test users permissions"""
+    def test_is_logged_in(self):
+        self.client.logout()
+        response = self.get(self.url_key + '-list')
+        self.response_302 or self.assert_http_401_unauthorized(response, msg=response.content)
+
+        self.client.force_login(user=self.profile.user)
+        self.test_list()
+        self.test_detail()
+
+    def test_can_edit_basedata(self):
+        profile = self.profile
+
+        original_permission = profile.can_edit_basedata
+        original_admin_access = profile.admin_access
+
+        # Testprofile, with permission to edit basedata
+        profile.can_edit_basedata = True
+        profile.admin_access = False
+        profile.save()
+        self.test_post()
+
+        # Testprofile, without permission to edit basedata
+        profile.can_edit_basedata = False
+        profile.save()
+
+        url = self.url_key + '-list'
+        # post
+        response = self.post(url, **self.url_pks, data=self.post_data,
+                                 extra={'format': 'json'})
+        self.response_403(msg=response.content)
+
+        profile.can_edit_basedata = original_permission
+        profile.admin_access = original_admin_access
+        profile.save()
+
+    def admin_access(self):
+        profile = self.profile
+
+        original_permission = profile.admin_access
+
+        # Testprofile, with admin_acces
+        profile.admin_access = True
+        profile.save()
+        self.test_post()
+
+        # Testprofile, without admin_acces
+        profile.admin_access = False
+        profile.save()
+
+        url = self.url_key + '-list'
+        # post
+        response = self.post(url, **self.url_pks, data=self.post_data,
+                                 extra={'format': 'json'})
+        self.response_403(msg=response.content)
+
+        profile.admin_access = original_permission
+        profile.save()
 

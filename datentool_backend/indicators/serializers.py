@@ -2,27 +2,8 @@ from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from datentool_backend.utils.geometry_fields import GeometrySRIDField
 
-from .models import (Mode, ModeVariant, Stop,
-                     # ReachabilityMatrix,
-                     Router, Indicator)
+from .models import (Stop, Router, Indicator)
 
-
-class ModeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Mode
-        fields = ('id', 'name')
-
-
-class ModeVariantSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ModeVariant
-        fields = ('id', 'mode', 'name', 'meta', 'is_default')
-
-
-# class ReachabilityMatrixSerializer(serializers.ModelSerializer):
-    # class Meta:
-        #model = ReachabilityMatrix
-        #fields = ('id', 'from_cell', 'to_cell', 'variant', 'minutes')
 
 class StopSerializer(GeoFeatureModelSerializer):
     geom = GeometrySRIDField(srid=3857)
