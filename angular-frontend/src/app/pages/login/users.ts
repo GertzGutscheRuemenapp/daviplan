@@ -2,6 +2,7 @@ export type Profile = {
   adminAccess: boolean;
   canCreateScenarios: boolean;
   canEditData: boolean;
+  settings: {};
 }
 
 export interface User {
@@ -28,6 +29,7 @@ export const mockUsers: User[] = [
       adminAccess: true,
       canCreateScenarios: true,
       canEditData: true,
+      settings: {}
     }
   },
   {
@@ -42,6 +44,7 @@ export const mockUsers: User[] = [
       adminAccess: false,
       canCreateScenarios: false,
       canEditData: false,
+      settings: {}
     }
   },
 ];

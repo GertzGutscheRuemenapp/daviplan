@@ -4,6 +4,7 @@ import { RestAPI } from "./rest-api";
 import { HttpClient } from "@angular/common/http";
 import { Title } from "@angular/platform-browser";
 import { ProjectSettings } from "./pages/administration/project-definition/project-definition.component";
+import { AuthService } from "./auth.service";
 
 export interface SiteSettings {
   id: number,
@@ -23,11 +24,13 @@ export class SettingsService {
     startYear: 0,
     endYear: 0
   });
+  userSettings$ = new BehaviorSubject<{}>({});
 
-  constructor(private rest: RestAPI, private http: HttpClient, private titleService: Title) {
+  constructor(private rest: RestAPI, private http: HttpClient, private titleService: Title, private authService: AuthService) {
     // initial fetch of settings
     this.fetchSiteSettings();
     this.fetchProjectSettings();
+    this.fetchUserSettings();
   }
 
   fetchSiteSettings(): void {
@@ -38,6 +41,11 @@ export class SettingsService {
   fetchProjectSettings(): void {
     this.http.get<ProjectSettings>(this.rest.URLS.projectSettings)
       .subscribe(projectSettings => {  this.projectSettings$.next(projectSettings); });
+  }
+
+  fetchUserSettings(): void {
+    this.authService.getCurrentUser().subscribe(
+      user => this.userSettings$.next(user?.profile?.settings || {}))
   }
 
   applySettings(settings: SiteSettings) {

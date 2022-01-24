@@ -7,7 +7,6 @@ import { RestAPI } from "../rest-api";
 import { sortBy } from "../helpers/utils";
 import { ProjectSettings } from "../pages/administration/project-definition/project-definition.component";
 import { WKT } from "ol/format";
-import { MultiPolygon } from "ol/geom";
 import { SettingsService } from "../settings.service";
 
 const backgroundLayers: Layer[] = [
@@ -144,7 +143,6 @@ export class MapService {
     })
     return observable;
   }
-
 }
 
 export class MapControl {

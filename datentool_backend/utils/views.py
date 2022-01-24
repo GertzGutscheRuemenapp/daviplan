@@ -7,7 +7,7 @@ from django.http import (HttpResponse,
 from django.db.models import ProtectedError
 from django.utils.translation import ugettext as _
 from abc import ABC
-
+from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
@@ -277,6 +277,14 @@ class HasAdminAccessOrReadOnly(permissions.BasePermission):
             # request.user.is_superuser or
             # request.user.profile.admin_access
         # )
+
+
+class IsOwner(permissions.BasePermission):
+    ''' object can only be requested in any way if it is owned by the user '''
+    def has_object_permission(self, request, view, obj):
+        if isinstance(obj, User):
+            return obj.id == request.user.id
+        return request.user.id == obj.user.id
 
 
 class HasAdminAccessOrReadOnlyAny(permissions.BasePermission):
