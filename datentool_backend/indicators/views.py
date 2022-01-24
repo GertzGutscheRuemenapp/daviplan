@@ -57,8 +57,8 @@ class AreaIndicatorViewSet(viewsets.ReadOnlyModelViewSet):
                                               service_id=service_id,
                                               scenario_id=scenario,
                                               year=year,
-                                              )\
-            .filter(capacity__gt=0)
+                                              min_capacity=0,
+                                              )
 
         places = Place.objects.all()
         places_with_capacity = places.annotate(

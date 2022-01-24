@@ -71,6 +71,14 @@ class Capacity(DatentoolModelMixin, models.Model):
     to_year = models.IntegerField(default=99999999)
     scenario = models.ForeignKey(Scenario, on_delete=PROTECT_CASCADE, null=True)
 
+    def __str__(self) -> str:
+        place = getattr(self.place, 'pk', '_')
+        service = getattr(self.service, 'pk', '_')
+        scenario = getattr(self.scenario, 'pk', '_')
+        return (f'{self.__class__.__name__} (Pl{place}-Se{service}-Sc{scenario} Y{self.from_year}-{self.to_year}): '
+                f'{self.capacity}')
+
+
 
     class Meta:
         unique_together = ['place', 'service', 'from_year', 'scenario']
@@ -103,43 +111,51 @@ class Capacity(DatentoolModelMixin, models.Model):
 
     @staticmethod
     def filter_queryset(queryset,
-                        service_id: int=None,
-                        scenario_id: int=None,
-                        year: int=None):
+                        service_id: int = None,
+                        scenario_id: int = None,
+                        year: int = None,
+                        min_capacity: float = None):
         """filter queryset by scenario and year, if given"""
-        scenario_filter = Q(scenario=scenario_id)
-        if service_id:
-            scenario_filter = scenario_filter & Q(service=service_id)
+        # filter capacities by service, if this is requested
+        if service_id is not None:
+            queryset = queryset.filter(service=service_id)
 
+        #  filter capacities by year
+        queryset_year = queryset\
+            .filter(from_year__lte=year)\
+            .filter(to_year__gte=year)
+
+        if min_capacity is not None:
+            queryset_year = queryset_year.filter(capacity__gt=min_capacity)
+
+        base_scenario_capacities = queryset_year.filter(scenario=None)
+
+        # if base scenario is requested, filter by base scenario (= None)
+        if scenario_id is None:
+            return base_scenario_capacities
+
+        # otherwise, the scenario is requested
+        # find the places, that have specific capacities
+        # for this scenario defined
+        scenario_filter = Q(scenario=scenario_id)
+        #  if a specific services is requested,
+        # filter only the places with capacities for this service
+        if service_id is None:
+            scenario_filter = scenario_filter & Q(service=service_id)
+        # get the places that have have capacities
+        # defined for the scenario (and service)
         places_with_scenario = Place.objects.filter(Exists(
             'capacity', filter=scenario_filter))
+        places_without_scenario = Place.objects.exclude(Exists(
+            'capacity', filter=scenario_filter))
 
-        fallback_capacities = queryset.filter(scenario=None)
-        capacities_in_places_with_scenario = queryset.filter(place=places_with_scenario)
+        capacities_in_places_with_scenario = queryset_year.filter(
+            place__in=places_with_scenario, scenario=scenario_id)
+        fallback_capacities = base_scenario_capacities.filter(
+            place__in=places_without_scenario)
         scenario_capacities_with_fallback = capacities_in_places_with_scenario.union(
             fallback_capacities)
-
-        filter_args = [Q(from_year__lte=year),
-                       Q(to_year__gte=year),
-                       Q(scenario=scenario_id),
-                       ]
-        if service_id:
-            filter_args.append(Q(service=service_id))
-        queryset = scenario_capacities_with_fallback.filter(*filter_args)
-
-        #if service_id:
-            #queryset = queryset.filter(service=service_id)
-        ## ToDo: mark if place has scenario defined for service
-        ## if yes, take scenario=scenario_id else take scenario=None
-        ## places_with_scenario = queryset.filter(scenario=scenario_id).values('place').annotate(cnt=Count('*')).values('cnt')
-
-        #queryset_year = queryset\
-            #.filter(from_year__lte=year)\
-            #.filter(to_year__gte=year)
-
-        #queryset = queryset_year\
-            #.filter(scenario_id=scenario_id)
-        return queryset
+        return scenario_capacities_with_fallback
 
 
 class FieldTypes(models.TextChoices):
