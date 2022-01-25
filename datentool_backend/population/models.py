@@ -30,7 +30,6 @@ class RasterCell(DatentoolModelMixin, models.Model):
     pnt = gis_models.PointField(srid=3857)
     poly = gis_models.PolygonField(srid=3857)
 
-
     def __str__(self) -> str:
         return f'{self.__class__.__name__}: {self.raster.name}-{self.cellcode}'
 

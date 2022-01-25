@@ -17,7 +17,9 @@ from .demand.views import (GenderViewSet,
 
 from .modes.views import (ModeViewSet, ModeVariantViewSet,)
 from .indicators.views import (RouterViewSet,
-                               IndicatorViewSet)
+                               IndicatorViewSet,
+                               AreaIndicatorViewSet,
+                               )
 
 from .infrastructure.views import (ScenarioViewSet,
                                    FieldTypeViewSet,
@@ -65,6 +67,7 @@ router.register(r'modevariants', ModeVariantViewSet, basename='modevariants')
                 #basename='reachabilitymatrices')
 router.register(r'routers', RouterViewSet, basename='routers')
 router.register(r'indicators', IndicatorViewSet, basename='indicators')
+router.register(r'areaindicators', AreaIndicatorViewSet, basename='areaindicators')
 
 # infrastructure
 router.register(r'scenarios', ScenarioViewSet, basename='scenarios')
