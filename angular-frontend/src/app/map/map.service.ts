@@ -8,6 +8,7 @@ import { sortBy } from "../helpers/utils";
 import { ProjectSettings } from "../pages/administration/project-definition/project-definition.component";
 import { WKT } from "ol/format";
 import { SettingsService } from "../settings.service";
+import { environment } from "../../environments/environment";
 
 const backgroundLayers: Layer[] = [
   {
@@ -99,11 +100,16 @@ export class MapService {
           if (!level.symbol) return;
           // areas have no fill
           level.symbol.fillColor = '';
+          let tileUrl = level.tileUrl!;
+          // "force" https in production, backend returns http (running in container)
+          if (environment.production) {
+            tileUrl = tileUrl.replace('http:', 'https:');
+          }
           const layer: Layer = {
             id: i,
             type: "vector-tiles",
             order: i,
-            url: level.tileUrl!,
+            url: tileUrl,
             name: level.name,
             description: `Gebiete der Gebietseinheit ${level.name}`,
             symbol: level.symbol

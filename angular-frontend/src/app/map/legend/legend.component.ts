@@ -4,6 +4,7 @@ import { LayerGroup, Layer } from "../../rest-interfaces";
 import { CookieService } from "../../helpers/cookies.service";
 import { FloatingDialog } from "../../dialogs/help-dialog/help-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
+import { SettingsService } from "../../settings.service";
 
 @Component({
   selector: 'app-legend',
@@ -27,7 +28,7 @@ export class LegendComponent implements AfterViewInit {
   editMode: boolean;
   Object = Object;
 
-  constructor(public dialog: MatDialog, private mapService: MapService,
+  constructor(public dialog: MatDialog, private mapService: MapService, private settings: SettingsService,
               private cdRef:ChangeDetectorRef, private cookies: CookieService) {
     this.backgroundOpacity = parseFloat(<string>this.cookies.get(`background-layer-opacity`) || '1');
     this.editMode = <boolean>this.cookies.get(`${this.target}-legend-edit-mode`) || true;
@@ -70,7 +71,7 @@ export class LegendComponent implements AfterViewInit {
    */
   onLayerToggle(layer: Layer): void {
     layer.checked = !layer.checked;
-    this.cookies.set(`legend-layer-checked-${layer.id}`, layer.checked);
+    this.settings.user.set(`legend-layer-checked-${layer.id}`, layer.checked);
     this.mapControl.toggleLayer(layer.id, layer.checked);
     this.filterActiveGroups();
   }

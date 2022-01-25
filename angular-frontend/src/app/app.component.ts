@@ -15,7 +15,7 @@ export class AppComponent {
     // auto apply settings when new ones were fetched
     // ToDo: is this the right place for this?
     settings.siteSettings$.subscribe(settings => {
-      this.settings.applySettings(settings);
+      this.settings.applySiteSettings(settings);
     })
     router.events.pipe(
       tap(() => dialog.closeAll())

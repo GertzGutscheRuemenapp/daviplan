@@ -75,7 +75,7 @@ export class SettingsComponent implements AfterViewInit {
       this.titleEdit.setLoading(true);
       let attributes: any = { title: this.titleForm.value.title }
       this.titleEdit.setLoading(true);
-      this.http.patch<SiteSettings>(this.rest.URLS.settings, attributes
+      this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, attributes
         ).subscribe(data => {
           this.titleEdit.closeDialog(true);
           // update global settings
@@ -108,7 +108,7 @@ export class SettingsComponent implements AfterViewInit {
       this.contactEdit.setLoading(true);
       let attributes: any = { contactMail: this.contactForm.value.contact }
       this.contactEdit.setLoading(true);
-      this.http.patch<SiteSettings>(this.rest.URLS.settings, attributes
+      this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, attributes
       ).subscribe(data => {
         this.contactEdit.closeDialog(true);
         // update global settings
@@ -138,7 +138,7 @@ export class SettingsComponent implements AfterViewInit {
         welcomeText: this.welcomeTextInput
       }
       this.welcomeTextEdit.setLoading(true);
-      this.http.patch<SiteSettings>(this.rest.URLS.settings, attributes
+      this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, attributes
       ).subscribe(settings => {
         // update global settings
         this.settingsService.fetchSiteSettings();
@@ -163,7 +163,7 @@ export class SettingsComponent implements AfterViewInit {
       }
       formData.append('logo', this.logoFile.file);
       this.logoEdit?.setLoading(true);
-      this.http.patch<SiteSettings>(this.rest.URLS.settings, formData
+      this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, formData
       ).subscribe(settings => {
         this.logoEdit?.closeDialog(true);
         // update global settings
@@ -195,7 +195,7 @@ export class SettingsComponent implements AfterViewInit {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.patch<SiteSettings>(this.rest.URLS.settings, { logo: null }
+        this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, { logo: null }
         ).subscribe( settings => this.settingsService.fetchSiteSettings() )
       }
     });
