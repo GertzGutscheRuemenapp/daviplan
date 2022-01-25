@@ -60,15 +60,6 @@ class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             queryset = queryset.filter(service_capacity=service).distinct()
         return queryset
 
-        #  user place_number in the query to get the default place...
-        #scenario = self.request.query_params.get('scenario')
-        #queryset_scenario = queryset\
-            #.filter(scenario=scenario)
-        #if not queryset_scenario:
-            #queryset_scenario = queryset.filter(scenario=None)
-
-        #return queryset_scenario
-
     @action(methods=['PATCH', 'PUT'], detail=True,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def update_attributes(self, request, **kwargs):
