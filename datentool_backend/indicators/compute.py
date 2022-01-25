@@ -1,8 +1,14 @@
 from abc import ABCMeta
 from typing import Callable, Dict
+from django.db.models import OuterRef, Subquery, Count, IntegerField
+from django.contrib.postgres.fields.jsonb import KeyTextTransform
+from sql_util.utils import Exists
 
 from datentool_backend.infrastructure.models import FieldTypes
 from .models import IndicatorType
+from datentool_backend.area.models import Area
+from datentool_backend.infrastructure.models import Place, Capacity
+
 
 
 class ComputeIndicator(metaclass=ABCMeta):
@@ -12,15 +18,9 @@ class ComputeIndicator(metaclass=ABCMeta):
     parameters: Dict[str, str] = {}
 
     def __init__(self,
-                 service: int,
-                 area_level: int,
-                 scenario: int = None,
-                 year: int = None,
+                 query_params: Dict[str, str]
                  ):
-        self.service = service
-        self.area_level = area_level
-        self.scenario = scenario
-        self.year = year
+        self.query_params = query_params
 
     def compute(self):
         """compute the indicator"""
@@ -56,6 +56,43 @@ class NumberOfLocations(ComputeIndicator):
 
     def compute(self):
         """"""
+        area_level_id = self.query_params.get('area_level')
+        service_id = self.query_params.get('service')
+        year = self.query_params.get('year', 0)
+        scenario_id = self.query_params.get('scenario')
+
+        qs = Area.objects.filter(area_level=area_level_id)
+
+        name_attr = 'name'
+        qs = qs.annotate(name=KeyTextTransform(name_attr, 'attributes'))
+
+
+        capacities = Capacity.objects.all()
+        capacities = Capacity.filter_queryset(capacities,
+                                              service_id=service_id,
+                                              scenario_id=scenario_id,
+                                              year=year,
+                                              )
+        # only those with capacity - value > 0
+        capacities = capacities.filter(capacity__gt=0)
+
+        places = Place.objects.all()
+        places_with_capacity = places.annotate(
+            has_capacity=Exists(capacities.filter(place=OuterRef('pk'))))\
+            .filter(has_capacity=True)
+
+        places_in_area = places_with_capacity\
+            .filter(geom__intersects=OuterRef('geom'))\
+            .annotate(area_id=OuterRef('id'))\
+            .values('area_id')\
+            .annotate(n_places=Count('*'))\
+            .values('n_places')
+        qs = qs.annotate(
+            value=Subquery(
+                places_in_area, output_field=IntegerField()
+            )
+        )
+        return qs
 
 
 @register_indicator_class()

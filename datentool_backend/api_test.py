@@ -79,11 +79,15 @@ class BasicModelDetailTest(LoginTestCase, CompareAbsURIMixin):
     sub_urls = []
     url_pks = dict()
     url_pk = dict()
+    query_params = dict()
     do_not_check = []
 
     @property
     def kwargs(self):
-        return {**self.url_pks, 'pk': self.obj.pk}
+        kwargs = {**self.url_pks, 'pk': self.obj.pk}
+        if self.query_params:
+            kwargs['data'] = self.query_params
+        return kwargs
 
     def test_detail(self):
         self._test_detail()
@@ -164,6 +168,14 @@ class SingletonRoute:
 
 
 class BasicModelReadTest(BasicModelDetailTest):
+
+    @property
+    def kwargs_list(self):
+        kwargs = {**self.url_pks}
+        if self.query_params:
+            kwargs['data'] = self.query_params
+        return kwargs
+
     def test_list(self):
         self._test_list()
 
@@ -171,12 +183,12 @@ class BasicModelReadTest(BasicModelDetailTest):
         """Test that the list view can not be returned successfully"""
         url = self.url_key + '-list'
         # test get
-        response = self.get(url, **self.url_pks)
+        response = self.get(url, **self.kwargs_list)
         self.response_403(msg=response.content)
 
     def _test_list(self):
         """Test that the list view can be returned successfully"""
-        self.get_check_200(self.url_key + '-list', **self.url_pks)
+        self.get_check_200(self.url_key + '-list', **self.kwargs_list)
 
     def test_get_urls(self):
         self._test_get_urls()
@@ -184,15 +196,14 @@ class BasicModelReadTest(BasicModelDetailTest):
     def _test_get_urls_forbidden(self):
         """get all sub-elements of a list of urls"""
         url = self.url_key + '-detail'
-        kwargs = self.kwargs
         # test get
-        response = self.get(url, **kwargs)
+        response = self.get(url, **self.kwargs)
         self.response_403(msg=response.content)
 
     def _test_get_urls(self):
         """get all sub-elements of a list of urls"""
         url = self.url_key + '-detail'
-        response = self.get_check_200(url, pk=self.obj.pk, **self.url_pks)
+        response = self.get_check_200(url, **self.kwargs)
         for key in self.sub_urls:
             key_response = self.get_check_200(response.data[key])
 

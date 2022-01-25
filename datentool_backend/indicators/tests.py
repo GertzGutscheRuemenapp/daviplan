@@ -118,6 +118,11 @@ class TestAreaIndicatorAPI(TestAPIMixin, BasicModelReadTest, APITestCase):
     """Test to get an area indicator"""
     url_key = "areaindicators"
 
+    @property
+    def query_params(self):
+        return {'indicator': self.indicator.pk,
+                'area_level': self.area1.area_level.pk, }
+
     @classmethod
     def tearDownClass(cls):
         PlanningProcess.objects.all().delete()
@@ -126,6 +131,9 @@ class TestAreaIndicatorAPI(TestAPIMixin, BasicModelReadTest, APITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
+
+        cls.indicator = IndicatorFactory(
+            indicator_type__classname=NumberOfLocations.__name__)
 
         cls.obj = area_level = AreaLevelFactory()
         cls.url_pk = cls.obj.pk
@@ -225,7 +233,8 @@ class TestAreaIndicatorAPI(TestAPIMixin, BasicModelReadTest, APITestCase):
                        service: int=None,
                        year: int=None,
                        scenario: int=None):
-        query_params = {}
+        query_params = {'indicator': self.indicator.pk,
+                        'area_level': self.area1.pk,}
         if service is not None:
             query_params['service'] = service.id
         if year is not None:
