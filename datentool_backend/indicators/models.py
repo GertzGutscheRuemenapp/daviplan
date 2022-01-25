@@ -1,3 +1,4 @@
+
 from django.db import models
 from django.contrib.gis.db import models as gis_models
 from datentool_backend.base import (NamedModel,
@@ -11,6 +12,7 @@ from datentool_backend.infrastructure.models import Place
 from datentool_backend.modes.models import ModeVariant
 from datentool_backend.population.models import RasterCell
 
+from .compute import IndicatorType
 
 class Stop(DatentoolModelMixin, NamedModel, models.Model):
     """location of a public transport stop"""
@@ -59,7 +61,7 @@ class MatrixStopStop(models.Model):
 
 
 class Router(NamedModel, models.Model):
-    """an OTP ROuter to use"""
+    """an OTP Router to use"""
     name = models.TextField()
     osm_file = models.TextField()
     tiff_file = models.TextField()
@@ -68,16 +70,9 @@ class Router(NamedModel, models.Model):
     buffer = models.IntegerField()
 
 
-class IndicatorTypes(models.TextChoices):
-    """Indicator types"""
-    TYPE1 = 'T1', 'Type1'
-    TYPE2 = 'T2', 'Type2'
-
-
 class Indicator(DatentoolModelMixin, JsonAttributes, NamedModel, models.Model):
     """An Indicator"""
-    indicator_type = models.CharField(max_length=2,
-                                      choices=IndicatorTypes.choices)
+    indicator_type = models.ForeignKey(IndicatorType, on_delete=PROTECT_CASCADE)
     name = models.TextField()
     parameters = models.JSONField()
     service = models.ForeignKey(Service, on_delete=PROTECT_CASCADE)

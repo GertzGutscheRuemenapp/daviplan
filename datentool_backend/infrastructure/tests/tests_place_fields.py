@@ -379,16 +379,15 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         service3 = ServiceFactory(infrastructure=place1.infrastructure)
 
         place1.service_capacity.set([service1, service2])
-        place2.service_capacity.set([service3, service2])
+        place2.service_capacity.set([service3, service2],
+                                    through_defaults=dict(capacity=0))
 
         #  default capacity has from_year=0 and capacity=0
         # add two more capacities
-        cap_s3_p2 = CapacityFactory(service=service3, place=place2,
-                                    from_year=2023, capacity=123)
-        cap_s3_p2 = CapacityFactory(service=service3, place=place2,
-                                    from_year=2021, capacity=55)
-        capacities_s3_p2 = Capacity.objects.filter(place=place2,
-                                                   service=service3)
+        CapacityFactory(service=service3, place=place2,
+                        from_year=2023, capacity=123)
+        CapacityFactory(service=service3, place=place2,
+                        from_year=2021, capacity=55)
 
         #  test if the correct places which offer a service are returned
         self.check_place_with_capacity(service1, {place1.id})

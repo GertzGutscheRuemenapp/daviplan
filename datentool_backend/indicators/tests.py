@@ -19,7 +19,8 @@ from .factories import (RouterFactory,
                         IndicatorFactory,
                         )
 
-from .models import (IndicatorTypes, Indicator)
+from .models import (IndicatorType, Indicator)
+from .compute import NumberOfLocations
 
 from datentool_backend.area.factories import AreaLevelFactory, AreaFactory
 from datentool_backend.user.factories import (InfrastructureFactory,
@@ -37,11 +38,19 @@ faker = Faker('de-DE')
 
 class TestIndicator(TestCase):
 
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+
+        IndicatorType._check_indicators()
+
     def test_router(self):
         router = RouterFactory()
 
     def test_indicator(self):
-        indicator = IndicatorFactory()
+        num_locs = IndicatorType.objects.get(
+            classname=NumberOfLocations.__name__)
+        indicator = IndicatorFactory(indicator_type=num_locs)
 
     def test_matrix_cell_place(self):
         matrix_cell_place = MatrixCellPlaceFactory()
@@ -54,6 +63,11 @@ class TestIndicator(TestCase):
 
     def test_matrix_stop_stop(self):
         matrix_stop_stop = MatrixStopStopFactory()
+
+    def test_indicator_types(self):
+        """test if the indicator types are registred"""
+        print(NumberOfLocations)
+
 
 
 class TestRouterAPI(WriteOnlyWithCanEditBaseDataTest,
@@ -89,11 +103,12 @@ class TestIndicatorAPI(WriteOnlyWithCanEditBaseDataTest,
 
         indicator: Indicator = cls.obj
         service = indicator.service.pk
+        indicator_type = indicator.indicator_type.pk
 
-        data = dict(indicator_type = faker.random_element(IndicatorTypes),
-                    name = faker.word(),
-                    parameters = faker.json(),
-                    service = service)
+        data = dict(indicator_type=indicator_type,
+                    name=faker.word(),
+                    parameters=faker.json(),
+                    service=service)
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data

@@ -4,11 +4,11 @@ from factory.django import DjangoModelFactory
 from datentool_backend.utils.geometry_fields import get_point_from_latlon
 
 from .models import (ModeVariant, Router, Stop,
-                    Indicator, IndicatorTypes, MatrixCellPlace, MatrixCellStop,
+                    Indicator, IndicatorType, MatrixCellPlace, MatrixCellStop,
                     MatrixPlaceStop, MatrixStopStop)
 
 from datentool_backend.modes.factories import ModeVariantFactory
-from datentool_backend.infrastructure.factories import PlaceFactory
+from datentool_backend.infrastructure.factories import PlaceFactory, PlaceFieldFactory
 from datentool_backend.population.factories import RasterCellFactory
 from datentool_backend.user.factories import (ServiceFactory)
 
@@ -35,10 +35,18 @@ class RouterFactory(DjangoModelFactory):
     buffer = faker.random_number(digits=2)
 
 
+class IndicatorTypeFactory(DjangoModelFactory):
+    class Meta:
+        model = IndicatorType
+    name = faker.word()
+    description = faker.word()
+    classname = faker.word()
+
+
 class IndicatorFactory(DjangoModelFactory):
     class Meta:
         model = Indicator
-    indicator_type = faker.random_element(IndicatorTypes)
+    indicator_type = factory.SubFactory(IndicatorTypeFactory)
     name = faker.word()
     parameters = faker.json(num_rows=3, indent=True)
     service = factory.SubFactory(ServiceFactory)

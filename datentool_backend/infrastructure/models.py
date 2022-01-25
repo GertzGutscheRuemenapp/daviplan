@@ -66,7 +66,7 @@ class Capacity(DatentoolModelMixin, models.Model):
     """Capacity of an infrastructure for a service"""
     place = models.ForeignKey(Place, on_delete=PROTECT_CASCADE)
     service = models.ForeignKey(Service, on_delete=PROTECT_CASCADE)
-    capacity = models.FloatField(default=0)
+    capacity = models.FloatField(default=1)
     from_year = models.IntegerField(default=0)
     to_year = models.IntegerField(default=99999999)
     scenario = models.ForeignKey(Scenario, on_delete=PROTECT_CASCADE, null=True)
