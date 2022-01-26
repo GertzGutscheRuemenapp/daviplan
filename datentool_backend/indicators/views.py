@@ -65,10 +65,10 @@ class AreaLevelIndicatorTileView(MVTView, DetailView):
         return self.get_object().name
 
     def get_vector_tile_queryset(self):
-        query_params = {'area_level_id': self.object.pk, }
-        query_params.update(self.request.query_params)
+        query_params = {'area_level': self.object.pk, }
+        query_params.update(self.request.GET)
 
-        indicator_id = query_params.get('indicator')
+        indicator_id = query_params.get('indicator')[0]
         classname = Indicator.objects.get(pk=indicator_id).indicator_type.classname
         compute_class: ComputeIndicator = IndicatorType._indicator_classes[classname]
         areas = compute_class(query_params).compute()
