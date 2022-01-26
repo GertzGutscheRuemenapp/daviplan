@@ -69,17 +69,6 @@ class WMSLayerViewSet(viewsets.ModelViewSet):
     def getcapabilities(self, request, **kwargs):
         url = request.data.get('url')
         version = request.data.get('version', '1.3.0')
-
-        # test for anonymous CORS-support
-        headers = {
-            "Origin": "*",
-            "Referer": "*",
-            "Referrer-Policy": "strict-origin-when-cross-origin",
-        }
-        res = requests.options(url, headers=headers)
-        cors_enabled = ('access-control-allow-origin' in res.headers and
-                        res.headers['access-control-allow-origin'] == '*')
-
         if not url:
             raise ParseError('keine URL angegeben')
         try:
@@ -94,6 +83,7 @@ class WMSLayerViewSet(viewsets.ModelViewSet):
         except Exception:
             raise APIException('ein Fehler ist bei der Abfrage der '
                                'Capabilities aufgetreten')
+
         layers = []
         for layer_name, layer in wms.contents.items():
             layers.append({
@@ -102,6 +92,16 @@ class WMSLayerViewSet(viewsets.ModelViewSet):
                 'abstract': layer.abstract,
                 'bbox': layer.boundingBoxWGS84,
             })
+
+        # test for anonymous CORS-support
+        headers = {
+            "Origin": "*",
+            "Referer": "*",
+            "Referrer-Policy": "strict-origin-when-cross-origin",
+        }
+        res = requests.options(url, headers=headers)
+        cors_enabled = ('access-control-allow-origin' in res.headers and
+                        res.headers['access-control-allow-origin'] == '*')
 
         return JsonResponse({
             'version': wms.version,
