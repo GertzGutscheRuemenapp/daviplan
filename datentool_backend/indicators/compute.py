@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import Callable, Dict
 
-from django.db.models import OuterRef, Subquery, Count, IntegerField, Sum, FloatField
+from django.db.models import OuterRef, Subquery, Count, IntegerField, Sum
 from django.contrib.postgres.fields.jsonb import KeyTextTransform
 from sql_util.utils import Exists
 

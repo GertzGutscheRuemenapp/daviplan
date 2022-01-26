@@ -21,3 +21,4 @@ django-vectortiles
 django-url-filter
 owslib
 django-sql-utils
+mapbox_vector_tile

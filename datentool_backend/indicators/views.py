@@ -1,4 +1,5 @@
 from django.views.generic import DetailView
+from django.core.exceptions import BadRequest
 from rest_framework import viewsets
 from vectortiles.postgis.views import MVTView, BaseVectorTileView
 
@@ -6,7 +7,7 @@ from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 
-from datentool_backend.area.models import AreaLevel, Area
+from datentool_backend.area.models import AreaLevel
 from .models import (Stop,
                      Router,
                      Indicator,
@@ -50,6 +51,8 @@ class AreaIndicatorViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         #  filter the capacity returned for the specific service
         indicator_id = self.request.query_params.get('indicator')
+        if indicator_id is None:
+            raise BadRequest('indicator_id is required as query_param')
 
         classname = Indicator.objects.get(pk=indicator_id).indicator_type.classname
         compute_class: ComputeIndicator = IndicatorType._indicator_classes[classname]
@@ -61,16 +64,30 @@ class AreaLevelIndicatorTileView(MVTView, DetailView):
     model = AreaLevel
     vector_tile_fields = ('id', 'area_level', 'label', 'value')
 
-    def get_vector_tile_layer_name(self):
+    def get_vector_tile_layer_name(self) -> str:
+        """The name of the area-level"""
         return self.get_object().name
 
     def get_vector_tile_queryset(self):
+        """Calculate the indicators for each area of the area-level"""
+        # set the area_level as query_param
         query_params = {'area_level': self.object.pk, }
-        query_params.update(self.request.GET)
+        # the WSGIRequest returns the query-params as lists,
+        # so take only the first value, if its a list
+        for key, value in self.request.GET.items():
+            if isinstance(value, list):
+                value = value[0]
+            query_params[key] = value
 
-        indicator_id = query_params.get('indicator')[0]
+        # an indicator_id is required
+        indicator_id = query_params.get('indicator')
+        if indicator_id is None:
+            raise BadRequest('indicator_id is required as query_param')
+
+        # get the IndicatorCompute-class
         classname = Indicator.objects.get(pk=indicator_id).indicator_type.classname
         compute_class: ComputeIndicator = IndicatorType._indicator_classes[classname]
+        # and compute the queryset for the areas
         areas = compute_class(query_params).compute()
         return areas
 

@@ -4,7 +4,6 @@ from datentool_backend.utils.geometry_fields import GeometrySRIDField
 
 from .models import (Stop, Router, Indicator, IndicatorType, IndicatorTypeField)
 from datentool_backend.area.models import Area
-from datentool_backend.area.serializers import AreaSerializer
 from datentool_backend.infrastructure.serializers import FieldTypeSerializer
 
 
