@@ -76,7 +76,7 @@ class IndicatorType(NamedModel, models.Model):
     name = models.TextField(unique=True)
     classname = models.TextField(unique=True)
     description = models.TextField()
-    parameters = models.ManyToManyField(FieldType, through='IndicatorTypeFields')
+    parameters = models.ManyToManyField(FieldType, through='IndicatorTypeField')
 
     @classmethod
     def _update_indicators_types(cls):
@@ -91,11 +91,11 @@ class IndicatorType(NamedModel, models.Model):
                 field_type, created = FieldType.objects.get_or_create(
                     field_type=field_descr.value, name=field_name)
                 field_types.append(field_type)
-                itf, created = IndicatorTypeFields.objects.get_or_create(
+                itf, created = IndicatorTypeField.objects.get_or_create(
                     indicator_type=obj, field_type=field_type)
                 itf.label = field_name
                 itf.save()
-            deleted_fields = IndicatorTypeFields.objects.exclude(
+            deleted_fields = IndicatorTypeField.objects.exclude(
                 indicator_type=obj, field_type__in=field_types)
             deleted_fields.delete()
         deleted_types = IndicatorType.objects.exclude(classname__in=cls._indicator_classes.keys())
@@ -106,7 +106,7 @@ class IndicatorType(NamedModel, models.Model):
         cls._indicator_classes[indicator_class.__name__] = indicator_class
 
 
-class IndicatorTypeFields(models.Model):
+class IndicatorTypeField(models.Model):
     indicator_type = models.ForeignKey(IndicatorType, on_delete=PROTECT_CASCADE)
     field_type = models.ForeignKey(FieldType, on_delete=PROTECT_CASCADE)
     label = models.TextField()

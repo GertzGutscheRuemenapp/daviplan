@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from datentool_backend.utils.geometry_fields import GeometrySRIDField
 
-from .models import (Stop, Router, Indicator, IndicatorType, IndicatorTypeFields)
+from .models import (Stop, Router, Indicator, IndicatorType, IndicatorTypeField)
 from datentool_backend.area.models import Area
 from datentool_backend.area.serializers import AreaSerializer
 from datentool_backend.infrastructure.serializers import FieldTypeSerializer
@@ -26,7 +26,7 @@ class RouterSerializer(serializers.ModelSerializer):
 
 class IndicatorTypeFieldSerializer(serializers.ModelSerializer):
     class Meta:
-        model = IndicatorTypeFields
+        model = IndicatorTypeField
         fields = ('id', 'indicator_type', 'field_type', 'label')
 
 

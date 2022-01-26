@@ -19,7 +19,7 @@ from .factories import (RouterFactory,
                         IndicatorFactory,
                         )
 
-from .models import (IndicatorType, Indicator, IndicatorTypeFields,)
+from .models import (IndicatorType, Indicator, IndicatorTypeField,)
 from .compute import (NumberOfLocations,
                       TotalCapacityInArea,
                       register_indicator_class,
@@ -94,7 +94,7 @@ class TestIndicator(TestCase):
 
         #  change parameters of other indicators
         dummy_indicator = IndicatorType.objects.get(classname=DummyIndicator.__name__)
-        dummy_fields = IndicatorTypeFields.objects.filter(
+        dummy_fields = IndicatorTypeField.objects.filter(
             indicator_type__classname=DummyIndicator.__name__)
         self.assertEquals(len(dummy_fields), 2)
 
@@ -110,10 +110,10 @@ class TestIndicator(TestCase):
         f1.field_type.save()
 
         # add fields
-        IndicatorTypeFields.objects.create(indicator_type=dummy_indicator,
+        IndicatorTypeField.objects.create(indicator_type=dummy_indicator,
                                            field_type=f1.field_type,
                                            label='F1')
-        IndicatorTypeFields.objects.create(indicator_type=dummy_indicator,
+        IndicatorTypeField.objects.create(indicator_type=dummy_indicator,
                                            field_type=f1.field_type,
                                            label='F2')
 
@@ -132,7 +132,7 @@ class TestIndicator(TestCase):
                                   ], ordered=False)
 
         dummy_indicator = IndicatorType.objects.get(classname=DummyIndicator.__name__)
-        dummy_fields = IndicatorTypeFields.objects.filter(
+        dummy_fields = IndicatorTypeField.objects.filter(
             indicator_type__classname=DummyIndicator.__name__)
         self.assertEquals(len(dummy_fields), 2)
         self.assertEquals(dummy_indicator.name, DummyIndicator.label)
