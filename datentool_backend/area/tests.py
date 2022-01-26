@@ -1,4 +1,5 @@
 from unittest import skipIf
+import json
 from collections import OrderedDict
 from django.test import TestCase
 from test_plus import APITestCase
@@ -148,7 +149,8 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
         symbol_data = MapSymbolSerializer(area_level.symbol).data
 
         data = dict(name=faker.word(), order=faker.random_int(),
-                    source=source_data, symbol=symbol_data)
+                    source=source_data, symbol=symbol_data,
+                    label_field=faker.word())
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
@@ -246,14 +248,20 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
             self.assert_response_equals_expected(response_value, expected)
 
     def test_get_tile_view(self):
-        area_level1 = AreaLevelFactory()
-        area1 = AreaFactory(area_level=area_level1)
-        geom = MultiPolygon(Polygon(((1475464, 6888464), (1515686, 6889190), (1516363, 6864002), (1475512, 6864389), (1475464, 6888464))),
+        area_level1 = AreaLevelFactory(label_field='gen')
+        attributes = json.dumps({'gen': 'Area One', })
+        area1 = AreaFactory(area_level=area_level1,
+                            attributes=attributes)
+        geom = MultiPolygon(Polygon(((1475464, 6888464),
+                                     (1515686, 6889190),
+                                     (1516363, 6864002),
+                                     (1475512, 6864389),
+                                     (1475464, 6888464))),
                         srid=3857)
-        #geom = MultiPolygon(Polygon(((6888464, 1475464), (6889190, 1515686), (6864002, 1516363), (6864389, 1475512), (6888464, 1475464))),
-                        #srid=4326).transform(3857, clone=True)
-        area2 = AreaFactory(area_level=area_level1, geom=geom)
-
+        attributes = json.dumps({'gen': 'Area Two', })
+        area2 = AreaFactory(area_level=area_level1,
+                            geom=geom,
+                            attributes=attributes)
 
         self.obj = area_level1
 

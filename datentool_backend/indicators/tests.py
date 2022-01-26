@@ -1,4 +1,5 @@
 from typing import List
+import json
 
 from django.urls import reverse
 from django.test import TestCase
@@ -230,20 +231,24 @@ class TestAreaIndicatorAPI(TestAPIMixin, BasicModelReadTest, APITestCase):
         cls.indicator = IndicatorFactory(
             indicator_type__classname=NumberOfLocations.__name__)
 
-        cls.obj = area_level = AreaLevelFactory()
+        cls.obj = area_level = AreaLevelFactory(label_field='gen')
         cls.url_pk = cls.obj.pk
+        coords = ((0, 0), (0, 10), (10, 10), (10, 0), (0, 0))
+        coords = [(x + 1000000, y + 6500000) for x, y in coords]
         cls.area1 = AreaFactory(
             area_level=area_level,
-            geom=MultiPolygon(Polygon(((0, 0), (0, 10), (10, 10), (10, 0), (0, 0))),
+            geom=MultiPolygon(Polygon(coords),
                               srid=3857),
-            attributes={'name': 'area1',},
-            )
+            attributes={'gen': 'area1', },
+        )
+        coords = ((10, 10), (10, 20), (20, 20), (20, 10), (10, 10))
+        coords = [(x + 1000000, y + 6500000) for x, y in coords]
         cls.area2 = AreaFactory(
             area_level=area_level,
-            geom=MultiPolygon(Polygon(((10, 10), (10, 20), (20, 20), (20, 10), (10, 10))),
+            geom=MultiPolygon(Polygon(coords),
                               srid=3857),
-            attributes={'name': 'area2',},
-            )
+            attributes={'gen': 'area2', },
+        )
         cls.scenario = ScenarioFactory(planning_process__owner=cls.profile)
 
         infrastructure = InfrastructureFactory()
@@ -251,13 +256,18 @@ class TestAreaIndicatorAPI(TestAPIMixin, BasicModelReadTest, APITestCase):
         cls.service2 = ServiceFactory(infrastructure=infrastructure)
 
         # Places 1 and 2 are in Area1
-        cls.place1 = PlaceFactory(infrastructure=infrastructure, geom=Point(x=5, y=5, srid=3587))
-        cls.place2 = PlaceFactory(infrastructure=infrastructure, geom=Point(x=5, y=6, srid=3587))
+        cls.place1 = PlaceFactory(infrastructure=infrastructure,
+                                  geom=Point(x=1000005, y=6500005))
+        cls.place2 = PlaceFactory(infrastructure=infrastructure,
+                                  geom=Point(x=1000005, y=6500006))
         # Places 3 and 4 are in Area2
-        cls.place3 = PlaceFactory(infrastructure=infrastructure, geom=Point(x=15, y=15, srid=3587))
-        cls.place4 = PlaceFactory(infrastructure=infrastructure, geom=Point(x=15, y=15, srid=3587))
+        cls.place3 = PlaceFactory(infrastructure=infrastructure,
+                                  geom=Point(x=1000015, y=6500015))
+        cls.place4 = PlaceFactory(infrastructure=infrastructure,
+                                  geom=Point(x=1000015, y=6500015))
         # Place 5 is in no area
-        cls.place5 = PlaceFactory(infrastructure=infrastructure, geom=Point(x=25, y=25, srid=3587))
+        cls.place5 = PlaceFactory(infrastructure=infrastructure,
+                                  geom=Point(x=1000025, y=6500025))
 
         CapacityFactory(place=cls.place1, service=cls.service1, capacity=1)
         CapacityFactory(place=cls.place1, service=cls.service2, capacity=2)
@@ -352,13 +362,12 @@ class TestAreaIndicatorAPI(TestAPIMixin, BasicModelReadTest, APITestCase):
             query_params['scenario'] = scenario.id
 
         response = self.get_check_200(self.url_key+'-list', data=query_params)
-        expected = [{'name': 'area1', 'value': expected_values[0],},
-                    {'name': 'area2', 'value': expected_values[1],}]
+        expected = [{'label': 'area1', 'value': expected_values[0], },
+                    {'label': 'area2', 'value': expected_values[1], }]
         self.assert_response_equals_expected(response.data, expected)
 
     def test_area_tile(self):
-        url1 = reverse('layerindicator-tile', kwargs={'pk': self.obj.pk, 'z': 1,
-                                             'x': 0, 'y': 1})
-        indicator = IndicatorType.objects.get(classname=NumberOfLocations.__name__)
-        response = self.get(url1, data={'indicator': indicator.pk, })
+        url1 = reverse('layerindicator-tile',
+                       kwargs={'pk': self.obj.pk, 'z': 13, 'x': 4300, 'y': 2767})
+        response = self.get(url1, data={'indicator': self.indicator.pk, })
         self.assert_http_200_ok(response)

@@ -1,12 +1,13 @@
 from abc import ABCMeta, abstractmethod
 from typing import Callable, Dict
+
 from django.db.models import OuterRef, Subquery, Count, IntegerField, Sum, FloatField
 from django.contrib.postgres.fields.jsonb import KeyTextTransform
-from sql_util.utils import Exists, SubquerySum
+from sql_util.utils import Exists
 
 from datentool_backend.infrastructure.models import FieldTypes
 from .models import IndicatorType
-from datentool_backend.area.models import Area
+from datentool_backend.area.models import Area, AreaLevel
 from datentool_backend.infrastructure.models import Place, Capacity
 
 
@@ -48,10 +49,11 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
         year = self.query_params.get('year', 0)
         scenario_id = self.query_params.get('scenario')
 
-        areas = Area.objects.filter(area_level=area_level_id)
+        area_level = AreaLevel.objects.get(pk=area_level_id)
+        areas = area_level.area_set.all()
 
-        name_attr = 'gen'
-        areas = areas.annotate(name=KeyTextTransform(name_attr, 'attributes'))
+        areas = areas.annotate(
+            label=KeyTextTransform(area_level.label_field, 'attributes'))
 
 
         capacities = Capacity.objects.all()

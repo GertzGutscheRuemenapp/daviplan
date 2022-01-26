@@ -75,6 +75,7 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
                                   blank=True)
     is_active = models.BooleanField(default=True)
     is_preset = models.BooleanField(default=False)
+    label_field = models.TextField(null=True)
 
 
 class Area(DatentoolModelMixin, JsonAttributes, models.Model):
