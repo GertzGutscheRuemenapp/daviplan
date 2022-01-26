@@ -50,7 +50,7 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
 
         areas = Area.objects.filter(area_level=area_level_id)
 
-        name_attr = 'name'
+        name_attr = 'gen'
         areas = areas.annotate(name=KeyTextTransform(name_attr, 'attributes'))
 
 

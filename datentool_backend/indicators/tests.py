@@ -1,5 +1,6 @@
 from typing import List
 
+from django.urls import reverse
 from django.test import TestCase
 from test_plus import APITestCase
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
@@ -250,13 +251,13 @@ class TestAreaIndicatorAPI(TestAPIMixin, BasicModelReadTest, APITestCase):
         cls.service2 = ServiceFactory(infrastructure=infrastructure)
 
         # Places 1 and 2 are in Area1
-        cls.place1 = PlaceFactory(infrastructure=infrastructure, geom=Point(x=5, y=5))
-        cls.place2 = PlaceFactory(infrastructure=infrastructure, geom=Point(x=5, y=6))
+        cls.place1 = PlaceFactory(infrastructure=infrastructure, geom=Point(x=5, y=5, srid=3587))
+        cls.place2 = PlaceFactory(infrastructure=infrastructure, geom=Point(x=5, y=6, srid=3587))
         # Places 3 and 4 are in Area2
-        cls.place3 = PlaceFactory(infrastructure=infrastructure, geom=Point(x=15, y=15))
-        cls.place4 = PlaceFactory(infrastructure=infrastructure, geom=Point(x=15, y=15))
+        cls.place3 = PlaceFactory(infrastructure=infrastructure, geom=Point(x=15, y=15, srid=3587))
+        cls.place4 = PlaceFactory(infrastructure=infrastructure, geom=Point(x=15, y=15, srid=3587))
         # Place 5 is in no area
-        cls.place5 = PlaceFactory(infrastructure=infrastructure, geom=Point(x=25, y=25))
+        cls.place5 = PlaceFactory(infrastructure=infrastructure, geom=Point(x=25, y=25, srid=3587))
 
         CapacityFactory(place=cls.place1, service=cls.service1, capacity=1)
         CapacityFactory(place=cls.place1, service=cls.service2, capacity=2)
@@ -336,14 +337,11 @@ class TestAreaIndicatorAPI(TestAPIMixin, BasicModelReadTest, APITestCase):
         # ..until 2021
         self.count_capacitites([34, 44], service=self.service1, scenario=self.scenario, year=2022)
 
-
-
-
     def count_capacitites(self,
                        expected_values: List[int],
-                       service: int=None,
-                       year: int=None,
-                       scenario: int=None):
+                       service: int = None,
+                       year: int = None,
+                       scenario: int = None):
         query_params = {'indicator': self.indicator.pk,
                         'area_level': self.area1.pk, }
         if service is not None:
@@ -358,3 +356,9 @@ class TestAreaIndicatorAPI(TestAPIMixin, BasicModelReadTest, APITestCase):
                     {'name': 'area2', 'value': expected_values[1],}]
         self.assert_response_equals_expected(response.data, expected)
 
+    def test_area_tile(self):
+        url1 = reverse('layerindicator-tile', kwargs={'pk': self.obj.pk, 'z': 1,
+                                             'x': 0, 'y': 1})
+        indicator = IndicatorType.objects.get(classname=NumberOfLocations.__name__)
+        response = self.get(url1, data={'indicator': indicator.pk, })
+        self.assert_http_200_ok(response)
