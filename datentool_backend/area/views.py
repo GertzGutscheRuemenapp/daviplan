@@ -6,6 +6,7 @@ from django.views.generic import DetailView
 from rest_framework.decorators import action
 from django.http import JsonResponse
 from owslib.wms import WebMapService
+import requests
 from requests.exceptions import (MissingSchema, ConnectionError,
                                         HTTPError)
 
@@ -68,6 +69,17 @@ class WMSLayerViewSet(viewsets.ModelViewSet):
     def getcapabilities(self, request, **kwargs):
         url = request.data.get('url')
         version = request.data.get('version', '1.3.0')
+
+        # test for anonymous CORS-support
+        headers = {
+            "Origin": "*",
+            "Referer": "*",
+            "Referrer-Policy": "strict-origin-when-cross-origin",
+        }
+        res = requests.options(url, headers=headers)
+        cors_enabled = ('access-control-allow-origin' in res.headers and
+                        res.headers['access-control-allow-origin'] == '*')
+
         if not url:
             raise ParseError('keine URL angegeben')
         try:
@@ -90,11 +102,14 @@ class WMSLayerViewSet(viewsets.ModelViewSet):
                 'abstract': layer.abstract,
                 'bbox': layer.boundingBoxWGS84,
             })
+
         return JsonResponse({
             'version': wms.version,
             'layers': layers,
-            'url': wms.url
+            'url': wms.url,
+            'cors': cors_enabled
         })
+
 
 class ProtectPresetPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):

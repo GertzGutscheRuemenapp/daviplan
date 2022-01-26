@@ -120,7 +120,7 @@ export class OlMap {
         url: url,
         attributions: attributions,
         attributionsCollapsible: false,
-        crossOrigin: 'anonymous'
+        crossOrigin: '*'
       }) :
       new TileWMS({
         url: url,
@@ -128,7 +128,7 @@ export class OlMap {
         serverType: 'geoserver',
         attributions: attributions,
         attributionsCollapsible: false,
-        crossOrigin: 'anonymous'
+        crossOrigin: '*'
     })
 
     let layer = new TileLayer({

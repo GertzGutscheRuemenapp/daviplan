@@ -304,8 +304,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         group: parent.id
       }
       dialogRef.componentInstance.isLoading = true;
-      this.http.post<Layer>(this.rest.URLS.layers, attributes
-      ).subscribe(layer => {
+      this.http.post<Layer>(this.rest.URLS.layers, attributes).subscribe(layer => {
         const group = this.getGroup(layer.group);
         group?.children?.push(layer);
         this.layerTree.refresh();
@@ -326,8 +325,14 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
    */
   requestCapabilities(url: string): void {
     if (!url) return;
+    this.addLayerForm.reset();
+    this.addLayerForm.setErrors(null);
     this.http.post(this.rest.URLS.getCapabilities, { url: url }).subscribe((res: any) => {
-      this.availableLayers = []
+      this.availableLayers = [];
+      if (!res.cors) {
+        this.addLayerForm.setErrors(['Der Server unterstützt kein Cross-Origin Resource Sharing (CORS).']);
+        return;
+      }
       for (let i = 0; i < res.layers.length; i += 1) {
         const l = res.layers[i],
               layer: Layer = {
