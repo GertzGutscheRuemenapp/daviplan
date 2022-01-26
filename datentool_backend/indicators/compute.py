@@ -1,8 +1,8 @@
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 from typing import Callable, Dict
-from django.db.models import OuterRef, Subquery, Count, IntegerField
+from django.db.models import OuterRef, Subquery, Count, IntegerField, Sum, FloatField
 from django.contrib.postgres.fields.jsonb import KeyTextTransform
-from sql_util.utils import Exists
+from sql_util.utils import Exists, SubquerySum
 
 from datentool_backend.infrastructure.models import FieldTypes
 from .models import IndicatorType
@@ -15,19 +15,19 @@ class ComputeIndicator(metaclass=ABCMeta):
 
     label: str = None
     description: str = None
-    parameters: Dict[str, str] = {}
+    parameters: Dict[str, FieldTypes] = {}
 
     def __init__(self,
                  query_params: Dict[str, str]
                  ):
         self.query_params = query_params
 
+    @abstractmethod
     def compute(self):
         """compute the indicator"""
-        return NotImplemented
 
     def __str__(self):
-        return f'{self.__name__}: {self.code}'
+        return f'{self.__class__.__name__}: {self.label}'
 
 
 def register_indicator_class() -> Callable:
@@ -39,20 +39,7 @@ def register_indicator_class() -> Callable:
     return wrapper
 
 
-@register_indicator_class()
-class TestIndicator(ComputeIndicator):
-    label = 'TE'
-    description = 'Random Indicator'
-    parameters = {'Max_Value': FieldTypes.NUMBER, 'TextField': FieldTypes.STRING, }
-
-    def compute(self):
-        """"""
-
-
-@register_indicator_class()
-class NumberOfLocations(ComputeIndicator):
-    label = 'NumLocations'
-    description = 'Number of Locations per Area'
+class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
 
     def compute(self):
         """"""
@@ -61,10 +48,10 @@ class NumberOfLocations(ComputeIndicator):
         year = self.query_params.get('year', 0)
         scenario_id = self.query_params.get('scenario')
 
-        qs = Area.objects.filter(area_level=area_level_id)
+        areas = Area.objects.filter(area_level=area_level_id)
 
         name_attr = 'name'
-        qs = qs.annotate(name=KeyTextTransform(name_attr, 'attributes'))
+        areas = areas.annotate(name=KeyTextTransform(name_attr, 'attributes'))
 
 
         capacities = Capacity.objects.all()
@@ -75,32 +62,73 @@ class NumberOfLocations(ComputeIndicator):
                                               )
         # only those with capacity - value > 0
         capacities = capacities.filter(capacity__gt=0)
-
         places = Place.objects.all()
+        areas = self.aggregate_places(places, capacities, areas)
+        return areas
+
+    @abstractmethod
+    def aggregate_places(self,
+                         places: Place,
+                         capacities: Capacity,
+                         areas: Area) -> Area:
+        """annotate the areas-queryset with a value-Field, that is an aggregate
+        of places and capacities"""
+
+
+@register_indicator_class()
+class NumberOfLocations(ComputeAreaIndicator):
+    label = 'NumLocations'
+    description = 'Number of Locations per Area'
+
+    def aggregate_places(self,
+                         places: Place,
+                         capacities: Capacity,
+                         areas: Area) -> Area:
+        """Counts the number of places per area"""
         places_with_capacity = places.annotate(
             has_capacity=Exists(capacities.filter(place=OuterRef('pk'))))\
             .filter(has_capacity=True)
 
-        places_in_area = places_with_capacity\
+        places_with_area = places_with_capacity\
             .filter(geom__intersects=OuterRef('geom'))\
             .annotate(area_id=OuterRef('id'))\
-            .values('area_id')\
+            .values('area_id')
+
+        places_in_area = places_with_area\
             .annotate(n_places=Count('*'))\
             .values('n_places')
-        qs = qs.annotate(
-            value=Subquery(
-                places_in_area, output_field=IntegerField()
-            )
+        areas = areas.annotate(
+            value=Subquery(places_in_area, output_field=IntegerField())
         )
-        return qs
+        return areas
 
 
 @register_indicator_class()
-class SumCapacity(ComputeIndicator):
-    label = 'SumCap'
-    description = 'Sum Capacity of Locations per Area'
+class TotalCapacityInArea(ComputeAreaIndicator):
+    label = 'Total Capacity'
+    description = 'Total Capacity per Area'
 
-    def compute(self):
-        """"""
+    def aggregate_places(self,
+                         places: Place,
+                         capacities: Capacity,
+                         areas: Area) -> Area:
+        """Sums up the capacity per area"""
+        places_with_capacity = places.annotate(
+            service_cap=capacities
+            .filter(place=OuterRef('pk'))
+            .values('capacity'))
 
+        places_with_area = places_with_capacity\
+            .filter(geom__intersects=OuterRef('geom'))\
+            .annotate(area_id=OuterRef('id'))\
+            .values('area_id')
+
+        places_in_area = places_with_area\
+            .annotate(total_capacity=Sum('service_cap'))\
+            .values('total_capacity')
+
+        areas = areas.annotate(
+            value=Subquery(places_in_area)
+        )
+        return areas
 

@@ -19,9 +19,13 @@ from .factories import (RouterFactory,
                         IndicatorFactory,
                         )
 
-from .models import (IndicatorType, Indicator)
-from .compute import NumberOfLocations
+from .models import (IndicatorType, Indicator, IndicatorTypeFields,)
+from .compute import (NumberOfLocations,
+                      TotalCapacityInArea,
+                      register_indicator_class,
+                      ComputeIndicator)
 
+from datentool_backend.infrastructure.models import FieldTypes, FieldType
 from datentool_backend.area.factories import AreaLevelFactory, AreaFactory
 from datentool_backend.user.factories import (InfrastructureFactory,
                                               ServiceFactory,
@@ -42,7 +46,14 @@ class TestIndicator(TestCase):
     def setUpTestData(cls):
         super().setUpTestData()
 
-        IndicatorType._check_indicators()
+        register_indicator_class()(DummyIndicator)
+        IndicatorType._update_indicators_types()
+
+    @classmethod
+    def tearDownClass(cls):
+        # unregister the dummy class
+        del IndicatorType._indicator_classes[DummyIndicator.__name__]
+        super().tearDownClass()
 
     def test_router(self):
         router = RouterFactory()
@@ -66,9 +77,79 @@ class TestIndicator(TestCase):
 
     def test_indicator_types(self):
         """test if the indicator types are registred"""
-        print(NumberOfLocations)
+        indicator = NumberOfLocations(query_params={})
+        str(indicator)
+
+        indicator_types = IndicatorType.objects.all()
+
+        # add an unknown indicator
+        unknown_indicator = IndicatorFactory(indicator_type__classname='Unknown')
+        self.assertQuerysetEqual(indicator_types.values_list('classname', flat=True),
+                                 ['Unknown',
+                                  DummyIndicator.__name__,
+                                  NumberOfLocations.__name__,
+                                  TotalCapacityInArea.__name__,
+                                  ], ordered=False)
+         # delete an indicator_type
+        IndicatorType.objects.get(classname=NumberOfLocations.__name__).delete()
+
+        #  change parameters of other indicators
+        dummy_indicator = IndicatorType.objects.get(classname=DummyIndicator.__name__)
+        dummy_fields = IndicatorTypeFields.objects.filter(
+            indicator_type__classname=DummyIndicator.__name__)
+        self.assertEquals(len(dummy_fields), 2)
+
+        dummy_indicator.name = 'NewName'
+        dummy_indicator.save()
+        dummy_fields[0].delete()
+        self.assertEqual(dummy_fields[1].field_type.field_type,
+                         DummyIndicator.parameters[dummy_fields[1].field_type.name])
+
+        # change fieldtype
+        f1 = dummy_fields[1]
+        f1.field_type.field_type = FieldTypes.CLASSIFICATION
+        f1.field_type.save()
+
+        # add fields
+        IndicatorTypeFields.objects.create(indicator_type=dummy_indicator,
+                                           field_type=f1.field_type,
+                                           label='F1')
+        IndicatorTypeFields.objects.create(indicator_type=dummy_indicator,
+                                           field_type=f1.field_type,
+                                           label='F2')
+
+        self.assertQuerysetEqual(indicator_types.values_list('classname', flat=True),
+                                 ['Unknown',
+                                  DummyIndicator.__name__,
+                                  TotalCapacityInArea.__name__,
+                                  ], ordered=False)
+
+        # reset the indicators
+        IndicatorType._update_indicators_types()
+        self.assertQuerysetEqual(indicator_types.values_list('classname', flat=True),
+                                 [NumberOfLocations.__name__,
+                                  TotalCapacityInArea.__name__,
+                                  DummyIndicator.__name__,
+                                  ], ordered=False)
+
+        dummy_indicator = IndicatorType.objects.get(classname=DummyIndicator.__name__)
+        dummy_fields = IndicatorTypeFields.objects.filter(
+            indicator_type__classname=DummyIndicator.__name__)
+        self.assertEquals(len(dummy_fields), 2)
+        self.assertEquals(dummy_indicator.name, DummyIndicator.label)
 
 
+
+
+
+@register_indicator_class()
+class DummyIndicator(ComputeIndicator):
+    label = 'TE'
+    description = 'Random Indicator'
+    parameters = {'Max_Value': FieldTypes.NUMBER, 'TextField': FieldTypes.STRING, }
+
+    def compute(self):
+        """"""
 
 class TestRouterAPI(WriteOnlyWithCanEditBaseDataTest,
                     TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
@@ -164,9 +245,9 @@ class TestAreaIndicatorAPI(TestAPIMixin, BasicModelReadTest, APITestCase):
         # Place 5 is in no area
         cls.place5 = PlaceFactory(infrastructure=infrastructure, geom=Point(x=25, y=25))
 
-        CapacityFactory(place=cls.place1, service=cls.service1)
-        CapacityFactory(place=cls.place1, service=cls.service2)
-        CapacityFactory(place=cls.place2, service=cls.service1)
+        CapacityFactory(place=cls.place1, service=cls.service1, capacity=1)
+        CapacityFactory(place=cls.place1, service=cls.service2, capacity=2)
+        CapacityFactory(place=cls.place2, service=cls.service1, capacity=4)
         # in the scenario, place2 should have no capacity in the base year for service1
         CapacityFactory(place=cls.place2, service=cls.service1,
                         scenario=cls.scenario, capacity=0)
@@ -175,16 +256,17 @@ class TestAreaIndicatorAPI(TestAPIMixin, BasicModelReadTest, APITestCase):
                         scenario=cls.scenario, capacity=33, from_year=2022)
 
         # place 2 has only capacity from 2030 for service2
-        CapacityFactory(place=cls.place2, service=cls.service2, from_year=2030)
+        CapacityFactory(place=cls.place2, service=cls.service2,
+                        from_year=2030, capacity=8)
 
         # in the scenario, place2 should have no capacity from year 2035 for service2
         CapacityFactory(place=cls.place2, service=cls.service2,
-                        from_year=2033, scenario=cls.scenario)
+                        from_year=2033, scenario=cls.scenario, capacity=16)
         CapacityFactory(place=cls.place2, service=cls.service2,
                         from_year=2035, scenario=cls.scenario, capacity=0)
 
         # place 3 and 4 have capacity defined for service 1, but place 4 with capacity=0
-        CapacityFactory(place=cls.place3, service=cls.service1)
+        CapacityFactory(place=cls.place3, service=cls.service1, capacity=44)
         CapacityFactory(place=cls.place4, service=cls.service1, capacity=0)
 
         # but between 2025 and 2030 there is capacity in place 4
@@ -194,20 +276,20 @@ class TestAreaIndicatorAPI(TestAPIMixin, BasicModelReadTest, APITestCase):
                         from_year=2030, capacity=0)
 
         # place 5 has capacity defined, but is in no Area
-        CapacityFactory(place=cls.place5, service=cls.service1)
-        CapacityFactory(place=cls.place5, service=cls.service2)
+        CapacityFactory(place=cls.place5, service=cls.service1, capacity=66)
+        CapacityFactory(place=cls.place5, service=cls.service2, capacity=77)
 
 
     def test_numer_of_places_in_base_scenario(self):
         """Test the number of places with capacity by year for a service"""
 
-        # only 1 in scenario, because capacity of place2 is set to 0
-        self.count_capacitites([1, 1], service=self.service1, scenario=self.scenario)
-
         # in the base scenario there should be 2 places in area1
         # and 1 with capacity in area2 for service1
         self.count_capacitites([2, 1], service=self.service1)
 
+        # only 1 in scenario, because capacity of place2 is set to 0
+        self.count_capacitites([1, 1], service=self.service1, scenario=self.scenario)
+        # ..until 2021
         self.count_capacitites([2, 1], service=self.service1, scenario=self.scenario, year=2022)
 
         # in the base scenario there should be 1 place in area1 for service2
@@ -228,13 +310,29 @@ class TestAreaIndicatorAPI(TestAPIMixin, BasicModelReadTest, APITestCase):
         self.count_capacitites([2, 1], service=self.service1, year=2030)
         self.count_capacitites([2, 1], service=self.service1, year=2035)
 
+    def test_total_capacity(self):
+        """Test the number of places with capacity by year for a service"""
+        self.indicator = IndicatorFactory(indicator_type__classname=TotalCapacityInArea.__name__)
+
+        # in the base scenario there should be 2 places in area1
+        # and 1 with capacity in area2 for service1
+        self.count_capacitites([5, 44], service=self.service1)
+
+        # only 1 in scenario, because capacity of place2 is set to 0
+        self.count_capacitites([1, 44], service=self.service1, scenario=self.scenario)
+        # ..until 2021
+        self.count_capacitites([34, 44], service=self.service1, scenario=self.scenario, year=2022)
+
+
+
+
     def count_capacitites(self,
                        expected_values: List[int],
                        service: int=None,
                        year: int=None,
                        scenario: int=None):
         query_params = {'indicator': self.indicator.pk,
-                        'area_level': self.area1.pk,}
+                        'area_level': self.area1.pk, }
         if service is not None:
             query_params['service'] = service.id
         if year is not None:

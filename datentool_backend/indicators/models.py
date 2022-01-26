@@ -79,20 +79,25 @@ class IndicatorType(NamedModel, models.Model):
     parameters = models.ManyToManyField(FieldType, through='IndicatorTypeFields')
 
     @classmethod
-    def _check_indicators(cls):
+    def _update_indicators_types(cls):
         """check if all Indicators are in the database and add them, if not"""
         for classname, indicator_class in cls._indicator_classes.items():
             obj, created = IndicatorType.objects.get_or_create(classname=classname)
             obj.name = indicator_class.label
             obj.description = indicator_class.description
             obj.save()
+            field_types = []
             for field_name, field_descr in indicator_class.parameters.items():
                 field_type, created = FieldType.objects.get_or_create(
                     field_type=field_descr.value, name=field_name)
-                itf, created= IndicatorTypeFields.objects.get_or_create(
+                field_types.append(field_type)
+                itf, created = IndicatorTypeFields.objects.get_or_create(
                     indicator_type=obj, field_type=field_type)
                 itf.label = field_name
                 itf.save()
+            deleted_fields = IndicatorTypeFields.objects.exclude(
+                indicator_type=obj, field_type__in=field_types)
+            deleted_fields.delete()
         deleted_types = IndicatorType.objects.exclude(classname__in=cls._indicator_classes.keys())
         deleted_types.delete()
 

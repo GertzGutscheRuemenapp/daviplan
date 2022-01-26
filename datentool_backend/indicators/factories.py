@@ -38,16 +38,16 @@ class RouterFactory(DjangoModelFactory):
 class IndicatorTypeFactory(DjangoModelFactory):
     class Meta:
         model = IndicatorType
-    name = faker.word()
+    name = factory.Sequence(lambda n: f'{faker.unique.word()}_{n}')
     description = faker.word()
-    classname = faker.word()
+    classname = factory.Sequence(lambda n: f'{faker.unique.word()}_{n}')
 
 
 class IndicatorFactory(DjangoModelFactory):
     class Meta:
         model = Indicator
     indicator_type = factory.SubFactory(IndicatorTypeFactory)
-    name = faker.word()
+    name = factory.Sequence(lambda n: f'{faker.unique.word()}_{n}')
     parameters = faker.json(num_rows=3, indent=True)
     service = factory.SubFactory(ServiceFactory)
 
