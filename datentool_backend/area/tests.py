@@ -4,6 +4,8 @@ from collections import OrderedDict
 from django.test import TestCase
 from test_plus import APITestCase
 from datetime import datetime
+
+from datentool_backend.utils.test_utils import no_connection
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         TestAPIMixin,
@@ -81,7 +83,7 @@ class TestWMSLayerAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.put_data = data
         cls.patch_data = data
 
-    #@skipIf(condition, reason) ToDo skip if no internet connection
+    @skipIf(no_connection(), 'No Internetconnection available')
     def test_get_capabilities(self):
         data = {'url': ''}
         self.client.logout()

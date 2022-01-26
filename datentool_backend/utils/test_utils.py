@@ -1,4 +1,5 @@
 from unittest import TestCase
+import urllib
 
 from datentool_backend.utils.geometry_fields import NoWKTError, compare_geometries
 from django.contrib.gis.geos import (GEOSGeometry,
@@ -62,3 +63,11 @@ class TestGeometryCompare(TestCase):
         with self.assertRaises(AssertionError):
             compare_geometries(Polygon((pnt1, pnt2, pnt4, pnt5, pnt1)).ewkt,
                                Polygon((pnt3, pnt2, pnt4, pnt5, pnt3)).ewkt, 0.000001)
+
+
+def no_connection(host='http://google.com', timeout=0.1):
+    try:
+        urllib.request.urlopen(host, timeout=timeout)
+        return False
+    except:
+        return True
