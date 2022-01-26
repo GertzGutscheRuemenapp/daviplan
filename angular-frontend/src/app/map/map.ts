@@ -19,6 +19,7 @@ import { saveAs } from 'file-saver';
 import MVT from 'ol/format/MVT';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
+import { defer } from "rxjs";
 
 export class OlMap {
   target: string;
@@ -339,59 +340,53 @@ export class OlMap {
     layer?.setOpacity(opacity);
   }
 
-  savePNG(): void {
-    function isTainted(canvas: HTMLCanvasElement) {
-      const context = canvas.getContext( '2d' )!;
-      try {
-        var pixel = context.getImageData(0, 0, 1, 1);
-        return false;
-      } catch(err: any) {
-        return (err.code === 18);
-      }
-    }
-    this.map.once('rendercomplete', evt => {
-      const mapCanvas = document.createElement('canvas');
-      const size = this.map.getSize()!;
-      mapCanvas.width = size[0];
-      mapCanvas.height = size[1];
-      const mapContext = mapCanvas.getContext('2d')!;
-      mapContext.fillStyle = 'white';
-      mapContext.fillRect(0, 0, mapCanvas.width, mapCanvas.height);
-      const canvasList: HTMLCanvasElement[] = Array.from(
-        this.map.getViewport().querySelectorAll('.ol-layer canvas, canvas.ol-layer'));
-      canvasList.forEach( (canvas: HTMLCanvasElement) => {
-        console.log(isTainted(canvas))
-          if (canvas.width > 0) {
-            const opacity =
-              canvas.parentElement?.style?.opacity || canvas.style.opacity;
-            mapContext.globalAlpha = opacity === '' ? 1 : Number(opacity);
+  exportCanvas(): HTMLCanvasElement {
+    const mapCanvas = document.createElement('canvas');
+    const size = this.map.getSize()!;
+    mapCanvas.width = size[0];
+    mapCanvas.height = size[1];
+    const mapContext = mapCanvas.getContext('2d')!;
+    mapContext.fillStyle = 'white';
+    mapContext.fillRect(0, 0, mapCanvas.width, mapCanvas.height);
+    const canvasList: HTMLCanvasElement[] = Array.from(
+      this.map.getViewport().querySelectorAll('.ol-layer canvas, canvas.ol-layer'));
+    canvasList.forEach((canvas: HTMLCanvasElement) => {
+      if (canvas.width > 0) {
+        const opacity =
+          canvas.parentElement?.style?.opacity || canvas.style.opacity;
+        mapContext.globalAlpha = opacity === '' ? 1 : Number(opacity);
 
-            let matrix: any;
-            const transform = canvas.style.transform;
-            if (transform) {
-              // Get the transform parameters from the style's transform matrix
-              matrix = transform.match(/^matrix\(([^\(]*)\)$/)![1]
-                .split(',')
-                .map(Number);
-            } else {
-              matrix = [
-                parseFloat(canvas.style.width) / canvas.width,
-                0,
-                0,
-                parseFloat(canvas.style.height) / canvas.height,
-                0,
-                0,
-              ];
-            }
-            // Apply the transform to the export map context
-            CanvasRenderingContext2D.prototype.setTransform.apply(
-              mapContext,
-              matrix
-            );
-            mapContext.drawImage(canvas, 0, 0);
-          }
+        let matrix: any;
+        const transform = canvas.style.transform;
+        if (transform) {
+          // Get the transform parameters from the style's transform matrix
+          matrix = transform.match(/^matrix\(([^\(]*)\)$/)![1]
+            .split(',')
+            .map(Number);
+        } else {
+          matrix = [
+            parseFloat(canvas.style.width) / canvas.width,
+            0,
+            0,
+            parseFloat(canvas.style.height) / canvas.height,
+            0,
+            0,
+          ];
         }
-      );
+        // Apply the transform to the export map context
+        CanvasRenderingContext2D.prototype.setTransform.apply(
+          mapContext,
+          matrix
+        );
+        mapContext.drawImage(canvas, 0, 0);
+      }
+    });
+    return mapCanvas;
+  }
+
+  savePNG(): void {
+    this.map.once('rendercomplete', evt => {
+      const mapCanvas = this.exportCanvas();
       if (navigator.hasOwnProperty('msSaveBlob')) {
         // link download attribute does not work on MS browsers
         // @ts-ignore
@@ -401,6 +396,21 @@ export class OlMap {
       }
     });
     this.map.renderSync();
+  }
+
+  print(): void {
+    const mapCanvas = this.exportCanvas();
+    const data = mapCanvas.toDataURL();
+
+    let html  = '<html><head><title></title></head>';
+    html += '<body style="width: 100%; padding: 0; margin: 0;"';
+    html += ' onload="window.focus(); window.print(); window.close()">';
+    html += `<img src="${data}" /></body></html>`;
+    const printWindow = window.open('', 'to_print', 'width=1000,height=600')!;
+
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
   }
 
 }

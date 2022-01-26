@@ -42,6 +42,10 @@ export class MapControlsComponent implements AfterViewInit {
     this.mapControl?.map?.savePNG();
   }
 
+  print(): void {
+    this.mapControl?.map?.print();
+  }
+
   toggle(): void {
     this.leftDial?.toggle();
     this.rightDial?.toggle();
