@@ -45,7 +45,6 @@ class TestIndicator(TestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-
         register_indicator_class()(DummyIndicator)
         IndicatorType._update_indicators_types()
 
@@ -139,10 +138,6 @@ class TestIndicator(TestCase):
         self.assertEquals(dummy_indicator.name, DummyIndicator.label)
 
 
-
-
-
-@register_indicator_class()
 class DummyIndicator(ComputeIndicator):
     label = 'TE'
     description = 'Random Indicator'
@@ -193,6 +188,24 @@ class TestIndicatorAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
+
+
+class TestIndicatorTypeAPI(TestAPIMixin, BasicModelReadTest, APITestCase):
+    """Test to get an area indicator"""
+    url_key = "indicatortypes"
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        register_indicator_class()(DummyIndicator)
+        IndicatorType._update_indicators_types()
+        cls.obj = IndicatorType.objects.get(classname=DummyIndicator.__name__)
+
+    @classmethod
+    def tearDownClass(cls):
+        # unregister the dummy class
+        del IndicatorType._indicator_classes[DummyIndicator.__name__]
+        super().tearDownClass()
 
 
 class TestAreaIndicatorAPI(TestAPIMixin, BasicModelReadTest, APITestCase):

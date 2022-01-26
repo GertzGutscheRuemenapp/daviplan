@@ -188,7 +188,8 @@ class BasicModelReadTest(BasicModelDetailTest):
 
     def _test_list(self):
         """Test that the list view can be returned successfully"""
-        self.get_check_200(self.url_key + '-list', **self.kwargs_list)
+        response = self.get(self.url_key + '-list', **self.kwargs_list)
+        self.response_200(response, msg=response.content)
 
     def test_get_urls(self):
         self._test_get_urls()

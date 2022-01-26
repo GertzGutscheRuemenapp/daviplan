@@ -12,6 +12,7 @@ from .models import (Stop,
 from .compute import ComputeIndicator
 from .serializers import (StopSerializer,
                           RouterSerializer,
+                          IndicatorTypeSerializer,
                           IndicatorSerializer,
                           AreaIndicatorSerializer,
                           )
@@ -27,6 +28,11 @@ class RouterViewSet(viewsets.ModelViewSet):
     queryset = Router.objects.all()
     serializer_class = RouterSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+
+class IndicatorTypeViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = IndicatorType.objects.all()
+    serializer_class = IndicatorTypeSerializer
 
 
 class IndicatorViewSet(viewsets.ModelViewSet):
