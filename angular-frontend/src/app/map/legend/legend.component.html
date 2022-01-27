@@ -1,4 +1,4 @@
-<div class="legend" [ngClass]="{'edit': editMode}">
+<div *ngIf="mapControl" class="legend" [ngClass]="{'edit': mapControl.editMode }">
   <div class="legend-header">
     <div class="mini-fab-icon">
       <mat-icon>layers</mat-icon>
@@ -8,23 +8,23 @@
       <p>Die Legende kann in zwei verschiedenen Ansichten dargestellt werden, zwischen denen durch Klick auf den Button rechts umgeschaltet werden kann.</p>
       <p>In der kompakten Ansicht werden in der Legende alle in der Karte aktiv angezeigten Layer und ihre Symbologie gruppiert aufgelistet.</p>
       <p>Im Editiermodus werden alle verfügbaren Layer angezeigt. Sie können einzelne Layer und ihre Darstellung in der Karte aktivieren und deaktivieren. Mit den Schiebereglern wird die Transparenz der jeweiligen Layer eingestellt.</p>
-      <p>derzeit aktiv: <b *ngIf="editMode">Editiermodus</b> <b *ngIf="!editMode">kompakter Modus</b></p>
+      <p>derzeit aktiv: <b *ngIf="mapControl.editMode">Editiermodus</b> <b *ngIf="!mapControl.editMode">kompakter Modus</b></p>
     </ng-template>
     <app-help-button style="margin: 0 5px;" [template]="legendPopover" title="Legende" position="left" [top]="-100">
     </app-help-button>
-    <button title="In den Editiermodus umschalten" color="primary" *ngIf="!editMode" (click)="toggleEditMode()" mat-icon-button style="box-shadow: none; margin-left: auto;">
+    <button title="In den Editiermodus umschalten" color="primary" *ngIf="!mapControl.editMode" (click)="mapControl.toggleEditMode()" mat-icon-button style="box-shadow: none; margin-left: auto;">
       <mat-icon>list</mat-icon>
     </button>
     <button title="In den kompakten Modus umschalten"
-            color="primary" *ngIf="editMode"
-            (click)="toggleEditMode()"
+            color="primary" *ngIf="mapControl.editMode"
+            (click)="mapControl.toggleEditMode()"
             mat-mini-fab style="box-shadow: none; margin-left: auto;">
       <mat-icon>list</mat-icon>
     </button>
   </div>
   <div class="legend-body">
     <div *ngFor="let group of layerGroups">
-      <mat-expansion-panel [style.display]="editMode || (activeGroups.indexOf(group) >= 0) ? '': 'none'" expanded>
+      <mat-expansion-panel [style.display]="mapControl.editMode || (activeGroups.indexOf(group) >= 0) ? '': 'none'" expanded>
         <mat-expansion-panel-header>
           <mat-panel-title>
             {{group.name}}
@@ -32,8 +32,8 @@
         </mat-expansion-panel-header>
         <div *ngFor="let layer of group.children">
           <div class="legend-entry"
-               [ngClass]="{'checked': layer.checked}"
-               *ngIf="editMode || layer.checked">
+               [ngClass]="{'checked': mapControl.isSelected(layer)}"
+               *ngIf="mapControl.editMode || mapControl.isSelected(layer)">
             <div class="entry-header"
                  [ngbPopover]="popover"
                  placement="left"
@@ -58,19 +58,19 @@
                 </mat-icon>
               </div>
               <div class="entry-title"
-                   [style.cursor]="(editMode)? 'pointer': ''"
-                   (click)="editMode && onLayerToggle(layer)">
+                   [style.cursor]="(mapControl.editMode)? 'pointer': ''"
+                   (click)="mapControl.editMode && toggleLayer(layer)">
                 {{ layer.name }}
               </div>
             </div>
-            <div class="legend-layer-control" [style.display]="editMode? '': 'none'">
-              <mat-checkbox color="primary" [checked]="layer.checked || false"
-                            (change)="onLayerToggle(layer)"
+            <div class="legend-layer-control" [style.display]="mapControl.editMode? '': 'none'">
+              <mat-checkbox color="primary" [checked]="mapControl.isSelected(layer) || false"
+                            (change)="toggleLayer(layer)"
                             title="Layer anzeigen/verstecken">
               </mat-checkbox>
               <mat-slider aria-label="Transparenz" color="primary"
-                          [disabled]="!layer.checked"
-                          (input)="opacityChanged(layer, $event.value!)"
+                          [disabled]="!mapControl.isSelected(layer)"
+                          (input)="mapControl.setLayerAttr(layer.id, { opacity: $event.value || undefined })"
                           min="0" max="1" step="0.001"
                           [value]="layer.opacity"
                           title="Transparenz">
@@ -87,33 +87,31 @@
         </mat-panel-title>
       </mat-expansion-panel-header>
       <ng-template #backSelectPopover>
-        <b>{{ activeBackground?.name }}</b>
-        <p *ngIf="activeBackground?.description">{{ activeBackground?.description }}</p>
+        <b>{{ mapControl.background?.name }}</b>
+        <p *ngIf="mapControl.background?.description">{{ mapControl.background?.description }}</p>
       </ng-template>
       <div class="legend-entry">
         <div class="entry-header"
              [ngbPopover]="backSelectPopover"
-             [disablePopover]="!activeBackground"
+             [disablePopover]="!mapControl.background"
              placement="left"
              container="body"
              triggers="mouseenter:mouseleave">
           <div class="entry-prefix">
-            <mat-icon *ngIf="activeBackground?.legendUrl"
+            <mat-icon *ngIf="mapControl.background?.legendUrl"
                       class="legend-image-link"
                       title="Legendenbild anzeigen"
                       style="margin-top: 10px;"
-                      (click)="toggleLegendImage(activeBackground!)">
+                      (click)="toggleLegendImage(mapControl.background!)">
               image
             </mat-icon>
           </div>
           <div class="entry-title">
             <mat-form-field appearance="outline" class="small">
-              <mat-select disableRipple [(ngModel)]="activeBackgroundId"
-                          (selectionChange)="
-                            setBackground($event.value);
-                            opacityChanged(activeBackground!, backgroundOpacity);">
+              <mat-select disableRipple [value]="mapControl.background?.id || -100000"
+                          (selectionChange)="mapControl.setBackground($event.value);">
                 <mat-option [value]="-100000"> kein Hintergrund </mat-option>
-                <ng-container *ngFor="let layer of backgroundLayers">
+                <ng-container *ngFor="let layer of mapControl.getBackgroundLayers()">
                   <ng-template #popover>
                     <b>{{ layer.name }}</b>
                     <p *ngIf="layer.description">{{ layer.description }}</p>
@@ -131,12 +129,12 @@
           </div>
         </div>
         <div class="legend-layer-control"
-             [style.display]="(editMode && activeBackground)? '': 'none'"
+             [style.display]="(mapControl.editMode && mapControl.background)? '': 'none'"
              style="padding-left: 10px;">
           <mat-slider aria-label="Transparenz" color="primary"
                       style="margin-top: 10px;"
-                      [(ngModel)]="backgroundOpacity"
-                      (input)="opacityChanged(activeBackground!, $event.value)"
+                      [value]="mapControl.backgroundOpacity"
+                      (input)="mapControl.setLayerAttr(mapControl.background?.id, { opacity: $event.value || undefined })"
                       min="0" max="1" step="0.001">
           </mat-slider>
         </div>

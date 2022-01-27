@@ -3,7 +3,7 @@ export interface BasedataSettings {
 }
 
 export interface LayerGroup {
-  id: number,
+  id?: number | string,
   order: number,
   name: string,
   children?: Layer[],
@@ -13,20 +13,19 @@ export interface LayerGroup {
 export interface Symbol {
   fillColor: string,
   strokeColor: string,
-  symbol: string
+  symbol: 'line' | 'circle' | 'square' | 'star'
 }
 
 export interface Layer {
-  id: number,
+  id?: number | string,
   order: number,
   url: string,
   name: string,
   description: string,
-  group?: number,
+  group?: number | string,
   layerName?: string,
   attribution?: string,
   active?: boolean,
-  checked?: boolean,
   legendUrl?: string,
   opacity?: number,
   symbol?: Symbol,

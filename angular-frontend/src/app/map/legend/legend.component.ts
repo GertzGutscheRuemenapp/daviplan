@@ -1,9 +1,11 @@
-import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Input, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../map.service";
 import { LayerGroup, Layer } from "../../rest-interfaces";
-import { CookieService } from "../../helpers/cookies.service";
 import { FloatingDialog } from "../../dialogs/help-dialog/help-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
+import { SettingsService } from "../../settings.service";
+import { SelectionModel } from "@angular/cdk/collections";
+import { TreeItemFlatNode } from "../../elements/check-tree/check-tree.component";
 
 @Component({
   selector: 'app-legend',
@@ -15,47 +17,25 @@ export class LegendComponent implements AfterViewInit {
   @Input() showInternal: boolean = true;
   @Input() showExternal: boolean = true;
   @ViewChild('legendImage') legendImageTemplate?: TemplateRef<any>;
-  legendImageDialogs: Record<number, MatDialogRef<any>> = [];
-  mapControl!: MapControl;
-  // -10000 = no background
-  activeBackgroundId: number = -100000;
-  activeBackground?: Layer;
-  backgroundOpacity: number;
-  backgroundLayers: Layer[] = [];
+  legendImageDialogs: Record<number | string, MatDialogRef<any>> = {};
+  mapControl?: MapControl;
   layerGroups: LayerGroup[] = [];
   activeGroups: LayerGroup[] = [];
-  editMode: boolean;
   Object = Object;
 
-  constructor(public dialog: MatDialog, private mapService: MapService,
-              private cdRef:ChangeDetectorRef, private cookies: CookieService) {
-    this.backgroundOpacity = parseFloat(<string>this.cookies.get(`background-layer-opacity`) || '1');
-    this.editMode = <boolean>this.cookies.get(`${this.target}-legend-edit-mode`) || true;
+  constructor(public dialog: MatDialog, private mapService: MapService, private cdRef: ChangeDetectorRef) {
   }
 
   ngAfterViewInit (): void {
     this.mapControl = this.mapService.get(this.target);
+    this.cdRef.detectChanges();
     this.mapControl.zoomToProject();
-    this.initSelect();
-  }
-
-  initSelect(): void {
-    this.backgroundLayers = this.mapControl.getBackgroundLayers();
-    const backgroundId = parseInt(<string>this.cookies.get(`background-layer`) || this.backgroundLayers[0].id.toString());
-    this.activeBackgroundId = backgroundId;
-    this.setBackground(backgroundId);
-
-    this.mapService.getLayers().subscribe(groups => {
+    this.mapControl.layerGroups.subscribe(groups => {
       let layerGroups: LayerGroup[] = [];
+      // ToDo filter
       groups.forEach(group => {
         if (!group.children || (!this.showExternal && group.external) || (!this.showInternal && !group.external))
           return;
-        group.children!.forEach(layer => {
-          layer.checked = <boolean>(this.cookies.get(`legend-layer-checked-${layer.id}`) || false);
-          layer.opacity = parseFloat(<string>this.cookies.get(`legend-layer-opacity-${layer.id}`) || '1');
-          this.mapControl.setLayerAttr(layer.id, { opacity: layer.opacity });
-          if (layer.checked) this.mapControl.toggleLayer(layer.id, true);
-        });
         layerGroups.push(group);
       });
       this.layerGroups = layerGroups;
@@ -68,39 +48,16 @@ export class LegendComponent implements AfterViewInit {
    *
    * @param layer
    */
-  onLayerToggle(layer: Layer): void {
-    layer.checked = !layer.checked;
-    this.cookies.set(`legend-layer-checked-${layer.id}`, layer.checked);
-    this.mapControl.toggleLayer(layer.id, layer.checked);
+  toggleLayer(layer: Layer): void {
+    this.mapControl?.toggleLayer(layer.id);
     this.filterActiveGroups();
   }
 
   // ToDo: use template filter
   filterActiveGroups(): void {
-    this.activeGroups = this.layerGroups.filter(g => g.children!.filter(l => l.checked).length > 0);
-  }
-
-  opacityChanged(layer: Layer, value: number | null): void {
-    if(value === null || !layer) return;
-    if (layer === this.activeBackground)
-      this.cookies.set('background-layer-opacity', value);
-    else
-      this.cookies.set(`legend-layer-opacity-${layer.id}`, value);
-    this.mapControl?.setLayerAttr(layer.id, { opacity: value });
-  }
-
-  /**
-   * set layer with given id as background layer (only one at a time)
-   *
-   * @param id
-   */
-  setBackground(id: number) {
-    this.mapControl.setBackground(id);
-    this.activeBackground = this.backgroundLayers.find(l => { return l.id === id });
-    this.cookies.set(`background-layer`, id);
-    if (this.activeBackground){
-      this.mapControl.setLayerAttr(this.activeBackground.id, { opacity: this.backgroundOpacity });
-    }
+    this.activeGroups = this.layerGroups.filter(g => g.children!.filter(
+      l => this.mapControl?.isSelected(l)).length > 0
+    );
   }
 
   /**
@@ -109,6 +66,7 @@ export class LegendComponent implements AfterViewInit {
    * @param layer
    */
   toggleLegendImage(layer: Layer): void {
+    if (layer.id === undefined) return;
     let dialogRef = this.legendImageDialogs[layer.id];
     if (dialogRef && dialogRef.getState() === 0)
       dialogRef.close();
@@ -125,8 +83,4 @@ export class LegendComponent implements AfterViewInit {
       });
   }
 
-  toggleEditMode(): void {
-    this.editMode = !this.editMode;
-    this.cookies.set('legend-edit-mode', this.editMode)
-  }
 }

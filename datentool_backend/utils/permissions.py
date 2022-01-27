@@ -46,6 +46,9 @@ class HasAdminAccess(permissions.BasePermission):
 
 class IsOwner(permissions.BasePermission):
     ''' object can only be requested in any way if it is owned by the user '''
+    def has_permission(self, request, view):
+        return request.user.is_authenticated
+
     def has_object_permission(self, request, view, obj):
         if isinstance(obj, User):
             return obj.id == request.user.id
