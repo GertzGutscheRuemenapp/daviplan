@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
-import { AreaLevel, BasedataSettings, Layer } from "../../../rest-interfaces";
+import { AreaLevel, BasedataSettings, Layer, LayerGroup } from "../../../rest-interfaces";
 import { Observable } from "rxjs";
 import { sortBy } from "../../../helpers/utils";
 import { HttpClient } from "@angular/common/http";
@@ -9,6 +9,7 @@ import { RestAPI } from "../../../rest-api";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { MatCheckbox } from "@angular/material/checkbox";
+import { area } from "d3";
 
 
 @Component({
@@ -26,6 +27,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   customAreaLevels: AreaLevel[] = [];
   colorSelection: string = 'black';
   editArealevelErrors: string[] = [];
+  legendGroup?: LayerGroup;
   Object = Object;
 
   constructor(private mapService: MapService,private http: HttpClient, private dialog: MatDialog,
@@ -34,6 +36,10 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-areas-map');
+    this.legendGroup = this.mapControl.addGroup({
+      name: 'Auswahl',
+      order: -1
+    }, false)
 
     this.fetchBasedataSettings().subscribe(res => {
       this.fetchAreas().subscribe(res => {
@@ -102,7 +108,20 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
 
   selectAreaLevel(areaLevel: AreaLevel): void {
     this.selectedAreaLevel = areaLevel;
-    // this.mapControl?.addLayer()
+    this.mapControl?.clearGroup(this.legendGroup!.id!);
+    const layer = this.mapControl?.addLayer({
+      name: areaLevel.name,
+      description: '',
+      group: this.legendGroup?.id,
+      order: 0,
+      url: areaLevel.tileUrl!,
+      type: 'vector-tiles',
+      symbol: {
+        fillColor: 'yellow',
+        strokeColor: 'orange',
+        symbol: 'line'
+      }
+    })
   }
 
   ngOnDestroy(): void {

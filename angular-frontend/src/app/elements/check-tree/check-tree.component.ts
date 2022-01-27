@@ -12,14 +12,14 @@ import {BehaviorSubject} from 'rxjs';
  * Node for to-do item
  */
 export class TreeItemNode {
-  id?: number;
+  id?: number | string;
   children?: TreeItemNode[];
   name!: string;
 }
 
 /** Flat to-do item node with expandable and level information */
 export class TreeItemFlatNode {
-  id?: number;
+  id?: number | string;
   name!: string;
   level!: number;
   expandable!: boolean;

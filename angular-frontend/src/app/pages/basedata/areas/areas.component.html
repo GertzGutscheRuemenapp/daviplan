@@ -21,7 +21,7 @@
           </mat-optgroup>
           <div class="option-wrapper" *ngFor="let areaLevel of presetLevels">
             <mat-list-option [value]="areaLevel"
-                             (click)="selectedAreaLevel = areaLevel"
+                             (click)="selectAreaLevel(areaLevel)"
                              [selected]="(selectedAreaLevel && (areaLevel.id === selectedAreaLevel.id))">
               <div class="option-text">{{ areaLevel.name }}</div>
               <mat-icon *ngIf="areaLevel.id === basedataSettings?.defaultPopAreaLevel" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>

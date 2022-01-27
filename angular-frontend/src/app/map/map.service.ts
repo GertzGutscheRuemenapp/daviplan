@@ -9,6 +9,7 @@ import { ProjectSettings } from "../pages/administration/project-definition/proj
 import { WKT } from "ol/format";
 import { SettingsService } from "../settings.service";
 import { environment } from "../../environments/environment";
+import { v4 as uuid } from 'uuid';
 
 const backgroundLayers: Layer[] = [
   {
@@ -156,11 +157,30 @@ export class MapControl {
   destroyed = new EventEmitter<string>();
   map?: OlMap;
   mapDescription = '';
-  private layerMap: Record<number, Layer> = [];
-  private localLayerGroups: LayerGroup[] = [];
+  layerGroups: BehaviorSubject<Array<LayerGroup>> = new BehaviorSubject<Array<LayerGroup>>([]);
+  private layerMap: Record<string | number, Layer> = {};
+  private _localLayerGroups: LayerGroup[] = [];
+  private _serviceLayerGroups: LayerGroup[] = [];
 
   constructor(target: string, private mapService: MapService, private settings: SettingsService) {
     this.target = target;
+  }
+
+  init(): void {
+    this.map = new OlMap(this.target, { projection: `EPSG:${this.srid}` });
+    for (let layer of this.mapService.backgroundLayers) {
+      this._addLayerToMap(layer, { visible: true });
+    }
+    this.mapService.getLayers().subscribe(layerGroups => {
+      this._serviceLayerGroups = layerGroups;
+      layerGroups.forEach(group => {
+        if (!group.children) return;
+        for (let layer of group.children!.slice().reverse()) {
+          this._addLayerToMap(layer, { visible: false });
+        }
+      })
+      this.layerGroups.next(this._serviceLayerGroups);
+    })
   }
 
   refresh(options: { internal?: boolean, external?: boolean } = {}): void {
@@ -173,14 +193,93 @@ export class MapControl {
 
   /**
    * add a layer-group to this map only
+   * sets unique id if id is undefined
    *
    * @param group
+   * @param emit
    */
-  addGroup(group: LayerGroup) {
-    this.localLayerGroups.push(group);
+  addGroup(group: LayerGroup, emit= true): LayerGroup {
+    if (group.id == undefined)
+      group.id = uuid();
+    this._localLayerGroups.push(group);
+    if (emit) this.layerGroups.next(this._localLayerGroups.concat(this._serviceLayerGroups));
+    return group;
   }
 
-  addLayer(layer: Layer, options: { visible: boolean } = { visible: true }) {
+  /**
+   * remove a layer-group and its children, can only remove groups added specifically to this map
+   * (not the global ones)
+   *
+   * @param id
+   * @param emit
+   */
+  removeGroup(id: number | string, emit= true): void {
+    const idx = this._localLayerGroups.findIndex(group => group.id === id);
+    if (idx <= 0) return;
+    this.clearGroup(id, false);
+    this._localLayerGroups.splice(idx, 1);
+    if (emit) this.layerGroups.next(this._localLayerGroups.concat(this._serviceLayerGroups));
+  }
+
+  clearGroup(id: number | string, emit= true): void {
+    const group = this._localLayerGroups.find(group => group.id === id);
+    if (!(group && group.children)) return;
+    group.children.forEach(layer => {
+      if (layer.id != undefined) {
+        delete this.layerMap[layer.id];
+        this._removeLayerFromMap(layer);
+      }
+    });
+    group.children = [];
+    if (emit) this.layerGroups.next(this._localLayerGroups.concat(this._serviceLayerGroups));
+  }
+
+  removeLayer(id: number | string, emit= true): void {
+    const layer = this.layerMap[id];
+    const layerGroups = this._localLayerGroups.concat(this._serviceLayerGroups);
+    const group = layerGroups.find(group => layer.group === group.id)!;
+    const idx = group.children!.indexOf(layer);
+    this._removeLayerFromMap(layer);
+    if (idx >= 0)
+      group.children!.splice(idx, 1);
+    delete this.layerMap[id];
+    if (emit) this.layerGroups.next(this._localLayerGroups.concat(this._serviceLayerGroups));
+  }
+
+  private _removeLayerFromMap(layer: Layer){
+    this.map?.removeLayer(this.mapId(layer));
+  }
+
+  /**
+   * add a layer to this map only
+   * sets unique id if id is undefined
+   * if layer has no assigned group adds to group 'Sonstiges' (created if not existing)
+   *
+   * @param layer
+   * @param options
+   * @param emit
+   */
+  addLayer(layer: Layer, options: { checkable: boolean } = { checkable: true }, emit= true): Layer {
+    if (layer.id == undefined)
+      layer.id = uuid();
+    const layerGroups = this._localLayerGroups.concat(this._serviceLayerGroups);
+    let group;
+    if (!layer.group) {
+      group = layerGroups.find(group => group.name === 'Sonstiges') || this.addGroup({
+        order: 0,
+        name: 'Sonstiges'
+      }, false)
+    }
+    else
+      group = layerGroups.find(group => layer.group === group.id)!;
+    if (!group.children) group.children = [];
+    group.children?.push(layer);
+    this._addLayerToMap(layer);
+    if (emit) this.layerGroups.next(this._localLayerGroups.concat(this._serviceLayerGroups));
+    return layer;
+  }
+
+  private _addLayerToMap(layer: Layer, options: { visible: boolean } = { visible: true }) {
     if (layer.type === 'vector-tiles') {
        this.map!.addVectorTileLayer(this.mapId(layer), layer.url,{
          visible: options.visible,
@@ -204,10 +303,10 @@ export class MapControl {
           layer.legendUrl = url;
         }
     }
-    this.layerMap[layer.id] = layer;
+    this.layerMap[layer.id!] = layer;
   }
 
-  setBackground(id: number | undefined): void {
+  setBackground(id: number | string | undefined): void {
     this.mapService.backgroundLayers.forEach(layer => this.map?.setVisible(
       this.mapId(layer), layer.id === id));
   }
@@ -216,29 +315,16 @@ export class MapControl {
     return `${layer.name}-${layer.id}`;
   }
 
-  init(): void {
-    this.map = new OlMap(this.target, { projection: `EPSG:${this.srid}` });
-    for (let layer of this.mapService.backgroundLayers) {
-      this.addLayer(layer, { visible: true });
-    }
-    this.mapService.getLayers().subscribe(layerGroups => {
-      layerGroups.forEach(group => {
-        if (!group.children) return;
-        for (let layer of group.children!.slice().reverse()) {
-          this.addLayer(layer, { visible: false });
-        }
-      })
-    })
-  }
-
-  setLayerAttr(id: number, options: { opacity?: number, visible?: boolean }): void {
+  setLayerAttr(id: number | string | undefined, options: { opacity?: number, visible?: boolean }): void {
+    if (id === undefined) return;
     let layer = this.layerMap[id];
     if (!layer) return;
     if (options.opacity != undefined) this.map?.setOpacity(this.mapId(layer), options.opacity);
     if (options.visible != undefined) this.map?.setVisible(this.mapId(layer), options.visible);
   }
 
-  toggleLayer(id: number, active: boolean): void {
+  toggleLayer(id: number | string | undefined, active: boolean): void {
+    if (id === undefined) return;
     let layer = this.layerMap[id];
     if (!layer) return;
     this.map?.setVisible(this.mapId(layer), active);

@@ -17,11 +17,11 @@ export class LegendComponent implements AfterViewInit {
   @Input() showInternal: boolean = true;
   @Input() showExternal: boolean = true;
   @ViewChild('legendImage') legendImageTemplate?: TemplateRef<any>;
-  legendImageDialogs: Record<number, MatDialogRef<any>> = [];
+  legendImageDialogs: Record<number | string, MatDialogRef<any>> = {};
   mapControl!: MapControl;
   mapSettings: any = {};
   // -10000 = no background
-  activeBackgroundId: number = -100000;
+  activeBackgroundId: number | string = -100000;
   activeBackground?: Layer;
   backgroundOpacity: number = 1;
   backgroundLayers: Layer[] = [];
@@ -46,14 +46,14 @@ export class LegendComponent implements AfterViewInit {
       this.editMode = settings['legend-edit-mode'] || true;
       this.backgroundOpacity = parseFloat(settings[`background-layer-opacity`]) || 1;
       const backgroundId = parseInt(settings[`background-layer`]) || this.backgroundLayers[0].id;
-      this.activeBackgroundId = backgroundId;
+      this.activeBackgroundId = backgroundId!;
       this.initLayers();
     })
   }
 
   initLayers(): void {
     this.setBackground(this.activeBackgroundId);
-    this.mapService.getLayers().subscribe(groups => {
+    this.mapControl.layerGroups.subscribe(groups => {
       let layerGroups: LayerGroup[] = [];
       groups.forEach(group => {
         if (!group.children || (!this.showExternal && group.external) || (!this.showInternal && !group.external))
@@ -110,7 +110,7 @@ export class LegendComponent implements AfterViewInit {
    *
    * @param id
    */
-  setBackground(id: number) {
+  setBackground(id: number | string) {
     this.mapControl.setBackground(id);
     this.activeBackground = this.backgroundLayers.find(l => { return l.id === id });
     this.mapSettings[`background-layer`] = id;
@@ -125,6 +125,7 @@ export class LegendComponent implements AfterViewInit {
    * @param layer
    */
   toggleLegendImage(layer: Layer): void {
+    if (layer.id === undefined) return;
     let dialogRef = this.legendImageDialogs[layer.id];
     if (dialogRef && dialogRef.getState() === 0)
       dialogRef.close();

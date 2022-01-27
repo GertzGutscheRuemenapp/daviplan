@@ -150,7 +150,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         this.selectedLayer!.name = layer.name;
         this.selectedLayer!.description = layer.description;
         this.layerTree.refresh();
-        this.mapControl?.refresh();
+        this.mapControl?.refresh({ external: true });
         this.layerCard?.closeDialog(true);
       },(error) => {
         // ToDo: set specific errors to fields
@@ -185,7 +185,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       ).subscribe(group => {
         this.selectedGroup!.name = group.name;
         this.layerTree.refresh();
-        this.mapControl?.refresh();
+        this.mapControl?.refresh({ external: true });
         this.layerGroupCard?.closeDialog(true);
       },(error) => {
         // ToDo: set specific errors to fields
@@ -203,7 +203,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
    *
    * @param id
    */
-  getLayer(id: number | undefined): Layer | undefined {
+  getLayer(id: number | string | undefined): Layer | undefined {
     if (id === undefined) return;
     for (let group of this.layerGroups) {
       if (!group.children) continue;
@@ -221,7 +221,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
    *
    * @param id
    */
-  getGroup(id: number | undefined): LayerGroup | undefined {
+  getGroup(id: number | string | undefined): LayerGroup | undefined {
     if (id === undefined) return;
     for (let group of this.layerGroups) {
         if (group.id === id) {
@@ -265,7 +265,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         group.children = [];
         this.layerGroups.push(group);
         this.layerTree.refresh();
-        this.mapControl?.refresh();
+        this.mapControl?.refresh({ external: true });
         this.layerTree.select(group);
         dialogRef.close();
       },(error) => {
@@ -308,7 +308,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         const group = this.getGroup(layer.group);
         group?.children?.push(layer);
         this.layerTree.refresh();
-        this.mapControl?.refresh();
+        this.mapControl?.refresh({ external: true });
         this.layerTree.select(layer);
         dialogRef.close();
       },(error) => {
@@ -399,7 +399,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
               group.children.splice(idx, 1);
               this.selectedLayer = undefined;
               this.layerTree.refresh();
-              this.mapControl?.refresh();
+              this.mapControl?.refresh({ external: true });
             }
           }
         },(error) => {
@@ -433,7 +433,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
             this.layerGroups.splice(idx, 1);
             this.selectedGroup = undefined;
             this.layerTree.refresh();
-            this.mapControl?.refresh();
+            this.mapControl?.refresh({ external: true });
           }
         },(error) => {
           console.log('there was an error sending the query', error);
@@ -460,7 +460,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       observables.push(request);
     }
     forkJoin(...observables).subscribe(next => {
-      this.mapControl?.refresh();
+      this.mapControl?.refresh({ external: true });
       this.layerTree.refresh();
     })
   }
@@ -505,7 +505,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       observables.push(req);
     })
     forkJoin(...observables).subscribe(next => {
-      this.mapControl?.refresh();
+      this.mapControl?.refresh({ external: true });
     })
   };
 
