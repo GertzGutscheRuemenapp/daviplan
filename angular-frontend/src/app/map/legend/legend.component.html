@@ -32,8 +32,8 @@
         </mat-expansion-panel-header>
         <div *ngFor="let layer of group.children">
           <div class="legend-entry"
-               [ngClass]="{'checked': layer.checked}"
-               *ngIf="editMode || layer.checked">
+               [ngClass]="{'checked': checklistSelection.isSelected(layer)}"
+               *ngIf="editMode || checklistSelection.isSelected(layer)">
             <div class="entry-header"
                  [ngbPopover]="popover"
                  placement="left"
@@ -64,12 +64,12 @@
               </div>
             </div>
             <div class="legend-layer-control" [style.display]="editMode? '': 'none'">
-              <mat-checkbox color="primary" [checked]="layer.checked || false"
+              <mat-checkbox color="primary" [checked]="checklistSelection.isSelected(layer) || false"
                             (change)="onLayerToggle(layer)"
                             title="Layer anzeigen/verstecken">
               </mat-checkbox>
               <mat-slider aria-label="Transparenz" color="primary"
-                          [disabled]="!layer.checked"
+                          [disabled]="!checklistSelection.isSelected(layer)"
                           (input)="opacityChanged(layer, $event.value!)"
                           min="0" max="1" step="0.001"
                           [value]="layer.opacity"

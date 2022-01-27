@@ -100,6 +100,11 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     })
   }
 
+  selectAreaLevel(areaLevel: AreaLevel): void {
+    this.selectedAreaLevel = areaLevel;
+    // this.mapControl?.addLayer()
+  }
+
   ngOnDestroy(): void {
     this.mapControl?.destroy();
   }

@@ -26,7 +26,6 @@ export interface Layer {
   layerName?: string,
   attribution?: string,
   active?: boolean,
-  checked?: boolean,
   legendUrl?: string,
   opacity?: number,
   symbol?: Symbol,

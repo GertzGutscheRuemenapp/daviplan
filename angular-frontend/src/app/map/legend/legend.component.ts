@@ -4,6 +4,8 @@ import { LayerGroup, Layer } from "../../rest-interfaces";
 import { FloatingDialog } from "../../dialogs/help-dialog/help-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { SettingsService } from "../../settings.service";
+import { SelectionModel } from "@angular/cdk/collections";
+import { TreeItemFlatNode } from "../../elements/check-tree/check-tree.component";
 
 @Component({
   selector: 'app-legend',
@@ -26,6 +28,7 @@ export class LegendComponent implements AfterViewInit {
   layerGroups: LayerGroup[] = [];
   activeGroups: LayerGroup[] = [];
   editMode: boolean = true;
+  checklistSelection = new SelectionModel<Layer>(true );
   Object = Object;
 
   constructor(public dialog: MatDialog, private mapService: MapService, private settings: SettingsService) {
@@ -56,10 +59,12 @@ export class LegendComponent implements AfterViewInit {
         if (!group.children || (!this.showExternal && group.external) || (!this.showInternal && !group.external))
           return;
         group.children!.forEach(layer => {
-          layer.checked = Boolean(this.mapSettings[`layer-checked-${layer.id}`]);
           layer.opacity = parseFloat(this.mapSettings[`layer-opacity-${layer.id}`]) || 1;
           this.mapControl.setLayerAttr(layer.id, { opacity: layer.opacity });
-          if (layer.checked) this.mapControl.toggleLayer(layer.id, true);
+          if (Boolean(this.mapSettings[`layer-checked-${layer.id}`])){
+            this.checklistSelection.select(layer);
+            this.mapControl.toggleLayer(layer.id, true);
+          }
         });
         layerGroups.push(group);
       });
@@ -74,15 +79,16 @@ export class LegendComponent implements AfterViewInit {
    * @param layer
    */
   onLayerToggle(layer: Layer): void {
-    layer.checked = !layer.checked;
-    this.mapSettings[`layer-checked-${layer.id}`] = layer.checked;
-    this.mapControl.toggleLayer(layer.id, layer.checked);
+    this.checklistSelection.toggle(layer);
+    const isSelected = this.checklistSelection.isSelected(layer);
+    this.mapSettings[`layer-checked-${layer.id}`] = isSelected;
+    this.mapControl.toggleLayer(layer.id, isSelected);
     this.filterActiveGroups();
   }
 
   // ToDo: use template filter
   filterActiveGroups(): void {
-    this.activeGroups = this.layerGroups.filter(g => g.children!.filter(l => l.checked).length > 0);
+    this.activeGroups = this.layerGroups.filter(g => g.children!.filter(l => this.checklistSelection.isSelected(l)).length > 0);
   }
 
   opacityChanged(layer: Layer, value: number | null): void {

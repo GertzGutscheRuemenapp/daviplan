@@ -69,12 +69,12 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         //   children: group.children? group.children.map(layer => { return {
         //     id: layer.id, name: layer.name, checked: layer.active } }): [] }
         // })
-        this.layerGroups.forEach(group => {
-            group.children?.forEach(layer => {
-              if (layer.active) layer.checked = true;
-            })
-        });
         this.layerTree.setItems(this.layerGroups);
+        this.layerGroups.forEach(group => {
+          group.children?.forEach(layer => {
+            if (layer.active) this.layerTree.setChecked(layer, layer.active);
+           })
+        });
       })
     })
     this.layerTree.addItemClicked.subscribe(node => {

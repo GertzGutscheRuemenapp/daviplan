@@ -15,7 +15,6 @@ export class TreeItemNode {
   id?: number;
   children?: TreeItemNode[];
   name!: string;
-  checked?: boolean;
 }
 
 /** Flat to-do item node with expandable and level information */
@@ -124,15 +123,6 @@ export class CheckTreeComponent implements OnInit {
     this.items = items;
     this._database.initialize(items);
     const _this = this;
-    function setChecked(its: TreeItemNode[]){
-      its.forEach(it => {
-        if (it.children)
-          setChecked(it.children);
-        else if (it.checked)
-          _this.checklistSelection.select(_this.nestedNodeMap.get(it)!);
-      })
-    }
-    setChecked(items);
   }
 
   addChild(parent: TreeItemNode, child: TreeItemNode) {
@@ -192,7 +182,6 @@ export class CheckTreeComponent implements OnInit {
     descendants.forEach(child => {
       const isSelected = this.checklistSelection.isSelected(child);
       const node = this.flatNodeMap.get(child)!;
-      node.checked = isSelected;
     });
     this.checkAllParentsSelection(flatNode);
     const node = this.flatNodeMap.get(flatNode)!;
@@ -206,7 +195,6 @@ export class CheckTreeComponent implements OnInit {
     this.checkAllParentsSelection(flatNode);
     const node = this.flatNodeMap.get(flatNode)!;
     const isSelected = this.checklistSelection.isSelected(flatNode);
-    node.checked = isSelected;
     this.itemChecked.emit({ item: node, checked: isSelected });
   }
 
@@ -251,6 +239,15 @@ export class CheckTreeComponent implements OnInit {
       }
     }
     return null;
+  }
+
+  setChecked(node: TreeItemFlatNode | TreeItemNode, checked: boolean) {
+    let flatNode: TreeItemFlatNode | undefined = (!(node instanceof TreeItemFlatNode)) ? this.nestedNodeMap.get(node) : node;
+    if (!flatNode) return;
+    if (checked)
+      this.checklistSelection.select(flatNode);
+    else
+      this.checklistSelection.deselect(flatNode);
   }
 
   select(node: TreeItemFlatNode | TreeItemNode) {

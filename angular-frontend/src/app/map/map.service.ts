@@ -135,7 +135,6 @@ export class MapService {
         this.http.get<Layer[]>(`${this.rest.URLS.layers}?active=true`).subscribe( layers => {
           layers = sortBy(layers, 'order');
           layers.forEach(layer => {
-            layer.checked = false;
             const group = groups.find(group => { return group.id === layer.group });
             if (group) {
               if (!group.children) group.children = [];
@@ -158,6 +157,7 @@ export class MapControl {
   map?: OlMap;
   mapDescription = '';
   private layerMap: Record<number, Layer> = [];
+  private localLayerGroups: LayerGroup[] = [];
 
   constructor(target: string, private mapService: MapService, private settings: SettingsService) {
     this.target = target;
@@ -171,10 +171,19 @@ export class MapControl {
     return this.mapService.backgroundLayers;
   }
 
-  addLayer(layer: Layer, visible: boolean = true) {
+  /**
+   * add a layer-group to this map only
+   *
+   * @param group
+   */
+  addGroup(group: LayerGroup) {
+    this.localLayerGroups.push(group);
+  }
+
+  addLayer(layer: Layer, options: { visible: boolean } = { visible: true }) {
     if (layer.type === 'vector-tiles') {
        this.map!.addVectorTileLayer(this.mapId(layer), layer.url,{
-         visible: false,
+         visible: options.visible,
          opacity: 1,
          stroke: { color: layer.symbol?.strokeColor, width: 2 },
          fill: { color: layer.symbol?.fillColor }
@@ -184,7 +193,7 @@ export class MapControl {
       const mapLayer = this.map!.addTileServer(
         this.mapId(layer),  layer.url, {
           params: { layers: layer.layerName },
-          visible: false,
+          visible: options.visible,
           opacity: 1,
           xyz: layer.type == 'tiles',
           attribution: layer.attribution
@@ -208,15 +217,15 @@ export class MapControl {
   }
 
   init(): void {
-    this.map = new OlMap(this.target, {projection: `EPSG:${this.srid}`});
+    this.map = new OlMap(this.target, { projection: `EPSG:${this.srid}` });
     for (let layer of this.mapService.backgroundLayers) {
-      this.addLayer(layer, true);
+      this.addLayer(layer, { visible: true });
     }
     this.mapService.getLayers().subscribe(layerGroups => {
       layerGroups.forEach(group => {
         if (!group.children) return;
         for (let layer of group.children!.slice().reverse()) {
-          this.addLayer(layer, false);
+          this.addLayer(layer, { visible: false });
         }
       })
     })
