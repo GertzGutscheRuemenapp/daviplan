@@ -43,8 +43,8 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
 
     this.fetchBasedataSettings().subscribe(res => {
       this.fetchAreas().subscribe(res => {
-        this.selectedAreaLevel = this.presetLevels[0];
-        this.colorSelection = this.selectedAreaLevel.symbol?.fillColor || 'black';
+        this.selectAreaLevel(this.presetLevels[0]);
+        this.colorSelection = this.selectedAreaLevel!.symbol?.fillColor || 'black';
       })
     })
     this.setupLayerCard();
@@ -116,12 +116,13 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       order: 0,
       url: areaLevel.tileUrl!,
       type: 'vector-tiles',
+      opacity: 1,
       symbol: {
         fillColor: 'yellow',
         strokeColor: 'orange',
         symbol: 'line'
       }
-    })
+    }, { visible: true })
   }
 
   ngOnDestroy(): void {

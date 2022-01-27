@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Input, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../map.service";
 import { LayerGroup, Layer } from "../../rest-interfaces";
 import { FloatingDialog } from "../../dialogs/help-dialog/help-dialog.component";
@@ -18,54 +18,24 @@ export class LegendComponent implements AfterViewInit {
   @Input() showExternal: boolean = true;
   @ViewChild('legendImage') legendImageTemplate?: TemplateRef<any>;
   legendImageDialogs: Record<number | string, MatDialogRef<any>> = {};
-  mapControl!: MapControl;
-  mapSettings: any = {};
-  // -10000 = no background
-  activeBackgroundId: number | string = -100000;
-  activeBackground?: Layer;
-  backgroundOpacity: number = 1;
-  backgroundLayers: Layer[] = [];
+  mapControl?: MapControl;
   layerGroups: LayerGroup[] = [];
   activeGroups: LayerGroup[] = [];
-  editMode: boolean = true;
-  checklistSelection = new SelectionModel<Layer>(true );
   Object = Object;
 
-  constructor(public dialog: MatDialog, private mapService: MapService, private settings: SettingsService) {
-    // call destroy on page reload
-    window.onbeforeunload = () => this.ngOnDestroy();
+  constructor(public dialog: MatDialog, private mapService: MapService, private cdRef: ChangeDetectorRef) {
   }
 
   ngAfterViewInit (): void {
     this.mapControl = this.mapService.get(this.target);
+    this.cdRef.detectChanges();
     this.mapControl.zoomToProject();
-    this.backgroundLayers = this.mapControl.getBackgroundLayers();
-    this.settings.user.get(this.target).subscribe(settings => {
-      settings = settings || {};
-      this.mapSettings = settings;
-      this.editMode = settings['legend-edit-mode'] || true;
-      this.backgroundOpacity = parseFloat(settings[`background-layer-opacity`]) || 1;
-      const backgroundId = parseInt(settings[`background-layer`]) || this.backgroundLayers[0].id;
-      this.activeBackgroundId = backgroundId!;
-      this.initLayers();
-    })
-  }
-
-  initLayers(): void {
-    this.setBackground(this.activeBackgroundId);
     this.mapControl.layerGroups.subscribe(groups => {
       let layerGroups: LayerGroup[] = [];
+      // ToDo filter
       groups.forEach(group => {
         if (!group.children || (!this.showExternal && group.external) || (!this.showInternal && !group.external))
           return;
-        group.children!.forEach(layer => {
-          layer.opacity = parseFloat(this.mapSettings[`layer-opacity-${layer.id}`]) || 1;
-          this.mapControl.setLayerAttr(layer.id, { opacity: layer.opacity });
-          if (Boolean(this.mapSettings[`layer-checked-${layer.id}`])){
-            this.checklistSelection.select(layer);
-            this.mapControl.toggleLayer(layer.id, true);
-          }
-        });
         layerGroups.push(group);
       });
       this.layerGroups = layerGroups;
@@ -78,45 +48,16 @@ export class LegendComponent implements AfterViewInit {
    *
    * @param layer
    */
-  onLayerToggle(layer: Layer): void {
-    this.checklistSelection.toggle(layer);
-    const isSelected = this.checklistSelection.isSelected(layer);
-    this.mapSettings[`layer-checked-${layer.id}`] = isSelected;
-    this.mapControl.toggleLayer(layer.id, isSelected);
+  toggleLayer(layer: Layer): void {
+    this.mapControl?.toggleLayer(layer.id);
     this.filterActiveGroups();
   }
 
   // ToDo: use template filter
   filterActiveGroups(): void {
-    this.activeGroups = this.layerGroups.filter(g => g.children!.filter(l => this.checklistSelection.isSelected(l)).length > 0);
-  }
-
-  opacityChanged(layer: Layer, value: number | null): void {
-    if(value === null || !layer) return;
-    if (layer === this.activeBackground)
-      this.mapSettings['layer-opacity'] = value;
-    else
-      this.mapSettings[`layer-opacity-${layer.id}`] = value;
-    this.mapControl?.setLayerAttr(layer.id, { opacity: value });
-  }
-
-  saveSettings(): void {
-    if (this.mapSettings)
-      this.settings.user.set(this.target, this.mapSettings);
-  }
-
-  /**
-   * set layer with given id as background layer (only one at a time)
-   *
-   * @param id
-   */
-  setBackground(id: number | string) {
-    this.mapControl.setBackground(id);
-    this.activeBackground = this.backgroundLayers.find(l => { return l.id === id });
-    this.mapSettings[`background-layer`] = id;
-    if (this.activeBackground){
-      this.mapControl.setLayerAttr(this.activeBackground.id, { opacity: this.backgroundOpacity });
-    }
+    this.activeGroups = this.layerGroups.filter(g => g.children!.filter(
+      l => this.mapControl?.isSelected(l)).length > 0
+    );
   }
 
   /**
@@ -142,12 +83,4 @@ export class LegendComponent implements AfterViewInit {
       });
   }
 
-  toggleEditMode(): void {
-    this.editMode = !this.editMode;
-    this.mapSettings['legend-edit-mode'] = this.editMode;
-  }
-
-  ngOnDestroy(): void {
-    this.saveSettings();
-  }
 }
