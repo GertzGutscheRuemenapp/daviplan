@@ -1,3 +1,4 @@
+from django.http.request import QueryDict
 from django.views.generic import DetailView
 from django.core.exceptions import BadRequest
 from rest_framework import viewsets
@@ -70,14 +71,10 @@ class AreaLevelIndicatorTileView(MVTView, DetailView):
 
     def get_vector_tile_queryset(self):
         """Calculate the indicators for each area of the area-level"""
+        query_params = QueryDict(mutable=True)
+        query_params.update(self.request.GET)
         # set the area_level as query_param
-        query_params = {'area_level': self.object.pk, }
-        # the WSGIRequest returns the query-params as lists,
-        # so take only the first value, if its a list
-        for key, value in self.request.GET.items():
-            if isinstance(value, list):
-                value = value[0]
-            query_params[key] = value
+        query_params['area_level'] = self.object.pk
 
         # an indicator_id is required
         indicator_id = query_params.get('indicator')

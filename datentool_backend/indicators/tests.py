@@ -339,14 +339,22 @@ class TestAreaIndicatorAPI(TestAPIMixin, BasicModelReadTest, APITestCase):
         self.count_capacitites([2, 1], service=self.service1, year=2030)
         self.count_capacitites([2, 1], service=self.service1, year=2035)
 
+        # both services
+        self.count_capacitites([2, 1], service=[self.service1, self.service2])
+
+
     def test_total_capacity(self):
         """Test the number of places with capacity by year for a service"""
         self.indicator = IndicatorFactory(
             indicator_type__classname=TotalCapacityInArea.__name__)
 
+        # service2 has no capacity in place2, should return 0, not None
+        self.count_capacitites([2, 0], service=self.service2)
         # in the base scenario there should be 2 places in area1
         # and 1 with capacity in area2 for service1
         self.count_capacitites([5, 44], service=self.service1)
+        # both services
+        self.count_capacitites([7, 44], service=[self.service1, self.service2])
 
         # only 1 in scenario, because capacity of place2 is set to 0
         self.count_capacitites([1, 44], service=self.service1,
@@ -363,7 +371,10 @@ class TestAreaIndicatorAPI(TestAPIMixin, BasicModelReadTest, APITestCase):
         query_params = {'indicator': self.indicator.pk,
                         'area_level': self.area1.pk, }
         if service is not None:
-            query_params['service'] = service.id
+            if isinstance(service, list):
+                query_params['service'] = [s.id for s in service]
+            else:
+                query_params['service'] = service.id
         if year is not None:
             query_params['year'] = year
         if scenario is not None:
@@ -388,7 +399,8 @@ class TestAreaIndicatorAPI(TestAPIMixin, BasicModelReadTest, APITestCase):
         self.assert_http_400_bad_request(response)
 
         #  try the NumberOfLocations indicator
-        response = self.get(url, data={'indicator': self.indicator.pk, })
+        response = self.get(url, data={'indicator': self.indicator.pk,
+                                       'service': self.service1.pk,})
         self.assert_http_200_ok(response)
 
         #  decode the vector tile returned

@@ -1,7 +1,9 @@
+from typing import List
+
 from django.db import models
 from django.db.models import Q
 from django.contrib.gis.db import models as gis_models
-from sql_util.utils import SubqueryCount, SubquerySum, Exists
+from sql_util.utils import Exists
 
 from datentool_backend.base import (NamedModel,
                                     JsonAttributes,
@@ -111,13 +113,13 @@ class Capacity(DatentoolModelMixin, models.Model):
 
     @staticmethod
     def filter_queryset(queryset,
-                        service_id: int = None,
+                        service_ids: List[int] = [],
                         scenario_id: int = None,
                         year: int = None):
         """filter queryset by scenario and year, if given"""
         # filter capacities by service, if this is requested
-        if service_id is not None:
-            queryset = queryset.filter(service=service_id)
+        if service_ids:
+            queryset = queryset.filter(service__in=service_ids)
 
         #  filter capacities by year
         queryset_year = queryset\
@@ -136,8 +138,8 @@ class Capacity(DatentoolModelMixin, models.Model):
         scenario_filter = Q(scenario=scenario_id)
         #  if a specific services is requested,
         # filter only the places with capacities for this service
-        if service_id is None:
-            scenario_filter = scenario_filter & Q(service=service_id)
+        if service_ids is None:
+            scenario_filter = scenario_filter & Q(service__in=service_ids)
         # get the places that have have capacities
         # defined for the scenario (and service)
         places_with_scenario = Place.objects.filter(Exists(
@@ -149,7 +151,7 @@ class Capacity(DatentoolModelMixin, models.Model):
         # get the capacities defined for the scenario,
         # and for the places wihout scenario, the capacities from the base scenario
         res_queryset = queryset_year\
-            .filter((Q(scenario=scenario_id) & Q(place__in=places_with_scenario)) |
+            .filter((Q(scenario__in=scenario_id) & Q(place__in=places_with_scenario)) |
                     (Q(scenario=None) & Q(place__in=places_without_scenario))
                     )
         return res_queryset

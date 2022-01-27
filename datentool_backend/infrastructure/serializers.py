@@ -15,11 +15,9 @@ from .models import (Scenario,
                      PlaceField,
                      )
 from datentool_backend.utils.geometry_fields import GeometrySRIDField
-from datentool_backend.user.models import (Service,
-                                           Infrastructure,
+from datentool_backend.user.models import (Infrastructure,
                                            InfrastructureAccess,
                                            )
-from datentool_backend.demand.models import DemandRateSet
 
 
 class ScenarioModeSerializer(serializers.ModelSerializer):
@@ -204,28 +202,14 @@ class CapacityListSerializer(serializers.ListSerializer):
         request = self.context.get('request')
         if request:
             #  filter the capacity returned for the specific service
-            service_id = request.query_params.get('service')
+            service_ids = request.query_params.getlist('service')
             year = request.query_params.get('year', 0)
             scenario = request.query_params.get('scenario')
 
             instance = Capacity.filter_queryset(instance,
-                                                service_id=service_id,
+                                                service_ids=service_ids,
                                                 scenario_id=scenario,
                                                 year=year)
-
-            #if service_id:
-                #instance = instance.filter(service_id=service_id)
-
-            ##  filter the queryset by year
-            #instance_year = instance\
-                #.filter(from_year__lte=year)\
-                #.filter(to_year__gte=year)
-
-            ## filter the queryset by scenario
-            #instance = instance_year\
-                #.filter(scenario=scenario)
-            #if not instance:
-                #instance = instance_year.filter(scenario=None)
 
         return super().to_representation(instance)
 

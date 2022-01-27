@@ -32,7 +32,6 @@ from datentool_backend.infrastructure.factories import (
 )
 from datentool_backend.infrastructure.models import (
     Place,
-    Capacity,
     FieldTypes,
     FClass,
     PlaceField,

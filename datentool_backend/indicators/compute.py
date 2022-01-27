@@ -1,7 +1,9 @@
 from abc import ABCMeta, abstractmethod
 from typing import Callable, Dict
 
+from django.http.request import QueryDict
 from django.db.models import OuterRef, Subquery, Count, IntegerField, Sum
+from django.db.models.functions import Coalesce
 from django.contrib.postgres.fields.jsonb import KeyTextTransform
 from sql_util.utils import Exists
 
@@ -18,9 +20,7 @@ class ComputeIndicator(metaclass=ABCMeta):
     description: str = None
     parameters: Dict[str, FieldTypes] = {}
 
-    def __init__(self,
-                 query_params: Dict[str, str]
-                 ):
+    def __init__(self, query_params: QueryDict):
         self.query_params = query_params
 
     @abstractmethod
@@ -45,7 +45,7 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
     def compute(self):
         """"""
         area_level_id = self.query_params.get('area_level')
-        service_id = self.query_params.get('service')
+        service_ids = self.query_params.getlist('service')
         year = self.query_params.get('year', 0)
         scenario_id = self.query_params.get('scenario')
 
@@ -58,7 +58,7 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
 
         capacities = Capacity.objects.all()
         capacities = Capacity.filter_queryset(capacities,
-                                              service_id=service_id,
+                                              service_ids=service_ids,
                                               scenario_id=scenario_id,
                                               year=year,
                                               )
@@ -115,22 +115,30 @@ class TotalCapacityInArea(ComputeAreaIndicator):
                          capacities: Capacity,
                          areas: Area) -> Area:
         """Sums up the capacity per area"""
+
+        # sum up the capacity per place over all services
         places_with_capacity = places.annotate(
             service_cap=capacities
-            .filter(place=OuterRef('pk'))
-            .values('capacity'))
+            .filter(place=OuterRef('pk'))\
+            .values('place')\
+            .annotate(place_capacity=Sum('capacity'))\
+            .values('place_capacity'))
 
+        # intersect with areas and annotate area_id
         places_with_area = places_with_capacity\
             .filter(geom__intersects=OuterRef('geom'))\
             .annotate(area_id=OuterRef('id'))\
-            .values('area_id')
+                    .values('area_id')
 
-        places_in_area = places_with_area\
-            .annotate(total_capacity=Sum('service_cap'))\
+        # group by area_id and sum the capacity of the places
+        # if no place in an area, set to 0 instead of NULL with Coalesce
+        sq1 = places_with_area\
+            .annotate(total_capacity=Coalesce(Sum('service_cap'), 0.0))\
             .values('total_capacity')
 
-        areas = areas.annotate(
-            value=Subquery(places_in_area)
-        )
-        return areas
+        # write value calculated in subquery to area-queryset
+        areas_with_capacities = areas\
+            .annotate(value=Subquery(sq1))
+
+        return areas_with_capacities
 
