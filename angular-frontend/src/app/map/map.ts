@@ -9,7 +9,7 @@ import GeoJSON from 'ol/format/GeoJSON';
 import { bbox as bboxStrategy } from 'ol/loadingstrategy';
 import TileWMS from 'ol/source/TileWMS';
 import XYZ from 'ol/source/XYZ';
-import { Stroke, Style, Fill, Icon } from 'ol/style';
+import { Stroke, Style, Fill, Text as OlText } from 'ol/style';
 import { Select } from "ol/interaction";
 import { click, singleClick, always } from 'ol/events/condition';
 import { EventEmitter } from "@angular/core";
@@ -151,26 +151,49 @@ export class OlMap {
       stroke?: { color?: string, width?: number, dash?: number[], selectedColor?: string, selectedDash?: number[], mouseOverColor?: string },
       fill?: { color?: string, selectedColor?: string, mouseOverColor?: string },
       tooltipField?: string,
-      featureClass?: 'feature' | 'renderFeature'
+      featureClass?: 'feature' | 'renderFeature',
+      labelField?: string
     } = {}): Layer<any> {
     const source = new VectorTileSource({
       format: new MVT({ featureClass: (options.featureClass === 'feature')? Feature: RenderFeature }),
       url: url
     });
-    const layer = new VectorTileLayer({
-      source: source,
-      visible: options?.visible === true,
-      opacity: (options?.opacity != undefined) ? options?.opacity: 1,
-      style: new Style({
-        stroke: new Stroke({
-          color:  options?.stroke?.color || 'rgba(0, 0, 0, 1.0)',
-          width: options?.stroke?.width || 1,
-          lineDash: options?.stroke?.dash
-        }),
+
+    const style = new Style({
+      stroke: new Stroke({
+        color:  options?.stroke?.color || 'rgba(0, 0, 0, 1.0)',
+        width: options?.stroke?.width || 1,
+        lineDash: options?.stroke?.dash
+      }),
+      fill: new Fill({
+        color: options?.fill?.color || 'rgba(0, 0, 0, 0)'
+      }),
+      text: new OlText({
+        font: '14px Calibri,sans-serif',
+        overflow: true,
+        placement: 'point',
         fill: new Fill({
-          color: options?.fill?.color || 'rgba(0, 0, 0, 0)'
+          color: options?.stroke?.color || 'black'
+        }),
+        stroke: new Stroke({
+          color: '#fff',
+          width: 3
         })
       })
+    })
+    const _this = this;
+    const layer = new VectorTileLayer({
+      source: source,
+      declutter: true,
+      visible: options?.visible === true,
+      opacity: (options?.opacity != undefined) ? options?.opacity: 1,
+      style: function(feature) {
+        if (options?.labelField) {
+          const text = (_this.view.getZoom()! > 9 )? feature.get(options?.labelField) : ''
+          style.getText().setText(text);
+        }
+        return style;
+      }
     })
     layer.set('name', name);
     this.setMouseOverLayer(layer, {

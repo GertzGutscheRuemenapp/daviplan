@@ -115,7 +115,8 @@ export class MapService {
             url: tileUrl,
             name: level.name,
             description: `Gebiete der Gebietseinheit ${level.name}`,
-            symbol: level.symbol
+            symbol: level.symbol,
+            labelField: level.labelField
           }
           i -= 1;
           layers.push(layer);
@@ -352,7 +353,8 @@ export class MapControl {
          stroke: { color: layer.symbol?.strokeColor, width: 2, mouseOverColor: options?.mouseOver?.strokeColor },
          fill: { color: layer.symbol?.fillColor, mouseOverColor: options?.mouseOver?.fillColor },
          tooltipField: options?.tooltipField,
-         featureClass: (options?.mouseOver)? 'feature': 'renderFeature'
+         featureClass: (options?.mouseOver)? 'feature': 'renderFeature',
+         labelField: 'label'
        });
     }
     else {
