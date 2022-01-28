@@ -43,7 +43,7 @@ class MatrixCellStop(models.Model):
 class MatrixPlaceStop(models.Model):
     """Reachabliliy Matrix between a place and stop with a mode variante"""
     place = models.ForeignKey(Place, on_delete=PROTECT_CASCADE,
-                             related_name='place_stop')
+                              related_name='place_stop')
     stop = models.ForeignKey(Stop, on_delete=PROTECT_CASCADE,
                              related_name='stop_place')
     variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
