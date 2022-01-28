@@ -444,7 +444,7 @@ button.mat-icon-button {
   margin-left: 1px;
 }
 
-.mat-icon-button:hover {
+.mat-icon-button:hover:not(.mat-button-disabled) {
   background-color: map-get($blue-palette, A200);
 }
 

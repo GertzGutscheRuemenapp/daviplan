@@ -44,12 +44,14 @@
         </mat-selection-list>
         <div class="order-controls">
           <button mat-icon-button
+                  [disabled]="selectedAreaLevel?.isPreset"
                   title="In der Sortierung eins nach oben">
   <!--                [disabled] = "(!selectedGroup || selectedGroup === layerGroups[0]) && (!selectedLayer || getGroup(selectedLayer.group)!.children!.indexOf(selectedLayer) < 1)"
                   (click)="moveSelected('up')">-->
             <mat-icon>expand_less</mat-icon>
           </button>
           <button mat-icon-button
+                  [disabled]="selectedAreaLevel?.isPreset"
                   title="In der Sortierung eins nach unten">
   <!--                [disabled] = "(!selectedGroup || selectedGroup === layerGroups[layerGroups.length - 1]) && (!selectedLayer || getGroup(selectedLayer.group)!.children!.indexOf(selectedLayer) >= getGroup(selectedLayer.group)!.children!.length - 1)"
                   (click)="moveSelected('down')">-->
@@ -60,8 +62,8 @@
       <button mat-button color="primary"
               class="multiline-button"
               style="width: 86%;"
-              [disabled]="selectedAreaLevel?.isPreset && selectedAreaLevel !== presetLevels[0]"
               (click)="basedataSettings!.defaultPopAreaLevel = selectedAreaLevel!.id">
+<!--        [disabled]="selectedAreaLevel?.isPreset && selectedAreaLevel !== presetLevels[0]"-->
         <mat-icon class="material-icons-outlined">verified</mat-icon>
         Als Gebietseinheit für alle Einwohnerdaten festlegen
       </button>
@@ -88,6 +90,10 @@
       <table *ngIf="selectedAreaLevel">
         <tr>
           <td i18n>Name</td>
+          <td [style.color]="selectedAreaLevel.isPreset? 'grey': ''">{{selectedAreaLevel?.name}}</td>
+        </tr>
+        <tr>
+          <td i18n>Beschriftung</td>
           <td [style.color]="selectedAreaLevel.isPreset? 'grey': ''">{{selectedAreaLevel?.name}}</td>
         </tr>
         <tr>

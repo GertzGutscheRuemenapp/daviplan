@@ -187,9 +187,9 @@ export class MapControl {
       this.editMode = (editMode != undefined)? editMode : true;
       const backgroundId = parseInt(settings[`background-layer`]);
       this.background = (backgroundId)? this.mapService.backgroundLayers.find(
-        l => { return l.id === backgroundId }) : this.mapService.backgroundLayers[0];
+        l => { return l.id === backgroundId }) : this.mapService.backgroundLayers[1];
       if (this.background)
-        this.backgroundOpacity = this.mapSettings[`layer-opacity-${this.background.id}`]
+        this.backgroundOpacity = this.mapSettings[`layer-opacity-${this.background.id}`] || 1;
       for (let layer of this.mapService.backgroundLayers) {
         layer.opacity = parseFloat(this.mapSettings[`layer-opacity-${layer.id}`]) || 1;
         this._addLayerToMap(layer, {

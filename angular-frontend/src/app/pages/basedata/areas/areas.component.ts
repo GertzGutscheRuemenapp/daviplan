@@ -109,6 +109,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   selectAreaLevel(areaLevel: AreaLevel): void {
     this.selectedAreaLevel = areaLevel;
     this.mapControl?.clearGroup(this.legendGroup!.id!);
+    if (!areaLevel) return;
     const layer = this.mapControl?.addLayer({
       name: areaLevel.name,
       description: '',

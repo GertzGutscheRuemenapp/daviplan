@@ -146,8 +146,8 @@ export class OlMap {
   addVectorTileLayer(name: string, url: string, options: {
       params?: any,
       visible?: boolean, opacity?: number,
-      stroke?: { color?: string, width?: number, dash?: number[], selectedColor?: string, selectedDash?: number[] },
-      fill?: { color?: string, selectedColor?: string }
+      stroke?: { color?: string, width?: number, dash?: number[], selectedColor?: string, selectedDash?: number[], mouseOverColor?: string },
+      fill?: { color?: string, selectedColor?: string, mouseOverColor?: string }
     } = {}): Layer<any> {
     const source = new VectorTileSource({
       format: new MVT(),
