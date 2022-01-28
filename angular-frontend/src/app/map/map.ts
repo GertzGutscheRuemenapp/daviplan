@@ -193,8 +193,11 @@ export class OlMap {
       url?: any, params?: any,
       visible?: boolean, opacity?: number,
       selectable?: boolean, tooltipField?: string,
-      stroke?: { color?: string, width?: number, dash?: number[], selectedColor?: string, selectedDash?: number[] },
-      fill?: { color?: string, selectedColor?: string },
+      stroke?: { color?: string, width?: number, dash?: number[],
+        selectedColor?: string, mouseOverColor?: string, selectedDash?: number[],
+        mouseOverWidth?: number
+      },
+      fill?: { color?: string, selectedColor?: string, mouseOverColor?: string },
     } = {}): Layer<any> {
 
     if (this.layers[name] != null) this.removeLayer(name);
@@ -223,7 +226,11 @@ export class OlMap {
     layer.set('name', name);
     this.setMouseOverLayer(layer, {
       tooltipField: options?.tooltipField,
-      cursor: (options?.selectable)? 'pointer': undefined })
+      cursor: (options?.selectable)? 'pointer': undefined,
+      fillColor: options?.fill?.mouseOverColor,
+      strokeColor: options?.stroke?.mouseOverColor,
+      strokeWidth: options?.stroke?.mouseOverWidth || options?.stroke?.width || 1
+    });
     if (options?.selectable) {
       const select = new Select({
         condition: click,
@@ -273,8 +280,8 @@ export class OlMap {
         source: new VectorSource(),
         map: this.map,
         style: new Style({
-          fill: new Fill({ color: options.fillColor }),
-          stroke: new Stroke({ color: options.strokeColor, width: options.strokeWidth || 1 })
+          fill: new Fill({ color: options.fillColor || 'rgba(0,0,0,0)' }),
+          stroke: new Stroke({ color: options.strokeColor || 'rgba(0,0,0,0)', width: options.strokeWidth || 1 })
         }),
       });
     }
@@ -309,6 +316,11 @@ export class OlMap {
         this.div!.style.cursor = hoveredFeat? options.cursor: '';
       }
     });
+    const overlay = this.overlays[layer.get('name')];
+    if (overlay)
+      this.map.getViewport().addEventListener('mouseout', event => {
+        overlay.getSource().clear();
+      });
   }
 
   addFeatures(layername: string, features: Feature<any>[]){
