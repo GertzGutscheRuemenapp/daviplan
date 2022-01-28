@@ -20,7 +20,6 @@ from datentool_backend.modes.models import Mode, ModeVariant
 from datentool_backend.demand.models import DemandRateSet
 
 
-
 class Scenario(DatentoolModelMixin, NamedModel, models.Model):
     """BULE-Scenario"""
     name = models.TextField()

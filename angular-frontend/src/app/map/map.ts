@@ -9,7 +9,7 @@ import GeoJSON from 'ol/format/GeoJSON';
 import { bbox as bboxStrategy } from 'ol/loadingstrategy';
 import TileWMS from 'ol/source/TileWMS';
 import XYZ from 'ol/source/XYZ';
-import { Stroke, Style, Fill, Icon } from 'ol/style';
+import { Stroke, Style, Fill, Text as OlText } from 'ol/style';
 import { Select } from "ol/interaction";
 import { click, singleClick, always } from 'ol/events/condition';
 import { EventEmitter } from "@angular/core";
@@ -20,12 +20,14 @@ import MVT from 'ol/format/MVT';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
 import { defer } from "rxjs";
+import RenderFeature from "ol/render/Feature";
 
 export class OlMap {
   target: string;
   view: View;
   map: Map;
   layers: Record<string, Layer<any>> = {};
+  overlays: Record<string, Layer<any>> = {};
   mapProjection: string;
   div: HTMLElement | null;
   tooltipOverlay: Overlay;
@@ -136,7 +138,7 @@ export class OlMap {
       source: source,
       visible: options.visible === true
     });
-
+    layer.set('name', name);
     this.map.addLayer(layer);
     this.layers[name] = layer;
 
@@ -146,28 +148,60 @@ export class OlMap {
   addVectorTileLayer(name: string, url: string, options: {
       params?: any,
       visible?: boolean, opacity?: number,
-      stroke?: { color?: string, width?: number, dash?: number[], selectedColor?: string, selectedDash?: number[] },
-      fill?: { color?: string, selectedColor?: string }
+      stroke?: { color?: string, width?: number, dash?: number[], selectedColor?: string, selectedDash?: number[], mouseOverColor?: string },
+      fill?: { color?: string, selectedColor?: string, mouseOverColor?: string },
+      tooltipField?: string,
+      featureClass?: 'feature' | 'renderFeature',
+      labelField?: string
     } = {}): Layer<any> {
     const source = new VectorTileSource({
-      format: new MVT(),
+      format: new MVT({ featureClass: (options.featureClass === 'feature')? Feature: RenderFeature }),
       url: url
     });
-    const layer = new VectorTileLayer({
-      source: source,
-      visible: options?.visible === true,
-      opacity: (options?.opacity != undefined) ? options?.opacity: 1,
-      style: new Style({
-        stroke: new Stroke({
-          color:  options?.stroke?.color || 'rgba(0, 0, 0, 1.0)',
-          width: options?.stroke?.width || 1,
-          lineDash: options?.stroke?.dash
-        }),
+
+    const style = new Style({
+      stroke: new Stroke({
+        color:  options?.stroke?.color || 'rgba(0, 0, 0, 1.0)',
+        width: options?.stroke?.width || 1,
+        lineDash: options?.stroke?.dash
+      }),
+      fill: new Fill({
+        color: options?.fill?.color || 'rgba(0, 0, 0, 0)'
+      }),
+      text: new OlText({
+        font: '14px Calibri,sans-serif',
+        overflow: true,
+        placement: 'point',
         fill: new Fill({
-          color: options?.fill?.color || 'rgba(0, 0, 0, 0)'
+          color: options?.stroke?.color || 'black'
+        }),
+        stroke: new Stroke({
+          color: '#fff',
+          width: 3
         })
       })
     })
+    const _this = this;
+    const layer = new VectorTileLayer({
+      source: source,
+      declutter: true,
+      visible: options?.visible === true,
+      opacity: (options?.opacity != undefined) ? options?.opacity: 1,
+      style: function(feature) {
+        if (options?.labelField) {
+          const text = (_this.view.getZoom()! > 9 )? feature.get(options?.labelField) : ''
+          style.getText().setText(text);
+        }
+        return style;
+      }
+    })
+    layer.set('name', name);
+    this.setMouseOverLayer(layer, {
+      tooltipField: options?.tooltipField,
+      fillColor: options?.fill?.mouseOverColor,
+      strokeColor: options?.stroke?.mouseOverColor,
+      strokeWidth: options?.stroke?.width || 1
+    });
     this.map.addLayer(layer);
     this.layers[name] = layer;
     // source.on('tileloadend', function(evt) {
@@ -182,8 +216,11 @@ export class OlMap {
       url?: any, params?: any,
       visible?: boolean, opacity?: number,
       selectable?: boolean, tooltipField?: string,
-      stroke?: { color?: string, width?: number, dash?: number[], selectedColor?: string, selectedDash?: number[] },
-      fill?: { color?: string, selectedColor?: string },
+      stroke?: { color?: string, width?: number, dash?: number[],
+        selectedColor?: string, mouseOverColor?: string, selectedDash?: number[],
+        mouseOverWidth?: number
+      },
+      fill?: { color?: string, selectedColor?: string, mouseOverColor?: string },
     } = {}): Layer<any> {
 
     if (this.layers[name] != null) this.removeLayer(name);
@@ -209,32 +246,14 @@ export class OlMap {
       }),
     });
 
-    if (options?.tooltipField || options?.selectable) {
-      layer.set('showTooltip', true);
-      this.map.on('pointermove', event => {
-        const showTooltip = layer.get('showTooltip') && layer.getVisible();
-        if (!showTooltip) return;
-        const pixel = event.pixel;
-        const f = this.map.forEachFeatureAtPixel(pixel, function (feature, hlayer) {
-          if (feature && hlayer === layer) return feature;
-          else return;
-        });
-        if (options?.tooltipField) {
-          let tooltip = this.tooltipOverlay.getElement()
-          if (f) {
-            this.tooltipOverlay.setPosition(event.coordinate);
-            // let coords = this.map.getCoordinateFromPixel(pixel);
-            tooltip!.innerHTML = f.get(options.tooltipField); // + `<br>${coords[0]}, ${coords[1]}`;
-            tooltip!.style.display = '';
-          }
-          else
-            tooltip!.style.display = 'none';
-        }
-        if (options?.selectable && layer.getVisible()){
-          this.div!.style.cursor = f? 'pointer': '';
-        }
-      });
-    }
+    layer.set('name', name);
+    this.setMouseOverLayer(layer, {
+      tooltipField: options?.tooltipField,
+      cursor: (options?.selectable)? 'pointer': undefined,
+      fillColor: options?.fill?.mouseOverColor,
+      strokeColor: options?.stroke?.mouseOverColor,
+      strokeWidth: options?.stroke?.mouseOverWidth || options?.stroke?.width || 1
+    });
     if (options?.selectable) {
       const select = new Select({
         condition: click,
@@ -258,11 +277,73 @@ export class OlMap {
       })
       layer.set('select', select);
     }
-
     this.map.addLayer(layer);
     this.layers[name] = layer;
 
     return layer;
+  }
+
+  private setMouseOverLayer(layer: Layer<any>, options: {
+    cursor?: string,
+    tooltipField?: string,
+    fillColor?: string,
+    strokeColor?: string,
+    strokeWidth?: number
+  }){
+    // avoid setting map interactions if nothing is defined to set anyway
+    if (!(options.cursor || options.tooltipField || options.fillColor || options.strokeColor)) return;
+
+    if (options.tooltipField)
+      layer.set('showTooltip', true);
+
+    let hoverStyle: Style | undefined;
+
+    if (options.fillColor || options.strokeColor) {
+      this.overlays[layer.get('name')] = new VectorLayer({
+        source: new VectorSource(),
+        map: this.map,
+        style: new Style({
+          fill: new Fill({ color: options.fillColor || 'rgba(0,0,0,0)' }),
+          stroke: new Stroke({ color: options.strokeColor || 'rgba(0,0,0,0)', width: options.strokeWidth || 1 })
+        }),
+      });
+    }
+    this.map.on('pointermove', event => {
+      const showTooltip = layer.get('showTooltip') && layer.getVisible();
+      if (!showTooltip) return;
+      const pixel = event.pixel;
+      const hoveredFeat = this.map.forEachFeatureAtPixel(pixel, (feature, hlayer) => {
+        if (feature && hlayer === layer) return feature;
+        else return;
+      });
+      const overlay = this.overlays[layer.get('name')];
+      if (overlay){
+        overlay.getSource().clear();
+        // RenderFeatures (VectorTiles) do not have a geometry
+        if (hoveredFeat && hoveredFeat instanceof Feature) {
+          overlay.getSource().addFeature(hoveredFeat);
+        }
+      }
+      if (options.tooltipField) {
+        let tooltip = this.tooltipOverlay.getElement()
+        if (hoveredFeat) {
+          this.tooltipOverlay.setPosition(event.coordinate);
+          // let coords = this.map.getCoordinateFromPixel(pixel);
+          tooltip!.innerHTML = hoveredFeat.get(options.tooltipField); // + `<br>${coords[0]}, ${coords[1]}`;
+          tooltip!.style.display = '';
+        }
+        else
+          tooltip!.style.display = 'none';
+      }
+      if (options.cursor && layer.getVisible()){
+        this.div!.style.cursor = hoveredFeat? options.cursor: '';
+      }
+    });
+    const overlay = this.overlays[layer.get('name')];
+    if (overlay)
+      this.map.getViewport().addEventListener('mouseout', event => {
+        overlay.getSource().clear();
+      });
   }
 
   addFeatures(layername: string, features: Feature<any>[]){
@@ -320,9 +401,11 @@ export class OlMap {
   }
 
   removeLayer(name: string){
+    // ToDo: remove interactions
     let layer = this.layers[name];
     if (!layer) return;
-    this.map.removeLayer(layer)
+    delete this.overlays[layer.get('name')];
+    this.map.removeLayer(layer);
     delete this.layers[name];
   }
 

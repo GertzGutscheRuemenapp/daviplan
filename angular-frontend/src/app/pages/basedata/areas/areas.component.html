@@ -44,12 +44,14 @@
         </mat-selection-list>
         <div class="order-controls">
           <button mat-icon-button
+                  [disabled]="selectedAreaLevel?.isPreset"
                   title="In der Sortierung eins nach oben">
   <!--                [disabled] = "(!selectedGroup || selectedGroup === layerGroups[0]) && (!selectedLayer || getGroup(selectedLayer.group)!.children!.indexOf(selectedLayer) < 1)"
                   (click)="moveSelected('up')">-->
             <mat-icon>expand_less</mat-icon>
           </button>
           <button mat-icon-button
+                  [disabled]="selectedAreaLevel?.isPreset"
                   title="In der Sortierung eins nach unten">
   <!--                [disabled] = "(!selectedGroup || selectedGroup === layerGroups[layerGroups.length - 1]) && (!selectedLayer || getGroup(selectedLayer.group)!.children!.indexOf(selectedLayer) >= getGroup(selectedLayer.group)!.children!.length - 1)"
                   (click)="moveSelected('down')">-->
@@ -60,8 +62,8 @@
       <button mat-button color="primary"
               class="multiline-button"
               style="width: 86%;"
-              [disabled]="selectedAreaLevel?.isPreset && selectedAreaLevel !== presetLevels[0]"
               (click)="basedataSettings!.defaultPopAreaLevel = selectedAreaLevel!.id">
+<!--        [disabled]="selectedAreaLevel?.isPreset && selectedAreaLevel !== presetLevels[0]"-->
         <mat-icon class="material-icons-outlined">verified</mat-icon>
         Als Gebietseinheit für alle Einwohnerdaten festlegen
       </button>
@@ -84,11 +86,16 @@
                     [title]="'Darstellung der ausgewählten Gebietseinteilung'"
                     [editTemplate]="propertiesEdit"
                     [subtitle]="'In allen Karten der Anwendung so darstellen'"
-                    infoText="<p>Über die Schaltfläche „Editieren“ können Sie festlegen, wie die gerade ausgewählte Gebietseinteilung in allen Karten dieser Anwendung, d.h. auch in den Bereichen „Bevölkerung“ und „Infrastrukturplanung“ des Hauptmenüs dargestellt und bezeichnet werden soll.</p>">
+                    infoText="<p>Über die Schaltfläche „Editieren“ können Sie festlegen, wie die gerade ausgewählte Gebietseinteilung in allen Karten dieser Anwendung, d.h. auch in den Bereichen „Bevölkerung“ und „Infrastrukturplanung“ des Hauptmenüs dargestellt und bezeichnet werden soll.</p>"
+                    dialogInfoText="<p>Namen und Beschriftungsfelder der vorgegebenen administrativen Ebenen können nicht verändert werden.</p>">
       <table *ngIf="selectedAreaLevel">
         <tr>
           <td i18n>Name</td>
           <td [style.color]="selectedAreaLevel.isPreset? 'grey': ''">{{selectedAreaLevel?.name}}</td>
+        </tr>
+        <tr>
+          <td i18n>Beschriftung</td>
+          <td [style.color]="selectedAreaLevel.isPreset? 'grey': ''">{{selectedAreaLevel?.labelField}}</td>
         </tr>
         <tr>
           <td i18n>Linienfarbe</td>
@@ -194,9 +201,15 @@
     </div>
     <mat-form-field appearance="fill" style="width: 100%">
       <mat-label i18n>Name</mat-label>
-      <input matInput formControlName="username"
+      <input matInput formControlName="name"
                       [value]="selectedAreaLevel?.name"
                       [disabled]="selectedAreaLevel?.isPreset || false">
+    </mat-form-field>
+    <mat-form-field appearance="fill" style="width: 100%">
+      <mat-label i18n>Beschriftungsfeld</mat-label>
+      <input matInput formControlName="label"
+             [value]="selectedAreaLevel?.labelField"
+             [disabled]="selectedAreaLevel?.isPreset || false">
     </mat-form-field>
     <mat-checkbox color="primary"
                   #enableLayerCheck

@@ -115,7 +115,8 @@ export class MapService {
             url: tileUrl,
             name: level.name,
             description: `Gebiete der Gebietseinheit ${level.name}`,
-            symbol: level.symbol
+            symbol: level.symbol,
+            labelField: level.labelField
           }
           i -= 1;
           layers.push(layer);
@@ -187,9 +188,9 @@ export class MapControl {
       this.editMode = (editMode != undefined)? editMode : true;
       const backgroundId = parseInt(settings[`background-layer`]);
       this.background = (backgroundId)? this.mapService.backgroundLayers.find(
-        l => { return l.id === backgroundId }) : this.mapService.backgroundLayers[0];
+        l => { return l.id === backgroundId }) : this.mapService.backgroundLayers[1];
       if (this.background)
-        this.backgroundOpacity = this.mapSettings[`layer-opacity-${this.background.id}`]
+        this.backgroundOpacity = this.mapSettings[`layer-opacity-${this.background.id}`] || 1;
       for (let layer of this.mapService.backgroundLayers) {
         layer.opacity = parseFloat(this.mapSettings[`layer-opacity-${layer.id}`]) || 1;
         this._addLayerToMap(layer, {
@@ -300,7 +301,15 @@ export class MapControl {
    * @param options
    * @param emit
    */
-  addLayer(layer: Layer, options?: { visible?: boolean, checkable?: boolean }, emit= true): Layer {
+  addLayer(layer: Layer, options?: {
+    visible?: boolean,
+    checkable?: boolean,
+    tooltipField?: string,
+    mouseOver?: {
+      fillColor: string,
+      strokeColor: string
+    }
+  }, emit= true): Layer {
     if (layer.id == undefined)
       layer.id = uuid();
     const layerGroups = this._localLayerGroups.concat(this._serviceLayerGroups);
@@ -315,7 +324,11 @@ export class MapControl {
       group = layerGroups.find(group => layer.group === group.id)!;
     if (!group.children) group.children = [];
     group.children?.push(layer);
-    this._addLayerToMap(layer, { visible: options?.visible });
+    this._addLayerToMap(layer, {
+      visible: options?.visible,
+      tooltipField: options?.tooltipField,
+      mouseOver: options?.mouseOver
+    });
     if (options?.visible)
       this.checklistSelection.select(layer);
     else
@@ -324,14 +337,24 @@ export class MapControl {
     return layer;
   }
 
-  private _addLayerToMap(layer: Layer, options?: { visible?: boolean }) {
+  private _addLayerToMap(layer: Layer, options?: {
+    visible?: boolean,
+    tooltipField?: string,
+    mouseOver?: {
+      fillColor: string,
+      strokeColor: string
+    }
+  }) {
     const opacity = (layer.opacity !== undefined)? layer.opacity : 1;
     if (layer.type === 'vector-tiles') {
        this.map!.addVectorTileLayer(this.mapId(layer), layer.url,{
          visible: options?.visible,
          opacity: opacity,
-         stroke: { color: layer.symbol?.strokeColor, width: 2 },
-         fill: { color: layer.symbol?.fillColor }
+         stroke: { color: layer.symbol?.strokeColor, width: 2, mouseOverColor: options?.mouseOver?.strokeColor },
+         fill: { color: layer.symbol?.fillColor, mouseOverColor: options?.mouseOver?.fillColor },
+         tooltipField: options?.tooltipField,
+         featureClass: (options?.mouseOver)? 'feature': 'renderFeature',
+         labelField: 'label'
        });
     }
     else {
