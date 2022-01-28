@@ -61,6 +61,7 @@ class AreaLevelFactory(DjangoModelFactory):
     source = factory.SubFactory(SourceFactory)
     is_preset = False
     is_active = True
+    label_field = faker.word()
 
 
 class AreaFactory(DjangoModelFactory):

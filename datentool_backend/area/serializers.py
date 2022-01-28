@@ -46,7 +46,7 @@ class AreaLevelSerializer(serializers.ModelSerializer):
     class Meta:
         model = AreaLevel
         fields = ('id', 'name', 'order', 'source', 'symbol', 'is_active',
-                  'is_preset', 'area_count', 'tile_url')
+                  'is_preset', 'area_count', 'tile_url', 'label_field')
         read_only_fields = ('is_preset', )
 
     def get_tile_url(self, obj):

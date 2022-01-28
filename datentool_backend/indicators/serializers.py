@@ -2,7 +2,9 @@ from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from datentool_backend.utils.geometry_fields import GeometrySRIDField
 
-from .models import (Stop, Router, Indicator)
+from .models import (Stop, Router, Indicator, IndicatorType, IndicatorTypeField)
+from datentool_backend.area.models import Area
+from datentool_backend.infrastructure.serializers import FieldTypeSerializer
 
 
 class StopSerializer(GeoFeatureModelSerializer):
@@ -21,7 +23,28 @@ class RouterSerializer(serializers.ModelSerializer):
                   'build_date', 'buffer')
 
 
+class IndicatorTypeFieldSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IndicatorTypeField
+        fields = ('id', 'indicator_type', 'field_type', 'label')
+
+
+class IndicatorTypeSerializer(serializers.ModelSerializer):
+    parameters = FieldTypeSerializer(many=True)
+    class Meta:
+        model = IndicatorType
+        fields = ('id', 'name', 'classname', 'description', 'parameters')
+
+
 class IndicatorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Indicator
         fields = ('id', 'indicator_type', 'name', 'parameters', 'service')
+
+
+class AreaIndicatorSerializer(serializers.ModelSerializer):
+    label = serializers.CharField()
+    value = serializers.FloatField()
+    class Meta:
+        model = Area
+        fields = ('id', 'label', 'value')
