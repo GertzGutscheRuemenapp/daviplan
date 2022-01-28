@@ -9,6 +9,9 @@ from owslib.wms import WebMapService
 import requests
 from requests.exceptions import (MissingSchema, ConnectionError,
                                         HTTPError)
+from django.db import models
+from django.db.models.functions import Cast
+from django.contrib.postgres.fields.jsonb import KeyTextTransform
 
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
@@ -30,13 +33,18 @@ from .serializers import (MapSymbolSerializer,
 
 class AreaLevelTileView(MVTView, DetailView):
     model = AreaLevel
-    vector_tile_fields = ('id', 'area_level', 'attributes')
+    vector_tile_fields = ('id', 'area_level', 'label')
 
     def get_vector_tile_layer_name(self):
         return self.get_object().name
 
     def get_vector_tile_queryset(self):
-        return self.get_object().area_set.all()
+        areaLevel = self.get_object()
+        queryset = areaLevel.area_set.all()
+        queryset = queryset.annotate(label=Cast(
+            KeyTextTransform(areaLevel.label_field, "attributes"),
+            models.TextField()))
+        return queryset
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -113,12 +121,13 @@ class WMSLayerViewSet(viewsets.ModelViewSet):
 
 class ProtectPresetPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        # presets can not be deleted and name and source type (except date)
-        # can not be changed
+        # presets can not be deleted and name, label and
+        # source type (except date) can not be changed
         if (obj.is_preset and
             (
                 request.method == 'DELETE' or
                 'name' in request.data or
+                'label_field' in request.data or
                 (
                     'source' in request.data and
                     set(request.data['source']) > set(['date'])

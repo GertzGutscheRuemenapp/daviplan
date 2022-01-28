@@ -4,6 +4,7 @@ from collections import OrderedDict
 from django.test import TestCase
 from test_plus import APITestCase
 from datetime import datetime
+import mapbox_vector_tile
 
 from datentool_backend.utils.test_utils import no_connection
 from datentool_backend.api_test import (BasicModelTest,
@@ -261,19 +262,17 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
 
     def test_get_tile_view(self):
         area_level1 = AreaLevelFactory(label_field='gen')
-        attributes = json.dumps({'gen': 'Area One', })
         area1 = AreaFactory(area_level=area_level1,
-                            attributes=attributes)
+                            attributes={'gen': 'Area One', })
         geom = MultiPolygon(Polygon(((1475464, 6888464),
                                      (1515686, 6889190),
                                      (1516363, 6864002),
                                      (1475512, 6864389),
                                      (1475464, 6888464))),
                         srid=3857)
-        attributes = json.dumps({'gen': 'Area Two', })
         area2 = AreaFactory(area_level=area_level1,
                             geom=geom,
-                            attributes=attributes)
+                            attributes={'gen': 'Area Two', })
 
         self.obj = area_level1
 
@@ -281,6 +280,10 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
                                              'x': 0, 'y': 1})
         response = self.get(url1)
         self.assert_http_200_ok(response)
+
+        result = mapbox_vector_tile.decode(response.content)
+        features = result[area_level1.name]['features']
+        assert(features[0]['properties']['label'] == 'Area One')
 
         url2 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 10,
                                              'x': 550, 'y': 336})
