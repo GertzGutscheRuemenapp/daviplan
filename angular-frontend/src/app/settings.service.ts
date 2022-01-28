@@ -1,17 +1,57 @@
-import { Injectable } from "@angular/core";
+import { Component, Injectable } from "@angular/core";
 import {BehaviorSubject, Observable, of, Subject} from "rxjs";
 import { RestAPI } from "./rest-api";
 import { HttpClient } from "@angular/common/http";
 import { Title } from "@angular/platform-browser";
 import { ProjectSettings } from "./pages/administration/project-definition/project-definition.component";
-import { AuthService } from "./auth.service";
-
 export interface SiteSettings {
   id: number,
   title: string,
   contactMail: string,
   welcomeText: string,
   logo: string
+}
+
+class UserSettings {
+  private settings$ = new BehaviorSubject<Record<string, any>>({});
+  private _settings: Record<string, any> = {};
+
+  constructor(private rest: RestAPI, private http: HttpClient) {
+    this.fetch();
+  }
+
+  get(key: string): Observable<any>{
+    const observable = new Observable<any>(subscriber => {
+      this.settings$.subscribe(settings => {
+        subscriber.next(settings[key]);
+        subscriber.complete();
+      });
+    });
+    return observable;
+  }
+
+  fetch(): void {
+    this.http.get<{}>(this.rest.URLS.userSettings)
+      .subscribe(userSettings => {
+        this._settings = userSettings;
+        this.settings$.next(userSettings);
+      });
+  }
+
+  set(key: string, value: any, options: { patch: boolean } = { patch: true }): void {
+    this._settings[key] = value;
+    if (options.patch) {
+      let patchData: Record<string, any> = {};
+      patchData[key] = value;
+      this.http.patch<{}>(this.rest.URLS.userSettings, patchData)
+        .subscribe(userSettings => {  this.settings$.next(userSettings); });
+    }
+  }
+
+  save(): void {
+    this.http.post<{}>(this.rest.URLS.userSettings, this._settings)
+      .subscribe(userSettings => {  this.settings$.next(userSettings); });
+  }
 }
 
 @Injectable({ providedIn: 'root' })
@@ -24,17 +64,17 @@ export class SettingsService {
     startYear: 0,
     endYear: 0
   });
-  userSettings$ = new BehaviorSubject<{}>({});
+  user: UserSettings;
 
-  constructor(private rest: RestAPI, private http: HttpClient, private titleService: Title, private authService: AuthService) {
+  constructor(private rest: RestAPI, private http: HttpClient, private titleService: Title) {
     // initial fetch of settings
     this.fetchSiteSettings();
     this.fetchProjectSettings();
-    this.fetchUserSettings();
+    this.user = new UserSettings(this.rest, this.http);
   }
 
   fetchSiteSettings(): void {
-    this.http.get<SiteSettings>(this.rest.URLS.settings)
+    this.http.get<SiteSettings>(this.rest.URLS.siteSettings)
       .subscribe(siteSettings => {  this.siteSettings$.next(siteSettings); });
   }
 
@@ -43,12 +83,8 @@ export class SettingsService {
       .subscribe(projectSettings => {  this.projectSettings$.next(projectSettings); });
   }
 
-  fetchUserSettings(): void {
-    this.authService.getCurrentUser().subscribe(
-      user => this.userSettings$.next(user?.profile?.settings || {}))
-  }
-
-  applySettings(settings: SiteSettings) {
+  applySiteSettings(settings: SiteSettings) {
     this.titleService.setTitle(settings.title);
   }
+
 }

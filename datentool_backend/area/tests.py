@@ -109,6 +109,15 @@ class TestWMSLayerAPI(WriteOnlyWithCanEditBaseDataTest,
             extra={'format': 'json'})
         self.assert_http_400_bad_request(response)
 
+        url = 'https://monitor.ioer.de/cgi-bin/wms?MAP=O06RG_wms'
+        response = self.post(
+            self.url_key + '-getcapabilities',
+            data={'url': url},
+            extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        # IÖR have not set up a CORS header
+        assert(not response.json()['cors'])
+
         url = 'https://sgx.geodatenzentrum.de/wms_clc5_2018'
         response = self.post(
             self.url_key + '-getcapabilities',
@@ -118,6 +127,7 @@ class TestWMSLayerAPI(WriteOnlyWithCanEditBaseDataTest,
 
         # response is json, convert to dictionary
         response_dict = response.json()
+        assert(response_dict['cors'])
         assert 'version' in response_dict
         assert 'layers' in response_dict
         assert 'url' in response_dict

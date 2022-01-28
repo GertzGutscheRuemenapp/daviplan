@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions
 from django.db.models import Q
 from rest_framework.decorators import action
-from django.http import JsonResponse
+from rest_framework.response import Response
 from django.contrib.auth.models import User
 
 from datentool_backend.utils.views import ProtectCascadeMixin
