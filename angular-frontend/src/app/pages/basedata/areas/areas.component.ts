@@ -123,7 +123,14 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         strokeColor: 'orange',
         symbol: 'line'
       }
-    }, { visible: true })
+    }, {
+      visible: true,
+      tooltipField: 'label',
+      mouseOver: {
+        fillColor: 'lightblue',
+        strokeColor: 'blue'
+      }
+    })
   }
 
   ngOnDestroy(): void {

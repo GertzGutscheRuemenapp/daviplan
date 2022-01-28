@@ -43,6 +43,7 @@ export interface AreaLevel {
   id: number;
   name: string;
   order: number;
+  labelField: string;
   tileUrl?: string;
   source?: Source;
   symbol?: Symbol;

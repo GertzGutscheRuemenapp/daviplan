@@ -300,7 +300,15 @@ export class MapControl {
    * @param options
    * @param emit
    */
-  addLayer(layer: Layer, options?: { visible?: boolean, checkable?: boolean }, emit= true): Layer {
+  addLayer(layer: Layer, options?: {
+    visible?: boolean,
+    checkable?: boolean,
+    tooltipField?: string,
+    mouseOver?: {
+      fillColor: string,
+      strokeColor: string
+    }
+  }, emit= true): Layer {
     if (layer.id == undefined)
       layer.id = uuid();
     const layerGroups = this._localLayerGroups.concat(this._serviceLayerGroups);
@@ -315,7 +323,11 @@ export class MapControl {
       group = layerGroups.find(group => layer.group === group.id)!;
     if (!group.children) group.children = [];
     group.children?.push(layer);
-    this._addLayerToMap(layer, { visible: options?.visible });
+    this._addLayerToMap(layer, {
+      visible: options?.visible,
+      tooltipField: options?.tooltipField,
+      mouseOver: options?.mouseOver
+    });
     if (options?.visible)
       this.checklistSelection.select(layer);
     else
@@ -324,14 +336,23 @@ export class MapControl {
     return layer;
   }
 
-  private _addLayerToMap(layer: Layer, options?: { visible?: boolean }) {
+  private _addLayerToMap(layer: Layer, options?: {
+    visible?: boolean,
+    tooltipField?: string,
+    mouseOver?: {
+      fillColor: string,
+      strokeColor: string
+    }
+  }) {
     const opacity = (layer.opacity !== undefined)? layer.opacity : 1;
     if (layer.type === 'vector-tiles') {
        this.map!.addVectorTileLayer(this.mapId(layer), layer.url,{
          visible: options?.visible,
          opacity: opacity,
-         stroke: { color: layer.symbol?.strokeColor, width: 2 },
-         fill: { color: layer.symbol?.fillColor }
+         stroke: { color: layer.symbol?.strokeColor, width: 2, mouseOverColor: options?.mouseOver?.strokeColor },
+         fill: { color: layer.symbol?.fillColor, mouseOverColor: options?.mouseOver?.fillColor },
+         tooltipField: options?.tooltipField,
+         featureClass: (options?.mouseOver)? 'feature': 'renderFeature'
        });
     }
     else {

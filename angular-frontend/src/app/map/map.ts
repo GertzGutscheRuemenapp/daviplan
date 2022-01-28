@@ -11,7 +11,7 @@ import TileWMS from 'ol/source/TileWMS';
 import XYZ from 'ol/source/XYZ';
 import { Stroke, Style, Fill, Icon } from 'ol/style';
 import { Select } from "ol/interaction";
-import { click, pointerMove, always } from 'ol/events/condition';
+import { click, singleClick, always } from 'ol/events/condition';
 import { EventEmitter } from "@angular/core";
 import { Polygon } from "ol/geom";
 import { fromExtent } from 'ol/geom/Polygon';
@@ -20,12 +20,14 @@ import MVT from 'ol/format/MVT';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
 import { defer } from "rxjs";
+import RenderFeature from "ol/render/Feature";
 
 export class OlMap {
   target: string;
   view: View;
   map: Map;
   layers: Record<string, Layer<any>> = {};
+  overlays: Record<string, Layer<any>> = {};
   mapProjection: string;
   div: HTMLElement | null;
   tooltipOverlay: Overlay;
@@ -136,7 +138,7 @@ export class OlMap {
       source: source,
       visible: options.visible === true
     });
-
+    layer.set('name', name);
     this.map.addLayer(layer);
     this.layers[name] = layer;
 
@@ -148,10 +150,11 @@ export class OlMap {
       visible?: boolean, opacity?: number,
       stroke?: { color?: string, width?: number, dash?: number[], selectedColor?: string, selectedDash?: number[], mouseOverColor?: string },
       fill?: { color?: string, selectedColor?: string, mouseOverColor?: string },
-      tooltipField?: string
+      tooltipField?: string,
+      featureClass?: 'feature' | 'renderFeature'
     } = {}): Layer<any> {
     const source = new VectorTileSource({
-      format: new MVT(),
+      format: new MVT({ featureClass: (options.featureClass === 'feature')? Feature: RenderFeature }),
       url: url
     });
     const layer = new VectorTileLayer({
@@ -169,8 +172,12 @@ export class OlMap {
         })
       })
     })
+    layer.set('name', name);
     this.setMouseOverLayer(layer, {
-      tooltipField: options?.tooltipField
+      tooltipField: options?.tooltipField,
+      fillColor: options?.fill?.mouseOverColor,
+      strokeColor: options?.stroke?.mouseOverColor,
+      strokeWidth: options?.stroke?.width || 1
     });
     this.map.addLayer(layer);
     this.layers[name] = layer;
@@ -186,7 +193,6 @@ export class OlMap {
       url?: any, params?: any,
       visible?: boolean, opacity?: number,
       selectable?: boolean, tooltipField?: string,
-      selectCondition?: 'click' | 'hover',
       stroke?: { color?: string, width?: number, dash?: number[], selectedColor?: string, selectedDash?: number[] },
       fill?: { color?: string, selectedColor?: string },
     } = {}): Layer<any> {
@@ -214,60 +220,64 @@ export class OlMap {
       }),
     });
 
+    layer.set('name', name);
     this.setMouseOverLayer(layer, {
       tooltipField: options?.tooltipField,
       cursor: (options?.selectable)? 'pointer': undefined })
-
     if (options?.selectable) {
+      const select = new Select({
+        condition: click,
+        layers: [layer],
+        style: new Style({
+          stroke: new Stroke({
+            color: options.stroke?.selectedColor || 'rgb(255, 129, 0)',
+            width: options.stroke?.width || 1,
+            lineDash: options?.stroke?.selectedDash
+          }),
+          fill: new Fill({
+            color: options.fill?.selectedColor || 'rgba(0, 0, 0, 0)'
+          }),
+        }),
+        toggleCondition: always,
+        multi: true
+      })
+      this.map.addInteraction(select);
+      select.on('select', event => {
+        this.selected.emit({ layer: layer, selected: event.selected, deselected: event.deselected });
+      })
+      layer.set('select', select);
     }
-
     this.map.addLayer(layer);
     this.layers[name] = layer;
 
     return layer;
   }
 
-  private setLayerSelect(layer: Layer<any>, options: {
-    condition?: 'click' | 'hover',
-    strokeWidth?: number,
-    strokeDash?: any,
-    strokeColor?: string,
-    fillColor?: string
-  }){
-    const condition = (options.condition && options.condition === 'hover')? pointerMove: click;
-    const select = new Select({
-      condition: condition,
-      layers: [layer],
-      style: new Style({
-        stroke: new Stroke({
-          color: options.strokeColor || 'rgb(255, 129, 0)',
-          width: options.strokeWidth || 1,
-          lineDash: options?.strokeDash
-        }),
-        fill: new Fill({
-          color: options.fillColor || 'rgba(0, 0, 0, 0)'
-        }),
-      }),
-      toggleCondition: always,
-      multi: true
-    })
-    this.map.addInteraction(select);
-    select.on('select', event => {
-      this.selected.emit({ layer: layer, selected: event.selected, deselected: event.deselected });
-    })
-    layer.set('select', select);
-  }
-
   private setMouseOverLayer(layer: Layer<any>, options: {
     cursor?: string,
-    tooltipField?: string
+    tooltipField?: string,
+    fillColor?: string,
+    strokeColor?: string,
+    strokeWidth?: number
   }){
     // avoid setting map interactions if nothing is defined to set anyway
-    if (!(options.cursor || options.tooltipField)) return;
+    if (!(options.cursor || options.tooltipField || options.fillColor || options.strokeColor)) return;
 
     if (options.tooltipField)
       layer.set('showTooltip', true);
 
+    let hoverStyle: Style | undefined;
+
+    if (options.fillColor || options.strokeColor) {
+      this.overlays[layer.get('name')] = new VectorLayer({
+        source: new VectorSource(),
+        map: this.map,
+        style: new Style({
+          fill: new Fill({ color: options.fillColor }),
+          stroke: new Stroke({ color: options.strokeColor, width: options.strokeWidth || 1 })
+        }),
+      });
+    }
     this.map.on('pointermove', event => {
       const showTooltip = layer.get('showTooltip') && layer.getVisible();
       if (!showTooltip) return;
@@ -276,6 +286,14 @@ export class OlMap {
         if (feature && hlayer === layer) return feature;
         else return;
       });
+      const overlay = this.overlays[layer.get('name')];
+      if (overlay){
+        overlay.getSource().clear();
+        // RenderFeatures (VectorTiles) do not have a geometry
+        if (hoveredFeat && hoveredFeat instanceof Feature) {
+          overlay.getSource().addFeature(hoveredFeat);
+        }
+      }
       if (options.tooltipField) {
         let tooltip = this.tooltipOverlay.getElement()
         if (hoveredFeat) {
@@ -351,7 +369,8 @@ export class OlMap {
     // ToDo: remove interactions
     let layer = this.layers[name];
     if (!layer) return;
-    this.map.removeLayer(layer)
+    delete this.overlays[layer.get('name')];
+    this.map.removeLayer(layer);
     delete this.layers[name];
   }
 
