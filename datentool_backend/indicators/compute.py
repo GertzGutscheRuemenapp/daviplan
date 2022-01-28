@@ -11,6 +11,7 @@ from datentool_backend.infrastructure.models import FieldTypes
 from .models import IndicatorType
 from datentool_backend.area.models import Area, AreaLevel
 from datentool_backend.infrastructure.models import Place, Capacity
+from datentool_backend.population.models import RasterCellPopulationAgeGender
 
 
 
@@ -142,3 +143,28 @@ class TotalCapacityInArea(ComputeAreaIndicator):
 
         return areas_with_capacities
 
+
+class ComputePopulationAreaIndicator(ComputeIndicator):
+
+    def compute(self):
+        """"""
+        area_level_id = self.query_params.get('area_level')
+        year = self.query_params.get('year', 0)
+        scenario_id = self.query_params.get('scenario')
+
+        area_level = AreaLevel.objects.get(pk=area_level_id)
+        areas = area_level.area_set.all()
+
+        areas = areas.annotate(
+            label=KeyTextTransform(area_level.label_field, 'attributes'))
+
+
+        population = RasterCellPopulationAgeGender.objects.all()
+
+        areas = self.aggregate_population(population, areas)
+        return areas
+
+    def aggregate_population(self,
+                             population: RasterCellPopulationAgeGender,
+                             areas: Area) -> Area:
+        """"""

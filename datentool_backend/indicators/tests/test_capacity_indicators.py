@@ -35,6 +35,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
 
         cls = cls.create_areas()
         infrastructure = cls.create_infrastructure_services()
+        cls.create_scenario()
         cls.create_places(infrastructure)
         cls.create_capacities()
 
