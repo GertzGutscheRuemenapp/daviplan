@@ -1,4 +1,4 @@
-from typing import Tuple, Set
+from typing import Tuple, Set, List
 from collections import OrderedDict
 import json
 
@@ -32,7 +32,6 @@ from datentool_backend.infrastructure.factories import (
 )
 from datentool_backend.infrastructure.models import (
     Place,
-    Capacity,
     FieldTypes,
     FClass,
     PlaceField,
@@ -379,16 +378,15 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         service3 = ServiceFactory(infrastructure=place1.infrastructure)
 
         place1.service_capacity.set([service1, service2])
-        place2.service_capacity.set([service3, service2])
+        place2.service_capacity.set([service3, service2],
+                                    through_defaults=dict(capacity=0))
 
         #  default capacity has from_year=0 and capacity=0
         # add two more capacities
-        cap_s3_p2 = CapacityFactory(service=service3, place=place2,
-                                    from_year=2023, capacity=123)
-        cap_s3_p2 = CapacityFactory(service=service3, place=place2,
-                                    from_year=2021, capacity=55)
-        capacities_s3_p2 = Capacity.objects.filter(place=place2,
-                                                   service=service3)
+        CapacityFactory(service=service3, place=place2,
+                        from_year=2023, capacity=123)
+        CapacityFactory(service=service3, place=place2,
+                        from_year=2021, capacity=55)
 
         #  test if the correct places which offer a service are returned
         self.check_place_with_capacity(service1, {place1.id})
@@ -443,86 +441,99 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         scenario3 = ScenarioFactory(planning_process=scenario1.planning_process)
 
         place1: Place = self.obj
-        service = ServiceFactory(infrastructure=place1.infrastructure)
+        place2 = PlaceFactory(infrastructure=place1.infrastructure)
+        service1 = ServiceFactory(infrastructure=place1.infrastructure)
+        service2 = ServiceFactory(infrastructure=place1.infrastructure)
 
+        CapacityFactory(place=place1, service=service2, capacity=99)
+        CapacityFactory(place=place1, service=service1,
+                        from_year=2025, capacity=77)
+        CapacityFactory(place=place1, service=service1, capacity=50)
+        CapacityFactory(place=place1, service=service1,
+                        capacity=100, scenario=scenario1)
+        CapacityFactory(place=place1, service=service1,
+                        capacity=100,
+                        scenario=scenario3)
+        CapacityFactory(place=place1, service=service1,
+                        from_year=2022, capacity=200,
+                        scenario=scenario3)
+        CapacityFactory(place=place1, service=service1,
+                        from_year=2030, capacity=0,
+                        scenario=scenario3)
 
-        capacity0 = CapacityFactory(place=place1, service=service,
-                                    from_year=2025, capacity=77)
+        #  In the base scenario, test the scenario for service1 and service2
+        self.check_capacity_detail([50], place1.pk, service1.pk)
+        self.check_capacity_detail([99], place1.pk, service2.pk)
+        self.check_capacity_detail([50, 99], place1.pk)
 
-        capacity1 = CapacityFactory(place=place1, service=service,
-                                    capacity=50)
-        capacity2 = CapacityFactory(place=place1, service=service,
-                                    capacity=100, scenario=scenario1)
+        #  In scenario1, it should change
+        self.check_capacity_detail([100], place1.pk, service1.pk,
+                                   scenario_id=scenario1.pk)
+        #  In scenario2, no new capacity defined,
+        # so take the base value for the base year
+        self.check_capacity_detail([50], place1.pk, service1.pk,
+                                   scenario_id=scenario2.pk)
+        #  .. and the base-scenario value vor year 2026
+        self.check_capacity_detail([77], place1.pk, service1.pk,
+                                   scenario_id=scenario2.pk, year=2026)
+        #  In scenario3, it should change over time from 100 over 200 to 0
+        self.check_capacity_detail([100], place1.pk, service1.pk,
+                                   scenario_id=scenario3.pk, year=2021)
+        self.check_capacity_detail([200], place1.pk, service1.pk,
+                                   scenario_id=scenario3.pk, year=2022)
+        self.check_capacity_detail([200], place1.pk, service1.pk,
+                                   scenario_id=scenario3.pk, year=2025)
+        self.check_capacity_detail([0], place1.pk, service1.pk,
+                                   scenario_id=scenario3.pk, year=2030)
 
-        capacity3 = CapacityFactory(place=place1, service=service,
-                                    capacity=100,
-                                    scenario=scenario3)
+        CapacityFactory(place=place2, service=service1, capacity=88)
+        CapacityFactory(place=place2, service=service1, from_year=2022, capacity=99)
+        CapacityFactory(place=place2, service=service1, scenario=scenario1, capacity=55)
+        CapacityFactory(place=place2, service=service1, scenario=scenario2, capacity=33)
 
-        capacity4 = CapacityFactory(place=place1, service=service,
-                                    from_year=2022, capacity=200,
-                                    scenario=scenario3)
+        self.check_capacity_list([50, 88], service1.pk)
+        self.check_capacity_list([50, 99], service1.pk, year=2023)
+        self.check_capacity_list([77, 99], service1.pk, year=2026)
+        self.check_capacity_list([100, 55], service1.pk, scenario_id=scenario1.pk)
+        self.check_capacity_list([50, 33], service1.pk, scenario_id=scenario2.pk)
+        self.check_capacity_list([100, 88], service1.pk, scenario_id=scenario3.pk)
 
-        capacity5 = CapacityFactory(place=place1, service=service,
-                                    from_year=2030, capacity=0,
-                                    scenario=scenario3)
-
-        response = self.get(self.url_key + '-detail', pk=place1.pk,
-                            data=dict(service=service.id))
-        expected = 50
+    def check_capacity_detail(self,
+                              expected: float,
+                              place_id: int,
+                              service_id: int = None,
+                              year: int = None,
+                              scenario_id: int = None):
+        query_params = {}
+        if service_id:
+            query_params['service'] = service_id
+        if year:
+            query_params['year'] = year
+        if scenario_id:
+            query_params['scenario'] = scenario_id
+        response = self.get(self.url_key + '-detail', pk=place_id,
+                            data=query_params)
         self.assertListEqual(response.data['properties']['capacities'],
-                             [expected])
+                             expected)
 
-        response = self.get(self.url_key + '-detail', pk=place1.pk,
-                            data=dict(service=service.id, scenario=scenario1.pk))
-        expected = 100
-        self.assertListEqual(response.data['properties']['capacities'],
-                             [expected])
+    def check_capacity_list(self,
+                            expected: List[int],
+                            service_id: int = None,
+                            year: int = None,
+                            scenario_id: int = None,
+                            ):
+        query_params = {}
+        if service_id:
+            query_params['service'] = service_id
+        if year:
+            query_params['year'] = year
+        if scenario_id:
+            query_params['scenario'] = scenario_id
 
-        response = self.get(self.url_key + '-detail', pk=place1.pk,
-                            data=dict(service=service.id, scenario=scenario2.pk))
-        expected = 50
-        self.assertListEqual(response.data['properties']['capacities'],
-                             [expected])
-
-        response = self.get(self.url_key + '-detail', pk=place1.pk,
-                            data=dict(service=service.id,
-                                      scenario=scenario2.pk,
-                                      year=2026))
-        expected = 77
-        self.assertListEqual(response.data['properties']['capacities'],
-                             [expected])
-
-        response = self.get(self.url_key + '-detail', pk=place1.pk,
-                            data=dict(service=service.id, scenario=scenario3.pk,
-                                      year=2021))
-        expected = 100
-        self.assertListEqual(response.data['properties']['capacities'],
-                             [expected])
-
-
-        response = self.get(self.url_key + '-detail', pk=place1.pk,
-                            data=dict(service=service.id, scenario=scenario3.pk,
-                                      year=2022))
-        expected = 200
-        self.assertListEqual(response.data['properties']['capacities'],
-                             [expected])
-
-
-        response = self.get(self.url_key + '-detail', pk=place1.pk,
-                            data=dict(service=service.id, scenario=scenario3.pk,
-                                      year=2025))
-        expected = 200
-        self.assertListEqual(response.data['properties']['capacities'],
-                             [expected])
-
-
-        response = self.get(self.url_key + '-detail', pk=place1.pk,
-                            data=dict(service=service.id, scenario=scenario3.pk,
-                                      year=2030))
-        expected = 0
-        self.assertListEqual(response.data['properties']['capacities'],
-                             [expected])
-
+        response = self.get_check_200(self.url_key + '-list', data=query_params)
+        self.assertListEqual(
+            [f['properties']['capacities'][0] for f in response.data['features']],
+            expected)
 
 
 class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,
@@ -542,8 +553,10 @@ class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,
         service = capacity.service.pk
         scenario = None
 
-        data = dict(place=place, service=service,
-                    capacity=faker.pyfloat(positive=True), from_year=faker.year(),
+        data = dict(place=place,
+                    service=service,
+                    capacity=faker.pyfloat(positive=True),
+                    from_year=faker.year(),
                     scenario=scenario)
         cls.post_data = data
         cls.put_data = data

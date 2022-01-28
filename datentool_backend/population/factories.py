@@ -62,8 +62,6 @@ class RasterCellFactory(DjangoModelFactory):
     pnt = factory.LazyAttribute(_get_point_from_poly)
 
 
-
-
 class RasterCellPopulationFactory(DjangoModelFactory):
     class Meta:
         model = RasterCellPopulation

@@ -1,5 +1,9 @@
+from typing import List
+
 from django.db import models
+from django.db.models import Q
 from django.contrib.gis.db import models as gis_models
+from sql_util.utils import Exists
 
 from datentool_backend.base import (NamedModel,
                                     JsonAttributes,
@@ -63,11 +67,19 @@ class Capacity(DatentoolModelMixin, models.Model):
     """Capacity of an infrastructure for a service"""
     place = models.ForeignKey(Place, on_delete=PROTECT_CASCADE)
     service = models.ForeignKey(Service, on_delete=PROTECT_CASCADE)
-    capacity = models.FloatField(default=0)
+    capacity = models.FloatField(default=1)
     from_year = models.IntegerField(default=0)
     to_year = models.IntegerField(default=99999999)
     scenario = models.ForeignKey(Scenario, on_delete=PROTECT_CASCADE, null=True)
 
+    def __str__(self) -> str:
+        place = getattr(self.place, 'pk', '_')
+        service = getattr(self.service, 'pk', '_')
+        scenario = getattr(self.scenario, 'pk', '_')
+        return (f'{self.__class__.__name__} '
+                f'(Pl{place}-Se{service}-Sc{scenario} '
+                f'Y{self.from_year}-{self.to_year}): '
+                f'{self.capacity}')
 
     class Meta:
         unique_together = ['place', 'service', 'from_year', 'scenario']
@@ -98,7 +110,50 @@ class Capacity(DatentoolModelMixin, models.Model):
 
         super().save(*args, **kwargs)
 
+    @staticmethod
+    def filter_queryset(queryset,
+                        service_ids: List[int] = [],
+                        scenario_id: int = None,
+                        year: int = None):
+        """filter queryset by scenario and year, if given"""
+        # filter capacities by service, if this is requested
+        if service_ids:
+            queryset = queryset.filter(service__in=service_ids)
 
+        #  filter capacities by year
+        queryset_year = queryset\
+            .filter(from_year__lte=year)\
+            .filter(to_year__gte=year)
+
+        base_scenario_capacities = queryset_year.filter(scenario=None)
+
+        # if base scenario is requested, filter by base scenario (= None)
+        if scenario_id is None:
+            return base_scenario_capacities
+
+        # otherwise, the scenario is requested
+        # find the places, that have specific capacities
+        # for this scenario defined
+        scenario_filter = Q(scenario=scenario_id)
+        #  if a specific services is requested,
+        # filter only the places with capacities for this service
+        if service_ids is None:
+            scenario_filter = scenario_filter & Q(service__in=service_ids)
+        # get the places that have have capacities
+        # defined for the scenario (and service)
+        places_with_scenario = Place.objects.filter(Exists(
+            'capacity', filter=scenario_filter))
+        # ... and those not
+        places_without_scenario = Place.objects.exclude(Exists(
+            'capacity', filter=scenario_filter))
+
+        # get the capacities defined for the scenario,
+        # and for the places wihout scenario, the capacities from the base scenario
+        res_queryset = queryset_year\
+            .filter((Q(scenario__in=scenario_id) & Q(place__in=places_with_scenario)) |
+                    (Q(scenario=None) & Q(place__in=places_without_scenario))
+                    )
+        return res_queryset
 
 
 class FieldTypes(models.TextChoices):

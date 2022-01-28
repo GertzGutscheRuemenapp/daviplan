@@ -1,7 +1,11 @@
+from unittest import skipIf
+import json
 from collections import OrderedDict
 from django.test import TestCase
 from test_plus import APITestCase
 from datetime import datetime
+
+from datentool_backend.utils.test_utils import no_connection
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         TestAPIMixin,
@@ -22,6 +26,8 @@ from .models import (WMSLayer,
                      )
 
 from django.urls import reverse
+from django.contrib.gis.geos import MultiPolygon, Polygon
+
 from faker import Faker
 
 faker = Faker('de-DE')
@@ -77,6 +83,7 @@ class TestWMSLayerAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.put_data = data
         cls.patch_data = data
 
+    @skipIf(no_connection(), 'No Internetconnection available')
     def test_get_capabilities(self):
         data = {'url': ''}
         self.client.logout()
@@ -154,7 +161,8 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
         symbol_data = MapSymbolSerializer(area_level.symbol).data
 
         data = dict(name=faker.word(), order=faker.random_int(),
-                    source=source_data, symbol=symbol_data)
+                    source=source_data, symbol=symbol_data,
+                    label_field=faker.word())
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
@@ -252,10 +260,38 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
             self.assert_response_equals_expected(response_value, expected)
 
     def test_get_tile_view(self):
-        url = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 12,
-                                             'x': 1316, 'y': 2166})
-        response = self.get(url)
-        self.assert_http_200_ok or self.assert_http_204_no_content(response)
+        area_level1 = AreaLevelFactory(label_field='gen')
+        attributes = json.dumps({'gen': 'Area One', })
+        area1 = AreaFactory(area_level=area_level1,
+                            attributes=attributes)
+        geom = MultiPolygon(Polygon(((1475464, 6888464),
+                                     (1515686, 6889190),
+                                     (1516363, 6864002),
+                                     (1475512, 6864389),
+                                     (1475464, 6888464))),
+                        srid=3857)
+        attributes = json.dumps({'gen': 'Area Two', })
+        area2 = AreaFactory(area_level=area_level1,
+                            geom=geom,
+                            attributes=attributes)
+
+        self.obj = area_level1
+
+        url1 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 1,
+                                             'x': 0, 'y': 1})
+        response = self.get(url1)
+        self.assert_http_200_ok(response)
+
+        url2 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 10,
+                                             'x': 550, 'y': 336})
+        response = self.get(url2)
+
+        self.assert_http_200_ok(response)
+
+        url3 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 12,
+                                             'x': 2903, 'y': 1345})
+        response = self.get(url3)
+        self.assert_http_204_no_content(response)
 
 
 class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
