@@ -11,7 +11,7 @@ import TileWMS from 'ol/source/TileWMS';
 import XYZ from 'ol/source/XYZ';
 import { Stroke, Style, Fill, Icon } from 'ol/style';
 import { Select } from "ol/interaction";
-import { click, singleClick, always } from 'ol/events/condition';
+import { click, pointerMove, always } from 'ol/events/condition';
 import { EventEmitter } from "@angular/core";
 import { Polygon } from "ol/geom";
 import { fromExtent } from 'ol/geom/Polygon';
@@ -147,7 +147,8 @@ export class OlMap {
       params?: any,
       visible?: boolean, opacity?: number,
       stroke?: { color?: string, width?: number, dash?: number[], selectedColor?: string, selectedDash?: number[], mouseOverColor?: string },
-      fill?: { color?: string, selectedColor?: string, mouseOverColor?: string }
+      fill?: { color?: string, selectedColor?: string, mouseOverColor?: string },
+      tooltipField?: string
     } = {}): Layer<any> {
     const source = new VectorTileSource({
       format: new MVT(),
@@ -168,6 +169,9 @@ export class OlMap {
         })
       })
     })
+    this.setMouseOverLayer(layer, {
+      tooltipField: options?.tooltipField
+    });
     this.map.addLayer(layer);
     this.layers[name] = layer;
     // source.on('tileloadend', function(evt) {
@@ -182,6 +186,7 @@ export class OlMap {
       url?: any, params?: any,
       visible?: boolean, opacity?: number,
       selectable?: boolean, tooltipField?: string,
+      selectCondition?: 'click' | 'hover',
       stroke?: { color?: string, width?: number, dash?: number[], selectedColor?: string, selectedDash?: number[] },
       fill?: { color?: string, selectedColor?: string },
     } = {}): Layer<any> {
@@ -209,60 +214,83 @@ export class OlMap {
       }),
     });
 
-    if (options?.tooltipField || options?.selectable) {
-      layer.set('showTooltip', true);
-      this.map.on('pointermove', event => {
-        const showTooltip = layer.get('showTooltip') && layer.getVisible();
-        if (!showTooltip) return;
-        const pixel = event.pixel;
-        const f = this.map.forEachFeatureAtPixel(pixel, function (feature, hlayer) {
-          if (feature && hlayer === layer) return feature;
-          else return;
-        });
-        if (options?.tooltipField) {
-          let tooltip = this.tooltipOverlay.getElement()
-          if (f) {
-            this.tooltipOverlay.setPosition(event.coordinate);
-            // let coords = this.map.getCoordinateFromPixel(pixel);
-            tooltip!.innerHTML = f.get(options.tooltipField); // + `<br>${coords[0]}, ${coords[1]}`;
-            tooltip!.style.display = '';
-          }
-          else
-            tooltip!.style.display = 'none';
-        }
-        if (options?.selectable && layer.getVisible()){
-          this.div!.style.cursor = f? 'pointer': '';
-        }
-      });
-    }
+    this.setMouseOverLayer(layer, {
+      tooltipField: options?.tooltipField,
+      cursor: (options?.selectable)? 'pointer': undefined })
+
     if (options?.selectable) {
-      const select = new Select({
-        condition: click,
-        layers: [layer],
-        style: new Style({
-          stroke: new Stroke({
-            color: options.stroke?.selectedColor || 'rgb(255, 129, 0)',
-            width: options.stroke?.width || 1,
-            lineDash: options?.stroke?.selectedDash
-          }),
-          fill: new Fill({
-            color: options.fill?.selectedColor || 'rgba(0, 0, 0, 0)'
-          }),
-        }),
-        toggleCondition: always,
-        multi: true
-      })
-      this.map.addInteraction(select);
-      select.on('select', event => {
-        this.selected.emit({ layer: layer, selected: event.selected, deselected: event.deselected });
-      })
-      layer.set('select', select);
     }
 
     this.map.addLayer(layer);
     this.layers[name] = layer;
 
     return layer;
+  }
+
+  private setLayerSelect(layer: Layer<any>, options: {
+    condition?: 'click' | 'hover',
+    strokeWidth?: number,
+    strokeDash?: any,
+    strokeColor?: string,
+    fillColor?: string
+  }){
+    const condition = (options.condition && options.condition === 'hover')? pointerMove: click;
+    const select = new Select({
+      condition: condition,
+      layers: [layer],
+      style: new Style({
+        stroke: new Stroke({
+          color: options.strokeColor || 'rgb(255, 129, 0)',
+          width: options.strokeWidth || 1,
+          lineDash: options?.strokeDash
+        }),
+        fill: new Fill({
+          color: options.fillColor || 'rgba(0, 0, 0, 0)'
+        }),
+      }),
+      toggleCondition: always,
+      multi: true
+    })
+    this.map.addInteraction(select);
+    select.on('select', event => {
+      this.selected.emit({ layer: layer, selected: event.selected, deselected: event.deselected });
+    })
+    layer.set('select', select);
+  }
+
+  private setMouseOverLayer(layer: Layer<any>, options: {
+    cursor?: string,
+    tooltipField?: string
+  }){
+    // avoid setting map interactions if nothing is defined to set anyway
+    if (!(options.cursor || options.tooltipField)) return;
+
+    if (options.tooltipField)
+      layer.set('showTooltip', true);
+
+    this.map.on('pointermove', event => {
+      const showTooltip = layer.get('showTooltip') && layer.getVisible();
+      if (!showTooltip) return;
+      const pixel = event.pixel;
+      const hoveredFeat = this.map.forEachFeatureAtPixel(pixel, (feature, hlayer) => {
+        if (feature && hlayer === layer) return feature;
+        else return;
+      });
+      if (options.tooltipField) {
+        let tooltip = this.tooltipOverlay.getElement()
+        if (hoveredFeat) {
+          this.tooltipOverlay.setPosition(event.coordinate);
+          // let coords = this.map.getCoordinateFromPixel(pixel);
+          tooltip!.innerHTML = hoveredFeat.get(options.tooltipField); // + `<br>${coords[0]}, ${coords[1]}`;
+          tooltip!.style.display = '';
+        }
+        else
+          tooltip!.style.display = 'none';
+      }
+      if (options.cursor && layer.getVisible()){
+        this.div!.style.cursor = hoveredFeat? options.cursor: '';
+      }
+    });
   }
 
   addFeatures(layername: string, features: Feature<any>[]){
@@ -320,6 +348,7 @@ export class OlMap {
   }
 
   removeLayer(name: string){
+    // ToDo: remove interactions
     let layer = this.layers[name];
     if (!layer) return;
     this.map.removeLayer(layer)
