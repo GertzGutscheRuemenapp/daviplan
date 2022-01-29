@@ -44,9 +44,15 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
     def test_disaggregate_population(self):
         """Test if the population is correctly Disaggregated to RasterCells"""
         population: Population = self.population
+
+        # disaggregate the population
+        response = self.get('populations-disaggregate', pk=population.pk)
+        self.assertTrue(response.data.get('valid'))
+        # do again to check updates
         response = self.get('populations-disaggregate', pk=population.pk)
         self.assertTrue(response.data.get('valid'))
 
+        # get disaggregated population
         response = self.get_check_200(url = 'disaggpoprasters-detail',
                                       pk=population.raster.pk)
         df = pd.DataFrame.from_records(response.data['rastercellpopulationagegender_set'])

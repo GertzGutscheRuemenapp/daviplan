@@ -130,19 +130,21 @@ class PopulationViewSet(viewsets.ModelViewSet):
         update_list = []
         rc_exist = RasterCellPopulationAgeGender.objects\
             .filter(year=year.year, disaggraster=disaggraster)\
-            .values_list('cell_id', 'gender_id', 'age_group_id', 'value')
+            .values_list('id', 'cell_id', 'gender_id', 'age_group_id')
 
-        rc_exist_dict = {rc_exist[:3]: rc_exist[4] for rc in rc_exist}
+        rc_exist_dict = {rc[1:4]: rc[0] for rc in rc_exist}
 
         for (cell, gender, age_group), value in df_cellagegender.iteritems():
+            rc_id = rc_exist_dict.get((cell, gender, age_group))
             entry = RasterCellPopulationAgeGender(
+                id=rc_id,
                 disaggraster=disaggraster,
                 year=year.year,
                 cell_id=cell,
                 gender_id=gender,
                 age_group_id=age_group,
                 value=value)
-            if (cell, gender, age_group) in rc_exist_dict:
+            if rc_id is not None:
                 update_list.append(entry)
             else:
                 create_list.append(entry)
