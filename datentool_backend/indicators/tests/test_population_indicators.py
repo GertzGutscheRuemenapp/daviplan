@@ -12,6 +12,7 @@ from ..compute import (ComputePopulationAreaIndicator,
                       )
 
 from .setup_testdata import CreateInfrastructureTestdataMixin
+from datentool_backend.population.models import Population, DisaggPopRaster
 
 
 class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
@@ -37,6 +38,15 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         cls.create_raster_population()
         cls.create_population()
         cls.create_scenario()
+
+    def test_disaggregate_population(self):
+        """Test if the population is correctly Disaggregated to RasterCells"""
+        population: Population = self.population
+        self.get('populations-disaggregate', pk=population.pk)
+
+        response = self.get(url_name = 'disaggpoprasters-detail',
+                            pk=population.raster.pk)
+
 
     def test_persons_in_area(self):
         """Test the number of persons by area and year"""

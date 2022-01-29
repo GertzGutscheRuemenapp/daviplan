@@ -1,6 +1,5 @@
 from abc import ABCMeta, abstractmethod
 from typing import Callable, Dict
-
 from django.http.request import QueryDict
 from django.db.models import OuterRef, Subquery, Count, IntegerField, Sum
 from django.db.models.functions import Coalesce

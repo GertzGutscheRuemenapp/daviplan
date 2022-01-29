@@ -3,7 +3,9 @@ from rest_framework import serializers
 
 from .models import (Raster, PopulationRaster, DisaggPopRaster,
                      Prognosis, PrognosisEntry, Population, PopulationEntry,
-                     PopStatistic, PopStatEntry)
+                     PopStatistic, PopStatEntry,
+                     RasterCellPopulationAgeGender,
+                     )
 
 
 class RasterSerializer(serializers.ModelSerializer):
@@ -26,11 +28,19 @@ class PopulationRasterSerializer(serializers.ModelSerializer):
         #geo_field = 'pnt', 'poly'
         #fields = ('id', 'raster', 'cellcode')
 
+class RasterCellPopulationAgeGenderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RasterCellPopulationAgeGender
+        fields = ('id', 'year', 'cell', 'age', 'gender', 'value')
+
+
 
 class DisaggPopRasterSerializer(serializers.ModelSerializer):
+    rastercellpopulationagegender_set = RasterCellPopulationAgeGenderSerializer(
+        many=True,)
     class Meta:
         model = DisaggPopRaster
-        fields = ('id', 'popraster', 'genders')
+        fields = ('id', 'popraster', 'genders', 'rastercellpopulationagegender_set')
 
 
 class PrognosisSerializer(serializers.ModelSerializer):

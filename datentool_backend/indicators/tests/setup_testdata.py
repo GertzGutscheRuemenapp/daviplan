@@ -152,7 +152,7 @@ class CreateInfrastructureTestdataMixin:
                 cellcode = f'100mN{n:05}E{e:05}'
                 cell = RasterCellFactory.build(raster=raster, cellcode=cellcode)
                 cells.append(cell)
-        RasterCell.objects.bulk_create(cells)
+        raster_cells = RasterCell.objects.bulk_create(cells)
 
         # population in some rastercells with N and E-Coordinates
         population = {(30224, 42481): 100, # outside areas
@@ -162,10 +162,11 @@ class CreateInfrastructureTestdataMixin:
                       (30225, 42486): 500, # area2
                       }
 
-        for (e, n), value in population.items():
+        for (n, e), value in population.items():
             cellcode = f'100mN{n:05}E{e:05}'
+            cell = RasterCell.objects.get(raster=raster, cellcode=cellcode)
             RasterCellPopulationFactory(popraster=popraster,
-                                        cell__cellcode=cellcode,
+                                        cell=cell,
                                         value=value)
 
     @classmethod

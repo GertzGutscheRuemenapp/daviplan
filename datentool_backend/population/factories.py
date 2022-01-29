@@ -65,7 +65,7 @@ class RasterCellFactory(DjangoModelFactory):
 class RasterCellPopulationFactory(DjangoModelFactory):
     class Meta:
         model = RasterCellPopulation
-        django_get_or_create = ('popraster', )
+        #django_get_or_create = ('popraster', )
 
     popraster = factory.SubFactory(PopulationRasterFactory)
     cell = factory.SubFactory(RasterCellFactory)
