@@ -98,7 +98,7 @@ class RasterCellPopulationAgeGenderFactory(DjangoModelFactory):
     year = faker.year()
     cell = factory.LazyAttribute(lambda o:
         RasterCellFactory(raster=o.disaggraster.popraster.raster))
-    age = faker.pyint(max_value=127)
+    age_group =  factory.SubFactory(AgeGroupFactory)
     gender = factory.SubFactory(GenderFactory)
     value = faker.pyfloat(positive=True)
 

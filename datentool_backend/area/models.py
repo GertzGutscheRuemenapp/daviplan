@@ -85,7 +85,7 @@ class Area(DatentoolModelMixin, JsonAttributes, models.Model):
     attributes = models.JSONField()
 
     def __str__(self) -> str:
-        name = self.attributes.get('name',
-                              self.attributes.get('gen', self.pk))
+        attributes = json.loads(self.attributes)
+        name = attributes.get(self.area_level.label_field, self.pk)
         return f'{self.__class__.__name__} ({self.area_level.name}): {name}'
 

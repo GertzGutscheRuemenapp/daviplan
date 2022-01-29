@@ -1,5 +1,7 @@
 from typing import List
 
+import pandas as pd
+
 import mapbox_vector_tile
 from django.urls import reverse
 from test_plus import APITestCase
@@ -12,7 +14,7 @@ from ..compute import (ComputePopulationAreaIndicator,
                       )
 
 from .setup_testdata import CreateInfrastructureTestdataMixin
-from datentool_backend.population.models import Population, DisaggPopRaster
+from datentool_backend.population.models import Population, DisaggPopRaster, PopulationEntry
 
 
 class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
@@ -42,10 +44,32 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
     def test_disaggregate_population(self):
         """Test if the population is correctly Disaggregated to RasterCells"""
         population: Population = self.population
-        self.get('populations-disaggregate', pk=population.pk)
+        response = self.get('populations-disaggregate', pk=population.pk)
+        self.assertTrue(response.data.get('valid'))
 
-        response = self.get(url_name = 'disaggpoprasters-detail',
-                            pk=population.raster.pk)
+        response = self.get_check_200(url = 'disaggpoprasters-detail',
+                                      pk=population.raster.pk)
+        df = pd.DataFrame.from_records(response.data['rastercellpopulationagegender_set'])
+
+        # compare to population entry
+        popentries = PopulationEntry.objects.filter(population=population)
+        df_popentries = pd.DataFrame.from_records(
+            popentries.values('area', 'gender', 'age_group', 'value'))
+
+        # check by gender
+        expected = df_popentries[['gender', 'value']].groupby('gender').sum()
+        actual = df[['gender', 'value']].groupby('gender').sum()
+        pd.testing.assert_frame_equal(actual, expected)
+
+        # check by age_group
+        expected = df_popentries[['age_group', 'value']].groupby('age_group').sum()
+        actual = df[['age_group', 'value']].groupby('age_group').sum()
+        pd.testing.assert_frame_equal(actual, expected)
+
+        # check by cell
+        actual = df[['cell', 'value']].groupby('cell').sum()
+
+
 
 
     def test_persons_in_area(self):

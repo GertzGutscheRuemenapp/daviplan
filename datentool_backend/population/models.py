@@ -56,8 +56,7 @@ class RasterCellPopulationAgeGender(models.Model):
     disaggraster = models.ForeignKey(DisaggPopRaster, on_delete=PROTECT_CASCADE)
     year = models.IntegerField()
     cell = models.ForeignKey(RasterCell, on_delete=PROTECT_CASCADE)
-    # todo: change to agegroup
-    age = models.IntegerField()
+    age_group = models.ForeignKey(AgeGroup, on_delete=PROTECT_CASCADE)
     gender = models.ForeignKey(Gender, on_delete=PROTECT_CASCADE)
     value = models.FloatField()
 

@@ -75,8 +75,8 @@ class CreateInfrastructureTestdataMixin:
         )
         coords = np.array([(100, 100),
                            (100, 500),
-                           (200, 500),
-                           (200, 100),
+                           (400, 500),
+                           (400, 100),
                            (100, 100)])\
             + np.array([1000000, 6500000])
         cls.area2 = AreaFactory(
@@ -101,7 +101,7 @@ class CreateInfrastructureTestdataMixin:
                                   geom=Point(x=1000150, y=6500156))
         # Place 5 is in no area
         cls.place5 = PlaceFactory(infrastructure=infrastructure,
-                                  geom=Point(x=1000250, y=6500250))
+                                  geom=Point(x=1000450, y=6500450))
 
     @classmethod
     def create_capacities(cls):
@@ -148,7 +148,7 @@ class CreateInfrastructureTestdataMixin:
 
         cells = []
         for n in range(30223, 30228):
-            for e in range(42481, 42487):
+            for e in range(42481, 42488):
                 cellcode = f'100mN{n:05}E{e:05}'
                 cell = RasterCellFactory.build(raster=raster, cellcode=cellcode)
                 cells.append(cell)
@@ -160,6 +160,7 @@ class CreateInfrastructureTestdataMixin:
                       (30224, 42483): 33, # area1
                       (30224, 42486): 1000, # belongs to area1+area2
                       (30225, 42486): 500, # area2
+                      (30226, 42487): 600, # area2, fully inside
                       }
 
         for (n, e), value in population.items():

@@ -45,6 +45,7 @@ class TestAreas(TestCase):
 
     def test_area(self):
         area = self.area
+        print(area)
         print(area.area_level)
         print(repr(area.area_level))
 
