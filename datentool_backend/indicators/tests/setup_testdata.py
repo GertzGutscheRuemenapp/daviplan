@@ -61,6 +61,8 @@ class CreateInfrastructureTestdataMixin:
     def create_areas(cls):
         cls.obj = area_level = AreaLevelFactory(label_field='gen')
         cls.url_pk = cls.obj.pk
+
+        # Area1
         coords = np.array([(-500, 0),
                            (-500, 100),
                            (100, 100),
@@ -73,6 +75,8 @@ class CreateInfrastructureTestdataMixin:
                               srid=3857),
             attributes={'gen': 'area1', },
         )
+
+        # Area2
         coords = np.array([(100, 100),
                            (100, 500),
                            (400, 500),
@@ -84,6 +88,20 @@ class CreateInfrastructureTestdataMixin:
             geom=MultiPolygon(Polygon(coords),
                               srid=3857),
             attributes={'gen': 'area2', },
+        )
+
+        # Area3
+        coords = np.array([(-500, 400),
+                           (-500, 500),
+                           (-300, 500),
+                           (-300, 400),
+                           (-500, 400)])\
+            + np.array([1000000, 6500000])
+        cls.area3 = AreaFactory(
+            area_level=area_level,
+            geom=MultiPolygon(Polygon(coords),
+                              srid=3857),
+            attributes={'gen': 'area3', },
         )
         return cls
 
@@ -148,11 +166,11 @@ class CreateInfrastructureTestdataMixin:
 
         cells = []
         for n in range(30223, 30228):
-            for e in range(42481, 42488):
+            for e in range(42481, 42489):
                 cellcode = f'100mN{n:05}E{e:05}'
                 cell = RasterCellFactory.build(raster=raster, cellcode=cellcode)
                 cells.append(cell)
-        raster_cells = RasterCell.objects.bulk_create(cells)
+        RasterCell.objects.bulk_create(cells)
 
         # population in some rastercells with N and E-Coordinates
         population = {(30224, 42481): 100, # outside areas
@@ -161,6 +179,8 @@ class CreateInfrastructureTestdataMixin:
                       (30224, 42486): 1000, # belongs to area1+area2
                       (30225, 42486): 500, # area2
                       (30226, 42487): 600, # area2, fully inside
+                      (30226, 42482): 400, # area3
+                      (30227, 42483): 300, # 3
                       }
 
         for (n, e), value in population.items():

@@ -1,9 +1,5 @@
-from typing import List
-
 import pandas as pd
 
-import mapbox_vector_tile
-from django.urls import reverse
 from test_plus import APITestCase
 
 from datentool_backend.api_test import LoginTestCase
@@ -14,7 +10,11 @@ from ..compute import (ComputePopulationAreaIndicator,
                       )
 
 from .setup_testdata import CreateInfrastructureTestdataMixin
-from datentool_backend.population.models import Population, DisaggPopRaster, PopulationEntry
+from datentool_backend.demand.models import AgeGroup, Gender
+from datentool_backend.area.models import Area
+from datentool_backend.population.models import (Population,
+                                                 RasterCellPopulation,
+                                                 PopulationEntry)
 
 
 class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
@@ -75,8 +75,37 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         # check by cell
         actual = df[['cell', 'value']].groupby('cell').sum()
 
+    def test_area_without_rasterpopulation(self):
+        """
+        Test what happens, if there is population in an area,
+        but no rastercells with values to distribute
+        """
+        #delete the existing cellcodes in area3
+        cellcodes_area3 = [f'100mN{n:05}E{e:05}'
+                           for n, e in
+                           [(30226, 42482), (30227, 42483)]]
+        rcp = RasterCellPopulation.objects.filter(cell__cellcode__in=cellcodes_area3)
+        rcp.delete()
 
+        #add a population entries in area3
+        area3 = Area.objects.get(attributes__gen='area3')
+        age_group = AgeGroup.objects.first()
+        gender = Gender.objects.first()
+        PopulationEntry.objects.create(population=self.population,
+                                       area=area3,
+                                       age_group=age_group,
+                                       gender=gender,
+                                       value=444)
+        gender = Gender.objects.last()
+        PopulationEntry.objects.create(population=self.population,
+                                       area=area3,
+                                       age_group=age_group,
+                                       gender=gender,
+                                       value=555)
 
-
-    def test_persons_in_area(self):
-        """Test the number of persons by area and year"""
+        # Disaggregate the population
+        response = self.get('populations-disaggregate', pk=self.population.pk)
+        self.assertTrue(response.data.get('valid'))
+        # there should be a message about the not distributed inhabitants
+        self.assertIn('999.0 Inhabitants not located to rastercells', response.data.get('message'))
+        self.assertIn('area3', response.data.get('message'))

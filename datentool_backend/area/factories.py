@@ -71,7 +71,6 @@ class AreaFactory(DjangoModelFactory):
     geom = MultiPolygon(Polygon(((0, 0), (0, 10), (10, 10), (10, 0), (0, 0))),
                         Polygon(((20, 20), (20, 30), (30, 30), (30, 20), (20, 20))),
                         srid=4326).transform(3857, clone=True)
-    attributes = faker.json(data_columns={'gen': 'word',
-                                          'inhabitants': 'pyint',},
-                            num_rows=1)
+    attributes = {'gen': faker.word(),
+                 'inhabitants': faker.pyint(),}
 

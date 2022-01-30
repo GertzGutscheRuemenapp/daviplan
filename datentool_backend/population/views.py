@@ -82,58 +82,96 @@ class PopulationViewSet(viewsets.ModelViewSet):
         population = self.queryset[0]
         year = population.year
         disaggraster = population.raster
-        entries = population.populationentry_set
-        sq = population.populationentry_set.filter(area=OuterRef('pk'))
-        areas_with_pop = Area.objects.annotate(has_p=Exists(sq)).filter(has_p=True)
 
-
+        # use only cells with population and put values from Census to column pop
         raster_cells = population.raster.popraster.raster.rastercell_set
-        raster_fieldtype = raster_cells.model._meta.get_field('poly')
 
         raster_cells_with_inhabitants = raster_cells\
             .filter(rastercellpopulation__isnull=False)\
             .annotate(pop=F('rastercellpopulation__value'),
-                      #m2_raster=ExpressionWrapper(A('poly'), output_field=FloatField()),
                       )
 
+        # spatial intersect with areas with inhabitants (entries in the PopualtionEntry)
+        area_tbl = Area._meta.db_table
+        popentry_tbl = PopulationEntry._meta.db_table
+
         rr = raster_cells_with_inhabitants.extra(
-            select={'area_id': 'datentool_backend_area.id',
-                    'm2_raster': 'st_area(st_transform(poly, 3035))',
-                    'm2_intersect': 'st_area(st_transform(st_intersection(poly, datentool_backend_area.geom), 3035))',
+            select={f'area_id': f'"{area_tbl}".id',
+                    f'm2_raster': 'st_area(st_transform(poly, 3035))',
+                    f'm2_intersect': f'st_area(st_transform(st_intersection(poly, "{area_tbl}".geom), 3035))',
                     },
-            tables=['datentool_backend_area'],
-            where=['st_intersects(poly, datentool_backend_area.geom)']
+            tables=[area_tbl],
+            where=[f'''st_intersects(poly, "{area_tbl}".geom)
+            AND EXISTS (SELECT 1 FROM "{popentry_tbl}"
+                        WHERE "{popentry_tbl}".area_id = "{area_tbl}".id
+                        AND "{popentry_tbl}".population_id = %s
+                        )
+            '''],
+            params=(population.id,),
         )
 
         df = pd.DataFrame.from_records(
             rr.values('id', 'area_id', 'pop', 'm2_raster', 'm2_intersect', 'cellcode'))\
             .set_index(['id', 'area_id'])
 
+        # calculate weight as Census-Population *
+        # share of area of the total area of the rastercell
         df['weight'] = df['pop'] * df['m2_intersect'] / df['m2_raster']
 
+        # sum up the weights of all rastercells in an area
         area_weight = df['weight'].groupby(level='area_id').sum().rename('total_weight')
 
+        # calculate the share of population, a rastercell
+        # should get from the total population
         df = df.merge(area_weight, left_on='area_id', right_index=True)
         df['anteil_cell_of_area'] = df['weight'] / df['total_weight']
 
+        # take the Area population by age_group and gender
+        entries = population.populationentry_set
         df_pop = pd.DataFrame.from_records(
             entries.values('area_id', 'gender_id', 'age_group_id', 'value'))
 
+        # left join with the shares of each rastercell
         dd = df_pop.merge(df.reset_index()[['id', 'area_id', 'anteil_cell_of_area']],
-                          on='area_id')\
+                          on='area_id',
+                          how='left')\
             .set_index(['id', 'gender_id', 'age_group_id'])
+
+        # areas without rastercells have no cell_id assigned
+        cell_ids = dd.index.get_level_values('id')
+        has_no_rastercell = pd.isna(cell_ids)
+        population_not_located = dd.loc[has_no_rastercell].value.sum()
+
+        if population_not_located:
+            areas_without_rastercells = Area.objects.filter(
+                id__in=dd.loc[has_no_rastercell, 'area_id'])
+            msg = f'{population_not_located} Inhabitants not located to rastercells in {areas_without_rastercells}'
+        else:
+            msg = 'all areas have rastercells with inhabitants'
+
+        # can work only when rastercells are found
+        dd = dd.loc[~has_no_rastercell]
+
+
+        # population by age_group and gender in each rastercell
         dd['pop'] = dd['value'] * dd['anteil_cell_of_area']
 
+        # has to be summed up by rastercell, age_group and gender, because a rastercell
+        # might have population from two areas
         df_cellagegender = dd['pop'].groupby(['id', 'gender_id', 'age_group_id']).sum()
 
+        # update or create RasterCellPopulationAgeGender-entries
         create_list = []
         update_list = []
+        # get the existing entries
         rc_exist = RasterCellPopulationAgeGender.objects\
             .filter(year=year.year, disaggraster=disaggraster)\
-            .values_list('id', 'cell_id', 'gender_id', 'age_group_id')
+            .values_list('cell_id', 'gender_id', 'age_group_id', 'id')
 
-        rc_exist_dict = {rc[1:4]: rc[0] for rc in rc_exist}
+        # lookup-dictionary for the existing
+        rc_exist_dict = {rc[:3]: rc[3] for rc in rc_exist}
 
+        # create an object for each row in df_cellagegender
         for (cell, gender, age_group), value in df_cellagegender.iteritems():
             rc_id = rc_exist_dict.get((cell, gender, age_group))
             entry = RasterCellPopulationAgeGender(
@@ -144,15 +182,16 @@ class PopulationViewSet(viewsets.ModelViewSet):
                 gender_id=gender,
                 age_group_id=age_group,
                 value=value)
-            if rc_id is not None:
-                update_list.append(entry)
-            else:
+            if rc_id is None:
                 create_list.append(entry)
+            else:
+                update_list.append(entry)
+
+        # update existing and create new objects
         RasterCellPopulationAgeGender.objects.bulk_create(create_list)
         RasterCellPopulationAgeGender.objects.bulk_update(update_list, fields=['value'])
-
-        return Response({'valid': 1})
-
+        msg = f'Disaggregation of Population on level {population.area_level} was successful. ' + msg
+        return Response({'valid': 1, 'message': msg,})
 
 
 class PopulationEntryViewSet(viewsets.ModelViewSet):

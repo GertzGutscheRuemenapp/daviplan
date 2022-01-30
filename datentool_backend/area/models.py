@@ -1,4 +1,3 @@
-import json
 from django.db import models
 from django.contrib.gis.db import models as gis_models
 from datentool_backend.base import NamedModel, JsonAttributes
@@ -85,7 +84,7 @@ class Area(DatentoolModelMixin, JsonAttributes, models.Model):
     attributes = models.JSONField()
 
     def __str__(self) -> str:
-        attributes = json.loads(self.attributes)
+        attributes = self.attributes
         name = attributes.get(self.area_level.label_field, self.pk)
         return f'{self.__class__.__name__} ({self.area_level.name}): {name}'
 
