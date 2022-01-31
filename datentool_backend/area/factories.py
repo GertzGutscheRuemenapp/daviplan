@@ -73,8 +73,6 @@ class AreaFactory(DjangoModelFactory):
     geom = MultiPolygon(Polygon(((0, 0), (0, 10), (10, 10), (10, 0), (0, 0))),
                         Polygon(((20, 20), (20, 30), (30, 30), (30, 20), (20, 20))),
                         srid=4326).transform(3857, clone=True)
-    attributes = {'gen': faker.word(),
-                 'inhabitants': faker.pyint(),}
 
 
 class FieldTypeFactory(DjangoModelFactory):
@@ -82,7 +80,7 @@ class FieldTypeFactory(DjangoModelFactory):
     class Meta:
         model = FieldType
 
-    field_type = faker.random_element(FieldTypes)
+    ftype = faker.random_element(FieldTypes)
     name = faker.word()
 
 
@@ -91,7 +89,7 @@ class FClassFactory(DjangoModelFactory):
     class Meta:
         model = FClass
 
-    classification = factory.SubFactory(FieldTypeFactory)
+    ftype = factory.SubFactory(FieldTypeFactory)
     order = factory.Sequence(lambda n: faker.unique.pyint(max_value=100))
     value = faker.unique.word()
 

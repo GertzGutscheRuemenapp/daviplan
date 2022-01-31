@@ -28,6 +28,7 @@ from .serializers import (MapSymbolSerializer,
                           AreaSerializer,
                           FieldTypeSerializer,
                           FClassSerializer,
+                          AreaAttributeField,
                           )
 
 
@@ -39,7 +40,9 @@ class AreaLevelTileView(MVTView, DetailView):
         return self.get_object().name
 
     def get_vector_tile_queryset(self):
-        return self.get_object().area_set.all()
+        qs = self.get_object().area_set.all()
+        # to Do: Annotate the queryset with the values from area_attributes
+        return qs
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()

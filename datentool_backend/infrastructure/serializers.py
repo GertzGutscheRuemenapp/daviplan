@@ -173,7 +173,7 @@ class PlaceAttributeValidator:
                 ft = FieldTypes(field_type.field_type)
                 msg = f'''Field '{field_name}' for Infrastructure '{infr_name}'
                 should be of {field_type}({ft.label})'''
-                if field_type.field_type == FieldTypes.CLASSIFICATION:
+                if field_type.ftype == FieldTypes.CLASSIFICATION:
                     fclasses = list(
                         FClass.objects.filter(classification=field_type)
                         .values_list('value', flat=True))

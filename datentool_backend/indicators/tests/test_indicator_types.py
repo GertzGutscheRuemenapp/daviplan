@@ -78,12 +78,12 @@ class TestIndicator(TestCase):
         dummy_indicator.name = 'NewName'
         dummy_indicator.save()
         dummy_fields[0].delete()
-        self.assertEqual(dummy_fields[1].field_type.field_type,
+        self.assertEqual(dummy_fields[1].field_type.ftype,
                          DummyIndicator.parameters[dummy_fields[1].field_type.name])
 
         # change fieldtype
         f1 = dummy_fields[1]
-        f1.field_type.field_type = FieldTypes.CLASSIFICATION
+        f1.field_type.ftype = FieldTypes.CLASSIFICATION
         f1.field_type.save()
 
         # add fields

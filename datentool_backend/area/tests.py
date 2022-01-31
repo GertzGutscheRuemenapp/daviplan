@@ -21,12 +21,17 @@ from .factories import (WMSLayerFactory,
                         SourceFactory,
                         LayerGroupFactory,
                         FClassFactory,
+                        FieldTypeFactory,
                         )
 
 from .models import (WMSLayer,
                      AreaLevel,
                      Area,
                      FClass,
+                     AreaField,
+                     AreaAttribute,
+                     FieldType,
+                     FieldTypes,
                      )
 
 from django.urls import reverse
@@ -267,18 +272,25 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
     def test_get_tile_view(self):
         area_level1 = AreaLevelFactory(label_field='gen')
         attributes = json.dumps({'gen': 'Area One', })
-        area1 = AreaFactory(area_level=area_level1,
-                            attributes=attributes)
+        str_field = FieldType.objects.create(name='str_field',
+                                             ftype=FieldTypes.STRING)
+        name_field = AreaField.objects.create(area_level=area_level1,
+                                              field_type=str_field,
+                                              name='gen',
+                                              is_label=True)
         geom = MultiPolygon(Polygon(((1475464, 6888464),
                                      (1515686, 6889190),
                                      (1516363, 6864002),
                                      (1475512, 6864389),
                                      (1475464, 6888464))),
                         srid=3857)
-        attributes = json.dumps({'gen': 'Area Two', })
+        area1 = AreaFactory(area_level=area_level1,
+                            geom=geom)
+        AreaAttribute.objects.create(area=area1, field=name_field, value='Area One')
+
         area2 = AreaFactory(area_level=area_level1,
-                            geom=geom,
-                            attributes=attributes)
+                            geom=geom)
+        AreaAttribute.objects.create(area=area2, field=name_field, value='Area Two')
 
         self.obj = area_level1
         # url1 has content, low zoom level (world)
@@ -325,10 +337,31 @@ class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
         super().setUpTestData()
         area: Area = cls.obj
         area_level = area.area_level.pk
+        name_field_type = FieldType.objects.create(ftype=FieldTypes.STRING,
+                                                   name='name_field')
+        int_field_type = FieldType.objects.create(ftype=FieldTypes.NUMBER,
+                                                  name='num_field')
+        name_field = AreaField.objects.create(area_level=area.area_level,
+                                              name='gen',
+                                              field_type=name_field_type,
+                                              is_label=True)
+        int_field = AreaField.objects.create(area_level=area.area_level,
+                                             name='inhabitants',
+                                             field_type=int_field_type)
+
+        aa = AreaAttribute.objects.create(area=area,
+                                          field=name_field,
+                                          value='A-Town',
+                                          )
+
+        AreaAttribute.objects.create(area=area,
+                                     field=int_field,
+                                     value=12345)
+
         geom = area.geom.ewkt
         properties = OrderedDict(
             area_level=area_level,
-            attributes=faker.json(),
+            attributes={'gen': 'Area32', 'inhabitants': 400, },
         )
         geojson = {
             'type': 'Feature',
@@ -358,8 +391,8 @@ class TestFClassAPI(WriteOnlyWithCanEditBaseDataTest,
         super().setUpTestData()
 
         fclass: FClass = cls.obj
-        classification = fclass.classification.pk
-        data = dict(classification_id=classification,
+        classification = fclass.ftype.pk
+        data = dict(ftype_id=classification,
                     order=faker.unique.pyint(max_value=100),
                     value=faker.unique.word())
         cls.post_data = data

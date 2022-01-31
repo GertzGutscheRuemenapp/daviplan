@@ -1,3 +1,4 @@
+import json
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
@@ -7,6 +8,8 @@ from django.urls import reverse
 from .models import (MapSymbol, LayerGroup, WMSLayer,
                      Source, AreaLevel, Area,
                      FieldType, FieldTypes, FClass,
+                     FieldAttribute,
+                     AreaAttribute, AreaField,
                      )
 
 
@@ -125,27 +128,19 @@ class AreaLevelSerializer(serializers.ModelSerializer):
         return instance
 
 
-class AreaSerializer(GeoFeatureModelSerializer):
-    geom = MultiPolygonGeometrySRIDField(srid=3857)
-    class Meta:
-        model = Area
-        geo_field = 'geom'
-        fields = ('id', 'area_level', 'attributes')
-
-
 class FClassSerializer(serializers.ModelSerializer):
-    classification_id = serializers.PrimaryKeyRelatedField(
+    ftype_id = serializers.PrimaryKeyRelatedField(
         write_only=True,
         required=False,
-        source='classification',
+        source='ftype',
         queryset=FieldType.objects.all())
 
     class Meta:
         model = FClass
-        read_only_fields = ('id', 'classification', )
-        write_only_fields = ('classification_id', )
+        read_only_fields = ('id', 'ftype', )
+        write_only_fields = ('ftype_id', )
         fields = ('id', 'order', 'value',
-                  'classification', 'classification_id')
+                  'ftype', 'ftype_id')
 
 
 class FieldTypeSerializer(serializers.ModelSerializer):
@@ -161,10 +156,10 @@ class FieldTypeSerializer(serializers.ModelSerializer):
         classification_data = validated_data.pop('fclass_set', {})
         instance = super().create(validated_data)
         instance.save()
-        if classification_data and instance.field_type == FieldTypes.CLASSIFICATION:
+        if classification_data and instance.ftype == FieldTypes.CLASSIFICATION:
             for classification in classification_data:
                 fclass = FClass(order=classification['order'],
-                                classification=instance,
+                                ftype=instance,
                                 value=classification['value'])
                 fclass.save()
         return instance
@@ -172,11 +167,11 @@ class FieldTypeSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         classification_data = validated_data.pop('fclass_set', {})
         instance = super().update(instance, validated_data)
-        if classification_data and instance.field_type == FieldTypes.CLASSIFICATION:
+        if classification_data and instance.ftype == FieldTypes.CLASSIFICATION:
             classification_list = []
             for classification in classification_data:
                 fclass = FClass(order=classification['order'],
-                                classification=instance,
+                                ftype=instance,
                                 value=classification['value'])
                 fclass.save()
                 classification_list.append(fclass)
@@ -184,4 +179,55 @@ class FieldTypeSerializer(serializers.ModelSerializer):
             for fclass in instance.fclass_set.all():
                 if fclass.id not in classification_data_ids:
                     fclass.delete(keep_parents=True)
+        return instance
+
+
+class AreaAttributeField(serializers.JSONField):
+
+    def to_representation(self, value):
+        data = {aa.field.name: aa.value for aa in value.iterator()}
+        return data
+
+
+class AreaSerializer(GeoFeatureModelSerializer):
+    geom = MultiPolygonGeometrySRIDField(srid=3857)
+    attributes = AreaAttributeField(source='areaattribute_set')
+
+    class Meta:
+        model = Area
+        geo_field = 'geom'
+        fields = ('id', 'area_level', 'attributes')
+
+
+    def create(self, validated_data):
+        """
+        Create and return a new `Area` instance, given the validated data.
+        """
+        attributes = validated_data.pop('areaattribute_set')
+        area = super().create(validated_data)
+
+        for field_name, value in attributes.items():
+            field = AreaField.objects.get(area_level=area.area_level,
+                                          name=field_name)
+            AreaAttribute.objects.create(area=area,
+                                         field=field,
+                                         value=value)
+        return area
+
+    def update(self, instance, validated_data):
+        """
+        Update an Area instance, given the validated data.
+        """
+        attributes = validated_data.pop('areaattribute_set')
+        area = super().update(instance, validated_data)
+
+        existing_area_attributes = AreaAttribute.objects.filter(area=area)
+        existing_area_attributes.delete()
+
+        for field_name, value in attributes.items():
+            field = AreaField.objects.get(area_level=area.area_level,
+                                          name=field_name)
+            AreaAttribute.objects.create(area=area,
+                                         field=field,
+                                         value=value)
         return instance
