@@ -109,3 +109,45 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         # there should be a message about the not distributed inhabitants
         self.assertIn('999.0 Inhabitants not located to rastercells', response.data.get('message'))
         self.assertIn('area3', response.data.get('message'))
+
+        # get disaggregated population
+        response = self.get_check_200(url='disaggpoprasters-detail',
+                                      pk=self.population.raster.pk)
+        df = pd.DataFrame.from_records(response.data['rastercellpopulationagegender_set'])
+
+        # compare to population entry
+        popentries = PopulationEntry.objects.filter(population=self.population)
+        df_popentries = pd.DataFrame.from_records(
+            popentries.values('area', 'gender', 'age_group', 'value'))
+
+        # check results by gender, ignore population in area3
+        expected = df_popentries.loc[df_popentries.area != area3.id]\
+            [['gender', 'value']]\
+            .groupby('gender')\
+            .sum()
+        actual = df[['gender', 'value']].groupby('gender').sum()
+        pd.testing.assert_frame_equal(actual, expected)
+
+        # Delete area2+3 with its population
+        area_2_and_3 = Area.objects.filter(attributes__gen__in=['area2', 'area3'])
+        area_2_and_3.delete()
+
+        # Disaggregate the population
+        response = self.get('populations-disaggregate', pk=self.population.pk)
+        self.assertTrue(response.data.get('valid'))
+
+        # get disaggregated population
+        response = self.get_check_200(url = 'disaggpoprasters-detail',
+                                      pk=self.population.raster.pk)
+        df = pd.DataFrame.from_records(response.data['rastercellpopulationagegender_set'])
+
+        # compare to population entry
+        popentries = PopulationEntry.objects.filter(population=self.population)
+        df_popentries = pd.DataFrame.from_records(
+            popentries.values('area', 'gender', 'age_group', 'value'))
+
+        # check by gender
+        expected = df_popentries[['gender', 'value']].groupby('gender').sum()
+        actual = df[['gender', 'value']].groupby('gender').sum()
+        pd.testing.assert_frame_equal(actual, expected)
+

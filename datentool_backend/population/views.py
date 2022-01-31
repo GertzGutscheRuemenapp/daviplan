@@ -160,36 +160,29 @@ class PopulationViewSet(viewsets.ModelViewSet):
         # might have population from two areas
         df_cellagegender = dd['pop'].groupby(['id', 'gender_id', 'age_group_id']).sum()
 
-        # update or create RasterCellPopulationAgeGender-entries
-        create_list = []
-        update_list = []
-        # get the existing entries
+        # delete the existing entries
+        # updating would leave values for rastercells, that do not exist any more
         rc_exist = RasterCellPopulationAgeGender.objects\
-            .filter(year=year.year, disaggraster=disaggraster)\
-            .values_list('cell_id', 'gender_id', 'age_group_id', 'id')
+            .filter(year=year.year, disaggraster=disaggraster)
+        rc_exist.delete()
 
-        # lookup-dictionary for the existing
-        rc_exist_dict = {rc[:3]: rc[3] for rc in rc_exist}
-
+        # create RasterCellPopulationAgeGender-entries
+        create_list = []
         # create an object for each row in df_cellagegender
         for (cell, gender, age_group), value in df_cellagegender.iteritems():
-            rc_id = rc_exist_dict.get((cell, gender, age_group))
             entry = RasterCellPopulationAgeGender(
-                id=rc_id,
                 disaggraster=disaggraster,
                 year=year.year,
                 cell_id=cell,
                 gender_id=gender,
                 age_group_id=age_group,
                 value=value)
-            if rc_id is None:
-                create_list.append(entry)
-            else:
-                update_list.append(entry)
+
+            create_list.append(entry)
+
 
         # update existing and create new objects
         RasterCellPopulationAgeGender.objects.bulk_create(create_list)
-        RasterCellPopulationAgeGender.objects.bulk_update(update_list, fields=['value'])
         msg = f'Disaggregation of Population on level {population.area_level} was successful. ' + msg
         return Response({'valid': 1, 'message': msg,})
 
