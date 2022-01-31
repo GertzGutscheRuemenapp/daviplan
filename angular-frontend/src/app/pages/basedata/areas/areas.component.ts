@@ -279,7 +279,8 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
 
   setDefaultAreaLevel(level: AreaLevel | null): void {
     if (level?.id === this.defaultAreaLevelId) return;
-    this.http.patch<BasedataSettings>(this.rest.URLS.basedataSettings, { defaultPopAreaLevel: level?.id || null }
+    const attributes = { defaultPopAreaLevel: level? level.id : null };
+    this.http.patch<BasedataSettings>(this.rest.URLS.basedataSettings, attributes
     ).subscribe(settings => {
       this.defaultAreaLevelId = settings.defaultPopAreaLevel;
     })
