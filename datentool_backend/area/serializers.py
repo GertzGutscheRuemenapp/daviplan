@@ -67,10 +67,9 @@ class AreaLevelSerializer(serializers.ModelSerializer):
             symbol_data['symbol'] = 'line'
         symbol = MapSymbol.objects.create(**symbol_data) \
             if symbol_data else None
-        source_data = validated_data.pop('source', None)
+        source_data = validated_data.pop('source', {})
         date = source_data.pop('date', dt_date.today())
-        source = Source.objects.create(date=date, **source_data) \
-            if source_data else None
+        source = Source.objects.create(date=date, **source_data)
 
         instance = AreaLevel.objects.create(
             symbol=symbol, source=source, **validated_data)

@@ -50,13 +50,8 @@ export class MapService {
   private controls: Record<string, MapControl> = {};
   backgroundLayers: Layer[] = backgroundLayers;
   layerGroups?: BehaviorSubject<Array<LayerGroup>>;
-  projectSettings?: ProjectSettings;
 
-  constructor(private http: HttpClient, private rest: RestAPI, private settings: SettingsService) {
-    this.http.get<ProjectSettings>(this.rest.URLS.projectSettings).subscribe(projectSettings => {
-      this.projectSettings = projectSettings;
-    })
-  }
+  constructor(private http: HttpClient, private rest: RestAPI, private settings: SettingsService) { }
 
   get(target: string): MapControl {
     let control = this.controls[target];
@@ -93,10 +88,9 @@ export class MapService {
   private fetchInternalLayers(): Observable<LayerGroup[]> {
     const observable = new Observable<LayerGroup[]>(subscriber => {
       this.http.get<AreaLevel[]>(`${this.rest.URLS.arealevels}?active=true`).subscribe(levels => {
-        levels = sortBy(levels, 'order');
+        levels = sortBy(levels, 'order');//.reverse();
         let groups = [];
         const group: LayerGroup = { id: -1, name: 'Gebiete', order: 2 };
-        let i = -100;
         let layers: Layer[] = [];
         levels.forEach(level => {
           // skip levels with no symbol (aka should not be displayed)
@@ -108,17 +102,17 @@ export class MapService {
           if (environment.production) {
             tileUrl = tileUrl.replace('http:', 'https:');
           }
+          const id = -100 - level.id;
           const layer: Layer = {
-            id: i,
+            id: id,
             type: "vector-tiles",
-            order: i,
+            order: level.order,
             url: tileUrl,
             name: level.name,
             description: `Gebiete der Gebietseinheit ${level.name}`,
             symbol: level.symbol,
             labelField: level.labelField
           }
-          i -= 1;
           layers.push(layer);
         });
         if (layers) {
@@ -199,6 +193,7 @@ export class MapControl {
       }
     })
     this.mapService.getLayers().subscribe(layerGroups => {
+      this.checklistSelection.clear();
       this._serviceLayerGroups = layerGroups;
       layerGroups.forEach(group => {
         if (!group.children) return;

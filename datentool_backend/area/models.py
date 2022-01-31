@@ -1,4 +1,3 @@
-import json
 from django.db import models
 from django.contrib.gis.db import models as gis_models
 from datentool_backend.base import NamedModel, JsonAttributes

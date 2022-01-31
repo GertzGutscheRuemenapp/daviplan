@@ -1,8 +1,8 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
 import { AreaLevel, BasedataSettings, Layer, LayerGroup } from "../../../rest-interfaces";
-import { Observable } from "rxjs";
-import { sortBy } from "../../../helpers/utils";
+import { forkJoin, Observable } from "rxjs";
+import { arrayMove, sortBy } from "../../../helpers/utils";
 import { HttpClient } from "@angular/common/http";
 import { MatDialog } from "@angular/material/dialog";
 import { RestAPI } from "../../../rest-api";
@@ -10,6 +10,10 @@ import { InputCardComponent } from "../../../dash/input-card.component";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { MatCheckbox } from "@angular/material/checkbox";
 import { area } from "d3";
+import { environment } from "../../../../environments/environment";
+import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
+import { User } from "../../login/users";
+import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 
 
 @Component({
@@ -20,18 +24,23 @@ import { area } from "d3";
 export class AreasComponent implements AfterViewInit, OnDestroy {
   @ViewChild('editArealevelCard') editArealevelCard!: InputCardComponent;
   @ViewChild('enableLayerCheck') enableLayerCheck?: MatCheckbox;
+  @ViewChild('createAreaLevel') createLevelTemplate?: TemplateRef<any>;
   mapControl?: MapControl;
   selectedAreaLevel?: AreaLevel;
-  basedataSettings?: BasedataSettings;
+  defaultAreaLevelId?: number;
   presetLevels: AreaLevel[] = [];
   customAreaLevels: AreaLevel[] = [];
   colorSelection: string = 'black';
-  editArealevelErrors: string[] = [];
   legendGroup?: LayerGroup;
+  editLevelForm: FormGroup;
   Object = Object;
 
-  constructor(private mapService: MapService,private http: HttpClient, private dialog: MatDialog,
+  constructor(private mapService: MapService, private http: HttpClient, private dialog: MatDialog,
               private rest: RestAPI, private formBuilder: FormBuilder) {
+    this.editLevelForm = this.formBuilder.group({
+      name: new FormControl(''),
+      labelField: new FormControl('')
+    });
   }
 
   ngAfterViewInit(): void {
@@ -47,7 +56,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         this.colorSelection = this.selectedAreaLevel!.symbol?.fillColor || 'black';
       })
     })
-    this.setupLayerCard();
+    this.setupEditLevelCard();
   }
 
   /**
@@ -56,7 +65,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   fetchBasedataSettings(): Observable<BasedataSettings> {
     const query = this.http.get<BasedataSettings>(this.rest.URLS.basedataSettings);
     query.subscribe((basedataSettings) => {
-      this.basedataSettings = basedataSettings;
+      this.defaultAreaLevelId = basedataSettings.defaultPopAreaLevel;
     });
     return query;
   }
@@ -70,6 +79,9 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       this.presetLevels = [];
       this.customAreaLevels = [];
       areaLevels.forEach(level => {
+        if (environment.production) {
+          level.tileUrl = level.tileUrl?.replace('http:', 'https:');
+        }
         if (level.isPreset)
           this.presetLevels.push(level);
         else
@@ -81,10 +93,22 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     return query;
   }
 
-  setupLayerCard(): void {
+  setupEditLevelCard(): void {
     this.editArealevelCard.dialogOpened.subscribe(ok => {
+      this.editLevelForm.reset({
+        name: this.selectedAreaLevel?.name,
+        labelField: this.selectedAreaLevel?.labelField
+      });
+      if (this.selectedAreaLevel?.isPreset) {
+        this.editLevelForm.controls['name'].disable();
+        this.editLevelForm.controls['labelField'].disable();
+      }
+      else {
+        this.editLevelForm.controls['name'].enable();
+        this.editLevelForm.controls['labelField'].enable();
+      }
       this.colorSelection = this.selectedAreaLevel?.symbol?.strokeColor || 'black';
-      this.editArealevelErrors = [];
+      this.editLevelForm.setErrors(null);
     })
     this.editArealevelCard.dialogConfirmed.subscribe((ok)=>{
       const attributes: any = this.enableLayerCheck!.checked? {
@@ -99,8 +123,9 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       ).subscribe(arealevel => {
         this.selectedAreaLevel!.symbol = arealevel.symbol;
         this.editArealevelCard.closeDialog(true);
+        this.mapControl?.refresh({ internal: true });
       },(error) => {
-        this.editArealevelErrors = [error.error.detail];
+        this.editLevelForm.setErrors(error.error);
         this.editArealevelCard.setLoading(false);
       });
     })
@@ -133,14 +158,135 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     })
   }
 
-  ngOnDestroy(): void {
-    this.mapControl?.destroy();
-  }
-
   onCreateArea(): void {
+    let dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '300px',
+      disableClose: true,
+      data: {
+        title: 'Neue benutzerdefinierte Gebietseinteilung',
+        template: this.createLevelTemplate,
+        closeOnConfirm: false
+      }
+    });
+    dialogRef.afterOpened().subscribe(sth => {
+      this.editLevelForm.reset();
+      this.editLevelForm.controls['name'].enable();
+      this.editLevelForm.setErrors(null);
+    });
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      // display errors for all fields even if not touched
+      this.editLevelForm.markAllAsTouched();
+      if (this.editLevelForm.invalid) return;
+      dialogRef.componentInstance.isLoading = true;
+      let attributes = {
+        name: this.editLevelForm.value.name,
+        isPreset: false,
+        isActive: false,
+        order: 100 + this.customAreaLevels.length
+      };
+      this.http.post<AreaLevel>(this.rest.URLS.arealevels, attributes
+      ).subscribe(level => {
+        this.customAreaLevels.push(level);
+        dialogRef.close();
+      },(error) => {
+        this.editLevelForm.setErrors(error.error);
+        dialogRef.componentInstance.isLoading = false;
+      });
+    });
   }
 
   onDeleteArea(): void {
+    if (!this.selectedAreaLevel || this.selectedAreaLevel.isPreset)
+      return;
+    const dialogRef = this.dialog.open(RemoveDialogComponent, {
+      data: {
+        title: $localize`Die Gebietseinteilung wirklich entfernen?`,
+        confirmButtonText: $localize`Gebietseinteilung entfernen`,
+        value: this.selectedAreaLevel.name
+      }
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.http.delete(`${this.rest.URLS.arealevels}${this.selectedAreaLevel!.id}/`
+        ).subscribe(res => {
+          const idx = this.customAreaLevels.indexOf(this.selectedAreaLevel!);
+          if (idx >= 0) {
+            this.customAreaLevels.splice(idx, 1);
+            if (this.selectedAreaLevel!.id === this.defaultAreaLevelId)
+              this.setDefaultAreaLevel(null);
+            this.selectedAreaLevel = undefined;
+            this.mapControl?.refresh({ internal: true });
+          }
+        }, error => {
+          console.log('there was an error sending the query', error);
+        });
+      }
+    });
+  }
+
+  setLevelActive(areaLevel: AreaLevel, active: boolean) {
+    this.http.patch<AreaLevel>(`${this.rest.URLS.arealevels}${areaLevel.id}/`, { isActive: active }
+    ).subscribe(level => {
+      areaLevel.isActive = level.isActive;
+      this.mapControl?.refresh({ internal: true });
+    });
+  }
+
+  /**
+   * patches layer-order of area-levels to their current place in the array
+   *
+   */
+  patchOrder(areaLevels: AreaLevel[]): void {
+    if (areaLevels.length === 0) return;
+    let observables: Observable<any>[] = [];
+    for ( let i = 0; i < areaLevels.length; i += 1){
+      const areaLevel = areaLevels[i];
+      const request = this.http.patch<any>(`${this.rest.URLS.arealevels}${areaLevel.id}/`,
+        { order: 100 + i + 1 });
+      request.subscribe(res => {
+        areaLevel.order = res.order;
+      });
+      // ToDo: chain - refresh and fetchlayers at the end
+      observables.push(request);
+    }
+    forkJoin(...observables).subscribe(next => {
+      this.mapControl?.refresh({ internal: true });
+      this.customAreaLevels = sortBy(this.customAreaLevels, 'order');
+    })
+  }
+
+  /**
+   * move currently selected custom area-level up or down
+   *
+   * @param direction - 'up' or 'down'
+   */
+  moveSelected(direction: string): void {
+    if (!this.selectedAreaLevel) return;
+    const idx = this.customAreaLevels.indexOf(this.selectedAreaLevel);
+    if (direction === 'up'){
+      if (idx <= 0) return;
+      arrayMove(this.customAreaLevels, idx, idx - 1);
+    }
+    else if (direction === 'down'){
+      if (idx === -1 || idx === this.customAreaLevels.length - 1) return;
+      arrayMove(this.customAreaLevels, idx, idx + 1);
+    }
+    else return;
+
+    this.patchOrder(this.customAreaLevels);
+  }
+
+  setDefaultAreaLevel(level: AreaLevel | null): void {
+    if (level?.id === this.defaultAreaLevelId) return;
+    this.http.patch<BasedataSettings>(this.rest.URLS.basedataSettings, { defaultPopAreaLevel: level?.id || null }
+    ).subscribe(settings => {
+      this.defaultAreaLevelId = settings.defaultPopAreaLevel;
+    })
+  }
+
+  ngOnDestroy(): void {
+    this.mapControl?.destroy();
   }
 
 }
