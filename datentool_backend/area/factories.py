@@ -4,7 +4,9 @@ from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import MultiPolygon, Polygon
 from .models import (MapSymbol, LayerGroup, Layer,
                      WMSLayer, SourceTypes, Source,
-                     AreaLevel, Area)
+                     AreaLevel, Area,
+                     FClass, FieldType, FieldTypes,
+                     )
 
 
 faker = Faker('de-DE')
@@ -73,4 +75,23 @@ class AreaFactory(DjangoModelFactory):
                         srid=4326).transform(3857, clone=True)
     attributes = {'gen': faker.word(),
                  'inhabitants': faker.pyint(),}
+
+
+class FieldTypeFactory(DjangoModelFactory):
+    """a generic field type"""
+    class Meta:
+        model = FieldType
+
+    field_type = faker.random_element(FieldTypes)
+    name = faker.word()
+
+
+class FClassFactory(DjangoModelFactory):
+    """a class in a classification"""
+    class Meta:
+        model = FClass
+
+    classification = factory.SubFactory(FieldTypeFactory)
+    order = factory.Sequence(lambda n: faker.unique.pyint(max_value=100))
+    value = faker.unique.word()
 

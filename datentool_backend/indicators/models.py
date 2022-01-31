@@ -9,7 +9,8 @@ from datentool_backend.base import (NamedModel,
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 
 from datentool_backend.user.models import Service
-from datentool_backend.infrastructure.models import Place, FieldType
+from datentool_backend.area.models import FieldType
+from datentool_backend.infrastructure.models import Place
 from datentool_backend.modes.models import ModeVariant
 from datentool_backend.population.models import RasterCell
 

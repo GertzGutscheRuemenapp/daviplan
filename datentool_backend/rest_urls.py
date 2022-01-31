@@ -3,11 +3,11 @@ from datentool_backend.user.views import UserViewSet
 from datentool_backend.site.views import (SiteSettingViewSet,
                                           ProjectSettingViewSet,
                                           BaseDataSettingViewSet)
-from django.conf.urls import url
 
-from .population.models import RasterCell
 from .area.views import (LayerGroupViewSet, WMSLayerViewSet,
-                         AreaLevelViewSet, AreaViewSet)
+                         AreaLevelViewSet, AreaViewSet,
+                         FieldTypeViewSet, FClassViewSet,
+                         )
 
 from .demand.views import (GenderViewSet,
                            AgeGroupViewSet,
@@ -23,11 +23,10 @@ from .indicators.views import (RouterViewSet,
                                )
 
 from .infrastructure.views import (ScenarioViewSet,
-                                   FieldTypeViewSet,
                                     PlaceViewSet,
                                    CapacityViewSet,
                                    PlaceFieldViewSet,
-                                   FClassViewSet)
+                                   )
 from .logging.views import (CapacityUploadLogViewSet,
                             PlaceUploadLogViewSet,
                             AreaUploadLogViewSet)
@@ -40,7 +39,7 @@ from .population.views import (RasterViewSet,
                                PopulationEntryViewSet,
                                PopStatisticViewSet,
                                PopStatEntryViewSet)
-                               # ,RasterCellTileViewSet)
+
 from .user.views import (PlanningProcessViewSet,
                          YearViewSet,
                          InfrastructureViewSet,

@@ -1,14 +1,13 @@
-from rest_framework import viewsets, permissions
-from url_filter.integrations.drf import DjangoFilterBackend
-from rest_framework.exceptions import (ParseError, NotFound, APIException)
-from vectortiles.postgis.views import MVTView, BaseVectorTileView
-from django.views.generic import DetailView
-from rest_framework.decorators import action
-from django.http import JsonResponse
-from owslib.wms import WebMapService
 import requests
-from requests.exceptions import (MissingSchema, ConnectionError,
-                                        HTTPError)
+from requests.exceptions import (MissingSchema, ConnectionError, HTTPError)
+from django.views.generic import DetailView
+from django.http import JsonResponse
+from rest_framework import viewsets, permissions
+from rest_framework.exceptions import (ParseError, NotFound, APIException)
+from rest_framework.decorators import action
+from url_filter.integrations.drf import DjangoFilterBackend
+from owslib.wms import WebMapService
+from vectortiles.postgis.views import MVTView, BaseVectorTileView
 
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
@@ -19,12 +18,16 @@ from .models import (MapSymbol,
                      WMSLayer,
                      AreaLevel,
                      Area,
+                     FieldType,
+                     FClass,
                      )
 from .serializers import (MapSymbolSerializer,
                           LayerGroupSerializer,
                           WMSLayerSerializer,
                           AreaLevelSerializer,
                           AreaSerializer,
+                          FieldTypeSerializer,
+                          FClassSerializer,
                           )
 
 
@@ -139,3 +142,18 @@ class AreaViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Area.objects.all()
     serializer_class = AreaSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+
+class FieldTypeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+    queryset = FieldType.objects.all()  # prefetch_related('classification_set',
+                                         #         to_attr='classifications')
+    serializer_class = FieldTypeSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+
+class FClassViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+    queryset = FClass.objects.all()
+    serializer_class = FClassSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+

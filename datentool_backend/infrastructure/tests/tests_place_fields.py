@@ -26,16 +26,16 @@ from datentool_backend.infrastructure.factories import (
     ScenarioFactory,
     PlaceFactory,
     CapacityFactory,
-    FClassFactory,
     PlaceFieldFactory,
     FieldTypeFactory
 )
 from datentool_backend.infrastructure.models import (
     Place,
     FieldTypes,
-    FClass,
     PlaceField,
 )
+from datentool_backend.area.factories import FClassFactory
+from datentool_backend.area.models import FClass
 
 from faker import Faker
 faker = Faker('de-DE')
@@ -642,26 +642,6 @@ class TestFieldTypeCLAAPI(WriteOnlyWithCanEditBaseDataTest,
 
         self.profile.can_edit_basedata = False
         self.profile.save()
-
-
-class TestFClassAPI(WriteOnlyWithCanEditBaseDataTest,
-                    TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
-    """Test to post, put and patch data"""
-    url_key = "fclasses"
-    factory = FClassFactory
-
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-
-        fclass: FClass = cls.obj
-        classification = fclass.classification.pk
-        data = dict(classification_id=classification,
-                    order=faker.unique.pyint(max_value=100),
-                    value=faker.unique.word())
-        cls.post_data = data
-        cls.put_data = data
-        cls.patch_data = data
 
 
 class TestPlaceFieldAPI(WriteOnlyWithCanEditBaseDataTest,

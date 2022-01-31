@@ -88,3 +88,35 @@ class Area(DatentoolModelMixin, JsonAttributes, models.Model):
         name = attributes.get(self.area_level.label_field, self.pk)
         return f'{self.__class__.__name__} ({self.area_level.name}): {name}'
 
+
+class FieldTypes(models.TextChoices):
+    """enum for field types"""
+    CLASSIFICATION = 'CLA', 'Classification'
+    NUMBER = 'NUM', 'Number'
+    STRING = 'STR', 'String'
+
+
+class FieldType(DatentoolModelMixin, NamedModel, models.Model):
+    """a generic field type"""
+    field_type = models.CharField(max_length=3, choices=FieldTypes.choices)
+    name = models.TextField()
+
+    def validate_datatype(self, data) -> bool:
+        """validate the datatype of the given data"""
+        if self.field_type == FieldTypes.NUMBER:
+            return isinstance(data, (int, float))
+        if self.field_type == FieldTypes.STRING:
+            return isinstance(data, (str, bytes))
+        if self.field_type == FieldTypes.CLASSIFICATION:
+            return data in self.fclass_set.values_list('value', flat=True)
+
+
+class FClass(DatentoolModelMixin, models.Model):
+    """a class in a classification"""
+    classification = models.ForeignKey(FieldType, on_delete=PROTECT_CASCADE)
+    order = models.IntegerField()
+    value = models.TextField()
+
+    def __str__(self) -> str:
+        return (f'{self.__class__.__name__}: {self.classification.name}: '
+                f'{self.order} - {self.value}')

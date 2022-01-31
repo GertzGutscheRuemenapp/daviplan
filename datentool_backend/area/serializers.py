@@ -5,7 +5,9 @@ from datetime import date as dt_date
 from django.urls import reverse
 
 from .models import (MapSymbol, LayerGroup, WMSLayer,
-                     Source, AreaLevel, Area)
+                     Source, AreaLevel, Area,
+                     FieldType, FieldTypes, FClass,
+                     )
 
 
 class MapSymbolSerializer(serializers.ModelSerializer):
@@ -129,3 +131,57 @@ class AreaSerializer(GeoFeatureModelSerializer):
         model = Area
         geo_field = 'geom'
         fields = ('id', 'area_level', 'attributes')
+
+
+class FClassSerializer(serializers.ModelSerializer):
+    classification_id = serializers.PrimaryKeyRelatedField(
+        write_only=True,
+        required=False,
+        source='classification',
+        queryset=FieldType.objects.all())
+
+    class Meta:
+        model = FClass
+        read_only_fields = ('id', 'classification', )
+        write_only_fields = ('classification_id', )
+        fields = ('id', 'order', 'value',
+                  'classification', 'classification_id')
+
+
+class FieldTypeSerializer(serializers.ModelSerializer):
+
+    classification = FClassSerializer(required=False, many=True,
+                                      source='fclass_set')
+
+    class Meta:
+        model = FieldType
+        fields = ('id', 'name', 'field_type', 'classification')
+
+    def create(self, validated_data):
+        classification_data = validated_data.pop('fclass_set', {})
+        instance = super().create(validated_data)
+        instance.save()
+        if classification_data and instance.field_type == FieldTypes.CLASSIFICATION:
+            for classification in classification_data:
+                fclass = FClass(order=classification['order'],
+                                classification=instance,
+                                value=classification['value'])
+                fclass.save()
+        return instance
+
+    def update(self, instance, validated_data):
+        classification_data = validated_data.pop('fclass_set', {})
+        instance = super().update(instance, validated_data)
+        if classification_data and instance.field_type == FieldTypes.CLASSIFICATION:
+            classification_list = []
+            for classification in classification_data:
+                fclass = FClass(order=classification['order'],
+                                classification=instance,
+                                value=classification['value'])
+                fclass.save()
+                classification_list.append(fclass)
+            classification_data_ids = [f.id for f in classification_list]
+            for fclass in instance.fclass_set.all():
+                if fclass.id not in classification_data_ids:
+                    fclass.delete(keep_parents=True)
+        return instance

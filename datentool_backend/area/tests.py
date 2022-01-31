@@ -19,11 +19,14 @@ from .factories import (WMSLayerFactory,
                         AreaFactory,
                         AreaLevelFactory,
                         SourceFactory,
-                        LayerGroupFactory)
+                        LayerGroupFactory,
+                        FClassFactory,
+                        )
 
 from .models import (WMSLayer,
                      AreaLevel,
                      Area,
+                     FClass,
                      )
 
 from django.urls import reverse
@@ -287,29 +290,29 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
         result = mapbox_vector_tile.decode(response.content)
         features = result[self.obj.name]['features']
         # the properties contain the values for the areas and the labels
-        actual = [feature['properties'] for feature in features][0]        
-        
+        actual = [feature['properties'] for feature in features][0]
+
         self.assertEqual(area_level1.id, actual['area_level_id'])
-        
-        # url2 has content, exact tile with polygon 
+
+        # url2 has content, exact tile with polygon
         url2 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 10,
                                              'x': 550, 'y': 336})
         response = self.get(url2)
         self.assert_http_200_ok(response)
-        
+
         # decode the vector tile returned
-        result = mapbox_vector_tile.decode(response.content)        
+        result = mapbox_vector_tile.decode(response.content)
         features = result[self.obj.name]['features']
         # the properties contain the values for the areas and the labels
-        actual = [feature['properties'] for feature in features][0]        
+        actual = [feature['properties'] for feature in features][0]
         self.assertEqual(area_level1.id, actual['area_level_id'])
-                
+
         # url3 has no content, tile doesn't match with polygon
         url3 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 12,
                                              'x': 2903, 'y': 1345})
         response = self.get(url3)
         self.assert_http_204_no_content(response)
-        
+
 
 class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
                   TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
@@ -342,5 +345,25 @@ class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
         geojson_patch['geometry'] = area.geom.transform(25832, clone=True).ewkt
         cls.patch_data = geojson_patch
         cls.expected_patch_data = {'geometry': area.geom.ewkt,}
+
+
+class TestFClassAPI(WriteOnlyWithCanEditBaseDataTest,
+                    TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
+    """Test to post, put and patch data"""
+    url_key = "fclasses"
+    factory = FClassFactory
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+
+        fclass: FClass = cls.obj
+        classification = fclass.classification.pk
+        data = dict(classification_id=classification,
+                    order=faker.unique.pyint(max_value=100),
+                    value=faker.unique.word())
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
 
 
