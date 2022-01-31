@@ -4,6 +4,7 @@ from collections import OrderedDict
 from django.test import TestCase
 from test_plus import APITestCase
 from datetime import datetime
+import mapbox_vector_tile
 
 from datentool_backend.utils.test_utils import no_connection
 from datentool_backend.api_test import (BasicModelTest,
@@ -277,22 +278,30 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
                             attributes=attributes)
 
         self.obj = area_level1
-
+        # url1 has content, low zoom level (world)
         url1 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 1,
                                              'x': 0, 'y': 1})
         response = self.get(url1)
         self.assert_http_200_ok(response)
-
+        # decode the vector tile returned
+        result = mapbox_vector_tile.decode(response.content)
+        
+        # url2 has content, exact tile with polygon 
         url2 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 10,
                                              'x': 550, 'y': 336})
         response = self.get(url2)
 
         self.assert_http_200_ok(response)
-
+        # decode the vector tile returned
+        result = mapbox_vector_tile.decode(response.content)
+        
+        # url3 has no content, tile doesn't match with polygon
         url3 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 12,
                                              'x': 2903, 'y': 1345})
         response = self.get(url3)
         self.assert_http_204_no_content(response)
+        # decode the vector tile returned
+        result = mapbox_vector_tile.decode(response.content)
 
 
 class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
