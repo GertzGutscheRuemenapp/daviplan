@@ -1,3 +1,6 @@
+import numpy as np
+import xarray as xr
+
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 
 from datentool_backend.area.factories import AreaLevelFactory, AreaFactory, Area
@@ -32,12 +35,20 @@ class CreateInfrastructureTestdataMixin:
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        cls.scenario = ScenarioFactory(planning_process__owner=cls.profile)
 
     @classmethod
     def tearDownClass(cls):
         PlanningProcess.objects.all().delete()
         super().tearDownClass()
+
+    @classmethod
+    def create_scenario(cls):
+        disaggpopraster = getattr(cls, 'disaggpopraster', None)
+        if disaggpopraster:
+            cls.scenario = ScenarioFactory(planning_process__owner=cls.profile,
+                                           prognosis__raster=disaggpopraster)
+        else:
+            cls.scenario = ScenarioFactory(planning_process__owner=cls.profile)
 
     @classmethod
     def create_infrastructure_services(cls) -> InfrastructureFactory:
@@ -50,21 +61,47 @@ class CreateInfrastructureTestdataMixin:
     def create_areas(cls):
         cls.obj = area_level = AreaLevelFactory(label_field='gen')
         cls.url_pk = cls.obj.pk
-        coords = ((-500, 0), (-500, 100), (100, 100), (100, 0), (-500, 0))
-        coords = [(x + 1000000, y + 6500000) for x, y in coords]
+
+        # Area1
+        coords = np.array([(-500, 0),
+                           (-500, 100),
+                           (100, 100),
+                           (100, 0),
+                           (-500, 0)])\
+            + np.array([1000000, 6500000])
         cls.area1 = AreaFactory(
             area_level=area_level,
             geom=MultiPolygon(Polygon(coords),
                               srid=3857),
             attributes={'gen': 'area1', },
         )
-        coords = ((100, 100), (100, 500), (200, 500), (200, 100), (100, 100))
-        coords = [(x + 1000000, y + 6500000) for x, y in coords]
+
+        # Area2
+        coords = np.array([(100, 100),
+                           (100, 500),
+                           (400, 500),
+                           (400, 100),
+                           (100, 100)])\
+            + np.array([1000000, 6500000])
         cls.area2 = AreaFactory(
             area_level=area_level,
             geom=MultiPolygon(Polygon(coords),
                               srid=3857),
             attributes={'gen': 'area2', },
+        )
+
+        # Area3
+        coords = np.array([(-500, 400),
+                           (-500, 500),
+                           (-300, 500),
+                           (-300, 400),
+                           (-500, 400)])\
+            + np.array([1000000, 6500000])
+        cls.area3 = AreaFactory(
+            area_level=area_level,
+            geom=MultiPolygon(Polygon(coords),
+                              srid=3857),
+            attributes={'gen': 'area3', },
         )
         return cls
 
@@ -82,7 +119,7 @@ class CreateInfrastructureTestdataMixin:
                                   geom=Point(x=1000150, y=6500156))
         # Place 5 is in no area
         cls.place5 = PlaceFactory(infrastructure=infrastructure,
-                                  geom=Point(x=1000250, y=6500250))
+                                  geom=Point(x=1000450, y=6500450))
 
     @classmethod
     def create_capacities(cls):
@@ -122,36 +159,47 @@ class CreateInfrastructureTestdataMixin:
 
     @classmethod
     def create_raster_population(cls):
-        cls.disaggpopraster = DisaggPopRasterFactory()
+        year0 = Year.objects.get(is_default=True)
+        cls.disaggpopraster = DisaggPopRasterFactory(popraster__year=year0)
         popraster: PopulationRaster = cls.disaggpopraster.popraster
         raster: Raster = popraster.raster
 
         cells = []
         for n in range(30223, 30228):
-            for e in range(42481, 42487):
+            for e in range(42481, 42489):
                 cellcode = f'100mN{n:05}E{e:05}'
                 cell = RasterCellFactory.build(raster=raster, cellcode=cellcode)
                 cells.append(cell)
         RasterCell.objects.bulk_create(cells)
 
+        # population in some rastercells with N and E-Coordinates
         population = {(30224, 42481): 100, # outside areas
                       (30224, 42482): 200, # area1
                       (30224, 42483): 33, # area1
                       (30224, 42486): 1000, # belongs to area1+area2
                       (30225, 42486): 500, # area2
+                      (30226, 42487): 600, # area2, fully inside
+                      (30226, 42482): 400, # area3
+                      (30227, 42483): 300, # 3
                       }
 
-        for (e, n), value in population.items():
+        for (n, e), value in population.items():
             cellcode = f'100mN{n:05}E{e:05}'
-            RasterCellPopulationFactory(popraster=popraster, cell=cellcode, value=value)
+            cell = RasterCell.objects.get(raster=raster, cellcode=cellcode)
+            RasterCellPopulationFactory(popraster=popraster,
+                                        cell=cell,
+                                        value=value)
 
     @classmethod
     def create_years_gender_agegroups(cls):
         """Create years, genders and agegroups"""
-        Year.objects.bulk_create([Year(y) for y in range(2020, 2025)])
+        Year.objects.create(year=2022, is_default=True)
+        for year in range(2023, 2030):
+            Year.objects.create(year=year, is_default=False)
+
         cls.years = Year.objects.all()
-        Gender.objects.create('Male')
-        Gender.objects.create('Female')
+        Gender.objects.create(name='Male')
+        Gender.objects.create(name='Female')
         cls.genders = Gender.objects.all()
 
         AgeGroup.objects.create(from_age=0, to_age=17)
@@ -161,37 +209,44 @@ class CreateInfrastructureTestdataMixin:
         cls.age_groups = AgeGroup.objects.all()
 
     @classmethod
-    def creaate_population(cls):
+    def create_population(cls):
         """create population by area"""
+        base_year = Year.objects.get(is_default=True)
         area_level = cls.area1.area_level
         cls.population = PopulationFactory(area_level=area_level,
-                                           year=cls.years[0],
+                                           year=base_year,
                                            raster=cls.disaggpopraster,
                                            genders=cls.genders,
                                            )
 
-        pop_entry: {'Area1': {[[50, 50],
-                               [300, 300],
-                               [100, 200]
-                               ]},
-                    'Area2': {[[70, 50],
-                               [350, 300],
-                               [150, 200]
-                               ]},
-                    }
+        area_names = ['area1', 'area2']
+        pop_values_by_age_gender = xr.DataArray(
+            data=[[[50, 50],
+                   [300, 300],
+                   [100, 200]
+                   ],
+                  [[70, 50],
+                   [350, 300],
+                   [150, 200]
+                   ],
+                  ],
+            coords=(area_names,
+                    cls.age_groups,
+                    cls.genders),
+            dims=('area', 'age_group', 'gender'))
 
         entries = []
-        for area_name, pop_values_by_age_gender in pop_entry.items():
-            area = Area.objects.get(name=area_name)
-            for a, age_group in cls.age_groups:
-                for g, gender in cls.genders:
-                    value = pop_values_by_age_gender[a][g]
+        for area_name in area_names:
+            area = Area.objects.get(attributes__gen=area_name)
+            for age_group in cls.age_groups:
+                for gender in cls.genders:
+                    value = pop_values_by_age_gender.loc[area_name, age_group, gender]
                     entry = PopulationEntry(population=cls.population,
                                             area=area,
                                             gender=gender,
                                             age_group=age_group,
-                                            value=value,
+                                            value=float(value.data),
                                             )
-            entries.append(entry)
+                    entries.append(entry)
         PopulationEntry.objects.bulk_create(entries)
 
