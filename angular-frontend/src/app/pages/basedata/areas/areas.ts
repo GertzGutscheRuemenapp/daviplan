@@ -5,6 +5,7 @@ export const mockPresetLevels: AreaLevel[] = [
     id: 4,
     name: 'Gemeinden',
     order: 1,
+    labelField: 'gen',
     symbol: {
       symbol: 'line',
       fillColor: 'orange',
@@ -16,6 +17,7 @@ export const mockPresetLevels: AreaLevel[] = [
     id: 2,
     name: 'Verwaltungsgemeinschaften',
     order: 1,
+    labelField: 'gen',
     symbol: {
       symbol: 'line',
       fillColor: 'red',
@@ -27,6 +29,7 @@ export const mockPresetLevels: AreaLevel[] = [
     id: 3,
     name: 'Kreise und kreisfreie Städte',
     order: 1,
+    labelField: 'gen',
     symbol: {
       symbol: 'line',
       fillColor: 'yellow',
@@ -38,6 +41,7 @@ export const mockPresetLevels: AreaLevel[] = [
     id: 1,
     name: 'Bundesländer',
     order: 1,
+    labelField: 'gen',
     symbol: {
       symbol: 'line',
       fillColor: 'black',
@@ -52,6 +56,7 @@ export const mockAreaLevels: AreaLevel[] = [
     id: 5,
     name: 'benutzerdefiniert mit ganz langem Namen, um Overflow zu erzwingen',
     order: 1,
+    labelField: 'gen',
     symbol: {
       symbol: 'line',
       fillColor: 'green',
@@ -62,6 +67,7 @@ export const mockAreaLevels: AreaLevel[] = [
     id: 6,
     name: 'benutzerdefiniert 2',
     order: 1,
+    labelField: 'gen',
     symbol: {
       symbol: 'line',
       fillColor: 'brown',

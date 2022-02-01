@@ -45,6 +45,8 @@ $diagram-bar-width: 30%;
     border-top: 1px solid lightgrey;
     padding-top: 20px;
     >div {
+      border: 1px solid lightgrey;
+      padding: 10px;
       position: absolute;
       width: 100%;
       height: calc(100% - 30px);

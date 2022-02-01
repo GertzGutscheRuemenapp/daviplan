@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'django_cleanup.apps.CleanupConfig',
     'bulkmodel',
+    'django_filters'
 ]
 
 MIDDLEWARE = [
