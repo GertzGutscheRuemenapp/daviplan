@@ -449,6 +449,10 @@ export class MapControl {
     this.map?.view.fit(extent);
   }
 
+  removeExtent(name: string): void {
+    delete this.mapExtents[name];
+  }
+
   saveSettings(): void {
     if (this.mapSettings)
       this.settings.user.set(this.target, this.mapSettings, { patch: true });

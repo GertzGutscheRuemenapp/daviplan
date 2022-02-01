@@ -21,20 +21,11 @@
       <button mat-mini-fab
               class="no-shadow"
               color="primary"
-              title="Aktuellen Kartenausschnitt speichern"
-              [ngbPopover]="saveExtentPopover"
-              popoverTitle="Aktuellen Kartenausschnitt speichern"
-              placement="bottom"
-              triggers="click">
-        <mat-icon>bookmark_add</mat-icon>
-      </button>
-      <button mat-mini-fab
-              class="no-shadow"
-              color="primary"
-              title="Karte auf einen gespeicherten Kartenausschnitt zoomen"
-              [ngbPopover]="loadExtentPopover"
-              popoverTitle="Kartenausschnitt laden"
-              placement="bottom"
+              title="Kartenausschnitte (Bookmarks)"
+              [ngbPopover]="extentPopover"
+              popoverClass="custom-option-panel"
+              popoverTitle="Kartenausschnitte"
+              placement="bottom-right"
               triggers="click">
         <mat-icon>bookmark</mat-icon>
       </button>
@@ -77,26 +68,26 @@
   </eco-fab-speed-dial>
 </div>
 
-<ng-template #loadExtentPopover>
+<ng-template #extentPopover>
   <p *ngFor="let extent of Object.keys(mapControl?.mapExtents)">
     <button mat-button color="primary"
-            (click)="loadExtent(extent)">
+            title='Auf Ausschnitt "{{extent}}" zoomen'
+            (click)="loadExtent(extent)"
+            style="width: 75%; display: inline-flex;">
+      <mat-icon>bookmark_border</mat-icon>
       {{extent}}
-    </button><br>
-  </p>
-</ng-template>
-
-<ng-template #saveExtentPopover>
-  <p *ngFor="let extent of Object.keys(mapControl?.mapExtents)">
+    </button>
     <button mat-button color="primary"
-            (click)="saveExtent(extent)">
-      {{extent}}
-    </button><br>
+            (click)="removeExtent(extent)"
+            title='Kartenausschnitt "{{extent}}" entfernen'
+            style="float: right;">
+      <mat-icon>close</mat-icon>
+    </button>
   </p>
   <button mat-button color="primary"
           class="mat-button-dv"
           (click)="addExtent()" i18n>
-    <mat-icon>add</mat-icon>hinzufügen
+    <mat-icon>add</mat-icon>aktuellen Ausschnitt speichern
   </button>
 </ng-template>
 

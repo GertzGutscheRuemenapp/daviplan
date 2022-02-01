@@ -90,4 +90,8 @@ export class MapControlsComponent implements AfterViewInit {
     });
   }
 
+  removeExtent(name: string): void {
+    this.mapControl.removeExtent(name);
+  }
+
 }
