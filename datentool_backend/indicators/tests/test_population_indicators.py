@@ -41,6 +41,21 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         cls.create_population()
         cls.create_scenario()
 
+    def test_intersect_areas_and_disaggregate(self):
+        """Test intersect areas and disaggregate population"""
+        population: Population = self.population
+
+        # disaggregate the population and use precalculated rastercells
+        response = self.get('populations-intersectareaswithcells', pk=population.pk)
+        self.assertTrue(response.data.get('valid'))
+        print(response.data.get('message'))
+
+        # disaggregate the population and use precalculated rastercells
+        response = self.get('populations-disaggregate', pk=population.pk,
+                            data={'use_intersected_data': True,})
+        self.assertTrue(response.data.get('valid'))
+        print(response.data.get('message'))
+
     def test_disaggregate_population(self):
         """Test if the population is correctly Disaggregated to RasterCells"""
         population: Population = self.population
@@ -48,6 +63,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         # disaggregate the population
         response = self.get('populations-disaggregate', pk=population.pk)
         self.assertTrue(response.data.get('valid'))
+        print(response.data.get('message'))
         # do again to check updates
         response = self.get('populations-disaggregate', pk=population.pk)
         self.assertTrue(response.data.get('valid'))
@@ -107,7 +123,8 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         response = self.get('populations-disaggregate', pk=self.population.pk)
         self.assertTrue(response.data.get('valid'))
         # there should be a message about the not distributed inhabitants
-        self.assertIn('999.0 Inhabitants not located to rastercells', response.data.get('message'))
+        self.assertIn('999.0 Inhabitants not located to rastercells',
+                      response.data.get('message'))
         self.assertIn('area3', response.data.get('message'))
 
         # get disaggregated population
