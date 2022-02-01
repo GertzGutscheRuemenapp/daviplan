@@ -4,13 +4,14 @@ from django.http.request import QueryDict
 from django.db.models import OuterRef, Subquery, Count, IntegerField, Sum
 from django.db.models.functions import Coalesce
 from django.contrib.postgres.fields.jsonb import KeyTextTransform
+from django.db.models import F
 from sql_util.utils import Exists
 
 from datentool_backend.infrastructure.models import FieldTypes
 from .models import IndicatorType
 from datentool_backend.area.models import Area, AreaLevel
 from datentool_backend.infrastructure.models import Place, Capacity
-from datentool_backend.population.models import RasterCellPopulationAgeGender
+from datentool_backend.population.models import RasterCellPopulationAgeGender, AreaCell
 
 
 
@@ -151,22 +152,48 @@ class ComputePopulationAreaIndicator(ComputeIndicator):
     def compute(self):
         """"""
         area_level_id = self.query_params.get('area_level')
-        year = self.query_params.get('year', 0)
-        scenario_id = self.query_params.get('scenario')
-
         area_level = AreaLevel.objects.get(pk=area_level_id)
         areas = area_level.area_set.all()
-
         areas = areas.annotate(
             label=KeyTextTransform(area_level.label_field, 'attributes'))
 
+        acells = AreaCell.objects.filter(area__area_level_id=area_level_id)
 
-        population = RasterCellPopulationAgeGender.objects.all()
+        filter_params = {}
+        year = self.query_params.get('year')
+        if year:
+            filter_params['year'] = year
 
-        areas = self.aggregate_population(population, areas)
-        return areas
+        genders = self.query_params.getlist('gender')
+        if genders:
+            filter_params['gender__in'] = genders
 
-    def aggregate_population(self,
-                             population: RasterCellPopulationAgeGender,
-                             areas: Area) -> Area:
-        """"""
+        age_groups = self.query_params.getlist('age_group')
+        if age_groups:
+            filter_params['age_group__in'] = age_groups
+
+        # filter the rastercell-population by year, age_group and gender, if given
+        population = RasterCellPopulationAgeGender.objects.filter(**filter_params)
+
+        # sum up the rastercell-population to areas taking the share_area_of_cell
+        # into account
+
+        sq = population.filter(cell=OuterRef('cell__cell'))\
+            .annotate(area_id=OuterRef('area_id'),
+                      share_area_of_cell=OuterRef('share_area_of_cell'))\
+            .values('area_id')\
+            .annotate(sum_pop=Sum(F('value') * F('share_area_of_cell')))\
+            .values('sum_pop')
+
+        # sum up by area
+        aa = acells.annotate(sum_pop=Subquery(sq))\
+            .values('area_id')\
+            .annotate(sum_pop=Sum('sum_pop'))
+
+        # annotate areas with the results
+        sq = aa.filter(area_id=OuterRef('pk'))\
+            .values('sum_pop')
+        areas_with_pop = areas.annotate(value=Subquery(sq))
+
+        return areas_with_pop
+

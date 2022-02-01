@@ -32,7 +32,7 @@ from .serializers import (RasterSerializer,
                           PopStatEntrySerializer,
                           )
 
-from datentool_backend.area.models import Area
+from datentool_backend.area.models import Area, AreaLevel
 
 
 class RasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
@@ -78,6 +78,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
         """
         population = self.queryset[0]
         area_level_id = request.query_params.get('area_level', population.area_level_id)
+        area_level = AreaLevel.objects.get(pk=area_level_id)
 
         # use only cells with population and put values from Census to column pop
         raster_cells = population.raster.popraster.raster.rastercell_set
@@ -129,7 +130,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
         df['share_area_of_cell'] = df['weight'] / df['total_weight_cell']
 
 
-        ac = AreaCell.objects.filter(area__area_level=population.area_level,
+        ac = AreaCell.objects.filter(area__area_level=area_level,
                                      cell__popraster=population.raster.popraster)
         ac.delete()
 
@@ -147,7 +148,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
             )
             create_list.append(entry)
         AreaCell.objects.bulk_create(create_list)
-        msg = f'{population.area_level} areas were successfully intersected with Rastercells.\n'
+        msg = f'{area_level} areas were successfully intersected with Rastercells.\n'
         return Response({'valid': 1, 'message': msg,})
 
 
@@ -203,7 +204,6 @@ class PopulationViewSet(viewsets.ModelViewSet):
 
         # can work only when rastercells are found
         dd = dd.loc[~has_no_rastercell]
-
 
         # population by age_group and gender in each rastercell
         dd['pop'] = dd['value'] * dd['share_cell_of_area']

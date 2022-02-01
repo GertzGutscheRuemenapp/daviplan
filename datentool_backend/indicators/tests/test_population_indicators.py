@@ -172,9 +172,18 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
     def test_aggregate_population_to_area(self):
         """Test the aggregation of population to areas of an area level"""
         self.get('populations-disaggregate', pk=self.population.pk)
+        self.get('populations-intersectareaswithcells', pk=self.population.pk,
+                 data={'area_level': self.area_level2.pk,})
 
+        query_params = {'indicator': self.indicator.pk,
+                        'area_level': self.area_level2.pk, }
+
+        response = self.get_check_200(self.url_key+'-list', data=query_params)
+        # Test if sum of large area equals all input areas
+
+        # area_level1
         query_params = {'indicator': self.indicator.pk,
                         'area_level': self.obj.pk, }
 
         response = self.get_check_200(self.url_key+'-list', data=query_params)
-        print(response.data)
+        # Test if input data matches
