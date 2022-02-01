@@ -46,6 +46,7 @@ class TestAreas(TestCase):
 
     def test_area(self):
         area = self.area
+        print(area)
         print(area.area_level)
         print(repr(area.area_level))
 
@@ -275,7 +276,7 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
                             attributes={'gen': 'Area Two', })
 
         self.obj = area_level1
-
+        # url1 has content, low zoom level (world)
         url1 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 1,
                                              'x': 0, 'y': 1})
         response = self.get(url1)
@@ -288,14 +289,21 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
         url2 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 10,
                                              'x': 550, 'y': 336})
         response = self.get(url2)
-
         self.assert_http_200_ok(response)
-
+        
+        # decode the vector tile returned
+        result = mapbox_vector_tile.decode(response.content)        
+        features = result[self.obj.name]['features']
+        # the properties contain the values for the areas and the labels
+        actual = [feature['properties'] for feature in features][0]        
+        self.assertEqual(area_level1.id, actual['area_level_id'])
+                
+        # url3 has no content, tile doesn't match with polygon
         url3 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 12,
                                              'x': 2903, 'y': 1345})
         response = self.get(url3)
         self.assert_http_204_no_content(response)
-
+        
 
 class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
                   TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
