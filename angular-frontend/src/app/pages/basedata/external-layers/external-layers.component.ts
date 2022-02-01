@@ -443,7 +443,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * patches layer-order of infrastructures to their current place in the array
+   * patches layer-order of layers or layer-groups to their current place in the array
    *
    */
   patchOrder(array: Layer[] | LayerGroup[]): void {

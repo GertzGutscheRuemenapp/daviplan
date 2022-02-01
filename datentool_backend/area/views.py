@@ -1,5 +1,4 @@
 from rest_framework import viewsets, permissions
-from url_filter.integrations.drf import DjangoFilterBackend
 from rest_framework.exceptions import (ParseError, NotFound, APIException)
 from vectortiles.postgis.views import MVTView, BaseVectorTileView
 from django.views.generic import DetailView
@@ -9,6 +8,7 @@ from owslib.wms import WebMapService
 import requests
 from requests.exceptions import (MissingSchema, ConnectionError,
                                         HTTPError)
+from django_filters import rest_framework as filters
 from django.db import models
 from django.db.models.functions import Cast
 from django.contrib.postgres.fields.jsonb import KeyTextTransform
@@ -62,7 +62,6 @@ class LayerGroupViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = LayerGroup.objects.all()
     serializer_class = LayerGroupSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-    filter_backends = [DjangoFilterBackend]
     filter_fields = ['external']
 
 
@@ -137,11 +136,19 @@ class ProtectPresetPermission(permissions.BasePermission):
         return True
 
 
+class AreaLevelFilter(filters.FilterSet):
+    active = filters.BooleanFilter(field_name='is_active')
+    class Meta:
+        model = AreaLevel
+        fields = ['is_active']
+
+
 class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = AreaLevel.objects.all()
     serializer_class = AreaLevelSerializer
     permission_classes = [ProtectPresetPermission &
                           (HasAdminAccessOrReadOnly | CanEditBasedata)]
+    filterset_class = AreaLevelFilter
 
 
 class AreaViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

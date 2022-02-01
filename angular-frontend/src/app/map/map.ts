@@ -155,7 +155,10 @@ export class OlMap {
       labelField?: string
     } = {}): Layer<any> {
     const source = new VectorTileSource({
-      format: new MVT({ featureClass: (options.featureClass === 'feature')? Feature: RenderFeature }),
+      format: new MVT({
+        featureClass: (options.featureClass === 'feature')? Feature: RenderFeature,
+        idProperty: 'id'
+      }),
       url: url
     });
 
@@ -196,19 +199,48 @@ export class OlMap {
       }
     })
     layer.set('name', name);
+
+    let hoveredFeatId: number | undefined | string;
+    const hoverStyle= new Style({
+      fill: new Fill({ color: options.fill?.mouseOverColor || 'rgba(0,0,0,0)' }),
+      stroke: new Stroke({ color: options?.stroke?.mouseOverColor || 'rgba(0,0,0,0)',
+        width: options?.stroke?.width || 1})
+    })
+    const selectionLayer = new VectorTileLayer({
+      map: this.map,
+      renderMode: 'vector',
+      source: layer.getSource(),
+      style: function (feature) {
+        if (feature.getId() === hoveredFeatId) {
+          return hoverStyle;
+        }
+        return;
+      },
+    });
+
+    this.map.on('pointermove', event => {
+      layer.getFeatures(event.pixel).then((features: Feature<any>[]) => {
+        if (features.length === 0) {
+          hoveredFeatId = undefined;
+          selectionLayer.changed();
+          return;
+        }
+        if (hoveredFeatId === features[0].getId()) return;
+        hoveredFeatId = features[0].getId();
+        selectionLayer.changed();
+      });
+    });
+
+    this.map.getViewport().addEventListener('mouseout', event => {
+      hoveredFeatId = undefined;
+      selectionLayer.changed();
+    });
+
     this.setMouseOverLayer(layer, {
-      tooltipField: options?.tooltipField,
-      fillColor: options?.fill?.mouseOverColor,
-      strokeColor: options?.stroke?.mouseOverColor,
-      strokeWidth: options?.stroke?.width || 1
+      tooltipField: options?.tooltipField
     });
     this.map.addLayer(layer);
     this.layers[name] = layer;
-    // source.on('tileloadend', function(evt) {
-    //   const z = evt.tile.getTileCoord()[0];
-    //   // @ts-ignore
-    //   const features = evt.tile.getFeatures();
-    // });
     return layer;
   }
 
@@ -291,7 +323,7 @@ export class OlMap {
     strokeWidth?: number
   }){
     // avoid setting map interactions if nothing is defined to set anyway
-    if (!(options.cursor || options.tooltipField || options.fillColor || options.strokeColor)) return;
+    if (!(options.cursor || options.tooltipField || options.fillColor || options.strokeColor) || !layer.getVisible()) return;
 
     if (options.tooltipField)
       layer.set('showTooltip', true);
@@ -309,35 +341,26 @@ export class OlMap {
       });
     }
     this.map.on('pointermove', event => {
-      const showTooltip = layer.get('showTooltip') && layer.getVisible();
-      if (!showTooltip) return;
-      const pixel = event.pixel;
-      const hoveredFeat = this.map.forEachFeatureAtPixel(pixel, (feature, hlayer) => {
-        if (feature && hlayer === layer) return feature;
-        else return;
+      layer.getFeatures(event.pixel).then((features: Feature<any>[]) => {
+        const overlay = this.overlays[layer.get('name')];
+        if (overlay) {
+          overlay.getSource().clear();
+          overlay.getSource().addFeatures(features);
+        }
+        if (options.tooltipField) {
+          let tooltip = this.tooltipOverlay.getElement()
+          if (features.length > 0) {
+            this.tooltipOverlay.setPosition(event.coordinate);
+            // let coords = this.map.getCoordinateFromPixel(pixel);
+            tooltip!.innerHTML = features[0].get(options.tooltipField); // + `<br>${coords[0]}, ${coords[1]}`;
+            tooltip!.style.display = '';
+          } else
+            tooltip!.style.display = 'none';
+        }
+        if (options.cursor && layer.getVisible()) {
+          this.div!.style.cursor = features.length > 0 ? options.cursor : '';
+        }
       });
-      const overlay = this.overlays[layer.get('name')];
-      if (overlay){
-        overlay.getSource().clear();
-        // RenderFeatures (VectorTiles) do not have a geometry
-        if (hoveredFeat && hoveredFeat instanceof Feature) {
-          overlay.getSource().addFeature(hoveredFeat);
-        }
-      }
-      if (options.tooltipField) {
-        let tooltip = this.tooltipOverlay.getElement()
-        if (hoveredFeat) {
-          this.tooltipOverlay.setPosition(event.coordinate);
-          // let coords = this.map.getCoordinateFromPixel(pixel);
-          tooltip!.innerHTML = hoveredFeat.get(options.tooltipField); // + `<br>${coords[0]}, ${coords[1]}`;
-          tooltip!.style.display = '';
-        }
-        else
-          tooltip!.style.display = 'none';
-      }
-      if (options.cursor && layer.getVisible()){
-        this.div!.style.cursor = hoveredFeat? options.cursor: '';
-      }
     });
     const overlay = this.overlays[layer.get('name')];
     if (overlay)
