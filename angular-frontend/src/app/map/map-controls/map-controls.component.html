@@ -1,5 +1,4 @@
 <div (mouseenter)="showOnHover && toggle()" (mouseleave)="showOnHover && toggle()">
-
   <div id="leftDialBack" [ngClass]="{'expanded': expanded}">
     <div></div>
   </div>
@@ -23,14 +22,20 @@
               class="no-shadow"
               color="primary"
               title="Aktuellen Kartenausschnitt speichern"
-              (click)="action('action2')">
+              [ngbPopover]="saveExtentPopover"
+              popoverTitle="Aktuellen Kartenausschnitt speichern"
+              placement="bottom"
+              triggers="click">
         <mat-icon>bookmark_add</mat-icon>
       </button>
       <button mat-mini-fab
               class="no-shadow"
               color="primary"
               title="Karte auf einen gespeicherten Kartenausschnitt zoomen"
-              (click)="action('action1')">
+              [ngbPopover]="loadExtentPopover"
+              popoverTitle="Kartenausschnitt laden"
+              placement="bottom"
+              triggers="click">
         <mat-icon>bookmark</mat-icon>
       </button>
     </eco-fab-speed-dial-actions>
@@ -71,3 +76,37 @@
     </eco-fab-speed-dial-actions>
   </eco-fab-speed-dial>
 </div>
+
+<ng-template #loadExtentPopover>
+  <p *ngFor="let extent of Object.keys(mapControl?.mapExtents)">
+    <button mat-button color="primary"
+            (click)="loadExtent(extent)">
+      {{extent}}
+    </button><br>
+  </p>
+</ng-template>
+
+<ng-template #saveExtentPopover>
+  <p *ngFor="let extent of Object.keys(mapControl?.mapExtents)">
+    <button mat-button color="primary"
+            (click)="saveExtent(extent)">
+      {{extent}}
+    </button><br>
+  </p>
+  <button mat-button color="primary"
+          class="mat-button-dv"
+          (click)="addExtent()" i18n>
+    <mat-icon>add</mat-icon>hinzufügen
+  </button>
+</ng-template>
+
+<ng-template #addExtentTemplate>
+  <form [formGroup]="addExtentForm">
+    <div fxLayout="column">
+      <mat-form-field appearance="fill" style="width: 100%">
+        <mat-label i18n>Name</mat-label>
+        <input matInput formControlName="name" required>
+      </mat-form-field>
+    </div>
+  </form>
+</ng-template>

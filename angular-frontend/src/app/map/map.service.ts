@@ -161,6 +161,7 @@ export class MapControl {
   private _serviceLayerGroups: LayerGroup[] = [];
   private checklistSelection = new SelectionModel<Layer>(true );
   mapSettings: any = {};
+  mapExtents: any = {};
   editMode: boolean = true;
   background?: Layer;
   backgroundOpacity = 1;
@@ -171,16 +172,19 @@ export class MapControl {
     this.target = target;
     // call destroy on page reload
     window.onbeforeunload = () => this.destroy();
+    this.settings.user.get('extents').subscribe(extents => {
+      this.mapExtents = extents || {};
+    })
   }
 
   init(): void {
     this.map = new OlMap(this.target, { projection: `EPSG:${this.srid}` });
-    this.settings.user.get(this.target).subscribe(settings => {
-      settings = settings || {};
-      this.mapSettings = settings;
-      const editMode = settings['legend-edit-mode'];
+    this.settings.user.get(this.target).subscribe(mapSettings => {
+      mapSettings = mapSettings || {};
+      this.mapSettings = mapSettings;
+      const editMode = mapSettings['legend-edit-mode'];
       this.editMode = (editMode != undefined)? editMode : true;
-      const backgroundId = parseInt(settings[`background-layer`]);
+      const backgroundId = parseInt(mapSettings[`background-layer`]);
       this.background = (backgroundId)? this.mapService.backgroundLayers.find(
         l => { return l.id === backgroundId }) : this.mapService.backgroundLayers[1];
       if (this.background)
@@ -435,9 +439,20 @@ export class MapControl {
     this.mapSettings['legend-edit-mode'] = this.editMode;
   }
 
+  saveCurrentExtent(name: string): void {
+    this.mapExtents[name] = this.map?.view.calculateExtent();
+  }
+
+  loadExtent(name: string): void {
+    const extent = this.mapExtents[name];
+    if (!extent) return;
+    this.map?.view.fit(extent);
+  }
+
   saveSettings(): void {
     if (this.mapSettings)
       this.settings.user.set(this.target, this.mapSettings, { patch: true });
+    this.settings.user.set('extents', this.mapExtents, { patch: true });
   }
 
   destroy(): void {
