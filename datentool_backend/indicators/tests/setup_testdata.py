@@ -103,6 +103,35 @@ class CreateInfrastructureTestdataMixin:
                               srid=3857),
             attributes={'gen': 'area3', },
         )
+
+        cls.area_level2 = AreaLevelFactory(name='Districts')
+        # District1
+        coords = np.array([(-500, 0),
+                           (-500, 100),
+                           (-100, 100),
+                           (-100, 0),
+                           (-500, 0)])\
+            + np.array([1000000, 6500000])
+        cls.district1 = AreaFactory(
+            area_level=cls.area_level2,
+            geom=MultiPolygon(Polygon(coords),
+                              srid=3857),
+            attributes={'gen': 'district1', },
+        )
+        area_level2 = AreaLevelFactory(name='Districts')
+        # District2
+        coords = np.array([(-100, 0),
+                           (-100, 100),
+                           (200, 100),
+                           (200, 0),
+                           (-100, 0)])\
+            + np.array([1000000, 6500000])
+        cls.district2 = AreaFactory(
+            area_level=cls.area_level2,
+            geom=MultiPolygon(Polygon(coords),
+                              srid=3857),
+            attributes={'gen': 'district2', },
+        )
         return cls
 
     @classmethod

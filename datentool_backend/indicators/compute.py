@@ -143,7 +143,10 @@ class TotalCapacityInArea(ComputeAreaIndicator):
         return areas_with_capacities
 
 
+@register_indicator_class()
 class ComputePopulationAreaIndicator(ComputeIndicator):
+    label = 'Population By Area'
+    description = 'Total Population per Area'
 
     def compute(self):
         """"""

@@ -168,3 +168,13 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         actual = df[['gender', 'value']].groupby('gender').sum()
         pd.testing.assert_frame_equal(actual, expected)
 
+
+    def test_aggregate_population_to_area(self):
+        """Test the aggregation of population to areas of an area level"""
+        self.get('populations-disaggregate', pk=self.population.pk)
+
+        query_params = {'indicator': self.indicator.pk,
+                        'area_level': self.obj.pk, }
+
+        response = self.get_check_200(self.url_key+'-list', data=query_params)
+        print(response.data)

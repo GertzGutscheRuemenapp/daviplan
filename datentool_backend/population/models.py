@@ -44,6 +44,7 @@ class RasterCellPopulation(models.Model):
     def __str__(self) -> str:
         return f'{self.__class__.__name__}: {self.popraster.name}-{self.cell.cellcode}'
 
+
 class AreaCell(models.Model):
     """
     stores the share of the cell on the whole area population

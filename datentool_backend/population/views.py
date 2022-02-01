@@ -3,10 +3,7 @@ import pandas as pd
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.contrib.gis.db.models.functions import Area as A, Intersection
-from django.db.models import OuterRef, Subquery, Count, IntegerField, FloatField, Sum
-from django.db.models import Q, F, Exists, ExpressionWrapper
-from django.contrib.gis.db.models import PolygonField
+from django.db.models import F
 
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
@@ -21,8 +18,6 @@ from .models import (Raster,
                      PopulationEntry,
                      PopStatistic,
                      PopStatEntry,
-                     RasterCell,
-                     RasterCellPopulation,
                      RasterCellPopulationAgeGender,
                      AreaCell,
                      )
@@ -38,6 +33,7 @@ from .serializers import (RasterSerializer,
                           )
 
 from datentool_backend.area.models import Area
+
 
 class RasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Raster.objects.all()
@@ -81,6 +77,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
         route to intersect areas with raster cells
         """
         population = self.queryset[0]
+        area_level_id = request.query_params.get('area_level', population.area_level_id)
 
         # use only cells with population and put values from Census to column pop
         raster_cells = population.raster.popraster.raster.rastercell_set
@@ -91,9 +88,8 @@ class PopulationViewSet(viewsets.ModelViewSet):
                       rcp_id=F('rastercellpopulation__id'),
                       )
 
-        # spatial intersect with areas with inhabitants (entries in the PopualtionEntry)
+        # spatial intersect with areas from given area_level
         area_tbl = Area._meta.db_table
-        popentry_tbl = PopulationEntry._meta.db_table
 
         rr = raster_cells_with_inhabitants.extra(
             select={f'area_id': f'"{area_tbl}".id',
@@ -102,12 +98,9 @@ class PopulationViewSet(viewsets.ModelViewSet):
                     },
             tables=[area_tbl],
             where=[f'''st_intersects(poly, "{area_tbl}".geom)
-            AND EXISTS (SELECT 1 FROM "{popentry_tbl}"
-                        WHERE "{popentry_tbl}".area_id = "{area_tbl}".id
-                        AND "{popentry_tbl}".population_id = %s
-                        )
+            AND "{area_tbl}".area_level_id = %s
             '''],
-            params=(population.id,),
+            params=(area_level_id,),
         )
 
         df = pd.DataFrame.from_records(
