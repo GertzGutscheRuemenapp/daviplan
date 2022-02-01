@@ -60,12 +60,13 @@ class TestIndicator(TestCase):
 
         # add an unknown indicator
         IndicatorFactory(indicator_type__classname='Unknown')
-        self.assertQuerysetEqual(indicator_types.values_list('classname', flat=True),
-                                 ['Unknown',
-                                  DummyIndicator.__name__,
-                                  NumberOfLocations.__name__,
-                                  TotalCapacityInArea.__name__,
-                                  ], ordered=False)
+        assert set(['Unknown',
+                    DummyIndicator.__name__,
+                    NumberOfLocations.__name__,
+                    TotalCapacityInArea.__name__,
+                    ])\
+               .issubset(set(indicator_types.values_list('classname', flat=True)))
+
         # delete an indicator_type
         IndicatorType.objects.get(classname=NumberOfLocations.__name__).delete()
 
@@ -94,19 +95,22 @@ class TestIndicator(TestCase):
                                           field_type=f1.field_type,
                                           label='F2')
 
-        self.assertQuerysetEqual(indicator_types.values_list('classname', flat=True),
-                                 ['Unknown',
-                                  DummyIndicator.__name__,
-                                  TotalCapacityInArea.__name__,
-                                  ], ordered=False)
+        indicators_values_list = indicator_types.values_list('classname', flat=True)
+        assert set(['Unknown',
+                    DummyIndicator.__name__,
+                    TotalCapacityInArea.__name__,
+                    ]).issubset(set(indicators_values_list))
+
+        assert NumberOfLocations.__name__ not in indicators_values_list
 
         # reset the indicators
         IndicatorType._update_indicators_types()
-        self.assertQuerysetEqual(indicator_types.values_list('classname', flat=True),
-                                 [NumberOfLocations.__name__,
-                                  TotalCapacityInArea.__name__,
-                                  DummyIndicator.__name__,
-                                  ], ordered=False)
+        assert set([DummyIndicator.__name__,
+                    NumberOfLocations.__name__,
+                    TotalCapacityInArea.__name__,
+                    ])\
+               .issubset(set(indicator_types.values_list('classname', flat=True)))
+
 
         dummy_indicator = IndicatorType.objects.get(classname=DummyIndicator.__name__)
         dummy_fields = IndicatorTypeField.objects.filter(
