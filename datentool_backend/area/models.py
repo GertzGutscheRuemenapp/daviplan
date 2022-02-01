@@ -82,6 +82,37 @@ class Area(DatentoolModelMixin, JsonAttributes, models.Model):
     area_level = models.ForeignKey(AreaLevel, on_delete=PROTECT_CASCADE)
     geom = gis_models.MultiPolygonField(srid=3857)
 
+    @property
+    def attributes(self):
+        return self.areaattribute_set
+
+    @attributes.setter
+    def attributes(self, attr_dict):
+        aa = AreaAttribute.objects.filter(area=self)
+        aa.delete()
+        for field_name, value in attr_dict.items():
+            try:
+                field = AreaField.objects.get(area_level=self.area_level,
+                                              name=field_name)
+            except AreaField.DoesNotExist:
+                if isinstance(value, (int, float)):
+                    ftype = FieldTypes.NUMBER
+                else:
+                    ftype = FieldTypes.STRING
+                field_type, created = FieldType.objects.get_or_create(ftype=ftype,
+                                                                      name=ftype.value)
+                field = AreaField.objects.create(area_level=self.area_level,
+                                                 name=field_name,
+                                                 field_type=field_type,
+                                                 )
+            AreaAttribute(area=self, field=field, value=value)
+
+    def save(self, **kwargs):
+        super().save(**kwargs)
+        for aa in self.areaattribute_set.iterator():
+            aa.save()
+
+
     def __str__(self) -> str:
         attributes = self.areaattribute_set
         name = attributes.get('field__name' == self.area_level.label_field).field.name

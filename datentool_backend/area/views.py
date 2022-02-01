@@ -2,6 +2,9 @@ import requests
 from requests.exceptions import (MissingSchema, ConnectionError, HTTPError)
 from django.views.generic import DetailView
 from django.http import JsonResponse
+from django.db.models import OuterRef, Subquery, CharField, Case, When, F, JSONField, Func, Value
+from django.db.models.functions import Cast
+from django.contrib.postgres.aggregates import ArrayAgg
 from rest_framework import viewsets, permissions
 from rest_framework.exceptions import (ParseError, NotFound, APIException)
 from rest_framework.decorators import action
@@ -20,6 +23,8 @@ from .models import (MapSymbol,
                      Area,
                      FieldType,
                      FClass,
+                     AreaAttribute,
+                     FieldTypes,
                      )
 from .serializers import (MapSymbolSerializer,
                           LayerGroupSerializer,
@@ -28,8 +33,12 @@ from .serializers import (MapSymbolSerializer,
                           AreaSerializer,
                           FieldTypeSerializer,
                           FClassSerializer,
-                          AreaAttributeField,
                           )
+
+
+class JsonObject(Func):
+    function = 'json_object'
+    output_field = JSONField()
 
 
 class AreaLevelTileView(MVTView, DetailView):
@@ -41,7 +50,19 @@ class AreaLevelTileView(MVTView, DetailView):
 
     def get_vector_tile_queryset(self):
         qs = self.get_object().area_set.all()
-        # to Do: Annotate the queryset with the values from area_attributes
+        sq = AreaAttribute.objects.filter(area=OuterRef('pk'))
+        sq = sq.annotate(val=Case(
+            When(field__field_type__ftype=FieldTypes.STRING, then=F('str_value')),
+            When(field__field_type__ftype=FieldTypes.NUMBER, then=Cast(F('num_value'), CharField())),
+            When(field__field_type__ftype=FieldTypes.CLASSIFICATION,
+                 then=F('class_value__value')),
+            output_field=CharField())
+                         )
+        sq = sq.values('area')\
+            .annotate(attributes=JsonObject(ArrayAgg(F('field__name')), ArrayAgg(F('val')), output_field=CharField()))\
+            .values('attributes')
+        qs = qs.annotate(attributes=Subquery(sq, output_field=CharField()))
+
         return qs
 
     def get(self, request, *args, **kwargs):

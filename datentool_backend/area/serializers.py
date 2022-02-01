@@ -150,7 +150,7 @@ class FieldTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FieldType
-        fields = ('id', 'name', 'field_type', 'classification')
+        fields = ('id', 'name', 'ftype', 'classification')
 
     def create(self, validated_data):
         classification_data = validated_data.pop('fclass_set', {})

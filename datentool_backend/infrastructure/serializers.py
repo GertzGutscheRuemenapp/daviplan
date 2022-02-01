@@ -170,12 +170,12 @@ class PlaceAttributeValidator:
             # check if the value is of correct type
             field_type = place_field.field_type
             if not field_type.validate_datatype(field_value):
-                ft = FieldTypes(field_type.field_type)
+                ft = FieldTypes(field_type.ftype)
                 msg = f'''Field '{field_name}' for Infrastructure '{infr_name}'
                 should be of {field_type}({ft.label})'''
                 if field_type.ftype == FieldTypes.CLASSIFICATION:
                     fclasses = list(
-                        FClass.objects.filter(classification=field_type)
+                        FClass.objects.filter(ftype=field_type)\
                         .values_list('value', flat=True))
                     msg += f'.The value {field_value!r} is not in the valid classes {fclasses}.'
                 else:

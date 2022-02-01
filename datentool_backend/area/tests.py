@@ -21,7 +21,6 @@ from .factories import (WMSLayerFactory,
                         SourceFactory,
                         LayerGroupFactory,
                         FClassFactory,
-                        FieldTypeFactory,
                         )
 
 from .models import (WMSLayer,
@@ -295,7 +294,7 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
         self.obj = area_level1
         # url1 has content, low zoom level (world)
         url1 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 1,
-                                             'x': 0, 'y': 1})
+                                             'x': 1, 'y': 0}) # was: x=0, y=1
         response = self.get(url1)
         self.assert_http_200_ok(response)
         # decode the vector tile returned
@@ -321,7 +320,7 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
 
         # url3 has no content, tile doesn't match with polygon
         url3 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 12,
-                                             'x': 2903, 'y': 1345})
+                                             'x': 2903, 'y': 1345}) # 2198
         response = self.get(url3)
         self.assert_http_204_no_content(response)
 

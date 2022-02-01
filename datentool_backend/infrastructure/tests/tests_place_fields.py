@@ -76,7 +76,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         place: Place = cls.obj
         infrastructure = place.infrastructure.pk
 
-        ft_age = FieldTypeFactory(field_type=FieldTypes.NUMBER)
+        ft_age = FieldTypeFactory(ftype=FieldTypes.NUMBER)
         field1 = PlaceFieldFactory(
             attribute='age',
             infrastructure=place.infrastructure,
@@ -84,7 +84,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
             sensitive=False,
         )
 
-        ft_name = FieldTypeFactory(field_type=FieldTypes.STRING)
+        ft_name = FieldTypeFactory(ftype=FieldTypes.STRING)
         field2 = PlaceFieldFactory(
             attribute='surname',
             infrastructure=place.infrastructure,
@@ -140,7 +140,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         i2.allow_sensitive_data = True
         i2.save()
 
-        field_type = FieldTypeFactory(field_type=FieldTypes.NUMBER)
+        field_type = FieldTypeFactory(ftype=FieldTypes.NUMBER)
         field1 = PlaceFieldFactory(attribute='harmless', sensitive=False,
                                    field_type=field_type,
                                    infrastructure=infr)
@@ -176,21 +176,21 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         infr.save()
 
         field1 = PlaceFieldFactory(attribute='int_field', sensitive=False,
-                                   field_type__field_type=FieldTypes.NUMBER,
+                                   field_type__ftype=FieldTypes.NUMBER,
                                    infrastructure=infr)
         field2 = PlaceFieldFactory(attribute='text_field', sensitive=False,
-                                   field_type__field_type=FieldTypes.STRING,
+                                   field_type__ftype=FieldTypes.STRING,
                                    infrastructure=infr)
         field3 = PlaceFieldFactory(
             attribute='class_field',
             sensitive=False,
-            field_type__field_type=FieldTypes.CLASSIFICATION,
+            field_type__ftype=FieldTypes.CLASSIFICATION,
             infrastructure=infr)
 
-        fclass1 = FClassFactory(classification=field3.field_type,
+        fclass1 = FClassFactory(ftype=field3.field_type,
                                 order=1,
                                 value='Category_1')
-        fclass2 = FClassFactory(classification=field3.field_type,
+        fclass2 = FClassFactory(ftype=field3.field_type,
                                 order=2,
                                 value='Category_2')
         return pr1, place
@@ -340,7 +340,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
                                              infrastructure=place1.infrastructure)
         # deleting a FClass category should fail,
         # if there are attributes using this category
-        fclass1 = FClass.objects.get(classification=class_field.field_type, value='Category_1')
+        fclass1 = FClass.objects.get(ftype=class_field.field_type, value='Category_1')
         response = self.delete('fclasses-detail',
                                pk=fclass1.pk,
                                data=dict(override_protection=False))
@@ -571,8 +571,8 @@ class TestFieldTypeNUMSTRAPI(WriteOnlyWithCanEditBaseDataTest,
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        cls.obj = FieldTypeFactory(field_type=FieldTypes.NUMBER)
-        data = dict(field_type=FieldTypes.NUMBER,
+        cls.obj = FieldTypeFactory(ftype=FieldTypes.NUMBER)
+        data = dict(ftype=FieldTypes.NUMBER,
                     name=faker.word(),
                     )
         cls.post_data = data
@@ -588,13 +588,13 @@ class TestFieldTypeCLAAPI(WriteOnlyWithCanEditBaseDataTest,
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        cls.obj = FieldTypeFactory(field_type=FieldTypes.CLASSIFICATION)
+        cls.obj = FieldTypeFactory(ftype=FieldTypes.CLASSIFICATION)
 
         fclass_set = [{'order': 1, 'value': faker.word(), },
                       {'order': 2, 'value': faker.word(), },
                       ]
 
-        data = dict(field_type=FieldTypes.CLASSIFICATION,
+        data = dict(ftype=FieldTypes.CLASSIFICATION,
                     name=faker.word(),
                     classification=fclass_set,
                     )
@@ -608,9 +608,9 @@ class TestFieldTypeCLAAPI(WriteOnlyWithCanEditBaseDataTest,
         self.profile.can_edit_basedata = True
         self.profile.save()
 
-        field_typ = FieldTypeFactory(field_type=FieldTypes.CLASSIFICATION)
-        fclass1 = FClassFactory(classification=field_typ, order=7, value='7')
-        fclass2 = FClassFactory(classification=field_typ, order=42, value='42')
+        field_typ = FieldTypeFactory(ftype=FieldTypes.CLASSIFICATION)
+        fclass1 = FClassFactory(ftype=field_typ, order=7, value='7')
+        fclass2 = FClassFactory(ftype=field_typ, order=42, value='42')
 
         self.assertEqual(field_typ.fclass_set.count(), 2)
 
