@@ -1,3 +1,4 @@
+from rest_framework_mvt.managers import MVTManager
 from django.db import models
 from django.contrib.gis.db import models as gis_models
 from datentool_backend.base import NamedModel, JsonAttributes
@@ -75,6 +76,7 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
     is_active = models.BooleanField(default=True)
     is_preset = models.BooleanField(default=False)
     label_field = models.TextField(null=True)
+    vector_tiles = MVTManager()
 
 
 class Area(DatentoolModelMixin, JsonAttributes, models.Model):
