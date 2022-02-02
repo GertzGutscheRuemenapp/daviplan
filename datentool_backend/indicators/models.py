@@ -77,6 +77,7 @@ class IndicatorType(NamedModel, models.Model):
     classname = models.TextField(unique=True)
     description = models.TextField()
     parameters = models.ManyToManyField(FieldType, through='IndicatorTypeField')
+    category = models.TextField(default='')
 
     @classmethod
     def _update_indicators_types(cls):
@@ -85,6 +86,7 @@ class IndicatorType(NamedModel, models.Model):
             obj, created = IndicatorType.objects.get_or_create(classname=classname)
             obj.name = indicator_class.label
             obj.description = indicator_class.description
+            obj.category = indicator_class.category
             obj.save()
             field_types = []
             for field_name, field_descr in indicator_class.parameters.items():
@@ -116,5 +118,5 @@ class Indicator(DatentoolModelMixin, JsonAttributes, NamedModel, models.Model):
     """An Indicator"""
     indicator_type = models.ForeignKey(IndicatorType, on_delete=PROTECT_CASCADE)
     name = models.TextField()
-    parameters = models.JSONField()
-    service = models.ForeignKey(Service, on_delete=PROTECT_CASCADE)
+    parameters = models.JSONField(null=True)
+    service = models.ForeignKey(Service, on_delete=PROTECT_CASCADE, null=True)

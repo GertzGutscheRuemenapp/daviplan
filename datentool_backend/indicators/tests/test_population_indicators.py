@@ -1,5 +1,6 @@
 import pandas as pd
 
+from rest_framework import status
 from test_plus import APITestCase
 
 from datentool_backend.api_test import LoginTestCase
@@ -32,8 +33,8 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
     def setUpTestData(cls):
         super().setUpTestData()
 
-        cls.indicator = IndicatorFactory(
-            indicator_type__classname=ComputePopulationAreaIndicator.__name__)
+        #cls.indicator = IndicatorFactory(
+            #indicator_type__classname=ComputePopulationAreaIndicator.__name__)
 
         cls.create_areas()
         cls.create_years_gender_agegroups()
@@ -173,17 +174,60 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         """Test the aggregation of population to areas of an area level"""
         self.get('populations-disaggregate', pk=self.population.pk)
         self.get('populations-intersectareaswithcells', pk=self.population.pk,
-                 data={'area_level': self.area_level2.pk,})
+                 data={'area_level': self.area_level2.pk, })
 
-        query_params = {'indicator': self.indicator.pk,
+        # create a compute indicator, if not yet exists
+
+        response = self.get('indicators-list', data={
+            'indicatortype_classname': ComputePopulationAreaIndicator.__name__})
+
+        if not response.data:
+            response = self.get('indicatortypes-list', data={
+                'classname': ComputePopulationAreaIndicator.__name__})
+            indicatortype_id = response.data[0]['id']
+
+            response = self.post('indicators-list', data={
+                'indicator_type': indicatortype_id,
+                'name': 'MyComputePopAreaIndicator',
+            })
+            indicator_id = response.data['id']
+
+        query_params = {'indicator': indicator_id,
                         'area_level': self.area_level2.pk, }
 
-        response = self.get_check_200(self.url_key+'-list', data=query_params)
+        response = self.get_check_200(self.url_key + '-list', data=query_params)
+        print(response.data)
         # Test if sum of large area equals all input areas
 
         # area_level1
-        query_params = {'indicator': self.indicator.pk,
+        query_params = {'indicator': indicator_id,
                         'area_level': self.obj.pk, }
 
         response = self.get_check_200(self.url_key+'-list', data=query_params)
         # Test if input data matches
+        print(response.data)
+
+        query_params = {'indicator': indicator_id,
+                        'area_level': self.obj.pk,
+                        'gender': self.genders[0].pk,
+                        }
+
+        response = self.get_check_200(self.url_key + '-list', data=query_params)
+        print(response.data)
+
+
+        query_params = {'indicator': indicator_id,
+                        'area_level': self.obj.pk,
+                        'age_group': self.age_groups.values_list('id', flat=True)[:2],
+                        }
+
+        response = self.get_check_200(self.url_key + '-list', data=query_params)
+        print(response.data)
+
+        query_params = {'indicator': indicator_id,
+                        'area_level': self.obj.pk,
+                        'area': [self.area1.pk, self.area3.pk],
+                        }
+
+        response = self.get_check_200(self.url_key + '-list', data=query_params)
+        print(response.data)

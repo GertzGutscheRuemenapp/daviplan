@@ -39,11 +39,36 @@ class IndicatorTypeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = IndicatorType.objects.all()
     serializer_class = IndicatorTypeSerializer
 
+    def get_queryset(self):
+        IndicatorType._update_indicators_types()
+        qs = super().get_queryset()
+        params = {}
+        classnames = self.request.query_params.getlist('classname')
+        if classnames:
+            params['classname__in'] = classnames
+        categories = self.request.query_params.getlist('category')
+        if categories:
+            params['category__in'] = categories
+        qs = qs.filter(**params)
+        return qs
+
 
 class IndicatorViewSet(viewsets.ModelViewSet):
     queryset = Indicator.objects.all()
     serializer_class = IndicatorSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    #permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        params = {}
+        classnames = self.request.query_params.getlist('indicatortype_classname')
+        if classnames:
+            params['indicator_type__classname__in'] = classnames
+        names = self.request.query_params.getlist('name')
+        if names:
+            params['name__in'] = names
+        qs = qs.filter(**params)
+        return qs
 
 
 class AreaIndicatorViewSet(viewsets.ReadOnlyModelViewSet):
