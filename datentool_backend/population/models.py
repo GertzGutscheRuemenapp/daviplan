@@ -39,9 +39,21 @@ class RasterCellPopulation(models.Model):
     popraster = models.ForeignKey(PopulationRaster, on_delete=PROTECT_CASCADE)
     cell = models.ForeignKey(RasterCell, on_delete=PROTECT_CASCADE)
     value = models.FloatField()
+    area = models.ManyToManyField(Area, through='AreaCell')
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__}: {self.popraster.name}-{self.cell.cellcode}'
+
+
+class AreaCell(models.Model):
+    """
+    stores the share of the cell on the whole area population
+    and the share of the area on the cells area
+    """
+    cell = models.ForeignKey(RasterCellPopulation, on_delete=models.CASCADE)
+    area = models.ForeignKey(Area, on_delete=models.CASCADE)
+    share_cell_of_area = models.FloatField()
+    share_area_of_cell = models.FloatField()
 
 
 class DisaggPopRaster(DatentoolModelMixin, models.Model):
