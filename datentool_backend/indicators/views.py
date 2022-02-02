@@ -20,6 +20,7 @@ from .serializers import (StopSerializer,
                           IndicatorTypeSerializer,
                           IndicatorSerializer,
                           AreaIndicatorSerializer,
+                          PopulationIndicatorSerializer,
                           )
 
 
@@ -118,3 +119,17 @@ class AreaLevelIndicatorTileView(MVTView, DetailView):
         return BaseVectorTileView.get(self, request=request, z=kwargs.get('z'),
                                       x=kwargs.get('x'), y=kwargs.get('y'))
 
+
+class PopulationIndicatorViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = PopulationIndicatorSerializer
+
+    def get_queryset(self):
+        #  filter the capacity returned for the specific service
+        indicator_id = self.request.query_params.get('indicator')
+        if indicator_id is None:
+            raise BadRequest('indicator_id is required as query_param')
+
+        classname = Indicator.objects.get(pk=indicator_id).indicator_type.classname
+        compute_class: ComputeIndicator = IndicatorType._indicator_classes[classname]
+        qs = compute_class(self.request.query_params).compute()
+        return qs

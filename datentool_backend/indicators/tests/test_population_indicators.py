@@ -8,7 +8,8 @@ from datentool_backend.api_test import LoginTestCase
 from ..factories import IndicatorFactory
 
 from ..compute import (ComputePopulationAreaIndicator,
-                      )
+                       ComputePopulationDetailAreaIndicator,
+                       )
 
 from .setup_testdata import CreateInfrastructureTestdataMixin
 from datentool_backend.demand.models import AgeGroup, Gender
@@ -230,4 +231,43 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                         }
 
         response = self.get_check_200(self.url_key + '-list', data=query_params)
+        print(response.data)
+
+
+    def test_get_population_by_year_agegroup_gender(self):
+        """Test to get the population by year, agegroup, and gender"""
+        self.get('populations-disaggregate', pk=self.population.pk)
+        self.get('populations-intersectareaswithcells', pk=self.population.pk,
+                 data={'area_level': self.area_level2.pk, })
+
+        # create a compute indicator, if not yet exists
+
+        response = self.get('indicators-list', data={
+            'indicatortype_classname':
+            ComputePopulationDetailAreaIndicator.__name__})
+
+        if not response.data:
+            response = self.get('indicatortypes-list', data={
+                'classname': ComputePopulationDetailAreaIndicator.__name__})
+            indicatortype_id = response.data[0]['id']
+
+            response = self.post('indicators-list', data={
+                'indicator_type': indicatortype_id,
+                'name': 'MyComputePopAreaIndicator',
+            })
+            indicator_id = response.data['id']
+
+        query_params = {'indicator': indicator_id,
+                        'area': self.area1.pk, }
+
+        response = self.get_check_200('populationindicators-list', data=query_params)
+        print(response.data)
+        # Test if sum of large area equals all input areas
+
+        # area_level1
+        query_params = {'indicator': indicator_id,
+                        'area': self.district1.pk, }
+
+        response = self.get_check_200('populationindicators-list', data=query_params)
+        # Test if input data matches
         print(response.data)

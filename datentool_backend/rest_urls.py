@@ -20,6 +20,7 @@ from .indicators.views import (RouterViewSet,
                                IndicatorTypeViewSet,
                                IndicatorViewSet,
                                AreaIndicatorViewSet,
+                               PopulationIndicatorViewSet,
                                )
 
 from .infrastructure.views import (ScenarioViewSet,
@@ -70,6 +71,7 @@ router.register(r'routers', RouterViewSet, basename='routers')
 router.register(r'indicatortypes', IndicatorTypeViewSet, basename='indicatortypes')
 router.register(r'indicators', IndicatorViewSet, basename='indicators')
 router.register(r'areaindicators', AreaIndicatorViewSet, basename='areaindicators')
+router.register(r'populationindicators', PopulationIndicatorViewSet, basename='populationindicators')
 
 # infrastructure
 router.register(r'scenarios', ScenarioViewSet, basename='scenarios')

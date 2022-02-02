@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import Callable, Dict
 from django.http.request import QueryDict
-from django.db.models import OuterRef, Subquery, Count, IntegerField, Sum
+from django.db.models import OuterRef, Subquery, Count, IntegerField, Sum, FloatField
 from django.db.models.functions import Coalesce
 from django.contrib.postgres.fields.jsonb import KeyTextTransform
 from django.db.models import F
@@ -163,8 +163,8 @@ class ComputePopulationAreaIndicator(ComputeIndicator):
         if areas:
             area_filter['id__in'] = areas
 
-        areas = area_level.area_set.filter(**area_filter)
-        areas = areas.annotate(
+        area_set = area_level.area_set.filter(**area_filter)
+        area_set = area_set.annotate(
             label=KeyTextTransform(area_level.label_field, 'attributes'))
 
         acells = AreaCell.objects.filter(area__area_level_id=area_level_id)
@@ -181,10 +181,6 @@ class ComputePopulationAreaIndicator(ComputeIndicator):
         age_groups = self.query_params.getlist('age_group')
         if age_groups:
             filter_params['age_group__in'] = age_groups
-
-        areas = self.query_params.getlist('area')
-        if areas:
-            filter_params['area_id__in'] = areas
 
         # filter the rastercell-population by year, age_group and gender, if given
         population = RasterCellPopulationAgeGender.objects.filter(**filter_params)
@@ -207,7 +203,67 @@ class ComputePopulationAreaIndicator(ComputeIndicator):
         # annotate areas with the results
         sq = aa.filter(area_id=OuterRef('pk'))\
             .values('sum_pop')
-        areas_with_pop = areas.annotate(value=Subquery(sq))
+        areas_with_pop = area_set.annotate(value=Subquery(sq))
 
         return areas_with_pop
+
+
+@register_indicator_class()
+class ComputePopulationDetailAreaIndicator(ComputeIndicator):
+    label = 'Population By Gender, AgeGroup and Year'
+    description = 'Population by Gender, Agegroup and Year for one or several areas'
+    category = 'Population Services'
+
+    def compute(self):
+        """"""
+
+        # filter areas
+        area_filter = {}
+        areas = self.query_params.getlist('area')
+        if areas:
+            area_filter['id__in'] = areas
+
+        areas = Area.objects.filter(**area_filter)
+        acells = AreaCell.objects.filter(area__in=areas)
+
+        #  other filters
+        filter_params = {}
+        year = self.query_params.get('year')
+        if year:
+            filter_params['disaggraster__raster__year'] = year
+
+        genders = self.query_params.getlist('gender')
+        if genders:
+            filter_params['gender__in'] = genders
+
+        age_groups = self.query_params.getlist('age_group')
+        if age_groups:
+            filter_params['age_group__in'] = age_groups
+
+
+        # filter the rastercell-population by year, age_group and gender, if given
+        rasterpop = RasterCellPopulationAgeGender.objects.filter(**filter_params)
+
+        # sum up the rastercell-population of the areas to rastercells taking the share_area_of_cell
+        # into account
+        sq = acells.filter(cell__cell=OuterRef('cell'))\
+            .annotate(pop=OuterRef('value') * F('share_area_of_cell'),
+                      year=OuterRef('year'),
+                      gender=OuterRef('gender_id'),
+                      agegroup=OuterRef('age_group_id'))\
+            .values('cell', 'year', 'gender', 'agegroup')\
+            .annotate(sum_pop=Sum('pop'))
+
+        #  and sum up all rastercells in the selected area(s),
+        #  grouped by ayer, gender and agegroup
+        qs = rasterpop.annotate(sum_pop=Subquery(sq.values('sum_pop')))
+        qs2 = qs\
+            .values('year', 'gender_id', 'age_group_id')\
+            .annotate(value=Sum('sum_pop'),
+                      gender=F('gender_id'),
+                      agegroup=F('age_group_id')
+                      )
+        #  return only these columns
+        qs3 = qs2.values('year', 'gender', 'agegroup', 'value')
+        return qs3
 

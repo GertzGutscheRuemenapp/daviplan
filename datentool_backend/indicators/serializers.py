@@ -48,3 +48,10 @@ class AreaIndicatorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Area
         fields = ('id', 'label', 'value')
+
+
+class PopulationIndicatorSerializer(serializers.Serializer):
+    year = serializers.IntegerField()
+    gender = serializers.IntegerField()
+    agegroup = serializers.IntegerField()
+    value = serializers.FloatField()
