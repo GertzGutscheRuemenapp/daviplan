@@ -172,6 +172,10 @@ class ComputePopulationAreaIndicator(ComputeIndicator):
         if age_groups:
             filter_params['age_group__in'] = age_groups
 
+        areas = self.query_params.getlist('area')
+        if areas:
+            filter_params['area_id__in'] = areas
+
         # filter the rastercell-population by year, age_group and gender, if given
         population = RasterCellPopulationAgeGender.objects.filter(**filter_params)
 
