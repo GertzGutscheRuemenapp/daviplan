@@ -20,6 +20,7 @@ class ComputeIndicator(metaclass=ABCMeta):
     label: str = None
     description: str = None
     parameters: Dict[str, FieldTypes] = {}
+    category: str = 'General'
 
     def __init__(self, query_params: QueryDict):
         self.query_params = query_params
@@ -82,6 +83,7 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
 class NumberOfLocations(ComputeAreaIndicator):
     label = 'NumLocations'
     description = 'Number of Locations per Area'
+    category = 'Infrastructure Services'
 
     def aggregate_places(self,
                          places: Place,
@@ -110,6 +112,7 @@ class NumberOfLocations(ComputeAreaIndicator):
 class TotalCapacityInArea(ComputeAreaIndicator):
     label = 'Total Capacity'
     description = 'Total Capacity per Area'
+    category = 'Infrastructure Services'
 
     def aggregate_places(self,
                          places: Place,
@@ -148,12 +151,19 @@ class TotalCapacityInArea(ComputeAreaIndicator):
 class ComputePopulationAreaIndicator(ComputeIndicator):
     label = 'Population By Area'
     description = 'Total Population per Area'
+    category = 'Population Services'
 
     def compute(self):
         """"""
         area_level_id = self.query_params.get('area_level')
         area_level = AreaLevel.objects.get(pk=area_level_id)
-        areas = area_level.area_set.all()
+
+        area_filter = {}
+        areas = self.query_params.getlist('area')
+        if areas:
+            area_filter['id__in'] = areas
+
+        areas = area_level.area_set.filter(**area_filter)
         areas = areas.annotate(
             label=KeyTextTransform(area_level.label_field, 'attributes'))
 
