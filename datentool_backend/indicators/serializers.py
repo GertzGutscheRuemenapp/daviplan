@@ -33,7 +33,7 @@ class IndicatorTypeSerializer(serializers.ModelSerializer):
     parameters = FieldTypeSerializer(many=True)
     class Meta:
         model = IndicatorType
-        fields = ('id', 'name', 'classname', 'description', 'parameters')
+        fields = ('id', 'name', 'classname', 'description', 'parameters', 'category')
 
 
 class IndicatorSerializer(serializers.ModelSerializer):
