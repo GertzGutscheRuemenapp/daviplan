@@ -9,24 +9,19 @@ from datentool_backend.api_test import (BasicModelTest,
                                         )
 
 
-from .models import (PrognosisEntry,
-                     Year,
+from .models import (Year,
                      PopulationRaster,
                      PopulationEntry,
                      PopStatistic,
                      PopStatEntry,
-                     DisaggPopRaster,
                      Prognosis,
                      Population)
 from .factories import (RasterCellFactory,
                         AgeGroupFactory,
                         GenderFactory,
                         PopulationFactory,
-                        DisaggPopRasterFactory,
                         RasterCellPopulationFactory,
                         RasterCellPopulationAgeGenderFactory,
-                        PrognosisEntryFactory,
-                        AreaLevelFactory,
                         AreaFactory,
                         PrognosisFactory,
                         PopStatEntryFactory,
@@ -46,42 +41,46 @@ class TestPopulation(TestCase):
     def setUpTestData(cls):
         cls.years = Year.objects.bulk_create([Year(year=y)
                                               for y in range(2010, 2015)],
-                                              #return_queryset=True,
                                               )
         cls.years = Year.objects.all()
         str(cls.years[0])
         cls.cell = RasterCellFactory()
         cls.genders = [GenderFactory() for i in range(3)]
-        cls.disagg_popraster = DisaggPopRasterFactory(genders=cls.genders)
+        cls.population = PopulationFactory(genders=cls.genders)
 
     def test_cell(self):
         self.assertQuerysetEqual(
-            self.disagg_popraster.genders.all(), self.genders, ordered=False)
+            self.population.genders.all(), self.genders, ordered=False)
         rp = RasterCellPopulationAgeGenderFactory()
-        self.assertEqual(rp.cell.raster, rp.disaggraster.popraster.raster)
+        self.assertEqual(rp.cell.raster, rp.population.popraster.raster)
         str(rp.cell)
 
     def test_prognosis(self):
         """Test the prognosis"""
         pe = list()
         area = AreaFactory()
-        prognosis = PrognosisFactory(years=self.years, raster__genders=self.genders)
-        agegroups = [AgeGroupFactory(), AgeGroupFactory(), AgeGroupFactory()]
+        popraster = PopulationRasterFactory()
+        prognosis = PrognosisFactory(years=self.years)
+        age_groups = [AgeGroupFactory(), AgeGroupFactory(), AgeGroupFactory()]
         years = prognosis.years.all()
-        genders = prognosis.raster.genders.all()
-        for agegroup in agegroups:
-            for year in years:
+        genders = [GenderFactory(), GenderFactory()]
+        for year in years:
+            population = PopulationFactory(prognosis=prognosis,
+                                           year=year,
+                                           genders=genders,
+                                           popraster=popraster)
+            for age_group in age_groups:
                 for gender in genders:
-                    pe.append(PrognosisEntryFactory.build(prognosis=prognosis,
-                                                          year=year,
-                                                          area=area,
-                                                          agegroup=agegroup,
-                                                          gender=gender))
+                    pe.append(PopulationEntryFactory.build(
+                        population=population,
+                        area=area,
+                        age_group=age_group,
+                        gender=gender))
 
-        PrognosisEntry.objects.bulk_create(pe)
-        pe_set = prognosis.prognosisentry_set.all()
-        values = np.array(pe_set.values_list('value')).\
-            reshape(len(agegroups), len(years), len(genders))
+        PopulationEntry.objects.bulk_create(pe)
+        pop_set = prognosis.population_set.all()
+        values = np.array(pop_set.values_list('populationentry__value', flat=True)).\
+            reshape(len(age_groups), len(years), len(genders))
 
     def test_popstatistic(self):
         ps = PopStatEntryFactory()
@@ -131,25 +130,6 @@ class TestPopulationRasterAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.patch_data = data
 
 
-class TestDisaggPopRasterAPI(WriteOnlyWithCanEditBaseDataTest,
-                             TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
-    """"""
-    url_key = "disaggpoprasters"
-    factory = DisaggPopRasterFactory
-
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        disaggpopraster: DisaggPopRaster = cls.obj
-        popraster = disaggpopraster.popraster.pk
-        genders = list(disaggpopraster.genders.all().values_list(flat=True))
-
-        data = dict(popraster=popraster, genders=genders)
-        cls.post_data = data
-        cls.put_data = data
-        cls.patch_data = data
-
-
 class TestPrognosisAPI(WriteOnlyWithCanEditBaseDataTest,
                        TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """"""
@@ -161,33 +141,9 @@ class TestPrognosisAPI(WriteOnlyWithCanEditBaseDataTest,
         super().setUpTestData()
         prognosis: Prognosis = cls.obj
         years = list(prognosis.years.all().values_list(flat=True))
-        raster = prognosis.raster.pk
 
-        data = dict(name=faker.word(), years=years, raster=raster,
+        data = dict(name=faker.word(), years=years,
                     is_default=faker.pybool())
-        cls.post_data = data
-        cls.put_data = data
-        cls.patch_data = data
-
-
-class TestPrognosisEntryAPI(WriteOnlyWithCanEditBaseDataTest,
-                            TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
-    """"""
-    url_key = "prognosisentries"
-    factory = PrognosisEntryFactory
-
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        prognosisentry: PrognosisEntry = cls.obj
-        prognosis = prognosisentry.prognosis.pk
-        year = prognosisentry.year.pk
-        area = prognosisentry.area.pk
-        agegroup = prognosisentry.agegroup.pk
-        gender = prognosisentry.gender.pk
-
-        data = dict(prognosis=prognosis, year=year, area=area, agegroup=agegroup,
-                    gender=gender, value=faker.pyfloat(positive=True))
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
@@ -203,13 +159,13 @@ class TestPopulationAPI(WriteOnlyWithCanEditBaseDataTest,
     def setUpTestData(cls):
         super().setUpTestData()
         population: Population = cls.obj
-        area_level = population.area_level.pk
+        prognosis: Prognosis = population.prognosis.pk
         year = population.year.pk
         genders = list(population.genders.all().values_list(flat=True))
-        raster = population.raster.pk
+        popraster = population.popraster.pk
 
-        data = dict(area_level=area_level, year=year, genders=genders,
-                    raster=raster)
+        data = dict(year=year, genders=genders,
+                    popraster=popraster, prognosis=prognosis)
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
@@ -223,9 +179,7 @@ class TestPopulationEntryAPI(WriteOnlyWithCanEditBaseDataTest, TestPermissionsMi
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        area_level= AreaLevelFactory()
-        cls.obj = PopulationEntryFactory(population__area_level=area_level,
-                                          area__area_level=area_level)
+        cls.obj = PopulationEntryFactory()
         populationentry: PopulationEntry = cls.obj
         population = populationentry.population.pk
         area = populationentry.area.pk

@@ -34,14 +34,12 @@ from .logging.views import (CapacityUploadLogViewSet,
                             AreaUploadLogViewSet)
 from .population.views import (RasterViewSet,
                                PopulationRasterViewSet,
-                               DisaggPopRasterViewSet,
                                PrognosisViewSet,
-                               PrognosisEntryViewSet,
                                PopulationViewSet,
                                PopulationEntryViewSet,
                                PopStatisticViewSet,
                                PopStatEntryViewSet)
-                               # ,RasterCellTileViewSet)
+
 from .user.views import (PlanningProcessViewSet,
                          YearViewSet,
                          InfrastructureViewSet,
@@ -96,12 +94,9 @@ router.register(r'populationrasters', PopulationRasterViewSet,
                 basename='populationrasters')
 router.register(r'gender', GenderViewSet, basename='gender')
 router.register(r'agegroups', AgeGroupViewSet, basename='agegroups')
-router.register(r'disaggpoprasters', DisaggPopRasterViewSet,
-                basename='disaggpoprasters')
+
 router.register(r'prognoses', PrognosisViewSet,
                 basename='prognoses')
-router.register(r'prognosisentries', PrognosisEntryViewSet,
-                basename='prognosisentries')
 router.register(r'populations', PopulationViewSet,basename='populations')
 router.register(r'populationentries', PopulationEntryViewSet,
                 basename='populationentries')

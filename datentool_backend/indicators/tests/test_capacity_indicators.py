@@ -29,6 +29,8 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
+        cls.profile.can_edit_basedata = True
+        cls.profile.save()
 
         cls.indicator = IndicatorFactory(
             indicator_type__classname=NumberOfLocations.__name__)

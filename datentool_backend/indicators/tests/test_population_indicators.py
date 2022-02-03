@@ -33,6 +33,8 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
+        cls.profile.can_edit_basedata = True
+        cls.profile.save()
 
         #cls.indicator = IndicatorFactory(
             #indicator_type__classname=ComputePopulationAreaIndicator.__name__)
@@ -71,8 +73,8 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         self.assertTrue(response.data.get('valid'))
 
         # get disaggregated population
-        response = self.get_check_200(url = 'disaggpoprasters-detail',
-                                      pk=population.raster.pk)
+        response = self.get_check_200(url = 'populations-detail',
+                                      pk=population.pk)
         df = pd.DataFrame.from_records(response.data['rastercellpopulationagegender_set'])
 
         # compare to population entry
@@ -130,8 +132,8 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         self.assertIn('area3', response.data.get('message'))
 
         # get disaggregated population
-        response = self.get_check_200(url='disaggpoprasters-detail',
-                                      pk=self.population.raster.pk)
+        response = self.get_check_200(url='populations-detail',
+                                      pk=self.population.pk)
         df = pd.DataFrame.from_records(response.data['rastercellpopulationagegender_set'])
 
         # compare to population entry
@@ -156,8 +158,8 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         self.assertTrue(response.data.get('valid'))
 
         # get disaggregated population
-        response = self.get_check_200(url = 'disaggpoprasters-detail',
-                                      pk=self.population.raster.pk)
+        response = self.get_check_200(url = 'populations-detail',
+                                      pk=self.population.pk)
         df = pd.DataFrame.from_records(response.data['rastercellpopulationagegender_set'])
 
         # compare to population entry
@@ -173,9 +175,11 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
 
     def test_aggregate_population_to_area(self):
         """Test the aggregation of population to areas of an area level"""
-        self.get('populations-disaggregate', pk=self.population.pk)
-        self.get('populations-intersectareaswithcells', pk=self.population.pk,
-                 data={'area_level': self.area_level2.pk, })
+        populations = Population.objects.all()
+        for population in populations:
+            self.get('populations-disaggregate', pk=population.pk)
+            self.get('populations-intersectareaswithcells', pk=population.pk,
+                     data={'area_level': self.area_level2.pk, })
 
         # create a compute indicator, if not yet exists
 
@@ -236,9 +240,13 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
 
     def test_get_population_by_year_agegroup_gender(self):
         """Test to get the population by year, agegroup, and gender"""
-        self.get('populations-disaggregate', pk=self.population.pk)
-        self.get('populations-intersectareaswithcells', pk=self.population.pk,
-                 data={'area_level': self.area_level2.pk, })
+        populations = Population.objects.all()
+        for population in populations:
+            self.get('populations-disaggregate', pk=population.pk,
+                     data={'use_intersected_data': True})
+            self.get('populations-intersectareaswithcells', pk=population.pk,
+                     data={'area_level': self.area_level2.pk,
+                     'use_intersected_data': True, })
 
         # create a compute indicator, if not yet exists
 
@@ -264,9 +272,18 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         print(response.data)
         # Test if sum of large area equals all input areas
 
-        # area_level1
+        # area_level2
         query_params = {'indicator': indicator_id,
                         'area': self.district1.pk, }
+
+        response = self.get_check_200('populationindicators-list', data=query_params)
+        # Test if input data matches
+        print(response.data)
+
+        # area_level2 and prognosis
+        query_params = {'indicator': indicator_id,
+                        'area': self.district1.pk,
+                        'prognosis': self.prognosis.pk,}
 
         response = self.get_check_200('populationindicators-list', data=query_params)
         # Test if input data matches

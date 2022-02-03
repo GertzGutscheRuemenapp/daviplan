@@ -56,47 +56,20 @@ class AreaCell(models.Model):
     share_area_of_cell = models.FloatField()
 
 
-class DisaggPopRaster(DatentoolModelMixin, models.Model):
-    """a raster with disaggregated population by age and gender"""
-    popraster = models.ForeignKey(PopulationRaster,
-                               on_delete=PROTECT_CASCADE, null=True)
-    genders = models.ManyToManyField(Gender, blank=True)
-
-
-class RasterCellPopulationAgeGender(models.Model):
-    """a raster cell with a disaggregated value"""
-    disaggraster = models.ForeignKey(DisaggPopRaster, on_delete=PROTECT_CASCADE)
-    year = models.IntegerField()
-    cell = models.ForeignKey(RasterCell, on_delete=PROTECT_CASCADE)
-    age_group = models.ForeignKey(AgeGroup, on_delete=PROTECT_CASCADE)
-    gender = models.ForeignKey(Gender, on_delete=PROTECT_CASCADE)
-    value = models.FloatField()
-
-
 class Prognosis(DatentoolModelMixin, NamedModel, models.Model):
     """a prognosis"""
     name = models.TextField()
     years = models.ManyToManyField(Year, blank=True)
-    raster = models.ForeignKey(DisaggPopRaster, on_delete=models.RESTRICT)
     is_default = models.BooleanField()
-
-
-class PrognosisEntry(models.Model):
-    """a prognosis entry"""
-    prognosis = models.ForeignKey(Prognosis, on_delete=PROTECT_CASCADE)
-    year = models.ForeignKey(Year, on_delete=PROTECT_CASCADE)
-    area = models.ForeignKey(Area, on_delete=PROTECT_CASCADE)
-    agegroup = models.ForeignKey(AgeGroup, on_delete=PROTECT_CASCADE)
-    gender = models.ForeignKey(Gender, on_delete=PROTECT_CASCADE)
-    value = models.FloatField()
 
 
 class Population(DatentoolModelMixin, models.Model):
     """Population data for an area level"""
-    area_level = models.ForeignKey(AreaLevel, on_delete=PROTECT_CASCADE)
     year = models.ForeignKey(Year, on_delete=PROTECT_CASCADE)
     genders = models.ManyToManyField(Gender, blank=True)
-    raster = models.ForeignKey(DisaggPopRaster, on_delete=PROTECT_CASCADE)
+    prognosis = models.ForeignKey(Prognosis, on_delete=PROTECT_CASCADE, null=True)
+    popraster = models.ForeignKey(PopulationRaster,
+                               on_delete=PROTECT_CASCADE, null=True)
 
 
 class PopulationEntry(models.Model):
@@ -105,6 +78,15 @@ class PopulationEntry(models.Model):
     area = models.ForeignKey(Area, on_delete=PROTECT_CASCADE)
     gender = models.ForeignKey(Gender, on_delete=PROTECT_CASCADE)
     age_group = models.ForeignKey(AgeGroup, on_delete=PROTECT_CASCADE)
+    value = models.FloatField()
+
+
+class RasterCellPopulationAgeGender(models.Model):
+    """a raster cell with a disaggregated value"""
+    population = models.ForeignKey(Population, on_delete=PROTECT_CASCADE, null=True)
+    cell = models.ForeignKey(RasterCell, on_delete=PROTECT_CASCADE)
+    age_group = models.ForeignKey(AgeGroup, on_delete=PROTECT_CASCADE)
+    gender = models.ForeignKey(Gender, on_delete=PROTECT_CASCADE)
     value = models.FloatField()
 
 

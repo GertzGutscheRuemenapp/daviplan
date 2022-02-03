@@ -57,7 +57,7 @@ class IndicatorTypeViewSet(viewsets.ReadOnlyModelViewSet):
 class IndicatorViewSet(viewsets.ModelViewSet):
     queryset = Indicator.objects.all()
     serializer_class = IndicatorSerializer
-    #permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
     def get_queryset(self):
         qs = super().get_queryset()

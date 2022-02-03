@@ -17,15 +17,15 @@ from datentool_backend.user.models import Year
 from datentool_backend.demand.models import (Gender,
                                              AgeGroup,
                                              )
-from datentool_backend.population.factories import (DisaggPopRasterFactory,
+from datentool_backend.population.factories import (PopulationRasterFactory,
                                                     RasterCellFactory,
                                                     RasterCellPopulationFactory,
                                                     PopulationFactory,
+                                                    PrognosisFactory,
                                                     )
-from datentool_backend.population.models import (PopulationRaster,
-                                                Raster,
-                                                RasterCell,
-                                                PopulationEntry,
+from datentool_backend.population.models import (Raster,
+                                                 RasterCell,
+                                                 PopulationEntry,
                                                 )
 
 
@@ -189,9 +189,8 @@ class CreateInfrastructureTestdataMixin:
     @classmethod
     def create_raster_population(cls):
         year0 = Year.objects.get(is_default=True)
-        cls.disaggpopraster = DisaggPopRasterFactory(popraster__year=year0)
-        popraster: PopulationRaster = cls.disaggpopraster.popraster
-        raster: Raster = popraster.raster
+        cls.popraster = PopulationRasterFactory(year=year0)
+        raster: Raster = cls.popraster.raster
 
         cells = []
         for n in range(30223, 30228):
@@ -215,7 +214,7 @@ class CreateInfrastructureTestdataMixin:
         for (n, e), value in population.items():
             cellcode = f'100mN{n:05}E{e:05}'
             cell = RasterCell.objects.get(raster=raster, cellcode=cellcode)
-            RasterCellPopulationFactory(popraster=popraster,
+            RasterCellPopulationFactory(popraster=cls.popraster,
                                         cell=cell,
                                         value=value)
 
@@ -241,11 +240,11 @@ class CreateInfrastructureTestdataMixin:
     def create_population(cls):
         """create population by area"""
         base_year = Year.objects.get(is_default=True)
-        area_level = cls.area1.area_level
-        cls.population = PopulationFactory(area_level=area_level,
-                                           year=base_year,
-                                           raster=cls.disaggpopraster,
+        cls.prognosis = PrognosisFactory()
+        cls.population = PopulationFactory(year=base_year,
+                                           popraster=cls.popraster,
                                            genders=cls.genders,
+                                           prognosis=None,
                                            )
 
         area_names = ['area1', 'area2']
@@ -264,13 +263,34 @@ class CreateInfrastructureTestdataMixin:
                     cls.genders),
             dims=('area', 'age_group', 'gender'))
 
+        cls.create_population_entries(area_names,
+                                       pop_values_by_age_gender,
+                                       cls.population)
+
+        for i, year in enumerate(cls.years):
+            population = PopulationFactory(prognosis=cls.prognosis,
+                                           year=year,
+                                           popraster=cls.popraster,
+                                           genders=cls.genders,)
+            factor = 1.0 + i / 10.0
+
+            cls.create_population_entries(area_names,
+                                          pop_values_by_age_gender * factor,
+                                          population)
+
+    @classmethod
+    def create_population_entries(cls,
+                                  area_names,
+                                  pop_values_by_age_gender,
+                                  population,
+                                  ):
         entries = []
         for area_name in area_names:
             area = Area.objects.get(attributes__gen=area_name)
             for age_group in cls.age_groups:
                 for gender in cls.genders:
                     value = pop_values_by_age_gender.loc[area_name, age_group, gender]
-                    entry = PopulationEntry(population=cls.population,
+                    entry = PopulationEntry(population=population,
                                             area=area,
                                             gender=gender,
                                             age_group=age_group,

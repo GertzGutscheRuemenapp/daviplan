@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
 
-from .models import (Raster, PopulationRaster, DisaggPopRaster,
-                     Prognosis, PrognosisEntry, Population, PopulationEntry,
+from .models import (Raster, PopulationRaster,
+                     Prognosis, Population, PopulationEntry,
                      PopStatistic, PopStatEntry,
                      RasterCellPopulationAgeGender,
                      )
@@ -19,47 +19,26 @@ class PopulationRasterSerializer(serializers.ModelSerializer):
         model = PopulationRaster
         fields = ('id', 'name', 'raster', 'year', 'default')
 
-# ToDo VectorTile
-#class RasterCellSerializer(GeoFeatureModelSerializer):
-    #pnt = GeometrySRIDField(srid=3857)
-    #poly = GeometrySRIDField(srid=3857)
-    #class Meta:
-        #model = RasterCell
-        #geo_field = 'pnt', 'poly'
-        #fields = ('id', 'raster', 'cellcode')
-
-class RasterCellPopulationAgeGenderSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RasterCellPopulationAgeGender
-        fields = ('id', 'year', 'cell', 'age_group', 'gender', 'value')
-
-
-
-class DisaggPopRasterSerializer(serializers.ModelSerializer):
-    rastercellpopulationagegender_set = RasterCellPopulationAgeGenderSerializer(
-        many=True, read_only=True)
-    class Meta:
-        model = DisaggPopRaster
-        fields = ('id', 'popraster', 'genders', 'rastercellpopulationagegender_set')
-
 
 class PrognosisSerializer(serializers.ModelSerializer):
     class Meta:
         model = Prognosis
-        fields = ('id', 'name', 'years', 'raster', 'is_default')
+        fields = ('id', 'name', 'years', 'is_default')
 
 
-class PrognosisEntrySerializer(serializers.ModelSerializer):
+class RasterCellPopulationAgeGenderSerializer(serializers.ModelSerializer):
     class Meta:
-        model = PrognosisEntry
-        fields = ('id', 'prognosis', 'year', 'area', 'agegroup',
-                  'gender', 'value')
+        model = RasterCellPopulationAgeGender
+        fields = ('id', 'population', 'cell', 'age_group', 'gender', 'value')
 
 
 class PopulationSerializer(serializers.ModelSerializer):
+    rastercellpopulationagegender_set = RasterCellPopulationAgeGenderSerializer(
+        many=True, read_only=True)
     class Meta:
         model = Population
-        fields = ('id', 'area_level', 'year', 'genders', 'raster')
+        fields = ('id', 'year', 'genders', 'popraster',
+                  'prognosis', 'rastercellpopulationagegender_set')
 
 
 class PopulationEntrySerializer(serializers.ModelSerializer):
