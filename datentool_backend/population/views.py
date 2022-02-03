@@ -8,6 +8,8 @@ from django.db.models import F
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
+#from datentool_backend.indicators.compute import (IntersectAreaWithRaster,
+                                                  #DisaggregatePopulation)
 
 from .models import (Raster,
                      PopulationRaster,
