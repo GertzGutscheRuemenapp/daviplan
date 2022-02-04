@@ -13,11 +13,20 @@ export class PlanningService {
   legend?: LegendComponent;
   infrastructures$ = new BehaviorSubject<Infrastructure[]>([]);
   areaLevels$ = new BehaviorSubject<AreaLevel[]>([]);
+  years$ = new BehaviorSubject<number[]>([]);
   private places: Record<number, Place> = {};
 
   constructor(private http: HttpClient, private rest: RestAPI) {
     this.fetchAreaLevels();
     this.fetchInfrastructures();
+    this.fetchYears();
+  }
+
+  private fetchYears(): void {
+    this.http.get<any[]>(this.rest.URLS.years).subscribe(years => {
+      const ys = years.map( year => { return year.year })
+      this.years$.next(ys);
+    });
   }
 
   private fetchAreaLevels(): void {

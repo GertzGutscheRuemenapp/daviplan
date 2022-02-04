@@ -179,8 +179,8 @@ export class OlMap {
           color: options?.stroke?.color || 'black'
         }),
         stroke: new Stroke({
-          color: '#fff',
-          width: 3
+          color: 'black',
+          width: 2
         })
       })
     })

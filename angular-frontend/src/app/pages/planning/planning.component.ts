@@ -14,6 +14,7 @@ import { MatSelect } from "@angular/material/select";
 import { RemoveDialogComponent } from "../../dialogs/remove-dialog/remove-dialog.component";
 import { PlanningService } from "./planning.service";
 import { LegendComponent } from "../../map/legend/legend.component";
+import { TimeSliderComponent } from "../../elements/time-slider/time-slider.component";
 
 interface Project {
   user?: string;
@@ -42,6 +43,10 @@ const mockSharedProjects: Project[] = [
 })
 export class PlanningComponent implements AfterViewInit, OnDestroy {
 
+  @ViewChild('processTemplate') processTemplate?: TemplateRef<any>;
+  @ViewChild('processSelect') processSelect!: MatSelect;
+  @ViewChild('planningLegend') legend?: LegendComponent;
+  @ViewChild('timeSlider') timeSlider?: TimeSliderComponent;
   faArrows = faArrowsAlt;
   myProjects: Project[] = mockMyProjects;
   sharedProjects: Project[] = mockSharedProjects;
@@ -49,16 +54,16 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   // activeProject: Project = this.myProjects[0];
   infrastructures = mockInfrastructures;
   users = mockUsers;
-  @ViewChild('processTemplate') processTemplate?: TemplateRef<any>;
-  @ViewChild('processSelect') processSelect!: MatSelect;
-  @ViewChild('planningLegend') legend?: LegendComponent;
   showScenarioMenu: boolean = false;
   mapControl?: MapControl;
+  years?: number[];
+
   isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 39.9375em)')
     .pipe(
       map(result => result.matches),
       shareReplay()
     );
+
   constructor(private breakpointObserver: BreakpointObserver, private renderer: Renderer2,
               private elRef: ElementRef, private mapService: MapService, private dialog: MatDialog,
               private planningService: PlanningService) {  }
@@ -71,6 +76,10 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.mapControl = this.mapService.get('planning-map');
     this.planningService.legend = this.legend;
     this.mapControl.mapDescription = 'Planungsprozess: xyz > Status Quo Fortschreibung <br> usw.';
+    this.planningService.years$.subscribe( years => {
+      this.years = years;
+      this.timeSlider!.setYears(years);
+    })
   }
 
   ngOnDestroy(): void {

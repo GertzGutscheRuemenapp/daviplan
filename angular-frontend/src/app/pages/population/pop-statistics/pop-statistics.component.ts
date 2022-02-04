@@ -78,7 +78,7 @@ export class PopStatisticsComponent implements AfterViewInit {
 
   setSlider(): void {
     let slider = this.popService.timeSlider!;
-    slider.prognosisEnd = 0;
+    slider.prognosisStart = 0;
     slider.years = [2012, 2013, 2014, 2015, 2016];
     slider.value = 2012;
     slider.draw();

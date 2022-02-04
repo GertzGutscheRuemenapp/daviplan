@@ -79,7 +79,7 @@ export class PopDevelopmentComponent implements AfterViewInit {
 
   setSlider(): void {
     let slider = this.popService.timeSlider!;
-    slider.prognosisEnd = 2013;
+    slider.prognosisStart = 2013;
     slider.years = this.years;
     slider.value = 2012;
     slider.draw();

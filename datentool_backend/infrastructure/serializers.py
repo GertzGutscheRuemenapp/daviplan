@@ -86,7 +86,6 @@ class ScenarioSerializer(serializers.ModelSerializer):
         return instance
 
 
-
 class PlaceAttributeField(JSONField):
     """remove sensitive fields if the user is not allowed to see them"""
 
