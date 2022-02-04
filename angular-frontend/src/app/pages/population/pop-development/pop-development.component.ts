@@ -2,13 +2,14 @@ import { Component, AfterViewInit, ViewChild, TemplateRef } from '@angular/core'
 import { MapControl, MapService } from "../../../map/map.service";
 import { StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
-import { PopService } from "../population.component";
 import { Observable } from "rxjs";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { map, shareReplay } from "rxjs/operators";
-import { mockPresetLevels } from "../../basedata/areas/areas";
 import { MatDialog } from "@angular/material/dialog";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
+import { PopulationService } from "../population.service";
+import { AreaLevel, Gender } from "../../../rest-interfaces";
+import { AgeGroup } from "../../administration/project-definition/project-definition.component";
 
 export const mockdata: StackedData[] = [
   { group: '2000', values: [200, 300, 280] },
@@ -36,8 +37,10 @@ export class PopDevelopmentComponent implements AfterViewInit {
   @ViewChild('lineChart') lineChart?: MultilineChartComponent;
   @ViewChild('ageGroupTemplate') ageGroupTemplate!: TemplateRef<any>;
   compareYears = false;
-  areaLevels = mockPresetLevels;
-  years = [2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025];
+  areaLevels: AreaLevel[] = [];
+  years: number[] = [];
+  genders: Gender[] = [];
+  ageGroups: AgeGroup[] = [];
   mapControl?: MapControl;
   activeLevel: string = 'Gemeinden';
   data: StackedData[] = mockdata;
@@ -55,7 +58,7 @@ export class PopDevelopmentComponent implements AfterViewInit {
     );
 
   constructor(private breakpointObserver: BreakpointObserver, private mapService: MapService, private dialog: MatDialog,
-              private popService: PopService) {
+              private populationService: PopulationService) {
   }
 
   ngAfterViewInit(): void {
@@ -71,14 +74,23 @@ export class PopDevelopmentComponent implements AfterViewInit {
     this.lineChart!.min = Math.floor(min / 10) * 10;
     this.lineChart!.max = Math.ceil(max / 10) * 10;
     this.lineChart?.draw(relData);
-    if (this.popService.timeSlider)
+    this.populationService.years$.subscribe(years => {
+      this.years = years;
       this.setSlider();
-    else
-      this.popService.ready.subscribe(r => this.setSlider());
+    });
+    this.populationService.genders$.subscribe(genders => {
+      this.genders = genders;
+    })
+    this.populationService.areaLevels$.subscribe(areaLevels => {
+      this.areaLevels = areaLevels;
+    })
+    this.populationService.ageGroups$.subscribe(ageGroups => {
+      this.ageGroups = ageGroups;
+    })
   }
 
   setSlider(): void {
-    let slider = this.popService.timeSlider!;
+    let slider = this.populationService.timeSlider!;
     slider.prognosisStart = 2013;
     slider.years = this.years;
     slider.value = 2012;

@@ -5,12 +5,8 @@ import { TimeSliderComponent } from "../../elements/time-slider/time-slider.comp
 import { Observable } from "rxjs";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { map, shareReplay } from "rxjs/operators";
+import { PopulationService } from "./population.service";
 
-@Injectable({ providedIn: 'root' })
-export class PopService {
-  timeSlider?: TimeSliderComponent;
-  ready: EventEmitter<any> = new EventEmitter();
-}
 
 @Component({
   selector: 'app-population',
@@ -21,13 +17,17 @@ export class PopulationComponent implements AfterViewInit {
   @ViewChild('timeSlider') timeSlider?: TimeSliderComponent;
   mapControl?: MapControl;
   faArrows = faArrowsAlt;
+  years?: number[];
 
-  constructor(private mapService: MapService, private popService: PopService) { }
+  constructor(private mapService: MapService, private populationService: PopulationService) { }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
-    this.popService.timeSlider = this.timeSlider;
-    this.popService.ready.emit();
+    this.populationService.timeSlider = this.timeSlider;
+    this.populationService.years$.subscribe( years => {
+      this.years = years;
+      this.timeSlider!.setYears(years);
+    })
   }
 
   ngOnDestroy(): void {

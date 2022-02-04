@@ -58,6 +58,10 @@ export interface Area {
   name: string;
 }
 
+export interface Gender {
+  id: number,
+  name: string;
+}
 
 export interface Service {
   id: number,

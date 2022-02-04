@@ -65,14 +65,8 @@
         <mat-option value="alle">
           alle
         </mat-option>
-        <mat-option value="männlich">
-          männlich
-        </mat-option>
-        <mat-option value="weiblich">
-          weiblich
-        </mat-option>
-        <mat-option value="divers">
-          divers
+        <mat-option *ngFor="let gender of genders" [value]="gender.id">
+          {{gender.name}}
         </mat-option>
       </mat-select>
     </mat-form-field>
@@ -84,12 +78,16 @@
         <mat-icon>edit</mat-icon>
       </button>
       <div class="border-box" style="margin-top: 10px">
-        <mat-checkbox class="reverse" color="primary" [checked]="true">alle</mat-checkbox>
+        <mat-checkbox class="reverse" color="primary"
+                      [checked]="true">
+          alle
+        </mat-checkbox>
         <mat-divider style="margin-bottom: 10px;"></mat-divider>
-        <mat-checkbox class="reverse" color="primary" [checked]="true">0 bis unter 19 Jahre</mat-checkbox>
-        <mat-checkbox class="reverse" color="primary" [checked]="true">10 bis unter 40 Jahre</mat-checkbox>
-        <mat-checkbox class="reverse" color="primary" [checked]="true">40 bis unter 60 Jahre</mat-checkbox>
-        <mat-checkbox class="reverse" color="primary" [checked]="false">65 Jahre und älter</mat-checkbox>
+        <mat-checkbox class="reverse" color="primary"
+                      *ngFor="let ageGroup of ageGroups"
+                      [checked]="true">
+          {{ageGroup.fromAge}} {{(ageGroup.toAge >= 999)? 'Jahre und älter': 'bis unter ' + ageGroup.toAge + ' Jahre' }}
+        </mat-checkbox>
       </div>
     </div>
   </mat-expansion-panel>

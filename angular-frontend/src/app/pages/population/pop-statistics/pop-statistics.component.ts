@@ -1,13 +1,13 @@
 import {AfterViewInit, Component, OnDestroy} from '@angular/core';
 import { OlMap } from "../../../map/map";
 import { MapControl, MapService } from "../../../map/map.service";
-import { PopService } from "../population.component";
 import { environment } from "../../../../environments/environment";
 import { Observable } from "rxjs";
 import { map, shareReplay } from "rxjs/operators";
 import { BreakpointObserver } from "@angular/cdk/layout";
 import { MultilineData } from "../../../diagrams/multiline-chart/multiline-chart.component";
 import { BalanceChartData } from "../../../diagrams/balance-chart/balance-chart.component";
+import { PopulationService } from "../population.service";
 
 export const mockTotalData: MultilineData[] = [
   { group: '2000', values: [0] },
@@ -64,23 +64,22 @@ export class PopStatisticsComponent implements AfterViewInit {
   data: BalanceChartData[] = mockData;
   totalData: MultilineData[] = mockTotalData;
 
-  constructor(private breakpointObserver: BreakpointObserver, private mapService: MapService, private popService: PopService) {
-  }
+  constructor(private breakpointObserver: BreakpointObserver, private mapService: MapService,
+              private populationService: PopulationService) {}
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
     this.mapControl.mapDescription = 'Bevölkerungsstatistik > Gemeinden | Wanderung';
-    if (this.popService.timeSlider)
-      this.setSlider();
-    else
-      this.popService.ready.subscribe(r => this.setSlider());
+    this.setSlider();
   }
 
   setSlider(): void {
-    let slider = this.popService.timeSlider!;
-    slider.prognosisStart = 0;
-    slider.years = [2012, 2013, 2014, 2015, 2016];
-    slider.value = 2012;
-    slider.draw();
+    this.populationService.years$.subscribe(years => {
+      let slider = this.populationService.timeSlider!;
+      slider.prognosisStart = 0;
+      slider.years = years;
+      slider.value = 2012;
+      slider.draw();
+    })
   }
 }

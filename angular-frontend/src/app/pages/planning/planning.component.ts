@@ -8,13 +8,13 @@ import { BreakpointObserver } from "@angular/cdk/layout";
 import { ConfirmDialogComponent } from "../../dialogs/confirm-dialog/confirm-dialog.component";
 import { User } from "../login/users";
 import { MatDialog } from "@angular/material/dialog";
-import { mockInfrastructures } from "../administration/infrastructure/infrastructure.component";
 import { mockUsers } from "../login/users";
 import { MatSelect } from "@angular/material/select";
 import { RemoveDialogComponent } from "../../dialogs/remove-dialog/remove-dialog.component";
 import { PlanningService } from "./planning.service";
 import { LegendComponent } from "../../map/legend/legend.component";
 import { TimeSliderComponent } from "../../elements/time-slider/time-slider.component";
+import { Infrastructure } from "../../rest-interfaces";
 
 interface Project {
   user?: string;
@@ -52,11 +52,11 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   sharedProjects: Project[] = mockSharedProjects;
   activeProject?: Project;
   // activeProject: Project = this.myProjects[0];
-  infrastructures = mockInfrastructures;
   users = mockUsers;
   showScenarioMenu: boolean = false;
   mapControl?: MapControl;
   years?: number[];
+  infrastructures: Infrastructure[] = [];
 
   isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 39.9375em)')
     .pipe(
@@ -79,6 +79,9 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.planningService.years$.subscribe( years => {
       this.years = years;
       this.timeSlider!.setYears(years);
+    })
+    this.planningService.infrastructures$.subscribe( infrastructures => {
+      this.infrastructures = infrastructures;
     })
   }
 

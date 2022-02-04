@@ -92,7 +92,7 @@ router.register(r'years', YearViewSet, basename='years')
 router.register(r'rasters', RasterViewSet, basename='rasters')
 router.register(r'populationrasters', PopulationRasterViewSet,
                 basename='populationrasters')
-router.register(r'gender', GenderViewSet, basename='gender')
+router.register(r'genders', GenderViewSet, basename='gender')
 router.register(r'agegroups', AgeGroupViewSet, basename='agegroups')
 router.register(r'disaggpoprasters', DisaggPopRasterViewSet,
                 basename='disaggpoprasters')
