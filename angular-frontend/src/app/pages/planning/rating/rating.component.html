@@ -41,14 +41,14 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
-  <div class="sub-select-wrapper">
+  <div class="sub-select-wrapper" *ngIf="selectedInfrastructure">
     <mat-radio-group>
       <mat-radio-button *ngFor="let service of selectedInfrastructure.services; let first = first;"
                         [value]="service"
                         [checked]="first"
                         style="margin-right: 100%;"
                         color="primary"
-                        ngbPopover="Platzhalter Beschreibung der Leistung"
+                        [ngbPopover]="service.description"
                         placement="right"
                         container="body"
                         triggers="mouseenter:mouseleave">
@@ -127,7 +127,7 @@
     </mat-panel-title>
   </mat-expansion-panel-header>
   <mat-form-field appearance="outline" class="small">
-    <mat-select disableOptionCentering disableRipple [value]="areaLevels[0]">
+    <mat-select disableOptionCentering disableRipple [value]="selectedAreaLevel">
       <mat-option [value]="areaLevel" *ngFor="let areaLevel of areaLevels">
         {{areaLevel.name}}
       </mat-option>

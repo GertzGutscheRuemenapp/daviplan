@@ -50,13 +50,13 @@
         <mat-icon>filter_list</mat-icon>
       </button>
     </div>
-    <div class="sub-select-wrapper">
+    <div class="sub-select-wrapper" *ngIf="selectedInfrastructure">
       <mat-checkbox *ngFor="let service of selectedInfrastructure.services; let first = first;"
                     [value]="service.name"
                     [checked]="first"
                     color="primary"
                     style="margin-right: 100%;"
-                    ngbPopover="Platzhalter Beschreibung der Leistung"
+                    [ngbPopover]="service.description"
                     placement="right"
                     container="body"
                     triggers="mouseenter:mouseleave">

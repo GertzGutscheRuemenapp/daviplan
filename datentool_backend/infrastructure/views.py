@@ -48,6 +48,7 @@ class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     serializer_class = PlaceSerializer
     serializer_action_class = {'update_attributes': PlaceUpdateAttributeSerializer}
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    filter_fields = ['infrastructure']
 
     def get_serializer_class(self):
         return self.serializer_action_class.get(self.action,

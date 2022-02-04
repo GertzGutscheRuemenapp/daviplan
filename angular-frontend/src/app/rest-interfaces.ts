@@ -52,3 +52,30 @@ export interface AreaLevel {
   isActive?: boolean;
   areaCount?: number;
 }
+
+export interface Area {
+  id: number;
+  name: string;
+}
+
+
+export interface Service {
+  id: number,
+  infrastructure: number,
+  description: string,
+  name: string;
+}
+
+export interface Infrastructure {
+  id: number,
+  name: string;
+  description: string;
+  services: Service[];
+  order: number;
+  symbol?: Symbol;
+}
+
+export interface Place {
+  id: number,
+  name: string
+}

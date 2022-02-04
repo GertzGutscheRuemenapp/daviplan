@@ -17,6 +17,7 @@ export class RestAPI {
     basedataSettings: `${ this.API_ENDPOINT }/basedatasettings/`,
     ageGroups: `${ this.API_ENDPOINT }/agegroups/`,
     infrastructures: `${ this.API_ENDPOINT }/infrastructures/`,
+    services: `${ this.API_ENDPOINT }/services/`,
     arealevels: `${ this.API_ENDPOINT }/arealevels/`,
     layerGroups: `${ this.API_ENDPOINT }/layergroups/`,
     layers: `${ this.API_ENDPOINT }/wmslayers/`,

@@ -12,6 +12,8 @@ import { mockInfrastructures } from "../administration/infrastructure/infrastruc
 import { mockUsers } from "../login/users";
 import { MatSelect } from "@angular/material/select";
 import { RemoveDialogComponent } from "../../dialogs/remove-dialog/remove-dialog.component";
+import { PlanningService } from "./planning.service";
+import { LegendComponent } from "../../map/legend/legend.component";
 
 interface Project {
   user?: string;
@@ -49,6 +51,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   users = mockUsers;
   @ViewChild('processTemplate') processTemplate?: TemplateRef<any>;
   @ViewChild('processSelect') processSelect!: MatSelect;
+  @ViewChild('planningLegend') legend?: LegendComponent;
   showScenarioMenu: boolean = false;
   mapControl?: MapControl;
   isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 39.9375em)')
@@ -57,7 +60,8 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
       shareReplay()
     );
   constructor(private breakpointObserver: BreakpointObserver, private renderer: Renderer2,
-              private elRef: ElementRef, private mapService: MapService, private dialog: MatDialog) {  }
+              private elRef: ElementRef, private mapService: MapService, private dialog: MatDialog,
+              private planningService: PlanningService) {  }
 
   ngAfterViewInit(): void {
     // there is no parent css selector yet but we only want to hide the overflow in the planning pages
@@ -65,6 +69,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     let wrapper = this.elRef.nativeElement.closest('mat-sidenav-content');
     this.renderer.setStyle(wrapper, 'overflow-y', 'hidden');
     this.mapControl = this.mapService.get('planning-map');
+    this.planningService.legend = this.legend;
     this.mapControl.mapDescription = 'Planungsprozess: xyz > Status Quo Fortschreibung <br> usw.';
   }
 

@@ -49,7 +49,7 @@ const backgroundLayers: Layer[] = [
 export class MapService {
   private controls: Record<string, MapControl> = {};
   backgroundLayers: Layer[] = backgroundLayers;
-  layerGroups?: BehaviorSubject<Array<LayerGroup>>;
+  layerGroups$?: BehaviorSubject<Array<LayerGroup>>;
 
   constructor(private http: HttpClient, private rest: RestAPI, private settings: SettingsService) { }
 
@@ -65,11 +65,11 @@ export class MapService {
   }
 
   getLayers(): BehaviorSubject<Array<LayerGroup>>{
-    if (!this.layerGroups) {
-      this.layerGroups = new BehaviorSubject<LayerGroup[]>([]);
+    if (!this.layerGroups$) {
+      this.layerGroups$ = new BehaviorSubject<LayerGroup[]>([]);
       this.fetchLayers({ internal: true, external: true });
     }
-    return this.layerGroups;
+    return this.layerGroups$;
   }
 
   fetchLayers( options: { internal?: boolean, external?: boolean } = {}): void {
@@ -81,7 +81,7 @@ export class MapService {
     forkJoin(...observables).subscribe((merged: Array<LayerGroup[]>) => {
       // @ts-ignore
       const flatGroups = [].concat.apply([], merged);
-      this.layerGroups!.next(flatGroups);
+      this.layerGroups$!.next(flatGroups);
     })
   }
 

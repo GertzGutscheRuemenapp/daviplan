@@ -172,7 +172,7 @@
                  name="Legenden- und Layersteuerung"
                  direction="left"
                  cookieExpansion="exp-planning-legend" [initiallyExpanded]="true">
-  <app-legend target="planning-map"></app-legend>
+  <app-legend #planningLegend target="planning-map"></app-legend>
 </app-side-toggle>
 
 <ng-template #processTemplate let-project="project">

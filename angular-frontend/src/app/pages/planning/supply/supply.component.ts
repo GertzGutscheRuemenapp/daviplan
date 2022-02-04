@@ -1,27 +1,34 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { mockInfrastructures } from "../../administration/infrastructure/infrastructure.component";
+import { Component, AfterViewInit, TemplateRef, ViewChild } from '@angular/core';
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { CookieService } from "../../../helpers/cookies.service";
+import { PlanningService } from "../planning.service";
+import { AreaLevel, Infrastructure } from "../../../rest-interfaces";
 
 @Component({
   selector: 'app-supply',
   templateUrl: './supply.component.html',
   styleUrls: ['./supply.component.scss']
 })
-export class SupplyComponent implements OnInit{
+export class SupplyComponent implements AfterViewInit{
   addPlaceMode = false;
   years = [2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025];
   compareSupply = true;
   compareStatus = 'option 1';
-  infrastructures = mockInfrastructures;
-  selectedInfrastructure = this.infrastructures[0];
+  infrastructures?: Infrastructure[];
+  selectedInfrastructure?: Infrastructure;
   showScenarioMenu: any = false;
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
 
-  constructor(private dialog: MatDialog, public cookies: CookieService) {}
+  constructor(private dialog: MatDialog, private cookies: CookieService,
+              private planningService: PlanningService) {
+    this.planningService.infrastructures$.subscribe(infrastructures => {
+      this.infrastructures = infrastructures;
+      this.selectedInfrastructure = infrastructures[0];
+    })
+  }
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
     this.showScenarioMenu = this.cookies.get('exp-planning-scenario');
   }
 
