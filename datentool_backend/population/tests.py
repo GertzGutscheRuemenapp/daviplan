@@ -170,6 +170,43 @@ class TestPopulationAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.put_data = data
         cls.patch_data = data
 
+    def test_years_with_population(self):
+        """Test the route of years with population and prognosis """
+        Year.objects.all().delete()
+        for y in range(1910, 1930):
+            Year.objects.create(year=y, is_default=(y==2020))
+        for y in range(1910, 1921):
+            year = Year.objects.get(year=y)
+            Population.objects.create(year=year, prognosis=None)
+
+        prognosis1 = Prognosis.objects.create(name='P1', is_default=True)
+        prognosis2 = Prognosis.objects.create(name='P2', is_default=False)
+        for y in range(1919, 1923):
+            year = Year.objects.get(year=y)
+            Population.objects.create(year=year, prognosis=prognosis1)
+        for y in range(1927, 1930):
+            year = Year.objects.get(year=y)
+            Population.objects.create(year=year, prognosis=prognosis2)
+
+        response = self.get_check_200(url='years-list')
+        self.assertSetEqual({d['year'] for d in response.data},
+                            set(range(1910, 1930)))
+
+        response = self.get_check_200(url='years-list',
+                                      data={'with_population': 1},)
+        self.assertSetEqual({d['year'] for d in response.data},
+                            set(range(1910, 1921)))
+
+        response = self.get_check_200(url='years-list',
+                                      data={'prognosis': prognosis1.pk},)
+        self.assertSetEqual({d['year'] for d in response.data},
+                            set(range(1919, 1923)))
+
+        response = self.get_check_200(url='years-list',
+                                      data={'prognosis': prognosis2.pk},)
+        self.assertSetEqual({d['year'] for d in response.data},
+                            set(range(1927, 1930)))
+
 
 class TestPopulationEntryAPI(WriteOnlyWithCanEditBaseDataTest, TestPermissionsMixin,
                              TestAPIMixin, BasicModelTest, APITestCase):

@@ -73,9 +73,22 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = Year.objects.all()
     serializer_class = YearSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+    def get_queryset(self):
+        """ get the years. Request-parameters with_prognosis/with_population """
+        qs = Year.objects.all()
+        prognosis = self.request.query_params.get('prognosis')
+        with_population = self.request.query_params.get('with_population')
+
+        if with_population:
+            expr = Q(population__isnull=False) & Q(population__prognosis__isnull=True)
+            qs = qs.filter(expr)
+        elif prognosis:
+            expr = Q(population__isnull=False) & Q(population__prognosis_id=prognosis)
+            qs = qs.filter(expr)
+        return qs
 
 
 class PlanningProcessViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
