@@ -3,6 +3,7 @@ from django.views.generic import DetailView
 from django.core.exceptions import BadRequest
 from rest_framework import viewsets
 from vectortiles.postgis.views import MVTView, BaseVectorTileView
+from distutils.util import strtobool
 
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
@@ -35,8 +36,18 @@ class RouterViewSet(viewsets.ModelViewSet):
     serializer_class = RouterSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter, OpenApiExample
 
+
+@extend_schema_view(list=extend_schema(description='List available IndicatorTypes',
+                                       parameters=[
+                                           OpenApiParameter(name='classname', type=str, explode=True,), # todo: Mehrere
+                                           OpenApiParameter(name='category', type=str),
+                                           OpenApiParameter(name='userdefined', type=bool),
+                                       ])
+                    )
 class IndicatorTypeViewSet(viewsets.ReadOnlyModelViewSet):
+
     queryset = IndicatorType.objects.all()
     serializer_class = IndicatorTypeSerializer
 
@@ -52,7 +63,7 @@ class IndicatorTypeViewSet(viewsets.ReadOnlyModelViewSet):
             params['category__in'] = categories
         userdefined = self.request.query_params.get('userdefined')
         if userdefined:
-            params['userdefined'] = userdefined
+            params['userdefined'] = bool(strtobool(userdefined))
         qs = qs.filter(**params)
         return qs
 
@@ -79,6 +90,7 @@ class IndicatorViewSet(viewsets.ModelViewSet):
 
 
 class AreaIndicatorViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Indicator.objects.none()
     serializer_class = AreaIndicatorSerializer
 
     def get_queryset(self):
