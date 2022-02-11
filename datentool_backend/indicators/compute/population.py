@@ -12,6 +12,7 @@ class ComputePopulationAreaIndicator(ComputeIndicator):
     label = 'Population By Area'
     description = 'Total Population per Area'
     category = 'Population Services'
+    userdefined = False
 
     def compute(self):
         """"""
@@ -74,6 +75,7 @@ class ComputePopulationDetailAreaIndicator(ComputeIndicator):
     label = 'Population By Gender, AgeGroup and Year'
     description = 'Population by Gender, Agegroup and Year for one or several areas'
     category = 'Population Services'
+    userdefined = False
 
     def compute(self):
         """"""

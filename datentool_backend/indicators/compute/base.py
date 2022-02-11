@@ -12,6 +12,7 @@ class ComputeIndicator(metaclass=ABCMeta):
     description: str = None
     parameters: Dict[str, FieldTypes] = {}
     category: str = 'General'
+    userdefined: bool = True
 
     def __init__(self, query_params: QueryDict):
         self.query_params = query_params

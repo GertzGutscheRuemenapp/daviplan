@@ -78,6 +78,7 @@ class IndicatorType(NamedModel, models.Model):
     description = models.TextField()
     parameters = models.ManyToManyField(FieldType, through='IndicatorTypeField')
     category = models.TextField(default='')
+    userdefined = models.BooleanField(default=True)
 
     @classmethod
     def _update_indicators_types(cls):
@@ -87,6 +88,7 @@ class IndicatorType(NamedModel, models.Model):
             obj.name = indicator_class.label
             obj.description = indicator_class.description
             obj.category = indicator_class.category
+            obj.userdefined = indicator_class.userdefined
             obj.save()
             field_types = []
             for field_name, field_descr in indicator_class.parameters.items():

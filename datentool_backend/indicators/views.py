@@ -50,6 +50,9 @@ class IndicatorTypeViewSet(viewsets.ReadOnlyModelViewSet):
         categories = self.request.query_params.getlist('category')
         if categories:
             params['category__in'] = categories
+        userdefined = self.request.query_params.get('userdefined')
+        if userdefined:
+            params['userdefined'] = userdefined
         qs = qs.filter(**params)
         return qs
 
@@ -68,6 +71,9 @@ class IndicatorViewSet(viewsets.ModelViewSet):
         names = self.request.query_params.getlist('name')
         if names:
             params['name__in'] = names
+        userdefined = self.request.query_params.getlist('userdefined')
+        if userdefined:
+            params['userdefined'] = userdefined
         qs = qs.filter(**params)
         return qs
 

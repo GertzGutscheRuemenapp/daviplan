@@ -10,6 +10,7 @@ from datentool_backend.infrastructure.models import Place, Capacity
 
 
 class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
+    userdefined = False
 
     def compute(self):
         """"""
