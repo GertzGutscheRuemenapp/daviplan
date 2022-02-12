@@ -51,13 +51,13 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
 
         # disaggregate the population and use precalculated rastercells
         response = self.get('populations-intersectareaswithcells', pk=population.pk)
-        self.assertTrue(response.data.get('valid'))
+        self.assert_http_202_accepted(response)
         print(response.data.get('message'))
 
         # disaggregate the population and use precalculated rastercells
         response = self.get('populations-disaggregate', pk=population.pk,
                             data={'use_intersected_data': True,})
-        self.assertTrue(response.data.get('valid'))
+        self.assert_http_202_accepted(response)
         print(response.data.get('message'))
 
     def test_disaggregate_population(self):
@@ -66,11 +66,11 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
 
         # disaggregate the population
         response = self.get('populations-disaggregate', pk=population.pk)
-        self.assertTrue(response.data.get('valid'))
+        self.assert_http_202_accepted(response)
         print(response.data.get('message'))
         # do again to check updates
         response = self.get('populations-disaggregate', pk=population.pk)
-        self.assertTrue(response.data.get('valid'))
+        self.assert_http_202_accepted(response)
 
         # get disaggregated population
         response = self.get_check_200(url = 'populations-detail',
@@ -125,7 +125,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
 
         # Disaggregate the population
         response = self.get('populations-disaggregate', pk=self.population.pk)
-        self.assertTrue(response.data.get('valid'))
+        self.assert_http_202_accepted(response)
         # there should be a message about the not distributed inhabitants
         self.assertIn('999.0 Inhabitants not located to rastercells',
                       response.data.get('message'))
@@ -155,7 +155,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
 
         # Disaggregate the population
         response = self.get('populations-disaggregate', pk=self.population.pk)
-        self.assertTrue(response.data.get('valid'))
+        self.assert_http_202_accepted(response)
 
         # get disaggregated population
         response = self.get_check_200(url = 'populations-detail',

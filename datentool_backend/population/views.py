@@ -1,13 +1,17 @@
 import pandas as pd
 
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
 from django.db.models import F
 
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
+
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
+from drf_spectacular.types import OpenApiTypes
 #from datentool_backend.indicators.compute import (IntersectAreaWithRaster,
                                                   #DisaggregatePopulation)
 
@@ -28,6 +32,7 @@ from .serializers import (RasterSerializer,
                           PopulationEntrySerializer,
                           PopStatisticSerializer,
                           PopStatEntrySerializer,
+                          MessageSerializer,
                           )
 
 from datentool_backend.area.models import Area
@@ -56,6 +61,15 @@ class PopulationViewSet(viewsets.ModelViewSet):
     serializer_class = PopulationSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
+
+    @extend_schema(description='intersect areas with rastercells',
+                   parameters=[
+                       OpenApiParameter(name='area_level', required=False, type=int,
+        description='''if a specific area_level_id is provided,
+        take this one instead of the areas of the population''')
+                   ],
+                   responses={202: OpenApiResponse(MessageSerializer, 'Intersection successful'),
+                              406: OpenApiResponse(MessageSerializer, 'Intersection failed')})
     @action(methods=['GET'], detail=True,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def intersectareaswithcells(self, request, **kwargs):
@@ -143,8 +157,19 @@ class PopulationViewSet(viewsets.ModelViewSet):
             create_list.append(entry)
         AreaCell.objects.bulk_create(create_list)
         msg = f'{len(areas)} Areas were successfully intersected with Rastercells.\n'
-        return Response({'valid': 1, 'message': msg,})
+        return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
+    @extend_schema(description='intersect areas with rastercells',
+                   parameters=[
+                       OpenApiParameter(name='area_level', required=False, type=int,
+        description='''if a specific area_level_id is provided,
+        take this one instead of the areas of the population'''),
+                       OpenApiParameter(name='use_intersected_data', required=False, type=bool,
+        description='''use precalculated rastercells''')
+
+                   ],
+                   responses={202: OpenApiResponse(MessageSerializer, 'Intersection successful'),
+                              406: OpenApiResponse(MessageSerializer, 'Intersection failed')})
     @action(methods=['GET'], detail=True,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def disaggregate(self, request, **kwargs):
@@ -224,11 +249,10 @@ class PopulationViewSet(viewsets.ModelViewSet):
 
             create_list.append(entry)
 
-
         # update existing and create new objects
         RasterCellPopulationAgeGender.objects.bulk_create(create_list)
         msg += f'Disaggregation of Population was successful.\n'
-        return Response({'valid': 1, 'message': msg,})
+        return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
 
 class PopulationEntryViewSet(viewsets.ModelViewSet):

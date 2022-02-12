@@ -58,3 +58,7 @@ class PopStatEntrySerializer(serializers.ModelSerializer):
         model = PopStatEntry
         fields = ('id', 'popstatistic', 'area', 'immigration', 'emigration',
                   'births', 'deaths')
+
+
+class MessageSerializer(serializers.Serializer):
+    message = serializers.CharField()
