@@ -4,6 +4,9 @@ from vectortiles.postgis.views import MVTView, BaseVectorTileView
 from django.views.generic import DetailView
 from rest_framework.decorators import action
 from django.http import JsonResponse
+
+from drf_spectacular.utils import extend_schema
+
 from owslib.wms import WebMapService
 import requests
 from requests.exceptions import (MissingSchema, ConnectionError,
@@ -26,6 +29,8 @@ from .models import (MapSymbol,
 from .serializers import (MapSymbolSerializer,
                           LayerGroupSerializer,
                           WMSLayerSerializer,
+                          GetCapabilitiesRequestSerializer,
+                          GetCapabilitiesResponseSerializer,
                           AreaLevelSerializer,
                           AreaSerializer,
                           )
@@ -71,6 +76,11 @@ class WMSLayerViewSet(viewsets.ModelViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
     filter_fields = ['active']
 
+    @extend_schema(
+        description='Get capabilites of WMS-Service',
+        request=GetCapabilitiesRequestSerializer,
+        responses=GetCapabilitiesResponseSerializer,
+    )
     @action(methods=['POST'], detail=False,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def getcapabilities(self, request, **kwargs):
@@ -137,7 +147,6 @@ class ProtectPresetPermission(permissions.BasePermission):
 
 
 class AreaLevelFilter(filters.FilterSet):
-    active = filters.BooleanFilter(field_name='is_active')
     class Meta:
         model = AreaLevel
         fields = ['is_active']

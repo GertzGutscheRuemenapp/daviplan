@@ -232,16 +232,16 @@ class PlaceSerializer(GeoFeatureModelSerializer):
     attributes = PlaceAttributeField(validators=[PlaceAttributeValidator()])
     capacity = CapacitySerializer(required=False, many=True,
                                   source='capacity_set')
-    #capacities = CapacityListSerializer(required=False,
-                                        #child=CapacityAmountSerializer(),
-                                        #source='capacity_set')
+    capacities = CapacityListSerializer(required=False,
+                                        child=CapacityAmountSerializer(),
+                                        source='capacity_set')
 
 
     class Meta:
         model = Place
         geo_field = 'geom'
         fields = ('id', 'name', 'infrastructure', 'attributes', 'capacity',
-                  #'capacities',
+                  'capacities',
                   'scenario')
 
 

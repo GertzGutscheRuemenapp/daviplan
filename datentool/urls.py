@@ -45,6 +45,8 @@ urlpatterns = [
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'),
          name='swagger-ui'),
+    path('api/schema/redoc-ui/', SpectacularRedocView.as_view(url_name='schema'),
+         name='redoc-ui'),
 
     path('tiles/arealevels/<int:pk>/tile/<int:z>/<int:x>/<int:y>/',
          AreaLevelTileView.as_view(), name="layer-tile"),

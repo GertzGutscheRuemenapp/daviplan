@@ -2,6 +2,8 @@ from rest_framework import viewsets, permissions
 from django.db.models import Q
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+
 from django.contrib.auth.models import User
 
 from datentool_backend.utils.views import ProtectCascadeMixin
@@ -72,6 +74,14 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(settings)
 
 
+@extend_schema_view(list=extend_schema(
+    parameters=[
+        OpenApiParameter(name='prognosis', required=False, type=int,
+                         description='only years defined for prognosis with this pkey'),
+        OpenApiParameter(name='with_population', required=False, type=bool ,
+                         description='if true, only years where population data is available'),
+    ]
+))
 class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     serializer_class = YearSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]

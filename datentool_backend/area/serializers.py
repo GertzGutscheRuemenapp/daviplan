@@ -28,6 +28,26 @@ class WMSLayerSerializer(serializers.ModelSerializer):
         optional_fields = ('description', 'active')
 
 
+class GetCapabilitiesRequestSerializer(serializers.Serializer):
+    url = serializers.URLField()
+    version = serializers.CharField(required=False, default='1.3.0')
+
+
+class LayerSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    title = serializers.CharField()
+    abstract = serializers.CharField()
+    bbox = serializers.ListField(child=serializers.FloatField(),
+                                 min_length=4, max_length=4)
+
+
+class GetCapabilitiesResponseSerializer(serializers.Serializer):
+    version = serializers.CharField()
+    url = serializers.URLField()
+    cors = serializers.BooleanField()
+    layers = LayerSerializer(many=True)
+
+
 class SourceSerializer(serializers.ModelSerializer):
     date = serializers.DateField(format='%d.%m.%Y',
                                  input_formats=['%d.%m.%Y', 'iso-8601'])
@@ -49,7 +69,7 @@ class AreaLevelSerializer(serializers.ModelSerializer):
                   'is_preset', 'area_count', 'tile_url', 'label_field')
         read_only_fields = ('is_preset', )
 
-    def get_tile_url(self, obj):
+    def get_tile_url(self, obj) -> str:
         # x,y,z have to be passed to reverse
         url = reverse('layer-tile', kwargs={'pk': obj.id, 'z': 0,
                                             'x': 0, 'y': 0})

@@ -12,6 +12,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.utils.serializer_helpers import ReturnDict
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from datentool_backend.utils.serializers import (BulkValidationError, )
 
 
@@ -35,6 +36,12 @@ class SingletonViewSet(viewsets.ModelViewSet):
 
 
 class ProtectCascadeMixin:
+    @extend_schema(parameters=[
+        OpenApiParameter(name='override_protection', type=bool, required=False,
+                         description='''if true, delete depending objects cascadedly,
+                         even if they are protected'''),],
+                   description='''Delete is not possible if there are depending objects,
+                   unless override_protection is passed as query-param''')
     def destroy(self, request, **kwargs):
         """
         try to delete an object. If it is protected,

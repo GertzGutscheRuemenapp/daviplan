@@ -39,13 +39,15 @@ class RouterViewSet(viewsets.ModelViewSet):
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter, OpenApiExample
 
 
-@extend_schema_view(list=extend_schema(description='List available IndicatorTypes',
-                                       parameters=[
-                                           OpenApiParameter(name='classname', type=str, explode=True,), # todo: Mehrere
-                                           OpenApiParameter(name='category', type=str),
-                                           OpenApiParameter(name='userdefined', type=bool),
-                                       ])
-                    )
+@extend_schema_view(list=extend_schema(
+    description='List available IndicatorTypes',
+    parameters=[
+        OpenApiParameter(name='classname',
+                         description='names of the IndicatorType-Classes',
+                         type={'type': 'array', 'items': {'type': 'str'}},),
+        OpenApiParameter(name='category', type=str),
+        OpenApiParameter(name='userdefined', type=bool),
+    ]))
 class IndicatorTypeViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = IndicatorType.objects.all()
@@ -68,6 +70,17 @@ class IndicatorTypeViewSet(viewsets.ReadOnlyModelViewSet):
         return qs
 
 
+@extend_schema_view(list=extend_schema(
+    description='List available Indicators',
+    parameters=[
+        OpenApiParameter(name='indicatortype_classname',
+                         description='names of the IndicatorType-Classes',
+                         type={'type': 'array', 'items': {'type': 'str'}},),
+        OpenApiParameter(name='name',
+                         description='names of the Indicators',
+                         type={'type': 'array', 'items': {'type': 'str'}},),
+        OpenApiParameter(name='userdefined', type=bool),
+    ]))
 class IndicatorViewSet(viewsets.ModelViewSet):
     queryset = Indicator.objects.all()
     serializer_class = IndicatorSerializer
@@ -89,6 +102,12 @@ class IndicatorViewSet(viewsets.ModelViewSet):
         return qs
 
 
+@extend_schema_view(list=extend_schema(
+    description='Get indicator calculated for the areas',
+    parameters=[
+        OpenApiParameter(name='indicator', type=int,
+                         description='pk of the indicator to calculate'),
+    ]))
 class AreaIndicatorViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Indicator.objects.none()
     serializer_class = AreaIndicatorSerializer
@@ -99,7 +118,10 @@ class AreaIndicatorViewSet(viewsets.ReadOnlyModelViewSet):
         if indicator_id is None:
             raise BadRequest('indicator_id is required as query_param')
 
-        classname = Indicator.objects.get(pk=indicator_id).indicator_type.classname
+        try:
+            classname = Indicator.objects.get(pk=indicator_id).indicator_type.classname
+        except Indicator.DoesNotExist:
+            raise BadRequest(f'indicator with id {indicator_id} not found')
         compute_class: ComputeIndicator = IndicatorType._indicator_classes[classname]
         qs = compute_class(self.request.query_params).compute()
         return qs
@@ -126,7 +148,10 @@ class AreaLevelIndicatorTileView(MVTView, DetailView):
             raise BadRequest('indicator_id is required as query_param')
 
         # get the IndicatorCompute-class
-        classname = Indicator.objects.get(pk=indicator_id).indicator_type.classname
+        try:
+            classname = Indicator.objects.get(pk=indicator_id).indicator_type.classname
+        except Indicator.DoesNotExist:
+            raise BadRequest(f'indicator with id {indicator_id} not found')
         compute_class: ComputeIndicator = IndicatorType._indicator_classes[classname]
         # and compute the queryset for the areas
         areas = compute_class(query_params).compute()
@@ -138,7 +163,14 @@ class AreaLevelIndicatorTileView(MVTView, DetailView):
                                       x=kwargs.get('x'), y=kwargs.get('y'))
 
 
+@extend_schema_view(list=extend_schema(
+    description='Get indicator calculated for the population',
+    parameters=[
+        OpenApiParameter(name='indicator', type=int,
+                         description='pk of the indicator to calculate'),
+    ]))
 class PopulationIndicatorViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Indicator.objects.none()
     serializer_class = PopulationIndicatorSerializer
 
     def get_queryset(self):
@@ -147,7 +179,10 @@ class PopulationIndicatorViewSet(viewsets.ReadOnlyModelViewSet):
         if indicator_id is None:
             raise BadRequest('indicator_id is required as query_param')
 
-        classname = Indicator.objects.get(pk=indicator_id).indicator_type.classname
+        try:
+            classname = Indicator.objects.get(pk=indicator_id).indicator_type.classname
+        except Indicator.DoesNotExist:
+            raise BadRequest(f'indicator with id {indicator_id} not found')
         compute_class: ComputeIndicator = IndicatorType._indicator_classes[classname]
         qs = compute_class(self.request.query_params).compute()
         return qs
