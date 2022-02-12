@@ -76,7 +76,11 @@ class PopulationViewSet(viewsets.ModelViewSet):
         """
         route to intersect areas with raster cells
         """
-        population: Population = self.queryset.get(**self.kwargs)
+        try:
+            population: Population = self.queryset.get(**self.kwargs)
+        except Population.DoesNotExist:
+            msg = f'Population for {self.kwargs} not found'
+            return Response({'message': msg,}, status.HTTP_406_NOT_ACCEPTABLE)
 
         # if a specific area-level is provided, take this one
         # instead of the areas of the population
@@ -176,7 +180,12 @@ class PopulationViewSet(viewsets.ModelViewSet):
         """
         route to disaggregate the population to the raster cells
         """
-        population: Population = self.queryset.get(**self.kwargs)
+        try:
+            population: Population = self.queryset.get(**self.kwargs)
+        except Population.DoesNotExist:
+            msg = f'Population for {self.kwargs} not found'
+            return Response({'message': msg,}, status.HTTP_406_NOT_ACCEPTABLE)
+
         areas = population.populationentry_set.distinct('area_id')\
             .values_list('area_id', flat=True)
 

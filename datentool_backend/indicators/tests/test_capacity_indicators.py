@@ -41,9 +41,9 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         cls.create_places(infrastructure)
         cls.create_capacities()
 
-
     def test_numer_of_places_in_base_scenario(self):
         """Test the number of places with capacity by year for a service"""
+        self.suffix = '-number-of-locations'
 
         # in the base scenario there should be 2 places in area1
         # and 1 with capacity in area2 for service1
@@ -84,6 +84,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
 
     def test_total_capacity(self):
         """Test the number of places with capacity by year for a service"""
+        self.suffix = '-capacity'
         self.indicator = IndicatorFactory(
             indicator_type__classname=TotalCapacityInArea.__name__)
 
@@ -107,8 +108,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                        service: int = None,
                        year: int = None,
                        scenario: int = None):
-        query_params = {'indicator': self.indicator.pk,
-                        'area_level': self.area1.pk, }
+        query_params = {'area_level': self.area1.pk, }
         if service is not None:
             if isinstance(service, list):
                 query_params['service'] = [s.id for s in service]
@@ -119,7 +119,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         if scenario is not None:
             query_params['scenario'] = scenario.id
 
-        response = self.get_check_200(self.url_key+'-list', data=query_params)
+        response = self.get_check_200(self.url_key+self.suffix, data=query_params)
         # assert that the result is ordered by label
         actual = sorted(response.data, key=lambda f: f['label'])
         expected = [{'label': 'area1', 'value': expected_values[0], },

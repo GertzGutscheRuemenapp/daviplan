@@ -36,9 +36,6 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         cls.profile.can_edit_basedata = True
         cls.profile.save()
 
-        #cls.indicator = IndicatorFactory(
-            #indicator_type__classname=ComputePopulationAreaIndicator.__name__)
-
         cls.create_areas()
         cls.create_years_gender_agegroups()
         cls.create_raster_population()
@@ -59,6 +56,10 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                             data={'use_intersected_data': True,})
         self.assert_http_202_accepted(response)
         print(response.data.get('message'))
+
+        unknown_population = max(Population.objects.all().values_list('id', flat=True)) + 1
+        response = self.get('populations-intersectareaswithcells', pk=unknown_population)
+        self.assert_http_406_not_acceptable(response)
 
     def test_disaggregate_population(self):
         """Test if the population is correctly Disaggregated to RasterCells"""
@@ -172,7 +173,6 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         actual = df[['gender', 'value']].groupby('gender').sum()
         pd.testing.assert_frame_equal(actual, expected)
 
-
     def test_aggregate_population_to_area(self):
         """Test the aggregation of population to areas of an area level"""
         populations = Population.objects.all()
@@ -200,7 +200,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         query_params = {'indicator': indicator_id,
                         'area_level': self.area_level2.pk, }
 
-        response = self.get_check_200(self.url_key + '-list', data=query_params)
+        response = self.get_check_200(self.url_key + '-aggregate-population', data=query_params)
         print(response.data)
         # Test if sum of large area equals all input areas
 
@@ -208,7 +208,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         query_params = {'indicator': indicator_id,
                         'area_level': self.obj.pk, }
 
-        response = self.get_check_200(self.url_key+'-list', data=query_params)
+        response = self.get_check_200(self.url_key+'-aggregate-population', data=query_params)
         # Test if input data matches
         print(response.data)
 
@@ -217,7 +217,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                         'gender': self.genders[0].pk,
                         }
 
-        response = self.get_check_200(self.url_key + '-list', data=query_params)
+        response = self.get_check_200(self.url_key + '-aggregate-population', data=query_params)
         print(response.data)
 
 
@@ -226,7 +226,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                         'age_group': self.age_groups.values_list('id', flat=True)[:2],
                         }
 
-        response = self.get_check_200(self.url_key + '-list', data=query_params)
+        response = self.get_check_200(self.url_key + '-aggregate-population', data=query_params)
         print(response.data)
 
         query_params = {'indicator': indicator_id,
@@ -234,7 +234,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                         'area': [self.area1.pk, self.area3.pk],
                         }
 
-        response = self.get_check_200(self.url_key + '-list', data=query_params)
+        response = self.get_check_200(self.url_key + '-aggregate-population', data=query_params)
         print(response.data)
 
 
@@ -268,7 +268,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         query_params = {'indicator': indicator_id,
                         'area': self.area1.pk, }
 
-        response = self.get_check_200('populationindicators-list', data=query_params)
+        response = self.get_check_200('populationindicators-population-details', data=query_params)
         print(response.data)
         # Test if sum of large area equals all input areas
 
@@ -276,7 +276,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         query_params = {'indicator': indicator_id,
                         'area': self.district1.pk, }
 
-        response = self.get_check_200('populationindicators-list', data=query_params)
+        response = self.get_check_200('populationindicators-population-details', data=query_params)
         # Test if input data matches
         print(response.data)
 
@@ -285,6 +285,6 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                         'area': self.district1.pk,
                         'prognosis': self.prognosis.pk,}
 
-        response = self.get_check_200('populationindicators-list', data=query_params)
+        response = self.get_check_200('populationindicators-population-details', data=query_params)
         # Test if input data matches
         print(response.data)
