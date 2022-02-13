@@ -94,7 +94,7 @@ class IndicatorType(NamedModel, models.Model):
             field_types = []
             for field_name, field_descr in indicator_class.parameters.items():
                 field_type, created = FieldType.objects.get_or_create(
-                    field_type=field_descr.value, name=field_name)
+                    ftype=field_descr.value, name=field_name)
                 field_types.append(field_type)
                 itf, created = IndicatorTypeField.objects.get_or_create(
                     indicator_type=obj, field_type=field_type)

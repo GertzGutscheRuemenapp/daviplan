@@ -37,7 +37,7 @@ class PlaceFactory(DjangoModelFactory):
     name = faker.unique.word()
     infrastructure = factory.SubFactory(InfrastructureFactory)
     geom = get_point_from_latlon(faker.latlng(), 3857)
-    attributes = faker.json(num_rows=3, indent=True)
+    attributes = {'firstname': faker.name(), 'employees': faker.pyint(),}
 
 
 class CapacityFactory(DjangoModelFactory):
@@ -56,7 +56,7 @@ class PlaceFieldFactory(DjangoModelFactory):
     class Meta:
         model = PlaceField
 
-    attribute = faker.unique.word()
+    name = faker.unique.word()
     unit = faker.word()
     infrastructure = factory.SubFactory(InfrastructureFactory)
     field_type = factory.SubFactory(FieldTypeFactory)

@@ -22,8 +22,8 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
         area_level = AreaLevel.objects.get(pk=area_level_id)
         areas = area_level.area_set.all()
 
-        areas = areas.annotate(
-            label=KeyTextTransform(area_level.label_field, 'attributes'))
+        #areas = areas.annotate(
+            #label=KeyTextTransform(area_level.label_field, 'attributes'))
 
 
         capacities = Capacity.objects.all()

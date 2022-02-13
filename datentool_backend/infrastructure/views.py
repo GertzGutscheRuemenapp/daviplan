@@ -23,7 +23,7 @@ from .models import (Scenario,
 
 from .serializers import (ScenarioSerializer,
                           PlaceSerializer,
-                          PlaceUpdateAttributeSerializer,
+                          #PlaceUpdateAttributeSerializer,
                           CapacitySerializer,
                           PlaceFieldSerializer,
                           )
@@ -59,12 +59,12 @@ capacity_params = [
 class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
     serializer_class = PlaceSerializer
-    serializer_action_class = {'update_attributes': PlaceUpdateAttributeSerializer}
+    #serializer_action_class = {'update_attributes': PlaceUpdateAttributeSerializer}
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
-    def get_serializer_class(self):
-        return self.serializer_action_class.get(self.action,
-                                                super().get_serializer_class())
+    #def get_serializer_class(self):
+        #return self.serializer_action_class.get(self.action,
+                                                #super().get_serializer_class())
 
     def get_queryset(self):
         queryset = Place.objects.all()
@@ -113,16 +113,16 @@ class PlaceFieldViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     serializer_class = PlaceFieldSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
-    def perform_destroy(self, instance):
-        """check, if there are referenced attributes"""
-        places = Place.objects.filter(infrastructure=instance.infrastructure)
-        for place in places:
-            attr_dict = json.loads(place.attributes)
-            if instance.attribute in attr_dict:
-                if self.use_protection:
-                    msg = f'Cannot delete "{instance}" because {place} has the attributes {place.attributes} using it'
-                    raise ProtectedError(msg, [place])
-                attr_dict.pop(instance.attribute)
-                place.attributes = json.dumps(attr_dict)
-                place.save()
-        instance.delete()
+    #def perform_destroy(self, instance):
+        #"""check, if there are referenced attributes"""
+        #places = Place.objects.filter(infrastructure=instance.infrastructure)
+        #for place in places:
+            #attr_dict = json.loads(place.attributes)
+            #if instance.attribute in attr_dict:
+                #if self.use_protection:
+                    #msg = f'Cannot delete "{instance}" because {place} has the attributes {place.attributes} using it'
+                    #raise ProtectedError(msg, [place])
+                #attr_dict.pop(instance.attribute)
+                #place.attributes = json.dumps(attr_dict)
+                #place.save()
+        #instance.delete()

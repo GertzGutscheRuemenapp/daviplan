@@ -58,14 +58,17 @@ class JsonObject(Func):
 
 class AreaLevelTileView(MVTView, DetailView):
     model = AreaLevel
-    vector_tile_fields = ('id', 'area_level', 'attributes')
+    vector_tile_fields = ('id', 'area_level', 'attributes', 'label')
 
     def get_vector_tile_layer_name(self):
         return self.get_object().name
 
     def get_vector_tile_queryset(self):
         qs = self.get_object().area_set.all()
+        # annotate the areas
         sq = AreaAttribute.objects.filter(area=OuterRef('pk'))
+
+        # get the area attributes
         sq = sq.annotate(val=Case(
             When(field__field_type__ftype=FieldTypes.STRING, then=F('str_value')),
             When(field__field_type__ftype=FieldTypes.NUMBER, then=Cast(F('num_value'), CharField())),
@@ -73,10 +76,21 @@ class AreaLevelTileView(MVTView, DetailView):
                  then=F('class_value__value')),
             output_field=CharField())
                          )
-        sq = sq.values('area')\
-            .annotate(attributes=JsonObject(ArrayAgg(F('field__name')), ArrayAgg(F('val')), output_field=CharField()))\
+
+        # annotate the label
+        sq_label = sq.filter(field__is_label=True)\
+            .values('val')
+
+        # annotate the attributes in json-format
+        sq_attrs = sq.values('area')\
+            .annotate(attributes=JsonObject(ArrayAgg(F('field__name')),
+                                            ArrayAgg(F('val')),
+                                            output_field=CharField()))\
             .values('attributes')
-        qs = qs.annotate(attributes=Subquery(sq, output_field=CharField()))
+
+        # annotate attributes and label to the queryset
+        qs = qs.annotate(attributes=Subquery(sq_attrs, output_field=CharField()))\
+            .annotate(label=Subquery(sq_label, output_field=CharField()))
 
         return qs
 

@@ -3,7 +3,12 @@ import xarray as xr
 
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 
-from datentool_backend.area.factories import AreaLevelFactory, AreaFactory, Area
+from datentool_backend.area.factories import (AreaLevelFactory,
+                                              AreaFactory,
+                                              AreaFieldFactory,
+                                              FieldTypes,
+                                              )
+from datentool_backend.area.models import Area, AreaAttribute
 from datentool_backend.user.factories import (InfrastructureFactory,
                                               Infrastructure,
                                               ServiceFactory,
@@ -59,7 +64,11 @@ class CreateInfrastructureTestdataMixin:
 
     @classmethod
     def create_areas(cls):
-        cls.obj = area_level = AreaLevelFactory(label_field='gen')
+        cls.obj = area_level = AreaLevelFactory()
+        name_field = AreaFieldFactory(name='gen',
+                                      area_level=area_level,
+                                      field_type__ftype=FieldTypes.STRING,
+                                      is_label=True)
         cls.url_pk = cls.obj.pk
 
         # Area1
@@ -105,6 +114,10 @@ class CreateInfrastructureTestdataMixin:
         )
 
         cls.area_level2 = AreaLevelFactory(name='Districts')
+        name_field = AreaFieldFactory(name='gen',
+                                      area_level=cls.area_level2,
+                                      field_type__ftype=FieldTypes.STRING,
+                                      is_label=True)
         # District1
         coords = np.array([(-500, 0),
                            (-500, 100),
@@ -118,7 +131,7 @@ class CreateInfrastructureTestdataMixin:
                               srid=3857),
             attributes={'gen': 'district1', },
         )
-        area_level2 = AreaLevelFactory(name='Districts')
+
         # District2
         coords = np.array([(-100, 0),
                            (-100, 100),
@@ -286,7 +299,7 @@ class CreateInfrastructureTestdataMixin:
                                   ):
         entries = []
         for area_name in area_names:
-            area = Area.objects.get(attributes__gen=area_name)
+            area = AreaAttribute.objects.get(field__name='gen', str_value=area_name).area
             for age_group in cls.age_groups:
                 for gender in cls.genders:
                     value = pop_values_by_age_gender.loc[area_name, age_group, gender]

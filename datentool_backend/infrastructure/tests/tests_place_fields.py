@@ -33,6 +33,7 @@ from datentool_backend.infrastructure.models import (
     Place,
     FieldTypes,
     PlaceField,
+    PlaceAttribute,
 )
 from datentool_backend.area.factories import FClassFactory
 from datentool_backend.area.models import FClass
@@ -70,15 +71,13 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        cls.obj = PlaceFactory(attributes=faker.json(
-            num_rows=1, data_columns={'age': 'pyint', 'surname': 'name'}))
+        cls.obj = place = PlaceFactory()
 
-        place: Place = cls.obj
         infrastructure = place.infrastructure.pk
 
         ft_age = FieldTypeFactory(ftype=FieldTypes.NUMBER)
         field1 = PlaceFieldFactory(
-            attribute='age',
+            name='age',
             infrastructure=place.infrastructure,
             field_type=ft_age,
             sensitive=False,
@@ -86,11 +85,14 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
 
         ft_name = FieldTypeFactory(ftype=FieldTypes.STRING)
         field2 = PlaceFieldFactory(
-            attribute='surname',
+            name='surname',
             infrastructure=place.infrastructure,
             field_type=ft_name,
             sensitive=False,
         )
+
+        place.attributes={'age': faker.pyint(), 'surname': faker.name()}
+        place.save()
 
         geom = place.geom.ewkt
 
@@ -126,7 +128,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         pr2 = ProfileFactory()
         place: Place = self.obj
         attributes = {'harmless': 123, 'very_secret': 456, }
-        place.attributes = json.dumps(attributes)
+        place.attributes = attributes
         place.save()
         infr: Infrastructure = place.infrastructure
         infr.accessible_by.set([pr1, pr2])
@@ -166,23 +168,19 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
     def setup_place(self) -> Tuple[Profile, Place]:
         pr1 = ProfileFactory(can_edit_basedata=True)
         place: Place = self.obj
-        attributes = {'int_field': 123,
-                      'text_field': 'ABC',
-                      'class_field': 'Category_1', }
-        place.attributes = json.dumps(attributes)
-        place.save()
+
         infr: Infrastructure = place.infrastructure
         infr.accessible_by.set([pr1])
         infr.save()
 
-        field1 = PlaceFieldFactory(attribute='int_field', sensitive=False,
+        field1 = PlaceFieldFactory(name='int_field', sensitive=False,
                                    field_type__ftype=FieldTypes.NUMBER,
                                    infrastructure=infr)
-        field2 = PlaceFieldFactory(attribute='text_field', sensitive=False,
+        field2 = PlaceFieldFactory(name='text_field', sensitive=False,
                                    field_type__ftype=FieldTypes.STRING,
                                    infrastructure=infr)
         field3 = PlaceFieldFactory(
-            attribute='class_field',
+            name='class_field',
             sensitive=False,
             field_type__ftype=FieldTypes.CLASSIFICATION,
             infrastructure=infr)
@@ -193,6 +191,13 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         fclass2 = FClassFactory(ftype=field3.field_type,
                                 order=2,
                                 value='Category_2')
+
+        attributes = {'int_field': 123,
+                      'text_field': 'ABC',
+                      'class_field': 'Category_1', }
+        place.attributes = attributes
+        place.save()
+
         return pr1, place
 
     def test_update_attributes(self):
@@ -289,11 +294,11 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         attributes2 = {'int_field': 789,
                        'class_field': 'Category_2', }
         place2 = PlaceFactory(infrastructure=place1.infrastructure,
-                              attributes=json.dumps(attributes2))
+                              attributes=attributes2)
 
         place_fields = PlaceField.objects.filter(
             infrastructure=place1.infrastructure,
-            attribute__in=['int_field', 'text_field', 'class_field'])
+            name__in=['int_field', 'text_field', 'class_field'])
 
         for place_field in place_fields:
             # deleting the place field should fail,
@@ -302,7 +307,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
             self.response_403(msg=response.content)
 
         field_name = 'int_field'
-        int_field = PlaceField.objects.get(attribute=field_name,
+        int_field = PlaceField.objects.get(name=field_name,
                                            infrastructure=place1.infrastructure)
 
         # deleting the place field should cascadedly delete the attribute
@@ -312,20 +317,17 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
                                data=dict(override_protection=True))
         self.response_204(msg=response.content)
 
-        place_attributes = Place.objects.filter(
-            infrastructure=place1.infrastructure).values_list('attributes',
-                                                              flat=True)
-        for attr in place_attributes:
-            attr_dict = json.loads(attr)
-            msg = f'{field_name} should be removed from the place attributes {attr_dict}'
-            self.assertFalse(field_name in attr_dict, msg)
+        place_attributes = PlaceAttribute.objects.filter(
+            place__infrastructure=place1.infrastructure, field__name=field_name)
+        self.assertQuerysetEqual(
+            place_attributes, [], msg=f'{field_name} should be removed from the place attributes')
 
         field_name = 'text_field'
-        text_field = PlaceField.objects.get(attribute=field_name,
+        text_field = PlaceField.objects.get(name=field_name,
                                             infrastructure=place1.infrastructure)
         # remove the text_field from place1, so there is no text_field defined
         attributes = {'class_field': 'Category_1', }
-        place1.attributes = json.dumps(attributes)
+        place1.attributes = attributes
         place1.save()
 
         # it should delete the text_field even without override_protection,
@@ -336,7 +338,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         self.response_204(msg=response.content)
 
         field_name = 'class_field'
-        class_field = PlaceField.objects.get(attribute=field_name,
+        class_field = PlaceField.objects.get(name=field_name,
                                              infrastructure=place1.infrastructure)
         # deleting a FClass category should fail,
         # if there are attributes using this category
@@ -353,13 +355,13 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         self.response_204(msg=response.content)
 
         # the attribute should have been removed now in place1
-        place_attributes = Place.objects.get(pk=place1.pk).attributes
-        attr_dict = json.loads(place_attributes)
-        msg = f'{field_name} should be removed from the place attributes {attr_dict}'
-        self.assertFalse(field_name in attr_dict, msg)
+        place_attributes = PlaceAttribute.objects.filter(
+            place_id=place1.pk, field__name=field_name)
+        self.assertQuerysetEqual(
+            place_attributes, [], msg=f'{field_name} should be removed from the place attributes')
 
         #  create a new Category_3
-        fclass3 = FClassFactory(classification=class_field.field_type,
+        fclass3 = FClassFactory(ftype=class_field.field_type,
                                 order=1,
                                 value='Category_3')
 

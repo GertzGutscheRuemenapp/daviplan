@@ -5,7 +5,7 @@ from django.dispatch import receiver
 
 from datentool_backend.base import NamedModel, DatentoolModelMixin
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
-from datentool_backend.area.models import MapSymbol
+from datentool_backend.area.models import MapSymbol, FieldType
 
 
 class Profile(DatentoolModelMixin, models.Model):
@@ -75,11 +75,33 @@ class Infrastructure(DatentoolModelMixin, NamedModel, models.Model):
     symbol = models.OneToOneField(MapSymbol, on_delete=models.SET_NULL,
                                   null=True, blank=True)
 
+    @property
+    def label_field(self):
+        """the label field derived from the Fields"""
+        try:
+            return self.placefield_set.get(is_label=True).name
+        except PlaceField.DoesNotExist:
+            return ''
+
 
 class InfrastructureAccess(models.Model):
     infrastructure = models.ForeignKey(Infrastructure, on_delete=models.CASCADE)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     allow_sensitive_data = models.BooleanField(default=False)
+
+
+class PlaceField(DatentoolModelMixin, models.Model):
+    """a field of a Place of this infrastructure"""
+    name = models.TextField()
+    infrastructure = models.ForeignKey(Infrastructure, on_delete=PROTECT_CASCADE)
+    field_type = models.ForeignKey(FieldType, on_delete=PROTECT_CASCADE)
+    is_label = models.BooleanField(null=True, default=None)
+    sensitive = models.BooleanField(default=False)
+    unit = models.TextField()
+
+    class Meta:
+        unique_together = [['infrastructure', 'name'],
+                           ['infrastructure', 'is_label']]
 
 
 class Service(DatentoolModelMixin, NamedModel, models.Model):

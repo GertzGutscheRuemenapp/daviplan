@@ -1,5 +1,7 @@
 from django.db import models
+from django.db.models.signals import post_save
 from django.contrib.gis.db import models as gis_models
+
 from datentool_backend.base import NamedModel, JsonAttributes
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.base import NamedModel, DatentoolModelMixin
@@ -74,7 +76,14 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
                                   blank=True)
     is_active = models.BooleanField(default=True)
     is_preset = models.BooleanField(default=False)
-    label_field = models.TextField(null=True)
+
+    @property
+    def label_field(self):
+        """the label field derived from the Fields"""
+        try:
+            return self.areafield_set.get(is_label=True).name
+        except AreaField.DoesNotExist:
+            return ''
 
 
 class Area(DatentoolModelMixin, JsonAttributes, models.Model):
@@ -86,8 +95,20 @@ class Area(DatentoolModelMixin, JsonAttributes, models.Model):
     def attributes(self):
         return self.areaattribute_set
 
+    @property
+    def label(self):
+        """The area label retrieved from the attributes"""
+        try:
+            label_attr = self.attributes.get(field__is_label=True)
+        except AreaAttribute.DoesNotExist:
+            return ''
+        return label_attr.value
+
     @attributes.setter
-    def attributes(self, attr_dict):
+    def attributes(self, attr_dict: dict):
+        if not self.pk:
+            self._attr_dict = attr_dict
+            return
         aa = AreaAttribute.objects.filter(area=self)
         aa.delete()
         for field_name, value in attr_dict.items():
@@ -105,18 +126,21 @@ class Area(DatentoolModelMixin, JsonAttributes, models.Model):
                                                  name=field_name,
                                                  field_type=field_type,
                                                  )
-            AreaAttribute(area=self, field=field, value=value)
+            AreaAttribute.objects.create(area=self, field=field, value=value)
 
-    def save(self, **kwargs):
-        super().save(**kwargs)
-        for aa in self.areaattribute_set.iterator():
-            aa.save()
-
+    @staticmethod
+    def post_create(sender, instance, created, *args, **kwargs):
+        if not created:
+            return
+        if hasattr(instance, '_attr_dict'):
+            instance.attributes = instance._attr_dict
 
     def __str__(self) -> str:
         attributes = self.areaattribute_set
-        name = attributes.get('field__name' == self.area_level.label_field).field.name
-        return f'{self.__class__.__name__} ({self.area_level.name}): {name}'
+        return f'{self.__class__.__name__} ({self.area_level.name}): {self.label}'
+
+
+post_save.connect(Area.post_create, sender=Area)
 
 
 class FieldTypes(models.TextChoices):
@@ -158,15 +182,15 @@ class AreaField(DatentoolModelMixin, models.Model):
     name = models.TextField()
     area_level = models.ForeignKey(AreaLevel, on_delete=PROTECT_CASCADE)
     field_type = models.ForeignKey(FieldType, on_delete=PROTECT_CASCADE)
-    is_label = models.BooleanField(default=False)
+    is_label = models.BooleanField(null=True, default=None)
 
     class Meta:
-        unique_together = [['area_level', 'name']]
+        unique_together = [['area_level', 'name'],
+                           ['area_level', 'is_label']]
 
 
 class FieldAttribute(DatentoolModelMixin, NamedModel, models.Model):
     """a value of an Area"""
-    field = models.ForeignKey(AreaField, on_delete=PROTECT_CASCADE)
     str_value = models.TextField(null=True)
     num_value = models.FloatField(null=True)
     class_value = models.ForeignKey(FClass, null=True, on_delete=PROTECT_CASCADE)
@@ -193,10 +217,10 @@ class FieldAttribute(DatentoolModelMixin, NamedModel, models.Model):
             self.str_value = data
         elif self.field.field_type.ftype == FieldTypes.CLASSIFICATION:
             try:
-                fclass = FClass.objects.get(ftype=self,
+                fclass = FClass.objects.get(ftype=self.field.field_type,
                                             value=data)
             except FClass.DoesNotExist:
-                raise ValueError(f'{data} for field {self} is no valid value')
+                raise ValueError(f'{data} for field {self.field} is no valid value')
             self.class_value = fclass
 
     def __repr__(self) -> str:
@@ -208,6 +232,7 @@ class FieldAttribute(DatentoolModelMixin, NamedModel, models.Model):
 
 class AreaAttribute(FieldAttribute):
     area = models.ForeignKey(Area, on_delete=models.CASCADE)
+    field = models.ForeignKey(AreaField, on_delete=PROTECT_CASCADE)
 
     class Meta:
         unique_together = [['area', 'field']]

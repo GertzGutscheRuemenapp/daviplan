@@ -13,7 +13,7 @@ from ..compute import (ComputePopulationAreaIndicator,
 
 from .setup_testdata import CreateInfrastructureTestdataMixin
 from datentool_backend.demand.models import AgeGroup, Gender
-from datentool_backend.area.models import Area
+from datentool_backend.area.models import Area, AreaAttribute
 from datentool_backend.population.models import (Population,
                                                  RasterCellPopulation,
                                                  PopulationEntry)
@@ -109,7 +109,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         rcp.delete()
 
         #add a population entries in area3
-        area3 = Area.objects.get(attributes__gen='area3')
+        area3 = AreaAttribute.objects.get(field__name='gen', str_value='area3').area
         age_group = AgeGroup.objects.first()
         gender = Gender.objects.first()
         PopulationEntry.objects.create(population=self.population,
@@ -151,7 +151,9 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         pd.testing.assert_frame_equal(actual, expected)
 
         # Delete area2+3 with its population
-        area_2_and_3 = Area.objects.filter(attributes__gen__in=['area2', 'area3'])
+        aa2_and_3 = AreaAttribute.objects.filter(field__name='gen',
+                                                 str_value__in=['area2', 'area3'])
+        area_2_and_3 = Area.objects.filter(id__in=aa2_and_3.values('area'))
         area_2_and_3.delete()
 
         # Disaggregate the population

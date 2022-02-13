@@ -2,6 +2,7 @@ from unittest import skipIf
 import json
 from collections import OrderedDict
 from django.test import TestCase
+from django.db.utils import IntegrityError
 from test_plus import APITestCase
 from datetime import datetime
 import mapbox_vector_tile
@@ -56,6 +57,34 @@ class TestAreas(TestCase):
         print(area)
         print(area.area_level)
         print(repr(area.area_level))
+
+    def test_area_attributes(self):
+        area1: Area = self.area
+        area_level: AreaLevel = area1.area_level
+        self.assertEqual(area1.label, '')
+        area2 = AreaFactory(area_level=area_level,
+                            attributes={'areaname': 'MyName', 'Inhabitants': 123,})
+        self.assertEqual(area_level.label_field, '')
+        self.assertEqual(area2.label, '')
+        # make name the label_field
+        name_field = area_level.areafield_set.get(name='areaname')
+        self.assertEqual(name_field.field_type.ftype, 'STR')
+
+        name_field.is_label = True
+        name_field.save()
+
+        # areaname should be now the label_field for area_level
+        self.assertEqual(area_level.label_field, 'areaname')
+        self.assertEqual(area2.label, 'MyName')
+
+        # inhabitant_field should be a num-field
+        inh_field = area_level.areafield_set.get(name='Inhabitants')
+        self.assertEqual(inh_field.field_type.ftype, 'NUM')
+
+        # setting another field as label field should raise an error
+        with self.assertRaises(IntegrityError):
+            inh_field.is_label = True
+            inh_field.save()
 
 
 class TestLayerGroupAPI(WriteOnlyWithCanEditBaseDataTest,
@@ -170,8 +199,7 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
         symbol_data = MapSymbolSerializer(area_level.symbol).data
 
         data = dict(name=faker.word(), order=faker.random_int(),
-                    source=source_data, symbol=symbol_data,
-                    label_field=faker.word())
+                    source=source_data, symbol=symbol_data)
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
@@ -269,7 +297,7 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
             self.assert_response_equals_expected(response_value, expected)
 
     def test_get_tile_view(self):
-        area_level1 = AreaLevelFactory(label_field='gen')
+        area_level1 = AreaLevelFactory()
         attributes = json.dumps({'gen': 'Area One', })
         str_field = FieldType.objects.create(name='str_field',
                                              ftype=FieldTypes.STRING)
@@ -279,6 +307,9 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
                                               is_label=True)
         area1 = AreaFactory(area_level=area_level1,
                             attributes={'gen': 'Area One', })
+
+        self.assertEqual(area1.label, 'Area One')
+
         geom = MultiPolygon(Polygon(((1475464, 6888464),
                                      (1515686, 6889190),
                                      (1516363, 6864002),

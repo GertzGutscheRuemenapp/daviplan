@@ -4,7 +4,7 @@ from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import MultiPolygon, Polygon
 from .models import (MapSymbol, LayerGroup, Layer,
                      WMSLayer, SourceTypes, Source,
-                     AreaLevel, Area,
+                     AreaLevel, Area, AreaField,
                      FClass, FieldType, FieldTypes,
                      )
 
@@ -63,7 +63,6 @@ class AreaLevelFactory(DjangoModelFactory):
     source = factory.SubFactory(SourceFactory)
     is_preset = False
     is_active = True
-    label_field = 'gen'
 
 
 class AreaFactory(DjangoModelFactory):
@@ -93,3 +92,12 @@ class FClassFactory(DjangoModelFactory):
     order = factory.Sequence(lambda n: faker.unique.pyint(max_value=100))
     value = faker.unique.word()
 
+
+class AreaFieldFactory(DjangoModelFactory):
+    """area field factory"""
+    class Meta:
+        model = AreaField
+
+    name = faker.unique.word()
+    area_level = factory.SubFactory(AreaLevelFactory)
+    field_type = factory.SubFactory(FieldTypeFactory)

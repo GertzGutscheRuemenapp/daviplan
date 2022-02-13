@@ -215,7 +215,7 @@ class AreaSerializer(GeoFeatureModelSerializer):
     class Meta:
         model = Area
         geo_field = 'geom'
-        fields = ('id', 'area_level', 'attributes')
+        fields = ('id', 'area_level', 'attributes', 'label')
 
 
     def create(self, validated_data):
