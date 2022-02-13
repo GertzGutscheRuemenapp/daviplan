@@ -60,12 +60,13 @@ class TestIndicator(TestCase):
 
         # add an unknown indicator
         IndicatorFactory(indicator_type__classname='Unknown')
-        self.assertQuerysetEqual(indicator_types.values_list('classname', flat=True),
-                                 ['Unknown',
-                                  DummyIndicator.__name__,
-                                  NumberOfLocations.__name__,
-                                  TotalCapacityInArea.__name__,
-                                  ], ordered=False)
+        assert set(['Unknown',
+                    DummyIndicator.__name__,
+                    NumberOfLocations.__name__,
+                    TotalCapacityInArea.__name__,
+                    ])\
+               .issubset(set(indicator_types.values_list('classname', flat=True)))
+
         # delete an indicator_type
         IndicatorType.objects.get(classname=NumberOfLocations.__name__).delete()
 
@@ -94,19 +95,22 @@ class TestIndicator(TestCase):
                                           field_type=f1.field_type,
                                           label='F2')
 
-        self.assertQuerysetEqual(indicator_types.values_list('classname', flat=True),
-                                 ['Unknown',
-                                  DummyIndicator.__name__,
-                                  TotalCapacityInArea.__name__,
-                                  ], ordered=False)
+        indicators_values_list = indicator_types.values_list('classname', flat=True)
+        assert set(['Unknown',
+                    DummyIndicator.__name__,
+                    TotalCapacityInArea.__name__,
+                    ]).issubset(set(indicators_values_list))
+
+        assert NumberOfLocations.__name__ not in indicators_values_list
 
         # reset the indicators
         IndicatorType._update_indicators_types()
-        self.assertQuerysetEqual(indicator_types.values_list('classname', flat=True),
-                                 [NumberOfLocations.__name__,
-                                  TotalCapacityInArea.__name__,
-                                  DummyIndicator.__name__,
-                                  ], ordered=False)
+        assert set([DummyIndicator.__name__,
+                    NumberOfLocations.__name__,
+                    TotalCapacityInArea.__name__,
+                    ])\
+               .issubset(set(indicator_types.values_list('classname', flat=True)))
+
 
         dummy_indicator = IndicatorType.objects.get(classname=DummyIndicator.__name__)
         dummy_fields = IndicatorTypeField.objects.filter(
@@ -114,11 +118,28 @@ class TestIndicator(TestCase):
         self.assertEquals(len(dummy_fields), 2)
         self.assertEquals(dummy_indicator.name, DummyIndicator.label)
 
+    def test_userdefined_indicators(self):
+        """Test userdefined indicators"""
+        userdef_indicator_types = IndicatorType.objects.filter(userdefined=True)
+        system_indicator_types = IndicatorType.objects.filter(userdefined=False)
+
+        self.assertQuerysetEqual(userdef_indicator_types,
+                                 [DummyIndicator.__name__],
+                                 transform=lambda x: getattr(x, 'classname'))
+        assert set([NumberOfLocations.__name__,
+                    TotalCapacityInArea.__name__,
+                    ])\
+               .issubset(set(system_indicator_types.values_list('classname', flat=True)))
+        assert not set([DummyIndicator.__name__,
+                    ])\
+               .issubset(set(system_indicator_types.values_list('classname', flat=True)))
+
 
 class DummyIndicator(ComputeIndicator):
     label = 'TE'
     description = 'Random Indicator'
     parameters = {'Max_Value': FieldTypes.NUMBER, 'TextField': FieldTypes.STRING, }
+    userdefined = True
 
     def compute(self):
         """"""
@@ -140,3 +161,17 @@ class TestIndicatorTypeAPI(TestAPIMixin, BasicModelReadTest, APITestCase):
         # unregister the dummy class
         del IndicatorType._indicator_classes[DummyIndicator.__name__]
         super().tearDownClass()
+
+    def test_userdefined_indicators(self):
+        """test that the view returs userdefined indicators only"""
+        response = self.get_check_200(self.url_key+'-list', data={'userdefined': True})
+        self.assertSetEqual(set((r['classname'] for r in response.data)),
+                                {DummyIndicator.__name__}
+                            )
+
+        response = self.get_check_200(self.url_key+'-list', data={'userdefined': False})
+
+        assert {NumberOfLocations.__name__,
+                TotalCapacityInArea.__name__}.issubset(
+                    set((r['classname'] for r in response.data))
+                )

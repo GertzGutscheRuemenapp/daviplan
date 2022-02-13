@@ -275,7 +275,8 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
             selectable: true,
             opacity: (al === _this.selectedAreaLayer)? 0.5 : 0,
             tooltipField: 'gen',
-            stroke: { color: 'black', selectedColor: 'black' },
+            stroke: { color: 'black', selectedColor: 'black',
+              mouseOverColor: 'blue', mouseOverWidth: 3 },
             fill: { color: 'rgba(0, 0, 0, 0)', selectedColor: 'rgba(0, 0, 0, 0)' }
           });
         layer?.set('showTooltip', al === this.selectedAreaLayer);
@@ -408,6 +409,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       layer?.setOpacity((al === _this.selectedAreaLayer) ? 0.5 : 0);
       select.setActive(al === this.selectedAreaLayer);
       layer?.set('showTooltip', al === this.selectedAreaLayer);
+      this.areaSelectMapControl?.map?.overlays[layer?.get('name')]?.getSource().clear();
     })
     const layer = this.areaSelectMapControl?.map?.getLayer(this.selectedAreaLayer.tag),
           select = layer?.get('select');

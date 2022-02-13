@@ -29,7 +29,8 @@ export interface Layer {
   legendUrl?: string,
   opacity?: number,
   symbol?: Symbol,
-  type?: "wms" | "vector-tiles" | "tiles";
+  type?: "wms" | "vector-tiles" | "tiles",
+  labelField?: string
 }
 
 export interface Source {
@@ -43,6 +44,7 @@ export interface AreaLevel {
   id: number;
   name: string;
   order: number;
+  labelField: string;
   tileUrl?: string;
   source?: Source;
   symbol?: Symbol;

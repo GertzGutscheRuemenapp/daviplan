@@ -5,6 +5,8 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.db.models import Q
+from drf_spectacular.utils import extend_schema, OpenApiParameter, extend_schema_view
+from drf_spectacular.types import OpenApiTypes
 
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
@@ -40,6 +42,20 @@ class ScenarioViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         return qs.filter(condition_user_in_user | condition_owner_in_user)
 
 
+capacity_params = [
+    OpenApiParameter(name='service', type={'type': 'array', 'items': {'type': 'integer'}},
+                     description='pkeys of the services', required=False),
+    OpenApiParameter(name='year', type=int,
+                     description='get capacities for this year', required=False),
+    OpenApiParameter(name='scenario', type=int, required=False,
+                     description='get capacities for the scenario with this pkey'),
+]
+
+
+@extend_schema_view(list=extend_schema(description='List Places',
+                                       parameters=capacity_params),
+                    retrieve=extend_schema(description='Get Place with id',
+                                           parameters=capacity_params),)
 class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
     serializer_class = PlaceSerializer
@@ -81,6 +97,11 @@ class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+@extend_schema_view(list=extend_schema(description='List capacities',
+                                       parameters=capacity_params),
+                    retrieve=extend_schema(description='Get capacities for id',
+                                           parameters=capacity_params),
+                                        )
 class CapacityViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Capacity.objects.all()
     serializer_class = CapacitySerializer

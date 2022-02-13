@@ -20,6 +20,7 @@ from .indicators.views import (RouterViewSet,
                                IndicatorTypeViewSet,
                                IndicatorViewSet,
                                AreaIndicatorViewSet,
+                               PopulationIndicatorViewSet,
                                )
 
 from .infrastructure.views import (ScenarioViewSet,
@@ -32,9 +33,7 @@ from .logging.views import (CapacityUploadLogViewSet,
                             AreaUploadLogViewSet)
 from .population.views import (RasterViewSet,
                                PopulationRasterViewSet,
-                               DisaggPopRasterViewSet,
                                PrognosisViewSet,
-                               PrognosisEntryViewSet,
                                PopulationViewSet,
                                PopulationEntryViewSet,
                                PopStatisticViewSet,
@@ -69,6 +68,7 @@ router.register(r'routers', RouterViewSet, basename='routers')
 router.register(r'indicatortypes', IndicatorTypeViewSet, basename='indicatortypes')
 router.register(r'indicators', IndicatorViewSet, basename='indicators')
 router.register(r'areaindicators', AreaIndicatorViewSet, basename='areaindicators')
+router.register(r'populationindicators', PopulationIndicatorViewSet, basename='populationindicators')
 
 # infrastructure
 router.register(r'scenarios', ScenarioViewSet, basename='scenarios')
@@ -93,12 +93,9 @@ router.register(r'populationrasters', PopulationRasterViewSet,
                 basename='populationrasters')
 router.register(r'gender', GenderViewSet, basename='gender')
 router.register(r'agegroups', AgeGroupViewSet, basename='agegroups')
-router.register(r'disaggpoprasters', DisaggPopRasterViewSet,
-                basename='disaggpoprasters')
+
 router.register(r'prognoses', PrognosisViewSet,
                 basename='prognoses')
-router.register(r'prognosisentries', PrognosisEntryViewSet,
-                basename='prognosisentries')
 router.register(r'populations', PopulationViewSet,basename='populations')
 router.register(r'populationentries', PopulationEntryViewSet,
                 basename='populationentries')

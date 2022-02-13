@@ -27,6 +27,7 @@ export class InputCardComponent implements AfterViewInit {
   @Input() subtitle: string = '';
   @Input() dialogTitle: string = '';
   @Input() infoText: string = '';
+  @Input() dialogInfoText: string = '';
   @Input() confirmButtonText: string = '';
   @Input() dialogWidth: string = '500px';
   @Input() cancelButtonText: string = '';
@@ -62,6 +63,7 @@ export class InputCardComponent implements AfterViewInit {
         title: this.dialogTitle || this.title,
         template: this.editTemplate,
         closeOnConfirm: false,
+        infoText: this.dialogInfoText,
         confirmButtonText: $localize`Speichern`
       }
     });

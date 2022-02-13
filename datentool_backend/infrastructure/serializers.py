@@ -225,6 +225,7 @@ class CapacitySerializer(serializers.ModelSerializer):
 
 
 class CapacityAmountSerializer(serializers.FloatField):
+
     def to_representation(self, item) -> str:
         return super().to_representation(item.capacity)
 
@@ -243,7 +244,8 @@ class PlaceSerializer(GeoFeatureModelSerializer):
         model = Place
         geo_field = 'geom'
         fields = ('id', 'name', 'infrastructure', 'attributes', 'capacity',
-                  'capacities', 'scenario')
+                  'capacities',
+                  'scenario')
 
 
 class PlaceFieldSerializer(serializers.ModelSerializer):

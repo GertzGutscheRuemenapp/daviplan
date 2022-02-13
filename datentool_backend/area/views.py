@@ -12,6 +12,19 @@ from url_filter.integrations.drf import DjangoFilterBackend
 from owslib.wms import WebMapService
 from vectortiles.postgis.views import MVTView, BaseVectorTileView
 
+from django.http import JsonResponse
+
+from drf_spectacular.utils import extend_schema
+
+from owslib.wms import WebMapService
+import requests
+from requests.exceptions import (MissingSchema, ConnectionError,
+                                        HTTPError)
+from django_filters import rest_framework as filters
+from django.db import models
+from django.db.models.functions import Cast
+from django.contrib.postgres.fields.jsonb import KeyTextTransform
+
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
@@ -29,6 +42,8 @@ from .models import (MapSymbol,
 from .serializers import (MapSymbolSerializer,
                           LayerGroupSerializer,
                           WMSLayerSerializer,
+                          GetCapabilitiesRequestSerializer,
+                          GetCapabilitiesResponseSerializer,
                           AreaLevelSerializer,
                           AreaSerializer,
                           FieldTypeSerializer,
@@ -81,7 +96,6 @@ class LayerGroupViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = LayerGroup.objects.all()
     serializer_class = LayerGroupSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-    filter_backends = [DjangoFilterBackend]
     filter_fields = ['external']
 
 
@@ -91,6 +105,11 @@ class WMSLayerViewSet(viewsets.ModelViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
     filter_fields = ['active']
 
+    @extend_schema(
+        description='Get capabilites of WMS-Service',
+        request=GetCapabilitiesRequestSerializer,
+        responses=GetCapabilitiesResponseSerializer,
+    )
     @action(methods=['POST'], detail=False,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def getcapabilities(self, request, **kwargs):
@@ -140,12 +159,13 @@ class WMSLayerViewSet(viewsets.ModelViewSet):
 
 class ProtectPresetPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        # presets can not be deleted and name and source type (except date)
-        # can not be changed
+        # presets can not be deleted and name, label and
+        # source type (except date) can not be changed
         if (obj.is_preset and
             (
                 request.method == 'DELETE' or
                 'name' in request.data or
+                'label_field' in request.data or
                 (
                     'source' in request.data and
                     set(request.data['source']) > set(['date'])
@@ -155,11 +175,18 @@ class ProtectPresetPermission(permissions.BasePermission):
         return True
 
 
+class AreaLevelFilter(filters.FilterSet):
+    class Meta:
+        model = AreaLevel
+        fields = ['is_active']
+
+
 class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = AreaLevel.objects.all()
     serializer_class = AreaLevelSerializer
     permission_classes = [ProtectPresetPermission &
                           (HasAdminAccessOrReadOnly | CanEditBasedata)]
+    filterset_class = AreaLevelFilter
 
 
 class AreaViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

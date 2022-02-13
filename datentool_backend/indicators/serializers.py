@@ -33,7 +33,7 @@ class IndicatorTypeSerializer(serializers.ModelSerializer):
     parameters = FieldTypeSerializer(many=True)
     class Meta:
         model = IndicatorType
-        fields = ('id', 'name', 'classname', 'description', 'parameters')
+        fields = ('id', 'name', 'classname', 'description', 'parameters', 'category')
 
 
 class IndicatorSerializer(serializers.ModelSerializer):
@@ -48,3 +48,10 @@ class AreaIndicatorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Area
         fields = ('id', 'label', 'value')
+
+
+class PopulationIndicatorSerializer(serializers.Serializer):
+    year = serializers.IntegerField()
+    gender = serializers.IntegerField()
+    agegroup = serializers.IntegerField()
+    value = serializers.FloatField()

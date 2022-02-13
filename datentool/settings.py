@@ -50,8 +50,10 @@ INSTALLED_APPS = [
     'datentool_backend',
     'rest_framework',
     'rest_framework_simplejwt',
+    'drf_spectacular',
     'django_cleanup.apps.CleanupConfig',
     'bulkmodel',
+    'django_filters'
 ]
 
 MIDDLEWARE = [
@@ -83,6 +85,15 @@ REST_FRAMEWORK = {
         'djangorestframework_camel_case.parser.CamelCaseMultiPartParser',
         'djangorestframework_camel_case.parser.CamelCaseJSONParser',
     ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Datentool Project API',
+    'DESCRIPTION': 'Bule Datentool',
+    'VERSION': '1.0.0',
+    # OTHER SETTINGS
 }
 
 SIMPLE_JWT = {

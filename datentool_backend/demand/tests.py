@@ -83,8 +83,7 @@ class TestAgeGroupAPI(WriteOnlyWithAdminAccessTest,
         response = self.post(self.url_key + '-check',
                              data=current_agegroups,
                              extra={'format': 'json'})
-        self.assert_http_200_ok(response)
-        self.assertEqual(response.data['valid'], False)
+        self.assert_http_406_not_acceptable(response)
 
         # logout to see if check is not allowed
         self.client.logout()
@@ -121,8 +120,7 @@ class TestAgeGroupAPI(WriteOnlyWithAdminAccessTest,
                              data=current_agegroups,
                              extra={'format': 'json'})
 
-        self.assert_http_200_ok(response)
-        self.assertEqual(response.data['valid'], True)
+        self.assert_http_202_accepted(response)
 
         # change some agegroup definition
         pk1 = current_agegroups[-1]['id']
@@ -147,8 +145,7 @@ class TestAgeGroupAPI(WriteOnlyWithAdminAccessTest,
                              extra={'format': 'json'})
 
         #  they should fail now
-        self.assert_http_200_ok(response)
-        self.assertEqual(response.data['valid'], False)
+        self.assert_http_406_not_acceptable(response)
 
 
 class TestRegStatAgeGroup(TestCase):
