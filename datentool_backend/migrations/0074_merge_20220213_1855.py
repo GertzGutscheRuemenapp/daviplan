@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('datentool_backend', '0067_auto_20220131_2155'),
+        #('datentool_backend', '0067_auto_20220131_2155'),
         ('datentool_backend', '0073_indicatortype_userdefined'),
     ]
 
