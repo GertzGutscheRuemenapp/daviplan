@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
-import { User } from '../../login/users';
+import { InfrastructureAccess, User } from '../../login/users';
 import { ConfirmDialogComponent } from '../../../dialogs/confirm-dialog/confirm-dialog.component';
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { InputCardComponent } from '../../../dash/input-card.component'
@@ -245,5 +245,9 @@ export class UsersComponent implements AfterViewInit  {
         });
       }
     });
+  }
+
+  userAccess(user: User | undefined, infrastructure: Infrastructure): InfrastructureAccess | undefined {
+    return user?.access.find(a => a.infrastructure === infrastructure.id);
   }
 }

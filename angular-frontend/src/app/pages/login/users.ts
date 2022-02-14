@@ -4,6 +4,11 @@ export type Profile = {
   canEditBasedata: boolean;
 }
 
+export type InfrastructureAccess = {
+  infrastructure: number,
+  allowSensitiveData: boolean
+}
+
 export interface User {
   id: number;
   username: string;
@@ -13,6 +18,7 @@ export interface User {
   isSuperuser: boolean;
   password: string;
   profile: Profile;
+  access: InfrastructureAccess[];
 }
 
 export const mockUsers: User[] = [
@@ -28,7 +34,8 @@ export const mockUsers: User[] = [
       adminAccess: true,
       canCreateProcess: true,
       canEditBasedata: true,
-    }
+    },
+    access: []
   },
   {
     id: 2,
@@ -42,6 +49,7 @@ export const mockUsers: User[] = [
       adminAccess: false,
       canCreateProcess: false,
       canEditBasedata: false,
-    }
+    },
+    access: []
   },
 ];

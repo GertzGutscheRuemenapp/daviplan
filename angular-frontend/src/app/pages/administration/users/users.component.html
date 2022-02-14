@@ -103,11 +103,11 @@
                       subtitle="Ausgewähltes Konto hat Zugriff auf diese Infrastrukturbereiche"
                       [editTemplate]="dataAccessEdit">
         <div style="display: flex;" *ngFor="let infrastructure of infrastructures">
-          <mat-checkbox class="infra-check" disabled [checked]="true">
+          <mat-checkbox class="infra-check" disabled [checked]="userAccess(selectedUser, infrastructure) != undefined">
             {{infrastructure.name}}
           </mat-checkbox>
           <div class="dotted-fill"></div>
-          <mat-checkbox class="sensitive-check" disabled [checked]="true">
+          <mat-checkbox class="sensitive-check" disabled [checked]="userAccess(selectedUser, infrastructure)?.allowSensitiveData === true">
             sensible Daten
           </mat-checkbox>
         </div>
