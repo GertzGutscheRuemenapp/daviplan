@@ -71,29 +71,6 @@ class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             queryset = queryset.filter(service_capacity=service).distinct()
         return queryset
 
-    @action(methods=['PATCH', 'PUT'], detail=True,
-            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
-    def update_attributes(self, request, **kwargs):
-        """
-        route to update attributes of a place
-        """
-        partial = kwargs.pop('partial', True)
-        instance = self.get_object()
-        serializer_class = self.get_serializer_class()
-        serializer = serializer_class(instance,
-                                      data=request.data,
-                                      partial=partial,
-                                      context={'request': self.request, })
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-
-        if getattr(instance, '_prefetched_objects_cache', None):
-            # If 'prefetch_related' has been applied to a queryset, we need to
-            # forcibly invalidate the prefetch cache on the instance.
-            instance._prefetched_objects_cache = {}
-
-        return Response(serializer.data)
-
 
 @extend_schema_view(list=extend_schema(description='List capacities',
                                        parameters=capacity_params),
