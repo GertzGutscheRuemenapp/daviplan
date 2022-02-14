@@ -69,7 +69,7 @@ class CreateInfrastructureTestdataMixin:
                                       area_level=area_level,
                                       field_type__ftype=FieldTypes.STRING,
                                       is_label=True)
-        cls.url_pk = cls.obj.pk
+        cls.url_pk = dict(pk=cls.obj.pk)
 
         # Area1
         coords = np.array([(-500, 0),

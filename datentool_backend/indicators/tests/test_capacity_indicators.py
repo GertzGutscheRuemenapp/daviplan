@@ -4,7 +4,7 @@ import mapbox_vector_tile
 from django.urls import reverse
 from test_plus import APITestCase
 
-from datentool_backend.api_test import BasicModelReadTest
+from datentool_backend.api_test import BasicModelReadTest, BasicModelListTest
 
 from ..factories import IndicatorFactory
 
@@ -16,7 +16,7 @@ from .setup_testdata import CreateInfrastructureTestdataMixin
 
 
 class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
-                           BasicModelReadTest,
+                           BasicModelListTest,
                            APITestCase):
     """Test to get an area indicator"""
     url_key = "areaindicators"
@@ -108,7 +108,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                        service: int = None,
                        year: int = None,
                        scenario: int = None):
-        query_params = {'area_level': self.area1.pk, }
+        query_params = {'area_level': self.area1.area_level.pk, }
         if service is not None:
             if isinstance(service, list):
                 query_params['service'] = [s.id for s in service]

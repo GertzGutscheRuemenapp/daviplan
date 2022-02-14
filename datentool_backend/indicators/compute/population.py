@@ -25,8 +25,6 @@ class ComputePopulationAreaIndicator(ComputeIndicator):
             area_filter['id__in'] = areas
 
         area_set = area_level.area_set.filter(**area_filter)
-        #area_set = area_set.annotate(
-            #label=KeyTextTransform(area_level.label_field, 'attributes'))
 
         acells = AreaCell.objects.filter(area__area_level_id=area_level_id)
 

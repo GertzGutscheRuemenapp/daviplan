@@ -64,8 +64,12 @@ class AreaLevelTileView(MVTView, DetailView):
         return self.get_object().name
 
     def get_vector_tile_queryset(self):
-        qs = self.get_object().area_set.all()
+        areas = self.get_object().area_set.all()
         # annotate the areas
+        return self.annotate_areas_with_label_and_attributes(areas)
+
+    def annotate_areas_with_label_and_attributes(self, areas):
+        """annotate the areas with label and attributes"""
         sq = AreaAttribute.objects.filter(area=OuterRef('pk'))
 
         # get the area attributes
@@ -89,10 +93,11 @@ class AreaLevelTileView(MVTView, DetailView):
             .values('attributes')
 
         # annotate attributes and label to the queryset
-        qs = qs.annotate(attributes=Subquery(sq_attrs, output_field=CharField()))\
+        areas = areas\
+            .annotate(attributes=Subquery(sq_attrs, output_field=CharField()))\
             .annotate(label=Subquery(sq_label, output_field=CharField()))
 
-        return qs
+        return areas
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()

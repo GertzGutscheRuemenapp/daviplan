@@ -21,6 +21,7 @@ from datentool_backend.indicators.serializers import (IndicatorTypeSerializer,
                           IndicatorSerializer,
                           AreaIndicatorSerializer,
                           )
+from datentool_backend.area.views import AreaLevelTileView
 from .parameters import (area_level_param,
                          areas_param,
                          year_param,
@@ -38,7 +39,7 @@ from .parameters import (area_level_param,
         OpenApiParameter(name='indicator', type=int,
                          description='pk of the indicator to calculate'),
     ]))
-class AreaIndicatorViewSet(viewsets.ReadOnlyModelViewSet):
+class AreaIndicatorViewSet(viewsets.mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = Indicator.objects.none()
     serializer_class = AreaIndicatorSerializer
 
@@ -103,13 +104,9 @@ class AreaIndicatorViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
 
-class AreaLevelIndicatorTileView(MVTView, DetailView):
+class AreaLevelIndicatorTileView(AreaLevelTileView):
     model = AreaLevel
     vector_tile_fields = ('id', 'area_level', 'label', 'value')
-
-    def get_vector_tile_layer_name(self) -> str:
-        """The name of the area-level"""
-        return self.get_object().name
 
     def get_vector_tile_queryset(self):
         """Calculate the indicators for each area of the area-level"""
@@ -131,10 +128,5 @@ class AreaLevelIndicatorTileView(MVTView, DetailView):
         compute_class: ComputeIndicator = IndicatorType._indicator_classes[classname]
         # and compute the queryset for the areas
         areas = compute_class(query_params).compute()
+        areas = self.annotate_areas_with_label_and_attributes(areas)
         return areas
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        return BaseVectorTileView.get(self, request=request, z=kwargs.get('z'),
-                                      x=kwargs.get('x'), y=kwargs.get('y'))
-

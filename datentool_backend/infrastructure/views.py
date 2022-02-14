@@ -59,12 +59,8 @@ capacity_params = [
 class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
     serializer_class = PlaceSerializer
-    #serializer_action_class = {'update_attributes': PlaceUpdateAttributeSerializer}
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
-    #def get_serializer_class(self):
-        #return self.serializer_action_class.get(self.action,
-                                                #super().get_serializer_class())
 
     def get_queryset(self):
         queryset = Place.objects.all()

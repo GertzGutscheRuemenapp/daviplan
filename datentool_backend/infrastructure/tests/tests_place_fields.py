@@ -99,8 +99,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         properties = OrderedDict(
             name=faker.word(),
             infrastructure=infrastructure,
-            attributes=faker.json(num_rows=1,
-                                  data_columns={'age': 'pyint', 'surname': 'name'}),
+            attributes={'age': faker.pyint(), 'surname': faker.name()},
         )
         geojson = {
             'type': 'Feature',
@@ -127,9 +126,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         pr1 = ProfileFactory()
         pr2 = ProfileFactory()
         place: Place = self.obj
-        attributes = {'harmless': 123, 'very_secret': 456, }
-        place.attributes = attributes
-        place.save()
+
         infr: Infrastructure = place.infrastructure
         infr.accessible_by.set([pr1, pr2])
         infr.save()
@@ -143,23 +140,27 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         i2.save()
 
         field_type = FieldTypeFactory(ftype=FieldTypes.NUMBER)
-        field1 = PlaceFieldFactory(attribute='harmless', sensitive=False,
+        field1 = PlaceFieldFactory(name='harmless', sensitive=False,
                                    field_type=field_type,
                                    infrastructure=infr)
-        field2 = PlaceFieldFactory(attribute='very_secret', sensitive=True,
+        field2 = PlaceFieldFactory(name='very_secret', sensitive=True,
                                    field_type=field_type,
                                    infrastructure=infr)
+
+        attributes = {'harmless': 123, 'very_secret': 456, }
+        place.attributes = attributes
+        place.save()
 
         self.client.logout()
         self.client.force_login(pr1.user)
         response = self.get(self.url_key + '-detail', **self.kwargs)
-        attrs = json.loads(response.data['properties']['attributes'])
+        attrs = response.data['properties']['attributes']
         self.assertDictEqual(attrs, {'harmless': 123})
 
         self.client.logout()
         self.client.force_login(pr2.user)
         response = self.get(self.url_key + '-detail', **self.kwargs)
-        attrs = json.loads(response.data['properties']['attributes'])
+        attrs = response.data['properties']['attributes']
         self.assertDictEqual(attrs, attributes)
 
         self.client.logout()
@@ -210,29 +211,29 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
                                      'class_field': 'Category_2', }
                       }
 
-        response = self.patch(self.url_key + '-update-attributes', pk=place.pk,
+        response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_403(msg=response.content)
 
         self.client.logout()
         self.client.force_login(pr1.user)
 
-        response = self.patch(self.url_key + '-update-attributes', pk=place.pk,
+        response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_200(msg=response.content)
 
         # check the results returned by the view
-        attrs = json.loads(response.data['attributes'])
+        attrs = response.data['properties']['attributes']
         self.compare_data(attrs, patch_data)
 
         # check if the changed data is really in the database
         response = self.get_check_200(self.url_key + '-detail', pk=place.pk)
-        attrs = json.loads(response.data['properties']['attributes'])
+        attrs = response.data['properties']['attributes']
         self.compare_data(attrs, patch_data)
 
         # patch only one value
         patch_data = {'attributes': {'int_field': 678, }}
-        response = self.patch(self.url_key + '-update-attributes', pk=place.pk,
+        response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_200(msg=response.content)
 
@@ -241,36 +242,38 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
                                    'class_field': 'Category_2', }
                     }
         # check the results returned by the view
-        attrs = json.loads(response.data['attributes'])
+        attrs = response.data['properties']['attributes']
         self.compare_data(attrs, expected)
 
         # check if the changed data is really in the database
         response = self.get_check_200(self.url_key + '-detail', pk=place.pk)
-        attrs = json.loads(response.data['properties']['attributes'])
+        attrs = response.data['properties']['attributes']
         self.compare_data(attrs, expected)
 
+        # check if invalid attributes return a BadRequest
         patch_data = {'attributes': {'integer_field': 456, }}
-        response = self.patch(self.url_key + '-update-attributes', pk=place.pk,
+        response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_400(msg=response.content)
 
         patch_data = {'attributes': {'int_field': '456', }}
-        response = self.patch(self.url_key + '-update-attributes', pk=place.pk,
+        response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_400(msg=response.content)
 
         patch_data = {'attributes': {'text_field': 12.3, }}
-        response = self.patch(self.url_key + '-update-attributes', pk=place.pk,
+        response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_400(msg=response.content)
 
         patch_data = {'attributes': {'class_field': 'Category_7', }}
-        response = self.patch(self.url_key + '-update-attributes', pk=place.pk,
+        response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_400(msg=response.content)
 
+        # this should work
         patch_data = {'attributes': {'class_field': 'Category_1', }}
-        response = self.patch(self.url_key + '-update-attributes', pk=place.pk,
+        response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_200(msg=response.content)
 
@@ -279,7 +282,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
                                    'class_field': 'Category_1', }
                     }
 
-        attrs = json.loads(response.data['attributes'])
+        attrs = response.data['properties']['attributes']
         self.compare_data(attrs, patch_data)
 
     def test_delete_placefield_and_fclass(self):
@@ -659,7 +662,7 @@ class TestPlaceFieldAPI(WriteOnlyWithCanEditBaseDataTest,
         placefield: PlaceField = cls.obj
         infrastructure = placefield.infrastructure.pk
         field_type = placefield.field_type.pk
-        data = dict(attribute=faker.unique.word(),
+        data = dict(name=faker.unique.word(),
                     unit=faker.word(),
                     infrastructure=infrastructure,
                     field_type=field_type,
