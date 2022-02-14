@@ -6,7 +6,6 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.db.models import Q
 from drf_spectacular.utils import extend_schema, OpenApiParameter, extend_schema_view
-from drf_spectacular.types import OpenApiTypes
 
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
@@ -14,8 +13,9 @@ from datentool_backend.utils.permissions import (
 
 from .permissions import CanEditScenarioPermission
 
+from datentool_backend.user.models import InfrastructureAccess
+
 from .models import (Scenario,
-                     FieldType,
                      Place,
                      Capacity,
                      PlaceField,

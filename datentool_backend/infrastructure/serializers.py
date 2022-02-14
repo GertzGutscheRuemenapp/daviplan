@@ -186,9 +186,13 @@ class PlaceAttributeField(serializers.DictField):
 
     def get_attribute(self, instance):
         profile = self.context['request'].user.profile
-        infra_access, created = InfrastructureAccess.objects.get_or_create(
-            infrastructure=instance.infrastructure, profile=profile)
         attributes = {}
+        try:
+            infra_access = InfrastructureAccess.objects.get(
+                infrastructure=instance.infrastructure, profile=profile)
+        except InfrastructureAccess.DoesNotExist:
+            return attributes
+
         for pa in instance.placeattribute_set.all():
             if infra_access.allow_sensitive_data or not pa.field.sensitive:
                 attributes[pa.field.name] = pa.value
