@@ -186,7 +186,7 @@ class PlaceAttributeField(serializers.DictField):
 
     def get_attribute(self, instance):
         profile = self.context['request'].user.profile
-        infra_access = InfrastructureAccess.objects.get(
+        infra_access, created = InfrastructureAccess.objects.get_or_create(
             infrastructure=instance.infrastructure, profile=profile)
         attributes = {}
         for pa in instance.placeattribute_set.all():
