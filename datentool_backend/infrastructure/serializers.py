@@ -86,23 +86,28 @@ class ScenarioSerializer(serializers.ModelSerializer):
         return instance
 
 
-
 class PlaceAttributeField(JSONField):
     """remove sensitive fields if the user is not allowed to see them"""
 
     def get_attribute(self, instance):
         place = instance
         value = super().get_attribute(instance)
-        value_dict = json.loads(value)
+        if isinstance(value, str):
+            value = json.loads(value)
         profile = self.context['request'].user.profile
-        infra_access = InfrastructureAccess.objects.get(
-            infrastructure=place.infrastructure, profile=profile)
-        if not infra_access.allow_sensitive_data:
+        sensitive_access = False
+        try:
+            infra_access = InfrastructureAccess.objects.get(
+                infrastructure=place.infrastructure, profile=profile)
+            sensitive_access = infra_access.allow_sensitive_data
+        except InfrastructureAccess.DoesNotExist:
+            pass
+        if not sensitive_access:
             fields = PlaceField.objects.filter(infrastructure=place.infrastructure)
             for field in fields:
                 if field.sensitive:
-                    value_dict.pop(field.attribute, None)
-        return json.dumps(value_dict)
+                    value.pop(field.attribute, None)
+        return json.dumps(value)
 
     def run_validation(self, data=empty):
         """

@@ -17,8 +17,10 @@ from .models import (Scenario,
                      Place,
                      Capacity,
                      PlaceField,
-                     FClass,
+                     FClass
                      )
+
+from datentool_backend.models import (Infrastructure, InfrastructureAccess)
 
 from .serializers import (ScenarioSerializer,
                           FieldTypeSerializer,
@@ -54,7 +56,10 @@ class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                                                 super().get_serializer_class())
 
     def get_queryset(self):
-        queryset = Place.objects.all()
+        profile = self.request.user.profile
+        accessible = InfrastructureAccess.objects.filter(
+            profile=profile).values_list('id', flat=True)
+        queryset = Place.objects.filter(infrastructure__in=accessible)
         service = self.request.query_params.get('service')
         if service:
             queryset = queryset.filter(service_capacity=service).distinct()
