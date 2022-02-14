@@ -9,6 +9,7 @@ import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms"
 import { RestAPI } from "../../../rest-api";
 import { Observable } from "rxjs";
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { Infrastructure } from "../../../rest-interfaces";
 
 @Component({
   selector: 'app-users',
@@ -27,6 +28,7 @@ export class UsersComponent implements AfterViewInit  {
   permissionForm!: FormGroup;
   createUserForm: FormGroup;
   users: User[] = [];
+  infrastructures: Infrastructure[] = [];
   selectedUser?: User;
   changePassword: boolean = false;
   showAccountPassword: boolean = false;
@@ -44,7 +46,10 @@ export class UsersComponent implements AfterViewInit  {
   }
 
   ngAfterViewInit() {
-    this.getUsers();
+    this.http.get<Infrastructure[]>(this.rest.URLS.infrastructures).subscribe(infrastructures => {
+      this.infrastructures = infrastructures;
+      this.getUsers();
+    })
     this.setupAccountCard();
     this.setupPermissionCard();
   }
@@ -85,9 +90,12 @@ export class UsersComponent implements AfterViewInit  {
       }
       this.accountCard?.setLoading(true);
       this.http.patch<User>(`${this.rest.URLS.users}${this.selectedUser?.id}/`, attributes
-      ).subscribe(data => {
+      ).subscribe(user => {
+        this.selectedUser!.username = user.username;
+        this.selectedUser!.email = user.email;
+        this.selectedUser!.firstName = user.firstName;
+        this.selectedUser!.lastName = user.lastName;
         this.accountCard?.closeDialog(true);
-        this.refresh(data.id);
       },(error) => {
         // ToDo: set specific errors to fields
         this.accountForm.setErrors(error.error);
@@ -119,15 +127,15 @@ export class UsersComponent implements AfterViewInit  {
       let attributes = {
         profile: {
           adminAccess: profile.adminAccess,
-          canCreateScenarios: profile.canCreateScenarios,
-          canEditData: profile.canEditData
+          canCreateProcess: profile.canCreateProcess,
+          canEditBasedata: profile.canEditBasedata
         }
       }
       this.permissionCard?.setLoading(true);
       this.http.patch<User>(`${this.rest.URLS.users}${this.selectedUser?.id}/`, attributes
       ).subscribe(user => {
+        this.selectedUser!.profile = user.profile;
         this.permissionCard?.closeDialog(true);
-        this.refresh(user.id);
       },(error) => {
         this.permissionForm.setErrors(error.error);
         this.permissionCard?.setLoading(false);
@@ -143,16 +151,7 @@ export class UsersComponent implements AfterViewInit  {
     })
   }
 
-  refresh(userId?: number): void {
-    this.getUsers().subscribe( data => {
-      if (userId != undefined){
-        let user = this.users.find(user => user.id === userId);
-        this.onSelect(user as User);
-      }
-      else
-        this.selectedUser = undefined;
-    });
-  }
+
 
   onSelect(user: User) {
     this.selectedUser = user;
@@ -214,7 +213,7 @@ export class UsersComponent implements AfterViewInit  {
       };
       this.http.post<User>(this.rest.URLS.users, attributes
       ).subscribe(user => {
-        this.refresh(user.id);
+        this.users.push(user);
         dialogRef.close();
       },(error) => {
         this.createUserForm.setErrors(error.error);
@@ -237,7 +236,10 @@ export class UsersComponent implements AfterViewInit  {
       if (confirmed) {
         this.http.delete(`${this.rest.URLS.users}${this.selectedUser?.id}/`
         ).subscribe(res => {
-          this.refresh();
+          const idx = this.users.indexOf(this.selectedUser!);
+          if (idx > -1) {
+            this.users.splice(idx, 1);
+          }
         },(error) => {
           console.log('there was an error sending the query', error);
         });

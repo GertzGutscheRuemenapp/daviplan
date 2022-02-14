@@ -86,10 +86,10 @@
           <mat-checkbox disabled [(ngModel)]="selectedUser.profile.adminAccess" i18n>
             Kann Seite administrieren
           </mat-checkbox>
-          <mat-checkbox disabled [(ngModel)]="selectedUser.profile.canEditData" i18n>
+          <mat-checkbox disabled [(ngModel)]="selectedUser.profile.canEditBasedata" i18n>
             Kann Grundlagendaten editieren
           </mat-checkbox>
-          <mat-checkbox disabled [(ngModel)]="selectedUser.profile.canCreateScenarios" i18n>
+          <mat-checkbox disabled [(ngModel)]="selectedUser.profile.canCreateProcess" i18n>
             Kann Planungsprozesse anlegen
           </mat-checkbox>
         </div>
@@ -102,39 +102,12 @@
                       <p>Die genaue Form des Zugriffs (nur lesen oder auch bearbeiten) legen Sie in der Box „Berechtigungen“ fest. Eine Differenzierung der Berechtigungen nach Infrastrukturbereich ist nicht möglich.</p>"
                       subtitle="Ausgewähltes Konto hat Zugriff auf diese Infrastrukturbereiche"
                       [editTemplate]="dataAccessEdit">
-        <div style="display: flex;">
+        <div style="display: flex;" *ngFor="let infrastructure of infrastructures">
           <mat-checkbox class="infra-check" disabled [checked]="true">
-            Schulen
+            {{infrastructure.name}}
           </mat-checkbox>
           <div class="dotted-fill"></div>
           <mat-checkbox class="sensitive-check" disabled [checked]="true">
-            sensible Daten
-          </mat-checkbox>
-        </div>
-        <div style="display: flex;">
-          <mat-checkbox disabled [checked]="true">
-            Kinderbetreuung
-          </mat-checkbox>
-          <div class="dotted-fill"></div>
-          <mat-checkbox class="sensitive-check" disabled [checked]="true">
-            sensible Daten
-          </mat-checkbox>
-        </div>
-        <div style="display: flex;">
-          <mat-checkbox disabled [checked]="true">
-            Ärzte
-          </mat-checkbox>
-          <div class="dotted-fill" style="border-color: #00000061"></div>
-          <mat-checkbox class="sensitive-check" disabled [checked]="false">
-            sensible Daten
-          </mat-checkbox>
-        </div>
-        <div style="display: flex;">
-          <mat-checkbox disabled>
-            Feuerwehr
-          </mat-checkbox>
-          <div class="dotted-fill" style="border-color: #00000061"></div>
-          <mat-checkbox class="sensitive-check" disabled [checked]="false">
             sensible Daten
           </mat-checkbox>
         </div>
@@ -207,11 +180,11 @@
         Kann Seite administrieren
       </mat-checkbox>
       <mat-checkbox color="primary"
-                    formControlName="canEditData" i18n>
+                    formControlName="canEditBasedata" i18n>
         Kann Grundlagendaten editieren
       </mat-checkbox>
       <mat-checkbox color="primary"
-                    formControlName="canCreateScenarios" i18n>
+                    formControlName="canCreateProcess" i18n>
         Kann Planungsprozesse anlegen
       </mat-checkbox>
     </div>

@@ -1,7 +1,7 @@
 export type Profile = {
   adminAccess: boolean;
-  canCreateScenarios: boolean;
-  canEditData: boolean;
+  canCreateProcess: boolean;
+  canEditBasedata: boolean;
 }
 
 export interface User {
@@ -26,8 +26,8 @@ export const mockUsers: User[] = [
     password: '',
     profile: {
       adminAccess: true,
-      canCreateScenarios: true,
-      canEditData: true,
+      canCreateProcess: true,
+      canEditBasedata: true,
     }
   },
   {
@@ -40,8 +40,8 @@ export const mockUsers: User[] = [
     password: '',
     profile: {
       adminAccess: false,
-      canCreateScenarios: false,
-      canEditData: false,
+      canCreateProcess: false,
+      canEditBasedata: false,
     }
   },
 ];
