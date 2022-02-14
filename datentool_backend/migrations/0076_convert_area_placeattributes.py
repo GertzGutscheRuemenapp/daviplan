@@ -60,7 +60,9 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             sql=[('''
-
+            UPDATE datentool_backend_placefield pf
+            SET field_type_id = 3
+            WHERE pf.field_type_id = 2;
             INSERT INTO datentool_backend_placeattribute (place_id, field_id, num_value, str_value)
             SELECT
             d.place_id,
