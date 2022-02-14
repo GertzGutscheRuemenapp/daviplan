@@ -58,7 +58,7 @@ class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         profile = self.request.user.profile
         accessible = InfrastructureAccess.objects.filter(
-            profile=profile).values_list('id', flat=True)
+            profile=profile).values_list('infrastructure', flat=True)
         queryset = Place.objects.filter(infrastructure__in=accessible)
         service = self.request.query_params.get('service')
         if service:
