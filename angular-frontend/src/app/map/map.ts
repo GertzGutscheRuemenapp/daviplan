@@ -180,7 +180,7 @@ export class OlMap {
         }),
         stroke: new Stroke({
           color: 'black',
-          width: 2
+          width: 1
         })
       })
     })

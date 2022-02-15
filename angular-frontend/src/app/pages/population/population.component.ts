@@ -2,9 +2,6 @@ import { AfterViewInit, Component, EventEmitter, Injectable, OnInit, ViewChild }
 import { MapControl, MapService } from "../../map/map.service";
 import { faArrowsAlt } from '@fortawesome/free-solid-svg-icons';
 import { TimeSliderComponent } from "../../elements/time-slider/time-slider.component";
-import { Observable } from "rxjs";
-import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
-import { map, shareReplay } from "rxjs/operators";
 import { PopulationService } from "./population.service";
 
 
@@ -17,17 +14,13 @@ export class PopulationComponent implements AfterViewInit {
   @ViewChild('timeSlider') timeSlider?: TimeSliderComponent;
   mapControl?: MapControl;
   faArrows = faArrowsAlt;
-  years?: number[];
 
   constructor(private mapService: MapService, private populationService: PopulationService) { }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
     this.populationService.timeSlider = this.timeSlider;
-    this.populationService.years$.subscribe( years => {
-      this.years = years;
-      this.timeSlider!.setYears(years);
-    })
+    this.populationService.setReady(true);
   }
 
   ngOnDestroy(): void {

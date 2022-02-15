@@ -107,10 +107,10 @@
                   i18n>Ausgewählte Bevölkerungs- daten vergleichen mit denen aus dem Jahr
     </mat-checkbox> <!--style="margin: 0 0 10px -12px;"-->
 <!--    Bevölkerungsstruktur vergleichen-->
-    <mat-form-field appearance="outline" class="small">
+    <mat-form-field *ngIf="realYears && prognosisYears" appearance="outline" class="small">
       <mat-label>Jahr</mat-label>
-      <mat-select disableOptionCentering disableRipple [value]="years[0]" [disabled]="!compareYears">
-        <mat-option *ngFor="let year of years" [value]="year">
+      <mat-select disableOptionCentering disableRipple [value]="realYears[0]" [disabled]="!compareYears">
+        <mat-option *ngFor="let year of realYears.concat(prognosisYears)" [value]="year">
           {{year}}
         </mat-option>
       </mat-select>

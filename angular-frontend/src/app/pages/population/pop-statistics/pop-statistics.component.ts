@@ -70,15 +70,21 @@ export class PopStatisticsComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
     this.mapControl.mapDescription = 'Bevölkerungsstatistik > Gemeinden | Wanderung';
-    this.setSlider();
+    if (this.populationService.isReady)
+      this.setSlider();
+    else {
+      this.populationService.ready.subscribe(r => {
+        this.setSlider();
+      });
+    }
   }
 
   setSlider(): void {
-    this.populationService.years$.subscribe(years => {
+    this.populationService.realYears$.subscribe(years => {
       let slider = this.populationService.timeSlider!;
       slider.prognosisStart = 0;
       slider.years = years;
-      slider.value = 2012;
+      slider.value = years[0];
       slider.draw();
     })
   }

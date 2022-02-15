@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { EventEmitter, Injectable } from "@angular/core";
 import { LegendComponent } from "../../map/legend/legend.component";
 import { BehaviorSubject } from "rxjs";
 import { Place, AreaLevel, Area, Gender } from "../../rest-interfaces";
@@ -13,11 +13,14 @@ import { TimeSliderComponent } from "../../elements/time-slider/time-slider.comp
 export class PopulationService {
   legend?: LegendComponent;
   timeSlider?: TimeSliderComponent;
-  years$ = new BehaviorSubject<number[]>([]);
+  realYears$ = new BehaviorSubject<number[]>([]);
+  prognosisYears$ = new BehaviorSubject<number[]>([]);
   ageGroups$ = new BehaviorSubject<AgeGroup[]>([]);
   genders$ = new BehaviorSubject<Gender[]>([]);
   areaLevels$ = new BehaviorSubject<AreaLevel[]>([]);
   private places: Record<number, Place> = {};
+  isReady: boolean = false;
+  ready: EventEmitter<any> = new EventEmitter();
 
   constructor(private http: HttpClient, private rest: RestAPI) {
     this.fetchAreaLevels();
@@ -27,9 +30,13 @@ export class PopulationService {
   }
 
   private fetchYears(): void {
-    this.http.get<any[]>(this.rest.URLS.years).subscribe(years => {
+    this.http.get<any[]>(`${this.rest.URLS.years}?with_population=true`).subscribe(years => {
       const ys = years.map( year => { return year.year })
-      this.years$.next(ys);
+      this.realYears$.next(ys);
+    });
+    this.http.get<any[]>(`${this.rest.URLS.years}?with_prognosis=true`).subscribe(years => {
+      const ys = years.map( year => { return year.year })
+      this.prognosisYears$.next(ys);
     });
   }
 
@@ -53,5 +60,10 @@ export class PopulationService {
 
   getAreas(areaLevelId: number): Area[]{
     return [];
+  }
+
+  setReady(ready: boolean): void {
+    this.isReady = ready;
+    this.ready.emit(ready);
   }
 }

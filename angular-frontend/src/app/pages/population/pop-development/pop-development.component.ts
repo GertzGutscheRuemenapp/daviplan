@@ -38,7 +38,8 @@ export class PopDevelopmentComponent implements AfterViewInit {
   @ViewChild('ageGroupTemplate') ageGroupTemplate!: TemplateRef<any>;
   compareYears = false;
   areaLevels: AreaLevel[] = [];
-  years: number[] = [];
+  realYears?: number[];
+  prognosisYears?: number[];
   genders: Gender[] = [];
   ageGroups: AgeGroup[] = [];
   mapControl?: MapControl;
@@ -74,10 +75,24 @@ export class PopDevelopmentComponent implements AfterViewInit {
     this.lineChart!.min = Math.floor(min / 10) * 10;
     this.lineChart!.max = Math.ceil(max / 10) * 10;
     this.lineChart?.draw(relData);
-    this.populationService.years$.subscribe(years => {
-      this.years = years;
+    if (this.populationService.isReady)
+      this.initData();
+    else {
+      this.populationService.ready.subscribe(r => {
+        this.initData();
+      });
+    }
+  }
+
+  initData(): void {
+    this.populationService.realYears$.subscribe( years => {
+      this.realYears = years;
       this.setSlider();
-    });
+    })
+    this.populationService.prognosisYears$.subscribe( years => {
+      this.prognosisYears = years;
+      this.setSlider();
+    })
     this.populationService.genders$.subscribe(genders => {
       this.genders = genders;
     })
@@ -90,9 +105,10 @@ export class PopDevelopmentComponent implements AfterViewInit {
   }
 
   setSlider(): void {
+    if (!(this.realYears && this.prognosisYears)) return;
     let slider = this.populationService.timeSlider!;
-    slider.prognosisStart = 2013;
-    slider.years = this.years;
+    slider.prognosisStart = this.prognosisYears[0] || 0;
+    slider.years = this.realYears.concat(this.prognosisYears);
     slider.value = 2012;
     slider.draw();
   }
