@@ -1,6 +1,7 @@
 from typing import List
 
 from django.db import models
+from django.db.models.signals import post_save
 from django.db.models import Q
 from django.contrib.gis.db import models as gis_models
 from sql_util.utils import Exists
@@ -14,7 +15,9 @@ from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.user.models import (PlanningProcess,
                                            Infrastructure,
                                            Service,
+                                           PlaceField,
                                            )
+from datentool_backend.area.models import FieldType, FieldTypes, FieldAttribute
 from datentool_backend.population.models import Prognosis
 from datentool_backend.modes.models import Mode, ModeVariant
 from datentool_backend.demand.models import DemandRateSet
@@ -55,12 +58,68 @@ class Place(DatentoolModelMixin, JsonAttributes, NamedModel, models.Model):
     service_capacity = models.ManyToManyField(Service, related_name='place_services',
                                               blank=True, through='Capacity')
     geom = gis_models.PointField(srid=3857)
-    attributes = models.JSONField()
     scenario = models.ForeignKey(Scenario, on_delete=PROTECT_CASCADE, null=True)
 
     def __str__(self) -> str:
         return (f'{self.__class__.__name__} ({self.infrastructure.name}): '
                 f'{self.name}')
+
+    @property
+    def attributes(self):
+        return self.placeattribute_set
+
+    @property
+    def label(self):
+        """The area label retrieved from the attributes"""
+        try:
+            label_attr = self.attributes.get(field__is_label=True)
+        except PlaceAttribute.DoesNotExist:
+            return ''
+        return label_attr.value
+
+    @attributes.setter
+    def attributes(self, attr_dict: dict):
+        if not self.pk:
+            self._attr_dict = attr_dict
+            return
+        pa = PlaceAttribute.objects.filter(place=self)
+        pa.delete()
+        for field_name, value in attr_dict.items():
+            try:
+                field = PlaceField.objects.get(infrastructure=self.infrastructure,
+                                              name=field_name)
+            except PlaceField.DoesNotExist:
+                if isinstance(value, (int, float)):
+                    ftype = FieldTypes.NUMBER
+                else:
+                    ftype = FieldTypes.STRING
+                field_type, created = FieldType.objects.get_or_create(ftype=ftype,
+                                                                      name=ftype.value)
+                field = PlaceField.objects.create(infrastructure=self.infrastructure,
+                                                  name=field_name,
+                                                  field_type=field_type,
+                                                  )
+            pa = PlaceAttribute(place=self, field=field)
+            pa.value = value
+            pa.save()
+
+    @staticmethod
+    def post_create(sender, instance, created, *args, **kwargs):
+        if not created:
+            return
+        if hasattr(instance, '_attr_dict'):
+            instance.attributes = instance._attr_dict
+
+
+post_save.connect(Place.post_create, sender=Place)
+
+
+class PlaceAttribute(FieldAttribute):
+    place = models.ForeignKey(Place, on_delete=models.CASCADE)
+    field = models.ForeignKey(PlaceField, on_delete=PROTECT_CASCADE)
+
+    class Meta:
+        unique_together = [['place', 'field']]
 
 
 class Capacity(DatentoolModelMixin, models.Model):
@@ -156,47 +215,14 @@ class Capacity(DatentoolModelMixin, models.Model):
         return res_queryset
 
 
-class FieldTypes(models.TextChoices):
-    """enum for field types"""
-    CLASSIFICATION = 'CLA', 'Classification'
-    NUMBER = 'NUM', 'Number'
-    STRING = 'STR', 'String'
+#class PlaceField(models.Model):
+    #"""a field of a place"""
+    #attribute = models.TextField()
+    #infrastructure = models.ForeignKey(Infrastructure, on_delete=PROTECT_CASCADE)
+    #field_type = models.ForeignKey(FieldType, on_delete=PROTECT_CASCADE)
+    #sensitive = models.BooleanField(default=False)
+    #unit = models.TextField()
 
-
-class FieldType(DatentoolModelMixin, NamedModel, models.Model):
-    """a generic field type"""
-    field_type = models.CharField(max_length=3, choices=FieldTypes.choices)
-    name = models.TextField()
-
-    def validate_datatype(self, data) -> bool:
-        """validate the datatype of the given data"""
-        if self.field_type == FieldTypes.NUMBER:
-            return isinstance(data, (int, float))
-        if self.field_type == FieldTypes.STRING:
-            return isinstance(data, (str, bytes))
-        if self.field_type == FieldTypes.CLASSIFICATION:
-            return data in self.fclass_set.values_list('value', flat=True)
-
-
-class FClass(models.Model):
-    """a class in a classification"""
-    classification = models.ForeignKey(FieldType, on_delete=PROTECT_CASCADE)
-    order = models.IntegerField()
-    value = models.TextField()
-
-    def __str__(self) -> str:
-        return (f'{self.__class__.__name__}: {self.classification.name}: '
-                f'{self.order} - {self.value}')
-
-
-class PlaceField(models.Model):
-    """a field of a place"""
-    attribute = models.TextField()
-    unit = models.TextField()
-    infrastructure = models.ForeignKey(Infrastructure, on_delete=PROTECT_CASCADE)
-    field_type = models.ForeignKey(FieldType, on_delete=PROTECT_CASCADE)
-    sensitive = models.BooleanField(default=False)
-
-    def __str__(self) -> str:
-        return f'{self.__class__.__name__}: {self.attribute}'
+    #def __str__(self) -> str:
+        #return f'{self.__class__.__name__}: {self.attribute}'
 

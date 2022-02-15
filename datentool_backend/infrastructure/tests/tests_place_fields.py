@@ -26,16 +26,17 @@ from datentool_backend.infrastructure.factories import (
     ScenarioFactory,
     PlaceFactory,
     CapacityFactory,
-    FClassFactory,
     PlaceFieldFactory,
     FieldTypeFactory
 )
 from datentool_backend.infrastructure.models import (
     Place,
     FieldTypes,
-    FClass,
     PlaceField,
+    PlaceAttribute,
 )
+from datentool_backend.area.factories import FClassFactory
+from datentool_backend.area.models import FClass
 
 from faker import Faker
 faker = Faker('de-DE')
@@ -70,35 +71,35 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        cls.obj = PlaceFactory(attributes=faker.json(
-            num_rows=1, data_columns={'age': 'pyint', 'surname': 'name'}))
+        cls.obj = place = PlaceFactory()
 
-        place: Place = cls.obj
         infrastructure = place.infrastructure.pk
 
-        ft_age = FieldTypeFactory(field_type=FieldTypes.NUMBER)
+        ft_age = FieldTypeFactory(ftype=FieldTypes.NUMBER)
         field1 = PlaceFieldFactory(
-            attribute='age',
+            name='age',
             infrastructure=place.infrastructure,
             field_type=ft_age,
             sensitive=False,
         )
 
-        ft_name = FieldTypeFactory(field_type=FieldTypes.STRING)
+        ft_name = FieldTypeFactory(ftype=FieldTypes.STRING)
         field2 = PlaceFieldFactory(
-            attribute='surname',
+            name='surname',
             infrastructure=place.infrastructure,
             field_type=ft_name,
             sensitive=False,
         )
+
+        place.attributes={'age': faker.pyint(), 'surname': faker.name()}
+        place.save()
 
         geom = place.geom.ewkt
 
         properties = OrderedDict(
             name=faker.word(),
             infrastructure=infrastructure,
-            attributes=faker.json(num_rows=1,
-                                  data_columns={'age': 'pyint', 'surname': 'name'}),
+            attributes={'age': faker.pyint(), 'surname': faker.name()},
         )
         geojson = {
             'type': 'Feature',
@@ -125,9 +126,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         pr1 = ProfileFactory()
         pr2 = ProfileFactory()
         place: Place = self.obj
-        attributes = {'harmless': 123, 'very_secret': 456, }
-        place.attributes = json.dumps(attributes)
-        place.save()
+
         infr: Infrastructure = place.infrastructure
         infr.accessible_by.set([pr1, pr2])
         infr.save()
@@ -140,24 +139,28 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         i2.allow_sensitive_data = True
         i2.save()
 
-        field_type = FieldTypeFactory(field_type=FieldTypes.NUMBER)
-        field1 = PlaceFieldFactory(attribute='harmless', sensitive=False,
+        field_type = FieldTypeFactory(ftype=FieldTypes.NUMBER)
+        field1 = PlaceFieldFactory(name='harmless', sensitive=False,
                                    field_type=field_type,
                                    infrastructure=infr)
-        field2 = PlaceFieldFactory(attribute='very_secret', sensitive=True,
+        field2 = PlaceFieldFactory(name='very_secret', sensitive=True,
                                    field_type=field_type,
                                    infrastructure=infr)
+
+        attributes = {'harmless': 123, 'very_secret': 456, }
+        place.attributes = attributes
+        place.save()
 
         self.client.logout()
         self.client.force_login(pr1.user)
         response = self.get(self.url_key + '-detail', **self.kwargs)
-        attrs = json.loads(response.data['properties']['attributes'])
+        attrs = response.data['properties']['attributes']
         self.assertDictEqual(attrs, {'harmless': 123})
 
         self.client.logout()
         self.client.force_login(pr2.user)
         response = self.get(self.url_key + '-detail', **self.kwargs)
-        attrs = json.loads(response.data['properties']['attributes'])
+        attrs = response.data['properties']['attributes']
         self.assertDictEqual(attrs, attributes)
 
         self.client.logout()
@@ -166,33 +169,36 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
     def setup_place(self) -> Tuple[Profile, Place]:
         pr1 = ProfileFactory(can_edit_basedata=True)
         place: Place = self.obj
-        attributes = {'int_field': 123,
-                      'text_field': 'ABC',
-                      'class_field': 'Category_1', }
-        place.attributes = json.dumps(attributes)
-        place.save()
+
         infr: Infrastructure = place.infrastructure
         infr.accessible_by.set([pr1])
         infr.save()
 
-        field1 = PlaceFieldFactory(attribute='int_field', sensitive=False,
-                                   field_type__field_type=FieldTypes.NUMBER,
+        field1 = PlaceFieldFactory(name='int_field', sensitive=False,
+                                   field_type__ftype=FieldTypes.NUMBER,
                                    infrastructure=infr)
-        field2 = PlaceFieldFactory(attribute='text_field', sensitive=False,
-                                   field_type__field_type=FieldTypes.STRING,
+        field2 = PlaceFieldFactory(name='text_field', sensitive=False,
+                                   field_type__ftype=FieldTypes.STRING,
                                    infrastructure=infr)
         field3 = PlaceFieldFactory(
-            attribute='class_field',
+            name='class_field',
             sensitive=False,
-            field_type__field_type=FieldTypes.CLASSIFICATION,
+            field_type__ftype=FieldTypes.CLASSIFICATION,
             infrastructure=infr)
 
-        fclass1 = FClassFactory(classification=field3.field_type,
+        fclass1 = FClassFactory(ftype=field3.field_type,
                                 order=1,
                                 value='Category_1')
-        fclass2 = FClassFactory(classification=field3.field_type,
+        fclass2 = FClassFactory(ftype=field3.field_type,
                                 order=2,
                                 value='Category_2')
+
+        attributes = {'int_field': 123,
+                      'text_field': 'ABC',
+                      'class_field': 'Category_1', }
+        place.attributes = attributes
+        place.save()
+
         return pr1, place
 
     def test_update_attributes(self):
@@ -205,29 +211,29 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
                                      'class_field': 'Category_2', }
                       }
 
-        response = self.patch(self.url_key + '-update-attributes', pk=place.pk,
+        response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_403(msg=response.content)
 
         self.client.logout()
         self.client.force_login(pr1.user)
 
-        response = self.patch(self.url_key + '-update-attributes', pk=place.pk,
+        response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_200(msg=response.content)
 
         # check the results returned by the view
-        attrs = json.loads(response.data['attributes'])
+        attrs = response.data['properties']['attributes']
         self.compare_data(attrs, patch_data)
 
         # check if the changed data is really in the database
         response = self.get_check_200(self.url_key + '-detail', pk=place.pk)
-        attrs = json.loads(response.data['properties']['attributes'])
+        attrs = response.data['properties']['attributes']
         self.compare_data(attrs, patch_data)
 
         # patch only one value
         patch_data = {'attributes': {'int_field': 678, }}
-        response = self.patch(self.url_key + '-update-attributes', pk=place.pk,
+        response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_200(msg=response.content)
 
@@ -236,36 +242,38 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
                                    'class_field': 'Category_2', }
                     }
         # check the results returned by the view
-        attrs = json.loads(response.data['attributes'])
+        attrs = response.data['properties']['attributes']
         self.compare_data(attrs, expected)
 
         # check if the changed data is really in the database
         response = self.get_check_200(self.url_key + '-detail', pk=place.pk)
-        attrs = json.loads(response.data['properties']['attributes'])
+        attrs = response.data['properties']['attributes']
         self.compare_data(attrs, expected)
 
+        # check if invalid attributes return a BadRequest
         patch_data = {'attributes': {'integer_field': 456, }}
-        response = self.patch(self.url_key + '-update-attributes', pk=place.pk,
+        response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_400(msg=response.content)
 
         patch_data = {'attributes': {'int_field': '456', }}
-        response = self.patch(self.url_key + '-update-attributes', pk=place.pk,
+        response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_400(msg=response.content)
 
         patch_data = {'attributes': {'text_field': 12.3, }}
-        response = self.patch(self.url_key + '-update-attributes', pk=place.pk,
+        response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_400(msg=response.content)
 
         patch_data = {'attributes': {'class_field': 'Category_7', }}
-        response = self.patch(self.url_key + '-update-attributes', pk=place.pk,
+        response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_400(msg=response.content)
 
+        # this should work
         patch_data = {'attributes': {'class_field': 'Category_1', }}
-        response = self.patch(self.url_key + '-update-attributes', pk=place.pk,
+        response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_200(msg=response.content)
 
@@ -274,7 +282,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
                                    'class_field': 'Category_1', }
                     }
 
-        attrs = json.loads(response.data['attributes'])
+        attrs = response.data['properties']['attributes']
         self.compare_data(attrs, patch_data)
 
     def test_delete_placefield_and_fclass(self):
@@ -289,11 +297,11 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         attributes2 = {'int_field': 789,
                        'class_field': 'Category_2', }
         place2 = PlaceFactory(infrastructure=place1.infrastructure,
-                              attributes=json.dumps(attributes2))
+                              attributes=attributes2)
 
         place_fields = PlaceField.objects.filter(
             infrastructure=place1.infrastructure,
-            attribute__in=['int_field', 'text_field', 'class_field'])
+            name__in=['int_field', 'text_field', 'class_field'])
 
         for place_field in place_fields:
             # deleting the place field should fail,
@@ -302,7 +310,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
             self.response_403(msg=response.content)
 
         field_name = 'int_field'
-        int_field = PlaceField.objects.get(attribute=field_name,
+        int_field = PlaceField.objects.get(name=field_name,
                                            infrastructure=place1.infrastructure)
 
         # deleting the place field should cascadedly delete the attribute
@@ -312,20 +320,17 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
                                data=dict(override_protection=True))
         self.response_204(msg=response.content)
 
-        place_attributes = Place.objects.filter(
-            infrastructure=place1.infrastructure).values_list('attributes',
-                                                              flat=True)
-        for attr in place_attributes:
-            attr_dict = json.loads(attr)
-            msg = f'{field_name} should be removed from the place attributes {attr_dict}'
-            self.assertFalse(field_name in attr_dict, msg)
+        place_attributes = PlaceAttribute.objects.filter(
+            place__infrastructure=place1.infrastructure, field__name=field_name)
+        self.assertQuerysetEqual(
+            place_attributes, [], msg=f'{field_name} should be removed from the place attributes')
 
         field_name = 'text_field'
-        text_field = PlaceField.objects.get(attribute=field_name,
+        text_field = PlaceField.objects.get(name=field_name,
                                             infrastructure=place1.infrastructure)
         # remove the text_field from place1, so there is no text_field defined
         attributes = {'class_field': 'Category_1', }
-        place1.attributes = json.dumps(attributes)
+        place1.attributes = attributes
         place1.save()
 
         # it should delete the text_field even without override_protection,
@@ -336,11 +341,11 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         self.response_204(msg=response.content)
 
         field_name = 'class_field'
-        class_field = PlaceField.objects.get(attribute=field_name,
+        class_field = PlaceField.objects.get(name=field_name,
                                              infrastructure=place1.infrastructure)
         # deleting a FClass category should fail,
         # if there are attributes using this category
-        fclass1 = FClass.objects.get(classification=class_field.field_type, value='Category_1')
+        fclass1 = FClass.objects.get(ftype=class_field.field_type, value='Category_1')
         response = self.delete('fclasses-detail',
                                pk=fclass1.pk,
                                data=dict(override_protection=False))
@@ -353,13 +358,13 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         self.response_204(msg=response.content)
 
         # the attribute should have been removed now in place1
-        place_attributes = Place.objects.get(pk=place1.pk).attributes
-        attr_dict = json.loads(place_attributes)
-        msg = f'{field_name} should be removed from the place attributes {attr_dict}'
-        self.assertFalse(field_name in attr_dict, msg)
+        place_attributes = PlaceAttribute.objects.filter(
+            place_id=place1.pk, field__name=field_name)
+        self.assertQuerysetEqual(
+            place_attributes, [], msg=f'{field_name} should be removed from the place attributes')
 
         #  create a new Category_3
-        fclass3 = FClassFactory(classification=class_field.field_type,
+        fclass3 = FClassFactory(ftype=class_field.field_type,
                                 order=1,
                                 value='Category_3')
 
@@ -571,8 +576,8 @@ class TestFieldTypeNUMSTRAPI(WriteOnlyWithCanEditBaseDataTest,
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        cls.obj = FieldTypeFactory(field_type=FieldTypes.NUMBER)
-        data = dict(field_type=FieldTypes.NUMBER,
+        cls.obj = FieldTypeFactory(ftype=FieldTypes.NUMBER)
+        data = dict(ftype=FieldTypes.NUMBER,
                     name=faker.word(),
                     )
         cls.post_data = data
@@ -588,13 +593,13 @@ class TestFieldTypeCLAAPI(WriteOnlyWithCanEditBaseDataTest,
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        cls.obj = FieldTypeFactory(field_type=FieldTypes.CLASSIFICATION)
+        cls.obj = FieldTypeFactory(ftype=FieldTypes.CLASSIFICATION)
 
         fclass_set = [{'order': 1, 'value': faker.word(), },
                       {'order': 2, 'value': faker.word(), },
                       ]
 
-        data = dict(field_type=FieldTypes.CLASSIFICATION,
+        data = dict(ftype=FieldTypes.CLASSIFICATION,
                     name=faker.word(),
                     classification=fclass_set,
                     )
@@ -608,9 +613,9 @@ class TestFieldTypeCLAAPI(WriteOnlyWithCanEditBaseDataTest,
         self.profile.can_edit_basedata = True
         self.profile.save()
 
-        field_typ = FieldTypeFactory(field_type=FieldTypes.CLASSIFICATION)
-        fclass1 = FClassFactory(classification=field_typ, order=7, value='7')
-        fclass2 = FClassFactory(classification=field_typ, order=42, value='42')
+        field_typ = FieldTypeFactory(ftype=FieldTypes.CLASSIFICATION)
+        fclass1 = FClassFactory(ftype=field_typ, order=7, value='7')
+        fclass2 = FClassFactory(ftype=field_typ, order=42, value='42')
 
         self.assertEqual(field_typ.fclass_set.count(), 2)
 
@@ -644,26 +649,6 @@ class TestFieldTypeCLAAPI(WriteOnlyWithCanEditBaseDataTest,
         self.profile.save()
 
 
-class TestFClassAPI(WriteOnlyWithCanEditBaseDataTest,
-                    TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
-    """Test to post, put and patch data"""
-    url_key = "fclasses"
-    factory = FClassFactory
-
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-
-        fclass: FClass = cls.obj
-        classification = fclass.classification.pk
-        data = dict(classification_id=classification,
-                    order=faker.unique.pyint(max_value=100),
-                    value=faker.unique.word())
-        cls.post_data = data
-        cls.put_data = data
-        cls.patch_data = data
-
-
 class TestPlaceFieldAPI(WriteOnlyWithCanEditBaseDataTest,
                         TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
@@ -677,7 +662,7 @@ class TestPlaceFieldAPI(WriteOnlyWithCanEditBaseDataTest,
         placefield: PlaceField = cls.obj
         infrastructure = placefield.infrastructure.pk
         field_type = placefield.field_type.pk
-        data = dict(attribute=faker.unique.word(),
+        data = dict(name=faker.unique.word(),
                     unit=faker.word(),
                     infrastructure=infrastructure,
                     field_type=field_type,

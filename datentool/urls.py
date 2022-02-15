@@ -24,6 +24,11 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView
 )
 
+from drf_spectacular.views import (SpectacularAPIView,
+                                   SpectacularRedocView,
+                                   SpectacularSwaggerView)
+
+
 from datentool_backend.views import AreaLevelTileView, AreaLevelIndicatorTileView
 
 from .views import HomePageView
@@ -36,6 +41,13 @@ urlpatterns = [
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path('api/token/refresh/', TokenRefreshView.as_view(),
          name='token_refresh'),
+
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'),
+         name='swagger-ui'),
+    path('api/schema/redoc-ui/', SpectacularRedocView.as_view(url_name='schema'),
+         name='redoc-ui'),
+
     path('tiles/arealevels/<int:pk>/tile/<int:z>/<int:x>/<int:y>/',
          AreaLevelTileView.as_view(), name="layer-tile"),
     path('tiles/arealevelindicators/<int:pk>/tile/<int:z>/<int:x>/<int:y>/',

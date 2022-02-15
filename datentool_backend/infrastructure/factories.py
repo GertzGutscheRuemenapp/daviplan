@@ -1,14 +1,11 @@
 from factory.django import DjangoModelFactory
-from django.contrib.gis.geos import Point
 
 from datentool_backend.utils.geometry_fields import get_point_from_latlon
+from datentool_backend.area.factories import FieldTypeFactory
 
 from .models import (Scenario,
                      Place,
                      Capacity,
-                     FieldTypes,
-                     FieldType,
-                     FClass,
                      PlaceField,
                      )
 
@@ -40,7 +37,7 @@ class PlaceFactory(DjangoModelFactory):
     name = faker.unique.word()
     infrastructure = factory.SubFactory(InfrastructureFactory)
     geom = get_point_from_latlon(faker.latlng(), 3857)
-    attributes = faker.json(num_rows=3, indent=True)
+    attributes = {'firstname': faker.name(), 'employees': faker.pyint(),}
 
 
 class CapacityFactory(DjangoModelFactory):
@@ -54,31 +51,12 @@ class CapacityFactory(DjangoModelFactory):
     from_year = 0
 
 
-class FieldTypeFactory(DjangoModelFactory):
-    """a generic field type"""
-    class Meta:
-        model = FieldType
-
-    field_type = faker.random_element(FieldTypes)
-    name = faker.word()
-
-
-class FClassFactory(DjangoModelFactory):
-    """a class in a classification"""
-    class Meta:
-        model = FClass
-
-    classification = factory.SubFactory(FieldTypeFactory)
-    order = factory.Sequence(lambda n: faker.unique.pyint(max_value=100))
-    value = faker.unique.word()
-
-
 class PlaceFieldFactory(DjangoModelFactory):
     """a field of a place"""
     class Meta:
         model = PlaceField
 
-    attribute = faker.unique.word()
+    name = faker.unique.word()
     unit = faker.word()
     infrastructure = factory.SubFactory(InfrastructureFactory)
     field_type = factory.SubFactory(FieldTypeFactory)

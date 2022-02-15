@@ -1,6 +1,8 @@
 from typing import Tuple
 
 from rest_framework_gis.fields import GeometryField
+from drf_spectacular.utils import extend_schema_field
+from drf_spectacular.types import OpenApiTypes
 
 from django.contrib.gis.geos import (GEOSGeometry,
                                      Point, MultiPoint,
@@ -9,6 +11,7 @@ from django.contrib.gis.geos import (GEOSGeometry,
                                      GEOSException)
 
 
+@extend_schema_field(OpenApiTypes.BINARY)
 class MultiPolygonGeometrySRIDField(GeometryField):
     """A Geometry-Field that forces Multipolygon and the given srid"""
 
@@ -29,6 +32,7 @@ class MultiPolygonGeometrySRIDField(GeometryField):
         return internal
 
 
+@extend_schema_field(OpenApiTypes.BINARY)
 class GeometrySRIDField(GeometryField):
     """A Geometry-Field that converts to the given srid"""
 

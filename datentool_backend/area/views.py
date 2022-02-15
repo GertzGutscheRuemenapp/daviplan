@@ -1,9 +1,21 @@
+import requests
+from requests.exceptions import (MissingSchema, ConnectionError, HTTPError)
+from django.views.generic import DetailView
+from django.http import JsonResponse
+from django.db.models import OuterRef, Subquery, CharField, Case, When, F, JSONField, Func, Value
+from django.db.models.functions import Cast
+from django.contrib.postgres.aggregates import ArrayAgg
 from rest_framework import viewsets, permissions
 from rest_framework.exceptions import (ParseError, NotFound, APIException)
-from vectortiles.postgis.views import MVTView, BaseVectorTileView
-from django.views.generic import DetailView
 from rest_framework.decorators import action
+from url_filter.integrations.drf import DjangoFilterBackend
+from owslib.wms import WebMapService
+from vectortiles.postgis.views import MVTView, BaseVectorTileView
+
 from django.http import JsonResponse
+
+from drf_spectacular.utils import extend_schema
+
 from owslib.wms import WebMapService
 import requests
 from requests.exceptions import (MissingSchema, ConnectionError,
@@ -22,29 +34,70 @@ from .models import (MapSymbol,
                      WMSLayer,
                      AreaLevel,
                      Area,
+                     FieldType,
+                     FClass,
+                     AreaAttribute,
+                     FieldTypes,
                      )
 from .serializers import (MapSymbolSerializer,
                           LayerGroupSerializer,
                           WMSLayerSerializer,
+                          GetCapabilitiesRequestSerializer,
+                          GetCapabilitiesResponseSerializer,
                           AreaLevelSerializer,
                           AreaSerializer,
+                          FieldTypeSerializer,
+                          FClassSerializer,
                           )
+
+
+class JsonObject(Func):
+    function = 'json_object'
+    output_field = JSONField()
 
 
 class AreaLevelTileView(MVTView, DetailView):
     model = AreaLevel
-    vector_tile_fields = ('id', 'area_level', 'label')
+    vector_tile_fields = ('id', 'area_level', 'attributes', 'label')
 
     def get_vector_tile_layer_name(self):
         return self.get_object().name
 
     def get_vector_tile_queryset(self):
-        areaLevel = self.get_object()
-        queryset = areaLevel.area_set.all()
-        queryset = queryset.annotate(label=Cast(
-            KeyTextTransform(areaLevel.label_field, "attributes"),
-            models.TextField()))
-        return queryset
+        areas = self.get_object().area_set.all()
+        # annotate the areas
+        return self.annotate_areas_with_label_and_attributes(areas)
+
+    def annotate_areas_with_label_and_attributes(self, areas):
+        """annotate the areas with label and attributes"""
+        sq = AreaAttribute.objects.filter(area=OuterRef('pk'))
+
+        # get the area attributes
+        sq = sq.annotate(val=Case(
+            When(field__field_type__ftype=FieldTypes.STRING, then=F('str_value')),
+            When(field__field_type__ftype=FieldTypes.NUMBER, then=Cast(F('num_value'), CharField())),
+            When(field__field_type__ftype=FieldTypes.CLASSIFICATION,
+                 then=F('class_value__value')),
+            output_field=CharField())
+                         )
+
+        # annotate the label
+        sq_label = sq.filter(field__is_label=True)\
+            .values('val')
+
+        # annotate the attributes in json-format
+        sq_attrs = sq.values('area')\
+            .annotate(attributes=JsonObject(ArrayAgg(F('field__name')),
+                                            ArrayAgg(F('val')),
+                                            output_field=CharField()))\
+            .values('attributes')
+
+        # annotate attributes and label to the queryset
+        areas = areas\
+            .annotate(attributes=Subquery(sq_attrs, output_field=CharField()))\
+            .annotate(label=Subquery(sq_label, output_field=CharField()))
+
+        return areas
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -71,6 +124,11 @@ class WMSLayerViewSet(viewsets.ModelViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
     filter_fields = ['active']
 
+    @extend_schema(
+        description='Get capabilites of WMS-Service',
+        request=GetCapabilitiesRequestSerializer,
+        responses=GetCapabilitiesResponseSerializer,
+    )
     @action(methods=['POST'], detail=False,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def getcapabilities(self, request, **kwargs):
@@ -137,7 +195,6 @@ class ProtectPresetPermission(permissions.BasePermission):
 
 
 class AreaLevelFilter(filters.FilterSet):
-    active = filters.BooleanFilter(field_name='is_active')
     class Meta:
         model = AreaLevel
         fields = ['is_active']
@@ -155,3 +212,18 @@ class AreaViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Area.objects.all()
     serializer_class = AreaSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+
+class FieldTypeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+    queryset = FieldType.objects.all()  # prefetch_related('classification_set',
+                                         #         to_attr='classifications')
+    serializer_class = FieldTypeSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+
+class FClassViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+    queryset = FClass.objects.all()
+    serializer_class = FClassSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+

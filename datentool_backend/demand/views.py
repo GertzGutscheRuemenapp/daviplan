@@ -3,6 +3,10 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import ParseError
 
+from rest_framework import status
+
+from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter
+
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
@@ -26,9 +30,12 @@ class AgeGroupViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     serializer_class = AgeGroupSerializer
     permission_classes = [HasAdminAccessOrReadOnly]
 
+    @extend_schema(parameters=[OpenApiParameter(
+        name='defaults', required=False, type=bool,
+        description='if true, return the age groups of the Regionalstatistik'
+    )])
     def list(self, request, *args, **kwargs):
-        # return the default age-groups (Regionalstatistik) when query parameter
-        # ?defaults is set to true
+        """list the age groups"""
         show_defaults = request.query_params.get('defaults')
         if show_defaults and show_defaults.lower() == 'true':
             res = [{'fromAge': a.from_age, 'toAge': a.to_age,
@@ -37,6 +44,7 @@ class AgeGroupViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             return Response(res)
         return super().list(request, *args, **kwargs)
 
+    @extend_schema(request=AgeGroupSerializer(many=True))
     @action(methods=['POST'], detail=False,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def replace(self, request, **kwargs):
@@ -46,6 +54,10 @@ class AgeGroupViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             g.save()
         return self.list(request)
 
+    @extend_schema(request=AgeGroupSerializer(many=True),
+                   responses={202: OpenApiResponse(None, 'AgeGroup check passed'),
+                              406: OpenApiResponse(None, 'AgeGroup check failed'),
+                              })
     @action(methods=['POST'], detail=False,
             permission_classes=[permissions.IsAuthenticated])
     def check(self, request, **kwargs):
@@ -59,7 +71,9 @@ class AgeGroupViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         except KeyError:
             raise ParseError()
         valid = RegStatAgeGroups.check(age_groups)
-        return Response({'valid': valid})
+        if valid:
+            return Response(status=status.HTTP_202_ACCEPTED)
+        return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
 
 
 class DemandRateSetViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

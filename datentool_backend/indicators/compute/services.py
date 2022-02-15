@@ -1,46 +1,16 @@
 from abc import ABCMeta, abstractmethod
-from typing import Callable, Dict
-from django.http.request import QueryDict
 from django.db.models import OuterRef, Subquery, Count, IntegerField, Sum
 from django.db.models.functions import Coalesce
 from django.contrib.postgres.fields.jsonb import KeyTextTransform
 from sql_util.utils import Exists
 
-from datentool_backend.infrastructure.models import FieldTypes
-from .models import IndicatorType
+from .base import ComputeIndicator, register_indicator_class
 from datentool_backend.area.models import Area, AreaLevel
 from datentool_backend.infrastructure.models import Place, Capacity
-from datentool_backend.population.models import RasterCellPopulationAgeGender
-
-
-
-class ComputeIndicator(metaclass=ABCMeta):
-
-    label: str = None
-    description: str = None
-    parameters: Dict[str, FieldTypes] = {}
-
-    def __init__(self, query_params: QueryDict):
-        self.query_params = query_params
-
-    @abstractmethod
-    def compute(self):
-        """compute the indicator"""
-
-    def __str__(self):
-        return f'{self.__class__.__name__}: {self.label}'
-
-
-def register_indicator_class() -> Callable:
-    """register the indicator with the ComputeIndicators"""
-
-    def wrapper(wrapped_class: ComputeIndicator) -> Callable:
-        IndicatorType._add_indicator_class(wrapped_class)
-        return wrapped_class
-    return wrapper
 
 
 class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
+    userdefined = False
 
     def compute(self):
         """"""
@@ -52,8 +22,8 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
         area_level = AreaLevel.objects.get(pk=area_level_id)
         areas = area_level.area_set.all()
 
-        areas = areas.annotate(
-            label=KeyTextTransform(area_level.label_field, 'attributes'))
+        #areas = areas.annotate(
+            #label=KeyTextTransform(area_level.label_field, 'attributes'))
 
 
         capacities = Capacity.objects.all()
@@ -81,6 +51,7 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
 class NumberOfLocations(ComputeAreaIndicator):
     label = 'NumLocations'
     description = 'Number of Locations per Area'
+    category = 'Infrastructure Services'
 
     def aggregate_places(self,
                          places: Place,
@@ -109,6 +80,7 @@ class NumberOfLocations(ComputeAreaIndicator):
 class TotalCapacityInArea(ComputeAreaIndicator):
     label = 'Total Capacity'
     description = 'Total Capacity per Area'
+    category = 'Infrastructure Services'
 
     def aggregate_places(self,
                          places: Place,
@@ -141,29 +113,3 @@ class TotalCapacityInArea(ComputeAreaIndicator):
             .annotate(value=Subquery(sq1))
 
         return areas_with_capacities
-
-
-class ComputePopulationAreaIndicator(ComputeIndicator):
-
-    def compute(self):
-        """"""
-        area_level_id = self.query_params.get('area_level')
-        year = self.query_params.get('year', 0)
-        scenario_id = self.query_params.get('scenario')
-
-        area_level = AreaLevel.objects.get(pk=area_level_id)
-        areas = area_level.area_set.all()
-
-        areas = areas.annotate(
-            label=KeyTextTransform(area_level.label_field, 'attributes'))
-
-
-        population = RasterCellPopulationAgeGender.objects.all()
-
-        areas = self.aggregate_population(population, areas)
-        return areas
-
-    def aggregate_population(self,
-                             population: RasterCellPopulationAgeGender,
-                             areas: Area) -> Area:
-        """"""

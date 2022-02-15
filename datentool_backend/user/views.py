@@ -2,6 +2,8 @@ from rest_framework import viewsets, permissions
 from django.db.models import Q
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+
 from django.contrib.auth.models import User
 
 from datentool_backend.utils.views import ProtectCascadeMixin
@@ -72,10 +74,31 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(settings)
 
 
+@extend_schema_view(list=extend_schema(
+    parameters=[
+        OpenApiParameter(name='prognosis', required=False, type=int,
+                         description='only years defined for prognosis with this pkey'),
+        OpenApiParameter(name='with_population', required=False, type=bool ,
+                         description='if true, only years where population data is available'),
+    ]
+))
 class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = Year.objects.all()
     serializer_class = YearSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+    def get_queryset(self):
+        """ get the years. Request-parameters with_prognosis/with_population """
+        qs = Year.objects.all()
+        prognosis = self.request.query_params.get('prognosis')
+        with_population = self.request.query_params.get('with_population')
+
+        if with_population:
+            expr = Q(population__isnull=False) & Q(population__prognosis__isnull=True)
+            qs = qs.filter(expr)
+        elif prognosis:
+            expr = Q(population__isnull=False) & Q(population__prognosis_id=prognosis)
+            qs = qs.filter(expr)
+        return qs
 
 
 class PlanningProcessViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
