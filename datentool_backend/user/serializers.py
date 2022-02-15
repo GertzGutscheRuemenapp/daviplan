@@ -59,6 +59,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
     def update(self, instance, validated_data):
         profile_data = validated_data.pop('profile', {})
+        access_data = profile_data.pop('infrastructureaccess_set', None)
         password = validated_data.pop('password', None)
         if password:
             instance.set_password(password)
@@ -66,6 +67,15 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         for k, v in profile_data.items():
             setattr(profile, k, v)
         profile.save()
+        if access_data is not None:
+            InfrastructureAccess.objects.filter(profile=profile).delete()
+            for ia in access_data:
+                infra_access = InfrastructureAccess(
+                    infrastructure=ia['infrastructure'],
+                    allow_sensitive_data=ia.get(
+                        'allow_sensitive_data', False),
+                    profile=profile)
+                infra_access.save()
         return super().update(instance, validated_data)
 
 

@@ -139,13 +139,6 @@ mat-card {
         color: $primary-prev;
     }
 
-    .dotted-fill {
-      flex: 1 1 auto;
-      border-bottom: 1px dashed $primary-prev;
-      height: 20px;
-      margin: 0 2px;
-    }
-
     mat-selection-list {
       //overlaps into padding
       width: calc(100% - 5px);

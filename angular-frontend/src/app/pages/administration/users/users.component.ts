@@ -21,11 +21,13 @@ export class UsersComponent implements AfterViewInit  {
 
   @ViewChild('accountCard') accountCard?: InputCardComponent;
   @ViewChild('permissionCard') permissionCard?: InputCardComponent;
+  @ViewChild('accessCard') accessCard?: InputCardComponent;
   @ViewChild('createUser') createUserTemplate?: TemplateRef<any>;
   faEye = faEye;
   faEyeSlash = faEyeSlash;
   accountForm!: FormGroup;
   permissionForm!: FormGroup;
+  accessForm!: FormGroup;
   createUserForm: FormGroup;
   users: User[] = [];
   infrastructures: Infrastructure[] = [];
@@ -52,6 +54,7 @@ export class UsersComponent implements AfterViewInit  {
     })
     this.setupAccountCard();
     this.setupPermissionCard();
+    this.setupAccessCard();
   }
 
   getUsers(): Observable<User[]> {
@@ -151,7 +154,44 @@ export class UsersComponent implements AfterViewInit  {
     })
   }
 
-
+  setupAccessCard() {
+    if (!this.accessCard) return;
+    this.accessCard.dialogOpened.subscribe(evt => {
+      let accessControl: any = {};
+      this.infrastructures.forEach(infrastructure => {
+        const ua = this.userAccess(this.selectedUser, infrastructure);
+        const access = {
+          infrastructure: infrastructure,
+          hasAccess: ua !== undefined,
+          allowSensitiveData: ua?.allowSensitiveData || false
+        }
+        accessControl[infrastructure.id] = this.formBuilder.group(access);
+      })
+      this.accessForm = this.formBuilder.group(accessControl);
+    })
+    this.accessCard.dialogConfirmed.subscribe((ok)=>{
+      this.accessForm.setErrors(null);
+      this.accessCard?.setLoading(true);
+      let access: any[] = [];
+      Object.keys(this.accessForm.controls).forEach(infrastructureId => {
+        const control = this.accessForm.value[infrastructureId];
+        if (control.hasAccess) {
+          access.push({
+            infrastructure: infrastructureId,
+            allowSensitiveData: control.allowSensitiveData
+          })
+        }
+      })
+      this.http.patch<User>(`${this.rest.URLS.users}${this.selectedUser?.id}/`, { access: access }
+      ).subscribe(user => {
+        this.selectedUser!.access = user.access;
+        this.accessCard?.closeDialog(true);
+      },(error) => {
+         this.accessForm.setErrors(error.error);
+         this.accessCard?.setLoading(false);
+      });
+    })
+  }
 
   onSelect(user: User) {
     this.selectedUser = user;

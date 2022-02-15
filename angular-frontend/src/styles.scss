@@ -1164,3 +1164,10 @@ mat-checkbox.reverse {
   padding: 4px;
   pointer-events: none;
 }
+
+.dotted-fill {
+  flex: 1 1 auto;
+  border-bottom: 1px dashed map-get($blue-palette, 300);
+  height: 20px;
+  margin: 0 2px;
+}
