@@ -73,7 +73,7 @@ class LoginTestCase:
         super().tearDownClass()
 
 
-class BasicModelDetailTest(LoginTestCase, CompareAbsURIMixin):
+class BasicModelCompareMixin:
     baseurl = 'http://testserver'
     url_key = ""
     sub_urls = []
@@ -81,32 +81,6 @@ class BasicModelDetailTest(LoginTestCase, CompareAbsURIMixin):
     url_pk = dict()
     query_params = dict()
     do_not_check = []
-
-    @property
-    def kwargs(self):
-        kwargs = {**self.url_pks, 'pk': self.obj.pk}
-        if self.query_params:
-            kwargs['data'] = self.query_params
-        return kwargs
-
-    def test_detail(self):
-        self._test_detail()
-
-    def _test_detail_forbidden(self):
-        """Test get, put, patch methods for the detail-view"""
-        url = self.url_key + '-detail'
-        kwargs = self.kwargs
-        # test get
-        response = self.get(url, **kwargs)
-        self.response_403(msg=response.content)
-
-    def _test_detail(self):
-        """Test get, put, patch methods for the detail-view"""
-        url = self.url_key + '-detail'
-
-        # test get
-        response = self.get_check_200(url, **self.kwargs)
-        assert response.data['id'] == self.obj.pk
 
     def assert_response_equals_expected(self, response_value, expected):
         """
@@ -153,6 +127,36 @@ class BasicModelDetailTest(LoginTestCase, CompareAbsURIMixin):
         return response
 
 
+class BasicModelDetailTest(BasicModelCompareMixin, LoginTestCase, CompareAbsURIMixin):
+
+    @property
+    def kwargs(self):
+        kwargs = {**self.url_pks, 'pk': self.obj.pk}
+        if self.query_params:
+            kwargs['data'] = self.query_params
+        return kwargs
+
+    def test_detail(self):
+        self._test_detail()
+
+    def _test_detail_forbidden(self):
+        """Test get, put, patch methods for the detail-view"""
+        url = self.url_key + '-detail'
+        kwargs = self.kwargs
+        # test get
+        response = self.get(url, **kwargs)
+        self.response_403(msg=response.content)
+
+    def _test_detail(self):
+        """Test get, put, patch methods for the detail-view"""
+        url = self.url_key + '-detail'
+
+        # test get
+        response = self.get_check_200(url, **self.kwargs)
+        assert response.data['id'] == self.obj.pk
+
+
+
 class SingletonRoute:
     """"""
     @property
@@ -167,7 +171,7 @@ class SingletonRoute:
         response = self.get_check_200(url, **self.kwargs)
 
 
-class BasicModelReadTest(BasicModelDetailTest):
+class BasicModelListMixin:
 
     @property
     def kwargs_list(self):
@@ -190,6 +194,16 @@ class BasicModelReadTest(BasicModelDetailTest):
         """Test that the list view can be returned successfully"""
         response = self.get(self.url_key + '-list', **self.kwargs_list)
         self.response_200(response, msg=response.content)
+
+
+
+
+class BasicModelListTest(BasicModelCompareMixin, BasicModelListMixin,
+                         LoginTestCase, CompareAbsURIMixin):
+    """"""
+
+
+class BasicModelReadTest(BasicModelListMixin, BasicModelDetailTest):
 
     def test_get_urls(self):
         self._test_get_urls()

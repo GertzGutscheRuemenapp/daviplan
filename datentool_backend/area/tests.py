@@ -2,6 +2,7 @@ from unittest import skipIf
 import json
 from collections import OrderedDict
 from django.test import TestCase
+from django.db.utils import IntegrityError
 from test_plus import APITestCase
 from datetime import datetime
 import mapbox_vector_tile
@@ -19,11 +20,18 @@ from .factories import (WMSLayerFactory,
                         AreaFactory,
                         AreaLevelFactory,
                         SourceFactory,
-                        LayerGroupFactory)
+                        LayerGroupFactory,
+                        FClassFactory,
+                        )
 
 from .models import (WMSLayer,
                      AreaLevel,
                      Area,
+                     FClass,
+                     AreaField,
+                     AreaAttribute,
+                     FieldType,
+                     FieldTypes,
                      )
 
 from django.urls import reverse
@@ -49,6 +57,34 @@ class TestAreas(TestCase):
         print(area)
         print(area.area_level)
         print(repr(area.area_level))
+
+    def test_area_attributes(self):
+        area1: Area = self.area
+        area_level: AreaLevel = area1.area_level
+        self.assertEqual(area1.label, '')
+        area2 = AreaFactory(area_level=area_level,
+                            attributes={'areaname': 'MyName', 'Inhabitants': 123,})
+        self.assertEqual(area_level.label_field, '')
+        self.assertEqual(area2.label, '')
+        # make name the label_field
+        name_field = area_level.areafield_set.get(name='areaname')
+        self.assertEqual(name_field.field_type.ftype, 'STR')
+
+        name_field.is_label = True
+        name_field.save()
+
+        # areaname should be now the label_field for area_level
+        self.assertEqual(area_level.label_field, 'areaname')
+        self.assertEqual(area2.label, 'MyName')
+
+        # inhabitant_field should be a num-field
+        inh_field = area_level.areafield_set.get(name='Inhabitants')
+        self.assertEqual(inh_field.field_type.ftype, 'NUM')
+
+        # setting another field as label field should raise an error
+        with self.assertRaises(IntegrityError):
+            inh_field.is_label = True
+            inh_field.save()
 
 
 class TestLayerGroupAPI(WriteOnlyWithCanEditBaseDataTest,
@@ -163,8 +199,7 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
         symbol_data = MapSymbolSerializer(area_level.symbol).data
 
         data = dict(name=faker.word(), order=faker.random_int(),
-                    source=source_data, symbol=symbol_data,
-                    label_field=faker.word())
+                    source=source_data, symbol=symbol_data)
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
@@ -262,18 +297,32 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
             self.assert_response_equals_expected(response_value, expected)
 
     def test_get_tile_view(self):
-        area_level1 = AreaLevelFactory(label_field='gen')
+        area_level1 = AreaLevelFactory()
+        attributes = json.dumps({'gen': 'Area One', })
+        str_field = FieldType.objects.create(name='str_field',
+                                             ftype=FieldTypes.STRING)
+        name_field = AreaField.objects.create(area_level=area_level1,
+                                              field_type=str_field,
+                                              name='gen',
+                                              is_label=True)
         area1 = AreaFactory(area_level=area_level1,
                             attributes={'gen': 'Area One', })
+
+        self.assertEqual(area1.label, 'Area One')
+
         geom = MultiPolygon(Polygon(((1475464, 6888464),
                                      (1515686, 6889190),
                                      (1516363, 6864002),
                                      (1475512, 6864389),
                                      (1475464, 6888464))),
                         srid=3857)
+        area1 = AreaFactory(area_level=area_level1,
+                            geom=geom)
+        AreaAttribute.objects.create(area=area1, field=name_field, value='Area One')
+
         area2 = AreaFactory(area_level=area_level1,
-                            geom=geom,
-                            attributes={'gen': 'Area Two', })
+                            geom=geom)
+        AreaAttribute.objects.create(area=area2, field=name_field, value='Area Two')
 
         self.obj = area_level1
         # url1 has content, low zoom level (world)
@@ -283,6 +332,13 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
         self.assert_http_200_ok(response)
 
         result = mapbox_vector_tile.decode(response.content)
+        features = result[self.obj.name]['features']
+        # the properties contain the values for the areas and the labels
+        actual = [feature['properties'] for feature in features][0]
+
+        self.assertEqual(area_level1.id, actual['area_level_id'])
+
+        # url2 has content, exact tile with polygon
         features = result[area_level1.name]['features']
         assert(features[0]['properties']['label'] == 'Area One')
 
@@ -290,20 +346,20 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
                                              'x': 550, 'y': 336})
         response = self.get(url2)
         self.assert_http_200_ok(response)
-        
+
         # decode the vector tile returned
-        result = mapbox_vector_tile.decode(response.content)        
+        result = mapbox_vector_tile.decode(response.content)
         features = result[self.obj.name]['features']
         # the properties contain the values for the areas and the labels
-        actual = [feature['properties'] for feature in features][0]        
+        actual = [feature['properties'] for feature in features][0]
         self.assertEqual(area_level1.id, actual['area_level_id'])
-                
+
         # url3 has no content, tile doesn't match with polygon
         url3 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 12,
-                                             'x': 2903, 'y': 1345})
+                                             'x': 2903, 'y': 1345}) # 2198
         response = self.get(url3)
         self.assert_http_204_no_content(response)
-        
+
 
 class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
                   TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
@@ -316,10 +372,31 @@ class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
         super().setUpTestData()
         area: Area = cls.obj
         area_level = area.area_level.pk
+        name_field_type = FieldType.objects.create(ftype=FieldTypes.STRING,
+                                                   name='name_field')
+        int_field_type = FieldType.objects.create(ftype=FieldTypes.NUMBER,
+                                                  name='num_field')
+        name_field = AreaField.objects.create(area_level=area.area_level,
+                                              name='gen',
+                                              field_type=name_field_type,
+                                              is_label=True)
+        int_field = AreaField.objects.create(area_level=area.area_level,
+                                             name='inhabitants',
+                                             field_type=int_field_type)
+
+        aa = AreaAttribute.objects.create(area=area,
+                                          field=name_field,
+                                          value='A-Town',
+                                          )
+
+        AreaAttribute.objects.create(area=area,
+                                     field=int_field,
+                                     value=12345)
+
         geom = area.geom.ewkt
         properties = OrderedDict(
             area_level=area_level,
-            attributes=faker.json(),
+            attributes={'gen': 'Area32', 'inhabitants': 400, },
         )
         geojson = {
             'type': 'Feature',
@@ -336,5 +413,25 @@ class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
         geojson_patch['geometry'] = area.geom.transform(25832, clone=True).ewkt
         cls.patch_data = geojson_patch
         cls.expected_patch_data = {'geometry': area.geom.ewkt,}
+
+
+class TestFClassAPI(WriteOnlyWithCanEditBaseDataTest,
+                    TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
+    """Test to post, put and patch data"""
+    url_key = "fclasses"
+    factory = FClassFactory
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+
+        fclass: FClass = cls.obj
+        classification = fclass.ftype.pk
+        data = dict(ftype_id=classification,
+                    order=faker.unique.pyint(max_value=100),
+                    value=faker.unique.word())
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data
 
 

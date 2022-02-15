@@ -3,14 +3,10 @@ from .models import (
     Scenario,
     Place,
     Capacity,
-    FieldType,
-    FClass,
     PlaceField,
 )
 
 admin.site.register(Scenario)
 admin.site.register(Place)
 admin.site.register(Capacity)
-admin.site.register(FieldType)
-admin.site.register(FClass)
 admin.site.register(PlaceField)

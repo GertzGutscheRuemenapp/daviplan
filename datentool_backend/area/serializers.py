@@ -1,3 +1,4 @@
+import json
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
@@ -5,7 +6,11 @@ from datetime import date as dt_date
 from django.urls import reverse
 
 from .models import (MapSymbol, LayerGroup, WMSLayer,
-                     Source, AreaLevel, Area)
+                     Source, AreaLevel, Area,
+                     FieldType, FieldTypes, FClass,
+                     FieldAttribute,
+                     AreaAttribute, AreaField,
+                     )
 
 
 class MapSymbolSerializer(serializers.ModelSerializer):
@@ -26,6 +31,26 @@ class WMSLayerSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'group', 'layer_name', 'order', 'url',
                   'description', 'active')
         optional_fields = ('description', 'active')
+
+
+class GetCapabilitiesRequestSerializer(serializers.Serializer):
+    url = serializers.URLField()
+    version = serializers.CharField(required=False, default='1.3.0')
+
+
+class LayerSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    title = serializers.CharField()
+    abstract = serializers.CharField()
+    bbox = serializers.ListField(child=serializers.FloatField(),
+                                 min_length=4, max_length=4)
+
+
+class GetCapabilitiesResponseSerializer(serializers.Serializer):
+    version = serializers.CharField()
+    url = serializers.URLField()
+    cors = serializers.BooleanField()
+    layers = LayerSerializer(many=True)
 
 
 class SourceSerializer(serializers.ModelSerializer):
@@ -49,7 +74,7 @@ class AreaLevelSerializer(serializers.ModelSerializer):
                   'is_preset', 'area_count', 'tile_url', 'label_field')
         read_only_fields = ('is_preset', )
 
-    def get_tile_url(self, obj):
+    def get_tile_url(self, obj) -> str:
         # x,y,z have to be passed to reverse
         url = reverse('layer-tile', kwargs={'pk': obj.id, 'z': 0,
                                             'x': 0, 'y': 0})
@@ -122,9 +147,106 @@ class AreaLevelSerializer(serializers.ModelSerializer):
         return instance
 
 
+class FClassSerializer(serializers.ModelSerializer):
+    ftype_id = serializers.PrimaryKeyRelatedField(
+        write_only=True,
+        required=False,
+        source='ftype',
+        queryset=FieldType.objects.all())
+
+    class Meta:
+        model = FClass
+        read_only_fields = ('id', 'ftype', )
+        write_only_fields = ('ftype_id', )
+        fields = ('id', 'order', 'value',
+                  'ftype', 'ftype_id')
+
+
+class FieldTypeSerializer(serializers.ModelSerializer):
+
+    classification = FClassSerializer(required=False, many=True,
+                                      source='fclass_set')
+
+    class Meta:
+        model = FieldType
+        fields = ('id', 'name', 'ftype', 'classification')
+
+    def create(self, validated_data):
+        classification_data = validated_data.pop('fclass_set', {})
+        instance = super().create(validated_data)
+        instance.save()
+        if classification_data and instance.ftype == FieldTypes.CLASSIFICATION:
+            for classification in classification_data:
+                fclass = FClass(order=classification['order'],
+                                ftype=instance,
+                                value=classification['value'])
+                fclass.save()
+        return instance
+
+    def update(self, instance, validated_data):
+        classification_data = validated_data.pop('fclass_set', {})
+        instance = super().update(instance, validated_data)
+        if classification_data and instance.ftype == FieldTypes.CLASSIFICATION:
+            classification_list = []
+            for classification in classification_data:
+                fclass = FClass(order=classification['order'],
+                                ftype=instance,
+                                value=classification['value'])
+                fclass.save()
+                classification_list.append(fclass)
+            classification_data_ids = [f.id for f in classification_list]
+            for fclass in instance.fclass_set.all():
+                if fclass.id not in classification_data_ids:
+                    fclass.delete(keep_parents=True)
+        return instance
+
+
+class AreaAttributeField(serializers.JSONField):
+
+    def to_representation(self, value):
+        data = {aa.field.name: aa.value for aa in value.iterator()}
+        return data
+
+
 class AreaSerializer(GeoFeatureModelSerializer):
     geom = MultiPolygonGeometrySRIDField(srid=3857)
+    attributes = AreaAttributeField(source='areaattribute_set')
+
     class Meta:
         model = Area
         geo_field = 'geom'
-        fields = ('id', 'area_level', 'attributes')
+        fields = ('id', 'area_level', 'attributes', 'label')
+
+
+    def create(self, validated_data):
+        """
+        Create and return a new `Area` instance, given the validated data.
+        """
+        attributes = validated_data.pop('areaattribute_set')
+        area = super().create(validated_data)
+
+        for field_name, value in attributes.items():
+            field = AreaField.objects.get(area_level=area.area_level,
+                                          name=field_name)
+            AreaAttribute.objects.create(area=area,
+                                         field=field,
+                                         value=value)
+        return area
+
+    def update(self, instance, validated_data):
+        """
+        Update an Area instance, given the validated data.
+        """
+        attributes = validated_data.pop('areaattribute_set')
+        area = super().update(instance, validated_data)
+
+        existing_area_attributes = AreaAttribute.objects.filter(area=area)
+        existing_area_attributes.delete()
+
+        for field_name, value in attributes.items():
+            field = AreaField.objects.get(area_level=area.area_level,
+                                          name=field_name)
+            AreaAttribute.objects.create(area=area,
+                                         field=field,
+                                         value=value)
+        return instance

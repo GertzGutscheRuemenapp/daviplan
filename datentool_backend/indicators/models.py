@@ -9,7 +9,8 @@ from datentool_backend.base import (NamedModel,
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 
 from datentool_backend.user.models import Service
-from datentool_backend.infrastructure.models import Place, FieldType
+from datentool_backend.area.models import FieldType
+from datentool_backend.infrastructure.models import Place
 from datentool_backend.modes.models import ModeVariant
 from datentool_backend.population.models import RasterCell
 
@@ -77,6 +78,8 @@ class IndicatorType(NamedModel, models.Model):
     classname = models.TextField(unique=True)
     description = models.TextField()
     parameters = models.ManyToManyField(FieldType, through='IndicatorTypeField')
+    category = models.TextField(default='')
+    userdefined = models.BooleanField(default=True)
 
     @classmethod
     def _update_indicators_types(cls):
@@ -85,11 +88,13 @@ class IndicatorType(NamedModel, models.Model):
             obj, created = IndicatorType.objects.get_or_create(classname=classname)
             obj.name = indicator_class.label
             obj.description = indicator_class.description
+            obj.category = indicator_class.category
+            obj.userdefined = indicator_class.userdefined
             obj.save()
             field_types = []
             for field_name, field_descr in indicator_class.parameters.items():
                 field_type, created = FieldType.objects.get_or_create(
-                    field_type=field_descr.value, name=field_name)
+                    ftype=field_descr.value, name=field_name)
                 field_types.append(field_type)
                 itf, created = IndicatorTypeField.objects.get_or_create(
                     indicator_type=obj, field_type=field_type)
@@ -116,5 +121,5 @@ class Indicator(DatentoolModelMixin, JsonAttributes, NamedModel, models.Model):
     """An Indicator"""
     indicator_type = models.ForeignKey(IndicatorType, on_delete=PROTECT_CASCADE)
     name = models.TextField()
-    parameters = models.JSONField()
-    service = models.ForeignKey(Service, on_delete=PROTECT_CASCADE)
+    parameters = models.JSONField(null=True)
+    service = models.ForeignKey(Service, on_delete=PROTECT_CASCADE, null=True)
