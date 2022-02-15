@@ -60,11 +60,13 @@ export class TimeSliderComponent implements AfterViewInit {
     this.renderer.appendChild(this.overlay, leftLabel);
     this.renderer.appendChild(this.overlay, rightLabel);
 
-    let prognosisPos = (this.prognosisStart! - this.years[0]) * step;
-    this.renderer.setStyle(divider, 'left', `${prognosisPos + 8 + step/2}px`);
-    this.renderer.setStyle(rightLabel, 'left', `${prognosisPos + 12 + step/2}px`);
-    this.renderer.setStyle(wrapper, 'width', `${prognosisPos + 4 + step/2}px`);
-    this.renderer.setStyle(leftLabel, 'left', `${prognosisPos - leftLabel.offsetWidth + 6 + step/2}px`);
+    const prognosisPos = (this.prognosisStart! - this.years[0]) * step;
+    const progIdx = this.years.indexOf(this.prognosisStart!);
+    const gap = (this.prognosisStart! - this.years[progIdx - 1]) * step;
+    this.renderer.setStyle(divider, 'left', `${prognosisPos + 8 - gap/2}px`);
+    this.renderer.setStyle(rightLabel, 'left', `${prognosisPos + 12 - gap/2}px`);
+    this.renderer.setStyle(wrapper, 'width', `${prognosisPos + 4 - gap/2}px`);
+    this.renderer.setStyle(leftLabel, 'left', `${prognosisPos - leftLabel.offsetWidth + 6 - gap/2}px`);
   }
 
   addTicks(): void {
