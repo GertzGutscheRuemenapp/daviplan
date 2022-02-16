@@ -15,7 +15,7 @@ export class PopulationComponent implements AfterViewInit {
   mapControl?: MapControl;
   faArrows = faArrowsAlt;
 
-  constructor(private mapService: MapService, private populationService: PopulationService) { }
+  constructor(private mapService: MapService, public populationService: PopulationService) { }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
