@@ -1,14 +1,14 @@
-import { Component, AfterViewInit, ViewChild, TemplateRef } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, TemplateRef, OnDestroy } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
 import { StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
-import { Observable } from "rxjs";
+import { Observable, Subscription } from "rxjs";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { map, shareReplay } from "rxjs/operators";
 import { MatDialog } from "@angular/material/dialog";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { PopulationService } from "../population.service";
-import { Area, AreaLevel, Gender } from "../../../rest-interfaces";
+import { Area, AreaLevel, Gender, Layer, LayerGroup } from "../../../rest-interfaces";
 import { AgeGroup } from "../../administration/project-definition/project-definition.component";
 
 export const mockdata: StackedData[] = [
@@ -33,9 +33,12 @@ export const mockdata: StackedData[] = [
   templateUrl: './pop-development.component.html',
   styleUrls: ['./pop-development.component.scss']
 })
-export class PopDevelopmentComponent implements AfterViewInit {
+export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   @ViewChild('lineChart') lineChart?: MultilineChartComponent;
   @ViewChild('ageGroupTemplate') ageGroupTemplate!: TemplateRef<any>;
+  subscriptions: Subscription[] = [];
+  populationLayer?: Layer;
+  legendGroup?: LayerGroup;
   compareYears = false;
   areaLevels: AreaLevel[] = [];
   areas: Area[] = [];
@@ -47,7 +50,8 @@ export class PopDevelopmentComponent implements AfterViewInit {
   activeLevel?: AreaLevel;
   activeArea?: Area;
   data: StackedData[] = mockdata;
-  labels: string[] = ['65+', '19-64', '0-18']
+  year: number = 0;
+  labels: string[] = ['65+', '19-64', '0-18'];
   xSeparator = {
     leftLabel: $localize`Realdaten`,
     rightLabel: $localize`Prognose (Basisjahr: 2003)`,
@@ -84,6 +88,10 @@ export class PopDevelopmentComponent implements AfterViewInit {
         this.initData();
       });
     }
+    this.legendGroup = this.mapControl.addGroup({
+      name: 'Bevölkerungsentwicklung',
+      order: -1
+    }, false)
   }
 
   initData(): void {
@@ -104,6 +112,10 @@ export class PopDevelopmentComponent implements AfterViewInit {
     this.populationService.ageGroups$.subscribe(ageGroups => {
       this.ageGroups = ageGroups;
     })
+    this.subscriptions.push(this.populationService.timeSlider!.valueChanged.subscribe(year => {
+      this.year = year;
+      this.updateMap();
+    }))
   }
 
   setSlider(): void {
@@ -137,6 +149,41 @@ export class PopDevelopmentComponent implements AfterViewInit {
     this.populationService.getAreas(this.activeLevel!.id).subscribe(areas => {
       this.areas = areas;
       this.activeArea = undefined;
+      this.updateMap();
     });
+  }
+
+  updateMap(): void {
+    if(!this.activeLevel) return;
+    if (this.populationLayer)
+      this.mapControl?.removeLayer(this.populationLayer.id!)
+    this.populationLayer = this.mapControl?.addLayer({
+        order: 0,
+        type: 'vector',
+        group: this.legendGroup?.id,
+        name: this.activeLevel.name,
+        description: this.activeLevel.name,
+        opacity: 1,
+        symbol: {
+          strokeColor: 'black',
+          fillColor: 'yellow',
+          symbol: 'line'
+        },
+        labelField: 'label'
+      },
+      {
+        visible: true,
+        tooltipField: 'label'
+        // mouseOver? : {
+        //   fillColor: string,
+        //   strokeColor: string
+        // }
+      });
+    // ToDo: move wkt parsing to populationservice, is done on every change year/level atm (expensive)
+    this.mapControl?.addWKTFeatures(this.populationLayer!.id!, this.areas, true);
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }

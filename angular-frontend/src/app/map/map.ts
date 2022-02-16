@@ -380,6 +380,7 @@ export class OlMap {
     features.forEach(feature => {
       source.addFeature(feature);
     })
+    console.log(layer.getExtent())
   }
 
   clear(layername: string){
@@ -410,6 +411,7 @@ export class OlMap {
     let features: Feature<any>[] = [];
     ids.forEach(f => {
       if (f instanceof String) {
+        // @ts-ignore
         // @ts-ignore
         f = this.getFeature(layerName, f);
       }

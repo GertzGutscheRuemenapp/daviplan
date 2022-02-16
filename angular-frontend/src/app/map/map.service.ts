@@ -11,6 +11,7 @@ import { SettingsService } from "../settings.service";
 import { environment } from "../../environments/environment";
 import { v4 as uuid } from 'uuid';
 import { SelectionModel } from "@angular/cdk/collections";
+import { Feature } from "ol";
 
 const backgroundLayers: Layer[] = [
   {
@@ -345,8 +346,18 @@ export class MapControl {
     }
   }) {
     const opacity = (layer.opacity !== undefined)? layer.opacity : 1;
-    if (layer.type === 'vector-tiles') {
-       this.map!.addVectorTileLayer(this.mapId(layer), layer.url,{
+    if (layer.type === 'vector') {
+      this.map!.addVectorLayer(this.mapId(layer), {
+        visible: options?.visible,
+        opacity: opacity,
+        stroke: { color: layer.symbol?.strokeColor, width: 2, mouseOverColor: options?.mouseOver?.strokeColor },
+        fill: { color: layer.symbol?.fillColor, mouseOverColor: options?.mouseOver?.fillColor },
+        // labelField: layer.labelField,
+        tooltipField: options?.tooltipField
+      })
+    }
+    else if (layer.type === 'vector-tiles') {
+       this.map!.addVectorTileLayer(this.mapId(layer), layer.url!,{
          visible: options?.visible,
          opacity: opacity,
          stroke: { color: layer.symbol?.strokeColor, width: 2, mouseOverColor: options?.mouseOver?.strokeColor },
@@ -358,7 +369,7 @@ export class MapControl {
     }
     else {
       const mapLayer = this.map!.addTileServer(
-        this.mapId(layer),  layer.url, {
+        this.mapId(layer),  layer.url!, {
           params: { layers: layer.layerName },
           visible: options?.visible,
           opacity: opacity,
@@ -372,6 +383,28 @@ export class MapControl {
         }
     }
     this.layerMap[layer.id!] = layer;
+  }
+
+  addWKTFeatures(id: number | string, wktFeatures: any[], ewkt: boolean = false){
+    const layer = this.layerMap[id];
+    const format = new WKT();
+    let features: Feature<any>[] = [];
+    wktFeatures.forEach( wktFeature => {
+      let wkt = wktFeature.geometry;
+      let dataProjection = 'EPSG:4326';
+      if (ewkt){
+        const split = wkt.split(';');
+        wkt = split[1];
+        dataProjection = `EPGS:${split[0].split('=')[1]}`
+      }
+      const feature = format.readFeature(wkt, {
+        dataProjection: dataProjection,
+        featureProjection: this.map!.mapProjection,
+      });
+      feature.setProperties(wktFeature.properties);
+      features.push(feature);
+    })
+    this.map?.addFeatures(this.mapId(layer), features);
   }
 
   setBackground(id: number | string | undefined): void {
@@ -393,7 +426,7 @@ export class MapControl {
 
   setLayerAttr(id: number | string | undefined, options: { opacity?: number, visible?: boolean }): void {
     if (id === undefined) return;
-    let layer = this.layerMap[id];
+    const layer = this.layerMap[id];
     if (!layer) return;
     if (options.opacity != undefined) {
       this.map?.setOpacity(this.mapId(layer), options.opacity);
