@@ -64,6 +64,13 @@ export interface Area {
   }
 }
 
+export interface PopulationData {
+  year: number,
+  gender: number,
+  agegroup: number,
+  value: number
+}
+
 export interface Gender {
   id: number,
   name: string;

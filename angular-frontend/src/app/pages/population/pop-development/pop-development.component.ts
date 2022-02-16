@@ -165,7 +165,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         description: this.activeLevel.name,
         opacity: 1,
         symbol: {
-          strokeColor: 'black',
+          strokeColor: 'grey',
           fillColor: 'yellow',
           symbol: 'line'
         },
@@ -173,11 +173,10 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       },
       {
         visible: true,
-        tooltipField: 'label'
-        // mouseOver? : {
-        //   fillColor: string,
-        //   strokeColor: string
-        // }
+        tooltipField: 'label',
+        mouseOver: {
+         strokeColor: 'blue'
+        }
       });
     // ToDo: move wkt parsing to populationservice, is done on every change year/level atm (expensive)
     this.mapControl?.addWKTFeatures(this.populationLayer!.id!, this.areas, true);

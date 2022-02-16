@@ -306,8 +306,8 @@ export class MapControl {
     checkable?: boolean,
     tooltipField?: string,
     mouseOver?: {
-      fillColor: string,
-      strokeColor: string
+      fillColor?: string,
+      strokeColor?: string
     }
   }, emit= true): Layer {
     if (layer.id == undefined)
@@ -341,8 +341,8 @@ export class MapControl {
     visible?: boolean,
     tooltipField?: string,
     mouseOver?: {
-      fillColor: string,
-      strokeColor: string
+      fillColor?: string,
+      strokeColor?: string
     }
   }) {
     const opacity = (layer.opacity !== undefined)? layer.opacity : 1;
@@ -352,7 +352,7 @@ export class MapControl {
         opacity: opacity,
         stroke: { color: layer.symbol?.strokeColor, width: 2, mouseOverColor: options?.mouseOver?.strokeColor },
         fill: { color: layer.symbol?.fillColor, mouseOverColor: options?.mouseOver?.fillColor },
-        // labelField: layer.labelField,
+        labelField: layer.labelField,
         tooltipField: options?.tooltipField
       })
     }

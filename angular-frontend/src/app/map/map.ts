@@ -258,8 +258,32 @@ export class OlMap {
         mouseOverWidth?: number
       },
       fill?: { color?: string, selectedColor?: string, mouseOverColor?: string },
+      labelField?: string
     } = {}): Layer<any> {
 
+    const style = new Style({
+      stroke: new Stroke({
+        color: options?.stroke?.color || 'rgba(0, 0, 0, 1.0)',
+        width: options?.stroke?.width || 1,
+        lineDash: options?.stroke?.dash
+      }),
+      fill: new Fill({
+        color: options?.fill?.color || 'rgba(0, 0, 0, 0)'
+      }),
+      text: new OlText({
+        font: '14px Calibri,sans-serif',
+        overflow: true,
+        placement: 'point',
+        fill: new Fill({
+          color: options?.stroke?.color || 'black'
+        }),
+        stroke: new Stroke({
+          color: 'black',
+          width: 1
+        })
+      })
+    });
+    const _this = this;
     if (this.layers[name] != null) this.removeLayer(name);
     let sourceOpt = options?.url? {
         format: new GeoJSON(),
@@ -271,16 +295,13 @@ export class OlMap {
       source: source,
       visible: options?.visible === true,
       opacity: (options?.opacity != undefined) ? options?.opacity: 1,
-      style: new Style({
-        stroke: new Stroke({
-          color:  options?.stroke?.color || 'rgba(0, 0, 0, 1.0)',
-          width: options?.stroke?.width || 1,
-          lineDash: options?.stroke?.dash
-        }),
-        fill: new Fill({
-          color: options?.fill?.color || 'rgba(0, 0, 0, 0)'
-        }),
-      }),
+      style: function(feature) {
+        if (options?.labelField) {
+          const text = (_this.view.getZoom()! > 9 )? feature.get(options?.labelField) : ''
+          style.getText().setText(text);
+        }
+        return style;
+      }
     });
 
     layer.set('name', name);

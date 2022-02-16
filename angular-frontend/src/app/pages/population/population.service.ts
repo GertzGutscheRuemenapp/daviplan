@@ -18,7 +18,8 @@ export class PopulationService {
   ageGroups$ = new BehaviorSubject<AgeGroup[]>([]);
   genders$ = new BehaviorSubject<Gender[]>([]);
   areaLevels$ = new BehaviorSubject<AreaLevel[]>([]);
-  areaMap: Record<number, Area[]> = {};
+  private areaCache: Record<number, Area[]> = {};
+  private popAreaCache: Record<number, Area[]> = {};
   private places: Record<number, Place> = {};
   isReady: boolean = false;
   ready: EventEmitter<any> = new EventEmitter();
@@ -62,12 +63,12 @@ export class PopulationService {
 
   getAreas(areaLevelId: number): Observable<Area[]>{
     const observable = new Observable<Area[]>(subscriber => {
-      const cached = this.areaMap[areaLevelId];
+      const cached = this.areaCache[areaLevelId];
       if (!cached) {
         this.setLoading(true);
         const query = this.http.get<any>(`${this.rest.URLS.areas}?area_level=${areaLevelId}`);
         query.subscribe( areas => {
-          this.areaMap[areaLevelId] = areas.features;
+          this.areaCache[areaLevelId] = areas.features;
           subscriber.next(areas.features);
           subscriber.complete();
           this.setLoading(false);
