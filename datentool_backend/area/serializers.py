@@ -67,12 +67,16 @@ class AreaLevelSerializer(serializers.ModelSerializer):
     area_count = serializers.IntegerField(source='area_set.count',
                                           read_only=True)
     tile_url = serializers.SerializerMethodField()
+    label_field = serializers.SerializerMethodField()
 
     class Meta:
         model = AreaLevel
         fields = ('id', 'name', 'order', 'source', 'symbol', 'is_active',
                   'is_preset', 'area_count', 'tile_url', 'label_field')
-        read_only_fields = ('is_preset', )
+        read_only_fields = ('is_preset', 'label_field')
+
+    def get_label_field(self, obj: AreaLevel) -> str:
+        return obj.label_field
 
     def get_tile_url(self, obj) -> str:
         # x,y,z have to be passed to reverse
@@ -211,12 +215,15 @@ class AreaAttributeField(serializers.JSONField):
 class AreaSerializer(GeoFeatureModelSerializer):
     geom = MultiPolygonGeometrySRIDField(srid=3857)
     attributes = AreaAttributeField(source='areaattribute_set')
+    label = serializers.SerializerMethodField()
 
     class Meta:
         model = Area
         geo_field = 'geom'
         fields = ('id', 'area_level', 'attributes', 'label')
 
+    def get_label(self, obj: Area) -> str:
+        return obj.label
 
     def create(self, validated_data):
         """

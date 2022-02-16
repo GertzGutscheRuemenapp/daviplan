@@ -1,29 +1,22 @@
 import requests
 from requests.exceptions import (MissingSchema, ConnectionError, HTTPError)
+
 from django.views.generic import DetailView
 from django.http import JsonResponse
 from django.db.models import OuterRef, Subquery, CharField, Case, When, F, JSONField, Func, Value
 from django.db.models.functions import Cast
 from django.contrib.postgres.aggregates import ArrayAgg
+from django_filters import rest_framework as filters
+
 from rest_framework import viewsets, permissions
 from rest_framework.exceptions import (ParseError, NotFound, APIException)
 from rest_framework.decorators import action
-from url_filter.integrations.drf import DjangoFilterBackend
+
 from owslib.wms import WebMapService
+
 from vectortiles.postgis.views import MVTView, BaseVectorTileView
 
-from django.http import JsonResponse
-
-from drf_spectacular.utils import extend_schema
-
-from owslib.wms import WebMapService
-import requests
-from requests.exceptions import (MissingSchema, ConnectionError,
-                                        HTTPError)
-from django_filters import rest_framework as filters
-from django.db import models
-from django.db.models.functions import Cast
-from django.contrib.postgres.fields.jsonb import KeyTextTransform
+from drf_spectacular.utils import extend_schema, extend_schema_field
 
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
