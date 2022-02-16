@@ -74,7 +74,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         self.assert_http_202_accepted(response)
 
         # get disaggregated population
-        response = self.get_check_200(url = 'populations-detail',
+        response = self.get_check_200(url='populations-get-details',
                                       pk=population.pk)
         df = pd.DataFrame.from_records(response.data['rastercellpopulationagegender_set'])
 
@@ -133,7 +133,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         self.assertIn('area3', response.data.get('message'))
 
         # get disaggregated population
-        response = self.get_check_200(url='populations-detail',
+        response = self.get_check_200(url='populations-get-details',
                                       pk=self.population.pk)
         df = pd.DataFrame.from_records(response.data['rastercellpopulationagegender_set'])
 
@@ -161,7 +161,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         self.assert_http_202_accepted(response)
 
         # get disaggregated population
-        response = self.get_check_200(url = 'populations-detail',
+        response = self.get_check_200(url = 'populations-get-details',
                                       pk=self.population.pk)
         df = pd.DataFrame.from_records(response.data['rastercellpopulationagegender_set'])
 

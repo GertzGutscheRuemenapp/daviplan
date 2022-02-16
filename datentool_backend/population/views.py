@@ -29,6 +29,7 @@ from .serializers import (RasterSerializer,
                           PopulationRasterSerializer,
                           PrognosisSerializer,
                           PopulationSerializer,
+                          PopulationDetailSerializer,
                           PopulationEntrySerializer,
                           PopStatisticSerializer,
                           PopStatEntrySerializer,
@@ -61,6 +62,17 @@ class PopulationViewSet(viewsets.ModelViewSet):
     serializer_class = PopulationSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
+    @extend_schema(description='return the population including the rastercellpopulationagegender_set',
+                   responses=PopulationDetailSerializer)
+    @action(methods=['GET'], detail=True,
+            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+    def get_details(self, request, **kwargs):
+        """
+        route to return population with all entries
+        """
+        instance = self.get_object()
+        serializer = PopulationDetailSerializer(instance)
+        return Response(serializer.data)
 
     @extend_schema(description='intersect areas with rastercells',
                    parameters=[
