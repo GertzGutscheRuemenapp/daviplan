@@ -8,7 +8,6 @@ from django.contrib.postgres.aggregates import ArrayAgg
 from rest_framework import viewsets, permissions
 from rest_framework.exceptions import (ParseError, NotFound, APIException)
 from rest_framework.decorators import action
-from url_filter.integrations.drf import DjangoFilterBackend
 from owslib.wms import WebMapService
 from vectortiles.postgis.views import MVTView, BaseVectorTileView
 
@@ -21,9 +20,7 @@ import requests
 from requests.exceptions import (MissingSchema, ConnectionError,
                                         HTTPError)
 from django_filters import rest_framework as filters
-from django.db import models
 from django.db.models.functions import Cast
-from django.contrib.postgres.fields.jsonb import KeyTextTransform
 
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
@@ -195,6 +192,7 @@ class ProtectPresetPermission(permissions.BasePermission):
 
 
 class AreaLevelFilter(filters.FilterSet):
+    active = filters.BooleanFilter(field_name='is_active')
     class Meta:
         model = AreaLevel
         fields = ['is_active']
@@ -212,6 +210,7 @@ class AreaViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Area.objects.all()
     serializer_class = AreaSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    filter_fields = ['area_level']
 
 
 class FieldTypeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

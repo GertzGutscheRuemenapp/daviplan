@@ -1,6 +1,6 @@
 import { EventEmitter, Injectable } from "@angular/core";
 import { LegendComponent } from "../../map/legend/legend.component";
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, Observable } from "rxjs";
 import { Place, AreaLevel, Area, Gender } from "../../rest-interfaces";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../rest-api";
@@ -18,6 +18,7 @@ export class PopulationService {
   ageGroups$ = new BehaviorSubject<AgeGroup[]>([]);
   genders$ = new BehaviorSubject<Gender[]>([]);
   areaLevels$ = new BehaviorSubject<AreaLevel[]>([]);
+  areaMap: Record<number, Area[]> = {};
   private places: Record<number, Place> = {};
   isReady: boolean = false;
   ready: EventEmitter<any> = new EventEmitter();
@@ -58,8 +59,23 @@ export class PopulationService {
     });
   }
 
-  getAreas(areaLevelId: number): Area[]{
-    return [];
+  getAreas(areaLevelId: number): Observable<Area[]>{
+    const observable = new Observable<Area[]>(subscriber => {
+      const cached = this.areaMap[areaLevelId];
+      if (!cached) {
+        const query = this.http.get<any>(`${this.rest.URLS.areas}?area_level=${areaLevelId}`);
+        query.subscribe( areas => {
+          this.areaMap[areaLevelId] = areas.features;
+          subscriber.next(areas.features);
+          subscriber.complete();
+        });
+      }
+      else {
+        subscriber.next(cached);
+        subscriber.complete();
+      }
+    });
+    return observable;
   }
 
   setReady(ready: boolean): void {

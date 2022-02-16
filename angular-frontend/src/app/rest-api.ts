@@ -19,6 +19,7 @@ export class RestAPI {
     infrastructures: `${ this.API_ENDPOINT }/infrastructures/`,
     services: `${ this.API_ENDPOINT }/services/`,
     arealevels: `${ this.API_ENDPOINT }/arealevels/`,
+    areas: `${ this.API_ENDPOINT }/areas/`,
     genders: `${ this.API_ENDPOINT }/genders/`,
     years: `${ this.API_ENDPOINT }/years/`,
     layerGroups: `${ this.API_ENDPOINT }/layergroups/`,

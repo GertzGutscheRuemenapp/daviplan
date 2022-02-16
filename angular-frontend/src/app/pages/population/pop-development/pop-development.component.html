@@ -13,8 +13,11 @@
         </app-help-button>
       </mat-panel-title>
     </mat-expansion-panel-header>
-    <mat-form-field appearance="outline" class="small">
-      <mat-select disableOptionCentering disableRipple [value]="areaLevels[0]">
+    <mat-form-field floatLabel="never" appearance="outline" class="small">
+      <mat-select disableOptionCentering disableRipple
+                  placeholder="Gebietseinheit auswählen"
+                  [(ngModel)]="activeLevel"
+                  (ngModelChange)="onLevelChange()">
         <mat-option [value]="areaLevel" *ngFor="let areaLevel of areaLevels">
           {{areaLevel.name}}
         </mat-option>
@@ -131,9 +134,10 @@
   <div>
     <mat-form-field appearance="outline" class="small">
       <mat-label>Gebiet</mat-label>
-      <mat-select disableOptionCentering disableRipple value="irgendwo">
-        <mat-option value="irgendwo">
-          [Gebietseinheit]
+      <mat-select disableOptionCentering disableRipple
+                  [(ngModel)]="activeArea">
+        <mat-option *ngFor="let area of areas" [value]="area">
+          {{area.properties.label}}
         </mat-option>
       </mat-select>
     </mat-form-field>

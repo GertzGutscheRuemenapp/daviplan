@@ -55,7 +55,11 @@ export interface AreaLevel {
 
 export interface Area {
   id: number;
-  name: string;
+  properties: {
+    areaLevel: number,
+    attributes: any,
+    label: string
+  }
 }
 
 export interface Gender {

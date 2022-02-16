@@ -8,7 +8,7 @@ import { map, shareReplay } from "rxjs/operators";
 import { MatDialog } from "@angular/material/dialog";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { PopulationService } from "../population.service";
-import { AreaLevel, Gender } from "../../../rest-interfaces";
+import { Area, AreaLevel, Gender } from "../../../rest-interfaces";
 import { AgeGroup } from "../../administration/project-definition/project-definition.component";
 
 export const mockdata: StackedData[] = [
@@ -38,12 +38,14 @@ export class PopDevelopmentComponent implements AfterViewInit {
   @ViewChild('ageGroupTemplate') ageGroupTemplate!: TemplateRef<any>;
   compareYears = false;
   areaLevels: AreaLevel[] = [];
+  areas: Area[] = [];
   realYears?: number[];
   prognosisYears?: number[];
   genders: Gender[] = [];
   ageGroups: AgeGroup[] = [];
   mapControl?: MapControl;
-  activeLevel: string = 'Gemeinden';
+  activeLevel?: AreaLevel;
+  activeArea?: Area;
   data: StackedData[] = mockdata;
   labels: string[] = ['65+', '19-64', '0-18']
   xSeparator = {
@@ -109,7 +111,7 @@ export class PopDevelopmentComponent implements AfterViewInit {
     let slider = this.populationService.timeSlider!;
     slider.prognosisStart = this.prognosisYears[0] || 0;
     slider.years = this.realYears.concat(this.prognosisYears);
-    slider.value = 2012;
+    slider.value = this.realYears[0];
     slider.draw();
   }
 
@@ -129,5 +131,12 @@ export class PopDevelopmentComponent implements AfterViewInit {
     });
     dialogRef.afterClosed().subscribe((ok: boolean) => {  });
     dialogRef.componentInstance.confirmed.subscribe(() => {  });
+  }
+
+  onLevelChange(): void {
+    this.populationService.getAreas(this.activeLevel!.id).subscribe(areas => {
+      this.areas = areas;
+      this.activeArea = undefined;
+    });
   }
 }
