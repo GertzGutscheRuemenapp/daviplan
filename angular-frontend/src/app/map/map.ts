@@ -200,41 +200,46 @@ export class OlMap {
     })
     layer.set('name', name);
 
-    let hoveredFeatId: number | undefined | string;
-    const hoverStyle= new Style({
-      fill: new Fill({ color: options.fill?.mouseOverColor || 'rgba(0,0,0,0)' }),
-      stroke: new Stroke({ color: options?.stroke?.mouseOverColor || 'rgba(0,0,0,0)',
-        width: options?.stroke?.width || 1})
-    })
-    const selectionLayer = new VectorTileLayer({
-      map: this.map,
-      renderMode: 'vector',
-      source: layer.getSource(),
-      style: function (feature) {
-        if (feature.getId() === hoveredFeatId) {
-          return hoverStyle;
-        }
-        return;
-      },
-    });
-
-    this.map.on('pointermove', event => {
-      layer.getFeatures(event.pixel).then((features: Feature<any>[]) => {
-        if (features.length === 0) {
-          hoveredFeatId = undefined;
-          selectionLayer.changed();
+    // mouseover effects are a bit trickier with vector-tiles, need to add new layer with same source
+    // to inspect and style features
+    if (options.fill?.mouseOverColor || options?.stroke?.mouseOverColor) {
+      let hoveredFeatId: number | undefined | string;
+      const hoverStyle = new Style({
+        fill: new Fill({ color: options.fill?.mouseOverColor || 'rgba(0,0,0,0)' }),
+        stroke: new Stroke({
+          color: options?.stroke?.mouseOverColor || 'rgba(0,0,0,0)',
+          width: options?.stroke?.width || 1
+        })
+      })
+      const selectionLayer = new VectorTileLayer({
+        map: this.map,
+        renderMode: 'vector',
+        source: layer.getSource(),
+        style: function (feature) {
+          if (feature.getId() === hoveredFeatId) {
+            return hoverStyle;
+          }
           return;
-        }
-        if (hoveredFeatId === features[0].getId()) return;
-        hoveredFeatId = features[0].getId();
+        },
+      });
+
+      this.map.on('pointermove', event => {
+        layer.getFeatures(event.pixel).then((features: Feature<any>[]) => {
+          if (features.length === 0) {
+            hoveredFeatId = undefined;
+            selectionLayer.changed();
+            return;
+          }
+          if (hoveredFeatId === features[0].getId()) return;
+          hoveredFeatId = features[0].getId();
+          selectionLayer.changed();
+        });
+      });
+      this.map.getViewport().addEventListener('mouseout', event => {
+        hoveredFeatId = undefined;
         selectionLayer.changed();
       });
-    });
-
-    this.map.getViewport().addEventListener('mouseout', event => {
-      hoveredFeatId = undefined;
-      selectionLayer.changed();
-    });
+    }
 
     this.setMouseOverLayer(layer, {
       tooltipField: options?.tooltipField
