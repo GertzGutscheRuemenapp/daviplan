@@ -95,7 +95,7 @@ class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                          queryset=current_capacities,
                          to_attr='current_capacities'),
                 Prefetch('placeattribute_set',
-                         queryset=PlaceAttribute.objects.select_related('field'))
+                         queryset=PlaceAttribute.objects.select_related('field__field_type'))
                 )
         service = self.request.query_params.get('service')
         if service:
