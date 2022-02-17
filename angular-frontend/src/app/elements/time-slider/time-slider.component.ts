@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, OnInit, Renderer2, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { MatSlider } from "@angular/material/slider";
 
 @Component({
@@ -7,16 +7,24 @@ import { MatSlider } from "@angular/material/slider";
   styleUrls: ['./time-slider.component.scss']
 })
 export class TimeSliderComponent implements AfterViewInit {
-  @Input() years: number[] = [0, 1];
+  @Input() years: number[] = [];
   @ViewChild('slider') slider!: MatSlider;
   @Input() value?: number = 0;
-  @Input() prognosisEnd?: number;
+  @Input() prognosisStart?: number;
+  valueChanged: EventEmitter<number> = new EventEmitter();
   overlay: any;
 
   constructor(private renderer: Renderer2) { }
 
   ngAfterViewInit(): void {
-    this.draw();
+    if (this.years.length > 0)
+      this.draw();
+  }
+
+  setYears(years: number[]){
+    this.years = years;
+    if (this.years.length > 0)
+      this.draw();
   }
 
   draw(): void {
@@ -27,7 +35,7 @@ export class TimeSliderComponent implements AfterViewInit {
     const sliderEl = this.slider._elementRef.nativeElement;
     this.overlay = this.renderer.createElement('div');
     this.renderer.appendChild(sliderEl, this.overlay);
-    if (this.prognosisEnd)
+    if (this.prognosisStart)
       this.createDivider();
     this.addTicks();
   }
@@ -53,11 +61,13 @@ export class TimeSliderComponent implements AfterViewInit {
     this.renderer.appendChild(this.overlay, leftLabel);
     this.renderer.appendChild(this.overlay, rightLabel);
 
-    let prognosisPos = (this.prognosisEnd! - this.years[0]) * step;
-    this.renderer.setStyle(divider, 'left', `${prognosisPos + 8 + step/2}px`);
-    this.renderer.setStyle(rightLabel, 'left', `${prognosisPos + 12 + step/2}px`);
-    this.renderer.setStyle(wrapper, 'width', `${prognosisPos + 4 + step/2}px`);
-    this.renderer.setStyle(leftLabel, 'left', `${prognosisPos - leftLabel.offsetWidth + 6 + step/2}px`);
+    const prognosisPos = (this.prognosisStart! - this.years[0]) * step;
+    const progIdx = this.years.indexOf(this.prognosisStart!);
+    const gap = (this.prognosisStart! - this.years[progIdx - 1]) * step;
+    this.renderer.setStyle(divider, 'left', `${prognosisPos + 8 - gap/2}px`);
+    this.renderer.setStyle(rightLabel, 'left', `${prognosisPos + 12 - gap/2}px`);
+    this.renderer.setStyle(wrapper, 'width', `${prognosisPos + 4 - gap/2}px`);
+    this.renderer.setStyle(leftLabel, 'left', `${prognosisPos - leftLabel.offsetWidth + 6 - gap/2}px`);
   }
 
   addTicks(): void {
@@ -87,11 +97,13 @@ export class TimeSliderComponent implements AfterViewInit {
         if (this.years[i] > year)
           break;
       }
-      this.slider.value = this.years[i];
+      year = this.years[i];
+      this.slider.value = year;
     }
+    this.value = year;
   }
 
   inputChanged(ev: any){
-    console.log(ev.value);
+    this.valueChanged.emit(this.value);
   }
 }

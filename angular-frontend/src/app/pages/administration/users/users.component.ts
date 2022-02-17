@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
-import { User } from '../../login/users';
+import { InfrastructureAccess, User } from '../../login/users';
 import { ConfirmDialogComponent } from '../../../dialogs/confirm-dialog/confirm-dialog.component';
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { InputCardComponent } from '../../../dash/input-card.component'
@@ -9,6 +9,7 @@ import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms"
 import { RestAPI } from "../../../rest-api";
 import { Observable } from "rxjs";
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { Infrastructure } from "../../../rest-interfaces";
 
 @Component({
   selector: 'app-users',
@@ -20,13 +21,16 @@ export class UsersComponent implements AfterViewInit  {
 
   @ViewChild('accountCard') accountCard?: InputCardComponent;
   @ViewChild('permissionCard') permissionCard?: InputCardComponent;
+  @ViewChild('accessCard') accessCard?: InputCardComponent;
   @ViewChild('createUser') createUserTemplate?: TemplateRef<any>;
   faEye = faEye;
   faEyeSlash = faEyeSlash;
   accountForm!: FormGroup;
   permissionForm!: FormGroup;
+  accessForm!: FormGroup;
   createUserForm: FormGroup;
   users: User[] = [];
+  infrastructures: Infrastructure[] = [];
   selectedUser?: User;
   changePassword: boolean = false;
   showAccountPassword: boolean = false;
@@ -44,9 +48,13 @@ export class UsersComponent implements AfterViewInit  {
   }
 
   ngAfterViewInit() {
-    this.getUsers();
+    this.http.get<Infrastructure[]>(this.rest.URLS.infrastructures).subscribe(infrastructures => {
+      this.infrastructures = infrastructures;
+      this.getUsers();
+    })
     this.setupAccountCard();
     this.setupPermissionCard();
+    this.setupAccessCard();
   }
 
   getUsers(): Observable<User[]> {
@@ -85,9 +93,12 @@ export class UsersComponent implements AfterViewInit  {
       }
       this.accountCard?.setLoading(true);
       this.http.patch<User>(`${this.rest.URLS.users}${this.selectedUser?.id}/`, attributes
-      ).subscribe(data => {
+      ).subscribe(user => {
+        this.selectedUser!.username = user.username;
+        this.selectedUser!.email = user.email;
+        this.selectedUser!.firstName = user.firstName;
+        this.selectedUser!.lastName = user.lastName;
         this.accountCard?.closeDialog(true);
-        this.refresh(data.id);
       },(error) => {
         // ToDo: set specific errors to fields
         this.accountForm.setErrors(error.error);
@@ -119,15 +130,15 @@ export class UsersComponent implements AfterViewInit  {
       let attributes = {
         profile: {
           adminAccess: profile.adminAccess,
-          canCreateScenarios: profile.canCreateScenarios,
-          canEditData: profile.canEditData
+          canCreateProcess: profile.canCreateProcess,
+          canEditBasedata: profile.canEditBasedata
         }
       }
       this.permissionCard?.setLoading(true);
       this.http.patch<User>(`${this.rest.URLS.users}${this.selectedUser?.id}/`, attributes
       ).subscribe(user => {
+        this.selectedUser!.profile = user.profile;
         this.permissionCard?.closeDialog(true);
-        this.refresh(user.id);
       },(error) => {
         this.permissionForm.setErrors(error.error);
         this.permissionCard?.setLoading(false);
@@ -143,15 +154,43 @@ export class UsersComponent implements AfterViewInit  {
     })
   }
 
-  refresh(userId?: number): void {
-    this.getUsers().subscribe( data => {
-      if (userId != undefined){
-        let user = this.users.find(user => user.id === userId);
-        this.onSelect(user as User);
-      }
-      else
-        this.selectedUser = undefined;
-    });
+  setupAccessCard() {
+    if (!this.accessCard) return;
+    this.accessCard.dialogOpened.subscribe(evt => {
+      let accessControl: any = {};
+      this.infrastructures.forEach(infrastructure => {
+        const ua = this.userAccess(this.selectedUser, infrastructure);
+        const access = {
+          infrastructure: infrastructure,
+          hasAccess: ua !== undefined,
+          allowSensitiveData: ua?.allowSensitiveData || false
+        }
+        accessControl[infrastructure.id] = this.formBuilder.group(access);
+      })
+      this.accessForm = this.formBuilder.group(accessControl);
+    })
+    this.accessCard.dialogConfirmed.subscribe((ok)=>{
+      this.accessForm.setErrors(null);
+      this.accessCard?.setLoading(true);
+      let access: any[] = [];
+      Object.keys(this.accessForm.controls).forEach(infrastructureId => {
+        const control = this.accessForm.value[infrastructureId];
+        if (control.hasAccess) {
+          access.push({
+            infrastructure: infrastructureId,
+            allowSensitiveData: control.allowSensitiveData
+          })
+        }
+      })
+      this.http.patch<User>(`${this.rest.URLS.users}${this.selectedUser?.id}/`, { access: access }
+      ).subscribe(user => {
+        this.selectedUser!.access = user.access;
+        this.accessCard?.closeDialog(true);
+      },(error) => {
+         this.accessForm.setErrors(error.error);
+         this.accessCard?.setLoading(false);
+      });
+    })
   }
 
   onSelect(user: User) {
@@ -214,7 +253,7 @@ export class UsersComponent implements AfterViewInit  {
       };
       this.http.post<User>(this.rest.URLS.users, attributes
       ).subscribe(user => {
-        this.refresh(user.id);
+        this.users.push(user);
         dialogRef.close();
       },(error) => {
         this.createUserForm.setErrors(error.error);
@@ -237,11 +276,18 @@ export class UsersComponent implements AfterViewInit  {
       if (confirmed) {
         this.http.delete(`${this.rest.URLS.users}${this.selectedUser?.id}/`
         ).subscribe(res => {
-          this.refresh();
+          const idx = this.users.indexOf(this.selectedUser!);
+          if (idx > -1) {
+            this.users.splice(idx, 1);
+          }
         },(error) => {
           console.log('there was an error sending the query', error);
         });
       }
     });
+  }
+
+  userAccess(user: User | undefined, infrastructure: Infrastructure): InfrastructureAccess | undefined {
+    return user?.access.find(a => a.infrastructure === infrastructure.id);
   }
 }

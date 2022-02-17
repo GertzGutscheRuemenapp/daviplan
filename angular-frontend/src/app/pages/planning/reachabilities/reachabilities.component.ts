@@ -3,6 +3,8 @@ import { mockInfrastructures } from "../../administration/infrastructure/infrast
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { CookieService } from "../../../helpers/cookies.service";
+import { PlanningService } from "../planning.service";
+import { Infrastructure } from "../../../rest-interfaces";
 
 @Component({
   selector: 'app-reachabilities',
@@ -15,12 +17,18 @@ export class ReachabilitiesComponent implements OnInit {
   indicator = 'option 1';
   selectFacMode = false;
   selectLivMode = false;
-  infrastructures = mockInfrastructures;
-  selectedInfrastructure = this.infrastructures[0];
+  infrastructures?: Infrastructure[];
+  selectedInfrastructure?: Infrastructure;
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
   showScenarioMenu: any = false;
 
-  constructor(private dialog: MatDialog, public cookies: CookieService) {}
+  constructor(private dialog: MatDialog, public cookies: CookieService,
+              private planningService: PlanningService) {
+    this.planningService.infrastructures$.subscribe(infrastructures => {
+      this.infrastructures = infrastructures;
+      this.selectedInfrastructure = infrastructures[0];
+    });
+  }
 
   ngOnInit(): void {
     this.showScenarioMenu = this.cookies.get('exp-planning-scenario');

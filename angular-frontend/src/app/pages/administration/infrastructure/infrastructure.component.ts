@@ -8,27 +8,11 @@ import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { arrayMove } from "../../../helpers/utils";
-import { Symbol } from "../../../rest-interfaces"
+import { Infrastructure, Symbol } from "../../../rest-interfaces"
 
-interface Service {
-  id: number,
-  name: string;
-}
-
-interface Infrastructure {
-  id: number,
-  name: string;
-  description: string;
-  services: Service[];
-  order: number;
-  symbol?: Symbol;
-}
 
 export const mockInfrastructures: Infrastructure[] = [
-  { id: 1, order: 1, name: 'Kinderbetreuung', description: 'Betreuung von Kindern in Einrichtungen, ohne Tagespflege', services: [{ id: 1, name: 'Kita' }, { id: 2, name: 'Krippe' }]},
-  { id: 2, order: 2, name: 'Schulen', description: 'Allgemeinbildende Schulen ohne Privatschulen und ohne berufsbildende Schulen', services: [{ id: 3, name: 'Grundschule' }, { id: 4, name: 'Gymnasium' }]},
-  { id: 3, order: 3, name: 'Ärzte', description: 'Haus- und fachärztliche Versorgung. Fachärzte eingeschränkt auf Kinderärzte, Frauenärzte, Augenärzte und Internisten.', services: [{ id: 5, name: 'Allgemeinmedizinerin' }, { id: 6, name: 'Internistin' }, { id: 7, name: 'Hautärztin' }]},
-  { id: 4, order: 4, name: 'Feuerwehr', description: 'Nicht-polizeiliche Gefahrenabwehr, insbesondere durch die freiwilligen Feuerwehren.', services: [{ id: 8, name: 'Brandschutz???' }, { id: 9, name: '????' }]},
+  { id: 1, order: 1, name: 'Kinderbetreuung', description: 'Betreuung von Kindern in Einrichtungen, ohne Tagespflege', services: [{ id: 1, infrastructure: 1, description: '', name: 'Kita' }, { id: 2, description: '', infrastructure: 1, name: 'Krippe' }]},
 ]
 
 @Component({

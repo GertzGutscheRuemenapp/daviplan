@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+import json
 
 from .models import (Profile,
                      Year,
@@ -18,14 +19,30 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('admin_access', 'can_create_process', 'can_edit_basedata')
 
 
+class UserAccessSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InfrastructureAccess
+        fields = ('infrastructure', 'allow_sensitive_data')
+
+
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     profile = ProfileSerializer(required=False)
     password = serializers.CharField(write_only=True, required=False)
+    access = UserAccessSerializer(
+        many=True, source='profile.infrastructureaccess_set', required=False)
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name',
+        fields = ('id', 'username', 'email', 'first_name', 'access',
                   'last_name', 'is_superuser', 'profile', 'password')
+
+
+    def get_access(self, obj):
+        ret = {}
+        for access in obj.profile.infrastructureaccess_set.all():
+            ret['infrastructure'] = access.infrastructure_id
+            ret['allowSensitiveData'] = access.allow_sensitive_data
+        return json.dumps(ret)
 
     def create(self, validated_data):
         profile_data = validated_data.pop('profile', {})
@@ -42,6 +59,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
     def update(self, instance, validated_data):
         profile_data = validated_data.pop('profile', {})
+        access_data = profile_data.pop('infrastructureaccess_set', None)
         password = validated_data.pop('password', None)
         if password:
             instance.set_password(password)
@@ -49,6 +67,15 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         for k, v in profile_data.items():
             setattr(profile, k, v)
         profile.save()
+        if access_data is not None:
+            InfrastructureAccess.objects.filter(profile=profile).delete()
+            for ia in access_data:
+                infra_access = InfrastructureAccess(
+                    infrastructure=ia['infrastructure'],
+                    allow_sensitive_data=ia.get(
+                        'allow_sensitive_data', False),
+                    profile=profile)
+                infra_access.save()
         return super().update(instance, validated_data)
 
 
@@ -67,7 +94,7 @@ class PlanningProcessSerializer(serializers.ModelSerializer):
 class InfrastructureAccessSerializer(serializers.ModelSerializer):
     class Meta:
         model = InfrastructureAccess
-        fields = ('id', 'infrastructure', 'profile', 'allow_sensitive_data')
+        fields = ('infrastructure', 'profile', 'allow_sensitive_data')
         read_only_fields = ('id', 'infrastructure', )
 
 

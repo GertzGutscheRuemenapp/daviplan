@@ -8,10 +8,13 @@ import { BreakpointObserver } from "@angular/cdk/layout";
 import { ConfirmDialogComponent } from "../../dialogs/confirm-dialog/confirm-dialog.component";
 import { User } from "../login/users";
 import { MatDialog } from "@angular/material/dialog";
-import { mockInfrastructures } from "../administration/infrastructure/infrastructure.component";
 import { mockUsers } from "../login/users";
 import { MatSelect } from "@angular/material/select";
 import { RemoveDialogComponent } from "../../dialogs/remove-dialog/remove-dialog.component";
+import { PlanningService } from "./planning.service";
+import { LegendComponent } from "../../map/legend/legend.component";
+import { TimeSliderComponent } from "../../elements/time-slider/time-slider.component";
+import { Infrastructure } from "../../rest-interfaces";
 
 interface Project {
   user?: string;
@@ -40,24 +43,30 @@ const mockSharedProjects: Project[] = [
 })
 export class PlanningComponent implements AfterViewInit, OnDestroy {
 
+  @ViewChild('processTemplate') processTemplate?: TemplateRef<any>;
+  @ViewChild('processSelect') processSelect!: MatSelect;
+  @ViewChild('planningLegend') legend?: LegendComponent;
+  @ViewChild('timeSlider') timeSlider?: TimeSliderComponent;
   faArrows = faArrowsAlt;
   myProjects: Project[] = mockMyProjects;
   sharedProjects: Project[] = mockSharedProjects;
   activeProject?: Project;
   // activeProject: Project = this.myProjects[0];
-  infrastructures = mockInfrastructures;
   users = mockUsers;
-  @ViewChild('processTemplate') processTemplate?: TemplateRef<any>;
-  @ViewChild('processSelect') processSelect!: MatSelect;
   showScenarioMenu: boolean = false;
   mapControl?: MapControl;
+  years?: number[];
+  infrastructures: Infrastructure[] = [];
+
   isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 39.9375em)')
     .pipe(
       map(result => result.matches),
       shareReplay()
     );
+
   constructor(private breakpointObserver: BreakpointObserver, private renderer: Renderer2,
-              private elRef: ElementRef, private mapService: MapService, private dialog: MatDialog) {  }
+              private elRef: ElementRef, private mapService: MapService, private dialog: MatDialog,
+              private planningService: PlanningService) {  }
 
   ngAfterViewInit(): void {
     // there is no parent css selector yet but we only want to hide the overflow in the planning pages
@@ -65,7 +74,15 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     let wrapper = this.elRef.nativeElement.closest('mat-sidenav-content');
     this.renderer.setStyle(wrapper, 'overflow-y', 'hidden');
     this.mapControl = this.mapService.get('planning-map');
+    this.planningService.legend = this.legend;
     this.mapControl.mapDescription = 'Planungsprozess: xyz > Status Quo Fortschreibung <br> usw.';
+    this.planningService.years$.subscribe( years => {
+      this.years = years;
+      this.timeSlider!.setYears(years);
+    })
+    this.planningService.infrastructures$.subscribe( infrastructures => {
+      this.infrastructures = infrastructures;
+    })
   }
 
   ngOnDestroy(): void {

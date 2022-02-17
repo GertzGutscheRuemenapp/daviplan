@@ -11,6 +11,7 @@ import { SettingsService } from "../settings.service";
 import { environment } from "../../environments/environment";
 import { v4 as uuid } from 'uuid';
 import { SelectionModel } from "@angular/cdk/collections";
+import { Feature } from "ol";
 
 const backgroundLayers: Layer[] = [
   {
@@ -49,7 +50,7 @@ const backgroundLayers: Layer[] = [
 export class MapService {
   private controls: Record<string, MapControl> = {};
   backgroundLayers: Layer[] = backgroundLayers;
-  layerGroups?: BehaviorSubject<Array<LayerGroup>>;
+  layerGroups$?: BehaviorSubject<Array<LayerGroup>>;
 
   constructor(private http: HttpClient, private rest: RestAPI, private settings: SettingsService) { }
 
@@ -65,11 +66,11 @@ export class MapService {
   }
 
   getLayers(): BehaviorSubject<Array<LayerGroup>>{
-    if (!this.layerGroups) {
-      this.layerGroups = new BehaviorSubject<LayerGroup[]>([]);
+    if (!this.layerGroups$) {
+      this.layerGroups$ = new BehaviorSubject<LayerGroup[]>([]);
       this.fetchLayers({ internal: true, external: true });
     }
-    return this.layerGroups;
+    return this.layerGroups$;
   }
 
   fetchLayers( options: { internal?: boolean, external?: boolean } = {}): void {
@@ -81,7 +82,7 @@ export class MapService {
     forkJoin(...observables).subscribe((merged: Array<LayerGroup[]>) => {
       // @ts-ignore
       const flatGroups = [].concat.apply([], merged);
-      this.layerGroups!.next(flatGroups);
+      this.layerGroups$!.next(flatGroups);
     })
   }
 
@@ -161,6 +162,7 @@ export class MapControl {
   private _serviceLayerGroups: LayerGroup[] = [];
   private checklistSelection = new SelectionModel<Layer>(true );
   mapSettings: any = {};
+  mapExtents: any = {};
   editMode: boolean = true;
   background?: Layer;
   backgroundOpacity = 1;
@@ -171,16 +173,19 @@ export class MapControl {
     this.target = target;
     // call destroy on page reload
     window.onbeforeunload = () => this.destroy();
+    this.settings.user.get('extents').subscribe(extents => {
+      this.mapExtents = extents || {};
+    })
   }
 
   init(): void {
     this.map = new OlMap(this.target, { projection: `EPSG:${this.srid}` });
-    this.settings.user.get(this.target).subscribe(settings => {
-      settings = settings || {};
-      this.mapSettings = settings;
-      const editMode = settings['legend-edit-mode'];
+    this.settings.user.get(this.target).subscribe(mapSettings => {
+      mapSettings = mapSettings || {};
+      this.mapSettings = mapSettings;
+      const editMode = mapSettings['legend-edit-mode'];
       this.editMode = (editMode != undefined)? editMode : true;
-      const backgroundId = parseInt(settings[`background-layer`]);
+      const backgroundId = parseInt(mapSettings[`background-layer`]);
       this.background = (backgroundId)? this.mapService.backgroundLayers.find(
         l => { return l.id === backgroundId }) : this.mapService.backgroundLayers[1];
       if (this.background)
@@ -300,9 +305,10 @@ export class MapControl {
     visible?: boolean,
     checkable?: boolean,
     tooltipField?: string,
+    colorFunc?: ((d: number) => string),
     mouseOver?: {
-      fillColor: string,
-      strokeColor: string
+      fillColor?: string,
+      strokeColor?: string
     }
   }, emit= true): Layer {
     if (layer.id == undefined)
@@ -322,6 +328,7 @@ export class MapControl {
     this._addLayerToMap(layer, {
       visible: options?.visible,
       tooltipField: options?.tooltipField,
+      colorFunc: options?.colorFunc,
       mouseOver: options?.mouseOver
     });
     if (options?.visible)
@@ -335,14 +342,25 @@ export class MapControl {
   private _addLayerToMap(layer: Layer, options?: {
     visible?: boolean,
     tooltipField?: string,
+    colorFunc?: ((d: number) => string),
     mouseOver?: {
-      fillColor: string,
-      strokeColor: string
+      fillColor?: string,
+      strokeColor?: string
     }
   }) {
     const opacity = (layer.opacity !== undefined)? layer.opacity : 1;
-    if (layer.type === 'vector-tiles') {
-       this.map!.addVectorTileLayer(this.mapId(layer), layer.url,{
+    if (layer.type === 'vector') {
+      this.map!.addVectorLayer(this.mapId(layer), {
+        visible: options?.visible,
+        opacity: opacity,
+        stroke: { color: layer.symbol?.strokeColor, width: 2, mouseOverColor: options?.mouseOver?.strokeColor },
+        fill: { color: (options?.colorFunc)? options?.colorFunc: layer.symbol?.fillColor, mouseOverColor: options?.mouseOver?.fillColor },
+        labelField: layer.labelField,
+        tooltipField: options?.tooltipField
+      })
+    }
+    else if (layer.type === 'vector-tiles') {
+       this.map!.addVectorTileLayer(this.mapId(layer), layer.url!,{
          visible: options?.visible,
          opacity: opacity,
          stroke: { color: layer.symbol?.strokeColor, width: 2, mouseOverColor: options?.mouseOver?.strokeColor },
@@ -354,7 +372,7 @@ export class MapControl {
     }
     else {
       const mapLayer = this.map!.addTileServer(
-        this.mapId(layer),  layer.url, {
+        this.mapId(layer),  layer.url!, {
           params: { layers: layer.layerName },
           visible: options?.visible,
           opacity: opacity,
@@ -368,6 +386,28 @@ export class MapControl {
         }
     }
     this.layerMap[layer.id!] = layer;
+  }
+
+  addWKTFeatures(id: number | string, wktFeatures: any[], ewkt: boolean = false){
+    const layer = this.layerMap[id];
+    const format = new WKT();
+    let features: Feature<any>[] = [];
+    wktFeatures.forEach( wktFeature => {
+      let wkt = wktFeature.geometry;
+      let dataProjection = 'EPSG:4326';
+      if (ewkt){
+        const split = wkt.split(';');
+        wkt = split[1];
+        dataProjection = `EPGS:${split[0].split('=')[1]}`
+      }
+      const feature = format.readFeature(wkt, {
+        dataProjection: dataProjection,
+        featureProjection: this.map!.mapProjection,
+      });
+      feature.setProperties(wktFeature.properties);
+      features.push(feature);
+    })
+    this.map?.addFeatures(this.mapId(layer), features);
   }
 
   setBackground(id: number | string | undefined): void {
@@ -389,7 +429,7 @@ export class MapControl {
 
   setLayerAttr(id: number | string | undefined, options: { opacity?: number, visible?: boolean }): void {
     if (id === undefined) return;
-    let layer = this.layerMap[id];
+    const layer = this.layerMap[id];
     if (!layer) return;
     if (options.opacity != undefined) {
       this.map?.setOpacity(this.mapId(layer), options.opacity);
@@ -435,9 +475,24 @@ export class MapControl {
     this.mapSettings['legend-edit-mode'] = this.editMode;
   }
 
+  saveCurrentExtent(name: string): void {
+    this.mapExtents[name] = this.map?.view.calculateExtent();
+  }
+
+  loadExtent(name: string): void {
+    const extent = this.mapExtents[name];
+    if (!extent) return;
+    this.map?.view.fit(extent);
+  }
+
+  removeExtent(name: string): void {
+    delete this.mapExtents[name];
+  }
+
   saveSettings(): void {
     if (this.mapSettings)
       this.settings.user.set(this.target, this.mapSettings, { patch: true });
+    this.settings.user.set('extents', this.mapExtents, { patch: true });
   }
 
   destroy(): void {

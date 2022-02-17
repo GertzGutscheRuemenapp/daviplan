@@ -59,6 +59,7 @@ class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
     serializer_class = PlaceSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    filter_fields = ['infrastructure']
 
 
     def get_queryset(self):

@@ -179,8 +179,8 @@ export class OlMap {
           color: options?.stroke?.color || 'black'
         }),
         stroke: new Stroke({
-          color: '#fff',
-          width: 3
+          color: 'black',
+          width: 1
         })
       })
     })
@@ -200,41 +200,46 @@ export class OlMap {
     })
     layer.set('name', name);
 
-    let hoveredFeatId: number | undefined | string;
-    const hoverStyle= new Style({
-      fill: new Fill({ color: options.fill?.mouseOverColor || 'rgba(0,0,0,0)' }),
-      stroke: new Stroke({ color: options?.stroke?.mouseOverColor || 'rgba(0,0,0,0)',
-        width: options?.stroke?.width || 1})
-    })
-    const selectionLayer = new VectorTileLayer({
-      map: this.map,
-      renderMode: 'vector',
-      source: layer.getSource(),
-      style: function (feature) {
-        if (feature.getId() === hoveredFeatId) {
-          return hoverStyle;
-        }
-        return;
-      },
-    });
-
-    this.map.on('pointermove', event => {
-      layer.getFeatures(event.pixel).then((features: Feature<any>[]) => {
-        if (features.length === 0) {
-          hoveredFeatId = undefined;
-          selectionLayer.changed();
+    // mouseover effects are a bit trickier with vector-tiles, need to add new layer with same source
+    // to inspect and style features
+    if (options.fill?.mouseOverColor || options?.stroke?.mouseOverColor) {
+      let hoveredFeatId: number | undefined | string;
+      const hoverStyle = new Style({
+        fill: new Fill({ color: options.fill?.mouseOverColor || 'rgba(0,0,0,0)' }),
+        stroke: new Stroke({
+          color: options?.stroke?.mouseOverColor || 'rgba(0,0,0,0)',
+          width: options?.stroke?.width || 1
+        })
+      })
+      const selectionLayer = new VectorTileLayer({
+        map: this.map,
+        renderMode: 'vector',
+        source: layer.getSource(),
+        style: function (feature) {
+          if (feature.getId() === hoveredFeatId) {
+            return hoverStyle;
+          }
           return;
-        }
-        if (hoveredFeatId === features[0].getId()) return;
-        hoveredFeatId = features[0].getId();
+        },
+      });
+
+      this.map.on('pointermove', event => {
+        layer.getFeatures(event.pixel).then((features: Feature<any>[]) => {
+          if (features.length === 0) {
+            hoveredFeatId = undefined;
+            selectionLayer.changed();
+            return;
+          }
+          if (hoveredFeatId === features[0].getId()) return;
+          hoveredFeatId = features[0].getId();
+          selectionLayer.changed();
+        });
+      });
+      this.map.getViewport().addEventListener('mouseout', event => {
+        hoveredFeatId = undefined;
         selectionLayer.changed();
       });
-    });
-
-    this.map.getViewport().addEventListener('mouseout', event => {
-      hoveredFeatId = undefined;
-      selectionLayer.changed();
-    });
+    }
 
     this.setMouseOverLayer(layer, {
       tooltipField: options?.tooltipField
@@ -248,13 +253,43 @@ export class OlMap {
       url?: any, params?: any,
       visible?: boolean, opacity?: number,
       selectable?: boolean, tooltipField?: string,
-      stroke?: { color?: string, width?: number, dash?: number[],
+      stroke?: {
+        color?: string, width?: number, dash?: number[],
         selectedColor?: string, mouseOverColor?: string, selectedDash?: number[],
         mouseOverWidth?: number
       },
-      fill?: { color?: string, selectedColor?: string, mouseOverColor?: string },
+      fill?: {
+        color?: string | ((d: number) => string),
+        colorValueField?: string,
+        selectedColor?: string, mouseOverColor?: string },
+      labelField?: string
     } = {}): Layer<any> {
 
+    // @ts-ignore
+    const color: string = (options?.fill?.color instanceof String)? options?.fill?.color: 'rgba(0, 0, 0, 0)';
+    const style = new Style({
+      stroke: new Stroke({
+        color: options?.stroke?.color || 'rgba(0, 0, 0, 1.0)',
+        width: options?.stroke?.width || 1,
+        lineDash: options?.stroke?.dash
+      }),
+      fill: new Fill({
+        color: color
+      }),
+      text: new OlText({
+        font: '14px Calibri,sans-serif',
+        overflow: true,
+        placement: 'point',
+        fill: new Fill({
+          color: 'black'
+        }),
+        stroke: new Stroke({
+          color: 'white',
+          width: 2
+        })
+      })
+    });
+    const _this = this;
     if (this.layers[name] != null) this.removeLayer(name);
     let sourceOpt = options?.url? {
         format: new GeoJSON(),
@@ -266,16 +301,18 @@ export class OlMap {
       source: source,
       visible: options?.visible === true,
       opacity: (options?.opacity != undefined) ? options?.opacity: 1,
-      style: new Style({
-        stroke: new Stroke({
-          color:  options?.stroke?.color || 'rgba(0, 0, 0, 1.0)',
-          width: options?.stroke?.width || 1,
-          lineDash: options?.stroke?.dash
-        }),
-        fill: new Fill({
-          color: options?.fill?.color || 'rgba(0, 0, 0, 0)'
-        }),
-      }),
+      style: function(feature) {
+        if (options?.labelField) {
+          const text = (_this.view.getZoom()! > 9 )? String(feature.get(options?.labelField)) : ''
+          style.getText().setText(text);
+        }
+        if (typeof options?.fill?.color === 'function'){
+          const valueField = options?.fill?.colorValueField || 'value';
+          const color = options.fill.color(Number(feature.get(valueField)));
+          style.getFill().setColor(color);
+        }
+        return style;
+      }
     });
 
     layer.set('name', name);
@@ -405,6 +442,7 @@ export class OlMap {
     let features: Feature<any>[] = [];
     ids.forEach(f => {
       if (f instanceof String) {
+        // @ts-ignore
         // @ts-ignore
         f = this.getFeature(layerName, f);
       }

@@ -86,55 +86,33 @@
           <mat-checkbox disabled [(ngModel)]="selectedUser.profile.adminAccess" i18n>
             Kann Seite administrieren
           </mat-checkbox>
-          <mat-checkbox disabled [(ngModel)]="selectedUser.profile.canEditData" i18n>
+          <mat-checkbox disabled [(ngModel)]="selectedUser.profile.canEditBasedata" i18n>
             Kann Grundlagendaten editieren
           </mat-checkbox>
-          <mat-checkbox disabled [(ngModel)]="selectedUser.profile.canCreateScenarios" i18n>
+          <mat-checkbox disabled [(ngModel)]="selectedUser.profile.canCreateProcess" i18n>
             Kann Planungsprozesse anlegen
           </mat-checkbox>
         </div>
       </app-input-card>
     </div>
     <div fxLayout="column" fxFlex="400px" [ngClass]="{'hidden': !selectedUser || selectedUser.isSuperuser}">
-      <app-input-card [title]="'Datenzugriff des ausgewählten Kontos'"
+      <app-input-card #accessCard
+                      [title]="'Datenzugriff des ausgewählten Kontos'"
                       infoText="<p>Die Auswahlliste umfasst alle Infrastrukturbereiche, die im vorstehenden Menüpunkt „Infrastrukturbereiche“ definiert wurden.</p>
                       <p>Sie können dem ausgewählten Konto Zugriff auf alle oder einzelne Infrastrukturbereiche gewähren, indem Sie auf „Editieren“ klicken. Hier können Sie auch festlegen, ob die betreffende Personen Daten sehen darf, die im Hauptmenübereich „Grundlagendaten“ als „sensible Daten“ mit einem besonderen Datenschutzstatus versehen wurden.</p>
                       <p>Die genaue Form des Zugriffs (nur lesen oder auch bearbeiten) legen Sie in der Box „Berechtigungen“ fest. Eine Differenzierung der Berechtigungen nach Infrastrukturbereich ist nicht möglich.</p>"
                       subtitle="Ausgewähltes Konto hat Zugriff auf diese Infrastrukturbereiche"
+                      dialogWidth="430px"
                       [editTemplate]="dataAccessEdit">
-        <div style="display: flex;">
-          <mat-checkbox class="infra-check" disabled [checked]="true">
-            Schulen
+        <div style="display: flex;" *ngFor="let infrastructure of infrastructures">
+          <mat-checkbox class="infra-check" disabled
+                        [checked]="userAccess(selectedUser, infrastructure) != undefined">
+            {{infrastructure.name}}
           </mat-checkbox>
-          <div class="dotted-fill"></div>
-          <mat-checkbox class="sensitive-check" disabled [checked]="true">
-            sensible Daten
-          </mat-checkbox>
-        </div>
-        <div style="display: flex;">
-          <mat-checkbox disabled [checked]="true">
-            Kinderbetreuung
-          </mat-checkbox>
-          <div class="dotted-fill"></div>
-          <mat-checkbox class="sensitive-check" disabled [checked]="true">
-            sensible Daten
-          </mat-checkbox>
-        </div>
-        <div style="display: flex;">
-          <mat-checkbox disabled [checked]="true">
-            Ärzte
-          </mat-checkbox>
-          <div class="dotted-fill" style="border-color: #00000061"></div>
-          <mat-checkbox class="sensitive-check" disabled [checked]="false">
-            sensible Daten
-          </mat-checkbox>
-        </div>
-        <div style="display: flex;">
-          <mat-checkbox disabled>
-            Feuerwehr
-          </mat-checkbox>
-          <div class="dotted-fill" style="border-color: #00000061"></div>
-          <mat-checkbox class="sensitive-check" disabled [checked]="false">
+          <div class="dotted-fill"
+               [style.borderColor]="(userAccess(selectedUser, infrastructure)?.allowSensitiveData !== true)? '#00000061': ''">
+          </div>
+          <mat-checkbox class="sensitive-check" disabled [checked]="userAccess(selectedUser, infrastructure)?.allowSensitiveData === true">
             sensible Daten
           </mat-checkbox>
         </div>
@@ -207,11 +185,11 @@
         Kann Seite administrieren
       </mat-checkbox>
       <mat-checkbox color="primary"
-                    formControlName="canEditData" i18n>
+                    formControlName="canEditBasedata" i18n>
         Kann Grundlagendaten editieren
       </mat-checkbox>
       <mat-checkbox color="primary"
-                    formControlName="canCreateScenarios" i18n>
+                    formControlName="canCreateProcess" i18n>
         Kann Planungsprozesse anlegen
       </mat-checkbox>
     </div>
@@ -250,5 +228,27 @@
 </ng-template>
 
 <ng-template #dataAccessEdit>
-  Funktionalität für den Prototyp noch nicht hinterlegt.
+  <form *ngIf="accessForm" [formGroup]="accessForm">
+    <mat-error *ngIf="accessForm.errors && accessForm.errors['error']" class="alert">
+      {{accessForm.errors['error']}}
+    </mat-error>
+    <div *ngFor="let infrastructure of infrastructures"
+         [formGroupName]="infrastructure.id" style="display: flex;">
+      <ng-container *ngIf="accessForm.value[infrastructure.id]">
+        <mat-checkbox formControlName="hasAccess" class="infra-check" color="primary">
+          {{accessForm.value[infrastructure.id].infrastructure.name}}
+        </mat-checkbox>
+        <div class="dotted-fill"
+             [style.borderColor]="(!accessForm.value[infrastructure.id].hasAccess)? '#00000061': ''">
+        </div>
+        <mat-checkbox
+          formControlName="allowSensitiveData"
+          [disabled]="!accessForm.value[infrastructure.id].hasAccess"
+          class="sensitive-check"
+          color="primary">
+          sensible Daten
+        </mat-checkbox>
+      </ng-container>
+    </div>
+  </form>
 </ng-template>

@@ -41,14 +41,14 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
-  <div class="sub-select-wrapper">
+  <div class="sub-select-wrapper" *ngIf="selectedInfrastructure">
     <mat-radio-group>
       <mat-radio-button *ngFor="let service of selectedInfrastructure.services; let first = first;"
                         [value]="service"
                         [checked]="first"
                         style="margin-right: 100%;"
                         color="primary"
-                        ngbPopover="Platzhalter Beschreibung der Leistung"
+                        [ngbPopover]="service.description"
                         placement="right"
                         container="body"
                         triggers="mouseenter:mouseleave">
@@ -127,7 +127,7 @@
     </mat-panel-title>
   </mat-expansion-panel-header>
   <mat-form-field appearance="outline" class="small">
-    <mat-select disableOptionCentering disableRipple [value]="areaLevels[0]">
+    <mat-select disableOptionCentering disableRipple [value]="selectedAreaLevel">
       <mat-option [value]="areaLevel" *ngFor="let areaLevel of areaLevels">
         {{areaLevel.name}}
       </mat-option>
@@ -218,6 +218,6 @@
     <img src="{{backend}}/static/img/Indikator U3 Screenshot.png" width="100%">
   </div>
   <div style="width: 100%; display: flex; justify-content: center;">
-    <app-time-slider id="time-slider" [prognosisEnd]="2013" [years]="[2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025]"></app-time-slider>
+    <app-time-slider id="time-slider" [prognosisStart]="2013" [years]="[2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025]"></app-time-slider>
   </div>
 </ng-template>

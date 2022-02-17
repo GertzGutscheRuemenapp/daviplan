@@ -6,6 +6,8 @@ import { mockInfrastructures } from "../../administration/infrastructure/infrast
 import { environment } from "../../../../environments/environment";
 import { MatDialog } from "@angular/material/dialog";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
+import { PlanningService } from "../planning.service";
+import { AreaLevel, Infrastructure } from "../../../rest-interfaces";
 
 const mockCustomIndicators: Indicator[] = [
   {id: 6, service: mockInfrastructures[0].services[0].id, name: 'Test + langer Text der die maximale Größe des Containers überschreiten sollte', description: 'eigener Testindikator'},
@@ -24,14 +26,25 @@ export class RatingComponent implements OnInit {
   compareSupply = true;
   compareStatus = 'option 1';
   indicators = mockIndicators;
-  areaLevels = mockPresetLevels;
+  selectedAreaLevel?: AreaLevel;
+  areaLevels?: AreaLevel[];
   customIndicators = mockCustomIndicators;
   showScenarioMenu: any = false;
   activeIndicator = mockIndicators[0];
-  infrastructures = mockInfrastructures;
-  selectedInfrastructure = this.infrastructures[0];
+  infrastructures?: Infrastructure[];
+  selectedInfrastructure?: Infrastructure;
 
-  constructor(private dialog: MatDialog, public cookies: CookieService) {}
+  constructor(private dialog: MatDialog, public cookies: CookieService,
+              private planningService: PlanningService) {
+    this.planningService.infrastructures$.subscribe(infrastructures => {
+      this.infrastructures = infrastructures;
+      this.selectedInfrastructure = infrastructures[0];
+    });
+    this.planningService.areaLevels$.subscribe(areaLevels => {
+      this.areaLevels = areaLevels;
+      this.selectedAreaLevel = areaLevels[0];
+    })
+  }
 
   ngOnInit(): void {
     this.showScenarioMenu = this.cookies.get('exp-planning-scenario');

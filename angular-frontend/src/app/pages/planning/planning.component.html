@@ -129,7 +129,7 @@
       <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-planning-timeslider"
                        [initiallyExpanded]="true">
         <div style="padding: 18px 10px 12px 10px">
-          <app-time-slider [prognosisEnd]="2013" [years]="[2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025]"></app-time-slider>
+          <app-time-slider #timeSlider [prognosisStart]="2013"></app-time-slider>
         </div>
       </app-side-toggle>
     </div>
@@ -172,7 +172,7 @@
                  name="Legenden- und Layersteuerung"
                  direction="left"
                  cookieExpansion="exp-planning-legend" [initiallyExpanded]="true">
-  <app-legend target="planning-map"></app-legend>
+  <app-legend #planningLegend target="planning-map"></app-legend>
 </app-side-toggle>
 
 <ng-template #processTemplate let-project="project">

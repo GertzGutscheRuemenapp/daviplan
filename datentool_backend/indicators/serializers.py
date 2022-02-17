@@ -45,9 +45,10 @@ class IndicatorSerializer(serializers.ModelSerializer):
 class AreaIndicatorSerializer(serializers.ModelSerializer):
     label = serializers.CharField()
     value = serializers.FloatField()
+    area_id = serializers.IntegerField(source='id')
     class Meta:
         model = Area
-        fields = ('id', 'label', 'value')
+        fields = ('area_id', 'label', 'value')
 
 
 class PopulationIndicatorSerializer(serializers.Serializer):

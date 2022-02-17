@@ -1,5 +1,4 @@
 <div (mouseenter)="showOnHover && toggle()" (mouseleave)="showOnHover && toggle()">
-
   <div id="leftDialBack" [ngClass]="{'expanded': expanded}">
     <div></div>
   </div>
@@ -22,15 +21,12 @@
       <button mat-mini-fab
               class="no-shadow"
               color="primary"
-              title="Aktuellen Kartenausschnitt speichern"
-              (click)="action('action2')">
-        <mat-icon>bookmark_add</mat-icon>
-      </button>
-      <button mat-mini-fab
-              class="no-shadow"
-              color="primary"
-              title="Karte auf einen gespeicherten Kartenausschnitt zoomen"
-              (click)="action('action1')">
+              title="Kartenausschnitte (Bookmarks)"
+              [ngbPopover]="extentPopover"
+              popoverClass="custom-option-panel"
+              popoverTitle="Kartenausschnitte"
+              placement="bottom-right"
+              triggers="click">
         <mat-icon>bookmark</mat-icon>
       </button>
     </eco-fab-speed-dial-actions>
@@ -71,3 +67,37 @@
     </eco-fab-speed-dial-actions>
   </eco-fab-speed-dial>
 </div>
+
+<ng-template #extentPopover>
+  <p *ngFor="let extent of Object.keys(mapControl?.mapExtents)">
+    <button mat-button color="primary"
+            title='Auf Ausschnitt "{{extent}}" zoomen'
+            (click)="loadExtent(extent)"
+            style="width: 75%; display: inline-flex;">
+      <mat-icon>bookmark_border</mat-icon>
+      {{extent}}
+    </button>
+    <button mat-button color="primary"
+            (click)="removeExtent(extent)"
+            title='Kartenausschnitt "{{extent}}" entfernen'
+            style="float: right;">
+      <mat-icon>close</mat-icon>
+    </button>
+  </p>
+  <button mat-button color="primary"
+          class="mat-button-dv"
+          (click)="addExtent()" i18n>
+    <mat-icon>add</mat-icon>aktuellen Ausschnitt speichern
+  </button>
+</ng-template>
+
+<ng-template #addExtentTemplate>
+  <form [formGroup]="addExtentForm">
+    <div fxLayout="column">
+      <mat-form-field appearance="fill" style="width: 100%">
+        <mat-label i18n>Name</mat-label>
+        <input matInput formControlName="name" required>
+      </mat-form-field>
+    </div>
+  </form>
+</ng-template>

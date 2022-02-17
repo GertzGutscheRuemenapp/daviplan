@@ -557,7 +557,7 @@ button.mat-icon-button {
   display: none;
 }
 
-.mat-select-min-line, .mat-select-trigger span, .mat-option.selected {
+.mat-select-min-line:not(.mat-select-placeholder), .mat-select-trigger span:not(.mat-select-placeholder), .mat-option.selected {
   font-size: 20px !important;
   color: $primary;
 }
@@ -1162,4 +1162,30 @@ mat-checkbox.reverse {
 .oltooltip {
   background: white;
   padding: 4px;
+  pointer-events: none;
+}
+
+.dotted-fill {
+  flex: 1 1 auto;
+  border-bottom: 1px dashed map-get($blue-palette, 300);
+  height: 20px;
+  margin: 0 2px;
+}
+
+.loadOverlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.1);
+  z-index: 100;
+  cursor: progress;
+}
+
+.loadOverlay > mat-spinner {
+  left: 45%;
+  top: 40%;
 }

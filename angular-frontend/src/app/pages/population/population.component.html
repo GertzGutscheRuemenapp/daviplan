@@ -1,3 +1,6 @@
+<div class="loadOverlay" *ngIf="populationService.isLoading$ | async">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
 <mat-toolbar class="sub-nav" [style.visibility]="">
   <span class="sub-links">
     <a routerLink="/bevoelkerung/entwicklung" routerLinkActive="active-link" i18n> Bevölkerungsentwicklung </a>
@@ -27,7 +30,7 @@
       </div>
       <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-pop-timeslider" [initiallyExpanded]="true">
         <div style="padding: 18px 10px 12px 10px">
-          <app-time-slider #timeSlider></app-time-slider>
+          <app-time-slider #timeSlider [prognosisStart]="2013"></app-time-slider>
         </div>
       </app-side-toggle>
     </div>

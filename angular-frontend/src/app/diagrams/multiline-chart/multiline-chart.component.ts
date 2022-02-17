@@ -40,7 +40,7 @@ export class MultilineChartComponent implements AfterViewInit {
     top: 50,
     bottom: 50,
     left: 60,
-    right: 60
+    right: 130
   };
 
   ngAfterViewInit(): void {
@@ -64,11 +64,13 @@ export class MultilineChartComponent implements AfterViewInit {
   }
 
   public draw(data: MultilineData[]): void {
-    if (data.length == 0) return
+    this.svg.selectAll("*").remove();
+    if (data.length == 0) return;
 
     if (!this.labels)
       this.labels = d3.range(0, data[0].values.length).map(d=>d.toString());
-    let colorScale = d3.scaleOrdinal(d3.schemeSet2);
+    let colorScale = d3.scaleSequential().domain([0, this.labels.length])
+      .interpolator(d3.interpolateRainbow);
     let innerWidth = this.width! - this.margin.left - this.margin.right,
       innerHeight = this.height! - this.margin.top - this.margin.bottom;
     let groups = data.map(d => d.group);
@@ -178,7 +180,7 @@ export class MultilineChartComponent implements AfterViewInit {
         .attr("transform", (d: null, i: number) => `translate(${x(groups[xIdx])}, ${y(groupData.values[i])})`);
       let text = `<b>${groupData.group}</b><br>`;
       _this.labels?.forEach((label, i)=>{
-        let color = (_this.colors)? _this.colors[i]: colorScale(i.toString());
+        let color = (_this.colors)? _this.colors[i]: colorScale(i);
         text += `<b style="color: ${color}">${label}</b>: ${groupData.values[i].toString().replace('.', ',')}${(_this.unit) ? _this.unit : ''}<br>`;
       })
       tooltip.html(text);
@@ -198,7 +200,7 @@ export class MultilineChartComponent implements AfterViewInit {
         .datum(di)
         .attr("class", "line")
         .attr("fill", "none")
-        .attr("stroke", (this.colors)? this.colors[i]: colorScale(i.toString()))
+        .attr("stroke", (this.colors)? this.colors[i]: colorScale(i))
         .attr("stroke-width", 3)
         .attr("d", line);
 
@@ -214,7 +216,7 @@ export class MultilineChartComponent implements AfterViewInit {
 
       lineG.append("circle")
         .attr("r", 3)
-        .attr("fill", (this.colors)? this.colors[i]: colorScale(i.toString()))
+        .attr("fill", (this.colors)? this.colors[i]: colorScale(i))
         .style("display", 'none');
     })
 
@@ -225,20 +227,20 @@ export class MultilineChartComponent implements AfterViewInit {
         .data(this.labels.reverse())
         .enter()
         .append("rect")
-        .attr("x", innerWidth)
-        .attr("y", (d: string, i: number) => 25 + (i * (size + 5)))
+        .attr("x", innerWidth + 70)
+        .attr("y", (d: string, i: number) => 10 + (i * (size + 1)))
         .attr("width", size)
         .attr("height", 3)
-        .style("fill", (d: string, i: number) => (this.colors)? this.colors[i]: colorScale(i.toString()));
+        .style("fill", (d: string, i: number) => (this.colors)? this.colors[i]: colorScale(i));
 
       this.svg.selectAll("legendLabels")
         .data(this.labels.reverse())
         .enter()
         .append("text")
         .attr('font-size', '0.7em')
-        .attr("x", innerWidth + size * 1.2)
-        .attr("y", (d: string, i: number) => 20 + (i * (size + 5) + (size / 2)))
-        .style("fill", (d: string, i: number) => (this.colors)? this.colors[i]: colorScale(i.toString()))
+        .attr("x", innerWidth + 70 + size * 1.2)
+        .attr("y", (d: string, i: number) => 5 + (i * (size + 1) + (size / 2)))
+        .style("fill", (d: string, i: number) => (this.colors)? this.colors[i]: colorScale(i))
         .text((d: string) => d)
         .attr("text-anchor", "left")
         .style("alignment-baseline", "middle")

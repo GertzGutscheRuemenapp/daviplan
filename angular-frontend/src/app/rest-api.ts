@@ -17,7 +17,13 @@ export class RestAPI {
     basedataSettings: `${ this.API_ENDPOINT }/basedatasettings/`,
     ageGroups: `${ this.API_ENDPOINT }/agegroups/`,
     infrastructures: `${ this.API_ENDPOINT }/infrastructures/`,
+    services: `${ this.API_ENDPOINT }/services/`,
     arealevels: `${ this.API_ENDPOINT }/arealevels/`,
+    areaPopulation: `${ this.API_ENDPOINT }/areaindicators/aggregate_population/`,
+    populationData: `${ this.API_ENDPOINT }/populationindicators/population_details/`,
+    areas: `${ this.API_ENDPOINT }/areas/`,
+    genders: `${ this.API_ENDPOINT }/genders/`,
+    years: `${ this.API_ENDPOINT }/years/`,
     layerGroups: `${ this.API_ENDPOINT }/layergroups/`,
     layers: `${ this.API_ENDPOINT }/wmslayers/`,
     getCapabilities: `${ this.API_ENDPOINT }/wmslayers/getcapabilities/`

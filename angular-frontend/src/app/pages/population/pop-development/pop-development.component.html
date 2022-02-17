@@ -13,8 +13,11 @@
         </app-help-button>
       </mat-panel-title>
     </mat-expansion-panel-header>
-    <mat-form-field appearance="outline" class="small">
-      <mat-select disableOptionCentering disableRipple [value]="areaLevels[0]">
+    <mat-form-field floatLabel="never" appearance="outline" class="small">
+      <mat-select disableOptionCentering disableRipple
+                  placeholder="Gebietseinheit auswählen"
+                  [(ngModel)]="activeLevel"
+                  (ngModelChange)="onLevelChange()">
         <mat-option [value]="areaLevel" *ngFor="let areaLevel of areaLevels">
           {{areaLevel.name}}
         </mat-option>
@@ -65,14 +68,8 @@
         <mat-option value="alle">
           alle
         </mat-option>
-        <mat-option value="männlich">
-          männlich
-        </mat-option>
-        <mat-option value="weiblich">
-          weiblich
-        </mat-option>
-        <mat-option value="divers">
-          divers
+        <mat-option *ngFor="let gender of genders" [value]="gender.id">
+          {{gender.name}}
         </mat-option>
       </mat-select>
     </mat-form-field>
@@ -84,12 +81,16 @@
         <mat-icon>edit</mat-icon>
       </button>
       <div class="border-box" style="margin-top: 10px">
-        <mat-checkbox class="reverse" color="primary" [checked]="true">alle</mat-checkbox>
+        <mat-checkbox class="reverse" color="primary"
+                      [checked]="true">
+          alle
+        </mat-checkbox>
         <mat-divider style="margin-bottom: 10px;"></mat-divider>
-        <mat-checkbox class="reverse" color="primary" [checked]="true">0 bis unter 19 Jahre</mat-checkbox>
-        <mat-checkbox class="reverse" color="primary" [checked]="true">10 bis unter 40 Jahre</mat-checkbox>
-        <mat-checkbox class="reverse" color="primary" [checked]="true">40 bis unter 60 Jahre</mat-checkbox>
-        <mat-checkbox class="reverse" color="primary" [checked]="false">65 Jahre und älter</mat-checkbox>
+        <mat-checkbox class="reverse" color="primary"
+                      *ngFor="let ageGroup of ageGroups"
+                      [checked]="true">
+          {{ageGroup.label}}
+        </mat-checkbox>
       </div>
     </div>
   </mat-expansion-panel>
@@ -109,10 +110,10 @@
                   i18n>Ausgewählte Bevölkerungs- daten vergleichen mit denen aus dem Jahr
     </mat-checkbox> <!--style="margin: 0 0 10px -12px;"-->
 <!--    Bevölkerungsstruktur vergleichen-->
-    <mat-form-field appearance="outline" class="small">
+    <mat-form-field *ngIf="realYears && prognosisYears" appearance="outline" class="small">
       <mat-label>Jahr</mat-label>
-      <mat-select disableOptionCentering disableRipple [value]="years[0]" [disabled]="!compareYears">
-        <mat-option *ngFor="let year of years" [value]="year">
+      <mat-select disableOptionCentering disableRipple [value]="realYears[0]" [disabled]="!compareYears">
+        <mat-option *ngFor="let year of realYears.concat(prognosisYears)" [value]="year">
           {{year}}
         </mat-option>
       </mat-select>
@@ -133,9 +134,11 @@
   <div>
     <mat-form-field appearance="outline" class="small">
       <mat-label>Gebiet</mat-label>
-      <mat-select disableOptionCentering disableRipple value="irgendwo">
-        <mat-option value="irgendwo">
-          [Gebietseinheit]
+      <mat-select disableOptionCentering disableRipple
+                  [(ngModel)]="activeArea"
+                  (ngModelChange)="updateDiagrams()">
+        <mat-option *ngFor="let area of areas" [value]="area">
+          {{area.properties.label}}
         </mat-option>
       </mat-select>
     </mat-form-field>
@@ -150,12 +153,10 @@
       <p>Das Diagramm stellt die absolute Entwicklung der Bevölkerungszahl des oben ausgewählten Gebiets dar. Passen Sie die Darstellung ggf. durch Auswahl des Geschlechtes sowie der Altersklassen auf der linken Seite an.</p>
     </app-help-button>
     <div>
-      <app-stacked-barchart [data]="data"
-                            [labels]="labels"
+      <app-stacked-barchart #barChart
                             xLabel="Jahre"
                             yLabel="Einwohner"
                             [title]="'Bevölkerungsentwicklung'"
-                            [xSeparator]="xSeparator"
                             [animate]="true"
                             subtitle="[Gebietseinheit]">
       </app-stacked-barchart>
@@ -169,11 +170,9 @@
     <div>
       <app-multiline-chart #lineChart
                            figureId="einwohnerrelativ"
-                           [labels]="labels"
                            xLabel="Jahre"
                            yLabel="Einwohner relativ"
                            [title]="'relative Altersgruppenentwicklung'"
-                           [xSeparator]="xSeparator"
                            [animate]="true"
                            [yOrigin]="100"
                            unit="%"

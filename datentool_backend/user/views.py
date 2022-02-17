@@ -80,6 +80,8 @@ class UserViewSet(viewsets.ModelViewSet):
                          description='only years defined for prognosis with this pkey'),
         OpenApiParameter(name='with_population', required=False, type=bool ,
                          description='if true, only years where population data is available'),
+        OpenApiParameter(name='with_prognosis', required=False, type=bool ,
+                         description='if true, only years where data from any prognosis is available'),
     ]
 ))
 class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
@@ -91,14 +93,18 @@ class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         qs = Year.objects.all()
         prognosis = self.request.query_params.get('prognosis')
         with_population = self.request.query_params.get('with_population')
+        with_prognosis = self.request.query_params.get('with_prognosis')
 
         if with_population:
             expr = Q(population__isnull=False) & Q(population__prognosis__isnull=True)
             qs = qs.filter(expr)
+        elif with_prognosis:
+            expr = Q(population__prognosis__isnull=False)
+            qs = qs.filter(expr).distinct()
         elif prognosis:
             expr = Q(population__isnull=False) & Q(population__prognosis_id=prognosis)
             qs = qs.filter(expr)
-        return qs
+        return qs.order_by('year')
 
 
 class PlanningProcessViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
