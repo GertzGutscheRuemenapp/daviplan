@@ -1,10 +1,11 @@
 import pandas as pd
+from io import StringIO
 
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from django.db.models import F
+from django.db.models import F, Prefetch
 
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
@@ -36,7 +37,7 @@ from .serializers import (RasterSerializer,
                           MessageSerializer,
                           )
 
-from datentool_backend.area.models import Area
+from datentool_backend.area.models import Area, AreaAttribute
 
 
 class RasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
@@ -153,25 +154,19 @@ class PopulationViewSet(viewsets.ModelViewSet):
         df = df.merge(cell_weight, left_on='id', right_index=True)
         df['share_area_of_cell'] = df['weight'] / df['total_weight_cell']
 
+        df2 = df[['rcp_id', 'share_area_of_cell', 'share_cell_of_area']]\
+            .reset_index()\
+            .rename(columns={'rcp_id': 'cell_id'})[['area_id', 'cell_id', 'share_area_of_cell', 'share_cell_of_area']]
 
         ac = AreaCell.objects.filter(area__in=areas,
                                      cell__popraster=population.popraster)
         ac.delete()
 
-        # create AreaCell-entries
-        create_list = []
-        # create an object for each row in df
-        for (cell_id, area_id), row in df[['rcp_id', 'share_area_of_cell', 'share_cell_of_area']].iterrows():
-            rcp_id, share_area_of_cell, share_cell_of_area = row
+        with StringIO() as file:
+            df2.to_csv(file, index=False)
+            file.seek(0)
+            AreaCell.copymanager.from_csv(file)
 
-            entry = AreaCell(
-                area_id=area_id,
-                cell_id=rcp_id,
-                share_area_of_cell=share_area_of_cell,
-                share_cell_of_area=share_cell_of_area,
-            )
-            create_list.append(entry)
-        AreaCell.objects.bulk_create(create_list)
         msg = f'{len(areas)} Areas were successfully intersected with Rastercells.\n'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
@@ -216,7 +211,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
         # get the intersected data from the database
         df_area_cells = pd.DataFrame.from_records(
             ac.values('cell__cell_id', 'area_id', 'share_cell_of_area'))\
-            .rename(columns={'cell__cell_id': 'cell_id',})
+            .rename(columns={'cell__cell_id': 'cell_id', })
 
         # take the Area population by age_group and gender
         entries = population.populationentry_set
@@ -235,8 +230,14 @@ class PopulationViewSet(viewsets.ModelViewSet):
         population_not_located = dd.loc[has_no_rastercell].value.sum()
 
         if population_not_located:
-            areas_without_rastercells = Area.objects.filter(
-                id__in=dd.loc[has_no_rastercell, 'area_id'])
+            areas_without_rastercells = Area.objects\
+                .filter(
+                    id__in=dd.loc[has_no_rastercell, 'area_id'])\
+                .select_related('area_level')\
+                .prefetch_related(
+                    Prefetch('areaattribute_set',
+                         queryset=AreaAttribute.objects.select_related('field__field_type'),
+                             ))
             msg += f'{population_not_located} Inhabitants not located to rastercells in {areas_without_rastercells}\n'
         else:
             msg += 'all areas have rastercells with inhabitants\n'
@@ -249,7 +250,13 @@ class PopulationViewSet(viewsets.ModelViewSet):
 
         # has to be summed up by rastercell, age_group and gender, because a rastercell
         # might have population from two areas
-        df_cellagegender = dd['pop'].groupby(['cell_id', 'gender_id', 'age_group_id']).sum()
+        df_cellagegender: pd.DataFrame = dd['pop']\
+            .groupby(['cell_id', 'gender_id', 'age_group_id'])\
+            .sum()\
+            .rename('value')\
+            .reset_index()
+
+        df_cellagegender['cell_id'] = df_cellagegender['cell_id'].astype('i8')
 
         # delete the existing entries
         # updating would leave values for rastercells, that do not exist any more
@@ -257,21 +264,11 @@ class PopulationViewSet(viewsets.ModelViewSet):
             .filter(population=population)
         rc_exist.delete()
 
-        # create RasterCellPopulationAgeGender-entries
-        create_list = []
-        # create an object for each row in df_cellagegender
-        for (cell, gender, age_group), value in df_cellagegender.iteritems():
-            entry = RasterCellPopulationAgeGender(
-                population=population,
-                cell_id=cell,
-                gender_id=gender,
-                age_group_id=age_group,
-                value=value)
-
-            create_list.append(entry)
-
-        # update existing and create new objects
-        RasterCellPopulationAgeGender.objects.bulk_create(create_list)
+        with StringIO() as file:
+            df_cellagegender.to_csv(file, index=False)
+            file.seek(0)
+            RasterCellPopulationAgeGender.copymanager.from_csv(
+                file, static_mapping={'population_id': population.id, })
         msg += f'Disaggregation of Population was successful.\n'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
