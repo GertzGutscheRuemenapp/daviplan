@@ -1,7 +1,7 @@
 import { EventEmitter, Injectable } from "@angular/core";
 import { LegendComponent } from "../../map/legend/legend.component";
 import { BehaviorSubject, Observable } from "rxjs";
-import { Place, AreaLevel, Area, Gender } from "../../rest-interfaces";
+import { Place, AreaLevel, Area, Gender, AreaPopulationData } from "../../rest-interfaces";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../rest-api";
 import { AgeGroup } from "../administration/project-definition/project-definition.component";
@@ -19,7 +19,7 @@ export class PopulationService {
   genders$ = new BehaviorSubject<Gender[]>([]);
   areaLevels$ = new BehaviorSubject<AreaLevel[]>([]);
   private areaCache: Record<number, Area[]> = {};
-  private popAreaCache: Record<number, Area[]> = {};
+  private popAreaCache: Record<string, AreaPopulationData[]> = {};
   private places: Record<number, Place> = {};
   isReady: boolean = false;
   ready: EventEmitter<any> = new EventEmitter();
@@ -62,6 +62,7 @@ export class PopulationService {
   }
 
   getAreas(areaLevelId: number): Observable<Area[]>{
+    // ToDo: return clones of areas to avoid side-effects
     const observable = new Observable<Area[]>(subscriber => {
       const cached = this.areaCache[areaLevelId];
       if (!cached) {
@@ -69,12 +70,33 @@ export class PopulationService {
         const query = this.http.get<any>(`${this.rest.URLS.areas}?area_level=${areaLevelId}`);
         query.subscribe( areas => {
           this.areaCache[areaLevelId] = areas.features;
+          this.setLoading(false);
           subscriber.next(areas.features);
           subscriber.complete();
-          this.setLoading(false);
         });
       }
       else {
+        subscriber.next(cached);
+        subscriber.complete();
+      }
+    });
+    return observable;
+  }
+
+  getAreaPopulation(areaLevelId: number, year: number): Observable<AreaPopulationData[]> {
+    const key = `${areaLevelId}-${year}`;
+    const observable = new Observable<AreaPopulationData[]>(subscriber => {
+      const cached = this.popAreaCache[key];
+      if (!cached) {
+        this.setLoading(true);
+        const query = this.http.get<AreaPopulationData[]>(`${this.rest.URLS.areaPopulation}?area_level=${areaLevelId}&year=${year}`);
+        query.subscribe(data => {
+          this.popAreaCache[key] = data;
+          this.setLoading(false);
+          subscriber.next(data);
+          subscriber.complete();
+        });
+      } else {
         subscriber.next(cached);
         subscriber.complete();
       }

@@ -60,8 +60,15 @@ export interface Area {
     value?: number,
     areaLevel: number,
     attributes: any,
-    label: string
+    label: string,
+    description?: string
   }
+}
+
+export interface AreaPopulationData {
+  areaId: number,
+  label?: string,
+  value: number
 }
 
 export interface PopulationData {

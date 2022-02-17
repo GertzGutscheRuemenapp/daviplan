@@ -97,6 +97,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   initData(): void {
     this.populationService.realYears$.subscribe( years => {
       this.realYears = years;
+      this.year = this.realYears[0];
       this.setSlider();
     })
     this.populationService.prognosisYears$.subscribe( years => {
@@ -155,31 +156,38 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
   updateMap(): void {
     if(!this.activeLevel) return;
-    if (this.populationLayer)
-      this.mapControl?.removeLayer(this.populationLayer.id!)
-    this.populationLayer = this.mapControl?.addLayer({
-        order: 0,
-        type: 'vector',
-        group: this.legendGroup?.id,
-        name: this.activeLevel.name,
-        description: this.activeLevel.name,
-        opacity: 1,
-        symbol: {
-          strokeColor: 'grey',
-          fillColor: 'yellow',
-          symbol: 'line'
+    this.populationService.getAreaPopulation(this.activeLevel.id, this.year).subscribe( popData => {
+      if (this.populationLayer)
+        this.mapControl?.removeLayer(this.populationLayer.id!)
+      this.populationLayer = this.mapControl?.addLayer({
+          order: 0,
+          type: 'vector',
+          group: this.legendGroup?.id,
+          name: this.activeLevel!.name,
+          description: this.activeLevel!.name,
+          opacity: 1,
+          symbol: {
+            strokeColor: 'grey',
+            fillColor: 'yellow',
+            symbol: 'line'
+          },
+          labelField: 'value'
         },
-        labelField: 'label'
-      },
-      {
-        visible: true,
-        tooltipField: 'label',
-        mouseOver: {
-         strokeColor: 'blue'
-        }
-      });
-    // ToDo: move wkt parsing to populationservice, is done on every change year/level atm (expensive)
-    this.mapControl?.addWKTFeatures(this.populationLayer!.id!, this.areas, true);
+        {
+          visible: true,
+          tooltipField: 'description',
+          mouseOver: {
+            strokeColor: 'blue'
+          }
+        });
+      this.areas.forEach(area => {
+        const data = popData.find(d => d.areaId == area.id);
+        area.properties.value = (data)? Math.round(data.value): 0;
+        area.properties.description = `<b>${area.properties.label}</b><br>Bevölkerung: ${area.properties.value}`
+      })
+      // ToDo: move wkt parsing to populationservice, is done on every change year/level atm (expensive)
+      this.mapControl?.addWKTFeatures(this.populationLayer!.id!, this.areas, true);
+    })
   }
 
   ngOnDestroy(): void {

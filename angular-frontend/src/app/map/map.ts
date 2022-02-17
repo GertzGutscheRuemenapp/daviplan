@@ -297,7 +297,7 @@ export class OlMap {
       opacity: (options?.opacity != undefined) ? options?.opacity: 1,
       style: function(feature) {
         if (options?.labelField) {
-          const text = (_this.view.getZoom()! > 9 )? feature.get(options?.labelField) : ''
+          const text = (_this.view.getZoom()! > 9 )? String(feature.get(options?.labelField)) : ''
           style.getText().setText(text);
         }
         return style;
@@ -401,7 +401,6 @@ export class OlMap {
     features.forEach(feature => {
       source.addFeature(feature);
     })
-    console.log(layer.getExtent())
   }
 
   clear(layername: string){
