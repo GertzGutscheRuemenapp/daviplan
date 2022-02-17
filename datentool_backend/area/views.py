@@ -15,7 +15,6 @@ from rest_framework.decorators import action
 from owslib.wms import WebMapService
 
 from vectortiles.postgis.views import MVTView, BaseVectorTileView
-
 from drf_spectacular.utils import extend_schema, extend_schema_field
 
 from datentool_backend.utils.views import ProtectCascadeMixin
@@ -188,6 +187,7 @@ class ProtectPresetPermission(permissions.BasePermission):
 
 
 class AreaLevelFilter(filters.FilterSet):
+    active = filters.BooleanFilter(field_name='is_active')
     class Meta:
         model = AreaLevel
         fields = ['is_active']
@@ -205,6 +205,7 @@ class AreaViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Area.objects.all()
     serializer_class = AreaSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    filter_fields = ['area_level']
 
 
 class FieldTypeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

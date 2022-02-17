@@ -32,7 +32,7 @@ class ComputePopulationAreaIndicator(ComputeIndicator):
         filter_params = {'population__prognosis': prognosis,}
         year = self.query_params.get('year')
         if year:
-            filter_params['year__year'] = year
+            filter_params['population__year__year'] = year
 
         genders = self.query_params.getlist('gender')
         if genders:
@@ -92,7 +92,7 @@ class ComputePopulationDetailAreaIndicator(ComputeIndicator):
         filter_params = {'population__prognosis': prognosis,}
         year = self.query_params.get('year')
         if year:
-            filter_params['population__year'] = year
+            filter_params['population__year__year'] = year
 
         genders = self.query_params.getlist('gender')
         if genders:

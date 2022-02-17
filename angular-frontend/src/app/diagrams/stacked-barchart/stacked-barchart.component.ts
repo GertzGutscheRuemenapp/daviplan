@@ -30,7 +30,7 @@ export class StackedBarchartComponent implements AfterViewInit {
     top: 50,
     bottom: 50,
     left: 60,
-    right: 60
+    right: 130
   };
 
   ngAfterViewInit(): void {
@@ -53,12 +53,15 @@ export class StackedBarchartComponent implements AfterViewInit {
       .append("g");
   }
 
-  private draw(data: StackedData[]): void {
-    if (data.length == 0) return
+  draw(data: StackedData[]): void {
+    this.svg.selectAll("*").remove();
+    if (data.length == 0) return;
 
     if (!this.labels)
       this.labels = d3.range(0, data[0].values.length).map(d=>d.toString());
-    let colorScale = d3.scaleOrdinal(d3.schemeSet2);
+    console.log(this.labels.length)
+    let colorScale = d3.scaleSequential().domain([0, this.labels.length])
+      .interpolator(d3.interpolateRainbow);
     let max = d3.max(data, d => { return d.values.reduce((a, c) => a + c) });
     let innerWidth = this.width! - this.margin.left - this.margin.right,
         innerHeight = this.height! - this.margin.top - this.margin.bottom;
@@ -120,7 +123,7 @@ export class StackedBarchartComponent implements AfterViewInit {
       stack.selectAll('rect').classed('highlight', true);
       let text = `<b>${data.group}</b><br>`;
       _this.labels?.forEach((label, i)=>{
-        text += `<b style="color: ${colorScale(i.toString())}">${label}</b>: ${data.values[i].toString().replace('.', ',')}<br>`;
+        text += `<b style="color: ${colorScale(i)}">${label}</b>: ${data.values[i].toString().replace('.', ',')}<br>`;
       })
       tooltip.style("display", null);
       tooltip.html(text);
@@ -163,7 +166,7 @@ export class StackedBarchartComponent implements AfterViewInit {
         })
         .enter().append("rect")
           .attr("width", x.bandwidth())
-          .attr("fill", (d: number, i: number) => colorScale(i.toString()))
+          .attr("fill", (d: number, i: number) => colorScale(i))
           .attr("y", (d: number) => (this.animate) ? innerHeight : y(d))
           .attr("height", (d: number) => (this.animate) ? innerHeight - y(0) : innerHeight - y(d));
 
@@ -181,20 +184,20 @@ export class StackedBarchartComponent implements AfterViewInit {
         .data(this.labels.reverse())
         .enter()
         .append("rect")
-        .attr("x", innerWidth + this.margin.left)
-        .attr("y", (d: string, i: number) => 100 + (i * (size + 5))) // 100 is where the first dot appears. 25 is the distance between dots
+        .attr("x", innerWidth + 70)
+        .attr("y", (d: string, i: number) => 10 + (i * (size + 1))) // 100 is where the first dot appears. 25 is the distance between dots
         .attr("width", size)
         .attr("height", size)
-        .style("fill", (d: string, i: number) => colorScale(i.toString()));
+        .style("fill", (d: string, i: number) => colorScale(i));
 
       this.svg.selectAll("legendLabels")
         .data(this.labels.reverse())
         .enter()
         .append("text")
         .attr('font-size', '0.7em')
-        .attr("x", innerWidth + this.margin.left + size * 1.2)
-        .attr("y", (d: string, i: number) => 100 + (i * (size + 5) + (size / 2)))
-        .style("fill", (d: string, i: number) => colorScale(i.toString()))
+        .attr("x", innerWidth + 70 + size * 1.2)
+        .attr("y", (d: string, i: number) => 10 + (i * (size + 1) + (size / 2)))
+        .style("fill", (d: string, i: number) => colorScale(i))
         .text((d: string) => d)
         .attr("text-anchor", "left")
         .style("alignment-baseline", "middle")

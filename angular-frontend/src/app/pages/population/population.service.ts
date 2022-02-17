@@ -1,11 +1,12 @@
 import { EventEmitter, Injectable } from "@angular/core";
 import { LegendComponent } from "../../map/legend/legend.component";
-import { BehaviorSubject } from "rxjs";
-import { Place, AreaLevel, Area, Gender } from "../../rest-interfaces";
+import { BehaviorSubject, Observable } from "rxjs";
+import { Place, AreaLevel, Area, Gender, AreaPopulationData, PopulationData } from "../../rest-interfaces";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../rest-api";
 import { AgeGroup } from "../administration/project-definition/project-definition.component";
 import { TimeSliderComponent } from "../../elements/time-slider/time-slider.component";
+import { sortBy } from "../../helpers/utils";
 
 @Injectable({
   providedIn: 'root'
@@ -18,9 +19,13 @@ export class PopulationService {
   ageGroups$ = new BehaviorSubject<AgeGroup[]>([]);
   genders$ = new BehaviorSubject<Gender[]>([]);
   areaLevels$ = new BehaviorSubject<AreaLevel[]>([]);
+  private areaCache: Record<number, Area[]> = {};
+  private popDataCache: Record<string, PopulationData[]> = {};
+  private popAreaCache: Record<string, AreaPopulationData[]> = {};
   private places: Record<number, Place> = {};
   isReady: boolean = false;
   ready: EventEmitter<any> = new EventEmitter();
+  isLoading$ = new BehaviorSubject<boolean>(false);
 
   constructor(private http: HttpClient, private rest: RestAPI) {
     this.fetchAreaLevels();
@@ -48,22 +53,94 @@ export class PopulationService {
 
   private fetchAgeGroups(): void {
     this.http.get<AgeGroup[]>(this.rest.URLS.ageGroups).subscribe(ageGroups => {
+      ageGroups.forEach(ageGroup => {
+        ageGroup.label = String(ageGroup.fromAge);
+        ageGroup.label += (ageGroup.toAge >= 999)? ' Jahre und älter': ` bis unter ${ageGroup.toAge} Jahre`;
+      })
       this.ageGroups$.next(ageGroups);
     });
   }
 
   private fetchAreaLevels(): void {
     this.http.get<AreaLevel[]>(`${this.rest.URLS.arealevels}?active=true`).subscribe(areaLevels => {
-      this.areaLevels$.next(areaLevels);
+      this.areaLevels$.next(sortBy(areaLevels, 'order'));
     });
   }
 
-  getAreas(areaLevelId: number): Area[]{
-    return [];
+  getAreas(areaLevelId: number): Observable<Area[]>{
+    // ToDo: return clones of areas to avoid side-effects
+    const observable = new Observable<Area[]>(subscriber => {
+      const cached = this.areaCache[areaLevelId];
+      if (!cached) {
+        this.setLoading(true);
+        const query = this.http.get<any>(`${this.rest.URLS.areas}?area_level=${areaLevelId}`);
+        query.subscribe( areas => {
+          this.areaCache[areaLevelId] = areas.features;
+          this.setLoading(false);
+          subscriber.next(areas.features);
+          subscriber.complete();
+        });
+      }
+      else {
+        subscriber.next(cached);
+        subscriber.complete();
+      }
+    });
+    return observable;
   }
+
+  getAreaLevelPopulation(areaLevelId: number, year: number): Observable<AreaPopulationData[]> {
+    const key = `${areaLevelId}-${year}`;
+    const observable = new Observable<AreaPopulationData[]>(subscriber => {
+      const cached = this.popAreaCache[key];
+      if (!cached) {
+        this.setLoading(true);
+        const query = this.http.get<AreaPopulationData[]>(`${this.rest.URLS.areaPopulation}?area_level=${areaLevelId}&year=${year}`);
+        query.subscribe(data => {
+          this.popAreaCache[key] = data;
+          this.setLoading(false);
+          subscriber.next(data);
+          subscriber.complete();
+        });
+      } else {
+        subscriber.next(cached);
+        subscriber.complete();
+      }
+    });
+    return observable;
+  }
+
+  getPopulationData(areaId: number, year?: number): Observable<PopulationData[]> {
+    const key = `${areaId}-${year}`;
+    let url = `${this.rest.URLS.populationData}?area=${areaId}`
+    if(year != undefined)
+      url += `&year=${year}`;
+    const observable = new Observable<PopulationData[]>(subscriber => {
+      const cached = this.popDataCache[key];
+      if (!cached) {
+        this.setLoading(true);
+        const query = this.http.get<PopulationData[]>(url);
+        query.subscribe(data => {
+          this.popDataCache[key] = data;
+          this.setLoading(false);
+          subscriber.next(data);
+          subscriber.complete();
+        });
+      } else {
+        subscriber.next(cached);
+        subscriber.complete();
+      }
+    });
+    return observable;
+  }
+
 
   setReady(ready: boolean): void {
     this.isReady = ready;
     this.ready.emit(ready);
+  }
+
+  setLoading(isLoading: boolean) {
+    this.isLoading$.next(isLoading);
   }
 }

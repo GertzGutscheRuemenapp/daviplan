@@ -25,7 +25,8 @@ export interface ProjectSettings {
 export interface AgeGroup {
   id?: number,
   fromAge: number,
-  toAge: number
+  toAge: number,
+  label?: string
 }
 
 interface BKGLayer {

@@ -1,3 +1,6 @@
+<div class="loadOverlay" *ngIf="populationService.isLoading$ | async">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
 <mat-toolbar class="sub-nav" [style.visibility]="">
   <span class="sub-links">
     <a routerLink="/bevoelkerung/entwicklung" routerLinkActive="active-link" i18n> Bevölkerungsentwicklung </a>

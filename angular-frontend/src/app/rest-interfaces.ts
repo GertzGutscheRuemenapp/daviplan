@@ -19,7 +19,7 @@ export interface Symbol {
 export interface Layer {
   id?: number | string,
   order: number,
-  url: string,
+  url?: string,
   name: string,
   description: string,
   group?: number | string,
@@ -29,7 +29,7 @@ export interface Layer {
   legendUrl?: string,
   opacity?: number,
   symbol?: Symbol,
-  type?: "wms" | "vector-tiles" | "tiles",
+  type?: "wms" | "vector-tiles" | "tiles" | "vector",
   labelField?: string
 }
 
@@ -54,8 +54,28 @@ export interface AreaLevel {
 }
 
 export interface Area {
-  id: number;
-  name: string;
+  id: number,
+  properties: {
+    tooltip?: string,
+    value?: number,
+    areaLevel: number,
+    attributes: any,
+    label: string,
+    description?: string
+  }
+}
+
+export interface AreaPopulationData {
+  areaId: number,
+  label?: string,
+  value: number
+}
+
+export interface PopulationData {
+  year: number,
+  gender: number,
+  agegroup: number,
+  value: number
 }
 
 export interface Gender {
