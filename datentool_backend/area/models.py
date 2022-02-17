@@ -99,7 +99,7 @@ class Area(DatentoolModelMixin, JsonAttributes, models.Model):
     def label(self):
         """The area label retrieved from the attributes"""
         try:
-            label_attr = self.attributes.get(field__is_label=True)
+            label_attr = self.areaattribute_set.get(field__is_label=True)
         except AreaAttribute.DoesNotExist:
             return ''
         return label_attr.value
@@ -136,7 +136,6 @@ class Area(DatentoolModelMixin, JsonAttributes, models.Model):
             instance.attributes = instance._attr_dict
 
     def __str__(self) -> str:
-        attributes = self.areaattribute_set
         return f'{self.__class__.__name__} ({self.area_level.name}): {self.label}'
 
 

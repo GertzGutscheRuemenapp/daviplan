@@ -213,16 +213,3 @@ class Capacity(DatentoolModelMixin, models.Model):
                     (Q(scenario=None) & Q(place__in=places_without_scenario))
                     )
         return res_queryset
-
-
-#class PlaceField(models.Model):
-    #"""a field of a place"""
-    #attribute = models.TextField()
-    #infrastructure = models.ForeignKey(Infrastructure, on_delete=PROTECT_CASCADE)
-    #field_type = models.ForeignKey(FieldType, on_delete=PROTECT_CASCADE)
-    #sensitive = models.BooleanField(default=False)
-    #unit = models.TextField()
-
-    #def __str__(self) -> str:
-        #return f'{self.__class__.__name__}: {self.attribute}'
-

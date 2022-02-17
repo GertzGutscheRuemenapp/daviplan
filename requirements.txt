@@ -24,3 +24,4 @@ django-sql-utils
 mapbox_vector_tile
 xarray
 drf-spectacular
+django-postgres-copy
