@@ -90,9 +90,9 @@ class PopulationViewSet(viewsets.ModelViewSet):
         route to intersect areas with raster cells
         """
         try:
-            population: Population = self.queryset.get(**self.kwargs)
+            population: Population = self.queryset.get(**kwargs)
         except Population.DoesNotExist:
-            msg = f'Population for {self.kwargs} not found'
+            msg = f'Population for {kwargs} not found'
             return Response({'message': msg,}, status.HTTP_406_NOT_ACCEPTABLE)
 
         # if a specific area-level is provided, take this one
@@ -170,6 +170,14 @@ class PopulationViewSet(viewsets.ModelViewSet):
         msg = f'{len(areas)} Areas were successfully intersected with Rastercells.\n'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
+    @action(methods=['GET'], detail=False,
+            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+    def disaggregateall(self, request, **kwargs):
+        for population in Population.objects.all():
+            self.disaggregate(request, **{'pk': population.id})
+        msg = 'Disaggregations of all Populations were successful.'
+        return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
+
     @extend_schema(description='intersect areas with rastercells',
                    parameters=[
                        OpenApiParameter(name='area_level', required=False, type=int,
@@ -188,9 +196,9 @@ class PopulationViewSet(viewsets.ModelViewSet):
         route to disaggregate the population to the raster cells
         """
         try:
-            population: Population = self.queryset.get(**self.kwargs)
+            population: Population = self.queryset.get(**kwargs)
         except Population.DoesNotExist:
-            msg = f'Population for {self.kwargs} not found'
+            msg = f'Population for {kwargs} not found'
             return Response({'message': msg,}, status.HTTP_406_NOT_ACCEPTABLE)
 
         areas = population.populationentry_set.distinct('area_id')\
@@ -203,7 +211,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
         if ac and request.query_params.get('use_intersected_data'):
             msg = 'use precalculated rastercells\n'
         else:
-            response = self.intersectareaswithcells(request)
+            response = self.intersectareaswithcells(request, **kwargs)
             msg = response.data.get('message', '')
             ac = AreaCell.objects.filter(area__in=areas,
                                          cell__popraster=population.popraster)
