@@ -253,14 +253,20 @@ export class OlMap {
       url?: any, params?: any,
       visible?: boolean, opacity?: number,
       selectable?: boolean, tooltipField?: string,
-      stroke?: { color?: string, width?: number, dash?: number[],
+      stroke?: {
+        color?: string, width?: number, dash?: number[],
         selectedColor?: string, mouseOverColor?: string, selectedDash?: number[],
         mouseOverWidth?: number
       },
-      fill?: { color?: string, selectedColor?: string, mouseOverColor?: string },
+      fill?: {
+        color?: string | ((d: number) => string),
+        colorValueField?: string,
+        selectedColor?: string, mouseOverColor?: string },
       labelField?: string
     } = {}): Layer<any> {
 
+    // @ts-ignore
+    const color: string = (options?.fill?.color instanceof String)? options?.fill?.color: 'rgba(0, 0, 0, 0)';
     const style = new Style({
       stroke: new Stroke({
         color: options?.stroke?.color || 'rgba(0, 0, 0, 1.0)',
@@ -268,18 +274,18 @@ export class OlMap {
         lineDash: options?.stroke?.dash
       }),
       fill: new Fill({
-        color: options?.fill?.color || 'rgba(0, 0, 0, 0)'
+        color: color
       }),
       text: new OlText({
         font: '14px Calibri,sans-serif',
         overflow: true,
         placement: 'point',
         fill: new Fill({
-          color: options?.stroke?.color || 'black'
+          color: 'black'
         }),
         stroke: new Stroke({
-          color: 'black',
-          width: 1
+          color: 'white',
+          width: 2
         })
       })
     });
@@ -299,6 +305,11 @@ export class OlMap {
         if (options?.labelField) {
           const text = (_this.view.getZoom()! > 9 )? String(feature.get(options?.labelField)) : ''
           style.getText().setText(text);
+        }
+        if (typeof options?.fill?.color === 'function'){
+          const valueField = options?.fill?.colorValueField || 'value';
+          const color = options.fill.color(Number(feature.get(valueField)));
+          style.getFill().setColor(color);
         }
         return style;
       }

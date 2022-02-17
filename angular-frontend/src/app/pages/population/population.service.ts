@@ -1,11 +1,12 @@
 import { EventEmitter, Injectable } from "@angular/core";
 import { LegendComponent } from "../../map/legend/legend.component";
 import { BehaviorSubject, Observable } from "rxjs";
-import { Place, AreaLevel, Area, Gender, AreaPopulationData } from "../../rest-interfaces";
+import { Place, AreaLevel, Area, Gender, AreaPopulationData, PopulationData } from "../../rest-interfaces";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../rest-api";
 import { AgeGroup } from "../administration/project-definition/project-definition.component";
 import { TimeSliderComponent } from "../../elements/time-slider/time-slider.component";
+import { sortBy } from "../../helpers/utils";
 
 @Injectable({
   providedIn: 'root'
@@ -19,6 +20,7 @@ export class PopulationService {
   genders$ = new BehaviorSubject<Gender[]>([]);
   areaLevels$ = new BehaviorSubject<AreaLevel[]>([]);
   private areaCache: Record<number, Area[]> = {};
+  private popDataCache: Record<string, PopulationData[]> = {};
   private popAreaCache: Record<string, AreaPopulationData[]> = {};
   private places: Record<number, Place> = {};
   isReady: boolean = false;
@@ -51,13 +53,17 @@ export class PopulationService {
 
   private fetchAgeGroups(): void {
     this.http.get<AgeGroup[]>(this.rest.URLS.ageGroups).subscribe(ageGroups => {
+      ageGroups.forEach(ageGroup => {
+        ageGroup.label = String(ageGroup.fromAge);
+        ageGroup.label += (ageGroup.toAge >= 999)? ' Jahre und älter': ` bis unter ${ageGroup.toAge} Jahre`;
+      })
       this.ageGroups$.next(ageGroups);
     });
   }
 
   private fetchAreaLevels(): void {
     this.http.get<AreaLevel[]>(`${this.rest.URLS.arealevels}?active=true`).subscribe(areaLevels => {
-      this.areaLevels$.next(areaLevels);
+      this.areaLevels$.next(sortBy(areaLevels, 'order'));
     });
   }
 
@@ -83,7 +89,7 @@ export class PopulationService {
     return observable;
   }
 
-  getAreaPopulation(areaLevelId: number, year: number): Observable<AreaPopulationData[]> {
+  getAreaLevelPopulation(areaLevelId: number, year: number): Observable<AreaPopulationData[]> {
     const key = `${areaLevelId}-${year}`;
     const observable = new Observable<AreaPopulationData[]>(subscriber => {
       const cached = this.popAreaCache[key];
@@ -103,6 +109,31 @@ export class PopulationService {
     });
     return observable;
   }
+
+  getPopulationData(areaId: number, year?: number): Observable<PopulationData[]> {
+    const key = `${areaId}-${year}`;
+    let url = `${this.rest.URLS.populationData}?area=${areaId}`
+    if(year != undefined)
+      url += `&year=${year}`;
+    const observable = new Observable<PopulationData[]>(subscriber => {
+      const cached = this.popDataCache[key];
+      if (!cached) {
+        this.setLoading(true);
+        const query = this.http.get<PopulationData[]>(url);
+        query.subscribe(data => {
+          this.popDataCache[key] = data;
+          this.setLoading(false);
+          subscriber.next(data);
+          subscriber.complete();
+        });
+      } else {
+        subscriber.next(cached);
+        subscriber.complete();
+      }
+    });
+    return observable;
+  }
+
 
   setReady(ready: boolean): void {
     this.isReady = ready;

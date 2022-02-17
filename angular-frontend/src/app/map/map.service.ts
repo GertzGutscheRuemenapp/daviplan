@@ -305,6 +305,7 @@ export class MapControl {
     visible?: boolean,
     checkable?: boolean,
     tooltipField?: string,
+    colorFunc?: ((d: number) => string),
     mouseOver?: {
       fillColor?: string,
       strokeColor?: string
@@ -327,6 +328,7 @@ export class MapControl {
     this._addLayerToMap(layer, {
       visible: options?.visible,
       tooltipField: options?.tooltipField,
+      colorFunc: options?.colorFunc,
       mouseOver: options?.mouseOver
     });
     if (options?.visible)
@@ -340,6 +342,7 @@ export class MapControl {
   private _addLayerToMap(layer: Layer, options?: {
     visible?: boolean,
     tooltipField?: string,
+    colorFunc?: ((d: number) => string),
     mouseOver?: {
       fillColor?: string,
       strokeColor?: string
@@ -351,7 +354,7 @@ export class MapControl {
         visible: options?.visible,
         opacity: opacity,
         stroke: { color: layer.symbol?.strokeColor, width: 2, mouseOverColor: options?.mouseOver?.strokeColor },
-        fill: { color: layer.symbol?.fillColor, mouseOverColor: options?.mouseOver?.fillColor },
+        fill: { color: (options?.colorFunc)? options?.colorFunc: layer.symbol?.fillColor, mouseOverColor: options?.mouseOver?.fillColor },
         labelField: layer.labelField,
         tooltipField: options?.tooltipField
       })
