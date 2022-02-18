@@ -88,7 +88,7 @@ class FClassFactory(DjangoModelFactory):
     class Meta:
         model = FClass
 
-    ftype = factory.SubFactory(FieldTypeFactory)
+    ftype = factory.SubFactory(FieldTypeFactory, ftype=FieldTypes.CLASSIFICATION)
     order = factory.Sequence(lambda n: faker.unique.pyint(max_value=100))
     value = faker.unique.word()
 

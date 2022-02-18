@@ -6,6 +6,7 @@ from test_plus import APITestCase
 from datentool_backend.api_test import LoginTestCase
 
 from ..factories import IndicatorFactory
+from datentool_backend.area.factories import AreaLevelFactory
 
 from ..compute import (ComputePopulationAreaIndicator,
                        ComputePopulationDetailAreaIndicator,
@@ -46,19 +47,33 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         """Test intersect areas and disaggregate population"""
         population: Population = self.population
 
+        area_level3 = AreaLevelFactory()
+        # disaggregate the population, but no areas in arealevel
+        response = self.get('populations-intersectareaswithcells',
+                            pk=population.pk,
+                            data={'area_level': area_level3.pk,
+                                  'drop_constraints': False, })
+        self.assert_http_202_accepted(response)
+        self.assertEqual(response.data.get('message'), 'No areas available')
+
         # disaggregate the population and use precalculated rastercells
-        response = self.get('populations-intersectareaswithcells', pk=population.pk)
+        response = self.get('populations-intersectareaswithcells',
+                            pk=population.pk,
+                            data={'drop_constraints': False,})
         self.assert_http_202_accepted(response)
         print(response.data.get('message'))
 
         # disaggregate the population and use precalculated rastercells
         response = self.get('populations-disaggregate', pk=population.pk,
-                            data={'use_intersected_data': True,})
+                            data={'use_intersected_data': True,
+                                  'drop_constraints': False, })
         self.assert_http_202_accepted(response)
         print(response.data.get('message'))
 
         unknown_population = max(Population.objects.all().values_list('id', flat=True)) + 1
-        response = self.get('populations-intersectareaswithcells', pk=unknown_population)
+        response = self.get('populations-intersectareaswithcells',
+                            pk=unknown_population,
+                            data={'drop_constraints': False,})
         self.assert_http_406_not_acceptable(response)
 
     def test_disaggregate_population(self):
@@ -66,11 +81,13 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         population: Population = self.population
 
         # disaggregate the population
-        response = self.get('populations-disaggregate', pk=population.pk)
+        response = self.get('populations-disaggregate', pk=population.pk,
+                            data={'drop_constraints': False, })
         self.assert_http_202_accepted(response)
         print(response.data.get('message'))
         # do again to check updates
-        response = self.get('populations-disaggregate', pk=population.pk)
+        response = self.get('populations-disaggregate', pk=population.pk,
+                            data={'drop_constraints': False, })
         self.assert_http_202_accepted(response)
 
         # get disaggregated population
@@ -125,7 +142,8 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                                        value=555)
 
         # Disaggregate the population
-        response = self.get('populations-disaggregate', pk=self.population.pk)
+        response = self.get('populations-disaggregate', pk=self.population.pk,
+                            data={'drop_constraints': False,})
         self.assert_http_202_accepted(response)
         # there should be a message about the not distributed inhabitants
         self.assertIn('999.0 Inhabitants not located to rastercells',
@@ -157,7 +175,8 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         area_2_and_3.delete()
 
         # Disaggregate the population
-        response = self.get('populations-disaggregate', pk=self.population.pk)
+        response = self.get('populations-disaggregate', pk=self.population.pk,
+                            data={'drop_constraints': False,})
         self.assert_http_202_accepted(response)
 
         # get disaggregated population
@@ -179,9 +198,11 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         """Test the aggregation of population to areas of an area level"""
         populations = Population.objects.all()
         for population in populations:
-            self.get('populations-disaggregate', pk=population.pk)
+            self.get('populations-disaggregate', pk=population.pk,
+                            data={'drop_constraints': False,})
             self.get('populations-intersectareaswithcells', pk=population.pk,
-                     data={'area_level': self.area_level2.pk, })
+                     data={'area_level': self.area_level2.pk,
+                           'drop_constraints': False,})
 
         # create a compute indicator, if not yet exists
 
@@ -245,10 +266,12 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         populations = Population.objects.all()
         for population in populations:
             self.get('populations-disaggregate', pk=population.pk,
-                     data={'use_intersected_data': True})
+                     data={'use_intersected_data': True,
+                           'drop_constraints': False, })
             self.get('populations-intersectareaswithcells', pk=population.pk,
                      data={'area_level': self.area_level2.pk,
-                     'use_intersected_data': True, })
+                     'use_intersected_data': True,
+                     'drop_constraints': False, })
 
         # create a compute indicator, if not yet exists
 

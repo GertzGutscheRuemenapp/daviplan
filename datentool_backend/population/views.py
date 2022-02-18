@@ -1,5 +1,6 @@
 import pandas as pd
 from io import StringIO
+from distutils.util import strtobool
 
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -79,7 +80,12 @@ class PopulationViewSet(viewsets.ModelViewSet):
                    parameters=[
                        OpenApiParameter(name='area_level', required=False, type=int,
         description='''if a specific area_level_id is provided,
-        take this one instead of the areas of the population''')
+        take this one instead of the areas of the population'''),
+                       OpenApiParameter(name='drop_constraints',
+                                        required=False,
+                                        type=bool,
+                                        default=False,
+                                        description='set to true for tests')
                    ],
                    responses={202: OpenApiResponse(MessageSerializer, 'Intersection successful'),
                               406: OpenApiResponse(MessageSerializer, 'Intersection failed')})
@@ -104,6 +110,10 @@ class PopulationViewSet(viewsets.ModelViewSet):
         else:
             areas = population.populationentry_set.distinct('area_id')\
                 .values_list('area_id', flat=True)
+
+        if not areas:
+            return Response({'message': 'No areas available', },
+                            status=status.HTTP_202_ACCEPTED)
 
         # use only cells with population and put values from Census to column pop
         raster_cells = population.popraster.raster.rastercell_set
@@ -162,14 +172,30 @@ class PopulationViewSet(viewsets.ModelViewSet):
                                      cell__popraster=population.popraster)
         ac.delete()
 
+        drop_constraints = bool(strtobool(
+            request.query_params.get('drop_constraints', False)))
+
         with StringIO() as file:
             df2.to_csv(file, index=False)
             file.seek(0)
-            AreaCell.copymanager.from_csv(file)
+            AreaCell.copymanager.from_csv(file,
+                drop_constraints=drop_constraints, drop_indexes=drop_constraints)
 
         msg = f'{len(areas)} Areas were successfully intersected with Rastercells.\n'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
+    @extend_schema(description='Disaggregate all Populations',
+                   parameters=[
+                       OpenApiParameter(name='drop_constraints',
+                                        required=False,
+                                        type=bool,
+                                        default=False,
+                                        description='set to true for tests'),
+                   ],
+                   responses={202: OpenApiResponse(MessageSerializer,
+                                                   'Disaggregation successful'),
+                              406: OpenApiResponse(MessageSerializer,
+                                                   'Disaggregation failed')})
     @action(methods=['GET'], detail=False,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def disaggregateall(self, request, **kwargs):
@@ -184,8 +210,12 @@ class PopulationViewSet(viewsets.ModelViewSet):
         description='''if a specific area_level_id is provided,
         take this one instead of the areas of the population'''),
                        OpenApiParameter(name='use_intersected_data', required=False, type=bool,
-        description='''use precalculated rastercells''')
-
+        description='''use precalculated rastercells'''),
+                       OpenApiParameter(name='drop_constraints',
+                                        required=False,
+                                        type=bool,
+                                        default=False,
+                                        description='set to true for tests'),
                    ],
                    responses={202: OpenApiResponse(MessageSerializer, 'Intersection successful'),
                               406: OpenApiResponse(MessageSerializer, 'Intersection failed')})
@@ -238,14 +268,9 @@ class PopulationViewSet(viewsets.ModelViewSet):
         population_not_located = dd.loc[has_no_rastercell].value.sum()
 
         if population_not_located:
-            areas_without_rastercells = Area.objects\
-                .filter(
-                    id__in=dd.loc[has_no_rastercell, 'area_id'])\
-                .select_related('area_level')\
-                .prefetch_related(
-                    Prefetch('areaattribute_set',
-                         queryset=AreaAttribute.objects.select_related('field__field_type'),
-                             ))
+            areas_without_rastercells = Area.label_annotated_qs()\
+                .filter(id__in=dd.loc[has_no_rastercell, 'area_id'])
+
             msg += f'{population_not_located} Inhabitants not located to rastercells in {areas_without_rastercells}\n'
         else:
             msg += 'all areas have rastercells with inhabitants\n'
@@ -254,7 +279,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
         dd = dd.loc[~has_no_rastercell]
 
         # population by age_group and gender in each rastercell
-        dd['pop'] = dd['value'] * dd['share_cell_of_area']
+        dd.loc[:, 'pop'] = dd['value'] * dd['share_cell_of_area']
 
         # has to be summed up by rastercell, age_group and gender, because a rastercell
         # might have population from two areas
@@ -272,11 +297,16 @@ class PopulationViewSet(viewsets.ModelViewSet):
             .filter(population=population)
         rc_exist.delete()
 
+        drop_constraints = bool(strtobool(
+            request.query_params.get('drop_constraints', False)))
+
         with StringIO() as file:
             df_cellagegender.to_csv(file, index=False)
             file.seek(0)
             RasterCellPopulationAgeGender.copymanager.from_csv(
-                file, static_mapping={'population_id': population.id, })
+                file, static_mapping={'population_id': population.id, },
+                drop_constraints=drop_constraints, drop_indexes=drop_constraints,
+            )
         msg += f'Disaggregation of Population was successful.\n'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 

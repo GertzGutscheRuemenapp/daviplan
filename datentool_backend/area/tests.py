@@ -48,7 +48,20 @@ class TestAreas(TestCase):
     def setUpTestData(cls):
         cls.wfs_layer = WMSLayerFactory()
         cls.source = SourceFactory()
+        fclass1 = FClassFactory(value='Class1')
+        fclass2 = FClassFactory(ftype=fclass1.ftype, value='Class2')
         cls.area = AreaFactory()
+        area_level: AreaLevel = cls.area.area_level
+        classfield = AreaField.objects.create(name='classfield',
+                                              area_level=area_level,
+                                              field_type=fclass1.ftype)
+        cls.area2 = AreaFactory(
+            area_level=area_level,
+            attributes={'areaname': 'MyName', 'Inhabitants': 123,
+                        'classfield': 'Class2', })
+        name_field = area_level.areafield_set.get(name='areaname')
+        name_field.is_label = True
+        name_field.save()
         print(cls.area)
         print(cls.wfs_layer)
 
@@ -60,31 +73,61 @@ class TestAreas(TestCase):
 
     def test_area_attributes(self):
         area1: Area = self.area
+        area2: Area = self.area2
+
+        aa = AreaAttribute.objects.filter(area=area2)
+        self.assertEqual(aa.get(field__name='areaname').value, 'MyName')
+        self.assertEqual(aa.get(field__name='Inhabitants').value, 123)
+        self.assertEqual(aa.get(field__name='classfield').value, 'Class2')
+
+        #  test the annotated value
+        aa = AreaAttribute.value_annotated_qs().filter(area=area2)
+        self.assertEqual(aa.get(field__name='areaname')._value, 'MyName')
+        self.assertEqual(aa.get(field__name='Inhabitants')._value, '123')
+        self.assertEqual(aa.get(field__name='classfield')._value, 'Class2')
+
+        #  test the labels
         area_level: AreaLevel = area1.area_level
-        self.assertEqual(area1.label, '')
-        area2 = AreaFactory(area_level=area_level,
-                            attributes={'areaname': 'MyName', 'Inhabitants': 123,})
-        self.assertEqual(area_level.label_field, '')
-        self.assertEqual(area2.label, '')
-        # make name the label_field
-        name_field = area_level.areafield_set.get(name='areaname')
-        self.assertEqual(name_field.field_type.ftype, 'STR')
-
-        name_field.is_label = True
-        name_field.save()
-
-        # areaname should be now the label_field for area_level
         self.assertEqual(area_level.label_field, 'areaname')
         self.assertEqual(area2.label, 'MyName')
+        self.assertEqual(area1.label, '')
+
+        # areaname should be a string field
+        name_field = area_level.areafield_set.get(name='areaname')
+        self.assertEqual(name_field.field_type.ftype, 'STR')
 
         # inhabitant_field should be a num-field
         inh_field = area_level.areafield_set.get(name='Inhabitants')
         self.assertEqual(inh_field.field_type.ftype, 'NUM')
 
+        # classfield should be a class field
+        class_field = area_level.areafield_set.get(name='classfield')
+        self.assertEqual(class_field.field_type.ftype, 'CLA')
+        self.assertEqual(area2.get_attr_value('classfield'), 'Class2')
+
+        # change label field to num_field
+        name_field.is_label = False
+        inh_field.is_label = True
+        name_field.save()
+        inh_field.save()
+        self.assertEqual(float(area2.label), 123)
+        self.assertEqual(area1.label, '')
+
         # setting another field as label field should raise an error
         with self.assertRaises(IntegrityError):
-            inh_field.is_label = True
-            inh_field.save()
+            name_field.is_label = True
+            name_field.save()
+
+    def test_area_label(self):
+        """Test the area label and attribute values"""
+        areas = Area.objects.all()
+        self.assertEqual(areas[0].label, '')
+        self.assertEqual(areas[1].label, 'MyName')
+
+        areas = Area.label_annotated_qs().all()
+        self.assertEqual(areas[0].label, None)
+        self.assertEqual(areas[1].label, 'MyName')
+        self.assertEqual(areas[1]._label, 'MyName')
 
 
 class TestLayerGroupAPI(WriteOnlyWithCanEditBaseDataTest,
