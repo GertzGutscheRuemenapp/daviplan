@@ -1,11 +1,13 @@
 import pandas as pd
 from io import StringIO
 from distutils.util import strtobool
+from django.http.request import QueryDict
 
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from django.db import transaction
 from django.db.models import F, Prefetch
 
 from datentool_backend.utils.views import ProtectCascadeMixin
@@ -84,8 +86,8 @@ class PopulationViewSet(viewsets.ModelViewSet):
                        OpenApiParameter(name='drop_constraints',
                                         required=False,
                                         type=bool,
-                                        default=False,
-                                        description='set to true for tests')
+                                        default=True,
+                                        description='set to false for tests')
                    ],
                    responses={202: OpenApiResponse(MessageSerializer, 'Intersection successful'),
                               406: OpenApiResponse(MessageSerializer, 'Intersection failed')})
@@ -186,11 +188,15 @@ class PopulationViewSet(viewsets.ModelViewSet):
 
     @extend_schema(description='Disaggregate all Populations',
                    parameters=[
+                       OpenApiParameter(
+                           name='use_intersected_data',
+                           required=False, type=bool, default=True,
+                           description='''use precalculated rastercells'''),
                        OpenApiParameter(name='drop_constraints',
                                         required=False,
                                         type=bool,
-                                        default=False,
-                                        description='set to true for tests'),
+                                        default=True,
+                                        description='set to false for tests'),
                    ],
                    responses={202: OpenApiResponse(MessageSerializer,
                                                    'Disaggregation successful'),
@@ -199,12 +205,36 @@ class PopulationViewSet(viewsets.ModelViewSet):
     @action(methods=['GET'], detail=False,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def disaggregateall(self, request, **kwargs):
-        for population in Population.objects.all():
-            self.disaggregate(request, **{'pk': population.id})
+        manager = RasterCellPopulationAgeGender.copymanager
+        drop_constraints = bool(strtobool(
+            request.query_params.get('drop_constraints', False)))
+
+        with transaction.atomic():
+            if drop_constraints:
+                manager.drop_constraints()
+                manager.drop_indexes()
+
+            #  set new query-params
+            old_query_params = self.request.query_params
+            query_params = QueryDict(mutable=True)
+            query_params.update(self.request.query_params)
+            query_params['drop_constraints'] = 'False'
+            request._request.GET = query_params
+
+            for population in Population.objects.all():
+                self.disaggregate(request, **{'pk': population.id})
+
+            # restore the query_params
+            request._request.GET = old_query_params
+
+            if drop_constraints:
+                manager.restore_constraints()
+                manager.restore_indexes()
+
         msg = 'Disaggregations of all Populations were successful.'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
-    @extend_schema(description='intersect areas with rastercells',
+    @extend_schema(description='Disaggregate Population to rastercells',
                    parameters=[
                        OpenApiParameter(name='area_level', required=False, type=int,
         description='''if a specific area_level_id is provided,
@@ -214,8 +244,8 @@ class PopulationViewSet(viewsets.ModelViewSet):
                        OpenApiParameter(name='drop_constraints',
                                         required=False,
                                         type=bool,
-                                        default=False,
-                                        description='set to true for tests'),
+                                        default=True,
+                                        description='set to false for tests'),
                    ],
                    responses={202: OpenApiResponse(MessageSerializer, 'Intersection successful'),
                               406: OpenApiResponse(MessageSerializer, 'Intersection failed')})
@@ -290,6 +320,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
             .reset_index()
 
         df_cellagegender['cell_id'] = df_cellagegender['cell_id'].astype('i8')
+        df_cellagegender['population_id'] = population.id
 
         # delete the existing entries
         # updating would leave values for rastercells, that do not exist any more
@@ -304,7 +335,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
             df_cellagegender.to_csv(file, index=False)
             file.seek(0)
             RasterCellPopulationAgeGender.copymanager.from_csv(
-                file, static_mapping={'population_id': population.id, },
+                file,
                 drop_constraints=drop_constraints, drop_indexes=drop_constraints,
             )
         msg += f'Disaggregation of Population was successful.\n'

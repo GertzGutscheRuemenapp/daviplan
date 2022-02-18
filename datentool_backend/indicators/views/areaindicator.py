@@ -1,10 +1,8 @@
 from django.http.request import QueryDict
-from django.views.generic import DetailView
 from django.core.exceptions import BadRequest
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from vectortiles.postgis.views import MVTView, BaseVectorTileView
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter
 
 from datentool_backend.area.models import AreaLevel
