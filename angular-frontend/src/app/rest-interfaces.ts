@@ -78,6 +78,13 @@ export interface PopulationData {
   value: number
 }
 
+export interface AgeGroup {
+  id?: number,
+  fromAge: number,
+  toAge: number,
+  label?: string
+}
+
 export interface Gender {
   id: number,
   name: string;

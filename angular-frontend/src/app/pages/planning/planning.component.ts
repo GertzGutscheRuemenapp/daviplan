@@ -55,7 +55,8 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   users = mockUsers;
   showScenarioMenu: boolean = false;
   mapControl?: MapControl;
-  years?: number[];
+  realYears?: number[];
+  prognosisYears?: number[];
   infrastructures: Infrastructure[] = [];
 
   isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 39.9375em)')
@@ -76,13 +77,18 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.mapControl = this.mapService.get('planning-map');
     this.planningService.legend = this.legend;
     this.mapControl.mapDescription = 'Planungsprozess: xyz > Status Quo Fortschreibung <br> usw.';
-    this.planningService.years$.subscribe( years => {
-      this.years = years;
-      this.timeSlider!.setYears(years);
+    this.planningService.realYears$.subscribe( years => {
+      this.realYears = years;
+      this.setSlider();
+    })
+    this.planningService.prognosisYears$.subscribe( years => {
+      this.prognosisYears = years;
+      this.setSlider();
     })
     this.planningService.infrastructures$.subscribe( infrastructures => {
       this.infrastructures = infrastructures;
     })
+    this.planningService.setReady(true);
   }
 
   ngOnDestroy(): void {
@@ -95,6 +101,14 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     if (id === undefined) return;
     let project = this.getProject(id);
     this.activeProject = project;
+  }
+
+  setSlider(): void {
+    if (!(this.realYears && this.prognosisYears)) return;
+    this.timeSlider!.prognosisStart = this.prognosisYears[0] || 0;
+    this.timeSlider!.years = this.realYears.concat(this.prognosisYears);
+    this.timeSlider!.value = this.realYears[0];
+    this.timeSlider!.draw();
   }
 
   getProject(id: number): Project {
