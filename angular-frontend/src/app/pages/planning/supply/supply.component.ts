@@ -72,8 +72,11 @@ export class SupplyComponent implements AfterViewInit{
           name: this.selectedInfrastructure!.name,
           description: this.selectedInfrastructure!.name,
           opacity: 1,
-          symbol: this.selectedInfrastructure!.symbol,
-          labelField: 'name'
+          symbol: {
+            fillColor: 'blue',
+            strokeColor: 'black',
+            symbol: 'circle'
+          }
         },
         {
           visible: true,

@@ -356,7 +356,8 @@ export class MapControl {
         stroke: { color: layer.symbol?.strokeColor, width: 2, mouseOverColor: options?.mouseOver?.strokeColor },
         fill: { color: (options?.colorFunc)? options?.colorFunc: layer.symbol?.fillColor, mouseOverColor: options?.mouseOver?.fillColor },
         labelField: layer.labelField,
-        tooltipField: options?.tooltipField
+        tooltipField: options?.tooltipField,
+        shape: (layer.symbol?.symbol !== 'line')? layer.symbol?.symbol: undefined
       })
     }
     else if (layer.type === 'vector-tiles') {
