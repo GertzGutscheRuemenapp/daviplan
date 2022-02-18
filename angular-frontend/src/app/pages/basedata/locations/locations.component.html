@@ -13,11 +13,11 @@
                     subtitle="Infrastrukturbereich auswählen, um Standorte anzuzeigen bzw. einzutragen"
                     infoText="<p>Wählen Sie in der Liste den Infrastrukturbereich aus, dessen Standort sie anzeigen, hochladen oder verändern möchten.</p>
                     <p>Bevor Sie eine Standortliste hochladen oder Standorte in die Karte einzeichnen, legen Sie bitte erst die Attribute der Standortliste fest, indem Sie auf die Schaltfläche „Editieren“ am Fuß dieser Eingabebox klicken. Weitere Informationen finden Sie in der darunter stehenden Hilfe.</p>">
-      <mat-selection-list [multiple]="false"
-                          id="infrastructure-select">
+      <mat-selection-list [multiple]="false">
+<!--        ngmodel does not work here as it always returns arrays even ig multiple=false-->
         <mat-list-option *ngFor="let infrastructure of infrastructures"
                          (click)="selectedInfrastructure = infrastructure"
-                         [selected]="(infrastructure.id === selectedInfrastructure.id)">
+                         [selected]="(infrastructure.id === selectedInfrastructure?.id)">
           <div class="option-text">{{infrastructure.name}}</div>
         </mat-list-option>
       </mat-selection-list>
@@ -26,7 +26,7 @@
         <app-input-card [title]="'Standorteigenschaften'"
                         [borderless]="true"
                         [editTemplate]="attributesEdit"
-                        [subtitle]="selectedInfrastructure.name"
+                        [subtitle]="selectedInfrastructure?.name || ''"
                         infoText="<p>Neben der räumlichen Lage können sie die einzelnen Standorte anhand weiterer Eigenschaften („Attribute“) beschreiben. Welche dies sind (z.B. Name, Gebäudezustand, Typ, Budget, Investitionsbedarf …) entscheiden Sie selbst.</p>
                         <p>Klicken Sie hierzu auf die Schaltfläche „Editieren“ und folgenden Sie den Erläuterungen im Hilfetext des dann erscheinenden Eingabedialogs.</p>">
           <table>
@@ -63,7 +63,7 @@
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
           <span class="subtitle1 sub">
-            Infrastrukturbereich "{{selectedInfrastructure.name}}"
+            Infrastrukturbereich "{{selectedInfrastructure?.name}}"
           </span>
           <div style="display: flex; margin-top: 15px;">
             <table>
