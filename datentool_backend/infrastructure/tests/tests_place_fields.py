@@ -88,6 +88,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
             infrastructure=place.infrastructure,
             field_type=ft_name,
             sensitive=False,
+            is_label=True,
         )
 
         place.attributes={'age': faker.pyint(), 'surname': faker.name()}
@@ -127,6 +128,8 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         place: Place = self.obj
 
         infr: Infrastructure = place.infrastructure
+        self.assertEqual(infr.label_field, 'surname')
+
         infr.accessible_by.set([pr1, pr2])
         infr.save()
 
@@ -145,6 +148,11 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         field2 = PlaceFieldFactory(name='very_secret', sensitive=True,
                                    field_type=field_type,
                                    infrastructure=infr)
+
+        #  test the label
+        label = place.attributes.get(field__is_label=True).value
+        self.assertEqual(place.label, label)
+
 
         attributes = {'harmless': 123, 'very_secret': 456, }
         place.attributes = attributes

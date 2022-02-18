@@ -84,6 +84,15 @@ class TestAreas(TestCase):
         self.assertEqual(aa.get(field__name='areaname')._value, 'MyName')
         self.assertEqual(aa.get(field__name='Inhabitants')._value, '123')
         self.assertEqual(aa.get(field__name='classfield')._value, 'Class2')
+        self.assertEqual(aa.get(field__name='classfield').value, 'Class2')
+
+        # test setting the area attribute
+        with self.assertRaises(ValueError):
+            aa.get(field__name='classfield').value = 'Class3'
+
+        aa.get(field__name='classfield').value = 'Class1'
+        aa.get(field__name='classfield').value = 'Class2'
+        print(aa)
 
         #  test the labels
         area_level: AreaLevel = area1.area_level

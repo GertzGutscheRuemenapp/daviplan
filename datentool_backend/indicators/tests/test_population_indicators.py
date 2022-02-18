@@ -79,6 +79,11 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         population: Population = self.population
 
         # disaggregate the population
+        response = self.get('populations-disaggregate', pk=-1,
+                            data={'drop_constraints': False, })
+        self.assert_http_406_not_acceptable(response)
+
+        # disaggregate the population
         response = self.get('populations-disaggregate', pk=population.pk,
                             data={'drop_constraints': False, })
         self.assert_http_202_accepted(response)

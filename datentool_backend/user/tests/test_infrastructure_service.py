@@ -178,6 +178,31 @@ class TestInfrastructureAPI(WriteOnlyWithAdminAccessTest,
         profile.can_edit_basedata = permission_basedata
         profile.save()
 
+    def test_user_access_list(self):
+        """Test the access-list of the user"""
+        profile = ProfileFactory(admin_access=True)
+        self.client.logout()
+        self.client.force_login(user=profile.user)
+        infra1 = InfrastructureFactory(accessible_by=[profile])
+        infra2 = InfrastructureFactory(accessible_by=[profile])
+        infra3: Infrastructure = self.obj
+        infra_access = infra1.infrastructureaccess_set.first()
+        infra_access.allow_sensitive_data = True
+        infra_access.save()
+        response = self.get('users-detail', pk=profile.user.pk)
+        expected = [{'infrastructure': infra1.id, 'allowSensitiveData': True},
+                    {'infrastructure': infra2.id, 'allowSensitiveData': False}]
+        self.compare_data(response.data['access'], expected)
+
+        patch_data = {'access':
+                      [{'infrastructure': infra3.id, 'allowSensitiveData': True}]}
+        response = self.patch('users-detail', pk=profile.user.pk, data=patch_data,
+                              extra=dict(format='json'))
+        self.response_200(response)
+        response = self.get('users-detail', pk=profile.user.pk)
+        expected = [{'infrastructure': infra3.id, 'allowSensitiveData': True}]
+        self.compare_data(response.data['access'], expected)
+
 
 class TestServiceAPI(WriteOnlyWithCanEditBaseDataTest,
                      TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):

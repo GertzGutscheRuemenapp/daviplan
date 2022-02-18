@@ -4,7 +4,7 @@ from django.db.models.functions import Cast, Coalesce
 from django.db.models.signals import post_save
 from django.contrib.gis.db import models as gis_models
 
-from datentool_backend.base import NamedModel, JsonAttributes
+from datentool_backend.base import NamedModel
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.base import NamedModel, DatentoolModelMixin
 
@@ -88,7 +88,7 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
             return ''
 
 
-class Area(DatentoolModelMixin, JsonAttributes, models.Model):
+class Area(DatentoolModelMixin, models.Model):
     """an area"""
     area_level = models.ForeignKey(AreaLevel, on_delete=PROTECT_CASCADE)
     geom = gis_models.MultiPolygonField(srid=3857)
@@ -253,7 +253,7 @@ class FieldAttribute(DatentoolModelMixin, NamedModel, models.Model):
                 fclass = FClass.objects.get(ftype=self.field.field_type,
                                             value=data)
             except FClass.DoesNotExist:
-                raise ValueError(f'{data} for field {self.field} is no valid value')
+                raise ValueError(f'{data} for field {self.field.name} is no valid value')
             self.class_value = fclass
 
     def __repr__(self) -> str:

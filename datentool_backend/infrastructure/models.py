@@ -7,7 +7,6 @@ from django.contrib.gis.db import models as gis_models
 from sql_util.utils import Exists
 
 from datentool_backend.base import (NamedModel,
-                                    JsonAttributes,
                                     DatentoolModelMixin,
                                     )
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
@@ -50,7 +49,7 @@ class ScenarioService(models.Model):
     demandrateset = models.ForeignKey(DemandRateSet, on_delete=PROTECT_CASCADE)
 
 
-class Place(DatentoolModelMixin, JsonAttributes, NamedModel, models.Model):
+class Place(DatentoolModelMixin, NamedModel, models.Model):
     """location of an infrastructure"""
     name = models.TextField()
     infrastructure = models.ForeignKey(Infrastructure,
