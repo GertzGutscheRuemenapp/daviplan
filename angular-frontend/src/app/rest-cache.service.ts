@@ -28,7 +28,7 @@ export class RestCacheService {
   private areaCache: Record<number, Area[]> = {};
   private popDataCache: Record<string, PopulationData[]> = {};
   private popAreaCache: Record<string, AreaPopulationData[]> = {};
-  private places: Record<number, Place> = {};
+  private placesCache: Record<number, Place[]> = {};
   isLoading$ = new BehaviorSubject<boolean>(false);
 
   constructor(protected http: HttpClient, protected rest: RestAPI) { }
@@ -64,6 +64,27 @@ export class RestCacheService {
     this.http.get<AreaLevel[]>(`${this.rest.URLS.arealevels}?active=true`).subscribe(areaLevels => {
       this.areaLevels$.next(sortBy(areaLevels, 'order'));
     });
+  }
+
+  getPlaces(infrastructureId: number): Observable<Place[]>{
+    const observable = new Observable<Place[]>(subscriber => {
+      const cached = this.placesCache[infrastructureId];
+      if (!cached) {
+        this.setLoading(true);
+        const query = this.http.get<any>(`${this.rest.URLS.places}?infrastructure=${infrastructureId}`);
+        query.subscribe( areas => {
+          this.placesCache[infrastructureId] = areas.features;
+          this.setLoading(false);
+          subscriber.next(areas.features);
+          subscriber.complete();
+        });
+      }
+      else {
+        subscriber.next(cached);
+        subscriber.complete();
+      }
+    });
+    return observable;
   }
 
   getAreas(areaLevelId: number): Observable<Area[]>{

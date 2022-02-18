@@ -31,7 +31,8 @@
       <mat-form-field appearance="outline" class="small">
         <mat-label>Infrastrukturbereich</mat-label>
         <mat-select disableOptionCentering disableRipple
-                    [(value)]="selectedInfrastructure"
+                    [(ngModel)]="selectedInfrastructure"
+                    (ngModelChange)="updatePlaces()"
                     [ngbPopover]="selectedInfrastructure?.description"
                     placement="right"
                     container="body"

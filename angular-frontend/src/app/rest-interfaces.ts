@@ -108,5 +108,9 @@ export interface Infrastructure {
 
 export interface Place {
   id: number,
-  name: string
+  properties: {
+    name: string,
+    infrastructure: number,
+    attributes: any
+  }
 }

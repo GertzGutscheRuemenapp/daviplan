@@ -67,7 +67,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
 
   constructor(private breakpointObserver: BreakpointObserver, private renderer: Renderer2,
               private elRef: ElementRef, private mapService: MapService, private dialog: MatDialog,
-              private planningService: PlanningService) {  }
+              public planningService: PlanningService) {  }
 
   ngAfterViewInit(): void {
     // there is no parent css selector yet but we only want to hide the overflow in the planning pages

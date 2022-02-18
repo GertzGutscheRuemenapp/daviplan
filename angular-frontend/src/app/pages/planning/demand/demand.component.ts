@@ -24,11 +24,9 @@ export class DemandComponent implements OnInit {
               private planningService: PlanningService) {
     this.planningService.infrastructures$.subscribe(infrastructures => {
       this.infrastructures = infrastructures;
-      this.selectedInfrastructure = infrastructures[0];
     });
     this.planningService.areaLevels$.subscribe(areaLevels => {
       this.areaLevels = areaLevels;
-      this.selectedAreaLevel = areaLevels[0];
     })
   }
 
