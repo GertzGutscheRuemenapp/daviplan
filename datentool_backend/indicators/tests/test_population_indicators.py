@@ -113,6 +113,12 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         # check by cell
         actual = df[['cell', 'value']].groupby('cell').sum()
 
+        # disaggregate the population
+        response = self.get('populations-disaggregateall',
+                            data={'drop_constraints': False, })
+        self.assert_http_202_accepted(response)
+        print(response.data.get('message'))
+
     def test_area_without_rasterpopulation(self):
         """
         Test what happens, if there is population in an area,
