@@ -1,6 +1,5 @@
 from django.db import models
-from django.core.validators import (MaxLengthValidator,
-                                    MinValueValidator, MaxValueValidator)
+from django.core.validators import (MinValueValidator, MaxValueValidator)
 
 from datentool_backend.base import NamedModel
 from datentool_backend.user.models import (Year, Service)

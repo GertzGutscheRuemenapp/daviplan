@@ -1,5 +1,4 @@
 from unittest import skipIf
-import json
 from collections import OrderedDict
 from django.test import TestCase
 from django.db.utils import IntegrityError
@@ -341,7 +340,6 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
 
     def test_get_tile_view(self):
         area_level1 = AreaLevelFactory()
-        attributes = json.dumps({'gen': 'Area One', })
         str_field = FieldType.objects.create(name='str_field',
                                              ftype=FieldTypes.STRING)
         name_field = AreaField.objects.create(area_level=area_level1,

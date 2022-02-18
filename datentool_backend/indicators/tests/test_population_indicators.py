@@ -1,11 +1,9 @@
 import pandas as pd
 
-from rest_framework import status
 from test_plus import APITestCase
 
 from datentool_backend.api_test import LoginTestCase
 
-from ..factories import IndicatorFactory
 from datentool_backend.area.factories import AreaLevelFactory
 
 from ..compute import (ComputePopulationAreaIndicator,

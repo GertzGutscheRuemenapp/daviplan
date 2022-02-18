@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.gis.db import models as gis_models
 from django.core.validators import MaxLengthValidator
-from postgres_copy import CopyManager
 from datentool_backend.utils.copy_postgres import DirectCopyManager
 
 from datentool_backend.base import NamedModel, DatentoolModelMixin

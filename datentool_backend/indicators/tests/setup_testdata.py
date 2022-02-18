@@ -8,7 +8,7 @@ from datentool_backend.area.factories import (AreaLevelFactory,
                                               AreaFieldFactory,
                                               FieldTypes,
                                               )
-from datentool_backend.area.models import Area, AreaAttribute
+from datentool_backend.area.models import AreaAttribute
 from datentool_backend.user.factories import (InfrastructureFactory,
                                               Infrastructure,
                                               ServiceFactory,

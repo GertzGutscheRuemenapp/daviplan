@@ -8,16 +8,13 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from django.db import transaction
-from django.db.models import F, Prefetch
+from django.db.models import F
 
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
-from drf_spectacular.types import OpenApiTypes
-#from datentool_backend.indicators.compute import (IntersectAreaWithRaster,
-                                                  #DisaggregatePopulation)
 
 from .models import (Raster,
                      PopulationRaster,
@@ -40,7 +37,7 @@ from .serializers import (RasterSerializer,
                           MessageSerializer,
                           )
 
-from datentool_backend.area.models import Area, AreaAttribute
+from datentool_backend.area.models import Area
 
 
 class RasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

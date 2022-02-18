@@ -1,8 +1,7 @@
-import json
 from rest_framework.validators import ValidationError
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from rest_framework.fields import empty
+
 
 from datentool_backend.area.models import(
     FClass,
@@ -15,11 +14,9 @@ from .models import (Scenario,
                      Place,
                      Capacity,
                      PlaceField,
-                     PlaceAttribute,
                      )
 from datentool_backend.utils.geometry_fields import GeometrySRIDField
 from datentool_backend.user.models import (Infrastructure,
-                                           InfrastructureAccess,
                                            )
 
 

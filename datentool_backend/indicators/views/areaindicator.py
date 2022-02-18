@@ -15,10 +15,8 @@ from datentool_backend.indicators.compute import (
     NumberOfLocations,
     TotalCapacityInArea,
     )
-from datentool_backend.indicators.serializers import (IndicatorTypeSerializer,
-                          IndicatorSerializer,
-                          AreaIndicatorSerializer,
-                          )
+from datentool_backend.indicators.serializers import AreaIndicatorSerializer
+
 from datentool_backend.area.views import AreaLevelTileView
 from .parameters import (area_level_param,
                          areas_param,

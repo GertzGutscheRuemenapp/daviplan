@@ -1,6 +1,5 @@
 from typing import Tuple, Set, List
 from collections import OrderedDict
-import json
 
 from django.test import TestCase
 from test_plus import APITestCase

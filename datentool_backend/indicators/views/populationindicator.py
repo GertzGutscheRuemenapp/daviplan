@@ -1,17 +1,12 @@
-from django.http.request import QueryDict
 from django.core.exceptions import BadRequest
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from distutils.util import strtobool
 
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter
 
-from datentool_backend.utils.permissions import (
-    HasAdminAccessOrReadOnly, CanEditBasedata)
 
 from datentool_backend.indicators.models import Indicator, IndicatorType
-from datentool_backend.area.models import AreaLevel
 
 from datentool_backend.indicators.compute import (ComputeIndicator,
                                                   ComputePopulationDetailAreaIndicator)

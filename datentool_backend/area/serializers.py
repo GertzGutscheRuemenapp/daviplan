@@ -1,4 +1,3 @@
-import json
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
@@ -8,7 +7,6 @@ from django.urls import reverse
 from .models import (MapSymbol, LayerGroup, WMSLayer,
                      Source, AreaLevel, Area,
                      FieldType, FieldTypes, FClass,
-                     FieldAttribute,
                      AreaAttribute, AreaField,
                      )
 

@@ -3,7 +3,7 @@ from requests.exceptions import (MissingSchema, ConnectionError, HTTPError)
 
 from django.views.generic import DetailView
 from django.http import JsonResponse
-from django.db.models import OuterRef, Subquery, CharField, Case, When, F, JSONField, Func, Value
+from django.db.models import OuterRef, Subquery, CharField, Case, When, F, JSONField, Func
 from django.db.models.functions import Cast
 from django.contrib.postgres.aggregates import ArrayAgg
 from django_filters import rest_framework as filters
@@ -15,7 +15,7 @@ from rest_framework.decorators import action
 from owslib.wms import WebMapService
 
 from vectortiles.postgis.views import MVTView, BaseVectorTileView
-from drf_spectacular.utils import extend_schema, extend_schema_field
+from drf_spectacular.utils import extend_schema
 
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (

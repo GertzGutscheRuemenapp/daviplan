@@ -39,7 +39,7 @@ class DirectCopyMapping(CopyMapping):
             self.copy(c)
 
         if not silent:
-            stream.write("{} records loaded\n".format(intcomma(insert_count)))
+            stream.write("{} records loaded\n".format(intcomma(self.insert_count)))
 
         return self.insert_count
 
