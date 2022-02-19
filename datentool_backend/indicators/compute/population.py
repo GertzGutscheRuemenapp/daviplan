@@ -43,7 +43,7 @@ class PopulationIndicatorMixin:
         if areas:
             area_filter['id__in'] = areas
 
-        areas = Area.objects.filter(**area_filter)
+        areas = Area.label_annotated_qs().filter(**area_filter)
         return areas
 
 
