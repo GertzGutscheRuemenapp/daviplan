@@ -10,7 +10,6 @@ djangorestframework-camel-case
 Pillow
 django-cleanup
 factory_boy
-django-bulkmodel
 coverage
 django-test-plus
 djangorestframework-gis
