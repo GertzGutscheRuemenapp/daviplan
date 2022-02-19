@@ -14,6 +14,7 @@ from datentool_backend.indicators.compute import (
     ComputePopulationAreaIndicator,
     NumberOfLocations,
     TotalCapacityInArea,
+    DemandAreaIndicator,
     )
 from datentool_backend.indicators.serializers import AreaIndicatorSerializer
 
@@ -96,6 +97,24 @@ class AreaIndicatorViewSet(viewsets.mixins.ListModelMixin, viewsets.GenericViewS
     def capacity(self, request, **kwargs):
         """get the total capacity of a certain service for selected areas"""
         qs = TotalCapacityInArea(self.request.query_params).compute()
+        serializer = AreaIndicatorSerializer(qs, many=True)
+        return Response(serializer.data)
+
+    @extend_schema(
+        parameters=[area_level_param,
+                    areas_param,
+                    year_param,
+                    scenario_param,
+                    services_param,
+                    genders_param,
+                    age_groups_param,
+                    ],
+        responses=AreaIndicatorSerializer(many=True),
+    )
+    @action(methods=['GET'], detail=False)
+    def demand(self, request, **kwargs):
+        """get the total population for selected areas"""
+        qs = DemandAreaIndicator(self.request.query_params).compute()
         serializer = AreaIndicatorSerializer(qs, many=True)
         return Response(serializer.data)
 

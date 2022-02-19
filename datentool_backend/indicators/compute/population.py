@@ -1,34 +1,21 @@
 from django.db.models import OuterRef, Subquery, Sum
-from django.contrib.postgres.fields.jsonb import KeyTextTransform
 from django.db.models import F
 
 from .base import ComputeIndicator, register_indicator_class
 from datentool_backend.area.models import Area, AreaLevel
 from datentool_backend.population.models import RasterCellPopulationAgeGender, AreaCell
+from datentool_backend.infrastructure.models import Scenario
 
 
-@register_indicator_class()
-class ComputePopulationAreaIndicator(ComputeIndicator):
-    label = 'Population By Area'
-    description = 'Total Population per Area'
-    category = 'Population Services'
-    userdefined = False
+class PopulationIndicatorMixin:
 
-    def compute(self):
-        """"""
-        area_level_id = self.query_params.get('area_level')
-        area_level = AreaLevel.objects.get(pk=area_level_id)
-
-        area_filter = {}
-        areas = self.query_params.getlist('area')
-        if areas:
-            area_filter['id__in'] = areas
-
-        area_set = area_level.area_set.filter(**area_filter)
-
-        acells = AreaCell.objects.filter(area__area_level_id=area_level_id)
-
-        prognosis = self.query_params.get('prognosis')
+    def get_population(self) -> RasterCellPopulationAgeGender:
+        """get the population per area in the scenario"""
+        scenario = self.query_params.get('scenario')
+        if scenario:
+            prognosis = Scenario.objects.get(pk=scenario).prognosis_id
+        else:
+            prognosis = self.query_params.get('prognosis')
         filter_params = {'population__prognosis': prognosis,}
         year = self.query_params.get('year')
         if year:
@@ -44,6 +31,36 @@ class ComputePopulationAreaIndicator(ComputeIndicator):
 
         # filter the rastercell-population by year, age_group and gender, if given
         population = RasterCellPopulationAgeGender.objects.filter(**filter_params)
+        return population
+
+    def get_areas(self, area_level_id: int=None) -> Area:
+        """get the relevant areas"""
+        # filter areas
+        area_filter = {}
+        if area_level_id:
+            area_filter['area_level_id'] = area_level_id
+        areas = self.query_params.getlist('area')
+        if areas:
+            area_filter['id__in'] = areas
+
+        areas = Area.objects.filter(**area_filter)
+        return areas
+
+
+@register_indicator_class()
+class ComputePopulationAreaIndicator(PopulationIndicatorMixin,
+                                     ComputeIndicator):
+    label = 'Population By Area'
+    description = 'Total Population per Area'
+    category = 'Population Services'
+    userdefined = False
+
+    def compute(self):
+        """"""
+        area_level_id = self.query_params.get('area_level')
+        areas = self.get_areas(area_level_id=area_level_id)
+        acells = AreaCell.objects.filter(area__area_level_id=area_level_id)
+        population = self.get_population()
 
         # sum up the rastercell-population to areas taking the share_area_of_cell
         # into account
@@ -63,13 +80,14 @@ class ComputePopulationAreaIndicator(ComputeIndicator):
         # annotate areas with the results
         sq = aa.filter(area_id=OuterRef('pk'))\
             .values('sum_pop')
-        areas_with_pop = area_set.annotate(value=Subquery(sq))
+        areas_with_pop = areas.annotate(value=Subquery(sq))
 
         return areas_with_pop
 
 
 @register_indicator_class()
-class ComputePopulationDetailAreaIndicator(ComputeIndicator):
+class ComputePopulationDetailAreaIndicator(PopulationIndicatorMixin,
+                                           ComputeIndicator):
     label = 'Population By Gender, AgeGroup and Year'
     description = 'Population by Gender, Agegroup and Year for one or several areas'
     category = 'Population Services'
@@ -78,33 +96,11 @@ class ComputePopulationDetailAreaIndicator(ComputeIndicator):
     def compute(self):
         """"""
 
-        # filter areas
-        area_filter = {}
-        areas = self.query_params.getlist('area')
-        if areas:
-            area_filter['id__in'] = areas
-
-        areas = Area.objects.filter(**area_filter)
+        areas = self.get_areas()
         acells = AreaCell.objects.filter(area__in=areas)
 
-        #  other filters
-        prognosis = self.query_params.get('prognosis')
-        filter_params = {'population__prognosis': prognosis,}
-        year = self.query_params.get('year')
-        if year:
-            filter_params['population__year__year'] = year
-
-        genders = self.query_params.getlist('gender')
-        if genders:
-            filter_params['gender__in'] = genders
-
-        age_groups = self.query_params.getlist('age_group')
-        if age_groups:
-            filter_params['age_group__in'] = age_groups
-
-
         # filter the rastercell-population by year, age_group and gender, if given
-        rasterpop = RasterCellPopulationAgeGender.objects.filter(**filter_params)
+        rasterpop = self.get_population()
 
         # sum up the rastercell-population of the areas to rastercells taking the share_area_of_cell
         # into account
@@ -129,4 +125,5 @@ class ComputePopulationDetailAreaIndicator(ComputeIndicator):
         #  return only these columns
         qs3 = qs2.values('year', 'gender', 'agegroup', 'value')
         return qs3
+
 
