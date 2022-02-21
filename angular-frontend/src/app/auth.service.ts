@@ -15,7 +15,7 @@ interface Token {
 export class AuthService {
   user$ = new BehaviorSubject<User | undefined>(undefined);
 
-  constructor(private rest: RestAPI, private http: HttpClient ) { }
+  constructor(private rest: RestAPI, private http: HttpClient) { }
 
   login(credentials: { username: string; password: string }): Observable<Token> {
     // localStorage.removeItem('token');
@@ -126,9 +126,9 @@ export class TokenInterceptor implements HttpInterceptor {
   }
 
   private refreshToken(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    // get new token, if no refreshing is in progress
     if (!this.refreshingInProgress) {
       this.refreshingInProgress = true;
-      this.accessTokenSubject.next();
 
       return this.authService.refreshToken().pipe(
         switchMap((res) => {
@@ -142,8 +142,9 @@ export class TokenInterceptor implements HttpInterceptor {
           return this.logoutAndRedirect(err);
         })
       );
-    } else {
-      // new token
+    }
+    // refresh already in progress -> wait for token
+    else {
       return this.accessTokenSubject.pipe(
         filter(token => token !== null),
         take(1),
