@@ -1,3 +1,5 @@
+import { EventEmitter } from "@angular/core";
+
 export interface BasedataSettings {
   defaultPopAreaLevel: number;
 }
@@ -30,7 +32,8 @@ export interface Layer {
   opacity?: number,
   symbol?: Symbol,
   type?: "wms" | "vector-tiles" | "tiles" | "vector",
-  labelField?: string
+  labelField?: string,
+  featureSelected?: EventEmitter<any>
 }
 
 export interface Source {

@@ -1,5 +1,5 @@
-import { Component, Injectable } from "@angular/core";
-import {BehaviorSubject, Observable, of, Subject} from "rxjs";
+import { Injectable } from "@angular/core";
+import { BehaviorSubject, Observable } from "rxjs";
 import { RestAPI } from "./rest-api";
 import { HttpClient } from "@angular/common/http";
 import { Title } from "@angular/platform-browser";

@@ -11,7 +11,8 @@ import { SettingsService } from "../settings.service";
 import { environment } from "../../environments/environment";
 import { v4 as uuid } from 'uuid';
 import { SelectionModel } from "@angular/cdk/collections";
-import { Feature } from "ol";
+import { Feature } from 'ol';
+import { Layer as OlLayer } from 'ol/layer'
 
 const backgroundLayers: Layer[] = [
   {
@@ -180,6 +181,12 @@ export class MapControl {
 
   init(): void {
     this.map = new OlMap(this.target, { projection: `EPSG:${this.srid}` });
+    this.map.selected.subscribe(evt => {
+      if (evt.selected && evt.selected.length > 0)
+        this.onFeatureSelected(evt.layer, evt.selected);
+      if (evt.deselected && evt.deselected.length > 0)
+        this.onFeatureDeselected(evt.layer, evt.deselected);
+    })
     this.settings.user?.get(this.target).subscribe(mapSettings => {
       mapSettings = mapSettings || {};
       this.mapSettings = mapSettings;
@@ -292,6 +299,14 @@ export class MapControl {
     this.map?.removeLayer(this.mapId(layer));
   }
 
+  private onFeatureSelected(layer: OlLayer<any>, selected: Feature<any>[]): void {
+    console.log(layer)
+  }
+
+  private onFeatureDeselected(layer: OlLayer<any>, deselected: Feature<any>[]): void {
+
+  }
+
   /**
    * add a layer to this map only
    * sets unique id if id is undefined
@@ -333,8 +348,12 @@ export class MapControl {
       visible: options?.visible,
       tooltipField: options?.tooltipField,
       colorFunc: options?.colorFunc,
-      mouseOver: options?.mouseOver
+      mouseOver: options?.mouseOver,
+      select: options?.select
     });
+    if (options?.selectable){
+      layer.featureSelected = new EventEmitter<any>();
+    }
     if (options?.visible)
       this.checklistSelection.select(layer);
     else
@@ -350,6 +369,10 @@ export class MapControl {
     mouseOver?: {
       fillColor?: string,
       strokeColor?: string
+    },
+    select?: {
+      fillColor?: string,
+      strokeColor?: string
     }
   }) {
     const opacity = (layer.opacity !== undefined)? layer.opacity : 1;
@@ -357,11 +380,20 @@ export class MapControl {
       this.map!.addVectorLayer(this.mapId(layer), {
         visible: options?.visible,
         opacity: opacity,
-        stroke: { color: layer.symbol?.strokeColor, width: 2, mouseOverColor: options?.mouseOver?.strokeColor },
-        fill: { color: (options?.colorFunc)? options?.colorFunc: layer.symbol?.fillColor, mouseOverColor: options?.mouseOver?.fillColor },
+        stroke: {
+          color: layer.symbol?.strokeColor, width: 2,
+          mouseOverColor: options?.mouseOver?.strokeColor,
+          selectedColor: options?.select?.strokeColor
+        },
+        fill: {
+          color: (options?.colorFunc)? options?.colorFunc: layer.symbol?.fillColor,
+          mouseOverColor: options?.mouseOver?.fillColor,
+          selectedColor: options?.select?.fillColor
+        },
         labelField: layer.labelField,
         tooltipField: options?.tooltipField,
-        shape: (layer.symbol?.symbol !== 'line')? layer.symbol?.symbol: undefined
+        shape: (layer.symbol?.symbol !== 'line')? layer.symbol?.symbol: undefined,
+        selectable: true
       })
     }
     else if (layer.type === 'vector-tiles') {

@@ -249,6 +249,51 @@ export class OlMap {
     return layer;
   }
 
+  private getShape(shape: 'circle' | 'square' | 'star' | 'x' | 'triangle'): any {
+    if (shape === 'circle')
+      return new CircleStyle({
+        radius: 5,
+        fill: new Fill(),
+        stroke: new Stroke
+      })
+    if (shape === 'square')
+      return new RegularShape({
+        points: 4,
+        radius: 10,
+        angle: Math.PI / 4,
+        fill: new Fill(),
+        stroke: new Stroke
+      });
+    if (shape === 'triangle')
+      return new RegularShape({
+        points: 3,
+        radius: 10,
+        rotation: Math.PI / 4,
+        angle: 0,
+        fill: new Fill(),
+        stroke: new Stroke
+      });
+    if (shape === 'star')
+      return new RegularShape({
+        points: 5,
+        radius: 10,
+        radius2: 4,
+        angle: 0,
+        fill: new Fill(),
+        stroke: new Stroke
+      });
+    if (shape === 'x')
+      return new RegularShape({
+        points: 4,
+        radius: 10,
+        radius2: 0,
+        angle: Math.PI / 4,
+        fill: new Fill(),
+        stroke: new Stroke
+      })
+  }
+
+
   addVectorLayer(name: string, options: {
       url?: any, params?: any,
       visible?: boolean, opacity?: number,
@@ -265,45 +310,6 @@ export class OlMap {
         selectedColor?: string, mouseOverColor?: string },
       labelField?: string
     } = {}): Layer<any> {
-
-    const shapes = {
-      'circle': new CircleStyle({
-        radius: 5,
-        fill: new Fill(),
-        stroke: new Stroke
-      }),
-      'square': new RegularShape({
-        points: 4,
-        radius: 10,
-        angle: Math.PI / 4,
-        fill: new Fill(),
-        stroke: new Stroke
-      }),
-      'triangle': new RegularShape({
-        points: 3,
-        radius: 10,
-        rotation: Math.PI / 4,
-        angle: 0,
-        fill: new Fill(),
-        stroke: new Stroke
-      }),
-      'star': new RegularShape({
-        points: 5,
-        radius: 10,
-        radius2: 4,
-        angle: 0,
-        fill: new Fill(),
-        stroke: new Stroke
-      }),
-      'x': new RegularShape({
-        points: 4,
-        radius: 10,
-        radius2: 0,
-        angle: Math.PI / 4,
-        fill: new Fill(),
-        stroke: new Stroke
-      })
-    }
 
     // @ts-ignore
     const fillColor: string = (typeof(options?.fill?.color) === 'string')? options?.fill?.color: 'rgba(0, 0, 0, 0)';
@@ -332,7 +338,7 @@ export class OlMap {
     });
 
     if (options?.shape) {
-      const shape = shapes[options?.shape];
+      const shape = this.getShape(options?.shape);
       shape.getFill().setColor(fillColor);
       shape.getStroke().setColor(strokeColor);
       style.setImage(shape);
@@ -373,19 +379,28 @@ export class OlMap {
       strokeWidth: options?.stroke?.mouseOverWidth || options?.stroke?.width || 1
     });
     if (options?.selectable) {
-      const select = new Select({
-        condition: click,
-        layers: [layer],
-        style: new Style({
+      const selectStrokeColor = options.stroke?.selectedColor || 'rgb(255, 129, 0)';
+      const selectFillColor = options.fill?.selectedColor || 'rgba(0, 0, 0, 0)';
+      const selectStyle = new Style({
           stroke: new Stroke({
-            color: options.stroke?.selectedColor || 'rgb(255, 129, 0)',
+            color: strokeColor,
             width: options.stroke?.width || 1,
             lineDash: options?.stroke?.selectedDash
           }),
           fill: new Fill({
-            color: options.fill?.selectedColor || 'rgba(0, 0, 0, 0)'
+            color: fillColor
           }),
-        }),
+        });
+      if (options?.shape) {
+        const shape = this.getShape(options?.shape);
+        shape.getFill().setColor(selectFillColor);
+        shape.getStroke().setColor(selectStrokeColor);
+        selectStyle.setImage(shape);
+      }
+      const select = new Select({
+        condition: click,
+        layers: [layer],
+        style: selectStyle,
         toggleCondition: always,
         multi: true
       })
