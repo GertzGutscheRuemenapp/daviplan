@@ -19,10 +19,8 @@ import { saveAs } from 'file-saver';
 import MVT from 'ol/format/MVT';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
-import { defer } from "rxjs";
 import RenderFeature from "ol/render/Feature";
 import CircleStyle from "ol/style/Circle";
-import ImageStyle from "ol/style/Image";
 
 export class OlMap {
   target: string;

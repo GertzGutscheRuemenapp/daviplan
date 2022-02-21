@@ -303,10 +303,14 @@ export class MapControl {
    */
   addLayer(layer: Layer, options?: {
     visible?: boolean,
-    checkable?: boolean,
+    selectable?: boolean,
     tooltipField?: string,
     colorFunc?: ((d: number) => string),
     mouseOver?: {
+      fillColor?: string,
+      strokeColor?: string
+    },
+    select?: {
       fillColor?: string,
       strokeColor?: string
     }

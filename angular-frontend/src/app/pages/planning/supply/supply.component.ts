@@ -80,7 +80,11 @@ export class SupplyComponent implements AfterViewInit{
         },
         {
           visible: true,
-          tooltipField: 'name'
+          tooltipField: 'name',
+          selectable: true,
+          select: {
+            fillColor: 'yellow'
+          }
         });
       this.places = places;
       this.mapControl?.addWKTFeatures(this.placesLayer!.id!, this.places, true);
