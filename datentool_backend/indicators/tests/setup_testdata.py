@@ -8,7 +8,7 @@ from datentool_backend.area.factories import (AreaLevelFactory,
                                               AreaFieldFactory,
                                               FieldTypes,
                                               )
-from datentool_backend.area.models import Area, AreaAttribute
+from datentool_backend.area.models import AreaAttribute
 from datentool_backend.user.factories import (InfrastructureFactory,
                                               Infrastructure,
                                               ServiceFactory,
@@ -17,10 +17,13 @@ from datentool_backend.infrastructure.factories import (ScenarioFactory,
                                                         PlaceFactory,
                                                         ServiceFactory,
                                                         CapacityFactory)
+from datentool_backend.infrastructure.models import ScenarioService
 
 from datentool_backend.user.models import Year
 from datentool_backend.demand.models import (Gender,
                                              AgeGroup,
+                                             DemandRateSet,
+                                             DemandRate,
                                              )
 from datentool_backend.population.factories import (PopulationRasterFactory,
                                                     RasterCellFactory,
@@ -145,6 +148,60 @@ class CreateInfrastructureTestdataMixin:
                               srid=3857),
             attributes={'gen': 'district2', },
         )
+
+        cls.area_level3 = AreaLevelFactory(name='Country')
+        name_field = AreaFieldFactory(name='gen',
+                                      area_level=cls.area_level3,
+                                      field_type__ftype=FieldTypes.STRING,
+                                      is_label=True)
+        # District1
+        coords = np.array([(-5000, -5000),
+                           (-5000, 5000),
+                           (5000, 5000),
+                           (5000, -5000),
+                           (-5000, -5000)])\
+            + np.array([1000000, 6500000])
+        cls.district1 = AreaFactory(
+            area_level=cls.area_level3,
+            geom=MultiPolygon(Polygon(coords),
+                              srid=3857),
+            attributes={'gen': 'Lummerland', },
+        )
+
+        cls.area_level4 = AreaLevelFactory(name='Quadrants')
+        name_field = AreaFieldFactory(name='gen',
+                                      area_level=cls.area_level4,
+                                      field_type__ftype=FieldTypes.STRING,
+                                      is_label=True)
+
+        coords = np.array([(-5000, -5000), (-5000, 0), (0, 0), (0, -5000), (-5000, -5000)])\
+            + np.array([1000000, 6500000])
+        cls.district1 = AreaFactory(
+            area_level=cls.area_level4,
+            geom=MultiPolygon(Polygon(coords), srid=3857),
+            attributes={'gen': 'Q1', },
+        )
+        coords = np.array([(-5000, 0), (-5000, 5000), (0, 5000), (0, 0), (-5000, 0)])\
+            + np.array([1000000, 6500000])
+        cls.district1 = AreaFactory(
+            area_level=cls.area_level4,
+            geom=MultiPolygon(Polygon(coords), srid=3857),
+            attributes={'gen': 'Q2', },
+        )
+        coords = np.array([(5000, 5000), (5000, 0), (0, 0), (0, 5000), (5000, 5000)])\
+            + np.array([1000000, 6500000])
+        cls.district1 = AreaFactory(
+            area_level=cls.area_level4,
+            geom=MultiPolygon(Polygon(coords), srid=3857),
+            attributes={'gen': 'Q3', },
+        )
+        coords = np.array([(5000, 0), (5000, -5000), (0, -5000), (0, 0), (5000, 0)])\
+            + np.array([1000000, 6500000])
+        cls.district1 = AreaFactory(
+            area_level=cls.area_level4,
+            geom=MultiPolygon(Polygon(coords), srid=3857),
+            attributes={'gen': 'Q4', },
+        )
         return cls
 
     @classmethod
@@ -253,7 +310,7 @@ class CreateInfrastructureTestdataMixin:
     def create_population(cls):
         """create population by area"""
         base_year = Year.objects.get(is_default=True)
-        cls.prognosis = PrognosisFactory()
+        cls.prognosis = cls.scenario.prognosis
         cls.population = PopulationFactory(year=base_year,
                                            popraster=cls.popraster,
                                            genders=cls.genders,
@@ -312,3 +369,59 @@ class CreateInfrastructureTestdataMixin:
                     entries.append(entry)
         PopulationEntry.objects.bulk_create(entries)
 
+
+    @classmethod
+    def create_demandrates(cls):
+        # the default scenario for Service1
+        cls.drs_s1 = DemandRateSet.objects.create(name='DRS_S1_default',
+                                                    service=cls.service1,
+                                                    is_default=True)
+        # an alternative demandrateset for Service1 used in Scenario
+        cls.drs_s1_a = DemandRateSet.objects.create(name='DRS_S1_alternative',
+                                                    service=cls.service1,
+                                                    is_default=False)
+        ScenarioService.objects.create(scenario=cls.scenario,
+                                       service=cls.service1,
+                                       demandrateset=cls.drs_s1_a)
+        # the default scenario for Service2
+        cls.drs_s2 = DemandRateSet.objects.create(name='DRS_S2_default',
+                                                  service=cls.service2,
+                                                  is_default=True)
+
+        # create the DemandRate-Values
+        drs1 = np.array([[0.5, 1],
+                         [1.5, 0],
+                         [0, 0]])
+        drs2 = np.array([[0, 0],
+                         [1.5, 1],
+                         [1, 1]])
+
+        factor = 0.5
+        increase_year = .1
+        demand_rates = []
+        for y, year in enumerate(cls.years):
+            factor_year = 1 + (y * increase_year)
+            for g, gender in enumerate(cls.genders):
+                for ag, age_group in enumerate(cls.age_groups):
+                    value = drs1[ag, g] * factor_year
+                    dr = DemandRate(demand_rate_set=cls.drs_s1,
+                                    year=year,
+                                    age_group=age_group,
+                                    gender=gender,
+                                    value=value)
+                    demand_rates.append(dr)
+                    value = drs1[ag, g] * factor_year * factor
+                    dr = DemandRate(demand_rate_set=cls.drs_s1_a,
+                                    year=year,
+                                    age_group=age_group,
+                                    gender=gender,
+                                    value=value)
+                    demand_rates.append(dr)
+                    value = drs2[ag, g] * factor_year
+                    dr = DemandRate(demand_rate_set=cls.drs_s2,
+                                    year=year,
+                                    age_group=age_group,
+                                    gender=gender,
+                                    value=value)
+                    demand_rates.append(dr)
+        DemandRate.objects.bulk_create(demand_rates)

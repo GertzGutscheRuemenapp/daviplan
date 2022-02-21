@@ -1,9 +1,13 @@
 import pandas as pd
+from io import StringIO
+from distutils.util import strtobool
+from django.http.request import QueryDict
 
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from django.db import transaction
 from django.db.models import F
 
 from datentool_backend.utils.views import ProtectCascadeMixin
@@ -11,9 +15,6 @@ from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
-from drf_spectacular.types import OpenApiTypes
-#from datentool_backend.indicators.compute import (IntersectAreaWithRaster,
-                                                  #DisaggregatePopulation)
 
 from .models import (Raster,
                      PopulationRaster,
@@ -29,6 +30,7 @@ from .serializers import (RasterSerializer,
                           PopulationRasterSerializer,
                           PrognosisSerializer,
                           PopulationSerializer,
+                          PopulationDetailSerializer,
                           PopulationEntrySerializer,
                           PopStatisticSerializer,
                           PopStatEntrySerializer,
@@ -61,12 +63,28 @@ class PopulationViewSet(viewsets.ModelViewSet):
     serializer_class = PopulationSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
+    @extend_schema(description='return the population including the rastercellpopulationagegender_set',
+                   responses=PopulationDetailSerializer)
+    @action(methods=['GET'], detail=True,
+            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+    def get_details(self, request, **kwargs):
+        """
+        route to return population with all entries
+        """
+        instance = self.get_object()
+        serializer = PopulationDetailSerializer(instance)
+        return Response(serializer.data)
 
     @extend_schema(description='intersect areas with rastercells',
                    parameters=[
                        OpenApiParameter(name='area_level', required=False, type=int,
         description='''if a specific area_level_id is provided,
-        take this one instead of the areas of the population''')
+        take this one instead of the areas of the population'''),
+                       OpenApiParameter(name='drop_constraints',
+                                        required=False,
+                                        type=bool,
+                                        default=True,
+                                        description='set to false for tests')
                    ],
                    responses={202: OpenApiResponse(MessageSerializer, 'Intersection successful'),
                               406: OpenApiResponse(MessageSerializer, 'Intersection failed')})
@@ -77,9 +95,9 @@ class PopulationViewSet(viewsets.ModelViewSet):
         route to intersect areas with raster cells
         """
         try:
-            population: Population = self.queryset.get(**self.kwargs)
+            population: Population = self.queryset.get(**kwargs)
         except Population.DoesNotExist:
-            msg = f'Population for {self.kwargs} not found'
+            msg = f'Population for {kwargs} not found'
             return Response({'message': msg,}, status.HTTP_406_NOT_ACCEPTABLE)
 
         # if a specific area-level is provided, take this one
@@ -91,6 +109,10 @@ class PopulationViewSet(viewsets.ModelViewSet):
         else:
             areas = population.populationentry_set.distinct('area_id')\
                 .values_list('area_id', flat=True)
+
+        if not areas:
+            return Response({'message': 'No areas available', },
+                            status=status.HTTP_202_ACCEPTED)
 
         # use only cells with population and put values from Census to column pop
         raster_cells = population.popraster.raster.rastercell_set
@@ -141,36 +163,86 @@ class PopulationViewSet(viewsets.ModelViewSet):
         df = df.merge(cell_weight, left_on='id', right_index=True)
         df['share_area_of_cell'] = df['weight'] / df['total_weight_cell']
 
+        df2 = df[['rcp_id', 'share_area_of_cell', 'share_cell_of_area']]\
+            .reset_index()\
+            .rename(columns={'rcp_id': 'cell_id'})[['area_id', 'cell_id', 'share_area_of_cell', 'share_cell_of_area']]
 
         ac = AreaCell.objects.filter(area__in=areas,
                                      cell__popraster=population.popraster)
         ac.delete()
 
-        # create AreaCell-entries
-        create_list = []
-        # create an object for each row in df
-        for (cell_id, area_id), row in df[['rcp_id', 'share_area_of_cell', 'share_cell_of_area']].iterrows():
-            rcp_id, share_area_of_cell, share_cell_of_area = row
+        drop_constraints = bool(strtobool(
+            request.query_params.get('drop_constraints', False)))
 
-            entry = AreaCell(
-                area_id=area_id,
-                cell_id=rcp_id,
-                share_area_of_cell=share_area_of_cell,
-                share_cell_of_area=share_cell_of_area,
-            )
-            create_list.append(entry)
-        AreaCell.objects.bulk_create(create_list)
+        with StringIO() as file:
+            df2.to_csv(file, index=False)
+            file.seek(0)
+            AreaCell.copymanager.from_csv(file,
+                drop_constraints=drop_constraints, drop_indexes=drop_constraints)
+
         msg = f'{len(areas)} Areas were successfully intersected with Rastercells.\n'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
-    @extend_schema(description='intersect areas with rastercells',
+    @extend_schema(description='Disaggregate all Populations',
+                   parameters=[
+                       OpenApiParameter(
+                           name='use_intersected_data',
+                           required=False, type=bool, default=True,
+                           description='''use precalculated rastercells'''),
+                       OpenApiParameter(name='drop_constraints',
+                                        required=False,
+                                        type=bool,
+                                        default=True,
+                                        description='set to false for tests'),
+                   ],
+                   responses={202: OpenApiResponse(MessageSerializer,
+                                                   'Disaggregation successful'),
+                              406: OpenApiResponse(MessageSerializer,
+                                                   'Disaggregation failed')})
+    @action(methods=['GET'], detail=False,
+            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+    def disaggregateall(self, request, **kwargs):
+        manager = RasterCellPopulationAgeGender.copymanager
+        drop_constraints = bool(strtobool(
+            request.query_params.get('drop_constraints', False)))
+
+        with transaction.atomic():
+            if drop_constraints:
+                manager.drop_constraints()
+                manager.drop_indexes()
+
+            #  set new query-params
+            old_query_params = self.request.query_params
+            query_params = QueryDict(mutable=True)
+            query_params.update(self.request.query_params)
+            query_params['drop_constraints'] = 'False'
+            request._request.GET = query_params
+
+            for population in Population.objects.all():
+                self.disaggregate(request, **{'pk': population.id})
+
+            # restore the query_params
+            request._request.GET = old_query_params
+
+            if drop_constraints:
+                manager.restore_constraints()
+                manager.restore_indexes()
+
+        msg = 'Disaggregations of all Populations were successful.'
+        return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
+
+    @extend_schema(description='Disaggregate Population to rastercells',
                    parameters=[
                        OpenApiParameter(name='area_level', required=False, type=int,
         description='''if a specific area_level_id is provided,
         take this one instead of the areas of the population'''),
                        OpenApiParameter(name='use_intersected_data', required=False, type=bool,
-        description='''use precalculated rastercells''')
-
+        description='''use precalculated rastercells'''),
+                       OpenApiParameter(name='drop_constraints',
+                                        required=False,
+                                        type=bool,
+                                        default=True,
+                                        description='set to false for tests'),
                    ],
                    responses={202: OpenApiResponse(MessageSerializer, 'Intersection successful'),
                               406: OpenApiResponse(MessageSerializer, 'Intersection failed')})
@@ -181,9 +253,9 @@ class PopulationViewSet(viewsets.ModelViewSet):
         route to disaggregate the population to the raster cells
         """
         try:
-            population: Population = self.queryset.get(**self.kwargs)
+            population: Population = self.queryset.get(**kwargs)
         except Population.DoesNotExist:
-            msg = f'Population for {self.kwargs} not found'
+            msg = f'Population for {kwargs} not found'
             return Response({'message': msg,}, status.HTTP_406_NOT_ACCEPTABLE)
 
         areas = population.populationentry_set.distinct('area_id')\
@@ -196,7 +268,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
         if ac and request.query_params.get('use_intersected_data'):
             msg = 'use precalculated rastercells\n'
         else:
-            response = self.intersectareaswithcells(request)
+            response = self.intersectareaswithcells(request, **kwargs)
             msg = response.data.get('message', '')
             ac = AreaCell.objects.filter(area__in=areas,
                                          cell__popraster=population.popraster)
@@ -204,7 +276,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
         # get the intersected data from the database
         df_area_cells = pd.DataFrame.from_records(
             ac.values('cell__cell_id', 'area_id', 'share_cell_of_area'))\
-            .rename(columns={'cell__cell_id': 'cell_id',})
+            .rename(columns={'cell__cell_id': 'cell_id', })
 
         # take the Area population by age_group and gender
         entries = population.populationentry_set
@@ -223,8 +295,9 @@ class PopulationViewSet(viewsets.ModelViewSet):
         population_not_located = dd.loc[has_no_rastercell].value.sum()
 
         if population_not_located:
-            areas_without_rastercells = Area.objects.filter(
-                id__in=dd.loc[has_no_rastercell, 'area_id'])
+            areas_without_rastercells = Area.label_annotated_qs()\
+                .filter(id__in=dd.loc[has_no_rastercell, 'area_id'])
+
             msg += f'{population_not_located} Inhabitants not located to rastercells in {areas_without_rastercells}\n'
         else:
             msg += 'all areas have rastercells with inhabitants\n'
@@ -233,11 +306,18 @@ class PopulationViewSet(viewsets.ModelViewSet):
         dd = dd.loc[~has_no_rastercell]
 
         # population by age_group and gender in each rastercell
-        dd['pop'] = dd['value'] * dd['share_cell_of_area']
+        dd.loc[:, 'pop'] = dd['value'] * dd['share_cell_of_area']
 
         # has to be summed up by rastercell, age_group and gender, because a rastercell
         # might have population from two areas
-        df_cellagegender = dd['pop'].groupby(['cell_id', 'gender_id', 'age_group_id']).sum()
+        df_cellagegender: pd.DataFrame = dd['pop']\
+            .groupby(['cell_id', 'gender_id', 'age_group_id'])\
+            .sum()\
+            .rename('value')\
+            .reset_index()
+
+        df_cellagegender['cell_id'] = df_cellagegender['cell_id'].astype('i8')
+        df_cellagegender['population_id'] = population.id
 
         # delete the existing entries
         # updating would leave values for rastercells, that do not exist any more
@@ -245,21 +325,16 @@ class PopulationViewSet(viewsets.ModelViewSet):
             .filter(population=population)
         rc_exist.delete()
 
-        # create RasterCellPopulationAgeGender-entries
-        create_list = []
-        # create an object for each row in df_cellagegender
-        for (cell, gender, age_group), value in df_cellagegender.iteritems():
-            entry = RasterCellPopulationAgeGender(
-                population=population,
-                cell_id=cell,
-                gender_id=gender,
-                age_group_id=age_group,
-                value=value)
+        drop_constraints = bool(strtobool(
+            request.query_params.get('drop_constraints', False)))
 
-            create_list.append(entry)
-
-        # update existing and create new objects
-        RasterCellPopulationAgeGender.objects.bulk_create(create_list)
+        with StringIO() as file:
+            df_cellagegender.to_csv(file, index=False)
+            file.seek(0)
+            RasterCellPopulationAgeGender.copymanager.from_csv(
+                file,
+                drop_constraints=drop_constraints, drop_indexes=drop_constraints,
+            )
         msg += f'Disaggregation of Population was successful.\n'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 

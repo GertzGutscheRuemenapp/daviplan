@@ -10,7 +10,6 @@ djangorestframework-camel-case
 Pillow
 django-cleanup
 factory_boy
-django-bulkmodel
 coverage
 django-test-plus
 djangorestframework-gis
@@ -24,3 +23,4 @@ django-sql-utils
 mapbox_vector_tile
 xarray
 drf-spectacular
+django-postgres-copy

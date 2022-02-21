@@ -5,14 +5,9 @@ from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiPara
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 
-from datentool_backend.area.models import AreaLevel
 from datentool_backend.indicators.models import (Indicator,
                      IndicatorType,
-                     )
-from datentool_backend.indicators.compute import (ComputeIndicator,
-                      ComputePopulationAreaIndicator,
-                      ComputePopulationDetailAreaIndicator,
-                      )
+                                                 )
 from datentool_backend.indicators.serializers import (IndicatorTypeSerializer,
                           IndicatorSerializer,
                           )

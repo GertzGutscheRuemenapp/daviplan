@@ -32,13 +32,20 @@ class RasterCellPopulationAgeGenderSerializer(serializers.ModelSerializer):
         fields = ('id', 'population', 'cell', 'age_group', 'gender', 'value')
 
 
-class PopulationSerializer(serializers.ModelSerializer):
+class PopulationDetailSerializer(serializers.ModelSerializer):
     rastercellpopulationagegender_set = RasterCellPopulationAgeGenderSerializer(
         many=True, read_only=True)
     class Meta:
         model = Population
         fields = ('id', 'year', 'genders', 'popraster',
                   'prognosis', 'rastercellpopulationagegender_set')
+
+
+class PopulationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Population
+        fields = ('id', 'year', 'genders', 'popraster',
+                  'prognosis')
 
 
 class PopulationEntrySerializer(serializers.ModelSerializer):

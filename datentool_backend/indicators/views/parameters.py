@@ -11,7 +11,7 @@ prognosis_param = OpenApiParameter(name='prognosis', type=int, required=False,
                                    description='Prognosis PKey')
 scenario_param = OpenApiParameter(name='scenario', type=int, required=False,
                                    description='Scenario PKey')
-year_param = OpenApiParameter(name='year', type=int, required=False, description='year')
+year_param = OpenApiParameter(name='year', type=int, required=False, description='Jahr als Datum (z.B. 2027)')
 genders_param = OpenApiParameter(name='gender',
                                  type={'type': 'array', 'items': {'type': 'integer',},},
                                  description='Gender PKeys',

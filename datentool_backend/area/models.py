@@ -1,8 +1,10 @@
 from django.db import models
+from django.db.models import TextField, F, OuterRef, Subquery, Prefetch
+from django.db.models.functions import Cast, Coalesce
 from django.db.models.signals import post_save
 from django.contrib.gis.db import models as gis_models
 
-from datentool_backend.base import NamedModel, JsonAttributes
+from datentool_backend.base import NamedModel
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.base import NamedModel, DatentoolModelMixin
 
@@ -86,7 +88,7 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
             return ''
 
 
-class Area(DatentoolModelMixin, JsonAttributes, models.Model):
+class Area(DatentoolModelMixin, models.Model):
     """an area"""
     area_level = models.ForeignKey(AreaLevel, on_delete=PROTECT_CASCADE)
     geom = gis_models.MultiPolygonField(srid=3857)
@@ -95,14 +97,34 @@ class Area(DatentoolModelMixin, JsonAttributes, models.Model):
     def attributes(self):
         return self.areaattribute_set
 
+    def get_attr_value(self, attr: str):
+        """get the value of an attribute"""
+        return self.attributes.get(field__name=attr).value
+
+    @classmethod
+    def label_annotated_qs(cls) -> 'Area':
+        attributes = AreaAttribute.value_annotated_qs()
+        area_attributes = attributes.filter(area=OuterRef('pk'),
+                                            field__is_label=True)
+        qs=cls.objects\
+            .select_related('area_level')\
+            .prefetch_related(
+                Prefetch('areaattribute_set', queryset=attributes))\
+            .annotate(_label=Subquery(area_attributes.values('_value')[:1]))
+        return qs
+
+
     @property
     def label(self):
         """The area label retrieved from the attributes"""
+        if hasattr(self, '_label'):
+            return self._label
+
         try:
-            label_attr = self.attributes.get(field__is_label=True)
+            label_attr = self.areaattribute_set.get(field__is_label=True)
         except AreaAttribute.DoesNotExist:
             return ''
-        return label_attr.value
+        return str(label_attr.value)
 
     @attributes.setter
     def attributes(self, attr_dict: dict):
@@ -136,7 +158,6 @@ class Area(DatentoolModelMixin, JsonAttributes, models.Model):
             instance.attributes = instance._attr_dict
 
     def __str__(self) -> str:
-        attributes = self.areaattribute_set
         return f'{self.__class__.__name__} ({self.area_level.name}): {self.label}'
 
 
@@ -198,9 +219,21 @@ class FieldAttribute(DatentoolModelMixin, NamedModel, models.Model):
     class Meta:
         abstract = True
 
+    @classmethod
+    def value_annotated_qs(cls) -> 'FieldAttribute':
+        """returns a queryset annotated with the value"""
+        qs = cls.objects\
+            .select_related('field__field_type', 'class_value')\
+            .annotate(_value=Coalesce(F('str_value'),
+                                      Coalesce(Cast(F('num_value'), TextField()),
+                                               F('class_value__value'))))
+        return qs
+
     @property
     def value(self):
         """represent the the Attribute-instance depending on the field_type"""
+        if hasattr(self, '_value'):
+            return self._value
         if self.field.field_type.ftype == FieldTypes.NUMBER:
             return self.num_value
         elif self.field.field_type.ftype == FieldTypes.STRING:
@@ -220,7 +253,7 @@ class FieldAttribute(DatentoolModelMixin, NamedModel, models.Model):
                 fclass = FClass.objects.get(ftype=self.field.field_type,
                                             value=data)
             except FClass.DoesNotExist:
-                raise ValueError(f'{data} for field {self.field} is no valid value')
+                raise ValueError(f'{data} for field {self.field.name} is no valid value')
             self.class_value = fclass
 
     def __repr__(self) -> str:
