@@ -79,7 +79,7 @@ export class SettingsComponent implements AfterViewInit {
         ).subscribe(data => {
           this.titleEdit.closeDialog(true);
           // update global settings
-          this.settingsService.fetchSiteSettings();
+          this.settingsService.refresh();
         },(error) => {
           // ToDo: set specific errors to fields
           this.titleForm.setErrors(error.error);
@@ -112,7 +112,7 @@ export class SettingsComponent implements AfterViewInit {
       ).subscribe(data => {
         this.contactEdit.closeDialog(true);
         // update global settings
-        this.settingsService.fetchSiteSettings();
+        this.settingsService.refresh();
       },(error) => {
         // ToDo: set specific errors to fields
         if (error.error.contactMail)
@@ -141,7 +141,7 @@ export class SettingsComponent implements AfterViewInit {
       this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, attributes
       ).subscribe(settings => {
         // update global settings
-        this.settingsService.fetchSiteSettings();
+        this.settingsService.refresh();
         this.welcomeTextEdit.closeDialog(true);
       },(error) => {
         this.welcomeTextErrors = error.error;
@@ -167,7 +167,7 @@ export class SettingsComponent implements AfterViewInit {
       ).subscribe(settings => {
         this.logoEdit?.closeDialog(true);
         // update global settings
-        this.settingsService.fetchSiteSettings();
+        this.settingsService.refresh();
       },(error) => {
         this.logoErrors = error.error;
         this.logoEdit?.setLoading(false);
@@ -196,7 +196,7 @@ export class SettingsComponent implements AfterViewInit {
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
         this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, { logo: null }
-        ).subscribe( settings => this.settingsService.fetchSiteSettings() )
+        ).subscribe( settings => this.settingsService.refresh() )
       }
     });
   }

@@ -4,6 +4,7 @@ import { RestAPI } from "./rest-api";
 import { HttpClient } from "@angular/common/http";
 import { Title } from "@angular/platform-browser";
 import { ProjectSettings } from "./pages/administration/project-definition/project-definition.component";
+
 export interface SiteSettings {
   id: number,
   title: string,
@@ -64,21 +65,24 @@ export class SettingsService {
     startYear: 0,
     endYear: 0
   });
-  user: UserSettings;
+  user?: UserSettings;
 
   constructor(private rest: RestAPI, private http: HttpClient, private titleService: Title) {
-    // initial fetch of settings
+    this.refresh();
+  }
+
+  refresh(): void {
     this.fetchSiteSettings();
     this.fetchProjectSettings();
     this.user = new UserSettings(this.rest, this.http);
   }
 
-  fetchSiteSettings(): void {
+  private fetchSiteSettings(): void {
     this.http.get<SiteSettings>(this.rest.URLS.siteSettings)
       .subscribe(siteSettings => {  this.siteSettings$.next(siteSettings); });
   }
 
-  fetchProjectSettings(): void {
+  private fetchProjectSettings(): void {
     this.http.get<ProjectSettings>(this.rest.URLS.projectSettings)
       .subscribe(projectSettings => {  this.projectSettings$.next(projectSettings); });
   }

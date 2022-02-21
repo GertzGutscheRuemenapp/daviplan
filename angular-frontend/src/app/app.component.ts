@@ -12,13 +12,15 @@ import { tap } from "rxjs/operators";
 export class AppComponent {
 
   constructor(private settings: SettingsService, router: Router, dialog: MatDialog) {
-    // auto apply settings when new ones were fetched
-    // ToDo: is this the right place for this?
+    // auto apply site settings when new ones were fetched
     settings.siteSettings$.subscribe(settings => {
       this.settings.applySiteSettings(settings);
     })
     router.events.pipe(
-      tap(() => dialog.closeAll())
+      tap(() => {
+        // close all dialogs on page change
+        dialog.closeAll();
+      })
     ).subscribe();
   }
 }

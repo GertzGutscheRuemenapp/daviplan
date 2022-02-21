@@ -42,6 +42,8 @@ export class LoginComponent {
             password: pass,
             username: username
           }).subscribe(token => {
+            // fetch global settings after logged in
+            this.settingsService.refresh();
             this.router.navigate(['/']);
           }, (error) => {
             this.loginForm.setErrors({ 'error': $localize`Keine Übereinstimmung von Nutzer und Passwort` })
