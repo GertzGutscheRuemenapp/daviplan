@@ -1,9 +1,4 @@
-from typing import List
-
-import mapbox_vector_tile
-from django.urls import reverse
 from test_plus import APITestCase
-from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
@@ -14,20 +9,7 @@ from datentool_backend.area.tests import TestAPIMixin, TestPermissionsMixin
 from ..factories import (RouterFactory, IndicatorFactory, )
 
 
-from ..models import (IndicatorType, Indicator,)
-from ..compute import (NumberOfLocations,
-                      TotalCapacityInArea,
-                      )
-
-from datentool_backend.area.factories import AreaLevelFactory, AreaFactory
-from datentool_backend.user.factories import (InfrastructureFactory,
-                                              Infrastructure,
-                                              ServiceFactory,
-                                              PlanningProcess)
-from datentool_backend.infrastructure.factories import (ScenarioFactory,
-                                                        PlaceFactory,
-                                                        ServiceFactory,
-                                                        CapacityFactory)
+from ..models import (Indicator,)
 
 
 from faker import Faker

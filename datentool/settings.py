@@ -52,7 +52,6 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'drf_spectacular',
     'django_cleanup.apps.CleanupConfig',
-    'bulkmodel',
     'django_filters'
 ]
 
@@ -98,7 +97,8 @@ SPECTACULAR_SETTINGS = {
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
-    'ROTATE_REFRESH_TOKENS':  True,
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True
 }
 
 ROOT_URLCONF = 'datentool.urls'

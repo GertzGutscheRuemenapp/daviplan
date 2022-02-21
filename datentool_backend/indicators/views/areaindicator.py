@@ -1,10 +1,8 @@
 from django.http.request import QueryDict
-from django.views.generic import DetailView
 from django.core.exceptions import BadRequest
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from vectortiles.postgis.views import MVTView, BaseVectorTileView
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter
 
 from datentool_backend.area.models import AreaLevel
@@ -16,11 +14,10 @@ from datentool_backend.indicators.compute import (
     ComputePopulationAreaIndicator,
     NumberOfLocations,
     TotalCapacityInArea,
+    DemandAreaIndicator,
     )
-from datentool_backend.indicators.serializers import (IndicatorTypeSerializer,
-                          IndicatorSerializer,
-                          AreaIndicatorSerializer,
-                          )
+from datentool_backend.indicators.serializers import AreaIndicatorSerializer
+
 from datentool_backend.area.views import AreaLevelTileView
 from .parameters import (area_level_param,
                          areas_param,
@@ -100,6 +97,24 @@ class AreaIndicatorViewSet(viewsets.mixins.ListModelMixin, viewsets.GenericViewS
     def capacity(self, request, **kwargs):
         """get the total capacity of a certain service for selected areas"""
         qs = TotalCapacityInArea(self.request.query_params).compute()
+        serializer = AreaIndicatorSerializer(qs, many=True)
+        return Response(serializer.data)
+
+    @extend_schema(
+        parameters=[area_level_param,
+                    areas_param,
+                    year_param,
+                    scenario_param,
+                    services_param,
+                    genders_param,
+                    age_groups_param,
+                    ],
+        responses=AreaIndicatorSerializer(many=True),
+    )
+    @action(methods=['GET'], detail=False)
+    def demand(self, request, **kwargs):
+        """get the total population for selected areas"""
+        qs = DemandAreaIndicator(self.request.query_params).compute()
         serializer = AreaIndicatorSerializer(qs, many=True)
         return Response(serializer.data)
 

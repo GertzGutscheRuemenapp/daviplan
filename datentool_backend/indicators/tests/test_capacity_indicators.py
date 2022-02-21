@@ -4,7 +4,7 @@ import mapbox_vector_tile
 from django.urls import reverse
 from test_plus import APITestCase
 
-from datentool_backend.api_test import BasicModelReadTest, BasicModelListTest
+from datentool_backend.api_test import BasicModelListTest
 
 from ..factories import IndicatorFactory
 

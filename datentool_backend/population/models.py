@@ -1,11 +1,12 @@
 from django.db import models
 from django.contrib.gis.db import models as gis_models
 from django.core.validators import MaxLengthValidator
+from datentool_backend.utils.copy_postgres import DirectCopyManager
 
 from datentool_backend.base import NamedModel, DatentoolModelMixin
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 
-from datentool_backend.area.models import AreaLevel, Area
+from datentool_backend.area.models import Area
 from datentool_backend.user.models import Year
 from datentool_backend.demand.models import AgeGroup, Gender
 
@@ -55,6 +56,9 @@ class AreaCell(models.Model):
     share_cell_of_area = models.FloatField()
     share_area_of_cell = models.FloatField()
 
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
+
 
 class Prognosis(DatentoolModelMixin, NamedModel, models.Model):
     """a prognosis"""
@@ -88,6 +92,9 @@ class RasterCellPopulationAgeGender(models.Model):
     age_group = models.ForeignKey(AgeGroup, on_delete=PROTECT_CASCADE)
     gender = models.ForeignKey(Gender, on_delete=PROTECT_CASCADE)
     value = models.FloatField()
+
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
 
 
 class PopStatistic(DatentoolModelMixin, models.Model):

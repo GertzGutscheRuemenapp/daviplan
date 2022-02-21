@@ -173,14 +173,14 @@ export class MapControl {
     this.target = target;
     // call destroy on page reload
     window.onbeforeunload = () => this.destroy();
-    this.settings.user.get('extents').subscribe(extents => {
+    this.settings.user?.get('extents').subscribe(extents => {
       this.mapExtents = extents || {};
     })
   }
 
   init(): void {
     this.map = new OlMap(this.target, { projection: `EPSG:${this.srid}` });
-    this.settings.user.get(this.target).subscribe(mapSettings => {
+    this.settings.user?.get(this.target).subscribe(mapSettings => {
       mapSettings = mapSettings || {};
       this.mapSettings = mapSettings;
       const editMode = mapSettings['legend-edit-mode'];
@@ -496,8 +496,8 @@ export class MapControl {
 
   saveSettings(): void {
     if (this.mapSettings)
-      this.settings.user.set(this.target, this.mapSettings, { patch: true });
-    this.settings.user.set('extents', this.mapExtents, { patch: true });
+      this.settings.user?.set(this.target, this.mapSettings, { patch: true });
+    this.settings.user?.set('extents', this.mapExtents, { patch: true });
   }
 
   destroy(): void {

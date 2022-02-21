@@ -1,10 +1,6 @@
-import json
-
-from django.db.models import ProtectedError
-from rest_framework import viewsets
+from django.db.models import Prefetch, Q
+from rest_framework import viewsets, status
 from rest_framework.response import Response
-from rest_framework.decorators import action
-from django.db.models import Q
 from drf_spectacular.utils import extend_schema, OpenApiParameter, extend_schema_view
 
 from datentool_backend.utils.views import ProtectCascadeMixin
@@ -19,6 +15,7 @@ from .models import (Scenario,
                      Place,
                      Capacity,
                      PlaceField,
+                     PlaceAttribute,
                      )
 
 from .serializers import (ScenarioSerializer,
@@ -61,12 +58,45 @@ class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
     filter_fields = ['infrastructure']
 
+    def create(self, request, *args, **kwargs):
+        """use the annotated version"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        #replace the created instance with an annotated instance
+        serializer.instance = self.get_queryset().get(pk=serializer.instance.pk)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def get_queryset(self):
-        profile = self.request.user.profile
-        accessible = InfrastructureAccess.objects.filter(
-            profile=profile).values_list('infrastructure', flat=True)
-        queryset = Place.objects.filter(infrastructure__in=accessible)
+        try:
+            profile = self.request.user.profile
+        except AttributeError:
+            # no profile yet
+            return Place.objects.none()
+        accessible_infrastructure = InfrastructureAccess.objects.filter(profile=profile)
+
+        query_params = self.request.query_params
+        service_ids = query_params.getlist('service')
+        year = query_params.get('year', 0)
+        scenario = query_params.get('scenario')
+
+        current_capacities = Capacity.filter_queryset(Capacity.objects,
+                                                      service_ids=service_ids,
+                                                      scenario_id=scenario,
+                                                      year=year)
+
+        queryset = Place.objects.select_related('infrastructure')\
+            .prefetch_related(
+                Prefetch('infrastructure__infrastructureaccess_set',
+                         queryset=accessible_infrastructure,
+                         to_attr='users_infra_access'),
+                Prefetch('capacity_set',
+                         queryset=current_capacities,
+                         to_attr='current_capacities'),
+                Prefetch('placeattribute_set',
+                         queryset=PlaceAttribute.objects.select_related('field__field_type'))
+                )
         service = self.request.query_params.get('service')
         if service:
             queryset = queryset.filter(service_capacity=service).distinct()
