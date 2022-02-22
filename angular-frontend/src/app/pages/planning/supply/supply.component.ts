@@ -130,7 +130,10 @@ export class SupplyComponent implements AfterViewInit{
         autoFocus: false,
         data: {
           title: 'Ausgewählte Einrichtungen',
-          template: this.placePreviewTemplate
+          template: this.placePreviewTemplate,
+          resizable: true,
+          dragArea: 'header',
+          minWidth: '400px'
         }
       });
   }

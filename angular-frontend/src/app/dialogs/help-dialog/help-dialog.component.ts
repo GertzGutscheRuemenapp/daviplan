@@ -8,6 +8,9 @@ export interface DialogData {
   headerIcon: string;
   template: TemplateRef<any>;
   context: any;
+  resizable: boolean;
+  dragArea: 'header' | 'all';
+  minWidth: string;
 }
 
 @Component({
@@ -19,6 +22,7 @@ export class FloatingDialog {
   faArrows = faArrowsAlt;
   constructor(public dialogRef: MatDialogRef<FloatingDialog>, @Inject(MAT_DIALOG_DATA) public data: DialogData) {
     data.context = data.context || {};
+    data.dragArea = data.dragArea || 'all';
   }
 }
 
