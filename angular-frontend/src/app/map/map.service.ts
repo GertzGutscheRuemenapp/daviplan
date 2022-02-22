@@ -159,6 +159,7 @@ export class MapControl {
   mapDescription = '';
   layerGroups: BehaviorSubject<Array<LayerGroup>> = new BehaviorSubject<Array<LayerGroup>>([]);
   private layerMap: Record<string | number, Layer> = {};
+  private olLayerIds: Record<string, string | number> = {};
   private _localLayerGroups: LayerGroup[] = [];
   private _serviceLayerGroups: LayerGroup[] = [];
   private checklistSelection = new SelectionModel<Layer>(true );
@@ -299,12 +300,16 @@ export class MapControl {
     this.map?.removeLayer(this.mapId(layer));
   }
 
-  private onFeatureSelected(layer: OlLayer<any>, selected: Feature<any>[]): void {
-    console.log(layer)
+  private onFeatureSelected(ollayer: OlLayer<any>, selected: Feature<any>[]): void {
+    const layer = this.layerMap[this.olLayerIds[ollayer.get('name')]];
+    if (layer.featureSelected)
+      selected.forEach(feature => layer.featureSelected!.emit({ feature: feature, selected: true }));
   }
 
-  private onFeatureDeselected(layer: OlLayer<any>, deselected: Feature<any>[]): void {
-
+  private onFeatureDeselected(ollayer: OlLayer<any>, deselected: Feature<any>[]): void {
+    const layer = this.layerMap[this.olLayerIds[ollayer.get('name')]];
+    if (layer.featureSelected)
+      deselected.forEach(feature => layer.featureSelected!.emit({ feature: feature, selected: false }));
   }
 
   /**
@@ -423,6 +428,7 @@ export class MapControl {
         }
     }
     this.layerMap[layer.id!] = layer;
+    this.olLayerIds[this.mapId(layer)] = layer.id!;
   }
 
   addWKTFeatures(id: number | string, wktFeatures: any[], ewkt: boolean = false){
@@ -441,6 +447,8 @@ export class MapControl {
         dataProjection: dataProjection,
         featureProjection: this.map!.mapProjection,
       });
+      if (wktFeature.id)
+        feature.set('id', wktFeature.id);
       feature.setProperties(wktFeature.properties);
       features.push(feature);
     })

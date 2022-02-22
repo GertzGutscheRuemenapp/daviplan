@@ -1,10 +1,11 @@
 import { Component, AfterViewInit, TemplateRef, ViewChild } from '@angular/core';
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
-import { MatDialog } from "@angular/material/dialog";
+import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
 import { Infrastructure, Layer, LayerGroup, Place } from "../../../rest-interfaces";
 import { MapControl, MapService } from "../../../map/map.service";
+import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
 
 @Component({
   selector: 'app-supply',
@@ -13,6 +14,7 @@ import { MapControl, MapService } from "../../../map/map.service";
 })
 export class SupplyComponent implements AfterViewInit{
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
+  @ViewChild('placePreviewTemplate') placePreviewTemplate!: TemplateRef<any>;
   addPlaceMode = false;
   years = [2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025];
   compareSupply = true;
@@ -24,6 +26,9 @@ export class SupplyComponent implements AfterViewInit{
   legendGroup?: LayerGroup;
   placesLayer?: Layer;
   places?: Place[];
+  selectedPlaces: Place[] = [];
+  placeDialogRef?: MatDialogRef<any>;
+  Object = Object;
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
               private planningService: PlanningService) {
@@ -88,6 +93,45 @@ export class SupplyComponent implements AfterViewInit{
         });
       this.places = places;
       this.mapControl?.addWKTFeatures(this.placesLayer!.id!, this.places, true);
+      this.placesLayer?.featureSelected?.subscribe(evt => {
+        if (evt.selected)
+          this.selectPlace(evt.feature.get('id'));
+        else
+          this.deselectPlace(evt.feature.get('id'));
+      })
     })
+  }
+
+  selectPlace(placeId: number) {
+    const place = this.places?.find(p => p.id === placeId);
+    if (place) {
+      this.selectedPlaces = [place, ...this.selectedPlaces];
+      this.togglePlaceDialog(true);
+    }
+  }
+
+  deselectPlace(placeId: number) {
+    this.selectedPlaces = this.selectedPlaces.filter(p => p.id !== placeId);
+    if (this.selectedPlaces.length === 0)
+      this.togglePlaceDialog(false);
+  }
+
+  togglePlaceDialog(open: boolean): void {
+    if (!open){
+      this.placeDialogRef?.close();
+      return;
+    }
+    if (this.placeDialogRef && this.placeDialogRef.getState() === 0)
+      return;
+    else
+      this.placeDialogRef = this.dialog.open(FloatingDialog, {
+        panelClass: 'help-container',
+        hasBackdrop: false,
+        autoFocus: false,
+        data: {
+          title: 'Ausgewählte Einrichtungen',
+          template: this.placePreviewTemplate
+        }
+      });
   }
 }

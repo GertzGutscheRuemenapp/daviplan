@@ -166,3 +166,15 @@
   </div>
   <app-filter-table></app-filter-table>
 </ng-template>
+
+<ng-template #placePreviewTemplate>
+  <div *ngFor="let place of selectedPlaces">
+    <b>{{ place.properties.name }}</b>
+    <ng-container *ngIf="place.properties.attributes">
+      <div *ngFor="let key of Object.keys(place.properties.attributes)">
+        {{key}}: <i>{{place.properties.attributes[key]}}</i>
+      </div>
+    </ng-container>
+    <br>
+  </div>
+</ng-template>

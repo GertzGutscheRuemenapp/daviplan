@@ -33,7 +33,7 @@ export interface Layer {
   symbol?: Symbol,
   type?: "wms" | "vector-tiles" | "tiles" | "vector",
   labelField?: string,
-  featureSelected?: EventEmitter<any>
+  featureSelected?: EventEmitter<{ feature: any, selected: boolean }>
 }
 
 export interface Source {
