@@ -10,7 +10,7 @@ from datentool_backend.api_test import (BasicModelSingletonTest,
                                         SingletonWriteOnlyWithCanEditBaseDataTest,
                                         SingletonWriteOnlyWithAdminAccessTest,
                                         TestAPIMixin)
-
+from datentool_backend.user.factories import ProfileFactory
 from datentool_backend.site.factories import (ProjectSettingFactory,
                                               BaseDataSettingFactory,
                                               SiteSettingFactory)
@@ -169,12 +169,10 @@ class TestSiteSetting(TestAPIMixin, BasicModelSingletonTest, APITestCase):
 
     def test_admin_access(self):
         """write permission if user has admin_access, check methods put, patch"""
-        profile = self.profile
-        permission_admin = profile.admin_access
 
-        # Testprofile, with admin_access
-        profile.admin_access = True
-        profile.save()
+        pr1 = ProfileFactory(admin_access=True)
+
+        self.client.force_login(pr1.user)
 
         url = self.url_key + '-detail'
         kwargs = self.kwargs
@@ -219,9 +217,8 @@ class TestSiteSetting(TestAPIMixin, BasicModelSingletonTest, APITestCase):
         expected.update(self.expected_patch_data)
         self.compare_data(response.data, expected)
 
-        # Testprofile, without admin_access
-        profile.admin_access = False
-        profile.save()
+        self.client.logout()
+        self.client.force_login(self.profile.user)
 
         url = self.url_key + '-detail'
         kwargs = self.kwargs
@@ -245,5 +242,3 @@ class TestSiteSetting(TestAPIMixin, BasicModelSingletonTest, APITestCase):
                               data=self.patch_data, extra=format_multipart)
         self.response_403(msg=response.content)
 
-        profile.admin_access = permission_admin
-        profile.save()

@@ -34,5 +34,5 @@ class SiteSettingViewSet(SingletonViewSet):
     model_class = SiteSetting
     serializer_class = SiteSettingSerializer
     permission_classes = [HasAdminAccessOrReadOnlyAny]
-    authentication_classes = []
+    #authentication_classes = []
 
