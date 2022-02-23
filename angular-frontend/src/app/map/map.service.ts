@@ -326,6 +326,7 @@ export class MapControl {
     selectable?: boolean,
     tooltipField?: string,
     colorFunc?: ((d: number) => string),
+    valueField?: string,
     mouseOver?: {
       fillColor?: string,
       strokeColor?: string
@@ -353,6 +354,7 @@ export class MapControl {
       visible: options?.visible,
       tooltipField: options?.tooltipField,
       colorFunc: options?.colorFunc,
+      valueField: options?.valueField,
       mouseOver: options?.mouseOver,
       select: options?.select
     });
@@ -371,6 +373,7 @@ export class MapControl {
     visible?: boolean,
     tooltipField?: string,
     colorFunc?: ((d: number) => string),
+    valueField?: string,
     mouseOver?: {
       fillColor?: string,
       strokeColor?: string
@@ -385,6 +388,7 @@ export class MapControl {
       this.map!.addVectorLayer(this.mapId(layer), {
         visible: options?.visible,
         opacity: opacity,
+        valueField: options?.valueField,
         stroke: {
           color: layer.symbol?.strokeColor, width: 2,
           mouseOverColor: options?.mouseOver?.strokeColor,

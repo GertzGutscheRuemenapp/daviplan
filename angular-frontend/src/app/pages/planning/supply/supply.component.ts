@@ -8,6 +8,7 @@ import { MapControl, MapService } from "../../../map/map.service";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
 import { forkJoin, Observable } from "rxjs";
 import { tap } from "rxjs/operators";
+import * as d3 from "d3";
 
 @Component({
   selector: 'app-supply',
@@ -105,6 +106,8 @@ export class SupplyComponent implements AfterViewInit{
     this.planningService.getPlaces(this.selectedInfrastructure.id).subscribe(places => {
       if (this.placesLayer)
         this.mapControl?.removeLayer(this.placesLayer.id!)
+      const colorFunc = d3.scaleSequential().domain([0, 1000])
+        .interpolator(d3.interpolateViridis);
       this.placesLayer = this.mapControl?.addLayer({
           order: 0,
           type: 'vector',
@@ -117,7 +120,7 @@ export class SupplyComponent implements AfterViewInit{
             strokeColor: 'black',
             symbol: 'circle'
           },
-          labelField: 'capacity'
+          labelField: 'label'
         },
         {
           visible: true,
@@ -125,7 +128,9 @@ export class SupplyComponent implements AfterViewInit{
           selectable: true,
           select: {
             fillColor: 'yellow'
-          }
+          },
+          colorFunc: colorFunc,
+          valueField: 'capacity'
         });
       this.places = places;
       this.updateCapacities();
@@ -143,7 +148,8 @@ export class SupplyComponent implements AfterViewInit{
     if (!this.places) return;
     if (!this.year || checkedServices.length === 0) {
       this.places?.forEach(place => {
-        place.properties.capacity = '';
+        place.properties.capacity = 0;
+        place.properties.label = '';
         this.mapControl?.clearFeatures(this.placesLayer!.id!);
         this.mapControl?.addWKTFeatures(this.placesLayer!.id!, this.places!, true);
       })
@@ -163,7 +169,8 @@ export class SupplyComponent implements AfterViewInit{
         checkedServices.forEach(serviceId => {
           summedCapacity += this.getCapacity(Number(serviceId), place.id);
         })
-        place.properties.capacity = this.getFormattedCapacityString(checkedServices.map(id => Number(id)), summedCapacity);
+        place.properties.capacity = summedCapacity;
+        place.properties.label = this.getFormattedCapacityString(checkedServices.map(id => Number(id)), summedCapacity);
       })
       this.mapControl?.clearFeatures(this.placesLayer!.id!);
       this.mapControl?.addWKTFeatures(this.placesLayer!.id!, this.places!, true);

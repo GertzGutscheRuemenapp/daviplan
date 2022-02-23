@@ -305,9 +305,9 @@ export class OlMap {
       },
       fill?: {
         color?: string | ((d: number) => string),
-        colorValueField?: string,
         selectedColor?: string, mouseOverColor?: string },
-      labelField?: string
+      labelField?: string,
+      valueField?: string
     } = {}): Layer<any> {
 
     // @ts-ignore
@@ -363,9 +363,11 @@ export class OlMap {
           style.getText().setText(text);
         }
         if (typeof options?.fill?.color === 'function'){
-          const valueField = options?.fill?.colorValueField || 'value';
+          const valueField = options?.valueField || 'value';
           const color = options.fill.color(Number(feature.get(valueField)));
           style.getFill().setColor(color);
+          // @ts-ignore
+          style.getImage().getFill().setColor(color);
         }
         return style;
       }

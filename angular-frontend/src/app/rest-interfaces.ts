@@ -119,7 +119,8 @@ export interface Place {
     name: string,
     infrastructure: number,
     attributes: any,
-    capacity?: string
+    label?: string,
+    capacity?: number
   },
   capacities?: Capacity[]
 }
