@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, OnDestroy } from '@angular/core';
-import { mockInfrastructures } from "../../administration/infrastructure/infrastructure.component";
 import { MapControl, MapService } from "../../../map/map.service";
+import { Infrastructure } from "../../../rest-interfaces";
+import { RestCacheService } from "../../../rest-cache.service";
 
 @Component({
   selector: 'app-locations',
@@ -8,15 +9,22 @@ import { MapControl, MapService } from "../../../map/map.service";
   styleUrls: ['./locations.component.scss']
 })
 export class LocationsComponent implements AfterViewInit, OnDestroy {
-  infrastructures = mockInfrastructures;
-  selectedInfrastructure = mockInfrastructures[1];
+  infrastructures: Infrastructure[] = [];
+  selectedInfrastructure?: Infrastructure;
   mapControl?: MapControl;
   addPlaceMode = false;
 
-  constructor(private mapService: MapService) { }
+  constructor(private mapService: MapService, private restService: RestCacheService) { }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-locations-map');
+    this.restService.fetchInfrastructures();
+    this.restService.infrastructures$.subscribe(infrastructures => {
+      this.infrastructures = infrastructures;
+    })
+  }
+  onInfrastructureChange(): void {
+    console.log(this.selectedInfrastructure);
   }
 
   ngOnDestroy(): void {

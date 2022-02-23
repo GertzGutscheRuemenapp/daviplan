@@ -108,7 +108,8 @@ class CapacitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Capacity
         #list_serializer_class = CapacityListSerializer
-        fields = ('id', 'place', 'service', 'capacity', 'from_year', 'scenario')
+        fields = ('id', 'place', 'service', 'capacity',
+                  'from_year', 'scenario')
 
 
 class CapacityAmountSerializer(serializers.FloatField):
@@ -189,18 +190,11 @@ class PlaceAttributeValidator:
 class PlaceSerializer(GeoFeatureModelSerializer):
     geom = GeometrySRIDField(srid=3857)
     attributes = PlaceAttributeField(validators=[PlaceAttributeValidator()])
-    capacity = CapacitySerializer(required=False, many=True,
-                                  source='current_capacities')
-    capacities = CapacityListSerializer(required=False,
-                                        child=CapacityAmountSerializer(),
-                                        source='current_capacities')
 
     class Meta:
         model = Place
         geo_field = 'geom'
-        fields = ('id', 'name', 'infrastructure', 'attributes', 'capacity',
-                  'capacities',
-                  'scenario')
+        fields = ('id', 'name', 'infrastructure', 'attributes', 'scenario')
 
 
 class PlaceFieldSerializer(serializers.ModelSerializer):

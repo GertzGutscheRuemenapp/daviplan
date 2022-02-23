@@ -1,3 +1,5 @@
+import { EventEmitter } from "@angular/core";
+
 export interface BasedataSettings {
   defaultPopAreaLevel: number;
 }
@@ -30,7 +32,8 @@ export interface Layer {
   opacity?: number,
   symbol?: Symbol,
   type?: "wms" | "vector-tiles" | "tiles" | "vector",
-  labelField?: string
+  labelField?: string,
+  featureSelected?: EventEmitter<{ feature: any, selected: boolean }>
 }
 
 export interface Source {
@@ -78,6 +81,13 @@ export interface PopulationData {
   value: number
 }
 
+export interface AgeGroup {
+  id?: number,
+  fromAge: number,
+  toAge: number,
+  label?: string
+}
+
 export interface Gender {
   id: number,
   name: string;
@@ -101,5 +111,9 @@ export interface Infrastructure {
 
 export interface Place {
   id: number,
-  name: string
+  properties: {
+    name: string,
+    infrastructure: number,
+    attributes: any
+  }
 }

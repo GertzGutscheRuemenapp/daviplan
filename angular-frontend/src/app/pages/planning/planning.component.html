@@ -1,3 +1,6 @@
+<div class="loadOverlay" *ngIf="planningService.isLoading$ | async">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
 <mat-toolbar class="sub-nav">
   <div id="process-select">
     <div class="mini-fab-icon inverted primary">

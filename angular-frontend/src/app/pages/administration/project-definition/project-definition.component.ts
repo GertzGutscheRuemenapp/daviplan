@@ -1,8 +1,9 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
 import { InputCardComponent } from "../../../dash/input-card.component";
-import { Geometry, GeometryCollection, MultiPolygon, Polygon } from "ol/geom";
-import { Collection, Feature } from 'ol';
+import { Geometry, MultiPolygon, Polygon } from "ol/geom";
+import { Feature } from 'ol';
+import { AgeGroup } from "../../../rest-interfaces";
 import { register } from 'ol/proj/proj4'
 import union from '@turf/union';
 import * as turf from '@turf/helpers';
@@ -21,14 +22,6 @@ export interface ProjectSettings {
   startYear: number,
   endYear: number
 }
-
-export interface AgeGroup {
-  id?: number,
-  fromAge: number,
-  toAge: number,
-  label?: string
-}
-
 interface BKGLayer {
   name: string,
   tag: string

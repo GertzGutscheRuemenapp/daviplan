@@ -66,6 +66,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
                    TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""
     url_key = "places"
+    capacity_url = "capacities"
 
     @classmethod
     def setUpTestData(cls):
@@ -393,17 +394,17 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         place2.service_capacity.set([service3, service2],
                                     through_defaults=dict(capacity=0))
 
-        #  default capacity has from_year=0 and capacity=0
+        # default capacity has from_year=0 and capacity=0
         # add two more capacities
         CapacityFactory(service=service3, place=place2,
                         from_year=2023, capacity=123)
         CapacityFactory(service=service3, place=place2,
                         from_year=2021, capacity=55)
 
-        #  test if the correct places which offer a service are returned
-        self.check_place_with_capacity(service1, {place1.id})
-        self.check_place_with_capacity(service2, {place1.id, place2.id})
-        self.check_place_with_capacity(service3, {place2.id})
+        # test if the correct places which offer a service are returned
+        self.check_place_with_capacity(service1, expected_place_ids={place1.id})
+        self.check_place_with_capacity(service2, expected_place_ids={place1.id, place2.id})
+        self.check_place_with_capacity(service3, expected_place_ids={place2.id})
 
         year_expected = {2020: 0,
                          2021: 55,
@@ -412,40 +413,44 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
                          2024: 123,
                          }
 
-        #  test if the correct capacity is returned for different years
+        # test if the correct capacity is returned for different years
         for year, expected in year_expected.items():
-            response = self.get(self.url_key + '-detail', pk=place2.pk,
-                                data=dict(service=service3.id, year=year))
-            capacity = response.data['properties']['capacity']
-            #  Todo: check if frontend needs the whole capacity information
-            # or only the capacity values
-            self.assertListEqual([c['capacity'] for c in capacity], [expected])
-            self.assertListEqual(response.data['properties']['capacities'],
-                                 [expected])
+            response = self.get(self.capacity_url + '-list',
+                                data=dict(place=place2.id, service=service3.id,
+                                          year=year))
+            self.assertEqual(len(response.data), 1)
+            capacity = response.data[0]['capacity']
+            self.assertEqual(capacity, expected)
 
-        #  without the year
-        response = self.get(self.url_key + '-detail', pk=place2.pk,
-                            data=dict(service=service3.id))
-        capacity = response.data['properties']['capacity']
-        self.assertListEqual([c['capacity'] for c in capacity], [0])
-
-        #  this should fail, because there is no service3 offered at place1
-        response = self.get(self.url_key + '-detail', pk=place1.pk,
-                            data=dict(service=service3.id, year=2024))
-        self.response_404(response)
+        # this should fail, because there is no service3 offered at place1
+        response = self.get(self.capacity_url + '-list',
+                            data=dict(place=place1.id, service=service3.id,
+                                      year=2024))
+        self.assertEqual(len(response.data), 0)
 
     def check_place_with_capacity(self, service: Service,
-                                  place_ids: Set[int],
-                                  year: int = None):
-        response = self.get(self.url_key + '-list',
-                            data=dict(service=service.id))
+                                  place: int = None,
+                                  scenario: int = None,
+                                  year: int = None,
+                                  expected_place_ids: Set[int] = None,
+                                  expected: List[int] = None):
+        data = dict(service=service.id)
+        if scenario is not None:
+            data['scenario'] = scenario
+        if year is not None:
+            data['year'] = year
+        if place is not None:
+            data['place'] = place
+        response = self.get(self.capacity_url + '-list',
+                            data=data)
         self.response_200(msg=response.content)
-        self.assertSetEqual({p['id'] for p in response.data['features']},
-                            place_ids)
-        feature_capacities = [f['properties']['capacity']
-                              for f in response.data['features']]
-        for fc in feature_capacities:
-            assert all((c['service'] == service.id for c in fc))
+        if expected_place_ids is not None:
+            self.assertSetEqual({d['place'] for d in response.data},
+                                expected_place_ids)
+        assert all((d['service'] == service.id for d in response.data))
+        if expected is not None:
+            self.assertListEqual(
+                [d['capacity'] for d in response.data], expected)
 
     def test_check_capacity_for_scenario(self):
         scenario1 = ScenarioFactory()
@@ -474,78 +479,45 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
                         scenario=scenario3)
 
         #  In the base scenario, test the scenario for service1 and service2
-        self.check_capacity_detail([50], place1.pk, service1.pk)
-        self.check_capacity_detail([99], place1.pk, service2.pk)
-        self.check_capacity_detail([50, 99], place1.pk)
+        self.check_place_with_capacity(service1, place=place1.id, expected=[50])
+        self.check_place_with_capacity(service2, place=place1.id, expected=[99])
 
         #  In scenario1, it should change
-        self.check_capacity_detail([100], place1.pk, service1.pk,
-                                   scenario_id=scenario1.pk)
+        self.check_place_with_capacity(service1, scenario=scenario1.pk,
+                                       place=place1.id, expected=[100])
         #  In scenario2, no new capacity defined,
         # so take the base value for the base year
-        self.check_capacity_detail([50], place1.pk, service1.pk,
-                                   scenario_id=scenario2.pk)
+        self.check_place_with_capacity(service1, scenario=scenario2.pk,
+                                       place=place1.id, expected=[50])
         #  .. and the base-scenario value vor year 2026
-        self.check_capacity_detail([77], place1.pk, service1.pk,
-                                   scenario_id=scenario2.pk, year=2026)
+        self.check_place_with_capacity(service1, scenario=scenario2.pk,
+                                       year=2026, place=place1.id, expected=[77])
         #  In scenario3, it should change over time from 100 over 200 to 0
-        self.check_capacity_detail([100], place1.pk, service1.pk,
-                                   scenario_id=scenario3.pk, year=2021)
-        self.check_capacity_detail([200], place1.pk, service1.pk,
-                                   scenario_id=scenario3.pk, year=2022)
-        self.check_capacity_detail([200], place1.pk, service1.pk,
-                                   scenario_id=scenario3.pk, year=2025)
-        self.check_capacity_detail([0], place1.pk, service1.pk,
-                                   scenario_id=scenario3.pk, year=2030)
+        self.check_place_with_capacity(service1,
+                                       scenario=scenario3.pk, year=2021,
+                                       place=place1.id, expected=[100])
+        self.check_place_with_capacity(service1,
+                                       scenario=scenario3.pk, year=2022,
+                                       place=place1.id, expected=[200])
+        self.check_place_with_capacity(service1,
+                                       scenario=scenario3.pk, year=2025,
+                                       place=place1.id, expected=[200])
+        self.check_place_with_capacity(service1,
+                                       scenario=scenario3.pk, year=2030,
+                                       place=place1.id, expected=[0])
+
 
         CapacityFactory(place=place2, service=service1, capacity=88)
         CapacityFactory(place=place2, service=service1, from_year=2022, capacity=99)
         CapacityFactory(place=place2, service=service1, scenario=scenario1, capacity=55)
         CapacityFactory(place=place2, service=service1, scenario=scenario2, capacity=33)
 
-        self.check_capacity_list([50, 88], service1.pk)
-        self.check_capacity_list([50, 99], service1.pk, year=2023)
-        self.check_capacity_list([77, 99], service1.pk, year=2026)
-        self.check_capacity_list([100, 55], service1.pk, scenario_id=scenario1.pk)
-        self.check_capacity_list([50, 33], service1.pk, scenario_id=scenario2.pk)
-        self.check_capacity_list([100, 88], service1.pk, scenario_id=scenario3.pk)
-
-    def check_capacity_detail(self,
-                              expected: float,
-                              place_id: int,
-                              service_id: int = None,
-                              year: int = None,
-                              scenario_id: int = None):
-        query_params = {}
-        if service_id:
-            query_params['service'] = service_id
-        if year:
-            query_params['year'] = year
-        if scenario_id:
-            query_params['scenario'] = scenario_id
-        response = self.get(self.url_key + '-detail', pk=place_id,
-                            data=query_params)
-        self.assertListEqual(response.data['properties']['capacities'],
-                             expected)
-
-    def check_capacity_list(self,
-                            expected: List[int],
-                            service_id: int = None,
-                            year: int = None,
-                            scenario_id: int = None,
-                            ):
-        query_params = {}
-        if service_id:
-            query_params['service'] = service_id
-        if year:
-            query_params['year'] = year
-        if scenario_id:
-            query_params['scenario'] = scenario_id
-
-        response = self.get_check_200(self.url_key + '-list', data=query_params)
-        self.assertListEqual(
-            [f['properties']['capacities'][0] for f in response.data['features']],
-            expected)
+        self.check_place_with_capacity(service1, expected=[50, 88])
+        self.check_place_with_capacity(service1, year=2023, expected=[50, 99])
+        self.check_place_with_capacity(service1, year=2026, expected=[77, 99])
+        self.check_place_with_capacity(service1, scenario=scenario1.id, expected=[100, 55])
+        self.check_place_with_capacity(service1, scenario=scenario2.id, expected=[50, 33])
+        self.check_place_with_capacity(service1, scenario=scenario3.id, expected=[100, 88])
 
 
 class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,

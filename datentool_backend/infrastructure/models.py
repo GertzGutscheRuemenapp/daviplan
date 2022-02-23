@@ -178,16 +178,15 @@ class Capacity(DatentoolModelMixin, models.Model):
         if service_ids:
             queryset = queryset.filter(service__in=service_ids)
 
-        #  filter capacities by year
-        queryset_year = queryset\
-            .filter(from_year__lte=year)\
-            .filter(to_year__gte=year)
-
-        base_scenario_capacities = queryset_year.filter(scenario=None)
+        if year is not None:
+            # filter capacities by year
+            queryset = queryset\
+                .filter(from_year__lte=year)\
+                .filter(to_year__gte=year)
 
         # if base scenario is requested, filter by base scenario (= None)
         if scenario_id is None:
-            return base_scenario_capacities
+            return queryset.filter(scenario=None)
 
         # otherwise, the scenario is requested
         # find the places, that have specific capacities
@@ -207,7 +206,7 @@ class Capacity(DatentoolModelMixin, models.Model):
 
         # get the capacities defined for the scenario,
         # and for the places wihout scenario, the capacities from the base scenario
-        res_queryset = queryset_year\
+        res_queryset = queryset\
             .filter((Q(scenario__in=scenario_id) & Q(place__in=places_with_scenario)) |
                     (Q(scenario=None) & Q(place__in=places_without_scenario))
                     )
