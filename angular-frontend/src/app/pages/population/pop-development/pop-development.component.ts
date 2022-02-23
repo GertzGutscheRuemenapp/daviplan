@@ -8,8 +8,7 @@ import { map, shareReplay } from "rxjs/operators";
 import { MatDialog } from "@angular/material/dialog";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { PopulationService } from "../population.service";
-import { Area, AreaLevel, Gender, Layer, LayerGroup } from "../../../rest-interfaces";
-import { AgeGroup } from "../../administration/project-definition/project-definition.component";
+import { Area, AreaLevel, Gender, Layer, LayerGroup, AgeGroup } from "../../../rest-interfaces";
 import * as d3 from "d3";
 
 export const mockdata: StackedData[] = [

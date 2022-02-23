@@ -9,7 +9,7 @@ import GeoJSON from 'ol/format/GeoJSON';
 import { bbox as bboxStrategy } from 'ol/loadingstrategy';
 import TileWMS from 'ol/source/TileWMS';
 import XYZ from 'ol/source/XYZ';
-import { Stroke, Style, Fill, Text as OlText } from 'ol/style';
+import { Stroke, Style, Fill, Text as OlText, RegularShape } from 'ol/style';
 import { Select } from "ol/interaction";
 import { click, singleClick, always } from 'ol/events/condition';
 import { EventEmitter } from "@angular/core";
@@ -19,8 +19,8 @@ import { saveAs } from 'file-saver';
 import MVT from 'ol/format/MVT';
 import VectorTileLayer from 'ol/layer/VectorTile';
 import VectorTileSource from 'ol/source/VectorTile';
-import { defer } from "rxjs";
 import RenderFeature from "ol/render/Feature";
+import CircleStyle from "ol/style/Circle";
 
 export class OlMap {
   target: string;
@@ -249,10 +249,56 @@ export class OlMap {
     return layer;
   }
 
+  private getShape(shape: 'circle' | 'square' | 'star' | 'x' | 'triangle'): any {
+    if (shape === 'circle')
+      return new CircleStyle({
+        radius: 5,
+        fill: new Fill(),
+        stroke: new Stroke
+      })
+    if (shape === 'square')
+      return new RegularShape({
+        points: 4,
+        radius: 10,
+        angle: Math.PI / 4,
+        fill: new Fill(),
+        stroke: new Stroke
+      });
+    if (shape === 'triangle')
+      return new RegularShape({
+        points: 3,
+        radius: 10,
+        rotation: Math.PI / 4,
+        angle: 0,
+        fill: new Fill(),
+        stroke: new Stroke
+      });
+    if (shape === 'star')
+      return new RegularShape({
+        points: 5,
+        radius: 10,
+        radius2: 4,
+        angle: 0,
+        fill: new Fill(),
+        stroke: new Stroke
+      });
+    if (shape === 'x')
+      return new RegularShape({
+        points: 4,
+        radius: 10,
+        radius2: 0,
+        angle: Math.PI / 4,
+        fill: new Fill(),
+        stroke: new Stroke
+      })
+  }
+
+
   addVectorLayer(name: string, options: {
       url?: any, params?: any,
       visible?: boolean, opacity?: number,
       selectable?: boolean, tooltipField?: string,
+      shape?: 'circle' | 'square' | 'star' | 'x',
       stroke?: {
         color?: string, width?: number, dash?: number[],
         selectedColor?: string, mouseOverColor?: string, selectedDash?: number[],
@@ -266,15 +312,16 @@ export class OlMap {
     } = {}): Layer<any> {
 
     // @ts-ignore
-    const color: string = (options?.fill?.color instanceof String)? options?.fill?.color: 'rgba(0, 0, 0, 0)';
+    const fillColor: string = (typeof(options?.fill?.color) === 'string')? options?.fill?.color: 'rgba(0, 0, 0, 0)';
+    const strokeColor = options?.stroke?.color || 'rgba(0, 0, 0, 1.0)';
     const style = new Style({
       stroke: new Stroke({
-        color: options?.stroke?.color || 'rgba(0, 0, 0, 1.0)',
+        color: strokeColor,
         width: options?.stroke?.width || 1,
         lineDash: options?.stroke?.dash
       }),
       fill: new Fill({
-        color: color
+        color: fillColor
       }),
       text: new OlText({
         font: '14px Calibri,sans-serif',
@@ -289,6 +336,14 @@ export class OlMap {
         })
       })
     });
+
+    if (options?.shape) {
+      const shape = this.getShape(options?.shape);
+      shape.getFill().setColor(fillColor);
+      shape.getStroke().setColor(strokeColor);
+      style.setImage(shape);
+    }
+
     const _this = this;
     if (this.layers[name] != null) this.removeLayer(name);
     let sourceOpt = options?.url? {
@@ -324,19 +379,28 @@ export class OlMap {
       strokeWidth: options?.stroke?.mouseOverWidth || options?.stroke?.width || 1
     });
     if (options?.selectable) {
-      const select = new Select({
-        condition: click,
-        layers: [layer],
-        style: new Style({
+      const selectStrokeColor = options.stroke?.selectedColor || 'rgb(255, 129, 0)';
+      const selectFillColor = options.fill?.selectedColor || 'rgba(0, 0, 0, 0)';
+      const selectStyle = new Style({
           stroke: new Stroke({
-            color: options.stroke?.selectedColor || 'rgb(255, 129, 0)',
+            color: strokeColor,
             width: options.stroke?.width || 1,
             lineDash: options?.stroke?.selectedDash
           }),
           fill: new Fill({
-            color: options.fill?.selectedColor || 'rgba(0, 0, 0, 0)'
+            color: fillColor
           }),
-        }),
+        });
+      if (options?.shape) {
+        const shape = this.getShape(options?.shape);
+        shape.getFill().setColor(selectFillColor);
+        shape.getStroke().setColor(selectStrokeColor);
+        selectStyle.setImage(shape);
+      }
+      const select = new Select({
+        condition: click,
+        layers: [layer],
+        style: selectStyle,
         toggleCondition: always,
         multi: true
       })

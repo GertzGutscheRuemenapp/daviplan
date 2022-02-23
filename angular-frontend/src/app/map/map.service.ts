@@ -11,7 +11,8 @@ import { SettingsService } from "../settings.service";
 import { environment } from "../../environments/environment";
 import { v4 as uuid } from 'uuid';
 import { SelectionModel } from "@angular/cdk/collections";
-import { Feature } from "ol";
+import { Feature } from 'ol';
+import { Layer as OlLayer } from 'ol/layer'
 
 const backgroundLayers: Layer[] = [
   {
@@ -158,6 +159,7 @@ export class MapControl {
   mapDescription = '';
   layerGroups: BehaviorSubject<Array<LayerGroup>> = new BehaviorSubject<Array<LayerGroup>>([]);
   private layerMap: Record<string | number, Layer> = {};
+  private olLayerIds: Record<string, string | number> = {};
   private _localLayerGroups: LayerGroup[] = [];
   private _serviceLayerGroups: LayerGroup[] = [];
   private checklistSelection = new SelectionModel<Layer>(true );
@@ -180,6 +182,12 @@ export class MapControl {
 
   init(): void {
     this.map = new OlMap(this.target, { projection: `EPSG:${this.srid}` });
+    this.map.selected.subscribe(evt => {
+      if (evt.selected && evt.selected.length > 0)
+        this.onFeatureSelected(evt.layer, evt.selected);
+      if (evt.deselected && evt.deselected.length > 0)
+        this.onFeatureDeselected(evt.layer, evt.deselected);
+    })
     this.settings.user?.get(this.target).subscribe(mapSettings => {
       mapSettings = mapSettings || {};
       this.mapSettings = mapSettings;
@@ -292,6 +300,18 @@ export class MapControl {
     this.map?.removeLayer(this.mapId(layer));
   }
 
+  private onFeatureSelected(ollayer: OlLayer<any>, selected: Feature<any>[]): void {
+    const layer = this.layerMap[this.olLayerIds[ollayer.get('name')]];
+    if (layer.featureSelected)
+      selected.forEach(feature => layer.featureSelected!.emit({ feature: feature, selected: true }));
+  }
+
+  private onFeatureDeselected(ollayer: OlLayer<any>, deselected: Feature<any>[]): void {
+    const layer = this.layerMap[this.olLayerIds[ollayer.get('name')]];
+    if (layer.featureSelected)
+      deselected.forEach(feature => layer.featureSelected!.emit({ feature: feature, selected: false }));
+  }
+
   /**
    * add a layer to this map only
    * sets unique id if id is undefined
@@ -303,10 +323,14 @@ export class MapControl {
    */
   addLayer(layer: Layer, options?: {
     visible?: boolean,
-    checkable?: boolean,
+    selectable?: boolean,
     tooltipField?: string,
     colorFunc?: ((d: number) => string),
     mouseOver?: {
+      fillColor?: string,
+      strokeColor?: string
+    },
+    select?: {
       fillColor?: string,
       strokeColor?: string
     }
@@ -329,8 +353,12 @@ export class MapControl {
       visible: options?.visible,
       tooltipField: options?.tooltipField,
       colorFunc: options?.colorFunc,
-      mouseOver: options?.mouseOver
+      mouseOver: options?.mouseOver,
+      select: options?.select
     });
+    if (options?.selectable){
+      layer.featureSelected = new EventEmitter<any>();
+    }
     if (options?.visible)
       this.checklistSelection.select(layer);
     else
@@ -346,6 +374,10 @@ export class MapControl {
     mouseOver?: {
       fillColor?: string,
       strokeColor?: string
+    },
+    select?: {
+      fillColor?: string,
+      strokeColor?: string
     }
   }) {
     const opacity = (layer.opacity !== undefined)? layer.opacity : 1;
@@ -353,10 +385,20 @@ export class MapControl {
       this.map!.addVectorLayer(this.mapId(layer), {
         visible: options?.visible,
         opacity: opacity,
-        stroke: { color: layer.symbol?.strokeColor, width: 2, mouseOverColor: options?.mouseOver?.strokeColor },
-        fill: { color: (options?.colorFunc)? options?.colorFunc: layer.symbol?.fillColor, mouseOverColor: options?.mouseOver?.fillColor },
+        stroke: {
+          color: layer.symbol?.strokeColor, width: 2,
+          mouseOverColor: options?.mouseOver?.strokeColor,
+          selectedColor: options?.select?.strokeColor
+        },
+        fill: {
+          color: (options?.colorFunc)? options?.colorFunc: layer.symbol?.fillColor,
+          mouseOverColor: options?.mouseOver?.fillColor,
+          selectedColor: options?.select?.fillColor
+        },
         labelField: layer.labelField,
-        tooltipField: options?.tooltipField
+        tooltipField: options?.tooltipField,
+        shape: (layer.symbol?.symbol !== 'line')? layer.symbol?.symbol: undefined,
+        selectable: true
       })
     }
     else if (layer.type === 'vector-tiles') {
@@ -386,6 +428,7 @@ export class MapControl {
         }
     }
     this.layerMap[layer.id!] = layer;
+    this.olLayerIds[this.mapId(layer)] = layer.id!;
   }
 
   addWKTFeatures(id: number | string, wktFeatures: any[], ewkt: boolean = false){
@@ -404,6 +447,8 @@ export class MapControl {
         dataProjection: dataProjection,
         featureProjection: this.map!.mapProjection,
       });
+      if (wktFeature.id)
+        feature.set('id', wktFeature.id);
       feature.setProperties(wktFeature.properties);
       features.push(feature);
     })

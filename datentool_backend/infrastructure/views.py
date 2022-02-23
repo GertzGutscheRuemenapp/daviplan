@@ -38,20 +38,9 @@ class ScenarioViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         return qs.filter(condition_user_in_user | condition_owner_in_user)
 
 
-capacity_params = [
-    OpenApiParameter(name='service', type={'type': 'array', 'items': {'type': 'integer'}},
-                     description='pkeys of the services', required=False),
-    OpenApiParameter(name='year', type=int,
-                     description='get capacities for this year', required=False),
-    OpenApiParameter(name='scenario', type=int, required=False,
-                     description='get capacities for the scenario with this pkey'),
-]
-
-
 @extend_schema_view(list=extend_schema(description='List Places',
-                                       parameters=capacity_params),
-                    retrieve=extend_schema(description='Get Place with id',
-                                           parameters=capacity_params),)
+                                       parameters=[]),
+                    retrieve=extend_schema(description='Get Place with id'))
 class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
     serializer_class = PlaceSerializer
@@ -76,42 +65,62 @@ class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             return Place.objects.none()
         accessible_infrastructure = InfrastructureAccess.objects.filter(profile=profile)
 
-        query_params = self.request.query_params
-        service_ids = query_params.getlist('service')
-        year = query_params.get('year', 0)
-        scenario = query_params.get('scenario')
-
-        current_capacities = Capacity.filter_queryset(Capacity.objects,
-                                                      service_ids=service_ids,
-                                                      scenario_id=scenario,
-                                                      year=year)
+        scenario = self.request.query_params.get('scenario')
+        queryset = Place.objects.all()
+        if scenario is not None:
+            queryset = queryset.filter(scenario=scenario)
+        else:
+            queryset = queryset.filter(scenario__isnull=True)
 
         queryset = Place.objects.select_related('infrastructure')\
             .prefetch_related(
                 Prefetch('infrastructure__infrastructureaccess_set',
                          queryset=accessible_infrastructure,
                          to_attr='users_infra_access'),
-                Prefetch('capacity_set',
-                         queryset=current_capacities,
-                         to_attr='current_capacities'),
                 Prefetch('placeattribute_set',
                          queryset=PlaceAttribute.objects.select_related('field__field_type'))
                 )
-        service = self.request.query_params.get('service')
-        if service:
-            queryset = queryset.filter(service_capacity=service).distinct()
         return queryset
 
-
-@extend_schema_view(list=extend_schema(description='List capacities',
+capacity_params = [
+    OpenApiParameter(name='service',
+                     type={'type': 'array', 'items': {'type': 'integer'}},
+                     description='pkeys of the services', required=False),
+    OpenApiParameter(name='place',
+                     type={'type': 'array', 'items': {'type': 'integer'}},
+                     description='pkeys of the places', required=False),
+    OpenApiParameter(name='year', type=int,
+                     description='get capacities for this year', required=False),
+    OpenApiParameter(name='scenario', type=int, required=False,
+                     description='get capacities for the scenario with this pkey'),
+]
+@extend_schema_view(list=extend_schema(description='List Capacities',
                                        parameters=capacity_params),
-                    retrieve=extend_schema(description='Get capacities for id',
-                                           parameters=capacity_params),
-                                        )
+                    retrieve=extend_schema(description='Get Capacity with id',
+                                           parameters=capacity_params),)
 class CapacityViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Capacity.objects.all()
     serializer_class = CapacitySerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+    # only filtering for list view
+    def list(self, request, *args, **kwargs):
+        query_params = self.request.query_params
+        service_ids = query_params.getlist('service')
+        year = query_params.get('year', 0)
+        scenario = query_params.get('scenario')
+        places = query_params.getlist('place')
+
+        queryset = self.queryset
+        if places:
+            queryset = self.queryset.filter(place__in=places)
+
+        queryset = Capacity.filter_queryset(queryset,
+                                            service_ids=service_ids,
+                                            scenario_id=scenario,
+                                            year=year)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class PlaceFieldViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

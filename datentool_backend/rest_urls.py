@@ -24,7 +24,7 @@ from .indicators.views import (RouterViewSet,
                                )
 
 from .infrastructure.views import (ScenarioViewSet,
-                                    PlaceViewSet,
+                                   PlaceViewSet,
                                    CapacityViewSet,
                                    PlaceFieldViewSet,
                                    )
