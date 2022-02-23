@@ -86,28 +86,9 @@ class ScenarioSerializer(serializers.ModelSerializer):
         return instance
 
 
-class CapacityListSerializer(serializers.ListSerializer):
-    """"""
-    #def to_representation(self, instance):
-        #request = self.context.get('request')
-        #if request:
-            ##  filter the capacity returned for the specific service
-            #service_ids = request.query_params.getlist('service')
-            #year = request.query_params.get('year', 0)
-            #scenario = request.query_params.get('scenario')
-
-            #instance = Capacity.filter_queryset(instance,
-                                                #service_ids=service_ids,
-                                                #scenario_id=scenario,
-                                                #year=year)
-
-        #return super().to_representation(instance)
-
-
 class CapacitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Capacity
-        #list_serializer_class = CapacityListSerializer
         fields = ('id', 'place', 'service', 'capacity',
                   'from_year', 'scenario')
 

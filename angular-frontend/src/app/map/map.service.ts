@@ -455,6 +455,11 @@ export class MapControl {
     this.map?.addFeatures(this.mapId(layer), features);
   }
 
+  clearFeatures(id: number | string): void {
+    const layer = this.layerMap[id];
+    this.map?.clear(this.mapId(layer));
+  }
+
   setBackground(id: number | string | undefined): void {
     if (id === undefined) return;
     this.background = this.mapService.backgroundLayers.find(l => { return l.id === id });

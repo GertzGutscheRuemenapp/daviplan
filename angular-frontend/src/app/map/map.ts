@@ -293,7 +293,6 @@ export class OlMap {
       })
   }
 
-
   addVectorLayer(name: string, options: {
       url?: any, params?: any,
       visible?: boolean, opacity?: number,
@@ -327,6 +326,8 @@ export class OlMap {
         font: '14px Calibri,sans-serif',
         overflow: true,
         placement: 'point',
+        offsetX: 10,
+        offsetY: 10,
         fill: new Fill({
           color: 'black'
         }),

@@ -98,6 +98,10 @@ export interface Service {
   infrastructure: number,
   description: string,
   name: string;
+  demandSingularUnit: string;
+  demandPluralUnit: string;
+  capacitySingularUnit: string;
+  capacityPluralUnit: string;
 }
 
 export interface Infrastructure {
@@ -114,6 +118,17 @@ export interface Place {
   properties: {
     name: string,
     infrastructure: number,
-    attributes: any
-  }
+    attributes: any,
+    capacity?: string
+  },
+  capacities?: Capacity[]
+}
+
+export interface Capacity {
+  id: number,
+  place: number,
+  service: number,
+  capacity: number,
+  from_year: number,
+  scenario: number
 }

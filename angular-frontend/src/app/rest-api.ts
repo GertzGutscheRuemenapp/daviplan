@@ -18,6 +18,7 @@ export class RestAPI {
     ageGroups: `${ this.API_ENDPOINT }/agegroups/`,
     infrastructures: `${ this.API_ENDPOINT }/infrastructures/`,
     places: `${ this.API_ENDPOINT }/places/`,
+    capacities: `${ this.API_ENDPOINT }/capacities/`,
     services: `${ this.API_ENDPOINT }/services/`,
     arealevels: `${ this.API_ENDPOINT }/arealevels/`,
     areaPopulation: `${ this.API_ENDPOINT }/areaindicators/aggregate_population/`,

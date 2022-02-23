@@ -77,6 +77,9 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.mapControl = this.mapService.get('planning-map');
     this.planningService.legend = this.legend;
     this.mapControl.mapDescription = 'Planungsprozess: xyz > Status Quo Fortschreibung <br> usw.';
+    this.timeSlider?.valueChanged.subscribe(value => {
+      this.planningService.year$.next(value);
+    })
     this.planningService.realYears$.subscribe( years => {
       this.realYears = years;
       this.setSlider();
@@ -108,6 +111,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.timeSlider!.prognosisStart = this.prognosisYears[0] || 0;
     this.timeSlider!.years = this.realYears.concat(this.prognosisYears);
     this.timeSlider!.value = this.realYears[0];
+    this.planningService.year$.next(this.realYears[0]);
     this.timeSlider!.draw();
   }
 

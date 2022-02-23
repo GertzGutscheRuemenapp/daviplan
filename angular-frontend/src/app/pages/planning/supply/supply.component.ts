@@ -3,9 +3,11 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
-import { Infrastructure, Layer, LayerGroup, Place } from "../../../rest-interfaces";
+import { Infrastructure, Layer, LayerGroup, Place, Service, Capacity } from "../../../rest-interfaces";
 import { MapControl, MapService } from "../../../map/map.service";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
+import { forkJoin, Observable } from "rxjs";
+import { tap } from "rxjs/operators";
 
 @Component({
   selector: 'app-supply',
@@ -16,7 +18,9 @@ export class SupplyComponent implements AfterViewInit{
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
   @ViewChild('placePreviewTemplate') placePreviewTemplate!: TemplateRef<any>;
   addPlaceMode = false;
-  years = [2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025];
+  year?: number;
+  realYears?: number[];
+  prognosisYears?: number[];
   compareSupply = true;
   compareStatus = 'option 1';
   infrastructures?: Infrastructure[];
@@ -26,9 +30,11 @@ export class SupplyComponent implements AfterViewInit{
   legendGroup?: LayerGroup;
   placesLayer?: Layer;
   places?: Place[];
+  capacities: Record<number, Capacity[]> = {};
   selectedPlaces: Place[] = [];
   placeDialogRef?: MatDialogRef<any>;
   Object = Object;
+  serviceCheckMap: Record<number, boolean> = {};
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
               private planningService: PlanningService) {
@@ -44,7 +50,28 @@ export class SupplyComponent implements AfterViewInit{
     this.legendGroup = this.mapControl.addGroup({
       name: 'Angebot',
       order: -1
-    }, false)
+    }, false);
+
+    if (this.planningService.isReady)
+      this.initData();
+    else {
+      this.planningService.ready.subscribe(() => {
+        this.initData();
+      });
+    }
+  }
+
+  initData(): void {
+    this.planningService.year$.subscribe(year => {
+      this.year = year;
+      this.updateCapacities();
+    })
+    this.planningService.realYears$.subscribe( years => {
+      this.realYears = years;
+    })
+    this.planningService.prognosisYears$.subscribe( years => {
+      this.prognosisYears = years;
+    })
   }
 
   onFilter(): void {
@@ -65,6 +92,14 @@ export class SupplyComponent implements AfterViewInit{
     dialogRef.componentInstance.confirmed.subscribe(() => {  });
   }
 
+  updateServices(): void {
+    this.serviceCheckMap = {};
+    if (!this.selectedInfrastructure) return;
+    this.selectedInfrastructure.services.forEach(service => {
+      this.serviceCheckMap[service.id] = false;
+    })
+  }
+
   updatePlaces(): void {
     if (!this.selectedInfrastructure) return;
     this.planningService.getPlaces(this.selectedInfrastructure.id).subscribe(places => {
@@ -81,7 +116,8 @@ export class SupplyComponent implements AfterViewInit{
             fillColor: 'blue',
             strokeColor: 'black',
             symbol: 'circle'
-          }
+          },
+          labelField: 'capacity'
         },
         {
           visible: true,
@@ -92,7 +128,7 @@ export class SupplyComponent implements AfterViewInit{
           }
         });
       this.places = places;
-      this.mapControl?.addWKTFeatures(this.placesLayer!.id!, this.places, true);
+      this.updateCapacities();
       this.placesLayer?.featureSelected?.subscribe(evt => {
         if (evt.selected)
           this.selectPlace(evt.feature.get('id'));
@@ -100,6 +136,52 @@ export class SupplyComponent implements AfterViewInit{
           this.deselectPlace(evt.feature.get('id'));
       })
     })
+  }
+
+  updateCapacities(): void {
+    const checkedServices = Object.keys(this.serviceCheckMap).filter((serviceId: string) => this.serviceCheckMap[Number(serviceId)]);
+    if (!this.places) return;
+    if (!this.year || checkedServices.length === 0) {
+      this.places?.forEach(place => {
+        place.properties.capacity = '';
+        this.mapControl?.clearFeatures(this.placesLayer!.id!);
+        this.mapControl?.addWKTFeatures(this.placesLayer!.id!, this.places!, true);
+      })
+      return;
+    }
+    const observables: Observable<Capacity[]>[] = [];
+    checkedServices.forEach(serviceId => {
+      const query = this.planningService.getCapacities(this.year!, Number(serviceId));
+      query.subscribe(capacities => {
+        this.capacities[Number(serviceId)] = capacities;
+      })
+      observables.push(query);
+    })
+    forkJoin(...observables).subscribe((merged: Array<LayerGroup[]>) => {
+      this.places?.forEach(place => {
+        let summedCapacity = 0;
+        checkedServices.forEach(serviceId => {
+          summedCapacity += this.getCapacity(Number(serviceId), place.id);
+        })
+        place.properties.capacity = this.getFormattedCapacityString(checkedServices.map(id => Number(id)), summedCapacity);
+      })
+      this.mapControl?.clearFeatures(this.placesLayer!.id!);
+      this.mapControl?.addWKTFeatures(this.placesLayer!.id!, this.places!, true);
+    })
+  }
+
+  getFormattedCapacityString(services: number[], capacity: number): string {
+    if (!this.selectedInfrastructure) return '';
+    let units = new Set<string>();
+    this.selectedInfrastructure.services.filter(service => services.indexOf(service.id) >= 0).forEach(service => {
+      units.add((capacity === 1)? service.capacitySingularUnit: service.capacityPluralUnit);
+    })
+    return `${capacity} ${Array.from(units).join('/')}`
+  }
+
+  getCapacity(serviceId: number, placeId: number): number{
+    const cap = this.capacities[serviceId].find(capacity => capacity.place === placeId);
+    return cap?.capacity || 0;
   }
 
   selectPlace(placeId: number) {
