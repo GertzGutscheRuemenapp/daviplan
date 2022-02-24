@@ -152,7 +152,8 @@ export class OlMap {
       fill?: { color?: string, selectedColor?: string, mouseOverColor?: string },
       tooltipField?: string,
       featureClass?: 'feature' | 'renderFeature',
-      labelField?: string
+      labelField?: string,
+      showLabel?: boolean
     } = {}): Layer<any> {
     const source = new VectorTileSource({
       format: new MVT({
@@ -191,9 +192,12 @@ export class OlMap {
       visible: options?.visible === true,
       opacity: (options?.opacity != undefined) ? options?.opacity: 1,
       style: function(feature) {
-        if (options?.labelField) {
-          const text = (_this.view.getZoom()! > 9 )? feature.get(options?.labelField) : ''
+        if (options?.labelField && layer.get('showLabel')) {
+          const text = (_this.view.getZoom()! > 9 )? String(feature.get(options?.labelField)) : ''
           style.getText().setText(text);
+        }
+        else {
+          style.getText().setText('');
         }
         return style;
       }
@@ -308,7 +312,8 @@ export class OlMap {
         color?: string | ((d: number) => string),
         selectedColor?: string, mouseOverColor?: string },
       labelField?: string,
-      valueField?: string
+      valueField?: string,
+      showLabel?: boolean
     } = {}): Layer<any> {
 
     // @ts-ignore
@@ -352,9 +357,12 @@ export class OlMap {
       visible: options?.visible === true,
       opacity: (options?.opacity != undefined) ? options?.opacity: 1,
       style: function(feature) {
-        if (options?.labelField) {
+        if (options?.labelField && layer.get('showLabel')) {
           const text = (_this.view.getZoom()! > 9 )? String(feature.get(options?.labelField)) : ''
           style.getText().setText(text);
+        }
+        else {
+          style.getText().setText('');
         }
         if (options?.shape) {
           const shape = _this.getShape(options?.shape);
@@ -374,6 +382,7 @@ export class OlMap {
       }
     });
 
+    layer.set('showLabel', (options?.showLabel !== undefined)? options?.showLabel: true);
     layer.set('name', name);
     this.setMouseOverLayer(layer, {
       tooltipField: options?.tooltipField,
@@ -487,10 +496,16 @@ export class OlMap {
     layer.getSource().clear();
   }
 
-  toggleSelect(layerName: string, active: boolean){
+  setSelectActive(layerName: string, active: boolean){
     const layer = this.getLayer(layerName),
           select = layer.get('select');
     select.setActive(active);
+  }
+
+  setShowLabel(layerName: string, show: boolean){
+    const layer = this.getLayer(layerName);
+    layer.set('showLabel', show);
+    layer.changed();
   }
 
   getFeature(layerName: string, id: string){

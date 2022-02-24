@@ -104,8 +104,11 @@ export class SupplyComponent implements AfterViewInit{
   updatePlaces(): void {
     if (!this.selectedInfrastructure) return;
     this.planningService.getPlaces(this.selectedInfrastructure.id).subscribe(places => {
-      if (this.placesLayer)
-        this.mapControl?.removeLayer(this.placesLayer.id!)
+      let showLabel = true;
+      if (this.placesLayer){
+        showLabel = !!this.placesLayer.showLabel;
+        this.mapControl?.removeLayer(this.placesLayer.id!);
+      }
       const checkedServices = this.selectedInfrastructure?.services.filter(service => this.serviceCheckMap[service.id]) || [];
       const maxCap = checkedServices.reduce((sum, service) => sum + service.maxCapacity, 0);
       if (!this.year || checkedServices.length === 0) {
@@ -128,7 +131,8 @@ export class SupplyComponent implements AfterViewInit{
             strokeColor: 'black',
             symbol: 'circle'
           },
-          labelField: 'label'
+          labelField: 'label',
+          showLabel: showLabel
         },
         {
           visible: true,
@@ -158,6 +162,10 @@ export class SupplyComponent implements AfterViewInit{
   updateCapacities(): void {
     const checkedServices = Object.keys(this.serviceCheckMap).filter((serviceId: string) => this.serviceCheckMap[Number(serviceId)]);
     if (!this.places) return;
+    if (checkedServices.length === 0){
+      this.updatePlaces();
+      return;
+    }
     const observables: Observable<Capacity[]>[] = [];
     checkedServices.forEach(serviceId => {
       const query = this.planningService.getCapacities(this.year!, Number(serviceId));

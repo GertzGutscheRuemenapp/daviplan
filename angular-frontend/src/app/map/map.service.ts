@@ -284,6 +284,11 @@ export class MapControl {
     if (emit) this.layerGroups.next(this._localLayerGroups.concat(this._serviceLayerGroups));
   }
 
+  setShowLabel(id: number | string, show: boolean): void {
+    const layer = this.layerMap[id];
+    this.map?.setShowLabel(this.mapId(layer), show);
+  }
+
   removeLayer(id: number | string, emit= true): void {
     const layer = this.layerMap[id];
     const layerGroups = this._localLayerGroups.concat(this._serviceLayerGroups);
@@ -405,7 +410,8 @@ export class MapControl {
         labelField: layer.labelField,
         tooltipField: options?.tooltipField,
         shape: (layer.symbol?.symbol !== 'line')? layer.symbol?.symbol: undefined,
-        selectable: true
+        selectable: true,
+        showLabel: layer.showLabel
       })
     }
     else if (layer.type === 'vector-tiles') {
@@ -416,7 +422,8 @@ export class MapControl {
          fill: { color: layer.symbol?.fillColor, mouseOverColor: options?.mouseOver?.fillColor },
          tooltipField: options?.tooltipField,
          featureClass: (options?.mouseOver)? 'feature': 'renderFeature',
-         labelField: 'label'
+         labelField: 'label',
+         showLabel: layer.showLabel
        });
     }
     else {

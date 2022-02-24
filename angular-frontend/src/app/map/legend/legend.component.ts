@@ -83,4 +83,9 @@ export class LegendComponent implements AfterViewInit {
       });
   }
 
+  toggleLabel(layer: Layer): void {
+    layer.showLabel = !layer.showLabel;
+    this.mapControl?.setShowLabel(layer.id!, layer.showLabel);
+  }
+
 }
