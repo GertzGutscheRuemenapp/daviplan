@@ -102,6 +102,7 @@ export interface Service {
   demandPluralUnit: string;
   capacitySingularUnit: string;
   capacityPluralUnit: string;
+  maxCapacity: number;
 }
 
 export interface Infrastructure {

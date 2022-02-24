@@ -160,12 +160,13 @@ class InfrastructureSerializer(serializers.ModelSerializer):
 
 
 class ServiceSerializer(serializers.ModelSerializer):
-    #quota_id = serializers.IntegerField(write_only=True, source='quota')
+    max_capacity = serializers.IntegerField()
     class Meta:
         model = Service
         fields = ('id', 'name', 'description', 'infrastructure', 'editable_by',
                   'capacity_singular_unit', 'capacity_plural_unit',
                   'has_capacity', 'demand_singular_unit', 'demand_plural_unit',
-                  'quota_type', 'demand_name', 'demand_description')
+                  'quota_type', 'demand_name', 'demand_description',
+                  'max_capacity')
 
 

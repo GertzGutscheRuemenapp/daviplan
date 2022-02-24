@@ -54,8 +54,8 @@
     </div>
     <div class="sub-select-wrapper" *ngIf="selectedInfrastructure">
       <mat-checkbox *ngFor="let service of selectedInfrastructure.services; let first = first;"
-                    [checked]="serviceCheckMap[service.id]"
-                    (change)="serviceCheckMap[service.id]=$event.checked; updateCapacities();"
+                    [(ngModel)]="serviceCheckMap[service.id]"
+                    (change)="updateCapacities();"
                     style="margin-right: 100%;"
                     color="primary"
                     [ngbPopover]="service.description"

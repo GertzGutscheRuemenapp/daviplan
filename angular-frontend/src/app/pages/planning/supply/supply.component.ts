@@ -106,7 +106,9 @@ export class SupplyComponent implements AfterViewInit{
     this.planningService.getPlaces(this.selectedInfrastructure.id).subscribe(places => {
       if (this.placesLayer)
         this.mapControl?.removeLayer(this.placesLayer.id!)
-      const colorFunc = d3.scaleSequential().domain([0, 1000])
+      const checkedServices = this.selectedInfrastructure?.services.filter(service => this.serviceCheckMap[service.id]) || [];
+      const maxCap = checkedServices.reduce((sum, service) => sum + service.maxCapacity, 0);
+      const colorFunc = d3.scaleSequential().domain([0, maxCap])
         .interpolator(d3.interpolateCool);
       this.placesLayer = this.mapControl?.addLayer({
           order: 0,
@@ -136,7 +138,8 @@ export class SupplyComponent implements AfterViewInit{
           valueField: 'capacity'
         });
       this.places = places;
-      this.updateCapacities();
+      this.mapControl?.clearFeatures(this.placesLayer!.id!);
+      this.mapControl?.addWKTFeatures(this.placesLayer!.id!, this.places!, true);
       this.placesLayer?.featureSelected?.subscribe(evt => {
         if (evt.selected)
           this.selectPlace(evt.feature.get('id'));
@@ -153,9 +156,9 @@ export class SupplyComponent implements AfterViewInit{
       this.places?.forEach(place => {
         place.properties.capacity = 0;
         place.properties.label = '';
-        this.mapControl?.clearFeatures(this.placesLayer!.id!);
-        this.mapControl?.addWKTFeatures(this.placesLayer!.id!, this.places!, true);
       })
+      this.mapControl?.clearFeatures(this.placesLayer!.id!);
+      this.mapControl?.addWKTFeatures(this.placesLayer!.id!, this.places!, true);
       return;
     }
     const observables: Observable<Capacity[]>[] = [];
@@ -175,8 +178,7 @@ export class SupplyComponent implements AfterViewInit{
         place.properties.capacity = summedCapacity;
         place.properties.label = this.getFormattedCapacityString(checkedServices.map(id => Number(id)), summedCapacity);
       })
-      this.mapControl?.clearFeatures(this.placesLayer!.id!);
-      this.mapControl?.addWKTFeatures(this.placesLayer!.id!, this.places!, true);
+      this.updatePlaces();
     })
   }
 

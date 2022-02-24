@@ -3,7 +3,7 @@ from django.db.models import Q
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
-
+from django.db.models import Max
 from django.contrib.auth.models import User
 
 from datentool_backend.utils.views import ProtectCascadeMixin
@@ -127,6 +127,7 @@ class InfrastructureViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
 
 class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = Service.objects.all()
+    queryset = Service.objects.all().annotate(
+        max_capacity=Max('capacity__capacity'))
     serializer_class = ServiceSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
