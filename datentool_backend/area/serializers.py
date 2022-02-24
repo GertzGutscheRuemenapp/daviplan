@@ -65,16 +65,12 @@ class AreaLevelSerializer(serializers.ModelSerializer):
     area_count = serializers.IntegerField(source='area_set.count',
                                           read_only=True)
     tile_url = serializers.SerializerMethodField()
-    label_field = serializers.SerializerMethodField()
 
     class Meta:
         model = AreaLevel
         fields = ('id', 'name', 'order', 'source', 'symbol', 'is_active',
                   'is_preset', 'area_count', 'tile_url', 'label_field')
-        read_only_fields = ('is_preset', 'label_field')
-
-    def get_label_field(self, obj: AreaLevel) -> str:
-        return obj.label_field
+        read_only_fields = ('is_preset', )
 
     def get_tile_url(self, obj) -> str:
         # x,y,z have to be passed to reverse
@@ -104,12 +100,18 @@ class AreaLevelSerializer(serializers.ModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
+        #  you are not allowed to change names of presets
+        if (instance.is_preset):
+            validated_data.pop('name', None)
         # symbol is nullable
         update_symbol = 'symbol' in validated_data
         symbol_data = validated_data.pop('symbol', None)
         # source is nullable
         update_source = 'source' in validated_data
         source_data = validated_data.pop('source', None)
+
+        # ToDo: set label field
+        label_field = validated_data.pop('label_field', None)
 
         instance = super().update(instance, validated_data)
         if update_symbol:

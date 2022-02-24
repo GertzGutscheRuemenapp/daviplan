@@ -108,7 +108,13 @@ export class SupplyComponent implements AfterViewInit{
         this.mapControl?.removeLayer(this.placesLayer.id!)
       const checkedServices = this.selectedInfrastructure?.services.filter(service => this.serviceCheckMap[service.id]) || [];
       const maxCap = checkedServices.reduce((sum, service) => sum + service.maxCapacity, 0);
-      const colorFunc = d3.scaleSequential().domain([0, maxCap])
+      if (!this.year || checkedServices.length === 0) {
+        places?.forEach(place => {
+          place.properties.capacity = 0;
+          place.properties.label = '';
+        })
+      }
+      const colorFunc = d3.scaleSequential().domain([0, maxCap || 1000])
         .interpolator(d3.interpolateCool);
       this.placesLayer = this.mapControl?.addLayer({
           order: 0,
@@ -118,7 +124,7 @@ export class SupplyComponent implements AfterViewInit{
           description: this.selectedInfrastructure!.name,
           opacity: 1,
           symbol: {
-            fillColor: 'blue',
+            fillColor: colorFunc(0),
             strokeColor: 'black',
             symbol: 'circle'
           },
@@ -152,15 +158,6 @@ export class SupplyComponent implements AfterViewInit{
   updateCapacities(): void {
     const checkedServices = Object.keys(this.serviceCheckMap).filter((serviceId: string) => this.serviceCheckMap[Number(serviceId)]);
     if (!this.places) return;
-    if (!this.year || checkedServices.length === 0) {
-      this.places?.forEach(place => {
-        place.properties.capacity = 0;
-        place.properties.label = '';
-      })
-      this.mapControl?.clearFeatures(this.placesLayer!.id!);
-      this.mapControl?.addWKTFeatures(this.placesLayer!.id!, this.places!, true);
-      return;
-    }
     const observables: Observable<Capacity[]>[] = [];
     checkedServices.forEach(serviceId => {
       const query = this.planningService.getCapacities(this.year!, Number(serviceId));
