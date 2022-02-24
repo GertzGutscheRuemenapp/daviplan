@@ -107,7 +107,7 @@ export class SupplyComponent implements AfterViewInit{
       if (this.placesLayer)
         this.mapControl?.removeLayer(this.placesLayer.id!)
       const colorFunc = d3.scaleSequential().domain([0, 1000])
-        .interpolator(d3.interpolateViridis);
+        .interpolator(d3.interpolateCool);
       this.placesLayer = this.mapControl?.addLayer({
           order: 0,
           type: 'vector',
@@ -128,6 +128,9 @@ export class SupplyComponent implements AfterViewInit{
           selectable: true,
           select: {
             fillColor: 'yellow'
+          },
+          mouseOver: {
+            cursor: 'help'
           },
           colorFunc: colorFunc,
           valueField: 'capacity'

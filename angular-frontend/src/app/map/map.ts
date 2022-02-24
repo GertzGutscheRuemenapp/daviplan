@@ -298,6 +298,7 @@ export class OlMap {
       visible?: boolean, opacity?: number,
       selectable?: boolean, tooltipField?: string,
       shape?: 'circle' | 'square' | 'star' | 'x',
+      mouseOverCursor?: string,
       stroke?: {
         color?: string, width?: number, dash?: number[],
         selectedColor?: string, mouseOverColor?: string, selectedDash?: number[],
@@ -338,13 +339,6 @@ export class OlMap {
       })
     });
 
-    if (options?.shape) {
-      const shape = this.getShape(options?.shape);
-      shape.getFill().setColor(fillColor);
-      shape.getStroke().setColor(strokeColor);
-      style.setImage(shape);
-    }
-
     const _this = this;
     if (this.layers[name] != null) this.removeLayer(name);
     let sourceOpt = options?.url? {
@@ -362,10 +356,17 @@ export class OlMap {
           const text = (_this.view.getZoom()! > 9 )? String(feature.get(options?.labelField)) : ''
           style.getText().setText(text);
         }
+        if (options?.shape) {
+          const shape = _this.getShape(options?.shape);
+          shape.getFill().setColor(fillColor);
+          shape.getStroke().setColor(strokeColor);
+          style.setImage(shape);
+        }
         if (typeof options?.fill?.color === 'function'){
           const valueField = options?.valueField || 'value';
           const color = options.fill.color(Number(feature.get(valueField)));
           style.getFill().setColor(color);
+          console.log(color)
           // @ts-ignore
           style.getImage().getFill().setColor(color);
         }
@@ -376,7 +377,7 @@ export class OlMap {
     layer.set('name', name);
     this.setMouseOverLayer(layer, {
       tooltipField: options?.tooltipField,
-      cursor: (options?.selectable)? 'pointer': undefined,
+      cursor: (options?.mouseOverCursor)? options?.mouseOverCursor: (options?.selectable)? 'pointer': undefined,
       fillColor: options?.fill?.mouseOverColor,
       strokeColor: options?.stroke?.mouseOverColor,
       strokeWidth: options?.stroke?.mouseOverWidth || options?.stroke?.width || 1

@@ -329,7 +329,8 @@ export class MapControl {
     valueField?: string,
     mouseOver?: {
       fillColor?: string,
-      strokeColor?: string
+      strokeColor?: string,
+      cursor?: string
     },
     select?: {
       fillColor?: string,
@@ -377,6 +378,7 @@ export class MapControl {
     mouseOver?: {
       fillColor?: string,
       strokeColor?: string
+      cursor?: string
     },
     select?: {
       fillColor?: string,
@@ -389,6 +391,7 @@ export class MapControl {
         visible: options?.visible,
         opacity: opacity,
         valueField: options?.valueField,
+        mouseOverCursor: options?.mouseOver?.cursor,
         stroke: {
           color: layer.symbol?.strokeColor, width: 2,
           mouseOverColor: options?.mouseOver?.strokeColor,
