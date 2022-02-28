@@ -1,16 +1,14 @@
 from abc import ABCMeta, abstractmethod
 from django.db.models import OuterRef, Subquery, Count, IntegerField, Sum
 from django.db.models.functions import Coalesce
-from django.contrib.postgres.fields.jsonb import KeyTextTransform
 from sql_util.utils import Exists
 
-from .base import ComputeIndicator, register_indicator_class
+from .base import ComputeIndicator
 from datentool_backend.area.models import Area, AreaLevel
 from datentool_backend.infrastructure.models import Place, Capacity
 
 
 class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
-    userdefined = False
 
     def compute(self):
         """"""
@@ -47,7 +45,6 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
         of places and capacities"""
 
 
-@register_indicator_class()
 class NumberOfLocations(ComputeAreaIndicator):
     label = 'NumLocations'
     description = 'Number of Locations per Area'
@@ -76,7 +73,6 @@ class NumberOfLocations(ComputeAreaIndicator):
         return areas
 
 
-@register_indicator_class()
 class TotalCapacityInArea(ComputeAreaIndicator):
     label = 'Total Capacity'
     description = 'Total Capacity per Area'

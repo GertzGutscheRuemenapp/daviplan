@@ -1,24 +1,23 @@
-from django.http.request import QueryDict
 from django.core.exceptions import BadRequest
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter
 
-from datentool_backend.area.models import AreaLevel
-from datentool_backend.indicators.models import (Indicator,
-                     IndicatorType,
-                     )
+from datentool_backend.user.models import Service
+from datentool_backend.indicators.compute.base import AssessmentIndicator
 from datentool_backend.indicators.compute import (
-    ComputeIndicator,
+    AreaAssessmentIndicator,
     ComputePopulationAreaIndicator,
     NumberOfLocations,
     TotalCapacityInArea,
     DemandAreaIndicator,
-    )
-from datentool_backend.indicators.serializers import AreaIndicatorSerializer
+    ComputePopulationDetailAreaIndicator)
 
-from datentool_backend.area.views import AreaLevelTileView
+from datentool_backend.indicators.serializers import (
+    PopulationIndicatorSerializer, AreaIndicatorResponseSerializer,
+    IndicatorSerializer)
+
 from .parameters import (area_level_param,
                          areas_param,
                          year_param,
@@ -36,22 +35,21 @@ from .parameters import (area_level_param,
         OpenApiParameter(name='indicator', type=int,
                          description='pk of the indicator to calculate'),
     ]))
-class AreaIndicatorViewSet(viewsets.mixins.ListModelMixin, viewsets.GenericViewSet):
-    queryset = Indicator.objects.none()
-    serializer_class = AreaIndicatorSerializer
+class AreaIndicatorViewSet(viewsets.mixins.ListModelMixin,
+                           viewsets.GenericViewSet):
+    indicator_type = AreaAssessmentIndicator
+    serializer_class = IndicatorSerializer
 
     def get_queryset(self):
-        indicator_id = self.request.query_params.get('indicator')
-        if indicator_id is None:
-            raise BadRequest('indicator_id is required as query_param')
-
-        try:
-            classname = Indicator.objects.get(pk=indicator_id).indicator_type.classname
-        except Indicator.DoesNotExist:
-            raise BadRequest(f'indicator with id {indicator_id} not found')
-        compute_class: ComputeIndicator = IndicatorType._indicator_classes[classname]
-        qs = compute_class(self.request.query_params).compute()
-        return qs
+        service_id = self.request.query_params.get('service')
+        if service_id is None:
+            raise BadRequest('service is required as query_param')
+        service = Service.objects.get(id=service_id)
+        indicators = []
+        for _id, indicator_class in AssessmentIndicator.registered.items():
+            if issubclass(indicator_class, self.indicator_type):
+                indicators.append(indicator_class(service))
+        return indicators
 
     @extend_schema(
         parameters=[area_level_param,
@@ -61,13 +59,13 @@ class AreaIndicatorViewSet(viewsets.mixins.ListModelMixin, viewsets.GenericViewS
                     genders_param,
                     age_groups_param,
                     ],
-        responses=AreaIndicatorSerializer(many=True),
+        responses=AreaIndicatorResponseSerializer(many=True),
     )
     @action(methods=['GET'], detail=False)
     def aggregate_population(self, request, **kwargs):
         """get the total population for selected areas"""
         qs = ComputePopulationAreaIndicator(self.request.query_params).compute()
-        serializer = AreaIndicatorSerializer(qs, many=True)
+        serializer = AreaIndicatorResponseSerializer(qs, many=True)
         return Response(serializer.data)
 
     @extend_schema(
@@ -76,13 +74,13 @@ class AreaIndicatorViewSet(viewsets.mixins.ListModelMixin, viewsets.GenericViewS
                     services_param,
                     scenario_param,
                     ],
-        responses=AreaIndicatorSerializer(many=True),
+        responses=AreaIndicatorResponseSerializer(many=True),
     )
     @action(methods=['GET'], detail=False)
     def number_of_locations(self, request, **kwargs):
         """get the number of locations with a certain service for selected areas"""
         qs = NumberOfLocations(self.request.query_params).compute()
-        serializer = AreaIndicatorSerializer(qs, many=True)
+        serializer = AreaIndicatorResponseSerializer(qs, many=True)
         return Response(serializer.data)
 
     @extend_schema(
@@ -91,13 +89,13 @@ class AreaIndicatorViewSet(viewsets.mixins.ListModelMixin, viewsets.GenericViewS
                     services_param,
                     scenario_param,
                     ],
-        responses=AreaIndicatorSerializer(many=True),
+        responses=AreaIndicatorResponseSerializer(many=True),
     )
     @action(methods=['GET'], detail=False)
     def capacity(self, request, **kwargs):
         """get the total capacity of a certain service for selected areas"""
         qs = TotalCapacityInArea(self.request.query_params).compute()
-        serializer = AreaIndicatorSerializer(qs, many=True)
+        serializer = AreaIndicatorResponseSerializer(qs, many=True)
         return Response(serializer.data)
 
     @extend_schema(
@@ -109,39 +107,29 @@ class AreaIndicatorViewSet(viewsets.mixins.ListModelMixin, viewsets.GenericViewS
                     genders_param,
                     age_groups_param,
                     ],
-        responses=AreaIndicatorSerializer(many=True),
+        responses=AreaIndicatorResponseSerializer(many=True),
     )
     @action(methods=['GET'], detail=False)
     def demand(self, request, **kwargs):
         """get the total population for selected areas"""
         qs = DemandAreaIndicator(self.request.query_params).compute()
-        serializer = AreaIndicatorSerializer(qs, many=True)
+        serializer = AreaIndicatorResponseSerializer(qs, many=True)
         return Response(serializer.data)
 
 
-class AreaLevelIndicatorTileView(AreaLevelTileView):
-    model = AreaLevel
-    vector_tile_fields = ('id', 'area_level', 'label', 'value')
+    @extend_schema(
+        parameters=[areas_param,
+                    year_param,
+                    prognosis_param,
+                    genders_param,
+                    age_groups_param,
+                    ],
+        responses=PopulationIndicatorSerializer(many=True),
+    )
+    @action(methods=['GET'], detail=False)
+    def population_details(self, request, **kwargs):
+        """get the population details by year, gender and agegroup for the selected areas"""
+        qs = ComputePopulationDetailAreaIndicator(self.request.query_params).compute()
+        serializer = PopulationIndicatorSerializer(qs, many=True)
+        return Response(serializer.data)
 
-    def get_vector_tile_queryset(self):
-        """Calculate the indicators for each area of the area-level"""
-        query_params = QueryDict(mutable=True)
-        query_params.update(self.request.GET)
-        # set the area_level as query_param
-        query_params['area_level'] = self.object.pk
-
-        # an indicator_id is required
-        indicator_id = query_params.get('indicator')
-        if indicator_id is None:
-            raise BadRequest('indicator_id is required as query_param')
-
-        # get the IndicatorCompute-class
-        try:
-            classname = Indicator.objects.get(pk=indicator_id).indicator_type.classname
-        except Indicator.DoesNotExist:
-            raise BadRequest(f'indicator with id {indicator_id} not found')
-        compute_class: ComputeIndicator = IndicatorType._indicator_classes[classname]
-        # and compute the queryset for the areas
-        areas = compute_class(query_params).compute()
-        areas = self.annotate_areas_with_label_and_attributes(areas)
-        return areas

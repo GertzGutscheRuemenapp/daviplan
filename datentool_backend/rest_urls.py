@@ -17,10 +17,8 @@ from .demand.views import (GenderViewSet,
 
 from .modes.views import (ModeViewSet, ModeVariantViewSet,)
 from .indicators.views import (RouterViewSet,
-                               IndicatorTypeViewSet,
                                IndicatorViewSet,
                                AreaIndicatorViewSet,
-                               PopulationIndicatorViewSet,
                                )
 
 from .infrastructure.views import (ScenarioViewSet,
@@ -65,10 +63,9 @@ router.register(r'modevariants', ModeVariantViewSet, basename='modevariants')
 #router.register(r'reachabilitymatrices', ReachabilityMatrixViewSet,
                 #basename='reachabilitymatrices')
 router.register(r'routers', RouterViewSet, basename='routers')
-router.register(r'indicatortypes', IndicatorTypeViewSet, basename='indicatortypes')
 router.register(r'indicators', IndicatorViewSet, basename='indicators')
-router.register(r'areaindicators', AreaIndicatorViewSet, basename='areaindicators')
-router.register(r'populationindicators', PopulationIndicatorViewSet, basename='populationindicators')
+router.register(r'areaindicators', AreaIndicatorViewSet,
+                basename='areaindicators')
 
 # infrastructure
 router.register(r'scenarios', ScenarioViewSet, basename='scenarios')
@@ -101,8 +98,6 @@ router.register(r'populationentries', PopulationEntryViewSet,
                 basename='populationentries')
 router.register(r'popstatistics', PopStatisticViewSet, basename='popstatistics')
 router.register(r'popstatentries', PopStatEntryViewSet, basename='popstatentries')
-
-
 
 # users
 router.register(r'planningprocesses', PlanningProcessViewSet, basename='planningprocesses')

@@ -1,17 +1,14 @@
 from django.db.models import OuterRef, Subquery, Sum
-from django.contrib.postgres.fields.jsonb import KeyTextTransform
 from django.db.models import F
 
-from datentool_backend.area.models import Area, AreaLevel
-from datentool_backend.population.models import RasterCellPopulationAgeGender, AreaCell
-from .base import ComputeIndicator, register_indicator_class
+from datentool_backend.population.models import AreaCell
+from .base import ComputeIndicator
 from datentool_backend.indicators.compute.population import PopulationIndicatorMixin
 from datentool_backend.demand.models import DemandRateSet, DemandRate
 from datentool_backend.infrastructure.models import ScenarioService
 from datentool_backend.user.models import Year
 
 
-@register_indicator_class()
 class DemandAreaIndicator(PopulationIndicatorMixin,
                           ComputeIndicator):
     label = 'Demand for Service By Area'

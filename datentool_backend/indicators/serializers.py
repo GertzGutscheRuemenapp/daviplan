@@ -2,9 +2,9 @@ from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from datentool_backend.utils.geometry_fields import GeometrySRIDField
 
-from .models import (Stop, Router, Indicator, IndicatorType, IndicatorTypeField)
+from .models import (Stop, Router)
 from datentool_backend.area.models import Area
-from datentool_backend.area.serializers import FieldTypeSerializer
+from datentool_backend.user.models import Service
 
 
 class StopSerializer(GeoFeatureModelSerializer):
@@ -16,6 +16,16 @@ class StopSerializer(GeoFeatureModelSerializer):
         fields = ('id', 'name')
 
 
+class IndicatorSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+    description = serializers.CharField()
+    title = serializers.CharField()
+    detailed_title = serializers.CharField()
+    class Meta:
+        model = Service
+        fields = ('id', 'description', 'title', 'detailed_title')
+
+
 class RouterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Router
@@ -23,26 +33,7 @@ class RouterSerializer(serializers.ModelSerializer):
                   'build_date', 'buffer')
 
 
-class IndicatorTypeFieldSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = IndicatorTypeField
-        fields = ('id', 'indicator_type', 'field_type', 'label')
-
-
-class IndicatorTypeSerializer(serializers.ModelSerializer):
-    parameters = FieldTypeSerializer(many=True)
-    class Meta:
-        model = IndicatorType
-        fields = ('id', 'name', 'classname', 'description', 'parameters', 'category')
-
-
-class IndicatorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Indicator
-        fields = ('id', 'indicator_type', 'name', 'parameters', 'service')
-
-
-class AreaIndicatorSerializer(serializers.ModelSerializer):
+class AreaIndicatorResponseSerializer(serializers.ModelSerializer):
     label = serializers.CharField()
     value = serializers.FloatField()
     area_id = serializers.IntegerField(source='id')

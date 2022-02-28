@@ -1,4 +1,4 @@
-from .base import ComputeIndicator, register_indicator_class
+from .base import ComputeIndicator
 
 
 #@register_indicator_class()

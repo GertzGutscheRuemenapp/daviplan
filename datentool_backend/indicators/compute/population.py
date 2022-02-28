@@ -1,8 +1,8 @@
 from django.db.models import OuterRef, Subquery, Sum
 from django.db.models import F
 
-from .base import ComputeIndicator, register_indicator_class
-from datentool_backend.area.models import Area, AreaLevel
+from .base import ComputeIndicator
+from datentool_backend.area.models import Area
 from datentool_backend.population.models import RasterCellPopulationAgeGender, AreaCell
 from datentool_backend.infrastructure.models import Scenario
 
@@ -47,7 +47,6 @@ class PopulationIndicatorMixin:
         return areas
 
 
-@register_indicator_class()
 class ComputePopulationAreaIndicator(PopulationIndicatorMixin,
                                      ComputeIndicator):
     label = 'Population By Area'
@@ -85,7 +84,6 @@ class ComputePopulationAreaIndicator(PopulationIndicatorMixin,
         return areas_with_pop
 
 
-@register_indicator_class()
 class ComputePopulationDetailAreaIndicator(PopulationIndicatorMixin,
                                            ComputeIndicator):
     label = 'Population By Gender, AgeGroup and Year'
