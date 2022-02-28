@@ -160,7 +160,7 @@ class InfrastructureSerializer(serializers.ModelSerializer):
 
 
 class ServiceSerializer(serializers.ModelSerializer):
-    max_capacity = serializers.IntegerField()
+    max_capacity = serializers.IntegerField(read_only=True)
     class Meta:
         model = Service
         fields = ('id', 'name', 'description', 'infrastructure', 'editable_by',
