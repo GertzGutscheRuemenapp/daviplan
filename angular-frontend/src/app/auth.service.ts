@@ -103,9 +103,9 @@ export class TokenInterceptor implements HttpInterceptor {
           return this.logoutAndRedirect(err);
         }
         // refresh token failed
-        // if (err instanceof HttpErrorResponse && err.status === 403) {
-        //   return this.logoutAndRedirect(err);
-        // }
+        if (err instanceof HttpErrorResponse && err.status === 403) {
+          return this.logoutAndRedirect(err);
+        }
         // other errors
         return throwError(err);
       })
@@ -129,7 +129,7 @@ export class TokenInterceptor implements HttpInterceptor {
     // get new token, if no refreshing is in progress
     if (!this.refreshingInProgress) {
       this.refreshingInProgress = true;
-
+      localStorage.removeItem('token');
       return this.authService.refreshToken().pipe(
         switchMap((res) => {
           this.refreshingInProgress = false;
