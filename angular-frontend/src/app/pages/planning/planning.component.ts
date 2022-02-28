@@ -1,40 +1,23 @@
 import { Component, ElementRef, AfterViewInit, Renderer2, OnDestroy, ViewChild, TemplateRef } from '@angular/core';
 import { MapControl, MapService } from "../../map/map.service";
-import { FormControl } from "@angular/forms";
+import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { faArrowsAlt } from '@fortawesome/free-solid-svg-icons';
 import { Observable } from "rxjs";
 import { map, shareReplay } from "rxjs/operators";
 import { BreakpointObserver } from "@angular/cdk/layout";
 import { ConfirmDialogComponent } from "../../dialogs/confirm-dialog/confirm-dialog.component";
-import { User } from "../login/users";
 import { MatDialog } from "@angular/material/dialog";
-import { mockUsers } from "../login/users";
+import { mockUsers, User } from "../login/users";
 import { MatSelect } from "@angular/material/select";
 import { RemoveDialogComponent } from "../../dialogs/remove-dialog/remove-dialog.component";
 import { PlanningService } from "./planning.service";
 import { LegendComponent } from "../../map/legend/legend.component";
 import { TimeSliderComponent } from "../../elements/time-slider/time-slider.component";
-import { Infrastructure } from "../../rest-interfaces";
-
-interface Project {
-  user?: string;
-  shared?: boolean;
-  editable?: boolean;
-  description?: string;
-  name: string;
-  id: number
-}
-
-const mockMyProjects: Project[] = [
-  { name: 'Beispielprojekt 1', id: 1, description: 'Beschreibungstext', shared: true },
-  { name: 'Beispielprojekt 2', id: 2, shared: true },
-  { name: 'Beispielprojekt 3', description: 'Beschreibungstext', id: 3 }
-]
-
-const mockSharedProjects: Project[] = [
-  { name: 'Beispielprojekt 4', description: 'Beschreibungstext', user: 'Sascha Schmidt', id: 4, editable: true, shared: true },
-  { name: 'Beispielprojekt 5', description: 'Beschreibungstext', user: 'Magdalena Martin', id: 5, editable: false, shared: true }
-]
+import { Infrastructure, PlanningProcess } from "../../rest-interfaces";
+import { SettingsService } from "../../settings.service";
+import { AuthService } from "../../auth.service";
+import { HttpClient } from "@angular/common/http";
+import { RestAPI } from "../../rest-api";
 
 @Component({
   selector: 'app-planning',
@@ -48,16 +31,17 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   @ViewChild('planningLegend') legend?: LegendComponent;
   @ViewChild('timeSlider') timeSlider?: TimeSliderComponent;
   faArrows = faArrowsAlt;
-  myProjects: Project[] = mockMyProjects;
-  sharedProjects: Project[] = mockSharedProjects;
-  activeProject?: Project;
-  // activeProject: Project = this.myProjects[0];
+  myProcesses: PlanningProcess[] = [];
+  sharedProcesses: PlanningProcess[] = [];
+  activeProcess?: PlanningProcess;
   users = mockUsers;
   showScenarioMenu: boolean = false;
   mapControl?: MapControl;
   realYears?: number[];
   prognosisYears?: number[];
   infrastructures: Infrastructure[] = [];
+  editProcessForm: FormGroup;
+  Object = Object;
 
   isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 39.9375em)')
     .pipe(
@@ -67,7 +51,15 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
 
   constructor(private breakpointObserver: BreakpointObserver, private renderer: Renderer2,
               private elRef: ElementRef, private mapService: MapService, private dialog: MatDialog,
-              public planningService: PlanningService) {  }
+              public planningService: PlanningService, private settings: SettingsService,
+              private auth: AuthService, private formBuilder: FormBuilder,
+              private http: HttpClient, private rest: RestAPI) {
+    this.editProcessForm = this.formBuilder.group({
+      name: new FormControl(''),
+      description: new FormControl(''),
+      allowSharedChange: new FormControl(false)
+    });
+  }
 
   ngAfterViewInit(): void {
     // there is no parent css selector yet but we only want to hide the overflow in the planning pages
@@ -91,6 +83,17 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.planningService.infrastructures$.subscribe( infrastructures => {
       this.infrastructures = infrastructures;
     })
+    this.planningService.processes$.subscribe(processes => {
+      this.auth.getCurrentUser().subscribe(user => {
+        if (!user) return;
+        processes.forEach(process => {
+          if (process.owner === user.id)
+            this.myProcesses.push(process);
+          else
+            this.sharedProcesses.push(process);
+        })
+      })
+    })
     this.planningService.setReady(true);
   }
 
@@ -102,8 +105,8 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
 
   onProcessChange(id: number): void {
     if (id === undefined) return;
-    let project = this.getProject(id);
-    this.activeProject = project;
+    let process = this.getProcess(id);
+    this.activeProcess = process;
   }
 
   setSlider(): void {
@@ -115,39 +118,106 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.timeSlider!.draw();
   }
 
-  getProject(id: number): Project {
-    return this.myProjects.concat(this.sharedProjects).filter(project => project.id === id)[0];
+  getProcess(id: number): PlanningProcess {
+    return this.myProcesses.concat(this.sharedProcesses).filter(process => process.id === id)[0];
   }
 
   toggleScenarioMenu(): void{
     this.showScenarioMenu = !this.showScenarioMenu;
   }
 
-  onEditProject(project: Project | undefined = undefined): void {
+  onCreateProcess(): void {
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
       width: '600px',
       disableClose: false,
       data: {
-        title: project? 'Planungsprozess editieren': 'Planungsprozess erstellen',
+        title: 'Planungsprozess erstellen',
         template: this.processTemplate,
-        closeOnConfirm: true,
-        context: { project: project },
-        confirmButtonText: project? 'Speichern': 'Bestätigen',
+        closeOnConfirm: false,
+        confirmButtonText: 'Bestätigen',
         infoText: 'Platzhalter'
       }
     });
-    dialogRef.afterClosed().subscribe((ok: boolean) => {  });
-    dialogRef.componentInstance.confirmed.subscribe(() => {  });
+    dialogRef.afterOpened().subscribe(() => {
+      this.editProcessForm.reset({
+          allowSharedChange: false
+      });
+    })
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      this.editProcessForm.setErrors(null);
+      // display errors for all fields even if not touched
+      this.editProcessForm.markAllAsTouched();
+      if (this.editProcessForm.invalid) return;
+      dialogRef.componentInstance.isLoading = true;
+      let attributes = {
+        name: this.editProcessForm.value.name,
+        description: this.editProcessForm.value.description,
+        allowSharedChange: this.editProcessForm.value.allowSharedChange
+      };
+      this.http.post<PlanningProcess>(this.rest.URLS.processes, attributes
+      ).subscribe(process => {
+        process.scenarios = [];
+        this.myProcesses.push(process);
+        dialogRef.close();
+      },(error) => {
+        this.editProcessForm.setErrors(error.error);
+        dialogRef.componentInstance.isLoading = false;
+      });
+    });
   }
 
-  onDeleteProject(project: Project) {
+  editProcess(process: PlanningProcess): void {
+    let dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '600px',
+      disableClose: false,
+      data: {
+        title: 'Planungsprozess editieren',
+        template: this.processTemplate,
+        closeOnConfirm: false,
+        confirmButtonText: 'Speichern',
+        infoText: 'Platzhalter'
+      }
+    });
+    dialogRef.afterOpened().subscribe(() => {
+      this.editProcessForm.reset({
+        name: process.name,
+        description: process.description,
+        allowSharedChange: process.allowSharedChange
+      });
+    })
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      this.editProcessForm.setErrors(null);
+      // display errors for all fields even if not touched
+      this.editProcessForm.markAllAsTouched();
+      if (this.editProcessForm.invalid) return;
+      dialogRef.componentInstance.isLoading = true;
+      let attributes = {
+        name: this.editProcessForm.value.name,
+        description: this.editProcessForm.value.description,
+        allowSharedChange: this.editProcessForm.value.allowSharedChange
+      };
+      this.http.patch<PlanningProcess>(`${this.rest.URLS.processes}${process.id}/`, attributes
+      ).subscribe(resProcess => {
+        process.name = resProcess.name;
+        process.description = resProcess.description;
+        process.allowSharedChange = resProcess.allowSharedChange;
+        dialogRef.close();
+      },(error) => {
+        this.editProcessForm.setErrors(error.error);
+        dialogRef.componentInstance.isLoading = false;
+      });
+    });
+  }
+
+  deleteProcess(process: PlanningProcess) {
     const dialogRef = this.dialog.open(RemoveDialogComponent, {
       width: '460px',
       data: {
         title: $localize`Den Planungsprozess wirklich entfernen?`,
         confirmButtonText: $localize`Planungsprozess entfernen`,
-        value: project.name,
+        value: process.name,
         closeOnConfirm: true
       }
     });

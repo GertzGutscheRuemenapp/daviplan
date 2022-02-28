@@ -12,7 +12,7 @@ from datentool_backend.utils.permissions import(CanEditBasedata,
                                                 IsOwner
                                                 )
 
-from .permissions import CanCreateProcessPermission, CanPatchSymbol
+from .permissions import CanUpdateProcessPermission, CanPatchSymbol
 
 from .serializers import (UserSerializer,
                           YearSerializer,
@@ -110,7 +110,8 @@ class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 class PlanningProcessViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = PlanningProcess.objects.all()
     serializer_class = PlanningProcessSerializer
-    permission_classes = [permissions.IsAuthenticated & CanCreateProcessPermission]
+    permission_classes = [permissions.IsAuthenticated &
+                          CanUpdateProcessPermission]
 
     def get_queryset(self):
         qs = super().get_queryset()

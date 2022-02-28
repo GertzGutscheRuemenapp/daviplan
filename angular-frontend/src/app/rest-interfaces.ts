@@ -4,6 +4,25 @@ export interface BasedataSettings {
   defaultPopAreaLevel: number;
 }
 
+export interface PlanningProcess {
+  id: number,
+  name: string,
+  owner: number,
+  users: number[],
+  allowSharedChange: boolean,
+  description?: string,
+  scenarios?: Scenario[]
+}
+
+export interface Scenario {
+  id: number,
+  name: string,
+  planningProcess: number,
+  prognosis: number,
+  modevariants: number[],
+  demandratesets: number[]
+}
+
 export interface LayerGroup {
   id?: number | string,
   order: number,

@@ -53,6 +53,7 @@ class PlanningProcess(DatentoolModelMixin, NamedModel, models.Model):
     Basic Project Information
     '''
     name = models.TextField()
+    description = models.TextField(default='')
     owner = models.ForeignKey(Profile, on_delete=models.RESTRICT)
     users = models.ManyToManyField(Profile, related_name='shared_with_users',
                                    blank=True)
