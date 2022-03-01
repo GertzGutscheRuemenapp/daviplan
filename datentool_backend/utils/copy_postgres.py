@@ -9,7 +9,6 @@ from django.db import connection, models
 from django.db.transaction import TransactionManagementError
 
 
-
 class DirectCopyMapping(CopyMapping):
     """Direct CopyMapping"""
     def save(self, silent=False, stream=sys.stdout):

@@ -1,11 +1,11 @@
 from django.db import connection
+from datentool_backend.utils.dict_cursor import dictfetchall
 
 from .base import ComputeIndicator, register_indicator_class
 from datentool_backend.area.models import Area
 from datentool_backend.population.models import (RasterCellPopulationAgeGender,
                                                  AreaCell,
-                                                 RasterCellPopulation,
-                                                 Year)
+                                                 RasterCellPopulation)
 from datentool_backend.infrastructure.models import Scenario
 
 
@@ -112,7 +112,6 @@ class ComputePopulationDetailAreaIndicator(PopulationIndicatorMixin,
 
         # filter the rastercell-population by year, age_group and gender, if given
         rasterpop = self.get_population()
-        year = Year.objects.all()
         rcp = RasterCellPopulation.objects.all()
 
         # sum up the rastercell-population by year, age_group, and gender
@@ -120,23 +119,24 @@ class ComputePopulationDetailAreaIndicator(PopulationIndicatorMixin,
         q_acells, p_acells = acells.values(
             'area_id', 'cell_id', 'share_area_of_cell').query.sql_with_params()
         q_pop, p_pop = rasterpop.values(
-            'id', 'cell_id', 'value', 'age_group_id', 'gender_id', 'population__year__year')\
+            'id', 'cell_id', 'value', 'age_group_id', 'gender_id',
+            'population__year__year')\
             .query.sql_with_params()
         q_rcp, p_rcp = rcp.values(
             'id', 'cell_id').query.sql_with_params()
 
         query = f'''SELECT
-        p."year",
-        p."age_group_id" AS agegroup,
-        p."gender_id" AS gender,
-        SUM(p."value" * ac."share_area_of_cell") AS "value"
+          p."year",
+          p."age_group_id" AS agegroup,
+          p."gender_id" AS gender,
+          SUM(p."value" * ac."share_area_of_cell") AS "value"
         FROM
-        ({q_acells}) AS ac,
-        ({q_pop}) AS p,
-        ({q_rcp}) AS rcp
-          WHERE ac."cell_id" = rcp."id"
-            AND p."cell_id" = rcp."cell_id"
-          GROUP BY p."year", p."age_group_id", p."gender_id"
+          ({q_acells}) AS ac,
+          ({q_pop}) AS p,
+          ({q_rcp}) AS rcp
+        WHERE ac."cell_id" = rcp."id"
+        AND p."cell_id" = rcp."cell_id"
+        GROUP BY p."year", p."age_group_id", p."gender_id"
         '''
 
         params = p_acells + p_pop + p_rcp
@@ -144,15 +144,6 @@ class ComputePopulationDetailAreaIndicator(PopulationIndicatorMixin,
         with connection.cursor() as cursor:
             cursor.execute(query, params)
             qs = dictfetchall(cursor)
-        #qs = RasterCellPopulationAgeGender.objects.raw(query, params)
 
         return qs
 
-
-def dictfetchall(cursor):
-    "Return all rows from a cursor as a dict"
-    columns = [col[0] for col in cursor.description]
-    return [
-        dict(zip(columns, row))
-        for row in cursor.fetchall()
-    ]
