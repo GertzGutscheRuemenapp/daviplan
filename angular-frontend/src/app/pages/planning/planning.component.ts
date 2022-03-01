@@ -141,7 +141,8 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     });
     dialogRef.afterOpened().subscribe(() => {
       this.editProcessForm.reset({
-          allowSharedChange: false
+        allowSharedChange: false,
+        description: '',
       });
     })
     dialogRef.componentInstance.confirmed.subscribe(() => {
@@ -222,6 +223,19 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
       }
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.http.delete(`${this.rest.URLS.processes}${process.id}/`
+        ).subscribe(res => {
+          const idx = this.myProcesses.indexOf(process);
+          if (idx > -1) {
+            this.myProcesses.splice(idx, 1);
+          }
+          if (this.activeProcess === process)
+            this.activeProcess = undefined;
+        },(error) => {
+          console.log('there was an error sending the query', error);
+        });
+      }
     });
   }
 }

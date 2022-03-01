@@ -53,7 +53,7 @@ class PlanningProcess(DatentoolModelMixin, NamedModel, models.Model):
     Basic Project Information
     '''
     name = models.TextField()
-    description = models.TextField(default='')
+    description = models.TextField(default='', blank=True)
     owner = models.ForeignKey(Profile, on_delete=models.RESTRICT)
     users = models.ManyToManyField(Profile, related_name='shared_with_users',
                                    blank=True)
@@ -111,7 +111,7 @@ class Service(DatentoolModelMixin, NamedModel, models.Model):
     '''
     name = models.TextField()
     quota_type = models.TextField()
-    description = models.TextField()
+    description = models.TextField(blank=True)
     infrastructure = models.ForeignKey(Infrastructure,
                                        on_delete=PROTECT_CASCADE)
     editable_by = models.ManyToManyField(Profile,
