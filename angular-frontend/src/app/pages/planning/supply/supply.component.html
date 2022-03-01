@@ -32,7 +32,7 @@
         <mat-label>Infrastrukturbereich</mat-label>
         <mat-select disableOptionCentering disableRipple
                     [(ngModel)]="selectedInfrastructure"
-                    (ngModelChange)="updateServices(); updatePlaces();"
+                    (ngModelChange)="updatePlaces();"
                     [ngbPopover]="selectedInfrastructure?.description"
                     placement="right"
                     container="body"
@@ -53,17 +53,20 @@
       </button>
     </div>
     <div class="sub-select-wrapper" *ngIf="selectedInfrastructure">
-      <mat-checkbox *ngFor="let service of selectedInfrastructure.services; let first = first;"
-                    [(ngModel)]="serviceCheckMap[service.id]"
-                    (change)="updateCapacities();"
-                    style="margin-right: 100%;"
-                    color="primary"
-                    [ngbPopover]="service.description"
-                    placement="right"
-                    container="body"
-                    triggers="mouseenter:mouseleave">
-        {{service.name}}
-      </mat-checkbox>
+      <mat-radio-group [(ngModel)]="selectedService"
+                       (ngModelChange)="updatePlaces();">
+        <mat-radio-button *ngFor="let service of selectedInfrastructure.services; let first = first;"
+                          [value]="service"
+                          [checked]="first"
+                          style="margin-right: 100%;"
+                          color="primary"
+                          [ngbPopover]="service.description"
+                          placement="right"
+                          container="body"
+                          triggers="mouseenter:mouseleave">
+          {{service.name}}
+        </mat-radio-button>
+      </mat-radio-group>
     </div>
   </div>
   <mat-divider></mat-divider>
@@ -176,14 +179,9 @@
         {{key}}: <i>{{place.properties.attributes[key]}}</i>
       </div>
     </ng-container>
-    <ng-container *ngIf="selectedInfrastructure">
-      <ng-container *ngFor="let service of selectedInfrastructure.services">
-        <div *ngIf="capacities[service.id]">
-          Kapazität {{service.name}}: <i>{{getFormattedCapacityString([service.id], getCapacity(service.id, place.id))}}</i>
-        </div>
-      </ng-container>
-
-    </ng-container>
+    <div *ngIf="selectedService">
+        Kapazität {{selectedService.name}}: <i>{{getFormattedCapacityString([selectedService.id], getCapacity(selectedService.id, place.id))}}</i>
+    </div>
     <br>
   </div>
 </ng-template>

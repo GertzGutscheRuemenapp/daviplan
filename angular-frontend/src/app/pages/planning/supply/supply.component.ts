@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, AfterViewInit, TemplateRef, ViewChild, OnDestroy } from '@angular/core';
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { CookieService } from "../../../helpers/cookies.service";
@@ -6,8 +6,7 @@ import { PlanningService } from "../planning.service";
 import { Infrastructure, Layer, LayerGroup, Place, Service, Capacity } from "../../../rest-interfaces";
 import { MapControl, MapService } from "../../../map/map.service";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
-import { forkJoin, Observable } from "rxjs";
-import { tap } from "rxjs/operators";
+import { Observable } from "rxjs";
 import * as d3 from "d3";
 
 @Component({
@@ -15,7 +14,7 @@ import * as d3 from "d3";
   templateUrl: './supply.component.html',
   styleUrls: ['./supply.component.scss']
 })
-export class SupplyComponent implements AfterViewInit{
+export class SupplyComponent implements AfterViewInit, OnDestroy {
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
   @ViewChild('placePreviewTemplate') placePreviewTemplate!: TemplateRef<any>;
   addPlaceMode = false;
@@ -31,11 +30,11 @@ export class SupplyComponent implements AfterViewInit{
   legendGroup?: LayerGroup;
   placesLayer?: Layer;
   places?: Place[];
-  capacities: Record<number, Capacity[]> = {};
+  capacities?: Capacity[];
   selectedPlaces: Place[] = [];
   placeDialogRef?: MatDialogRef<any>;
   Object = Object;
-  serviceCheckMap: Record<number, boolean> = {};
+  selectedService?: Service;
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
               private planningService: PlanningService) {
@@ -65,7 +64,7 @@ export class SupplyComponent implements AfterViewInit{
   initData(): void {
     this.planningService.year$.subscribe(year => {
       this.year = year;
-      this.updateCapacities();
+      this.updatePlaces();
     })
     this.planningService.realYears$.subscribe( years => {
       this.realYears = years;
@@ -93,98 +92,69 @@ export class SupplyComponent implements AfterViewInit{
     dialogRef.componentInstance.confirmed.subscribe(() => {  });
   }
 
-  updateServices(): void {
-    this.serviceCheckMap = {};
-    if (!this.selectedInfrastructure) return;
-    this.selectedInfrastructure.services.forEach(service => {
-      this.serviceCheckMap[service.id] = false;
-    })
-  }
-
   updatePlaces(): void {
-    if (!this.selectedInfrastructure) return;
+    if (!this.selectedInfrastructure || this.selectedInfrastructure.services.length === 0) return;
     this.planningService.getPlaces(this.selectedInfrastructure.id).subscribe(places => {
+      this.places = places;
       let showLabel = true;
       if (this.placesLayer){
         showLabel = !!this.placesLayer.showLabel;
         this.mapControl?.removeLayer(this.placesLayer.id!);
       }
-      const checkedServices = this.selectedInfrastructure?.services.filter(service => this.serviceCheckMap[service.id]) || [];
-      const maxCap = checkedServices.reduce((sum, service) => sum + service.maxCapacity, 0);
-      if (!this.year || checkedServices.length === 0) {
-        places?.forEach(place => {
-          place.properties.capacity = 0;
-          place.properties.label = '';
+      if (!this.selectedService) this.selectedService = this.selectedInfrastructure!.services[0];
+      this.planningService.getCapacities(this.year!, this.selectedService.id).subscribe(capacities => {
+        this.capacities = capacities;
+        let displayedPlaces: Place[] = [];
+        this.places?.forEach(place => {
+          const capacity = this.getCapacity(this.selectedService!.id, place.id);
+          if (!capacity) return;
+          place.properties.capacity = capacity;
+          place.properties.label = this.getFormattedCapacityString([this.selectedService!.id], capacity);
+          displayedPlaces.push(place);
         })
-      }
-      const colorFunc = d3.scaleSequential().domain([0, maxCap || 1000])
-        .interpolator(d3.interpolateCool);
-      this.placesLayer = this.mapControl?.addLayer({
-          order: 0,
-          type: 'vector',
-          group: this.legendGroup?.id,
-          name: this.selectedInfrastructure!.name,
-          description: this.selectedInfrastructure!.name,
-          opacity: 1,
-          symbol: {
-            fillColor: colorFunc(0),
-            strokeColor: 'black',
-            symbol: 'circle'
+        const colorFunc = d3.scaleSequential().domain([0, this.selectedService?.maxCapacity || 1000])
+          .interpolator(d3.interpolateCool);
+        this.placesLayer = this.mapControl?.addLayer({
+            order: 0,
+            type: 'vector',
+            group: this.legendGroup?.id,
+            name: this.selectedInfrastructure!.name,
+            description: this.selectedInfrastructure!.name,
+            opacity: 1,
+            symbol: {
+              fillColor: colorFunc(0),
+              strokeColor: 'black',
+              symbol: 'circle'
+            },
+            labelField: 'label',
+            showLabel: showLabel
           },
-          labelField: 'label',
-          showLabel: showLabel
-        },
-        {
-          visible: true,
-          tooltipField: 'name',
-          selectable: true,
-          select: {
-            fillColor: 'yellow'
-          },
-          mouseOver: {
-            cursor: 'help'
-          },
-          colorFunc: colorFunc,
-          valueField: 'capacity'
-        });
-      this.places = places;
-      this.mapControl?.clearFeatures(this.placesLayer!.id!);
-      this.mapControl?.addWKTFeatures(this.placesLayer!.id!, this.places!, true);
-      this.placesLayer?.featureSelected?.subscribe(evt => {
-        if (evt.selected)
-          this.selectPlace(evt.feature.get('id'));
-        else
-          this.deselectPlace(evt.feature.get('id'));
+          {
+            visible: true,
+            tooltipField: 'name',
+            selectable: true,
+            select: {
+              fillColor: 'yellow'
+            },
+            mouseOver: {
+              cursor: 'help'
+            },
+            colorFunc: colorFunc,
+            valueField: 'capacity'
+          });
+        this.mapControl?.clearFeatures(this.placesLayer!.id!);
+        this.mapControl?.addWKTFeatures(this.placesLayer!.id!, displayedPlaces, true);
+        this.placesLayer?.featureSelected?.subscribe(evt => {
+          if (evt.selected)
+            this.selectPlace(evt.feature.get('id'));
+          else
+            this.deselectPlace(evt.feature.get('id'));
+        })
       })
     })
   }
 
   updateCapacities(): void {
-    const checkedServices = Object.keys(this.serviceCheckMap).filter((serviceId: string) => this.serviceCheckMap[Number(serviceId)]);
-    if (!this.places) return;
-    if (checkedServices.length === 0){
-      this.updatePlaces();
-      return;
-    }
-    const observables: Observable<Capacity[]>[] = [];
-    checkedServices.forEach(serviceId => {
-      const query = this.planningService.getCapacities(this.year!, Number(serviceId));
-      query.subscribe(capacities => {
-        this.capacities[Number(serviceId)] = capacities;
-      })
-      observables.push(query);
-    })
-    forkJoin(...observables).subscribe((merged: Array<LayerGroup[]>) => {
-      this.places?.forEach(place => {
-        let summedCapacity = 0;
-        checkedServices.forEach(serviceId => {
-          summedCapacity += this.getCapacity(Number(serviceId), place.id);
-        })
-        place.properties.capacity = summedCapacity;
-        place.properties.label = this.getFormattedCapacityString(checkedServices.map(id => Number(id)), summedCapacity);
-      })
-      this.updatePlaces();
-    })
   }
 
   getFormattedCapacityString(services: number[], capacity: number): string {
@@ -197,7 +167,7 @@ export class SupplyComponent implements AfterViewInit{
   }
 
   getCapacity(serviceId: number, placeId: number): number{
-    const cap = this.capacities[serviceId].find(capacity => capacity.place === placeId);
+    const cap = this.capacities?.find(capacity => capacity.place === placeId);
     return cap?.capacity || 0;
   }
 
@@ -235,5 +205,11 @@ export class SupplyComponent implements AfterViewInit{
           minWidth: '400px'
         }
       });
+  }
+
+  ngOnDestroy(): void {
+    if (this.legendGroup) {
+      this.mapControl?.removeGroup(this.legendGroup.id!);
+    }
   }
 }

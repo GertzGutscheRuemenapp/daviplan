@@ -27,13 +27,13 @@ const baseScenario: Scenario = {
 export class ScenarioMenuComponent implements OnInit {
   @Input() domain: string = '';
   @ViewChildren('scenario') scenarioCards?: QueryList<ElementRef>;
-  baseScenario = baseScenario;
-  scenarios: Scenario[] = [];
-  activeScenario: Scenario = baseScenario;
   @ViewChild('editScenario') editScenarioTemplate?: TemplateRef<any>;
   @ViewChild('supplyScenarioTable') supplyScenarioTableTemplate?: TemplateRef<any>;
   @ViewChild('demandPlaceholderTable') demandPlaceholderTemplate?: TemplateRef<any>;
   @ViewChild('demandQuotaDialog') demandQuotaTemplate?: TemplateRef<any>;
+  baseScenario = baseScenario;
+  scenarios: Scenario[] = [];
+  activeScenario: Scenario = baseScenario;
   quotas = mockQuotas;
   prognoses = mockPrognoses;
   backend: string = environment.backend;

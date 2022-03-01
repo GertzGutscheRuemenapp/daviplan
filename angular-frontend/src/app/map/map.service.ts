@@ -5,7 +5,6 @@ import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../rest-api";
 import { sortBy } from "../helpers/utils";
-import { ProjectSettings } from "../pages/administration/project-definition/project-definition.component";
 import { WKT } from "ol/format";
 import { SettingsService } from "../settings.service";
 import { environment } from "../../environments/environment";
@@ -265,7 +264,7 @@ export class MapControl {
    */
   removeGroup(id: number | string, emit= true): void {
     const idx = this._localLayerGroups.findIndex(group => group.id === id);
-    if (idx <= 0) return;
+    if (idx < 0) return;
     this.clearGroup(id, false);
     this._localLayerGroups.splice(idx, 1);
     if (emit) this.layerGroups.next(this._localLayerGroups.concat(this._serviceLayerGroups));
