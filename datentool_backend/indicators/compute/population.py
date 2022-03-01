@@ -3,7 +3,9 @@ from django.db.models import F
 
 from .base import ComputeIndicator, register_indicator_class
 from datentool_backend.area.models import Area, AreaLevel
-from datentool_backend.population.models import RasterCellPopulationAgeGender, AreaCell
+from datentool_backend.population.models import (RasterCellPopulationAgeGender,
+                                                 AreaCell,
+                                                 RasterCellPopulation)
 from datentool_backend.infrastructure.models import Scenario
 
 
@@ -61,26 +63,35 @@ class ComputePopulationAreaIndicator(PopulationIndicatorMixin,
         areas = self.get_areas(area_level_id=area_level_id)
         acells = AreaCell.objects.filter(area__area_level_id=area_level_id)
         population = self.get_population()
+        rcp = RasterCellPopulation.objects.all()
 
-        # sum up the rastercell-population to areas taking the share_area_of_cell
-        # into account
+        # sum up the rastercell-population to areas
+        # taking the share_area_of_cell into account
+        q_areas, p_areas = areas.values('id', '_label').query.sql_with_params()
+        q_acells, p_acells = acells.values(
+            'area_id', 'cell_id', 'share_area_of_cell').query.sql_with_params()
+        q_pop, p_pop = population.values('cell_id', 'value').query.sql_with_params()
+        q_rcp, p_rcp = rcp.values('id', 'cell_id').query.sql_with_params()
 
-        sq = population.filter(cell=OuterRef('cell__cell'))\
-            .annotate(area_id=OuterRef('area_id'),
-                      share_area_of_cell=OuterRef('share_area_of_cell'))\
-            .values('area_id')\
-            .annotate(sum_pop=Sum(F('value') * F('share_area_of_cell')))\
-            .values('sum_pop')
+        query = f'''SELECT
+        a."id", a."_label", val."value"
+        FROM ({q_areas}) AS a
+        LEFT JOIN (
+          SELECT
+            ac."area_id",
+            SUM(p."value" * ac."share_area_of_cell") AS "value"
+          FROM
+            ({q_acells}) AS ac,
+            ({q_pop}) AS p,
+            ({q_rcp}) AS rcp
+          WHERE ac."cell_id" = rcp."id"
+            AND p."cell_id" = rcp."cell_id"
+          GROUP BY ac."area_id"
+        ) val ON (val."area_id" = a."id")
+        '''
 
-        # sum up by area
-        aa = acells.annotate(sum_pop=Subquery(sq))\
-            .values('area_id')\
-            .annotate(sum_pop=Sum('sum_pop'))
-
-        # annotate areas with the results
-        sq = aa.filter(area_id=OuterRef('pk'))\
-            .values('sum_pop')
-        areas_with_pop = areas.annotate(value=Subquery(sq))
+        params = p_areas + p_acells + p_pop + p_rcp
+        areas_with_pop = Area.objects.raw(query, params)
 
         return areas_with_pop
 
