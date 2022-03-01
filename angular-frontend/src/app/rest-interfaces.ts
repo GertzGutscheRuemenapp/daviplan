@@ -18,7 +18,7 @@ export interface Scenario {
   id: number,
   name: string,
   planningProcess: number,
-  prognosis: number,
+  prognosis?: number,
   modevariants: number[],
   demandratesets: number[]
 }

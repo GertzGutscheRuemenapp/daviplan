@@ -15,6 +15,7 @@ export class PlanningService extends RestCacheService {
   ready: EventEmitter<any> = new EventEmitter();
   year$ = new BehaviorSubject<number>(0);
   processes$ = new BehaviorSubject<PlanningProcess[]>([]);
+  activeProcess$ = new BehaviorSubject<PlanningProcess | undefined>(undefined);
 
   constructor(protected http: HttpClient, protected rest: RestAPI) {
     super(http, rest);
@@ -26,7 +27,7 @@ export class PlanningService extends RestCacheService {
 
   fetchProcesses(){
     this.http.get<PlanningProcess[]>(this.rest.URLS.processes).subscribe(processes => {
-      this.http.get<Scenario[]>(this.rest.URLS.processes).subscribe(scenarios => {
+      this.http.get<Scenario[]>(this.rest.URLS.scenarios).subscribe(scenarios => {
         scenarios.forEach(scenario => {
           const process = processes.find(p => p.id === scenario.planningProcess);
           if (!process) return;

@@ -1,34 +1,16 @@
 <div>
   <div id="scenario-menu">
-    <div #scenario class="scenario-card active" [attr.data-value]="'Status Quo'">
-      <div class="scenario-card-header"
-           (click)="toggleScenario('Status Quo')">
-        Status Quo Fortschreibung
-      </div>
-      <div class="scenario-card-body">
-        <ng-container *ngIf="domain==='demand'">
-          <ng-container *ngTemplateOutlet="demandStatusQuo"></ng-container>
-        </ng-container>
-        <ng-container *ngIf="domain==='reachabilities'">
-          <ng-container *ngTemplateOutlet="reachabilitiesStatusQuo"></ng-container>
-        </ng-container>
-        <ng-container *ngIf="domain==='rating'">
-          <ng-container *ngTemplateOutlet="ratingStatusQuo"></ng-container>
-        </ng-container>
-        <ng-container *ngIf="domain==='supply'">
-          <ng-container *ngTemplateOutlet="supplyStatusQuo"></ng-container>
-        </ng-container>
-      </div>
-    </div>
-    <div #scenario *ngFor="let scenario of scenarios" [attr.data-value]="scenario"
+    <div #scenario [ngClass]="{active: scenario === activeScenario}"
+         *ngFor="let scenario of scenarios" [attr.data-value]="scenario"
          class="scenario-card">
       <div class="scenario-card-header"
            (click)="toggleScenario(scenario)">
-        {{ scenario }}
+        {{ scenario.name }}
       </div>
       <div class="scenario-card-body">
         <ng-container *ngIf="domain==='demand'">
-          <ng-container *ngTemplateOutlet="demandScenario"></ng-container>
+          <ng-container [ngTemplateOutlet]="demandScenarioTemplate"
+                        [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
         </ng-container>
         <ng-container *ngIf="domain==='reachabilities'">
           <ng-container *ngTemplateOutlet="reachabilitiesScenario"></ng-container>
@@ -44,7 +26,7 @@
     <div id="scenario-controls">
       <div>
         <button mat-icon-button color="primary" class="small"
-                [disabled]="activeScenario === 'Status Quo'"
+                [disabled]="activeScenario === undefined"
                 (click)="onEditScenario()"
                 title="ausgewähltes Szenario editieren">
           <mat-icon>edit</mat-icon>
@@ -55,7 +37,7 @@
           <mat-icon>add</mat-icon>
         </button>
         <button mat-icon-button color="primary" class="small"
-                [disabled]="activeScenario === 'Status Quo'"
+                [disabled]="activeScenario === undefined"
                 (click)="onDeleteScenario()"
                 title="ausgewähltes Szenario entfernen">
           <mat-icon>close</mat-icon>
@@ -69,25 +51,27 @@
 </div>
 
 <ng-template #createScenario>
-  <div fxLayout="column">
-    <mat-form-field appearance="fill">
-      <mat-label i18n>Name des Szenarios</mat-label>
-      <input matInput>
-    </mat-form-field>
-  </div>
+  <form [formGroup]="editScenarioForm">
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Name des Szenarios</mat-label>
+        <input matInput formControlName="name">
+      </mat-form-field>
+    </div>
+  </form>
 </ng-template>
 
 <ng-template #editScenario>
   <div fxLayout="column">
     <mat-form-field appearance="fill">
       <mat-label i18n>Name des Szenarios</mat-label>
-      <input matInput [value]="activeScenario">
+      <input matInput [value]="activeScenario?.name">
     </mat-form-field>
   </div>
 </ng-template>
 
 
-<ng-template #demandScenario>
+<ng-template #demandScenarioTemplate let-scenario="scenario">
   <div class="scenario-row">
     <mat-icon class="material-icons-outlined" color="primary"
               title="aktuell eingestellte Nachfragequoten anzeigen"
@@ -96,7 +80,9 @@
     </mat-icon>
     <mat-form-field appearance="standard" class="small" style="width: 145px;">
       <mat-label>Nachfragequoten-Set</mat-label>
-      <mat-select disableOptionCentering disableRipple [value]="quotas[1]">
+      <mat-select [disabled]="scenario === baseScenario"
+                  disableOptionCentering disableRipple
+                  [value]="quotas[0]">
         <mat-option *ngFor="let quota of quotas" [value]="quota">
           {{quota}}
         </mat-option>
@@ -111,48 +97,15 @@
     </mat-icon>
     <mat-form-field appearance="standard" class="small" style="width: 145px;">
       <mat-label>Einwohnerentwicklung</mat-label>
-      <mat-select disableOptionCentering disableRipple [value]="prognoses[1]">
+      <mat-select [disabled]="scenario === baseScenario"
+                  disableOptionCentering disableRipple
+                  [value]="prognoses[1]">
         <mat-option *ngFor="let prognosis of prognoses" [value]="prognosis">
           {{prognosis}}
         </mat-option>
       </mat-select>
     </mat-form-field>
   </div>
-</ng-template>
-
-<ng-template #demandStatusQuo>
-  <div class="scenario-row">
-    <mat-icon class="material-icons-outlined" color="primary"
-              title="aktuell eingestellte Nachfragequoten anzeigen"
-              (click)="onShowDemandQuotaSet()">
-      info
-    </mat-icon>
-    <mat-form-field appearance="standard" class="small" style="width: 145px;">
-      <mat-label>Nachfragequoten-Set</mat-label>
-      <mat-select disableRipple [value]="quotas[0]">
-        <mat-option [value]="quotas[0]">
-          {{quotas[0]}}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-  </div>
-  <div class="scenario-row">
-    <mat-icon class="material-icons-outlined" color="primary"
-              title="aktuell eingestellte Einwohnerentwicklung anzeigen"
-              (click)="onShowDemandPlaceholder()">
-      info
-    </mat-icon>
-    <mat-form-field appearance="standard" class="small" style="width: 145px;">
-      <mat-label>Einwohnerentwicklung</mat-label>
-      <mat-select disableRipple [value]="prognoses[0]">
-        <mat-option [value]="prognoses[0]">
-          {{prognoses[0]}}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-  </div>
-<!--  <button mat-button color="primary">{{quotas[0]}}</button>
-  <button mat-button color="primary">{{prognoses[0]}}</button>-->
 </ng-template>
 
 <ng-template #reachabilitiesScenario>

@@ -107,6 +107,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     if (id === undefined) return;
     let process = this.getProcess(id);
     this.activeProcess = process;
+    this.planningService.activeProcess$.next(process);
   }
 
   setSlider(): void {
@@ -230,8 +231,10 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
           if (idx > -1) {
             this.myProcesses.splice(idx, 1);
           }
-          if (this.activeProcess === process)
+          if (this.activeProcess === process) {
             this.activeProcess = undefined;
+            this.planningService.activeProcess$.next(undefined);
+          }
         },(error) => {
           console.log('there was an error sending the query', error);
         });

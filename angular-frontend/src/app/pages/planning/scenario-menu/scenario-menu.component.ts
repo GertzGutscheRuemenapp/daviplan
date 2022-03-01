@@ -5,6 +5,19 @@ import { mockQuotas } from "../../basedata/demand-quotas/demand-quotas.component
 import { mockPrognoses } from "../../basedata/prognosis-data/prognosis-data.component";
 import { environment } from "../../../../environments/environment";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
+import { PlanningService } from "../planning.service";
+import { PlanningProcess, Scenario } from "../../../rest-interfaces";
+import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
+import { HttpClient } from "@angular/common/http";
+import { RestAPI } from "../../../rest-api";
+
+const baseScenario: Scenario = {
+  id: -1,
+  name: 'Status Quo Fortschreibung',
+  planningProcess: -1,
+  modevariants: [],
+  demandratesets: []
+}
 
 @Component({
   selector: 'app-scenario-menu',
@@ -14,8 +27,9 @@ import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dia
 export class ScenarioMenuComponent implements OnInit {
   @Input() domain: string = '';
   @ViewChildren('scenario') scenarioCards?: QueryList<ElementRef>;
-  scenarios: string[] = ['Szenario 1', 'Szenario 2']
-  activeScenario: string = 'Status Quo';
+  baseScenario = baseScenario;
+  scenarios: Scenario[] = [];
+  activeScenario: Scenario = baseScenario;
   @ViewChild('editScenario') editScenarioTemplate?: TemplateRef<any>;
   @ViewChild('createScenario') createScenarioTemplate?: TemplateRef<any>;
   @ViewChild('supplyScenarioTable') supplyScenarioTableTemplate?: TemplateRef<any>;
@@ -24,13 +38,23 @@ export class ScenarioMenuComponent implements OnInit {
   quotas = mockQuotas;
   prognoses = mockPrognoses;
   backend: string = environment.backend;
+  editScenarioForm: FormGroup;
+  process?: PlanningProcess;
 
-  constructor(private dialog: MatDialog) { }
+  constructor(private dialog: MatDialog, private planningService: PlanningService,
+              private formBuilder: FormBuilder, private http: HttpClient, private rest: RestAPI) {
+    this.planningService.activeProcess$.subscribe(process => {
+      this.onProcessChange(process);
+    })
+    this.editScenarioForm = this.formBuilder.group({
+      name: new FormControl('')
+    });
+  }
 
   ngOnInit(): void {
   }
 
-  toggleScenario(scenario: string) {
+  toggleScenario(scenario: Scenario): void {
     // if (event.target !== event.currentTarget) return;
     // let a = (event.target as Element).attributes;
     // this.activeScenario = ((event.target as Element).attributes as any)['data-value'].value;
@@ -44,19 +68,37 @@ export class ScenarioMenuComponent implements OnInit {
     });
   }
 
-  onDeleteScenario() {
+  onProcessChange(process: PlanningProcess | undefined): void {
+    this.process = process;
+    this.scenarios = (process)? [baseScenario].concat(process.scenarios || []): [];
+  }
+
+  onDeleteScenario(): void {
     const dialogRef = this.dialog.open(RemoveDialogComponent, {
       data: {
         title: $localize`Das Szenario wirklich entfernen?`,
         confirmButtonText: $localize`Szenario entfernen`,
-        value: this.activeScenario
+        value: this.activeScenario.name
       }
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.http.delete(`${this.rest.URLS.scenarios}${this.activeScenario.id}/`
+        ).subscribe(res => {
+          const idx = this.process!.scenarios!.indexOf(this.activeScenario);
+          if (idx >= 0) {
+            this.process!.scenarios!.splice(idx, 1);
+            this.scenarios = [baseScenario].concat(this.process!.scenarios!);
+          }
+          this.activeScenario = baseScenario;
+        }, error => {
+          console.log('there was an error sending the query', error);
+        });
+      }
     });
   }
 
-  onCreateScenario() {
+  onCreateScenario(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
@@ -66,11 +108,30 @@ export class ScenarioMenuComponent implements OnInit {
         closeOnConfirm: true
       }
     });
-    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+    dialogRef.afterOpened().subscribe(() => {
+      this.editScenarioForm.reset();
+    })
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      this.editScenarioForm.markAllAsTouched();
+      if (this.editScenarioForm.invalid) return;
+      dialogRef.componentInstance.isLoading = true;
+      let attributes = {
+        name: this.editScenarioForm.value.name,
+        planningProcess: this.process!.id
+      };
+      this.http.post<Scenario>(this.rest.URLS.scenarios, attributes
+      ).subscribe(scenario => {
+        if(!this.process!.scenarios) this.process!.scenarios = []
+        this.process!.scenarios.push(scenario);
+        this.scenarios.push(scenario);
+        dialogRef.close();
+      },(error) => {
+        dialogRef.componentInstance.isLoading = false;
+      });
     });
   }
 
-  onEditScenario() {
+  onEditScenario(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
@@ -84,7 +145,7 @@ export class ScenarioMenuComponent implements OnInit {
     });
   }
 
-  onShowSupplyTable() {
+  onShowSupplyTable(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
@@ -98,7 +159,7 @@ export class ScenarioMenuComponent implements OnInit {
     });
   }
 
-  onShowDemandPlaceholder() {
+  onShowDemandPlaceholder(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
@@ -112,7 +173,7 @@ export class ScenarioMenuComponent implements OnInit {
     });
   }
 
-  onShowDemandQuotaSet() {
+  onShowDemandQuotaSet(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '900px',
       data: {

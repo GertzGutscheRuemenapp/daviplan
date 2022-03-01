@@ -103,20 +103,28 @@ mat-toolbar mat-form-field {
   left: 10px;
 }
 
-::ng-deep #scenario-toggle .mat-content{
-  border-top: none;
-}
+::ng-deep {
+  #scenario-toggle .mat-expansion-panel-header[aria-disabled=true]{
+    pointer-events: none;
+  }
 
-::ng-deep #scenario-toggle.mat-expanded {
-  mat-expansion-panel-header {
-    background-color: $primary !important;
+  #scenario-toggle .mat-content {
+    border-top: none;
   }
-  .mat-content {
-    padding-bottom: 1px;
-    border-bottom: none;
-  }
-  mat-panel-title, .mat-expansion-indicator:after {
-    color: white;
+
+  #scenario-toggle.mat-expanded {
+    mat-expansion-panel-header {
+      background-color: $primary !important;
+    }
+
+    .mat-content {
+      padding-bottom: 1px;
+      border-bottom: none;
+    }
+
+    mat-panel-title, .mat-expansion-indicator:after {
+      color: white;
+    }
   }
 }
 

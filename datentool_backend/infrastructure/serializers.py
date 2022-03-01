@@ -42,6 +42,7 @@ class ScenarioSerializer(serializers.ModelSerializer):
         model = Scenario
         fields = ('id', 'name', 'planning_process', 'prognosis',
                   'modevariants', 'demandratesets')
+        extra_kwargs = {'prognosis': {'required': False}}
 
     def update(self, instance, validated_data):
         mode_set = validated_data.pop('scenariomode_set', [])
