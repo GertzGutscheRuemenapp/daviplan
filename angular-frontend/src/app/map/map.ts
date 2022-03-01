@@ -193,7 +193,7 @@ export class OlMap {
       opacity: (options?.opacity != undefined) ? options?.opacity: 1,
       style: function(feature) {
         if (options?.labelField && layer.get('showLabel')) {
-          const text = (_this.view.getZoom()! > 9 )? String(feature.get(options?.labelField)) : ''
+          const text = (_this.view.getZoom()! > 10 )? String(feature.get(options?.labelField)) : ''
           style.getText().setText(text);
         }
         else {
@@ -358,7 +358,7 @@ export class OlMap {
       opacity: (options?.opacity != undefined) ? options?.opacity: 1,
       style: function(feature) {
         if (options?.labelField && layer.get('showLabel')) {
-          const text = (_this.view.getZoom()! > 9 )? String(feature.get(options?.labelField)) : ''
+          const text = (_this.view.getZoom()! > 10 )? String(feature.get(options?.labelField)) : ''
           style.getText().setText(text);
         }
         else {
