@@ -1,15 +1,7 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
-import {
-  Place,
-  AreaLevel,
-  Area,
-  Gender,
-  AreaPopulationData,
-  PopulationData,
-  AgeGroup,
-  Infrastructure, Service
-} from "./rest-interfaces";
+import { Place, AreaLevel, Area, Gender, AreaPopulationData, PopulationData, AgeGroup,
+  Infrastructure, Service, Capacity } from "./rest-interfaces";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
 import { sortBy } from "./helpers/utils";
@@ -29,6 +21,7 @@ export class RestCacheService {
   private popDataCache: Record<string, PopulationData[]> = {};
   private popAreaCache: Record<string, AreaPopulationData[]> = {};
   private placesCache: Record<number, Place[]> = {};
+  private capacitiesCache: Record<string, Capacity[]> = {};
   isLoading$ = new BehaviorSubject<boolean>(false);
 
   constructor(protected http: HttpClient, protected rest: RestAPI) { }
@@ -72,10 +65,37 @@ export class RestCacheService {
       if (!cached) {
         this.setLoading(true);
         const query = this.http.get<any>(`${this.rest.URLS.places}?infrastructure=${infrastructureId}`);
-        query.subscribe( areas => {
-          this.placesCache[infrastructureId] = areas.features;
+        query.subscribe( places => {
+          this.placesCache[infrastructureId] = places.features;
           this.setLoading(false);
-          subscriber.next(areas.features);
+          subscriber.next(places.features);
+          subscriber.complete();
+        });
+      }
+      else {
+        subscriber.next(cached);
+        subscriber.complete();
+      }
+    });
+    return observable;
+  }
+
+  getCapacities(year: number, serviceId: number, scenarioId: number | undefined = undefined): Observable<Capacity[]>{
+    let key = `${serviceId}-${year}`;
+    if (scenarioId !== undefined)
+      key += `-${scenarioId}`
+    const observable = new Observable<Capacity[]>(subscriber => {
+      const cached = this.capacitiesCache[key];
+      if (!cached) {
+        this.setLoading(true);
+        let url = `${this.rest.URLS.capacities}?service=${serviceId}&year=${year}`;
+        if (scenarioId !== undefined)
+          url += `&scenario=${scenarioId}`;
+        const query = this.http.get<Capacity[]>(url);
+        query.subscribe( capacities => {
+          this.capacitiesCache[key] = capacities;
+          this.setLoading(false);
+          subscriber.next(capacities);
           subscriber.complete();
         });
       }

@@ -1,13 +1,12 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Indicator, mockIndicators } from "../../basedata/indicators/indicators.component";
-import { mockPresetLevels } from "../../basedata/areas/areas";
 import { CookieService } from "../../../helpers/cookies.service";
 import { mockInfrastructures } from "../../administration/infrastructure/infrastructure.component";
 import { environment } from "../../../../environments/environment";
 import { MatDialog } from "@angular/material/dialog";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import { PlanningService } from "../planning.service";
-import { AreaLevel, Infrastructure } from "../../../rest-interfaces";
+import { AreaLevel, Infrastructure, PlanningProcess } from "../../../rest-interfaces";
 
 const mockCustomIndicators: Indicator[] = [
   {id: 6, service: mockInfrastructures[0].services[0].id, name: 'Test + langer Text der die maximale Größe des Containers überschreiten sollte', description: 'eigener Testindikator'},
@@ -29,10 +28,11 @@ export class RatingComponent implements OnInit {
   selectedAreaLevel?: AreaLevel;
   areaLevels?: AreaLevel[];
   customIndicators = mockCustomIndicators;
-  showScenarioMenu: any = false;
+  showScenarioMenu: boolean = false;
   activeIndicator = mockIndicators[0];
   infrastructures?: Infrastructure[];
   selectedInfrastructure?: Infrastructure;
+  activeProcess?: PlanningProcess;
 
   constructor(private dialog: MatDialog, public cookies: CookieService,
               private planningService: PlanningService) {
@@ -44,10 +44,14 @@ export class RatingComponent implements OnInit {
       this.areaLevels = areaLevels;
       this.selectedAreaLevel = areaLevels[0];
     })
+    this.planningService.activeProcess$.subscribe(process => {
+      this.activeProcess = process;
+      if (!process) this.cookies.set('exp-planning-scenario', false);
+      this.showScenarioMenu = !!this.cookies.get('exp-planning-scenario');
+    })
   }
 
   ngOnInit(): void {
-    this.showScenarioMenu = this.cookies.get('exp-planning-scenario');
   }
 
   onIndicatorChange(id: number): void {

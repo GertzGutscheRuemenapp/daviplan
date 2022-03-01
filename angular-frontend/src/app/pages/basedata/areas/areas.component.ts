@@ -111,16 +111,22 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       this.editLevelForm.setErrors(null);
     })
     this.editArealevelCard.dialogConfirmed.subscribe((ok)=>{
-      const attributes: any = this.enableLayerCheck!.checked? {
+      let attributes: any = this.enableLayerCheck!.checked? {
         symbol: {
           strokeColor: this.colorSelection
         }
       }: {
         symbol: null
       }
+      if (!this.selectedAreaLevel?.isPreset) {
+        attributes['name'] = this.editLevelForm.value.name;
+        attributes['labelField'] = this.editLevelForm.value.labelField;
+      }
       this.editArealevelCard.setLoading(true);
       this.http.patch<AreaLevel>(`${this.rest.URLS.arealevels}${this.selectedAreaLevel?.id}/`, attributes
       ).subscribe(arealevel => {
+        this.selectedAreaLevel!.name = arealevel.name;
+        this.selectedAreaLevel!.labelField = arealevel.labelField;
         this.selectedAreaLevel!.symbol = arealevel.symbol;
         this.editArealevelCard.closeDialog(true);
         this.mapControl?.refresh({ internal: true });

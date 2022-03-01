@@ -9,19 +9,19 @@
     <mat-form-field appearance="standard" class="small">
       <mat-label>Planungsprozess</mat-label>
       <mat-select #processSelect disableOptionCentering disableRipple
-                  [ngbPopover]="activeProjectPopover"
-                  [popoverTitle]="activeProject?.name"
+                  [ngbPopover]="activeProcessPopover"
+                  [popoverTitle]="activeProcess?.name"
                   placement="right"
                   container="body"
                   triggers="mouseenter:mouseleave"
                   panelClass="custom-option-panel"
-                  [value]="activeProject? activeProject.id: -1"
+                  [value]="activeProcess? activeProcess.id: -1"
                   (selectionChange)="onProcessChange($event.value)">
         <mat-select-trigger>
-          <span *ngIf="activeProject">
-            {{ activeProject.name }}
+          <span *ngIf="activeProcess">
+            {{ activeProcess.name }}
           </span>
-          <span *ngIf="!activeProject">
+          <span *ngIf="!activeProcess">
             -----
           </span>
         </mat-select-trigger>
@@ -30,32 +30,32 @@
           <button title="Planungsprozess erstellen"
                   mat-icon-button color="primary" class="small"
                   style="position: absolute; right: 6px; top: 8px;"
-                  (click)="onEditProject()">
+                  (click)="onCreateProcess()">
             <mat-icon>add</mat-icon>
           </button>
-          <ng-container *ngFor="let project of myProjects">
-            <ng-template #projectPopover>
-              <ng-container *ngIf="project.description"> <i>{{project.description }}</i></ng-container>
-              <mat-divider *ngIf="project.description && project.shared"></mat-divider>
-              {{(project.shared)? 'geteilt mit ...': ''}}
+          <ng-container *ngFor="let process of myProcesses">
+            <ng-template #ProcessPopover>
+              <ng-container *ngIf="process.description"> <i>{{process.description }}</i></ng-container>
+              <mat-divider *ngIf="process.description && process.users.length > 0"></mat-divider>
+              {{(process.users.length > 0)? 'geteilt mit ...': ''}}
             </ng-template>
             <mat-option class="custom-option"
-                        [value]="project.id"
-                        [ngbPopover]="projectPopover"
+                        [value]="process.id"
+                        [ngbPopover]="ProcessPopover"
                         placement="right"
                         container="body"
                         triggers="mouseenter:mouseleave">
               <div class="option-title">
-                {{project.name}}
+                {{process.name}}
               </div>
               <div class="option-controls">
                 <button mat-icon-button color="primary" class="small"
-                        (click)="$event.stopPropagation(); onEditProject(project)"
+                        (click)="$event.stopPropagation(); editProcess(process)"
                         title="Planungsprozess editieren">
                   <mat-icon>edit</mat-icon>
                 </button>
                 <button mat-icon-button color="primary" class="small"
-                        (click)="$event.stopPropagation(); onDeleteProject(project);"
+                        (click)="$event.stopPropagation(); deleteProcess(process);"
                         title="Planungsprozess löschen">
                   <mat-icon>remove</mat-icon>
                 </button>
@@ -63,37 +63,37 @@
             </mat-option>
           </ng-container>
         </mat-optgroup>
-        <mat-optgroup *ngIf="sharedProjects" label="Geteilte Planungsprozesse">
-          <ng-container *ngFor="let project of sharedProjects">
-            <ng-template #projectPopover>
-              <ng-container *ngIf="project.description">
-                <i>{{project.description }}</i>
+        <mat-optgroup *ngIf="sharedProcesses.length > 0" label="Geteilte Planungsprozesse">
+          <ng-container *ngFor="let process of sharedProcesses">
+            <ng-template #ProcessPopover>
+              <ng-container *ngIf="process.description">
+                <i>{{process.description }}</i>
                 <mat-divider></mat-divider>
               </ng-container>
-              {{(project.editable)? 'editierbar': 'nicht editierbar'}}<br>
-              geteilt durch <i>{{project.user}}</i>
+              {{(process.allowSharedChange)? 'editierbar': 'nicht editierbar'}}<br>
+              geteilt durch <i>{{process.owner}}</i>
             </ng-template>
-            <mat-option [value]="project.id"
-                        [ngbPopover]="projectPopover"
+            <mat-option [value]="process.id"
+                        [ngbPopover]="ProcessPopover"
                         placement="right"
                         container="body"
                         triggers="mouseenter:mouseleave">
-              {{ project.name }}
+              {{ process.name }}
             </mat-option>
           </ng-container>
         </mat-optgroup>
       </mat-select>
     </mat-form-field>
-    <button *ngIf="activeProject" class="process-button small"
+    <button *ngIf="activeProcess" class="process-button small"
             title="ausgewählten Planungsprozess editieren"
             mat-icon-button color="primary"
-            (click)="onEditProject(activeProject)" i18n>
+            (click)="editProcess(activeProcess)" i18n>
       <mat-icon>edit</mat-icon>
     </button>
-    <button *ngIf="!activeProject" class="process-button small"
+    <button *ngIf="!activeProcess" class="process-button small"
             title="Planungsprozess erstellen"
             mat-icon-button color="primary"
-            (click)="onEditProject()" i18n>
+            (click)="onCreateProcess()" i18n>
       <mat-icon>add</mat-icon>
     </button>
     <app-help-button title="Planungsprozess"
@@ -139,21 +139,21 @@
     <app-map-controls target="planning-map"></app-map-controls>
   </div>
 </div>
-<ng-template #activeProjectPopover>
-  <ng-container *ngIf="activeProject">
-    <ng-container *ngIf="activeProject.description">
-      <i>{{activeProject.description }}</i>
+<ng-template #activeProcessPopover>
+  <ng-container *ngIf="activeProcess">
+    <ng-container *ngIf="activeProcess.description">
+      <i>{{activeProcess.description }}</i>
       <mat-divider></mat-divider>
     </ng-container>
-    <div *ngIf="activeProject?.shared && !activeProject?.user">
+<!--    <div *ngIf="activeProcess?.users.length > 0 && !activeProcess?.owner === user">
       geteilt mit ...
     </div>
-    <div *ngIf="activeProject?.user">
-      {{(activeProject?.editable)? 'editierbar': 'nicht editierbar'}} <br>
-      geteilt durch <i>{{activeProject?.user}}</i>
-    </div>
+    <div *ngIf="activeProcess?.user">
+      {{(activeProcess?.editable)? 'editierbar': 'nicht editierbar'}} <br>
+      geteilt durch <i>{{activeProcess?.user}}</i>
+    </div>-->
   </ng-container>
-  <div *ngIf="!activeProject" i18n>Wählen Sie hier einen Planungsprozess aus</div>
+  <div *ngIf="!activeProcess" i18n>Wählen Sie hier einen Planungsprozess aus</div>
 </ng-template>
 <mat-sidenav #drawer class="context-bar"
              [opened]="(isSM$ | async) === false">
@@ -178,41 +178,50 @@
   <app-legend #planningLegend target="planning-map"></app-legend>
 </app-side-toggle>
 
-<ng-template #processTemplate let-project="project">
-  <div fxLayout="row wrap">
-    <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
-      <mat-form-field appearance="fill">
-        <mat-label i18n>Name</mat-label>
-        <input matInput [value]="project?.name">
-      </mat-form-field>
+<ng-template #processTemplate>
+  <form [formGroup]="editProcessForm">
+    <div *ngIf="editProcessForm.errors">
+      <mat-error *ngFor="let error of Object.values(editProcessForm.errors)" class="alert">
+        {{ error }}
+      </mat-error>
     </div>
-    <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
-      <mat-form-field appearance="fill">
-        <mat-label i18n>Beschreibung</mat-label>
-        <textarea matInput rows="3" [value]="project?.description"></textarea>
-      </mat-form-field>
+    <div fxLayout="row wrap">
+      <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
+        <mat-form-field appearance="fill">
+          <mat-label i18n>Name</mat-label>
+          <input matInput formControlName="name">
+        </mat-form-field>
+      </div>
+      <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
+        <mat-form-field appearance="fill">
+          <mat-label i18n>Beschreibung</mat-label>
+          <textarea matInput rows="3" formControlName="description"></textarea>
+        </mat-form-field>
+      </div>
     </div>
-  </div>
-  <mat-divider style="width: 100%; margin-bottom: 10px;"></mat-divider>
-  <div fxLayout="row wrap">
-    <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
-      <span class="subtitle1" style="color: grey;">Infrastrukturbereiche</span>
-      <div class="border-box" style="height: 250px;">
-        <mat-checkbox class="reverse" color="primary">alle</mat-checkbox>
-        <mat-divider style="margin-bottom: 10px;"></mat-divider>
-        <mat-checkbox class="reverse" color="primary" *ngFor="let infrastructure of infrastructures">
-          {{infrastructure.name}}
+    <mat-divider style="width: 100%; margin-bottom: 10px;"></mat-divider>
+    <div fxLayout="row wrap">
+      <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
+        <span class="subtitle1" style="color: grey;">Infrastrukturbereiche</span>
+        <div class="border-box" style="height: 250px;">
+          <mat-checkbox class="reverse" color="primary">alle</mat-checkbox>
+          <mat-divider style="margin-bottom: 10px;"></mat-divider>
+          <mat-checkbox class="reverse" color="primary" *ngFor="let infrastructure of infrastructures">
+            {{infrastructure.name}}
+          </mat-checkbox>
+        </div>
+      </div>
+      <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
+        <span class="subtitle1" style="color: grey;">Zugriff auf Planungsprozess</span>
+        <div class="border-box" style="height: 250px;">
+          <mat-checkbox class="reverse" color="primary" *ngFor="let user of users">
+            {{user.firstName + ' ' + user.lastName}}
+          </mat-checkbox>
+        </div>
+        <mat-checkbox formControlName="allowSharedChange" style="margin-top: 10px;" color="primary">
+          Änderungen an Planungsprozess erlauben
         </mat-checkbox>
       </div>
     </div>
-    <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
-      <span class="subtitle1" style="color: grey;">Zugriff auf Planungsprozess</span>
-      <div class="border-box" style="height: 250px;">
-        <mat-checkbox class="reverse" color="primary" *ngFor="let user of users">
-          {{user.firstName + ' ' + user.lastName}}
-        </mat-checkbox>
-      </div>
-      <mat-checkbox style="margin-top: 10px;" color="primary">Änderungen an Planungsprozess erlauben</mat-checkbox>
-    </div>
-  </div>
+  </form>
 </ng-template>

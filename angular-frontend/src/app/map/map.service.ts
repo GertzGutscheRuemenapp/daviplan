@@ -5,7 +5,6 @@ import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../rest-api";
 import { sortBy } from "../helpers/utils";
-import { ProjectSettings } from "../pages/administration/project-definition/project-definition.component";
 import { WKT } from "ol/format";
 import { SettingsService } from "../settings.service";
 import { environment } from "../../environments/environment";
@@ -265,7 +264,7 @@ export class MapControl {
    */
   removeGroup(id: number | string, emit= true): void {
     const idx = this._localLayerGroups.findIndex(group => group.id === id);
-    if (idx <= 0) return;
+    if (idx < 0) return;
     this.clearGroup(id, false);
     this._localLayerGroups.splice(idx, 1);
     if (emit) this.layerGroups.next(this._localLayerGroups.concat(this._serviceLayerGroups));
@@ -282,6 +281,11 @@ export class MapControl {
     });
     group.children = [];
     if (emit) this.layerGroups.next(this._localLayerGroups.concat(this._serviceLayerGroups));
+  }
+
+  setShowLabel(id: number | string, show: boolean): void {
+    const layer = this.layerMap[id];
+    this.map?.setShowLabel(this.mapId(layer), show);
   }
 
   removeLayer(id: number | string, emit= true): void {
@@ -326,9 +330,11 @@ export class MapControl {
     selectable?: boolean,
     tooltipField?: string,
     colorFunc?: ((d: number) => string),
+    valueField?: string,
     mouseOver?: {
       fillColor?: string,
-      strokeColor?: string
+      strokeColor?: string,
+      cursor?: string
     },
     select?: {
       fillColor?: string,
@@ -353,6 +359,7 @@ export class MapControl {
       visible: options?.visible,
       tooltipField: options?.tooltipField,
       colorFunc: options?.colorFunc,
+      valueField: options?.valueField,
       mouseOver: options?.mouseOver,
       select: options?.select
     });
@@ -371,9 +378,11 @@ export class MapControl {
     visible?: boolean,
     tooltipField?: string,
     colorFunc?: ((d: number) => string),
+    valueField?: string,
     mouseOver?: {
       fillColor?: string,
       strokeColor?: string
+      cursor?: string
     },
     select?: {
       fillColor?: string,
@@ -385,6 +394,8 @@ export class MapControl {
       this.map!.addVectorLayer(this.mapId(layer), {
         visible: options?.visible,
         opacity: opacity,
+        valueField: options?.valueField,
+        mouseOverCursor: options?.mouseOver?.cursor,
         stroke: {
           color: layer.symbol?.strokeColor, width: 2,
           mouseOverColor: options?.mouseOver?.strokeColor,
@@ -398,7 +409,8 @@ export class MapControl {
         labelField: layer.labelField,
         tooltipField: options?.tooltipField,
         shape: (layer.symbol?.symbol !== 'line')? layer.symbol?.symbol: undefined,
-        selectable: true
+        selectable: true,
+        showLabel: layer.showLabel
       })
     }
     else if (layer.type === 'vector-tiles') {
@@ -409,7 +421,8 @@ export class MapControl {
          fill: { color: layer.symbol?.fillColor, mouseOverColor: options?.mouseOver?.fillColor },
          tooltipField: options?.tooltipField,
          featureClass: (options?.mouseOver)? 'feature': 'renderFeature',
-         labelField: 'label'
+         labelField: 'label',
+         showLabel: layer.showLabel
        });
     }
     else {
@@ -453,6 +466,11 @@ export class MapControl {
       features.push(feature);
     })
     this.map?.addFeatures(this.mapId(layer), features);
+  }
+
+  clearFeatures(id: number | string): void {
+    const layer = this.layerMap[id];
+    this.map?.clear(this.mapId(layer));
   }
 
   setBackground(id: number | string | undefined): void {

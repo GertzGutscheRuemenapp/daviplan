@@ -80,7 +80,18 @@ class YearSerializer(serializers.ModelSerializer):
 class PlanningProcessSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlanningProcess
-        fields = ('id', 'name', 'owner', 'users', 'allow_shared_change')
+        fields = ('id', 'name', 'owner', 'users', 'allow_shared_change',
+                  'description')
+        read_only_fields = ('owner', )
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            owner = request.user.profile
+            validated_data['owner'] = owner
+            return super().create(validated_data)
+        else:
+            raise serializers.ValidationError('user could not be determined')
 
 
 class InfrastructureAccessSerializer(serializers.ModelSerializer):
@@ -137,7 +148,8 @@ class InfrastructureSerializer(serializers.ModelSerializer):
                 infrastructure_access = InfrastructureAccess.objects.get(
                     infrastructure=instance,
                     profile=profile_access['profile'])
-                infrastructure_access.allow_sensitive_data = profile_access['allow_sensitive_data']
+                infrastructure_access.allow_sensitive_data = profile_access[
+                    'allow_sensitive_data']
                 infrastructure_access.save()
 
         if update_symbol:
@@ -160,12 +172,13 @@ class InfrastructureSerializer(serializers.ModelSerializer):
 
 
 class ServiceSerializer(serializers.ModelSerializer):
-    #quota_id = serializers.IntegerField(write_only=True, source='quota')
+    max_capacity = serializers.IntegerField(read_only=True)
     class Meta:
         model = Service
         fields = ('id', 'name', 'description', 'infrastructure', 'editable_by',
                   'capacity_singular_unit', 'capacity_plural_unit',
                   'has_capacity', 'demand_singular_unit', 'demand_plural_unit',
-                  'quota_type', 'demand_name', 'demand_description')
+                  'quota_type', 'demand_name', 'demand_description',
+                  'max_capacity')
 
 

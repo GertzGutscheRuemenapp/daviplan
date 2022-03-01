@@ -133,21 +133,8 @@ class PostOnlyWithCanCreateProcessTest:
         self.test_list()
         self.test_detail()
 
-    def test_user_not_owner_post(self):
+    def test_user_not_owner(self):
         """Test, no post permission if user is not owner"""
-        # Request user profile is the owner and profile can_create_process
-        self.profile.can_create_process = True
-        self.profile.save()
-        profile2 = ProfileFactory(can_create_process=True)
-
-        self.post_data['owner'] = self.obj.owner.pk
-        self._test_post()
-
-        self.post_data['owner'] = profile2.pk
-        self._test_post_forbidden()
-
-    def test_user_not_owner_putpatch(self):
-        """Test, no put/patch permission if user is not owner"""
         # Request user profile is the owner and profile can_create_process
         self.profile.can_create_process = True
         self.profile.save()
@@ -155,11 +142,13 @@ class PostOnlyWithCanCreateProcessTest:
 
         self.client.logout()
         self.client.force_login(user=profile2.user)
-        self._test_post_forbidden()
+        self.post_data['owner'] = profile2.id
+        self._test_post()
         self.client.logout()
 
-        self.client.force_login(user=self.profile.user)
-        self._test_put_patch()
+        # ToDo: test forbidden patch-access by another user
+        #self.client.force_login(user=self.profile.user)
+        #self._test_put_patch_forbidden()
 
     def test_user_not_owner_delete(self):
         """Test, no delete permission if user is not owner"""
@@ -270,8 +259,7 @@ class TestPlanningProcessAPI(PostOnlyWithCanCreateProcessTest,
         owner = planningprocess.owner.pk
         users = list(planningprocess.users.all().values_list(flat=True))
 
-        data = dict(owner=owner,
-                    users=users,
+        data = dict(users=users,
                     name=faker.word(),
                     allow_shared_change=faker.pybool())
 

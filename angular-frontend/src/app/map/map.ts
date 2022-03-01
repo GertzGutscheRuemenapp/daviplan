@@ -152,7 +152,8 @@ export class OlMap {
       fill?: { color?: string, selectedColor?: string, mouseOverColor?: string },
       tooltipField?: string,
       featureClass?: 'feature' | 'renderFeature',
-      labelField?: string
+      labelField?: string,
+      showLabel?: boolean
     } = {}): Layer<any> {
     const source = new VectorTileSource({
       format: new MVT({
@@ -191,9 +192,12 @@ export class OlMap {
       visible: options?.visible === true,
       opacity: (options?.opacity != undefined) ? options?.opacity: 1,
       style: function(feature) {
-        if (options?.labelField) {
-          const text = (_this.view.getZoom()! > 9 )? feature.get(options?.labelField) : ''
+        if (options?.labelField && layer.get('showLabel')) {
+          const text = (_this.view.getZoom()! > 10 )? String(feature.get(options?.labelField)) : ''
           style.getText().setText(text);
+        }
+        else {
+          style.getText().setText('');
         }
         return style;
       }
@@ -293,12 +297,12 @@ export class OlMap {
       })
   }
 
-
   addVectorLayer(name: string, options: {
       url?: any, params?: any,
       visible?: boolean, opacity?: number,
       selectable?: boolean, tooltipField?: string,
       shape?: 'circle' | 'square' | 'star' | 'x',
+      mouseOverCursor?: string,
       stroke?: {
         color?: string, width?: number, dash?: number[],
         selectedColor?: string, mouseOverColor?: string, selectedDash?: number[],
@@ -306,9 +310,10 @@ export class OlMap {
       },
       fill?: {
         color?: string | ((d: number) => string),
-        colorValueField?: string,
         selectedColor?: string, mouseOverColor?: string },
-      labelField?: string
+      labelField?: string,
+      valueField?: string,
+      showLabel?: boolean
     } = {}): Layer<any> {
 
     // @ts-ignore
@@ -327,6 +332,8 @@ export class OlMap {
         font: '14px Calibri,sans-serif',
         overflow: true,
         placement: 'point',
+        offsetX: 10,
+        offsetY: 10,
         fill: new Fill({
           color: 'black'
         }),
@@ -336,13 +343,6 @@ export class OlMap {
         })
       })
     });
-
-    if (options?.shape) {
-      const shape = this.getShape(options?.shape);
-      shape.getFill().setColor(fillColor);
-      shape.getStroke().setColor(strokeColor);
-      style.setImage(shape);
-    }
 
     const _this = this;
     if (this.layers[name] != null) this.removeLayer(name);
@@ -357,23 +357,35 @@ export class OlMap {
       visible: options?.visible === true,
       opacity: (options?.opacity != undefined) ? options?.opacity: 1,
       style: function(feature) {
-        if (options?.labelField) {
-          const text = (_this.view.getZoom()! > 9 )? String(feature.get(options?.labelField)) : ''
+        if (options?.labelField && layer.get('showLabel')) {
+          const text = (_this.view.getZoom()! > 10 )? String(feature.get(options?.labelField)) : ''
           style.getText().setText(text);
         }
+        else {
+          style.getText().setText('');
+        }
+        if (options?.shape) {
+          const shape = _this.getShape(options?.shape);
+          shape.getFill().setColor(fillColor);
+          shape.getStroke().setColor(strokeColor);
+          style.setImage(shape);
+        }
         if (typeof options?.fill?.color === 'function'){
-          const valueField = options?.fill?.colorValueField || 'value';
+          const valueField = options?.valueField || 'value';
           const color = options.fill.color(Number(feature.get(valueField)));
           style.getFill().setColor(color);
+          // @ts-ignore
+          style.getImage().getFill().setColor(color);
         }
         return style;
       }
     });
 
+    layer.set('showLabel', (options?.showLabel !== undefined)? options?.showLabel: true);
     layer.set('name', name);
     this.setMouseOverLayer(layer, {
       tooltipField: options?.tooltipField,
-      cursor: (options?.selectable)? 'pointer': undefined,
+      cursor: (options?.mouseOverCursor)? options?.mouseOverCursor: (options?.selectable)? 'pointer': undefined,
       fillColor: options?.fill?.mouseOverColor,
       strokeColor: options?.stroke?.mouseOverColor,
       strokeWidth: options?.stroke?.mouseOverWidth || options?.stroke?.width || 1
@@ -483,10 +495,16 @@ export class OlMap {
     layer.getSource().clear();
   }
 
-  toggleSelect(layerName: string, active: boolean){
+  setSelectActive(layerName: string, active: boolean){
     const layer = this.getLayer(layerName),
           select = layer.get('select');
     select.setActive(active);
+  }
+
+  setShowLabel(layerName: string, show: boolean){
+    const layer = this.getLayer(layerName);
+    layer.set('showLabel', show);
+    layer.changed();
   }
 
   getFeature(layerName: string, id: string){
