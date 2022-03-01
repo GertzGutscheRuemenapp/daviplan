@@ -31,7 +31,6 @@ export class ScenarioMenuComponent implements OnInit {
   scenarios: Scenario[] = [];
   activeScenario: Scenario = baseScenario;
   @ViewChild('editScenario') editScenarioTemplate?: TemplateRef<any>;
-  @ViewChild('createScenario') createScenarioTemplate?: TemplateRef<any>;
   @ViewChild('supplyScenarioTable') supplyScenarioTableTemplate?: TemplateRef<any>;
   @ViewChild('demandPlaceholderTable') demandPlaceholderTemplate?: TemplateRef<any>;
   @ViewChild('demandQuotaDialog') demandQuotaTemplate?: TemplateRef<any>;
@@ -47,7 +46,7 @@ export class ScenarioMenuComponent implements OnInit {
       this.onProcessChange(process);
     })
     this.editScenarioForm = this.formBuilder.group({
-      name: new FormControl('')
+      scenarioName: new FormControl('')
     });
   }
 
@@ -71,6 +70,7 @@ export class ScenarioMenuComponent implements OnInit {
   onProcessChange(process: PlanningProcess | undefined): void {
     this.process = process;
     this.scenarios = (process)? [baseScenario].concat(process.scenarios || []): [];
+    this.activeScenario = baseScenario;
   }
 
   onDeleteScenario(): void {
@@ -104,7 +104,7 @@ export class ScenarioMenuComponent implements OnInit {
       data: {
         title: $localize`Szenario erstellen`,
         // confirmButtonText: $localize`erstellen`,
-        template: this.createScenarioTemplate,
+        template: this.editScenarioTemplate,
         closeOnConfirm: true
       }
     });
@@ -116,7 +116,7 @@ export class ScenarioMenuComponent implements OnInit {
       if (this.editScenarioForm.invalid) return;
       dialogRef.componentInstance.isLoading = true;
       let attributes = {
-        name: this.editScenarioForm.value.name,
+        name: this.editScenarioForm.value.scenarioName,
         planningProcess: this.process!.id
       };
       this.http.post<Scenario>(this.rest.URLS.scenarios, attributes
@@ -124,7 +124,6 @@ export class ScenarioMenuComponent implements OnInit {
         if(!this.process!.scenarios) this.process!.scenarios = []
         this.process!.scenarios.push(scenario);
         this.scenarios.push(scenario);
-        dialogRef.close();
       },(error) => {
         dialogRef.componentInstance.isLoading = false;
       });
@@ -132,6 +131,7 @@ export class ScenarioMenuComponent implements OnInit {
   }
 
   onEditScenario(): void {
+    if(!this.activeScenario) return;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
@@ -141,7 +141,24 @@ export class ScenarioMenuComponent implements OnInit {
         closeOnConfirm: true
       }
     });
-    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+    dialogRef.afterOpened().subscribe(() => {
+      this.editScenarioForm.reset({
+        scenarioName: this.activeScenario.name
+      });
+    })
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      this.editScenarioForm.markAllAsTouched();
+      if (this.editScenarioForm.invalid) return;
+      dialogRef.componentInstance.isLoading = true;
+      let attributes = {
+        name: this.editScenarioForm.value.scenarioName
+      };
+      this.http.patch<Scenario>(`${this.rest.URLS.scenarios}${this.activeScenario.id}/`, attributes
+      ).subscribe(scenario => {
+        this.activeScenario.name = scenario.name;
+      },(error) => {
+        dialogRef.componentInstance.isLoading = false;
+      });
     });
   }
 

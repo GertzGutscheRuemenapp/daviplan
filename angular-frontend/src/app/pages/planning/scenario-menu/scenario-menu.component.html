@@ -50,26 +50,16 @@
   </div>
 </div>
 
-<ng-template #createScenario>
+<ng-template #editScenario>
   <form [formGroup]="editScenarioForm">
     <div fxLayout="column">
       <mat-form-field appearance="fill">
         <mat-label i18n>Name des Szenarios</mat-label>
-        <input matInput formControlName="name">
+        <input matInput formControlName="scenarioName">
       </mat-form-field>
     </div>
   </form>
 </ng-template>
-
-<ng-template #editScenario>
-  <div fxLayout="column">
-    <mat-form-field appearance="fill">
-      <mat-label i18n>Name des Szenarios</mat-label>
-      <input matInput [value]="activeScenario?.name">
-    </mat-form-field>
-  </div>
-</ng-template>
-
 
 <ng-template #demandScenarioTemplate let-scenario="scenario">
   <div class="scenario-row">
