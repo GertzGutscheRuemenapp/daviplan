@@ -134,7 +134,7 @@ mat-toolbar mat-form-field {
     position: fixed;
     top: 155px;
     //left: calc(#{$context-bar-width} - 100% - 100px);
-    left: calc(#{$context-bar-width} - 700px);
+    left: calc(#{$context-bar-width} - 1000px);
     transition: 0.4s ease-out left;
     z-index: -1;
   }

@@ -3,7 +3,7 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
-import { Infrastructure, Layer, LayerGroup, Place, Service, Capacity } from "../../../rest-interfaces";
+import { Infrastructure, Layer, LayerGroup, Place, Service, Capacity, PlanningProcess } from "../../../rest-interfaces";
 import { MapControl, MapService } from "../../../map/map.service";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
 import { Observable } from "rxjs";
@@ -25,7 +25,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   compareStatus = 'option 1';
   infrastructures?: Infrastructure[];
   selectedInfrastructure?: Infrastructure;
-  showScenarioMenu: any = false;
+  showScenarioMenu: boolean = false;
   mapControl?: MapControl;
   legendGroup?: LayerGroup;
   placesLayer?: Layer;
@@ -35,17 +35,22 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   placeDialogRef?: MatDialogRef<any>;
   Object = Object;
   selectedService?: Service;
+  activeProcess?: PlanningProcess;
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
               private planningService: PlanningService) {
     this.planningService.infrastructures$.subscribe(infrastructures => {
       this.infrastructures = infrastructures;
     })
+    this.planningService.activeProcess$.subscribe(process => {
+      this.activeProcess = process;
+      if (!process) this.cookies.set('exp-planning-scenario', false);
+      this.showScenarioMenu = !!this.cookies.get('exp-planning-scenario');
+    })
   }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
-    this.showScenarioMenu = this.cookies.get('exp-planning-scenario');
 
     this.legendGroup = this.mapControl.addGroup({
       name: 'Angebot',

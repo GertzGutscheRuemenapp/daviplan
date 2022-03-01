@@ -19,6 +19,12 @@
   display: flex;
 }
 
+#scenario-cards {
+  max-width: 900px;
+  display: flex;
+  overflow-y: auto;
+}
+
 .scenario-card {
   height: 100%;
   width: 200px;
@@ -92,6 +98,7 @@
   width: 50px;
   padding-left: 8px;
   display: flex;
+  border-left: solid lightgrey 1px;
   //align-items: center;
 
   button {

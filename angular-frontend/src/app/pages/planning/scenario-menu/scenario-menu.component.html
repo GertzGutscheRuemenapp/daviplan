@@ -1,26 +1,28 @@
 <div>
   <div id="scenario-menu">
-    <div #scenario [ngClass]="{active: scenario === activeScenario}"
-         *ngFor="let scenario of scenarios" [attr.data-value]="scenario"
-         class="scenario-card">
-      <div class="scenario-card-header"
-           (click)="toggleScenario(scenario)">
-        {{ scenario.name }}
-      </div>
-      <div class="scenario-card-body">
-        <ng-container *ngIf="domain==='demand'">
-          <ng-container [ngTemplateOutlet]="demandScenarioTemplate"
-                        [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
-        </ng-container>
-        <ng-container *ngIf="domain==='reachabilities'">
-          <ng-container *ngTemplateOutlet="reachabilitiesScenario"></ng-container>
-        </ng-container>
-        <ng-container *ngIf="domain==='rating'">
-          <ng-container *ngTemplateOutlet="ratingScenario"></ng-container>
-        </ng-container>
-        <ng-container *ngIf="domain==='supply'">
-          <ng-container *ngTemplateOutlet="supplyScenario"></ng-container>
-        </ng-container>
+    <div id="scenario-cards">
+      <div #scenario [ngClass]="{active: scenario === activeScenario}"
+           *ngFor="let scenario of scenarios" [attr.data-value]="scenario"
+           class="scenario-card">
+        <div class="scenario-card-header"
+             (click)="toggleScenario(scenario)">
+          {{ scenario.name }}
+        </div>
+        <div class="scenario-card-body">
+          <ng-container *ngIf="domain==='demand'">
+            <ng-container [ngTemplateOutlet]="demandScenarioTemplate"
+                          [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
+          </ng-container>
+          <ng-container *ngIf="domain==='reachabilities'">
+            <ng-container *ngTemplateOutlet="reachabilitiesScenario"></ng-container>
+          </ng-container>
+          <ng-container *ngIf="domain==='rating'">
+            <ng-container *ngTemplateOutlet="ratingScenario"></ng-container>
+          </ng-container>
+          <ng-container *ngIf="domain==='supply'">
+            <ng-container *ngTemplateOutlet="supplyScenario"></ng-container>
+          </ng-container>
+        </div>
       </div>
     </div>
     <div id="scenario-controls">
