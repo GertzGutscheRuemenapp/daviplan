@@ -97,7 +97,8 @@ router.register(r'popstatistics', PopStatisticViewSet, basename='popstatistics')
 router.register(r'popstatentries', PopStatEntryViewSet, basename='popstatentries')
 
 # users
-router.register(r'planningprocesses', PlanningProcessViewSet, basename='planningprocesses')
+router.register(r'planningprocesses', PlanningProcessViewSet,
+                basename='planningprocesses')
 router.register(r'infrastructures', InfrastructureViewSet,
                 basename='infrastructures')
 router.register(r'services', ServiceViewSet, basename='services')

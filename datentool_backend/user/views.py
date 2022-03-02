@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from django.core.exceptions import BadRequest
+from django.db.models import Max
 
 from django.contrib.auth.models import User
 
@@ -16,7 +17,7 @@ from datentool_backend.indicators.compute.base import (
     AssessmentIndicator, ResultSerializer)
 from datentool_backend.indicators.serializers import IndicatorSerializer
 
-from .permissions import CanCreateProcessPermission, CanPatchSymbol
+from .permissions import CanUpdateProcessPermission, CanPatchSymbol
 
 from .serializers import (UserSerializer,
                           YearSerializer,
@@ -114,7 +115,8 @@ class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 class PlanningProcessViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = PlanningProcess.objects.all()
     serializer_class = PlanningProcessSerializer
-    permission_classes = [permissions.IsAuthenticated & CanCreateProcessPermission]
+    permission_classes = [permissions.IsAuthenticated &
+                          CanUpdateProcessPermission]
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -131,7 +133,8 @@ class InfrastructureViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
 
 class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = Service.objects.all()
+    queryset = Service.objects.all().annotate(
+        max_capacity=Max('capacity__capacity'))
     serializer_class = ServiceSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 

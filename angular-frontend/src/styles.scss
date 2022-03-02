@@ -559,11 +559,12 @@ button.mat-icon-button {
 
 .mat-select-min-line:not(.mat-select-placeholder), .mat-select-trigger span:not(.mat-select-placeholder), .mat-option.selected {
   font-size: 20px !important;
-  color: $primary;
 }
 
-.mat-select-disabled .mat-select-min-line {
-  color: lightgrey;
+.mat-select:not(.mat-select-disabled){
+  .mat-select-min-line:not(.mat-select-placeholder), .mat-select-trigger span:not(.mat-select-placeholder), .mat-option.selected {
+    color: $primary;
+  }
 }
 
 mat-option.selected {

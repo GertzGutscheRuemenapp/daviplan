@@ -27,7 +27,8 @@ class Scenario(DatentoolModelMixin, NamedModel, models.Model):
     name = models.TextField()
     planning_process = models.ForeignKey(PlanningProcess,
                                          on_delete=PROTECT_CASCADE)
-    prognosis = models.ForeignKey(Prognosis, on_delete=PROTECT_CASCADE)
+    prognosis = models.ForeignKey(Prognosis, on_delete=PROTECT_CASCADE,
+                                  null=True)
     modevariants = models.ManyToManyField(Mode,
                                           related_name='scenario_mode',
                                           blank=True,
@@ -36,6 +37,7 @@ class Scenario(DatentoolModelMixin, NamedModel, models.Model):
                                             related_name='scenario_service',
                                             blank=True,
                                             through='ScenarioService')
+
 
 class ScenarioMode(models.Model):
     scenario = models.ForeignKey(Scenario, on_delete=PROTECT_CASCADE)

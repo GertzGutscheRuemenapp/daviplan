@@ -1,9 +1,11 @@
-from django.db.models import OuterRef, Subquery, Sum
-from django.db.models import F
+from django.db import connection
+from datentool_backend.utils.dict_cursor import dictfetchall
 
 from .base import ComputeIndicator
 from datentool_backend.area.models import Area
-from datentool_backend.population.models import RasterCellPopulationAgeGender, AreaCell
+from datentool_backend.population.models import (RasterCellPopulationAgeGender,
+                                                 AreaCell,
+                                                 RasterCellPopulation)
 from datentool_backend.infrastructure.models import Scenario
 
 
@@ -60,26 +62,35 @@ class ComputePopulationAreaIndicator(PopulationIndicatorMixin,
         areas = self.get_areas(area_level_id=area_level_id)
         acells = AreaCell.objects.filter(area__area_level_id=area_level_id)
         population = self.get_population()
+        rcp = RasterCellPopulation.objects.all()
 
-        # sum up the rastercell-population to areas taking the share_area_of_cell
-        # into account
+        # sum up the rastercell-population to areas
+        # taking the share_area_of_cell into account
+        q_areas, p_areas = areas.values('id', '_label').query.sql_with_params()
+        q_acells, p_acells = acells.values(
+            'area_id', 'cell_id', 'share_area_of_cell').query.sql_with_params()
+        q_pop, p_pop = population.values('cell_id', 'value').query.sql_with_params()
+        q_rcp, p_rcp = rcp.values('id', 'cell_id').query.sql_with_params()
 
-        sq = population.filter(cell=OuterRef('cell__cell'))\
-            .annotate(area_id=OuterRef('area_id'),
-                      share_area_of_cell=OuterRef('share_area_of_cell'))\
-            .values('area_id')\
-            .annotate(sum_pop=Sum(F('value') * F('share_area_of_cell')))\
-            .values('sum_pop')
+        query = f'''SELECT
+        a."id", a."_label", val."value"
+        FROM ({q_areas}) AS a
+        LEFT JOIN (
+          SELECT
+            ac."area_id",
+            SUM(p."value" * ac."share_area_of_cell") AS "value"
+          FROM
+            ({q_acells}) AS ac,
+            ({q_pop}) AS p,
+            ({q_rcp}) AS rcp
+          WHERE ac."cell_id" = rcp."id"
+            AND p."cell_id" = rcp."cell_id"
+          GROUP BY ac."area_id"
+        ) val ON (val."area_id" = a."id")
+        '''
 
-        # sum up by area
-        aa = acells.annotate(sum_pop=Subquery(sq))\
-            .values('area_id')\
-            .annotate(sum_pop=Sum('sum_pop'))
-
-        # annotate areas with the results
-        sq = aa.filter(area_id=OuterRef('pk'))\
-            .values('sum_pop')
-        areas_with_pop = areas.annotate(value=Subquery(sq))
+        params = p_areas + p_acells + p_pop + p_rcp
+        areas_with_pop = Area.objects.raw(query, params)
 
         return areas_with_pop
 
@@ -99,29 +110,38 @@ class ComputePopulationDetailAreaIndicator(PopulationIndicatorMixin,
 
         # filter the rastercell-population by year, age_group and gender, if given
         rasterpop = self.get_population()
+        rcp = RasterCellPopulation.objects.all()
 
-        # sum up the rastercell-population of the areas to rastercells taking the share_area_of_cell
-        # into account
-        sq = acells.filter(cell__cell=OuterRef('cell'))\
-            .annotate(pop=OuterRef('value') * F('share_area_of_cell'),
-                      year=OuterRef('population__year'),
-                      gender=OuterRef('gender_id'),
-                      agegroup=OuterRef('age_group_id'))\
-            .values('cell', 'year', 'gender', 'agegroup')\
-            .annotate(sum_pop=Sum('pop'))
+        # sum up the rastercell-population by year, age_group, and gender
 
-        #  and sum up all rastercells in the selected area(s),
-        #  grouped by ayer, gender and agegroup
-        qs = rasterpop.annotate(sum_pop=Subquery(sq.values('sum_pop')))
-        qs2 = qs\
-            .values('population__year', 'gender_id', 'age_group_id')\
-            .annotate(value=Sum('sum_pop'),
-                      gender=F('gender_id'),
-                      agegroup=F('age_group_id'),
-                      year=F('population__year__year'),
-                      )
-        #  return only these columns
-        qs3 = qs2.values('year', 'gender', 'agegroup', 'value')
-        return qs3
+        q_acells, p_acells = acells.values(
+            'area_id', 'cell_id', 'share_area_of_cell').query.sql_with_params()
+        q_pop, p_pop = rasterpop.values(
+            'id', 'cell_id', 'value', 'age_group_id', 'gender_id',
+            'population__year__year')\
+            .query.sql_with_params()
+        q_rcp, p_rcp = rcp.values(
+            'id', 'cell_id').query.sql_with_params()
 
+        query = f'''SELECT
+          p."year",
+          p."age_group_id" AS agegroup,
+          p."gender_id" AS gender,
+          SUM(p."value" * ac."share_area_of_cell") AS "value"
+        FROM
+          ({q_acells}) AS ac,
+          ({q_pop}) AS p,
+          ({q_rcp}) AS rcp
+        WHERE ac."cell_id" = rcp."id"
+        AND p."cell_id" = rcp."cell_id"
+        GROUP BY p."year", p."age_group_id", p."gender_id"
+        '''
+
+        params = p_acells + p_pop + p_rcp
+
+        with connection.cursor() as cursor:
+            cursor.execute(query, params)
+            qs = dictfetchall(cursor)
+
+        return qs
 

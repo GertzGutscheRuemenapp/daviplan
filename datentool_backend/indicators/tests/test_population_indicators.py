@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import numpy.testing as nptest
 
 from test_plus import APITestCase
@@ -259,7 +260,12 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                         'area_level': self.area_level2.pk, }
 
         response = self.get_check_200(self.url_key + '-aggregate-population', data=query_params)
-        print(pd.DataFrame(response.data))
+        df = pd.DataFrame(response.data).set_index('label')
+        print(df)
+        expected = pd.Series([357.213304, 867.698150],
+                             index=['district1', 'district2'])
+
+        pd.testing.assert_series_equal(df.value, expected, check_names=False)
         # Test if sum of large area equals all input areas
 
         # area_level1
@@ -268,7 +274,12 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
 
         response = self.get_check_200(self.url_key+'-aggregate-population', data=query_params)
         # Test if input data matches
-        print(pd.DataFrame(response.data))
+        df = pd.DataFrame(response.data).set_index('label')
+        print(df)
+        expected = pd.Series([715.617852, 1404.382148, np.nan],
+                             index=['area1', 'area2', 'area3'])
+
+        pd.testing.assert_series_equal(df.value, expected, check_names=False)
 
         query_params = {'indicator': indicator_id,
                         'area_level': self.obj.pk,
@@ -276,7 +287,12 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                         }
 
         response = self.get_check_200(self.url_key + '-aggregate-population', data=query_params)
-        print(pd.DataFrame(response.data))
+        df = pd.DataFrame(response.data).set_index('label')
+        print(df)
+        expected = pd.Series([327.502507, 692.497493, np.nan],
+                             index=['area1', 'area2', 'area3'])
+
+        pd.testing.assert_series_equal(df.value, expected, check_names=False)
 
         query_params = {'indicator': indicator_id,
                         'area_level': self.obj.pk,
@@ -284,7 +300,12 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                         }
 
         response = self.get_check_200(self.url_key + '-aggregate-population', data=query_params)
-        print(pd.DataFrame(response.data))
+        df = pd.DataFrame(response.data).set_index('label')
+        print(df)
+        expected = pd.Series([499.771245, 970.228755, np.nan],
+                             index=['area1', 'area2', 'area3'])
+
+        pd.testing.assert_series_equal(df.value, expected, check_names=False)
 
         query_params = {'indicator': indicator_id,
                         'area_level': self.obj.pk,
@@ -292,7 +313,12 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                         }
 
         response = self.get_check_200(self.url_key + '-aggregate-population', data=query_params)
-        print(pd.DataFrame(response.data))
+        df = pd.DataFrame(response.data).set_index('label')
+        print(df)
+        expected = pd.Series([715.617852, np.nan],
+                             index=['area1', 'area3'])
+
+        pd.testing.assert_series_equal(df.value, expected, check_names=False)
 
 
     def test_get_population_by_year_agegroup_gender(self):

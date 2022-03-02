@@ -1,10 +1,9 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { mockInfrastructures } from "../../administration/infrastructure/infrastructure.component";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
-import { Infrastructure } from "../../../rest-interfaces";
+import { Infrastructure, PlanningProcess } from "../../../rest-interfaces";
 
 @Component({
   selector: 'app-reachabilities',
@@ -20,7 +19,8 @@ export class ReachabilitiesComponent implements OnInit {
   infrastructures?: Infrastructure[];
   selectedInfrastructure?: Infrastructure;
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
-  showScenarioMenu: any = false;
+  showScenarioMenu: boolean = false;
+  activeProcess?: PlanningProcess;
 
   constructor(private dialog: MatDialog, public cookies: CookieService,
               private planningService: PlanningService) {
@@ -28,10 +28,14 @@ export class ReachabilitiesComponent implements OnInit {
       this.infrastructures = infrastructures;
       this.selectedInfrastructure = infrastructures[0];
     });
+    this.planningService.activeProcess$.subscribe(process => {
+      this.activeProcess = process;
+      if (!process) this.cookies.set('exp-planning-scenario', false);
+      this.showScenarioMenu = !!this.cookies.get('exp-planning-scenario');
+    })
   }
 
   ngOnInit(): void {
-    this.showScenarioMenu = this.cookies.get('exp-planning-scenario');
   }
 
   toggleIndicator(): void {

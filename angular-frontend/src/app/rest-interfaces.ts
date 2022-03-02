@@ -4,6 +4,25 @@ export interface BasedataSettings {
   defaultPopAreaLevel: number;
 }
 
+export interface PlanningProcess {
+  id: number,
+  name: string,
+  owner: number,
+  users: number[],
+  allowSharedChange: boolean,
+  description?: string,
+  scenarios?: Scenario[]
+}
+
+export interface Scenario {
+  id: number,
+  name: string,
+  planningProcess: number,
+  prognosis?: number,
+  modevariants: number[],
+  demandratesets: number[]
+}
+
 export interface LayerGroup {
   id?: number | string,
   order: number,
@@ -33,6 +52,7 @@ export interface Layer {
   symbol?: Symbol,
   type?: "wms" | "vector-tiles" | "tiles" | "vector",
   labelField?: string,
+  showLabel?: boolean,
   featureSelected?: EventEmitter<{ feature: any, selected: boolean }>
 }
 
@@ -98,6 +118,11 @@ export interface Service {
   infrastructure: number,
   description: string,
   name: string;
+  demandSingularUnit: string;
+  demandPluralUnit: string;
+  capacitySingularUnit: string;
+  capacityPluralUnit: string;
+  maxCapacity: number;
 }
 
 export interface Infrastructure {
@@ -114,6 +139,18 @@ export interface Place {
   properties: {
     name: string,
     infrastructure: number,
-    attributes: any
-  }
+    attributes: any,
+    label?: string,
+    capacity?: number
+  },
+  capacities?: Capacity[]
+}
+
+export interface Capacity {
+  id: number,
+  place: number,
+  service: number,
+  capacity: number,
+  from_year: number,
+  scenario: number
 }
