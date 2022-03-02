@@ -60,7 +60,7 @@ export class ScenarioMenuComponent implements OnInit {
     this.activeScenario = scenario;
     this.scenarioCards?.forEach((card: ElementRef) => {
       let el = card.nativeElement;
-      if (el.attributes['data-value'].nodeValue === this.activeScenario)
+      if (el.attributes['data-value'].nodeValue === this.activeScenario.id)
         el.classList.add('active');
       else
         el.classList.remove('active');
