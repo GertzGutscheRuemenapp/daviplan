@@ -2,13 +2,14 @@ import pandas as pd
 from io import StringIO
 from distutils.util import strtobool
 from django.http.request import QueryDict
+from django.db import connection
 
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Max
 
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
@@ -24,6 +25,9 @@ from .models import (Raster,
                      PopStatistic,
                      PopStatEntry,
                      RasterCellPopulationAgeGender,
+                     RasterCellPopulation,
+                     AreaPopulationAgeGender,
+                     PopulationAreaLevel,
                      AreaCell,
                      )
 from .serializers import (RasterSerializer,
@@ -37,7 +41,7 @@ from .serializers import (RasterSerializer,
                           MessageSerializer,
                           )
 
-from datentool_backend.area.models import Area
+from datentool_backend.area.models import Area, AreaLevel
 
 
 class RasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
@@ -244,8 +248,8 @@ class PopulationViewSet(viewsets.ModelViewSet):
                                         default=True,
                                         description='set to false for tests'),
                    ],
-                   responses={202: OpenApiResponse(MessageSerializer, 'Intersection successful'),
-                              406: OpenApiResponse(MessageSerializer, 'Intersection failed')})
+                   responses={202: OpenApiResponse(MessageSerializer, 'Disaggregation successful'),
+                              406: OpenApiResponse(MessageSerializer, 'Disaggregation failed')})
     @action(methods=['GET'], detail=True,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def disaggregate(self, request, **kwargs):
@@ -336,6 +340,150 @@ class PopulationViewSet(viewsets.ModelViewSet):
                 drop_constraints=drop_constraints, drop_indexes=drop_constraints,
             )
         msg += f'Disaggregation of Population was successful.\n'
+        return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
+
+    @extend_schema(description='Aggregate Population from rastercells to area',
+                   parameters=[
+                       OpenApiParameter(name='area_level', required=True, type=int,
+        description='''The Area_level to aggregate to'''),
+                       OpenApiParameter(name='use_intersected_data', required=False, type=bool,
+        description='''use precalculated rastercells'''),
+                       OpenApiParameter(name='drop_constraints',
+                                        required=False,
+                                        type=bool,
+                                        default=True,
+                                        description='set to false for tests'),
+                   ],
+                   responses={202: OpenApiResponse(MessageSerializer, 'Aggregation successful'),
+                              406: OpenApiResponse(MessageSerializer, 'Aggregation failed')})
+    @action(methods=['GET'], detail=True,
+            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+    def aggregate_from_cell_to_area(self, request, **kwargs):
+        """aggregate population from cell to area"""
+        try:
+            population: Population = self.queryset.get(**kwargs)
+        except Population.DoesNotExist:
+            msg = f'Population for {kwargs} not found'
+            return Response({'message': msg, }, status.HTTP_406_NOT_ACCEPTABLE)
+
+        area_level_id = request.query_params.get('area_level')
+        acells = AreaCell.objects.filter(area__area_level_id=area_level_id)
+
+        rasterpop = RasterCellPopulationAgeGender.objects.filter(population=population)
+        rcp = RasterCellPopulation.objects.all()
+
+        q_acells, p_acells = acells.values(
+            'area_id', 'cell_id', 'share_area_of_cell').query.sql_with_params()
+        q_pop, p_pop = rasterpop.values(
+            'population_id', 'cell_id', 'value', 'age_group_id', 'gender_id')\
+            .query.sql_with_params()
+        q_rcp, p_rcp = rcp.values(
+            'id', 'cell_id').query.sql_with_params()
+
+        query = f'''SELECT
+          p."population_id",
+          ac."area_id",
+          p."age_group_id",
+          p."gender_id",
+          SUM(p."value" * ac."share_area_of_cell") AS "value"
+        FROM
+          ({q_acells}) AS ac,
+          ({q_pop}) AS p,
+          ({q_rcp}) AS rcp
+        WHERE ac."cell_id" = rcp."id"
+        AND p."cell_id" = rcp."cell_id"
+        GROUP BY p."population_id", ac."area_id", p."age_group_id", p."gender_id"
+        '''
+
+        params = p_acells + p_pop + p_rcp
+
+        columns = ['population_id', 'area_id', 'age_group_id', 'gender_id', 'value']
+
+        with connection.cursor() as cursor:
+            cursor.execute(query, params)
+            rows = cursor.fetchall()
+        df_areaagegender = pd.DataFrame(rows, columns=columns)
+
+        ap_exist = AreaPopulationAgeGender.objects\
+            .filter(population=population, area__area_level_id=area_level_id)
+        ap_exist.delete()
+
+        drop_constraints = bool(strtobool(
+            request.query_params.get('drop_constraints', False)))
+
+        with StringIO() as file:
+            df_areaagegender.to_csv(file, index=False)
+            file.seek(0)
+            AreaPopulationAgeGender.copymanager.from_csv(
+                file,
+                drop_constraints=drop_constraints, drop_indexes=drop_constraints,
+            )
+        msg = f'Aggregation of Population was successful.\n'
+
+        # validate_cache
+        pop_arealevel, created = PopulationAreaLevel.objects.get_or_create(
+            population=population,
+            area_level_id=area_level_id)
+        pop_arealevel.up_to_date = True
+        pop_arealevel.save()
+
+        return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
+
+
+    @extend_schema(description='Aggregate all Populations',
+                   parameters=[
+                       OpenApiParameter(
+                           name='use_intersected_data',
+                           required=False, type=bool, default=True,
+                           description='''use precalculated rastercells'''),
+                       OpenApiParameter(name='drop_constraints',
+                                        required=False,
+                                        type=bool,
+                                        default=True,
+                                        description='set to false for tests'),
+                   ],
+                   responses={202: OpenApiResponse(MessageSerializer,
+                                                   'Aggregation successful'),
+                              406: OpenApiResponse(MessageSerializer,
+                                                   'Aggregation failed')})
+    @action(methods=['GET'], detail=False,
+            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+    def aggregateall_from_cell_to_area(self, request, **kwargs):
+        manager = AreaPopulationAgeGender.copymanager
+        drop_constraints = bool(strtobool(
+            request.query_params.get('drop_constraints', False)))
+
+        with transaction.atomic():
+            if drop_constraints:
+                manager.drop_constraints()
+                manager.drop_indexes()
+
+            #  set new query-params
+            old_query_params = self.request.query_params
+            query_params = QueryDict(mutable=True)
+            query_params.update(self.request.query_params)
+            query_params['drop_constraints'] = 'False'
+            request._request.GET = query_params
+
+            for area_level in AreaLevel.objects.all():
+                for population in Population.objects.all():
+                    query_params['area_level'] = area_level.id
+                    self.aggregate_from_cell_to_area(request, **{'pk': population.id})
+                max_value = AreaPopulationAgeGender.objects.filter(
+                    area__area_level=area_level)\
+                    .aggregate(Max('value'))
+                area_level.max_population = max_value['value__max']
+                area_level.population_cache_dirty = False
+                area_level.save()
+
+            # restore the query_params
+            request._request.GET = old_query_params
+
+            if drop_constraints:
+                manager.restore_constraints()
+                manager.restore_indexes()
+
+        msg = 'Aggregations of all Populations were successful.'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
 
