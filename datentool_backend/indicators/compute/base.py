@@ -14,8 +14,11 @@ class ComputeIndicator(metaclass=ABCMeta):
     label: str = None
     parameters: Dict[str, FieldTypes] = {}
 
+    def __init__(self, query_params: QueryDict = None):
+        self.query_params = query_params
+
     @abstractmethod
-    def compute(self, query_params: QueryDict):
+    def compute(self):
         """compute the indicator"""
 
     def __str__(self):
@@ -34,13 +37,13 @@ class AssessmentIndicator(ComputeIndicator):
     capacity_required: bool = False
     result_serializer: ResultSerializer = None
 
-    def __init__(self, service: Service):
-        super().__init__()
+    def __init__(self, service: Service, query_params: QueryDict = None):
+        super().__init__(query_params)
         self.service = service
 
     @property
     def name(self) -> str:
-        return self.__name__.lower()
+        return self.__class__.__name__.lower()
 
     @property
     @abstractmethod
@@ -52,7 +55,7 @@ class AssessmentIndicator(ComputeIndicator):
         if not self.result_serializer:
             raise Exception('no serializer defined')
         serializer = self.result_serializer.value
-        return serializer(queryset, many=True)
+        return serializer(queryset, many=True).data
 
 
 class AreaAssessmentIndicator(AssessmentIndicator):

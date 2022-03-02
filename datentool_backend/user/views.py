@@ -147,7 +147,7 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         service_id = kwargs.get('pk')
         service: Service = Service.objects.get(id=service_id)
         indicators = []
-        for indicator_class in AssessmentIndicator.registered:
+        for indicator_class in AssessmentIndicator.registered.values():
             if indicator_class.capacity_required and not service.has_capacity:
                 continue
             indicators.append(indicator_class(service))
@@ -175,7 +175,8 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             raise BadRequest(f'indicator "{indicator_name}" unknown')
         service_id = kwargs.get('pk')
         service: Service = Service.objects.get(id=service_id)
-        indicator = indicator_class(service)
-        results = indicator.compute(request.query_params)
+        indicator = indicator_class(service, request.query_params)
+        results = indicator.compute()
+
         return Response(indicator.serialize(results))
 

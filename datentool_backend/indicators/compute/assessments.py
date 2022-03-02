@@ -13,7 +13,7 @@ class DemandAreaCapacity(AreaAssessmentIndicator):
     def description(self):
         return ''
 
-    def compute(self, query_params):
+    def compute(self):
         return []
 
 
@@ -27,7 +27,7 @@ class DemandArea(AreaAssessmentIndicator):
     def description(self):
         return ''
 
-    def compute(self, query_params):
+    def compute(self):
         return []
 
 
@@ -42,7 +42,7 @@ class ReachabilityDemandArea(AreaAssessmentIndicator):
     def description(self):
         return ''
 
-    def compute(self, query_params):
+    def compute(self):
         return []
 
 
@@ -57,7 +57,7 @@ class SupplyAreaCapacity(AreaAssessmentIndicator):
     def description(self):
         return ''
 
-    def compute(self, query_params):
+    def compute(self):
         return []
 
 
@@ -71,7 +71,7 @@ class SupplyArea(AreaAssessmentIndicator):
     def description(self):
         return ''
 
-    def compute(self, query_params):
+    def compute(self):
         return []
 
 
@@ -86,7 +86,7 @@ class AverageAreaReachability(AreaAssessmentIndicator):
     def description(self):
         return ''
 
-    def compute(self, query_params):
+    def compute(self):
         return []
 
 
@@ -102,7 +102,7 @@ class CutoffAreaReachability(AreaAssessmentIndicator):
     def description(self):
         return ''
 
-    def compute(self, query_params):
+    def compute(self):
         return []
 
 
@@ -117,7 +117,7 @@ class AveragePlaceReachability(PlaceAssessmentIndicator):
     def description(self):
         return ''
 
-    def compute(self, query_params):
+    def compute(self):
         return []
 
 
@@ -132,7 +132,7 @@ class MaxPlaceReachability(PlaceAssessmentIndicator):
     def description(self):
         return ''
 
-    def compute(self, query_params):
+    def compute(self):
         return []
 
 
@@ -146,5 +146,5 @@ class MaxRasterReachability(RasterAssessmentIndicator):
     def description(self):
         return ''
 
-    def compute(self, query_params):
+    def compute(self):
         return []
