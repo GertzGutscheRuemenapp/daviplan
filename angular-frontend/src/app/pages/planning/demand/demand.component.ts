@@ -3,7 +3,7 @@ import { mockInfrastructures } from "../../administration/infrastructure/infrast
 import { mockPresetLevels } from "../../basedata/areas/areas";
 import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
-import { AreaLevel, Infrastructure } from "../../../rest-interfaces";
+import { AreaLevel, Infrastructure, PlanningProcess } from "../../../rest-interfaces";
 
 @Component({
   selector: 'app-demand',
@@ -18,7 +18,8 @@ export class DemandComponent implements OnInit {
   selectedInfrastructure?: Infrastructure;
   selectedAreaLevel?: AreaLevel;
   areaLevels?: AreaLevel[];
-  showScenarioMenu: any = false;
+  showScenarioMenu: boolean = false;
+  activeProcess?: PlanningProcess;
 
   constructor(public cookies: CookieService,
               private planningService: PlanningService) {
@@ -27,10 +28,14 @@ export class DemandComponent implements OnInit {
     });
     this.planningService.areaLevels$.subscribe(areaLevels => {
       this.areaLevels = areaLevels;
+    });
+    this.planningService.activeProcess$.subscribe(process => {
+      this.activeProcess = process;
+      if (!process) this.cookies.set('exp-planning-scenario', false);
+      this.showScenarioMenu = !!this.cookies.get('exp-planning-scenario');
     })
   }
 
   ngOnInit(): void {
-    this.showScenarioMenu = this.cookies.get('exp-planning-scenario');
   }
 }

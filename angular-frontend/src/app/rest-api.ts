@@ -18,6 +18,7 @@ export class RestAPI {
     ageGroups: `${ this.API_ENDPOINT }/agegroups/`,
     infrastructures: `${ this.API_ENDPOINT }/infrastructures/`,
     places: `${ this.API_ENDPOINT }/places/`,
+    capacities: `${ this.API_ENDPOINT }/capacities/`,
     services: `${ this.API_ENDPOINT }/services/`,
     arealevels: `${ this.API_ENDPOINT }/arealevels/`,
     areaPopulation: `${ this.API_ENDPOINT }/areaindicators/aggregate_population/`,
@@ -27,7 +28,9 @@ export class RestAPI {
     years: `${ this.API_ENDPOINT }/years/`,
     layerGroups: `${ this.API_ENDPOINT }/layergroups/`,
     layers: `${ this.API_ENDPOINT }/wmslayers/`,
-    getCapabilities: `${ this.API_ENDPOINT }/wmslayers/getcapabilities/`
+    getCapabilities: `${ this.API_ENDPOINT }/wmslayers/getcapabilities/`,
+    processes: `${ this.API_ENDPOINT }/planningprocesses/`,
+    scenarios: `${ this.API_ENDPOINT }/scenarios/`,
   }
   // ToDo: functions with generalized HTTP calls in here
 }

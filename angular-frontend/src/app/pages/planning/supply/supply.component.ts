@@ -1,50 +1,82 @@
-import { Component, AfterViewInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, AfterViewInit, TemplateRef, ViewChild, OnDestroy } from '@angular/core';
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
-import { Infrastructure, Layer, LayerGroup, Place } from "../../../rest-interfaces";
+import { Infrastructure, Layer, LayerGroup, Place, Service, Capacity, PlanningProcess } from "../../../rest-interfaces";
 import { MapControl, MapService } from "../../../map/map.service";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
+import { Observable } from "rxjs";
+import * as d3 from "d3";
 
 @Component({
   selector: 'app-supply',
   templateUrl: './supply.component.html',
   styleUrls: ['./supply.component.scss']
 })
-export class SupplyComponent implements AfterViewInit{
+export class SupplyComponent implements AfterViewInit, OnDestroy {
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
   @ViewChild('placePreviewTemplate') placePreviewTemplate!: TemplateRef<any>;
   addPlaceMode = false;
-  years = [2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025];
+  year?: number;
+  realYears?: number[];
+  prognosisYears?: number[];
   compareSupply = true;
   compareStatus = 'option 1';
   infrastructures?: Infrastructure[];
   selectedInfrastructure?: Infrastructure;
-  showScenarioMenu: any = false;
+  showScenarioMenu: boolean = false;
   mapControl?: MapControl;
   legendGroup?: LayerGroup;
   placesLayer?: Layer;
   places?: Place[];
+  capacities?: Capacity[];
   selectedPlaces: Place[] = [];
   placeDialogRef?: MatDialogRef<any>;
   Object = Object;
+  selectedService?: Service;
+  activeProcess?: PlanningProcess;
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
               private planningService: PlanningService) {
     this.planningService.infrastructures$.subscribe(infrastructures => {
       this.infrastructures = infrastructures;
     })
+    this.planningService.activeProcess$.subscribe(process => {
+      this.activeProcess = process;
+      if (!process) this.cookies.set('exp-planning-scenario', false);
+      this.showScenarioMenu = !!this.cookies.get('exp-planning-scenario');
+    })
   }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
-    this.showScenarioMenu = this.cookies.get('exp-planning-scenario');
 
     this.legendGroup = this.mapControl.addGroup({
       name: 'Angebot',
       order: -1
-    }, false)
+    }, false);
+
+    if (this.planningService.isReady)
+      this.initData();
+    else {
+      this.planningService.ready.subscribe(() => {
+        this.initData();
+      });
+    }
+  }
+
+  initData(): void {
+    this.planningService.year$.subscribe(year => {
+      this.year = year;
+      this.updatePlaces();
+    })
+    this.planningService.realYears$.subscribe( years => {
+      this.realYears = years;
+    })
+    this.planningService.prognosisYears$.subscribe( years => {
+      this.prognosisYears = years;
+    })
   }
 
   onFilter(): void {
@@ -66,40 +98,82 @@ export class SupplyComponent implements AfterViewInit{
   }
 
   updatePlaces(): void {
-    if (!this.selectedInfrastructure) return;
+    if (!this.selectedInfrastructure || this.selectedInfrastructure.services.length === 0) return;
     this.planningService.getPlaces(this.selectedInfrastructure.id).subscribe(places => {
-      if (this.placesLayer)
-        this.mapControl?.removeLayer(this.placesLayer.id!)
-      this.placesLayer = this.mapControl?.addLayer({
-          order: 0,
-          type: 'vector',
-          group: this.legendGroup?.id,
-          name: this.selectedInfrastructure!.name,
-          description: this.selectedInfrastructure!.name,
-          opacity: 1,
-          symbol: {
-            fillColor: 'blue',
-            strokeColor: 'black',
-            symbol: 'circle'
-          }
-        },
-        {
-          visible: true,
-          tooltipField: 'name',
-          selectable: true,
-          select: {
-            fillColor: 'yellow'
-          }
-        });
       this.places = places;
-      this.mapControl?.addWKTFeatures(this.placesLayer!.id!, this.places, true);
-      this.placesLayer?.featureSelected?.subscribe(evt => {
-        if (evt.selected)
-          this.selectPlace(evt.feature.get('id'));
-        else
-          this.deselectPlace(evt.feature.get('id'));
+      let showLabel = true;
+      if (this.placesLayer){
+        showLabel = !!this.placesLayer.showLabel;
+        this.mapControl?.removeLayer(this.placesLayer.id!);
+      }
+      if (!this.selectedService) this.selectedService = this.selectedInfrastructure!.services[0];
+      this.planningService.getCapacities(this.year!, this.selectedService.id).subscribe(capacities => {
+        this.capacities = capacities;
+        let displayedPlaces: Place[] = [];
+        this.places?.forEach(place => {
+          const capacity = this.getCapacity(this.selectedService!.id, place.id);
+          if (!capacity) return;
+          place.properties.capacity = capacity;
+          place.properties.label = this.getFormattedCapacityString([this.selectedService!.id], capacity);
+          displayedPlaces.push(place);
+        })
+        const colorFunc = d3.scaleSequential().domain([0, this.selectedService?.maxCapacity || 1000])
+          .interpolator(d3.interpolateCool);
+        this.placesLayer = this.mapControl?.addLayer({
+            order: 0,
+            type: 'vector',
+            group: this.legendGroup?.id,
+            name: this.selectedInfrastructure!.name,
+            description: this.selectedInfrastructure!.name,
+            opacity: 1,
+            symbol: {
+              fillColor: colorFunc(0),
+              strokeColor: 'black',
+              symbol: 'circle'
+            },
+            labelField: 'label',
+            showLabel: showLabel
+          },
+          {
+            visible: true,
+            tooltipField: 'name',
+            selectable: true,
+            select: {
+              fillColor: 'yellow'
+            },
+            mouseOver: {
+              cursor: 'help'
+            },
+            colorFunc: colorFunc,
+            valueField: 'capacity'
+          });
+        this.mapControl?.clearFeatures(this.placesLayer!.id!);
+        this.mapControl?.addWKTFeatures(this.placesLayer!.id!, displayedPlaces, true);
+        this.placesLayer?.featureSelected?.subscribe(evt => {
+          if (evt.selected)
+            this.selectPlace(evt.feature.get('id'));
+          else
+            this.deselectPlace(evt.feature.get('id'));
+        })
       })
     })
+  }
+
+  updateCapacities(): void {
+  }
+
+  getFormattedCapacityString(services: number[], capacity: number): string {
+    if (!this.selectedInfrastructure) return '';
+    let units = new Set<string>();
+    this.selectedInfrastructure.services.filter(service => services.indexOf(service.id) >= 0).forEach(service => {
+      units.add((capacity === 1)? service.capacitySingularUnit: service.capacityPluralUnit);
+    })
+    return `${capacity} ${Array.from(units).join('/')}`
+  }
+
+  getCapacity(serviceId: number, placeId: number): number{
+    const cap = this.capacities?.find(capacity => capacity.place === placeId);
+    return cap?.capacity || 0;
   }
 
   selectPlace(placeId: number) {
@@ -136,5 +210,11 @@ export class SupplyComponent implements AfterViewInit{
           minWidth: '400px'
         }
       });
+  }
+
+  ngOnDestroy(): void {
+    if (this.legendGroup) {
+      this.mapControl?.removeGroup(this.legendGroup.id!);
+    }
   }
 }
