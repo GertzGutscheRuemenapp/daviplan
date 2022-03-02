@@ -103,7 +103,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         self.count_capacitites([34, 44, 0], service=self.service1,
                                scenario=self.scenario, year=2022)
 
-    def count_capacitites(self,
+    def count_capacities(self,
                        expected_values: List[int],
                        service: int = None,
                        year: int = None,

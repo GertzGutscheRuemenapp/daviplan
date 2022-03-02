@@ -9,9 +9,6 @@ from datentool_backend.area.tests import TestAPIMixin, TestPermissionsMixin
 from ..factories import (RouterFactory, IndicatorFactory, )
 
 
-from ..models import (Indicator,)
-
-
 from faker import Faker
 faker = Faker('de-DE')
 
@@ -36,25 +33,3 @@ class TestRouterAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.put_data = data
         cls.patch_data = data
 
-
-class TestIndicatorAPI(WriteOnlyWithCanEditBaseDataTest,
-                       TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
-    """Test to post, put and patch data"""
-    url_key = "indicators"
-    factory = IndicatorFactory
-
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-
-        indicator: Indicator = cls.obj
-        service = indicator.service.pk
-        indicator_type = indicator.indicator_type.pk
-
-        data = dict(indicator_type=indicator_type,
-                    name=faker.word(),
-                    parameters=faker.json(),
-                    service=service)
-        cls.post_data = data
-        cls.put_data = data
-        cls.patch_data = data

@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import numpy.testing as nptest
+from django.urls import reverse
 
 from test_plus import APITestCase
 
@@ -27,7 +28,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                            LoginTestCase,
                            APITestCase):
     """Test to get an area indicator"""
-    url_key = "areaindicators"
+    url_key = "fixedindicators"
 
     #@property
     #def query_params(self):
@@ -230,36 +231,14 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                      'use_intersected_data': True,
                      'drop_constraints': False, })
 
-    def prepare_indicator(self,
-                          indicator_class: ComputeIndicator,
-                          indicator_name: str) -> int:
-        """create a compute indicator, if not yet exists"""
-
-        response = self.get('indicators-list', data={
-            'indicatortype_classname': indicator_class.__name__})
-
-        if not response.data:
-            response = self.get('indicatortypes-list', data={
-                'classname': indicator_class.__name__})
-            indicatortype_id = response.data[0]['id']
-
-            response = self.post('indicators-list', data={
-                'indicator_type': indicatortype_id,
-                'name': 'MyComputePopAreaIndicator',
-            })
-        indicator_id = response.data['id']
-        return indicator_id
-
     def test_aggregate_population_to_area(self):
         """Test the aggregation of population to areas of an area level"""
         self.prepare_population()
-        indicator_id = self.prepare_indicator(ComputePopulationAreaIndicator,
-                                              'MyComputePopAreaIndicator')
 
-        query_params = {'indicator': indicator_id,
-                        'area_level': self.area_level2.pk, }
+        query_params = {'area_level': self.area_level2.pk}
 
-        response = self.get_check_200(self.url_key + '-aggregate-population', data=query_params)
+        response = self.get_check_200(self.url_key + '-aggregate-population',
+                                      data=query_params)
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
         expected = pd.Series([357.213304, 867.698150],
@@ -269,10 +248,10 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         # Test if sum of large area equals all input areas
 
         # area_level1
-        query_params = {'indicator': indicator_id,
-                        'area_level': self.obj.pk, }
+        query_params = {'area_level': self.obj.pk, }
 
-        response = self.get_check_200(self.url_key+'-aggregate-population', data=query_params)
+        response = self.get_check_200(self.url_key+'-aggregate-population',
+                                      data=query_params)
         # Test if input data matches
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
@@ -281,12 +260,12 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
 
         pd.testing.assert_series_equal(df.value, expected, check_names=False)
 
-        query_params = {'indicator': indicator_id,
-                        'area_level': self.obj.pk,
+        query_params = {'area_level': self.obj.pk,
                         'gender': self.genders[0].pk,
                         }
 
-        response = self.get_check_200(self.url_key + '-aggregate-population', data=query_params)
+        response = self.get_check_200(self.url_key + '-aggregate-population',
+                                      data=query_params)
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
         expected = pd.Series([327.502507, 692.497493, np.nan],
@@ -294,12 +273,12 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
 
         pd.testing.assert_series_equal(df.value, expected, check_names=False)
 
-        query_params = {'indicator': indicator_id,
-                        'area_level': self.obj.pk,
+        query_params = {'area_level': self.obj.pk,
                         'age_group': self.age_groups.values_list('id', flat=True)[:2],
                         }
 
-        response = self.get_check_200(self.url_key + '-aggregate-population', data=query_params)
+        response = self.get_check_200(self.url_key + '-aggregate-population',
+                                      data=query_params)
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
         expected = pd.Series([499.771245, 970.228755, np.nan],
@@ -307,12 +286,12 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
 
         pd.testing.assert_series_equal(df.value, expected, check_names=False)
 
-        query_params = {'indicator': indicator_id,
-                        'area_level': self.obj.pk,
+        query_params = {'area_level': self.obj.pk,
                         'area': [self.area1.pk, self.area3.pk],
                         }
 
-        response = self.get_check_200(self.url_key + '-aggregate-population', data=query_params)
+        response = self.get_check_200(self.url_key + '-aggregate-population',
+                                      data=query_params)
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
         expected = pd.Series([715.617852, np.nan],
@@ -324,114 +303,110 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
     def test_get_population_by_year_agegroup_gender(self):
         """Test to get the population by year, agegroup, and gender"""
         self.prepare_population()
-        indicator_id = self.prepare_indicator(ComputePopulationDetailAreaIndicator,
-                                              'MyComputePopDetailIndicator')
 
-        query_params = {'indicator': indicator_id,
-                        'area': self.area1.pk, }
+        query_params = {'area': self.area1.pk, }
 
-        response = self.get_check_200('populationindicators-population-details', data=query_params)
+        response = self.get_check_200(self.url_key + '-population-details',
+                                      data=query_params)
         print(pd.DataFrame(response.data))
         # Test if sum of large area equals all input areas
 
         # area_level2
-        query_params = {'indicator': indicator_id,
-                        'area': self.district1.pk, }
+        query_params = {'area': self.district1.pk, }
 
-        response = self.get_check_200('populationindicators-population-details', data=query_params)
+        response = self.get_check_200(self.url_key + '-population-details',
+                                      data=query_params)
         # Test if input data matches
         print(pd.DataFrame(response.data))
 
         # area_level2 and prognosis
-        query_params = {'indicator': indicator_id,
-                        'area': self.district1.pk,
+        query_params = {'area': self.district1.pk,
                         'prognosis': self.prognosis.pk,}
 
-        response = self.get_check_200('populationindicators-population-details', data=query_params)
+        response = self.get_check_200(self.url_key + '-population-details',
+                                      data=query_params)
         # Test if input data matches
         print(pd.DataFrame(response.data))
 
     def test_demand_per_area(self):
         """Test the demand for services of an area level"""
         self.prepare_population()
-        indicator_id = self.prepare_indicator(DemandAreaIndicator,
-                                              'MyDemandAreaIndicator')
 
-        query_params = {'indicator': indicator_id,
-                        'area_level': self.area_level2.pk,
+        query_params = {'area_level': self.area_level2.pk,
                         'service': self.service1.pk,
                         'year': 2022,
                         }
 
-        response = self.get_check_200(self.url_key + '-demand', data=query_params)
+        response = self.get_check_200(self.url_key + '-demand',
+                                      data=query_params)
         default_values = pd.DataFrame(response.data)
         print(default_values)
 
-        query_params = {'indicator': indicator_id,
-                        'area_level': self.area_level2.pk,
+        query_params = {'area_level': self.area_level2.pk,
                         'service': self.service1.pk,
                         'scenario': self.scenario.pk,
                         'year': 2022,
                         }
 
-        response = self.get_check_200(self.url_key + '-demand', data=query_params)
+        response = self.get_check_200(self.url_key + '-demand',
+                                      data=query_params)
         scenario_values = pd.DataFrame(response.data)
         print(scenario_values)
         diff = scenario_values.value / default_values.value
         # in the scenario, the demand rate ist half as high as in the default scenario
         nptest.assert_allclose(diff, 0.5)
 
-        query_params = {'indicator': indicator_id,
-                        'area_level': self.area_level2.pk,
+        query_params = {'area_level': self.area_level2.pk,
                         'service': self.service1.pk,
                         'scenario': self.scenario.pk,
                         'year': 2024,
                         }
 
-        response = self.get_check_200(self.url_key + '-demand', data=query_params)
+        response = self.get_check_200(self.url_key + '-demand',
+                                      data=query_params)
         values_2024 = pd.DataFrame(response.data)
         print(values_2024)
         diff = values_2024.value / scenario_values.value
         # in 2024, the demand rate increased by 20%, and the population also by 20%
         nptest.assert_allclose(diff, 1.2*1.2)
 
-        query_params = {'indicator': indicator_id,
-                        'area_level': self.area_level2.pk,
+        query_params = {'area_level': self.area_level2.pk,
                         'service': self.service2.pk,
                         'year': 2022,
                         }
 
-        response = self.get_check_200(self.url_key + '-demand', data=query_params)
+        response = self.get_check_200(self.url_key + '-demand',
+                                      data=query_params)
         values_service2 = pd.DataFrame(response.data)
         print(values_service2)
 
-        query_params = {'indicator': indicator_id,
-                        'area_level': self.area1.area_level_id,
+        query_params = {'area_level': self.area1.area_level_id,
                         'service': self.service2.pk,
                         'year': 2022,
                         }
 
-        response = self.get_check_200(self.url_key + '-demand', data=query_params)
+        response = self.get_check_200(self.url_key + '-demand',
+                                      data=query_params)
         values_service2_arealevel1 = pd.DataFrame(response.data)
         print(values_service2_arealevel1)
 
-        query_params = {'indicator': indicator_id,
-                        'area_level': self.area_level3.pk,
+        query_params = {'area_level': self.area_level3.pk,
                         'service': self.service2.pk,
                         'year': 2022,
                         }
 
-        response = self.get_check_200(self.url_key + '-demand', data=query_params)
+        response = self.get_check_200(self.url_key + '-demand',
+                                      data=query_params)
         values_service2_country = pd.DataFrame(response.data)
         print(values_service2_country)
 
-        query_params = {'indicator': indicator_id,
-                        'area_level': self.area_level4.pk,
+        query_params = {'area_level': self.area_level4.pk,
                         'service': self.service2.pk,
                         'year': 2022,
                         }
 
-        response = self.get_check_200(self.url_key + '-demand', data=query_params)
+        response = self.get_check_200(self.url_key + '-demand',
+                                      data=query_params)
         values_service2_quadrants = pd.DataFrame(response.data)
         print(values_service2_quadrants)
         # the demand of the whole country should be the sum of the quadrants

@@ -62,7 +62,7 @@ router.register(r'modevariants', ModeVariantViewSet, basename='modevariants')
 #router.register(r'reachabilitymatrices', ReachabilityMatrixViewSet,
                 #basename='reachabilitymatrices')
 router.register(r'routers', RouterViewSet, basename='routers')
-router.register(r'indicators', FixedIndicatorViewSet, basename='areaindicators')
+router.register(r'indicators', FixedIndicatorViewSet, basename='fixedindicators')
 
 # infrastructure
 router.register(r'scenarios', ScenarioViewSet, basename='scenarios')
