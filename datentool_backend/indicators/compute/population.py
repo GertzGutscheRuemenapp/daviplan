@@ -2,6 +2,7 @@ from typing import Dict
 
 from django.db import connection
 from django.db.models import Count
+from django.core.exceptions import BadRequest
 
 from datentool_backend.utils.dict_cursor import dictfetchall
 
@@ -98,6 +99,8 @@ class ComputePopulationAreaIndicator(PopulationIndicatorMixin,
     def compute(self):
         """"""
         area_level_id = self.query_params.get('area_level')
+        if area_level_id is None:
+            raise BadRequest('No AreaLevel provided')
         areas = self.get_areas(area_level_id=area_level_id)
 
         q_areas, p_areas = areas.values('id', '_label').query.sql_with_params()

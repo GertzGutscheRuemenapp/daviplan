@@ -264,6 +264,11 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         indicator_id = self.prepare_indicator(ComputePopulationAreaIndicator,
                                               'MyComputePopAreaIndicator')
 
+        #  without area_level it should return a 400 (BadRequest)
+        query_params = {'indicator': indicator_id}
+        response = self.get(self.url_key + '-aggregate-population', data=query_params)
+        self.response_400(response)
+
         query_params = {'indicator': indicator_id,
                         'area_level': self.area_level2.pk, }
 
