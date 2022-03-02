@@ -1,10 +1,13 @@
 from abc import ABCMeta, abstractmethod
-from typing import Callable, Dict# Literal
+from typing import Callable, Dict, List
 from django.http.request import QueryDict
-import enum
+from enum import Enum
 
 from datentool_backend.infrastructure.models import FieldTypes
 from datentool_backend.user.models import Service
+from datentool_backend.indicators.serializers import (
+    IndicatorAreaResultSerializer, IndicatorRasterResultSerializer,
+    IndicatorPlaceResultSerializer)
 
 
 class ComputeIndicator(metaclass=ABCMeta):
@@ -19,54 +22,59 @@ class ComputeIndicator(metaclass=ABCMeta):
         return f'{self.__class__.__name__}: {self.label}'
 
 
-class CapacityRequirement(enum.IntEnum):
-    required = 1
-    not_required = 2
-    independent = 3
+class ResultSerializer(Enum):
+    AREA = IndicatorAreaResultSerializer
+    PLACE = IndicatorPlaceResultSerializer
+    RASTER = IndicatorRasterResultSerializer
 
 
 class AssessmentIndicator(ComputeIndicator):
-    registered: Dict[int, ComputeIndicator] = {}
-    description: str = None
+    registered: Dict[str, 'AssessmentIndicator'] = {}
     title: str = None
-    detailed_title: str = None
-    capacity_required: int = CapacityRequirement.independent # Literal[1, 2, 3]
+    capacity_required: bool = False
+    result_serializer: ResultSerializer = None
 
     def __init__(self, service: Service):
         super().__init__()
         self.service = service
 
     @property
-    def id(self) -> int:
-        for id, indicator_class in self.registered.items():
-            if isinstance(self, indicator_class):
-                return id
-        return -1
+    def name(self) -> str:
+        return self.__name__.lower()
 
     @property
     @abstractmethod
-    def detailed_title(self) -> str:
+    def description(self) -> str:
         """computed title"""
         return ''
+
+    def serialize(self, queryset):
+        if not self.result_serializer:
+            raise Exception('no serializer defined')
+        serializer = self.result_serializer.value
+        return serializer(queryset, many=True)
 
 
 class AreaAssessmentIndicator(AssessmentIndicator):
     """compute return type Area"""
+    result_serializer = ResultSerializer.AREA
 
 
 class RasterAssessmentIndicator(AssessmentIndicator):
     """compute return type RasterCell"""
+    result_serializer = ResultSerializer.RASTER
 
 
 class PlaceAssessmentIndicator(AssessmentIndicator):
     """compute return type Place"""
+    result_serializer = ResultSerializer.PLACE
 
 
 def register_indicator() -> Callable:
     """register the indicator with the ComputeIndicators"""
 
     def wrapper(wrapped_class: AssessmentIndicator) -> Callable:
-        _id = max(AssessmentIndicator.registered.keys() or [0]) + 1
-        AssessmentIndicator.registered[_id] = wrapped_class
+        name = wrapped_class.__name__.lower()
+        AssessmentIndicator.registered[name] = wrapped_class
         return wrapped_class
     return wrapper
