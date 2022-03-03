@@ -110,7 +110,7 @@ class Service(DatentoolModelMixin, NamedModel, models.Model):
     A Service provided by an infrastructure
     '''
     class WayRelationship(models.IntegerChoices):
-        To = 1
+        TO = 1
         FROM = 2
 
     name = models.TextField()
@@ -129,8 +129,8 @@ class Service(DatentoolModelMixin, NamedModel, models.Model):
     demand_name = models.TextField(null=True)
     demand_description = models.TextField(null=True)
     has_capacity = models.BooleanField()
-    #facility_singular_unit = models.TextField()
-    #facility_article = models.TextField()
-    #facility_plural_unit = models.TextField()
-    #direction_way_relationship = models.IntegerField(
-        #choices=WayRelationship.choices)
+    facility_singular_unit = models.TextField()
+    facility_article = models.TextField()
+    facility_plural_unit = models.TextField()
+    direction_way_relationship = models.IntegerField(
+        choices=WayRelationship.choices)
