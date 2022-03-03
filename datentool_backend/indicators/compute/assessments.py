@@ -11,7 +11,8 @@ class DemandAreaCapacity(AreaAssessmentIndicator):
 
     @property
     def description(self):
-        return ''
+        return (f'{self.service.demand_plural_unit or "Nachfragende"} pro '
+                f'{self.service.facility_singular_unit or "Einrichtung"}')
 
     def compute(self):
         return []
@@ -25,7 +26,8 @@ class DemandArea(AreaAssessmentIndicator):
 
     @property
     def description(self):
-        return ''
+        return (f'{self.service.demand_plural_unit or "Nachfragende"} pro '
+                f'{self.service.capacity_singular_unit or "Kapazitätseinheit"}')
 
     def compute(self):
         return []
@@ -40,7 +42,11 @@ class ReachabilityDemandArea(AreaAssessmentIndicator):
 
     @property
     def description(self):
-        return ''
+        return (f'Anzahl {self.service.demand_plural_unit or "Nachfragende"}, '
+                f'für die {self.service.facility_article or "die"} angezeigte '
+                f'{self.service.facility_singular_unit or "Einrichtung"} '
+                f'{self.service.facility_article or "die"} besterreichbarste '
+                'ist')
 
     def compute(self):
         return []
@@ -55,7 +61,8 @@ class SupplyAreaCapacity(AreaAssessmentIndicator):
 
     @property
     def description(self):
-        return ''
+        return (f'{self.service.facility_plural_unit or "Einrichtungen"} pro '
+                f'100 {self.service.demand_plural_unit or "Nachfragende"}')
 
     def compute(self):
         return []
@@ -69,7 +76,8 @@ class SupplyArea(AreaAssessmentIndicator):
 
     @property
     def description(self):
-        return ''
+        return (f'{self.service.capacity_plural_unit or "Kapazitätseinheiten"} '
+                f'pro 100 {self.service.demand_plural_unit or "Nachfragende"}')
 
     def compute(self):
         return []
@@ -84,8 +92,10 @@ class AverageAreaReachability(AreaAssessmentIndicator):
 
     @property
     def description(self):
-        return ''
-
+        zu = ('zum' if self.service.facility_singular_unit in ['der', 'das']
+              else 'zur')
+        return (f'Mittlere Wegezeit {zu} besterreichbaren '
+                f'{self.service.facility_singular_unit or "Einrichtung"}')
     def compute(self):
         return []
 
@@ -100,7 +110,19 @@ class CutoffAreaReachability(AreaAssessmentIndicator):
 
     @property
     def description(self):
-        return ''
+        pre = (f'Anteil der {self.service.demand_plural_unit or "Nachfragenden"}'
+               ', die innerhalb von [...] Minuten ')
+        if self.service.direction_way_relationship == 1:
+            ein = ('einen' if self.service.facility_singular_unit
+                   in ['der', 'das'] else 'eine')
+            return pre + (
+                f'{ein} {self.service.facility_singular_unit or "Einrichtung"} '
+                'erreichen')
+        ein = ('einem' if self.service.facility_singular_unit in ['der', 'das']
+               else 'einer')
+        return pre + (
+            f'von {ein} {self.service.facility_singular_unit or "Einrichtung"} '
+            'erreicht werden')
 
     def compute(self):
         return []
@@ -115,7 +137,22 @@ class AveragePlaceReachability(PlaceAssessmentIndicator):
 
     @property
     def description(self):
-        return ''
+        pre = ('Mittlere Wegezeit, mit der '
+               f'{self.service.facility_article or "die"} angezeigte '
+               f'{self.service.facility_singular_unit or "Einrichtung"} ')
+        if self.service.direction_way_relationship == 1:
+            ersiees = ('er' if self.service.facility_singular_unit == 'der'
+                       else 'es' if self.service.facility_singular_unit == 'das'
+                       else 'sie')
+            return pre + (
+                f'erreicht wird (sofern {ersiees} '
+                f'{self.service.facility_singular_unit or "die"} '
+                'besterreichbare ist)')
+        ihrihm = ('ihm' if self.service.facility_singular_unit
+                   in ['der', 'das'] else 'ihr')
+        return pre +  (
+            f'die {self.service.demand_plural_unit or "Nachfragenden"} '
+            f'erreicht, die von {ihrihm} aus am besten erreichbar sind')
 
     def compute(self):
         return []
@@ -130,7 +167,8 @@ class MaxPlaceReachability(PlaceAssessmentIndicator):
 
     @property
     def description(self):
-        return ''
+        return (f'{self.service.demand_plural_unit or "Nachfragende"} pro '
+                f'{self.service.capacity_singular_unit or "Kapazitätseinheit"}')
 
     def compute(self):
         return []
