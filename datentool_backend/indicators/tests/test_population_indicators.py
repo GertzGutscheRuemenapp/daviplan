@@ -1,20 +1,11 @@
 import pandas as pd
 import numpy as np
 import numpy.testing as nptest
-from django.urls import reverse
-
 from test_plus import APITestCase
 
 from datentool_backend.api_test import LoginTestCase
 
 from datentool_backend.area.factories import AreaLevelFactory
-
-from datentool_backend.indicators.compute import (
-    ComputeIndicator,
-    ComputePopulationAreaIndicator,
-    ComputePopulationDetailAreaIndicator,
-    DemandAreaIndicator,
-    )
 
 from .setup_testdata import CreateInfrastructureTestdataMixin
 from datentool_backend.demand.models import AgeGroup, Gender
