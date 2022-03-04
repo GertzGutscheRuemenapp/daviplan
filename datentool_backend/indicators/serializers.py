@@ -67,7 +67,7 @@ class IndicatorPlaceResultSerializer(serializers.ModelSerializer):
         fields = ('place_id', 'value')
 
 
-class PopulationIndicatorSerializer(serializers.Serializer):
+class IndicatorPopulationSerializer(serializers.Serializer):
     year = serializers.IntegerField()
     gender = serializers.IntegerField()
     agegroup = serializers.IntegerField()

@@ -1,8 +1,9 @@
-from .base import ComputeIndicator
+from .base import ComputeIndicator, ResultSerializer
 
 
 #@register_indicator_class()
 class IntersectAreaWithRaster(ComputeIndicator):
+    result_serializer = ResultSerializer.RASTER
 
     def compute(self):
         """"""
@@ -10,6 +11,7 @@ class IntersectAreaWithRaster(ComputeIndicator):
 
 #@register_indicator_class()
 class DisaggregatePopulation(ComputeIndicator):
+    result_serializer = ResultSerializer.RASTER
 
     def compute(self):
         """"""

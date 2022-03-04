@@ -1,7 +1,7 @@
 from django.db import connection
 from datentool_backend.utils.dict_cursor import dictfetchall
 
-from .base import ComputeIndicator
+from .base import ComputeIndicator, ResultSerializer
 from datentool_backend.area.models import Area
 from datentool_backend.population.models import (RasterCellPopulationAgeGender,
                                                  AreaCell,
@@ -13,21 +13,21 @@ class PopulationIndicatorMixin:
 
     def get_population(self) -> RasterCellPopulationAgeGender:
         """get the population per area in the scenario"""
-        scenario = self.query_params.get('scenario')
+        scenario = self.data.get('scenario')
         if scenario:
             prognosis = Scenario.objects.get(pk=scenario).prognosis_id
         else:
-            prognosis = self.query_params.get('prognosis')
+            prognosis = self.data.get('prognosis')
         filter_params = {'population__prognosis': prognosis,}
-        year = self.query_params.get('year')
+        year = self.data.get('year')
         if year:
             filter_params['population__year__year'] = year
 
-        genders = self.query_params.getlist('gender')
+        genders = self.data.getlist('gender')
         if genders:
             filter_params['gender__in'] = genders
 
-        age_groups = self.query_params.getlist('age_group')
+        age_groups = self.data.getlist('age_group')
         if age_groups:
             filter_params['age_group__in'] = age_groups
 
@@ -41,7 +41,7 @@ class PopulationIndicatorMixin:
         area_filter = {}
         if area_level_id:
             area_filter['area_level_id'] = area_level_id
-        areas = self.query_params.getlist('area')
+        areas = self.data.getlist('area')
         if areas:
             area_filter['id__in'] = areas
 
@@ -51,14 +51,13 @@ class PopulationIndicatorMixin:
 
 class ComputePopulationAreaIndicator(PopulationIndicatorMixin,
                                      ComputeIndicator):
-    label = 'Population By Area'
+    title = 'Population By Area'
     description = 'Total Population per Area'
-    category = 'Population Services'
-    userdefined = False
+    result_serializer = ResultSerializer.AREA
 
     def compute(self):
         """"""
-        area_level_id = self.query_params.get('area_level')
+        area_level_id = self.data.get('area_level')
         areas = self.get_areas(area_level_id=area_level_id)
         acells = AreaCell.objects.filter(area__area_level_id=area_level_id)
         population = self.get_population()
@@ -95,12 +94,11 @@ class ComputePopulationAreaIndicator(PopulationIndicatorMixin,
         return areas_with_pop
 
 
-class ComputePopulationDetailAreaIndicator(PopulationIndicatorMixin,
-                                           ComputeIndicator):
-    label = 'Population By Gender, AgeGroup and Year'
+class ComputePopulationDetailIndicator(PopulationIndicatorMixin,
+                                       ComputeIndicator):
+    title = 'Population By Gender, AgeGroup and Year'
     description = 'Population by Gender, Agegroup and Year for one or several areas'
-    category = 'Population Services'
-    userdefined = False
+    result_serializer = ResultSerializer.POP
 
     def compute(self):
         """"""

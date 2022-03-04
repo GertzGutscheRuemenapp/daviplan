@@ -3,19 +3,20 @@ from django.db.models import OuterRef, Subquery, Count, IntegerField, Sum
 from django.db.models.functions import Coalesce
 from sql_util.utils import Exists
 
-from .base import ComputeIndicator
+from .base import ComputeIndicator, ResultSerializer
 from datentool_backend.area.models import Area, AreaLevel
 from datentool_backend.infrastructure.models import Place, Capacity
 
 
 class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
+    result_serializer = ResultSerializer.AREA
 
     def compute(self):
         """"""
-        area_level_id = self.query_params.get('area_level')
-        service_ids = self.query_params.getlist('service')
-        year = self.query_params.get('year', 0)
-        scenario_id = self.query_params.get('scenario')
+        area_level_id = self.data.get('area_level')
+        service_ids = self.data.getlist('service')
+        year = self.data.get('year', 0)
+        scenario_id = self.data.get('scenario')
 
         area_level = AreaLevel.objects.get(pk=area_level_id)
         areas = area_level.area_set.all()
@@ -48,7 +49,6 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
 class NumberOfLocations(ComputeAreaIndicator):
     title = 'NumLocations'
     description = 'Number of Locations per Area'
-    category = 'Infrastructure Services'
 
     def aggregate_places(self,
                          places: Place,
@@ -76,7 +76,6 @@ class NumberOfLocations(ComputeAreaIndicator):
 class TotalCapacityInArea(ComputeAreaIndicator):
     title = 'Total Capacity'
     description = 'Total Capacity per Area'
-    category = 'Infrastructure Services'
 
     def aggregate_places(self,
                          places: Place,

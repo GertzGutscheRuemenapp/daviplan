@@ -1,7 +1,4 @@
 from typing import List
-
-import mapbox_vector_tile
-from django.urls import reverse
 from test_plus import APITestCase
 
 from datentool_backend.api_test import LoginTestCase, BasicModelCompareMixin
@@ -105,7 +102,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         if scenario is not None:
             query_params['scenario'] = scenario.id
 
-        response = self.get_check_200(self.url_key+self.suffix, data=query_params)
+        response = self.post(self.url_key+self.suffix, data=query_params)
         # assert that the result is ordered by label
         actual = sorted(response.data, key=lambda f: f['label'])
         expected = [{'label': 'area1', 'value': expected_values[0], },

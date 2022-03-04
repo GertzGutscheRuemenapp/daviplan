@@ -6,8 +6,7 @@ from datentool_backend.indicators.factories import (
     MatrixStopStopFactory)
 
 from datentool_backend.indicators.compute import (
-    NumberOfLocations, TotalCapacityInArea,
-    register_indicator, AssessmentIndicator)
+    register_indicator, ServiceIndicator)
 
 from datentool_backend.infrastructure.models import FieldTypes
 
@@ -102,7 +101,7 @@ class TestIndicator(TestCase):
         #self.assertEquals(dummy_indicator.name, DummyIndicator.label)
 
 
-class DummyIndicator(AssessmentIndicator):
+class DummyIndicator(ServiceIndicator):
     label = 'TE'
     description = 'Random Indicator'
     parameters = {'Max_Value': FieldTypes.NUMBER, 'TextField': FieldTypes.STRING, }

@@ -6,7 +6,7 @@ from enum import Enum
 from datentool_backend.user.models import Service
 from datentool_backend.indicators.serializers import (
     IndicatorAreaResultSerializer, IndicatorRasterResultSerializer,
-    IndicatorPlaceResultSerializer)
+    IndicatorPlaceResultSerializer, IndicatorPopulationSerializer)
 
 
 class IndicatorParameter:
@@ -52,11 +52,32 @@ class IndicatorChoiceParameter(IndicatorParameter):
         return ret
 
 
+class ResultSerializer(Enum):
+    AREA = IndicatorAreaResultSerializer
+    PLACE = IndicatorPlaceResultSerializer
+    RASTER = IndicatorRasterResultSerializer
+    POP = IndicatorPopulationSerializer
+
+
+#class ColorScheme():
+    #def __init__(self, scheme: Union[str, List[str]], n_bins: int = 0):
+        #self.scheme = scheme
+        #self.n_bins = n_bins
+        #self.mid_value
+
+
 class ComputeIndicator(metaclass=ABCMeta):
     title: List[Tuple] = None
+    result_serializer: ResultSerializer = None
+    params: List[IndicatorParameter] = []
+    description: str = ''
 
-    def __init__(self, query_params: QueryDict = None):
-        self.query_params = query_params
+    def __init__(self, data: QueryDict = None):
+        self.data = data
+
+    @property
+    def name(self) -> str:
+        return self.__class__.__name__.lower()
 
     @abstractmethod
     def compute(self):
@@ -65,33 +86,6 @@ class ComputeIndicator(metaclass=ABCMeta):
     def __str__(self):
         return f'{self.__class__.__name__}: {self.title}'
 
-
-class ResultSerializer(Enum):
-    AREA = IndicatorAreaResultSerializer
-    PLACE = IndicatorPlaceResultSerializer
-    RASTER = IndicatorRasterResultSerializer
-
-
-class AssessmentIndicator(ComputeIndicator):
-    registered: Dict[str, 'AssessmentIndicator'] = {}
-    capacity_required: bool = False
-    result_serializer: ResultSerializer = None
-    params: List[IndicatorParameter] = []
-
-    def __init__(self, service: Service, query_params: QueryDict = None):
-        super().__init__(query_params)
-        self.service = service
-
-    @property
-    def name(self) -> str:
-        return self.__class__.__name__.lower()
-
-    @property
-    @abstractmethod
-    def description(self) -> str:
-        """computed title"""
-        return ''
-
     def serialize(self, queryset):
         if not self.result_serializer:
             raise Exception('no serializer defined')
@@ -99,26 +93,26 @@ class AssessmentIndicator(ComputeIndicator):
         return serializer(queryset, many=True).data
 
 
-class AreaAssessmentIndicator(AssessmentIndicator):
-    """compute return type Area"""
-    result_serializer = ResultSerializer.AREA
+class ServiceIndicator(ComputeIndicator):
+    registered: Dict[str, 'AssessmentIndicator'] = {}
+    capacity_required: bool = False
 
+    def __init__(self, service: Service, query_params: QueryDict = None):
+        super().__init__(query_params)
+        self.service = service
 
-class RasterAssessmentIndicator(AssessmentIndicator):
-    """compute return type RasterCell"""
-    result_serializer = ResultSerializer.RASTER
-
-
-class PlaceAssessmentIndicator(AssessmentIndicator):
-    """compute return type Place"""
-    result_serializer = ResultSerializer.PLACE
+    @property
+    @abstractmethod
+    def description(self) -> str:
+        """computed title"""
+        return ''
 
 
 def register_indicator() -> Callable:
     """register the indicator with the ComputeIndicators"""
 
-    def wrapper(wrapped_class: AssessmentIndicator) -> Callable:
+    def wrapper(wrapped_class: ServiceIndicator) -> Callable:
         name = wrapped_class.__name__.lower()
-        AssessmentIndicator.registered[name] = wrapped_class
+        ServiceIndicator.registered[name] = wrapped_class
         return wrapped_class
     return wrapper

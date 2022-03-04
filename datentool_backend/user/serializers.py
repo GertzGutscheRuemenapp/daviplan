@@ -179,6 +179,5 @@ class ServiceSerializer(serializers.ModelSerializer):
                   'capacity_singular_unit', 'capacity_plural_unit',
                   'has_capacity', 'demand_singular_unit', 'demand_plural_unit',
                   'quota_type', 'demand_name', 'demand_description',
-                  'max_capacity')
-
-
+                  'max_capacity', 'facility_singular_unit', 'facility_article',
+                  'facility_plural_unit', 'direction_way_relationship')

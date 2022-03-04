@@ -14,7 +14,7 @@ from datentool_backend.utils.permissions import(CanEditBasedata,
                                                 IsOwner
                                                 )
 from datentool_backend.indicators.compute.base import (
-    AssessmentIndicator, ResultSerializer)
+    ServiceIndicator, ResultSerializer)
 from datentool_backend.indicators.serializers import IndicatorSerializer
 
 from .permissions import CanUpdateProcessPermission, CanPatchSymbol
@@ -147,7 +147,7 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         service_id = kwargs.get('pk')
         service: Service = Service.objects.get(id=service_id)
         indicators = []
-        for indicator_class in AssessmentIndicator.registered.values():
+        for indicator_class in ServiceIndicator.registered.values():
             if indicator_class.capacity_required and not service.has_capacity:
                 continue
             indicators.append(indicator_class(service))
@@ -170,7 +170,7 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         indicator_name = request.query_params.get('indicator')
         if not indicator_name:
             raise BadRequest('query parameter "indicator" is required')
-        indicator_class = AssessmentIndicator.registered.get(indicator_name)
+        indicator_class = ServiceIndicator.registered.get(indicator_name)
         if not indicator_class:
             raise BadRequest(f'indicator "{indicator_name}" unknown')
         service_id = kwargs.get('pk')

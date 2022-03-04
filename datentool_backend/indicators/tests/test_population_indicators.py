@@ -228,8 +228,8 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
 
         query_params = {'area_level': self.area_level2.pk}
 
-        response = self.get_check_200(self.url_key + '-aggregate-population',
-                                      data=query_params)
+        response = self.post(self.url_key + '-aggregate-population',
+                             data=query_params)
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
         expected = pd.Series([357.213304, 867.698150],
@@ -241,8 +241,8 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         # area_level1
         query_params = {'area_level': self.obj.pk, }
 
-        response = self.get_check_200(self.url_key+'-aggregate-population',
-                                      data=query_params)
+        response = self.post(self.url_key+'-aggregate-population',
+                             data=query_params)
         # Test if input data matches
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
@@ -255,8 +255,8 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                         'gender': self.genders[0].pk,
                         }
 
-        response = self.get_check_200(self.url_key + '-aggregate-population',
-                                      data=query_params)
+        response = self.post(self.url_key + '-aggregate-population',
+                             data=query_params)
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
         expected = pd.Series([327.502507, 692.497493, np.nan],
@@ -268,8 +268,8 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                         'age_group': self.age_groups.values_list('id', flat=True)[:2],
                         }
 
-        response = self.get_check_200(self.url_key + '-aggregate-population',
-                                      data=query_params)
+        response = self.post(self.url_key + '-aggregate-population',
+                             data=query_params)
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
         expected = pd.Series([499.771245, 970.228755, np.nan],
@@ -281,8 +281,8 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                         'area': [self.area1.pk, self.area3.pk],
                         }
 
-        response = self.get_check_200(self.url_key + '-aggregate-population',
-                                      data=query_params)
+        response = self.post(self.url_key + '-aggregate-population',
+                             data=query_params)
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
         expected = pd.Series([715.617852, np.nan],
@@ -297,16 +297,16 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
 
         query_params = {'area': self.area1.pk, }
 
-        response = self.get_check_200(self.url_key + '-population-details',
-                                      data=query_params)
+        response = self.post(self.url_key + '-population-details',
+                             data=query_params)
         print(pd.DataFrame(response.data))
         # Test if sum of large area equals all input areas
 
         # area_level2
         query_params = {'area': self.district1.pk, }
 
-        response = self.get_check_200(self.url_key + '-population-details',
-                                      data=query_params)
+        response = self.post(self.url_key + '-population-details',
+                             data=query_params)
         # Test if input data matches
         print(pd.DataFrame(response.data))
 
@@ -314,8 +314,8 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         query_params = {'area': self.district1.pk,
                         'prognosis': self.prognosis.pk,}
 
-        response = self.get_check_200(self.url_key + '-population-details',
-                                      data=query_params)
+        response = self.post(self.url_key + '-population-details',
+                             data=query_params)
         # Test if input data matches
         print(pd.DataFrame(response.data))
 
@@ -328,8 +328,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                         'year': 2022,
                         }
 
-        response = self.get_check_200(self.url_key + '-demand',
-                                      data=query_params)
+        response = self.post(self.url_key + '-demand', data=query_params)
         default_values = pd.DataFrame(response.data)
         print(default_values)
 
@@ -339,8 +338,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                         'year': 2022,
                         }
 
-        response = self.get_check_200(self.url_key + '-demand',
-                                      data=query_params)
+        response = self.post(self.url_key + '-demand', data=query_params)
         scenario_values = pd.DataFrame(response.data)
         print(scenario_values)
         diff = scenario_values.value / default_values.value
@@ -353,8 +351,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                         'year': 2024,
                         }
 
-        response = self.get_check_200(self.url_key + '-demand',
-                                      data=query_params)
+        response = self.post(self.url_key + '-demand', data=query_params)
         values_2024 = pd.DataFrame(response.data)
         print(values_2024)
         diff = values_2024.value / scenario_values.value
@@ -366,8 +363,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                         'year': 2022,
                         }
 
-        response = self.get_check_200(self.url_key + '-demand',
-                                      data=query_params)
+        response = self.post(self.url_key + '-demand', data=query_params)
         values_service2 = pd.DataFrame(response.data)
         print(values_service2)
 
@@ -376,8 +372,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                         'year': 2022,
                         }
 
-        response = self.get_check_200(self.url_key + '-demand',
-                                      data=query_params)
+        response = self.post(self.url_key + '-demand', data=query_params)
         values_service2_arealevel1 = pd.DataFrame(response.data)
         print(values_service2_arealevel1)
 
@@ -386,8 +381,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                         'year': 2022,
                         }
 
-        response = self.get_check_200(self.url_key + '-demand',
-                                      data=query_params)
+        response = self.post(self.url_key + '-demand', data=query_params)
         values_service2_country = pd.DataFrame(response.data)
         print(values_service2_country)
 
@@ -396,8 +390,7 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                         'year': 2022,
                         }
 
-        response = self.get_check_200(self.url_key + '-demand',
-                                      data=query_params)
+        response = self.post(self.url_key + '-demand', data=query_params)
         values_service2_quadrants = pd.DataFrame(response.data)
         print(values_service2_quadrants)
         # the demand of the whole country should be the sum of the quadrants

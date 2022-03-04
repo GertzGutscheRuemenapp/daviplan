@@ -1,24 +1,24 @@
-from .base import (AreaAssessmentIndicator, register_indicator,
-                   RasterAssessmentIndicator, PlaceAssessmentIndicator,
+from .base import (register_indicator, ServiceIndicator, ResultSerializer,
                    IndicatorChoiceParameter, IndicatorNumberParameter)
 
-from datentool_backend.modes.models import ModeChoice
+from datentool_backend.modes.models import Mode
 
 
 class ModeParameter(IndicatorChoiceParameter):
     name = 'mode'
     title = 'Verkehrsmittel'
-    choices = ModeChoice.choices
+    choices = Mode.choices
     def __init__(self):
         super().__init__(self.name, self.choices, title=self.title)
 
 
 @register_indicator()
-class DemandAreaCapacity(AreaAssessmentIndicator):
+class DemandAreaCapacity(ServiceIndicator):
     '''Nachfragende nach betrachteter Leistung in einer Gebietseinheit pro
     Kapazitätseinheit für diese Leistung in der gleichen Gebietseinheit'''
     capacity_required = True
     title = 'Nachfrage pro Einrichtung'
+    result_serializer = ResultSerializer.AREA
     @property
     def description(self):
         return (f'{self.service.demand_plural_unit or "Nachfragende"} pro '
@@ -29,10 +29,11 @@ class DemandAreaCapacity(AreaAssessmentIndicator):
 
 
 @register_indicator()
-class DemandArea(AreaAssessmentIndicator):
+class DemandArea(ServiceIndicator):
     '''Nachfragende nach betrachteter Leistung in einer Gebietseinheit pro
     Einrichtung mit dieser Leistung in der gleichen Gebietseinheit'''
     title = 'Nachfrage pro Platz'
+    result_serializer = ResultSerializer.AREA
 
     @property
     def description(self):
@@ -44,12 +45,13 @@ class DemandArea(AreaAssessmentIndicator):
 
 
 @register_indicator()
-class ReachabilityDemandArea(AreaAssessmentIndicator):
+class ReachabilityDemandArea(ServiceIndicator):
     '''Anzahl der Nachfragenden nach der betrachteten Leistung aus allen
     Gebietseinheiten, für welche die betreffende Einrichtung mit dieser Leistung
     am besten mit einem bestimmten Verkehrsmittel erreichbar ist.'''
     title = 'Nachfrage im Einzugsbereich'
     params = (ModeParameter(), )
+    result_serializer = ResultSerializer.AREA
 
     @property
     def description(self):
@@ -64,11 +66,12 @@ class ReachabilityDemandArea(AreaAssessmentIndicator):
 
 
 @register_indicator()
-class SupplyAreaCapacity(AreaAssessmentIndicator):
+class SupplyAreaCapacity(ServiceIndicator):
     '''Kapazitätseinheiten für die betrachtete Leistung in einer Gebietseinheit
     pro 100 Nachfragen­den in der gleichen Gebietseinheit'''
     capacity_required = True
     title = 'Einrichtungen pro Nachfrage'
+    result_serializer = ResultSerializer.AREA
 
     @property
     def description(self):
@@ -80,10 +83,11 @@ class SupplyAreaCapacity(AreaAssessmentIndicator):
 
 
 @register_indicator()
-class SupplyArea(AreaAssessmentIndicator):
+class SupplyArea(ServiceIndicator):
     '''Einrichtungen mit der betrachteten Leistung in einer Gebietseinheit pro
     Nachfragen­de in der gleichen Gebietseinheit'''
     title = 'Plätze pro Nachfrage'
+    result_serializer = ResultSerializer.AREA
 
     @property
     def description(self):
@@ -95,12 +99,13 @@ class SupplyArea(AreaAssessmentIndicator):
 
 
 @register_indicator()
-class AverageAreaReachability(AreaAssessmentIndicator):
+class AverageAreaReachability(ServiceIndicator):
     '''Mittlerer Zeitaufwand der Nachfragenden aus einer Gebietseinheit, um mit
     einem bestimmten Verkehrsmittel die nächste Einrichtung mit der betrachteten
     Leistung zu erreichen'''
     title = 'Mittlere Wegedauer'
     params = (ModeParameter(), )
+    result_serializer = ResultSerializer.AREA
 
     @property
     def description(self):
@@ -113,7 +118,7 @@ class AverageAreaReachability(AreaAssessmentIndicator):
 
 
 @register_indicator()
-class CutoffAreaReachability(AreaAssessmentIndicator):
+class CutoffAreaReachability(ServiceIndicator):
     '''Anteil der Nachfragenden aus einer Gebietseinheit, welche die nächste
     Einrichtung mit der betrachteten Leistung innerhalb oder außerhalb der
     Gebietseinheit in maximal … Minuten mit einem bestimmter Verkehrsmittel
@@ -124,6 +129,7 @@ class CutoffAreaReachability(AreaAssessmentIndicator):
         IndicatorNumberParameter('cutoff', 'maximale Wegezeit (in Minuten)',
                                  min=0, max=240, integer_only=True)
     )
+    result_serializer = ResultSerializer.AREA
 
     @property
     def description(self):
@@ -146,12 +152,13 @@ class CutoffAreaReachability(AreaAssessmentIndicator):
 
 
 @register_indicator()
-class AveragePlaceReachability(PlaceAssessmentIndicator):
+class AveragePlaceReachability(ServiceIndicator):
     '''Mittlere Wegezeit der Nachfragenden aus allen Gebietseinheiten, für
     welche die betreffende Einrichtung mit einem bestimmten Verkehrsmittel die
     am schnellsten erreichbar ist'''
     title = 'Mittlere Erreichbarkeit'
     params = (ModeParameter(), )
+    result_serializer = ResultSerializer.PLACE
 
     @property
     def description(self):
@@ -177,12 +184,13 @@ class AveragePlaceReachability(PlaceAssessmentIndicator):
 
 
 @register_indicator()
-class MaxPlaceReachability(PlaceAssessmentIndicator):
+class MaxPlaceReachability(ServiceIndicator):
     '''Maximale Wegezeit der Nachfragenden aus allen Gebietseinheiten, für
     welche die betreffende Einrichtung mit einem bestimmten Verkehrsmittel
     die am schnellsten erreichbar ist'''
     title = 'Maximale Wegedauer'
     params = (ModeParameter(), )
+    result_serializer = ResultSerializer.PLACE
 
     @property
     def description(self):
@@ -208,11 +216,12 @@ class MaxPlaceReachability(PlaceAssessmentIndicator):
 
 
 @register_indicator()
-class MaxRasterReachability(RasterAssessmentIndicator):
+class MaxRasterReachability(ServiceIndicator):
     '''Wegezeit mit Verkehrsmittel zur nächsten Einrichtung mit ….
     für alle Wohnstandorte'''
     title = 'Wegezeit nächste Einrichtung'
     params = (ModeParameter(), )
+    result_serializer = ResultSerializer.RASTER
 
     @property
     def description(self):

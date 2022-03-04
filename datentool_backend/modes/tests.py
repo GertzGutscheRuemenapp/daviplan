@@ -25,24 +25,6 @@ class TestModeModels(TestCase):
         cut_off_time = CutOffTimeFactory()
 
 
-class TestModeAPI(WriteOnlyWithCanEditBaseDataTest,
-                  TestPermissionsMixin,
-                  TestAPIMixin,
-                  BasicModelTest,
-                  APITestCase):
-    """Test to post, put and patch data"""
-    url_key = "modes"
-    factory = ModeFactory
-
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-
-        cls.post_data = data = dict(name=faker.word())
-        cls.put_data = data = dict(name=faker.word())
-        cls.patch_data = data = dict(name=faker.word())
-
-
 class TestModeVariantAPI(WriteOnlyWithCanEditBaseDataTest,
                          TestPermissionsMixin,
                          TestAPIMixin,
