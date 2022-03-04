@@ -9,8 +9,7 @@ from faker import Faker
 faker = Faker('de-DE')
 
 
-from .factories import (ModeFactory,
-                        ModeVariantFactory,
+from .factories import (ModeVariantFactory,
                         CutOffTimeFactory,
                         )
 from .models import ModeVariant
@@ -38,7 +37,7 @@ class TestModeVariantAPI(WriteOnlyWithCanEditBaseDataTest,
     def setUpTestData(cls):
         super().setUpTestData()
         modevariant: ModeVariant = cls.obj
-        mode = modevariant.mode.pk
+        mode = modevariant.mode
 
         data = dict(mode=mode, name=faker.word(),
                     meta=faker.json(),
