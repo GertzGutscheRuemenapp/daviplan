@@ -15,7 +15,7 @@ from .demand.views import (GenderViewSet,
                            DemandRateViewSet,
                            )
 
-from .modes.views import (ModeViewSet, ModeVariantViewSet,)
+from .modes.views import ModeVariantViewSet
 from .indicators.views import (RouterViewSet,
                                FixedIndicatorViewSet,
                                )
@@ -57,7 +57,6 @@ router.register(r'demandratesets', DemandRateSetViewSet,
 router.register(r'demandrates', DemandRateViewSet, basename='demandrates')
 
 # indicator
-router.register(r'modes', ModeViewSet, basename='modes')
 router.register(r'modevariants', ModeVariantViewSet, basename='modevariants')
 #router.register(r'reachabilitymatrices', ReachabilityMatrixViewSet,
                 #basename='reachabilitymatrices')

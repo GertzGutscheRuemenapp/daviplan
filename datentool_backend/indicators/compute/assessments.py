@@ -1,5 +1,16 @@
 from .base import (AreaAssessmentIndicator, register_indicator,
-                   RasterAssessmentIndicator, PlaceAssessmentIndicator)
+                   RasterAssessmentIndicator, PlaceAssessmentIndicator,
+                   IndicatorChoiceParameter, IndicatorNumberParameter)
+
+from datentool_backend.modes.models import ModeChoice
+
+
+class ModeParameter(IndicatorChoiceParameter):
+    name = 'mode'
+    title = 'Verkehrsmittel'
+    choices = ModeChoice.choices
+    def __init__(self):
+        super().__init__(self.name, self.choices, title=self.title)
 
 
 @register_indicator()
@@ -8,7 +19,6 @@ class DemandAreaCapacity(AreaAssessmentIndicator):
     Kapazitätseinheit für diese Leistung in der gleichen Gebietseinheit'''
     capacity_required = True
     title = 'Nachfrage pro Einrichtung'
-
     @property
     def description(self):
         return (f'{self.service.demand_plural_unit or "Nachfragende"} pro '
@@ -39,14 +49,15 @@ class ReachabilityDemandArea(AreaAssessmentIndicator):
     Gebietseinheiten, für welche die betreffende Einrichtung mit dieser Leistung
     am besten mit einem bestimmten Verkehrsmittel erreichbar ist.'''
     title = 'Nachfrage im Einzugsbereich'
+    params = (ModeParameter(), )
 
     @property
     def description(self):
         return (f'Anzahl {self.service.demand_plural_unit or "Nachfragende"}, '
                 f'für die {self.service.facility_article or "die"} angezeigte '
                 f'{self.service.facility_singular_unit or "Einrichtung"} '
-                f'{self.service.facility_article or "die"} besterreichbarste '
-                'ist')
+                f'{self.service.facility_article or "die"} am besten '
+                'erreichbare ist')
 
     def compute(self):
         return []
@@ -89,6 +100,7 @@ class AverageAreaReachability(AreaAssessmentIndicator):
     einem bestimmten Verkehrsmittel die nächste Einrichtung mit der betrachteten
     Leistung zu erreichen'''
     title = 'Mittlere Wegedauer'
+    params = (ModeParameter(), )
 
     @property
     def description(self):
@@ -106,7 +118,12 @@ class CutoffAreaReachability(AreaAssessmentIndicator):
     Einrichtung mit der betrachteten Leistung innerhalb oder außerhalb der
     Gebietseinheit in maximal … Minuten mit einem bestimmter Verkehrsmittel
     erreichen'''
-    title = 'Erreichbarkeit bis … Minuten'
+    title = 'Erreichbarkeit bis […] Minuten'
+    params = (
+        ModeParameter(),
+        IndicatorNumberParameter('cutoff', 'maximale Wegezeit (in Minuten)',
+                                 min=0, max=240, integer_only=True)
+    )
 
     @property
     def description(self):
@@ -134,6 +151,7 @@ class AveragePlaceReachability(PlaceAssessmentIndicator):
     welche die betreffende Einrichtung mit einem bestimmten Verkehrsmittel die
     am schnellsten erreichbar ist'''
     title = 'Mittlere Erreichbarkeit'
+    params = (ModeParameter(), )
 
     @property
     def description(self):
@@ -147,7 +165,7 @@ class AveragePlaceReachability(PlaceAssessmentIndicator):
             return pre + (
                 f'erreicht wird (sofern {ersiees} '
                 f'{self.service.facility_singular_unit or "die"} '
-                'besterreichbare ist)')
+                'am besten erreichbare ist)')
         ihrihm = ('ihm' if self.service.facility_singular_unit
                    in ['der', 'das'] else 'ihr')
         return pre +  (
@@ -164,11 +182,26 @@ class MaxPlaceReachability(PlaceAssessmentIndicator):
     welche die betreffende Einrichtung mit einem bestimmten Verkehrsmittel
     die am schnellsten erreichbar ist'''
     title = 'Maximale Wegedauer'
+    params = (ModeParameter(), )
 
     @property
     def description(self):
-        return (f'{self.service.demand_plural_unit or "Nachfragende"} pro '
-                f'{self.service.capacity_singular_unit or "Kapazitätseinheit"}')
+        pre = ('Maximale Wegezeit, mit der '
+               f'{self.service.facility_article or "die"} angezeigte '
+               f'{self.service.facility_singular_unit or "Einrichtung"} ')
+        if self.service.direction_way_relationship == 1:
+            ersiees = ('er' if self.service.facility_singular_unit == 'der'
+                       else 'es' if self.service.facility_singular_unit == 'das'
+                       else 'sie')
+            return pre + (
+                f'erreicht wird (sofern {ersiees} '
+                f'{self.service.facility_singular_unit or "die"} '
+                'am besten erreichbare ist)')
+        ihrihm = ('ihm' if self.service.facility_singular_unit
+                   in ['der', 'das'] else 'ihr')
+        return pre +  (
+            f'die {self.service.demand_plural_unit or "Nachfragenden"} '
+            f'erreicht, die von {ihrihm} aus am besten erreichbar sind')
 
     def compute(self):
         return []
@@ -176,13 +209,26 @@ class MaxPlaceReachability(PlaceAssessmentIndicator):
 
 @register_indicator()
 class MaxRasterReachability(RasterAssessmentIndicator):
-    '''Wegzeit mit Verkehrsmittel zur nächsten Einrichtung mit ….
+    '''Wegezeit mit Verkehrsmittel zur nächsten Einrichtung mit ….
     für alle Wohnstandorte'''
-    title = 'Wegzeit nächste Einrichtung'
+    title = 'Wegezeit nächste Einrichtung'
+    params = (ModeParameter(), )
 
     @property
     def description(self):
-        return ''
+        if self.service.direction_way_relationship == 1:
+            zu = ('zum' if self.service.facility_singular_unit in ['der', 'das']
+                  else 'zur')
+            return (f'Wegezeit von allen Wohnstandorten {zu} nächsten'
+                    f'{self.service.facility_singular_unit or "Einrichtung"}')
+        derdem = ('dem' if self.service.facility_singular_unit in ['der', 'das']
+                   else 'der')
+        ersiees = ('er' if self.service.facility_singular_unit == 'der'
+                   else 'es' if self.service.facility_singular_unit == 'das'
+                   else 'sie')
+        return (f'Wegezeit zu allen Wohnstandorten ab {derdem} nächsten '
+                f'{self.service.facility_singular_unit or "Einrichtung"}, '
+                f'die {ersiees} am schnellsten erreicht')
 
     def compute(self):
         return []

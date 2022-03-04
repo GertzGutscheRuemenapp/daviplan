@@ -22,11 +22,17 @@ class IndicatorSerializer(serializers.Serializer):
     description = serializers.CharField()
     title = serializers.CharField()
     result_type = serializers.SerializerMethodField('get_result_type')
+    additional_parameters = serializers.SerializerMethodField('get_parameters')
 
     def get_result_type(self, obj):
         if obj.result_serializer:
             return obj.result_serializer.name.lower()
         return 'none'
+
+    def get_parameters(self, obj):
+        if not obj.params:
+            return []
+        return [p.serialize() for p in obj.params]
 
 
 class RouterSerializer(serializers.ModelSerializer):

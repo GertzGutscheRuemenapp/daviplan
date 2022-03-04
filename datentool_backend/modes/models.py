@@ -6,6 +6,13 @@ from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.user.models import (Infrastructure)
 
 
+class ModeChoice(models.IntegerChoices):
+    WALK = 1, 'zu Fuß'
+    BIKE = 2, 'Fahrrad'
+    SQUARE = 3, 'Auto'
+    TRANSIT = 4, 'ÖPNV'
+
+
 class Mode(DatentoolModelMixin, NamedModel, models.Model):
     '''
     modes available
@@ -18,6 +25,7 @@ class ModeVariant(DatentoolModelMixin, JsonAttributes, NamedModel, models.Model)
     modes
     '''
     mode = models.ForeignKey(Mode, on_delete=PROTECT_CASCADE)
+    #mode = models.IntegerField(choices=Mode.choices)
     name = models.TextField()
     meta = models.JSONField()
     is_default = models.BooleanField()

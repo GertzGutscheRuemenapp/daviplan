@@ -46,7 +46,7 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
 
 
 class NumberOfLocations(ComputeAreaIndicator):
-    label = 'NumLocations'
+    title = 'NumLocations'
     description = 'Number of Locations per Area'
     category = 'Infrastructure Services'
 
@@ -74,7 +74,7 @@ class NumberOfLocations(ComputeAreaIndicator):
 
 
 class TotalCapacityInArea(ComputeAreaIndicator):
-    label = 'Total Capacity'
+    title = 'Total Capacity'
     description = 'Total Capacity per Area'
     category = 'Infrastructure Services'
 
