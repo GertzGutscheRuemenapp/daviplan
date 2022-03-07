@@ -31,6 +31,12 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
     serializer_class = IndicatorSerializer
 
     @extend_schema(
+        description='Indicator description',
+        responses=IndicatorSerializer(many=False),
+        methods=['GET']
+    )
+    @extend_schema(
+        description='get the total population for selected areas',
         parameters=[area_level_param,
                     areas_param,
                     year_param,
@@ -39,11 +45,11 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
                     age_groups_param,
                     ],
         request=IndicatorSerializer(many=False),
-        responses=ComputePopulationAreaIndicator.result_serializer.value(many=True)
+        responses=ComputePopulationAreaIndicator.result_serializer.value(many=True),
+        methods=['POST']
     )
     @action(methods=['GET', 'POST'], detail=False)
     def aggregate_population(self, request, **kwargs):
-        """get the total population for selected areas"""
         indicator = ComputePopulationAreaIndicator(self.request.data)
         if request.method == 'GET':
             return Response(IndicatorSerializer(indicator).data)
@@ -51,12 +57,18 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
         return Response(indicator.serialize(qs))
 
     @extend_schema(
+        description='Indicator description',
+        responses=IndicatorSerializer(many=False),
+        methods=['GET']
+    )
+    @extend_schema(
         parameters=[area_level_param,
                     year_param,
                     services_param,
                     scenario_param,
                     ],
         responses=NumberOfLocations.result_serializer.value(many=True),
+        methods=['POST']
     )
     @action(methods=['GET', 'POST'], detail=False)
     def number_of_locations(self, request, **kwargs):
@@ -68,12 +80,18 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
         return Response(indicator.serialize(qs))
 
     @extend_schema(
+        description='Indicator description',
+        responses=IndicatorSerializer(many=False),
+        methods=['GET']
+    )
+    @extend_schema(
         parameters=[area_level_param,
                     year_param,
                     services_param,
                     scenario_param,
                     ],
         responses=TotalCapacityInArea.result_serializer.value(many=True),
+        methods=['POST']
     )
     @action(methods=['GET', 'POST'], detail=False)
     def capacity(self, request, **kwargs):
@@ -85,6 +103,11 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
         return Response(indicator.serialize(qs))
 
     @extend_schema(
+        description='Indicator description',
+        responses=IndicatorSerializer(many=False),
+        methods=['GET']
+    )
+    @extend_schema(
         parameters=[area_level_param,
                     areas_param,
                     year_param,
@@ -94,6 +117,7 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
                     age_groups_param,
                     ],
         responses=DemandAreaIndicator.result_serializer.value(many=True),
+        methods=['POST']
     )
     @action(methods=['GET', 'POST'], detail=False)
     def demand(self, request, **kwargs):
@@ -105,6 +129,11 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
         return Response(indicator.serialize(qs))
 
     @extend_schema(
+        description='Indicator description',
+        responses=IndicatorSerializer(many=False),
+        methods=['GET']
+    )
+    @extend_schema(
         parameters=[areas_param,
                     year_param,
                     prognosis_param,
@@ -112,6 +141,7 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
                     age_groups_param,
                     ],
         responses=ComputePopulationDetailIndicator.result_serializer.value(many=True),
+        methods=['POST']
     )
     @action(methods=['GET', 'POST'], detail=False)
     def population_details(self, request, **kwargs):
@@ -122,10 +152,15 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
         qs = indicator.compute()
         return Response(indicator.serialize(qs))
 
-
+    @extend_schema(
+        description='Indicator description',
+        responses=IndicatorSerializer(many=False),
+        methods=['GET']
+    )
     @extend_schema(
         parameters=[place_param],
         responses=ReachabilityPlace.result_serializer.value(many=True),
+        methods=['POST']
     )
     @action(methods=['GET', 'POST'], detail=False)
     def reachability_place(self, request, **kwargs):
@@ -136,10 +171,15 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
         qs = indicator.compute()
         return Response(indicator.serialize(qs))
 
-
+    @extend_schema(
+        description='Indicator description',
+        responses=IndicatorSerializer(many=False),
+        methods=['GET']
+    )
     @extend_schema(
         parameters=[loc_x_param, loc_y_param],
         responses=ReachabilityCell.result_serializer.value(many=True),
+        methods=['POST']
     )
     @action(methods=['GET', 'POST'], detail=False)
     def reachibility_cells(self, request, **kwargs):
