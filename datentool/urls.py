@@ -29,7 +29,7 @@ from drf_spectacular.views import (SpectacularAPIView,
                                    SpectacularSwaggerView)
 
 
-from datentool_backend.views import AreaLevelTileView, AreaLevelIndicatorTileView
+from datentool_backend.views import AreaLevelTileView
 
 from .views import HomePageView
 
@@ -50,8 +50,6 @@ urlpatterns = [
 
     path('tiles/arealevels/<int:pk>/tile/<int:z>/<int:x>/<int:y>/',
          AreaLevelTileView.as_view(), name="layer-tile"),
-    path('tiles/arealevelindicators/<int:pk>/tile/<int:z>/<int:x>/<int:y>/',
-         AreaLevelIndicatorTileView.as_view(), name="layerindicator-tile"),
     # match all routes to the home page (entry point to angular) to let angular
     # handle the routing, /api and /static routes are still handled by django
     # automatically, for some reason /media is not, so it is excluded here
