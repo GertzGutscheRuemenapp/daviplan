@@ -9,7 +9,6 @@ from .models import (Router, Stop, MatrixCellPlace, MatrixCellStop,
 from datentool_backend.modes.factories import ModeVariantFactory
 from datentool_backend.infrastructure.factories import PlaceFactory
 from datentool_backend.population.factories import RasterCellFactory
-from datentool_backend.user.factories import (ServiceFactory)
 
 from faker import Faker
 faker = Faker('de-DE')

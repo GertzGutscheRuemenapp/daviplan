@@ -92,7 +92,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                    ],
                    responses={202: OpenApiResponse(MessageSerializer, 'Intersection successful'),
                               406: OpenApiResponse(MessageSerializer, 'Intersection failed')})
-    @action(methods=['GET'], detail=True,
+    @action(methods=['POST'], detail=True,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def intersectareaswithcells(self, request, **kwargs):
         """
@@ -106,7 +106,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
 
         # if a specific area-level is provided, take this one
         # instead of the areas of the population
-        area_level_id = request.query_params.get('area_level')
+        area_level_id = request.data.get('area_level')
         if area_level_id:
             areas = Area.objects.filter(area_level_id=area_level_id)\
                 .values_list('pk', flat=True)
@@ -176,7 +176,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
         ac.delete()
 
         drop_constraints = bool(strtobool(
-            request.query_params.get('drop_constraints', False)))
+            request.data.get('drop_constraints', 'False')))
 
         with StringIO() as file:
             df2.to_csv(file, index=False)
@@ -203,12 +203,12 @@ class PopulationViewSet(viewsets.ModelViewSet):
                                                    'Disaggregation successful'),
                               406: OpenApiResponse(MessageSerializer,
                                                    'Disaggregation failed')})
-    @action(methods=['GET'], detail=False,
+    @action(methods=['POST'], detail=False,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def disaggregateall(self, request, **kwargs):
         manager = RasterCellPopulationAgeGender.copymanager
         drop_constraints = bool(strtobool(
-            request.query_params.get('drop_constraints', False)))
+            request.data.get('drop_constraints', 'False')))
 
         with transaction.atomic():
             if drop_constraints:
@@ -216,17 +216,17 @@ class PopulationViewSet(viewsets.ModelViewSet):
                 manager.drop_indexes()
 
             #  set new query-params
-            old_query_params = self.request.query_params
-            query_params = QueryDict(mutable=True)
-            query_params.update(self.request.query_params)
-            query_params['drop_constraints'] = 'False'
-            request._request.GET = query_params
+            old_data = self.request.data
+            data = QueryDict(mutable=True)
+            data.update(self.request.data)
+            data['drop_constraints'] = 'False'
+            request._full_data = data
 
             for population in Population.objects.all():
                 self.disaggregate(request, **{'pk': population.id})
 
-            # restore the query_params
-            request._request.GET = old_query_params
+            # restore the data
+            request._request.GET = old_data
 
             if drop_constraints:
                 manager.restore_constraints()
@@ -250,7 +250,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                    ],
                    responses={202: OpenApiResponse(MessageSerializer, 'Disaggregation successful'),
                               406: OpenApiResponse(MessageSerializer, 'Disaggregation failed')})
-    @action(methods=['GET'], detail=True,
+    @action(methods=['POST'], detail=True,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def disaggregate(self, request, **kwargs):
         """
@@ -269,7 +269,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                                      cell__popraster=population.popraster)
 
         # if rastercells are not intersected yet
-        if ac and request.query_params.get('use_intersected_data'):
+        if ac and request.data.get('use_intersected_data'):
             msg = 'use precalculated rastercells\n'
         else:
             response = self.intersectareaswithcells(request, **kwargs)
@@ -330,7 +330,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
         rc_exist.delete()
 
         drop_constraints = bool(strtobool(
-            request.query_params.get('drop_constraints', False)))
+            request.data.get('drop_constraints', 'False')))
 
         with StringIO() as file:
             df_cellagegender.to_csv(file, index=False)
@@ -356,7 +356,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                    ],
                    responses={202: OpenApiResponse(MessageSerializer, 'Aggregation successful'),
                               406: OpenApiResponse(MessageSerializer, 'Aggregation failed')})
-    @action(methods=['GET'], detail=True,
+    @action(methods=['POST'], detail=True,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def aggregate_from_cell_to_area(self, request, **kwargs):
         """aggregate population from cell to area"""
@@ -366,7 +366,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
             msg = f'Population for {kwargs} not found'
             return Response({'message': msg, }, status.HTTP_406_NOT_ACCEPTABLE)
 
-        area_level_id = request.query_params.get('area_level')
+        area_level_id = request.data.get('area_level')
         acells = AreaCell.objects.filter(area__area_level_id=area_level_id)
 
         rasterpop = RasterCellPopulationAgeGender.objects.filter(population=population)
@@ -409,7 +409,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
         ap_exist.delete()
 
         drop_constraints = bool(strtobool(
-            request.query_params.get('drop_constraints', False)))
+            request.data.get('drop_constraints', 'False')))
 
         with StringIO() as file:
             df_areaagegender.to_csv(file, index=False)
@@ -446,12 +446,12 @@ class PopulationViewSet(viewsets.ModelViewSet):
                                                    'Aggregation successful'),
                               406: OpenApiResponse(MessageSerializer,
                                                    'Aggregation failed')})
-    @action(methods=['GET'], detail=False,
+    @action(methods=['POST'], detail=False,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def aggregateall_from_cell_to_area(self, request, **kwargs):
         manager = AreaPopulationAgeGender.copymanager
         drop_constraints = bool(strtobool(
-            request.query_params.get('drop_constraints', False)))
+            request.data.get('drop_constraints', 'False')))
 
         with transaction.atomic():
             if drop_constraints:
@@ -459,15 +459,15 @@ class PopulationViewSet(viewsets.ModelViewSet):
                 manager.drop_indexes()
 
             #  set new query-params
-            old_query_params = self.request.query_params
-            query_params = QueryDict(mutable=True)
-            query_params.update(self.request.query_params)
-            query_params['drop_constraints'] = 'False'
-            request._request.GET = query_params
+            old_data = self.request.data
+            data = QueryDict(mutable=True)
+            data.update(self.request.data)
+            data['drop_constraints'] = 'False'
+            request._full_data = data
 
             for area_level in AreaLevel.objects.all():
                 for population in Population.objects.all():
-                    query_params['area_level'] = area_level.id
+                    data['area_level'] = area_level.id
                     self.aggregate_from_cell_to_area(request, **{'pk': population.id})
                 max_value = AreaPopulationAgeGender.objects.filter(
                     area__area_level=area_level)\
@@ -476,8 +476,8 @@ class PopulationViewSet(viewsets.ModelViewSet):
                 area_level.population_cache_dirty = False
                 area_level.save()
 
-            # restore the query_params
-            request._request.GET = old_query_params
+            # restore the data
+            request._full_data = old_data
 
             if drop_constraints:
                 manager.restore_constraints()
