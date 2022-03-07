@@ -6,7 +6,6 @@ from datentool_backend.api_test import (BasicModelTest,
                                         LoginTestCase,
                                         )
 
-
 from datentool_backend.user.factories import (ProfileFactory,
                                               PlanningProcessFactory,
                                               )

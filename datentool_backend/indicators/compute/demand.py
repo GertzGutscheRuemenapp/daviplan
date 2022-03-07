@@ -19,7 +19,7 @@ class DemandAreaIndicator(PopulationIndicatorMixin,
         """"""
         area_level_id = self.data.get('area_level')
         areas = self.get_areas(area_level_id=area_level_id)
-        rcpop = self.get_population()
+        rcpop = self.get_rasterpop()
         acells = AreaCell.objects.filter(area__area_level_id=area_level_id)
 
         demand_rates = self.get_demand_rates()
