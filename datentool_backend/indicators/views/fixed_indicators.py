@@ -44,7 +44,7 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
                     genders_param,
                     age_groups_param,
                     ],
-        request=IndicatorSerializer(many=False),
+        request=None,
         responses=ComputePopulationAreaIndicator.result_serializer.value(many=True),
         methods=['POST']
     )
@@ -67,6 +67,7 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
                     services_param,
                     scenario_param,
                     ],
+        request=None,
         responses=NumberOfLocations.result_serializer.value(many=True),
         methods=['POST']
     )
@@ -90,6 +91,7 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
                     services_param,
                     scenario_param,
                     ],
+        request=None,
         responses=TotalCapacityInArea.result_serializer.value(many=True),
         methods=['POST']
     )
@@ -116,6 +118,7 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
                     genders_param,
                     age_groups_param,
                     ],
+        request=None,
         responses=DemandAreaIndicator.result_serializer.value(many=True),
         methods=['POST']
     )
@@ -140,6 +143,7 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
                     genders_param,
                     age_groups_param,
                     ],
+        request=None,
         responses=ComputePopulationDetailIndicator.result_serializer.value(many=True),
         methods=['POST']
     )
@@ -159,6 +163,7 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
     )
     @extend_schema(
         parameters=[place_param],
+        request=None,
         responses=ReachabilityPlace.result_serializer.value(many=True),
         methods=['POST']
     )
@@ -178,6 +183,7 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
     )
     @extend_schema(
         parameters=[loc_x_param, loc_y_param],
+        request=None,
         responses=ReachabilityCell.result_serializer.value(many=True),
         methods=['POST']
     )
