@@ -6,7 +6,6 @@ from datentool_backend.api_test import (BasicModelTest,
                                         LoginTestCase,
                                         )
 
-
 from datentool_backend.user.factories import (ProfileFactory,
                                               PlanningProcessFactory,
                                               )
@@ -143,8 +142,8 @@ class TestScenarioAPI(TestAPIMixin, BasicModelTest, APITestCase):
                                        service=demandrateset1.service,
                                        demandrateset=demandrateset1)
 
-        modevariant1 = ModeVariantFactory()
-        modevariant2 = ModeVariantFactory()
+        modevariant1 = ModeVariantFactory(mode=1)
+        modevariant2 = ModeVariantFactory(mode=2)
         modevariant3 = ModeVariantFactory(mode=modevariant2.mode)
 
         ScenarioMode.objects.create(scenario=scenario,
