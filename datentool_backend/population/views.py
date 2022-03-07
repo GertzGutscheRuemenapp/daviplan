@@ -348,9 +348,9 @@ class PopulationViewSet(viewsets.ModelViewSet):
     @extend_schema(description='Aggregate Population from rastercells to area',
                    parameters=[
                        OpenApiParameter(name='area_level', required=True, type=int,
-        description='''The Area_level to aggregate to'''),
+                                        description='''The Area_level to aggregate to'''),
                        OpenApiParameter(name='use_intersected_data', required=False, type=bool,
-        description='''use precalculated rastercells'''),
+                                        description='''use precalculated rastercells'''),
                        OpenApiParameter(name='drop_constraints',
                                         required=False,
                                         type=bool,

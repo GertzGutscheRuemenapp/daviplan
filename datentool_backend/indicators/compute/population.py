@@ -54,10 +54,14 @@ class PopulationIndicatorMixin:
         if year:
             filter_params['population__year__year'] = year
         genders = self.data.getlist('gender')
+        if (len(genders) == 1 and isinstance(genders[0], str)):
+            genders = genders[0].split(',')
         if genders:
             filter_params['gender__in'] = genders
 
         age_groups = self.data.getlist('age_group')
+        if (len(age_groups) == 1 and isinstance(age_groups[0], str)):
+            age_groups = age_groups[0].split(',')
         if age_groups:
             filter_params['age_group__in'] = age_groups
         return filter_params
@@ -81,6 +85,8 @@ class PopulationIndicatorMixin:
         if area_level_id:
             area_filter['area_level_id'] = area_level_id
         areas = self.data.getlist('area')
+        if (len(areas) == 1 and isinstance(areas[0], str)):
+            areas = areas[0].split(',')
         if areas:
             area_filter['id__in'] = areas
 
