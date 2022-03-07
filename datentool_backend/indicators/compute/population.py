@@ -3,6 +3,7 @@ from typing import Dict
 from django.db import connection
 from django.db.models import Count
 from django.core.exceptions import BadRequest
+from django.http.request import QueryDict
 
 from datentool_backend.utils.dict_cursor import dictfetchall
 
@@ -53,11 +54,16 @@ class PopulationIndicatorMixin:
         year = self.data.get('year')
         if year:
             filter_params['population__year__year'] = year
-        genders = self.data.getlist('gender')
+
+        if isinstance(self.data, QueryDict):
+            genders = self.data.getlist('gender')
+            age_groups = self.data.getlist('age_group')
+        else:
+            genders = self.data.get('gender')
+            age_groups = self.data.get('age_group')
+
         if genders:
             filter_params['gender__in'] = genders
-
-        age_groups = self.data.getlist('age_group')
         if age_groups:
             filter_params['age_group__in'] = age_groups
         return filter_params
@@ -80,7 +86,10 @@ class PopulationIndicatorMixin:
         area_filter = {}
         if area_level_id:
             area_filter['area_level_id'] = area_level_id
-        areas = self.data.getlist('area')
+        if isinstance(self.data, QueryDict):
+            areas = self.data.getlist('area')
+        else:
+            areas = self.data.get('area')
         if areas:
             area_filter['id__in'] = areas
 
@@ -103,7 +112,10 @@ class ComputePopulationAreaIndicator(PopulationIndicatorMixin,
 
         q_areas, p_areas = areas.values('id', '_label').query.sql_with_params()
 
-        population = self.get_populations()[0]
+        populations = self.get_populations()
+        if not populations:
+            return []
+        population = populations[0]
 
         pop_arealevel, created = PopulationAreaLevel.objects.get_or_create(
             population=population,

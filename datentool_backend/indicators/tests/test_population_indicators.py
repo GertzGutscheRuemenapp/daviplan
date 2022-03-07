@@ -345,9 +345,9 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
                         'prognosis': self.prognosis.pk,}
 
         response = self.post(self.url_key + '-population-details', data=query_params)
-        df_calclualted_from_areas = pd.DataFrame(response.data)
+        df_calculated_from_areas = pd.DataFrame(response.data)
 
-        pd.testing.assert_frame_equal(df_calclualted_from_areas,
+        pd.testing.assert_frame_equal(df_calculated_from_areas,
                                       df_calculated_from_rastercells)
 
     def test_demand_per_area(self):

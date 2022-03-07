@@ -2,7 +2,7 @@
   <div id="scenario-menu">
     <div id="scenario-cards">
       <div #scenario [ngClass]="{active: scenario === activeScenario}"
-           *ngFor="let scenario of scenarios" [attr.data-value]="scenario"
+           *ngFor="let scenario of scenarios" [attr.data-value]="scenario.id"
            class="scenario-card">
         <div class="scenario-card-header"
              (click)="toggleScenario(scenario)">
@@ -72,9 +72,9 @@
     </mat-icon>
     <mat-form-field appearance="standard" class="small" style="width: 145px;">
       <mat-label>Nachfragequoten-Set</mat-label>
-      <mat-select [disabled]="scenario === baseScenario"
-                  disableOptionCentering disableRipple
+      <mat-select disableOptionCentering disableRipple
                   [value]="quotas[0]">
+<!--        [disabled]="scenario === baseScenario"-->
         <mat-option *ngFor="let quota of quotas" [value]="quota">
           {{quota}}
         </mat-option>
@@ -89,9 +89,9 @@
     </mat-icon>
     <mat-form-field appearance="standard" class="small" style="width: 145px;">
       <mat-label>Einwohnerentwicklung</mat-label>
-      <mat-select [disabled]="scenario === baseScenario"
-                  disableOptionCentering disableRipple
+      <mat-select disableOptionCentering disableRipple
                   [value]="prognoses[1]">
+        <!--        [disabled]="scenario === baseScenario"-->
         <mat-option *ngFor="let prognosis of prognoses" [value]="prognosis">
           {{prognosis}}
         </mat-option>
