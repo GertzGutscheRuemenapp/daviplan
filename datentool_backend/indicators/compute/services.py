@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 from django.db.models import OuterRef, Subquery, Count, IntegerField, Sum
 from django.db.models.functions import Coalesce
 from sql_util.utils import Exists
+from django.http.request import QueryDict
 
 from .base import ComputeIndicator, ResultSerializer
 from datentool_backend.area.models import Area, AreaLevel
@@ -14,9 +15,12 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
     def compute(self):
         """"""
         area_level_id = self.data.get('area_level')
-        service_ids = self.data.getlist('service')
-        if (len(service_ids) == 1 and isinstance(service_ids[0], str)):
-            service_ids = service_ids[0].split(',')
+        if isinstance(self.data, QueryDict):
+            service_ids = self.data.getlist('service')
+        else:
+            service_ids = self.data.get('service')
+            if areas:
+                service_ids = service_ids[0].split(',')
         year = self.data.get('year', 0)
         scenario_id = self.data.get('scenario')
 
