@@ -1,4 +1,2 @@
-from .indicatortypes import *
-from .areaindicator import *
-from .populationindicator import *
+from .fixed_indicators import *
 from .transit import *

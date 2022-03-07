@@ -6,7 +6,7 @@ from datentool_backend.utils.copy_postgres import DirectCopyManager
 from datentool_backend.base import NamedModel, DatentoolModelMixin
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 
-from datentool_backend.area.models import Area
+from datentool_backend.area.models import Area, AreaLevel
 from datentool_backend.user.models import Year
 from datentool_backend.demand.models import AgeGroup, Gender
 
@@ -74,6 +74,14 @@ class Population(DatentoolModelMixin, models.Model):
     prognosis = models.ForeignKey(Prognosis, on_delete=PROTECT_CASCADE, null=True)
     popraster = models.ForeignKey(PopulationRaster,
                                on_delete=PROTECT_CASCADE, null=True)
+    arealevels = models.ManyToManyField(AreaLevel, through='PopulationAreaLevel')
+
+
+class PopulationAreaLevel(models.Model):
+    """Population for AreaLevel is up to date"""
+    population = models.ForeignKey(Population, on_delete=PROTECT_CASCADE)
+    area_level = models.ForeignKey(AreaLevel, on_delete=PROTECT_CASCADE)
+    up_to_date = models.BooleanField(default=False)
 
 
 class PopulationEntry(models.Model):
@@ -89,6 +97,18 @@ class RasterCellPopulationAgeGender(models.Model):
     """a raster cell with a disaggregated value"""
     population = models.ForeignKey(Population, on_delete=PROTECT_CASCADE, null=True)
     cell = models.ForeignKey(RasterCell, on_delete=PROTECT_CASCADE)
+    age_group = models.ForeignKey(AgeGroup, on_delete=PROTECT_CASCADE)
+    gender = models.ForeignKey(Gender, on_delete=PROTECT_CASCADE)
+    value = models.FloatField()
+
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
+
+
+class AreaPopulationAgeGender(models.Model):
+    """a raster cell with a disaggregated value"""
+    population = models.ForeignKey(Population, on_delete=PROTECT_CASCADE, null=True)
+    area = models.ForeignKey(Area, on_delete=PROTECT_CASCADE)
     age_group = models.ForeignKey(AgeGroup, on_delete=PROTECT_CASCADE)
     gender = models.ForeignKey(Gender, on_delete=PROTECT_CASCADE)
     value = models.FloatField()

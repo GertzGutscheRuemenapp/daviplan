@@ -4,18 +4,8 @@ from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 
-from .models import (Mode,
-                     ModeVariant,
-                     )
-from .serializers import (ModeSerializer,
-                          ModeVariantSerializer,
-                          )
-
-
-class ModeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = Mode.objects.all()
-    serializer_class = ModeSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+from .models import ModeVariant
+from .serializers import ModeVariantSerializer
 
 
 class ModeVariantViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

@@ -24,3 +24,9 @@ services_param = OpenApiParameter(name='service',
                                   type={'type': 'array', 'items': {'type': 'integer',},},
                                   description='Service PKeys',
                                   required=False)
+place_param = OpenApiParameter(name='place', type=int,
+                               description='Place PKey')
+loc_x_param = OpenApiParameter(name='cell', type=float,
+                               description='x-coordinate (WGS 84)')
+loc_y_param = OpenApiParameter(name='cell', type=float,
+                               description='y-coordinate (WGS 84)')

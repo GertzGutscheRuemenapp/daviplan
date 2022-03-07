@@ -9,8 +9,7 @@ from faker import Faker
 faker = Faker('de-DE')
 
 
-from .factories import (ModeFactory,
-                        ModeVariantFactory,
+from .factories import (ModeVariantFactory,
                         CutOffTimeFactory,
                         )
 from .models import ModeVariant
@@ -23,24 +22,6 @@ class TestModeModels(TestCase):
 
     def test_cut_off_time(self):
         cut_off_time = CutOffTimeFactory()
-
-
-class TestModeAPI(WriteOnlyWithCanEditBaseDataTest,
-                  TestPermissionsMixin,
-                  TestAPIMixin,
-                  BasicModelTest,
-                  APITestCase):
-    """Test to post, put and patch data"""
-    url_key = "modes"
-    factory = ModeFactory
-
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-
-        cls.post_data = data = dict(name=faker.word())
-        cls.put_data = data = dict(name=faker.word())
-        cls.patch_data = data = dict(name=faker.word())
 
 
 class TestModeVariantAPI(WriteOnlyWithCanEditBaseDataTest,
@@ -56,7 +37,7 @@ class TestModeVariantAPI(WriteOnlyWithCanEditBaseDataTest,
     def setUpTestData(cls):
         super().setUpTestData()
         modevariant: ModeVariant = cls.obj
-        mode = modevariant.mode.pk
+        mode = modevariant.mode
 
         data = dict(mode=mode, name=faker.word(),
                     meta=faker.json(),

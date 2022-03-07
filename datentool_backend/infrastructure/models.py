@@ -29,10 +29,6 @@ class Scenario(DatentoolModelMixin, NamedModel, models.Model):
                                          on_delete=PROTECT_CASCADE)
     prognosis = models.ForeignKey(Prognosis, on_delete=PROTECT_CASCADE,
                                   null=True)
-    modevariants = models.ManyToManyField(Mode,
-                                          related_name='scenario_mode',
-                                          blank=True,
-                                          through='ScenarioMode')
     demandratesets = models.ManyToManyField(DemandRateSet,
                                             related_name='scenario_service',
                                             blank=True,
@@ -41,7 +37,6 @@ class Scenario(DatentoolModelMixin, NamedModel, models.Model):
 
 class ScenarioMode(models.Model):
     scenario = models.ForeignKey(Scenario, on_delete=PROTECT_CASCADE)
-    mode = models.ForeignKey(Mode, on_delete=PROTECT_CASCADE)
     variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
 
 

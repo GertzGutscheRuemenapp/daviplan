@@ -23,13 +23,13 @@ from datentool_backend.user.models import (Infrastructure,
 class ScenarioModeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ScenarioMode
-        fields = ('mode', 'variant')
+        fields = ('variant',)
 
 
 class ScenarioDemandRateSetSerializer(serializers.ModelSerializer):
     class Meta:
         model = ScenarioService
-        fields = ('service', 'demandrateset')
+        fields = ('demandrateset', )
 
 
 class ScenarioSerializer(serializers.ModelSerializer):
@@ -49,26 +49,26 @@ class ScenarioSerializer(serializers.ModelSerializer):
         service_set = validated_data.pop('scenarioservice_set', [])
         super().update(instance, validated_data)
 
-        ## delete
-        #existing_scenario_modes\
-            #.exclude(id__in=[m.mode for m in modevariants])\
-            #.delete()
-
-        #  delete all and recreate
-        existing_scenario_modes = ScenarioMode.objects.filter(scenario=instance)
-        existing_scenario_modes.delete()
         for mode in mode_set:
-            ScenarioMode.objects.create(scenario=instance,
-                                        mode=mode['mode'],
-                                        variant=mode['variant'])
+            try:
+                sm = ScenarioMode.objects.get(
+                    scenario=instance, variant__mode=mode['variant'].mode)
+                sm.variant = mode['variant']
+                sm.save()
+            except ScenarioMode.DoesNotExist:
+                sm = ScenarioMode.objects.create(
+                    scenario=instance, variant=mode['variant'])
 
-        #  delete all and recreate
-        existing_scenario_service = ScenarioService.objects.filter(scenario=instance)
-        existing_scenario_service.delete()
         for service in service_set:
-            ScenarioService.objects.create(scenario=instance,
-                                           service=service['service'],
-                                           demandrateset=service['demandrateset'])
+            try:
+                scs = ScenarioService.objects.get(
+                    scenario=instance, service=service['demandrateset'].service)
+                scs.demandrateset = service['demandrateset']
+                scs.save()
+            except ScenarioService.DoesNotExist:
+                ScenarioService.objects.create(scenario=instance,
+                                               service=service['demandrateset'].service,
+                                               demandrateset=service['demandrateset'])
 
         return instance
 
@@ -77,12 +77,11 @@ class ScenarioSerializer(serializers.ModelSerializer):
         service_set = validated_data.pop('scenarioservice_set', [])
         instance = super().create(validated_data)
         for mode in mode_set:
-            ScenarioMode.objects.create(scenario=instance,
-                                        mode=mode['mode'],
-                                        variant=mode['variant'])
+            sm = ScenarioMode.objects.create(
+                scenario=instance, variant=mode['variant'])
         for service in service_set:
             ScenarioService.objects.create(scenario=instance,
-                                           service=service['service'],
+                                           service=service['demandrateset'].service,
                                            demandrateset=service['demandrateset'])
         return instance
 

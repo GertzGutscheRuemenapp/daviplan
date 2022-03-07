@@ -78,6 +78,8 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
                                   blank=True)
     is_active = models.BooleanField(default=True)
     is_preset = models.BooleanField(default=False)
+    max_population = models.FloatField(null=True)
+    population_cache_dirty = models.BooleanField(default=True)
 
     @property
     def label_field(self):

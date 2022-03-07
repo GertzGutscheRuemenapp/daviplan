@@ -3,14 +3,12 @@ from factory.django import DjangoModelFactory
 
 from datentool_backend.utils.geometry_fields import get_point_from_latlon
 
-from .models import (Router, Stop,
-                    Indicator, IndicatorType, MatrixCellPlace, MatrixCellStop,
+from .models import (Router, Stop, MatrixCellPlace, MatrixCellStop,
                     MatrixPlaceStop, MatrixStopStop)
 
 from datentool_backend.modes.factories import ModeVariantFactory
 from datentool_backend.infrastructure.factories import PlaceFactory
 from datentool_backend.population.factories import RasterCellFactory
-from datentool_backend.user.factories import (ServiceFactory)
 
 from faker import Faker
 faker = Faker('de-DE')
@@ -33,23 +31,6 @@ class RouterFactory(DjangoModelFactory):
     gtfs_file = faker.file_path()
     build_date = faker.date()
     buffer = faker.random_number(digits=2)
-
-
-class IndicatorTypeFactory(DjangoModelFactory):
-    class Meta:
-        model = IndicatorType
-    name = factory.Sequence(lambda n: f'{faker.unique.word()}_{n}')
-    description = faker.word()
-    classname = factory.Sequence(lambda n: f'{faker.unique.word()}_{n}')
-
-
-class IndicatorFactory(DjangoModelFactory):
-    class Meta:
-        model = Indicator
-    indicator_type = factory.SubFactory(IndicatorTypeFactory)
-    name = factory.Sequence(lambda n: f'{faker.unique.word()}_{n}')
-    parameters = faker.json(num_rows=3, indent=True)
-    service = factory.SubFactory(ServiceFactory)
 
 
 class MatrixCellPlaceFactory(DjangoModelFactory):
