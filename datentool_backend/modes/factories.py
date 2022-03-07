@@ -8,19 +8,13 @@ from faker import Faker
 faker = Faker('de-DE')
 
 
-class ModeFactory(DjangoModelFactory):
-    class Meta:
-        model = Mode
-
-    name = factory.Sequence(lambda n: faker.unique.name())
-
-
 class ModeVariantFactory(DjangoModelFactory):
     class Meta:
         model = ModeVariant
 
-    mode = factory.SubFactory(ModeFactory)
-    name = factory.LazyAttribute(lambda o: f'{o.mode.name}_Variant')
+    mode = factory.Faker(
+        'random_element', elements=[x[0] for x in Mode.choices])
+    name = factory.LazyAttribute(lambda o: f'{Mode(o.mode).label}_Variant')
     meta = faker.json(num_rows=3, indent=True)
     is_default = faker.pybool()
 

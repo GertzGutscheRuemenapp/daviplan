@@ -3,7 +3,9 @@ from django.db.models import Q
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from django.core.exceptions import BadRequest
 from django.db.models import Max
+
 from django.contrib.auth.models import User
 
 from datentool_backend.utils.views import ProtectCascadeMixin
@@ -11,6 +13,9 @@ from datentool_backend.utils.permissions import(CanEditBasedata,
                                                 HasAdminAccessOrReadOnly,
                                                 IsOwner
                                                 )
+from datentool_backend.indicators.compute.base import (
+    ServiceIndicator, ResultSerializer)
+from datentool_backend.indicators.serializers import IndicatorSerializer
 
 from .permissions import CanUpdateProcessPermission, CanPatchSymbol
 
@@ -132,3 +137,46 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         max_capacity=Max('capacity__capacity'))
     serializer_class = ServiceSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+    @extend_schema(
+        description='Indicators available for this service',
+        responses=IndicatorSerializer(many=True),
+    )
+    @action(methods=['GET'], detail=True)
+    def get_indicators(self, request, **kwargs):
+        service_id = kwargs.get('pk')
+        service: Service = Service.objects.get(id=service_id)
+        indicators = []
+        for indicator_class in ServiceIndicator.registered.values():
+            if indicator_class.capacity_required and not service.has_capacity:
+                continue
+            indicators.append(indicator_class(service))
+        serializer = IndicatorSerializer(indicators, many=True)
+        return Response(serializer.data)
+
+    @extend_schema(
+        description=('Compute indicator for this service, structure of result '
+                     'depends on "result_type" of indicator'),
+        responses=dict((f'result_type: {k.lower()}', v.value(many=True))
+                       for k, v in ResultSerializer._member_map_.items()),
+        parameters=[
+            OpenApiParameter(
+                name='indicator', required=True, type=str,
+                description=('name of indicator to compute with'))
+        ]
+    )
+    @action(methods=['GET'], detail=True)
+    def compute_indicator(self, request, **kwargs):
+        indicator_name = request.query_params.get('indicator')
+        if not indicator_name:
+            raise BadRequest('query parameter "indicator" is required')
+        indicator_class = ServiceIndicator.registered.get(indicator_name)
+        if not indicator_class:
+            raise BadRequest(f'indicator "{indicator_name}" unknown')
+        service_id = kwargs.get('pk')
+        service: Service = Service.objects.get(id=service_id)
+        indicator = indicator_class(service, request.query_params)
+        results = indicator.compute()
+
+        return Response(indicator.serialize(results))
+

@@ -229,6 +229,10 @@ class TestServiceAPI(WriteOnlyWithCanEditBaseDataTest,
                     quota_type=faker.word(),
                     demand_name=faker.word(),
                     demand_description=faker.word(),
+                    facility_singular_unit = faker.word(),
+                    facility_article = faker.word(),
+                    facility_plural_unit = faker.word(),
+                    direction_way_relationship = faker.pyint(max_value=2, min_value=1)
                     )
         cls.post_data = data
         cls.put_data = data

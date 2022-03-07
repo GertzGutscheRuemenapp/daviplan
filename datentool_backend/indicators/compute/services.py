@@ -1,23 +1,22 @@
 from abc import ABCMeta, abstractmethod
 from django.db.models import OuterRef, Subquery, Count, IntegerField, Sum
 from django.db.models.functions import Coalesce
-from django.contrib.postgres.fields.jsonb import KeyTextTransform
 from sql_util.utils import Exists
 
-from .base import ComputeIndicator, register_indicator_class
+from .base import ComputeIndicator, ResultSerializer
 from datentool_backend.area.models import Area, AreaLevel
 from datentool_backend.infrastructure.models import Place, Capacity
 
 
 class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
-    userdefined = False
+    result_serializer = ResultSerializer.AREA
 
     def compute(self):
         """"""
-        area_level_id = self.query_params.get('area_level')
-        service_ids = self.query_params.getlist('service')
-        year = self.query_params.get('year', 0)
-        scenario_id = self.query_params.get('scenario')
+        area_level_id = self.data.get('area_level')
+        service_ids = self.data.getlist('service')
+        year = self.data.get('year', 0)
+        scenario_id = self.data.get('scenario')
 
         area_level = AreaLevel.objects.get(pk=area_level_id)
         areas = area_level.area_set.all()
@@ -47,11 +46,9 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
         of places and capacities"""
 
 
-@register_indicator_class()
 class NumberOfLocations(ComputeAreaIndicator):
-    label = 'NumLocations'
+    title = 'NumLocations'
     description = 'Number of Locations per Area'
-    category = 'Infrastructure Services'
 
     def aggregate_places(self,
                          places: Place,
@@ -76,11 +73,9 @@ class NumberOfLocations(ComputeAreaIndicator):
         return areas
 
 
-@register_indicator_class()
 class TotalCapacityInArea(ComputeAreaIndicator):
-    label = 'Total Capacity'
+    title = 'Total Capacity'
     description = 'Total Capacity per Area'
-    category = 'Infrastructure Services'
 
     def aggregate_places(self,
                          places: Place,
