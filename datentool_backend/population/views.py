@@ -90,6 +90,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                                         default=True,
                                         description='set to false for tests')
                    ],
+                   request=None,
                    responses={202: OpenApiResponse(MessageSerializer, 'Intersection successful'),
                               406: OpenApiResponse(MessageSerializer, 'Intersection failed')})
     @action(methods=['POST'], detail=True,
@@ -199,6 +200,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                                         default=True,
                                         description='set to false for tests'),
                    ],
+                   request=None,
                    responses={202: OpenApiResponse(MessageSerializer,
                                                    'Disaggregation successful'),
                               406: OpenApiResponse(MessageSerializer,
@@ -248,6 +250,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                                         default=True,
                                         description='set to false for tests'),
                    ],
+                   request=None,
                    responses={202: OpenApiResponse(MessageSerializer, 'Disaggregation successful'),
                               406: OpenApiResponse(MessageSerializer, 'Disaggregation failed')})
     @action(methods=['POST'], detail=True,
@@ -354,6 +357,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                                         default=True,
                                         description='set to false for tests'),
                    ],
+                   request=None,
                    responses={202: OpenApiResponse(MessageSerializer, 'Aggregation successful'),
                               406: OpenApiResponse(MessageSerializer, 'Aggregation failed')})
     @action(methods=['POST'], detail=True,
@@ -442,6 +446,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                                         default=True,
                                         description='set to false for tests'),
                    ],
+                   request=None,
                    responses={202: OpenApiResponse(MessageSerializer,
                                                    'Aggregation successful'),
                               406: OpenApiResponse(MessageSerializer,
