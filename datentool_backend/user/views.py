@@ -165,9 +165,9 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                 description=('name of indicator to compute with'))
         ]
     )
-    @action(methods=['GET'], detail=True)
+    @action(methods=['POST'], detail=True)
     def compute_indicator(self, request, **kwargs):
-        indicator_name = request.query_params.get('indicator')
+        indicator_name = request.data.get('indicator')
         if not indicator_name:
             raise BadRequest('query parameter "indicator" is required')
         indicator_class = ServiceIndicator.registered.get(indicator_name)
