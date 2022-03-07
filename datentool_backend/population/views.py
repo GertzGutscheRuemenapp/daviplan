@@ -90,6 +90,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                                         default=True,
                                         description='set to false for tests')
                    ],
+                   request=None,
                    responses={202: OpenApiResponse(MessageSerializer, 'Intersection successful'),
                               406: OpenApiResponse(MessageSerializer, 'Intersection failed')})
     @action(methods=['POST'], detail=True,
@@ -199,6 +200,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                                         default=True,
                                         description='set to false for tests'),
                    ],
+                   request=None,
                    responses={202: OpenApiResponse(MessageSerializer,
                                                    'Disaggregation successful'),
                               406: OpenApiResponse(MessageSerializer,
@@ -248,6 +250,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                                         default=True,
                                         description='set to false for tests'),
                    ],
+                   request=None,
                    responses={202: OpenApiResponse(MessageSerializer, 'Disaggregation successful'),
                               406: OpenApiResponse(MessageSerializer, 'Disaggregation failed')})
     @action(methods=['POST'], detail=True,
@@ -345,15 +348,16 @@ class PopulationViewSet(viewsets.ModelViewSet):
     @extend_schema(description='Aggregate Population from rastercells to area',
                    parameters=[
                        OpenApiParameter(name='area_level', required=True, type=int,
-        description='''The Area_level to aggregate to'''),
+                                        description='''The Area_level to aggregate to'''),
                        OpenApiParameter(name='use_intersected_data', required=False, type=bool,
-        description='''use precalculated rastercells'''),
+                                        description='''use precalculated rastercells'''),
                        OpenApiParameter(name='drop_constraints',
                                         required=False,
                                         type=bool,
                                         default=True,
                                         description='set to false for tests'),
                    ],
+                   request=None,
                    responses={202: OpenApiResponse(MessageSerializer, 'Aggregation successful'),
                               406: OpenApiResponse(MessageSerializer, 'Aggregation failed')})
     @action(methods=['POST'], detail=True,
@@ -442,6 +446,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                                         default=True,
                                         description='set to false for tests'),
                    ],
+                   request=None,
                    responses={202: OpenApiResponse(MessageSerializer,
                                                    'Aggregation successful'),
                               406: OpenApiResponse(MessageSerializer,

@@ -135,12 +135,15 @@ export class RestCacheService {
       const cached = this.popAreaCache[key];
       if (!cached) {
         this.setLoading(true);
-        const query = this.http.get<AreaPopulationData[]>(`${this.rest.URLS.areaPopulation}?area_level=${areaLevelId}&year=${year}`);
+        const query = this.http.post<AreaPopulationData[]>(this.rest.URLS.areaPopulation,
+          { area_level: areaLevelId, year: year });
         query.subscribe(data => {
           this.popAreaCache[key] = data;
           this.setLoading(false);
           subscriber.next(data);
           subscriber.complete();
+        },error => {
+          this.setLoading(false);
         });
       } else {
         subscriber.next(cached);
@@ -152,19 +155,21 @@ export class RestCacheService {
 
   getPopulationData(areaId: number, year?: number): Observable<PopulationData[]> {
     const key = `${areaId}-${year}`;
-    let url = `${this.rest.URLS.populationData}?area=${areaId}`
-    if(year != undefined)
-      url += `&year=${year}`;
+    let data: any = { area: [areaId] };
+    if (year != undefined)
+      data.year = year;
     const observable = new Observable<PopulationData[]>(subscriber => {
       const cached = this.popDataCache[key];
       if (!cached) {
         this.setLoading(true);
-        const query = this.http.get<PopulationData[]>(url);
+        const query = this.http.post<PopulationData[]>(this.rest.URLS.populationData, data);
         query.subscribe(data => {
           this.popDataCache[key] = data;
           this.setLoading(false);
           subscriber.next(data);
           subscriber.complete();
+        },error => {
+          this.setLoading(false);
         });
       } else {
         subscriber.next(cached);
