@@ -19,8 +19,6 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
             service_ids = self.data.getlist('service')
         else:
             service_ids = self.data.get('service')
-            if areas:
-                service_ids = service_ids[0].split(',')
         year = self.data.get('year', 0)
         scenario_id = self.data.get('scenario')
 

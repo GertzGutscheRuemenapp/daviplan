@@ -61,10 +61,6 @@ class PopulationIndicatorMixin:
         else:
             genders = self.data.get('gender')
             age_groups = self.data.get('age_group')
-            if genders:
-                genders = genders[0].split(',')
-            if age_groups:
-                age_groups = age_groups[0].split(',')
 
         if genders:
             filter_params['gender__in'] = genders
@@ -94,8 +90,6 @@ class PopulationIndicatorMixin:
             areas = self.data.getlist('area')
         else:
             areas = self.data.get('area')
-            if areas:
-                areas = areas[0].split(',')
         if areas:
             area_filter['id__in'] = areas
 
