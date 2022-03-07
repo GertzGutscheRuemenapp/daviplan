@@ -374,8 +374,9 @@ export class OlMap {
           const valueField = options?.valueField || 'value';
           const color = options.fill.color(Number(feature.get(valueField)));
           style.getFill().setColor(color);
-          // @ts-ignore
-          style.getImage().getFill().setColor(color);
+          if (options?.shape)
+            // @ts-ignore
+            style.getImage().getFill().setColor(color);
         }
         return style;
       }
