@@ -65,7 +65,6 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
     this.mapControl.mapDescription = 'Bevölkerungsentwicklung für [ausgewählte Gebietseinheit] | [ausgewähltes Prognoseszenario] | <br> Geschlecht: [ausgewähltes Geschlecht | [ausgewählte Altersgruppen] ';
-
     this.legendGroup = this.mapControl.addGroup({
       name: 'Bevölkerungsentwicklung',
       order: -1
@@ -167,8 +166,19 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
           mouseOver: {
             strokeColor: 'blue'
           },
+          selectable: true,
+          select: {
+            strokeColor: 'yellow',
+            fillColor: 'yellow'
+          },
           colorFunc: colorFunc
         });
+      this.populationLayer!.featureSelected?.subscribe(evt => {
+        if (evt.selected) {
+          this.activeArea = this.areas.find(area => area.id === evt.feature.get('id'));
+          this.updateDiagrams();
+        }
+      })
       this.areas.forEach(area => {
         const data = popData.find(d => d.areaId == area.id);
         area.properties.value = (data)? Math.round(data.value): 0;
@@ -208,6 +218,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
       //Stacked Bar Chart
       this.barChart!.labels = labels;
+      this.barChart!.subtitle = this.activeArea?.properties.label!;
       this.barChart!.xSeparator = xSeparator;
       this.barChart?.draw(transformedData);
 
@@ -220,6 +231,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       let max = Math.max(...relData.map(d => Math.max(...d.values))),
         min = Math.min(...relData.map(d => Math.min(...d.values)));
       this.lineChart!.labels = labels;
+      this.lineChart!.subtitle = this.activeArea?.properties.label!;
       this.lineChart!.min = Math.floor(min / 10) * 10;
       this.lineChart!.max = Math.ceil(max / 10) * 10;
       this.lineChart!.xSeparator = xSeparator;

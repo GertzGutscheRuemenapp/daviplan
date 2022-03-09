@@ -139,7 +139,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
             tooltipField: 'name',
             selectable: true,
             select: {
-              fillColor: 'yellow'
+              fillColor: 'yellow',
+              multi: true
             },
             mouseOver: {
               cursor: 'help'

@@ -306,7 +306,7 @@ export class MapControl {
 
   private onFeatureSelected(ollayer: OlLayer<any>, selected: Feature<any>[]): void {
     const layer = this.layerMap[this.olLayerIds[ollayer.get('name')]];
-    if (layer.featureSelected)
+    if (layer && layer.featureSelected)
       selected.forEach(feature => layer.featureSelected!.emit({ feature: feature, selected: true }));
   }
 
@@ -337,6 +337,7 @@ export class MapControl {
       cursor?: string
     },
     select?: {
+      multi?: boolean,
       fillColor?: string,
       strokeColor?: string
     }
@@ -385,6 +386,7 @@ export class MapControl {
       cursor?: string
     },
     select?: {
+      multi?: boolean,
       fillColor?: string,
       strokeColor?: string
     }
@@ -396,6 +398,7 @@ export class MapControl {
         opacity: opacity,
         valueField: options?.valueField,
         mouseOverCursor: options?.mouseOver?.cursor,
+        multiSelect: options?.select?.multi,
         stroke: {
           color: layer.symbol?.strokeColor, width: 2,
           mouseOverColor: options?.mouseOver?.strokeColor,
