@@ -8,8 +8,9 @@ import { map, shareReplay } from "rxjs/operators";
 import { MatDialog } from "@angular/material/dialog";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { PopulationService } from "../population.service";
-import { Area, AreaLevel, Gender, Layer, LayerGroup, AgeGroup } from "../../../rest-interfaces";
+import { Area, AreaLevel, Gender, Layer, LayerGroup, AgeGroup, Prognosis } from "../../../rest-interfaces";
 import * as d3 from "d3";
+import { layer } from "@fortawesome/fontawesome-svg-core";
 
 export const mockdata: StackedData[] = [
   { group: '2000', values: [200, 300, 280] },
@@ -45,11 +46,14 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   areas: Area[] = [];
   realYears?: number[];
   prognosisYears?: number[];
+  prognoses?: Prognosis[];
+  activePrognosis?: Prognosis;
   genders: Gender[] = [];
   ageGroups: AgeGroup[] = [];
   mapControl?: MapControl;
   activeLevel?: AreaLevel;
   activeArea?: Area;
+  selectedGender?: Gender;
   year: number = 0;
   labels: string[] = ['65+', '19-64', '0-18'];
   isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 50em)')
@@ -65,7 +69,6 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
     this.mapControl.mapDescription = 'Bevölkerungsentwicklung für [ausgewählte Gebietseinheit] | [ausgewähltes Prognoseszenario] | <br> Geschlecht: [ausgewähltes Geschlecht | [ausgewählte Altersgruppen] ';
-
     this.legendGroup = this.mapControl.addGroup({
       name: 'Bevölkerungsentwicklung',
       order: -1
@@ -81,6 +84,11 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   }
 
   initData(): void {
+    this.populationService.prognoses$.subscribe(prognoses => {
+      this.prognoses = prognoses;
+      const defaultProg = this.prognoses?.find(prognosis => prognosis.isDefault);
+      this.activePrognosis = defaultProg;
+    })
     this.populationService.realYears$.subscribe( years => {
       this.realYears = years;
       this.year = this.realYears[0];
@@ -91,7 +99,12 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       this.setSlider();
     })
     this.populationService.genders$.subscribe(genders => {
-      this.genders = genders;
+      const genderAll: Gender = {
+        id: -1,
+        name: 'alle'
+      }
+      this.selectedGender = genderAll;
+      this.genders = [genderAll].concat(genders);
     })
     this.populationService.areaLevels$.subscribe(areaLevels => {
       this.areaLevels = areaLevels;
@@ -140,12 +153,30 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  onPrognosisChange(): void {
+    this.updateMap();
+    this.updateDiagrams();
+  }
+
+  onGenderChange(): void {
+    this.updateMap();
+    this.updateDiagrams();
+  }
+
+  onAreaChange(): void {
+    this.mapControl?.selectFeatures([this.activeArea!.id], this.populationLayer!.id!, { silent: true, clear: true });
+    this.updateDiagrams();
+  }
+
   updateMap(): void {
     if(!this.activeLevel) return;
-    this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year).subscribe(popData => {
+    // only catch prognosis data if selected year is not in real data
+    const prognosis = (this.realYears?.indexOf(this.year) === -1)? this.activePrognosis?.id: undefined;
+    const genders = (this.selectedGender?.id !== -1)? [this.selectedGender!.id]: undefined;
+    this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,{ genders: genders, prognosis: prognosis }).subscribe(popData => {
       if (this.populationLayer)
         this.mapControl?.removeLayer(this.populationLayer.id!)
-      const colorFunc = d3.scaleSequential().domain([0, 100000])
+      const colorFunc = d3.scaleSequential().domain([0, this.activeLevel!.maxPopulation || 0])
         .interpolator(d3.interpolateViridis);
       this.populationLayer = this.mapControl?.addLayer({
           order: 0,
@@ -167,6 +198,11 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
           mouseOver: {
             strokeColor: 'blue'
           },
+          selectable: true,
+          select: {
+            strokeColor: 'yellow',
+            fillColor: 'yellow'
+          },
           colorFunc: colorFunc
         });
       this.areas.forEach(area => {
@@ -176,72 +212,75 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       })
       // ToDo: move wkt parsing to populationservice, is done on every change year/level atm (expensive)
       this.mapControl?.addWKTFeatures(this.populationLayer!.id!, this.areas, true);
+      if (this.activeArea)
+        this.mapControl?.selectFeatures([this.activeArea.id], this.populationLayer!.id!, { silent: true });
+      this.populationLayer!.featureSelected?.subscribe(evt => {
+        if (evt.selected) {
+          this.activeArea = this.areas.find(area => area.id === evt.feature.get('id'));
+          this.updateDiagrams();
+        }
+      })
     })
   }
 
   updateDiagrams(): void {
     if(!this.activeArea) return;
-    this.populationService.getPopulationData(this.activeArea.id).subscribe( popData => {
-
-      const mockdata: StackedData[] = [
-        { group: '2000', values: [200, 300, 280] },
-        { group: '2001', values: [190, 310, 290] },
-        { group: '2002', values: [192, 335, 293] },
-        { group: '2003', values: [195, 340, 295] },
-        { group: '2004', values: [189, 342, 293] },
-        { group: '2005', values: [182, 345, 300] },
-        { group: '2006', values: [176, 345, 298] },
-        { group: '2007', values: [195, 330, 290] },
-        { group: '2008', values: [195, 340, 295] },
-        { group: '2009', values: [192, 335, 293] },
-        { group: '2010', values: [195, 340, 295] },
-        { group: '2012', values: [189, 342, 293] },
-        { group: '2013', values: [200, 300, 280] },
-        { group: '2014', values: [195, 340, 295] },
-      ]
-
-      const years = [... new Set(popData.map(d => d.year))].sort();
-      let transformedData: StackedData[] = [];
-      const labels = this.ageGroups.map(ag => ag.label!);
-      years.forEach(year => {
-        let values: number[] = [];
-        const yearData = popData.filter(d => d.year === year)!;
-        this.ageGroups.forEach(ageGroup => {
-          const ad = yearData.filter(d => d.agegroup === ageGroup.id);
-          const value = (ad)? ad.reduce((a, d) => a + d.value, 0): 0;
-          values.push(value);
+    const genders = (this.selectedGender?.id !== -1)? [this.selectedGender!.id]: undefined;
+    this.populationService.getPopulationData(this.activeArea.id, { genders: genders }).subscribe( popData => {
+      this.populationService.getPopulationData(this.activeArea!.id, { prognosis: this.activePrognosis?.id, genders: genders }).subscribe(progData => {
+        const data = popData.concat(progData);
+        const years = [... new Set(data.map(d => d.year))].sort();
+        let transformedData: StackedData[] = [];
+        const labels = this.ageGroups.map(ag => ag.label!);
+        years.forEach(year => {
+          let values: number[] = [];
+          const yearData = data.filter(d => d.year === year)!;
+          this.ageGroups.forEach(ageGroup => {
+            const ad = yearData.filter(d => d.agegroup === ageGroup.id);
+            const value = (ad)? ad.reduce((a, d) => a + d.value, 0): 0;
+            values.push(value);
+          })
+          transformedData.push({
+            group: String(year),
+            values: values
+          });
         })
-        transformedData.push({
-          group: String(year),
-          values: values
-        });
+
+        const baseYear = this.realYears![this.realYears!.length - 1];
+        const xSeparator = {
+          leftLabel: `Realdaten`,
+          rightLabel: `Prognose (Basisjahr: ${baseYear})`,
+          x: String(baseYear),
+          highlight: false
+        }
+
+        //Stacked Bar Chart
+        this.barChart!.labels = labels;
+        this.barChart!.title = 'Bevölkerungsentwicklung';
+        if (this.selectedGender!.id !== -1)
+          this.barChart!.title += ` (${this.selectedGender!.name})`;
+        this.barChart!.subtitle = this.activeArea?.properties.label!;
+        this.barChart!.xSeparator = xSeparator;
+        this.barChart?.draw(transformedData);
+
+        // Line Chart
+        let first = transformedData[0].values;
+        let relData = transformedData.map(d => { return {
+          group: d.group,
+          values: d.values.map((v, i) => Math.round(10000 * v / first[i]) / 100 )
+        }})
+        let max = Math.max(...relData.map(d => Math.max(...d.values))),
+          min = Math.min(...relData.map(d => Math.min(...d.values)));
+        this.lineChart!.labels = labels;
+        this.lineChart!.title = 'relative Altersgruppenentwicklung';
+        if (this.selectedGender!.id !== -1)
+          this.lineChart!.title += ` (${this.selectedGender!.name})`;
+        this.lineChart!.subtitle = this.activeArea?.properties.label!;
+        this.lineChart!.min = Math.floor(min / 10) * 10;
+        this.lineChart!.max = Math.ceil(max / 10) * 10;
+        this.lineChart!.xSeparator = xSeparator;
+        this.lineChart?.draw(relData);
       })
-
-      const xSeparator = {
-        leftLabel: $localize`Realdaten`,
-        rightLabel: $localize`Prognose (Basisjahr: 2003)`,
-        x: String(this.realYears![this.realYears!.length - 1]),
-        highlight: false
-      }
-
-      //Stacked Bar Chart
-      this.barChart!.labels = labels;
-      this.barChart!.xSeparator = xSeparator;
-      this.barChart?.draw(transformedData);
-
-      // Line Chart
-      let first = transformedData[0].values;
-      let relData = transformedData.map(d => { return {
-        group: d.group,
-        values: d.values.map((v, i) => Math.round(10000 * v / first[i]) / 100 )
-      }})
-      let max = Math.max(...relData.map(d => Math.max(...d.values))),
-        min = Math.min(...relData.map(d => Math.min(...d.values)));
-      this.lineChart!.labels = labels;
-      this.lineChart!.min = Math.floor(min / 10) * 10;
-      this.lineChart!.max = Math.ceil(max / 10) * 10;
-      this.lineChart!.xSeparator = xSeparator;
-      this.lineChart?.draw(relData);
     })
   }
 

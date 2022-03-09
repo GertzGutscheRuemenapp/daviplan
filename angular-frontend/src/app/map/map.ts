@@ -301,6 +301,7 @@ export class OlMap {
       url?: any, params?: any,
       visible?: boolean, opacity?: number,
       selectable?: boolean, tooltipField?: string,
+      multiSelect?: boolean,
       shape?: 'circle' | 'square' | 'star' | 'x',
       mouseOverCursor?: string,
       stroke?: {
@@ -319,6 +320,20 @@ export class OlMap {
     // @ts-ignore
     const fillColor: string = (typeof(options?.fill?.color) === 'string')? options?.fill?.color: 'rgba(0, 0, 0, 0)';
     const strokeColor = options?.stroke?.color || 'rgba(0, 0, 0, 1.0)';
+    const text = new OlText({
+      font: '14px Calibri,sans-serif',
+      overflow: true,
+      placement: 'point',
+      offsetX: 10,
+      offsetY: 10,
+      fill: new Fill({
+        color: 'black'
+      }),
+      stroke: new Stroke({
+        color: 'white',
+        width: 2
+      })
+    });
     const style = new Style({
       stroke: new Stroke({
         color: strokeColor,
@@ -328,20 +343,7 @@ export class OlMap {
       fill: new Fill({
         color: fillColor
       }),
-      text: new OlText({
-        font: '14px Calibri,sans-serif',
-        overflow: true,
-        placement: 'point',
-        offsetX: 10,
-        offsetY: 10,
-        fill: new Fill({
-          color: 'black'
-        }),
-        stroke: new Stroke({
-          color: 'white',
-          width: 2
-        })
-      })
+      text: text
     });
 
     const _this = this;
@@ -352,34 +354,35 @@ export class OlMap {
         strategy: (options?.url)? bboxStrategy: undefined,
       }: {};
     let source = new VectorSource(sourceOpt);
+    const styleFunc = function(feature: any) {
+      if (options?.labelField && layer.get('showLabel')) {
+        const text = (_this.view.getZoom()! > 9 )? String(feature.get(options?.labelField)) : ''
+        style.getText().setText(text);
+      }
+      else {
+        style.getText().setText('');
+      }
+      if (options?.shape) {
+        const shape = _this.getShape(options?.shape);
+        shape.getFill().setColor(fillColor);
+        shape.getStroke().setColor(strokeColor);
+        style.setImage(shape);
+      }
+      if (typeof options?.fill?.color === 'function'){
+        const valueField = options?.valueField || 'value';
+        const color = options.fill.color(Number(feature.get(valueField)));
+        style.getFill().setColor(color);
+        if (options?.shape)
+          // @ts-ignore
+          style.getImage().getFill().setColor(color);
+      }
+      return style;
+    };
     let layer = new VectorLayer({
       source: source,
       visible: options?.visible === true,
       opacity: (options?.opacity != undefined) ? options?.opacity: 1,
-      style: function(feature) {
-        if (options?.labelField && layer.get('showLabel')) {
-          const text = (_this.view.getZoom()! > 10 )? String(feature.get(options?.labelField)) : ''
-          style.getText().setText(text);
-        }
-        else {
-          style.getText().setText('');
-        }
-        if (options?.shape) {
-          const shape = _this.getShape(options?.shape);
-          shape.getFill().setColor(fillColor);
-          shape.getStroke().setColor(strokeColor);
-          style.setImage(shape);
-        }
-        if (typeof options?.fill?.color === 'function'){
-          const valueField = options?.valueField || 'value';
-          const color = options.fill.color(Number(feature.get(valueField)));
-          style.getFill().setColor(color);
-          if (options?.shape)
-            // @ts-ignore
-            style.getImage().getFill().setColor(color);
-        }
-        return style;
-      }
+      style: styleFunc
     });
 
     layer.set('showLabel', (options?.showLabel !== undefined)? options?.showLabel: true);
@@ -392,33 +395,40 @@ export class OlMap {
       strokeWidth: options?.stroke?.mouseOverWidth || options?.stroke?.width || 1
     });
     if (options?.selectable) {
-      const selectStrokeColor = options.stroke?.selectedColor || 'rgb(255, 129, 0)';
-      const selectFillColor = options.fill?.selectedColor || 'rgba(0, 0, 0, 0)';
-      const selectStyle = new Style({
+      const selectStrokeColor = options.stroke?.selectedColor;
+      const selectFillColor = options.fill?.selectedColor;
+      let selectStyle;
+      if (selectFillColor || selectStrokeColor) {
+        selectStyle = new Style({
           stroke: new Stroke({
-            color: strokeColor,
+            color: selectStrokeColor || options.stroke?.color,
             width: options.stroke?.width || 1,
             lineDash: options?.stroke?.selectedDash
           }),
           fill: new Fill({
-            color: fillColor
+            color: selectFillColor || 'rgba(0,0,0,0)'
           }),
         });
-      if (options?.shape) {
-        const shape = this.getShape(options?.shape);
-        shape.getFill().setColor(selectFillColor);
-        shape.getStroke().setColor(selectStrokeColor);
-        selectStyle.setImage(shape);
+        if (options?.shape) {
+          const shape = this.getShape(options?.shape);
+          shape.getFill().setColor(selectFillColor);
+          shape.getStroke().setColor(selectStrokeColor);
+          selectStyle.setImage(shape);
+        }
       }
       const select = new Select({
         condition: click,
         layers: [layer],
-        style: selectStyle,
-        toggleCondition: always,
-        multi: true
+        style: selectStyle || styleFunc,
+        toggleCondition: always
       })
       this.map.addInteraction(select);
       select.on('select', event => {
+        if (!options.multiSelect) {
+          select.getFeatures().clear();
+          if (event.selected.length > 0)
+            select.getFeatures().push(event.selected[0]);
+        }
         this.selected.emit({ layer: layer, selected: event.selected, deselected: event.deselected });
       })
       layer.set('select', select);
@@ -441,8 +451,6 @@ export class OlMap {
 
     if (options.tooltipField)
       layer.set('showTooltip', true);
-
-    let hoverStyle: Style | undefined;
 
     if (options.fillColor || options.strokeColor) {
       this.overlays[layer.get('name')] = new VectorLayer({
@@ -508,7 +516,7 @@ export class OlMap {
     layer.changed();
   }
 
-  getFeature(layerName: string, id: string){
+  getFeature(layerName: string, id: string | number){
     const layer = this.layers[layerName],
           features = layer.getSource().getFeatures();
     for (let i = 0; i < features.length; i++){
@@ -518,26 +526,29 @@ export class OlMap {
     return null;
   }
 
-  selectFeatures(layerName: string, ids: string[] | Feature<any>[]){
+  selectFeatures(layerName: string, ids: string[] | number[] | Feature<any>[], options?: { silent?: boolean, clear?: boolean }){
     const layer = this.layers[layerName],
           select = layer.get('select');
 
     let features: Feature<any>[] = [];
+    if (options?.clear)
+      select.getFeatures().clear();
     ids.forEach(f => {
-      if (f instanceof String) {
-        // @ts-ignore
+      if (typeof(f) === 'number' || f instanceof String || typeof(f) === 'string') {
         // @ts-ignore
         f = this.getFeature(layerName, f);
       }
+      if (!f) return;
       // @ts-ignore
       features.push(f);
       select.getFeatures().push(f);
     })
-    select.dispatchEvent({
-      type: 'select',
-      selected: features,
-      deselected: []
-    });
+    if (!options?.silent)
+      select.dispatchEvent({
+        type: 'select',
+        selected: features,
+        deselected: []
+      });
   }
 
   deselectFeatures(){

@@ -20,6 +20,7 @@ export class PopulationService extends RestCacheService {
     this.fetchAgeGroups();
     this.fetchYears();
     this.fetchGenders();
+    this.fetchPrognoses();
   }
 
   setReady(ready: boolean): void {

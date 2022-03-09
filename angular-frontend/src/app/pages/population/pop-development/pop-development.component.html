@@ -37,15 +37,12 @@
       </mat-panel-title>
     </mat-expansion-panel-header>
     <mat-form-field appearance="outline" class="small">
-      <mat-select disableOptionCentering disableRipple value="Trendfortschreibung">
-        <mat-option value="Trendfortschreibung">
-          Trendfortschreibung
-<!--          <app-help-button title="Trendfortschreibung" position="right">
-            <p></p>
-          </app-help-button>-->
-        </mat-option>
-        <mat-option value="Prognose">
-          Prognose
+      <mat-select disableOptionCentering disableRipple
+                  placeholder="Prognose auswählen"
+                  [(ngModel)]="activePrognosis"
+                  (ngModelChange)="onPrognosisChange()">
+        <mat-option *ngFor="let prognosis of prognoses" [value]="prognosis">
+          {{prognosis.name}}
         </mat-option>
       </mat-select>
     </mat-form-field>
@@ -64,11 +61,10 @@
     </mat-expansion-panel-header>
     <mat-form-field appearance="outline" class="small">
       <mat-label i18n>Geschlecht</mat-label>
-      <mat-select disableOptionCentering disableRipple value="alle">
-        <mat-option value="alle">
-          alle
-        </mat-option>
-        <mat-option *ngFor="let gender of genders" [value]="gender.id">
+      <mat-select disableOptionCentering disableRipple
+                  [(ngModel)]="selectedGender"
+                  (ngModelChange)="onGenderChange()">
+        <mat-option *ngFor="let gender of genders" [value]="gender">
           {{gender.name}}
         </mat-option>
       </mat-select>
@@ -136,7 +132,7 @@
       <mat-label>Gebiet</mat-label>
       <mat-select disableOptionCentering disableRipple
                   [(ngModel)]="activeArea"
-                  (ngModelChange)="updateDiagrams()">
+                  (ngModelChange)="onAreaChange()">
         <mat-option *ngFor="let area of areas" [value]="area">
           {{area.properties.label}}
         </mat-option>
@@ -156,9 +152,7 @@
       <app-stacked-barchart #barChart
                             xLabel="Jahre"
                             yLabel="Einwohner"
-                            [title]="'Bevölkerungsentwicklung'"
-                            [animate]="true"
-                            subtitle="[Gebietseinheit]">
+                            [animate]="true">
       </app-stacked-barchart>
     </div>
   </div>
@@ -172,11 +166,9 @@
                            figureId="einwohnerrelativ"
                            xLabel="Jahre"
                            yLabel="Einwohner relativ"
-                           [title]="'relative Altersgruppenentwicklung'"
                            [animate]="true"
                            [yOrigin]="100"
-                           unit="%"
-                           subtitle="[Gebietseinheit]">
+                           unit="%">
       </app-multiline-chart>
     </div>
   </div>

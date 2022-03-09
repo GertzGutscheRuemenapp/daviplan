@@ -60,9 +60,9 @@ class TestPopulation(TestCase):
         pe = list()
         area = AreaFactory()
         popraster = PopulationRasterFactory()
-        prognosis = PrognosisFactory(years=self.years)
+        prognosis = PrognosisFactory()
         age_groups = [AgeGroupFactory(), AgeGroupFactory(), AgeGroupFactory()]
-        years = prognosis.years.all()
+        years = self.years
         genders = [GenderFactory(), GenderFactory()]
         for year in years:
             population = PopulationFactory(prognosis=prognosis,
@@ -139,11 +139,8 @@ class TestPrognosisAPI(WriteOnlyWithCanEditBaseDataTest,
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        prognosis: Prognosis = cls.obj
-        years = list(prognosis.years.all().values_list(flat=True))
 
-        data = dict(name=faker.word(), years=years,
-                    is_default=faker.pybool())
+        data = dict(name=faker.word(), is_default=faker.pybool())
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
