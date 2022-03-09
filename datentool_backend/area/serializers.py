@@ -3,12 +3,14 @@ from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
 from datetime import date as dt_date
 from django.urls import reverse
+from django.db.models import Sum
 
 from .models import (MapSymbol, LayerGroup, WMSLayer,
                      Source, AreaLevel, Area,
                      FieldType, FieldTypes, FClass,
                      AreaAttribute, AreaField,
                      )
+from datentool_backend.models import PopulationEntry, Population, PopulationAreaLevel
 
 
 class MapSymbolSerializer(serializers.ModelSerializer):
@@ -64,13 +66,26 @@ class AreaLevelSerializer(serializers.ModelSerializer):
     symbol = MapSymbolSerializer(allow_null=True, required=False)
     area_count = serializers.IntegerField(source='area_set.count',
                                           read_only=True)
+    max_population = serializers.SerializerMethodField()
     tile_url = serializers.SerializerMethodField()
 
     class Meta:
         model = AreaLevel
         fields = ('id', 'name', 'order', 'source', 'symbol', 'is_active',
-                  'is_preset', 'area_count', 'tile_url', 'label_field')
+                  'is_preset', 'area_count', 'tile_url', 'label_field',
+                  'max_population')
         read_only_fields = ('is_preset', )
+
+    def get_max_population(self, obj):
+        #entries = PopulationEntry.objects.filter(population__arealevels=obj)
+        entries = PopulationEntry.objects.filter(area__area_level=obj)
+        summed_values = entries.values(
+            'population__year', 'area', 'population__prognosis')\
+            .annotate(Sum('value'))
+        if len(summed_values) == 0:
+            return 0
+        max_value = max(summed_values.values_list('value__sum'))
+        return max_value
 
     def get_tile_url(self, obj) -> str:
         # x,y,z have to be passed to reverse

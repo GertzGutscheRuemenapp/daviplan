@@ -145,7 +145,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year).subscribe(popData => {
       if (this.populationLayer)
         this.mapControl?.removeLayer(this.populationLayer.id!)
-      const colorFunc = d3.scaleSequential().domain([0, 100000])
+      const colorFunc = d3.scaleSequential().domain([0, this.activeLevel!.maxPopulation || 0])
         .interpolator(d3.interpolateViridis);
       this.populationLayer = this.mapControl?.addLayer({
           order: 0,
@@ -182,24 +182,6 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   updateDiagrams(): void {
     if(!this.activeArea) return;
     this.populationService.getPopulationData(this.activeArea.id).subscribe( popData => {
-
-      const mockdata: StackedData[] = [
-        { group: '2000', values: [200, 300, 280] },
-        { group: '2001', values: [190, 310, 290] },
-        { group: '2002', values: [192, 335, 293] },
-        { group: '2003', values: [195, 340, 295] },
-        { group: '2004', values: [189, 342, 293] },
-        { group: '2005', values: [182, 345, 300] },
-        { group: '2006', values: [176, 345, 298] },
-        { group: '2007', values: [195, 330, 290] },
-        { group: '2008', values: [195, 340, 295] },
-        { group: '2009', values: [192, 335, 293] },
-        { group: '2010', values: [195, 340, 295] },
-        { group: '2012', values: [189, 342, 293] },
-        { group: '2013', values: [200, 300, 280] },
-        { group: '2014', values: [195, 340, 295] },
-      ]
-
       const years = [... new Set(popData.map(d => d.year))].sort();
       let transformedData: StackedData[] = [];
       const labels = this.ageGroups.map(ag => ag.label!);

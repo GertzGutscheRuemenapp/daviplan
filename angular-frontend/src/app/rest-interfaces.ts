@@ -74,6 +74,7 @@ export interface AreaLevel {
   isPreset?: boolean;
   isActive?: boolean;
   areaCount?: number;
+  maxPopulation?: number;
 }
 
 export interface Area {
