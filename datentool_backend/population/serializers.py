@@ -21,9 +21,16 @@ class PopulationRasterSerializer(serializers.ModelSerializer):
 
 
 class PrognosisSerializer(serializers.ModelSerializer):
+    years = serializers.SerializerMethodField()
     class Meta:
         model = Prognosis
         fields = ('id', 'name', 'years', 'is_default')
+
+    def get_years(self, obj):
+        populations = Population.objects.filter(prognosis=obj)
+        years = list(populations.values_list('year__year', flat=True).distinct())
+        years.sort()
+        return years
 
 
 class RasterCellPopulationAgeGenderSerializer(serializers.ModelSerializer):

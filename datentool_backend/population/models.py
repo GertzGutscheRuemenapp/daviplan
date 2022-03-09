@@ -63,7 +63,6 @@ class AreaCell(models.Model):
 class Prognosis(DatentoolModelMixin, NamedModel, models.Model):
     """a prognosis"""
     name = models.TextField()
-    years = models.ManyToManyField(Year, blank=True)
     is_default = models.BooleanField()
 
 
