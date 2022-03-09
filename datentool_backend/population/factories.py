@@ -79,17 +79,6 @@ class PrognosisFactory(DjangoModelFactory):
     name = faker.unique.word()
     is_default = faker.pybool()
 
-    @factory.post_generation
-    def years(self, create, extracted, **kwargs):
-        if not create:
-            # Simple build, do nothing.
-            return
-
-        if extracted:
-            # A list of years were passed in, use them
-            for year in extracted:
-                self.years.add(year)
-
 
 class PopulationFactory(DjangoModelFactory):
     class Meta:

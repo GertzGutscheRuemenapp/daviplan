@@ -43,7 +43,7 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
                 'area_level': serializers.IntegerField(required=True),
                 'area': serializers.ListField(child=serializers.IntegerField(), required=False),
                 'age_group': serializers.ListField(child=serializers.IntegerField(), required=False),
-                'genders': serializers.ListField(child=serializers.IntegerField(), required=False),
+                'gender': serializers.ListField(child=serializers.IntegerField(), required=False),
                 'prognosis':  serializers.IntegerField(required=False),
                 'year': serializers.IntegerField(required=False),
             }
