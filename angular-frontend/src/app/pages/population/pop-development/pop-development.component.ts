@@ -52,6 +52,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   mapControl?: MapControl;
   activeLevel?: AreaLevel;
   activeArea?: Area;
+  selectedGender?: Gender;
   year: number = 0;
   labels: string[] = ['65+', '19-64', '0-18'];
   isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 50em)')
@@ -97,7 +98,12 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       this.setSlider();
     })
     this.populationService.genders$.subscribe(genders => {
-      this.genders = genders;
+      const genderAll: Gender = {
+        id: -1,
+        name: 'alle'
+      }
+      this.selectedGender = genderAll;
+      this.genders = [genderAll].concat(genders);
     })
     this.populationService.areaLevels$.subscribe(areaLevels => {
       this.areaLevels = areaLevels;
@@ -151,11 +157,17 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     this.updateDiagrams();
   }
 
+  onGenderChange(): void {
+    this.updateMap();
+    this.updateDiagrams();
+  }
+
   updateMap(): void {
     if(!this.activeLevel) return;
     // only catch prognosis data if selected year is not in real data
     const prognosis = (this.realYears?.indexOf(this.year) === -1)? this.activePrognosis?.id: undefined;
-    this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,{ prognosis: prognosis }).subscribe(popData => {
+    const genders = (this.selectedGender?.id !== -1)? [this.selectedGender!.id]: undefined;
+    this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,{ genders: genders, prognosis: prognosis }).subscribe(popData => {
       if (this.populationLayer)
         this.mapControl?.removeLayer(this.populationLayer.id!)
       const colorFunc = d3.scaleSequential().domain([0, this.activeLevel!.maxPopulation || 0])
@@ -205,9 +217,9 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
   updateDiagrams(): void {
     if(!this.activeArea) return;
-
-    this.populationService.getPopulationData(this.activeArea.id).subscribe( popData => {
-      this.populationService.getPopulationData(this.activeArea!.id, { prognosis: this.activePrognosis?.id }).subscribe(progData => {
+    const genders = (this.selectedGender?.id !== -1)? [this.selectedGender!.id]: undefined;
+    this.populationService.getPopulationData(this.activeArea.id, { genders: genders }).subscribe( popData => {
+      this.populationService.getPopulationData(this.activeArea!.id, { prognosis: this.activePrognosis?.id, genders: genders }).subscribe(progData => {
         const data = popData.concat(progData);
         const years = [... new Set(data.map(d => d.year))].sort();
         let transformedData: StackedData[] = [];
@@ -236,6 +248,9 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
         //Stacked Bar Chart
         this.barChart!.labels = labels;
+        this.barChart!.title = 'Bevölkerungsentwicklung';
+        if (this.selectedGender!.id !== -1)
+          this.barChart!.title += ` (${this.selectedGender!.name})`;
         this.barChart!.subtitle = this.activeArea?.properties.label!;
         this.barChart!.xSeparator = xSeparator;
         this.barChart?.draw(transformedData);
@@ -249,6 +264,9 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         let max = Math.max(...relData.map(d => Math.max(...d.values))),
           min = Math.min(...relData.map(d => Math.min(...d.values)));
         this.lineChart!.labels = labels;
+        this.lineChart!.title = 'relative Altersgruppenentwicklung';
+        if (this.selectedGender!.id !== -1)
+          this.lineChart!.title += ` (${this.selectedGender!.name})`;
         this.lineChart!.subtitle = this.activeArea?.properties.label!;
         this.lineChart!.min = Math.floor(min / 10) * 10;
         this.lineChart!.max = Math.ceil(max / 10) * 10;

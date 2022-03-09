@@ -138,11 +138,15 @@ export class RestCacheService {
     return observable;
   }
 
-  getAreaLevelPopulation(areaLevelId: number, year: number, options?: { prognosis?: number}): Observable<AreaPopulationData[]> {
-    const key = `${areaLevelId}-${year}-${options?.prognosis}`;
+  getAreaLevelPopulation(areaLevelId: number, year: number, options?: { genders?: number[], prognosis?: number, ageGroups?: number[] }): Observable<AreaPopulationData[]> {
+    const key = `${areaLevelId}-${year}-${options?.prognosis}-${options?.genders}-${options?.ageGroups}`;
     const data: any = { area_level: areaLevelId, year: year };
     if (options?.prognosis != undefined)
       data.prognosis = options.prognosis;
+    if (options?.genders)
+      data.gender = options.genders;
+    if (options?.ageGroups)
+      data.age_group = options.ageGroups;
     const observable = new Observable<AreaPopulationData[]>(subscriber => {
       const cached = this.popAreaCache[key];
       if (!cached) {
@@ -164,13 +168,17 @@ export class RestCacheService {
     return observable;
   }
 
-  getPopulationData(areaId: number, options?: { year?: number, prognosis?: number }): Observable<PopulationData[]> {
-    const key = `${areaId}-${options?.year}-${options?.prognosis}`;
+  getPopulationData(areaId: number, options?: { year?: number, prognosis?: number, genders?: number[], ageGroups?: number[]}): Observable<PopulationData[]> {
+    const key = `${areaId}-${options?.year}-${options?.prognosis}-${options?.genders}-${options?.ageGroups}`;
     let data: any = { area: [areaId] };
     if (options?.year != undefined)
       data.year = options?.year;
     if (options?.prognosis != undefined)
       data.prognosis = options?.prognosis;
+    if (options?.genders)
+      data.gender = options.genders;
+    if (options?.ageGroups)
+      data.age_group = options.ageGroups;
     const observable = new Observable<PopulationData[]>(subscriber => {
       const cached = this.popDataCache[key];
       if (!cached) {
