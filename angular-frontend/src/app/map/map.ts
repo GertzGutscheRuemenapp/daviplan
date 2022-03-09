@@ -516,7 +516,7 @@ export class OlMap {
     layer.changed();
   }
 
-  getFeature(layerName: string, id: string){
+  getFeature(layerName: string, id: string | number){
     const layer = this.layers[layerName],
           features = layer.getSource().getFeatures();
     for (let i = 0; i < features.length; i++){
@@ -526,26 +526,29 @@ export class OlMap {
     return null;
   }
 
-  selectFeatures(layerName: string, ids: string[] | Feature<any>[]){
+  selectFeatures(layerName: string, ids: string[] | number[] | Feature<any>[], options?: { silent?: boolean, clear?: boolean }){
     const layer = this.layers[layerName],
           select = layer.get('select');
 
     let features: Feature<any>[] = [];
+    if (options?.clear)
+      select.getFeatures().clear();
     ids.forEach(f => {
-      if (f instanceof String) {
-        // @ts-ignore
+      if (typeof(f) === 'number' || f instanceof String || typeof(f) === 'string') {
         // @ts-ignore
         f = this.getFeature(layerName, f);
       }
+      if (!f) return;
       // @ts-ignore
       features.push(f);
       select.getFeatures().push(f);
     })
-    select.dispatchEvent({
-      type: 'select',
-      selected: features,
-      deselected: []
-    });
+    if (!options?.silent)
+      select.dispatchEvent({
+        type: 'select',
+        selected: features,
+        deselected: []
+      });
   }
 
   deselectFeatures(){

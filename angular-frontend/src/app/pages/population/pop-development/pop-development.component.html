@@ -132,7 +132,7 @@
       <mat-label>Gebiet</mat-label>
       <mat-select disableOptionCentering disableRipple
                   [(ngModel)]="activeArea"
-                  (ngModelChange)="updateDiagrams()">
+                  (ngModelChange)="onAreaChange()">
         <mat-option *ngFor="let area of areas" [value]="area">
           {{area.properties.label}}
         </mat-option>

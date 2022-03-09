@@ -10,6 +10,7 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { PopulationService } from "../population.service";
 import { Area, AreaLevel, Gender, Layer, LayerGroup, AgeGroup, Prognosis } from "../../../rest-interfaces";
 import * as d3 from "d3";
+import { layer } from "@fortawesome/fontawesome-svg-core";
 
 export const mockdata: StackedData[] = [
   { group: '2000', values: [200, 300, 280] },
@@ -162,6 +163,11 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     this.updateDiagrams();
   }
 
+  onAreaChange(): void {
+    this.mapControl?.selectFeatures([this.activeArea!.id], this.populationLayer!.id!, { silent: true, clear: true });
+    this.updateDiagrams();
+  }
+
   updateMap(): void {
     if(!this.activeLevel) return;
     // only catch prognosis data if selected year is not in real data
@@ -199,12 +205,6 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
           },
           colorFunc: colorFunc
         });
-      this.populationLayer!.featureSelected?.subscribe(evt => {
-        if (evt.selected) {
-          this.activeArea = this.areas.find(area => area.id === evt.feature.get('id'));
-          this.updateDiagrams();
-        }
-      })
       this.areas.forEach(area => {
         const data = popData.find(d => d.areaId == area.id);
         area.properties.value = (data)? Math.round(data.value): 0;
@@ -212,6 +212,14 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       })
       // ToDo: move wkt parsing to populationservice, is done on every change year/level atm (expensive)
       this.mapControl?.addWKTFeatures(this.populationLayer!.id!, this.areas, true);
+      if (this.activeArea)
+        this.mapControl?.selectFeatures([this.activeArea.id], this.populationLayer!.id!, { silent: true });
+      this.populationLayer!.featureSelected?.subscribe(evt => {
+        if (evt.selected) {
+          this.activeArea = this.areas.find(area => area.id === evt.feature.get('id'));
+          this.updateDiagrams();
+        }
+      })
     })
   }
 

@@ -463,8 +463,10 @@ export class MapControl {
         dataProjection: dataProjection,
         featureProjection: this.map!.mapProjection,
       });
-      if (wktFeature.id)
+      if (wktFeature.id) {
         feature.set('id', wktFeature.id);
+        feature.setId(wktFeature.id);
+      }
       feature.setProperties(wktFeature.properties);
       features.push(feature);
     })
@@ -506,7 +508,7 @@ export class MapControl {
 
   toggleLayer(id: number | string | undefined): void {
     if (id === undefined) return;
-    let layer = this.layerMap[id];
+    const layer = this.layerMap[id];
     if (!layer) return;
     this.checklistSelection.toggle(layer);
     const isSelected = this.checklistSelection.isSelected(layer);
@@ -534,6 +536,11 @@ export class MapControl {
       feature.getGeometry().transform(epsg, `EPSG:${this.srid}`);
       this.map?.map.getView().fit(feature.getGeometry().getExtent());
     })
+  }
+
+  selectFeatures(ids: number[], layerId: number | string, options?: { silent?: boolean, clear?: boolean } ): void {
+    const layer = this.layerMap[layerId];
+    this.map?.selectFeatures(this.mapId(layer), ids, options);
   }
 
   toggleEditMode(): void {
