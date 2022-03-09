@@ -89,6 +89,13 @@ export interface Area {
   }
 }
 
+export interface Prognosis {
+  id: number,
+  name: string,
+  isDefault: boolean,
+  years: number[]
+}
+
 export interface AreaPopulationData {
   areaId: number,
   label?: string,

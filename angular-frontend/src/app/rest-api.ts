@@ -23,6 +23,7 @@ export class RestAPI {
     arealevels: `${ this.API_ENDPOINT }/arealevels/`,
     areaPopulation: `${ this.API_ENDPOINT }/indicators/aggregate_population/`,
     populationData: `${ this.API_ENDPOINT }/indicators/population_details/`,
+    prognoses: `${ this.API_ENDPOINT }/prognoses/`,
     areas: `${ this.API_ENDPOINT }/areas/`,
     genders: `${ this.API_ENDPOINT }/genders/`,
     years: `${ this.API_ENDPOINT }/years/`,

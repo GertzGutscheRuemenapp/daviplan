@@ -1,7 +1,9 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
-import { Place, AreaLevel, Area, Gender, AreaPopulationData, PopulationData, AgeGroup,
-  Infrastructure, Service, Capacity } from "./rest-interfaces";
+import {
+  Place, AreaLevel, Area, Gender, AreaPopulationData, PopulationData, AgeGroup,
+  Infrastructure, Service, Capacity, Prognosis
+} from "./rest-interfaces";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
 import { sortBy } from "./helpers/utils";
@@ -16,6 +18,7 @@ export class RestCacheService {
   ageGroups$ = new BehaviorSubject<AgeGroup[]>([]);
   genders$ = new BehaviorSubject<Gender[]>([]);
   areaLevels$ = new BehaviorSubject<AreaLevel[]>([]);
+  prognoses$ = new BehaviorSubject<Prognosis[]>([]);
   infrastructures$ = new BehaviorSubject<Infrastructure[]>([]);
   private areaCache: Record<number, Area[]> = {};
   private popDataCache: Record<string, PopulationData[]> = {};
@@ -25,6 +28,12 @@ export class RestCacheService {
   isLoading$ = new BehaviorSubject<boolean>(false);
 
   constructor(protected http: HttpClient, protected rest: RestAPI) { }
+
+  fetchPrognoses(): void {
+    this.http.get<Prognosis[]>(this.rest.URLS.prognoses).subscribe(prognoses => {
+      this.prognoses$.next(prognoses);
+    });
+  }
 
   fetchYears(): void {
     this.http.get<any[]>(`${this.rest.URLS.years}?with_population=true`).subscribe(years => {
@@ -129,14 +138,16 @@ export class RestCacheService {
     return observable;
   }
 
-  getAreaLevelPopulation(areaLevelId: number, year: number): Observable<AreaPopulationData[]> {
-    const key = `${areaLevelId}-${year}`;
+  getAreaLevelPopulation(areaLevelId: number, year: number, options?: { prognosis?: number}): Observable<AreaPopulationData[]> {
+    const key = `${areaLevelId}-${year}-${options?.prognosis}`;
+    const data: any = { area_level: areaLevelId, year: year };
+    if (options?.prognosis != undefined)
+      data.prognosis = options.prognosis;
     const observable = new Observable<AreaPopulationData[]>(subscriber => {
       const cached = this.popAreaCache[key];
       if (!cached) {
         this.setLoading(true);
-        const query = this.http.post<AreaPopulationData[]>(this.rest.URLS.areaPopulation,
-          { area_level: areaLevelId, year: year });
+        const query = this.http.post<AreaPopulationData[]>(this.rest.URLS.areaPopulation, data);
         query.subscribe(data => {
           this.popAreaCache[key] = data;
           this.setLoading(false);
@@ -153,11 +164,13 @@ export class RestCacheService {
     return observable;
   }
 
-  getPopulationData(areaId: number, year?: number): Observable<PopulationData[]> {
-    const key = `${areaId}-${year}`;
+  getPopulationData(areaId: number, options?: { year?: number, prognosis?: number }): Observable<PopulationData[]> {
+    const key = `${areaId}-${options?.year}-${options?.prognosis}`;
     let data: any = { area: [areaId] };
-    if (year != undefined)
-      data.year = year;
+    if (options?.year != undefined)
+      data.year = options?.year;
+    if (options?.prognosis != undefined)
+      data.prognosis = options?.prognosis;
     const observable = new Observable<PopulationData[]>(subscriber => {
       const cached = this.popDataCache[key];
       if (!cached) {

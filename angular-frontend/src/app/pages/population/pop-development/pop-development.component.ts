@@ -8,7 +8,7 @@ import { map, shareReplay } from "rxjs/operators";
 import { MatDialog } from "@angular/material/dialog";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { PopulationService } from "../population.service";
-import { Area, AreaLevel, Gender, Layer, LayerGroup, AgeGroup } from "../../../rest-interfaces";
+import { Area, AreaLevel, Gender, Layer, LayerGroup, AgeGroup, Prognosis } from "../../../rest-interfaces";
 import * as d3 from "d3";
 
 export const mockdata: StackedData[] = [
@@ -45,6 +45,8 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   areas: Area[] = [];
   realYears?: number[];
   prognosisYears?: number[];
+  prognoses?: Prognosis[];
+  activePrognosis?: Prognosis;
   genders: Gender[] = [];
   ageGroups: AgeGroup[] = [];
   mapControl?: MapControl;
@@ -80,6 +82,11 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   }
 
   initData(): void {
+    this.populationService.prognoses$.subscribe(prognoses => {
+      this.prognoses = prognoses;
+      const defaultProg = this.prognoses?.find(prognosis => prognosis.isDefault);
+      this.activePrognosis = defaultProg;
+    })
     this.populationService.realYears$.subscribe( years => {
       this.realYears = years;
       this.year = this.realYears[0];
@@ -139,9 +146,16 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  onPrognosisChange(): void {
+    this.updateMap();
+    this.updateDiagrams();
+  }
+
   updateMap(): void {
     if(!this.activeLevel) return;
-    this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year).subscribe(popData => {
+    // only catch prognosis data if selected year is not in real data
+    const prognosis = (this.realYears?.indexOf(this.year) === -1)? this.activePrognosis?.id: undefined;
+    this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,{ prognosis: prognosis }).subscribe(popData => {
       if (this.populationLayer)
         this.mapControl?.removeLayer(this.populationLayer.id!)
       const colorFunc = d3.scaleSequential().domain([0, this.activeLevel!.maxPopulation || 0])
@@ -191,51 +205,56 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
   updateDiagrams(): void {
     if(!this.activeArea) return;
+
     this.populationService.getPopulationData(this.activeArea.id).subscribe( popData => {
-      const years = [... new Set(popData.map(d => d.year))].sort();
-      let transformedData: StackedData[] = [];
-      const labels = this.ageGroups.map(ag => ag.label!);
-      years.forEach(year => {
-        let values: number[] = [];
-        const yearData = popData.filter(d => d.year === year)!;
-        this.ageGroups.forEach(ageGroup => {
-          const ad = yearData.filter(d => d.agegroup === ageGroup.id);
-          const value = (ad)? ad.reduce((a, d) => a + d.value, 0): 0;
-          values.push(value);
+      this.populationService.getPopulationData(this.activeArea!.id, { prognosis: this.activePrognosis?.id }).subscribe(progData => {
+        const data = popData.concat(progData);
+        const years = [... new Set(data.map(d => d.year))].sort();
+        let transformedData: StackedData[] = [];
+        const labels = this.ageGroups.map(ag => ag.label!);
+        years.forEach(year => {
+          let values: number[] = [];
+          const yearData = data.filter(d => d.year === year)!;
+          this.ageGroups.forEach(ageGroup => {
+            const ad = yearData.filter(d => d.agegroup === ageGroup.id);
+            const value = (ad)? ad.reduce((a, d) => a + d.value, 0): 0;
+            values.push(value);
+          })
+          transformedData.push({
+            group: String(year),
+            values: values
+          });
         })
-        transformedData.push({
-          group: String(year),
-          values: values
-        });
+
+        const baseYear = this.realYears![this.realYears!.length - 1];
+        const xSeparator = {
+          leftLabel: `Realdaten`,
+          rightLabel: `Prognose (Basisjahr: ${baseYear})`,
+          x: String(baseYear),
+          highlight: false
+        }
+
+        //Stacked Bar Chart
+        this.barChart!.labels = labels;
+        this.barChart!.subtitle = this.activeArea?.properties.label!;
+        this.barChart!.xSeparator = xSeparator;
+        this.barChart?.draw(transformedData);
+
+        // Line Chart
+        let first = transformedData[0].values;
+        let relData = transformedData.map(d => { return {
+          group: d.group,
+          values: d.values.map((v, i) => Math.round(10000 * v / first[i]) / 100 )
+        }})
+        let max = Math.max(...relData.map(d => Math.max(...d.values))),
+          min = Math.min(...relData.map(d => Math.min(...d.values)));
+        this.lineChart!.labels = labels;
+        this.lineChart!.subtitle = this.activeArea?.properties.label!;
+        this.lineChart!.min = Math.floor(min / 10) * 10;
+        this.lineChart!.max = Math.ceil(max / 10) * 10;
+        this.lineChart!.xSeparator = xSeparator;
+        this.lineChart?.draw(relData);
       })
-
-      const xSeparator = {
-        leftLabel: $localize`Realdaten`,
-        rightLabel: $localize`Prognose (Basisjahr: 2003)`,
-        x: String(this.realYears![this.realYears!.length - 1]),
-        highlight: false
-      }
-
-      //Stacked Bar Chart
-      this.barChart!.labels = labels;
-      this.barChart!.subtitle = this.activeArea?.properties.label!;
-      this.barChart!.xSeparator = xSeparator;
-      this.barChart?.draw(transformedData);
-
-      // Line Chart
-      let first = transformedData[0].values;
-      let relData = transformedData.map(d => { return {
-        group: d.group,
-        values: d.values.map((v, i) => Math.round(10000 * v / first[i]) / 100 )
-      }})
-      let max = Math.max(...relData.map(d => Math.max(...d.values))),
-        min = Math.min(...relData.map(d => Math.min(...d.values)));
-      this.lineChart!.labels = labels;
-      this.lineChart!.subtitle = this.activeArea?.properties.label!;
-      this.lineChart!.min = Math.floor(min / 10) * 10;
-      this.lineChart!.max = Math.ceil(max / 10) * 10;
-      this.lineChart!.xSeparator = xSeparator;
-      this.lineChart?.draw(relData);
     })
   }
 

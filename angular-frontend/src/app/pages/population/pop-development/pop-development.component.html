@@ -37,15 +37,12 @@
       </mat-panel-title>
     </mat-expansion-panel-header>
     <mat-form-field appearance="outline" class="small">
-      <mat-select disableOptionCentering disableRipple value="Trendfortschreibung">
-        <mat-option value="Trendfortschreibung">
-          Trendfortschreibung
-<!--          <app-help-button title="Trendfortschreibung" position="right">
-            <p></p>
-          </app-help-button>-->
-        </mat-option>
-        <mat-option value="Prognose">
-          Prognose
+      <mat-select disableOptionCentering disableRipple
+                  placeholder="Prognose auswählen"
+                  [(ngModel)]="activePrognosis"
+                  (ngModelChange)="onPrognosisChange()">
+        <mat-option *ngFor="let prognosis of prognoses" [value]="prognosis">
+          {{prognosis.name}}
         </mat-option>
       </mat-select>
     </mat-form-field>
