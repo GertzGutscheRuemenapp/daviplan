@@ -17,6 +17,7 @@ export class StackedBarchartComponent implements AfterViewInit {
   @Input() title: string = '';
   @Input() subtitle: string = '';
   @Input() labels?: string[];
+  @Input() colors?: string[];
   @Input() drawLegend: boolean = true;
   @Input() xLabel?: string;
   @Input() yLabel?: string;
@@ -126,7 +127,8 @@ export class StackedBarchartComponent implements AfterViewInit {
       stack.selectAll('rect').classed('highlight', true);
       let text = `<b>${data.group}</b><br>`;
       _this.labels?.forEach((label, i)=>{
-        text += `<b style="color: ${colorScale(i)}">${label}</b>: ${data.values[i].toString().replace('.', ',')}<br>`;
+        let color = (_this.colors)? _this.colors[i]: colorScale(i);
+        text += `<b style="color: ${color}">${label}</b>: ${data.values[i].toString().replace('.', ',')}<br>`;
       })
       tooltip.style("display", null);
       tooltip.html(text);
@@ -169,7 +171,7 @@ export class StackedBarchartComponent implements AfterViewInit {
         })
         .enter().append("rect")
           .attr("width", x.bandwidth())
-          .attr("fill", (d: number, i: number) => colorScale(i))
+          .attr("fill", (d: number, i: number) => (this.colors)? this.colors[i]: colorScale(i))
           .attr("y", (d: number) => (this.animate) ? innerHeight : y(d))
           .attr("height", (d: number) => (this.animate) ? innerHeight - y(0) : innerHeight - y(d));
 
@@ -191,7 +193,7 @@ export class StackedBarchartComponent implements AfterViewInit {
         .attr("y", (d: string, i: number) => 10 + (i * (size + 1))) // 100 is where the first dot appears. 25 is the distance between dots
         .attr("width", size)
         .attr("height", size)
-        .style("fill", (d: string, i: number) => colorScale(i));
+        .style("fill", (d: string, i: number) => (this.colors)? this.colors[i]: colorScale(i));
 
       this.svg.selectAll("legendLabels")
         .data(this.labels.reverse())
@@ -200,7 +202,7 @@ export class StackedBarchartComponent implements AfterViewInit {
         .attr('font-size', '0.7em')
         .attr("x", innerWidth + 70 + size * 1.2)
         .attr("y", (d: string, i: number) => 10 + (i * (size + 1) + (size / 2)))
-        .style("fill", (d: string, i: number) => colorScale(i))
+        .style("fill", (d: string, i: number) => (this.colors)? this.colors[i]: colorScale(i))
         .text((d: string) => d)
         .attr("text-anchor", "left")
         .style("alignment-baseline", "middle")

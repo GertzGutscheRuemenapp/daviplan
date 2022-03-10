@@ -12,6 +12,7 @@ import { Area, AreaLevel, Gender, Layer, LayerGroup, AgeGroup, Prognosis } from 
 import * as d3 from "d3";
 import { layer } from "@fortawesome/fontawesome-svg-core";
 import { SelectionModel } from "@angular/cdk/collections";
+import { sortBy } from "../../../helpers/utils";
 
 export const mockdata: StackedData[] = [
   { group: '2000', values: [200, 300, 280] },
@@ -56,7 +57,6 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   activeArea?: Area;
   selectedGender?: Gender;
   year: number = 0;
-  labels: string[] = ['65+', '19-64', '0-18'];
   isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 50em)')
     .pipe(
       map(result => result.matches),
@@ -64,6 +64,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     );
   ageGroupSelection = new SelectionModel<AgeGroup>(true );
   allAgeGroupsChecked: boolean = true;
+  ageGroupColors: Record<number, string> = {};
 
   constructor(private breakpointObserver: BreakpointObserver, private mapService: MapService, private dialog: MatDialog,
               private populationService: PopulationService) {
@@ -114,7 +115,13 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     })
     this.populationService.ageGroups$.subscribe(ageGroups => {
       this.ageGroupSelection.clear();
-      ageGroups.forEach(ag => this.ageGroupSelection.select(ag));
+      let colorScale = d3.scaleSequential().domain([0, ageGroups.length])
+        .interpolator(d3.interpolateRainbow);
+      this.ageGroupColors = {};
+      ageGroups.forEach((ag, i) => {
+        this.ageGroupColors[ag.id!] = colorScale(i);
+        this.ageGroupSelection.select(ag);
+      });
       this.ageGroups = ageGroups;
     })
     this.subscriptions.push(this.populationService.timeSlider!.valueChanged.subscribe(year => {
@@ -226,31 +233,35 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       this.populationLayer!.featureSelected?.subscribe(evt => {
         if (evt.selected) {
           this.activeArea = this.areas.find(area => area.id === evt.feature.get('id'));
-          this.updateDiagrams();
         }
+        else {
+          this.activeArea = undefined;
+        }
+        this.updateDiagrams();
       })
     })
   }
 
   updateDiagrams(): void {
-    if(!this.activeArea) return;
     const genders = (this.selectedGender?.id !== -1)? [this.selectedGender!.id]: undefined;
-    if (this.ageGroupSelection.selected.length === 0) {
+    let ageGroups = this.ageGroupSelection.selected;
+    if (ageGroups.length === 0 || !this.activeArea) {
       this.barChart?.clear();
       this.lineChart?.clear();
       return;
     }
+    ageGroups = sortBy(ageGroups, 'id');
     this.populationService.getPopulationData(this.activeArea.id, { genders: genders }).subscribe( popData => {
       this.populationService.getPopulationData(this.activeArea!.id, { prognosis: this.activePrognosis?.id, genders: genders }).subscribe(progData => {
         const data = popData.concat(progData);
         const years = [... new Set(data.map(d => d.year))].sort();
         let transformedData: StackedData[] = [];
         const labels = this.ageGroupSelection.selected.map(ag => ag.label!);
+        const colors = this.ageGroupSelection.selected.map(ag => this.ageGroupColors[ag.id!]);
         years.forEach(year => {
           let values: number[] = [];
           const yearData = data.filter(d => d.year === year)!;
-          this.ageGroups.forEach(ageGroup => {
-            if (!this.ageGroupSelection.isSelected(ageGroup)) return;
+          ageGroups.forEach(ageGroup => {
             const ad = yearData.filter(d => d.agegroup === ageGroup.id);
             const value = (ad)? ad.reduce((a, d) => a + d.value, 0): 0;
             values.push(value);
@@ -271,6 +282,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
         //Stacked Bar Chart
         this.barChart!.labels = labels;
+        this.barChart!.colors = colors;
         this.barChart!.title = 'Bevölkerungsentwicklung';
         if (this.selectedGender!.id !== -1)
           this.barChart!.title += ` (${this.selectedGender!.name})`;
@@ -287,6 +299,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         let max = Math.max(...relData.map(d => Math.max(...d.values))),
           min = Math.min(...relData.map(d => Math.min(...d.values)));
         this.lineChart!.labels = labels;
+        this.lineChart!.colors = colors;
         this.lineChart!.title = 'relative Altersgruppenentwicklung';
         if (this.selectedGender!.id !== -1)
           this.lineChart!.title += ` (${this.selectedGender!.name})`;
