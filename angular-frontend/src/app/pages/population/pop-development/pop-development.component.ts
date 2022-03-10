@@ -72,7 +72,6 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
-    this.mapControl.mapDescription = 'Bevölkerungsentwicklung für [ausgewählte Gebietseinheit] | [ausgewähltes Prognoseszenario] | <br> Geschlecht: [ausgewähltes Geschlecht | [ausgewählte Altersgruppen] ';
     this.legendGroup = this.mapControl.addGroup({
       name: 'Bevölkerungsentwicklung',
       order: -1
@@ -181,7 +180,6 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   }
 
   updateMap(): void {
-    if(!this.activeLevel) return;
     // only catch prognosis data if selected year is not in real data
     const prognosis = (this.realYears?.indexOf(this.year) === -1)? this.activePrognosis?.id: undefined;
     const genders = (this.selectedGender?.id !== -1)? [this.selectedGender!.id]: undefined;
@@ -190,7 +188,8 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       this.mapControl?.removeLayer(this.populationLayer.id!);
       this.populationLayer = undefined;
     }
-    if (ageGroups.length === 0) return;
+    this.updateMapDescription();
+    if (ageGroups.length === 0 || !this.activeLevel) return;
     this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,{ genders: genders, prognosis: prognosis, ageGroups: ageGroups.map(ag => ag.id!) }).subscribe(popData => {
       const colorFunc = d3.scaleSequential().domain([0, this.activeLevel!.maxPopulation || 0])
         .interpolator(d3.interpolateViridis);
@@ -337,5 +336,19 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
+  }
+
+  updateMapDescription(): void {
+    let description = '';
+    if (!this.activeLevel)
+      description = 'Bitte Gebietseinheit wählen';
+    else {
+      const genderDesc = `Geschlecht: ${this.selectedGender?.name || '-'}`;
+      const ageGroupDesc = this.ageGroupSelection.selected.map(ag => ag.label).join(', ');
+      const progDesc = (this.realYears?.indexOf(this.year) === -1)? `${this.activePrognosis?.name} `: '';
+      description = `Bevölkerungsentwicklung für ${this.activeLevel.name} | ${progDesc}${this.year} <br>` +
+                    `${genderDesc} | ${ageGroupDesc}`;
+    }
+    this.mapControl!.mapDescription = description;
   }
 }

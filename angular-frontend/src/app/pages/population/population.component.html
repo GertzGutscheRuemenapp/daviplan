@@ -20,7 +20,7 @@
         <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
       </div>
       <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-pop-description" [initiallyExpanded]="true">
-        <div style="padding: 10px; min-height: 70px;" [innerHTML]="this.mapControl?.mapDescription"></div>
+        <div id="pop-description" [innerHTML]="this.mapControl?.mapDescription"></div>
       </app-side-toggle>
     </div>
     <div id="time-slider" class="map-drag-element" cdkDrag cdkDragBoundary="#population-map">
