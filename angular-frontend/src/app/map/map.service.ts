@@ -330,6 +330,7 @@ export class MapControl {
     selectable?: boolean,
     tooltipField?: string,
     colorFunc?: ((d: number) => string),
+    radiusFunc?: ((d: number) => number),
     valueField?: string,
     mouseOver?: {
       fillColor?: string,
@@ -360,6 +361,7 @@ export class MapControl {
       visible: options?.visible,
       tooltipField: options?.tooltipField,
       colorFunc: options?.colorFunc,
+      radiusFunc: options?.radiusFunc,
       valueField: options?.valueField,
       mouseOver: options?.mouseOver,
       select: options?.select
@@ -379,6 +381,7 @@ export class MapControl {
     visible?: boolean,
     tooltipField?: string,
     colorFunc?: ((d: number) => string),
+    radiusFunc?: ((d: number) => number),
     valueField?: string,
     mouseOver?: {
       fillColor?: string,
@@ -409,6 +412,7 @@ export class MapControl {
           mouseOverColor: options?.mouseOver?.fillColor,
           selectedColor: options?.select?.fillColor
         },
+        radius: options?.radiusFunc,
         labelField: layer.labelField,
         tooltipField: options?.tooltipField,
         shape: (layer.symbol?.symbol !== 'line')? layer.symbol?.symbol: undefined,

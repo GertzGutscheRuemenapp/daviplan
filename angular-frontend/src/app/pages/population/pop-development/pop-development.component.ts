@@ -191,8 +191,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     this.updateMapDescription();
     if (ageGroups.length === 0 || !this.activeLevel) return;
     this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,{ genders: genders, prognosis: prognosis, ageGroups: ageGroups.map(ag => ag.id!) }).subscribe(popData => {
-      const colorFunc = d3.scaleSequential().domain([0, this.activeLevel!.maxPopulation || 0])
-        .interpolator(d3.interpolateViridis);
+      const radiusFunc = d3.scaleLinear().domain([0, this.activeLevel?.maxPopulation!]).range([5, 100]);
       this.populationLayer = this.mapControl?.addLayer({
           order: 0,
           type: 'vector',
@@ -201,8 +200,8 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
           description: this.activeLevel!.name,
           opacity: 1,
           symbol: {
-            strokeColor: 'grey',
-            fillColor: '',
+            strokeColor: 'white',
+            fillColor: '#a50f15',
             symbol: 'circle'
           },
           labelField: 'value'
@@ -218,7 +217,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
             strokeColor: 'yellow',
             fillColor: 'yellow'
           },
-          colorFunc: colorFunc
+          radiusFunc: radiusFunc
         });
       this.areas.forEach(area => {
         const data = popData.find(d => d.areaId == area.id);
@@ -227,7 +226,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       })
       // ToDo: move wkt parsing to populationservice, is done on every change year/level atm (expensive)
       this.mapControl?.addFeatures(this.populationLayer!.id!, this.areas,
-        { properties: 'properties', geometry: 'geometry' });
+        { properties: 'properties', geometry: 'centroid' });
       if (this.activeArea)
         this.mapControl?.selectFeatures([this.activeArea.id], this.populationLayer!.id!, { silent: true });
       this.populationLayer!.featureSelected?.subscribe(evt => {

@@ -312,6 +312,7 @@ export class OlMap {
       fill?: {
         color?: string | ((d: number) => string),
         selectedColor?: string, mouseOverColor?: string },
+      radius?: number | ((d: number) => number),
       labelField?: string,
       valueField?: string,
       showLabel?: boolean
@@ -362,14 +363,19 @@ export class OlMap {
       else {
         style.getText().setText('');
       }
+      const valueField = options?.valueField || 'value';
       if (options?.shape) {
         const shape = _this.getShape(options?.shape);
+        if (options?.radius){
+          const radius = (typeof options?.radius === 'function')? options.radius(Number(feature.get(valueField))): options.radius;
+          console.log(radius)
+          shape.setRadius(Math.round(radius));
+        }
         shape.getFill().setColor(fillColor);
         shape.getStroke().setColor(strokeColor);
         style.setImage(shape);
       }
       if (typeof options?.fill?.color === 'function'){
-        const valueField = options?.valueField || 'value';
         const color = options.fill.color(Number(feature.get(valueField)));
         style.getFill().setColor(color);
         if (options?.shape)

@@ -81,6 +81,7 @@ export interface AreaLevel {
 export interface Area {
   id: number,
   geometry: string | Geometry,
+  centroid?: Geometry,
   properties: {
     tooltip?: string,
     value?: number,

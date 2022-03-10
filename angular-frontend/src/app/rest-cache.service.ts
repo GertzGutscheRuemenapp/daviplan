@@ -7,7 +7,10 @@ import {
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
 import { sortBy, wktToGeom } from "./helpers/utils";
-import { WKT } from "ol/format";
+import * as turf from "@turf/helpers";
+import centroid from '@turf/centroid';
+import { MultiPolygon, Polygon } from "ol/geom";
+import { GeoJSON } from "ol/format";
 
 @Injectable({
   providedIn: 'root'
@@ -133,10 +136,14 @@ export class RestCacheService {
         const query = this.http.get<any>(`${this.rest.URLS.areas}?area_level=${areaLevelId}`);
         query.subscribe( areas => {
           this.areaCache[areaLevelId] = areas.features;
+          const format = new GeoJSON();
           areas.features.forEach((area: Area )=> {
             const geometry = wktToGeom(area.geometry as string,
               {targetProjection: targetProjection, ewkt: true});
             area.geometry = geometry;
+            const poly = turf.multiPolygon((geometry as MultiPolygon).getCoordinates());
+            const centroidGeom = format.readFeature(centroid(poly).geometry).getGeometry();
+            area.centroid = centroidGeom;
           })
           this.setLoading(false);
           subscriber.next(areas.features);
