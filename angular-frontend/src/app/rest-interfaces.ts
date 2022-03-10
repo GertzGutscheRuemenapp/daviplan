@@ -1,4 +1,5 @@
 import { EventEmitter } from "@angular/core";
+import { Geometry } from "ol/geom";
 
 export interface BasedataSettings {
   defaultPopAreaLevel: number;
@@ -79,6 +80,7 @@ export interface AreaLevel {
 
 export interface Area {
   id: number,
+  geometry: string | Geometry,
   properties: {
     tooltip?: string,
     value?: number,
@@ -144,6 +146,7 @@ export interface Infrastructure {
 
 export interface Place {
   id: number,
+  geometry: string | Geometry,
   properties: {
     name: string,
     infrastructure: number,

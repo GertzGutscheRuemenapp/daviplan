@@ -99,7 +99,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   updatePlaces(): void {
     if (!this.selectedInfrastructure || this.selectedInfrastructure.services.length === 0) return;
-    this.planningService.getPlaces(this.selectedInfrastructure.id).subscribe(places => {
+    this.planningService.getPlaces(this.selectedInfrastructure.id,
+      { targetProjection: this.mapControl!.map!.mapProjection }).subscribe(places => {
       this.places = places;
       let showLabel = true;
       if (this.placesLayer){
@@ -149,7 +150,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
             valueField: 'capacity'
           });
         this.mapControl?.clearFeatures(this.placesLayer!.id!);
-        this.mapControl?.addWKTFeatures(this.placesLayer!.id!, displayedPlaces, true);
+        this.mapControl?.addFeatures(this.placesLayer!.id!, displayedPlaces,
+          { properties: 'properties', geometry: 'geometry' });
         this.placesLayer?.featureSelected?.subscribe(evt => {
           if (evt.selected)
             this.selectPlace(evt.feature.get('id'));

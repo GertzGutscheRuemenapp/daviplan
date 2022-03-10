@@ -157,7 +157,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   }
 
   onLevelChange(): void {
-    this.populationService.getAreas(this.activeLevel!.id).subscribe(areas => {
+    this.populationService.getAreas(this.activeLevel!.id, {targetProjection: this.mapControl!.map!.mapProjection}).subscribe(areas => {
       this.areas = areas;
       this.activeArea = undefined;
       this.updateMap();
@@ -203,7 +203,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
           symbol: {
             strokeColor: 'grey',
             fillColor: '',
-            symbol: 'line'
+            symbol: 'circle'
           },
           labelField: 'value'
         },
@@ -226,7 +226,8 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         area.properties.description = `<b>${area.properties.label}</b><br>Bevölkerung: ${area.properties.value}`
       })
       // ToDo: move wkt parsing to populationservice, is done on every change year/level atm (expensive)
-      this.mapControl?.addWKTFeatures(this.populationLayer!.id!, this.areas, true);
+      this.mapControl?.addFeatures(this.populationLayer!.id!, this.areas,
+        { properties: 'properties', geometry: 'geometry' });
       if (this.activeArea)
         this.mapControl?.selectFeatures([this.activeArea.id], this.populationLayer!.id!, { silent: true });
       this.populationLayer!.featureSelected?.subscribe(evt => {

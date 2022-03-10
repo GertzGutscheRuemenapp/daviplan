@@ -6,7 +6,8 @@ import {
 } from "./rest-interfaces";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
-import { sortBy } from "./helpers/utils";
+import { sortBy, wktToGeom } from "./helpers/utils";
+import { WKT } from "ol/format";
 
 @Injectable({
   providedIn: 'root'
@@ -68,13 +69,19 @@ export class RestCacheService {
     });
   }
 
-  getPlaces(infrastructureId: number): Observable<Place[]>{
+  getPlaces(infrastructureId: number, options?: { targetProjection?: string }): Observable<Place[]>{
     const observable = new Observable<Place[]>(subscriber => {
       const cached = this.placesCache[infrastructureId];
       if (!cached) {
+        const targetProjection = (options?.targetProjection !== undefined)? options?.targetProjection: 'EPSG:4326';
         this.setLoading(true);
         const query = this.http.get<any>(`${this.rest.URLS.places}?infrastructure=${infrastructureId}`);
         query.subscribe( places => {
+          places.features.forEach((place: Place )=> {
+            const geometry = wktToGeom(place.geometry as string,
+              {targetProjection: targetProjection, ewkt: true});
+            place.geometry = geometry;
+          })
           this.placesCache[infrastructureId] = places.features;
           this.setLoading(false);
           subscriber.next(places.features);
@@ -116,15 +123,21 @@ export class RestCacheService {
     return observable;
   }
 
-  getAreas(areaLevelId: number): Observable<Area[]>{
+  getAreas(areaLevelId: number, options?: { targetProjection?: string }): Observable<Area[]>{
     // ToDo: return clones of areas to avoid side-effects
     const observable = new Observable<Area[]>(subscriber => {
       const cached = this.areaCache[areaLevelId];
       if (!cached) {
+        const targetProjection = (options?.targetProjection !== undefined)? options?.targetProjection: 'EPSG:4326';
         this.setLoading(true);
         const query = this.http.get<any>(`${this.rest.URLS.areas}?area_level=${areaLevelId}`);
         query.subscribe( areas => {
           this.areaCache[areaLevelId] = areas.features;
+          areas.features.forEach((area: Area )=> {
+            const geometry = wktToGeom(area.geometry as string,
+              {targetProjection: targetProjection, ewkt: true});
+            area.geometry = geometry;
+          })
           this.setLoading(false);
           subscriber.next(areas.features);
           subscriber.complete();

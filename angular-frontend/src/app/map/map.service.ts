@@ -447,30 +447,23 @@ export class MapControl {
     this.olLayerIds[this.mapId(layer)] = layer.id!;
   }
 
-  addWKTFeatures(id: number | string, wktFeatures: any[], ewkt: boolean = false){
-    const layer = this.layerMap[id];
-    const format = new WKT();
-    let features: Feature<any>[] = [];
-    wktFeatures.forEach( wktFeature => {
-      let wkt = wktFeature.geometry;
-      let dataProjection = 'EPSG:4326';
-      if (ewkt){
-        const split = wkt.split(';');
-        wkt = split[1];
-        dataProjection = `EPGS:${split[0].split('=')[1]}`
+  addFeatures(layerId: number | string, features: any[],
+              options?: { properties?: string, geometry?: string }): void {
+    const layer = this.layerMap[layerId];
+    if (!layer) return;
+    let olFeatures: Feature<any>[] = [];
+    const properties = (options?.properties !== undefined)? options?.properties: 'properties';
+    const geometry = (options?.properties !== undefined)? options?.geometry: 'geometry';
+    features.forEach( feature => {
+      const olFeature = new Feature(feature[geometry!]);
+      if (feature.id) {
+        olFeature.set('id', feature.id);
+        olFeature.setId(feature.id);
       }
-      const feature = format.readFeature(wkt, {
-        dataProjection: dataProjection,
-        featureProjection: this.map!.mapProjection,
-      });
-      if (wktFeature.id) {
-        feature.set('id', wktFeature.id);
-        feature.setId(wktFeature.id);
-      }
-      feature.setProperties(wktFeature.properties);
-      features.push(feature);
+      olFeature.setProperties(feature[properties]);
+      olFeatures.push(olFeature);
     })
-    this.map?.addFeatures(this.mapId(layer), features);
+    this.map?.addFeatures(this.mapId(layer), olFeatures);
   }
 
   clearFeatures(id: number | string): void {
