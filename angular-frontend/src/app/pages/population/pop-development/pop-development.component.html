@@ -78,13 +78,16 @@
       </button>
       <div class="border-box" style="margin-top: 10px">
         <mat-checkbox class="reverse" color="primary"
-                      [checked]="true">
+                      [indeterminate]="someAgeGroupsChecked()"
+                      [checked]="allAgeGroupsChecked"
+                      (change)="setAllAgeGroupsChecked($event.checked)">
           alle
         </mat-checkbox>
         <mat-divider style="margin-bottom: 10px;"></mat-divider>
         <mat-checkbox class="reverse" color="primary"
                       *ngFor="let ageGroup of ageGroups"
-                      [checked]="true">
+                      [checked]="ageGroupSelection.isSelected(ageGroup)"
+                      (change)="ageGroupSelection.toggle(ageGroup); updateGroupsChecked()">
           {{ageGroup.label}}
         </mat-checkbox>
       </div>

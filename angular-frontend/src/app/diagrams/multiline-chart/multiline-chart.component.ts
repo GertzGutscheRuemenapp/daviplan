@@ -63,8 +63,12 @@ export class MultilineChartComponent implements AfterViewInit {
       .append("g");
   }
 
-  public draw(data: MultilineData[]): void {
+  clear(): void {
     this.svg.selectAll("*").remove();
+  }
+  
+  public draw(data: MultilineData[]): void {
+      this.clear();
     if (data.length == 0) return;
 
     if (!this.labels)

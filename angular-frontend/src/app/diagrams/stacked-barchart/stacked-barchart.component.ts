@@ -53,13 +53,16 @@ export class StackedBarchartComponent implements AfterViewInit {
       .append("g");
   }
 
-  draw(data: StackedData[]): void {
+  clear(): void {
     this.svg.selectAll("*").remove();
+  }
+
+  draw(data: StackedData[]): void {
+    this.clear();
     if (data.length == 0) return;
 
     if (!this.labels)
       this.labels = d3.range(0, data[0].values.length).map(d=>d.toString());
-    console.log(this.labels.length)
     let colorScale = d3.scaleSequential().domain([0, this.labels.length])
       .interpolator(d3.interpolateRainbow);
     let max = d3.max(data, d => { return d.values.reduce((a, c) => a + c) });
