@@ -33,6 +33,12 @@ export class StackedBarchartComponent implements AfterViewInit {
     left: 60,
     right: 130
   };
+  localeFormatter = d3.formatLocale({
+    decimal: ',',
+    thousands: '.',
+    grouping: [3],
+    currency: ['€', '']
+  })
 
   ngAfterViewInit(): void {
     this.createSvg();
@@ -126,9 +132,10 @@ export class StackedBarchartComponent implements AfterViewInit {
       let data: StackedData = this.__data__;
       stack.selectAll('rect').classed('highlight', true);
       let text = `<b>${data.group}</b><br>`;
+      const formatter = _this.localeFormatter.format(',.2f');
       _this.labels?.forEach((label, i)=>{
         let color = (_this.colors)? _this.colors[i]: colorScale(i);
-        text += `<b style="color: ${color}">${label}</b>: ${data.values[i].toString().replace('.', ',')}<br>`;
+        text += `<b style="color: ${color}">${label}</b>: ${formatter(data.values[i])}<br>`;
       })
       tooltip.style("display", null);
       tooltip.html(text);

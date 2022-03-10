@@ -253,6 +253,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     this.populationService.getPopulationData(this.activeArea.id, { genders: genders }).subscribe( popData => {
       this.populationService.getPopulationData(this.activeArea!.id, { prognosis: this.activePrognosis?.id, genders: genders }).subscribe(progData => {
         const data = popData.concat(progData);
+        if (data.length === 0) return;
         const years = [... new Set(data.map(d => d.year))].sort();
         let transformedData: StackedData[] = [];
         const labels = this.ageGroupSelection.selected.map(ag => ag.label!);
@@ -293,7 +294,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         let first = transformedData[0].values;
         let relData = transformedData.map(d => { return {
           group: d.group,
-          values: d.values.map((v, i) => Math.round(10000 * v / first[i]) / 100 )
+          values: d.values.map((v, i) => 100 * v / first[i] )
         }})
         let max = Math.max(...relData.map(d => Math.max(...d.values))),
           min = Math.min(...relData.map(d => Math.min(...d.values)));
