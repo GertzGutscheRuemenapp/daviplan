@@ -4,6 +4,7 @@ import { RestAPI } from "./rest-api";
 import { HttpClient } from "@angular/common/http";
 import { Title } from "@angular/platform-browser";
 import { ProjectSettings } from "./pages/administration/project-definition/project-definition.component";
+import { BasedataSettings } from "./rest-interfaces";
 
 export interface SiteSettings {
   id: number,
@@ -60,6 +61,10 @@ export class SettingsService {
   siteSettings$ = new BehaviorSubject<SiteSettings>({
     id: 0, title: '', contactMail: '', welcomeText: '', logo: ''
   });
+  baseDataSettings$ = new BehaviorSubject<BasedataSettings>({
+    popStatisticsAreaLevel: 0,
+    defaultPopAreaLevel: 0
+  });
   projectSettings$ = new BehaviorSubject<ProjectSettings>({
     projectArea: '',
     startYear: 0,
@@ -70,21 +75,26 @@ export class SettingsService {
   constructor(private rest: RestAPI, private http: HttpClient, private titleService: Title) {
     this.refresh();
   }
-
   refresh(): void {
     this.fetchSiteSettings();
     this.fetchProjectSettings();
+    this.fetchBaseDataSettings();
     this.user = new UserSettings(this.rest, this.http);
   }
 
   private fetchSiteSettings(): void {
     this.http.get<SiteSettings>(this.rest.URLS.siteSettings)
-      .subscribe(siteSettings => {  this.siteSettings$.next(siteSettings); });
+      .subscribe(siteSettings => this.siteSettings$.next(siteSettings));
   }
 
   private fetchProjectSettings(): void {
     this.http.get<ProjectSettings>(this.rest.URLS.projectSettings)
-      .subscribe(projectSettings => {  this.projectSettings$.next(projectSettings); });
+      .subscribe(projectSettings => this.projectSettings$.next(projectSettings));
+  }
+
+  private fetchBaseDataSettings(): void {
+    this.http.get<BasedataSettings>(this.rest.URLS.basedataSettings)
+      .subscribe((basedataSettings) => this.baseDataSettings$.next(basedataSettings));
   }
 
   applySiteSettings(settings: SiteSettings) {

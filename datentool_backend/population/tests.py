@@ -240,7 +240,7 @@ class TestPopStatisticAPI(WriteOnlyWithCanEditBaseDataTest,
     def setUpTestData(cls):
         super().setUpTestData()
         popstatistic: PopStatistic = cls.obj
-        year = popstatistic.year.pk
+        year = popstatistic.year.year
 
         cls.post_data = dict(year=year)
         cls.put_data = dict(year=year)

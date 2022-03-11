@@ -8,6 +8,7 @@ import { BreakpointObserver } from "@angular/cdk/layout";
 import { MultilineData } from "../../../diagrams/multiline-chart/multiline-chart.component";
 import { BalanceChartData } from "../../../diagrams/balance-chart/balance-chart.component";
 import { PopulationService } from "../population.service";
+import { Area, AreaLevel } from "../../../rest-interfaces";
 
 export const mockTotalData: MultilineData[] = [
   { group: '2000', values: [0] },
@@ -55,6 +56,10 @@ export const mockData: BalanceChartData[] = [
 export class PopStatisticsComponent implements AfterViewInit {
   mapControl?: MapControl;
   backend: string = environment.backend;
+  areaLevels: AreaLevel[] = [];
+  areas: Area[] = [];
+  years?: number[];
+  year?: number;
   theme = 'wanderung';
   isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 50em)')
     .pipe(
@@ -71,21 +76,30 @@ export class PopStatisticsComponent implements AfterViewInit {
     this.mapControl = this.mapService.get('population-map');
     this.mapControl.mapDescription = 'Bevölkerungsstatistik > Gemeinden | Wanderung';
     if (this.populationService.isReady)
-      this.setSlider();
+      this.initData();
     else {
       this.populationService.ready.subscribe(r => {
-        this.setSlider();
+        this.initData();
       });
     }
   }
 
-  setSlider(): void {
+  initData(): void {
     this.populationService.realYears$.subscribe(years => {
-      let slider = this.populationService.timeSlider!;
-      slider.prognosisStart = 0;
-      slider.years = years;
-      slider.value = years[0];
-      slider.draw();
+      this.years = years;
+      this.year = years[0];
+      this.setSlider();
     })
+    this.populationService.areaLevels$.subscribe(areaLevels => {
+      this.areaLevels = areaLevels;
+    })
+  }
+
+  setSlider(): void {
+    let slider = this.populationService.timeSlider!;
+    slider.prognosisStart = 0;
+    slider.years = this.years!;
+    slider.value = this.year;
+    slider.draw();
   }
 }

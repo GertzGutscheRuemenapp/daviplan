@@ -5,7 +5,7 @@ from .models import (Raster, PopulationRaster,
                      Prognosis, Population, PopulationEntry,
                      PopStatistic, PopStatEntry,
                      RasterCellPopulationAgeGender,
-                     )
+                     Year)
 
 
 class RasterSerializer(serializers.ModelSerializer):
@@ -62,9 +62,21 @@ class PopulationEntrySerializer(serializers.ModelSerializer):
 
 
 class PopStatisticSerializer(serializers.ModelSerializer):
+    year = serializers.IntegerField(source='year.year')
     class Meta:
         model = PopStatistic
         fields = ('id', 'year')
+
+    def create(self, validated_data):
+        year = validated_data['year']['year']
+        instance = PopStatistic.objects.create(year=Year.objects.get(year=year))
+        return instance
+
+    def update(self, instance, validated_data):
+        year = validated_data['year']['year']
+        instance.year = Year.objects.get(year=year)
+        instance.save()
+        return instance
 
 
 class PopStatEntrySerializer(serializers.ModelSerializer):
