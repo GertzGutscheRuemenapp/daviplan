@@ -11,6 +11,8 @@ import { PopulationService } from "../population.service";
 import { Area, AreaLevel, Gender, Layer, LayerGroup, AgeGroup, Prognosis } from "../../../rest-interfaces";
 import * as d3 from "d3";
 import { layer } from "@fortawesome/fontawesome-svg-core";
+import { SelectionModel } from "@angular/cdk/collections";
+import { sortBy } from "../../../helpers/utils";
 
 export const mockdata: StackedData[] = [
   { group: '2000', values: [200, 300, 280] },
@@ -55,12 +57,14 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   activeArea?: Area;
   selectedGender?: Gender;
   year: number = 0;
-  labels: string[] = ['65+', '19-64', '0-18'];
   isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 50em)')
     .pipe(
       map(result => result.matches),
       shareReplay()
     );
+  ageGroupSelection = new SelectionModel<AgeGroup>(true );
+  allAgeGroupsChecked: boolean = true;
+  ageGroupColors: Record<number, string> = {};
 
   constructor(private breakpointObserver: BreakpointObserver, private mapService: MapService, private dialog: MatDialog,
               private populationService: PopulationService) {
@@ -68,7 +72,6 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
-    this.mapControl.mapDescription = 'Bevölkerungsentwicklung für [ausgewählte Gebietseinheit] | [ausgewähltes Prognoseszenario] | <br> Geschlecht: [ausgewähltes Geschlecht | [ausgewählte Altersgruppen] ';
     this.legendGroup = this.mapControl.addGroup({
       name: 'Bevölkerungsentwicklung',
       order: -1
@@ -110,6 +113,14 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       this.areaLevels = areaLevels;
     })
     this.populationService.ageGroups$.subscribe(ageGroups => {
+      this.ageGroupSelection.clear();
+      let colorScale = d3.scaleSequential().domain([0, ageGroups.length])
+        .interpolator(d3.interpolateRainbow);
+      this.ageGroupColors = {};
+      ageGroups.forEach((ag, i) => {
+        this.ageGroupColors[ag.id!] = colorScale(i);
+        this.ageGroupSelection.select(ag);
+      });
       this.ageGroups = ageGroups;
     })
     this.subscriptions.push(this.populationService.timeSlider!.valueChanged.subscribe(year => {
@@ -146,7 +157,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   }
 
   onLevelChange(): void {
-    this.populationService.getAreas(this.activeLevel!.id).subscribe(areas => {
+    this.populationService.getAreas(this.activeLevel!.id, {targetProjection: this.mapControl!.map!.mapProjection}).subscribe(areas => {
       this.areas = areas;
       this.activeArea = undefined;
       this.updateMap();
@@ -169,15 +180,19 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   }
 
   updateMap(): void {
-    if(!this.activeLevel) return;
     // only catch prognosis data if selected year is not in real data
     const prognosis = (this.realYears?.indexOf(this.year) === -1)? this.activePrognosis?.id: undefined;
     const genders = (this.selectedGender?.id !== -1)? [this.selectedGender!.id]: undefined;
-    this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,{ genders: genders, prognosis: prognosis }).subscribe(popData => {
-      if (this.populationLayer)
-        this.mapControl?.removeLayer(this.populationLayer.id!)
-      const colorFunc = d3.scaleSequential().domain([0, this.activeLevel!.maxPopulation || 0])
-        .interpolator(d3.interpolateViridis);
+    const ageGroups = this.ageGroupSelection.selected;
+    if (this.populationLayer) {
+      this.mapControl?.removeLayer(this.populationLayer.id!);
+      this.populationLayer = undefined;
+    }
+    this.updateMapDescription();
+    if (ageGroups.length === 0 || !this.activeLevel) return;
+    this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,
+      { genders: genders, prognosis: prognosis, ageGroups: ageGroups.map(ag => ag.id!) }).subscribe(popData => {
+      const radiusFunc = d3.scaleLinear().domain([0, this.activeLevel?.maxPopulation!]).range([5, 100]);
       this.populationLayer = this.mapControl?.addLayer({
           order: 0,
           type: 'vector',
@@ -186,24 +201,26 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
           description: this.activeLevel!.name,
           opacity: 1,
           symbol: {
-            strokeColor: 'grey',
-            fillColor: '',
-            symbol: 'line'
+            strokeColor: 'white',
+            fillColor: 'rgba(165, 15, 21, 0.9)',
+            symbol: 'circle'
           },
-          labelField: 'value'
+          labelField: 'value',
+          showLabel: true
         },
         {
           visible: true,
           tooltipField: 'description',
           mouseOver: {
-            strokeColor: 'blue'
+            strokeColor: 'yellow',
+            fillColor: 'rgba(255, 255, 0, 0.7)'
           },
           selectable: true,
           select: {
-            strokeColor: 'yellow',
-            fillColor: 'yellow'
+            strokeColor: 'rgb(180, 180, 0)',
+            fillColor: 'rgba(255, 255, 0, 0.9)'
           },
-          colorFunc: colorFunc
+          radiusFunc: radiusFunc
         });
       this.areas.forEach(area => {
         const data = popData.find(d => d.areaId == area.id);
@@ -211,31 +228,43 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         area.properties.description = `<b>${area.properties.label}</b><br>Bevölkerung: ${area.properties.value}`
       })
       // ToDo: move wkt parsing to populationservice, is done on every change year/level atm (expensive)
-      this.mapControl?.addWKTFeatures(this.populationLayer!.id!, this.areas, true);
+      this.mapControl?.addFeatures(this.populationLayer!.id!, this.areas,
+        { properties: 'properties', geometry: 'centroid', zIndex: 'value' });
       if (this.activeArea)
         this.mapControl?.selectFeatures([this.activeArea.id], this.populationLayer!.id!, { silent: true });
       this.populationLayer!.featureSelected?.subscribe(evt => {
         if (evt.selected) {
           this.activeArea = this.areas.find(area => area.id === evt.feature.get('id'));
-          this.updateDiagrams();
         }
+        else {
+          this.activeArea = undefined;
+        }
+        this.updateDiagrams();
       })
     })
   }
 
   updateDiagrams(): void {
-    if(!this.activeArea) return;
     const genders = (this.selectedGender?.id !== -1)? [this.selectedGender!.id]: undefined;
+    let ageGroups = this.ageGroupSelection.selected;
+    if (ageGroups.length === 0 || !this.activeArea) {
+      this.barChart?.clear();
+      this.lineChart?.clear();
+      return;
+    }
+    ageGroups = sortBy(ageGroups, 'id');
     this.populationService.getPopulationData(this.activeArea.id, { genders: genders }).subscribe( popData => {
       this.populationService.getPopulationData(this.activeArea!.id, { prognosis: this.activePrognosis?.id, genders: genders }).subscribe(progData => {
         const data = popData.concat(progData);
+        if (data.length === 0) return;
         const years = [... new Set(data.map(d => d.year))].sort();
         let transformedData: StackedData[] = [];
-        const labels = this.ageGroups.map(ag => ag.label!);
+        const labels = this.ageGroupSelection.selected.map(ag => ag.label!);
+        const colors = this.ageGroupSelection.selected.map(ag => this.ageGroupColors[ag.id!]);
         years.forEach(year => {
           let values: number[] = [];
           const yearData = data.filter(d => d.year === year)!;
-          this.ageGroups.forEach(ageGroup => {
+          ageGroups.forEach(ageGroup => {
             const ad = yearData.filter(d => d.agegroup === ageGroup.id);
             const value = (ad)? ad.reduce((a, d) => a + d.value, 0): 0;
             values.push(value);
@@ -256,6 +285,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
         //Stacked Bar Chart
         this.barChart!.labels = labels;
+        this.barChart!.colors = colors;
         this.barChart!.title = 'Bevölkerungsentwicklung';
         if (this.selectedGender!.id !== -1)
           this.barChart!.title += ` (${this.selectedGender!.name})`;
@@ -267,11 +297,12 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         let first = transformedData[0].values;
         let relData = transformedData.map(d => { return {
           group: d.group,
-          values: d.values.map((v, i) => Math.round(10000 * v / first[i]) / 100 )
+          values: d.values.map((v, i) => 100 * v / first[i] )
         }})
         let max = Math.max(...relData.map(d => Math.max(...d.values))),
           min = Math.min(...relData.map(d => Math.min(...d.values)));
         this.lineChart!.labels = labels;
+        this.lineChart!.colors = colors;
         this.lineChart!.title = 'relative Altersgruppenentwicklung';
         if (this.selectedGender!.id !== -1)
           this.lineChart!.title += ` (${this.selectedGender!.name})`;
@@ -284,7 +315,48 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     })
   }
 
+  someAgeGroupsChecked(): boolean {
+    if (!this.ageGroups) return false;
+    return this.ageGroupSelection.selected.length > 0 && !this.allAgeGroupsChecked;
+  }
+
+  updateGroupsChecked(): void {
+    this.allAgeGroupsChecked = this.ageGroupSelection.selected.length === this.ageGroups.length;
+    this.updateMap();
+    this.updateDiagrams();
+  }
+
+  setAllAgeGroupsChecked(check: boolean): void {
+    this.allAgeGroupsChecked = check;
+    this.ageGroups.forEach(ag => {
+      if (check)
+        this.ageGroupSelection.select(ag)
+      else
+        this.ageGroupSelection.deselect(ag)
+    });
+    this.updateMap();
+    this.updateDiagrams();
+  }
+
   ngOnDestroy(): void {
+    if (this.populationLayer)
+      this.mapControl?.removeLayer(this.populationLayer.id!);
+    if (this.legendGroup)
+      this.mapControl?.removeGroup(this.legendGroup.id!)
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
+  }
+
+  updateMapDescription(): void {
+    let description = '';
+    if (!this.activeLevel)
+      description = 'Bitte Gebietseinheit wählen';
+    else {
+      const genderDesc = `Geschlecht: ${this.selectedGender?.name || '-'}`;
+      const ageGroupDesc = this.ageGroupSelection.selected.map(ag => ag.label).join(', ');
+      const progDesc = (this.realYears?.indexOf(this.year) === -1)? `${this.activePrognosis?.name} `: '';
+      description = `Bevölkerungsentwicklung für ${this.activeLevel.name} | ${progDesc}${this.year} <br>` +
+                    `${genderDesc} | ${ageGroupDesc}`;
+    }
+    this.mapControl!.mapDescription = description;
   }
 }

@@ -1,3 +1,6 @@
+import { WKT } from "ol/format";
+import { Geometry } from "ol/geom";
+
 export function arrayMove(array: any[], fromIndex: number, toIndex: number) {
   const element = array[fromIndex];
   array.splice(fromIndex, 1);
@@ -7,4 +10,20 @@ export function arrayMove(array: any[], fromIndex: number, toIndex: number) {
 export function sortBy(array: any[], attr: string): any[]{
   return array.sort((a, b) =>
     (a[attr] > b[attr])? 1: (a[attr] < b[attr])? -1: 0);
+}
+
+export function wktToGeom(wkt: string, options?: { targetProjection?: string, ewkt?: boolean }): Geometry {
+  const targetProjection = (options?.targetProjection !== undefined)? options?.targetProjection: 'EPSG:4326';
+  const format = new WKT()
+  let dataProjection = 'EPSG:4326';
+  if (options?.ewkt){
+    const split = wkt.split(';');
+    wkt = split[1];
+    dataProjection = `EPGS:${split[0].split('=')[1]}`
+  }
+  const feature = format.readFeature(wkt, {
+    dataProjection: dataProjection,
+    featureProjection: targetProjection,
+  });
+  return feature.getGeometry();
 }

@@ -330,7 +330,9 @@ export class MapControl {
     selectable?: boolean,
     tooltipField?: string,
     colorFunc?: ((d: number) => string),
+    radiusFunc?: ((d: number) => number),
     valueField?: string,
+    zIndexField?: string,
     mouseOver?: {
       fillColor?: string,
       strokeColor?: string,
@@ -360,6 +362,7 @@ export class MapControl {
       visible: options?.visible,
       tooltipField: options?.tooltipField,
       colorFunc: options?.colorFunc,
+      radiusFunc: options?.radiusFunc,
       valueField: options?.valueField,
       mouseOver: options?.mouseOver,
       select: options?.select
@@ -379,6 +382,7 @@ export class MapControl {
     visible?: boolean,
     tooltipField?: string,
     colorFunc?: ((d: number) => string),
+    radiusFunc?: ((d: number) => number),
     valueField?: string,
     mouseOver?: {
       fillColor?: string,
@@ -409,6 +413,7 @@ export class MapControl {
           mouseOverColor: options?.mouseOver?.fillColor,
           selectedColor: options?.select?.fillColor
         },
+        radius: options?.radiusFunc,
         labelField: layer.labelField,
         tooltipField: options?.tooltipField,
         shape: (layer.symbol?.symbol !== 'line')? layer.symbol?.symbol: undefined,
@@ -447,30 +452,29 @@ export class MapControl {
     this.olLayerIds[this.mapId(layer)] = layer.id!;
   }
 
-  addWKTFeatures(id: number | string, wktFeatures: any[], ewkt: boolean = false){
-    const layer = this.layerMap[id];
-    const format = new WKT();
-    let features: Feature<any>[] = [];
-    wktFeatures.forEach( wktFeature => {
-      let wkt = wktFeature.geometry;
-      let dataProjection = 'EPSG:4326';
-      if (ewkt){
-        const split = wkt.split(';');
-        wkt = split[1];
-        dataProjection = `EPGS:${split[0].split('=')[1]}`
+  addFeatures(layerId: number | string, features: any[],
+              options?: { properties?: string, geometry?: string, zIndex?: string }): void {
+    const layer = this.layerMap[layerId];
+    if (!layer) return;
+    let olFeatures: Feature<any>[] = [];
+    const properties = (options?.properties !== undefined)? options?.properties: 'properties';
+    const geometry = (options?.properties !== undefined)? options?.geometry: 'geometry';
+    features.forEach( feature => {
+      const olFeature = new Feature(feature[geometry!]);
+      if (feature.id) {
+        olFeature.set('id', feature.id);
+        olFeature.setId(feature.id);
       }
-      const feature = format.readFeature(wkt, {
-        dataProjection: dataProjection,
-        featureProjection: this.map!.mapProjection,
-      });
-      if (wktFeature.id) {
-        feature.set('id', wktFeature.id);
-        feature.setId(wktFeature.id);
-      }
-      feature.setProperties(wktFeature.properties);
-      features.push(feature);
+      olFeature.setProperties(feature[properties]);
+      olFeatures.push(olFeature);
     })
-    this.map?.addFeatures(this.mapId(layer), features);
+    if (options?.zIndex) {
+      const attr = options?.zIndex;
+      olFeatures = olFeatures.sort((a, b) =>
+        (a.get(attr) > b.get(attr)) ? 1 : (a.get(attr) < b.get(attr)) ? -1 : 0);
+      olFeatures.forEach((feat, i) => feat.set('zIndex', olFeatures.length - i));
+    }
+    this.map?.addFeatures(this.mapId(layer), olFeatures);
   }
 
   clearFeatures(id: number | string): void {

@@ -43,6 +43,13 @@ export class MultilineChartComponent implements AfterViewInit {
     right: 130
   };
 
+  localeFormatter = d3.formatLocale({
+    decimal: ',',
+    thousands: '.',
+    grouping: [3],
+    currency: ['€', '']
+  })
+
   ngAfterViewInit(): void {
     this.createSvg();
     if (this.data) this.draw(this.data);
@@ -63,8 +70,12 @@ export class MultilineChartComponent implements AfterViewInit {
       .append("g");
   }
 
-  public draw(data: MultilineData[]): void {
+  clear(): void {
     this.svg.selectAll("*").remove();
+  }
+
+  public draw(data: MultilineData[]): void {
+      this.clear();
     if (data.length == 0) return;
 
     if (!this.labels)
@@ -179,9 +190,10 @@ export class MultilineChartComponent implements AfterViewInit {
         .duration(this.animate ? 60 : 0)
         .attr("transform", (d: null, i: number) => `translate(${x(groups[xIdx])}, ${y(groupData.values[i])})`);
       let text = `<b>${groupData.group}</b><br>`;
+      const formatter = _this.localeFormatter.format(',.2f');
       _this.labels?.forEach((label, i)=>{
         let color = (_this.colors)? _this.colors[i]: colorScale(i);
-        text += `<b style="color: ${color}">${label}</b>: ${groupData.values[i].toString().replace('.', ',')}${(_this.unit) ? _this.unit : ''}<br>`;
+        text += `<b style="color: ${color}">${label}</b>: ${formatter(groupData.values[i])}${(_this.unit)? _this.unit : ''}<br>`;
       })
       tooltip.html(text);
       tooltip.style('left', event.pageX - 70 + 'px')
