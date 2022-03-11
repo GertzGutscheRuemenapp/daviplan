@@ -190,7 +190,8 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     }
     this.updateMapDescription();
     if (ageGroups.length === 0 || !this.activeLevel) return;
-    this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,{ genders: genders, prognosis: prognosis, ageGroups: ageGroups.map(ag => ag.id!) }).subscribe(popData => {
+    this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,
+      { genders: genders, prognosis: prognosis, ageGroups: ageGroups.map(ag => ag.id!) }).subscribe(popData => {
       const radiusFunc = d3.scaleLinear().domain([0, this.activeLevel?.maxPopulation!]).range([5, 100]);
       this.populationLayer = this.mapControl?.addLayer({
           order: 0,
@@ -226,7 +227,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       })
       // ToDo: move wkt parsing to populationservice, is done on every change year/level atm (expensive)
       this.mapControl?.addFeatures(this.populationLayer!.id!, this.areas,
-        { properties: 'properties', geometry: 'centroid' });
+        { properties: 'properties', geometry: 'centroid', zIndex: 'value' });
       if (this.activeArea)
         this.mapControl?.selectFeatures([this.activeArea.id], this.populationLayer!.id!, { silent: true });
       this.populationLayer!.featureSelected?.subscribe(evt => {

@@ -363,6 +363,9 @@ export class OlMap {
       else {
         style.getText().setText('');
       }
+      const zIndex = feature.get('zIndex');
+      if (zIndex !== undefined)
+        style.setZIndex(zIndex);
       const valueField = options?.valueField || 'value';
       if (options?.shape) {
         const shape = _this.getShape(options?.shape);

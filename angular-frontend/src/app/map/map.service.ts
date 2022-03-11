@@ -332,6 +332,7 @@ export class MapControl {
     colorFunc?: ((d: number) => string),
     radiusFunc?: ((d: number) => number),
     valueField?: string,
+    zIndexField?: string,
     mouseOver?: {
       fillColor?: string,
       strokeColor?: string,
@@ -452,7 +453,7 @@ export class MapControl {
   }
 
   addFeatures(layerId: number | string, features: any[],
-              options?: { properties?: string, geometry?: string }): void {
+              options?: { properties?: string, geometry?: string, zIndex?: string }): void {
     const layer = this.layerMap[layerId];
     if (!layer) return;
     let olFeatures: Feature<any>[] = [];
@@ -467,6 +468,12 @@ export class MapControl {
       olFeature.setProperties(feature[properties]);
       olFeatures.push(olFeature);
     })
+    if (options?.zIndex) {
+      const attr = options?.zIndex;
+      olFeatures = olFeatures.sort((a, b) =>
+        (a.get(attr) > b.get(attr)) ? 1 : (a.get(attr) < b.get(attr)) ? -1 : 0);
+      olFeatures.forEach((feat, i) => feat.set('zIndex', olFeatures.length - i));
+    }
     this.map?.addFeatures(this.mapId(layer), olFeatures);
   }
 
