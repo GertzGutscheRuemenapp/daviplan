@@ -78,6 +78,7 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
                                   blank=True)
     is_active = models.BooleanField(default=True)
     is_preset = models.BooleanField(default=False)
+    is_statistic_level = models.BooleanField(unique=True, null=True)
     max_population = models.FloatField(null=True)
     population_cache_dirty = models.BooleanField(default=True)
 

@@ -66,7 +66,6 @@ class AreaLevelSerializer(serializers.ModelSerializer):
     symbol = MapSymbolSerializer(allow_null=True, required=False)
     area_count = serializers.IntegerField(source='area_set.count',
                                           read_only=True)
-    max_population = serializers.SerializerMethodField()
     tile_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -75,17 +74,6 @@ class AreaLevelSerializer(serializers.ModelSerializer):
                   'is_preset', 'area_count', 'tile_url', 'label_field',
                   'max_population', 'max_population')
         read_only_fields = ('is_preset', )
-
-    def get_max_population(self, obj):
-        #entries = PopulationEntry.objects.filter(population__arealevels=obj)
-        entries = AreaPopulationAgeGender.objects.filter(area__area_level=obj)
-        summed_values = entries.values(
-            'population__year', 'area', 'population__prognosis')\
-            .annotate(Sum('value'))
-        if len(summed_values) == 0:
-            return 0
-        max_value = max(summed_values.values_list('value__sum', flat=True))
-        return max_value
 
     def get_tile_url(self, obj) -> str:
         # x,y,z have to be passed to reverse

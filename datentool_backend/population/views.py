@@ -9,7 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from django.db import transaction
-from django.db.models import F, Max
+from django.db.models import F, Max, Sum
 
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
@@ -474,10 +474,13 @@ class PopulationViewSet(viewsets.ModelViewSet):
                 for population in Population.objects.all():
                     data['area_level'] = area_level.id
                     self.aggregate_from_cell_to_area(request, **{'pk': population.id})
-                max_value = AreaPopulationAgeGender.objects.filter(
-                    area__area_level=area_level)\
-                    .aggregate(Max('value'))
-                area_level.max_population = max_value['value__max']
+                entries = AreaPopulationAgeGender.objects.filter(
+                    area__area_level=area_level)
+                summed_values = entries.values(
+                    'population__year', 'area', 'population__prognosis')\
+                    .annotate(Sum('value'))
+                summed_values.aggregate(Max('value'))
+                area_level.max_population = summed_values['value__max']
                 area_level.population_cache_dirty = False
                 area_level.save()
 
