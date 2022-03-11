@@ -205,7 +205,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
             fillColor: 'rgba(165, 15, 21, 0.9)',
             symbol: 'circle'
           },
-          labelField: 'value'
+          labelField: 'value',
         },
         {
           visible: true,

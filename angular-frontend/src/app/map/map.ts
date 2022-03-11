@@ -203,6 +203,7 @@ export class OlMap {
       }
     })
     layer.set('name', name);
+    layer.set('showLabel', options?.showLabel || false);
 
     // mouseover effects are a bit trickier with vector-tiles, need to add new layer with same source
     // to inspect and style features
@@ -392,7 +393,7 @@ export class OlMap {
       style: styleFunc
     });
 
-    layer.set('showLabel', (options?.showLabel !== undefined)? options?.showLabel: true);
+    layer.set('showLabel', options?.showLabel || false);
     layer.set('name', name);
     this.setMouseOverLayer(layer, {
       tooltipField: options?.tooltipField,
