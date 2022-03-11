@@ -206,6 +206,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
             symbol: 'circle'
           },
           labelField: 'value',
+          showLabel: true
         },
         {
           visible: true,

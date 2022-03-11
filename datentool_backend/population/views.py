@@ -479,8 +479,8 @@ class PopulationViewSet(viewsets.ModelViewSet):
                 summed_values = entries.values(
                     'population__year', 'area', 'population__prognosis')\
                     .annotate(Sum('value'))
-                summed_values.aggregate(Max('value'))
-                area_level.max_population = summed_values['value__max']
+                max_value = summed_values.aggregate(Max('value'))['value__max']
+                area_level.max_population = max_value
                 area_level.population_cache_dirty = False
                 area_level.save()
 

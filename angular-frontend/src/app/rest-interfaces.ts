@@ -3,6 +3,7 @@ import { Geometry } from "ol/geom";
 
 export interface BasedataSettings {
   defaultPopAreaLevel: number;
+  popStatisticsAreaLevel: number;
 }
 
 export interface PlanningProcess {
