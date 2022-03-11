@@ -216,7 +216,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
           },
           selectable: true,
           select: {
-            strokeColor: 'yellow',
+            strokeColor: 'rgb(180, 180, 0)',
             fillColor: 'rgba(255, 255, 0, 0.9)'
           },
           radiusFunc: radiusFunc
@@ -338,6 +338,10 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.populationLayer)
+      this.mapControl?.removeLayer(this.populationLayer.id!);
+    if (this.legendGroup)
+      this.mapControl?.removeGroup(this.legendGroup.id!)
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 
