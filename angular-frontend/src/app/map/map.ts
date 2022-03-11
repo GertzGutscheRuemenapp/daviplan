@@ -11,7 +11,7 @@ import TileWMS from 'ol/source/TileWMS';
 import XYZ from 'ol/source/XYZ';
 import { Stroke, Style, Fill, Text as OlText, RegularShape } from 'ol/style';
 import { Select } from "ol/interaction";
-import { click, singleClick, always } from 'ol/events/condition';
+import { click, always } from 'ol/events/condition';
 import { EventEmitter } from "@angular/core";
 import { Polygon } from "ol/geom";
 import { fromExtent } from 'ol/geom/Polygon';
@@ -253,47 +253,53 @@ export class OlMap {
     return layer;
   }
 
-  private getShape(shape: 'circle' | 'square' | 'star' | 'x' | 'triangle'): any {
+  private getShape(shape: 'circle' | 'square' | 'star' | 'x' | 'triangle',
+                   options?: {fillColor?: string, strokeColor?: string, strokeWidth?: number, radius?: number}): any {
+    const fillColor = options?.fillColor || 'white';
+    const strokeColor = options?.strokeColor || 'black';
+    const strokeWidth = options?.strokeWidth || 1;
+    const stroke = new Stroke({ color: strokeColor, width: strokeWidth });
+    const fill = new Fill({ color: fillColor });
     if (shape === 'circle')
       return new CircleStyle({
-        radius: 5,
-        fill: new Fill(),
-        stroke: new Stroke
+        radius: options?.radius || 5,
+        fill: fill,
+        stroke: stroke
       })
     if (shape === 'square')
       return new RegularShape({
         points: 4,
-        radius: 10,
+        radius: options?.radius || 10,
         angle: Math.PI / 4,
-        fill: new Fill(),
-        stroke: new Stroke
+        fill: fill,
+        stroke: stroke
       });
     if (shape === 'triangle')
       return new RegularShape({
         points: 3,
-        radius: 10,
+        radius: options?.radius || 10,
         rotation: Math.PI / 4,
         angle: 0,
-        fill: new Fill(),
-        stroke: new Stroke
+        fill: fill,
+        stroke: stroke
       });
     if (shape === 'star')
       return new RegularShape({
         points: 5,
-        radius: 10,
+        radius: options?.radius || 10,
         radius2: 4,
         angle: 0,
-        fill: new Fill(),
-        stroke: new Stroke
+        fill: fill,
+        stroke: stroke
       });
     if (shape === 'x')
       return new RegularShape({
         points: 4,
-        radius: 10,
+        radius: options?.radius || 10,
         radius2: 0,
         angle: Math.PI / 4,
-        fill: new Fill(),
-        stroke: new Stroke
+        fill: fill,
+        stroke: stroke
       })
   }
 
@@ -363,27 +369,19 @@ export class OlMap {
       else {
         style.getText().setText('');
       }
-      const zIndex = feature.get('zIndex');
-      if (zIndex !== undefined)
+      let zIndex = feature.get('zIndex');
+      if (zIndex !== undefined) {
+        // if (layer.get('select') && layer.get('select').getFeatures().getArray().indexOf(feature) !== -1)
+        //   zIndex = 10000000000;
         style.setZIndex(zIndex);
-      const valueField = options?.valueField || 'value';
-      if (options?.shape) {
-        const shape = _this.getShape(options?.shape);
-        if (options?.radius){
-          const radius = (typeof options?.radius === 'function')? options.radius(Number(feature.get(valueField))): options.radius;
-          console.log(radius)
-          shape.setRadius(Math.round(radius));
-        }
-        shape.getFill().setColor(fillColor);
-        shape.getStroke().setColor(strokeColor);
-        style.setImage(shape);
       }
-      if (typeof options?.fill?.color === 'function'){
-        const color = options.fill.color(Number(feature.get(valueField)));
-        style.getFill().setColor(color);
-        if (options?.shape)
-          // @ts-ignore
-          style.getImage().getFill().setColor(color);
+      const valueField = options?.valueField || 'value';
+      const fc = (typeof options?.fill?.color === 'function')? options.fill.color(Number(feature.get(valueField))): fillColor;
+      style.getFill().setColor(fc);
+      if (options?.shape) {
+        const radius = (typeof options?.radius === 'function')? options.radius(Number(feature.get(valueField))): options?.radius;
+        const shape = _this.getShape(options?.shape, { fillColor: fc, strokeColor: strokeColor, radius: radius });
+        style.setImage(shape);
       }
       return style;
     };
@@ -401,34 +399,31 @@ export class OlMap {
       cursor: (options?.mouseOverCursor)? options?.mouseOverCursor: (options?.selectable)? 'pointer': undefined,
       fillColor: options?.fill?.mouseOverColor,
       strokeColor: options?.stroke?.mouseOverColor,
-      strokeWidth: options?.stroke?.mouseOverWidth || options?.stroke?.width || 1
+      strokeWidth: options?.stroke?.mouseOverWidth || options?.stroke?.width || 1,
+      styleFunc: styleFunc
     });
     if (options?.selectable) {
-      const selectStrokeColor = options.stroke?.selectedColor;
-      const selectFillColor = options.fill?.selectedColor;
-      let selectStyle;
-      if (selectFillColor || selectStrokeColor) {
-        selectStyle = new Style({
-          stroke: new Stroke({
-            color: selectStrokeColor || options.stroke?.color,
-            width: options.stroke?.width || 1,
-            lineDash: options?.stroke?.selectedDash
-          }),
-          fill: new Fill({
-            color: selectFillColor || 'rgba(0,0,0,0)'
-          }),
-        });
+      const selectStrokeColor = options.stroke?.selectedColor || strokeColor;
+      const selectFillColor = options.fill?.selectedColor || fillColor;
+      const selectStyleFunc = function(feature: any){
+        const featStyle = styleFunc(feature);
+        featStyle.setStroke(new Stroke({
+          color: selectStrokeColor,
+          width: options.stroke?.width || 1,
+          lineDash: options?.stroke?.selectedDash
+        }));
+        featStyle.getFill().setColor(selectFillColor);
         if (options?.shape) {
-          const shape = this.getShape(options?.shape);
-          shape.getFill().setColor(selectFillColor);
-          shape.getStroke().setColor(selectStrokeColor);
-          selectStyle.setImage(shape);
+          const radius = (typeof options?.radius === 'function')? options.radius(Number(feature.get(options?.valueField || 'value'))): options?.radius;
+          const shape = _this.getShape(options?.shape, { fillColor: selectFillColor, strokeColor: selectStrokeColor, radius: radius });
+          style.setImage(shape);
         }
+        return featStyle;
       }
       const select = new Select({
         condition: click,
         layers: [layer],
-        style: selectStyle || styleFunc,
+        style: selectStyleFunc,
         toggleCondition: always
       })
       this.map.addInteraction(select);
@@ -453,7 +448,8 @@ export class OlMap {
     tooltipField?: string,
     fillColor?: string,
     strokeColor?: string,
-    strokeWidth?: number
+    strokeWidth?: number,
+    styleFunc?: ((d: any) => any)
   }){
     // avoid setting map interactions if nothing is defined to set anyway
     if (!(options.cursor || options.tooltipField || options.fillColor || options.strokeColor) || !layer.getVisible()) return;
@@ -462,16 +458,43 @@ export class OlMap {
       layer.set('showTooltip', true);
 
     if (options.fillColor || options.strokeColor) {
+      const fillColor = options.fillColor || 'rgba(0,0,0,0)';
+      const strokeColor = options.strokeColor || 'rgba(0,0,0,0)';
+      const strokeWidth = options.strokeWidth || 1;
+      const styleFunc = function(feature: any){
+        if (options?.styleFunc) {
+          const style = options.styleFunc(feature).clone();
+          style.getFill().setColor(fillColor);
+          style.getStroke().setColor(fillColor);
+          const shape = style?.getImage();
+          if (shape instanceof CircleStyle) {
+            // shapes are ready rendered without possibility to change attributes
+            // -> new shape has to be created based on existing one
+            // ToDo: regular shapes
+            const newShape = new CircleStyle({
+              radius: shape.getRadius(),
+              fill: new Fill( { color: fillColor }),
+              stroke: new Stroke( { color: strokeColor, width: strokeWidth })
+            })
+            style.setImage(newShape);
+          }
+          return style;
+        }
+        return new Style({
+          fill: new Fill({ color: fillColor }),
+          stroke: new Stroke({ color: strokeColor, width: strokeWidth })
+        })
+      }
       this.overlays[layer.get('name')] = new VectorLayer({
         source: new VectorSource(),
         map: this.map,
-        style: new Style({
-          fill: new Fill({ color: options.fillColor || 'rgba(0,0,0,0)' }),
-          stroke: new Stroke({ color: options.strokeColor || 'rgba(0,0,0,0)', width: options.strokeWidth || 1 })
-        }),
+        style: styleFunc
       });
     }
     this.map.on('pointermove', event => {
+      if (!layer.getVisible()) {
+        return;
+      };
       layer.getFeatures(event.pixel).then((features: Feature<any>[]) => {
         const overlay = this.overlays[layer.get('name')];
         if (overlay) {
@@ -488,7 +511,7 @@ export class OlMap {
           } else
             tooltip!.style.display = 'none';
         }
-        if (options.cursor && layer.getVisible()) {
+        if (options.cursor) {
           this.div!.style.cursor = features.length > 0 ? options.cursor : '';
         }
       });
@@ -496,6 +519,7 @@ export class OlMap {
     const overlay = this.overlays[layer.get('name')];
     if (overlay)
       this.map.getViewport().addEventListener('mouseout', event => {
+        this.div!.style.cursor = '';
         overlay.getSource().clear();
       });
   }
@@ -580,6 +604,8 @@ export class OlMap {
   setVisible(name: string, visible: boolean): void{
     let layer = this.layers[name];
     layer?.setVisible(visible);
+    const overlay = this.overlays[layer.get('name')];
+    if (overlay) overlay?.setVisible(visible);
   }
 
   setOpacity(name: string, opacity: number): void{

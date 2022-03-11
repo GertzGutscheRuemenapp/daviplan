@@ -202,7 +202,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
           opacity: 1,
           symbol: {
             strokeColor: 'white',
-            fillColor: '#a50f15',
+            fillColor: 'rgba(165, 15, 21, 0.9)',
             symbol: 'circle'
           },
           labelField: 'value'
@@ -211,12 +211,13 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
           visible: true,
           tooltipField: 'description',
           mouseOver: {
-            strokeColor: 'blue'
+            strokeColor: 'yellow',
+            fillColor: 'rgba(255, 255, 0, 0.7)'
           },
           selectable: true,
           select: {
             strokeColor: 'yellow',
-            fillColor: 'yellow'
+            fillColor: 'rgba(255, 255, 0, 0.9)'
           },
           radiusFunc: radiusFunc
         });
