@@ -1,15 +1,17 @@
-import {AfterViewInit, Component, OnDestroy} from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
 import { environment } from "../../../../environments/environment";
 import { Observable, Subscription } from "rxjs";
 import { map, shareReplay } from "rxjs/operators";
 import { BreakpointObserver } from "@angular/cdk/layout";
-import { MultilineData } from "../../../diagrams/multiline-chart/multiline-chart.component";
+import { MultilineChartComponent, MultilineData } from "../../../diagrams/multiline-chart/multiline-chart.component";
 import { BalanceChartData } from "../../../diagrams/balance-chart/balance-chart.component";
 import { PopulationService } from "../population.service";
 import { Area, AreaLevel, Layer, LayerGroup } from "../../../rest-interfaces";
 import { SettingsService } from "../../../settings.service";
 import * as d3 from "d3";
+import { StackedBarchartComponent } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
+import { sortBy } from "../../../helpers/utils";
 
 export const mockTotalData: MultilineData[] = [
   { group: '2000', values: [0] },
@@ -55,6 +57,8 @@ export const mockData: BalanceChartData[] = [
   styleUrls: ['./pop-statistics.component.scss']
 })
 export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('totalChart') totalChart?: MultilineChartComponent;
+  @ViewChild('balanceChart') balanceChart?: StackedBarchartComponent;
   mapControl?: MapControl;
   backend: string = environment.backend;
   areas: Area[] = [];
@@ -212,7 +216,34 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   }
 
   updateDiagrams(): void {
+    this.balanceChart?.clear();
+    this.totalChart?.clear();
+    if (!this.activeArea) return;
+    this.populationService.getStatistics({ areaId: this.activeArea.id }).subscribe(statistics => {
+      let totalData: MultilineData[] = [];
+      let balanceData: BalanceChartData[] = [];
+      let maxTotal = 0, minTotal = 0, maxValue = 0, minValue = 0;
+      sortBy(statistics, 'year').forEach(yearData => {
+        const posValue = (this.theme === 'nature')? yearData.births: yearData.immigration;
+        const negValue = -((this.theme === 'nature')? yearData.deaths: yearData.emigration);
+        const diffValue = posValue - negValue;
+        maxValue = Math.max(maxValue, posValue);
+        minValue = Math.min(minValue, negValue);
+        maxTotal = Math.max(maxTotal, diffValue);
+        minTotal = Math.min(minTotal, diffValue);
+        balanceData.push({ group: yearData.year.toString(), values: [posValue, negValue] })
+        totalData.push({ group: yearData.year.toString(), values: [diffValue] });
+      })
+      // ToDo: min, max, labels, legend
+      // ToDo: backend - max diff of migration and nature (map)
+      this.balanceChart?.draw(balanceData);
+      this.totalChart?.draw(totalData);
+    })
+  }
 
+  onAreaChange(): void {
+    this.mapControl?.selectFeatures([this.activeArea!.id], this.statisticsLayer!.id!, { silent: true, clear: true });
+    this.updateDiagrams();
   }
 
   setSlider(): void {

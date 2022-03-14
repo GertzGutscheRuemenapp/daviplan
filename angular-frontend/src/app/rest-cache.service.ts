@@ -228,14 +228,12 @@ export class RestCacheService {
       if (!cached) {
         this.setLoading(true);
         let url = this.rest.URLS.statisticsData;
-        let params = [];
+        let params: any = {};
         if (options?.year !== undefined)
-          params.push(`popstatistic__year__year=${options.year}`)
+          params['year'] = options.year;
         if (options?.areaId !== undefined)
-          params.push(`area=${options.areaId}`)
-        if (params.length > 0)
-          url += `?${params.join(',')}`
-        this.http.get<StatisticsData[]>(url).subscribe(data => {
+          params['area'] = options.areaId;
+        this.http.get<StatisticsData[]>(this.rest.URLS.statisticsData, { params: params }).subscribe(data => {
           this.statisticsCache[key] = data;
           this.setLoading(false);
           subscriber.next(data);

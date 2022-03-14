@@ -122,6 +122,7 @@ export interface PopulationData {
 export interface StatisticsData {
   id: number,
   popstatistic: number,
+  year: number,
   area: number,
   immigration: number,
   emigration: number,

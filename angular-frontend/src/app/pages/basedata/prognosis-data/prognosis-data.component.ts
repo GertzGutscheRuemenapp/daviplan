@@ -1,10 +1,26 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
 import { StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
-import { mockdata } from "../../population/pop-development/pop-development.component"
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
 
 export const mockPrognoses = ['Trendfortschreibung', 'mehr Zuwanderung', 'mehr Abwanderung'];
+
+const mockdata: StackedData[] = [
+  { group: '2000', values: [200, 300, 280] },
+  { group: '2001', values: [190, 310, 290] },
+  { group: '2002', values: [192, 335, 293] },
+  { group: '2003', values: [195, 340, 295] },
+  { group: '2004', values: [189, 342, 293] },
+  { group: '2005', values: [182, 345, 300] },
+  { group: '2006', values: [176, 345, 298] },
+  { group: '2007', values: [195, 330, 290] },
+  { group: '2008', values: [195, 340, 295] },
+  { group: '2009', values: [192, 335, 293] },
+  { group: '2010', values: [195, 340, 295] },
+  { group: '2012', values: [189, 342, 293] },
+  { group: '2013', values: [200, 300, 280] },
+  { group: '2014', values: [195, 340, 295] },
+]
 
 @Component({
   selector: 'app-prognosis-data',

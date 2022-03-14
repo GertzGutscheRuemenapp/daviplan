@@ -75,9 +75,11 @@
   <div>
     <mat-form-field appearance="outline" class="small">
       <mat-label>Gebiet</mat-label>
-      <mat-select disableOptionCentering disableRipple value="irgendwo">
-        <mat-option value="irgendwo">
-          [Gebietseinheit]
+      <mat-select disableOptionCentering disableRipple
+                  [(ngModel)]="activeArea"
+                  (ngModelChange)="onAreaChange()">
+        <mat-option *ngFor="let area of areas" [value]="area">
+          {{area.properties.label}}
         </mat-option>
       </mat-select>
     </mat-form-field>
@@ -103,7 +105,6 @@
                          yBottomLabel="Fortzüge"
                          [title]="'Wanderung'"
                          [animate]="true"
-                         [data]="data"
                          lineLabel="Wanderungssaldo"
                          [yOrigin]="0"
                          [yPadding]="10"
@@ -126,7 +127,6 @@
                            yBottomLabel="mehr Fortzüge"
                            [title]="'Wanderungssaldo'"
                            [animate]="true"
-                           [data]="totalData"
                            [yOrigin]="0"
                            [yPadding]="10"
                            [colors]="['#2196f3']"
