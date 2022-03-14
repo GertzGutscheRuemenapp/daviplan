@@ -505,9 +505,12 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
     queryset = PopStatistic.objects.all()
     serializer_class = PopStatisticSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    filter_fields = ['year']
 
 
 class PopStatEntryViewSet(viewsets.ModelViewSet):
     queryset = PopStatEntry.objects.all()
     serializer_class = PopStatEntrySerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    filter_fields = ['popstatistic', 'popstatistic__year',
+                     'popstatistic__year__year', 'area']

@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
 import {
   Place, AreaLevel, Area, Gender, AreaPopulationData, PopulationData, AgeGroup,
-  Infrastructure, Service, Capacity, Prognosis
+  Infrastructure, Service, Capacity, Prognosis, StatisticsData
 } from "./rest-interfaces";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
@@ -29,6 +29,7 @@ export class RestCacheService {
   private popAreaCache: Record<string, AreaPopulationData[]> = {};
   private placesCache: Record<number, Place[]> = {};
   private capacitiesCache: Record<string, Capacity[]> = {};
+  private statisticsCache: Record<string, StatisticsData[]> = {};
   isLoading$ = new BehaviorSubject<boolean>(false);
 
   constructor(protected http: HttpClient, protected rest: RestAPI) { }
@@ -217,6 +218,35 @@ export class RestCacheService {
         subscriber.complete();
       }
     });
+    return observable;
+  }
+
+  getStatistics(options?: { year?: number, areaId?: number }): Observable<StatisticsData[]> {
+    const key = `${options?.areaId}-${options?.year}`;
+    const observable = new Observable<StatisticsData[]>(subscriber => {
+      const cached = this.statisticsCache[key];
+      if (!cached) {
+        this.setLoading(true);
+        let url = this.rest.URLS.statisticsData;
+        let params = [];
+        if (options?.year !== undefined)
+          params.push(`popstatistic__year__year=${options.year}`)
+        if (options?.areaId !== undefined)
+          params.push(`area=${options.areaId}`)
+        if (params.length > 0)
+          url += `?${params.join(',')}`
+        this.http.get<StatisticsData[]>(url).subscribe(data => {
+          this.statisticsCache[key] = data;
+          this.setLoading(false);
+          subscriber.next(data);
+          subscriber.complete();
+        })
+      } else {
+        subscriber.next(cached);
+        subscriber.complete();
+      }
+
+    })
     return observable;
   }
 

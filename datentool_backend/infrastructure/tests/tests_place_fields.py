@@ -154,7 +154,6 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         label = place.attributes.get(field__is_label=True).value
         self.assertEqual(place.label, label)
 
-
         attributes = {'harmless': 123, 'very_secret': 456, }
         place.attributes = attributes
         place.save()

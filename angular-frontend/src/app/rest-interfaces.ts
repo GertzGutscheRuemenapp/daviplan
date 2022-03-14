@@ -113,6 +113,16 @@ export interface PopulationData {
   value: number
 }
 
+export interface StatisticsData {
+  id: number,
+  popstatistic: number,
+  area: number,
+  immigration: number,
+  emigration: number,
+  births: number,
+  deaths: number
+}
+
 export interface AgeGroup {
   id?: number,
   fromAge: number,

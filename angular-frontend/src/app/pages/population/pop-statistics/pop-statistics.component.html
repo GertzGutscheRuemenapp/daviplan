@@ -10,10 +10,10 @@
         Thema
         <ng-template #themeHelp>
           <p>Wählen Sie hier das Thema für die Karten- bzw. Diagrammdarstellungen aus.</p>
-          <p *ngIf="theme==='wanderung'">
+          <p *ngIf="theme==='migration'">
             Mit der Auswahl entweder der Zuzüge oder der Fortzüge (oder aber von Beidem) über die Checkboxen legen Sie den Indikator für die Kartendarstellung fest. Angezeigt werden je nach Auswahl nur die Zuzüge, nur die Fortzüge oder der Wanderungssaldo als Bilanz aus Zu- und Fortzügen. Die Diagrammdarstellungen umfassen stets alle drei Indikatoren.
           </p>
-          <p *ngIf="theme==='natur'">
+          <p *ngIf="theme==='nature'">
             Mit der Auswahl entweder der Geburten oder der Sterbefälle (oder aber von Beidem) legen Sie den Indikator für die Kartendarstellung fest. Angezeigt werden je nach Auswahl nur die Geburten, nur die Sterbefälle oder der natürliche Bevölkerungssaldo als Bilanz aus Geburten und Sterbefällen. Die Diagrammdarstellungen umfassen stets alle drei Indikatoren.
           </p>
         </ng-template>
@@ -23,30 +23,40 @@
     </mat-expansion-panel-header>
     <div style="padding-bottom: 10px;">
       <mat-form-field appearance="outline" class="small">
-        <mat-select disableOptionCentering disableRipple [(ngModel)]="theme">
-          <mat-option value="natur">
+        <mat-select disableOptionCentering disableRipple
+                    [(ngModel)]="theme"
+                    (ngModelChange)="updateMap()">
+          <mat-option value="nature">
             Natürlicher Saldo
           </mat-option>
-          <mat-option value="wanderung">
+          <mat-option value="migration">
             Wanderung
           </mat-option>
         </mat-select>
       </mat-form-field>
-<!--      <mat-radio-group [(ngModel)]="theme">
-        <mat-radio-button value="natur" color="primary">
-          Natürlicher Saldo
-        </mat-radio-button><br>
-        <mat-radio-button value="wanderung" color="primary">
-          Wanderung
-        </mat-radio-button>
-      </mat-radio-group>-->
-      <div class="sub-select-wrapper" [style.display]="(theme==='wanderung')? 'block' : 'none'">
-        <mat-checkbox [checked]="true" color="primary">Geburten</mat-checkbox><br>
-        <mat-checkbox [checked]="true" color="primary">Sterbefälle</mat-checkbox>
+      <div class="sub-select-wrapper" [style.display]="(theme==='nature')? 'block' : 'none'">
+        <mat-checkbox [(ngModel)]="showBirths"
+                      color="primary"
+                      (ngModelChange)="updateMap()">
+          Geburten
+        </mat-checkbox><br>
+        <mat-checkbox [(ngModel)]="showDeaths"
+                      color="primary"
+                      (ngModelChange)="updateMap()">
+          Sterbefälle
+        </mat-checkbox>
       </div>
-      <div class="sub-select-wrapper" [style.display]="(theme==='natur')? 'block' : 'none'">
-        <mat-checkbox [checked]="true" color="primary">Zuzüge</mat-checkbox><br>
-        <mat-checkbox [checked]="false" color="primary">Fortzüge</mat-checkbox>
+      <div class="sub-select-wrapper" [style.display]="(theme==='migration')? 'block' : 'none'">
+        <mat-checkbox [(ngModel)]="showImmigration"
+                      color="primary"
+                      (ngModelChange)="updateMap()">
+          Zuzüge
+        </mat-checkbox><br>
+        <mat-checkbox [(ngModel)]="showEmigration"
+                      color="primary"
+                      (ngModelChange)="updateMap()">
+          Fortzüge
+        </mat-checkbox>
       </div>
     </div>
   </mat-expansion-panel>

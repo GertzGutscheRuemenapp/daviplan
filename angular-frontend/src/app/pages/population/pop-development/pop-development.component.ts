@@ -338,14 +338,6 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     this.updateDiagrams();
   }
 
-  ngOnDestroy(): void {
-    if (this.populationLayer)
-      this.mapControl?.removeLayer(this.populationLayer.id!);
-    if (this.legendGroup)
-      this.mapControl?.removeGroup(this.legendGroup.id!)
-    this.subscriptions.forEach(subscription => subscription.unsubscribe());
-  }
-
   updateMapDescription(): void {
     let description = '';
     if (!this.activeLevel)
@@ -358,5 +350,13 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
                     `${genderDesc} | ${ageGroupDesc}`;
     }
     this.mapControl!.mapDescription = description;
+  }
+
+  ngOnDestroy(): void {
+    if (this.populationLayer)
+      this.mapControl?.removeLayer(this.populationLayer.id!);
+    if (this.legendGroup)
+      this.mapControl?.removeGroup(this.legendGroup.id!)
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }
