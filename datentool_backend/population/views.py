@@ -3,6 +3,7 @@ from io import StringIO
 from distutils.util import strtobool
 from django.http.request import QueryDict
 from django.db import connection
+from django_filters import rest_framework as filters
 
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -508,9 +509,16 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
     filter_fields = ['year']
 
 
+class PopStatEntryFilter(filters.FilterSet):
+    year = filters.NumberFilter(field_name='popstatistic__year__year',
+                                lookup_expr='exact')
+    class Meta:
+        model = PopStatEntry
+        fields = ['popstatistic', 'year', 'area']
+
+
 class PopStatEntryViewSet(viewsets.ModelViewSet):
     queryset = PopStatEntry.objects.all()
     serializer_class = PopStatEntrySerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-    filter_fields = ['popstatistic', 'popstatistic__year',
-                     'popstatistic__year__year', 'area']
+    filterset_class = PopStatEntryFilter

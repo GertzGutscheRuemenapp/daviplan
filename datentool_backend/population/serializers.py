@@ -80,10 +80,11 @@ class PopStatisticSerializer(serializers.ModelSerializer):
 
 
 class PopStatEntrySerializer(serializers.ModelSerializer):
+    year = serializers.IntegerField(source='popstatistic.year.year')
     class Meta:
         model = PopStatEntry
         fields = ('id', 'popstatistic', 'area', 'immigration', 'emigration',
-                  'births', 'deaths')
+                  'births', 'deaths', 'year')
 
 
 class MessageSerializer(serializers.Serializer):
