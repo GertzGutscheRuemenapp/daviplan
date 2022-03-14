@@ -380,7 +380,7 @@ export class OlMap {
       const fc = (typeof options?.fill?.color === 'function')? options.fill.color(Number(feature.get(valueField))): fillColor;
       style.getFill().setColor(fc);
       if (options?.shape) {
-        const radius = (typeof options?.radius === 'function')? options.radius(Number(feature.get(valueField))): options?.radius;
+        const radius = (typeof options?.radius === 'function')? Math.abs(options.radius(Number(feature.get(valueField)))): options?.radius;
         const shape = _this.getShape(options?.shape, { fillColor: fc, strokeColor: strokeColor, radius: radius });
         style.setImage(shape);
       }

@@ -64,7 +64,12 @@ export class BalanceChartComponent implements AfterViewInit {
       .append("g");
   }
 
+  clear(): void {
+    this.svg.selectAll("*").remove();
+  }
+
   public draw(data: BalanceChartData[]): void {
+    this.clear();
     if (data.length == 0) return
 
     if (!this.labels)

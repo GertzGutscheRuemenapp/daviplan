@@ -75,7 +75,7 @@ export class MultilineChartComponent implements AfterViewInit {
   }
 
   public draw(data: MultilineData[]): void {
-      this.clear();
+    this.clear();
     if (data.length == 0) return;
 
     if (!this.labels)
