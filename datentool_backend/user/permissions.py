@@ -7,7 +7,6 @@ class CanUpdateProcessPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
             return True
-
         return (request.user.is_superuser or request.user.profile.admin_access
                 or request.user.profile.can_create_process)
 

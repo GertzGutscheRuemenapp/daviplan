@@ -10,26 +10,8 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { PopulationService } from "../population.service";
 import { Area, AreaLevel, Gender, Layer, LayerGroup, AgeGroup, Prognosis } from "../../../rest-interfaces";
 import * as d3 from "d3";
-import { layer } from "@fortawesome/fontawesome-svg-core";
 import { SelectionModel } from "@angular/cdk/collections";
 import { sortBy } from "../../../helpers/utils";
-
-export const mockdata: StackedData[] = [
-  { group: '2000', values: [200, 300, 280] },
-  { group: '2001', values: [190, 310, 290] },
-  { group: '2002', values: [192, 335, 293] },
-  { group: '2003', values: [195, 340, 295] },
-  { group: '2004', values: [189, 342, 293] },
-  { group: '2005', values: [182, 345, 300] },
-  { group: '2006', values: [176, 345, 298] },
-  { group: '2007', values: [195, 330, 290] },
-  { group: '2008', values: [195, 340, 295] },
-  { group: '2009', values: [192, 335, 293] },
-  { group: '2010', values: [195, 340, 295] },
-  { group: '2012', values: [189, 342, 293] },
-  { group: '2013', values: [200, 300, 280] },
-  { group: '2014', values: [195, 340, 295] },
-]
 
 @Component({
   selector: 'app-pop-development',
@@ -192,7 +174,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     if (ageGroups.length === 0 || !this.activeLevel) return;
     this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,
       { genders: genders, prognosis: prognosis, ageGroups: ageGroups.map(ag => ag.id!) }).subscribe(popData => {
-      const radiusFunc = d3.scaleLinear().domain([0, this.activeLevel?.maxPopulation!]).range([5, 100]);
+      const radiusFunc = d3.scaleLinear().domain([0, this.activeLevel?.maxValues!.population!]).range([5, 50]);
       this.populationLayer = this.mapControl?.addLayer({
           order: 0,
           type: 'vector',
@@ -227,7 +209,6 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         area.properties.value = (data)? Math.round(data.value): 0;
         area.properties.description = `<b>${area.properties.label}</b><br>Bevölkerung: ${area.properties.value}`
       })
-      // ToDo: move wkt parsing to populationservice, is done on every change year/level atm (expensive)
       this.mapControl?.addFeatures(this.populationLayer!.id!, this.areas,
         { properties: 'properties', geometry: 'centroid', zIndex: 'value' });
       if (this.activeArea)
@@ -338,14 +319,6 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     this.updateDiagrams();
   }
 
-  ngOnDestroy(): void {
-    if (this.populationLayer)
-      this.mapControl?.removeLayer(this.populationLayer.id!);
-    if (this.legendGroup)
-      this.mapControl?.removeGroup(this.legendGroup.id!)
-    this.subscriptions.forEach(subscription => subscription.unsubscribe());
-  }
-
   updateMapDescription(): void {
     let description = '';
     if (!this.activeLevel)
@@ -358,5 +331,13 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
                     `${genderDesc} | ${ageGroupDesc}`;
     }
     this.mapControl!.mapDescription = description;
+  }
+
+  ngOnDestroy(): void {
+    if (this.populationLayer)
+      this.mapControl?.removeLayer(this.populationLayer.id!);
+    if (this.legendGroup)
+      this.mapControl?.removeGroup(this.legendGroup.id!)
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }

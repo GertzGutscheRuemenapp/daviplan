@@ -157,7 +157,7 @@ class TestScenarioAPI(TestAPIMixin, BasicModelTest, APITestCase):
 
         patch_data['modevariants'] = [{'variant': modevariant3.id, }]
         patch_data['demandratesets'] = [{'demandrateset': demandrateset3.id, }]
-        #  ToDO: test for variantes of different modes
+        #  ToDo: test for variantes of different modes
 
         response = self.patch(self.url_key + '-detail', pk=scenario.pk,
                               data=patch_data, extra=dict(format='json'))
