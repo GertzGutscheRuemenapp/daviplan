@@ -192,7 +192,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     if (ageGroups.length === 0 || !this.activeLevel) return;
     this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,
       { genders: genders, prognosis: prognosis, ageGroups: ageGroups.map(ag => ag.id!) }).subscribe(popData => {
-      const radiusFunc = d3.scaleLinear().domain([0, this.activeLevel?.maxPopulation!]).range([5, 100]);
+      const radiusFunc = d3.scaleLinear().domain([0, this.activeLevel?.maxValues!.population!]).range([5, 50]);
       this.populationLayer = this.mapControl?.addLayer({
           order: 0,
           type: 'vector',

@@ -7,7 +7,7 @@ import { BreakpointObserver } from "@angular/cdk/layout";
 import { MultilineData } from "../../../diagrams/multiline-chart/multiline-chart.component";
 import { BalanceChartData } from "../../../diagrams/balance-chart/balance-chart.component";
 import { PopulationService } from "../population.service";
-import { Area, Layer, LayerGroup } from "../../../rest-interfaces";
+import { Area, AreaLevel, Layer, LayerGroup } from "../../../rest-interfaces";
 import { SettingsService } from "../../../settings.service";
 import * as d3 from "d3";
 
@@ -58,6 +58,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   mapControl?: MapControl;
   backend: string = environment.backend;
   areas: Area[] = [];
+  areaLevel?: AreaLevel;
   years?: number[];
   year?: number;
   theme: 'nature' | 'migration' = 'nature';
@@ -102,11 +103,15 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       this.year = years[0];
       this.setSlider();
       this.settings.baseDataSettings$.subscribe(baseSettings => {
-        this.populationService.getAreas(baseSettings.popStatisticsAreaLevel,
-          { targetProjection: this.mapControl!.map!.mapProjection }).subscribe(areas => {
-          this.areas = areas;
-          this.updateMap();
-          this.updateDiagrams();
+        const baseLevel = baseSettings.popStatisticsAreaLevel;
+        this.populationService.areaLevels$.subscribe(areaLevels => {
+          this.areaLevel = areaLevels.find(al => al.id === baseLevel);
+          this.populationService.getAreas(baseLevel,
+            { targetProjection: this.mapControl!.map!.mapProjection }).subscribe(areas => {
+            this.areas = areas;
+            this.updateMap();
+            this.updateDiagrams();
+          })
         })
       })
     })
@@ -126,21 +131,25 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       return;
     }
     this.populationService.getStatistics({ year: this.year! }).subscribe(statistics => {
-      const radiusFunc = d3.scaleLinear().domain([0, 1000]).range([5, 50]);
       let descr = '';
+      let max: number;
       let color: string;
-      const colorFunc = function(value: number) {
-        return (value > 0)? '#1a9850': (value < 0)? '#d73027': 'grey';
-      };
       const diffDisplay = ((this.theme ==='nature' && this.showBirths && this.showDeaths) || (this.theme ==='migration' && this.showEmigration && this.showImmigration));
+      const mvs = this.areaLevel?.maxValues!;
       if (this.theme === 'nature') {
         descr = diffDisplay? 'Natürlicher Saldo' : (this.showBirths) ? 'Geburten' : 'Sterbefälle';
         color = this.showBirths? '#1a9850': '#d73027';
+        max = (diffDisplay)? Math.max(mvs.births!, mvs.deaths!): this.showBirths? mvs.births!: mvs.deaths!;
       }
       else {
         descr = diffDisplay? 'Wanderungssaldo' : (this.showImmigration) ? 'Zuzüge' : 'Fortzüge';
         color = this.showImmigration? '#1a9850': '#d73027';
+        max = (diffDisplay)? Math.max(mvs.immigration!, mvs.emigration!): this.showImmigration? mvs.immigration!: mvs.emigration!;
       }
+      const radiusFunc = d3.scaleLinear().domain([0, max]).range([5, 50]);
+      const colorFunc = function(value: number) {
+        return (value > 0)? '#1a9850': (value < 0)? '#d73027': 'grey';
+      };
 
       this.statisticsLayer = this.mapControl?.addLayer({
         order: 0,

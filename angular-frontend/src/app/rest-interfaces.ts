@@ -76,7 +76,13 @@ export interface AreaLevel {
   isPreset?: boolean;
   isActive?: boolean;
   areaCount?: number;
-  maxPopulation?: number;
+  maxValues?: {
+    population: number,
+    immigration?: number,
+    emigration?: number,
+    births?: number,
+    deaths?: number
+  }
 }
 
 export interface Area {

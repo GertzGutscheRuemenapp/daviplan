@@ -3,14 +3,14 @@ from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
 from datetime import date as dt_date
 from django.urls import reverse
-from django.db.models import Sum
+from django.db.models import Max
 
 from .models import (MapSymbol, LayerGroup, WMSLayer,
                      Source, AreaLevel, Area,
                      FieldType, FieldTypes, FClass,
                      AreaAttribute, AreaField,
                      )
-from datentool_backend.models import PopulationEntry, AreaPopulationAgeGender
+from datentool_backend.models import PopStatEntry
 
 
 class MapSymbolSerializer(serializers.ModelSerializer):
@@ -67,13 +67,26 @@ class AreaLevelSerializer(serializers.ModelSerializer):
     area_count = serializers.IntegerField(source='area_set.count',
                                           read_only=True)
     tile_url = serializers.SerializerMethodField()
+    max_values = serializers.SerializerMethodField()
 
     class Meta:
         model = AreaLevel
         fields = ('id', 'name', 'order', 'source', 'symbol', 'is_active',
                   'is_preset', 'area_count', 'tile_url', 'label_field',
-                  'max_population', 'max_population')
+                  'max_values')
         read_only_fields = ('is_preset', )
+
+    def get_max_values(self, obj):
+        ret = {'population': obj.max_population}
+        if obj.is_statistic_level:
+            entries = PopStatEntry.objects.all()
+            mvs = entries.aggregate(Max('immigration'), Max('emigration'),
+                                    Max('births'), Max('deaths'))
+            ret['immigration'] = mvs['immigration__max']
+            ret['emigration'] = mvs['emigration__max']
+            ret['births'] = mvs['births__max']
+            ret['deaths'] = mvs['deaths__max']
+        return ret
 
     def get_tile_url(self, obj) -> str:
         # x,y,z have to be passed to reverse
