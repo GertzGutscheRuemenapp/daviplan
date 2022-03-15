@@ -58,7 +58,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       name: 'Bevölkerungsentwicklung',
       order: -1
     }, false)
-
+    this.mapControl.mapDescription = '';
     if (this.populationService.isReady)
       this.initData();
     else {
@@ -174,7 +174,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     if (ageGroups.length === 0 || !this.activeLevel) return;
     this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,
       { genders: genders, prognosis: prognosis, ageGroups: ageGroups.map(ag => ag.id!) }).subscribe(popData => {
-      const radiusFunc = d3.scaleLinear().domain([0, this.activeLevel?.maxValues!.population!]).range([5, 50]);
+      const radiusFunc = d3.scaleLinear().domain([0, this.activeLevel?.maxValues!.population! || 1000]).range([5, 50]);
       this.populationLayer = this.mapControl?.addLayer({
           order: 0,
           type: 'vector',

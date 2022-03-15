@@ -90,7 +90,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       name: 'Bevölkerungssalden',
       order: -1
     }, false)
-    this.mapControl.mapDescription = 'Bevölkerungsstatistik > Gemeinden | Wanderung';
+    this.mapControl.mapDescription = '';
     if (this.populationService.isReady)
       this.initData();
     else {
@@ -109,6 +109,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         const baseLevel = baseSettings.popStatisticsAreaLevel;
         this.populationService.areaLevels$.subscribe(areaLevels => {
           this.areaLevel = areaLevels.find(al => al.id === baseLevel);
+          if (!this.areaLevel) return;
           this.populationService.getAreas(baseLevel,
             { targetProjection: this.mapControl!.map!.mapProjection }).subscribe(areas => {
             this.areas = areas;
@@ -129,6 +130,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       this.mapControl?.removeLayer(this.statisticsLayer.id!);
       this.statisticsLayer = undefined;
     }
+    this.updateMapDescription();
     if ((this.theme === 'nature' && !this.showBirths && !this.showDeaths) ||
          this.theme === 'migration' && !this.showImmigration && !this.showEmigration){
       return;
@@ -269,6 +271,13 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
     slider.years = this.years!;
     slider.value = this.year;
     slider.draw();
+  }
+
+  updateMapDescription(): void {
+    if (!this.areaLevel) return;
+    const theme = (this.theme === 'nature')? 'Natürliche Bevölkerungsentwicklung': 'Wanderung';
+    let description = `${theme} für ${this.areaLevel.name}`;
+    this.mapControl!.mapDescription = description;
   }
 
   ngOnDestroy(): void {
