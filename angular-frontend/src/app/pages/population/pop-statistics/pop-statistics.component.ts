@@ -143,12 +143,12 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       if (this.theme === 'nature') {
         descr = diffDisplay? 'Natürlicher Saldo' : (this.showBirths) ? 'Geburten' : 'Sterbefälle';
         color = this.showBirths? '#1a9850': '#d73027';
-        max = (diffDisplay)? Math.max(mvs.births!, mvs.deaths!): this.showBirths? mvs.births!: mvs.deaths!;
+        max = (diffDisplay)? Math.max(mvs.natureDiff!): this.showBirths? mvs.births!: mvs.deaths!;
       }
       else {
         descr = diffDisplay? 'Wanderungssaldo' : (this.showImmigration) ? 'Zuzüge' : 'Fortzüge';
         color = this.showImmigration? '#1a9850': '#d73027';
-        max = (diffDisplay)? Math.max(mvs.immigration!, mvs.emigration!): this.showImmigration? mvs.immigration!: mvs.emigration!;
+        max = (diffDisplay)? Math.max(mvs.migrationDiff!): this.showImmigration? mvs.immigration!: mvs.emigration!;
       }
       const radiusFunc = d3.scaleLinear().domain([0, max]).range([5, 50]);
       const colorFunc = function(value: number) {
