@@ -12,44 +12,6 @@ import { SettingsService } from "../../../settings.service";
 import * as d3 from "d3";
 import { sortBy } from "../../../helpers/utils";
 
-export const mockTotalData: MultilineData[] = [
-  { group: '2000', values: [0] },
-  { group: '2001', values: [-10] },
-  { group: '2002', values: [-50] },
-  { group: '2003', values: [-12] },
-  { group: '2004', values: [-40] },
-  { group: '2005', values: [-21] },
-  { group: '2006', values: [2] },
-  { group: '2007', values: [32] },
-  { group: '2008', values: [12] },
-  { group: '2009', values: [3] },
-  { group: '2010', values: [-4] },
-  { group: '2011', values: [15] },
-  { group: '2012', values: [12] },
-  { group: '2013', values: [-6] },
-  { group: '2014', values: [21] },
-  { group: '2015', values: [-23] }
-]
-
-export const mockData: BalanceChartData[] = [
-  { group: '2000', values: [5, -8] },
-  { group: '2001', values: [3, -10] },
-  { group: '2002', values: [1, -9] },
-  { group: '2003', values: [2, -3] },
-  { group: '2004', values: [5, -6] },
-  { group: '2005', values: [4, -8] },
-  { group: '2006', values: [8, -7] },
-  { group: '2007', values: [10, -5] },
-  { group: '2008', values: [9, -2] },
-  { group: '2009', values: [12, -4] },
-  { group: '2010', values: [15, 0] },
-  { group: '2011', values: [12, -1] },
-  { group: '2012', values: [10, -1] },
-  { group: '2013', values: [3, -6] },
-  { group: '2014', values: [1, -9] },
-  { group: '2015', values: [2, -5] }
-]
-
 @Component({
   selector: 'app-pop-statistics',
   templateUrl: './pop-statistics.component.html',
@@ -70,8 +32,6 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       map(result => result.matches),
       shareReplay()
     );
-  data: BalanceChartData[] = mockData;
-  totalData: MultilineData[] = mockTotalData;
   statisticsLayer?: Layer;
   subscriptions: Subscription[] = [];
   legendGroup?: LayerGroup;
@@ -276,7 +236,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   updateMapDescription(): void {
     if (!this.areaLevel) return;
     const theme = (this.theme === 'nature')? 'Natürliche Bevölkerungsentwicklung': 'Wanderung';
-    let description = `${theme} für ${this.areaLevel.name}`;
+    let description = `${theme} für ${this.areaLevel.name} | ${this.year}`;
     this.mapControl!.mapDescription = description;
   }
 

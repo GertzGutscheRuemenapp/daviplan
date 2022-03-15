@@ -12,6 +12,7 @@ import { Area, AreaLevel, Gender, Layer, LayerGroup, AgeGroup, Prognosis } from 
 import * as d3 from "d3";
 import { SelectionModel } from "@angular/cdk/collections";
 import { sortBy } from "../../../helpers/utils";
+import { SettingsService } from "../../../settings.service";
 
 @Component({
   selector: 'app-pop-development',
@@ -49,7 +50,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   ageGroupColors: Record<number, string> = {};
 
   constructor(private breakpointObserver: BreakpointObserver, private mapService: MapService, private dialog: MatDialog,
-              private populationService: PopulationService) {
+              private populationService: PopulationService, private settings: SettingsService) {
   }
 
   ngAfterViewInit(): void {
@@ -72,12 +73,16 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     this.populationService.prognoses$.subscribe(prognoses => {
       this.prognoses = prognoses;
       const defaultProg = this.prognoses?.find(prognosis => prognosis.isDefault);
-      this.activePrognosis = defaultProg;
+      this.settings.user?.get('pop-prognosis').subscribe(progId => {
+        this.activePrognosis = this.prognoses!.find(p => p.id === progId) || defaultProg;
+      });
     })
     this.populationService.realYears$.subscribe( years => {
       this.realYears = years;
-      this.year = this.realYears[0];
-      this.setSlider();
+      this.settings.user?.get('pop-dev-year').subscribe(year => {
+        this.year = year || this.realYears![0];
+        this.setSlider();
+      });
     })
     this.populationService.prognosisYears$.subscribe( years => {
       this.prognosisYears = years;
@@ -88,11 +93,17 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         id: -1,
         name: 'alle'
       }
-      this.selectedGender = genderAll;
       this.genders = [genderAll].concat(genders);
+      this.settings.user?.get('pop-genders').subscribe(genderId => {
+        this.selectedGender = this.genders.find(g => g.id === genderId) || genderAll;
+      });
     })
     this.populationService.areaLevels$.subscribe(areaLevels => {
       this.areaLevels = areaLevels;
+      this.settings.user?.get('pop-area-level').subscribe(areaLevelId => {
+        if (areaLevelId !== undefined)
+          this.activeLevel = this.areaLevels.find(al => al.id === areaLevelId);
+      });
     })
     this.populationService.ageGroups$.subscribe(ageGroups => {
       this.ageGroupSelection.clear();
@@ -107,6 +118,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     })
     this.subscriptions.push(this.populationService.timeSlider!.valueChanged.subscribe(year => {
       this.year = year;
+      this.settings.user?.set('pop-dev-year', year);
       this.updateMap();
     }))
   }
@@ -116,7 +128,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     let slider = this.populationService.timeSlider!;
     slider.prognosisStart = this.prognosisYears[0] || 0;
     slider.years = this.realYears.concat(this.prognosisYears);
-    slider.value = this.realYears[0];
+    slider.value = this.year;
     slider.draw();
   }
 
@@ -139,6 +151,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   }
 
   onLevelChange(): void {
+    this.settings.user?.set('pop-area-level', this.activeLevel?.id);
     this.populationService.getAreas(this.activeLevel!.id, {targetProjection: this.mapControl!.map!.mapProjection}).subscribe(areas => {
       this.areas = areas;
       this.activeArea = undefined;
@@ -147,11 +160,13 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   }
 
   onPrognosisChange(): void {
+    this.settings.user?.set('pop-prognosis', this.activePrognosis?.id);
     this.updateMap();
     this.updateDiagrams();
   }
 
   onGenderChange(): void {
+    this.settings.user?.set('pop-genders', this.selectedGender!.id);
     this.updateMap();
     this.updateDiagrams();
   }
