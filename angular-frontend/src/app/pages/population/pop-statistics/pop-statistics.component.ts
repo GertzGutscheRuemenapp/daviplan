@@ -5,12 +5,11 @@ import { Observable, Subscription } from "rxjs";
 import { map, shareReplay } from "rxjs/operators";
 import { BreakpointObserver } from "@angular/cdk/layout";
 import { MultilineChartComponent, MultilineData } from "../../../diagrams/multiline-chart/multiline-chart.component";
-import { BalanceChartData } from "../../../diagrams/balance-chart/balance-chart.component";
+import { BalanceChartComponent, BalanceChartData } from "../../../diagrams/balance-chart/balance-chart.component";
 import { PopulationService } from "../population.service";
 import { Area, AreaLevel, Layer, LayerGroup } from "../../../rest-interfaces";
 import { SettingsService } from "../../../settings.service";
 import * as d3 from "d3";
-import { StackedBarchartComponent } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import { sortBy } from "../../../helpers/utils";
 
 export const mockTotalData: MultilineData[] = [
@@ -58,7 +57,7 @@ export const mockData: BalanceChartData[] = [
 })
 export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   @ViewChild('totalChart') totalChart?: MultilineChartComponent;
-  @ViewChild('balanceChart') balanceChart?: StackedBarchartComponent;
+  @ViewChild('balanceChart') balanceChart?: BalanceChartComponent;
   mapControl?: MapControl;
   backend: string = environment.backend;
   areas: Area[] = [];
@@ -114,7 +113,6 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
             { targetProjection: this.mapControl!.map!.mapProjection }).subscribe(areas => {
             this.areas = areas;
             this.updateMap();
-            this.updateDiagrams();
           })
         })
       })
@@ -122,6 +120,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
     this.subscriptions.push(this.populationService.timeSlider!.valueChanged.subscribe(year => {
       this.year = year;
       this.updateMap();
+      this.updateDiagrams();
     }))
   }
 
@@ -198,7 +197,6 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         area.properties.value = value;
         area.properties.description = `<b>${area.properties.label}</b><br>${descr}: ${area.properties.value}`
       })
-      // ToDo: move wkt parsing to populationservice, is done on every change year/level atm (expensive)
       this.mapControl?.addFeatures(this.statisticsLayer!.id!, this.areas,
         { properties: 'properties', geometry: 'centroid', zIndex: 'value' });
       if (this.activeArea)
@@ -226,7 +224,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       sortBy(statistics, 'year').forEach(yearData => {
         const posValue = (this.theme === 'nature')? yearData.births: yearData.immigration;
         const negValue = -((this.theme === 'nature')? yearData.deaths: yearData.emigration);
-        const diffValue = posValue - negValue;
+        const diffValue = posValue + negValue;
         maxValue = Math.max(maxValue, posValue);
         minValue = Math.min(minValue, negValue);
         maxTotal = Math.max(maxTotal, diffValue);
@@ -234,8 +232,27 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         balanceData.push({ group: yearData.year.toString(), values: [posValue, negValue] })
         totalData.push({ group: yearData.year.toString(), values: [diffValue] });
       })
-      // ToDo: min, max, labels, legend
-      // ToDo: backend - max diff of migration and nature (map)
+      // ToDo: calc yPadding (10% of min/max or sth like that)
+      this.balanceChart!.title = (this.theme === 'nature')? 'Natürliche Bevölkerungsentwicklung': 'Wanderung';
+      this.balanceChart!.subtitle = this.totalChart!.subtitle = this.activeArea!.properties.label;
+      const topLabel = (this.theme === 'nature')? 'Geburten': 'Zuzüge';
+      const bottomLabel = (this.theme === 'nature')? 'Sterbefälle': 'Fortzüge';
+      this.balanceChart!.yTopLabel = topLabel;
+      this.balanceChart!.yBottomLabel = bottomLabel;
+      this.balanceChart!.labels = [topLabel, bottomLabel];
+      const tchTitle = (this.theme === 'nature')? 'Natürlicher Saldo': 'Wanderungssaldo';
+      this.balanceChart!.lineLabel = tchTitle;
+      this.balanceChart!.yPadding = Math.ceil(Math.max(maxValue, -minValue) * 0.2);
+
+      this.totalChart!.title = tchTitle;
+      this.totalChart!.labels = [tchTitle];
+      this.totalChart!.yTopLabel = 'mehr ' + topLabel;
+      this.totalChart!.yBottomLabel = 'mehr ' + bottomLabel;
+      this.totalChart!.xLegendOffset = 0;
+      this.totalChart!.yLegendOffset = 30;
+      this.totalChart!.margin.right = 60;
+      this.totalChart!.yPadding = Math.ceil(Math.max(maxTotal, -minTotal) * 0.2)
+
       this.balanceChart?.draw(balanceData);
       this.totalChart?.draw(totalData);
     })
