@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
 import {
-  Place, AreaLevel, Area, Gender, AreaPopulationData, PopulationData, AgeGroup,
+  Place, AreaLevel, Area, Gender, AreaIndicatorData, PopulationData, AgeGroup,
   Infrastructure, Service, Capacity, Prognosis, StatisticsData
 } from "./rest-interfaces";
 import { HttpClient } from "@angular/common/http";
@@ -21,8 +21,9 @@ export class RestCacheService {
 
   private genericCache: Record<string, any> = {};
   private areaCache: Record<number, Area[]> = {};
+  private demandAreaCache: Record<string, AreaIndicatorData[]> = {};
   private popDataCache: Record<string, PopulationData[]> = {};
-  private popAreaCache: Record<string, AreaPopulationData[]> = {};
+  private popAreaCache: Record<string, AreaIndicatorData[]> = {};
   private placesCache: Record<number, Place[]> = {};
   private capacitiesCache: Record<string, Capacity[]> = {};
   private statisticsCache: Record<string, StatisticsData[]> = {};
@@ -197,7 +198,7 @@ export class RestCacheService {
     return observable;
   }
 
-  getAreaLevelPopulation(areaLevelId: number, year: number, options?: { genders?: number[], prognosis?: number, ageGroups?: number[] }): Observable<AreaPopulationData[]> {
+  getAreaLevelPopulation(areaLevelId: number, year: number, options?: { genders?: number[], prognosis?: number, ageGroups?: number[] }): Observable<AreaIndicatorData[]> {
     const key = `${areaLevelId}-${year}-${options?.prognosis}-${options?.genders}-${options?.ageGroups}`;
     const data: any = { area_level: areaLevelId, year: year };
     if (options?.prognosis != undefined)
@@ -206,11 +207,11 @@ export class RestCacheService {
       data.gender = options.genders;
     if (options?.ageGroups)
       data.age_group = options.ageGroups;
-    const observable = new Observable<AreaPopulationData[]>(subscriber => {
+    const observable = new Observable<AreaIndicatorData[]>(subscriber => {
       const cached = this.popAreaCache[key];
       if (!cached) {
         this.setLoading(true);
-        const query = this.http.post<AreaPopulationData[]>(this.rest.URLS.areaPopulation, data);
+        const query = this.http.post<AreaIndicatorData[]>(this.rest.URLS.areaPopulation, data);
         query.subscribe(data => {
           this.popAreaCache[key] = data;
           this.setLoading(false);
@@ -229,22 +230,50 @@ export class RestCacheService {
 
   getPopulationData(areaId: number, options?: { year?: number, prognosis?: number, genders?: number[], ageGroups?: number[]}): Observable<PopulationData[]> {
     const key = `${areaId}-${options?.year}-${options?.prognosis}-${options?.genders}-${options?.ageGroups}`;
-    let data: any = { area: [areaId] };
-    if (options?.year != undefined)
-      data.year = options?.year;
-    if (options?.prognosis != undefined)
-      data.prognosis = options?.prognosis;
-    if (options?.genders)
-      data.gender = options.genders;
-    if (options?.ageGroups)
-      data.age_group = options.ageGroups;
     const observable = new Observable<PopulationData[]>(subscriber => {
       const cached = this.popDataCache[key];
       if (!cached) {
+        let data: any = { area: [areaId] };
+        if (options?.year != undefined)
+          data.year = options?.year;
+        if (options?.prognosis != undefined)
+          data.prognosis = options?.prognosis;
+        if (options?.genders)
+          data.gender = options.genders;
+        if (options?.ageGroups)
+          data.age_group = options.ageGroups;
         this.setLoading(true);
         const query = this.http.post<PopulationData[]>(this.rest.URLS.populationData, data);
         query.subscribe(data => {
           this.popDataCache[key] = data;
+          this.setLoading(false);
+          subscriber.next(data);
+          subscriber.complete();
+        },error => {
+          this.setLoading(false);
+        });
+      } else {
+        subscriber.next(cached);
+        subscriber.complete();
+      }
+    });
+    return observable;
+  }
+
+  getDemand(areaLevelId: number, options?: { year?: number, prognosis?: number }): Observable<AreaIndicatorData[]> {
+    const key = `${areaLevelId}-${options?.year}-${options?.prognosis}`;
+    const observable = new Observable<AreaIndicatorData[]>(subscriber => {
+      const cached = this.demandAreaCache[key];
+      if (!cached) {
+        let data: any = { area_level: [areaLevelId] };
+        if (options?.year != undefined)
+          data.year = options?.year;
+        if (options?.prognosis != undefined)
+          data.prognosis = options?.prognosis;
+        this.setLoading(true);
+        const query = this.http.post<AreaIndicatorData[]>(this.rest.URLS.areaDemand, data);
+        query.subscribe(data => {
+          this.demandAreaCache[key] = data;
           this.setLoading(false);
           subscriber.next(data);
           subscriber.complete();

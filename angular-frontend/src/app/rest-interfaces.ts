@@ -108,7 +108,7 @@ export interface Prognosis {
   years: number[]
 }
 
-export interface AreaPopulationData {
+export interface AreaIndicatorData {
   areaId: number,
   label?: string,
   value: number

@@ -29,8 +29,8 @@
   <mat-form-field appearance="outline" class="small">
     <mat-label>Infrastrukturbereich</mat-label>
     <mat-select disableOptionCentering disableRipple
-                [(value)]="selectedInfrastructure"
-                [ngbPopover]="selectedInfrastructure?.description"
+                [(ngModel)]="activeInfrastructure"
+                [ngbPopover]="activeInfrastructure?.description"
                 placement="right"
                 container="body"
                 triggers="mouseenter:mouseleave">
@@ -43,9 +43,9 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
-  <div class="sub-select-wrapper" *ngIf="selectedInfrastructure">
+  <div class="sub-select-wrapper" *ngIf="activeInfrastructure">
     <mat-radio-group>
-      <mat-radio-button *ngFor="let service of selectedInfrastructure.services; let first = first;"
+      <mat-radio-button *ngFor="let service of activeInfrastructure.services; let first = first;"
                         [value]="service"
                         [checked]="first"
                         style="margin-right: 100%;"
@@ -72,7 +72,9 @@
     </mat-panel-title>
   </mat-expansion-panel-header>
   <mat-form-field appearance="outline" class="small">
-    <mat-select disableOptionCentering disableRipple [value]="selectedAreaLevel">
+    <mat-select disableOptionCentering disableRipple
+                [(ngModel)]="activeLevel"
+                (change)="onAreaLevelChange()">
       <mat-option [value]="areaLevel" *ngFor="let areaLevel of areaLevels">
         {{areaLevel.name}}
       </mat-option>
