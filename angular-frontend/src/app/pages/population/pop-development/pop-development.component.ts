@@ -70,49 +70,27 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   }
 
   initData(): void {
-    // let observables: Observable<any>[] = [];
-    const progQuery = this.populationService.getPrognoses();
-    progQuery.subscribe(prognoses => {
+    let observables: Observable<any>[] = [];
+    observables.push(this.populationService.getPrognoses().pipe(map(prognoses => {
       this.prognoses = prognoses;
-      const defaultProg = this.prognoses?.find(prognosis => prognosis.isDefault);
-      this.settings.user?.get('pop-prognosis').subscribe(progId => {
-        this.activePrognosis = this.prognoses!.find(p => p.id === progId) || defaultProg;
-      });
-    })
-    const ryQuery = this.populationService.getRealYears();
-    ryQuery.subscribe( years => {
+    })))
+    observables.push(this.populationService.getRealYears().pipe( map(years => {
       this.realYears = years;
-      this.settings.user?.get('pop-dev-year').subscribe(year => {
-        this.year = year || this.realYears![0];
-        this.setSlider();
-      });
-    })
-    const pyQuery = this.populationService.getPrognosisYears();
-    pyQuery.subscribe( years => {
+    })))
+    observables.push(this.populationService.getPrognosisYears().pipe( map(years => {
       this.prognosisYears = years;
-      this.setSlider();
-    })
-    const genderQuery = this.populationService.getGenders();
-    genderQuery.subscribe(genders => {
+    })))
+    observables.push(this.populationService.getGenders().pipe(map(genders => {
       const genderAll: Gender = {
         id: -1,
         name: 'alle'
       }
       this.genders = [genderAll].concat(genders);
-      this.settings.user?.get('pop-genders').subscribe(genderId => {
-        this.selectedGender = this.genders.find(g => g.id === genderId) || genderAll;
-      });
-    })
-    const alQuery = this.populationService.getAreaLevels();
-    alQuery.subscribe(areaLevels => {
+    })))
+    observables.push(this.populationService.getAreaLevels().pipe(map(areaLevels => {
       this.areaLevels = areaLevels;
-      this.settings.user?.get('pop-area-level').subscribe(areaLevelId => {
-        if (areaLevelId !== undefined)
-          this.activeLevel = this.areaLevels.find(al => al.id === areaLevelId);
-      });
-    })
-    const agQuery = this.populationService.getAgeGroups();
-    agQuery.subscribe(ageGroups => {
+    })))
+    observables.push(this.populationService.getAgeGroups().pipe(map(ageGroups => {
       this.ageGroupSelection.clear();
       let colorScale = d3.scaleSequential().domain([0, ageGroups.length])
         .interpolator(d3.interpolateRainbow);
@@ -122,13 +100,39 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         this.ageGroupSelection.select(ag);
       });
       this.ageGroups = ageGroups;
+    })))
+
+    forkJoin(...observables).subscribe(() => {
+      this.applyUserSettings();
     })
-    
+
     this.subscriptions.push(this.populationService.timeSlider!.valueChanged.subscribe(year => {
       this.year = year;
       this.settings.user?.set('pop-dev-year', year);
       this.updateMap();
     }))
+  }
+
+  applyUserSettings(): void {
+    let observables: Observable<any>[] = [];
+    observables.push(this.settings.user.get('pop-genders').pipe(map(genderId => {
+      this.selectedGender = this.genders.find(g => g.id === genderId) || this.genders[0];
+    })));
+    observables.push(this.settings.user.get('pop-prognosis').pipe(map(progId => {
+      const defaultProg = this.prognoses?.find(prognosis => prognosis.isDefault);
+      this.activePrognosis = this.prognoses!.find(p => p.id === progId) || defaultProg;
+    })));
+    observables.push(this.settings.user.get('pop-dev-year').pipe(map(year => {
+      this.year = year || this.realYears![0] || 0;
+    })));
+    observables.push(this.settings.user.get('pop-area-level').pipe(map(areaLevelId => {
+      if (areaLevelId !== undefined)
+        this.activeLevel = this.areaLevels.find(al => al.id === areaLevelId);
+    })));
+    forkJoin(...observables).subscribe(() => {
+      this.setSlider();
+      this.onLevelChange();
+    })
   }
 
   setSlider(): void {

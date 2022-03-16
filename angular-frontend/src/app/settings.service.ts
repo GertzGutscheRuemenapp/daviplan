@@ -70,11 +70,12 @@ export class SettingsService {
     startYear: 0,
     endYear: 0
   });
-  user?: UserSettings;
+  user!: UserSettings;
 
   constructor(private rest: RestAPI, private http: HttpClient, private titleService: Title) {
     this.refresh();
   }
+
   refresh(): void {
     this.fetchSiteSettings();
     this.fetchProjectSettings();
