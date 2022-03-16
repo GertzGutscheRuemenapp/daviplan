@@ -97,7 +97,6 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       this.ageGroupColors = {};
       ageGroups.forEach((ag, i) => {
         this.ageGroupColors[ag.id!] = colorScale(i);
-        this.ageGroupSelection.select(ag);
       });
       this.ageGroups = ageGroups;
     })))
@@ -129,9 +128,19 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       if (areaLevelId !== undefined)
         this.activeLevel = this.areaLevels.find(al => al.id === areaLevelId);
     })));
+    observables.push(this.settings.user.get('pop-ageGroups').pipe(map((ageGroupIds: number[]) => {
+      this.ageGroups.forEach(ag => {
+        const select = ageGroupIds? ageGroupIds.indexOf(ag.id!) >= 0 : true;
+        if (select)
+          this.ageGroupSelection.select(ag);
+      })
+      this.allAgeGroupsChecked = this.ageGroupSelection.selected.length === this.ageGroups.length;
+    })));
+
     forkJoin(...observables).subscribe(() => {
       this.setSlider();
       this.onLevelChange();
+      this.updateDiagrams();
     })
   }
 
@@ -163,11 +172,13 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   }
 
   onLevelChange(): void {
-    this.settings.user?.set('pop-area-level', this.activeLevel?.id);
+    this.settings.user.set('pop-area-level', this.activeLevel?.id);
     this.populationService.getAreas(this.activeLevel!.id, {targetProjection: this.mapControl!.map!.mapProjection}).subscribe(areas => {
       this.areas = areas;
-      this.activeArea = undefined;
-      this.updateMap();
+      this.settings.user.get(`pop-area-${this.activeLevel!.id}`).subscribe(areaId => {
+        this.activeArea = this.areas?.find(a => a.id === areaId);
+        this.updateMap();
+      })
     });
   }
 
@@ -185,6 +196,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
   onAreaChange(): void {
     this.mapControl?.selectFeatures([this.activeArea!.id], this.populationLayer!.id!, { silent: true, clear: true });
+    this.settings.user.set(`pop-area-${this.activeLevel!.id}`, this.activeArea!.id);
     this.updateDiagrams();
   }
 
@@ -247,6 +259,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         else {
           this.activeArea = undefined;
         }
+        this.settings.user.set(`pop-area-${this.activeLevel!.id}`, this.activeArea!.id);
         this.updateDiagrams();
       })
     })
@@ -330,6 +343,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
   updateGroupsChecked(): void {
     this.allAgeGroupsChecked = this.ageGroupSelection.selected.length === this.ageGroups.length;
+    this.patchUserAgeGroupSelection();
     this.updateMap();
     this.updateDiagrams();
   }
@@ -342,8 +356,14 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       else
         this.ageGroupSelection.deselect(ag)
     });
+    this.patchUserAgeGroupSelection();
     this.updateMap();
     this.updateDiagrams();
+  }
+
+  patchUserAgeGroupSelection(): void {
+    const ageGroupIds = this.ageGroupSelection.selected.map(ag => ag.id);
+    this.settings.user.set('pop-ageGroups', ageGroupIds);
   }
 
   updateMapDescription(): void {
