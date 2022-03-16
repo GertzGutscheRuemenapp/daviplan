@@ -140,7 +140,6 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     forkJoin(...observables).subscribe(() => {
       this.setSlider();
       this.onLevelChange();
-      this.updateDiagrams();
     })
   }
 
@@ -178,6 +177,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       this.settings.user.get(`pop-area-${this.activeLevel!.id}`).subscribe(areaId => {
         this.activeArea = this.areas?.find(a => a.id === areaId);
         this.updateMap();
+        this.updateDiagrams();
       })
     });
   }
@@ -196,7 +196,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
   onAreaChange(): void {
     this.mapControl?.selectFeatures([this.activeArea!.id], this.populationLayer!.id!, { silent: true, clear: true });
-    this.settings.user.set(`pop-area-${this.activeLevel!.id}`, this.activeArea!.id);
+    this.settings.user.set(`pop-area-${this.activeLevel!.id}`, this.activeArea?.id);
     this.updateDiagrams();
   }
 
@@ -259,7 +259,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         else {
           this.activeArea = undefined;
         }
-        this.settings.user.set(`pop-area-${this.activeLevel!.id}`, this.activeArea!.id);
+        this.settings.user.set(`pop-area-${this.activeLevel!.id}`, this.activeArea?.id);
         this.updateDiagrams();
       })
     })

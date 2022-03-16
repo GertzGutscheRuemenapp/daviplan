@@ -25,7 +25,7 @@
       <mat-form-field appearance="outline" class="small">
         <mat-select disableOptionCentering disableRipple
                     [(ngModel)]="theme"
-                    (ngModelChange)="updateMap(); updateDiagrams();">
+                    (ngModelChange)="onThemeChange()">
           <mat-option value="nature">
             Natürlicher Saldo
           </mat-option>
@@ -37,24 +37,24 @@
       <div class="sub-select-wrapper" [style.display]="(theme==='nature')? 'block' : 'none'">
         <mat-checkbox [(ngModel)]="showBirths"
                       color="primary"
-                      (ngModelChange)="updateMap();">
+                      (ngModelChange)="onThemeChange()">
           Geburten
         </mat-checkbox><br>
         <mat-checkbox [(ngModel)]="showDeaths"
                       color="primary"
-                      (ngModelChange)="updateMap();">
+                      (ngModelChange)="onThemeChange()">
           Sterbefälle
         </mat-checkbox>
       </div>
       <div class="sub-select-wrapper" [style.display]="(theme==='migration')? 'block' : 'none'">
         <mat-checkbox [(ngModel)]="showImmigration"
                       color="primary"
-                      (ngModelChange)="updateMap();">
+                      (ngModelChange)="onThemeChange()">
           Zuzüge
         </mat-checkbox><br>
         <mat-checkbox [(ngModel)]="showEmigration"
                       color="primary"
-                      (ngModelChange)="updateMap();">
+                      (ngModelChange)="onThemeChange()">
           Fortzüge
         </mat-checkbox>
       </div>

@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
 import { environment } from "../../../../environments/environment";
-import { Observable, Subscription } from "rxjs";
+import { forkJoin, Observable, Subscription } from "rxjs";
 import { map, shareReplay } from "rxjs/operators";
 import { BreakpointObserver } from "@angular/cdk/layout";
 import { MultilineChartComponent, MultilineData } from "../../../diagrams/multiline-chart/multiline-chart.component";
@@ -73,7 +73,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
           this.populationService.getAreas(baseLevel,
             { targetProjection: this.mapControl!.map!.mapProjection }).subscribe(areas => {
             this.areas = areas;
-            this.updateMap();
+            this.applyUserSettings();
           })
         })
       })
@@ -83,6 +83,33 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       this.updateMap();
       this.updateDiagrams();
     }))
+  }
+
+  applyUserSettings(): void {
+    let observables: Observable<any>[] = [];
+    observables.push(this.settings.user.get(`pop-area-${this.areaLevel!.id}`).pipe(map(areaId => {
+      this.activeArea = this.areas?.find(a => a.id === areaId);
+    })));
+    observables.push(this.settings.user.get('pop-stat-theme').pipe(map(theme => {
+      this.theme = theme || 'nature';
+    })));
+    observables.push(this.settings.user.get('pop-stat-births').pipe(map(checked => {
+      this.showBirths = (checked !== undefined)? checked: true;
+    })));
+    observables.push(this.settings.user.get('pop-stat-deaths').pipe(map(checked => {
+      this.showDeaths = (checked !== undefined)? checked: true;
+    })));
+    observables.push(this.settings.user.get('pop-stat-immigration').pipe(map(checked => {
+      this.showImmigration = (checked !== undefined)? checked: true;
+    })));
+    observables.push(this.settings.user.get('pop-stat-emigration').pipe(map(checked => {
+      this.showEmigration = (checked !== undefined)? checked: true;
+    })));
+    forkJoin(...observables).subscribe(() => {
+      this.setSlider();
+      this.updateMap();
+      this.updateDiagrams();
+    })
   }
 
   updateMap(): void {
@@ -170,6 +197,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         else {
           this.activeArea = undefined;
         }
+        this.settings.user.set(`pop-area-${this.areaLevel!.id}`, this.activeArea!.id);
         this.updateDiagrams();
       })
     })
@@ -221,8 +249,19 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   }
 
   onAreaChange(): void {
+    this.settings.user.set(`pop-area-${this.areaLevel!.id}`, this.activeArea!.id);
     this.mapControl?.selectFeatures([this.activeArea!.id], this.statisticsLayer!.id!, { silent: true, clear: true });
     this.updateDiagrams();
+  }
+
+  onThemeChange(): void {
+    this.settings.user.set('pop-stat-theme', this.theme);
+    this.settings.user.set('pop-stat-births', this.showBirths);
+    this.settings.user.set('pop-stat-deaths', this.showDeaths);
+    this.settings.user.set('pop-stat-immigration', this.showImmigration);
+    this.settings.user.set('pop-stat-emigration', this.showEmigration);
+    this.updateMap();
+    this.updateDiagrams()
   }
 
   setSlider(): void {
