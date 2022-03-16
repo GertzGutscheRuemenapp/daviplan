@@ -72,18 +72,18 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.timeSlider?.valueChanged.subscribe(value => {
       this.planningService.year$.next(value);
     })
-    this.planningService.realYears$.subscribe( years => {
+    this.planningService.getRealYears().subscribe( years => {
       this.realYears = years;
       this.setSlider();
     })
-    this.planningService.prognosisYears$.subscribe( years => {
+    this.planningService.getPrognosisYears().subscribe( years => {
       this.prognosisYears = years;
       this.setSlider();
     })
-    this.planningService.infrastructures$.subscribe( infrastructures => {
+    this.planningService.getInfrastructures().subscribe( infrastructures => {
       this.infrastructures = infrastructures;
     })
-    this.planningService.processes$.subscribe(processes => {
+    this.planningService.getProcesses().subscribe(processes => {
       this.auth.getCurrentUser().subscribe(user => {
         if (!user) return;
         processes.forEach(process => {

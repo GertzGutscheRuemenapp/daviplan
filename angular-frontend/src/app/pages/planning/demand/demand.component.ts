@@ -23,10 +23,10 @@ export class DemandComponent implements OnInit {
 
   constructor(public cookies: CookieService,
               private planningService: PlanningService) {
-    this.planningService.infrastructures$.subscribe(infrastructures => {
+    this.planningService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures;
     });
-    this.planningService.areaLevels$.subscribe(areaLevels => {
+    this.planningService.getAreaLevels().subscribe(areaLevels => {
       this.areaLevels = areaLevels;
     });
     this.planningService.activeProcess$.subscribe(process => {

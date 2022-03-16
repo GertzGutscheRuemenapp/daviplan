@@ -2,8 +2,8 @@ import { Component, AfterViewInit, ViewChild, TemplateRef, OnDestroy } from '@an
 import { MapControl, MapService } from "../../../map/map.service";
 import { StackedBarchartComponent, StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
-import { Observable, Subscription } from "rxjs";
-import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
+import { forkJoin, Observable, Subscription } from "rxjs";
+import { BreakpointObserver } from "@angular/cdk/layout";
 import { map, shareReplay } from "rxjs/operators";
 import { MatDialog } from "@angular/material/dialog";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
@@ -70,25 +70,30 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   }
 
   initData(): void {
-    this.populationService.prognoses$.subscribe(prognoses => {
+    // let observables: Observable<any>[] = [];
+    const progQuery = this.populationService.getPrognoses();
+    progQuery.subscribe(prognoses => {
       this.prognoses = prognoses;
       const defaultProg = this.prognoses?.find(prognosis => prognosis.isDefault);
       this.settings.user?.get('pop-prognosis').subscribe(progId => {
         this.activePrognosis = this.prognoses!.find(p => p.id === progId) || defaultProg;
       });
     })
-    this.populationService.realYears$.subscribe( years => {
+    const ryQuery = this.populationService.getRealYears();
+    ryQuery.subscribe( years => {
       this.realYears = years;
       this.settings.user?.get('pop-dev-year').subscribe(year => {
         this.year = year || this.realYears![0];
         this.setSlider();
       });
     })
-    this.populationService.prognosisYears$.subscribe( years => {
+    const pyQuery = this.populationService.getPrognosisYears();
+    pyQuery.subscribe( years => {
       this.prognosisYears = years;
       this.setSlider();
     })
-    this.populationService.genders$.subscribe(genders => {
+    const genderQuery = this.populationService.getGenders();
+    genderQuery.subscribe(genders => {
       const genderAll: Gender = {
         id: -1,
         name: 'alle'
@@ -98,14 +103,16 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         this.selectedGender = this.genders.find(g => g.id === genderId) || genderAll;
       });
     })
-    this.populationService.areaLevels$.subscribe(areaLevels => {
+    const alQuery = this.populationService.getAreaLevels();
+    alQuery.subscribe(areaLevels => {
       this.areaLevels = areaLevels;
       this.settings.user?.get('pop-area-level').subscribe(areaLevelId => {
         if (areaLevelId !== undefined)
           this.activeLevel = this.areaLevels.find(al => al.id === areaLevelId);
       });
     })
-    this.populationService.ageGroups$.subscribe(ageGroups => {
+    const agQuery = this.populationService.getAgeGroups();
+    agQuery.subscribe(ageGroups => {
       this.ageGroupSelection.clear();
       let colorScale = d3.scaleSequential().domain([0, ageGroups.length])
         .interpolator(d3.interpolateRainbow);
@@ -116,6 +123,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       });
       this.ageGroups = ageGroups;
     })
+    
     this.subscriptions.push(this.populationService.timeSlider!.valueChanged.subscribe(year => {
       this.year = year;
       this.settings.user?.set('pop-dev-year', year);

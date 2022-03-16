@@ -36,11 +36,11 @@ export class RatingComponent implements OnInit {
 
   constructor(private dialog: MatDialog, public cookies: CookieService,
               private planningService: PlanningService) {
-    this.planningService.infrastructures$.subscribe(infrastructures => {
+    this.planningService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures;
       this.selectedInfrastructure = infrastructures[0];
     });
-    this.planningService.areaLevels$.subscribe(areaLevels => {
+    this.planningService.getAreaLevels().subscribe(areaLevels => {
       this.areaLevels = areaLevels;
       this.selectedAreaLevel = areaLevels[0];
     })

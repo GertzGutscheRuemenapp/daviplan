@@ -61,13 +61,13 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   }
 
   initData(): void {
-    this.populationService.realYears$.subscribe(years => {
+    this.populationService.getRealYears().subscribe(years => {
       this.years = years;
       this.year = years[0];
       this.setSlider();
       this.settings.baseDataSettings$.subscribe(baseSettings => {
         const baseLevel = baseSettings.popStatisticsAreaLevel;
-        this.populationService.areaLevels$.subscribe(areaLevels => {
+        this.populationService.getAreaLevels().subscribe(areaLevels => {
           this.areaLevel = areaLevels.find(al => al.id === baseLevel);
           if (!this.areaLevel) return;
           this.populationService.getAreas(baseLevel,

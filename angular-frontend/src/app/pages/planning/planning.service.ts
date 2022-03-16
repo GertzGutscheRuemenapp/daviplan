@@ -3,7 +3,7 @@ import { LegendComponent } from "../../map/legend/legend.component";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../rest-api";
 import { RestCacheService } from "../../rest-cache.service";
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, Observable } from "rxjs";
 import { AgeGroup, PlanningProcess, Scenario } from "../../rest-interfaces";
 
 @Injectable({
@@ -14,29 +14,30 @@ export class PlanningService extends RestCacheService {
   isReady: boolean = false;
   ready: EventEmitter<any> = new EventEmitter();
   year$ = new BehaviorSubject<number>(0);
-  processes$ = new BehaviorSubject<PlanningProcess[]>([]);
   activeProcess$ = new BehaviorSubject<PlanningProcess | undefined>(undefined);
 
   constructor(protected http: HttpClient, protected rest: RestAPI) {
     super(http, rest);
-    this.fetchAreaLevels();
-    this.fetchInfrastructures();
-    this.fetchYears();
-    this.fetchProcesses();
   }
 
-  fetchProcesses(){
-    this.http.get<PlanningProcess[]>(this.rest.URLS.processes).subscribe(processes => {
-      this.http.get<Scenario[]>(this.rest.URLS.scenarios).subscribe(scenarios => {
-        scenarios.forEach(scenario => {
-          const process = processes.find(p => p.id === scenario.planningProcess);
-          if (!process) return;
-          if (!process.scenarios) process.scenarios = [];
-          process.scenarios.push(scenario);
+  getProcesses(): Observable<PlanningProcess[]>{
+    const observable = new Observable<PlanningProcess[]>(subscriber => {
+      const processUrl = this.rest.URLS.processes;
+      this.getCachedData<PlanningProcess[]>(processUrl).subscribe(processes => {
+        const scenarioUrl = this.rest.URLS.scenarios;
+        this.getCachedData<Scenario[]>(scenarioUrl).subscribe(scenarios => {
+          scenarios.forEach(scenario => {
+            const process = processes.find(p => p.id === scenario.planningProcess);
+            if (!process) return;
+            if (!process.scenarios) process.scenarios = [];
+            process.scenarios.push(scenario);
+          })
+          subscriber.next(processes);
+          subscriber.complete();
         })
-        this.processes$.next(processes);
-      })
+      });
     });
+    return observable;
   };
 
   setReady(ready: boolean): void {

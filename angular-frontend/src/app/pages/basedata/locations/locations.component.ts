@@ -18,8 +18,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-locations-map');
-    this.restService.fetchInfrastructures();
-    this.restService.infrastructures$.subscribe(infrastructures => {
+    this.restService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures;
     })
   }

@@ -17,13 +17,8 @@ import { GeoJSON } from "ol/format";
 })
 export class RestCacheService {
   // ToDo: get functions with cached values instead of BehaviorSubjects
-  realYears$ = new BehaviorSubject<number[]>([]);
-  prognosisYears$ = new BehaviorSubject<number[]>([]);
-  ageGroups$ = new BehaviorSubject<AgeGroup[]>([]);
-  genders$ = new BehaviorSubject<Gender[]>([]);
-  areaLevels$ = new BehaviorSubject<AreaLevel[]>([]);
-  prognoses$ = new BehaviorSubject<Prognosis[]>([]);
-  infrastructures$ = new BehaviorSubject<Infrastructure[]>([]);
+
+  private genericCache: Record<string, any> = {};
   private areaCache: Record<number, Area[]> = {};
   private popDataCache: Record<string, PopulationData[]> = {};
   private popAreaCache: Record<string, AreaPopulationData[]> = {};
@@ -34,43 +29,98 @@ export class RestCacheService {
 
   constructor(protected http: HttpClient, protected rest: RestAPI) { }
 
-  fetchPrognoses(): void {
-    this.http.get<Prognosis[]>(this.rest.URLS.prognoses).subscribe(prognoses => {
-      this.prognoses$.next(prognoses);
-    });
+  protected getCachedData<Type>(url: string): Observable<Type> {
+    const observable = new Observable<Type>(subscriber => {
+      if (!this.genericCache[url]){
+        this.http.get<Type>(url).subscribe(data => {
+          this.genericCache[url] = data;
+          subscriber.next(data);
+          subscriber.complete();
+        });
+      }
+      else {
+        subscriber.next(this.genericCache[url]);
+        subscriber.complete();
+      }
+    })
+    return observable;
   }
 
-  fetchYears(): void {
-    this.http.get<any[]>(`${this.rest.URLS.years}?with_population=true`).subscribe(years => {
-      const ys = years.map( year => { return year.year })
-      this.realYears$.next(ys);
-    });
-    this.http.get<any[]>(`${this.rest.URLS.years}?with_prognosis=true`).subscribe(years => {
-      const ys = years.map( year => { return year.year })
-      this.prognosisYears$.next(ys);
-    });
+  getPrognoses(): Observable<Prognosis[]> {
+    const url = this.rest.URLS.prognoses;
+    return this.getCachedData<Prognosis[]>(url);
   }
 
-  fetchGenders(): void {
-    this.http.get<Gender[]>(this.rest.URLS.genders).subscribe(genders => {
-      this.genders$.next(genders);
+  getRealYears(): Observable<number[]> {
+    const observable = new Observable<number[]>(subscriber => {
+      const url = `${this.rest.URLS.years}?with_population=true`;
+      this.getCachedData<any[]>(url).subscribe(years => {
+        const ys = years.map( year => { return year.year })
+        subscriber.next(ys);
+        subscriber.complete();
+      });
     });
+    return observable
   }
 
-  fetchAgeGroups(): void {
-    this.http.get<AgeGroup[]>(this.rest.URLS.ageGroups).subscribe(ageGroups => {
-      ageGroups.forEach(ageGroup => {
-        ageGroup.label = String(ageGroup.fromAge);
-        ageGroup.label += (ageGroup.toAge >= 999)? ' Jahre und älter': ` bis unter ${ageGroup.toAge} Jahre`;
-      })
-      this.ageGroups$.next(ageGroups);
+  getPrognosisYears(): Observable<number[]> {
+    const observable = new Observable<number[]>(subscriber => {
+      const url = `${this.rest.URLS.years}?with_prognosis=true`;
+      this.getCachedData<any[]>(url).subscribe(years => {
+        const ys = years.map( year => { return year.year })
+        subscriber.next(ys);
+        subscriber.complete();
+      });
     });
+    return observable
   }
 
-  fetchAreaLevels(): void {
-    this.http.get<AreaLevel[]>(`${this.rest.URLS.arealevels}?active=true`).subscribe(areaLevels => {
-      this.areaLevels$.next(sortBy(areaLevels, 'order'));
+  getGenders(): Observable<Gender[]> {
+    const url = this.rest.URLS.genders;
+    return this.getCachedData<Gender[]>(url);
+  }
+
+  getAgeGroups(): Observable<AgeGroup[]> {
+    const observable = new Observable<AgeGroup[]>(subscriber => {
+      const url = this.rest.URLS.ageGroups;
+      this.getCachedData<AgeGroup[]>(url).subscribe(ageGroups => {
+        ageGroups.forEach(ageGroup => {
+          ageGroup.label = String(ageGroup.fromAge);
+          ageGroup.label += (ageGroup.toAge >= 999)? ' Jahre und älter': ` bis unter ${ageGroup.toAge} Jahre`;
+        })
+        subscriber.next(ageGroups);
+        subscriber.complete();
+      });
     });
+    return observable;
+  }
+
+  getAreaLevels(): Observable<AreaLevel[]> {
+    const observable = new Observable<AreaLevel[]>(subscriber => {
+      const url = `${this.rest.URLS.arealevels}?active=true`;
+      this.getCachedData<AreaLevel[]>(url).subscribe(areaLevels => {
+        subscriber.next(sortBy(areaLevels, 'order'));
+        subscriber.complete();
+      });
+    });
+    return observable;
+  }
+
+  getInfrastructures(): Observable<Infrastructure[]> {
+    const observable = new Observable<Infrastructure[]>(subscriber => {
+      const infraUrl = this.rest.URLS.infrastructures;
+      this.getCachedData<Infrastructure[]>(infraUrl).subscribe(infrastructures => {
+        const serviceUrl = this.rest.URLS.services;
+        this.getCachedData<Service[]>(serviceUrl).subscribe(services => {
+          infrastructures.forEach( infrastructure => {
+            infrastructure.services = services.filter(service => service.infrastructure === infrastructure.id);
+          })
+          subscriber.next(infrastructures);
+          subscriber.complete();
+        });
+      });
+    });
+    return observable;
   }
 
   getPlaces(infrastructureId: number, options?: { targetProjection?: string }): Observable<Place[]>{
@@ -246,17 +296,6 @@ export class RestCacheService {
 
     })
     return observable;
-  }
-
-  fetchInfrastructures(): void {
-    this.http.get<Infrastructure[]>(this.rest.URLS.infrastructures).subscribe(infrastructures => {
-      this.http.get<Service[]>(this.rest.URLS.services).subscribe(services => {
-        infrastructures.forEach( infrastructure => {
-          infrastructure.services = services.filter(service => service.infrastructure === infrastructure.id);
-        })
-        this.infrastructures$.next(infrastructures);
-      })
-    })
   }
 
   setLoading(isLoading: boolean) {
