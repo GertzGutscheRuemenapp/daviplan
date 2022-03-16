@@ -107,7 +107,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
     this.subscriptions.push(this.populationService.timeSlider!.valueChanged.subscribe(year => {
       this.year = year;
-      this.settings.user?.set('pop-dev-year', year);
+      this.settings.user?.set('pop-year', year);
       this.updateMap();
     }))
   }
@@ -121,8 +121,8 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       const defaultProg = this.prognoses?.find(prognosis => prognosis.isDefault);
       this.activePrognosis = this.prognoses!.find(p => p.id === progId) || defaultProg;
     })));
-    observables.push(this.settings.user.get('pop-dev-year').pipe(map(year => {
-      this.year = year || this.realYears![0] || 0;
+    observables.push(this.settings.user.get('pop-year').pipe(map(year => {
+      this.year = year || this.realYears![this.realYears!.length - 1];
     })));
     observables.push(this.settings.user.get('pop-area-level').pipe(map(areaLevelId => {
       if (areaLevelId !== undefined)

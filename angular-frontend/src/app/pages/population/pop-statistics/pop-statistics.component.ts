@@ -80,6 +80,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
     })
     this.subscriptions.push(this.populationService.timeSlider!.valueChanged.subscribe(year => {
       this.year = year;
+      this.settings.user.set('pop-year', year);
       this.updateMap();
       this.updateDiagrams();
     }))
@@ -104,6 +105,11 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
     })));
     observables.push(this.settings.user.get('pop-stat-emigration').pipe(map(checked => {
       this.showEmigration = (checked !== undefined)? checked: true;
+    })));
+    observables.push(this.settings.user.get('pop-year').pipe(map(year => {
+      if (this.years!.indexOf(year) === -1)
+        year = this.years![this.years!.length - 1];
+      this.year = year;
     })));
     forkJoin(...observables).subscribe(() => {
       this.setSlider();
