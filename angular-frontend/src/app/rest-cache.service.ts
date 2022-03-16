@@ -11,6 +11,7 @@ import * as turf from "@turf/helpers";
 import centroid from '@turf/centroid';
 import { MultiPolygon, Polygon } from "ol/geom";
 import { GeoJSON } from "ol/format";
+import { map } from "rxjs/operators";
 
 @Injectable({
   providedIn: 'root'
@@ -51,28 +52,21 @@ export class RestCacheService {
     return this.getCachedData<Prognosis[]>(url);
   }
 
+  private getYears(url: string): Observable<number[]> {
+    const query = this.getCachedData<any[]>(url);
+    return query.pipe(map(years => {
+      return years.map( year => { return year.year })
+    }));
+  }
+
   getRealYears(): Observable<number[]> {
-    const observable = new Observable<number[]>(subscriber => {
-      const url = `${this.rest.URLS.years}?with_population=true`;
-      this.getCachedData<any[]>(url).subscribe(years => {
-        const ys = years.map( year => { return year.year })
-        subscriber.next(ys);
-        subscriber.complete();
-      });
-    });
-    return observable
+    const url = `${this.rest.URLS.years}?with_population=true`;
+    return this.getYears(url);
   }
 
   getPrognosisYears(): Observable<number[]> {
-    const observable = new Observable<number[]>(subscriber => {
-      const url = `${this.rest.URLS.years}?with_prognosis=true`;
-      this.getCachedData<any[]>(url).subscribe(years => {
-        const ys = years.map( year => { return year.year })
-        subscriber.next(ys);
-        subscriber.complete();
-      });
-    });
-    return observable
+    const url = `${this.rest.URLS.years}?with_prognosis=true`;
+    return this.getYears(url);
   }
 
   getGenders(): Observable<Gender[]> {
@@ -81,29 +75,23 @@ export class RestCacheService {
   }
 
   getAgeGroups(): Observable<AgeGroup[]> {
-    const observable = new Observable<AgeGroup[]>(subscriber => {
-      const url = this.rest.URLS.ageGroups;
-      this.getCachedData<AgeGroup[]>(url).subscribe(ageGroups => {
-        ageGroups.forEach(ageGroup => {
-          ageGroup.label = String(ageGroup.fromAge);
-          ageGroup.label += (ageGroup.toAge >= 999)? ' Jahre und älter': ` bis unter ${ageGroup.toAge} Jahre`;
-        })
-        subscriber.next(ageGroups);
-        subscriber.complete();
+    const url = this.rest.URLS.ageGroups;
+    const query = this.getCachedData<AgeGroup[]>(url);
+    return query.pipe(map(ageGroups => {
+      ageGroups.forEach( ageGroup => {
+        ageGroup.label = String(ageGroup.fromAge);
+        ageGroup.label += (ageGroup.toAge >= 999)? ' Jahre und älter': ` bis unter ${ageGroup.toAge} Jahre`;
       });
-    });
-    return observable;
+      return ageGroups;
+    }));
   }
 
   getAreaLevels(): Observable<AreaLevel[]> {
-    const observable = new Observable<AreaLevel[]>(subscriber => {
-      const url = `${this.rest.URLS.arealevels}?active=true`;
-      this.getCachedData<AreaLevel[]>(url).subscribe(areaLevels => {
-        subscriber.next(sortBy(areaLevels, 'order'));
-        subscriber.complete();
-      });
-    });
-    return observable;
+    const url = `${this.rest.URLS.arealevels}?active=true`;
+    const query = this.getCachedData<AreaLevel[]>(url);
+    return query.pipe(map(areaLevels => {
+      return sortBy(areaLevels, 'order');
+    }));
   }
 
   getInfrastructures(): Observable<Infrastructure[]> {
