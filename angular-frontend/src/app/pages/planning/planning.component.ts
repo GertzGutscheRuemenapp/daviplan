@@ -18,6 +18,7 @@ import { SettingsService } from "../../settings.service";
 import { AuthService } from "../../auth.service";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../rest-api";
+import { CookieService } from "../../helpers/cookies.service";
 
 @Component({
   selector: 'app-planning',
@@ -35,7 +36,6 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   sharedProcesses: PlanningProcess[] = [];
   activeProcess?: PlanningProcess;
   users = mockUsers;
-  showScenarioMenu: boolean = false;
   mapControl?: MapControl;
   realYears?: number[];
   prognosisYears?: number[];
@@ -53,7 +53,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
               private elRef: ElementRef, private mapService: MapService, private dialog: MatDialog,
               public planningService: PlanningService, private settings: SettingsService,
               private auth: AuthService, private formBuilder: FormBuilder,
-              private http: HttpClient, private rest: RestAPI) {
+              private http: HttpClient, private rest: RestAPI, private cookies: CookieService) {
     this.editProcessForm = this.formBuilder.group({
       name: new FormControl(''),
       description: new FormControl(''),
@@ -92,6 +92,11 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
           else
             this.sharedProcesses.push(process);
         })
+        const processId = this.cookies.get('planning-process');
+        if (processId) {
+          this.activeProcess = this.getProcess(Number(processId));
+          this.planningService.activeProcess$.next(this.activeProcess);
+        }
       })
     })
     this.planningService.setReady(true);
@@ -107,6 +112,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     if (id === undefined) return;
     let process = this.getProcess(id);
     this.activeProcess = process;
+    this.cookies.set('planning-process', process.id);
     this.planningService.activeProcess$.next(process);
   }
 
@@ -121,10 +127,6 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
 
   getProcess(id: number): PlanningProcess {
     return this.myProcesses.concat(this.sharedProcesses).filter(process => process.id === id)[0];
-  }
-
-  toggleScenarioMenu(): void{
-    this.showScenarioMenu = !this.showScenarioMenu;
   }
 
   onCreateProcess(): void {

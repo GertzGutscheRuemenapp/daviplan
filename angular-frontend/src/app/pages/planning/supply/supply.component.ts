@@ -25,7 +25,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   compareStatus = 'option 1';
   infrastructures?: Infrastructure[];
   selectedInfrastructure?: Infrastructure;
-  showScenarioMenu: boolean = false;
   mapControl?: MapControl;
   legendGroup?: LayerGroup;
   placesLayer?: Layer;
@@ -38,14 +37,12 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   activeProcess?: PlanningProcess;
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
-              private planningService: PlanningService) {
+              public planningService: PlanningService) {
     this.planningService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures;
     })
     this.planningService.activeProcess$.subscribe(process => {
       this.activeProcess = process;
-      if (!process) this.cookies.set('exp-planning-scenario', false);
-      this.showScenarioMenu = !!this.cookies.get('exp-planning-scenario');
     })
   }
 

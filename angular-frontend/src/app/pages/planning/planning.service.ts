@@ -5,6 +5,8 @@ import { RestAPI } from "../../rest-api";
 import { RestCacheService } from "../../rest-cache.service";
 import { BehaviorSubject, Observable } from "rxjs";
 import { AgeGroup, PlanningProcess, Scenario } from "../../rest-interfaces";
+import { SettingsService } from "../../settings.service";
+import { ScenarioMenuComponent } from "./scenario-menu/scenario-menu.component";
 
 @Injectable({
   providedIn: 'root'
@@ -15,8 +17,10 @@ export class PlanningService extends RestCacheService {
   ready: EventEmitter<any> = new EventEmitter();
   year$ = new BehaviorSubject<number>(0);
   activeProcess$ = new BehaviorSubject<PlanningProcess | undefined>(undefined);
+  activeScenario$ = new BehaviorSubject<Scenario | undefined>(undefined);
+  showScenarioMenu = false;
 
-  constructor(protected http: HttpClient, protected rest: RestAPI) {
+  constructor(protected http: HttpClient, protected rest: RestAPI, private settings: SettingsService) {
     super(http, rest);
   }
 
@@ -35,10 +39,29 @@ export class PlanningService extends RestCacheService {
           subscriber.next(processes);
           subscriber.complete();
         })
-      });
+      })
     });
     return observable;
   };
+
+  getBaseScenario(): Observable<Scenario> {
+    const observable = new Observable<Scenario>(subscriber => {
+      // ToDo: what happens if baseDataSettings$ is refreshed or not ready?
+      this.settings.baseDataSettings$.subscribe(baseSettings => {
+        const baseScenario: Scenario = {
+          id: -1,
+          planningProcess: -1,
+          name: 'Status Quo Fortschreibung',
+          prognosis: baseSettings.defaultPrognosis,
+          modevariants: baseSettings.defaultModeVariants,
+          demandratesets: baseSettings.defaultDemandRateSets
+        }
+        subscriber.next(baseScenario);
+        subscriber.complete();
+      })
+    })
+    return observable
+  }
 
   setReady(ready: boolean): void {
     this.isReady = ready;

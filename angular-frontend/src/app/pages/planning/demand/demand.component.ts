@@ -23,7 +23,6 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   activeService?: Service;
   areaLevels: AreaLevel[] = [];
   areas: Area[] = [];
-  showScenarioMenu: boolean = false;
   activeProcess?: PlanningProcess;
   realYears?: number[];
   prognosisYears?: number[];
@@ -34,7 +33,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   year?: number;
 
   constructor(public cookies: CookieService, private mapService: MapService,
-              private planningService: PlanningService) {}
+              public planningService: PlanningService) {}
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
@@ -44,8 +43,6 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
     }, false)
     this.planningService.activeProcess$.subscribe(process => {
       this.activeProcess = process;
-      if (!process) this.cookies.set('exp-planning-scenario', false);
-      this.showScenarioMenu = !!this.cookies.get('exp-planning-scenario');
     })
     this.initData();
   }
@@ -97,7 +94,8 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
     }
     if (!this.year || !this.activeLevel || !this.activeService) return;
     this.updateMapDescription();
-    this.planningService.getDemand(this.activeLevel.id,
+
+    /*this.planningService.getDemand(this.activeLevel.id,
       { year: this.year!, prognosis: undefined, service: this.activeService?.id }).subscribe(demandData => {
         const colorFunc = d3.scaleSequential().domain([0, 1000 || 0])
           .interpolator(d3.interpolateViridis);
@@ -136,7 +134,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
       })
       this.mapControl?.addFeatures(this.demandLayer!.id!, this.areas,
         { properties: 'properties', geometry: 'centroid', zIndex: 'value' });
-    })
+    })*/
   }
 
   updateMapDescription(): void {

@@ -113,6 +113,9 @@
   </app-help-button>
 </mat-toolbar>
 <div class="map-wrapper">
+  <div class="deactivateOverlay" title="Bitte wählen bzw. erstellen Sie einen Planungsprozess!"
+       *ngIf="!activeProcess">
+  </div>
   <div id="planning-map" class="map-container">
     <div id="info" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">
       <div class="handle" title="Anzeigeinformationen" cdkDragHandle>
@@ -137,6 +140,13 @@
       </app-side-toggle>
     </div>
     <app-map-controls target="planning-map"></app-map-controls>
+    <app-side-toggle id="legend"
+                     icon="layers"
+                     name="Legenden- und Layersteuerung"
+                     direction="left"
+                     cookieExpansion="exp-planning-legend" [initiallyExpanded]="true">
+      <app-legend #planningLegend target="planning-map"></app-legend>
+    </app-side-toggle>
   </div>
 </div>
 <ng-template #activeProcessPopover>
@@ -157,6 +167,9 @@
 </ng-template>
 <mat-sidenav #drawer class="context-bar"
              [opened]="(isSM$ | async) === false">
+  <div class="deactivateOverlay" title="Bitte wählen bzw. erstellen Sie einen Planungsprozess!"
+       *ngIf="!activeProcess">
+  </div>
   <router-outlet>
   </router-outlet>
 </mat-sidenav>
@@ -169,14 +182,6 @@
         *ngIf="isSM$ | async">
   <mat-icon aria-label="Side nav toggle icon">arrow_circle_down</mat-icon>
 </button>
-
-<app-side-toggle id="legend"
-                 icon="layers"
-                 name="Legenden- und Layersteuerung"
-                 direction="left"
-                 cookieExpansion="exp-planning-legend" [initiallyExpanded]="true">
-  <app-legend #planningLegend target="planning-map"></app-legend>
-</app-side-toggle>
 
 <ng-template #processTemplate>
   <form [formGroup]="editProcessForm">

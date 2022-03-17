@@ -27,15 +27,14 @@ export class RatingComponent implements OnInit {
   indicators = mockIndicators;
   selectedAreaLevel?: AreaLevel;
   areaLevels?: AreaLevel[];
-  customIndicators = mockCustomIndicators;
-  showScenarioMenu: boolean = false;
   activeIndicator = mockIndicators[0];
+  customIndicators = mockCustomIndicators;
   infrastructures?: Infrastructure[];
   selectedInfrastructure?: Infrastructure;
   activeProcess?: PlanningProcess;
 
   constructor(private dialog: MatDialog, public cookies: CookieService,
-              private planningService: PlanningService) {
+              public planningService: PlanningService) {
     this.planningService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures;
       this.selectedInfrastructure = infrastructures[0];
@@ -46,8 +45,6 @@ export class RatingComponent implements OnInit {
     })
     this.planningService.activeProcess$.subscribe(process => {
       this.activeProcess = process;
-      if (!process) this.cookies.set('exp-planning-scenario', false);
-      this.showScenarioMenu = !!this.cookies.get('exp-planning-scenario');
     })
   }
 
