@@ -6,6 +6,7 @@ import * as d3 from "d3";
 import { map } from "rxjs/operators";
 import { forkJoin, Observable } from "rxjs";
 import { MapControl, MapService } from "../../../map/map.service";
+import { SelectionModel } from "@angular/cdk/collections";
 
 @Component({
   selector: 'app-demand',
@@ -29,6 +30,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   mapControl?: MapControl;
   demandLayer?: Layer;
   legendGroup?: LayerGroup;
+  serviceSelection = new SelectionModel<Service>(false);
   year?: number;
 
   constructor(public cookies: CookieService, private mapService: MapService,
@@ -58,6 +60,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
     })))
     observables.push(this.planningService.getRealYears().pipe( map(years => {
       this.realYears = years;
+      this.year = this.realYears[0];
     })))
     observables.push(this.planningService.getPrognosisYears().pipe( map(years => {
       this.prognosisYears = years;
@@ -77,6 +80,16 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
     })
   }
 
+  onInfrastructureChange(): void {
+    this.serviceSelection.select(this.activeInfrastructure!.services[0]);
+    this.onServiceChange();
+  }
+
+  onServiceChange(): void {
+    this.activeService = this.serviceSelection.selected[0];
+    this.updateMap();
+  }
+
   updateMap(): void {
     if (this.demandLayer) {
       this.mapControl?.removeLayer(this.demandLayer.id!);
@@ -85,8 +98,9 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
     if (!this.year || !this.activeLevel || !this.activeService) return;
     this.updateMapDescription();
     this.planningService.getDemand(this.activeLevel.id,
-      { year: this.year!, prognosis: undefined }).subscribe(popData => {
-      const radiusFunc = d3.scaleLinear().domain([0, this.activeLevel?.maxValues!.population! || 1000]).range([5, 50]);
+      { year: this.year!, prognosis: undefined, service: this.activeService?.id }).subscribe(demandData => {
+        const colorFunc = d3.scaleSequential().domain([0, 1000 || 0])
+          .interpolator(d3.interpolateViridis);
       this.demandLayer = this.mapControl?.addLayer({
           order: 0,
           type: 'vector',
@@ -113,11 +127,10 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
           select: {
             strokeColor: 'rgb(180, 180, 0)',
             fillColor: 'rgba(255, 255, 0, 0.9)'
-          },
-          radiusFunc: radiusFunc
+          }
         });
       this.areas.forEach(area => {
-        const data = popData.find(d => d.areaId == area.id);
+        const data = demandData.find(d => d.areaId == area.id);
         area.properties.value = (data)? Math.round(data.value): 0;
         area.properties.description = `<b>${area.properties.label}</b><br>Nachfrage: ${area.properties.value}`
       })

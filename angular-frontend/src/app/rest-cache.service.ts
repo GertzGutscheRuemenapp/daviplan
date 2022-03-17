@@ -260,16 +260,18 @@ export class RestCacheService {
     return observable;
   }
 
-  getDemand(areaLevelId: number, options?: { year?: number, prognosis?: number }): Observable<AreaIndicatorData[]> {
-    const key = `${areaLevelId}-${options?.year}-${options?.prognosis}`;
+  getDemand(areaLevelId: number, options?: { year?: number, prognosis?: number, service?: number }): Observable<AreaIndicatorData[]> {
+    const key = `${areaLevelId}-${options?.year}-${options?.prognosis}-${options?.service}`;
     const observable = new Observable<AreaIndicatorData[]>(subscriber => {
       const cached = this.demandAreaCache[key];
       if (!cached) {
-        let data: any = { area_level: [areaLevelId] };
+        let data: any = { area_level: areaLevelId };
         if (options?.year != undefined)
           data.year = options?.year;
         if (options?.prognosis != undefined)
           data.prognosis = options?.prognosis;
+        if (options?.service != undefined)
+          data.service = options?.service;
         this.setLoading(true);
         const query = this.http.post<AreaIndicatorData[]>(this.rest.URLS.areaDemand, data);
         query.subscribe(data => {
