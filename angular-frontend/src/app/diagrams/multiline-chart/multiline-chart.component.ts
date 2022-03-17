@@ -36,12 +36,14 @@ export class MultilineChartComponent implements AfterViewInit {
   @Input() xSeparator?: { leftLabel?: string, rightLabel?:string, x: string, highlight?: boolean };
 
   private svg: any;
-  private margin: {top: number, bottom: number, left: number, right: number } = {
+  public margin: {top: number, bottom: number, left: number, right: number } = {
     top: 50,
     bottom: 50,
     left: 60,
     right: 130
   };
+  xLegendOffset = 70;
+  yLegendOffset = 0;
 
   localeFormatter = d3.formatLocale({
     decimal: ',',
@@ -239,8 +241,8 @@ export class MultilineChartComponent implements AfterViewInit {
         .data(this.labels.reverse())
         .enter()
         .append("rect")
-        .attr("x", innerWidth + 70)
-        .attr("y", (d: string, i: number) => 10 + (i * (size + 1)))
+        .attr("x", innerWidth + this.xLegendOffset)
+        .attr("y", (d: string, i: number) => 10 + this.yLegendOffset + (i * (size + 1)))
         .attr("width", size)
         .attr("height", 3)
         .style("fill", (d: string, i: number) => (this.colors)? this.colors[i]: colorScale(i));
@@ -250,8 +252,8 @@ export class MultilineChartComponent implements AfterViewInit {
         .enter()
         .append("text")
         .attr('font-size', '0.7em')
-        .attr("x", innerWidth + 70 + size * 1.2)
-        .attr("y", (d: string, i: number) => 5 + (i * (size + 1) + (size / 2)))
+        .attr("x", innerWidth + this.xLegendOffset + size * 1.2)
+        .attr("y", (d: string, i: number) => 5 + this.yLegendOffset + (i * (size + 1) + (size / 2)))
         .style("fill", (d: string, i: number) => (this.colors)? this.colors[i]: colorScale(i))
         .text((d: string) => d)
         .attr("text-anchor", "left")

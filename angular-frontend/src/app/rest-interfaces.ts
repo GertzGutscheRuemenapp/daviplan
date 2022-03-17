@@ -81,7 +81,9 @@ export interface AreaLevel {
     immigration?: number,
     emigration?: number,
     births?: number,
-    deaths?: number
+    deaths?: number,
+    natureDiff: number,
+    migrationDiff: number
   }
 }
 
@@ -106,7 +108,7 @@ export interface Prognosis {
   years: number[]
 }
 
-export interface AreaPopulationData {
+export interface AreaIndicatorData {
   areaId: number,
   label?: string,
   value: number

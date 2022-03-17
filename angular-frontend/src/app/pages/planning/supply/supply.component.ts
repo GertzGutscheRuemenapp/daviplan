@@ -39,7 +39,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
               private planningService: PlanningService) {
-    this.planningService.infrastructures$.subscribe(infrastructures => {
+    this.planningService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures;
     })
     this.planningService.activeProcess$.subscribe(process => {
@@ -71,10 +71,10 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       this.year = year;
       this.updatePlaces();
     })
-    this.planningService.realYears$.subscribe( years => {
+    this.planningService.getRealYears().subscribe( years => {
       this.realYears = years;
     })
-    this.planningService.prognosisYears$.subscribe( years => {
+    this.planningService.getPrognosisYears().subscribe( years => {
       this.prognosisYears = years;
     })
   }

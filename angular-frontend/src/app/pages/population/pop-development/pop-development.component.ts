@@ -2,8 +2,8 @@ import { Component, AfterViewInit, ViewChild, TemplateRef, OnDestroy } from '@an
 import { MapControl, MapService } from "../../../map/map.service";
 import { StackedBarchartComponent, StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
-import { Observable, Subscription } from "rxjs";
-import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
+import { forkJoin, Observable, Subscription } from "rxjs";
+import { BreakpointObserver } from "@angular/cdk/layout";
 import { map, shareReplay } from "rxjs/operators";
 import { MatDialog } from "@angular/material/dialog";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
@@ -12,6 +12,7 @@ import { Area, AreaLevel, Gender, Layer, LayerGroup, AgeGroup, Prognosis } from 
 import * as d3 from "d3";
 import { SelectionModel } from "@angular/cdk/collections";
 import { sortBy } from "../../../helpers/utils";
+import { SettingsService } from "../../../settings.service";
 
 @Component({
   selector: 'app-pop-development',
@@ -49,7 +50,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   ageGroupColors: Record<number, string> = {};
 
   constructor(private breakpointObserver: BreakpointObserver, private mapService: MapService, private dialog: MatDialog,
-              private populationService: PopulationService) {
+              private populationService: PopulationService, private settings: SettingsService) {
   }
 
   ngAfterViewInit(): void {
@@ -58,7 +59,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       name: 'Bevölkerungsentwicklung',
       order: -1
     }, false)
-
+    this.mapControl.mapDescription = '';
     if (this.populationService.isReady)
       this.initData();
     else {
@@ -69,46 +70,77 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   }
 
   initData(): void {
-    this.populationService.prognoses$.subscribe(prognoses => {
+    let observables: Observable<any>[] = [];
+    observables.push(this.populationService.getPrognoses().pipe(map(prognoses => {
       this.prognoses = prognoses;
-      const defaultProg = this.prognoses?.find(prognosis => prognosis.isDefault);
-      this.activePrognosis = defaultProg;
-    })
-    this.populationService.realYears$.subscribe( years => {
+    })))
+    observables.push(this.populationService.getRealYears().pipe( map(years => {
       this.realYears = years;
-      this.year = this.realYears[0];
-      this.setSlider();
-    })
-    this.populationService.prognosisYears$.subscribe( years => {
+    })))
+    observables.push(this.populationService.getPrognosisYears().pipe( map(years => {
       this.prognosisYears = years;
-      this.setSlider();
-    })
-    this.populationService.genders$.subscribe(genders => {
+    })))
+    observables.push(this.populationService.getGenders().pipe(map(genders => {
       const genderAll: Gender = {
         id: -1,
         name: 'alle'
       }
-      this.selectedGender = genderAll;
       this.genders = [genderAll].concat(genders);
-    })
-    this.populationService.areaLevels$.subscribe(areaLevels => {
+    })))
+    observables.push(this.populationService.getAreaLevels().pipe(map(areaLevels => {
       this.areaLevels = areaLevels;
-    })
-    this.populationService.ageGroups$.subscribe(ageGroups => {
+    })))
+    observables.push(this.populationService.getAgeGroups().pipe(map(ageGroups => {
       this.ageGroupSelection.clear();
       let colorScale = d3.scaleSequential().domain([0, ageGroups.length])
         .interpolator(d3.interpolateRainbow);
       this.ageGroupColors = {};
       ageGroups.forEach((ag, i) => {
         this.ageGroupColors[ag.id!] = colorScale(i);
-        this.ageGroupSelection.select(ag);
       });
       this.ageGroups = ageGroups;
+    })))
+
+    forkJoin(...observables).subscribe(() => {
+      this.applyUserSettings();
     })
+
     this.subscriptions.push(this.populationService.timeSlider!.valueChanged.subscribe(year => {
       this.year = year;
+      this.settings.user?.set('pop-year', year);
       this.updateMap();
     }))
+  }
+
+  applyUserSettings(): void {
+    let observables: Observable<any>[] = [];
+    observables.push(this.settings.user.get('pop-genders').pipe(map(genderId => {
+      this.selectedGender = this.genders.find(g => g.id === genderId) || this.genders[0];
+    })));
+    observables.push(this.settings.user.get('pop-prognosis').pipe(map(progId => {
+      const defaultProg = this.prognoses?.find(prognosis => prognosis.isDefault);
+      this.activePrognosis = this.prognoses!.find(p => p.id === progId) || defaultProg;
+    })));
+    observables.push(this.settings.user.get('pop-year').pipe(map(year => {
+      this.year = year || this.realYears![this.realYears!.length - 1];
+    })));
+    observables.push(this.settings.user.get('pop-area-level').pipe(map(areaLevelId => {
+      if (areaLevelId !== undefined)
+        this.activeLevel = this.areaLevels.find(al => al.id === areaLevelId);
+    })));
+    observables.push(this.settings.user.get('pop-ageGroups').pipe(map((ageGroupIds: number[]) => {
+      this.ageGroups.forEach(ag => {
+        const select = ageGroupIds? ageGroupIds.indexOf(ag.id!) >= 0 : true;
+        if (select)
+          this.ageGroupSelection.select(ag);
+      })
+      this.allAgeGroupsChecked = this.ageGroupSelection.selected.length === this.ageGroups.length;
+    })));
+
+    forkJoin(...observables).subscribe(() => {
+      this.setSlider();
+      this.onLevelChange();
+    })
   }
 
   setSlider(): void {
@@ -116,7 +148,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     let slider = this.populationService.timeSlider!;
     slider.prognosisStart = this.prognosisYears[0] || 0;
     slider.years = this.realYears.concat(this.prognosisYears);
-    slider.value = this.realYears[0];
+    slider.value = this.year;
     slider.draw();
   }
 
@@ -139,25 +171,32 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   }
 
   onLevelChange(): void {
+    this.settings.user.set('pop-area-level', this.activeLevel?.id);
     this.populationService.getAreas(this.activeLevel!.id, {targetProjection: this.mapControl!.map!.mapProjection}).subscribe(areas => {
       this.areas = areas;
-      this.activeArea = undefined;
-      this.updateMap();
+      this.settings.user.get(`pop-area-${this.activeLevel!.id}`).subscribe(areaId => {
+        this.activeArea = this.areas?.find(a => a.id === areaId);
+        this.updateMap();
+        this.updateDiagrams();
+      })
     });
   }
 
   onPrognosisChange(): void {
+    this.settings.user?.set('pop-prognosis', this.activePrognosis?.id);
     this.updateMap();
     this.updateDiagrams();
   }
 
   onGenderChange(): void {
+    this.settings.user?.set('pop-genders', this.selectedGender!.id);
     this.updateMap();
     this.updateDiagrams();
   }
 
   onAreaChange(): void {
     this.mapControl?.selectFeatures([this.activeArea!.id], this.populationLayer!.id!, { silent: true, clear: true });
+    this.settings.user.set(`pop-area-${this.activeLevel!.id}`, this.activeArea?.id);
     this.updateDiagrams();
   }
 
@@ -174,7 +213,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     if (ageGroups.length === 0 || !this.activeLevel) return;
     this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,
       { genders: genders, prognosis: prognosis, ageGroups: ageGroups.map(ag => ag.id!) }).subscribe(popData => {
-      const radiusFunc = d3.scaleLinear().domain([0, this.activeLevel?.maxValues!.population!]).range([5, 50]);
+      const radiusFunc = d3.scaleLinear().domain([0, this.activeLevel?.maxValues!.population! || 1000]).range([5, 50]);
       this.populationLayer = this.mapControl?.addLayer({
           order: 0,
           type: 'vector',
@@ -220,6 +259,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         else {
           this.activeArea = undefined;
         }
+        this.settings.user.set(`pop-area-${this.activeLevel!.id}`, this.activeArea?.id);
         this.updateDiagrams();
       })
     })
@@ -303,6 +343,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
   updateGroupsChecked(): void {
     this.allAgeGroupsChecked = this.ageGroupSelection.selected.length === this.ageGroups.length;
+    this.patchUserAgeGroupSelection();
     this.updateMap();
     this.updateDiagrams();
   }
@@ -315,8 +356,14 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       else
         this.ageGroupSelection.deselect(ag)
     });
+    this.patchUserAgeGroupSelection();
     this.updateMap();
     this.updateDiagrams();
+  }
+
+  patchUserAgeGroupSelection(): void {
+    const ageGroupIds = this.ageGroupSelection.selected.map(ag => ag.id);
+    this.settings.user.set('pop-ageGroups', ageGroupIds);
   }
 
   updateMapDescription(): void {

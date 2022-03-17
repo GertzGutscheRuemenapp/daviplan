@@ -23,6 +23,8 @@ class DemandAreaIndicator(PopulationIndicatorMixin,
         acells = AreaCell.objects.filter(area__area_level_id=area_level_id)
 
         demand_rates = self.get_demand_rates()
+        if not demand_rates:
+            return []
 
         sq = demand_rates\
             .filter(age_group=OuterRef('age_group'), gender=OuterRef('gender'))\
@@ -62,7 +64,10 @@ class DemandAreaIndicator(PopulationIndicatorMixin,
                                                            service_id=service)
             drs = scenario_service.demandrateset
         except ScenarioService.DoesNotExist:
-            drs = DemandRateSet.objects.get(service=service, is_default=True)
+            try:
+                drs = DemandRateSet.objects.get(service=service, is_default=True)
+            except DemandRateSet.DoesNotExist:
+                return
 
         year = self.data.get('year')
         if year:

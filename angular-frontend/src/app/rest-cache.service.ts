@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
 import {
-  Place, AreaLevel, Area, Gender, AreaPopulationData, PopulationData, AgeGroup,
+  Place, AreaLevel, Area, Gender, AreaIndicatorData, PopulationData, AgeGroup,
   Infrastructure, Service, Capacity, Prognosis, StatisticsData
 } from "./rest-interfaces";
 import { HttpClient } from "@angular/common/http";
@@ -11,22 +11,19 @@ import * as turf from "@turf/helpers";
 import centroid from '@turf/centroid';
 import { MultiPolygon, Polygon } from "ol/geom";
 import { GeoJSON } from "ol/format";
+import { map } from "rxjs/operators";
 
 @Injectable({
   providedIn: 'root'
 })
 export class RestCacheService {
   // ToDo: get functions with cached values instead of BehaviorSubjects
-  realYears$ = new BehaviorSubject<number[]>([]);
-  prognosisYears$ = new BehaviorSubject<number[]>([]);
-  ageGroups$ = new BehaviorSubject<AgeGroup[]>([]);
-  genders$ = new BehaviorSubject<Gender[]>([]);
-  areaLevels$ = new BehaviorSubject<AreaLevel[]>([]);
-  prognoses$ = new BehaviorSubject<Prognosis[]>([]);
-  infrastructures$ = new BehaviorSubject<Infrastructure[]>([]);
+
+  private genericCache: Record<string, any> = {};
   private areaCache: Record<number, Area[]> = {};
+  private demandAreaCache: Record<string, AreaIndicatorData[]> = {};
   private popDataCache: Record<string, PopulationData[]> = {};
-  private popAreaCache: Record<string, AreaPopulationData[]> = {};
+  private popAreaCache: Record<string, AreaIndicatorData[]> = {};
   private placesCache: Record<number, Place[]> = {};
   private capacitiesCache: Record<string, Capacity[]> = {};
   private statisticsCache: Record<string, StatisticsData[]> = {};
@@ -34,43 +31,85 @@ export class RestCacheService {
 
   constructor(protected http: HttpClient, protected rest: RestAPI) { }
 
-  fetchPrognoses(): void {
-    this.http.get<Prognosis[]>(this.rest.URLS.prognoses).subscribe(prognoses => {
-      this.prognoses$.next(prognoses);
-    });
+  protected getCachedData<Type>(url: string): Observable<Type> {
+    const observable = new Observable<Type>(subscriber => {
+      if (!this.genericCache[url]){
+        this.http.get<Type>(url).subscribe(data => {
+          this.genericCache[url] = data;
+          subscriber.next(data);
+          subscriber.complete();
+        });
+      }
+      else {
+        subscriber.next(this.genericCache[url]);
+        subscriber.complete();
+      }
+    })
+    return observable;
   }
 
-  fetchYears(): void {
-    this.http.get<any[]>(`${this.rest.URLS.years}?with_population=true`).subscribe(years => {
-      const ys = years.map( year => { return year.year })
-      this.realYears$.next(ys);
-    });
-    this.http.get<any[]>(`${this.rest.URLS.years}?with_prognosis=true`).subscribe(years => {
-      const ys = years.map( year => { return year.year })
-      this.prognosisYears$.next(ys);
-    });
+  getPrognoses(): Observable<Prognosis[]> {
+    const url = this.rest.URLS.prognoses;
+    return this.getCachedData<Prognosis[]>(url);
   }
 
-  fetchGenders(): void {
-    this.http.get<Gender[]>(this.rest.URLS.genders).subscribe(genders => {
-      this.genders$.next(genders);
-    });
+  private getYears(url: string): Observable<number[]> {
+    const query = this.getCachedData<any[]>(url);
+    return query.pipe(map(years => {
+      return years.map( year => { return year.year })
+    }));
   }
 
-  fetchAgeGroups(): void {
-    this.http.get<AgeGroup[]>(this.rest.URLS.ageGroups).subscribe(ageGroups => {
-      ageGroups.forEach(ageGroup => {
+  getRealYears(): Observable<number[]> {
+    const url = `${this.rest.URLS.years}?with_population=true`;
+    return this.getYears(url);
+  }
+
+  getPrognosisYears(): Observable<number[]> {
+    const url = `${this.rest.URLS.years}?with_prognosis=true`;
+    return this.getYears(url);
+  }
+
+  getGenders(): Observable<Gender[]> {
+    const url = this.rest.URLS.genders;
+    return this.getCachedData<Gender[]>(url);
+  }
+
+  getAgeGroups(): Observable<AgeGroup[]> {
+    const url = this.rest.URLS.ageGroups;
+    const query = this.getCachedData<AgeGroup[]>(url);
+    return query.pipe(map(ageGroups => {
+      ageGroups.forEach( ageGroup => {
         ageGroup.label = String(ageGroup.fromAge);
         ageGroup.label += (ageGroup.toAge >= 999)? ' Jahre und älter': ` bis unter ${ageGroup.toAge} Jahre`;
-      })
-      this.ageGroups$.next(ageGroups);
-    });
+      });
+      return ageGroups;
+    }));
   }
 
-  fetchAreaLevels(): void {
-    this.http.get<AreaLevel[]>(`${this.rest.URLS.arealevels}?active=true`).subscribe(areaLevels => {
-      this.areaLevels$.next(sortBy(areaLevels, 'order'));
+  getAreaLevels(): Observable<AreaLevel[]> {
+    const url = `${this.rest.URLS.arealevels}?active=true`;
+    const query = this.getCachedData<AreaLevel[]>(url);
+    return query.pipe(map(areaLevels => {
+      return sortBy(areaLevels, 'order');
+    }));
+  }
+
+  getInfrastructures(): Observable<Infrastructure[]> {
+    const observable = new Observable<Infrastructure[]>(subscriber => {
+      const infraUrl = this.rest.URLS.infrastructures;
+      this.getCachedData<Infrastructure[]>(infraUrl).subscribe(infrastructures => {
+        const serviceUrl = this.rest.URLS.services;
+        this.getCachedData<Service[]>(serviceUrl).subscribe(services => {
+          infrastructures.forEach( infrastructure => {
+            infrastructure.services = services.filter(service => service.infrastructure === infrastructure.id);
+          })
+          subscriber.next(infrastructures);
+          subscriber.complete();
+        });
+      });
     });
+    return observable;
   }
 
   getPlaces(infrastructureId: number, options?: { targetProjection?: string }): Observable<Place[]>{
@@ -159,7 +198,7 @@ export class RestCacheService {
     return observable;
   }
 
-  getAreaLevelPopulation(areaLevelId: number, year: number, options?: { genders?: number[], prognosis?: number, ageGroups?: number[] }): Observable<AreaPopulationData[]> {
+  getAreaLevelPopulation(areaLevelId: number, year: number, options?: { genders?: number[], prognosis?: number, ageGroups?: number[] }): Observable<AreaIndicatorData[]> {
     const key = `${areaLevelId}-${year}-${options?.prognosis}-${options?.genders}-${options?.ageGroups}`;
     const data: any = { area_level: areaLevelId, year: year };
     if (options?.prognosis != undefined)
@@ -168,11 +207,11 @@ export class RestCacheService {
       data.gender = options.genders;
     if (options?.ageGroups)
       data.age_group = options.ageGroups;
-    const observable = new Observable<AreaPopulationData[]>(subscriber => {
+    const observable = new Observable<AreaIndicatorData[]>(subscriber => {
       const cached = this.popAreaCache[key];
       if (!cached) {
         this.setLoading(true);
-        const query = this.http.post<AreaPopulationData[]>(this.rest.URLS.areaPopulation, data);
+        const query = this.http.post<AreaIndicatorData[]>(this.rest.URLS.areaPopulation, data);
         query.subscribe(data => {
           this.popAreaCache[key] = data;
           this.setLoading(false);
@@ -191,22 +230,52 @@ export class RestCacheService {
 
   getPopulationData(areaId: number, options?: { year?: number, prognosis?: number, genders?: number[], ageGroups?: number[]}): Observable<PopulationData[]> {
     const key = `${areaId}-${options?.year}-${options?.prognosis}-${options?.genders}-${options?.ageGroups}`;
-    let data: any = { area: [areaId] };
-    if (options?.year != undefined)
-      data.year = options?.year;
-    if (options?.prognosis != undefined)
-      data.prognosis = options?.prognosis;
-    if (options?.genders)
-      data.gender = options.genders;
-    if (options?.ageGroups)
-      data.age_group = options.ageGroups;
     const observable = new Observable<PopulationData[]>(subscriber => {
       const cached = this.popDataCache[key];
       if (!cached) {
+        let data: any = { area: [areaId] };
+        if (options?.year != undefined)
+          data.year = options?.year;
+        if (options?.prognosis != undefined)
+          data.prognosis = options?.prognosis;
+        if (options?.genders)
+          data.gender = options.genders;
+        if (options?.ageGroups)
+          data.age_group = options.ageGroups;
         this.setLoading(true);
         const query = this.http.post<PopulationData[]>(this.rest.URLS.populationData, data);
         query.subscribe(data => {
           this.popDataCache[key] = data;
+          this.setLoading(false);
+          subscriber.next(data);
+          subscriber.complete();
+        },error => {
+          this.setLoading(false);
+        });
+      } else {
+        subscriber.next(cached);
+        subscriber.complete();
+      }
+    });
+    return observable;
+  }
+
+  getDemand(areaLevelId: number, options?: { year?: number, prognosis?: number, service?: number }): Observable<AreaIndicatorData[]> {
+    const key = `${areaLevelId}-${options?.year}-${options?.prognosis}-${options?.service}`;
+    const observable = new Observable<AreaIndicatorData[]>(subscriber => {
+      const cached = this.demandAreaCache[key];
+      if (!cached) {
+        let data: any = { area_level: areaLevelId };
+        if (options?.year != undefined)
+          data.year = options?.year;
+        if (options?.prognosis != undefined)
+          data.prognosis = options?.prognosis;
+        if (options?.service != undefined)
+          data.service = options?.service;
+        this.setLoading(true);
+        const query = this.http.post<AreaIndicatorData[]>(this.rest.URLS.areaDemand, data);
+        query.subscribe(data => {
+          this.demandAreaCache[key] = data;
           this.setLoading(false);
           subscriber.next(data);
           subscriber.complete();
@@ -246,17 +315,6 @@ export class RestCacheService {
 
     })
     return observable;
-  }
-
-  fetchInfrastructures(): void {
-    this.http.get<Infrastructure[]>(this.rest.URLS.infrastructures).subscribe(infrastructures => {
-      this.http.get<Service[]>(this.rest.URLS.services).subscribe(services => {
-        infrastructures.forEach( infrastructure => {
-          infrastructure.services = services.filter(service => service.infrastructure === infrastructure.id);
-        })
-        this.infrastructures$.next(infrastructures);
-      })
-    })
   }
 
   setLoading(isLoading: boolean) {
