@@ -3,7 +3,7 @@ from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
 from datetime import date as dt_date
 from django.urls import reverse
-from django.db.models import Max
+from django.db.models import Max, F, Func
 
 from .models import (MapSymbol, LayerGroup, WMSLayer,
                      Source, AreaLevel, Area,
@@ -79,13 +79,19 @@ class AreaLevelSerializer(serializers.ModelSerializer):
     def get_max_values(self, obj):
         ret = {'population': obj.max_population}
         if obj.is_statistic_level:
-            entries = PopStatEntry.objects.all()
+            entries = PopStatEntry.objects.all().annotate(
+                migration_diff=Func(F('immigration') - F('emigration'), function='ABS'),
+                nature_diff=Func(F('births') - F('deaths'), function='ABS'),
+            )
             mvs = entries.aggregate(Max('immigration'), Max('emigration'),
-                                    Max('births'), Max('deaths'))
+                                    Max('births'), Max('deaths'),
+                                    Max('nature_diff'), Max('migration_diff'))
             ret['immigration'] = mvs['immigration__max']
             ret['emigration'] = mvs['emigration__max']
             ret['births'] = mvs['births__max']
             ret['deaths'] = mvs['deaths__max']
+            ret['nature_diff'] = mvs['nature_diff__max']
+            ret['migration_diff'] = mvs['migration_diff__max']
         return ret
 
     def get_tile_url(self, obj) -> str:

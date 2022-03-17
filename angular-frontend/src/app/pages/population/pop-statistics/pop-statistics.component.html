@@ -25,7 +25,7 @@
       <mat-form-field appearance="outline" class="small">
         <mat-select disableOptionCentering disableRipple
                     [(ngModel)]="theme"
-                    (ngModelChange)="updateMap()">
+                    (ngModelChange)="onThemeChange()">
           <mat-option value="nature">
             Natürlicher Saldo
           </mat-option>
@@ -37,24 +37,24 @@
       <div class="sub-select-wrapper" [style.display]="(theme==='nature')? 'block' : 'none'">
         <mat-checkbox [(ngModel)]="showBirths"
                       color="primary"
-                      (ngModelChange)="updateMap()">
+                      (ngModelChange)="onThemeChange()">
           Geburten
         </mat-checkbox><br>
         <mat-checkbox [(ngModel)]="showDeaths"
                       color="primary"
-                      (ngModelChange)="updateMap()">
+                      (ngModelChange)="onThemeChange()">
           Sterbefälle
         </mat-checkbox>
       </div>
       <div class="sub-select-wrapper" [style.display]="(theme==='migration')? 'block' : 'none'">
         <mat-checkbox [(ngModel)]="showImmigration"
                       color="primary"
-                      (ngModelChange)="updateMap()">
+                      (ngModelChange)="onThemeChange()">
           Zuzüge
         </mat-checkbox><br>
         <mat-checkbox [(ngModel)]="showEmigration"
                       color="primary"
-                      (ngModelChange)="updateMap()">
+                      (ngModelChange)="onThemeChange()">
           Fortzüge
         </mat-checkbox>
       </div>
@@ -97,18 +97,11 @@
     <div>
       <app-balance-chart #balanceChart
                          figureId="areaSaldo"
-                         [labels]="['Zuzüge', 'Fortzüge']"
                          [colors]="['#ffbc41', '#f467f3']"
                          lineColor="#2196f3"
                          xLabel="Jahre"
-                         yTopLabel="Zuzüge"
-                         yBottomLabel="Fortzüge"
-                         [title]="'Wanderung'"
                          [animate]="true"
-                         lineLabel="Wanderungssaldo"
-                         [yOrigin]="0"
-                         [yPadding]="10"
-                         subtitle="[Gebietseinheit]">
+                         [yOrigin]="0">
       </app-balance-chart>
     </div>
   </div>
@@ -120,17 +113,11 @@
     <div>
       <app-multiline-chart #totalChart
                            figureId="totalSaldo"
-                           [labels]="['Wanderungssaldo']"
                            xLabel="Jahre"
                            yLabel="Differenz"
-                           yTopLabel="mehr Zuzüge"
-                           yBottomLabel="mehr Fortzüge"
-                           [title]="'Wanderungssaldo'"
                            [animate]="true"
                            [yOrigin]="0"
-                           [yPadding]="10"
-                           [colors]="['#2196f3']"
-                           subtitle="Gesamtgebiet">
+                           [colors]="['#2196f3']">
       </app-multiline-chart>
     </div>
   </div>

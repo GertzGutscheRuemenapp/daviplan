@@ -58,20 +58,28 @@ $diagram-bar-width: 30%;
     top: 74px;
     left: 10px;
   }
+
+  .context-bar {
+    mat-form-field, .sub-select-box {
+      width: 230px;
+    }
+
+    .sub-select-wrapper {
+      width: calc(#{$context-bar-width} - 110px);
+    }
+  }
+
+  #pop-description {
+    padding: 10px 10px 0;
+    min-height: 70px;
+    max-width: 600px;
+    overflow-y: auto;
+  }
 }
 
 .sub-nav {
   padding-left: calc(#{$context-bar-width});
   position: fixed;
-}
-
-::ng-deep app-population .context-bar {
-  mat-form-field, .sub-select-box {
-    width: 230px;
-  }
-  .sub-select-wrapper {
-    width: calc(#{$context-bar-width} - 110px);
-  }
 }
 
 // medium

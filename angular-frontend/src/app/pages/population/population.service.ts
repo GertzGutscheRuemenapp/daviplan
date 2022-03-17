@@ -16,11 +16,6 @@ export class PopulationService extends RestCacheService {
 
   constructor(protected http: HttpClient, protected rest: RestAPI) {
     super(http, rest);
-    this.fetchAreaLevels();
-    this.fetchAgeGroups();
-    this.fetchYears();
-    this.fetchGenders();
-    this.fetchPrognoses();
   }
 
   setReady(ready: boolean): void {

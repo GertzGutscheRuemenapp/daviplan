@@ -1,55 +1,16 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
 import { environment } from "../../../../environments/environment";
-import { Observable, Subscription } from "rxjs";
+import { forkJoin, Observable, Subscription } from "rxjs";
 import { map, shareReplay } from "rxjs/operators";
 import { BreakpointObserver } from "@angular/cdk/layout";
 import { MultilineChartComponent, MultilineData } from "../../../diagrams/multiline-chart/multiline-chart.component";
-import { BalanceChartData } from "../../../diagrams/balance-chart/balance-chart.component";
+import { BalanceChartComponent, BalanceChartData } from "../../../diagrams/balance-chart/balance-chart.component";
 import { PopulationService } from "../population.service";
 import { Area, AreaLevel, Layer, LayerGroup } from "../../../rest-interfaces";
 import { SettingsService } from "../../../settings.service";
 import * as d3 from "d3";
-import { StackedBarchartComponent } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import { sortBy } from "../../../helpers/utils";
-
-export const mockTotalData: MultilineData[] = [
-  { group: '2000', values: [0] },
-  { group: '2001', values: [-10] },
-  { group: '2002', values: [-50] },
-  { group: '2003', values: [-12] },
-  { group: '2004', values: [-40] },
-  { group: '2005', values: [-21] },
-  { group: '2006', values: [2] },
-  { group: '2007', values: [32] },
-  { group: '2008', values: [12] },
-  { group: '2009', values: [3] },
-  { group: '2010', values: [-4] },
-  { group: '2011', values: [15] },
-  { group: '2012', values: [12] },
-  { group: '2013', values: [-6] },
-  { group: '2014', values: [21] },
-  { group: '2015', values: [-23] }
-]
-
-export const mockData: BalanceChartData[] = [
-  { group: '2000', values: [5, -8] },
-  { group: '2001', values: [3, -10] },
-  { group: '2002', values: [1, -9] },
-  { group: '2003', values: [2, -3] },
-  { group: '2004', values: [5, -6] },
-  { group: '2005', values: [4, -8] },
-  { group: '2006', values: [8, -7] },
-  { group: '2007', values: [10, -5] },
-  { group: '2008', values: [9, -2] },
-  { group: '2009', values: [12, -4] },
-  { group: '2010', values: [15, 0] },
-  { group: '2011', values: [12, -1] },
-  { group: '2012', values: [10, -1] },
-  { group: '2013', values: [3, -6] },
-  { group: '2014', values: [1, -9] },
-  { group: '2015', values: [2, -5] }
-]
 
 @Component({
   selector: 'app-pop-statistics',
@@ -58,7 +19,7 @@ export const mockData: BalanceChartData[] = [
 })
 export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   @ViewChild('totalChart') totalChart?: MultilineChartComponent;
-  @ViewChild('balanceChart') balanceChart?: StackedBarchartComponent;
+  @ViewChild('balanceChart') balanceChart?: BalanceChartComponent;
   mapControl?: MapControl;
   backend: string = environment.backend;
   areas: Area[] = [];
@@ -71,8 +32,6 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       map(result => result.matches),
       shareReplay()
     );
-  data: BalanceChartData[] = mockData;
-  totalData: MultilineData[] = mockTotalData;
   statisticsLayer?: Layer;
   subscriptions: Subscription[] = [];
   legendGroup?: LayerGroup;
@@ -91,7 +50,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       name: 'Bevölkerungssalden',
       order: -1
     }, false)
-    this.mapControl.mapDescription = 'Bevölkerungsstatistik > Gemeinden | Wanderung';
+    this.mapControl.mapDescription = '';
     if (this.populationService.isReady)
       this.initData();
     else {
@@ -102,27 +61,61 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   }
 
   initData(): void {
-    this.populationService.realYears$.subscribe(years => {
+    this.populationService.getRealYears().subscribe(years => {
       this.years = years;
       this.year = years[0];
       this.setSlider();
       this.settings.baseDataSettings$.subscribe(baseSettings => {
         const baseLevel = baseSettings.popStatisticsAreaLevel;
-        this.populationService.areaLevels$.subscribe(areaLevels => {
+        this.populationService.getAreaLevels().subscribe(areaLevels => {
           this.areaLevel = areaLevels.find(al => al.id === baseLevel);
+          if (!this.areaLevel) return;
           this.populationService.getAreas(baseLevel,
             { targetProjection: this.mapControl!.map!.mapProjection }).subscribe(areas => {
             this.areas = areas;
-            this.updateMap();
-            this.updateDiagrams();
+            this.applyUserSettings();
           })
         })
       })
     })
     this.subscriptions.push(this.populationService.timeSlider!.valueChanged.subscribe(year => {
       this.year = year;
+      this.settings.user.set('pop-year', year);
       this.updateMap();
+      this.updateDiagrams();
     }))
+  }
+
+  applyUserSettings(): void {
+    let observables: Observable<any>[] = [];
+    observables.push(this.settings.user.get(`pop-area-${this.areaLevel!.id}`).pipe(map(areaId => {
+      this.activeArea = this.areas?.find(a => a.id === areaId);
+    })));
+    observables.push(this.settings.user.get('pop-stat-theme').pipe(map(theme => {
+      this.theme = theme || 'nature';
+    })));
+    observables.push(this.settings.user.get('pop-stat-births').pipe(map(checked => {
+      this.showBirths = (checked !== undefined)? checked: true;
+    })));
+    observables.push(this.settings.user.get('pop-stat-deaths').pipe(map(checked => {
+      this.showDeaths = (checked !== undefined)? checked: true;
+    })));
+    observables.push(this.settings.user.get('pop-stat-immigration').pipe(map(checked => {
+      this.showImmigration = (checked !== undefined)? checked: true;
+    })));
+    observables.push(this.settings.user.get('pop-stat-emigration').pipe(map(checked => {
+      this.showEmigration = (checked !== undefined)? checked: true;
+    })));
+    observables.push(this.settings.user.get('pop-year').pipe(map(year => {
+      if (this.years!.indexOf(year) === -1)
+        year = this.years![this.years!.length - 1];
+      this.year = year;
+    })));
+    forkJoin(...observables).subscribe(() => {
+      this.setSlider();
+      this.updateMap();
+      this.updateDiagrams();
+    })
   }
 
   updateMap(): void {
@@ -130,6 +123,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       this.mapControl?.removeLayer(this.statisticsLayer.id!);
       this.statisticsLayer = undefined;
     }
+    this.updateMapDescription();
     if ((this.theme === 'nature' && !this.showBirths && !this.showDeaths) ||
          this.theme === 'migration' && !this.showImmigration && !this.showEmigration){
       return;
@@ -143,12 +137,12 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       if (this.theme === 'nature') {
         descr = diffDisplay? 'Natürlicher Saldo' : (this.showBirths) ? 'Geburten' : 'Sterbefälle';
         color = this.showBirths? '#1a9850': '#d73027';
-        max = (diffDisplay)? Math.max(mvs.births!, mvs.deaths!): this.showBirths? mvs.births!: mvs.deaths!;
+        max = (diffDisplay)? Math.max(mvs.natureDiff!): this.showBirths? mvs.births!: mvs.deaths!;
       }
       else {
         descr = diffDisplay? 'Wanderungssaldo' : (this.showImmigration) ? 'Zuzüge' : 'Fortzüge';
         color = this.showImmigration? '#1a9850': '#d73027';
-        max = (diffDisplay)? Math.max(mvs.immigration!, mvs.emigration!): this.showImmigration? mvs.immigration!: mvs.emigration!;
+        max = (diffDisplay)? Math.max(mvs.migrationDiff!): this.showImmigration? mvs.immigration!: mvs.emigration!;
       }
       const radiusFunc = d3.scaleLinear().domain([0, max]).range([5, 50]);
       const colorFunc = function(value: number) {
@@ -198,7 +192,6 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         area.properties.value = value;
         area.properties.description = `<b>${area.properties.label}</b><br>${descr}: ${area.properties.value}`
       })
-      // ToDo: move wkt parsing to populationservice, is done on every change year/level atm (expensive)
       this.mapControl?.addFeatures(this.statisticsLayer!.id!, this.areas,
         { properties: 'properties', geometry: 'centroid', zIndex: 'value' });
       if (this.activeArea)
@@ -210,6 +203,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         else {
           this.activeArea = undefined;
         }
+        this.settings.user.set(`pop-area-${this.areaLevel!.id}`, this.activeArea!.id);
         this.updateDiagrams();
       })
     })
@@ -226,7 +220,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       sortBy(statistics, 'year').forEach(yearData => {
         const posValue = (this.theme === 'nature')? yearData.births: yearData.immigration;
         const negValue = -((this.theme === 'nature')? yearData.deaths: yearData.emigration);
-        const diffValue = posValue - negValue;
+        const diffValue = posValue + negValue;
         maxValue = Math.max(maxValue, posValue);
         minValue = Math.min(minValue, negValue);
         maxTotal = Math.max(maxTotal, diffValue);
@@ -234,16 +228,46 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         balanceData.push({ group: yearData.year.toString(), values: [posValue, negValue] })
         totalData.push({ group: yearData.year.toString(), values: [diffValue] });
       })
-      // ToDo: min, max, labels, legend
-      // ToDo: backend - max diff of migration and nature (map)
+      // ToDo: calc yPadding (10% of min/max or sth like that)
+      this.balanceChart!.title = (this.theme === 'nature')? 'Natürliche Bevölkerungsentwicklung': 'Wanderung';
+      this.balanceChart!.subtitle = this.totalChart!.subtitle = this.activeArea!.properties.label;
+      const topLabel = (this.theme === 'nature')? 'Geburten': 'Zuzüge';
+      const bottomLabel = (this.theme === 'nature')? 'Sterbefälle': 'Fortzüge';
+      this.balanceChart!.yTopLabel = topLabel;
+      this.balanceChart!.yBottomLabel = bottomLabel;
+      this.balanceChart!.labels = [topLabel, bottomLabel];
+      const tchTitle = (this.theme === 'nature')? 'Natürlicher Saldo': 'Wanderungssaldo';
+      this.balanceChart!.lineLabel = tchTitle;
+      this.balanceChart!.yPadding = Math.ceil(Math.max(maxValue, -minValue) * 0.2);
+
+      this.totalChart!.title = tchTitle;
+      this.totalChart!.labels = [tchTitle];
+      this.totalChart!.yTopLabel = 'mehr ' + topLabel;
+      this.totalChart!.yBottomLabel = 'mehr ' + bottomLabel;
+      this.totalChart!.xLegendOffset = 0;
+      this.totalChart!.yLegendOffset = 30;
+      this.totalChart!.margin.right = 60;
+      this.totalChart!.yPadding = Math.ceil(Math.max(maxTotal, -minTotal) * 0.2)
+
       this.balanceChart?.draw(balanceData);
       this.totalChart?.draw(totalData);
     })
   }
 
   onAreaChange(): void {
+    this.settings.user.set(`pop-area-${this.areaLevel!.id}`, this.activeArea!.id);
     this.mapControl?.selectFeatures([this.activeArea!.id], this.statisticsLayer!.id!, { silent: true, clear: true });
     this.updateDiagrams();
+  }
+
+  onThemeChange(): void {
+    this.settings.user.set('pop-stat-theme', this.theme);
+    this.settings.user.set('pop-stat-births', this.showBirths);
+    this.settings.user.set('pop-stat-deaths', this.showDeaths);
+    this.settings.user.set('pop-stat-immigration', this.showImmigration);
+    this.settings.user.set('pop-stat-emigration', this.showEmigration);
+    this.updateMap();
+    this.updateDiagrams()
   }
 
   setSlider(): void {
@@ -252,6 +276,13 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
     slider.years = this.years!;
     slider.value = this.year;
     slider.draw();
+  }
+
+  updateMapDescription(): void {
+    if (!this.areaLevel) return;
+    const theme = (this.theme === 'nature')? 'Natürliche Bevölkerungsentwicklung': 'Wanderung';
+    let description = `${theme} für ${this.areaLevel.name} | ${this.year}`;
+    this.mapControl!.mapDescription = description;
   }
 
   ngOnDestroy(): void {

@@ -114,12 +114,9 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
     )
     @extend_schema(
         parameters=[area_level_param,
-                    areas_param,
                     year_param,
                     scenario_param,
                     services_param,
-                    genders_param,
-                    age_groups_param,
                     ],
         request=None,
         responses=DemandAreaIndicator.result_serializer.value(many=True),

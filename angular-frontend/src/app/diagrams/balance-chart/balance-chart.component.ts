@@ -37,7 +37,7 @@ export class BalanceChartComponent implements AfterViewInit {
   @Input() animate?: boolean;
 
   private svg: any;
-  private margin: {top: number, bottom: number, left: number, right: number } = {
+  public margin: {top: number, bottom: number, left: number, right: number } = {
     top: 50,
     bottom: 50,
     left: 60,
@@ -64,7 +64,7 @@ export class BalanceChartComponent implements AfterViewInit {
       .append("g");
   }
 
-  clear(): void {
+  public clear(): void {
     this.svg.selectAll("*").remove();
   }
 
@@ -168,7 +168,6 @@ export class BalanceChartComponent implements AfterViewInit {
       bars.transition()
           .duration(800)
           .attr("y", (d: number, i: number) => {
-            console.log(d)
             if (i === 0)
               return y(d);
             return y(0);
