@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.core.validators import (MinValueValidator, MaxValueValidator)
 
 from datentool_backend.base import NamedModel
@@ -25,9 +25,17 @@ class AgeGroup(DatentoolModelMixin, models.Model):
 class DemandRateSet(DatentoolModelMixin, NamedModel, models.Model):
     """ set of demand """
     name = models.TextField()
-    is_default = models.BooleanField()
+    is_default = models.BooleanField(default=False)
     service = models.ForeignKey(Service, on_delete=PROTECT_CASCADE)
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+    def save(self, *args, **kwargs):
+        # only one default per service
+        if self.is_default:
+            with transaction.atomic():
+                DemandRateSet.objects.filter(
+                    is_default=True, service=self.service).update(is_default=False)
+        return super().save(*args, **kwargs)
 
 
 class DemandRate(models.Model):

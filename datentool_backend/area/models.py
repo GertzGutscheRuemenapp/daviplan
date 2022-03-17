@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.db.models import TextField, F, OuterRef, Subquery, Prefetch
 from django.db.models.functions import Cast, Coalesce
 from django.db.models.signals import post_save
@@ -78,7 +78,7 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
                                   blank=True)
     is_active = models.BooleanField(default=True)
     is_preset = models.BooleanField(default=False)
-    is_statistic_level = models.BooleanField(unique=True, null=True)
+    is_statistic_level = models.BooleanField(default=False)
     max_population = models.FloatField(null=True)
     population_cache_dirty = models.BooleanField(default=True)
 
@@ -89,6 +89,13 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
             return self.areafield_set.get(is_label=True).name
         except AreaField.DoesNotExist:
             return ''
+
+    def save(self, *args, **kwargs):
+        if self.is_statistic_level:
+            with transaction.atomic():
+                AreaLevel.objects.filter(
+                    is_statistic_level=True).update(is_statistic_level=False)
+        return super().save(*args, **kwargs)
 
 
 class Area(DatentoolModelMixin, models.Model):

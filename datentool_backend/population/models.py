@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.contrib.gis.db import models as gis_models
 from django.core.validators import MaxLengthValidator
 from datentool_backend.utils.copy_postgres import DirectCopyManager
@@ -63,7 +63,14 @@ class AreaCell(models.Model):
 class Prognosis(DatentoolModelMixin, NamedModel, models.Model):
     """a prognosis"""
     name = models.TextField()
-    is_default = models.BooleanField()
+    is_default = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if self.is_default:
+            with transaction.atomic():
+                Prognosis.objects.filter(
+                    is_default=True).update(is_default=False)
+        return super().save(*args, **kwargs)
 
 
 class Population(DatentoolModelMixin, models.Model):
