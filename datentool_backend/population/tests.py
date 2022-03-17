@@ -82,6 +82,30 @@ class TestPopulation(TestCase):
         values = np.array(pop_set.values_list('populationentry__value', flat=True)).\
             reshape(len(age_groups), len(years), len(genders))
 
+    def test_prognosis_unique_default(self):
+        prog1 = PrognosisFactory()
+        prog2 = PrognosisFactory()
+        prog3 = PrognosisFactory()
+        prog4 = PrognosisFactory()
+
+        prog1.is_default = True
+        prog1.save()
+        self.assertEqual(Prognosis.objects.get(is_default=True), prog1)
+
+        prog3.is_default = True
+        prog3.save()
+        self.assertEqual(Prognosis.objects.get(is_default=True), prog3)
+
+        prog2.is_default = True
+        prog2.save()
+        prog3.is_default = True
+        prog3.save()
+        prog4.is_default = True
+        prog4.save()
+        prog1.is_default = False
+        prog1.save()
+        self.assertEqual(Prognosis.objects.get(is_default=True), prog4)
+
     def test_popstatistic(self):
         ps = PopStatEntryFactory()
 
