@@ -12,7 +12,7 @@ faker = Faker('de-DE')
 from .factories import (ModeVariantFactory,
                         CutOffTimeFactory,
                         )
-from .models import ModeVariant
+from .models import ModeVariant, Mode
 
 
 class TestModeModels(TestCase):
@@ -22,6 +22,36 @@ class TestModeModels(TestCase):
 
     def test_cut_off_time(self):
         cut_off_time = CutOffTimeFactory()
+
+    def test_mode_default_unique(self):
+        walk_variant_1 = ModeVariantFactory(mode=Mode.WALK.value)
+        walk_variant_2 = ModeVariantFactory(mode=Mode.WALK.value)
+        walk_variant_3 = ModeVariantFactory(mode=Mode.WALK.value)
+        car_variant_1 = ModeVariantFactory(mode=Mode.CAR.value)
+        car_variant_2 = ModeVariantFactory(mode=Mode.CAR.value)
+        car_variant_3 = ModeVariantFactory(mode=Mode.CAR.value)
+
+        walk_variant_3.is_default = True
+        walk_variant_3.save()
+        walk_variant_2.is_default = True
+        walk_variant_2.save()
+
+        car_variant_2.is_default = True
+        car_variant_2.save()
+        car_variant_3.is_default = True
+        car_variant_3.save()
+        car_variant_1.is_default = False
+        car_variant_1.save()
+
+        self.assertEqual(ModeVariant.objects.get(
+            is_default=True, mode=Mode.WALK.value), walk_variant_2)
+        self.assertEqual(ModeVariant.objects.get(
+            is_default=True, mode=Mode.CAR.value), car_variant_3)
+
+        walk_variant_2.is_default = False
+        walk_variant_2.save()
+        self.assertEqual(len(ModeVariant.objects.filter(
+            is_default=True, mode=Mode.WALK.value)), 0)
 
 
 class TestModeVariantAPI(WriteOnlyWithCanEditBaseDataTest,
