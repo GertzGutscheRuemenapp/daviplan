@@ -23,7 +23,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   compareSupply = true;
   compareStatus = 'option 1';
   infrastructures?: Infrastructure[];
-  selectedInfrastructure?: Infrastructure;
+  activeInfrastructure?: Infrastructure;
   mapControl?: MapControl;
   legendGroup?: LayerGroup;
   placesLayer?: Layer;
@@ -32,7 +32,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   selectedPlaces: Place[] = [];
   placeDialogRef?: MatDialogRef<any>;
   Object = Object;
-  selectedService?: Service;
+  activeService?: Service;
   activeProcess?: PlanningProcess;
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
@@ -94,8 +94,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   updatePlaces(): void {
-    if (!this.selectedInfrastructure || this.selectedInfrastructure.services.length === 0) return;
-    this.planningService.getPlaces(this.selectedInfrastructure.id,
+    if (!this.activeInfrastructure || this.activeInfrastructure.services.length === 0) return;
+    this.planningService.getPlaces(this.activeInfrastructure.id,
       { targetProjection: this.mapControl!.map!.mapProjection }).subscribe(places => {
       this.places = places;
       let showLabel = true;
@@ -103,26 +103,26 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         showLabel = !!this.placesLayer.showLabel;
         this.mapControl?.removeLayer(this.placesLayer.id!);
       }
-      if (!this.selectedService) this.selectedService = this.selectedInfrastructure!.services[0];
-      this.planningService.getCapacities(this.year!, this.selectedService.id).subscribe(capacities => {
+      if (!this.activeService) this.activeService = this.activeInfrastructure!.services[0];
+      this.planningService.getCapacities(this.year!, this.activeService.id).subscribe(capacities => {
         this.capacities = capacities;
         let displayedPlaces: Place[] = [];
         this.places?.forEach(place => {
-          const capacity = this.getCapacity(this.selectedService!.id, place.id);
+          const capacity = this.getCapacity(this.activeService!.id, place.id);
           if (!capacity) return;
           place.properties.capacity = capacity;
-          place.properties.label = this.getFormattedCapacityString([this.selectedService!.id], capacity);
+          place.properties.label = this.getFormattedCapacityString([this.activeService!.id], capacity);
           displayedPlaces.push(place);
         })
         const radiusFunc = d3.scaleLinear().domain(
-          [this.selectedService?.minCapacity || 0, this.selectedService?.maxCapacity || 1000]
+          [this.activeService?.minCapacity || 0, this.activeService?.maxCapacity || 1000]
         ).range([1, 20]);
         this.placesLayer = this.mapControl?.addLayer({
           order: 0,
           type: 'vector',
           group: this.legendGroup?.id,
-          name: this.selectedInfrastructure!.name,
-          description: this.selectedInfrastructure!.name,
+          name: this.activeInfrastructure!.name,
+          description: this.activeInfrastructure!.name,
           opacity: 1,
           symbol: {
             fillColor: '#2171b5',
@@ -163,9 +163,9 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   getFormattedCapacityString(services: number[], capacity: number): string {
-    if (!this.selectedInfrastructure) return '';
+    if (!this.activeInfrastructure) return '';
     let units = new Set<string>();
-    this.selectedInfrastructure.services.filter(service => services.indexOf(service.id) >= 0).forEach(service => {
+    this.activeInfrastructure.services.filter(service => services.indexOf(service.id) >= 0).forEach(service => {
       units.add((capacity === 1)? service.capacitySingularUnit: service.capacityPluralUnit);
     })
     return `${capacity} ${Array.from(units).join('/')}`
@@ -207,7 +207,11 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           template: this.placePreviewTemplate,
           resizable: true,
           dragArea: 'header',
-          minWidth: '400px'
+          minWidth: '400px',
+          context: {
+            services: [this.activeService],
+            places: this.places
+          }
         }
       });
     this.placeDialogRef.afterClosed().subscribe(() => {

@@ -89,6 +89,7 @@ import { SimpleDialogComponent } from './dialogs/simple-dialog/simple-dialog.com
 import { HelpDialogComponent, FloatingDialog } from './dialogs/help-dialog/help-dialog.component';
 import { BalanceChartComponent } from './diagrams/balance-chart/balance-chart.component';
 import { RemoveDialogComponent } from './dialogs/remove-dialog/remove-dialog.component';
+import { ServiceFilterComponent } from './pages/planning/service-filter/service-filter.component';
 
 @NgModule({
   declarations: [
@@ -147,7 +148,8 @@ import { RemoveDialogComponent } from './dialogs/remove-dialog/remove-dialog.com
     HelpDialogComponent,
     FloatingDialog,
     BalanceChartComponent,
-    RemoveDialogComponent
+    RemoveDialogComponent,
+    ServiceFilterComponent
   ],
     imports: [
         BrowserModule,
