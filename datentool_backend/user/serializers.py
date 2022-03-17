@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-import json
+from django.db.models import Min
 
 from .models import (Profile,
                      Year,
@@ -10,7 +10,7 @@ from .models import (Profile,
                      Service,
                      )
 
-from datentool_backend.area.models import MapSymbol
+from datentool_backend.models import MapSymbol, Capacity
 from datentool_backend.area.serializers import MapSymbolSerializer
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
@@ -173,11 +173,19 @@ class InfrastructureSerializer(serializers.ModelSerializer):
 
 class ServiceSerializer(serializers.ModelSerializer):
     max_capacity = serializers.IntegerField(read_only=True)
+    min_capacity = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Service
         fields = ('id', 'name', 'description', 'infrastructure', 'editable_by',
                   'capacity_singular_unit', 'capacity_plural_unit',
                   'has_capacity', 'demand_singular_unit', 'demand_plural_unit',
                   'quota_type', 'demand_name', 'demand_description',
-                  'max_capacity', 'facility_singular_unit', 'facility_article',
+                  'min_capacity', 'max_capacity',
+                  'facility_singular_unit', 'facility_article',
                   'facility_plural_unit', 'direction_way_relationship')
+
+    def get_min_capacity(self, obj):
+        mc = Capacity.objects.filter(capacity__gt=0).aggregate(
+            min_cap=Min('capacity'))
+        return mc['min_cap']

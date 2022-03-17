@@ -6,7 +6,6 @@ import { PlanningService } from "../planning.service";
 import { Infrastructure, Layer, LayerGroup, Place, Service, Capacity, PlanningProcess } from "../../../rest-interfaces";
 import { MapControl, MapService } from "../../../map/map.service";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
-import { Observable } from "rxjs";
 import * as d3 from "d3";
 
 @Component({
@@ -115,37 +114,38 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           place.properties.label = this.getFormattedCapacityString([this.selectedService!.id], capacity);
           displayedPlaces.push(place);
         })
-        const colorFunc = d3.scaleSequential().domain([0, this.selectedService?.maxCapacity || 1000])
-          .interpolator(d3.interpolateCool);
+        const radiusFunc = d3.scaleLinear().domain(
+          [this.selectedService?.minCapacity || 0, this.selectedService?.maxCapacity || 1000]
+        ).range([1, 20]);
         this.placesLayer = this.mapControl?.addLayer({
-            order: 0,
-            type: 'vector',
-            group: this.legendGroup?.id,
-            name: this.selectedInfrastructure!.name,
-            description: this.selectedInfrastructure!.name,
-            opacity: 1,
-            symbol: {
-              fillColor: colorFunc(0),
-              strokeColor: 'black',
-              symbol: 'circle'
-            },
-            labelField: 'label',
-            showLabel: showLabel
+          order: 0,
+          type: 'vector',
+          group: this.legendGroup?.id,
+          name: this.selectedInfrastructure!.name,
+          description: this.selectedInfrastructure!.name,
+          opacity: 1,
+          symbol: {
+            fillColor: '#2171b5',
+            strokeColor: 'black',
+            symbol: 'circle'
           },
-          {
-            visible: true,
-            tooltipField: 'name',
-            selectable: true,
-            select: {
-              fillColor: 'yellow',
-              multi: true
-            },
-            mouseOver: {
-              cursor: 'help'
-            },
-            colorFunc: colorFunc,
-            valueField: 'capacity'
-          });
+          labelField: 'label',
+          showLabel: showLabel
+        },
+        {
+          visible: true,
+          tooltipField: 'name',
+          selectable: true,
+          select: {
+            fillColor: 'yellow',
+            multi: true
+          },
+          mouseOver: {
+            cursor: 'help'
+          },
+          radiusFunc: radiusFunc,
+          valueField: 'capacity'
+        });
         this.mapControl?.clearFeatures(this.placesLayer!.id!);
         this.mapControl?.addFeatures(this.placesLayer!.id!, displayedPlaces,
           { properties: 'properties', geometry: 'geometry' });
@@ -210,6 +210,10 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           minWidth: '400px'
         }
       });
+    this.placeDialogRef.afterClosed().subscribe(() => {
+      this.selectedPlaces = [];
+      this.mapControl?.deselectAllFeatures(this.placesLayer!.id!);
+    })
   }
 
   ngOnDestroy(): void {

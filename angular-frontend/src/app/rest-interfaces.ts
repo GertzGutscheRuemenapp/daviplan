@@ -155,6 +155,7 @@ export interface Service {
   demandPluralUnit: string;
   capacitySingularUnit: string;
   capacityPluralUnit: string;
+  minCapacity: number;
   maxCapacity: number;
 }
 
