@@ -2,10 +2,12 @@ import { EventEmitter } from "@angular/core";
 import { Geometry } from "ol/geom";
 
 export interface BasedataSettings {
-  defaultPopAreaLevel: number;
-  popStatisticsAreaLevel: number;
+  defaultPopAreaLevel: number,
+  popStatisticsAreaLevel: number,
+  defaultDemandRateSets: Record<number, number>,
+  defaultModeVariants: Record<number, number>,
+  defaultPrognosis: number
 }
-
 export interface PlanningProcess {
   id: number,
   name: string,
@@ -21,8 +23,8 @@ export interface Scenario {
   name: string,
   planningProcess: number,
   prognosis?: number,
-  modevariants: number[],
-  demandratesets: number[]
+  modevariants: Record<number, number>,
+  demandratesets: Record<number, number>
 }
 
 export interface LayerGroup {
@@ -153,7 +155,17 @@ export interface Service {
   demandPluralUnit: string;
   capacitySingularUnit: string;
   capacityPluralUnit: string;
+  minCapacity: number;
   maxCapacity: number;
+}
+
+export interface PlaceField{
+  id: number,
+  name: string,
+  unit: string,
+  infrastructure: number,
+  fieldType: number,
+  sensitive: boolean
 }
 
 export interface Infrastructure {
@@ -163,6 +175,7 @@ export interface Infrastructure {
   services: Service[];
   order: number;
   symbol?: Symbol;
+  placeFields?: PlaceField[];
 }
 
 export interface Place {

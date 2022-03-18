@@ -11,18 +11,13 @@ export class TimeSliderComponent implements AfterViewInit {
   @ViewChild('slider') slider!: MatSlider;
   @Input() value?: number = 0;
   @Input() prognosisStart?: number;
+  @Input() helpYOffset = -130;
   valueChanged: EventEmitter<number> = new EventEmitter();
   overlay: any;
 
   constructor(private renderer: Renderer2) { }
 
   ngAfterViewInit(): void {
-    if (this.years.length > 0)
-      this.draw();
-  }
-
-  setYears(years: number[]){
-    this.years = years;
     if (this.years.length > 0)
       this.draw();
   }

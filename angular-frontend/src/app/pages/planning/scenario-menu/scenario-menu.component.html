@@ -5,7 +5,7 @@
            *ngFor="let scenario of scenarios" [attr.data-value]="scenario.id"
            class="scenario-card">
         <div class="scenario-card-header"
-             (click)="toggleScenario(scenario)">
+             (click)="setScenario(scenario)">
           {{ scenario.name }}
         </div>
         <div class="scenario-card-body">
@@ -28,7 +28,7 @@
     <div id="scenario-controls">
       <div>
         <button mat-icon-button color="primary" class="small"
-                [disabled]="activeScenario === undefined"
+                [disabled]="activeScenario === undefined || activeScenario === baseScenario"
                 (click)="onEditScenario()"
                 title="ausgewähltes Szenario editieren">
           <mat-icon>edit</mat-icon>
@@ -39,7 +39,7 @@
           <mat-icon>add</mat-icon>
         </button>
         <button mat-icon-button color="primary" class="small"
-                [disabled]="activeScenario === undefined"
+                [disabled]="activeScenario === undefined || activeScenario === baseScenario"
                 (click)="onDeleteScenario()"
                 title="ausgewähltes Szenario entfernen">
           <mat-icon>close</mat-icon>

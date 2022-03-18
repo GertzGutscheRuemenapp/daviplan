@@ -11,14 +11,6 @@ import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 
-const baseScenario: Scenario = {
-  id: -1,
-  name: 'Status Quo Fortschreibung',
-  planningProcess: -1,
-  modevariants: [],
-  demandratesets: []
-}
-
 @Component({
   selector: 'app-scenario-menu',
   templateUrl: './scenario-menu.component.html',
@@ -31,9 +23,9 @@ export class ScenarioMenuComponent implements OnInit {
   @ViewChild('supplyScenarioTable') supplyScenarioTableTemplate?: TemplateRef<any>;
   @ViewChild('demandPlaceholderTable') demandPlaceholderTemplate?: TemplateRef<any>;
   @ViewChild('demandQuotaDialog') demandQuotaTemplate?: TemplateRef<any>;
-  baseScenario = baseScenario;
+  baseScenario?: Scenario;
   scenarios: Scenario[] = [];
-  activeScenario: Scenario = baseScenario;
+  activeScenario?: Scenario;
   quotas = mockQuotas;
   prognoses = mockPrognoses;
   backend: string = environment.backend;
@@ -43,7 +35,10 @@ export class ScenarioMenuComponent implements OnInit {
   constructor(private dialog: MatDialog, private planningService: PlanningService,
               private formBuilder: FormBuilder, private http: HttpClient, private rest: RestAPI) {
     this.planningService.activeProcess$.subscribe(process => {
-      this.onProcessChange(process);
+      this.planningService.getBaseScenario().subscribe(scenario => {
+        this.baseScenario = scenario
+        this.onProcessChange(process);
+      });
     })
     this.editScenarioForm = this.formBuilder.group({
       scenarioName: new FormControl('')
@@ -53,14 +48,12 @@ export class ScenarioMenuComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  toggleScenario(scenario: Scenario): void {
-    // if (event.target !== event.currentTarget) return;
-    // let a = (event.target as Element).attributes;
-    // this.activeScenario = ((event.target as Element).attributes as any)['data-value'].value;
+  setScenario(scenario: Scenario): void {
+    if (this.activeScenario === scenario) return;
     this.activeScenario = scenario;
     this.scenarioCards?.forEach((card: ElementRef) => {
       let el = card.nativeElement;
-      if (el.attributes['data-value'].nodeValue === this.activeScenario.id)
+      if (el.attributes['data-value'].nodeValue === this.activeScenario?.id)
         el.classList.add('active');
       else
         el.classList.remove('active');
@@ -69,8 +62,8 @@ export class ScenarioMenuComponent implements OnInit {
 
   onProcessChange(process: PlanningProcess | undefined): void {
     this.process = process;
-    this.scenarios = (process)? [baseScenario].concat(process.scenarios || []): [];
-    this.activeScenario = baseScenario;
+    this.scenarios = (process)? [this.baseScenario!].concat(process.scenarios || []): [];
+    this.activeScenario = this.baseScenario;
   }
 
   onDeleteScenario(): void {
@@ -78,19 +71,19 @@ export class ScenarioMenuComponent implements OnInit {
       data: {
         title: $localize`Das Szenario wirklich entfernen?`,
         confirmButtonText: $localize`Szenario entfernen`,
-        value: this.activeScenario.name
+        value: this.activeScenario!.name
       }
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.scenarios}${this.activeScenario.id}/`
+        this.http.delete(`${this.rest.URLS.scenarios}${this.activeScenario!.id}/`
         ).subscribe(res => {
-          const idx = this.process!.scenarios!.indexOf(this.activeScenario);
+          const idx = this.process!.scenarios!.indexOf(this.activeScenario!);
           if (idx >= 0) {
             this.process!.scenarios!.splice(idx, 1);
-            this.scenarios = [baseScenario].concat(this.process!.scenarios!);
+            this.scenarios = [this.baseScenario!].concat(this.process!.scenarios!);
           }
-          this.activeScenario = baseScenario;
+          this.activeScenario = this.baseScenario;
         }, error => {
           console.log('there was an error sending the query', error);
         });
@@ -143,7 +136,7 @@ export class ScenarioMenuComponent implements OnInit {
     });
     dialogRef.afterOpened().subscribe(() => {
       this.editScenarioForm.reset({
-        scenarioName: this.activeScenario.name
+        scenarioName: this.activeScenario!.name
       });
     })
     dialogRef.componentInstance.confirmed.subscribe(() => {
@@ -153,9 +146,9 @@ export class ScenarioMenuComponent implements OnInit {
       let attributes = {
         name: this.editScenarioForm.value.scenarioName
       };
-      this.http.patch<Scenario>(`${this.rest.URLS.scenarios}${this.activeScenario.id}/`, attributes
+      this.http.patch<Scenario>(`${this.rest.URLS.scenarios}${this.activeScenario!.id}/`, attributes
       ).subscribe(scenario => {
-        this.activeScenario.name = scenario.name;
+        this.activeScenario!.name = scenario.name;
       },(error) => {
         dialogRef.componentInstance.isLoading = false;
       });

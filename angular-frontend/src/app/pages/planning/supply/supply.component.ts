@@ -3,10 +3,18 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
-import { Infrastructure, Layer, LayerGroup, Place, Service, Capacity, PlanningProcess } from "../../../rest-interfaces";
+import {
+  Infrastructure,
+  Layer,
+  LayerGroup,
+  Place,
+  Service,
+  Capacity,
+  PlanningProcess,
+  Scenario
+} from "../../../rest-interfaces";
 import { MapControl, MapService } from "../../../map/map.service";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
-import { Observable } from "rxjs";
 import * as d3 from "d3";
 
 @Component({
@@ -24,8 +32,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   compareSupply = true;
   compareStatus = 'option 1';
   infrastructures?: Infrastructure[];
-  selectedInfrastructure?: Infrastructure;
-  showScenarioMenu: boolean = false;
+  activeInfrastructure?: Infrastructure;
   mapControl?: MapControl;
   legendGroup?: LayerGroup;
   placesLayer?: Layer;
@@ -34,18 +41,14 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   selectedPlaces: Place[] = [];
   placeDialogRef?: MatDialogRef<any>;
   Object = Object;
-  selectedService?: Service;
+  activeService?: Service;
   activeProcess?: PlanningProcess;
+  activeScenario?: Scenario;
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
-              private planningService: PlanningService) {
+              public planningService: PlanningService) {
     this.planningService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures;
-    })
-    this.planningService.activeProcess$.subscribe(process => {
-      this.activeProcess = process;
-      if (!process) this.cookies.set('exp-planning-scenario', false);
-      this.showScenarioMenu = !!this.cookies.get('exp-planning-scenario');
     })
   }
 
@@ -71,6 +74,12 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       this.year = year;
       this.updatePlaces();
     })
+    this.planningService.activeProcess$.subscribe(process => {
+      this.activeProcess = process;
+    })
+    this.planningService.activeScenario$.subscribe(scenario => {
+      this.activeScenario = scenario;
+    })
     this.planningService.getRealYears().subscribe( years => {
       this.realYears = years;
     })
@@ -80,17 +89,25 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   onFilter(): void {
+    if (!this.activeInfrastructure) return;
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
-      width: '1400px',
+      // width: '100%',
+      maxWidth: '90vw',
       disableClose: false,
       data: {
-        // title: 'Standortfilter',
         template: this.filterTemplate,
         closeOnConfirm: true,
         infoText: '<p>Mit dem Schieberegler rechts oben können Sie das Jahr wählen für das die Standortstruktur in der Tabelle angezeigt werden soll. Die Einstellung wird für die Default-Kartendarstellung übernommen.</p>' +
           '<p>Mit einem Klick auf das Filtersymbol in der Tabelle können Sie Filter auf die in der jeweiligen Spalte Indikatoren definieren. Die Filter werden grundsätzlich auf alle Jahre angewendet. In der Karte werden nur die gefilterten Standorte angezeigt.</p>'+
-          '<p>Sie können einmal gesetzte Filter bei Bedarf im Feld „Aktuell verwendete Filter“ unter der Tabelle wieder löschen.</p>'
+          '<p>Sie können einmal gesetzte Filter bei Bedarf im Feld „Aktuell verwendete Filter“ unter der Tabelle wieder löschen.</p>',
+        context: {
+          // services: [this.activeService],
+          places: this.places,
+          scenario: this.activeScenario,
+          year: this.year,
+          infrastructure: this.activeInfrastructure
+        }
       }
     });
     dialogRef.afterClosed().subscribe((ok: boolean) => {  });
@@ -98,8 +115,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   updatePlaces(): void {
-    if (!this.selectedInfrastructure || this.selectedInfrastructure.services.length === 0) return;
-    this.planningService.getPlaces(this.selectedInfrastructure.id,
+    if (!this.activeInfrastructure || this.activeInfrastructure.services.length === 0) return;
+    this.planningService.getPlaces(this.activeInfrastructure.id,
       { targetProjection: this.mapControl!.map!.mapProjection }).subscribe(places => {
       this.places = places;
       let showLabel = true;
@@ -107,48 +124,49 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         showLabel = !!this.placesLayer.showLabel;
         this.mapControl?.removeLayer(this.placesLayer.id!);
       }
-      if (!this.selectedService) this.selectedService = this.selectedInfrastructure!.services[0];
-      this.planningService.getCapacities(this.year!, this.selectedService.id).subscribe(capacities => {
+      if (!this.activeService) this.activeService = this.activeInfrastructure!.services[0];
+      this.planningService.getCapacities(this.year!, this.activeService.id).subscribe(capacities => {
         this.capacities = capacities;
         let displayedPlaces: Place[] = [];
         this.places?.forEach(place => {
-          const capacity = this.getCapacity(this.selectedService!.id, place.id);
+          const capacity = this.getCapacity(this.activeService!.id, place.id);
           if (!capacity) return;
           place.properties.capacity = capacity;
-          place.properties.label = this.getFormattedCapacityString([this.selectedService!.id], capacity);
+          place.properties.label = this.getFormattedCapacityString([this.activeService!.id], capacity);
           displayedPlaces.push(place);
         })
-        const colorFunc = d3.scaleSequential().domain([0, this.selectedService?.maxCapacity || 1000])
-          .interpolator(d3.interpolateCool);
+        const radiusFunc = d3.scaleLinear().domain(
+          [this.activeService?.minCapacity || 0, this.activeService?.maxCapacity || 1000]
+        ).range([1, 20]);
         this.placesLayer = this.mapControl?.addLayer({
-            order: 0,
-            type: 'vector',
-            group: this.legendGroup?.id,
-            name: this.selectedInfrastructure!.name,
-            description: this.selectedInfrastructure!.name,
-            opacity: 1,
-            symbol: {
-              fillColor: colorFunc(0),
-              strokeColor: 'black',
-              symbol: 'circle'
-            },
-            labelField: 'label',
-            showLabel: showLabel
+          order: 0,
+          type: 'vector',
+          group: this.legendGroup?.id,
+          name: this.activeInfrastructure!.name,
+          description: this.activeInfrastructure!.name,
+          opacity: 1,
+          symbol: {
+            fillColor: '#2171b5',
+            strokeColor: 'black',
+            symbol: 'circle'
           },
-          {
-            visible: true,
-            tooltipField: 'name',
-            selectable: true,
-            select: {
-              fillColor: 'yellow',
-              multi: true
-            },
-            mouseOver: {
-              cursor: 'help'
-            },
-            colorFunc: colorFunc,
-            valueField: 'capacity'
-          });
+          labelField: 'label',
+          showLabel: showLabel
+        },
+        {
+          visible: true,
+          tooltipField: 'name',
+          selectable: true,
+          select: {
+            fillColor: 'yellow',
+            multi: true
+          },
+          mouseOver: {
+            cursor: 'help'
+          },
+          radiusFunc: radiusFunc,
+          valueField: 'capacity'
+        });
         this.mapControl?.clearFeatures(this.placesLayer!.id!);
         this.mapControl?.addFeatures(this.placesLayer!.id!, displayedPlaces,
           { properties: 'properties', geometry: 'geometry' });
@@ -166,9 +184,9 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   getFormattedCapacityString(services: number[], capacity: number): string {
-    if (!this.selectedInfrastructure) return '';
+    if (!this.activeInfrastructure) return '';
     let units = new Set<string>();
-    this.selectedInfrastructure.services.filter(service => services.indexOf(service.id) >= 0).forEach(service => {
+    this.activeInfrastructure.services.filter(service => services.indexOf(service.id) >= 0).forEach(service => {
       units.add((capacity === 1)? service.capacitySingularUnit: service.capacityPluralUnit);
     })
     return `${capacity} ${Array.from(units).join('/')}`
@@ -213,6 +231,10 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           minWidth: '400px'
         }
       });
+    this.placeDialogRef.afterClosed().subscribe(() => {
+      this.selectedPlaces = [];
+      this.mapControl?.deselectAllFeatures(this.placesLayer!.id!);
+    })
   }
 
   ngOnDestroy(): void {

@@ -1,10 +1,9 @@
-<app-scenario-menu domain="supply" [ngClass]="{'expanded': showScenarioMenu}"></app-scenario-menu>
-<mat-expansion-panel [disabled]="!activeProcess"
-                     class="side-toggle" id="scenario-toggle"
-                     cookieExpansion="exp-planning-scenario">
-  <mat-expansion-panel-header (click)="showScenarioMenu=!showScenarioMenu;">
+<app-scenario-menu domain="supply" [ngClass]="{'expanded': planningService.showScenarioMenu}"></app-scenario-menu>
+<mat-expansion-panel class="side-toggle" id="scenario-toggle"
+                     [expanded]="planningService.showScenarioMenu">
+  <mat-expansion-panel-header (click)="planningService.showScenarioMenu=!planningService.showScenarioMenu;">
     <mat-panel-title>
-      <div class="mini-fab-icon" [ngClass]="{'primary': showScenarioMenu}">
+      <div class="mini-fab-icon" [ngClass]="{'primary': planningService.showScenarioMenu}">
         <div class="davicon icon-GGR-davicons-Font-Simple-2-Szenario"></div>
       </div>
       Szenario
@@ -33,9 +32,9 @@
       <mat-form-field appearance="outline" class="small">
         <mat-label>Infrastrukturbereich</mat-label>
         <mat-select disableOptionCentering disableRipple
-                    [(ngModel)]="selectedInfrastructure"
+                    [(ngModel)]="activeInfrastructure"
                     (ngModelChange)="updatePlaces();"
-                    [ngbPopover]="selectedInfrastructure?.description"
+                    [ngbPopover]="activeInfrastructure?.description"
                     placement="right"
                     container="body"
                     triggers="mouseenter:mouseleave">
@@ -50,14 +49,15 @@
       </mat-form-field>
       <button color="primary" mat-icon-button
               class="filter-button small" title="Standortfilter"
+              [disabled]="!activeInfrastructure"
               (click)="onFilter()">
         <mat-icon>filter_list</mat-icon>
       </button>
     </div>
-    <div class="sub-select-wrapper" *ngIf="selectedInfrastructure">
-      <mat-radio-group [(ngModel)]="selectedService"
+    <div class="sub-select-wrapper" *ngIf="activeInfrastructure">
+      <mat-radio-group [(ngModel)]="activeService"
                        (ngModelChange)="updatePlaces();">
-        <mat-radio-button *ngFor="let service of selectedInfrastructure.services; let first = first;"
+        <mat-radio-button *ngFor="let service of activeInfrastructure.services; let first = first;"
                           [value]="service"
                           [checked]="first"
                           style="margin-right: 100%;"
@@ -148,29 +148,8 @@
 <!--workaround to cover visible scenario menu-->
 <div style="width: 100%; height:50px; background-color: white;"></div>
 
-<ng-template #filterTemplate>
-  <div style="display: flex; align-items: end; user-select: none;">
-    <div>
-      <h4>Standortfilter</h4>
-      <span class="subtitle1 sub" i18n>Die Tabelle zeigt die gefilterten Standorte im Szenario [Name] im Jahr {{timeSlider.value}}</span>
-    </div>
-    <div id="time-slider-wrapper" style="display: flex; margin-left: 200px; margin-bottom: 10px;"> <!--margin-left: auto-->
-      <div class="time-button" (click)="timeSlider.value = timeSlider.value - 1;">
-        <mat-icon color="primary">chevron_left</mat-icon>
-      </div>
-      <div class="time-button" (click)="timeSlider.value = timeSlider.value + 1;">
-        <mat-icon color="primary">chevron_right</mat-icon>
-      </div>
-      <div style="display: flex; padding: 0px 10px 10px 10px;">
-        <label style="padding-top: 25px;">2000</label>
-        <mat-slider #timeSlider color="primary"
-                    thumbLabel min="2000" max="2100" step="1" value="2010"
-                    style="width: 420px; margin-top: 15px;"></mat-slider>
-        <label style="padding-top: 25px;">2100</label>
-      </div>
-    </div>
-  </div>
-  <app-filter-table></app-filter-table>
+<ng-template #filterTemplate let-services="services" let-places="places" let-scenario="scenario" let-year="year" let-infrastructure="infrastructure">
+  <app-place-filter [services]="services" [places]="places" [scenario]="scenario" [year]="year" [infrastructure]="infrastructure"></app-place-filter>
 </ng-template>
 
 <ng-template #placePreviewTemplate>
@@ -181,8 +160,8 @@
         {{key}}: <i>{{place.properties.attributes[key]}}</i>
       </div>
     </ng-container>
-    <div *ngIf="selectedService">
-        Kapazität {{selectedService.name}}: <i>{{getFormattedCapacityString([selectedService.id], getCapacity(selectedService.id, place.id))}}</i>
+    <div *ngIf="activeService">
+        Kapazität {{activeService.name}}: <i>{{getFormattedCapacityString([activeService.id], getCapacity(activeService.id, place.id))}}</i>
     </div>
     <br>
   </div>

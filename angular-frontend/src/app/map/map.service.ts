@@ -547,6 +547,11 @@ export class MapControl {
     this.map?.selectFeatures(this.mapId(layer), ids, options);
   }
 
+  deselectAllFeatures(layerId: number | string): void {
+    const layer = this.layerMap[layerId];
+    this.map?.deselectAllFeatures(this.mapId(layer));
+  }
+
   toggleEditMode(): void {
     this.editMode = !this.editMode;
     this.mapSettings['legend-edit-mode'] = this.editMode;
