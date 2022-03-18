@@ -19,19 +19,16 @@ export class ReachabilitiesComponent implements OnInit {
   infrastructures?: Infrastructure[];
   selectedInfrastructure?: Infrastructure;
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
-  showScenarioMenu: boolean = false;
   activeProcess?: PlanningProcess;
 
   constructor(private dialog: MatDialog, public cookies: CookieService,
-              private planningService: PlanningService) {
+              public planningService: PlanningService) {
     this.planningService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures;
       this.selectedInfrastructure = infrastructures[0];
     });
     this.planningService.activeProcess$.subscribe(process => {
       this.activeProcess = process;
-      if (!process) this.cookies.set('exp-planning-scenario', false);
-      this.showScenarioMenu = !!this.cookies.get('exp-planning-scenario');
     })
   }
 

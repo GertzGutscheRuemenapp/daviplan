@@ -8,13 +8,13 @@ from django.db.models import Max
 
 from django.contrib.auth.models import User
 
+from datentool_backend.indicators.compute.base import (
+    ServiceIndicator, ResultSerializer)
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import(CanEditBasedata,
                                                 HasAdminAccessOrReadOnly,
                                                 IsOwner
                                                 )
-from datentool_backend.indicators.compute.base import (
-    ServiceIndicator, ResultSerializer)
 from datentool_backend.indicators.serializers import IndicatorSerializer
 
 from .permissions import CanUpdateProcessPermission, CanPatchSymbol

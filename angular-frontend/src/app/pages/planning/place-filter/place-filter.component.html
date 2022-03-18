@@ -1,0 +1,18 @@
+<div style="display: flex; user-select: none;">
+  <div>
+    <h4>Standortfilter</h4>
+    <span class="subtitle1 sub">
+      Die Tabelle zeigt die gefilterten Standorte im Szenario "{{scenario.name}}" im Jahr {{timeSlider.value}}
+    </span>
+  </div>
+  <div id="time-slider-wrapper">
+    <div class="time-button" (click)="shiftYear(-1)">
+      <mat-icon color="primary">chevron_left</mat-icon>
+    </div>
+    <div class="time-button" (click)="shiftYear(1)">
+      <mat-icon color="primary">chevron_right</mat-icon>
+    </div>
+    <app-time-slider id="time-slider" [helpYOffset]="0" #timeSlider></app-time-slider>
+  </div>
+</div>
+<app-filter-table [header]="header" [rows]="rows"></app-filter-table>

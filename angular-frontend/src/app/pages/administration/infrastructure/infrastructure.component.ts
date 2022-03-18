@@ -14,9 +14,9 @@ import { Infrastructure, Symbol } from "../../../rest-interfaces"
 export const mockInfrastructures: Infrastructure[] = [
   { id: 1, order: 1, name: 'Kinderbetreuung',
     description: 'Betreuung von Kindern in Einrichtungen, ohne Tagespflege',
-    services: [{ id: 1, infrastructure: 1, description: '', name: 'Kita', maxCapacity: 1000,
+    services: [{ id: 1, infrastructure: 1, description: '', name: 'Kita', minCapacity:0, maxCapacity: 1000,
       demandSingularUnit: '', demandPluralUnit: '', capacitySingularUnit: '',  capacityPluralUnit: '' },
-      { id: 2, description: '', infrastructure: 1, name: 'Krippe', maxCapacity: 1000,
+      { id: 2, description: '', infrastructure: 1, name: 'Krippe', maxCapacity: 1000,minCapacity:0,
         demandSingularUnit: '', demandPluralUnit: '', capacitySingularUnit: '',  capacityPluralUnit: ''  }]},
 ]
 

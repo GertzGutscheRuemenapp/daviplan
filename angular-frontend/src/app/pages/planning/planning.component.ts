@@ -18,6 +18,7 @@ import { SettingsService } from "../../settings.service";
 import { AuthService } from "../../auth.service";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../rest-api";
+import { CookieService } from "../../helpers/cookies.service";
 
 @Component({
   selector: 'app-planning',
@@ -35,7 +36,6 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   sharedProcesses: PlanningProcess[] = [];
   activeProcess?: PlanningProcess;
   users = mockUsers;
-  showScenarioMenu: boolean = false;
   mapControl?: MapControl;
   realYears?: number[];
   prognosisYears?: number[];
@@ -53,7 +53,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
               private elRef: ElementRef, private mapService: MapService, private dialog: MatDialog,
               public planningService: PlanningService, private settings: SettingsService,
               private auth: AuthService, private formBuilder: FormBuilder,
-              private http: HttpClient, private rest: RestAPI) {
+              private http: HttpClient, private rest: RestAPI, private cookies: CookieService) {
     this.editProcessForm = this.formBuilder.group({
       name: new FormControl(''),
       description: new FormControl(''),
@@ -92,6 +92,10 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
           else
             this.sharedProcesses.push(process);
         })
+        const processId = this.cookies.get('planning-process');
+        if (processId) {
+          this.setProcess(Number(processId))
+        }
       })
     })
     this.planningService.setReady(true);
@@ -103,11 +107,14 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.mapControl?.destroy();
   }
 
-  onProcessChange(id: number): void {
-    if (id === undefined) return;
+  setProcess(id: number | undefined, options?: { persist: boolean }): void {
     let process = this.getProcess(id);
     this.activeProcess = process;
+    if (options?.persist)
+      this.cookies.set('planning-process', process?.id);
     this.planningService.activeProcess$.next(process);
+    const scenario = process?.scenarios? process.scenarios[0]: undefined;
+    this.planningService.activeScenario$.next(scenario);
   }
 
   setSlider(): void {
@@ -119,12 +126,9 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.timeSlider!.draw();
   }
 
-  getProcess(id: number): PlanningProcess {
+  getProcess(id: number | undefined): PlanningProcess | undefined {
+    if (id === undefined) return;
     return this.myProcesses.concat(this.sharedProcesses).filter(process => process.id === id)[0];
-  }
-
-  toggleScenarioMenu(): void{
-    this.showScenarioMenu = !this.showScenarioMenu;
   }
 
   onCreateProcess(): void {
@@ -233,7 +237,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
           }
           if (this.activeProcess === process) {
             this.activeProcess = undefined;
-            this.planningService.activeProcess$.next(undefined);
+            this.setProcess(undefined, {persist: true});
           }
         },(error) => {
           console.log('there was an error sending the query', error);

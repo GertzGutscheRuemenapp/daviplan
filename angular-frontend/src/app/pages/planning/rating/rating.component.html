@@ -1,10 +1,9 @@
-<app-scenario-menu domain="rating" [ngClass]="{'expanded': showScenarioMenu}"></app-scenario-menu>
-<mat-expansion-panel [disabled]="!activeProcess"
-                     class="side-toggle" id="scenario-toggle"
-                     cookieExpansion="exp-planning-scenario">
-  <mat-expansion-panel-header (click)="showScenarioMenu=!showScenarioMenu;">
+<app-scenario-menu domain="rating" [ngClass]="{'expanded': planningService.showScenarioMenu}"></app-scenario-menu>
+<mat-expansion-panel class="side-toggle" id="scenario-toggle"
+                     [expanded]="planningService.showScenarioMenu">
+  <mat-expansion-panel-header (click)="planningService.showScenarioMenu=!planningService.showScenarioMenu;">
     <mat-panel-title>
-      <div class="mini-fab-icon" [ngClass]="{'primary': showScenarioMenu}">
+      <div class="mini-fab-icon" [ngClass]="{'primary': planningService.showScenarioMenu}">
         <div class="davicon icon-GGR-davicons-Font-Simple-2-Szenario"></div>
       </div>
       Szenario

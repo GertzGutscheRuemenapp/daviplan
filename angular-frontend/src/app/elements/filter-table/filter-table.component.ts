@@ -1,12 +1,8 @@
 import { Component, Input, OnInit } from '@angular/core';
 
-const mockHeader = ['Name', 'Zustand', 'Anzahl Betreuer', 'Kapazität Krippe', 'Kapazität Kita', 'Adresse']
-const mockRows = [
-  ['KIGA Nord', 'gut', 12, 28, 22, 'Paul Ehrlich Straße 3, 35029 Bremen'],
-  ['Krippe Westentchen', 'sehr gut', 20, 80, 0, 'Cuxhavener Landstraße 2, 35029 Bremen'],
-  ['Kita Süd', 'befriedigend', 6, 10, 20, 'Diepholzer Weg 133, 35029 Bremen'],
-  ['Katholische Kita Mitte', 'gut', 2, 8, 12, 'Kirchenallee 24, 35029 Bremen'],
-]
+export interface Header {
+  name: string
+}
 
 @Component({
   selector: 'app-filter-table',
@@ -14,13 +10,31 @@ const mockRows = [
   styleUrls: ['./filter-table.component.scss']
 })
 export class FilterTableComponent implements OnInit {
-  @Input() header = mockHeader;
-  @Input() rows = mockRows;
-  filtered = [true, false, false, true, false, false];
+  @Input() header!: string[];
+  @Input() rows!: any[][];
+  filtered = [false, false, false, false, false, false];
+  // sorting: ('asc' | 'desc' | 'none')[];
+  sorting: ('asc' | 'desc' | 'none' )[] = [];
 
-  constructor() { }
+  constructor() {
+  }
+
+  toggleSort(column: number) {
+    const prevOrder = this.sorting[column];
+    // const order = (prevOrder === 'none')? 'asc': (prevOrder === 'asc')? 'desc': 'none';
+    const order = (prevOrder === 'asc')? 'desc': 'asc';
+    this.sorting[column] = order;
+    // if (order === 'none') return;
+    this.rows.sort((a, b) => {
+      if (a[column] === b[column]) return 0;
+      if (order === 'asc' && a[column] > b[column]) return 1;
+      if (order === 'desc' && a[column] < b[column]) return 1;
+      return -1;
+    })
+  }
 
   ngOnInit(): void {
+    this.sorting = Array(this.header.length).fill('none');
   }
 
 }

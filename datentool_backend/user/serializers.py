@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-import json
+from django.db.models import Min
 
 from .models import (Profile,
                      Year,
@@ -10,8 +10,10 @@ from .models import (Profile,
                      Service,
                      )
 
-from datentool_backend.area.models import MapSymbol
+from datentool_backend.models import MapSymbol, Capacity
 from datentool_backend.area.serializers import MapSymbolSerializer
+from datentool_backend.infrastructure.serializers import PlaceFieldSerializer
+
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -105,12 +107,15 @@ class InfrastructureSerializer(serializers.ModelSerializer):
     symbol = MapSymbolSerializer(allow_null=True, required=False)
     accessible_by = InfrastructureAccessSerializer(
         many=True, source='infrastructureaccess_set', required=False)
+    # ToDo: make writable (create and update)
+    place_fields = PlaceFieldSerializer(many=True, source='placefield_set',
+                                       required=False, read_only=True)
 
     class Meta:
         model = Infrastructure
         fields = ('id', 'name', 'description',
                   'editable_by', 'accessible_by',
-                  'order', 'symbol')
+                  'order', 'symbol', 'place_fields')
 
     def create(self, validated_data):
         symbol_data = validated_data.pop('symbol', None)
@@ -173,11 +178,19 @@ class InfrastructureSerializer(serializers.ModelSerializer):
 
 class ServiceSerializer(serializers.ModelSerializer):
     max_capacity = serializers.IntegerField(read_only=True)
+    min_capacity = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Service
         fields = ('id', 'name', 'description', 'infrastructure', 'editable_by',
                   'capacity_singular_unit', 'capacity_plural_unit',
                   'has_capacity', 'demand_singular_unit', 'demand_plural_unit',
                   'quota_type', 'demand_name', 'demand_description',
-                  'max_capacity', 'facility_singular_unit', 'facility_article',
+                  'min_capacity', 'max_capacity',
+                  'facility_singular_unit', 'facility_article',
                   'facility_plural_unit', 'direction_way_relationship')
+
+    def get_min_capacity(self, obj):
+        mc = Capacity.objects.filter(capacity__gt=0).aggregate(
+            min_cap=Min('capacity'))
+        return mc['min_cap']

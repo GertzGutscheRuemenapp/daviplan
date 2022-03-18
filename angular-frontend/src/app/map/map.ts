@@ -585,8 +585,10 @@ export class OlMap {
       });
   }
 
-  deselectFeatures(){
-
+  deselectAllFeatures(layerName: string){
+    const layer = this.layers[layerName],
+      select = layer.get('select');
+    select.getFeatures().clear();
   }
 
   removeLayer(name: string){
