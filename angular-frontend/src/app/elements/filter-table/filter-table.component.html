@@ -12,8 +12,14 @@
               <mat-icon>filter_list</mat-icon>
             </button>
           </div>
-          <span class="subtitle1" style="color: grey; white-space: pre-wrap;">{{th}}</span>
-          <div class="sort-icon" style="position: relative; min-width: 30px;">
+          <span class="subtitle1"
+                (click)="toggleSort(i)"
+                style="color: grey; white-space: pre-wrap;">
+            {{th}}
+          </span>
+          <div class="sort-icon"
+               (click)="toggleSort(i)"
+               style="position: relative; min-width: 30px;">
             <mat-icon style="position: absolute; top: -3px; left: 5px;">arrow_drop_up</mat-icon>
             <mat-icon style="position: absolute; top: 4px; left: 5px;">arrow_drop_down</mat-icon>
           </div>
