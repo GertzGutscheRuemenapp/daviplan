@@ -1,24 +1,18 @@
-<div style="display: flex; align-items: end; user-select: none;">
+<div style="display: flex; user-select: none;">
   <div>
     <h4>Standortfilter</h4>
     <span class="subtitle1 sub">
       Die Tabelle zeigt die gefilterten Standorte im Szenario "{{scenario.name}}" im Jahr {{timeSlider.value}}
     </span>
   </div>
-  <div id="time-slider-wrapper" style="display: flex; margin-left: 200px; margin-bottom: 10px;"> <!--margin-left: auto-->
-    <div class="time-button" (click)="timeSlider.value = timeSlider.value - 1;">
+  <div id="time-slider-wrapper">
+    <div class="time-button" (click)="shiftYear(-1)">
       <mat-icon color="primary">chevron_left</mat-icon>
     </div>
-    <div class="time-button" (click)="timeSlider.value = timeSlider.value + 1;">
+    <div class="time-button" (click)="shiftYear(1)">
       <mat-icon color="primary">chevron_right</mat-icon>
     </div>
-    <div style="display: flex; padding: 0px 10px 10px 10px;">
-      <label style="padding-top: 25px;">{{ minYear }}</label>
-      <mat-slider #timeSlider color="primary"
-                  thumbLabel step="1"
-                  style="width: 420px; margin-top: 15px;"></mat-slider>
-      <label style="padding-top: 25px;">{{ maxYear }}</label>
-    </div>
+    <app-time-slider id="time-slider" [helpYOffset]="0" #timeSlider></app-time-slider>
   </div>
 </div>
 <app-filter-table [header]="header" [rows]="rows"></app-filter-table>

@@ -43,7 +43,7 @@ export class HelpDialogComponent {
   @Input() title: string = '';
   @Input() text: string = '';
   @Input() width: number = 350;
-  @Input() position: string = 'right';
+  @Input() position: 'right' | 'left' | 'center' = 'right';
   @Input() top: number = -50;
   @Input() template?: TemplateRef<any>;
   @Input() context?: any;

@@ -4,6 +4,9 @@ import { PlanningService } from "../planning.service";
 import { hasDirectiveDecorator } from "@angular/compiler-cli/ngcc/src/migrations/utils";
 import { TimeSliderComponent } from "../../../elements/time-slider/time-slider.component";
 import { MatSlider } from "@angular/material/slider";
+import { forkJoin, Observable } from "rxjs";
+import { map } from "rxjs/operators";
+import { sortBy } from "../../../helpers/utils";
 
 const mockHeader = ['Name', 'Zustand', 'Anzahl Betreuer', 'Kapazität Krippe', 'Kapazität Kita', 'Adresse']
 const mockRows = [
@@ -24,19 +27,19 @@ export class PlaceFilterComponent implements AfterViewInit {
   @Input() places!: Place[];
   @Input() scenario!: Scenario;
   @Input() year?: number;
-  @ViewChild('timeSlider') timeSlider?: MatSlider;
+  @ViewChild('timeSlider') timeSlider?: TimeSliderComponent;
   realYears?: number[];
   prognosisYears?: number[];
-  minYear = 0;
-  maxYear = 0;
   public header: string[] = [];
   public rows: any[][] = [];
-  private capacities: Record<number, Capacity[]> = {};
+  private capacities: Record<number, Record<string, number>> = {};
 
   constructor(private planningService: PlanningService) {
   }
 
   ngAfterViewInit(): void {
+    if (!this.services) this.services = this.infrastructure.services;
+    this.header = this.getHeader();
     this.planningService.getRealYears().subscribe( years => {
       this.realYears = years;
       this.planningService.getPrognosisYears().subscribe( years => {
@@ -46,8 +49,7 @@ export class PlaceFilterComponent implements AfterViewInit {
         this.updateData();
       })
     })
-    if (!this.services) this.services = this.infrastructure.services;
-    this.timeSlider?.valueChange.subscribe(value => {
+    this.timeSlider?.valueChanged.subscribe(value => {
       if (value) {
         this.year = value;
         this.updateData();
@@ -55,19 +57,26 @@ export class PlaceFilterComponent implements AfterViewInit {
     })
   }
 
-  initData(): void {
-
-  }
-
   updateData(): void {
-    this.capacities = {};
-    this.services?.forEach(service => {
-      this.planningService.getCapacities(this.year!, service.id).subscribe(capacities => {
-        this.capacities[service.id] = capacities;
-        this.header = this.getHeader();
+    let observables: Observable<any>[] = [];
+    if (!this.capacities[this.year!]){
+      let placeCaps: Record<string, number> = {};
+      this.capacities[this.year!] = placeCaps;
+      this.services?.forEach(service => {
+        observables.push(this.planningService.getCapacities(this.year!, service.id).pipe(map(capacities => {
+          this.places.forEach(place => {
+            const key = `${service.id}-${place.id}`;
+            placeCaps[key] = capacities.find(c => c.place === place.id)?.capacity || 0;
+          })
+        })));
+      });
+
+      forkJoin(...observables).subscribe(() => {
         this.rows = this.placesToRows(this.places);
       })
-    })
+    }
+    else
+      this.rows = this.placesToRows(this.places);
   }
 
   getHeader(): string[] {
@@ -87,8 +96,8 @@ export class PlaceFilterComponent implements AfterViewInit {
     const rows: any[][] = [];
     places.forEach(place => {
       const capValues = this.services!.map(service => {
-        const cap = this.capacities[service.id].find(c => c.place === place.id);
-        return cap?.capacity || 0;
+        const key = `${service.id}-${place.id}`;
+        return this.capacities[this.year!][key];
       })
       const values: any[] = this.infrastructure.placeFields!.map(field => {
         return place.properties.attributes[field.name] || '';
@@ -100,11 +109,21 @@ export class PlaceFilterComponent implements AfterViewInit {
 
   setSlider(): void {
     if (!(this.realYears && this.prognosisYears)) return;
-    this.maxYear = this.prognosisYears? this.prognosisYears[this.prognosisYears.length - 1]: this.realYears[this.realYears.length - 1];
-    this.minYear = this.realYears[0];
-    this.timeSlider!.min = this.minYear;
-    this.timeSlider!.max = this.maxYear;
-    this.timeSlider!.value = this.year!;
+    this.timeSlider!.prognosisStart = this.prognosisYears[0] || 0;
+    this.timeSlider!.years = this.realYears.concat(this.prognosisYears);
+    this.timeSlider!.value = this.year;
+    this.timeSlider!.draw();
+  }
+
+  shiftYear(steps: number): void {
+    const years = this.timeSlider!.years;
+    const idx = years.indexOf(this.year!);
+    const newIdx = idx + steps;
+    if (newIdx < 0 && newIdx >= years.length)
+      return;
+    this.year = years[newIdx];
+    this.timeSlider!.value = this.year;
+    this.updateData();
   }
 
 }

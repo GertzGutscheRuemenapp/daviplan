@@ -102,7 +102,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           '<p>Mit einem Klick auf das Filtersymbol in der Tabelle können Sie Filter auf die in der jeweiligen Spalte Indikatoren definieren. Die Filter werden grundsätzlich auf alle Jahre angewendet. In der Karte werden nur die gefilterten Standorte angezeigt.</p>'+
           '<p>Sie können einmal gesetzte Filter bei Bedarf im Feld „Aktuell verwendete Filter“ unter der Tabelle wieder löschen.</p>',
         context: {
-          services: [this.activeService],
+          // services: [this.activeService],
           places: this.places,
           scenario: this.activeScenario,
           year: this.year,
