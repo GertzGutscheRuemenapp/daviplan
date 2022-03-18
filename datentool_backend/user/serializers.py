@@ -12,6 +12,8 @@ from .models import (Profile,
 
 from datentool_backend.models import MapSymbol, Capacity
 from datentool_backend.area.serializers import MapSymbolSerializer
+from datentool_backend.infrastructure.serializers import PlaceFieldSerializer
+
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -105,12 +107,15 @@ class InfrastructureSerializer(serializers.ModelSerializer):
     symbol = MapSymbolSerializer(allow_null=True, required=False)
     accessible_by = InfrastructureAccessSerializer(
         many=True, source='infrastructureaccess_set', required=False)
+    # ToDo: make writable (create and update)
+    place_fields = PlaceFieldSerializer(many=True, source='placefield_set',
+                                       required=False, read_only=True)
 
     class Meta:
         model = Infrastructure
         fields = ('id', 'name', 'description',
                   'editable_by', 'accessible_by',
-                  'order', 'symbol')
+                  'order', 'symbol', 'place_fields')
 
     def create(self, validated_data):
         symbol_data = validated_data.pop('symbol', None)

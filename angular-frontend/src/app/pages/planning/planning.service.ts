@@ -4,9 +4,8 @@ import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../rest-api";
 import { RestCacheService } from "../../rest-cache.service";
 import { BehaviorSubject, Observable } from "rxjs";
-import { AgeGroup, PlanningProcess, Scenario } from "../../rest-interfaces";
+import { PlanningProcess, Scenario } from "../../rest-interfaces";
 import { SettingsService } from "../../settings.service";
-import { ScenarioMenuComponent } from "./scenario-menu/scenario-menu.component";
 
 @Injectable({
   providedIn: 'root'
@@ -30,11 +29,11 @@ export class PlanningService extends RestCacheService {
       this.getCachedData<PlanningProcess[]>(processUrl).subscribe(processes => {
         const scenarioUrl = this.rest.URLS.scenarios;
         this.getCachedData<Scenario[]>(scenarioUrl).subscribe(scenarios => {
+          processes.forEach(process => process.scenarios = []);
           scenarios.forEach(scenario => {
             const process = processes.find(p => p.id === scenario.planningProcess);
             if (!process) return;
-            if (!process.scenarios) process.scenarios = [];
-            process.scenarios.push(scenario);
+            process.scenarios!.push(scenario);
           })
           subscriber.next(processes);
           subscriber.complete();

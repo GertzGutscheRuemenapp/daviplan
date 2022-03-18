@@ -94,8 +94,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
         })
         const processId = this.cookies.get('planning-process');
         if (processId) {
-          this.activeProcess = this.getProcess(Number(processId));
-          this.planningService.activeProcess$.next(this.activeProcess);
+          this.setProcess(Number(processId))
         }
       })
     })
@@ -108,12 +107,14 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.mapControl?.destroy();
   }
 
-  onProcessChange(id: number): void {
-    if (id === undefined) return;
+  setProcess(id: number | undefined, options?: { persist: boolean }): void {
     let process = this.getProcess(id);
     this.activeProcess = process;
-    this.cookies.set('planning-process', process.id);
+    if (options?.persist)
+      this.cookies.set('planning-process', process?.id);
     this.planningService.activeProcess$.next(process);
+    const scenario = process?.scenarios? process.scenarios[0]: undefined;
+    this.planningService.activeScenario$.next(scenario);
   }
 
   setSlider(): void {
@@ -125,7 +126,8 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.timeSlider!.draw();
   }
 
-  getProcess(id: number): PlanningProcess {
+  getProcess(id: number | undefined): PlanningProcess | undefined {
+    if (id === undefined) return;
     return this.myProcesses.concat(this.sharedProcesses).filter(process => process.id === id)[0];
   }
 
@@ -235,7 +237,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
           }
           if (this.activeProcess === process) {
             this.activeProcess = undefined;
-            this.planningService.activeProcess$.next(undefined);
+            this.setProcess(undefined, {persist: true});
           }
         },(error) => {
           console.log('there was an error sending the query', error);

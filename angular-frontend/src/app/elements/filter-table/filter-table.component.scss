@@ -1,13 +1,26 @@
 #filter-table {
   border-spacing: 0;
-  overflow-x: auto;
+  overflow: auto;
   display: block;
+  max-height: 40vh;
+  .header {
+    position: sticky;
+    position: -webkit-sticky;
+    top: -1px;
+    z-index: 1;
+    background-color: white;
+  }
   th {
     background-color: #f4f4f4;
     white-space: nowrap;
     >div {
       display: flex;
-      align-items: baseline;
+      align-items: center;
+    }
+    .subtitle1, .sort-icon {
+      cursor: pointer;
+      display: flex;
+      height: 25px;
     }
   }
   th, td {

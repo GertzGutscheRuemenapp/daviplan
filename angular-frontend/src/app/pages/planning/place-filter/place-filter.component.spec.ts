@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ServiceFilterComponent } from './service-filter.component';
+import { PlaceFilterComponent } from './place-filter.component';
 
 describe('ServiceFilterComponent', () => {
-  let component: ServiceFilterComponent;
-  let fixture: ComponentFixture<ServiceFilterComponent>;
+  let component: PlaceFilterComponent;
+  let fixture: ComponentFixture<PlaceFilterComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ServiceFilterComponent ]
+      declarations: [ PlaceFilterComponent ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ServiceFilterComponent);
+    fixture = TestBed.createComponent(PlaceFilterComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

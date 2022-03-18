@@ -3,7 +3,16 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
-import { Infrastructure, Layer, LayerGroup, Place, Service, Capacity, PlanningProcess } from "../../../rest-interfaces";
+import {
+  Infrastructure,
+  Layer,
+  LayerGroup,
+  Place,
+  Service,
+  Capacity,
+  PlanningProcess,
+  Scenario
+} from "../../../rest-interfaces";
 import { MapControl, MapService } from "../../../map/map.service";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
 import * as d3 from "d3";
@@ -34,14 +43,12 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   Object = Object;
   activeService?: Service;
   activeProcess?: PlanningProcess;
+  activeScenario?: Scenario;
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
               public planningService: PlanningService) {
     this.planningService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures;
-    })
-    this.planningService.activeProcess$.subscribe(process => {
-      this.activeProcess = process;
     })
   }
 
@@ -67,6 +74,12 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       this.year = year;
       this.updatePlaces();
     })
+    this.planningService.activeProcess$.subscribe(process => {
+      this.activeProcess = process;
+    })
+    this.planningService.activeScenario$.subscribe(scenario => {
+      this.activeScenario = scenario;
+    })
     this.planningService.getRealYears().subscribe( years => {
       this.realYears = years;
     })
@@ -76,17 +89,25 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   onFilter(): void {
+    if (!this.activeInfrastructure) return;
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
-      width: '1400px',
+      // width: '100%',
+      maxWidth: '90vw',
       disableClose: false,
       data: {
-        // title: 'Standortfilter',
         template: this.filterTemplate,
         closeOnConfirm: true,
         infoText: '<p>Mit dem Schieberegler rechts oben können Sie das Jahr wählen für das die Standortstruktur in der Tabelle angezeigt werden soll. Die Einstellung wird für die Default-Kartendarstellung übernommen.</p>' +
           '<p>Mit einem Klick auf das Filtersymbol in der Tabelle können Sie Filter auf die in der jeweiligen Spalte Indikatoren definieren. Die Filter werden grundsätzlich auf alle Jahre angewendet. In der Karte werden nur die gefilterten Standorte angezeigt.</p>'+
-          '<p>Sie können einmal gesetzte Filter bei Bedarf im Feld „Aktuell verwendete Filter“ unter der Tabelle wieder löschen.</p>'
+          '<p>Sie können einmal gesetzte Filter bei Bedarf im Feld „Aktuell verwendete Filter“ unter der Tabelle wieder löschen.</p>',
+        context: {
+          services: [this.activeService],
+          places: this.places,
+          scenario: this.activeScenario,
+          year: this.year,
+          infrastructure: this.activeInfrastructure
+        }
       }
     });
     dialogRef.afterClosed().subscribe((ok: boolean) => {  });
@@ -207,11 +228,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           template: this.placePreviewTemplate,
           resizable: true,
           dragArea: 'header',
-          minWidth: '400px',
-          context: {
-            services: [this.activeService],
-            places: this.places
-          }
+          minWidth: '400px'
         }
       });
     this.placeDialogRef.afterClosed().subscribe(() => {

@@ -34,7 +34,7 @@
         <mat-select disableOptionCentering disableRipple
                     [(ngModel)]="activeInfrastructure"
                     (ngModelChange)="updatePlaces();"
-                    [ngbPopover]="selectedInfrastructure?.description"
+                    [ngbPopover]="activeInfrastructure?.description"
                     placement="right"
                     container="body"
                     triggers="mouseenter:mouseleave">
@@ -49,14 +49,15 @@
       </mat-form-field>
       <button color="primary" mat-icon-button
               class="filter-button small" title="Standortfilter"
+              [disabled]="!activeInfrastructure"
               (click)="onFilter()">
         <mat-icon>filter_list</mat-icon>
       </button>
     </div>
-    <div class="sub-select-wrapper" *ngIf="selectedInfrastructure">
+    <div class="sub-select-wrapper" *ngIf="activeInfrastructure">
       <mat-radio-group [(ngModel)]="activeService"
                        (ngModelChange)="updatePlaces();">
-        <mat-radio-button *ngFor="let service of selectedInfrastructure.services; let first = first;"
+        <mat-radio-button *ngFor="let service of activeInfrastructure.services; let first = first;"
                           [value]="service"
                           [checked]="first"
                           style="margin-right: 100%;"
@@ -147,8 +148,8 @@
 <!--workaround to cover visible scenario menu-->
 <div style="width: 100%; height:50px; background-color: white;"></div>
 
-<ng-template #filterTemplate let-services="services" let-services="places">
-  <app-service-filter [services]="services" [places]="places"></app-service-filter>
+<ng-template #filterTemplate let-services="services" let-places="places" let-scenario="scenario" let-year="year" let-infrastructure="infrastructure">
+  <app-place-filter [services]="services" [places]="places" [scenario]="scenario" [year]="year" [infrastructure]="infrastructure"></app-place-filter>
 </ng-template>
 
 <ng-template #placePreviewTemplate>
@@ -159,8 +160,8 @@
         {{key}}: <i>{{place.properties.attributes[key]}}</i>
       </div>
     </ng-container>
-    <div *ngIf="selectedService">
-        Kapazität {{selectedService.name}}: <i>{{getFormattedCapacityString([selectedService.id], getCapacity(selectedService.id, place.id))}}</i>
+    <div *ngIf="activeService">
+        Kapazität {{activeService.name}}: <i>{{getFormattedCapacityString([activeService.id], getCapacity(activeService.id, place.id))}}</i>
     </div>
     <br>
   </div>

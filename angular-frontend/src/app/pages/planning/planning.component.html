@@ -16,7 +16,7 @@
                   triggers="mouseenter:mouseleave"
                   panelClass="custom-option-panel"
                   [value]="activeProcess? activeProcess.id: -1"
-                  (selectionChange)="onProcessChange($event.value)">
+                  (selectionChange)="setProcess($event.value, {persist: true})">
         <mat-select-trigger>
           <span *ngIf="activeProcess">
             {{ activeProcess.name }}

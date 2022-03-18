@@ -159,6 +159,15 @@ export interface Service {
   maxCapacity: number;
 }
 
+export interface PlaceField{
+  id: number,
+  name: string,
+  unit: string,
+  infrastructure: number,
+  fieldType: number,
+  sensitive: boolean
+}
+
 export interface Infrastructure {
   id: number,
   name: string;
@@ -166,6 +175,7 @@ export interface Infrastructure {
   services: Service[];
   order: number;
   symbol?: Symbol;
+  placeFields?: PlaceField[];
 }
 
 export interface Place {
