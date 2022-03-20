@@ -2,16 +2,16 @@ import os
 from io import BytesIO
 from openpyxl.reader.excel import load_workbook
 import pandas as pd
-from unittest import skip
-from rest_framework import status
+
 from django.urls import reverse
 from test_plus import APITestCase
 from datentool_backend.api_test import LoginTestCase
+from datentool_backend.indicators.models import Stop
 
 
 class StopTemplateTest(LoginTestCase, APITestCase):
 
-    testdata_folder = 'data'
+    testdata_folder = 'testdata'
     filename_stops = 'Haltestellen.xlsx'
     filename_stops_errors = 'Haltestellen_errors.xlsx'
 
@@ -25,9 +25,8 @@ class StopTemplateTest(LoginTestCase, APITestCase):
         url = reverse('stops-download-template')
         res = self.get_check_200(url)
         wb = load_workbook(BytesIO(res.content))
-        self.assertListEqual(wb.sheetnames, ['Sheet'])
+        self.assertListEqual(wb.sheetnames, ['Haltestellen'])
 
-    @skip('not implemented yet')
     def test_upload_template(self):
         """
         test bulk upload stops
@@ -35,20 +34,26 @@ class StopTemplateTest(LoginTestCase, APITestCase):
         file_path_stops = os.path.join(os.path.dirname(__file__),
                                     self.testdata_folder,
                                     self.filename_stops)
+        file_content = open(file_path_stops, 'rb')
         data = {
-            'bulk_upload' : open(file_path_stops, 'rb'),
+            'excel_file' : file_content,
         }
 
+        url = reverse('stops-upload-template')
+        res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
+        self.assert_http_403_forbidden(res)
+        file_content.seek(0)
+        self.profile.can_edit_basedata = True
+        self.profile.save()
+        res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
+        self.assert_http_202_accepted(res, msg=res.content)
+        # 4 stops should have been uploaded with the correct hst-nr and names
+        df = pd.read_excel(file_path_stops, skiprows=[1])
 
+        actual = pd.DataFrame(Stop.objects.values('id', 'name')).set_index('id')
+        expected = df[['Nr', 'Name']].rename(columns={'Nr': 'id','Name': 'name',}).set_index('id')
+        pd.testing.assert_frame_equal(actual, expected)
 
-        res = self.client.post(self.stops_url, data)
-        res_json = res.json()
-        assert res.status_code == status.HTTP_201_CREATED
-        assert res_json['count'] == len(file_codes)
-        assert len(res_json['created']) == len(new_codes)
-
-
-    @skip('not implemented yet')
     def test_upload_broken_file(self):
         """
         test errors in upload files
@@ -56,8 +61,12 @@ class StopTemplateTest(LoginTestCase, APITestCase):
         file_path = os.path.join(os.path.dirname(__file__),
                                  self.testdata_folder,
                                  self.filename_stops_errors)
+        url = reverse('stops-upload-template')
         data = {
             'bulk_upload' : open(file_path, 'rb'),
         }
-        res = self.client.post(self.stops_url, data)
-        assert res.status_code == status.HTTP_400_BAD_REQUEST
+        self.profile.can_edit_basedata = True
+        self.profile.save()
+        res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
+        self.assert_http_406_not_acceptable(res)
+        print(res.content)

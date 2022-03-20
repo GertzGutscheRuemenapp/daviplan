@@ -3,13 +3,12 @@ from typing import Dict
 from django.db import models
 from django.contrib.gis.db import models as gis_models
 from datentool_backend.base import (NamedModel,
-                                    JsonAttributes,
                                     DatentoolModelMixin,
                                     )
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
+from datentool_backend.utils.copy_postgres import DirectCopyManager
 
-from datentool_backend.user.models import Service
-from datentool_backend.area.models import FieldType
+
 from datentool_backend.infrastructure.models import Place
 from datentool_backend.modes.models import ModeVariant
 from datentool_backend.population.models import RasterCell
@@ -19,6 +18,9 @@ class Stop(DatentoolModelMixin, NamedModel, models.Model):
     """location of a public transport stop"""
     name = models.TextField()
     geom = gis_models.PointField(srid=3857)
+
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
 
 
 class MatrixCellPlace(models.Model):
