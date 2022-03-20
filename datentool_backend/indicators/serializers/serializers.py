@@ -1,9 +1,7 @@
 import os
 import pandas as pd
 from openpyxl import Workbook
-from openpyxl.utils import get_column_letter
-from openpyxl.worksheet.protection import SheetProtection
-from openpyxl.worksheet.worksheet import Worksheet, CellRange
+from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.worksheet.dimensions import ColumnDimension
 from openpyxl.worksheet.datavalidation import DataValidation
 from django.conf import settings
@@ -12,8 +10,8 @@ from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from rest_framework.fields import FileField
 
 from openpyxl import Workbook
-from openpyxl.writer.excel import save_workbook, save_virtual_workbook
 from datentool_backend.utils.geometry_fields import GeometrySRIDField
+from django.contrib.gis.geos import Point
 
 from datentool_backend.indicators.models import (Stop, Router)
 from datentool_backend.area.models import Area
@@ -74,6 +72,24 @@ class StopSerializer(GeoFeatureModelSerializer):
 class UploadStopTemplateSerializer(serializers.Serializer):
     """"""
     excel_file = FileField()
+
+    def read_excel_file(self, excel_file) -> pd.DataFrame:
+        """read excelfile and return a dataframe"""
+        df = pd.read_excel(excel_file.file,
+                           sheet_name='Haltestellen',
+                           skiprows=[1])
+
+        # assert the stopnumers are unique
+        assert df['Nr'].is_unique, 'Haltestellennummer ist nicht eindeutig'
+
+        # create points out of Lat/Lon and transform them to WebMercator
+        points = [Point(stop['Lon'], stop['Lat'], srid=4326).transform(3857, clone=True)
+                  for i, stop in df.iterrows()]
+
+        df2 = pd.DataFrame({'id': df['Nr'],
+                            'name': df['Name'],
+                            'geom': points,})
+        return df2
 
 
 class IndicatorSerializer(serializers.Serializer):

@@ -63,10 +63,12 @@ class StopTemplateTest(LoginTestCase, APITestCase):
                                  self.filename_stops_errors)
         url = reverse('stops-upload-template')
         data = {
-            'bulk_upload' : open(file_path, 'rb'),
+            'excel_file' : open(file_path, 'rb'),
         }
         self.profile.can_edit_basedata = True
         self.profile.save()
         res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
-        self.assert_http_406_not_acceptable(res)
+        self.assertContains(res,
+                            'Haltestellennummer ist nicht eindeutig',
+                            status_code=406)
         print(res.content)
