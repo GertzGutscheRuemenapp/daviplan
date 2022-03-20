@@ -190,7 +190,7 @@ class ServiceSerializer(serializers.ModelSerializer):
                   'facility_singular_unit', 'facility_article',
                   'facility_plural_unit', 'direction_way_relationship')
 
-    def get_min_capacity(self, obj):
+    def get_min_capacity(self, obj) -> float:
         mc = Capacity.objects.filter(capacity__gt=0).aggregate(
             min_cap=Min('capacity'))
         return mc['min_cap']

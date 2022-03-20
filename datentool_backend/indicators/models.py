@@ -62,6 +62,9 @@ class MatrixStopStop(models.Model):
     variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
     minutes = models.FloatField()
 
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
+
 
 class Router(NamedModel, models.Model):
     """an OTP Router to use"""

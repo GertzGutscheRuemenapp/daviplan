@@ -1,3 +1,5 @@
+from typing import Dict
+
 from rest_framework import serializers
 from .models import SiteSetting, ProjectSetting, BaseDataSetting, AreaLevel
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
@@ -27,23 +29,23 @@ class BaseDataSettingSerializer(serializers.ModelSerializer):
     # ToDo: what in case get returns multiple objects?
     # (is the case for all default functions here, but should already be
     # prevented in model)
-    def get_pop_statistics_area_level(self, obj):
+    def get_pop_statistics_area_level(self, obj) -> int:
         try:
             level = AreaLevel.objects.get(is_statistic_level=True)
             return level.id
         except AreaLevel.DoesNotExist:
             return
 
-    def get_default_demand_rate_sets(self, obj):
+    def get_default_demand_rate_sets(self, obj) -> Dict[int, int]:
         sets = DemandRateSet.objects.filter(
             is_default=True).order_by('service_id')
         return dict(sets.values_list('service_id', 'id'))
 
-    def get_default_mode_variants(self, obj):
+    def get_default_mode_variants(self, obj) -> Dict[int, int]:
         sets = ModeVariant.objects.filter(is_default=True).order_by('mode')
         return dict(sets.values_list('mode', 'id'))
 
-    def get_default_prognosis(self, obj):
+    def get_default_prognosis(self, obj) -> int:
         try:
             prog = Prognosis.objects.get(is_default=True)
             return prog.id

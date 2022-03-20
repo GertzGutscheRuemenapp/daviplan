@@ -38,7 +38,7 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
     @extend_schema(
         description='get the total population for selected areas',
         request=inline_serializer(
-            name='InlineOneOffSerializer',
+            name='InlinePopulationAreaSerializer',
             fields={
                 'area_level': serializers.IntegerField(required=True),
                 'area': serializers.ListField(child=serializers.IntegerField(), required=False),
@@ -138,7 +138,7 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
     )
     @extend_schema(
         request=inline_serializer(
-            name='InlineOneOffSerializer',
+            name='InlinePopulationDetailSerializer',
             fields={
                 'area': serializers.ListField(child=serializers.IntegerField(), required=False),
                 'age_group': serializers.ListField(child=serializers.IntegerField(), required=False),

@@ -5,7 +5,7 @@ from django.http.request import QueryDict
 from django.db import connection
 from django_filters import rest_framework as filters
 
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -16,7 +16,10 @@ from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
+from drf_spectacular.utils import (extend_schema,
+                                   OpenApiParameter,
+                                   OpenApiResponse,
+                                   inline_serializer)
 
 from .models import (Raster,
                      PopulationRaster,
@@ -31,7 +34,7 @@ from .models import (Raster,
                      PopulationAreaLevel,
                      AreaCell,
                      )
-from .serializers import (RasterSerializer,
+from datentool_backend.population.serializers import (RasterSerializer,
                           PopulationRasterSerializer,
                           PrognosisSerializer,
                           PopulationSerializer,
@@ -40,6 +43,9 @@ from .serializers import (RasterSerializer,
                           PopStatisticSerializer,
                           PopStatEntrySerializer,
                           MessageSerializer,
+                          use_intersected_data,
+                          drop_constraints,
+                          area_level,
                           )
 
 from datentool_backend.area.models import Area, AreaLevel
@@ -81,17 +87,13 @@ class PopulationViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @extend_schema(description='intersect areas with rastercells',
-                   parameters=[
-                       OpenApiParameter(name='area_level', required=False, type=int,
-        description='''if a specific area_level_id is provided,
-        take this one instead of the areas of the population'''),
-                       OpenApiParameter(name='drop_constraints',
-                                        required=False,
-                                        type=bool,
-                                        default=True,
-                                        description='set to false for tests')
-                   ],
-                   request=None,
+                   request=inline_serializer(
+                       name='IntersectAreaSerializer',
+                       fields={
+                           'area_level': area_level,
+                           'drop_constraints': drop_constraints,
+                       }
+                   ),
                    responses={202: OpenApiResponse(MessageSerializer, 'Intersection successful'),
                               406: OpenApiResponse(MessageSerializer, 'Intersection failed')})
     @action(methods=['POST'], detail=True,
@@ -190,18 +192,13 @@ class PopulationViewSet(viewsets.ModelViewSet):
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
     @extend_schema(description='Disaggregate all Populations',
-                   parameters=[
-                       OpenApiParameter(
-                           name='use_intersected_data',
-                           required=False, type=bool, default=True,
-                           description='''use precalculated rastercells'''),
-                       OpenApiParameter(name='drop_constraints',
-                                        required=False,
-                                        type=bool,
-                                        default=True,
-                                        description='set to false for tests'),
-                   ],
-                   request=None,
+                   request=inline_serializer(
+                       name='DisaggregateAllPopulationsSerializer',
+                       fields={
+                           'use_intersected_data': use_intersected_data,
+                           'drop_constraints': drop_constraints,
+                       }
+                   ),
                    responses={202: OpenApiResponse(MessageSerializer,
                                                    'Disaggregation successful'),
                               406: OpenApiResponse(MessageSerializer,
@@ -239,19 +236,14 @@ class PopulationViewSet(viewsets.ModelViewSet):
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
     @extend_schema(description='Disaggregate Population to rastercells',
-                   parameters=[
-                       OpenApiParameter(name='area_level', required=False, type=int,
-        description='''if a specific area_level_id is provided,
-        take this one instead of the areas of the population'''),
-                       OpenApiParameter(name='use_intersected_data', required=False, type=bool,
-        description='''use precalculated rastercells'''),
-                       OpenApiParameter(name='drop_constraints',
-                                        required=False,
-                                        type=bool,
-                                        default=True,
-                                        description='set to false for tests'),
-                   ],
-                   request=None,
+                   request=inline_serializer(
+                       name='DisaggregatePopulationSerializer',
+                       fields={
+                           'area_level': area_level,
+                           'use_intersected_data': use_intersected_data,
+                           'drop_constraints': drop_constraints,
+                       }
+                   ),
                    responses={202: OpenApiResponse(MessageSerializer, 'Disaggregation successful'),
                               406: OpenApiResponse(MessageSerializer, 'Disaggregation failed')})
     @action(methods=['POST'], detail=True,
@@ -347,18 +339,14 @@ class PopulationViewSet(viewsets.ModelViewSet):
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
     @extend_schema(description='Aggregate Population from rastercells to area',
-                   parameters=[
-                       OpenApiParameter(name='area_level', required=True, type=int,
-                                        description='''The Area_level to aggregate to'''),
-                       OpenApiParameter(name='use_intersected_data', required=False, type=bool,
-                                        description='''use precalculated rastercells'''),
-                       OpenApiParameter(name='drop_constraints',
-                                        required=False,
-                                        type=bool,
-                                        default=True,
-                                        description='set to false for tests'),
-                   ],
-                   request=None,
+                   request=inline_serializer(
+                       name='AggregatePopulationAreaSerializer',
+                       fields={
+                           'area_level': area_level,
+                           'use_intersected_data': use_intersected_data,
+                           'drop_constraints': drop_constraints,
+                       }
+                   ),
                    responses={202: OpenApiResponse(MessageSerializer, 'Aggregation successful'),
                               406: OpenApiResponse(MessageSerializer, 'Aggregation failed')})
     @action(methods=['POST'], detail=True,
@@ -436,18 +424,13 @@ class PopulationViewSet(viewsets.ModelViewSet):
 
 
     @extend_schema(description='Aggregate all Populations',
-                   parameters=[
-                       OpenApiParameter(
-                           name='use_intersected_data',
-                           required=False, type=bool, default=True,
-                           description='''use precalculated rastercells'''),
-                       OpenApiParameter(name='drop_constraints',
-                                        required=False,
-                                        type=bool,
-                                        default=True,
-                                        description='set to false for tests'),
-                   ],
-                   request=None,
+                   request=inline_serializer(
+                       name='AggregateAllPopulationsSerializer',
+                       fields={
+                           'use_intersected_data': use_intersected_data,
+                           'drop_constraints': drop_constraints,
+                       }
+                   ),
                    responses={202: OpenApiResponse(MessageSerializer,
                                                    'Aggregation successful'),
                               406: OpenApiResponse(MessageSerializer,

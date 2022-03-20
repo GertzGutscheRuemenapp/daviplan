@@ -1,3 +1,5 @@
+from typing import Dict
+
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
@@ -76,7 +78,7 @@ class AreaLevelSerializer(serializers.ModelSerializer):
                   'max_values')
         read_only_fields = ('is_preset', )
 
-    def get_max_values(self, obj):
+    def get_max_values(self, obj) -> Dict[str, float]:
         ret = {'population': obj.max_population}
         if obj.is_statistic_level:
             entries = PopStatEntry.objects.all().annotate(

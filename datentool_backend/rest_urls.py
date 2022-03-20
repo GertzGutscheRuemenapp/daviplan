@@ -19,6 +19,7 @@ from .modes.views import ModeVariantViewSet
 from .indicators.views import (RouterViewSet,
                                FixedIndicatorViewSet,
                                StopViewSet,
+                               MatrixStopStopViewSet,
                                )
 
 from .infrastructure.views import (ScenarioViewSet,
@@ -60,8 +61,7 @@ router.register(r'demandrates', DemandRateViewSet, basename='demandrates')
 # indicator
 router.register(r'modevariants', ModeVariantViewSet, basename='modevariants')
 router.register(r'stops', StopViewSet, basename='stops')
-#router.register(r'reachabilitymatrices', ReachabilityMatrixViewSet,
-                #basename='reachabilitymatrices')
+router.register(r'matrixstopstops', MatrixStopStopViewSet, basename='matrixstopstops')
 router.register(r'routers', RouterViewSet, basename='routers')
 router.register(r'indicators', FixedIndicatorViewSet, basename='fixedindicators')
 

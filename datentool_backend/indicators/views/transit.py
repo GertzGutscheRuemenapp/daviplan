@@ -15,18 +15,19 @@ from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 
 from datentool_backend.indicators.models import (Stop,
+                                                 MatrixStopStop,
                                                  Router,
                                                  )
 from datentool_backend.indicators.serializers import (StopSerializer,
-                                                      RouterSerializer,
                                                       UploadStopTemplateSerializer,
+                                                      MatrixStopStopSerializer,
+                                                      UploadMatrixStopStopTemplateSerializer,
+                                                      RouterSerializer,
                           )
 
 
 class ExcelTemplateMixin:
     """Mixin to download and upload excel-templates"""
-    serializer_action_classes = {'upload_template': UploadStopTemplateSerializer,
-                                 }
 
     def get_serializer_class(self):
         """get the serializer_class"""
@@ -49,14 +50,6 @@ class ExcelTemplateMixin:
         return response
 
     @extend_schema(description='Upload Excel-File with Stops',
-                   parameters=[
-                       OpenApiParameter(name='drop_constraints',
-                                        required=False,
-                                        type=bool,
-                                        default=True,
-                                        description='set to false for tests'),
-                   ],
-                   #request=None,
                    responses={202: OpenApiResponse(MessageSerializer,
                                                    'Upload successful'),
                               406: OpenApiResponse(MessageSerializer,
@@ -64,12 +57,12 @@ class ExcelTemplateMixin:
     @action(methods=['POST'], detail=False)
     def upload_template(self, request):
         """Upload the filled out Stops-Template"""
-        self.queryset.delete()
-        model = self.queryset.model
+        qs = self.get_queryset()
+        qs.delete()
+        model = qs.model
         try:
-            excel_file = request.FILES['excel_file']
             serializer = self.get_serializer()
-            df = serializer.read_excel_file(excel_file)
+            df = serializer.read_excel_file(request)
 
             drop_constraints = bool(strtobool(
                 request.data.get('drop_constraints', 'False')))
@@ -93,12 +86,42 @@ class ExcelTemplateMixin:
 class StopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Stop.objects.all()
     serializer_class = StopSerializer
+    serializer_action_classes = {'upload_template': UploadStopTemplateSerializer,
+                                 }
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
+class MatrixStopStopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSet):
+    serializer_class = MatrixStopStopSerializer
+    serializer_action_classes = {'upload_template': UploadMatrixStopStopTemplateSerializer,
+                                 }
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+    def get_queryset(self):
+        variant = self.request.data.get('variant')
+        return MatrixStopStop.objects.filter(variant=variant)
 
 
-
+    @extend_schema(description='Upload Excel-File with Stops',
+                   #parameters=[
+                       #OpenApiParameter(name='drop_constraints',
+                                        #required=False,
+                                        #type=bool,
+                                        #default=True,
+                                        #description='set to false for tests'),
+                       #OpenApiParameter(name='variant',
+                                        #description='Mode variant',
+                                        #required=True,
+                                        #type=int),
+                   #],
+                   responses={202: OpenApiResponse(MessageSerializer,
+                                                   'Upload successful'),
+                              406: OpenApiResponse(MessageSerializer,
+                                                   'Upload failed')})
+    @action(methods=['POST'], detail=False)
+    def upload_template(self, request):
+        """Upload the filled out Stops-Template"""
+        return super().upload_template(request)
 
 
 class RouterViewSet(viewsets.ModelViewSet):

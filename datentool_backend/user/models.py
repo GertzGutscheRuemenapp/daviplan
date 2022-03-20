@@ -77,7 +77,7 @@ class Infrastructure(DatentoolModelMixin, NamedModel, models.Model):
                                   null=True, blank=True)
 
     @property
-    def label_field(self):
+    def label_field(self) -> str:
         """the label field derived from the Fields"""
         try:
             return self.placefield_set.get(is_label=True).name

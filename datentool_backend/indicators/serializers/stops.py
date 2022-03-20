@@ -1,22 +1,20 @@
 import os
 import pandas as pd
-from openpyxl import Workbook
+
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.worksheet.dimensions import ColumnDimension
 from openpyxl.worksheet.datavalidation import DataValidation
-from django.conf import settings
+
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from rest_framework.fields import FileField
+from rest_framework.fields import FileField, BooleanField
 
-from openpyxl import Workbook
-from datentool_backend.utils.geometry_fields import GeometrySRIDField
+from django.conf import settings
 from django.contrib.gis.geos import Point
+from django.core.files import File
 
-from datentool_backend.indicators.models import (Stop, Router)
-from datentool_backend.area.models import Area
-from datentool_backend.population.models import RasterCell
-from datentool_backend.infrastructure.models import Place
+from datentool_backend.utils.geometry_fields import GeometrySRIDField
+from datentool_backend.indicators.models import Stop
 
 
 class StopSerializer(GeoFeatureModelSerializer):
@@ -27,7 +25,7 @@ class StopSerializer(GeoFeatureModelSerializer):
         geo_field = 'geom'
         fields = ('id', 'name')
 
-    def create_template(self):
+    def create_template(self) -> bytes:
         columns = {'HstNr': 'wie in Reisezeitmatrix',
                   'HstName': 'Name der Haltestelle',
                   'Lon': 'Längengrad, in WGS84',
@@ -70,11 +68,15 @@ class StopSerializer(GeoFeatureModelSerializer):
 
 
 class UploadStopTemplateSerializer(serializers.Serializer):
-    """"""
+    """Serializer for uploading StopTemplate"""
     excel_file = FileField()
+    drop_constraints = BooleanField(default=True,
+                                    label='temporarily delete constraints and indices',
+                                    help_text='Set to False in unittests')
 
-    def read_excel_file(self, excel_file) -> pd.DataFrame:
+    def read_excel_file(self, request) -> pd.DataFrame:
         """read excelfile and return a dataframe"""
+        excel_file = request.FILES['excel_file']
         df = pd.read_excel(excel_file.file,
                            sheet_name='Haltestellen',
                            skiprows=[1])
@@ -90,60 +92,3 @@ class UploadStopTemplateSerializer(serializers.Serializer):
                             'name': df['Name'],
                             'geom': points,})
         return df2
-
-
-class IndicatorSerializer(serializers.Serializer):
-    name = serializers.CharField()
-    description = serializers.CharField()
-    title = serializers.CharField()
-    result_type = serializers.SerializerMethodField('get_result_type')
-    additional_parameters = serializers.SerializerMethodField('get_parameters')
-
-    def get_result_type(self, obj):
-        if obj.result_serializer:
-            return obj.result_serializer.name.lower()
-        return 'none'
-
-    def get_parameters(self, obj):
-        if not obj.params:
-            return []
-        return [p.serialize() for p in obj.params]
-
-
-class RouterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Router
-        fields = ('id', 'name', 'osm_file', 'tiff_file', 'gtfs_file',
-                  'build_date', 'buffer')
-
-
-class IndicatorAreaResultSerializer(serializers.ModelSerializer):
-    label = serializers.CharField()
-    value = serializers.FloatField()
-    area_id = serializers.IntegerField(source='id')
-    class Meta:
-        model = Area
-        fields = ('area_id', 'label', 'value')
-
-
-class IndicatorRasterResultSerializer(serializers.ModelSerializer):
-    cell_code = serializers.CharField()
-    value = serializers.FloatField()
-    class Meta:
-        model = RasterCell
-        fields = ('cell_code', 'value')
-
-
-class IndicatorPlaceResultSerializer(serializers.ModelSerializer):
-    place_id = serializers.IntegerField(source='id')
-    value = serializers.FloatField()
-    class Meta:
-        model = Place
-        fields = ('place_id', 'value')
-
-
-class IndicatorPopulationSerializer(serializers.Serializer):
-    year = serializers.IntegerField()
-    gender = serializers.IntegerField()
-    agegroup = serializers.IntegerField()
-    value = serializers.FloatField()
