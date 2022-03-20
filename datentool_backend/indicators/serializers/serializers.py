@@ -1,8 +1,14 @@
+import os
+from django.conf import settings
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
+
+from openpyxl import Workbook
+from openpyxl.writer.excel import save_workbook, save_virtual_workbook
+from tempfile import NamedTemporaryFile
 from datentool_backend.utils.geometry_fields import GeometrySRIDField
 
-from .models import (Stop, Router)
+from datentool_backend.indicators.models import (Stop, Router)
 from datentool_backend.area.models import Area
 from datentool_backend.population.models import RasterCell
 from datentool_backend.infrastructure.models import Place
@@ -15,6 +21,28 @@ class StopSerializer(GeoFeatureModelSerializer):
         model = Stop
         geo_field = 'geom'
         fields = ('id', 'name')
+
+    @classmethod
+    def create_template(cls):
+        wb = Workbook()
+        ws = wb.active
+        columns = {'A': 'wie in Reisezeitmatrix',
+                  'B': 'Name der Haltestelle',
+                  'C': 'Längengrad, in WGS84',
+                  'D': 'Breitengrad, in WGS84',}
+        #columns = {'HstNr': 'wie in Reisezeitmatrix',
+                  #'HstName': 'Name der Haltestelle',
+                  #'Lon': 'Längengrad, in WGS84',
+                  #'Lat': 'Breitengrad, in WGS84',}
+        ws.append(columns)
+
+        fn = os.path.join(settings.MEDIA_ROOT, 'Haltestellen.xlsx')
+        success = save_workbook(wb, fn)
+        if not success:
+            raise IOError(f'could not writer temporary excel-file to {fn}')
+
+        content = open(fn, 'rb').read()
+        return content
 
 
 class IndicatorSerializer(serializers.Serializer):
