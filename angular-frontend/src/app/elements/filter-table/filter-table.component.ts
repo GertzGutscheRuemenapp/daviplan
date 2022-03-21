@@ -10,48 +10,51 @@ export interface Header {
   styleUrls: ['./filter-table.component.scss']
 })
 export class FilterTableComponent implements OnInit {
-  @Input() header!: string[];
+  _header: string[] = [];
+  _sorted: any[][] = [];
   _rows: any[][] = [];
-  private _sortIdx: number[] = [];
   filtered = [false, false, false, false, false, false];
   sorting: ('asc' | 'desc' | 'none' )[] = [];
 
   constructor() { }
 
+  @Input() set header (header: string[]){
+    this._header = header;
+    if (header)
+      this.sorting = Array(this.header.length).fill('none');
+  }
+
   @Input() set rows (rows: any[][]){
-    let i = -1;
-    // add a row number to identify original row in case of sorting
-    this._rows = rows.map(row => {
-      i += 1;
-      return row.concat([i]);
-    });
+    // the order of setting the inputs seems not to be guaranteed, take row length
+    // if header is not set yet
+    if (rows.length > 0 && this.sorting.length !== rows[0].length)
+      this.sorting = Array(rows[0].length).fill('none');
+    this._rows = rows;
+    this._sorted = [...rows];
+    this.sort();
   };
 
   toggleSort(column: number) {
     const prevOrder = this.sorting[column];
-    // const order = (prevOrder === 'none')? 'asc': (prevOrder === 'asc')? 'desc': 'none';
-    const order = (prevOrder === 'asc')? 'desc': 'asc';
+    const order = (prevOrder === 'none')? 'asc': (prevOrder === 'asc')? 'desc': 'none';
     this.sorting[column] = order;
-    // if (order === 'none') return;
-    this._rows.sort((a, b) => {
-      if (a[column] === b[column]) return 0;
-      if (order === 'asc' && a[column] > b[column]) return 1;
-      if (order === 'desc' && a[column] < b[column]) return 1;
-      return -1;
-    })
-    this._sortIdx = [];
-    const indices = this._rows.map(r => r[r.length - 1]);
-    for (let i = 0; i < this._rows.length; i++){
-      this._sortIdx.push(indices.indexOf(i));
-    }
+    this.sort();
   }
 
-  updateColumn(column: number, values: any[]): void {
-    values.forEach((value, i) => this._rows[this._sortIdx[i]][column] = values[i]);
+  private sort() {
+    this._sorted = [...this._rows];
+    this.sorting.forEach((order, i) => {
+      if (order === 'none') return;
+      this._sorted.sort((a, b) => {
+        if (a[i] === b[i]) return 0;
+        if (order === 'asc' && a[i] > b[i]) return 1;
+        if (order === 'desc' && a[i] < b[i]) return 1;
+        return -1;
+      })
+    })
   }
 
   ngOnInit(): void {
-    this.sorting = Array(this.header.length).fill('none');
   }
 
 }

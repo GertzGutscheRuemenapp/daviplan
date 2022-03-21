@@ -1,21 +1,10 @@
 import { AfterViewInit, Component, Input, OnInit, ViewChild } from '@angular/core';
 import { Capacity, Infrastructure, Place, Scenario, Service } from "../../../rest-interfaces";
 import { PlanningService } from "../planning.service";
-import { hasDirectiveDecorator } from "@angular/compiler-cli/ngcc/src/migrations/utils";
 import { TimeSliderComponent } from "../../../elements/time-slider/time-slider.component";
-import { MatSlider } from "@angular/material/slider";
 import { forkJoin, Observable } from "rxjs";
 import { map } from "rxjs/operators";
-import { sortBy } from "../../../helpers/utils";
 import { FilterTableComponent } from "../../../elements/filter-table/filter-table.component";
-
-const mockHeader = ['Name', 'Zustand', 'Anzahl Betreuer', 'Kapazität Krippe', 'Kapazität Kita', 'Adresse']
-const mockRows = [
-  ['KIGA Nord', 'gut', 12, 28, 22, 'Paul Ehrlich Straße 3, 35029 Bremen'],
-  ['Krippe Westentchen', 'sehr gut', 20, 80, 0, 'Cuxhavener Landstraße 2, 35029 Bremen'],
-  ['Kita Süd', 'befriedigend', 6, 10, 20, 'Diepholzer Weg 133, 35029 Bremen'],
-  ['Katholische Kita Mitte', 'gut', 2, 8, 12, 'Kirchenallee 24, 35029 Bremen'],
-]
 
 @Component({
   selector: 'app-place-filter',
@@ -48,7 +37,7 @@ export class PlaceFilterComponent implements AfterViewInit {
         this.prognosisYears = years;
         if (!this.year) this.year = this.realYears![0];
         this.setSlider();
-        this.updateData(true);
+        this.updateData();
       })
     })
     this.timeSlider?.valueChanged.subscribe(value => {
@@ -59,7 +48,7 @@ export class PlaceFilterComponent implements AfterViewInit {
     })
   }
 
-  updateData(init?: boolean): void {
+  updateData(): void {
     let observables: Observable<any>[] = [];
     if (!this.capacities[this.year!]){
       let placeCaps: Record<string, number> = {};
@@ -74,22 +63,11 @@ export class PlaceFilterComponent implements AfterViewInit {
       });
 
       forkJoin(...observables).subscribe(() => {
-        let rows = this.placesToRows(this.places);
-        if (init)
-          this.rows = rows;
-        else
-          this.setCapacities(rows);
+        this.rows = this.placesToRows(this.places);
       })
     }
     else
-      this.setCapacities(this.placesToRows(this.places));
-  }
-
-  setCapacities(rows: any[][]): void {
-    this.services!.forEach((service, i) => {
-      // columns 1..i contain the capacities
-      this.filterTable?.updateColumn(i + 1, rows.map(r => r[i + 1]));
-    })
+      this.rows = this.placesToRows(this.places);
   }
 
   getHeader(): string[] {

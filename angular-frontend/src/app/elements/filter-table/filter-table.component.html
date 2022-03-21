@@ -1,7 +1,7 @@
 <div style="overflow-y: auto">
   <table id="filter-table">
     <tr class="header">
-      <th *ngFor="let th of header; let i = index;">
+      <th *ngFor="let th of _header; let i = index;">
         <div>
           <div style="margin-right: 10px;">
             <button color="primary" mat-icon-button
@@ -26,10 +26,8 @@
         </div>
       </th>
     </tr>
-    <tr *ngFor="let row of _rows">
-      <ng-container *ngFor="let column of row; let i = index;">
-        <td *ngIf="i < row.length - 1">{{column}}</td>
-      </ng-container>
+    <tr *ngFor="let row of _sorted">
+     <td *ngFor="let column of row">{{column}}</td>
     </tr>
   </table>
 </div>
