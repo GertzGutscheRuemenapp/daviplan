@@ -1,13 +1,13 @@
 <div style="overflow-y: auto">
   <table id="filter-table">
     <tr class="header">
-      <th *ngFor="let th of _header; let i = index;">
+      <th *ngFor="let th of _columns; let i = index;">
         <div>
           <div style="margin-right: 10px;">
             <button color="primary" mat-icon-button
                     class="filter-button" title="Standortfilter"
-                    [ngClass]="{'inverted': filtered[i]}"
-                    (click)="filtered[i] = !filtered[i]"
+                    [ngClass]="{'inverted': th.filter?.active}"
+                    (click)="toggleFilter(i)"
                     title="Filter umschalten">
               <mat-icon>filter_list</mat-icon>
             </button>
@@ -15,7 +15,8 @@
           <span class="subtitle1"
                 (click)="toggleSort(i)"
                 style="color: grey; white-space: pre-wrap;">
-            {{th}}
+            {{th.name}}
+            <ng-container *ngIf="th.unit">({{th.unit}})</ng-container>
           </span>
           <div class="sort-icon"
                (click)="toggleSort(i)"
@@ -51,3 +52,61 @@
     <mat-icon>filter_list</mat-icon> alle Filter zurücksetzen
   </button>
 </div>
+
+<ng-template #numberFilter let-unit="unit">
+  <form [formGroup]="filterForm">
+    <div style="display: flex; align-items: baseline;">
+      <mat-form-field class="small" appearance="outline" style="margin-right: 20px;">
+        <mat-select formControlName="operator" required>
+          <mat-option *ngFor="let operator of operators" [value]="operator[0]">
+            {{operator[1]}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field class="small" appearance="outline" style="margin-right: 10px;">
+        <input matInput type="number" formControlName="value" required>
+      </mat-form-field>
+      <span>{{unit}}</span>
+    </div>
+  </form>
+</ng-template>
+
+<ng-template #stringFilter let-unit="unit">
+  <form [formGroup]="filterForm">
+    <div style="display: flex; align-items: baseline;">
+      <mat-form-field class="small" appearance="outline" style="margin-right: 20px;">
+        <mat-select formControlName="operator" required>
+          <mat-option *ngFor="let operator of operators" [value]="operator[0]">
+            {{operator[1]}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field class="small" appearance="outline" style="margin-right: 10px;">
+        <input matInput formControlName="value" required>
+      </mat-form-field>
+      <span>{{unit}}</span>
+    </div>
+  </form>
+</ng-template>
+
+<ng-template #classFilter let-unit="unit" let-classes="classes">
+  <form [formGroup]="filterForm">
+    <div style="display: flex; align-items: baseline;">
+      <mat-form-field class="small" appearance="outline" style="margin-right: 20px;">
+        <mat-select formControlName="operator" required>
+          <mat-option *ngFor="let operator of operators" [value]="operator[0]">
+            {{operator[1]}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field class="small" appearance="outline" style="margin-right: 10px;">
+        <mat-select formControlName="operator" required>
+          <mat-option *ngFor="let class of classes" [value]="class">
+            {{class}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <span>{{unit}}</span>
+    </div>
+  </form>
+</ng-template>

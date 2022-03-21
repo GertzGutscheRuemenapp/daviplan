@@ -4,7 +4,7 @@ import { PlanningService } from "../planning.service";
 import { TimeSliderComponent } from "../../../elements/time-slider/time-slider.component";
 import { forkJoin, Observable } from "rxjs";
 import { map } from "rxjs/operators";
-import { FilterTableComponent } from "../../../elements/filter-table/filter-table.component";
+import { FilterTableComponent, FilterColumn } from "../../../elements/filter-table/filter-table.component";
 
 @Component({
   selector: 'app-place-filter',
@@ -21,7 +21,7 @@ export class PlaceFilterComponent implements AfterViewInit {
   @ViewChild('filterTable') filterTable?: FilterTableComponent;
   realYears?: number[];
   prognosisYears?: number[];
-  public header: string[] = [];
+  public columns: FilterColumn[] = [];
   public rows: any[][] = [];
   private capacities: Record<number, Record<string, number>> = {};
 
@@ -30,7 +30,7 @@ export class PlaceFilterComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     if (!this.services) this.services = this.infrastructure.services;
-    this.header = this.getHeader();
+    this.columns = this.getColumns();
     this.planningService.getRealYears().subscribe( years => {
       this.realYears = years;
       this.planningService.getPrognosisYears().subscribe( years => {
@@ -70,17 +70,24 @@ export class PlaceFilterComponent implements AfterViewInit {
       this.rows = this.placesToRows(this.places);
   }
 
-  getHeader(): string[] {
-    let header = ['Name'];
+  getColumns(): FilterColumn[] {
+    let columns: FilterColumn[] = [{ name: 'Name', type: 'STR' }];
     this.services!.forEach(service => {
-      header.push(`Kapazität ${service.name}`);
+      columns.push({
+        name: `Kapazität ${service.name}`,
+        type: 'NUM',
+        unit: service.capacityPluralUnit
+      });
     })
     this.infrastructure.placeFields?.forEach(field => {
-      let fieldName = field.name;
-      if (field.unit) fieldName += ` (${field.unit})`;
-      header.push(fieldName);
+      columns.push({
+        name: field.name,
+        type: field.fieldType.ftype,
+        classes: field.fieldType.classification?.map(c => c.value),
+        unit: field.unit
+      });
     })
-    return header;
+    return columns;
   }
 
   placesToRows(places: Place[]): any[][]{
