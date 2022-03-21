@@ -20,14 +20,16 @@
           <div class="sort-icon"
                (click)="toggleSort(i)"
                style="position: relative; min-width: 30px;">
-            <mat-icon style="position: absolute; top: -3px; left: 5px;">arrow_drop_up</mat-icon>
-            <mat-icon style="position: absolute; top: 4px; left: 5px;">arrow_drop_down</mat-icon>
+            <mat-icon [style.opacity]="(sorting[i] !== 'asc')? 1: 0" style="position: absolute; top: -3px; left: 5px;">arrow_drop_up</mat-icon>
+            <mat-icon [style.opacity]="(sorting[i] !== 'desc')? 1: 0" style="position: absolute; top: 4px; left: 5px;">arrow_drop_down</mat-icon>
           </div>
         </div>
       </th>
     </tr>
-    <tr *ngFor="let row of rows">
-      <td *ngFor="let column of row">{{column}}</td>
+    <tr *ngFor="let row of _rows">
+      <ng-container *ngFor="let column of row; let i = index;">
+        <td *ngIf="i < row.length - 1">{{column}}</td>
+      </ng-container>
     </tr>
   </table>
 </div>

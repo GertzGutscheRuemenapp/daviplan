@@ -7,6 +7,7 @@ import { MatSlider } from "@angular/material/slider";
 import { forkJoin, Observable } from "rxjs";
 import { map } from "rxjs/operators";
 import { sortBy } from "../../../helpers/utils";
+import { FilterTableComponent } from "../../../elements/filter-table/filter-table.component";
 
 const mockHeader = ['Name', 'Zustand', 'Anzahl Betreuer', 'Kapazität Krippe', 'Kapazität Kita', 'Adresse']
 const mockRows = [
@@ -28,6 +29,7 @@ export class PlaceFilterComponent implements AfterViewInit {
   @Input() scenario!: Scenario;
   @Input() year?: number;
   @ViewChild('timeSlider') timeSlider?: TimeSliderComponent;
+  @ViewChild('filterTable') filterTable?: FilterTableComponent;
   realYears?: number[];
   prognosisYears?: number[];
   public header: string[] = [];
@@ -46,7 +48,7 @@ export class PlaceFilterComponent implements AfterViewInit {
         this.prognosisYears = years;
         if (!this.year) this.year = this.realYears![0];
         this.setSlider();
-        this.updateData();
+        this.updateData(true);
       })
     })
     this.timeSlider?.valueChanged.subscribe(value => {
@@ -57,7 +59,7 @@ export class PlaceFilterComponent implements AfterViewInit {
     })
   }
 
-  updateData(): void {
+  updateData(init?: boolean): void {
     let observables: Observable<any>[] = [];
     if (!this.capacities[this.year!]){
       let placeCaps: Record<string, number> = {};
@@ -72,11 +74,22 @@ export class PlaceFilterComponent implements AfterViewInit {
       });
 
       forkJoin(...observables).subscribe(() => {
-        this.rows = this.placesToRows(this.places);
+        let rows = this.placesToRows(this.places);
+        if (init)
+          this.rows = rows;
+        else
+          this.setCapacities(rows);
       })
     }
     else
-      this.rows = this.placesToRows(this.places);
+      this.setCapacities(this.placesToRows(this.places));
+  }
+
+  setCapacities(rows: any[][]): void {
+    this.services!.forEach((service, i) => {
+      // columns 1..i contain the capacities
+      this.filterTable?.updateColumn(i + 1, rows.map(r => r[i + 1]));
+    })
   }
 
   getHeader(): string[] {
