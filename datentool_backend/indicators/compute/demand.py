@@ -1,12 +1,13 @@
-from django.db.models import OuterRef, Subquery, Sum
-from django.db.models import F
+from django.core.exceptions import BadRequest
 
-from datentool_backend.population.models import AreaCell
-from .base import ComputeIndicator, ResultSerializer
+from datentool_backend.population.models import AreaCell, RasterCellPopulation
+from datentool_backend.indicators.compute.base import ComputeIndicator, ResultSerializer
 from datentool_backend.indicators.compute.population import PopulationIndicatorMixin
 from datentool_backend.demand.models import DemandRateSet, DemandRate
 from datentool_backend.infrastructure.models import ScenarioService
 from datentool_backend.user.models import Year
+from datentool_backend.area.models import Area
+from datentool_backend.population.models import PopulationAreaLevel
 
 
 class DemandAreaIndicator(PopulationIndicatorMixin,
@@ -18,47 +19,100 @@ class DemandAreaIndicator(PopulationIndicatorMixin,
     def compute(self):
         """"""
         area_level_id = self.data.get('area_level')
+        if area_level_id is None:
+            raise BadRequest('No AreaLevel provided')
         areas = self.get_areas(area_level_id=area_level_id)
-        rcpop = self.get_rasterpop()
-        acells = AreaCell.objects.filter(area__area_level_id=area_level_id)
+
+        q_areas, p_areas = areas.values('id', '_label').query.sql_with_params()
+
+        populations = self.get_populations()
+        if not populations:
+            return []
+        population = populations[0]
+
+        pop_arealevel, created = PopulationAreaLevel.objects.get_or_create(
+            population=population,
+            area_level_id=area_level_id)
 
         demand_rates = self.get_demand_rates()
         if not demand_rates:
             return []
 
-        sq = demand_rates\
-            .filter(age_group=OuterRef('age_group'), gender=OuterRef('gender'))\
-            .annotate(demandrate=F('value'))\
-            .values('demandrate')[:1]
+        q_drs, p_drs = demand_rates.values('age_group_id', 'gender_id', 'value')\
+            .query.sql_with_params()
 
-        rcpop_with_dr = rcpop.annotate(demandrate=Subquery(sq))
+        #  check if the area-population is precalculated
+        if pop_arealevel.up_to_date:
+            areapop = self.get_areapop(
+                filter_params={'area__area_level_id': area_level_id, })
 
-        # sum up the rastercell-population * demand to areas taking the share_area_of_cell
-        # into account
+            q_areapop, p_areapop = areapop.values('area_id', 'age_group_id',
+                                                  'gender_id', 'value')\
+                .query.sql_with_params()
 
-        sq = rcpop_with_dr.filter(cell=OuterRef('cell__cell'))\
-            .annotate(area_id=OuterRef('area_id'),
-                      share_area_of_cell=OuterRef('share_area_of_cell'))\
-            .values('area_id')\
-            .annotate(sum_pop=Sum(F('value') * F('demandrate') * F('share_area_of_cell')))\
-            .values('sum_pop')
 
-        # sum up by area
-        aa = acells.annotate(sum_pop=Subquery(sq))\
-            .values('area_id')\
-            .annotate(sum_pop=Sum('sum_pop'))
+            query = f'''SELECT
+            a."id", a."_label", val."value"
+            FROM ({q_areas}) AS a
+            LEFT JOIN (
+              SELECT
+                ap."area_id",
+                SUM(ap."value" * dr."value") AS "value"
+              FROM
+                ({q_areapop}) AS ap,
+                ({q_drs}) AS dr
+              WHERE ap.age_group_id = dr.age_group_id
+              AND ap.gender_id = dr.gender_id
+              GROUP BY ap."area_id"
+            ) val ON (val."area_id" = a."id")
+            '''
 
-        # annotate areas with the results
-        sq = aa.filter(area_id=OuterRef('pk'))\
-            .values('sum_pop')
-        areas_with_pop = areas.annotate(value=Subquery(sq))
+            params = p_areas + p_areapop + p_drs
 
-        return areas_with_pop
+        else:
+            # calculate it from the raster cells
+            rcp = RasterCellPopulation.objects.all()
+            acells = AreaCell.objects.filter(area__area_level_id=area_level_id)
+            rasterpop = self.get_rasterpop()
+
+            # sum up the rastercell-population to areas
+            # taking the share_area_of_cell into account
+            q_acells, p_acells = acells.values(
+                'area_id', 'cell_id', 'share_area_of_cell').query.sql_with_params()
+            q_pop, p_pop = rasterpop.values('cell_id', 'age_group_id',
+                                            'gender_id', 'value').query.sql_with_params()
+            q_rcp, p_rcp = rcp.values('id', 'cell_id').query.sql_with_params()
+
+            query = f'''SELECT
+            a."id", a."_label", val."value"
+            FROM ({q_areas}) AS a
+            LEFT JOIN (
+              SELECT
+                ac."area_id",
+                SUM(p."value" * dr."value" * ac."share_area_of_cell") AS "value"
+              FROM
+                ({q_acells}) AS ac,
+                ({q_pop}) AS p,
+                ({q_rcp}) AS rcp,
+                ({q_drs}) AS dr
+              WHERE p."age_group_id" = dr."age_group_id"
+                AND p."gender_id" = dr."gender_id"
+                AND ac."cell_id" = rcp."id"
+                AND p."cell_id" = rcp."cell_id"
+              GROUP BY ac."area_id"
+            ) val ON (val."area_id" = a."id")
+            '''
+
+            params = p_areas + p_acells + p_pop + p_rcp + p_drs
+
+        areas_with_demand = Area.objects.raw(query, params)
+
+        return areas_with_demand
 
     def get_demand_rates(self) -> DemandRate:
         """get the demand rates for a scenario, year and service"""
-        scenario = self.data.get('scenario')
-        service = self.data.get('service')
+        scenario = self.data.get('scenario') or None
+        service = self.data.get('service') or None
         try:
             scenario_service = ScenarioService.objects.get(scenario=scenario,
                                                            service_id=service)
