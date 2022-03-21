@@ -5,8 +5,9 @@ from distutils.util import strtobool
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework import serializers
 
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
+from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse, OpenApiParameter
 
 
 from datentool_backend.population.serializers import MessageSerializer
@@ -17,6 +18,7 @@ from datentool_backend.utils.permissions import (
 from datentool_backend.indicators.models import (Stop,
                                                  MatrixStopStop,
                                                  Router,
+                                                 ModeVariant,
                                                  )
 from datentool_backend.indicators.serializers import (StopSerializer,
                                                       UploadStopTemplateSerializer,
@@ -24,6 +26,8 @@ from datentool_backend.indicators.serializers import (StopSerializer,
                                                       UploadMatrixStopStopTemplateSerializer,
                                                       RouterSerializer,
                           )
+from datentool_backend.population.serializers import drop_constraints
+
 
 
 class ExcelTemplateMixin:
@@ -33,15 +37,21 @@ class ExcelTemplateMixin:
         """get the serializer_class"""
         return self.serializer_action_classes.get(self.action, self.serializer_class)
 
-    @action(methods=['GET'], detail=False)
-    def download_template(self, request):
+    @extend_schema(description='Create Excel-Template to download',
+                   request=None,
+                   #responses={
+                       #(200, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'): bytes
+                   #},
+                   )
+
+    @action(methods=['POST'], detail=False)
+    def create_template(self, request):
         """Download the Stops-Template"""
         serializer = self.get_serializer()
         content = serializer.create_template()
         response = HttpResponse(
             content_type=(
-                'application/vnd.openxmlformats-officedocument.'
-                'spreadsheetml.sheet'
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             )
         )
         response['Content-Disposition'] = \
@@ -50,6 +60,12 @@ class ExcelTemplateMixin:
         return response
 
     @extend_schema(description='Upload Excel-File with Stops',
+                   request=inline_serializer(
+                       name='FileDropConstraintSerializer',
+                       fields={'drop_constraints': drop_constraints,
+                               'excel_file': serializers.FileField(),
+                               }
+                   ),
                    responses={202: OpenApiResponse(MessageSerializer,
                                                    'Upload successful'),
                               406: OpenApiResponse(MessageSerializer,
@@ -103,17 +119,15 @@ class MatrixStopStopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.Mo
 
 
     @extend_schema(description='Upload Excel-File with Stops',
-                   #parameters=[
-                       #OpenApiParameter(name='drop_constraints',
-                                        #required=False,
-                                        #type=bool,
-                                        #default=True,
-                                        #description='set to false for tests'),
-                       #OpenApiParameter(name='variant',
-                                        #description='Mode variant',
-                                        #required=True,
-                                        #type=int),
-                   #],
+                   request=inline_serializer(
+                       name='FileDropConstraintModeVariantSerializer',
+                       fields={'drop_constraints': drop_constraints,
+                               'variant': serializers.PrimaryKeyRelatedField(
+                           queryset=ModeVariant.objects.all(),
+                           help_text='mode_variant_id',),
+                               'excel_file': serializers.FileField(),
+                               },
+                   ),
                    responses={202: OpenApiResponse(MessageSerializer,
                                                    'Upload successful'),
                               406: OpenApiResponse(MessageSerializer,

@@ -5,7 +5,7 @@ from django.http.request import QueryDict
 from django.db import connection
 from django_filters import rest_framework as filters
 
-from rest_framework import viewsets, status, serializers
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -17,7 +17,6 @@ from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 
 from drf_spectacular.utils import (extend_schema,
-                                   OpenApiParameter,
                                    OpenApiResponse,
                                    inline_serializer)
 
