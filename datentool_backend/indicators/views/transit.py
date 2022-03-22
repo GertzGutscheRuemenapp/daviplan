@@ -19,12 +19,16 @@ from datentool_backend.indicators.models import (Stop,
                                                  MatrixStopStop,
                                                  Router,
                                                  ModeVariant,
+                                                 MatrixCellPlace,
+                                                 MatrixCellStop,
+                                                 MatrixPlaceStop,
                                                  )
 from datentool_backend.indicators.serializers import (StopSerializer,
                                                       UploadStopTemplateSerializer,
                                                       MatrixStopStopSerializer,
                                                       UploadMatrixStopStopTemplateSerializer,
                                                       RouterSerializer,
+                                                      MatrixCellPlaceSerializer,
                           )
 from datentool_backend.population.serializers import drop_constraints
 
@@ -142,3 +146,58 @@ class RouterViewSet(viewsets.ModelViewSet):
     queryset = Router.objects.all()
     serializer_class = RouterSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+
+class AirDistanceRouterMixin:
+
+    @extend_schema(description='Upload Excel-File with Stops',
+                   request=inline_serializer(
+                       name='FileDropConstraintSerializer',
+                       fields={'drop_constraints': drop_constraints,
+                               'variant': serializers.PrimaryKeyRelatedField(
+                           queryset=ModeVariant.objects.all(),
+                           help_text='mode_variant_id',),
+                               'speed': serializers.FloatField(),
+                               'max_distance': serializers.FloatField(),
+                               }
+                   ),
+                   responses={202: OpenApiResponse(MessageSerializer,
+                                                   'Calculation successful'),
+                              406: OpenApiResponse(MessageSerializer,
+                                                   'Calculation failed')})
+    @action(methods=['POST'], detail=False)
+    def precalculate_traveltime(self, request):
+        """Calculate traveltime with a air distance router"""
+        qs = self.get_queryset()
+        qs.delete()
+        model = qs.model
+        try:
+            serializer = self.get_serializer()
+            df = serializer.calculate_traveltimes(request)
+
+            drop_constraints = bool(strtobool(
+                request.data.get('drop_constraints', 'False')))
+
+            with StringIO() as file:
+                df.to_csv(file, index=False)
+                file.seek(0)
+                model.copymanager.from_csv(
+                    file,
+                    drop_constraints=drop_constraints, drop_indexes=drop_constraints,
+                )
+
+        except Exception as e:
+            msg = str(e)
+            return Response({'message': msg,}, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        msg = 'Traveltime Calculation successful'
+        return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
+
+
+class MatrixCellPlaceViewSet(AirDistanceRouterMixin, ProtectCascadeMixin, viewsets.GenericViewSet):
+    serializer_class = MatrixCellPlaceSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+    def get_queryset(self):
+        variant = self.request.data.get('variant')
+        return MatrixCellPlace.objects.filter(variant=variant)

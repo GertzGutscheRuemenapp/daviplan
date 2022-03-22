@@ -32,6 +32,9 @@ class MatrixCellPlace(models.Model):
     variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
     minutes = models.FloatField()
 
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
+
 
 class MatrixCellStop(models.Model):
     """Reachabliliy Matrix between raster cell and stop with a mode variante"""

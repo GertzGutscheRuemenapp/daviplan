@@ -11,7 +11,15 @@ from rest_framework.fields import FileField, IntegerField, BooleanField
 from django.conf import settings
 from django.core.files import File
 
-from datentool_backend.indicators.models import Stop, MatrixStopStop
+from django.db import connection
+from datentool_backend.utils.dict_cursor import dictfetchall
+
+from datentool_backend.indicators.models import (Stop,
+                                                 MatrixStopStop,
+                                                 MatrixCellPlace,
+                                                 )
+from datentool_backend.infrastructure.models import Place
+from datentool_backend.population.models import RasterCell
 
 
 class MatrixStopStopSerializer(serializers.Serializer):
@@ -88,4 +96,42 @@ class UploadMatrixStopStopTemplateSerializer(serializers.Serializer):
 
         variant = request.data.get('variant')
         df['variant_id'] = int(variant)
+        return df
+
+
+class MatrixCellPlaceSerializer(serializers.Serializer):
+    drop_constraints = BooleanField(default=True)
+
+    class Meta:
+        model = MatrixCellPlace
+        fields = ('cell_id', 'place_id', 'minutes')
+
+    def calculate_traveltimes(self, request) -> pd.DataFrame:
+        """calculate traveltimes"""
+        cell_tbl = RasterCell._meta.db_table
+        place_tbl = Place._meta.db_table
+
+        max_distance = float(request.data.get('max_distance'))
+        speed = float(request.data.get('speed'))
+        variant = int(request.data.get('variant'))
+
+        params = (speed, max_distance)
+
+        query = f'''SELECT
+        --1 AS id,
+        c.id AS cell_id,
+        p.id AS place_id,
+        st_distance(c."pnt", p."geom") / %s * (6.0/1000) AS minutes
+        FROM "{cell_tbl}" AS c,
+        "{place_tbl}" AS p
+        WHERE st_dwithin(c."pnt"::geometry, p."geom"::geometry, %s)
+        '''
+        with connection.cursor() as cursor:
+            cursor.execute(query, params)
+            qs = dictfetchall(cursor)
+
+        df = pd.DataFrame(qs)
+
+        df['variant_id'] = variant
+
         return df
