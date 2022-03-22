@@ -12,7 +12,7 @@ from .models import (Profile,
 
 from datentool_backend.models import MapSymbol, Capacity
 from datentool_backend.area.serializers import MapSymbolSerializer
-from datentool_backend.infrastructure.serializers import PlaceFieldSerializer
+from datentool_backend.infrastructure.serializers import PlaceFieldInfraSerializer
 
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
@@ -108,8 +108,8 @@ class InfrastructureSerializer(serializers.ModelSerializer):
     accessible_by = InfrastructureAccessSerializer(
         many=True, source='infrastructureaccess_set', required=False)
     # ToDo: make writable (create and update)
-    place_fields = PlaceFieldSerializer(many=True, source='placefield_set',
-                                       required=False, read_only=True)
+    place_fields = PlaceFieldInfraSerializer(many=True, source='placefield_set',
+                                             required=False, read_only=True)
 
     class Meta:
         model = Infrastructure

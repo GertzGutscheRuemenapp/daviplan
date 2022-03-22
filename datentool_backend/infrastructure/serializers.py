@@ -15,6 +15,7 @@ from .models import (Scenario,
                      Capacity,
                      PlaceField,
                      )
+from datentool_backend.area.serializers import FieldTypeSerializer
 from datentool_backend.utils.geometry_fields import GeometrySRIDField
 from datentool_backend.user.models import (Infrastructure,
                                            )
@@ -179,6 +180,14 @@ class PlaceSerializer(GeoFeatureModelSerializer):
 
 
 class PlaceFieldSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlaceField
+        fields = ('id', 'name', 'unit', 'infrastructure',
+                  'field_type', 'sensitive')
+
+
+class PlaceFieldInfraSerializer(serializers.ModelSerializer):
+    field_type = FieldTypeSerializer(read_only=True)
     class Meta:
         model = PlaceField
         fields = ('id', 'name', 'unit', 'infrastructure',

@@ -1,3 +1,6 @@
+<div class="loadOverlay" *ngIf="planningService.isLoading$ | async">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
 <div style="display: flex; user-select: none;">
   <div>
     <h4>Standortfilter</h4>
@@ -15,4 +18,4 @@
     <app-time-slider id="time-slider" [helpYOffset]="0" #timeSlider></app-time-slider>
   </div>
 </div>
-<app-filter-table [header]="header" [rows]="rows"></app-filter-table>
+<app-filter-table #filterTable (filtersChanged)="onFilterChange($event)" [columns]="columns" [rows]="rows"></app-filter-table>
