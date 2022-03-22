@@ -190,7 +190,7 @@ class AirDistanceRouterMixin:
             msg = str(e)
             return Response({'message': msg,}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
-        msg = 'Traveltime Calculation successful'
+        msg = f'Traveltime Calculation successful, added {len(df)} rows'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
 

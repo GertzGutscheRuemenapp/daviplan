@@ -19,7 +19,7 @@ from datentool_backend.indicators.models import (Stop,
                                                  MatrixCellPlace,
                                                  )
 from datentool_backend.infrastructure.models import Place
-from datentool_backend.population.models import RasterCell
+from datentool_backend.population.models import RasterCell, RasterCellPopulation
 
 
 class MatrixStopStopSerializer(serializers.Serializer):
@@ -109,6 +109,7 @@ class MatrixCellPlaceSerializer(serializers.Serializer):
     def calculate_traveltimes(self, request) -> pd.DataFrame:
         """calculate traveltimes"""
         cell_tbl = RasterCell._meta.db_table
+        rcp_tbl = RasterCellPopulation._meta.db_table
         place_tbl = Place._meta.db_table
 
         max_distance = float(request.data.get('max_distance'))
@@ -118,19 +119,20 @@ class MatrixCellPlaceSerializer(serializers.Serializer):
         params = (speed, max_distance)
 
         query = f'''SELECT
-        --1 AS id,
         c.id AS cell_id,
         p.id AS place_id,
         st_distance(c."pnt", p."geom") / %s * (6.0/1000) AS minutes
         FROM "{cell_tbl}" AS c,
+        (SELECT DISTINCT cell_id
+        FROM "{rcp_tbl}") AS r,
         "{place_tbl}" AS p
-        WHERE st_dwithin(c."pnt"::geometry, p."geom"::geometry, %s)
+        WHERE c.id = r.cell_id
+        AND st_dwithin(c."pnt", p."geom", %s)
         '''
         with connection.cursor() as cursor:
             cursor.execute(query, params)
-            qs = dictfetchall(cursor)
-
-        df = pd.DataFrame(qs)
+            df = pd.DataFrame(cursor.fetchall(),
+                              columns=self.Meta.fields)
 
         df['variant_id'] = variant
 
