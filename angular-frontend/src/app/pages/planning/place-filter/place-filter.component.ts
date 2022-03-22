@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { Infrastructure, Place, Scenario, Service } from "../../../rest-interfaces";
 import { PlanningService } from "../planning.service";
 import { TimeSliderComponent } from "../../../elements/time-slider/time-slider.component";
@@ -12,6 +12,7 @@ import { FilterTableComponent, FilterColumn } from "../../../elements/filter-tab
   styleUrls: ['./place-filter.component.scss']
 })
 export class PlaceFilterComponent implements AfterViewInit {
+  @Output() filtersChanged = new EventEmitter<FilterColumn[]>();
   @Input() infrastructure!: Infrastructure;
   @Input() services?: Service[];
   @Input() places!: Place[];
@@ -75,6 +76,7 @@ export class PlaceFilterComponent implements AfterViewInit {
     this.services!.forEach(service => {
       columns.push({
         name: `Kapazität ${service.name}`,
+        service: service,
         type: 'NUM',
         unit: service.capacityPluralUnit
       });
@@ -82,6 +84,7 @@ export class PlaceFilterComponent implements AfterViewInit {
     this.infrastructure.placeFields?.forEach(field => {
       columns.push({
         name: field.name,
+        attribute: field.name,
         type: field.fieldType.ftype,
         classes: field.fieldType.classification?.map(c => c.value),
         unit: field.unit
@@ -122,6 +125,10 @@ export class PlaceFilterComponent implements AfterViewInit {
     this.year = years[newIdx];
     this.timeSlider!.value = this.year;
     this.updateData();
+  }
+
+  onFilterChange(columns: FilterColumn[]): void {
+    this.filtersChanged.emit(columns);
   }
 
 }

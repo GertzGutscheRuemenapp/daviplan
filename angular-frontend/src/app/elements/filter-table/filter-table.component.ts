@@ -1,7 +1,8 @@
-import { Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, ViewChild } from '@angular/core';
 import { ConfirmDialogComponent } from "../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
+import { Service } from "../../rest-interfaces";
 
 // type Operator = '>' | '<' | '=' | '>=' | '<=';
 
@@ -23,6 +24,8 @@ const opText = {
 
 export interface FilterColumn {
   name: string,
+  attribute?: string,
+  service?: Service,
   type: 'CLA' | 'NUM' | 'STR',
   classes?: string[],
   filter?: Filter,
@@ -97,6 +100,7 @@ class ClassFilter extends Filter {
   styleUrls: ['./filter-table.component.scss']
 })
 export class FilterTableComponent implements OnInit {
+  @Output() filtersChanged = new EventEmitter<FilterColumn[]>();
   _columns: FilterColumn[] = [];
   processedRows: any[][] = [];
   _rows: any[][] = [];
@@ -153,6 +157,7 @@ export class FilterTableComponent implements OnInit {
       this.openFilterDialog(col);
     else {
       column.filter.active = !column.filter.active;
+      this.emitChange();
       this.filterAndSort();
     }
   }
@@ -188,11 +193,14 @@ export class FilterTableComponent implements OnInit {
       column.filter!.operator = this.filterForm.value.operator;
       column.filter!.value = this.filterForm.value.value;
       column.filter!.active = true;
+      this.emitChange();
+      this.filterAndSort()
       dialogRef.close(true);
     });
-    dialogRef.afterClosed().subscribe(() => {
-      this.filterAndSort();
-    });
+  }
+
+  private emitChange(): void {
+    this.filtersChanged.emit(this._columns.filter(col => col.filter?.active));
   }
 
   private filterAndSort(): void {
@@ -202,6 +210,7 @@ export class FilterTableComponent implements OnInit {
 
   removeAllFilters(): void {
     this._columns.forEach(column => column.filter!.active = false);
+    this.emitChange();
     this.filterAndSort();
   }
 
