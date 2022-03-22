@@ -148,6 +148,8 @@ export class FilterTableComponent implements OnInit {
   toggleSort(col: number) {
     const prevOrder = this.sorting[col];
     const order = (prevOrder === 'none')? 'asc': (prevOrder === 'asc')? 'desc': 'none';
+    // only allow one column to be sorted atm
+    this.sorting = Array(this.sorting.length).fill('none');
     this.sorting[col] = order;
     this.filterAndSort();
   }
