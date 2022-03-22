@@ -18,6 +18,12 @@ class StopTemplateTest(LoginTestCase, APITestCase):
     filename_rz = 'Reisezeitmatrix_Haltestelle_zu_Haltestelle.xlsx'
     filename_rz_errors = 'Reisezeitmatrix_errors.xlsx'
 
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.profile.can_edit_basedata = True
+        cls.profile.save()
+
     @property
     def file_path_stops(self) -> str:
         file_path_stops = os.path.join(os.path.dirname(__file__),
@@ -26,8 +32,9 @@ class StopTemplateTest(LoginTestCase, APITestCase):
         return file_path_stops
 
     def test_request_stop_template(self):
-        url = reverse('stops-download-template')
-        res = self.get_check_200(url)
+        url = reverse('stops-create-template')
+        res = self.post(url)
+        self.assert_http_200_ok(res)
         wb = load_workbook(BytesIO(res.content))
         self.assertListEqual(wb.sheetnames, ['Haltestellen'])
 
@@ -42,11 +49,6 @@ class StopTemplateTest(LoginTestCase, APITestCase):
 
         url = reverse('stops-upload-template')
         res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
-        self.assert_http_403_forbidden(res)
-        file_content.seek(0)
-        self.profile.can_edit_basedata = True
-        self.profile.save()
-        res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
         self.assert_http_202_accepted(res, msg=res.content)
         # 4 stops should have been uploaded with the correct hst-nr and names
         df = pd.read_excel(self.file_path_stops, skiprows=[1])
@@ -54,6 +56,12 @@ class StopTemplateTest(LoginTestCase, APITestCase):
         actual = pd.DataFrame(Stop.objects.values('id', 'name')).set_index('id')
         expected = df[['Nr', 'Name']].rename(columns={'Nr': 'id','Name': 'name',}).set_index('id')
         pd.testing.assert_frame_equal(actual, expected)
+
+        # assert that without edit_basedata-permissions no upload is possible
+        self.profile.can_edit_basedata = False
+        self.profile.save()
+        res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
+        self.assert_http_403_forbidden(res)
 
     def test_upload_broken_stop_file(self):
         """
@@ -67,8 +75,6 @@ class StopTemplateTest(LoginTestCase, APITestCase):
             'excel_file' : open(file_path, 'rb'),
             'drop_constraints': False,
         }
-        self.profile.can_edit_basedata = True
-        self.profile.save()
         res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
         self.assertContains(res,
                             'Haltestellennummer ist nicht eindeutig',
@@ -79,8 +85,6 @@ class StopTemplateTest(LoginTestCase, APITestCase):
         return ModeVariantFactory().pk
 
     def upload_stops(self):
-        self.profile.can_edit_basedata = True
-        self.profile.save()
         url = reverse('stops-upload-template')
         data = {
             'excel_file' : open(self.file_path_stops, 'rb'),
@@ -90,8 +94,9 @@ class StopTemplateTest(LoginTestCase, APITestCase):
         self.assert_http_202_accepted(res, msg=res.content)
 
     def test_request_template_matrixstopstop(self):
-        url = reverse('matrixstopstops-download-template')
-        res = self.get_check_200(url)
+        url = reverse('matrixstopstops-create-template')
+        res = self.post(url)
+        self.assert_http_200_ok(res)
         wb = load_workbook(BytesIO(res.content))
         self.assertListEqual(wb.sheetnames, ['Reisezeit'])
 
@@ -112,8 +117,6 @@ class StopTemplateTest(LoginTestCase, APITestCase):
         }
 
         url = reverse('matrixstopstops-upload-template')
-        self.profile.can_edit_basedata = True
-        self.profile.save()
         res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
         self.assert_http_202_accepted(res, msg=res.content)
 
@@ -140,8 +143,6 @@ class StopTemplateTest(LoginTestCase, APITestCase):
             'variant': mode_variant_id,
             'drop_constraints': False,
         }
-        self.profile.can_edit_basedata = True
-        self.profile.save()
         res = self.client.post(url, data, extra=dict(format='multipart/form-data'), varant=33)
         self.assertContains(res,
                             'Haltestelle nicht in Haltestellennummern',
