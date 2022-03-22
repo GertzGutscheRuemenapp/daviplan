@@ -3,12 +3,22 @@ import { ConfirmDialogComponent } from "../../dialogs/confirm-dialog/confirm-dia
 import { MatDialog } from "@angular/material/dialog";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 
+// type Operator = '>' | '<' | '=' | '>=' | '<=';
+
 enum Operator {
-  '>' = 'größer' ,
-  '<' = 'kleiner',
-  '=' = 'gleich',
-  '>=' = 'größer gleich' ,
-  '<=' = 'kleiner gleich'
+  gt = '>',
+  lt = '<',
+  eq = '=',
+  gte = '>=',
+  lte = '<='
+}
+
+const opText = {
+  '>': 'größer' ,
+  '<': 'kleiner',
+  '=': 'gleich',
+  '>=': 'größer gleich' ,
+  '<=': 'kleiner gleich'
 }
 
 export interface FilterColumn {
@@ -24,7 +34,7 @@ abstract class Filter {
   active: boolean;
   name = 'Filter';
   value?: any;
-  constructor(operator: Operator = Operator["="], active = false) {
+  constructor(operator: Operator = Operator.eq, active = false) {
     this.operator = operator;
     this.active = active;
   }
@@ -57,7 +67,7 @@ class ClassFilter extends Filter {
   name = 'Klassenfilter';
   classes: string[];
 
-  constructor(classes: string[], operator: Operator = Operator["="], active: boolean = false) {
+  constructor(classes: string[], operator: Operator = Operator.eq, active: boolean = false) {
     super(operator, active);
     this.classes = classes;
     this.value = this.classes[0];
@@ -83,7 +93,8 @@ export class FilterTableComponent implements OnInit {
   @ViewChild('numberFilter') numberFilter?: TemplateRef<any>;
   @ViewChild('stringFilter') stringFilter?: TemplateRef<any>;
   @ViewChild('classFilter') classFilter?: TemplateRef<any>;
-  operators: [string, string][] = Object.keys(Operator).map(key => [key, Operator[key as keyof typeof Operator]]);
+  operators: string[][] = Object.values(Operator).map(op => [op, opText[op]]);
+  opText = opText;
 
   constructor(private dialog: MatDialog, private formBuilder: FormBuilder) {
     this.filterForm = this.formBuilder.group({
@@ -127,9 +138,10 @@ export class FilterTableComponent implements OnInit {
   toggleFilter(col: number) {
     const column = this._columns[col]
     if (!column.filter) return;
-    column.filter.active = !column.filter.active;
-    if (column.filter.active)
+    if (!column.filter.active)
       this.openFilterDialog(col);
+    else
+      column.filter.active = !column.filter.active;
   }
 
   openFilterDialog(col: number) {
@@ -162,12 +174,13 @@ export class FilterTableComponent implements OnInit {
       if (this.filterForm.invalid) return;
       column.filter!.operator = this.filterForm.value.operator;
       column.filter!.value = this.filterForm.value.value;
-      dialogRef.close();
+      column.filter!.active = true;
+      dialogRef.close(true);
     });
-    dialogRef.afterClosed().subscribe(ok => {
-      if (!ok)
-        column.filter!.active = false;
-    })
+  }
+
+  removeAllFilters(): void {
+    this._columns.forEach(column => column.filter!.active = false);
   }
 
   private sort() {

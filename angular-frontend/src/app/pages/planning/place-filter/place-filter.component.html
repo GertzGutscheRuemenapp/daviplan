@@ -1,3 +1,6 @@
+<div class="loadOverlay" *ngIf="planningService.isLoading$ | async">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
 <div style="display: flex; user-select: none;">
   <div>
     <h4>Standortfilter</h4>

@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, Input, OnInit, ViewChild } from '@angular/core';
-import { Capacity, Infrastructure, Place, Scenario, Service } from "../../../rest-interfaces";
+import { Infrastructure, Place, Scenario, Service } from "../../../rest-interfaces";
 import { PlanningService } from "../planning.service";
 import { TimeSliderComponent } from "../../../elements/time-slider/time-slider.component";
 import { forkJoin, Observable } from "rxjs";
@@ -25,7 +25,7 @@ export class PlaceFilterComponent implements AfterViewInit {
   public rows: any[][] = [];
   private capacities: Record<number, Record<string, number>> = {};
 
-  constructor(private planningService: PlanningService) {
+  constructor(public planningService: PlanningService) {
   }
 
   ngAfterViewInit(): void {

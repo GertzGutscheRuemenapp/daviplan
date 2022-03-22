@@ -37,18 +37,19 @@
   <span class="subtitle1 sub" i18n>aktuell verwendete Filter</span>
   <div id="filter-box" class="border-box">
     <mat-chip-list>
-      <mat-chip color="primary">
-        Name | K[...]
-        <mat-icon>cancel</mat-icon>
-      </mat-chip>
-      <mat-chip color="primary">
-        Kapazität Krippe | größer 6
-        <mat-icon>cancel</mat-icon>
-      </mat-chip>
+      <ng-container *ngFor="let column of _columns; let i = index;">
+        <mat-chip *ngIf="column.filter?.active" color="primary">
+          {{column.name}} | {{opText[column.filter!.operator]}} {{column.filter!.value}}
+          <mat-icon title="Filter entfernen" (click)="toggleFilter(i)">
+            cancel
+          </mat-icon>
+        </mat-chip>
+      </ng-container>
     </mat-chip-list>
   </div>
   <button mat-button color="primary"
-          class="mat-button-dv">
+          class="mat-button-dv"
+          (click)="removeAllFilters()">
     <mat-icon>filter_list</mat-icon> alle Filter zurücksetzen
   </button>
 </div>
