@@ -18,6 +18,7 @@ export class PlaceFilterComponent implements AfterViewInit {
   @Input() places!: Place[];
   @Input() scenario!: Scenario;
   @Input() year?: number;
+  @Input() filterColumns?: FilterColumn[];
   @ViewChild('timeSlider') timeSlider?: TimeSliderComponent;
   @ViewChild('filterTable') filterTable?: FilterTableComponent;
   realYears?: number[];
@@ -74,21 +75,29 @@ export class PlaceFilterComponent implements AfterViewInit {
   getColumns(): FilterColumn[] {
     let columns: FilterColumn[] = [{ name: 'Name', type: 'STR' }];
     this.services!.forEach(service => {
-      columns.push({
+      const column: FilterColumn = {
         name: `Kapazität ${service.name}`,
         service: service,
         type: 'NUM',
         unit: service.capacityPluralUnit
-      });
+      };
+      const filterInput = this.filterColumns?.find(c => c.service === service);
+      if (filterInput)
+        column.filter = Object.assign(Object.create(Object.getPrototypeOf(filterInput.filter)), filterInput.filter);
+      columns.push(column);
     })
     this.infrastructure.placeFields?.forEach(field => {
-      columns.push({
+      const column: FilterColumn = {
         name: field.name,
         attribute: field.name,
         type: field.fieldType.ftype,
         classes: field.fieldType.classification?.map(c => c.value),
         unit: field.unit
-      });
+      };
+      const filterInput = this.filterColumns?.find(c => c.attribute === field.name);
+      if (filterInput)
+        column.filter = Object.assign(Object.create(Object.getPrototypeOf(filterInput.filter)), filterInput.filter);
+      columns.push(column);
     })
     return columns;
   }

@@ -149,7 +149,11 @@
 <div style="width: 100%; height:50px; background-color: white;"></div>
 
 <ng-template #filterTemplate let-services="services" let-places="places" let-scenario="scenario" let-year="year" let-infrastructure="infrastructure">
-  <app-place-filter (filtersChanged)="onFilterChange($event)" [services]="services" [places]="places" [scenario]="scenario" [year]="year" [infrastructure]="infrastructure"></app-place-filter>
+  <app-place-filter (filtersChanged)="onFilterChange($event)"
+                    [services]="services" [places]="places"
+                    [scenario]="scenario" [year]="year"
+                    [infrastructure]="infrastructure"
+                    [filterColumns]="filterColumns"></app-place-filter>
 </ng-template>
 
 <ng-template #placePreviewTemplate>

@@ -83,7 +83,7 @@ class ClassFilter extends Filter {
   name = 'Klassenfilter';
   classes: string[];
 
-  constructor(classes: string[], operator: Operator = Operator.eq, active: boolean = false) {
+  constructor(classes: string[] = [], operator: Operator = Operator.eq, active: boolean = false) {
     super(operator, active);
     this.classes = classes;
     this.value = this.classes[0];
@@ -124,6 +124,8 @@ export class FilterTableComponent implements OnInit {
     if (columns) {
       this.sorting = Array(columns.length).fill('none');
       columns.forEach(column => {
+        // filter already exists
+        if (column.filter) return;
         if (column.type === 'NUM')
           column.filter = new NumFilter();
         else if (column.type === 'STR')

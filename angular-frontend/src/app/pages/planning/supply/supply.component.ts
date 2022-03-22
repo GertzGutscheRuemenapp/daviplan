@@ -192,6 +192,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   private filter(place: Place): boolean {
+    if (this.filterColumns.length === 0) return true;
     let match = false;
     this.filterColumns.forEach((filterColumn, i) => {
       const filter = filterColumn.filter!;
