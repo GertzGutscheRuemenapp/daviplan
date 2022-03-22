@@ -38,8 +38,23 @@ abstract class Filter {
     this.operator = operator;
     this.active = active;
   }
-  filter(values: any[]): boolean[]{
-    return Array(values.length).fill(true);
+  filterColumn(values: any[]): boolean[]{
+    if (!this.active) return Array(values.length).fill(true);
+    return values.map(v => this.filter(v));
+  };
+  filter(value: any): boolean {
+    if (!this.active) return false;
+    if (this.operator === Operator.gt)
+      return (value > this.value);
+    if (this.operator === Operator.lt)
+      return (value < this.value);
+    if (this.operator === Operator.eq)
+      return (value == this.value);
+    if (this.operator === Operator.gte)
+      return (value >= this.value);
+    if (this.operator === Operator.lte)
+      return (value <= this.value);
+    return false;
   };
 }
 
@@ -47,9 +62,8 @@ class StrFilter extends Filter {
   name = 'Zeichenfilter';
   value = '';
 
-  filter(values: string[]): boolean[] {
-    if (!this.active) return Array(values.length).fill(true);
-    return [true]
+  filter(value: string): boolean {
+    return super.filter(value);
   }
 }
 
@@ -57,9 +71,8 @@ class NumFilter extends Filter {
   name = 'Zahlenfilter';
   value = 0;
 
-  filter(values: number[]): boolean[] {
-    if (!this.active) return Array(values.length).fill(true);
-    return [true]
+  filter(value: number): boolean {
+    return super.filter(value);
   }
 }
 
@@ -73,9 +86,8 @@ class ClassFilter extends Filter {
     this.value = this.classes[0];
   }
 
-  filter(values: string[]): boolean[] {
-    if (!this.active) return Array(values.length).fill(true);
-    return [true]
+  filter(value: string): boolean {
+    return true
   }
 }
 
@@ -86,7 +98,7 @@ class ClassFilter extends Filter {
 })
 export class FilterTableComponent implements OnInit {
   _columns: FilterColumn[] = [];
-  _sorted: any[][] = [];
+  processedRows: any[][] = [];
   _rows: any[][] = [];
   filterForm: FormGroup;
   sorting: ('asc' | 'desc' | 'none' )[] = [];
@@ -124,15 +136,14 @@ export class FilterTableComponent implements OnInit {
     if (rows.length > 0 && this.sorting.length !== rows[0].length)
       this.sorting = Array(rows[0].length).fill('none');
     this._rows = rows;
-    this._sorted = [...rows];
-    this.sort();
+    this.filterAndSort();
   };
 
   toggleSort(col: number) {
     const prevOrder = this.sorting[col];
     const order = (prevOrder === 'none')? 'asc': (prevOrder === 'asc')? 'desc': 'none';
     this.sorting[col] = order;
-    this.sort();
+    this.filterAndSort();
   }
 
   toggleFilter(col: number) {
@@ -140,8 +151,10 @@ export class FilterTableComponent implements OnInit {
     if (!column.filter) return;
     if (!column.filter.active)
       this.openFilterDialog(col);
-    else
+    else {
       column.filter.active = !column.filter.active;
+      this.filterAndSort();
+    }
   }
 
   openFilterDialog(col: number) {
@@ -177,23 +190,51 @@ export class FilterTableComponent implements OnInit {
       column.filter!.active = true;
       dialogRef.close(true);
     });
+    dialogRef.afterClosed().subscribe(() => {
+      this.filterAndSort();
+    });
+  }
+
+  private filterAndSort(): void {
+    const filtered = this.filter(this._rows);
+    this.processedRows = this.sort(filtered);
   }
 
   removeAllFilters(): void {
     this._columns.forEach(column => column.filter!.active = false);
+    this.filterAndSort();
   }
 
-  private sort() {
-    this._sorted = [...this._rows];
+  private sort(rows: any[][]): any[][] {
+    let sorted = [...rows];
     this.sorting.forEach((order, i) => {
       if (order === 'none') return;
-      this._sorted.sort((a, b) => {
+      sorted.sort((a, b) => {
         if (a[i] === b[i]) return 0;
         if (order === 'asc' && a[i] > b[i]) return 1;
         if (order === 'desc' && a[i] < b[i]) return 1;
         return -1;
       })
     })
+    return sorted;
+  }
+
+  private filter(rows: any[][]): any[][] {
+    let filtered: any[][] = [];
+    const filters: [number, Filter][] = this._columns.map((column, i) => [i, column.filter!]);
+    const activeFilters = filters.filter(ifs => ifs && ifs[1].active);
+    if (activeFilters.length === 0) return [...rows];
+    rows.forEach(row => {
+      for(let i = 0; i < activeFilters.length; i++){
+        const filter = activeFilters[i][1];
+        const colIdx = activeFilters[i][0];
+        // filtered out -> next row
+        if (!filter.filter(row[colIdx])) return;
+        // last column and no filtering out occured in row
+        if (i === activeFilters.length - 1) filtered.push(row);
+      }
+    })
+    return filtered;
   }
 
   ngOnInit(): void {
