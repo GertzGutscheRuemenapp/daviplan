@@ -1,6 +1,5 @@
-from datentool.settings_dev import *
+from datentool.settings_local import *
 
-DATABASES['default'] = {
-        'ENGINE': 'django.contrib.gis.db.backends.spatialite',
-        'NAME': ':memory:',
-    }
+from tempfile import mkdtemp
+
+MEDIA_ROOT = mkdtemp(prefix='media_')
