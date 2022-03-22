@@ -77,7 +77,9 @@ class UploadMatrixStopStopTemplateSerializer(serializers.Serializer):
                            skiprows=[1])
 
         # assert the stopnumbers are in stops
-        df_stops = pd.DataFrame(Stop.objects.values('id', 'name'))
+        cols = ['id', 'name']
+        df_stops = pd.DataFrame(Stop.objects.values(*cols),
+                                columns=cols)
         assert df['from_stop'].isin(df_stops['id']).all(), 'Von-Haltestelle nicht in Haltestellennummern'
         assert df['to_stop'].isin(df_stops['id']).all(), 'Nach-Haltestelle nicht in Haltestellennummern'
 
