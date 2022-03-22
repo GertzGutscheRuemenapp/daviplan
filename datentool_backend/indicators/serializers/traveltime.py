@@ -121,13 +121,22 @@ class MatrixCellPlaceSerializer(serializers.Serializer):
         query = f'''SELECT
         c.id AS cell_id,
         p.id AS place_id,
-        st_distance(c."pnt", p."geom") / %s * (6.0/1000) AS minutes
-        FROM "{cell_tbl}" AS c,
+        st_distance(c."pnt_25832", p."pnt_25832") / %s * (6.0/1000) AS minutes
+        FROM
+        (SELECT
+        c.id,
+        c.pnt,
+        st_transform(c.pnt, 25832) AS pnt_25832
+        FROM "{cell_tbl}" AS c) AS c,
         (SELECT DISTINCT cell_id
         FROM "{rcp_tbl}") AS r,
-        "{place_tbl}" AS p
+        (SELECT p.id,
+        p.geom,
+        st_transform(p.geom, 25832) AS pnt_25832,
+        cosd(st_y(st_transform(p.geom, 4326))) AS kf
+        FROM "{place_tbl}" AS p) AS p
         WHERE c.id = r.cell_id
-        AND st_dwithin(c."pnt", p."geom", %s)
+        AND st_dwithin(c."pnt", p."geom", %s * p.kf)
         '''
         with connection.cursor() as cursor:
             cursor.execute(query, params)
