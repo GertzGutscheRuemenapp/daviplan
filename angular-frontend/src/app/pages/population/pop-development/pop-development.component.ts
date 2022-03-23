@@ -273,7 +273,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       this.lineChart?.clear();
       return;
     }
-    ageGroups = sortBy(ageGroups, 'id');
+    ageGroups = sortBy(ageGroups, 'fromAge', { reverse: true });
     this.populationService.getPopulationData(this.activeArea.id, { genders: genders }).subscribe( popData => {
       this.populationService.getPopulationData(this.activeArea!.id, { prognosis: this.activePrognosis?.id, genders: genders }).subscribe(progData => {
         const data = popData.concat(progData);
@@ -372,9 +372,9 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       description = 'Bitte Gebietseinheit wählen';
     else {
       const genderDesc = `Geschlecht: ${this.selectedGender?.name || '-'}`;
-      const ageGroupDesc = this.ageGroupSelection.selected.map(ag => ag.label).join(', ');
+      const ageGroupDesc = `${(this.ageGroupSelection.selected.length == this.ageGroups.length)? 'alle' : 'ausgewählte'} Altersgruppen`;
       const progDesc = (this.realYears?.indexOf(this.year) === -1)? `${this.activePrognosis?.name} `: '';
-      description = `Bevölkerungsentwicklung für ${this.activeLevel.name} | ${progDesc}${this.year} <br>` +
+      description = `Bevölkerungsentwicklung für Gebietseinheit ${this.activeLevel.name} | ${progDesc}${this.year} <br>` +
                     `${genderDesc} | ${ageGroupDesc}`;
     }
     this.mapControl!.mapDescription = description;

@@ -260,14 +260,15 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
     this.updateDiagrams();
   }
 
-  onThemeChange(): void {
+  onThemeChange(updateDiagrams: boolean = false): void {
     this.settings.user.set('pop-stat-theme', this.theme);
     this.settings.user.set('pop-stat-births', this.showBirths);
     this.settings.user.set('pop-stat-deaths', this.showDeaths);
     this.settings.user.set('pop-stat-immigration', this.showImmigration);
     this.settings.user.set('pop-stat-emigration', this.showEmigration);
     this.updateMap();
-    this.updateDiagrams()
+    if (updateDiagrams)
+      this.updateDiagrams()
   }
 
   setSlider(): void {
@@ -280,8 +281,12 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
 
   updateMapDescription(): void {
     if (!this.areaLevel) return;
-    const theme = (this.theme === 'nature')? 'Natürliche Bevölkerungsentwicklung': 'Wanderung';
-    let description = `${theme} für ${this.areaLevel.name} | ${this.year}`;
+    let theme = '';
+    if (this.theme === 'nature')
+        theme = (this.showBirths && this.showDeaths)? 'Geburten und Sterbefälle': (this.showBirths)? 'Geburten': (this.showDeaths)? 'Sterbefälle': 'keine Auswahl';
+    else
+      theme = (this.showImmigration && this.showEmigration)? 'Wanderung': (this.showImmigration)? 'Zuzüge': (this.showEmigration)? 'Fortzüge': 'keine Auswahl';
+    let description = `${theme} für Gebietseinheit ${this.areaLevel.name} | ${this.year}`;
     this.mapControl!.mapDescription = description;
   }
 

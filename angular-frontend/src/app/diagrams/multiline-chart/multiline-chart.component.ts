@@ -34,6 +34,7 @@ export class MultilineChartComponent implements AfterViewInit {
   @Input() yOrigin: number = 0;
   @Input() animate?: boolean;
   @Input() xSeparator?: { leftLabel?: string, rightLabel?:string, x: string, highlight?: boolean };
+  @Input() shiftXLabelDown?: boolean;
 
   private svg: any;
   public margin: {top: number, bottom: number, left: number, right: number } = {
@@ -106,7 +107,7 @@ export class MultilineChartComponent implements AfterViewInit {
       .attr("transform",`translate(${this.margin.left},${this.margin.top + y(this.yOrigin)})`)
       .call(d3.axisBottom(x))
       .selectAll("text")
-      .attr("transform", "translate(-10,0)rotate(-45)")
+      .attr("transform", `translate(-10,${this.shiftXLabelDown? y(min!) - y(this.yOrigin): 0})rotate(-45)`)
       .style("text-anchor", "end");
 
     // y axis

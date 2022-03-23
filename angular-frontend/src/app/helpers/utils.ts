@@ -7,9 +7,12 @@ export function arrayMove(array: any[], fromIndex: number, toIndex: number) {
   array.splice(toIndex, 0, element);
 }
 
-export function sortBy(array: any[], attr: string): any[]{
-  return array.sort((a, b) =>
+export function sortBy(array: any[], attr: string, options: { reverse: boolean } = { reverse: false }): any[]{
+  let sorted = array.sort((a, b) =>
     (a[attr] > b[attr])? 1: (a[attr] < b[attr])? -1: 0);
+  if (options.reverse)
+    sorted = sorted.reverse();
+  return sorted;
 }
 
 export function wktToGeom(wkt: string, options?: { targetProjection?: string, ewkt?: boolean }): Geometry {
