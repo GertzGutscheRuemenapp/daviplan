@@ -119,7 +119,7 @@ class StopTemplateTest(LoginTestCase, APITestCase):
                                         fn_matrix)
             file_content = open(file_path, 'rb')
             data = {
-                'excel_file' : file_content,
+                'excel_or_visum_file' : file_content,
                 'variant': mode_variant_id,
                 'drop_constraints': False,
             }
@@ -155,7 +155,7 @@ class StopTemplateTest(LoginTestCase, APITestCase):
                                  self.filename_rz_errors)
         url = reverse('matrixstopstops-upload-template')
         data = {
-            'excel_file' : open(file_path, 'rb'),
+            'excel_or_visum_file' : open(file_path, 'rb'),
             'variant': mode_variant_id,
             'drop_constraints': False,
         }

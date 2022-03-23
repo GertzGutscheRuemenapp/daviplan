@@ -138,14 +138,14 @@ class MatrixStopStopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.Mo
         return MatrixStopStop.objects.filter(variant=variant)
 
 
-    @extend_schema(description='Upload Excel-File with Traveltimes from Stop to Stop',
+    @extend_schema(description='Upload Excel-File or PTV-Visum-Matrix with Traveltimes from Stop to Stop',
                    request=inline_serializer(
                        name='FileDropConstraintModeVariantSerializer',
                        fields={'drop_constraints': drop_constraints,
                                'variant': serializers.PrimaryKeyRelatedField(
                            queryset=ModeVariant.objects.all(),
                            help_text='mode_variant_id',),
-                               'excel_file': serializers.FileField(),
+                               'excel_or_visum_file': serializers.FileField(help_text='Excel- or PTV-Visum-Matrix'),
                                },
                    ),
                    responses={202: OpenApiResponse(MessageSerializer,

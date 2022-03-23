@@ -75,16 +75,16 @@ class MatrixStopStopSerializer(serializers.Serializer):
 
 class UploadMatrixStopStopTemplateSerializer(serializers.Serializer):
     """Serializer for uploading MatrixStopStopTemplate"""
-    excel_file = FileField()
+    excel_or_visum_file = FileField()
     variant = IntegerField()
     drop_constraints = BooleanField(default=True)
 
     def read_excel_file(self, request) -> pd.DataFrame:
         """read excelfile and return a dataframe"""
-        excel_file = request.FILES['excel_file']
+        excel_or_visum_file = request.FILES['excel_or_visum_file']
 
         try:
-            df = pd.read_excel(excel_file.file,
+            df = pd.read_excel(excel_or_visum_file.file,
                                sheet_name='Reisezeit',
                                skiprows=[1])
 
@@ -92,7 +92,7 @@ class UploadMatrixStopStopTemplateSerializer(serializers.Serializer):
             # read PTV-Matrix
             fn = mktemp(suffix='.mtx')
             with open(fn, 'wb') as tfile:
-                tfile.write(excel_file.file.read())
+                tfile.write(excel_or_visum_file.file.read())
             da = ReadPTVMatrix(fn)
             os.remove(fn)
 
