@@ -1,13 +1,14 @@
 from django.http import HttpResponse
+from django.db import transaction
+
 from io import StringIO
-import pandas as pd
 from distutils.util import strtobool
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import serializers
 
-from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse, OpenApiParameter
+from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
 
 
 from datentool_backend.population.serializers import MessageSerializer
@@ -169,26 +170,42 @@ class AirDistanceRouterMixin:
     def precalculate_traveltime(self, request):
         """Calculate traveltime with a air distance router"""
         qs = self.get_queryset()
-        qs.delete()
         model = qs.model
-        try:
-            serializer = self.get_serializer()
-            df = serializer.calculate_traveltimes(request)
+        manager = model.copymanager
+        drop_constraints = bool(strtobool(
+            request.data.get('drop_constraints', 'False')))
 
-            drop_constraints = bool(strtobool(
-                request.data.get('drop_constraints', 'False')))
+        with transaction.atomic():
+            if drop_constraints:
+                manager.drop_constraints()
+                manager.drop_indexes()
 
-            with StringIO() as file:
-                df.to_csv(file, index=False)
-                file.seek(0)
-                model.copymanager.from_csv(
-                    file,
-                    drop_constraints=drop_constraints, drop_indexes=drop_constraints,
-                )
+            qs.delete()
 
-        except Exception as e:
-            msg = str(e)
-            return Response({'message': msg,}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            try:
+                serializer = self.get_serializer()
+                df = serializer.calculate_traveltimes(request)
+
+                drop_constraints = bool(strtobool(
+                    request.data.get('drop_constraints', 'False')))
+
+                with StringIO() as file:
+                    df.to_csv(file, index=False)
+                    file.seek(0)
+                    model.copymanager.from_csv(
+                        file,
+                        drop_constraints=False, drop_indexes=False,
+                    )
+
+            except Exception as e:
+                msg = str(e)
+                return Response({'message': msg,}, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+            finally:
+                # recreate indices
+                if drop_constraints:
+                    manager.restore_constraints()
+                    manager.restore_indexes()
 
         msg = f'Traveltime Calculation successful, added {len(df)} rows'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
