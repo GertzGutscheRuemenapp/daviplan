@@ -16,6 +16,7 @@ import {
 import { MapControl, MapService } from "../../../map/map.service";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
 import * as d3 from "d3";
+import { FilterColumn } from "../../../elements/filter-table/filter-table.component";
 
 @Component({
   selector: 'app-supply',
@@ -44,6 +45,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   activeService?: Service;
   activeProcess?: PlanningProcess;
   activeScenario?: Scenario;
+  _filterColumnsTemp: FilterColumn[] = [];
+  filterColumns: FilterColumn[] = [];
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
               public planningService: PlanningService) {
@@ -111,7 +114,14 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       }
     });
     dialogRef.afterClosed().subscribe((ok: boolean) => {  });
-    dialogRef.componentInstance.confirmed.subscribe(() => {  });
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      this.filterColumns = this._filterColumnsTemp;
+      this.updatePlaces();
+    });
+  }
+
+  onFilterChange(columns: FilterColumn[]): void {
+    this._filterColumnsTemp = columns;
   }
 
   updatePlaces(): void {
@@ -129,6 +139,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         this.capacities = capacities;
         let displayedPlaces: Place[] = [];
         this.places?.forEach(place => {
+          if (!this.filter(place)) return;
           const capacity = this.getCapacity(this.activeService!.id, place.id);
           if (!capacity) return;
           place.properties.capacity = capacity;
@@ -178,6 +189,24 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         })
       })
     })
+  }
+
+  private filter(place: Place): boolean {
+    if (this.filterColumns.length === 0) return true;
+    let match = false;
+    this.filterColumns.forEach((filterColumn, i) => {
+      const filter = filterColumn.filter!;
+      if (filterColumn.service) {
+        const cap = this.getCapacity(filterColumn.service.id, place.id);
+        if (!filter.filter(cap)) return;
+      }
+      else if (filterColumn.attribute) {
+        const value = place.properties.attributes[filterColumn.attribute];
+        if (!filter.filter(value)) return;
+      }
+      if (i === this.filterColumns.length - 1) match = true;
+    })
+    return match;
   }
 
   updateCapacities(): void {

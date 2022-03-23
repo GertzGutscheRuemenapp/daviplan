@@ -1,20 +1,10 @@
-import { AfterViewInit, Component, Input, OnInit, ViewChild } from '@angular/core';
-import { Capacity, Infrastructure, Place, Scenario, Service } from "../../../rest-interfaces";
+import { AfterViewInit, Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Infrastructure, Place, Scenario, Service } from "../../../rest-interfaces";
 import { PlanningService } from "../planning.service";
-import { hasDirectiveDecorator } from "@angular/compiler-cli/ngcc/src/migrations/utils";
 import { TimeSliderComponent } from "../../../elements/time-slider/time-slider.component";
-import { MatSlider } from "@angular/material/slider";
 import { forkJoin, Observable } from "rxjs";
 import { map } from "rxjs/operators";
-import { sortBy } from "../../../helpers/utils";
-
-const mockHeader = ['Name', 'Zustand', 'Anzahl Betreuer', 'Kapazität Krippe', 'Kapazität Kita', 'Adresse']
-const mockRows = [
-  ['KIGA Nord', 'gut', 12, 28, 22, 'Paul Ehrlich Straße 3, 35029 Bremen'],
-  ['Krippe Westentchen', 'sehr gut', 20, 80, 0, 'Cuxhavener Landstraße 2, 35029 Bremen'],
-  ['Kita Süd', 'befriedigend', 6, 10, 20, 'Diepholzer Weg 133, 35029 Bremen'],
-  ['Katholische Kita Mitte', 'gut', 2, 8, 12, 'Kirchenallee 24, 35029 Bremen'],
-]
+import { FilterTableComponent, FilterColumn } from "../../../elements/filter-table/filter-table.component";
 
 @Component({
   selector: 'app-place-filter',
@@ -22,24 +12,27 @@ const mockRows = [
   styleUrls: ['./place-filter.component.scss']
 })
 export class PlaceFilterComponent implements AfterViewInit {
+  @Output() filtersChanged = new EventEmitter<FilterColumn[]>();
   @Input() infrastructure!: Infrastructure;
   @Input() services?: Service[];
   @Input() places!: Place[];
   @Input() scenario!: Scenario;
   @Input() year?: number;
+  @Input() filterColumns?: FilterColumn[];
   @ViewChild('timeSlider') timeSlider?: TimeSliderComponent;
+  @ViewChild('filterTable') filterTable?: FilterTableComponent;
   realYears?: number[];
   prognosisYears?: number[];
-  public header: string[] = [];
+  public columns: FilterColumn[] = [];
   public rows: any[][] = [];
   private capacities: Record<number, Record<string, number>> = {};
 
-  constructor(private planningService: PlanningService) {
+  constructor(public planningService: PlanningService) {
   }
 
   ngAfterViewInit(): void {
     if (!this.services) this.services = this.infrastructure.services;
-    this.header = this.getHeader();
+    this.columns = this.getColumns();
     this.planningService.getRealYears().subscribe( years => {
       this.realYears = years;
       this.planningService.getPrognosisYears().subscribe( years => {
@@ -79,17 +72,34 @@ export class PlaceFilterComponent implements AfterViewInit {
       this.rows = this.placesToRows(this.places);
   }
 
-  getHeader(): string[] {
-    let header = ['Name'];
+  getColumns(): FilterColumn[] {
+    let columns: FilterColumn[] = [{ name: 'Name', type: 'STR' }];
     this.services!.forEach(service => {
-      header.push(`Kapazität ${service.name}`);
+      const column: FilterColumn = {
+        name: `Kapazität ${service.name}`,
+        service: service,
+        type: 'NUM',
+        unit: service.capacityPluralUnit
+      };
+      const filterInput = this.filterColumns?.find(c => c.service === service);
+      if (filterInput)
+        column.filter = Object.assign(Object.create(Object.getPrototypeOf(filterInput.filter)), filterInput.filter);
+      columns.push(column);
     })
     this.infrastructure.placeFields?.forEach(field => {
-      let fieldName = field.name;
-      if (field.unit) fieldName += ` (${field.unit})`;
-      header.push(fieldName);
+      const column: FilterColumn = {
+        name: field.name,
+        attribute: field.name,
+        type: field.fieldType.ftype,
+        classes: field.fieldType.classification?.map(c => c.value),
+        unit: field.unit
+      };
+      const filterInput = this.filterColumns?.find(c => c.attribute === field.name);
+      if (filterInput)
+        column.filter = Object.assign(Object.create(Object.getPrototypeOf(filterInput.filter)), filterInput.filter);
+      columns.push(column);
     })
-    return header;
+    return columns;
   }
 
   placesToRows(places: Place[]): any[][]{
@@ -124,6 +134,10 @@ export class PlaceFilterComponent implements AfterViewInit {
     this.year = years[newIdx];
     this.timeSlider!.value = this.year;
     this.updateData();
+  }
+
+  onFilterChange(columns: FilterColumn[]): void {
+    this.filtersChanged.emit(columns);
   }
 
 }

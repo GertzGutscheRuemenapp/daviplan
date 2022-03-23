@@ -150,13 +150,25 @@ export interface Service {
   id: number,
   infrastructure: number,
   description: string,
-  name: string;
-  demandSingularUnit: string;
-  demandPluralUnit: string;
-  capacitySingularUnit: string;
-  capacityPluralUnit: string;
-  minCapacity: number;
-  maxCapacity: number;
+  name: string,
+  demandSingularUnit: string,
+  demandPluralUnit: string,
+  capacitySingularUnit: string,
+  capacityPluralUnit: string,
+  minCapacity: number,
+  maxCapacity: number
+}
+
+export interface FClass {
+  order: number,
+  value: string
+}
+
+export interface FieldType{
+  id: number,
+  name: string,
+  ftype: 'CLA' | 'NUM' | 'STR',
+  classification?: FClass[]
 }
 
 export interface PlaceField{
@@ -164,18 +176,18 @@ export interface PlaceField{
   name: string,
   unit: string,
   infrastructure: number,
-  fieldType: number,
+  fieldType: FieldType,
   sensitive: boolean
 }
 
 export interface Infrastructure {
   id: number,
-  name: string;
-  description: string;
-  services: Service[];
-  order: number;
-  symbol?: Symbol;
-  placeFields?: PlaceField[];
+  name: string,
+  description: string,
+  services: Service[],
+  order: number,
+  symbol?: Symbol,
+  placeFields?: PlaceField[]
 }
 
 export interface Place {

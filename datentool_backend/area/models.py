@@ -196,7 +196,6 @@ class FieldType(DatentoolModelMixin, NamedModel, models.Model):
             return data in self.fclass_set.values_list('value', flat=True)
 
 
-
 class FClass(DatentoolModelMixin, models.Model):
     """a class in a classification"""
     ftype = models.ForeignKey(FieldType, on_delete=PROTECT_CASCADE)

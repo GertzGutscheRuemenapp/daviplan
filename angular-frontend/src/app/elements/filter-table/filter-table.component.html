@@ -1,13 +1,13 @@
 <div style="overflow-y: auto">
   <table id="filter-table">
     <tr class="header">
-      <th *ngFor="let th of header; let i = index;">
+      <th *ngFor="let th of _columns; let i = index;">
         <div>
           <div style="margin-right: 10px;">
             <button color="primary" mat-icon-button
                     class="filter-button" title="Standortfilter"
-                    [ngClass]="{'inverted': filtered[i]}"
-                    (click)="filtered[i] = !filtered[i]"
+                    [ngClass]="{'inverted': th.filter?.active}"
+                    (click)="toggleFilter(i)"
                     title="Filter umschalten">
               <mat-icon>filter_list</mat-icon>
             </button>
@@ -15,19 +15,20 @@
           <span class="subtitle1"
                 (click)="toggleSort(i)"
                 style="color: grey; white-space: pre-wrap;">
-            {{th}}
+            {{th.name}}
+            <ng-container *ngIf="th.unit">({{th.unit}})</ng-container>
           </span>
           <div class="sort-icon"
                (click)="toggleSort(i)"
                style="position: relative; min-width: 30px;">
-            <mat-icon style="position: absolute; top: -3px; left: 5px;">arrow_drop_up</mat-icon>
-            <mat-icon style="position: absolute; top: 4px; left: 5px;">arrow_drop_down</mat-icon>
+            <mat-icon [style.opacity]="(sorting[i] !== 'asc')? 1: 0" style="position: absolute; top: -3px; left: 5px;">arrow_drop_up</mat-icon>
+            <mat-icon [style.opacity]="(sorting[i] !== 'desc')? 1: 0" style="position: absolute; top: 4px; left: 5px;">arrow_drop_down</mat-icon>
           </div>
         </div>
       </th>
     </tr>
-    <tr *ngFor="let row of rows">
-      <td *ngFor="let column of row">{{column}}</td>
+    <tr *ngFor="let row of processedRows">
+     <td *ngFor="let column of row">{{column}}</td>
     </tr>
   </table>
 </div>
@@ -36,18 +37,77 @@
   <span class="subtitle1 sub" i18n>aktuell verwendete Filter</span>
   <div id="filter-box" class="border-box">
     <mat-chip-list>
-      <mat-chip color="primary">
-        Name | K[...]
-        <mat-icon>cancel</mat-icon>
-      </mat-chip>
-      <mat-chip color="primary">
-        Kapazität Krippe | größer 6
-        <mat-icon>cancel</mat-icon>
-      </mat-chip>
+      <ng-container *ngFor="let column of _columns; let i = index;">
+        <mat-chip *ngIf="column.filter?.active" color="primary">
+          {{column.name}} | {{opText[column.filter!.operator]}} {{column.filter!.value}}
+          <mat-icon title="Filter entfernen" (click)="toggleFilter(i)">
+            cancel
+          </mat-icon>
+        </mat-chip>
+      </ng-container>
     </mat-chip-list>
   </div>
   <button mat-button color="primary"
-          class="mat-button-dv">
+          class="mat-button-dv"
+          (click)="removeAllFilters()">
     <mat-icon>filter_list</mat-icon> alle Filter zurücksetzen
   </button>
 </div>
+
+<ng-template #numberFilter let-unit="unit">
+  <form [formGroup]="filterForm">
+    <div style="display: flex; align-items: baseline;">
+      <mat-form-field class="small" appearance="outline" style="margin-right: 20px;">
+        <mat-select formControlName="operator" required>
+          <mat-option *ngFor="let operator of operators" [value]="operator[0]">
+            {{operator[1]}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field class="small" appearance="outline" style="margin-right: 10px;">
+        <input matInput type="number" formControlName="value" required>
+      </mat-form-field>
+      <span>{{unit}}</span>
+    </div>
+  </form>
+</ng-template>
+
+<ng-template #stringFilter let-unit="unit">
+  <form [formGroup]="filterForm">
+    <div style="display: flex; align-items: baseline;">
+      <mat-form-field class="small" appearance="outline" style="margin-right: 20px;">
+        <mat-select formControlName="operator" required>
+          <mat-option *ngFor="let operator of operators" [value]="operator[0]">
+            {{operator[1]}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field class="small" appearance="outline" style="margin-right: 10px;">
+        <input matInput formControlName="value" required>
+      </mat-form-field>
+      <span>{{unit}}</span>
+    </div>
+  </form>
+</ng-template>
+
+<ng-template #classFilter let-unit="unit" let-classes="classes">
+  <form [formGroup]="filterForm">
+    <div style="display: flex; align-items: baseline;">
+      <mat-form-field class="small" appearance="outline" style="margin-right: 20px;">
+        <mat-select formControlName="operator" required>
+          <mat-option *ngFor="let operator of operators" [value]="operator[0]">
+            {{operator[1]}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field class="small" appearance="outline" style="margin-right: 10px;">
+        <mat-select formControlName="operator" required>
+          <mat-option *ngFor="let class of classes" [value]="class">
+            {{class}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <span>{{unit}}</span>
+    </div>
+  </form>
+</ng-template>
