@@ -29,12 +29,12 @@ from datentool_backend.population.factories import (PopulationRasterFactory,
                                                     RasterCellFactory,
                                                     RasterCellPopulationFactory,
                                                     PopulationFactory,
-                                                    PrognosisFactory,
                                                     )
 from datentool_backend.population.models import (Raster,
                                                  RasterCell,
                                                  PopulationEntry,
                                                 )
+from datentool_backend.indicators.factories import StopFactory
 
 
 class CreateInfrastructureTestdataMixin:
@@ -219,6 +219,13 @@ class CreateInfrastructureTestdataMixin:
         # Place 5 is in no area
         cls.place5 = PlaceFactory(infrastructure=infrastructure,
                                   geom=Point(x=1000450, y=6500450))
+
+    @classmethod
+    def create_stops(cls):
+        """Create some stops"""
+        cls.stop1 = StopFactory(geom=Point(x=1000008, y=6500003))
+        cls.stop2 = StopFactory(geom=Point(x=1000012, y=6500033))
+        cls.stop3 = StopFactory(geom=Point(x=1000100, y=6500500))
 
     @classmethod
     def create_capacities(cls):

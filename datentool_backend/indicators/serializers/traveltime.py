@@ -5,18 +5,21 @@ from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.worksheet.dimensions import ColumnDimension
 from openpyxl.worksheet.datavalidation import DataValidation
 
+from tempfile import mktemp
+from matrixconverters.read_ptv import ReadPTVMatrix
+
 from rest_framework import serializers
 from rest_framework.fields import FileField, IntegerField, BooleanField
 
 from django.conf import settings
-from django.core.files import File
 
 from django.db import connection
-from datentool_backend.utils.dict_cursor import dictfetchall
 
 from datentool_backend.indicators.models import (Stop,
                                                  MatrixStopStop,
                                                  MatrixCellPlace,
+                                                 MatrixCellStop,
+                                                 MatrixPlaceStop,
                                                  )
 from datentool_backend.infrastructure.models import Place
 from datentool_backend.population.models import RasterCell, RasterCellPopulation
@@ -80,9 +83,24 @@ class UploadMatrixStopStopTemplateSerializer(serializers.Serializer):
         """read excelfile and return a dataframe"""
         excel_file = request.FILES['excel_file']
 
-        df = pd.read_excel(excel_file.file,
-                           sheet_name='Reisezeit',
-                           skiprows=[1])
+        try:
+            df = pd.read_excel(excel_file.file,
+                               sheet_name='Reisezeit',
+                               skiprows=[1])
+
+        except ValueError as e:
+            # read PTV-Matrix
+            fn = mktemp(suffix='.mtx')
+            with open(fn, 'wb') as tfile:
+                tfile.write(excel_file.file.read())
+            da = ReadPTVMatrix(fn)
+            os.remove(fn)
+
+            df = da['matrix'].to_dataframe()
+            df = df.loc[df['matrix']<999999]
+            df.index.rename(['from_stop', 'to_stop'], inplace=True)
+            df.rename(columns={'matrix': 'minutes',}, inplace=True)
+            df.reset_index(inplace=True)
 
         # assert the stopnumbers are in stops
         cols = ['id', 'name']
@@ -99,24 +117,75 @@ class UploadMatrixStopStopTemplateSerializer(serializers.Serializer):
         return df
 
 
-class MatrixCellPlaceSerializer(serializers.Serializer):
+class MatrixAirDistanceMixin(serializers.Serializer):
     drop_constraints = BooleanField(default=True)
-
-    class Meta:
-        model = MatrixCellPlace
-        fields = ('cell_id', 'place_id', 'minutes')
 
     def calculate_traveltimes(self, request) -> pd.DataFrame:
         """calculate traveltimes"""
-        cell_tbl = RasterCell._meta.db_table
-        rcp_tbl = RasterCellPopulation._meta.db_table
-        place_tbl = Place._meta.db_table
 
         max_distance = float(request.data.get('max_distance'))
         speed = float(request.data.get('speed'))
         variant = int(request.data.get('variant'))
 
+        query = self.get_query()
         params = (speed, max_distance)
+
+        with connection.cursor() as cursor:
+            cursor.execute(query, params)
+            df = pd.DataFrame(cursor.fetchall(),
+                              columns=self.Meta.fields)
+
+        df['variant_id'] = variant
+
+        return df
+
+
+class MatrixCellStopSerializer(MatrixAirDistanceMixin):
+
+    class Meta:
+        model = MatrixCellStop
+        fields = ('cell_id', 'stop_id', 'minutes')
+
+    def get_query(self) -> str:
+
+        cell_tbl = RasterCell._meta.db_table
+        rcp_tbl = RasterCellPopulation._meta.db_table
+        stop_tbl = Stop._meta.db_table
+
+        query = f'''SELECT
+        c.id AS cell_id,
+        s.id AS stop_id,
+        st_distance(c."pnt_25832", s."pnt_25832") / %s * (6.0/1000) AS minutes
+        FROM
+        (SELECT
+        c.id,
+        c.pnt,
+        st_transform(c.pnt, 25832) AS pnt_25832
+        FROM "{cell_tbl}" AS c) AS c,
+        (SELECT DISTINCT cell_id
+        FROM "{rcp_tbl}") AS r,
+        (SELECT s.id,
+        s.geom,
+        st_transform(s.geom, 25832) AS pnt_25832,
+        cosd(st_y(st_transform(s.geom, 4326))) AS kf
+        FROM "{stop_tbl}" AS s) AS s
+        WHERE c.id = r.cell_id
+        AND st_dwithin(c."pnt", s."geom", %s * s.kf)
+        '''
+        return query
+
+
+class MatrixCellPlaceSerializer(MatrixAirDistanceMixin):
+
+    class Meta:
+        model = MatrixCellPlace
+        fields = ('cell_id', 'place_id', 'minutes')
+
+    def get_query(self) -> str:
+
+        cell_tbl = RasterCell._meta.db_table
+        rcp_tbl = RasterCellPopulation._meta.db_table
+        place_tbl = Place._meta.db_table
 
         query = f'''SELECT
         c.id AS cell_id,
@@ -138,11 +207,35 @@ class MatrixCellPlaceSerializer(serializers.Serializer):
         WHERE c.id = r.cell_id
         AND st_dwithin(c."pnt", p."geom", %s * p.kf)
         '''
-        with connection.cursor() as cursor:
-            cursor.execute(query, params)
-            df = pd.DataFrame(cursor.fetchall(),
-                              columns=self.Meta.fields)
+        return query
 
-        df['variant_id'] = variant
 
-        return df
+class MatrixPlaceStopSerializer(MatrixAirDistanceMixin):
+
+    class Meta:
+        model = MatrixPlaceStop
+        fields = ('place_id', 'stop_id', 'minutes')
+
+    def get_query(self) -> str:
+
+        place_tbl = Place._meta.db_table
+        stop_tbl = Stop._meta.db_table
+
+        query = f'''SELECT
+        p.id AS place_id,
+        s.id AS stop_id,
+        st_distance(p."pnt_25832", p."pnt_25832") / %s * (6.0/1000) AS minutes
+        FROM
+        (SELECT
+        s.id,
+        s.geom,
+        st_transform(s.geom, 25832) AS pnt_25832
+        FROM "{stop_tbl}" AS s) AS s,
+        (SELECT p.id,
+        p.geom,
+        st_transform(p.geom, 25832) AS pnt_25832,
+        cosd(st_y(st_transform(p.geom, 4326))) AS kf
+        FROM "{place_tbl}" AS p) AS p
+        WHERE st_dwithin(s."geom", p."geom", %s * p.kf)
+        '''
+        return query

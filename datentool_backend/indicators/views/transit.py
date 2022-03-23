@@ -30,6 +30,8 @@ from datentool_backend.indicators.serializers import (StopSerializer,
                                                       UploadMatrixStopStopTemplateSerializer,
                                                       RouterSerializer,
                                                       MatrixCellPlaceSerializer,
+                                                      MatrixCellStopSerializer,
+                                                      MatrixPlaceStopSerializer,
                           )
 from datentool_backend.population.serializers import drop_constraints
 
@@ -79,28 +81,41 @@ class ExcelTemplateMixin:
     def upload_template(self, request):
         """Upload the filled out Stops-Template"""
         qs = self.get_queryset()
-        qs.delete()
         model = qs.model
-        try:
-            serializer = self.get_serializer()
-            df = serializer.read_excel_file(request)
+        manager = model.copymanager
+        drop_constraints = bool(strtobool(
+            request.data.get('drop_constraints', 'False')))
 
-            drop_constraints = bool(strtobool(
-                request.data.get('drop_constraints', 'False')))
+        with transaction.atomic():
+            if drop_constraints:
+                manager.drop_constraints()
+                manager.drop_indexes()
 
-            with StringIO() as file:
-                df.to_csv(file, index=False)
-                file.seek(0)
-                model.copymanager.from_csv(
-                    file,
-                    drop_constraints=drop_constraints, drop_indexes=drop_constraints,
-                )
+            qs.delete()
 
-        except Exception as e:
-            msg = str(e)
-            return Response({'message': msg,}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            try:
+                serializer = self.get_serializer()
+                df = serializer.read_excel_file(request)
 
-        msg = 'Upload successful'
+                with StringIO() as file:
+                    df.to_csv(file, index=False)
+                    file.seek(0)
+                    model.copymanager.from_csv(
+                        file,
+                        drop_constraints=False, drop_indexes=False,
+                    )
+
+            except Exception as e:
+                msg = str(e)
+                return Response({'message': msg,}, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+            finally:
+                # recreate indices
+                if drop_constraints:
+                    manager.restore_constraints()
+                    manager.restore_indexes()
+
+        msg = f'Upload successful of {len(df)} rows'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
 
@@ -123,7 +138,7 @@ class MatrixStopStopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.Mo
         return MatrixStopStop.objects.filter(variant=variant)
 
 
-    @extend_schema(description='Upload Excel-File with Stops',
+    @extend_schema(description='Upload Excel-File with Traveltimes from Stop to Stop',
                    request=inline_serializer(
                        name='FileDropConstraintModeVariantSerializer',
                        fields={'drop_constraints': drop_constraints,
@@ -151,9 +166,9 @@ class RouterViewSet(viewsets.ModelViewSet):
 
 class AirDistanceRouterMixin:
 
-    @extend_schema(description='Upload Excel-File with Stops',
+    @extend_schema(description='Create Traveltime Matrix on AirDistance',
                    request=inline_serializer(
-                       name='FileDropConstraintSerializer',
+                       name='AirDistanceSerializer',
                        fields={'drop_constraints': drop_constraints,
                                'variant': serializers.PrimaryKeyRelatedField(
                            queryset=ModeVariant.objects.all(),
@@ -186,9 +201,6 @@ class AirDistanceRouterMixin:
                 serializer = self.get_serializer()
                 df = serializer.calculate_traveltimes(request)
 
-                drop_constraints = bool(strtobool(
-                    request.data.get('drop_constraints', 'False')))
-
                 with StringIO() as file:
                     df.to_csv(file, index=False)
                     file.seek(0)
@@ -218,3 +230,21 @@ class MatrixCellPlaceViewSet(AirDistanceRouterMixin, ProtectCascadeMixin, viewse
     def get_queryset(self):
         variant = self.request.data.get('variant')
         return MatrixCellPlace.objects.filter(variant=variant)
+
+
+class MatrixCellStopViewSet(AirDistanceRouterMixin, ProtectCascadeMixin, viewsets.GenericViewSet):
+    serializer_class = MatrixCellStopSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+    def get_queryset(self):
+        variant = self.request.data.get('variant')
+        return MatrixCellStop.objects.filter(variant=variant)
+
+
+class MatrixPlaceStopViewSet(AirDistanceRouterMixin, ProtectCascadeMixin, viewsets.GenericViewSet):
+    serializer_class = MatrixPlaceStopSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+    def get_queryset(self):
+        variant = self.request.data.get('variant')
+        return MatrixPlaceStop.objects.filter(variant=variant)

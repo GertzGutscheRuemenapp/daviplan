@@ -77,18 +77,19 @@ class UploadStopTemplateSerializer(serializers.Serializer):
     def read_excel_file(self, request) -> pd.DataFrame:
         """read excelfile and return a dataframe"""
         excel_file = request.FILES['excel_file']
+
         df = pd.read_excel(excel_file.file,
                            sheet_name='Haltestellen',
                            skiprows=[1])
 
         # assert the stopnumers are unique
-        assert df['Nr'].is_unique, 'Haltestellennummer ist nicht eindeutig'
+        assert df['HstNr'].is_unique, 'Haltestellennummer ist nicht eindeutig'
 
         # create points out of Lat/Lon and transform them to WebMercator
         points = [Point(stop['Lon'], stop['Lat'], srid=4326).transform(3857, clone=True)
                   for i, stop in df.iterrows()]
 
-        df2 = pd.DataFrame({'id': df['Nr'],
-                            'name': df['Name'],
+        df2 = pd.DataFrame({'id': df['HstNr'],
+                            'name': df['HstName'],
                             'geom': points,})
         return df2

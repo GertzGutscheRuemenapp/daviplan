@@ -2,6 +2,7 @@ import os
 from io import BytesIO
 from openpyxl.reader.excel import load_workbook
 import pandas as pd
+from matrixconverters.read_ptv import ReadPTVMatrix
 
 from django.urls import reverse
 from test_plus import APITestCase
@@ -24,11 +25,10 @@ class StopTemplateTest(LoginTestCase, APITestCase):
         cls.profile.can_edit_basedata = True
         cls.profile.save()
 
-    @property
-    def file_path_stops(self) -> str:
+    def get_file_path_stops(self, filename_stops: str=None) -> str:
         file_path_stops = os.path.join(os.path.dirname(__file__),
                                     self.testdata_folder,
-                                    self.filename_stops)
+                                    filename_stops or self.filename_stops)
         return file_path_stops
 
     def test_request_stop_template(self):
@@ -42,7 +42,8 @@ class StopTemplateTest(LoginTestCase, APITestCase):
         """
         test bulk upload stops
         """
-        file_content = open(self.file_path_stops, 'rb')
+        file_path_stops = self.get_file_path_stops()
+        file_content = open(file_path_stops, 'rb')
         data = {
             'excel_file' : file_content,
         }
@@ -51,10 +52,12 @@ class StopTemplateTest(LoginTestCase, APITestCase):
         res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
         self.assert_http_202_accepted(res, msg=res.content)
         # 4 stops should have been uploaded with the correct hst-nr and names
-        df = pd.read_excel(self.file_path_stops, skiprows=[1])
+        df = pd.read_excel(file_path_stops, skiprows=[1])
 
         actual = pd.DataFrame(Stop.objects.values('id', 'name')).set_index('id')
-        expected = df[['Nr', 'Name']].rename(columns={'Nr': 'id','Name': 'name',}).set_index('id')
+        expected = df[['HstNr', 'HstName']]\
+            .rename(columns={'HstNr': 'id','HstName': 'name',})\
+            .set_index('id')
         pd.testing.assert_frame_equal(actual, expected)
 
         # assert that without edit_basedata-permissions no upload is possible
@@ -84,10 +87,10 @@ class StopTemplateTest(LoginTestCase, APITestCase):
     def create_mode_variant(self) -> int:
         return ModeVariantFactory().pk
 
-    def upload_stops(self):
+    def upload_stops(self, filename_stops: str='Haltestellen.xlsx'):
         url = reverse('stops-upload-template')
         data = {
-            'excel_file' : open(self.file_path_stops, 'rb'),
+            'excel_file' : open(self.get_file_path_stops(filename_stops), 'rb'),
             'drop_constraints': False,
         }
         res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
@@ -104,29 +107,42 @@ class StopTemplateTest(LoginTestCase, APITestCase):
         """
         test bulk upload matrix
         """
-        self.upload_stops()
-        mode_variant_id = self.create_mode_variant()
-        file_path = os.path.join(os.path.dirname(__file__),
-                                    self.testdata_folder,
-                                    self.filename_rz)
-        file_content = open(file_path, 'rb')
-        data = {
-            'excel_file' : file_content,
-            'variant': mode_variant_id,
-            'drop_constraints': False,
-        }
+        for fn_stops, fn_matrix in [
+            ('Haltestellen.xlsx', 'Reisezeitmatrix_Haltestelle_zu_Haltestelle.xlsx'),
+            ('Haltestellen_HL.xlsx', 'Reisezeimatrix_HL_klein.mtx')
+        ]:
 
-        url = reverse('matrixstopstops-upload-template')
-        res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
-        self.assert_http_202_accepted(res, msg=res.content)
+            self.upload_stops(fn_stops)
+            mode_variant_id = self.create_mode_variant()
+            file_path = os.path.join(os.path.dirname(__file__),
+                                        self.testdata_folder,
+                                        fn_matrix)
+            file_content = open(file_path, 'rb')
+            data = {
+                'excel_file' : file_content,
+                'variant': mode_variant_id,
+                'drop_constraints': False,
+            }
 
-        df = pd.read_excel(file_path, skiprows=[1])
+            url = reverse('matrixstopstops-upload-template')
+            res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
+            self.assert_http_202_accepted(res, msg=res.content)
 
-        actual = pd.DataFrame(
-            MatrixStopStop.objects.values('from_stop', 'to_stop', 'minutes'))\
-            .set_index(['from_stop', 'to_stop'])
-        expected = df[['from_stop', 'to_stop', 'minutes']].set_index(['from_stop', 'to_stop'])
-        pd.testing.assert_frame_equal(actual, expected, check_dtype=False)
+            if fn_matrix.endswith('.xlsx'):
+                df = pd.read_excel(file_path, skiprows=[1])
+            elif fn_matrix.endswith('mtx'):
+                da = ReadPTVMatrix(file_path)
+                df = da['matrix'].to_dataframe()
+                df = df.loc[df['matrix']<999999]
+                df.index.rename(['from_stop', 'to_stop'], inplace=True)
+                df.rename(columns={'matrix': 'minutes',}, inplace=True)
+                df.reset_index(inplace=True)
+
+            actual = pd.DataFrame(
+                MatrixStopStop.objects.values('from_stop', 'to_stop', 'minutes'))\
+                .set_index(['from_stop', 'to_stop'])
+            expected = df[['from_stop', 'to_stop', 'minutes']].set_index(['from_stop', 'to_stop'])
+            pd.testing.assert_frame_equal(actual, expected, check_dtype=False)
 
     def test_upload_broken_matrix_file(self):
         """

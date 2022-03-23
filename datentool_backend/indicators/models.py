@@ -45,6 +45,9 @@ class MatrixCellStop(models.Model):
     variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
     minutes = models.FloatField()
 
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
+
 
 class MatrixPlaceStop(models.Model):
     """Reachabliliy Matrix between a place and stop with a mode variante"""
@@ -54,6 +57,9 @@ class MatrixPlaceStop(models.Model):
                              related_name='stop_place')
     variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
     minutes = models.FloatField()
+
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
 
 
 class MatrixStopStop(models.Model):

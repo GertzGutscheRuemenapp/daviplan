@@ -21,6 +21,8 @@ from .indicators.views import (RouterViewSet,
                                StopViewSet,
                                MatrixStopStopViewSet,
                                MatrixCellPlaceViewSet,
+                               MatrixCellStopViewSet,
+                               MatrixPlaceStopViewSet,
                                )
 
 from .infrastructure.views import (ScenarioViewSet,
@@ -64,6 +66,8 @@ router.register(r'modevariants', ModeVariantViewSet, basename='modevariants')
 router.register(r'stops', StopViewSet, basename='stops')
 router.register(r'matrixstopstops', MatrixStopStopViewSet, basename='matrixstopstops')
 router.register(r'matrixcellplaces', MatrixCellPlaceViewSet, basename='matrixcellplaces')
+router.register(r'matrixcellstops', MatrixCellStopViewSet, basename='matrixcellstops')
+router.register(r'matrixplacestops', MatrixPlaceStopViewSet, basename='matrixplacestops')
 router.register(r'routers', RouterViewSet, basename='routers')
 router.register(r'indicators', FixedIndicatorViewSet, basename='fixedindicators')
 

@@ -25,3 +25,4 @@ xarray
 drf-spectacular
 django-postgres-copy
 openpyxl
+matrixconverters

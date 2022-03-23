@@ -5,10 +5,11 @@ from test_plus import APITestCase
 
 from datentool_backend.api_test import LoginTestCase
 from datentool_backend.indicators.tests.setup_testdata import CreateInfrastructureTestdataMixin
-from datentool_backend.indicators.models import MatrixCellPlace
-from datentool_backend.population.models import (RasterCellPopulation,
-                                                 RasterCell, )
-from datentool_backend.infrastructure.models import Place
+from datentool_backend.indicators.models import (MatrixCellPlace,
+                                                 MatrixCellStop,
+                                                 MatrixPlaceStop,
+                                                 )
+
 
 
 from datentool_backend.modes.factories import Mode, ModeVariantFactory
@@ -28,6 +29,7 @@ class TestMatrixCreation(CreateInfrastructureTestdataMixin,
         cls.create_raster_population()
         infrastructure = cls.create_infrastructure_services()
         cls.create_places(infrastructure=infrastructure)
+        cls.create_stops()
 
     def test_create_airdistance_matrix(self):
         """Test to create an air distance matrix"""
@@ -54,5 +56,23 @@ class TestMatrixCreation(CreateInfrastructureTestdataMixin,
         print(res.content)
         print(MatrixCellPlace.objects.filter(variant=car.pk).count())
 
+        data = {'variant': car.pk,
+                'drop_constraints': False,
+                'speed': 4,
+                'max_distance': 5000,}
 
+        res = self.post('matrixcellstops-precalculate-traveltime', data=data)
+        self.assert_http_202_accepted(res)
+        print(res.content)
+        print(MatrixCellStop.objects.filter(variant=car.pk).count())
+
+        data = {'variant': car.pk,
+                'drop_constraints': False,
+                'speed': 4,
+                'max_distance': 5000,}
+
+        res = self.post('matrixplacestops-precalculate-traveltime', data=data)
+        self.assert_http_202_accepted(res)
+        print(res.content)
+        print(MatrixPlaceStop.objects.filter(variant=car.pk).count())
 
