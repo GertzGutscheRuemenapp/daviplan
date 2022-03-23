@@ -11,6 +11,7 @@ import { Area, AreaLevel, Layer, LayerGroup } from "../../../rest-interfaces";
 import { SettingsService } from "../../../settings.service";
 import * as d3 from "d3";
 import { sortBy } from "../../../helpers/utils";
+import { CookieService } from "../../../helpers/cookies.service";
 
 @Component({
   selector: 'app-pop-statistics',
@@ -42,7 +43,8 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   showEmigration: boolean = true;
 
   constructor(private breakpointObserver: BreakpointObserver, private mapService: MapService,
-              private populationService: PopulationService, private settings: SettingsService) {}
+              private populationService: PopulationService, private settings: SettingsService,
+              private cookies: CookieService) {}
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
@@ -80,42 +82,27 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
     })
     this.subscriptions.push(this.populationService.timeSlider!.valueChanged.subscribe(year => {
       this.year = year;
-      this.settings.user.set('pop-year', year);
+      this.cookies.set('pop-year', year);
       this.updateMap();
       this.updateDiagrams();
     }))
   }
 
   applyUserSettings(): void {
-    let observables: Observable<any>[] = [];
-    observables.push(this.settings.user.get(`pop-area-${this.areaLevel!.id}`).pipe(map(areaId => {
-      this.activeArea = this.areas?.find(a => a.id === areaId);
-    })));
-    observables.push(this.settings.user.get('pop-stat-theme').pipe(map(theme => {
-      this.theme = theme || 'nature';
-    })));
-    observables.push(this.settings.user.get('pop-stat-births').pipe(map(checked => {
-      this.showBirths = (checked !== undefined)? checked: true;
-    })));
-    observables.push(this.settings.user.get('pop-stat-deaths').pipe(map(checked => {
-      this.showDeaths = (checked !== undefined)? checked: true;
-    })));
-    observables.push(this.settings.user.get('pop-stat-immigration').pipe(map(checked => {
-      this.showImmigration = (checked !== undefined)? checked: true;
-    })));
-    observables.push(this.settings.user.get('pop-stat-emigration').pipe(map(checked => {
-      this.showEmigration = (checked !== undefined)? checked: true;
-    })));
-    observables.push(this.settings.user.get('pop-year').pipe(map(year => {
-      if (this.years!.indexOf(year) === -1)
-        year = this.years![this.years!.length - 1];
-      this.year = year;
-    })));
-    forkJoin(...observables).subscribe(() => {
-      this.setSlider();
-      this.updateMap();
-      this.updateDiagrams();
-    })
+    const areaId = this.cookies.get(`pop-area-${this.areaLevel!.id}`, 'number');
+    this.activeArea = this.areas?.find(a => a.id === areaId);
+    const theme = this.cookies.get('pop-stat-theme', 'string');
+    this.theme = theme as any || 'nature';
+    this.showBirths = this.cookies.get('pop-stat-births', 'boolean');
+    this.showDeaths = this.cookies.get('pop-stat-deaths', 'boolean');
+    this.showImmigration = this.cookies.get('pop-stat-immigration', 'boolean');
+    this.showEmigration = this.cookies.get('pop-stat-emigration', 'boolean');
+    this.showEmigration = this.cookies.get('pop-stat-emigration', 'boolean');
+    const year = this.cookies.get('pop-year','number');
+    this.year = year || this.years![this.years!.length - 1];
+    this.setSlider();
+    this.updateMap();
+    this.updateDiagrams();
   }
 
   updateMap(): void {
@@ -203,7 +190,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         else {
           this.activeArea = undefined;
         }
-        this.settings.user.set(`pop-area-${this.areaLevel!.id}`, this.activeArea!.id);
+        this.cookies.set(`pop-area-${this.areaLevel!.id}`, this.activeArea!.id);
         this.updateDiagrams();
       })
     })
@@ -255,17 +242,17 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   }
 
   onAreaChange(): void {
-    this.settings.user.set(`pop-area-${this.areaLevel!.id}`, this.activeArea!.id);
+    this.cookies.set(`pop-area-${this.areaLevel!.id}`, this.activeArea!.id);
     this.mapControl?.selectFeatures([this.activeArea!.id], this.statisticsLayer!.id!, { silent: true, clear: true });
     this.updateDiagrams();
   }
 
   onThemeChange(updateDiagrams: boolean = false): void {
-    this.settings.user.set('pop-stat-theme', this.theme);
-    this.settings.user.set('pop-stat-births', this.showBirths);
-    this.settings.user.set('pop-stat-deaths', this.showDeaths);
-    this.settings.user.set('pop-stat-immigration', this.showImmigration);
-    this.settings.user.set('pop-stat-emigration', this.showEmigration);
+    this.cookies.set('pop-stat-theme', this.theme);
+    this.cookies.set('pop-stat-births', this.showBirths);
+    this.cookies.set('pop-stat-deaths', this.showDeaths);
+    this.cookies.set('pop-stat-immigration', this.showImmigration);
+    this.cookies.set('pop-stat-emigration', this.showEmigration);
     this.updateMap();
     if (updateDiagrams)
       this.updateDiagrams()

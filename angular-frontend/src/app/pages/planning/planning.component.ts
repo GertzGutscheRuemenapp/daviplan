@@ -92,7 +92,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
           else
             this.sharedProcesses.push(process);
         })
-        const processId = this.cookies.get('planning-process');
+        const processId = this.cookies.get('planning-process', 'number');
         if (processId) {
           this.setProcess(Number(processId))
         }

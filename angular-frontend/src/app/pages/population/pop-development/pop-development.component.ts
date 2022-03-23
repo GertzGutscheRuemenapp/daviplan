@@ -13,6 +13,7 @@ import * as d3 from "d3";
 import { SelectionModel } from "@angular/cdk/collections";
 import { sortBy } from "../../../helpers/utils";
 import { SettingsService } from "../../../settings.service";
+import { CookieService } from "../../../helpers/cookies.service";
 
 @Component({
   selector: 'app-pop-development',
@@ -50,7 +51,8 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   ageGroupColors: Record<number, string> = {};
 
   constructor(private breakpointObserver: BreakpointObserver, private mapService: MapService, private dialog: MatDialog,
-              private populationService: PopulationService, private settings: SettingsService) {
+              private populationService: PopulationService, private settings: SettingsService,
+              private cookies: CookieService) {
   }
 
   ngAfterViewInit(): void {
@@ -107,40 +109,33 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
     this.subscriptions.push(this.populationService.timeSlider!.valueChanged.subscribe(year => {
       this.year = year;
-      this.settings.user?.set('pop-year', year);
+      this.cookies.set('pop-year', year);
       this.updateMap();
     }))
   }
 
   applyUserSettings(): void {
-    let observables: Observable<any>[] = [];
-    observables.push(this.settings.user.get('pop-genders').pipe(map(genderId => {
-      this.selectedGender = this.genders.find(g => g.id === genderId) || this.genders[0];
-    })));
-    observables.push(this.settings.user.get('pop-prognosis').pipe(map(progId => {
-      const defaultProg = this.prognoses?.find(prognosis => prognosis.isDefault);
-      this.activePrognosis = this.prognoses!.find(p => p.id === progId) || defaultProg;
-    })));
-    observables.push(this.settings.user.get('pop-year').pipe(map(year => {
-      this.year = year || this.realYears![this.realYears!.length - 1];
-    })));
-    observables.push(this.settings.user.get('pop-area-level').pipe(map(areaLevelId => {
-      if (areaLevelId !== undefined)
-        this.activeLevel = this.areaLevels.find(al => al.id === areaLevelId);
-    })));
-    observables.push(this.settings.user.get('pop-ageGroups').pipe(map((ageGroupIds: number[]) => {
+    const ageGroupIds = this.cookies.get('pop-ageGroups', 'array');
+    if (ageGroupIds) {
       this.ageGroups.forEach(ag => {
-        const select = ageGroupIds? ageGroupIds.indexOf(ag.id!) >= 0 : true;
+        const select = ageGroupIds? ageGroupIds.indexOf(ag.id!.toString()) >= 0 : true;
         if (select)
           this.ageGroupSelection.select(ag);
       })
-      this.allAgeGroupsChecked = this.ageGroupSelection.selected.length === this.ageGroups.length;
-    })));
+    }
+    this.allAgeGroupsChecked = this.ageGroupSelection.selected.length === this.ageGroups.length;
+    const genderId = this.cookies.get('pop-gender','number');
+    this.selectedGender = this.genders.find(g => g.id === genderId) || this.genders[0];
+    const progId = this.cookies.get('pop-prognosis','number');
+    const defaultProg = this.prognoses?.find(prognosis => prognosis.isDefault);
+    this.activePrognosis = this.prognoses!.find(p => p.id === progId) || defaultProg;
+    const year = this.cookies.get('pop-year','number');
+    this.year = year || this.realYears![this.realYears!.length - 1];
+    const areaLevelId = this.cookies.get('pop-area-level','number');
+    this.activeLevel = this.areaLevels.find(al => al.id === areaLevelId);
 
-    forkJoin(...observables).subscribe(() => {
-      this.setSlider();
-      this.onLevelChange();
-    })
+    this.setSlider();
+    this.onLevelChange();
   }
 
   setSlider(): void {
@@ -171,32 +166,32 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   }
 
   onLevelChange(): void {
-    this.settings.user.set('pop-area-level', this.activeLevel?.id);
+    this.cookies.set('pop-area-level', this.activeLevel?.id);
+    if (!this.activeLevel) return;
     this.populationService.getAreas(this.activeLevel!.id, {targetProjection: this.mapControl!.map!.mapProjection}).subscribe(areas => {
       this.areas = areas;
-      this.settings.user.get(`pop-area-${this.activeLevel!.id}`).subscribe(areaId => {
-        this.activeArea = this.areas?.find(a => a.id === areaId);
-        this.updateMap();
-        this.updateDiagrams();
-      })
+      const areaId = this.cookies.get(`pop-area-${this.activeLevel!.id}`, 'number');
+      this.activeArea = this.areas?.find(a => a.id === areaId);
+      this.updateMap();
+      this.updateDiagrams();
     });
   }
 
   onPrognosisChange(): void {
-    this.settings.user?.set('pop-prognosis', this.activePrognosis?.id);
+    this.cookies.set('pop-prognosis', this.activePrognosis?.id);
     this.updateMap();
     this.updateDiagrams();
   }
 
   onGenderChange(): void {
-    this.settings.user?.set('pop-genders', this.selectedGender!.id);
+    this.cookies.set('pop-genders', this.selectedGender!.id);
     this.updateMap();
     this.updateDiagrams();
   }
 
   onAreaChange(): void {
     this.mapControl?.selectFeatures([this.activeArea!.id], this.populationLayer!.id!, { silent: true, clear: true });
-    this.settings.user.set(`pop-area-${this.activeLevel!.id}`, this.activeArea?.id);
+    this.cookies.set(`pop-area-${this.activeLevel!.id}`, this.activeArea?.id);
     this.updateDiagrams();
   }
 
@@ -259,7 +254,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         else {
           this.activeArea = undefined;
         }
-        this.settings.user.set(`pop-area-${this.activeLevel!.id}`, this.activeArea?.id);
+        this.cookies.set(`pop-area-${this.activeLevel!.id}`, this.activeArea?.id);
         this.updateDiagrams();
       })
     })
@@ -363,7 +358,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
   patchUserAgeGroupSelection(): void {
     const ageGroupIds = this.ageGroupSelection.selected.map(ag => ag.id);
-    this.settings.user.set('pop-ageGroups', ageGroupIds);
+    this.cookies.set('pop-ageGroups', ageGroupIds);
   }
 
   updateMapDescription(): void {

@@ -22,7 +22,7 @@ export class CookieExpansionDirective implements OnInit {
       this.cookies.set(this.cookieExpansion, expand);
     }
     else {
-      expand = this.cookies.get(this.cookieExpansion);
+      expand = this.cookies.get(this.cookieExpansion,'boolean');
     }
     if (expand != this.component.expanded)
       this.component.toggle();
