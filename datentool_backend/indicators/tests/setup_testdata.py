@@ -341,8 +341,8 @@ class CreateInfrastructureTestdataMixin:
             dims=('area', 'age_group', 'gender'))
 
         cls.create_population_entries(area_names,
-                                       pop_values_by_age_gender,
-                                       cls.population)
+                                      pop_values_by_age_gender,
+                                      cls.population)
 
         for i, year in enumerate(cls.years):
             population = PopulationFactory(prognosis=cls.prognosis,
