@@ -33,18 +33,21 @@ from .models import (Raster,
                      PopulationAreaLevel,
                      AreaCell,
                      )
+
+from datentool_backend.utils.serializers import (MessageSerializer,
+                                                 use_intersected_data,
+                                                 drop_constraints,
+                                                 area_level,
+                                                 )
+
 from datentool_backend.population.serializers import (RasterSerializer,
-                          PopulationRasterSerializer,
-                          PrognosisSerializer,
-                          PopulationSerializer,
-                          PopulationDetailSerializer,
-                          PopulationEntrySerializer,
-                          PopStatisticSerializer,
-                          PopStatEntrySerializer,
-                          MessageSerializer,
-                          use_intersected_data,
-                          drop_constraints,
-                          area_level,
+                                                      PopulationRasterSerializer,
+                                                      PrognosisSerializer,
+                                                      PopulationSerializer,
+                                                      PopulationDetailSerializer,
+                                                      PopulationEntrySerializer,
+                                                      PopStatisticSerializer,
+                                                      PopStatEntrySerializer,
                           )
 
 from datentool_backend.area.models import Area, AreaLevel
