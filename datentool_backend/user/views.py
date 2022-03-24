@@ -2,7 +2,7 @@ from django.db.models import Q, Max
 from django.core.exceptions import BadRequest
 from django.contrib.auth.models import User
 
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -142,6 +142,11 @@ class InfrastructureViewSet(ExcelTemplateMixin,
     @action(methods=['POST'], detail=True, permission_classes=[CanEditBasedata])
     def create_template(self, request, pk: int):
         """Download the Template"""
+        try:
+            infrastructure = Infrastructure.objects.get(pk=pk)
+        except Infrastructure.DoesNotExist:
+            return Response(f'Infrastructure with id = {pk} does not exist',
+                            status=status.HTTP_404_NOT_FOUND)
         return super().create_template(request, pk=pk)
 
 

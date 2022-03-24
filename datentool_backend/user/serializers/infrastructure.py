@@ -4,6 +4,7 @@ import pandas as pd
 from django.conf import settings
 from rest_framework import serializers
 
+from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.dimensions import ColumnDimension
 from openpyxl.worksheet.datavalidation import DataValidation
 
@@ -102,6 +103,9 @@ class InfrastructureTemplateSerializer(serializers.Serializer):
 
     def create_template(self, pk: int) -> bytes:
         """Create a template file for infrastructure with the given pk"""
+
+        infrastructure = Infrastructure.objects.get(pk=pk)
+
         excel_filename = 'Standorte_und_Kapazitäten.xlsx'
         columns = {'Name': 'So werden die Einrichtungen auf den Karten beschriftet. '\
                    'Jeder Standort muss einen Namen haben, den kein anderer Standort trägt.',
@@ -113,6 +117,40 @@ class InfrastructureTemplateSerializer(serializers.Serializer):
                   'Lat': 'Breitengrad, in WGS84',}
 
         df = pd.DataFrame(columns=pd.Index(columns.items()))
+
+        dv_01 = DataValidation(type="whole",
+                        operator="between",
+                        formula1=0,
+                        formula2=1,
+                        allow_blank=True)
+        dv_01.error = 'Nur 0 oder 1 erlaubt'
+        dv_01.title = 'Ungültige 0/1-Werte'
+
+        dv_pos_float = DataValidation(type="decimal",
+                                operator="greaterThanOrEqual",
+                                formula1=0,
+                                allow_blank=True)
+        dv_pos_float.error = 'Nur Zahlen >= 0 erlaubt'
+        dv_pos_float.title = 'Ungültige Zahlen-Werte'
+
+        validations = {}
+
+        col_no = len(df.columns) + 1
+        for service in infrastructure.service_set.all():
+            col_no += 1
+            if service.has_capacity:
+                col = f'Kapazität für Leistung {service.name}'
+                description = service.capacity_plural_unit
+                dv = dv_pos_float
+            else:
+                col = f'Bietet Leistung {service.name} an'
+                description = '1 wenn ja, sonst 0'
+                dv = dv_01
+
+            df[(col, description)] = None
+            validations[col_no] = dv
+
+
         fn = os.path.join(settings.MEDIA_ROOT, excel_filename)
         sheetname = 'Standorte und Kapazitäten'
         with pd.ExcelWriter(fn, engine='openpyxl') as writer:
@@ -131,7 +169,16 @@ class InfrastructureTemplateSerializer(serializers.Serializer):
             dv.error ='Koordinaten müssen in WGS84 angegeben werden und zwischen 0 und 90 liegen'
             dv.errorTitle = 'Ungültige Koordinaten'
             ws.add_data_validation(dv)
+            ws.add_data_validation(dv_01)
+            ws.add_data_validation(dv_pos_float)
             dv.add('G3:H999999')
+            for col_no, dv in validations.items():
+                letter = get_column_letter(col_no)
+                cell_range = f'{letter}3:{letter}999999'
+                dv.add(cell_range)
+
+
+
 
             ws.column_dimensions['A'] = ColumnDimension(ws, index='A', hidden=True)
             for col in 'BCDEFGH':
