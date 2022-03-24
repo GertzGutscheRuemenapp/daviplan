@@ -39,14 +39,19 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
 
         cls.str_field = PlaceFieldFactory(infrastructure=cls.infra,
                                           field_type__ftype=FieldTypes.STRING,
+                                          name='Bezeichnung',
                                           is_label=True)
-        cls.num_field = PlaceFieldFactory(infrastructure=cls.infra,
+        cls.hnr_field = PlaceFieldFactory(infrastructure=cls.infra,
                                           name='Hausnummer',
+                                          field_type__ftype=FieldTypes.STRING)
+        cls.num_field = PlaceFieldFactory(infrastructure=cls.infra,
+                                          name='Gewichtung',
                                           field_type__ftype=FieldTypes.NUMBER)
 
         cl_ft1 = FieldTypeFactory(ftype=FieldTypes.CLASSIFICATION)
         cl_ft2 = FieldTypeFactory(ftype=FieldTypes.CLASSIFICATION)
         cls.cla_field = PlaceFieldFactory(infrastructure=cls.infra,
+                                          name='EinsZweiDrei',
                                           field_type=cl_ft1)
 
         cv11 = FClassFactory(ftype=cls.cla_field.field_type, value='Eins', order=1)
@@ -54,7 +59,8 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
         cv13 = FClassFactory(ftype=cls.cla_field.field_type, value='Drei', order=3)
 
         cls.cla_field2 = PlaceFieldFactory(infrastructure=cls.infra,
-                                          field_type=cl_ft2)
+                                           name='AABB',
+                                           field_type=cl_ft2)
 
         cv21 = FClassFactory(ftype=cls.cla_field2.field_type, value='AA', order=1)
         cv22 = FClassFactory(ftype=cls.cla_field2.field_type, value='BB', order=2)
@@ -62,12 +68,14 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
         place1 = PlaceFactory(infrastructure=cls.infra, attributes={
             cls.str_field.name: 'Place1',
             cls.num_field.name: 1234,
+            cls.hnr_field.name: '44b',
             cls.cla_field.name: 'Zwei',
             cls.cla_field2.name: 'BB',
         })
         place2 = PlaceFactory(infrastructure=cls.infra, attributes={
             cls.str_field.name: 'Place2',
             cls.num_field.name: 567,
+            cls.hnr_field.name: '33',
             cls.cla_field.name: 'Drei',
         })
 

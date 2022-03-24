@@ -331,14 +331,12 @@ class InfrastructureTemplateSerializer(serializers.Serializer):
                            sheet_name='meta',
                            skiprows=[1])
 
-        df = pd.read_excel(excel_file.file,
+        df_places = pd.read_excel(excel_file.file,
                            sheet_name='Standorte und Kapazitäten',
                            skiprows=[1])
 
+        df_klassifizierungen = pd.read_excel(excel_file.file,
+                           sheet_name='Klassifizierungen',
+                           skiprows=[1])
 
-        df.rename(columns={'from_stop': 'from_stop_id',
-                           'to_stop': 'to_stop_id',}, inplace=True)
-
-        variant = request.data.get('variant')
-        df['variant_id'] = int(variant)
         return df
