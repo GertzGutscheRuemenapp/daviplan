@@ -120,7 +120,10 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
     def upload_template(self, request):
         """Download the Template"""
         infrastructure_id = request.data.get('infrastructure_id')
-        return super().upload_template(request, infrastructure_id=infrastructure_id)
+        queryset = Place.objects.none()
+        return super().upload_template(request,
+                                       queryset=queryset,
+                                       infrastructure_id=infrastructure_id)
 
 
 capacity_params = [

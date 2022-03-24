@@ -193,11 +193,12 @@ class PlacesTemplateSerializer(serializers.Serializer):
             df_places.loc[:, (col, description)] = capacities['capacity']
             validations[col_no] = dv
 
-        if classifications:df_classification = pd.concat(
+        if classifications:
+            df_classification = pd.concat(
             [c[0] for c in classifications.values()],
             axis=1)
         else:
-            df_classification = pd.DataFrame()
+            df_classification = pd.DataFrame(index=pd.Index([], name='order'))
 
 
         fn = os.path.join(settings.MEDIA_ROOT, excel_filename)
@@ -207,7 +208,9 @@ class PlacesTemplateSerializer(serializers.Serializer):
                                    index=pd.Index(['infrastructure'], name='key'))
             df_meta.to_excel(writer, sheet_name='meta')
 
-            df_classification.to_excel(writer, sheet_name=sn_classifications)
+            df_classification.reset_index().to_excel(writer,
+                                                     sheet_name=sn_classifications,
+                                                     index=False)
 
             df_places.to_excel(writer,
                                sheet_name=sheetname,
