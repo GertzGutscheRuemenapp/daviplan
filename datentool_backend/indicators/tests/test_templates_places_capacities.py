@@ -10,9 +10,10 @@ from datentool_backend.api_test import LoginTestCase
 from datentool_backend.infrastructure.factories import (InfrastructureFactory,
                                                         ServiceFactory,
                                                         Place,
-                                                        Capacity,
+                                                        CapacityFactory,
                                                         PlaceFieldFactory,
                                                         FieldTypeFactory,
+                                                        PlaceFactory,
                                                         )
 
 from datentool_backend.area.models import FieldTypes
@@ -37,8 +38,10 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
                                       infrastructure=cls.infra)
 
         cls.str_field = PlaceFieldFactory(infrastructure=cls.infra,
-                                          field_type__ftype=FieldTypes.STRING)
+                                          field_type__ftype=FieldTypes.STRING,
+                                          is_label=True)
         cls.num_field = PlaceFieldFactory(infrastructure=cls.infra,
+                                          name='Hausnummer',
                                           field_type__ftype=FieldTypes.NUMBER)
 
         cl_ft1 = FieldTypeFactory(ftype=FieldTypes.CLASSIFICATION)
@@ -55,6 +58,23 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
 
         cv21 = FClassFactory(ftype=cls.cla_field2.field_type, value='AA', order=1)
         cv22 = FClassFactory(ftype=cls.cla_field2.field_type, value='BB', order=2)
+
+        place1 = PlaceFactory(infrastructure=cls.infra, attributes={
+            cls.str_field.name: 'Place1',
+            cls.num_field.name: 1234,
+            cls.cla_field.name: 'Zwei',
+            cls.cla_field2.name: 'BB',
+        })
+        place2 = PlaceFactory(infrastructure=cls.infra, attributes={
+            cls.str_field.name: 'Place2',
+            cls.num_field.name: 567,
+            cls.cla_field.name: 'Drei',
+        })
+
+        CapacityFactory(service=cls.service1, place=place1, capacity=1)
+        CapacityFactory(service=cls.service1, place=place2, capacity=0)
+        CapacityFactory(service=cls.service2, place=place1, capacity=55.5)
+        CapacityFactory(service=cls.service2, place=place2, capacity=0)
 
     def test_create_infrastructure_template(self):
         url = reverse('infrastructures-create-template', kwargs={'pk':self.infra.pk})

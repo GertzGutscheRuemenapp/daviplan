@@ -3,20 +3,24 @@ from collections import OrderedDict
 import pandas as pd
 
 from django.conf import settings
+from django.db.models.fields import FloatField
+from django.contrib.gis.db.models.functions import GeoFunc, Transform, Distance
 from rest_framework import serializers
 
 from openpyxl.utils import get_column_letter, quote_sheetname
 from openpyxl import styles
 from openpyxl.worksheet.worksheet import Worksheet
-from openpyxl.worksheet.dimensions import ColumnDimension
+from openpyxl.worksheet.dimensions import ColumnDimension, RowDimension
 from openpyxl.worksheet.datavalidation import DataValidation
 
 from datentool_backend.user.models import (Infrastructure,
                                            InfrastructureAccess,
-                                           PlaceField,
                                            )
 
-from datentool_backend.area.models import MapSymbol, FieldTypes, FClass
+from datentool_backend.infrastructure.models import (PlaceAttribute, Place,
+                                                     PlaceField, Capacity)
+
+from datentool_backend.area.models import MapSymbol, FieldTypes
 from datentool_backend.area.serializers import MapSymbolSerializer
 from datentool_backend.infrastructure.serializers import PlaceFieldInfraSerializer
 
@@ -100,6 +104,16 @@ class InfrastructureSerializer(serializers.ModelSerializer):
         return instance
 
 
+class St_X(GeoFunc):
+    function='ST_X'
+    output_field = FloatField()
+
+
+class St_Y(GeoFunc):
+    function='ST_Y'
+    output_field = FloatField()
+
+
 class InfrastructureTemplateSerializer(serializers.Serializer):
     """Serializer for uploading InfrastructureTemplate"""
     excel_file = serializers.FileField()
@@ -147,20 +161,63 @@ class InfrastructureTemplateSerializer(serializers.Serializer):
         classifications = OrderedDict()
         col_no_classifications = 2
 
-        df_places = pd.DataFrame(columns=pd.Index(columns.items()))
+        df_places = pd.DataFrame(columns=pd.Index(columns.items()),
+                                 index=pd.Index([], dtype='int64', name='place_id'))
+        df_places.index.name = 'place_id'
+        place_attrs = PlaceAttribute\
+            .value_annotated_qs()\
+            .filter(place__infrastructure=infrastructure)
+        labels = pd.DataFrame(place_attrs\
+            .filter(field__name=infrastructure.label_field)\
+            .values('place_id', '_value'),
+            columns=['place_id', '_value'])\
+            .set_index('place_id')
+        df_places['Name'] = labels['_value']
+
+        for col in ['Straße', 'Hausnummer', 'PLZ', 'Ort']:
+            try:
+                infrastructure.placefield_set.get(name=col)
+                attrs = pd.DataFrame(place_attrs\
+                    .filter(field__name=col)\
+                    .values('place_id', '_value'),
+                    columns=['place_id', '_value'])\
+                    .set_index('place_id')
+                df_places[col] = attrs['_value']
+
+            except PlaceField.DoesNotExist:
+                continue
+
+        place_coords = Place.objects.filter(infrastructure=infrastructure)\
+            .annotate(pnt_wgs84=Transform('geom', 4326))\
+            .annotate(Lon=St_X('pnt_wgs84'), Lat=St_Y('pnt_wgs84'))
+
+        df_coords = pd.DataFrame(place_coords\
+                                 .values('id', 'Lon', 'Lat'),
+                                 columns=['id', 'Lon', 'Lat'])\
+                                 .set_index('id')
+
+        df_places[['Lon', 'Lat']] = df_coords
+
         col_no = len(df_places.columns) + 1
 
         for place_field in infrastructure.placefield_set.all():
-            col_no += 1
             col = place_field.name
+            if col in columns or col == infrastructure.label_field:
+                continue
+            col_no += 1
             if place_field.field_type.ftype == FieldTypes.STRING:
                 description = f'Nutzerdefinierte Spalte (Text)'
+                value_col = '_value'
+
             elif place_field.field_type.ftype == FieldTypes.NUMBER:
                 description = f'Nutzerdefinierte Spalte (Zahl)'
                 validations[col_no] = dv_float
+                value_col = 'num_value'
+
             else:
                 description = f'Nutzerdefinierte Spalte (Klassifizierte Werte)'
                 cf_colno = classifications.get(place_field.field_type.name)
+                value_col = '_value'
 
                 if cf_colno:
                     df, cn = cf_colno
@@ -182,8 +239,12 @@ class InfrastructureTemplateSerializer(serializers.Serializer):
                 dv.title = f'Liste für {place_field.field_type.name}'
                 validations[col_no] = dv
 
-            df_places = pd.concat([df_places, pd.DataFrame(columns=pd.Index([(col, description)]))],
-                           axis=1)
+            attrs = pd.DataFrame(place_attrs\
+                .filter(field__name=col)\
+                .values('place_id', value_col),
+                columns=['place_id', value_col])\
+                .set_index('place_id')
+            df_places.loc[:, (col, description)] = attrs[value_col]
 
         for service in infrastructure.service_set.all():
             col_no += 1
@@ -196,8 +257,12 @@ class InfrastructureTemplateSerializer(serializers.Serializer):
                 description = '1 wenn ja, sonst 0'
                 dv = dv_01
 
-            df_places = pd.concat([df_places, pd.DataFrame(columns=pd.Index([(col, description)]))],
-                           axis=1)
+            capacities = pd.DataFrame(Capacity.objects\
+                .filter(service=service, from_year=0, scenario=None)\
+                .values('place_id', 'capacity'),
+                columns=['place_id', 'capacity'])\
+                .set_index('place_id')
+            df_places.loc[:, (col, description)] = capacities['capacity']
             validations[col_no] = dv
 
         if classifications:df_classification = pd.concat(
@@ -216,7 +281,9 @@ class InfrastructureTemplateSerializer(serializers.Serializer):
 
             df_classification.to_excel(writer, sheet_name=sn_classifications)
 
-            df_places.to_excel(writer, sheet_name=sheetname, freeze_panes=(2, 2))
+            df_places.to_excel(writer,
+                               sheet_name=sheetname,
+                               freeze_panes=(3, 2))
 
             ws: Worksheet = writer.sheets.get(sheetname)
 
@@ -233,17 +300,19 @@ class InfrastructureTemplateSerializer(serializers.Serializer):
 
             dv.error ='Koordinaten müssen in WGS84 angegeben werden und zwischen 0 und 90 liegen'
             dv.errorTitle = 'Ungültige Koordinaten'
+            dv.add('G3:H999999')
             ws.add_data_validation(dv)
             ws.add_data_validation(dv_01)
             ws.add_data_validation(dv_float)
             ws.add_data_validation(dv_pos_float)
-            dv.add('G3:H999999')
             for col_no, dv in validations.items():
                 letter = get_column_letter(col_no)
                 cell_range = f'{letter}3:{letter}999999'
                 dv.add(cell_range)
                 if not dv in ws.data_validations:
                     ws.add_data_validation(dv)
+
+            ws.row_dimensions[3] = RowDimension(ws, index=3, hidden=True)
 
             ws.column_dimensions['A'] = ColumnDimension(ws, index='A', hidden=True)
             ws.column_dimensions['B'] = ColumnDimension(ws, index='B', width=30)
