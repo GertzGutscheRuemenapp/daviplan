@@ -11,7 +11,6 @@ from rest_framework.fields import FileField, BooleanField
 
 from django.conf import settings
 from django.contrib.gis.geos import Point
-from django.core.files import File
 
 from datentool_backend.utils.geometry_fields import GeometrySRIDField
 from datentool_backend.indicators.models import Stop

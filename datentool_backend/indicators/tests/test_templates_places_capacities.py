@@ -2,7 +2,6 @@ import os
 from io import BytesIO
 from openpyxl.reader.excel import load_workbook
 import pandas as pd
-import unittest
 
 from django.urls import reverse
 from test_plus import APITestCase
@@ -29,7 +28,7 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
         super().setUpTestData()
         cls.profile.can_edit_basedata = True
         cls.profile.save()
-        cls.infra = InfrastructureFactory()
+        cls.infra = InfrastructureFactory(id=1)
         cls.service1 = ServiceFactory(name='Schulen',
                                       has_capacity=False,
                                       infrastructure=cls.infra)
@@ -38,18 +37,21 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
                                       infrastructure=cls.infra)
 
         cls.str_field = PlaceFieldFactory(infrastructure=cls.infra,
+                                          field_type__name='PlaceName',
                                           field_type__ftype=FieldTypes.STRING,
                                           name='Bezeichnung',
                                           is_label=True)
         cls.hnr_field = PlaceFieldFactory(infrastructure=cls.infra,
+                                          field_type__name='Hnr',
                                           name='Hausnummer',
                                           field_type__ftype=FieldTypes.STRING)
         cls.num_field = PlaceFieldFactory(infrastructure=cls.infra,
+                                          field_type__name='FloatType',
                                           name='Gewichtung',
                                           field_type__ftype=FieldTypes.NUMBER)
 
-        cl_ft1 = FieldTypeFactory(ftype=FieldTypes.CLASSIFICATION)
-        cl_ft2 = FieldTypeFactory(ftype=FieldTypes.CLASSIFICATION)
+        cl_ft1 = FieldTypeFactory(ftype=FieldTypes.CLASSIFICATION, name='Ziffern')
+        cl_ft2 = FieldTypeFactory(ftype=FieldTypes.CLASSIFICATION, name='Buchstaben')
         cls.cla_field = PlaceFieldFactory(infrastructure=cls.infra,
                                           name='EinsZweiDrei',
                                           field_type=cl_ft1)
@@ -85,44 +87,59 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
         CapacityFactory(service=cls.service2, place=place2, capacity=0)
 
     def test_create_infrastructure_template(self):
-        url = reverse('infrastructures-create-template', kwargs={'pk':self.infra.pk})
-        res = self.post(url)
+        url = reverse('places-create-template')
+        res = self.post(url, data={'infrastructure_id': self.infra.pk,})
         self.assert_http_200_ok(res)
         wb = load_workbook(BytesIO(res.content))
         self.assertSetEqual(set(wb.sheetnames),
                             {'Standorte und Kapazitäten', 'meta', 'Klassifizierungen'})
 
-    @unittest.skip('Not implemented yet')
     def test_upload_place_template(self):
         """
         test bulk upload places and capacities
         """
-        file_name_places = 'Standorte_und_Kapazitäten.xlsx'
+        # delete places
+        Place.objects.first().delete()
+
+        # upload excel-file
+        file_name_places = 'Standorte_und_Kapazitäten_mod.xlsx'
         file_path_places = os.path.join(os.path.dirname(__file__),
                                         self.testdata_folder,
                                         file_name_places)
         file_content = open(file_path_places, 'rb')
         data = {
             'excel_file' : file_content,
+            'infrastructure_id': self.infra.pk,
         }
 
-        url = reverse('infrastructures-upload-template', kwargs={'pk':self.infra.pk})
+        url = reverse('places-upload-template')
         res = self.client.post(url, data,
                                extra=dict(format='multipart/form-data'))
         self.assert_http_202_accepted(res, msg=res.content)
-        # 4 stops should have been uploaded with the correct hst-nr and names
-        df = pd.read_excel(file_path_places, skiprows=[1])
 
-        actual = pd.DataFrame(Place.objects.values('id', 'name')).set_index('id')
-        expected = df[['HstNr', 'HstName']]\
-            .rename(columns={'HstNr': 'id','HstName': 'name',})\
-            .set_index('id')
-        pd.testing.assert_frame_equal(actual, expected)
+        df = pd.read_excel(file_path_places, sheet_name='Standorte und Kapazitäten',
+                           skiprows=[1, 2]).set_index('Unnamed: 0')
 
-        ## assert that without edit_basedata-permissions no upload is possible
-        #self.profile.can_edit_basedata = False
-        #self.profile.save()
-        #res = self.client.post(url, data, pk=self.infra.pk,
-        # extra=dict(format='multipart/form-data'))
-        #self.assert_http_403_forbidden(res)
+        places = Place.objects.filter(infrastructure=self.infra)
+        place_names = places.values_list('name', flat=True)
+        self.assertQuerysetEqual(place_names, df['Name'], ordered=False)
 
+        for place_id, place_row in df.iterrows():
+            place = Place.objects.get(infrastructure=self.infra, name=place_row['Name'])
+            coords = place.geom.transform(4326, clone=True).coords
+            for i, c in enumerate(['Lon', 'Lat']):
+                self.assertAlmostEqual(coords[i], place_row.loc[c])
+            for place_attr in place.placeattribute_set.all():
+                value = place_row.get(place_attr.field.name)
+                if place_attr.field.field_type.ftype in [FieldTypes.STRING,
+                                                         FieldTypes.CLASSIFICATION]:
+                    value = str(value)
+                self.assertAlmostEqual(place_attr.value, value)
+            for capacity in place.capacity_set.all():
+                service = capacity.service
+                if service.has_capacity:
+                    col = f'Kapazität für Leistung {service.name}'
+                else:
+                    col = f'Bietet Leistung {service.name} an'
+                value = place_row.loc[col]
+                self.assertAlmostEqual(capacity.capacity, value)

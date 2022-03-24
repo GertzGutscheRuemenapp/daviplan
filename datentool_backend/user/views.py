@@ -10,7 +10,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiPara
 
 from datentool_backend.indicators.compute.base import (
     ServiceIndicator, ResultSerializer)
-from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
+from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import(CanEditBasedata,
                                                 HasAdminAccessOrReadOnly,
                                                 IsOwner
@@ -23,7 +23,6 @@ from .serializers import (UserSerializer,
                           YearSerializer,
                           PlanningProcessSerializer,
                           InfrastructureSerializer,
-                          InfrastructureTemplateSerializer,
                           ServiceSerializer,
                           )
 from .models import (Year,
@@ -127,27 +126,11 @@ class PlanningProcessViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                          condition_owner_in_user).distinct()
 
 
-class InfrastructureViewSet(ExcelTemplateMixin,
-                            ProtectCascadeMixin,
+class InfrastructureViewSet(ProtectCascadeMixin,
                             viewsets.ModelViewSet):
     queryset = Infrastructure.objects.all()
     serializer_class = InfrastructureSerializer
-    serializer_action_classes = {
-        'create_template': InfrastructureTemplateSerializer,
-        'upload_template': InfrastructureTemplateSerializer}
     permission_classes = [CanPatchSymbol]
-
-    @extend_schema(description='Create Excel-Template to download',
-                   request=None)
-    @action(methods=['POST'], detail=True, permission_classes=[CanEditBasedata])
-    def create_template(self, request, pk: int):
-        """Download the Template"""
-        try:
-            infrastructure = Infrastructure.objects.get(pk=pk)
-        except Infrastructure.DoesNotExist:
-            return Response(f'Infrastructure with id = {pk} does not exist',
-                            status=status.HTTP_404_NOT_FOUND)
-        return super().create_template(request, pk=pk)
 
 
 class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

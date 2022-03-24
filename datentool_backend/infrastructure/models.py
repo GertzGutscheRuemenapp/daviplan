@@ -10,6 +10,7 @@ from datentool_backend.base import (NamedModel,
                                     DatentoolModelMixin,
                                     )
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
+from datentool_backend.utils.copy_postgres import DirectCopyManager
 
 from datentool_backend.user.models import (PlanningProcess,
                                            Infrastructure,
@@ -48,6 +49,9 @@ class ScenarioService(models.Model):
 
 class Place(DatentoolModelMixin, NamedModel, models.Model):
     """location of an infrastructure"""
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
+
     name = models.TextField()
     infrastructure = models.ForeignKey(Infrastructure,
                                        on_delete=PROTECT_CASCADE)
@@ -111,6 +115,9 @@ post_save.connect(Place.post_create, sender=Place)
 
 
 class PlaceAttribute(FieldAttribute):
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
+
     place = models.ForeignKey(Place, on_delete=models.CASCADE)
     field = models.ForeignKey(PlaceField, on_delete=PROTECT_CASCADE)
 
@@ -120,6 +127,9 @@ class PlaceAttribute(FieldAttribute):
 
 class Capacity(DatentoolModelMixin, models.Model):
     """Capacity of an infrastructure for a service"""
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
+
     place = models.ForeignKey(Place, on_delete=PROTECT_CASCADE)
     service = models.ForeignKey(Service, on_delete=PROTECT_CASCADE)
     capacity = models.FloatField(default=1)

@@ -64,6 +64,7 @@ class Infrastructure(DatentoolModelMixin, NamedModel, models.Model):
     '''
     Infrastructure that provide services
     '''
+
     name = models.TextField()
     description = models.TextField(blank=True)
     editable_by = models.ManyToManyField(

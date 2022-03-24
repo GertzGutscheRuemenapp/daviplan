@@ -54,7 +54,7 @@ class ExcelTemplateMixin:
                               406: OpenApiResponse(MessageSerializer,
                                                    'Upload failed')})
     @action(methods=['POST'], detail=False)
-    def upload_template(self, request):
+    def upload_template(self, request, **kwargs):
         """Upload the filled out Stops-Template"""
         qs = self.get_queryset()
         model = qs.model
@@ -71,15 +71,15 @@ class ExcelTemplateMixin:
 
             try:
                 serializer = self.get_serializer()
-                df = serializer.read_excel_file(request)
-
-                with StringIO() as file:
-                    df.to_csv(file, index=False)
-                    file.seek(0)
-                    model.copymanager.from_csv(
-                        file,
-                        drop_constraints=False, drop_indexes=False,
-                    )
+                df = serializer.read_excel_file(request, **kwargs)
+                if len(df):
+                    with StringIO() as file:
+                        df.to_csv(file, index=False)
+                        file.seek(0)
+                        model.copymanager.from_csv(
+                            file,
+                            drop_constraints=False, drop_indexes=False,
+                        )
 
             except Exception as e:
                 msg = str(e)
