@@ -25,11 +25,23 @@ from datentool_backend.infrastructure.models import Place
 from datentool_backend.population.models import RasterCell, RasterCellPopulation
 
 
-class MatrixStopStopSerializer(serializers.Serializer):
+#class MatrixStopStopSerializer(serializers.Serializer):
+
+    #class Meta:
+        #model = MatrixStopStop
+        #fields = ('from_stop', 'to_stop', 'minutes')
+
+
+class MatrixStopStopTemplateSerializer(serializers.Serializer):
+    """Serializer for uploading MatrixStopStopTemplate"""
+    excel_or_visum_file = FileField()
+    variant = IntegerField()
+    drop_constraints = BooleanField(default=True)
 
     class Meta:
         model = MatrixStopStop
         fields = ('from_stop', 'to_stop', 'minutes')
+
 
     def create_template(self) -> bytes:
         columns = {'von': 'Von Haltestelle (Nr)',
@@ -71,13 +83,6 @@ class MatrixStopStopSerializer(serializers.Serializer):
 
         content = open(fn, 'rb').read()
         return content
-
-
-class UploadMatrixStopStopTemplateSerializer(serializers.Serializer):
-    """Serializer for uploading MatrixStopStopTemplate"""
-    excel_or_visum_file = FileField()
-    variant = IntegerField()
-    drop_constraints = BooleanField(default=True)
 
     def read_excel_file(self, request) -> pd.DataFrame:
         """read excelfile and return a dataframe"""

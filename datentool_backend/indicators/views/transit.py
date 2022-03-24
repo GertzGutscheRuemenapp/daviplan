@@ -24,9 +24,8 @@ from datentool_backend.indicators.models import (Stop,
                                                  MatrixPlaceStop,
                                                  )
 from datentool_backend.indicators.serializers import (StopSerializer,
-                                                      UploadStopTemplateSerializer,
-                                                      MatrixStopStopSerializer,
-                                                      UploadMatrixStopStopTemplateSerializer,
+                                                      StopTemplateSerializer,
+                                                      MatrixStopStopTemplateSerializer,
                                                       RouterSerializer,
                                                       MatrixCellPlaceSerializer,
                                                       MatrixCellStopSerializer,
@@ -37,15 +36,19 @@ from datentool_backend.indicators.serializers import (StopSerializer,
 class StopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Stop.objects.all()
     serializer_class = StopSerializer
-    serializer_action_classes = {'upload_template': UploadStopTemplateSerializer,
+    serializer_action_classes = {'upload_template': StopTemplateSerializer,
+                                 'create_template': StopTemplateSerializer,
                                  }
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class MatrixStopStopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSet):
-    serializer_class = MatrixStopStopSerializer
-    serializer_action_classes = {'upload_template': UploadMatrixStopStopTemplateSerializer,
-                                 }
+class MatrixStopStopViewSet(ExcelTemplateMixin,
+                            ProtectCascadeMixin,
+                            viewsets.GenericViewSet):
+    serializer_class = MatrixStopStopTemplateSerializer
+    #serializer_action_classes = {'upload_template': MatrixStopStopTemplateSerializer,
+                                 #'create_template': MatrixStopStopTemplateSerializer,
+                                 #}
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
     def get_queryset(self):

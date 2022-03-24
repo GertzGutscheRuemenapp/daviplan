@@ -14,6 +14,7 @@ from datentool_backend.utils.serializers import MessageSerializer, drop_constrai
 
 class ExcelTemplateMixin:
     """Mixin to download and upload excel-templates"""
+    serializer_action_classes = {}
 
     def get_serializer_class(self):
         """get the serializer_class"""
@@ -27,10 +28,10 @@ class ExcelTemplateMixin:
                    )
 
     @action(methods=['POST'], detail=False)
-    def create_template(self, request):
-        """Download the Stops-Template"""
+    def create_template(self, request, **kwargs):
+        """Download the Template"""
         serializer = self.get_serializer()
-        content = serializer.create_template()
+        content = serializer.create_template(**kwargs)
         response = HttpResponse(
             content_type=(
                 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'

@@ -1,16 +1,16 @@
+from django.db.models import Q, Max
+from django.core.exceptions import BadRequest
+from django.contrib.auth.models import User
+
 from rest_framework import viewsets, permissions
-from django.db.models import Q
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
-from django.core.exceptions import BadRequest
-from django.db.models import Max
 
-from django.contrib.auth.models import User
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 
 from datentool_backend.indicators.compute.base import (
     ServiceIndicator, ResultSerializer)
-from datentool_backend.utils.views import ProtectCascadeMixin
+from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
 from datentool_backend.utils.permissions import(CanEditBasedata,
                                                 HasAdminAccessOrReadOnly,
                                                 IsOwner
@@ -23,6 +23,7 @@ from .serializers import (UserSerializer,
                           YearSerializer,
                           PlanningProcessSerializer,
                           InfrastructureSerializer,
+                          InfrastructureTemplateSerializer,
                           ServiceSerializer,
                           )
 from .models import (Year,
@@ -126,10 +127,22 @@ class PlanningProcessViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                          condition_owner_in_user).distinct()
 
 
-class InfrastructureViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+class InfrastructureViewSet(ExcelTemplateMixin,
+                            ProtectCascadeMixin,
+                            viewsets.ModelViewSet):
     queryset = Infrastructure.objects.all()
     serializer_class = InfrastructureSerializer
+    serializer_action_classes = {
+        'create_template': InfrastructureTemplateSerializer,
+        'upload_template': InfrastructureTemplateSerializer}
     permission_classes = [CanPatchSymbol]
+
+    @extend_schema(description='Create Excel-Template to download',
+                   request=None)
+    @action(methods=['POST'], detail=True, permission_classes=[CanEditBasedata])
+    def create_template(self, request, pk: int):
+        """Download the Template"""
+        return super().create_template(request, pk=pk)
 
 
 class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

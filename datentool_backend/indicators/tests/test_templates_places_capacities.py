@@ -11,7 +11,6 @@ from datentool_backend.infrastructure.factories import InfrastructureFactory, Se
 from datentool_backend.infrastructure.factories import Place, Capacity
 
 
-@unittest.skip('Not implemented yet')
 class InfrastructureTemplateTest(LoginTestCase, APITestCase):
 
     testdata_folder = 'testdata'
@@ -30,12 +29,14 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
                                       infrastructure=cls.infra)
 
     def test_create_infrastructure_template(self):
-        url = reverse('infrastructures-create-template')
-        res = self.post(url, pk=self.infra.pk)
+        url = reverse('infrastructures-create-template', kwargs={'pk':self.infra.pk})
+        res = self.post(url)
         self.assert_http_200_ok(res)
         wb = load_workbook(BytesIO(res.content))
-        self.assertListEqual(wb.sheetnames, ['Standorte und Kapazitäten', 'meta'])
+        self.assertSetEqual(set(wb.sheetnames),
+                            {'Standorte und Kapazitäten', 'meta'})
 
+    @unittest.skip('Not implemented yet')
     def test_upload_place_template(self):
         """
         test bulk upload places and capacities
@@ -49,8 +50,8 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
             'excel_file' : file_content,
         }
 
-        url = reverse('infrastructures-upload-template')
-        res = self.client.post(url, data,  pk=self.infra.pk,
+        url = reverse('infrastructures-upload-template', kwargs={'pk':self.infra.pk})
+        res = self.client.post(url, data,
                                extra=dict(format='multipart/form-data'))
         self.assert_http_202_accepted(res, msg=res.content)
         # 4 stops should have been uploaded with the correct hst-nr and names

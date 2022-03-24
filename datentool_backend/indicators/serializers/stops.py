@@ -25,6 +25,14 @@ class StopSerializer(GeoFeatureModelSerializer):
         geo_field = 'geom'
         fields = ('id', 'name')
 
+
+class StopTemplateSerializer(serializers.Serializer):
+    """Serializer for uploading StopTemplate"""
+    excel_file = FileField()
+    drop_constraints = BooleanField(default=True,
+                                    label='temporarily delete constraints and indices',
+                                    help_text='Set to False in unittests')
+
     def create_template(self) -> bytes:
         columns = {'HstNr': 'wie in Reisezeitmatrix',
                   'HstName': 'Name der Haltestelle',
@@ -65,14 +73,6 @@ class StopSerializer(GeoFeatureModelSerializer):
 
         content = open(fn, 'rb').read()
         return content
-
-
-class UploadStopTemplateSerializer(serializers.Serializer):
-    """Serializer for uploading StopTemplate"""
-    excel_file = FileField()
-    drop_constraints = BooleanField(default=True,
-                                    label='temporarily delete constraints and indices',
-                                    help_text='Set to False in unittests')
 
     def read_excel_file(self, request) -> pd.DataFrame:
         """read excelfile and return a dataframe"""

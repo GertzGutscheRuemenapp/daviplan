@@ -207,7 +207,7 @@ class TestWMSLayerAPI(WriteOnlyWithCanEditBaseDataTest,
         # IÖR have not set up a CORS header
         assert(not response.json()['cors'])
 
-        url = 'https://sgx.geodatenzentrum.de/wms_clc5_2018'
+        url = 'https://sgx.geodatenzentrum.de/wms_landschaften'
         response = self.post(
             self.url_key + '-getcapabilities',
             data={'url': url},
