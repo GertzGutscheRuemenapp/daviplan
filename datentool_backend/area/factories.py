@@ -80,7 +80,7 @@ class FieldTypeFactory(DjangoModelFactory):
         model = FieldType
 
     ftype = faker.random_element(FieldTypes)
-    name = faker.word()
+    name = factory.Sequence(lambda n: faker.unique.word())
 
 
 class FClassFactory(DjangoModelFactory):

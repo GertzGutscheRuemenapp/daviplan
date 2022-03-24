@@ -7,8 +7,16 @@ import unittest
 from django.urls import reverse
 from test_plus import APITestCase
 from datentool_backend.api_test import LoginTestCase
-from datentool_backend.infrastructure.factories import InfrastructureFactory, ServiceFactory
-from datentool_backend.infrastructure.factories import Place, Capacity
+from datentool_backend.infrastructure.factories import (InfrastructureFactory,
+                                                        ServiceFactory,
+                                                        Place,
+                                                        Capacity,
+                                                        PlaceFieldFactory,
+                                                        FieldTypeFactory,
+                                                        )
+
+from datentool_backend.area.models import FieldTypes
+from datentool_backend.area.factories import FClassFactory
 
 
 class InfrastructureTemplateTest(LoginTestCase, APITestCase):
@@ -27,6 +35,26 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
         cls.service2 = ServiceFactory(name='Schulplätze',
                                       has_capacity=True,
                                       infrastructure=cls.infra)
+
+        cls.str_field = PlaceFieldFactory(infrastructure=cls.infra,
+                                          field_type__ftype=FieldTypes.STRING)
+        cls.num_field = PlaceFieldFactory(infrastructure=cls.infra,
+                                          field_type__ftype=FieldTypes.NUMBER)
+
+        cl_ft1 = FieldTypeFactory(ftype=FieldTypes.CLASSIFICATION)
+        cl_ft2 = FieldTypeFactory(ftype=FieldTypes.CLASSIFICATION)
+        cls.cla_field = PlaceFieldFactory(infrastructure=cls.infra,
+                                          field_type=cl_ft1)
+
+        cv11 = FClassFactory(ftype=cls.cla_field.field_type, value='Eins', order=1)
+        cv12 = FClassFactory(ftype=cls.cla_field.field_type, value='Zwei', order=2)
+        cv13 = FClassFactory(ftype=cls.cla_field.field_type, value='Drei', order=3)
+
+        cls.cla_field2 = PlaceFieldFactory(infrastructure=cls.infra,
+                                          field_type=cl_ft2)
+
+        cv21 = FClassFactory(ftype=cls.cla_field2.field_type, value='AA', order=1)
+        cv22 = FClassFactory(ftype=cls.cla_field2.field_type, value='BB', order=2)
 
     def test_create_infrastructure_template(self):
         url = reverse('infrastructures-create-template', kwargs={'pk':self.infra.pk})
