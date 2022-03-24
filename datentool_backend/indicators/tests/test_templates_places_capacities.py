@@ -62,7 +62,7 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
         self.assert_http_200_ok(res)
         wb = load_workbook(BytesIO(res.content))
         self.assertSetEqual(set(wb.sheetnames),
-                            {'Standorte und Kapazitäten', 'meta'})
+                            {'Standorte und Kapazitäten', 'meta', 'Klassifizierungen'})
 
     @unittest.skip('Not implemented yet')
     def test_upload_place_template(self):
