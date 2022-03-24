@@ -127,7 +127,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                 for area_level in AreaLevel.objects.all():
                     areas = Area.objects.filter(area_level=area_level)
                     cells = AreaCell.objects.filter(area__in=areas)
-                    if cells and use_intersected_data:
+                    if not areas or (cells and use_intersected_data):
                         continue
                     intersect_areas_with_raster(areas, pop_raster=pop_raster)
 
