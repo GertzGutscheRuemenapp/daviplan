@@ -1,4 +1,5 @@
 from django.db.models import Prefetch, Q
+from django.http.request import QueryDict
 
 from rest_framework import viewsets, status, serializers
 from rest_framework.response import Response
@@ -111,7 +112,7 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
                    request=inline_serializer(
                        name='PlaceFileDropConstraintSerializer',
                        fields={'infrastructure_id': infrastructure_id_serializer,
-                               'drop_constraints': drop_constraints,
+                               #'drop_constraints': drop_constraints,
                                'excel_file': serializers.FileField(),
                                }
                        )
@@ -120,6 +121,12 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
     def upload_template(self, request):
         """Download the Template"""
         infrastructure_id = request.data.get('infrastructure_id')
+        # no constraint dropping, because we use individual updates
+        data = QueryDict(mutable=True)
+        data.update(self.request.data)
+        data['drop_constraints'] = 'False'
+        request._full_data = data
+
         queryset = Place.objects.none()
         return super().upload_template(request,
                                        queryset=queryset,
