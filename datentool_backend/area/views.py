@@ -25,8 +25,8 @@ from owslib.wms import WebMapService
 from vectortiles.postgis.views import MVTView, BaseVectorTileView
 from drf_spectacular.utils import extend_schema
 
-from datentool_backend.population.serializers import (drop_constraints,
-                                                      MessageSerializer)
+from datentool_backend.utils.serializers import (drop_constraints,
+                                                 MessageSerializer)
 from datentool_backend.population.models import PopulationRaster, AreaCell
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
