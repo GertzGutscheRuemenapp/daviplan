@@ -1,6 +1,9 @@
+from io import StringIO
 import os
 from collections import OrderedDict
+from typing import Tuple
 import pandas as pd
+
 
 from django.conf import settings
 from django.db.models.fields import FloatField
@@ -258,6 +261,7 @@ class PlacesTemplateSerializer(serializers.Serializer):
         """read excelfile and return a dataframe"""
         excel_file = request.FILES['excel_file']
 
+        # check if the right Excel-File is uploaded
         df_meta = pd.read_excel(excel_file.file,
                            sheet_name='meta').set_index('key')
 
@@ -270,7 +274,7 @@ class PlacesTemplateSerializer(serializers.Serializer):
         msg = f'file is for infrastructure {infra.name} with id {infra_id}, but request was sent to id {infrastructure_id}'
         assert int(infrastructure_id) == df_meta.loc['infrastructure', 'value'], msg
 
-        # Klassifizierungen prüfen
+        # Check the classification
 
         df_klassifizierungen = pd.read_excel(excel_file.file,
                            sheet_name='Klassifizierungen').set_index('order')
@@ -279,43 +283,144 @@ class PlacesTemplateSerializer(serializers.Serializer):
             ft, created = FieldType.objects.get_or_create(name=field_name,
                                                  ftype=FieldTypes.CLASSIFICATION)
             series = series.loc[~pd.isna(series)]
-            # ggf. Einträge ergänzen/ Überschreiben
+            # add/change entries of the classification values
             for order, value in series.iteritems():
-                FClass.objects.get_or_create(ftype=ft, order=order, value=value)
+                fc, created = FClass.objects.get_or_create(ftype=ft, order=order)
+                fc.value = value
+                fc.save()
 
-        # Places ergänzen
+        # get the services and the place fields of the infrastructure
+        services = infra.service_set.all().values('id', 'has_capacity', 'name')
+        place_fields = infra.placefield_set.all().values('id',
+                                                         'name',
+                                                         'field_type',
+                                                         'field_type__ftype',
+                                                         #'field_type__fclass',
+                                                         )
+
+
+        # get a mapping of the classifications
+        fclass_values = FClass.objects\
+            .filter(ftype__in=place_fields.values_list('field_type'))\
+            .values('ftype', 'id', 'value')
+
+        fclass_dict = {(fclass_value['ftype'], fclass_value['value']):
+                       fclass_value['id']
+                       for fclass_value in fclass_values}
+
+
+        # collect the places, attributes and capacities in lists
+        place_ids = []
+        place_attributes = []
+        capacities = []
+
+        # read the excel-file
 
         df_places = pd.read_excel(excel_file.file,
                            sheet_name='Standorte und Kapazitäten',
                            skiprows=[1, 2]).set_index('Unnamed: 0')
         df_places.index.name = 'place_id'
 
+        # iterate over all places
         for place_id, place_row in df_places.iterrows():
             if pd.isna(place_id):
                 place_id = None
-            geom = Point(place_row['Lon'], place_row['Lat'], srid=4326)
-            geom.transform(3857)
-            attributes = {}
-            for place_field in infra.placefield_set.all():
-                attr = place_row.get(place_field.name)
-                if attr and not pd.isna(attr):
-                    attributes[place_field.name] = attr
-            place, created = Place.objects.get_or_create(pk=place_id,
-                                                infrastructure=infra,
-                                                name=place_row['Name'],
-                                                geom=geom)
-            place.attributes = attributes
+            # check if place_id exists, otherwise create it
+            try:
+                place = Place.objects.get(pk=place_id)
+            except Place.DoesNotExist:
+                place = Place()
 
-            for service in infra.service_set.all():
-                if service.has_capacity:
-                    col = f'Kapazität für Leistung {service.name}'
+            place_name = place_row['Name']
+            if pd.isna(place_name):
+                place_name = ''
+
+            #  do a geocoding, if no coordinates are provided
+            lon = place_row['Lon']
+            lat = place_row['Lat']
+            if pd.isna(lon) or pd.isna(lat):
+                lon, lat = self.geocode(place_row)
+
+            # create the geometry and transform to WebMercator
+            geom = Point(lon, lat, srid=4326)
+            geom.transform(3857)
+
+            # set the place columns
+            place.infrastructure = infra
+            place.name = place_name
+            place.geom=geom
+            place.save()
+            place_ids.append(place.id)
+
+            # collect the place_attributes
+            for place_field in place_fields:
+                place_field_name = place_field['name']
+                attr = place_row.get(place_field_name)
+                if attr and not pd.isna(attr):
+                    str_value, num_value, class_value = None, None, None
+                    ftype = place_field['field_type__ftype']
+                    if ftype == 'STR':
+                        str_value = attr
+                    elif ftype == 'NUM':
+                        num_value = float(attr)
+                    else:
+                        class_value = fclass_dict[(place_field['field_type'], attr)]
+                    attribute = (place.id, place_field['id'], str_value, num_value, class_value)
+                    place_attributes.append(attribute)
+
+            # collect the capacities
+            for service in services:
+                service_name = service['name']
+                if service['has_capacity']:
+                    col = f'Kapazität für Leistung {service_name}'
                 else:
-                    col = f'Bietet Leistung {service.name} an'
+                    col = f'Bietet Leistung {service_name} an'
                 capacity = place_row.get(col)
                 if capacity is not None and not pd.isna(capacity):
-                    cap = Capacity.objects.get_or_create(place=place,
-                                                         service=service,
-                                                         capacity=capacity)
+                    capacities.append((place.id, service['id'], capacity, 0, 99999999))
+
+
+        # upload the place-attributes
+        df_place_attributes = pd.DataFrame(place_attributes, columns=[
+            'place_id', 'field_id', 'str_value', 'num_value', 'class_value_id'
+        ])
+
+        df_place_attributes['class_value_id'] = df_place_attributes['class_value_id'].astype('Int64')
+
+        existing_place_attrs = PlaceAttribute.objects.filter(place_id__in=place_ids)
+        existing_place_attrs.delete()
+
+        if len(df_place_attributes):
+            with StringIO() as file:
+                df_place_attributes.to_csv(file, index=False)
+                file.seek(0)
+                PlaceAttribute.copymanager.from_csv(
+                    file,
+                    drop_constraints=False, drop_indexes=False,
+                )
+
+
+        # upload the capacities
+        df_capacities = pd.DataFrame(capacities,
+                                     columns=['place_id', 'service_id', 'capacity',
+                                              'from_year', 'to_year'])
+
+        existing_capacities = Capacity.objects.filter(place_id__in=place_ids)
+        existing_capacities.delete()
+
+        if len(df_capacities):
+            with StringIO() as file:
+                df_capacities.to_csv(file, index=False)
+                file.seek(0)
+                Capacity.copymanager.from_csv(
+                    file,
+                    drop_constraints=False, drop_indexes=False,
+                )
 
         df = pd.DataFrame()
         return df
+
+    def geocode(self, place_row: dict) -> Tuple[float, float]:
+        """do the geocoding, if no coordinates are provided"""
+        raise NotImplementedError('Geocoding is not implemented yet. '
+                                  'Please provide Lon/Lat-coordinates')
