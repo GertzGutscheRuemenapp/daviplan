@@ -1,10 +1,19 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
 import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
-import { Area, AreaLevel, Infrastructure, Layer, LayerGroup, PlanningProcess, Service } from "../../../rest-interfaces";
+import {
+  Area,
+  AreaLevel,
+  Infrastructure,
+  Layer,
+  LayerGroup,
+  PlanningProcess,
+  Scenario,
+  Service
+} from "../../../rest-interfaces";
 import * as d3 from "d3";
 import { map } from "rxjs/operators";
-import { forkJoin, Observable } from "rxjs";
+import { forkJoin, Observable, Subscription } from "rxjs";
 import { MapControl, MapService } from "../../../map/map.service";
 import { SelectionModel } from "@angular/cdk/collections";
 
@@ -24,6 +33,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   areaLevels: AreaLevel[] = [];
   areas: Area[] = [];
   activeProcess?: PlanningProcess;
+  activeScenario?: Scenario;
   realYears?: number[];
   prognosisYears?: number[];
   mapControl?: MapControl;
@@ -31,6 +41,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   legendGroup?: LayerGroup;
   serviceSelection = new SelectionModel<Service>(false);
   year?: number;
+  subscriptions: Subscription[] = [];
 
   constructor(public cookies: CookieService, private mapService: MapService,
               public planningService: PlanningService) {}
@@ -44,10 +55,18 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
     this.planningService.activeProcess$.subscribe(process => {
       this.activeProcess = process;
     })
+    this.planningService.activeScenario$.subscribe(scenario => {
+      this.activeScenario = scenario;
+      this.updateMap();
+    })
     this.initData();
   }
 
   initData(): void {
+    this.subscriptions.push(this.planningService.year$.subscribe(year => {
+      this.year = year;
+      this.updateMap();
+    }));
     let observables: Observable<any>[] = [];
     observables.push(this.planningService.getInfrastructures().pipe(map(infrastructures => {
       this.infrastructures = infrastructures;
@@ -57,7 +76,6 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
     })))
     observables.push(this.planningService.getRealYears().pipe( map(years => {
       this.realYears = years;
-      this.year = this.realYears[0];
     })))
     observables.push(this.planningService.getPrognosisYears().pipe( map(years => {
       this.prognosisYears = years;
@@ -68,22 +86,31 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   }
 
   applyUserSettings(): void {
-    this.updateMap();
+    this.activeLevel = this.areaLevels.find(al => al.id === this.cookies.get('planning-area-level', 'number'));
+    this.activeInfrastructure = this.infrastructures?.find(i => i.id === this.cookies.get('planning-infrastructure', 'number'));
+    this.activeService = this.activeInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number'));
+    if (this.activeInfrastructure)
+      this.serviceSelection.select(this.activeService || this.activeInfrastructure.services[0]);
+    this.onAreaLevelChange();
   }
 
   onAreaLevelChange(): void {
     this.planningService.getAreas(this.activeLevel!.id).subscribe(areas => {
       this.areas = areas;
+      this.cookies.set('planning-area-level', this.activeLevel?.id);
+      this.updateMap();
     })
   }
 
   onInfrastructureChange(): void {
     this.serviceSelection.select(this.activeInfrastructure!.services[0]);
+    this.cookies.set('planning-infrastructure', this.activeInfrastructure?.id);
     this.onServiceChange();
   }
 
   onServiceChange(): void {
-    this.activeService = this.serviceSelection.selected[0];
+    this.activeService = this.serviceSelection.selected[0]; // always an array, even if multiple is not allowed
+    this.cookies.set('planning-service', this.activeService?.id);
     this.updateMap();
   }
 
@@ -95,52 +122,66 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
     if (!this.year || !this.activeLevel || !this.activeService) return;
     this.updateMapDescription();
 
-    /*this.planningService.getDemand(this.activeLevel.id,
+    this.planningService.getDemand(this.activeLevel.id,
       { year: this.year!, prognosis: undefined, service: this.activeService?.id }).subscribe(demandData => {
-        const colorFunc = d3.scaleSequential().domain([0, 1000 || 0])
-          .interpolator(d3.interpolateViridis);
-      this.demandLayer = this.mapControl?.addLayer({
-          order: 0,
-          type: 'vector',
-          group: this.legendGroup?.id,
-          name: this.activeLevel!.name,
-          description: this.activeLevel!.name,
-          opacity: 1,
-          symbol: {
-            strokeColor: 'white',
-            fillColor: 'rgba(165, 15, 21, 0.9)',
-            symbol: 'circle'
+        let max = 1;
+        let min = Number.MAX_VALUE;
+        this.areas.forEach(area => {
+          const data = demandData.find(d => d.areaId == area.id);
+          const value = (data)? Math.round(data.value): 0;
+          max = Math.max(max, value);
+          min = Math.min(min, value);
+          area.properties.value = value;
+          area.properties.description = `<b>${area.properties.label}</b><br>Nachfrage: ${area.properties.value}`
+        })
+        const radiusFunc = d3.scaleLinear().domain([(min <= max)? min: 0, max]).range([5, 50]);
+        // const colorFunc = d3.scaleSequential().domain([0, 9 || 0])
+        // .interpolator(d3.interpolateViridis);
+        const steps = (max < 1.2 * min)? 3: (max < 1.4)? 5: (max < 1.6 * min)? 7: 9;
+        // const colorFunc = d3.scaleThreshold<string>()
+        //   .domain(d3.range(min, max, max/steps) ) //[20, 40, 60, 80]
+        //   .range(d3.schemeBlues[steps]);
+        const colorFunc = d3.scaleLog<string>().domain(d3.range(min, max, max/steps))
+          .range(d3.schemeBlues[steps])
+        this.demandLayer = this.mapControl?.addLayer({
+            order: 0,
+            type: 'vector',
+            group: this.legendGroup?.id,
+            name: this.activeLevel!.name,
+            description: this.activeLevel!.name,
+            opacity: 1,
+            symbol: {
+              strokeColor: 'white',
+              fillColor: 'rgba(165, 15, 21, 0.9)',
+              symbol: 'line'
+            },
+            labelField: 'value',
+            showLabel: true
           },
-          labelField: 'value',
-          showLabel: true
-        },
-        {
-          visible: true,
-          tooltipField: 'description',
-          mouseOver: {
-            strokeColor: 'yellow',
-            fillColor: 'rgba(255, 255, 0, 0.7)'
-          },
-          selectable: true,
-          select: {
-            strokeColor: 'rgb(180, 180, 0)',
-            fillColor: 'rgba(255, 255, 0, 0.9)'
-          }
-        });
-      this.areas.forEach(area => {
-        const data = demandData.find(d => d.areaId == area.id);
-        area.properties.value = (data)? Math.round(data.value): 0;
-        area.properties.description = `<b>${area.properties.label}</b><br>Nachfrage: ${area.properties.value}`
-      })
-      this.mapControl?.addFeatures(this.demandLayer!.id!, this.areas,
-        { properties: 'properties', geometry: 'centroid', zIndex: 'value' });
-    })*/
+          {
+            visible: true,
+            tooltipField: 'description',
+            mouseOver: {
+              strokeColor: 'yellow',
+              fillColor: 'rgba(255, 255, 0, 0.7)'
+            },
+            colorFunc: colorFunc
+          });
+        this.mapControl?.addFeatures(this.demandLayer!.id!, this.areas,
+          { properties: 'properties' });
+    })
   }
 
   updateMapDescription(): void {
-
+    const desc = `Planungsprozess: ${this.activeProcess?.name} > ${this.activeScenario?.name} | ${this.year} <br>
+                  Nachfrage nach ${this.activeService?.name} auf Ebene ${this.activeLevel?.name}`
+    this.mapControl!.mapDescription = desc;
   }
 
   ngOnDestroy(): void {
+    if (this.legendGroup) {
+      this.mapControl?.removeGroup(this.legendGroup.id!);
+    }
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }

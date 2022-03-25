@@ -81,7 +81,7 @@ export class RestCacheService {
     return query.pipe(map(ageGroups => {
       ageGroups.forEach( ageGroup => {
         ageGroup.label = String(ageGroup.fromAge);
-        ageGroup.label += (ageGroup.toAge >= 999)? ' Jahre und älter': ` bis unter ${ageGroup.toAge} Jahre`;
+        ageGroup.label += (ageGroup.toAge >= 999)? ' Jahre und älter': ` bis unter ${ageGroup.toAge + 1} Jahre`;
       });
       return ageGroups;
     }));

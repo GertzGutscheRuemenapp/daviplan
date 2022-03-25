@@ -80,9 +80,13 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
       this.prognosisYears = years;
       this.setSlider();
     })
+    this.timeSlider!.valueChanged.subscribe(year => {
+      this.cookies.set('planning-year', year);
+    });
     this.planningService.getInfrastructures().subscribe( infrastructures => {
       this.infrastructures = infrastructures;
     })
+
     this.planningService.getProcesses().subscribe(processes => {
       this.auth.getCurrentUser().subscribe(user => {
         if (!user) return;
@@ -92,9 +96,9 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
           else
             this.sharedProcesses.push(process);
         })
-        const processId = this.cookies.get('planning-process');
+        const processId = this.cookies.get('planning-process', 'number');
         if (processId) {
-          this.setProcess(Number(processId))
+          this.setProcess(Number(processId));
         }
       })
     })
@@ -113,16 +117,15 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     if (options?.persist)
       this.cookies.set('planning-process', process?.id);
     this.planningService.activeProcess$.next(process);
-    const scenario = process?.scenarios? process.scenarios[0]: undefined;
-    this.planningService.activeScenario$.next(scenario);
   }
 
   setSlider(): void {
     if (!(this.realYears && this.prognosisYears)) return;
     this.timeSlider!.prognosisStart = this.prognosisYears[0] || 0;
     this.timeSlider!.years = this.realYears.concat(this.prognosisYears);
-    this.timeSlider!.value = this.realYears[0];
-    this.planningService.year$.next(this.realYears[0]);
+    const year = this.cookies.get('planning-year', 'number') || this.realYears[0];
+    this.timeSlider!.value = year;
+    this.planningService.year$.next(year);
     this.timeSlider!.draw();
   }
 

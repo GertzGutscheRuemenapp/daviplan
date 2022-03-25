@@ -25,9 +25,9 @@
       <mat-form-field appearance="outline" class="small">
         <mat-select disableOptionCentering disableRipple
                     [(ngModel)]="theme"
-                    (ngModelChange)="onThemeChange()">
+                    (ngModelChange)="onThemeChange(true)">
           <mat-option value="nature">
-            Natürlicher Saldo
+            Geburten und Sterbefälle
           </mat-option>
           <mat-option value="migration">
             Wanderung
@@ -37,24 +37,24 @@
       <div class="sub-select-wrapper" [style.display]="(theme==='nature')? 'block' : 'none'">
         <mat-checkbox [(ngModel)]="showBirths"
                       color="primary"
-                      (ngModelChange)="onThemeChange()">
+                      (ngModelChange)="onThemeChange(false)">
           Geburten
         </mat-checkbox><br>
         <mat-checkbox [(ngModel)]="showDeaths"
                       color="primary"
-                      (ngModelChange)="onThemeChange()">
+                      (ngModelChange)="onThemeChange(false)">
           Sterbefälle
         </mat-checkbox>
       </div>
       <div class="sub-select-wrapper" [style.display]="(theme==='migration')? 'block' : 'none'">
         <mat-checkbox [(ngModel)]="showImmigration"
                       color="primary"
-                      (ngModelChange)="onThemeChange()">
+                      (ngModelChange)="onThemeChange(false)">
           Zuzüge
         </mat-checkbox><br>
         <mat-checkbox [(ngModel)]="showEmigration"
                       color="primary"
-                      (ngModelChange)="onThemeChange()">
+                      (ngModelChange)="onThemeChange(false)">
           Fortzüge
         </mat-checkbox>
       </div>
@@ -97,7 +97,7 @@
     <div>
       <app-balance-chart #balanceChart
                          figureId="areaSaldo"
-                         [colors]="['#ffbc41', '#f467f3']"
+                         [colors]="['#1a9850', '#d73027']"
                          lineColor="#2196f3"
                          xLabel="Jahre"
                          [animate]="true"

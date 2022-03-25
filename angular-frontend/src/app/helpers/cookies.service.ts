@@ -13,15 +13,38 @@ export class CookieService {
     this.ngxCookies.set(name, val, { path: path, expires: 3650 });
   }
 
-  public get(name: string): string | boolean {
+  // public get(name: string): string | undefined {
+  //   let val = this.ngxCookies.get(name);
+  //   return val;
+  // }
+
+  public get(name: string, type: 'string'): string;
+  public get(name: string, type: 'boolean'): boolean;
+  public get(name: string, type: 'number'): number | undefined;
+  public get(name: string, type: 'array'): string[];
+  public get(name: string, type: string = 'string'): unknown {
     let val = this.ngxCookies.get(name);
-    if (val === 'false') return false;
-    if (val === 'true') return true;
+    if (type === 'boolean') {
+      if (!val || val.toLocaleLowerCase() === 'false')
+        return false;
+      return true;
+    }
+    if (type === 'array'){
+      if (!val) return [];
+      return val.split(',');
+    }
+    if (type === 'number'){
+      if (val === undefined || val === '') return;
+      return Number(val);
+    }
+    if (type === 'string'){
+      return val || '';
+    }
     return val;
   }
 
   public set(name: string, val: any, path?: string | undefined) {
-    this.ngxCookies.set(name, String(val), { path: path });
+    this.ngxCookies.set(name, String(val), { path: path, expires: 3650 });
   }
 
   public has(name: string) {

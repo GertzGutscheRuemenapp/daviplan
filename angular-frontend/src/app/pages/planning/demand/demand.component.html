@@ -75,7 +75,7 @@
   <mat-form-field appearance="outline" class="small">
     <mat-select disableOptionCentering disableRipple
                 [(ngModel)]="activeLevel"
-                (change)="onAreaLevelChange()">
+                (selectionChange)="onAreaLevelChange()">
       <mat-option [value]="areaLevel" *ngFor="let areaLevel of areaLevels">
         {{areaLevel.name}}
       </mat-option>
@@ -90,7 +90,9 @@
       </div>
       Vergleichsdarstellung
       <app-help-button title="Vergleichsdarstellung" position="right">
-        <p>Sie können die Nachfrage für das mit dem Zeitslider ausgewählte Jahr vergleichen: Entweder mit der Nachfrage für ein anderes Jahr für das Werte vorliegen oder aber mit der Nachfrage für ein anderes Szenario im selben Jahr. Die Darstellung erfolgt in der Karte.</p>
+        <p>Sie können die Nachfrage für das mit dem Zeitslider ausgewählte Jahr vergleichen: Entweder mit der Nachfrage
+          für ein anderes Jahr für das Werte vorliegen oder aber mit der Nachfrage für ein anderes Szenario im selben Jahr.
+          Die Darstellung erfolgt in der Karte.</p>
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>

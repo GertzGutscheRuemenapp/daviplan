@@ -365,7 +365,8 @@ export class MapControl {
       radiusFunc: options?.radiusFunc,
       valueField: options?.valueField,
       mouseOver: options?.mouseOver,
-      select: options?.select
+      select: options?.select,
+      selectable: options?.selectable
     });
     if (options?.selectable){
       layer.featureSelected = new EventEmitter<any>();
@@ -393,7 +394,8 @@ export class MapControl {
       multi?: boolean,
       fillColor?: string,
       strokeColor?: string
-    }
+    },
+    selectable?: boolean
   }) {
     const opacity = (layer.opacity !== undefined)? layer.opacity : 1;
     if (layer.type === 'vector') {
@@ -417,7 +419,7 @@ export class MapControl {
         labelField: layer.labelField,
         tooltipField: options?.tooltipField,
         shape: (layer.symbol?.symbol !== 'line')? layer.symbol?.symbol: undefined,
-        selectable: true,
+        selectable: options?.selectable,
         showLabel: layer.showLabel
       })
     }
@@ -458,7 +460,7 @@ export class MapControl {
     if (!layer) return;
     let olFeatures: Feature<any>[] = [];
     const properties = (options?.properties !== undefined)? options?.properties: 'properties';
-    const geometry = (options?.properties !== undefined)? options?.geometry: 'geometry';
+    const geometry = (options?.geometry !== undefined)? options?.geometry: 'geometry';
     features.forEach( feature => {
       const olFeature = new Feature(feature[geometry!]);
       if (feature.id) {
