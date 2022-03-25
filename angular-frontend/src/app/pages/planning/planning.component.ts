@@ -86,9 +86,6 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.planningService.getInfrastructures().subscribe( infrastructures => {
       this.infrastructures = infrastructures;
     })
-    this.planningService.activeScenario$.subscribe(scenario => {
-      this.cookies.set(`planning-scenario-${this.activeProcess?.id}`, scenario?.id);
-    })
 
     this.planningService.getProcesses().subscribe(processes => {
       this.auth.getCurrentUser().subscribe(user => {
@@ -120,11 +117,6 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     if (options?.persist)
       this.cookies.set('planning-process', process?.id);
     this.planningService.activeProcess$.next(process);
-    if (process) {
-      const scenarioId = this.cookies.get(`planning-scenario-${process.id}`, 'number');
-      const scenario = this.activeProcess?.scenarios?.find(s => s.id === scenarioId) || (process.scenarios && process.scenarios.length > 0)? process.scenarios![0]: undefined;
-      this.planningService.activeScenario$.next(scenario);
-    }
   }
 
   setSlider(): void {

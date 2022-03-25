@@ -33,11 +33,11 @@ export class ScenarioMenuComponent implements OnInit {
   editScenarioForm: FormGroup;
   process?: PlanningProcess;
 
-  constructor(private dialog: MatDialog, private planningService: PlanningService, cookies: CookieService,
+  constructor(private dialog: MatDialog, private planningService: PlanningService, private cookies: CookieService,
               private formBuilder: FormBuilder, private http: HttpClient, private rest: RestAPI) {
     this.planningService.activeProcess$.subscribe(process => {
       this.planningService.getBaseScenario().subscribe(scenario => {
-        this.baseScenario = scenario
+        this.baseScenario = scenario;
         this.onProcessChange(process);
       });
     })
@@ -56,6 +56,7 @@ export class ScenarioMenuComponent implements OnInit {
   setScenario(scenario: Scenario, options?: { silent?: boolean }): void {
     if (this.activeScenario === scenario) return;
     this.activeScenario = scenario;
+    this.cookies.set(`planning-scenario-${this.process?.id}`, scenario?.id);
     if (!options?.silent)
       this.planningService.activeScenario$.next(scenario);
   }
@@ -63,7 +64,9 @@ export class ScenarioMenuComponent implements OnInit {
   onProcessChange(process: PlanningProcess | undefined): void {
     this.process = process;
     this.scenarios = (process)? [this.baseScenario!].concat(process.scenarios || []): [];
-    this.activeScenario = this.baseScenario;
+    const scenarioId = this.cookies.get(`planning-scenario-${process?.id}`, 'number');
+    const scenario = this.scenarios?.find(s => s.id === scenarioId) || this.baseScenario;
+    this.planningService.activeScenario$.next(scenario);
   }
 
   onDeleteScenario(): void {
