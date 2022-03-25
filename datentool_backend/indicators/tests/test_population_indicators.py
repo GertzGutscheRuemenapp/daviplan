@@ -41,21 +41,33 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         """Test intersect areas and disaggregate population"""
         population: Population = self.population
 
+        data = {
+            'pop_raster': self.popraster.pk,
+            'drop_constraints': False
+        }
+        self.post('arealevels-intersect-areas', pk=self.area_level2.pk,
+                  data=data)
+
         area_level3 = AreaLevelFactory()
         # disaggregate the population, but no areas in arealevel
-        response = self.post('populations-intersectareaswithcells',
-                             pk=population.pk,
-                             data={'area_level': area_level3.pk,
-                                   'drop_constraints': False, })
+        response = self.post('arealevels-intersect-areas', pk=area_level3.pk,
+                             data=data)
         self.assert_http_202_accepted(response)
+        # ToDo: Note CF: testing for a specific message text???? that is strange
         self.assertEqual(response.data.get('message'), 'No areas available')
 
         # disaggregate the population and use precalculated rastercells
-        response = self.post('populations-intersectareaswithcells',
-                             pk=population.pk,
-                             data={'drop_constraints': False,})
-        self.assert_http_202_accepted(response)
-        print(response.data.get('message'))
+        # ToDo: shouldn't the populations have a reference to the area_level(s)?
+        # workaround by getting the supposed area_level indirectly
+        for area_level_id in self.popraster.rastercellpopulation_set.values_list(
+            'area__area_level', flat=True).distinct():
+            if area_level_id is None:
+                continue
+            response = self.post('arealevels-intersect-areas',
+                                 pk=area_level_id,
+                                 data={'drop_constraints': False,})
+            self.assert_http_202_accepted(response)
+            print(response.data.get('message'))
 
         # disaggregate the population and use precalculated rastercells
         response = self.post('populations-disaggregate', pk=population.pk,
@@ -64,9 +76,9 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
         self.assert_http_202_accepted(response)
         print(response.data.get('message'))
 
-        unknown_population = max(Population.objects.all().values_list('id', flat=True)) + 1
-        response = self.post('populations-intersectareaswithcells',
-                             pk=unknown_population,
+        unknown_level = max(AreaLevel.objects.all().values_list('id', flat=True)) + 1
+        response = self.post('arealevels-intersect-areas',
+                             pk=unknown_level,
                              data={'drop_constraints': False,})
         self.assert_http_406_not_acceptable(response)
 
@@ -206,18 +218,16 @@ class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
             self.post('populations-disaggregate', pk=population.pk,
                       data={'use_intersected_data': True,
                             'drop_constraints': False, })
-            self.post('populations-intersectareaswithcells', pk=population.pk,
-                      data={'area_level': self.area_level2.pk,
-                      'use_intersected_data': True,
-                      'drop_constraints': False, })
-            self.post('populations-intersectareaswithcells', pk=population.pk,
-                      data={'area_level': self.area_level3.pk,
-                      'use_intersected_data': True,
-                      'drop_constraints': False, })
-            self.post('populations-intersectareaswithcells', pk=population.pk,
-                      data={'area_level': self.area_level4.pk,
-                      'use_intersected_data': True,
-                      'drop_constraints': False, })
+            data = {
+                'pop_raster': self.popraster.pk,
+                'drop_constraints': False
+            }
+            self.post('arealevels-intersect-areas', pk=self.area_level2.pk,
+                      data=data)
+            self.post('arealevels-intersect-areas', pk=self.area_level3.pk,
+                      data=data)
+            self.post('arealevels-intersect-areas', pk=self.area_level4.pk,
+                      data=data)
 
     def aggregate_population(self):
         """aggregate populations to all arealevels"""

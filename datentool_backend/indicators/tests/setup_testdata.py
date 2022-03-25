@@ -29,12 +29,12 @@ from datentool_backend.population.factories import (PopulationRasterFactory,
                                                     RasterCellFactory,
                                                     RasterCellPopulationFactory,
                                                     PopulationFactory,
-                                                    PrognosisFactory,
                                                     )
 from datentool_backend.population.models import (Raster,
                                                  RasterCell,
                                                  PopulationEntry,
                                                 )
+from datentool_backend.indicators.factories import StopFactory
 
 
 class CreateInfrastructureTestdataMixin:
@@ -221,6 +221,13 @@ class CreateInfrastructureTestdataMixin:
                                   geom=Point(x=1000450, y=6500450))
 
     @classmethod
+    def create_stops(cls):
+        """Create some stops"""
+        cls.stop1 = StopFactory(geom=Point(x=1000008, y=6500003))
+        cls.stop2 = StopFactory(geom=Point(x=1000012, y=6500033))
+        cls.stop3 = StopFactory(geom=Point(x=1000100, y=6500500))
+
+    @classmethod
     def create_capacities(cls):
         CapacityFactory(place=cls.place1, service=cls.service1, capacity=1)
         CapacityFactory(place=cls.place1, service=cls.service2, capacity=2)
@@ -334,8 +341,8 @@ class CreateInfrastructureTestdataMixin:
             dims=('area', 'age_group', 'gender'))
 
         cls.create_population_entries(area_names,
-                                       pop_values_by_age_gender,
-                                       cls.population)
+                                      pop_values_by_age_gender,
+                                      cls.population)
 
         for i, year in enumerate(cls.years):
             population = PopulationFactory(prognosis=cls.prognosis,

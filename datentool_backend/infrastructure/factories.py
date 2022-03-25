@@ -56,7 +56,7 @@ class PlaceFieldFactory(DjangoModelFactory):
     class Meta:
         model = PlaceField
 
-    name = faker.unique.word()
+    name = factory.Sequence(lambda n: faker.unique.word())
     unit = faker.word()
     infrastructure = factory.SubFactory(InfrastructureFactory)
     field_type = factory.SubFactory(FieldTypeFactory)

@@ -1,3 +1,4 @@
+from typing import List
 from rest_framework import serializers
 
 
@@ -26,7 +27,7 @@ class PrognosisSerializer(serializers.ModelSerializer):
         model = Prognosis
         fields = ('id', 'name', 'years', 'is_default')
 
-    def get_years(self, obj):
+    def get_years(self, obj) -> List[int]:
         populations = Population.objects.filter(prognosis=obj)
         years = list(populations.values_list('year__year', flat=True).distinct())
         years.sort()

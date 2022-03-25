@@ -1,9 +1,18 @@
 from django.db.models import Prefetch, Q
-from rest_framework import viewsets, status
-from rest_framework.response import Response
-from drf_spectacular.utils import extend_schema, OpenApiParameter, extend_schema_view
+from django.http.request import QueryDict
 
-from datentool_backend.utils.views import ProtectCascadeMixin
+from rest_framework import viewsets, status, serializers
+from rest_framework.response import Response
+from rest_framework.decorators import action
+
+from drf_spectacular.utils import (extend_schema,
+                                   OpenApiParameter,
+                                   extend_schema_view,
+                                   inline_serializer,
+                                   )
+
+from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
+from datentool_backend.utils.serializers import drop_constraints
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata,)
 
@@ -22,6 +31,8 @@ from .serializers import (ScenarioSerializer,
                           PlaceSerializer,
                           CapacitySerializer,
                           PlaceFieldSerializer,
+                          PlacesTemplateSerializer,
+                          infrastructure_id_serializer,
                           )
 
 
@@ -41,9 +52,12 @@ class ScenarioViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 @extend_schema_view(list=extend_schema(description='List Places',
                                        parameters=[]),
                     retrieve=extend_schema(description='Get Place with id'))
-class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSet):
 
     serializer_class = PlaceSerializer
+    serializer_action_classes = {
+        'create_template': PlacesTemplateSerializer,
+        'upload_template': PlacesTemplateSerializer}
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
     filter_fields = ['infrastructure']
 
@@ -81,6 +95,43 @@ class PlaceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                          queryset=PlaceAttribute.objects.select_related('field__field_type'))
                 )
         return queryset
+
+    @extend_schema(description='Create Excel-Template to download',
+                   request=inline_serializer(
+                       name='PlaceCreateSerializer',
+                       fields={'infrastructure_id': infrastructure_id_serializer}
+                       ),
+                   )
+    @action(methods=['POST'], detail=False, permission_classes=[CanEditBasedata])
+    def create_template(self, request):
+        """Download the Template"""
+        infrastructure_id = request.data.get('infrastructure_id')
+        return super().create_template(request, infrastructure_id=infrastructure_id)
+
+    @extend_schema(description='Upload Excel-File with Places and Capacities',
+                   request=inline_serializer(
+                       name='PlaceFileDropConstraintSerializer',
+                       fields={'infrastructure_id': infrastructure_id_serializer,
+                               #'drop_constraints': drop_constraints,
+                               'excel_file': serializers.FileField(),
+                               }
+                       )
+                   )
+    @action(methods=['POST'], detail=False, permission_classes=[CanEditBasedata])
+    def upload_template(self, request):
+        """Download the Template"""
+        infrastructure_id = request.data.get('infrastructure_id')
+        # no constraint dropping, because we use individual updates
+        data = QueryDict(mutable=True)
+        data.update(self.request.data)
+        data['drop_constraints'] = 'False'
+        request._full_data = data
+
+        queryset = Place.objects.none()
+        return super().upload_template(request,
+                                       queryset=queryset,
+                                       infrastructure_id=infrastructure_id)
+
 
 capacity_params = [
     OpenApiParameter(name='service',
