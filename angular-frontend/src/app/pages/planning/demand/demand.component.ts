@@ -48,6 +48,10 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   }
 
   initData(): void {
+    this.planningService.year$.subscribe(year => {
+      this.year = year;
+      this.updateMap();
+    })
     let observables: Observable<any>[] = [];
     observables.push(this.planningService.getInfrastructures().pipe(map(infrastructures => {
       this.infrastructures = infrastructures;
@@ -74,6 +78,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   onAreaLevelChange(): void {
     this.planningService.getAreas(this.activeLevel!.id).subscribe(areas => {
       this.areas = areas;
+      this.updateMap();
     })
   }
 
@@ -95,7 +100,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
     if (!this.year || !this.activeLevel || !this.activeService) return;
     this.updateMapDescription();
 
-    /*this.planningService.getDemand(this.activeLevel.id,
+    this.planningService.getDemand(this.activeLevel.id,
       { year: this.year!, prognosis: undefined, service: this.activeService?.id }).subscribe(demandData => {
         const colorFunc = d3.scaleSequential().domain([0, 1000 || 0])
           .interpolator(d3.interpolateViridis);
@@ -134,7 +139,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
       })
       this.mapControl?.addFeatures(this.demandLayer!.id!, this.areas,
         { properties: 'properties', geometry: 'centroid', zIndex: 'value' });
-    })*/
+    })
   }
 
   updateMapDescription(): void {
