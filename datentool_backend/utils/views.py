@@ -1,18 +1,13 @@
-from rest_framework import viewsets, status
-from django.contrib.auth.mixins import UserPassesTestMixin
-from django.http import (HttpResponse,
-                         HttpResponseForbidden,
-                         JsonResponse,
-                         )
+from django.http import HttpResponseForbidden
 from django.db.models import ProtectedError
 from django.utils.translation import ugettext as _
-from abc import ABC
-from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404
-from rest_framework import status
+
+from rest_framework import viewsets, status
 from rest_framework.response import Response
-from rest_framework.utils.serializer_helpers import ReturnDict
+
 from drf_spectacular.utils import extend_schema, OpenApiParameter
+
+from .excel_template import ExcelTemplateMixin
 
 
 class SingletonViewSet(viewsets.ModelViewSet):

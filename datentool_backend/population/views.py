@@ -16,8 +16,11 @@ from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
+from drf_spectacular.utils import (extend_schema,
+                                   OpenApiResponse,
+                                   inline_serializer)
 
+from datentool_backend.area.views import intersect_areas_with_raster
 from .models import (Raster,
                      PopulationRaster,
                      Prognosis,
@@ -31,15 +34,21 @@ from .models import (Raster,
                      PopulationAreaLevel,
                      AreaCell,
                      )
-from .serializers import (RasterSerializer,
-                          PopulationRasterSerializer,
-                          PrognosisSerializer,
-                          PopulationSerializer,
-                          PopulationDetailSerializer,
-                          PopulationEntrySerializer,
-                          PopStatisticSerializer,
-                          PopStatEntrySerializer,
-                          MessageSerializer,
+
+from datentool_backend.utils.serializers import (MessageSerializer,
+                                                 use_intersected_data,
+                                                 drop_constraints,
+                                                 area_level,
+                                                 )
+
+from datentool_backend.population.serializers import (RasterSerializer,
+                                                      PopulationRasterSerializer,
+                                                      PrognosisSerializer,
+                                                      PopulationSerializer,
+                                                      PopulationDetailSerializer,
+                                                      PopulationEntrySerializer,
+                                                      PopStatisticSerializer,
+                                                      PopStatEntrySerializer,
                           )
 
 from datentool_backend.area.models import Area, AreaLevel
@@ -80,128 +89,14 @@ class PopulationViewSet(viewsets.ModelViewSet):
         serializer = PopulationDetailSerializer(instance)
         return Response(serializer.data)
 
-    @extend_schema(description='intersect areas with rastercells',
-                   parameters=[
-                       OpenApiParameter(name='area_level', required=False, type=int,
-        description='''if a specific area_level_id is provided,
-        take this one instead of the areas of the population'''),
-                       OpenApiParameter(name='drop_constraints',
-                                        required=False,
-                                        type=bool,
-                                        default=True,
-                                        description='set to false for tests')
-                   ],
-                   request=None,
-                   responses={202: OpenApiResponse(MessageSerializer, 'Intersection successful'),
-                              406: OpenApiResponse(MessageSerializer, 'Intersection failed')})
-    @action(methods=['POST'], detail=True,
-            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
-    def intersectareaswithcells(self, request, **kwargs):
-        """
-        route to intersect areas with raster cells
-        """
-        try:
-            population: Population = self.queryset.get(**kwargs)
-        except Population.DoesNotExist:
-            msg = f'Population for {kwargs} not found'
-            return Response({'message': msg,}, status.HTTP_406_NOT_ACCEPTABLE)
-
-        # if a specific area-level is provided, take this one
-        # instead of the areas of the population
-        area_level_id = request.data.get('area_level')
-        if area_level_id:
-            areas = Area.objects.filter(area_level_id=area_level_id)\
-                .values_list('pk', flat=True)
-        else:
-            areas = population.populationentry_set.distinct('area_id')\
-                .values_list('area_id', flat=True)
-
-        if not areas:
-            return Response({'message': 'No areas available', },
-                            status=status.HTTP_202_ACCEPTED)
-
-        # use only cells with population and put values from Census to column pop
-        raster_cells = population.popraster.raster.rastercell_set
-
-        raster_cells_with_inhabitants = raster_cells\
-            .filter(rastercellpopulation__isnull=False)\
-            .annotate(pop=F('rastercellpopulation__value'),
-                      rcp_id=F('rastercellpopulation__id'),
-                      )
-
-        # spatial intersect with areas from given area_level
-        area_tbl = Area._meta.db_table
-
-        rr = raster_cells_with_inhabitants.extra(
-            select={f'area_id': f'"{area_tbl}".id',
-                    f'm2_raster': 'st_area(st_transform(poly, 3035))',
-                    f'm2_intersect': f'st_area(st_transform(st_intersection(poly, "{area_tbl}".geom), 3035))',
-                    },
-            tables=[area_tbl],
-            where=[f'''st_intersects(poly, "{area_tbl}".geom)
-            AND "{area_tbl}".id IN %s
-            '''],
-            params=(tuple(areas),),
-        )
-
-        df = pd.DataFrame.from_records(
-            rr.values('id', 'area_id', 'pop', 'rcp_id',
-                      'm2_raster', 'm2_intersect', 'cellcode'))\
-            .set_index(['id', 'area_id'])
-
-        df['share_area_of_cell'] = df['m2_intersect'] / df['m2_raster']
-
-        # calculate weight as Census-Population *
-        # share of area of the total area of the rastercell
-        df['weight'] = df['pop'] * df['m2_intersect'] / df['m2_raster']
-
-        # sum up the weights of all rastercells in an area
-        area_weight = df['weight'].groupby(level='area_id').sum().rename('total_weight')
-
-        # calculate the share of population, a rastercell
-        # should get from the total population
-        df = df.merge(area_weight, left_on='area_id', right_index=True)
-        df['share_cell_of_area'] = df['weight'] / df['total_weight']
-
-        # sum up the weights of all areas in a cell
-        cell_weight = df['weight'].groupby(level='id').sum().rename('total_weight_cell')
-
-        df = df.merge(cell_weight, left_on='id', right_index=True)
-        df['share_area_of_cell'] = df['weight'] / df['total_weight_cell']
-
-        df2 = df[['rcp_id', 'share_area_of_cell', 'share_cell_of_area']]\
-            .reset_index()\
-            .rename(columns={'rcp_id': 'cell_id'})[['area_id', 'cell_id', 'share_area_of_cell', 'share_cell_of_area']]
-
-        ac = AreaCell.objects.filter(area__in=areas,
-                                     cell__popraster=population.popraster)
-        ac.delete()
-
-        drop_constraints = bool(strtobool(
-            request.data.get('drop_constraints', 'False')))
-
-        with StringIO() as file:
-            df2.to_csv(file, index=False)
-            file.seek(0)
-            AreaCell.copymanager.from_csv(file,
-                drop_constraints=drop_constraints, drop_indexes=drop_constraints)
-
-        msg = f'{len(areas)} Areas were successfully intersected with Rastercells.\n'
-        return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
-
     @extend_schema(description='Disaggregate all Populations',
-                   parameters=[
-                       OpenApiParameter(
-                           name='use_intersected_data',
-                           required=False, type=bool, default=True,
-                           description='''use precalculated rastercells'''),
-                       OpenApiParameter(name='drop_constraints',
-                                        required=False,
-                                        type=bool,
-                                        default=True,
-                                        description='set to false for tests'),
-                   ],
-                   request=None,
+                   request=inline_serializer(
+                       name='DisaggregateAllPopulationsSerializer',
+                       fields={
+                           'use_intersected_data': use_intersected_data,
+                           'drop_constraints': drop_constraints,
+                       }
+                   ),
                    responses={202: OpenApiResponse(MessageSerializer,
                                                    'Disaggregation successful'),
                               406: OpenApiResponse(MessageSerializer,
@@ -225,6 +120,20 @@ class PopulationViewSet(viewsets.ModelViewSet):
             data['drop_constraints'] = 'False'
             request._full_data = data
 
+            use_intersected_data = bool(strtobool(
+                request.data.get('use_intersected_data', 'False')))
+            pop_rasters = PopulationRaster.objects.all()
+            for pop_raster in pop_rasters:
+                for area_level in AreaLevel.objects.all():
+                    areas = Area.objects.filter(area_level=area_level)
+                    cells = AreaCell.objects.filter(area__in=areas)
+                    if not areas or (cells and use_intersected_data):
+                        continue
+                    intersect_areas_with_raster(areas, pop_raster=pop_raster)
+
+            data['use_intersected_data'] = 'True'
+            request._full_data = data
+
             for population in Population.objects.all():
                 self.disaggregate(request, **{'pk': population.id})
 
@@ -239,19 +148,14 @@ class PopulationViewSet(viewsets.ModelViewSet):
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
     @extend_schema(description='Disaggregate Population to rastercells',
-                   parameters=[
-                       OpenApiParameter(name='area_level', required=False, type=int,
-        description='''if a specific area_level_id is provided,
-        take this one instead of the areas of the population'''),
-                       OpenApiParameter(name='use_intersected_data', required=False, type=bool,
-        description='''use precalculated rastercells'''),
-                       OpenApiParameter(name='drop_constraints',
-                                        required=False,
-                                        type=bool,
-                                        default=True,
-                                        description='set to false for tests'),
-                   ],
-                   request=None,
+                   request=inline_serializer(
+                       name='DisaggregatePopulationSerializer',
+                       fields={
+                           'area_level': area_level,
+                           'use_intersected_data': use_intersected_data,
+                           'drop_constraints': drop_constraints,
+                       }
+                   ),
                    responses={202: OpenApiResponse(MessageSerializer, 'Disaggregation successful'),
                               406: OpenApiResponse(MessageSerializer, 'Disaggregation failed')})
     @action(methods=['POST'], detail=True,
@@ -273,11 +177,12 @@ class PopulationViewSet(viewsets.ModelViewSet):
                                      cell__popraster=population.popraster)
 
         # if rastercells are not intersected yet
-        if ac and request.data.get('use_intersected_data'):
+        if ac and bool(strtobool(request.data.get('use_intersected_data', 'False'))):
             msg = 'use precalculated rastercells\n'
         else:
-            response = self.intersectareaswithcells(request, **kwargs)
-            msg = response.data.get('message', '')
+            intersect_areas_with_raster(Area.objects.filter(id__in=areas),
+                                        pop_raster=population.popraster)
+            msg = f'{len(areas)} Areas intersected with Rastercells.\n'
             ac = AreaCell.objects.filter(area__in=areas,
                                          cell__popraster=population.popraster)
 
@@ -347,18 +252,14 @@ class PopulationViewSet(viewsets.ModelViewSet):
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
     @extend_schema(description='Aggregate Population from rastercells to area',
-                   parameters=[
-                       OpenApiParameter(name='area_level', required=True, type=int,
-                                        description='''The Area_level to aggregate to'''),
-                       OpenApiParameter(name='use_intersected_data', required=False, type=bool,
-                                        description='''use precalculated rastercells'''),
-                       OpenApiParameter(name='drop_constraints',
-                                        required=False,
-                                        type=bool,
-                                        default=True,
-                                        description='set to false for tests'),
-                   ],
-                   request=None,
+                   request=inline_serializer(
+                       name='AggregatePopulationAreaSerializer',
+                       fields={
+                           'area_level': area_level,
+                           'use_intersected_data': use_intersected_data,
+                           'drop_constraints': drop_constraints
+                       }
+                   ),
                    responses={202: OpenApiResponse(MessageSerializer, 'Aggregation successful'),
                               406: OpenApiResponse(MessageSerializer, 'Aggregation failed')})
     @action(methods=['POST'], detail=True,
@@ -436,18 +337,13 @@ class PopulationViewSet(viewsets.ModelViewSet):
 
 
     @extend_schema(description='Aggregate all Populations',
-                   parameters=[
-                       OpenApiParameter(
-                           name='use_intersected_data',
-                           required=False, type=bool, default=True,
-                           description='''use precalculated rastercells'''),
-                       OpenApiParameter(name='drop_constraints',
-                                        required=False,
-                                        type=bool,
-                                        default=True,
-                                        description='set to false for tests'),
-                   ],
-                   request=None,
+                   request=inline_serializer(
+                       name='AggregateAllPopulationsSerializer',
+                       fields={
+                           'use_intersected_data': use_intersected_data,
+                           'drop_constraints': drop_constraints,
+                       }
+                   ),
                    responses={202: OpenApiResponse(MessageSerializer,
                                                    'Aggregation successful'),
                               406: OpenApiResponse(MessageSerializer,

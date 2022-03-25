@@ -1,20 +1,10 @@
+from typing import List
 from rest_framework import serializers
-from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from datentool_backend.utils.geometry_fields import GeometrySRIDField
 
-from .models import (Stop, Router)
+from datentool_backend.indicators.models import Router
 from datentool_backend.area.models import Area
 from datentool_backend.population.models import RasterCell
 from datentool_backend.infrastructure.models import Place
-
-
-class StopSerializer(GeoFeatureModelSerializer):
-    geom = GeometrySRIDField(srid=3857)
-
-    class Meta:
-        model = Stop
-        geo_field = 'geom'
-        fields = ('id', 'name')
 
 
 class IndicatorSerializer(serializers.Serializer):
@@ -24,12 +14,12 @@ class IndicatorSerializer(serializers.Serializer):
     result_type = serializers.SerializerMethodField('get_result_type')
     additional_parameters = serializers.SerializerMethodField('get_parameters')
 
-    def get_result_type(self, obj):
+    def get_result_type(self, obj) -> str:
         if obj.result_serializer:
             return obj.result_serializer.name.lower()
         return 'none'
 
-    def get_parameters(self, obj):
+    def get_parameters(self, obj) -> List[str]:
         if not obj.params:
             return []
         return [p.serialize() for p in obj.params]

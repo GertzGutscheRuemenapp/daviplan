@@ -92,6 +92,7 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'Datentool Project API',
     'DESCRIPTION': 'Bule Datentool',
     'VERSION': '1.0.0',
+    'COMPONENT_SPLIT_REQUEST': True,
     # OTHER SETTINGS
 }
 

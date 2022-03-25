@@ -3,13 +3,12 @@ from typing import Dict
 from django.db import models
 from django.contrib.gis.db import models as gis_models
 from datentool_backend.base import (NamedModel,
-                                    JsonAttributes,
                                     DatentoolModelMixin,
                                     )
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
+from datentool_backend.utils.copy_postgres import DirectCopyManager
 
-from datentool_backend.user.models import Service
-from datentool_backend.area.models import FieldType
+
 from datentool_backend.infrastructure.models import Place
 from datentool_backend.modes.models import ModeVariant
 from datentool_backend.population.models import RasterCell
@@ -19,6 +18,9 @@ class Stop(DatentoolModelMixin, NamedModel, models.Model):
     """location of a public transport stop"""
     name = models.TextField()
     geom = gis_models.PointField(srid=3857)
+
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
 
 
 class MatrixCellPlace(models.Model):
@@ -30,6 +32,9 @@ class MatrixCellPlace(models.Model):
     variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
     minutes = models.FloatField()
 
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
+
 
 class MatrixCellStop(models.Model):
     """Reachabliliy Matrix between raster cell and stop with a mode variante"""
@@ -39,6 +44,9 @@ class MatrixCellStop(models.Model):
                              related_name='stop_cell')
     variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
     minutes = models.FloatField()
+
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
 
 
 class MatrixPlaceStop(models.Model):
@@ -50,6 +58,9 @@ class MatrixPlaceStop(models.Model):
     variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
     minutes = models.FloatField()
 
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
+
 
 class MatrixStopStop(models.Model):
     """Reachabliliy Matrix between a stop and a stop with a mode variante"""
@@ -59,6 +70,9 @@ class MatrixStopStop(models.Model):
                                 related_name='to_stop')
     variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
     minutes = models.FloatField()
+
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
 
 
 class Router(NamedModel, models.Model):

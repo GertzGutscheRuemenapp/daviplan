@@ -1,4 +1,8 @@
+from tempfile import mkdtemp
 from datentool.settings_dev import *
+
+
+MEDIA_ROOT = mkdtemp(prefix='media_')
 
 DATABASES = {
     'default': {

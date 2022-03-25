@@ -1,3 +1,4 @@
+from django.db import models
 from rest_framework import viewsets, serializers
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -15,20 +16,14 @@ from datentool_backend.indicators.compute import (
 
 from datentool_backend.indicators.serializers import (IndicatorSerializer)
 
-from .parameters import (area_level_param,
-                         areas_param,
-                         year_param,
-                         prognosis_param,
-                         genders_param,
-                         age_groups_param,
-                         services_param,
-                         scenario_param,
-                         place_param, loc_x_param, loc_y_param
-                         )
+from .parameters import (arealevel_year_service_scenario_serializer,
+                         area_agegroup_gender_prognosis_year_fields,
+                         arealevel_area_agegroup_gender_prognosis_year_fields)
 
 
 class FixedIndicatorViewSet(viewsets.GenericViewSet):
     serializer_class = IndicatorSerializer
+    queryset = models.QuerySet() # dummy queryset
 
     @extend_schema(
         description='Indicator description',
@@ -38,15 +33,8 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
     @extend_schema(
         description='get the total population for selected areas',
         request=inline_serializer(
-            name='InlineOneOffSerializer',
-            fields={
-                'area_level': serializers.IntegerField(required=True),
-                'area': serializers.ListField(child=serializers.IntegerField(), required=False),
-                'age_group': serializers.ListField(child=serializers.IntegerField(), required=False),
-                'gender': serializers.ListField(child=serializers.IntegerField(), required=False),
-                'prognosis':  serializers.IntegerField(required=False),
-                'year': serializers.IntegerField(required=False),
-            }
+            name='InlinePopulationAreaSerializer',
+            fields=arealevel_area_agegroup_gender_prognosis_year_fields,
         ),
         responses=ComputePopulationAreaIndicator.result_serializer.value(many=True),
         methods=['POST']
@@ -65,12 +53,7 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
         methods=['GET']
     )
     @extend_schema(
-        parameters=[area_level_param,
-                    year_param,
-                    services_param,
-                    scenario_param,
-                    ],
-        request=None,
+        request=arealevel_year_service_scenario_serializer,
         responses=NumberOfLocations.result_serializer.value(many=True),
         methods=['POST']
     )
@@ -89,12 +72,7 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
         methods=['GET']
     )
     @extend_schema(
-        parameters=[area_level_param,
-                    year_param,
-                    services_param,
-                    scenario_param,
-                    ],
-        request=None,
+        request=arealevel_year_service_scenario_serializer,
         responses=TotalCapacityInArea.result_serializer.value(many=True),
         methods=['POST']
     )
@@ -113,18 +91,13 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
         methods=['GET']
     )
     @extend_schema(
-        parameters=[area_level_param,
-                    year_param,
-                    scenario_param,
-                    services_param,
-                    ],
-        request=None,
+        request=arealevel_year_service_scenario_serializer,
         responses=DemandAreaIndicator.result_serializer.value(many=True),
         methods=['POST']
     )
     @action(methods=['GET', 'POST'], detail=False)
     def demand(self, request, **kwargs):
-        """get the total population for selected areas"""
+        """get the total demand for selected services in selected areas"""
         indicator = DemandAreaIndicator(self.request.data)
         if request.method == 'GET':
             return Response(IndicatorSerializer(indicator).data)
@@ -138,14 +111,8 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
     )
     @extend_schema(
         request=inline_serializer(
-            name='InlineOneOffSerializer',
-            fields={
-                'area': serializers.ListField(child=serializers.IntegerField(), required=False),
-                'age_group': serializers.ListField(child=serializers.IntegerField(), required=False),
-                'genders': serializers.ListField(child=serializers.IntegerField(), required=False),
-                'prognosis':  serializers.IntegerField(required=False),
-                'year': serializers.IntegerField(required=False),
-            }
+            name='InlinePopulationDetailSerializer',
+            fields=area_agegroup_gender_prognosis_year_fields,
         ),
         responses=ComputePopulationDetailIndicator.result_serializer.value(many=True),
         methods=['POST']
@@ -165,8 +132,12 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
         methods=['GET']
     )
     @extend_schema(
-        parameters=[place_param],
-        request=None,
+        request=inline_serializer(
+            name='PlaceIdSerializer',
+            fields={
+                'place': serializers.IntegerField(required=False),
+            }
+        ),
         responses=ReachabilityPlace.result_serializer.value(many=True),
         methods=['POST']
     )
@@ -185,8 +156,15 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
         methods=['GET']
     )
     @extend_schema(
-        parameters=[loc_x_param, loc_y_param],
-        request=None,
+        request=inline_serializer(
+            name='LatLonSerializer',
+            fields={
+                'lon': serializers.FloatField(required=True, label='x-coord',
+                                              help_text='WGS84-Longitude'),
+                'lat': serializers.FloatField(required=True, label='y-coord',
+                                              help_text='WGS84-Latitude'),
+            }
+        ),
         responses=ReachabilityCell.result_serializer.value(many=True),
         methods=['POST']
     )

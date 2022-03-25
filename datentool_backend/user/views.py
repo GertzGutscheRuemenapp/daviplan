@@ -1,12 +1,12 @@
-from rest_framework import viewsets, permissions
-from django.db.models import Q
+from django.db.models import Q, Max
+from django.core.exceptions import BadRequest
+from django.contrib.auth.models import User
+
+from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
-from django.core.exceptions import BadRequest
-from django.db.models import Max
 
-from django.contrib.auth.models import User
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 
 from datentool_backend.indicators.compute.base import (
     ServiceIndicator, ResultSerializer)
@@ -126,7 +126,8 @@ class PlanningProcessViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                          condition_owner_in_user).distinct()
 
 
-class InfrastructureViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+class InfrastructureViewSet(ProtectCascadeMixin,
+                            viewsets.ModelViewSet):
     queryset = Infrastructure.objects.all()
     serializer_class = InfrastructureSerializer
     permission_classes = [CanPatchSymbol]

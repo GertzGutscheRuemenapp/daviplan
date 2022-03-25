@@ -83,7 +83,7 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
     population_cache_dirty = models.BooleanField(default=True)
 
     @property
-    def label_field(self):
+    def label_field(self) -> str:
         """the label field derived from the Fields"""
         try:
             return self.areafield_set.get(is_label=True).name

@@ -49,7 +49,7 @@ class PopulationIndicatorMixin:
         if scenario:
             prognosis = Scenario.objects.get(pk=scenario).prognosis_id
         else:
-            prognosis = self.data.get('prognosis')
+            prognosis = self.data.get('prognosis') or None
         filter_params = {'population__prognosis': prognosis, }
         year = self.data.get('year')
         if year:
@@ -62,9 +62,9 @@ class PopulationIndicatorMixin:
             genders = self.data.get('gender')
             age_groups = self.data.get('age_group')
 
-        if genders:
+        if genders and genders != ['']:
             filter_params['gender__in'] = genders
-        if age_groups:
+        if age_groups and age_groups != ['']:
             filter_params['age_group__in'] = age_groups
         return filter_params
 
@@ -73,7 +73,7 @@ class PopulationIndicatorMixin:
         if scenario:
             prognosis = Scenario.objects.get(pk=scenario).prognosis_id
         else:
-            prognosis = self.data.get('prognosis')
+            prognosis = self.data.get('prognosis') or None
         filter_params = {'prognosis': prognosis, }
         year = self.data.get('year')
         if year:
@@ -90,7 +90,7 @@ class PopulationIndicatorMixin:
             areas = self.data.getlist('area')
         else:
             areas = self.data.get('area')
-        if areas:
+        if areas and areas != ['']:
             area_filter['id__in'] = areas
 
         areas = Area.label_annotated_qs().filter(**area_filter)

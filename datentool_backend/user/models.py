@@ -64,6 +64,7 @@ class Infrastructure(DatentoolModelMixin, NamedModel, models.Model):
     '''
     Infrastructure that provide services
     '''
+
     name = models.TextField()
     description = models.TextField(blank=True)
     editable_by = models.ManyToManyField(
@@ -77,7 +78,7 @@ class Infrastructure(DatentoolModelMixin, NamedModel, models.Model):
                                   null=True, blank=True)
 
     @property
-    def label_field(self):
+    def label_field(self) -> str:
         """the label field derived from the Fields"""
         try:
             return self.placefield_set.get(is_label=True).name
@@ -126,11 +127,11 @@ class Service(DatentoolModelMixin, NamedModel, models.Model):
     has_capacity = models.BooleanField()
     demand_singular_unit = models.TextField()
     demand_plural_unit = models.TextField()
-    demand_name = models.TextField(null=True)
-    demand_description = models.TextField(null=True)
+    demand_name = models.TextField(null=True, blank=True)
+    demand_description = models.TextField(null=True, blank=True)
     has_capacity = models.BooleanField()
-    facility_singular_unit = models.TextField()
-    facility_article = models.TextField()
-    facility_plural_unit = models.TextField()
+    facility_singular_unit = models.TextField(null=True, blank=True)
+    facility_article = models.TextField(null=True, blank=True)
+    facility_plural_unit = models.TextField(null=True, blank=True)
     direction_way_relationship = models.IntegerField(
         choices=WayRelationship.choices)
