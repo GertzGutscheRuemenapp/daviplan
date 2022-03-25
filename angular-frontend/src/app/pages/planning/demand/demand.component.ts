@@ -124,15 +124,25 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
 
     this.planningService.getDemand(this.activeLevel.id,
       { year: this.year!, prognosis: undefined, service: this.activeService?.id }).subscribe(demandData => {
-        let max = 0;
+        let max = 1;
+        let min = Number.MAX_VALUE;
         this.areas.forEach(area => {
           const data = demandData.find(d => d.areaId == area.id);
           const value = (data)? Math.round(data.value): 0;
           max = Math.max(max, value);
+          min = Math.min(min, value);
           area.properties.value = value;
           area.properties.description = `<b>${area.properties.label}</b><br>Nachfrage: ${area.properties.value}`
         })
-        const radiusFunc = d3.scaleLinear().domain([0, max || 1000]).range([5, 50]);
+        const radiusFunc = d3.scaleLinear().domain([(min <= max)? min: 0, max]).range([5, 50]);
+        // const colorFunc = d3.scaleSequential().domain([0, 9 || 0])
+        // .interpolator(d3.interpolateViridis);
+        const steps = (max < 1.2 * min)? 3: (max < 1.4)? 5: (max < 1.6 * min)? 7: 9;
+        // const colorFunc = d3.scaleThreshold<string>()
+        //   .domain(d3.range(min, max, max/steps) ) //[20, 40, 60, 80]
+        //   .range(d3.schemeBlues[steps]);
+        const colorFunc = d3.scaleLog<string>().domain(d3.range(min, max, max/steps))
+          .range(d3.schemeBlues[steps])
         this.demandLayer = this.mapControl?.addLayer({
             order: 0,
             type: 'vector',
@@ -143,7 +153,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
             symbol: {
               strokeColor: 'white',
               fillColor: 'rgba(165, 15, 21, 0.9)',
-              symbol: 'circle'
+              symbol: 'line'
             },
             labelField: 'value',
             showLabel: true
@@ -155,15 +165,10 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
               strokeColor: 'yellow',
               fillColor: 'rgba(255, 255, 0, 0.7)'
             },
-            selectable: true,
-            select: {
-              strokeColor: 'rgb(180, 180, 0)',
-              fillColor: 'rgba(255, 255, 0, 0.9)'
-            },
-            radiusFunc: radiusFunc
+            colorFunc: colorFunc
           });
         this.mapControl?.addFeatures(this.demandLayer!.id!, this.areas,
-          { properties: 'properties', geometry: 'centroid', zIndex: 'value' });
+          { properties: 'properties' });
     })
   }
 
