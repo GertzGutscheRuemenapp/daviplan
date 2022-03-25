@@ -17,6 +17,7 @@ import { MapControl, MapService } from "../../../map/map.service";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
 import * as d3 from "d3";
 import { FilterColumn } from "../../../elements/filter-table/filter-table.component";
+import { Subscription } from "rxjs";
 
 @Component({
   selector: 'app-supply',
@@ -47,6 +48,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   activeScenario?: Scenario;
   _filterColumnsTemp: FilterColumn[] = [];
   filterColumns: FilterColumn[] = [];
+  subscriptions: Subscription[] = [];
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
               public planningService: PlanningService) {
@@ -73,15 +75,16 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   initData(): void {
-    this.planningService.year$.subscribe(year => {
+    this.subscriptions.push(this.planningService.year$.subscribe(year => {
       this.year = year;
       this.updatePlaces();
-    })
+    }))
     this.planningService.activeProcess$.subscribe(process => {
       this.activeProcess = process;
     })
     this.planningService.activeScenario$.subscribe(scenario => {
       this.activeScenario = scenario;
+      this.updatePlaces();
     })
     this.planningService.getRealYears().subscribe( years => {
       this.realYears = years;
@@ -126,6 +129,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   updatePlaces(): void {
     if (!this.activeInfrastructure || this.activeInfrastructure.services.length === 0) return;
+    this.updateMapDescription();
     this.planningService.getPlaces(this.activeInfrastructure.id,
       { targetProjection: this.mapControl!.map!.mapProjection }).subscribe(places => {
       this.places = places;
@@ -266,9 +270,16 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     })
   }
 
+  updateMapDescription(): void {
+    const desc = `Planungsprozess: ${this.activeProcess?.name} > ${this.activeScenario?.name} | ${this.year} <br>
+                  Angebot an ${this.activeService?.name}`
+    this.mapControl!.mapDescription = desc;
+  }
+
   ngOnDestroy(): void {
     if (this.legendGroup) {
       this.mapControl?.removeGroup(this.legendGroup.id!);
     }
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }

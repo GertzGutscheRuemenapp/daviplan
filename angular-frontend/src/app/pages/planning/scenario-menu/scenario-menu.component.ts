@@ -10,6 +10,7 @@ import { PlanningProcess, Scenario } from "../../../rest-interfaces";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
+import { CookieService } from "../../../helpers/cookies.service";
 
 @Component({
   selector: 'app-scenario-menu',
@@ -32,13 +33,17 @@ export class ScenarioMenuComponent implements OnInit {
   editScenarioForm: FormGroup;
   process?: PlanningProcess;
 
-  constructor(private dialog: MatDialog, private planningService: PlanningService,
+  constructor(private dialog: MatDialog, private planningService: PlanningService, cookies: CookieService,
               private formBuilder: FormBuilder, private http: HttpClient, private rest: RestAPI) {
     this.planningService.activeProcess$.subscribe(process => {
       this.planningService.getBaseScenario().subscribe(scenario => {
         this.baseScenario = scenario
         this.onProcessChange(process);
       });
+    })
+    this.planningService.activeScenario$.subscribe(scenario => {
+       if (scenario)
+         this.setScenario(scenario, {silent: true});
     })
     this.editScenarioForm = this.formBuilder.group({
       scenarioName: new FormControl('')
@@ -48,16 +53,11 @@ export class ScenarioMenuComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  setScenario(scenario: Scenario): void {
+  setScenario(scenario: Scenario, options?: { silent?: boolean }): void {
     if (this.activeScenario === scenario) return;
     this.activeScenario = scenario;
-    this.scenarioCards?.forEach((card: ElementRef) => {
-      let el = card.nativeElement;
-      if (el.attributes['data-value'].nodeValue === this.activeScenario?.id)
-        el.classList.add('active');
-      else
-        el.classList.remove('active');
-    });
+    if (!options?.silent)
+      this.planningService.activeScenario$.next(scenario);
   }
 
   onProcessChange(process: PlanningProcess | undefined): void {

@@ -6,6 +6,7 @@ import { RestCacheService } from "../../rest-cache.service";
 import { BehaviorSubject, Observable } from "rxjs";
 import { PlanningProcess, Scenario } from "../../rest-interfaces";
 import { SettingsService } from "../../settings.service";
+import { CookieService } from "../../helpers/cookies.service";
 
 @Injectable({
   providedIn: 'root'
@@ -19,8 +20,22 @@ export class PlanningService extends RestCacheService {
   activeScenario$ = new BehaviorSubject<Scenario | undefined>(undefined);
   showScenarioMenu = false;
 
-  constructor(protected http: HttpClient, protected rest: RestAPI, private settings: SettingsService) {
+  constructor(protected http: HttpClient, protected rest: RestAPI, private settings: SettingsService,
+              private cookies: CookieService) {
     super(http, rest);
+/*    this.year$.next(this.cookies.get('planning-year', 'number') || 0);
+    this.activeProcess$.next(this.cookies.get('planning-year', 'number') || 0);
+    this.activeScenario$.next(this.cookies.get('planning-year', 'number') || 0);
+
+    this.year$.subscribe(year => {
+      this.cookies.set('planning-year', year);
+    });
+    this.activeProcess$.subscribe(process => {
+      this.cookies.set('planning-process', process?.id);
+    })
+    this.activeScenario$.subscribe(scenario => {
+      this.cookies.set('planning-scenario', scenario?.id);
+    })*/
   }
 
   getProcesses(): Observable<PlanningProcess[]>{

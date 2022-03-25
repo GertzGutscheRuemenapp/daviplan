@@ -2,7 +2,7 @@
   <div id="scenario-menu">
     <div id="scenario-cards">
       <div #scenario [ngClass]="{active: scenario === activeScenario}"
-           *ngFor="let scenario of scenarios" [attr.data-value]="scenario.id"
+           *ngFor="let scenario of scenarios"
            class="scenario-card">
         <div class="scenario-card-header"
              (click)="setScenario(scenario)">
