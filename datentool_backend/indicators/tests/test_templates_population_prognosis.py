@@ -79,7 +79,7 @@ class PopulationTemplateTest(LoginTestCase, APITestCase, CreateTestdataMixin):
 
 
     def test_create_population_template(self):
-        url = reverse('populations-create-template')
+        url = reverse('populationentries-create-template')
         years = [y.year for y in self.years]
         res = self.post(url, data={'area_level_id': self.area_level.pk,
                                    'years': years,
@@ -92,7 +92,7 @@ class PopulationTemplateTest(LoginTestCase, APITestCase, CreateTestdataMixin):
                             set(['meta']+[f'{y}' for y in years]))
 
     def test_create_prognosis_template(self):
-        url = reverse('populations-create-template')
+        url = reverse('populationentries-create-template')
         years = [y.year for y in self.prognosis_years]
         res = self.post(url, data={'area_level_id': self.area_level.pk,
                                    'years': years,

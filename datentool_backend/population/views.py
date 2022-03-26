@@ -50,6 +50,9 @@ from datentool_backend.population.serializers import (RasterSerializer,
                                                       PopStatisticSerializer,
                                                       PopStatEntrySerializer,
                                                       PopulationTemplateSerializer,
+                                                      prognosis_id_serializer,
+                                                      area_level_id_serializer,
+                                                      years_serializer,
                           )
 
 from datentool_backend.area.models import Area, AreaLevel
@@ -73,12 +76,9 @@ class PrognosisViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class PopulationViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
+class PopulationViewSet(viewsets.ModelViewSet):
     queryset = Population.objects.all()
     serializer_class = PopulationSerializer
-    serializer_action_classes = {'create_template': PopulationTemplateSerializer,
-                                 'upload_template': PopulationTemplateSerializer,
-                                 }
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
     @extend_schema(description='return the population including the rastercellpopulationagegender_set',
@@ -397,6 +397,25 @@ class PopulationViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
 
+class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
+    queryset = PopulationEntry.objects.all()
+    serializer_class = PopulationEntrySerializer
+    serializer_action_classes = {'create_template': PopulationTemplateSerializer,
+                                 'upload_template': PopulationTemplateSerializer,
+                                 }
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+    @extend_schema(description='Upload Population Template',
+                   request=inline_serializer(
+                       name='PopulationUploadTemplateSerializer',
+                       fields={
+                           'area_level': area_level_id_serializer,
+                           'years': years_serializer,
+                           'prognosis': prognosis_id_serializer,
+                           'drop_constraints': drop_constraints
+                       }
+                       ),
+                   )
     @action(methods=['POST'], detail=False, permission_classes=[CanEditBasedata])
     def create_template(self, request, **kwargs):
         area_level_id = request.data.get('area_level_id')
@@ -408,10 +427,6 @@ class PopulationViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
                                        prognosis_id=prognosis_id,
                                        )
 
-class PopulationEntryViewSet(viewsets.ModelViewSet):
-    queryset = PopulationEntry.objects.all()
-    serializer_class = PopulationEntrySerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
 class PopStatisticViewSet(viewsets.ModelViewSet):

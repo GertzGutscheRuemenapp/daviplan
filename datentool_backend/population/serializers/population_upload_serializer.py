@@ -25,6 +25,9 @@ area_level_id_serializer = serializers.PrimaryKeyRelatedField(
     queryset=AreaLevel.objects.all(),
     help_text='area_level_id',)
 
+years_serializer = serializers.ListField(child=serializers.IntegerField(),
+                                         help_text='years to incude in the template',)
+
 
 prognosis_id_serializer = serializers.PrimaryKeyRelatedField(
     queryset=Prognosis.objects.all(),
