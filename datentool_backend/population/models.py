@@ -92,6 +92,9 @@ class PopulationAreaLevel(models.Model):
 
 class PopulationEntry(models.Model):
     """population value for a certain area"""
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
+
     population = models.ForeignKey(Population, on_delete=PROTECT_CASCADE)
     area = models.ForeignKey(Area, on_delete=PROTECT_CASCADE)
     gender = models.ForeignKey(Gender, on_delete=PROTECT_CASCADE)

@@ -3,7 +3,7 @@ import os
 from collections import OrderedDict
 from typing import Tuple, List
 import pandas as pd
-
+from openpyxl.reader.excel import load_workbook
 
 from django.conf import settings
 from django.db.models.fields import FloatField
@@ -16,8 +16,8 @@ from openpyxl.worksheet.dimensions import ColumnDimension, RowDimension
 from openpyxl.worksheet.datavalidation import DataValidation
 
 from datentool_backend.area.models import AreaLevel, Area, AreaField
-from datentool_backend.demand.models import Gender, AgeGroup
-from datentool_backend.population.models import Population, Prognosis, PopulationEntry
+from datentool_backend.demand.models import Gender, AgeGroup, Year
+from datentool_backend.population.models import Population, Prognosis, PopulationEntry, PopulationRaster
 
 
 
@@ -96,6 +96,7 @@ class PopulationTemplateSerializer(serializers.Serializer):
             meta = writer.book.create_sheet('meta')
             meta['A1'] = 'arealevel'
             meta['B1'] = area_level_id
+            meta['C1'] = area_level.name
             meta['A2'] = 'years count'
             meta['B2'] = len(years)
             meta['A3'] = 'years'
@@ -103,6 +104,8 @@ class PopulationTemplateSerializer(serializers.Serializer):
                 meta.cell(3, i+2, year)
             meta['A4'] = 'prognosis'
             meta['B4'] = prognosis_id
+            if prognosis_id:
+                meta['C4'] = prognosis.name
 
             for year in years:
 
@@ -150,10 +153,58 @@ class PopulationTemplateSerializer(serializers.Serializer):
     def read_excel_file(self, request) -> pd.DataFrame:
         """read excelfile and return a dataframe"""
         excel_file = request.FILES['excel_file']
+        popraster = PopulationRaster.objects.get(default=True)
+        columns = ['population_id', 'area_id', 'gender_id', 'age_group_id', 'value']
+        df = pd.DataFrame(columns=columns)
 
-        # check if the right Excel-File is uploaded
-        df_meta = pd.read_excel(excel_file.file,
-                           sheet_name='meta').set_index('key')
+        wb = load_workbook(excel_file.file)
+        meta = wb['meta']
+        area_level_name = meta['C1'].value
+        area_level = AreaLevel.objects.get(name=area_level_name)
 
-        df = pd.DataFrame()
+        areas = Area.annotated_qs(area_level)
+        key_attr = AreaField.objects.get(area_level=area_level, is_key=True).name
+        df_areas = pd.DataFrame(areas.values(key_attr, 'id'))\
+            .set_index(key_attr)\
+            .rename(columns={'id': 'area_id',})
+
+        df_genders = pd.DataFrame(Gender.objects.values('id', 'name'))\
+            .set_index('name')\
+            .rename(columns={'id': 'gender_id',})
+        df_agegroups = pd.DataFrame([[ag.id, ag.name] for ag in AgeGroup.objects.all()],
+                                    columns=['age_group_id', 'Altersgruppe'])\
+            .set_index('Altersgruppe')
+
+        prognosis_name = meta['C4'].value
+        #if prognosis_name:
+            #prognosis
+        n_years = meta['B2'].value
+        years = [meta.cell(3, n).value for n in range(2, n_years + 2)]
+        for y in years:
+            year, created = Year.objects.get_or_create(year=y)
+            population, created = Population.objects.get_or_create(
+                prognosis__name=prognosis_name,
+                year=year,
+                popraster=popraster,
+                )
+
+
+            # get the values and unpivot the data
+            df_pop = pd.read_excel(excel_file.file,
+                                   sheet_name=str(y),
+                                   header=[1, 2, 3, 4],
+                                   #skiprows=[1],
+                                   dtype={key_attr: object,},
+                                   index_col=[0, 1, 2])\
+                .stack(level=[0, 1, 2, 3])\
+                .reset_index()
+            df_pop = df_pop.drop(['id', 'gender_id', 'age_group_id'], axis=1)
+            df_pop = df_pop\
+                .merge(df_areas, left_on=key_attr, right_index=True)\
+                .merge(df_genders, left_on='Geschlecht', right_index=True)\
+                .merge(df_agegroups, left_on='Altersgruppe', right_index=True)
+
+            df_pop.rename(columns={0: 'value',}, inplace=True)
+            df_pop['population_id'] = population.id
+            df = pd.concat([df, df_pop[columns]])
         return df

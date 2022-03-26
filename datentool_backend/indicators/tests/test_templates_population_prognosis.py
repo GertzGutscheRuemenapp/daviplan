@@ -21,7 +21,9 @@ from datentool_backend.area.factories import (AreaLevelFactory,
 
 from datentool_backend.population.factories import (PopulationRasterFactory,
                                                     PopulationFactory,
-                                                    PrognosisFactory)
+                                                    PrognosisFactory,
+                                                    PopulationEntry,
+                                                    )
 
 
 class PopulationTemplateTest(LoginTestCase, APITestCase, CreateTestdataMixin):
@@ -41,19 +43,19 @@ class PopulationTemplateTest(LoginTestCase, APITestCase, CreateTestdataMixin):
 
         cls.age_groups = AgeGroup.objects.all()
 
-        cls.popraster = PopulationRasterFactory()
+        cls.popraster = PopulationRasterFactory(year__year=2011, default=True)
 
-        cls.years = [YearFactory(year=y, is_default=(y==2022))
+        cls.years = [YearFactory(year=y, is_default=(y==2022) or None)
                      for y in range(2015, 2023)]
         for year in cls.years:
             PopulationFactory(popraster=cls.popraster, year=year, prognosis=None)
 
-        cls.prognosis = PrognosisFactory(name='Trendentwicklung', is_default=True)
+        cls.prognosis = PrognosisFactory(id=1, name='Trendentwicklung', is_default=True)
         cls.prognosis_years = [YearFactory(year=y) for y in range(2025, 2045, 5)]
         for year in cls.prognosis_years:
             PopulationFactory(popraster=cls.popraster, year=year, prognosis=cls.prognosis)
 
-        cls.area_level = AreaLevelFactory(name='Gemeinden')
+        cls.area_level = AreaLevelFactory(id=1, name='Gemeinden')
 
         str_field = FieldTypeFactory(ftype=FieldTypes.STRING)
 
@@ -104,54 +106,43 @@ class PopulationTemplateTest(LoginTestCase, APITestCase, CreateTestdataMixin):
         self.assertSetEqual(set(wb.sheetnames),
                             set(['meta']+[f'{y}' for y in years]))
 
-    @skip('not implemented yet')
     def test_upload_prognosis_template(self):
         """
         test bulk upload population_entries
         """
-        ## delete places
-        #Place.objects.first().delete()
 
-        ## upload excel-file
-        #file_name_places = 'Standorte_und_Kapazitäten_mod.xlsx'
-        #file_path_places = os.path.join(os.path.dirname(__file__),
-                                        #self.testdata_folder,
-                                        #file_name_places)
-        #file_content = open(file_path_places, 'rb')
-        #data = {
-            #'excel_file' : file_content,
-            #'infrastructure_id': self.infra.pk,
-        #}
+        # upload excel-file
+        file_names_popdata = ['Einwohnerrealdaten.xlsx', 'Prognosedaten.xlsx']
+        for file_name_popdata in file_names_popdata:
+            file_path_popdata = os.path.join(os.path.dirname(__file__),
+                                            self.testdata_folder,
+                                            file_name_popdata)
+            file_content = open(file_path_popdata, 'rb')
+            data = {
+                'excel_file' : file_content,
+            }
 
-        #url = reverse('places-upload-template')
-        #res = self.client.post(url, data,
-                               #extra=dict(format='multipart/form-data'))
-        #self.assert_http_202_accepted(res, msg=res.content)
+            url = reverse('populationentries-upload-template')
+            res = self.client.post(url, data,
+                                   extra=dict(format='multipart/form-data'))
+            self.assert_http_202_accepted(res, msg=res.content)
 
-        #df = pd.read_excel(file_path_places, sheet_name='Standorte und Kapazitäten',
-                           #skiprows=[1, 2]).set_index('Unnamed: 0')
+            df_actual = pd.DataFrame(PopulationEntry.objects\
+                         .values('population__year__year','value'))\
+                .groupby('population__year__year').sum()
 
-        #places = Place.objects.filter(infrastructure=self.infra)
-        #place_names = places.values_list('name', flat=True)
-        #assert set(df['Name']).issubset(place_names),\
-               #'place names in excel_file are not uploaded correcty'
+            wb = load_workbook(file_path_popdata)
+            meta = wb['meta']
+            n_years = meta['B2'].value
+            years = [meta.cell(3, n).value for n in range(2, n_years + 2)]
+            for y in years:
+                total_pop = pd.read_excel(file_path_popdata,
+                                          sheet_name=str(y),
+                                          header=[1, 3],
+                                          skiprows=[4],
+                                          index_col=[0, 1, 2])\
+                    .sum().sum()
+                self.assertAlmostEqual(total_pop, df_actual.loc[y, 'value'])
 
-        #for place_id, place_row in df.iterrows():
-            #place = Place.objects.get(infrastructure=self.infra, name=place_row['Name'])
-            #coords = place.geom.transform(4326, clone=True).coords
-            #for i, c in enumerate(['Lon', 'Lat']):
-                #self.assertAlmostEqual(coords[i], place_row.loc[c])
-            #for place_attr in place.placeattribute_set.all():
-                #value = place_row.get(place_attr.field.name)
-                #if place_attr.field.field_type.ftype in [FieldTypes.STRING,
-                                                         #FieldTypes.CLASSIFICATION]:
-                    #value = str(value)
-                #self.assertAlmostEqual(place_attr.value, value)
-            #for capacity in place.capacity_set.all():
-                #service = capacity.service
-                #if service.has_capacity:
-                    #col = f'Kapazität für Leistung {service.name}'
-                #else:
-                    #col = f'Bietet Leistung {service.name} an'
-                #value = place_row.loc[col]
-                #self.assertAlmostEqual(capacity.capacity, value)
+
+

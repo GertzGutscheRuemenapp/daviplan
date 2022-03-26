@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='year',
             name='is_default',
-            field=models.BooleanField(default=False),
+            field=models.BooleanField(null=True, unique=True),
         ),
     ]
