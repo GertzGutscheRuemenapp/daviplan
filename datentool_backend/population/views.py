@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from django.db import transaction
 from django.db.models import F, Max, Sum
 
-from datentool_backend.utils.views import ProtectCascadeMixin
+from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 
@@ -49,6 +49,7 @@ from datentool_backend.population.serializers import (RasterSerializer,
                                                       PopulationEntrySerializer,
                                                       PopStatisticSerializer,
                                                       PopStatEntrySerializer,
+                                                      PopulationTemplateSerializer,
                           )
 
 from datentool_backend.area.models import Area, AreaLevel
@@ -72,9 +73,12 @@ class PrognosisViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class PopulationViewSet(viewsets.ModelViewSet):
+class PopulationViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
     queryset = Population.objects.all()
     serializer_class = PopulationSerializer
+    serializer_action_classes = {'create_template': PopulationTemplateSerializer,
+                                 'upload_template': PopulationTemplateSerializer,
+                                 }
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
     @extend_schema(description='return the population including the rastercellpopulationagegender_set',
@@ -392,6 +396,17 @@ class PopulationViewSet(viewsets.ModelViewSet):
         msg = 'Aggregations of all Populations were successful.'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
+
+    @action(methods=['POST'], detail=False, permission_classes=[CanEditBasedata])
+    def create_template(self, request, **kwargs):
+        area_level_id = request.data.get('area_level_id')
+        prognosis_id = request.data.get('prognosis_id')
+        years = request.data.get('years')
+        return super().create_template(request,
+                                       area_level_id=area_level_id,
+                                       years=years,
+                                       prognosis_id=prognosis_id,
+                                       )
 
 class PopulationEntryViewSet(viewsets.ModelViewSet):
     queryset = PopulationEntry.objects.all()

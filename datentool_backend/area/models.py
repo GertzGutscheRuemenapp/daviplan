@@ -213,10 +213,13 @@ class AreaField(DatentoolModelMixin, models.Model):
     area_level = models.ForeignKey(AreaLevel, on_delete=PROTECT_CASCADE)
     field_type = models.ForeignKey(FieldType, on_delete=PROTECT_CASCADE)
     is_label = models.BooleanField(null=True, default=None)
+    is_key = models.BooleanField(null=True, default=None)
 
     class Meta:
         unique_together = [['area_level', 'name'],
-                           ['area_level', 'is_label']]
+                           ['area_level', 'is_label'],
+                           ['area_level', 'is_key'],
+                           ]
 
 
 class FieldAttribute(DatentoolModelMixin, NamedModel, models.Model):

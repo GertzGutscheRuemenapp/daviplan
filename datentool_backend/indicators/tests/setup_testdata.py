@@ -37,7 +37,7 @@ from datentool_backend.population.models import (Raster,
 from datentool_backend.indicators.factories import StopFactory
 
 
-class CreateInfrastructureTestdataMixin:
+class CreateTestdataMixin:
     """Create Testdata for Indicator Tests"""
 
     @classmethod

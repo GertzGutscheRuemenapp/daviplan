@@ -2,10 +2,10 @@ from typing import List
 from test_plus import APITestCase
 
 from datentool_backend.api_test import LoginTestCase, BasicModelCompareMixin
-from .setup_testdata import CreateInfrastructureTestdataMixin
+from .setup_testdata import CreateTestdataMixin
 
 
-class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
+class TestAreaIndicatorAPI(CreateTestdataMixin,
                            LoginTestCase, BasicModelCompareMixin, APITestCase):
     """Test to get an area indicator"""
     url_key = "fixedindicators"

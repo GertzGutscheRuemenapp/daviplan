@@ -122,7 +122,8 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
 
         places = Place.objects.filter(infrastructure=self.infra)
         place_names = places.values_list('name', flat=True)
-        assert set(df['Name']).issubset(place_names), 'place names in excel_file are not uploaded correcty'
+        assert set(df['Name']).issubset(place_names),\
+               'place names in excel_file are not uploaded correcty'
 
         for place_id, place_row in df.iterrows():
             place = Place.objects.get(infrastructure=self.infra, name=place_row['Name'])

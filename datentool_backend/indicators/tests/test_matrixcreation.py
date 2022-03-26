@@ -4,7 +4,7 @@ import numpy.testing as nptest
 from test_plus import APITestCase
 
 from datentool_backend.api_test import LoginTestCase
-from datentool_backend.indicators.tests.setup_testdata import CreateInfrastructureTestdataMixin
+from datentool_backend.indicators.tests.setup_testdata import CreateTestdataMixin
 from datentool_backend.indicators.models import (MatrixCellPlace,
                                                  MatrixCellStop,
                                                  MatrixPlaceStop,
@@ -15,7 +15,7 @@ from datentool_backend.indicators.models import (MatrixCellPlace,
 from datentool_backend.modes.factories import Mode, ModeVariantFactory
 
 
-class TestMatrixCreation(CreateInfrastructureTestdataMixin,
+class TestMatrixCreation(CreateTestdataMixin,
                          LoginTestCase,
                          APITestCase):
     """Test to create a matrix"""

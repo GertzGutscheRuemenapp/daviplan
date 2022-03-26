@@ -8,7 +8,7 @@ from datentool_backend.api_test import LoginTestCase
 
 from datentool_backend.area.factories import AreaLevelFactory
 
-from .setup_testdata import CreateInfrastructureTestdataMixin
+from .setup_testdata import CreateTestdataMixin
 from datentool_backend.demand.models import AgeGroup, Gender
 from datentool_backend.area.models import Area, AreaAttribute, AreaLevel
 from datentool_backend.population.models import (Population,
@@ -17,7 +17,7 @@ from datentool_backend.population.models import (Population,
                                                  PopulationAreaLevel, )
 
 
-class TestAreaIndicatorAPI(CreateInfrastructureTestdataMixin,
+class TestAreaIndicatorAPI(CreateTestdataMixin,
                            LoginTestCase,
                            APITestCase):
     """Test to get an area indicator"""
