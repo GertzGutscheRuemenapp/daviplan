@@ -83,13 +83,13 @@ class PopulationTemplateTest(LoginTestCase, APITestCase, CreateTestdataMixin):
         years = [y.year for y in self.years]
         res = self.post(url, data={'area_level_id': self.area_level.pk,
                                    'years': years,
-                                   'prognosis_id': '',},
+                                   },
                              extra=dict(format='json')
                              )
         self.assert_http_200_ok(res)
         wb = load_workbook(BytesIO(res.content))
         self.assertSetEqual(set(wb.sheetnames),
-                            set(['meta']+years))
+                            set(['meta']+[f'{y}' for y in years]))
 
     def test_create_prognosis_template(self):
         url = reverse('populations-create-template')
@@ -102,7 +102,7 @@ class PopulationTemplateTest(LoginTestCase, APITestCase, CreateTestdataMixin):
         self.assert_http_200_ok(res)
         wb = load_workbook(BytesIO(res.content))
         self.assertSetEqual(set(wb.sheetnames),
-                            set(['meta']+years))
+                            set(['meta']+[f'{y}' for y in years]))
 
     @skip('not implemented yet')
     def test_upload_prognosis_template(self):

@@ -21,6 +21,10 @@ class AgeGroup(DatentoolModelMixin, models.Model):
     to_age = models.IntegerField(validators=[MinValueValidator(0),
                                              MaxValueValidator(127)])
 
+    @property
+    def name(self) -> str:
+        return f'{self.from_age} bis {self.to_age} Jahre'
+
 
 class DemandRateSet(DatentoolModelMixin, NamedModel, models.Model):
     """ set of demand """
