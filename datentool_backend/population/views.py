@@ -10,7 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from django.db import transaction
-from django.db.models import F, Max, Sum
+from django.db.models import Max, Sum
 
 from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
 from datentool_backend.utils.permissions import (

@@ -1,12 +1,15 @@
 from abc import ABCMeta, abstractmethod
 from typing import Callable, Dict, List, Tuple
-from django.http.request import QueryDict
 from enum import Enum
+
+from django.http.request import QueryDict
 
 from datentool_backend.user.models import Service
 from datentool_backend.indicators.serializers import (
-    IndicatorAreaResultSerializer, IndicatorRasterResultSerializer,
-    IndicatorPlaceResultSerializer, IndicatorPopulationSerializer)
+    IndicatorAreaResultSerializer,
+    IndicatorRasterResultSerializer,
+    IndicatorPlaceResultSerializer,
+    IndicatorPopulationSerializer)
 
 
 class IndicatorParameter:

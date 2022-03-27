@@ -1,8 +1,7 @@
 import os
-from unittest import skip
 from io import BytesIO
-from openpyxl.reader.excel import load_workbook
 import pandas as pd
+from openpyxl.reader.excel import load_workbook
 
 from django.urls import reverse
 from test_plus import APITestCase
@@ -23,6 +22,7 @@ from datentool_backend.population.factories import (PopulationRasterFactory,
                                                     PopulationFactory,
                                                     PrognosisFactory,
                                                     PopulationEntry,
+                                                    PopStatEntry,
                                                     )
 
 
@@ -79,8 +79,8 @@ class PopulationTemplateTest(LoginTestCase, APITestCase, CreateTestdataMixin):
             area = AreaFactory(area_level=cls.area_level)
             area.attributes = {'rs': rs, 'gen': gen,}
 
-
     def test_create_population_template(self):
+        """Create templates for Population"""
         url = reverse('populationentries-create-template')
         years = [y.year for y in self.years]
         res = self.post(url, data={'area_level_id': self.area_level.pk,
@@ -94,6 +94,7 @@ class PopulationTemplateTest(LoginTestCase, APITestCase, CreateTestdataMixin):
                             set(['meta']+[f'{y}' for y in years]))
 
     def test_create_prognosis_template(self):
+        """Create templates for Prognosis"""
         url = reverse('populationentries-create-template')
         years = [y.year for y in self.prognosis_years]
         res = self.post(url, data={'area_level_id': self.area_level.pk,
@@ -143,6 +144,3 @@ class PopulationTemplateTest(LoginTestCase, APITestCase, CreateTestdataMixin):
                                           index_col=[0, 1, 2])\
                     .sum().sum()
                 self.assertAlmostEqual(total_pop, df_actual.loc[y, 'value'])
-
-
-

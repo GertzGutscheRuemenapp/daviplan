@@ -1,19 +1,18 @@
 import os
 import pandas as pd
+from tempfile import mktemp
 
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.worksheet.dimensions import ColumnDimension
 from openpyxl.worksheet.datavalidation import DataValidation
 
-from tempfile import mktemp
-from matrixconverters.read_ptv import ReadPTVMatrix
+from django.conf import settings
+from django.db import connection
 
 from rest_framework import serializers
 from rest_framework.fields import FileField, IntegerField, BooleanField
 
-from django.conf import settings
-
-from django.db import connection
+from matrixconverters.read_ptv import ReadPTVMatrix
 
 from datentool_backend.indicators.models import (Stop,
                                                  MatrixStopStop,
@@ -23,13 +22,6 @@ from datentool_backend.indicators.models import (Stop,
                                                  )
 from datentool_backend.infrastructure.models import Place
 from datentool_backend.population.models import RasterCell, RasterCellPopulation
-
-
-#class MatrixStopStopSerializer(serializers.Serializer):
-
-    #class Meta:
-        #model = MatrixStopStop
-        #fields = ('from_stop', 'to_stop', 'minutes')
 
 
 class MatrixStopStopTemplateSerializer(serializers.Serializer):

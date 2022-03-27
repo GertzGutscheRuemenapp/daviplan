@@ -46,9 +46,6 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
                             ProtectCascadeMixin,
                             viewsets.GenericViewSet):
     serializer_class = MatrixStopStopTemplateSerializer
-    #serializer_action_classes = {'upload_template': MatrixStopStopTemplateSerializer,
-                                 #'create_template': MatrixStopStopTemplateSerializer,
-                                 #}
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
     def get_queryset(self):

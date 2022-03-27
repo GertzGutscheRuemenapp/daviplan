@@ -17,7 +17,7 @@ from openpyxl.worksheet.datavalidation import DataValidation
 
 from datentool_backend.area.models import AreaLevel, Area, AreaField
 from datentool_backend.demand.models import Gender, AgeGroup, Year
-from datentool_backend.population.models import Population, Prognosis, PopulationEntry, PopulationRaster
+from datentool_backend.population.models import Population, Prognosis, PopulationRaster
 
 
 

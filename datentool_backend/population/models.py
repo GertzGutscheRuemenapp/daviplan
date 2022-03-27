@@ -133,6 +133,9 @@ class PopStatistic(DatentoolModelMixin, models.Model):
 
 class PopStatEntry(models.Model):
     """statistic entry for an area"""
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
+
     popstatistic = models.ForeignKey(PopStatistic, on_delete=PROTECT_CASCADE)
     area = models.ForeignKey(Area, on_delete=PROTECT_CASCADE)
     immigration = models.FloatField()

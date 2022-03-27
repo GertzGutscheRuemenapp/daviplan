@@ -1,6 +1,3 @@
-import pandas as pd
-import numpy as np
-import numpy.testing as nptest
 from test_plus import APITestCase
 
 from datentool_backend.api_test import LoginTestCase
@@ -9,8 +6,6 @@ from datentool_backend.indicators.models import (MatrixCellPlace,
                                                  MatrixCellStop,
                                                  MatrixPlaceStop,
                                                  )
-
-
 
 from datentool_backend.modes.factories import Mode, ModeVariantFactory
 

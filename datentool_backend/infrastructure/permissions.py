@@ -8,7 +8,6 @@ class CanEditScenarioPermission(permissions.BasePermission):
         if not request.user.is_authenticated:
             return False
         if request.method in ['POST']:
-        # if request.method not in permissions.SAFE_METHODS:
             if request.user.is_superuser:
                 return True
             planning_process = PlanningProcess.objects.get(
