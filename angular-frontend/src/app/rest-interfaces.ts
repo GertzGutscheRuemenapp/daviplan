@@ -67,6 +67,13 @@ export interface Source {
   url: string;
 }
 
+export interface Indicator {
+  id: number;
+  service: number;
+  name: string;
+  description: string;
+}
+
 export interface AreaLevel {
   id: number;
   name: string;

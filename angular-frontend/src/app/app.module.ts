@@ -73,9 +73,7 @@ import { CoordinationComponent } from './pages/administration/coordination/coord
 import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
 import { LocationsComponent } from './pages/basedata/locations/locations.component';
 import { ServicesComponent } from './pages/basedata/services/services.component';
-import { CapacitiesComponent } from './pages/basedata/capacities/capacities.component';
 import { DemandQuotasComponent } from './pages/basedata/demand-quotas/demand-quotas.component';
-import { IndicatorsComponent } from './pages/basedata/indicators/indicators.component';
 import { RouterSettingsComponent } from './pages/basedata/router-settings/router-settings.component';
 import { ReachabilityMatrixComponent } from './pages/basedata/reachability-matrix/reachability-matrix.component';
 import { ExternalLayersComponent } from './pages/basedata/external-layers/external-layers.component';
@@ -135,9 +133,7 @@ import { PlaceFilterComponent } from './pages/planning/place-filter/place-filter
     CoordinationComponent,
     LocationsComponent,
     ServicesComponent,
-    CapacitiesComponent,
     DemandQuotasComponent,
-    IndicatorsComponent,
     RouterSettingsComponent,
     ReachabilityMatrixComponent,
     ExternalLayersComponent,

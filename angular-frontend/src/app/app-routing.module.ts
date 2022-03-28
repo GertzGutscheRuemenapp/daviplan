@@ -27,9 +27,7 @@ import { ProjectDefinitionComponent } from "./pages/administration/project-defin
 import { CoordinationComponent } from "./pages/administration/coordination/coordination.component";
 import { LocationsComponent } from "./pages/basedata/locations/locations.component";
 import { ServicesComponent } from "./pages/basedata/services/services.component";
-import { CapacitiesComponent } from "./pages/basedata/capacities/capacities.component";
 import { DemandQuotasComponent } from "./pages/basedata/demand-quotas/demand-quotas.component";
-import { IndicatorsComponent } from "./pages/basedata/indicators/indicators.component";
 import { ExternalLayersComponent } from "./pages/basedata/external-layers/external-layers.component";
 import { RouterSettingsComponent } from "./pages/basedata/router-settings/router-settings.component";
 import { ReachabilityMatrixComponent } from "./pages/basedata/reachability-matrix/reachability-matrix.component";
@@ -151,16 +149,8 @@ const routes: Routes = [
         component: ServicesComponent
       },
       {
-        path: 'kapazitaeten',
-        component: CapacitiesComponent
-      },
-      {
         path: 'nachfragequoten',
         component: DemandQuotasComponent
-      },
-      {
-        path: 'indikatoren',
-        component: IndicatorsComponent
       },
       {
         path: 'verkehrsnetz',
