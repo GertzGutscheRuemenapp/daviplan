@@ -418,8 +418,8 @@ class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
                    )
     @action(methods=['POST'], detail=False, permission_classes=[CanEditBasedata])
     def create_template(self, request, **kwargs):
-        area_level_id = request.data.get('area_level_id')
-        prognosis_id = request.data.get('prognosis_id')
+        area_level_id = request.data.get('area_level')
+        prognosis_id = request.data.get('prognosis')
         years = request.data.get('years')
         return super().create_template(request,
                                        area_level_id=area_level_id,

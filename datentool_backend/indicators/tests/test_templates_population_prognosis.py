@@ -83,7 +83,7 @@ class PopulationTemplateTest(LoginTestCase, APITestCase, CreateTestdataMixin):
         """Create templates for Population"""
         url = reverse('populationentries-create-template')
         years = [y.year for y in self.years]
-        res = self.post(url, data={'area_level_id': self.area_level.pk,
+        res = self.post(url, data={'area_level': self.area_level.pk,
                                    'years': years,
                                    },
                              extra=dict(format='json')
@@ -97,9 +97,9 @@ class PopulationTemplateTest(LoginTestCase, APITestCase, CreateTestdataMixin):
         """Create templates for Prognosis"""
         url = reverse('populationentries-create-template')
         years = [y.year for y in self.prognosis_years]
-        res = self.post(url, data={'area_level_id': self.area_level.pk,
+        res = self.post(url, data={'area_level': self.area_level.pk,
                                    'years': years,
-                                   'prognosis_id': self.prognosis.pk,},
+                                   'prognosis': self.prognosis.pk,},
                              extra=dict(format='json')
                              )
         self.assert_http_200_ok(res)

@@ -31,6 +31,7 @@ years_serializer = serializers.ListField(child=serializers.IntegerField(),
 
 prognosis_id_serializer = serializers.PrimaryKeyRelatedField(
     queryset=Prognosis.objects.all(),
+    required=False,
     help_text='prognosis_id',)
 
 
