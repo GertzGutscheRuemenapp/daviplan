@@ -160,8 +160,13 @@ export interface Service {
   name: string,
   demandSingularUnit: string,
   demandPluralUnit: string,
+  hasCapacity: boolean,
   capacitySingularUnit: string,
   capacityPluralUnit: string,
+  facilitySingularUnit: 'der' | 'die' | 'das',
+  facilityArticle: string,
+  facilityPluralUnit: string,
+  directionWayRelationship: 1 | 2,
   minCapacity: number,
   maxCapacity: number
 }

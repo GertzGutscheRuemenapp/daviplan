@@ -171,7 +171,7 @@ class AveragePlaceReachability(ServiceIndicator):
                        else 'sie')
             return pre + (
                 f'erreicht wird (sofern {ersiees} '
-                f'{self.service.facility_singular_unit or "die"} '
+                f'{self.service.facility_article or "die"} '
                 'am besten erreichbare ist)')
         ihrihm = ('ihm' if self.service.facility_singular_unit
                    in ['der', 'das'] else 'ihr')
@@ -203,7 +203,7 @@ class MaxPlaceReachability(ServiceIndicator):
                        else 'sie')
             return pre + (
                 f'erreicht wird (sofern {ersiees} '
-                f'{self.service.facility_singular_unit or "die"} '
+                f'{self.service.facility_article or "die"} '
                 'am besten erreichbare ist)')
         ihrihm = ('ihm' if self.service.facility_singular_unit
                    in ['der', 'das'] else 'ihr')
@@ -228,7 +228,7 @@ class MaxRasterReachability(ServiceIndicator):
         if self.service.direction_way_relationship == 1:
             zu = ('zum' if self.service.facility_singular_unit in ['der', 'das']
                   else 'zur')
-            return (f'Wegezeit von allen Wohnstandorten {zu} nächsten'
+            return (f'Wegezeit von allen Wohnstandorten {zu} nächsten '
                     f'{self.service.facility_singular_unit or "Einrichtung"}')
         derdem = ('dem' if self.service.facility_singular_unit in ['der', 'das']
                    else 'der')

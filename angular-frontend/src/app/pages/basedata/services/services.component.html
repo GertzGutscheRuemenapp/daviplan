@@ -1,6 +1,6 @@
 <app-header-card [title]="'Leistungen in den Infrastrukturbereichen'"
                  cookieId="exp-services-header"
-                 width="1130px">
+                 width="930px">
   <p>Im Administrationsbereich wurde festgelegt, welche Infrastrukturbereiche der Daseinsvorsorge (z.B. Kindertagesbetreuung, Schule, Feuerwehr, ärztliche Versorgung, Einzelhandel, …) mit daviplan betrachtet werden sollen.</p>
   <p>An dieser Stelle differenzieren Sie die Infrastrukturbereiche weiter aus, in dem Sie Ihnen „Leistungen“ zuordnen. Leistungen sind die einzelnen Angebote der Infrastrukturen, die von den Nutzer*innen nachgefragt und genutzt werden. Alle Nachfrageschätzungen, Kapazitätsangaben und Nachfrage-Angebot-Vergleiche im Hauptmenüabschnitt „Infrastrukturplanung“ werden sich auf diese Leistungen beziehen.</p>
   <p>Für den Infrastrukturbereich „Kindertagesbetreuung“ könnten z.B. „Krippe“, „Elementarbetreuung“ und „Hort“ drei mögliche Leistungen sein. Bei der ärztlichen Versorgung z.B. „Hausärzte“ und „Fachärzte“, wobei ggf. bei den Fachärzten noch zwischen den wichtigsten Fachrichtungen unterschieden werden können, indem diese jeweils als eigene Leistung definiert werden. Für die Feuerwehr könnten z.B. unterschiedliche Einsatztypen durch entsprechende definierte Leistungen abgebildet werden.</p>
@@ -15,12 +15,13 @@
                     <p>Um die Eigenschaften bereits hinzugefügter Leistungen zu sehen und ggf. zu verändern, wählen Sie diese in der Liste der Leistungen aus. Die drei anderen Eingabeboxen zeigen Ihnen die bisher definierten Eigenschaften. Über den jeweilige Schaltfläche „Editieren“ können Sie diese verändern.</p>">
       <mat-selection-list [multiple]="false"
                           class="categorized"
+                          (selectionChange)="onServiceChange()"
                           id="service-select">
         <ng-container *ngFor="let infrastructure of infrastructures">
           <div mat-subheader>{{infrastructure.name}}</div>
           <mat-list-option *ngFor="let service of infrastructure.services"
-                           (click)="selectedService = service"
-                           [selected]="(service.id === selectedService.id)">
+                           (click)="activeService = service"
+                           [selected]="(service.id === activeService?.id)">
             <div class="option-text">{{service.name}}</div>
           </mat-list-option>
           <mat-divider></mat-divider>
@@ -40,48 +41,73 @@
       </div>
     </app-input-card>
   </div>
-  <div fxLayout="column" fxFlex="400px">
+  <div fxLayout="column" fxFlex="600px" [ngClass]="{'hidden': !activeService}">
     <app-input-card [title]="'Bezeichnung der ausgewählten Leistung'"
                     [editTemplate]="propertiesEdit"
                     infoText="<p>Der angezeigte Name entspricht der Bezeichnung in der Liste. Diese können Sie über die Schaltfläche „Editieren“ nachträglich noch verändern. Zudem können Sie eine Kurzbeschreibung hinzufügen.</p>
                     <p>Beide Eigenschaften sind für die Nutzer*innen des Hauptmenübereichs „Infrastrukturplanung“ als Auswahlbezeichnung bzw. kurzem Definitionstext sichtbar.</p>">
-      <table>
+      <table *ngIf="activeService">
         <tr>
           <td>Name</td>
-          <td>{{selectedService.name}}</td>
+          <td>{{activeService.name}}</td>
         </tr>
         <tr>
           <td>Beschreibung</td>
           <td>
             <div style="overflow: hidden; -webkit-line-clamp: 5; -webkit-box-orient: vertical; display: -webkit-box;">
-              Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+              {{activeService.description}}
             </div>
           </td>
         </tr>
       </table>
     </app-input-card>
-  </div>
-  <div fxLayout="column" fxFlex="400px">
     <app-input-card [title]="'Kapazitätseinheit der ausgewählten Leistung'"
                     [editTemplate]="capacityEdit"
-                    [subtitle]="selectedService.name"
+                    [subtitle]="activeService?.name || ''"
                     infoText="<p>In dieser Eingabebox können Sie über die Schaltfläche „Editieren“ festlegen, ob für diese Leistung die Kapazitäten der Einrichtungen berücksichtigt werden sollen. Dies können z.B. die genehmigten Plätze der Kitas oder die maximale Schülerzahl der Schulen sein.</p>
                     <p>Bei manchen Leistungen ist es hingegen eher relevant, dass diese überhaupt an einem Ort verfügbar ist, wohingegen die Kapazität für Ihre Fragestellung eher zweitrangig ist (oder Ihnen keine Daten hierzu vorliegen). Dies können z.B. Feuerwehrstandorte, Ärzte oder Lebensmittelläden sein. In diesem Fall löschen Sie bitte das Häkchen vor der Eingangsfrage.</p>
                     <p>Je nach Fragestellung oder Datenstand können Sie aber natürlich auch für diese beispielhaft genannten Infrastrukturen eine Kapazität definieren. In diesem Fall setzen Sie das Häkchen.</p>
                     <p>Wenn Sie das Häkchen gesetzt haben, werden Sie gebeten anzugeben, wie die Maßeinheit der Kapazität für diese Leistung heißt, z.B. „Plätze“ oder „Patienten (max.)“ (Die eigentlichen Werte geben Sie im nachfolgenden Menüpunkt „Kapazitäten“ an.). Um im weiteren Verlauf Anzeigen wie „1 Plätze“ zu vermeiden, geben Sie bitte neben der Mehrzahl auch die Einzahl („Platz“) an.</p>">
-      <mat-checkbox disabled [checked]="true">
-        Für diese Leistung sollen die Kapazitäten der Einrichtungen berücksichtigt werden
-      </mat-checkbox>
-      <table style="margin-top: 10px;">
-        <tr>
-          <td>Einheit Einzahl</td>
-          <td>Platz</td>
-        </tr>
-        <tr>
-          <td>Einheit Mehrzahl</td>
-          <td>Plätze</td>
-        </tr>
-      </table>
+      <div *ngIf="activeService">
+        <mat-checkbox disabled [checked]="activeService.hasCapacity">
+          Für diese Leistung sollen die Kapazitäten der Einrichtungen berücksichtigt werden
+        </mat-checkbox>
+        <table style="margin-top: 10px;">
+          <tr *ngIf="activeService.hasCapacity">
+            <td>Einheit Einzahl</td>
+            <td>{{activeService.capacitySingularUnit}}</td>
+          </tr>
+          <tr *ngIf="activeService.hasCapacity">
+            <td>Einheit Mehrzahl</td>
+            <td>{{activeService.capacityPluralUnit}}</td>
+          </tr>
+          <tr>
+            <td>Nachfragende Einzahl</td>
+            <td>{{activeService.demandSingularUnit}}</td>
+          </tr>
+          <tr>
+            <td>Nachfragende Mehrzahl</td>
+            <td>{{activeService.demandPluralUnit}}</td>
+          </tr>
+          <tr>
+            <td>Artikel Einrichtung (Einzahl)</td>
+            <td>{{activeService.facilityArticle}}</td>
+          </tr>
+          <tr>
+            <td>Einrichtung Einzahl</td>
+            <td>{{activeService.facilitySingularUnit}}</td>
+          </tr>
+          <tr>
+            <td>Einrichtung Mehrzahl</td>
+            <td>{{activeService.facilityPluralUnit}}</td>
+          </tr>
+          <tr>
+            <td>Richtung der Wegebeziehung</td>
+            <td>{{(activeService.directionWayRelationship === 1)? 'Zu': (activeService.directionWayRelationship === 2)? 'Von': '-'}}</td>
+          </tr>
+        </table>
+        {{(indicators.length > 0)? indicators[6].description: ''}}
+      </div>
     </app-input-card>
 <!--    <app-input-card [title]="'Nachfrageeinheit der ausgewählten Leistung'"
                     [editTemplate]="demandEdit"
@@ -122,7 +148,7 @@
   <div fxLayout="column">
     <mat-form-field appearance="fill">
       <mat-label i18n>Infrastruktur</mat-label>
-      <mat-select disableRipple [value]="infrastructures[0].id">
+      <mat-select disableRipple> <!-- [value]="infrastructures[0].id">-->
         <mat-option *ngFor="let infrastructure of infrastructures" [value]="infrastructure.id">
           {{infrastructure.name}}
         </mat-option>

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { mockInfrastructures } from "../../administration/infrastructure/infrastructure.component";
 import { environment } from "../../../../environments/environment";
+import { Infrastructure, Service } from "../../../rest-interfaces";
 
 export const mockQuotas = ['aktuelle Quoten', 'erhöhte Nachfrage ab 2030', 'Name mit langem Text, um Umbruch zu erzwingen']
 
@@ -12,8 +12,8 @@ export const mockQuotas = ['aktuelle Quoten', 'erhöhte Nachfrage ab 2030', 'Nam
 export class DemandQuotasComponent implements OnInit {
   quotas = mockQuotas;
   backend: string = environment.backend;
-  infrastructures = mockInfrastructures;
-  selectedService = mockInfrastructures[0].services[1];
+  infrastructures: Infrastructure[] = [];
+  selectedService?: Service;
   selectedQuota = this.quotas[0];
   statusQuoQuota: string | undefined = this.quotas[1];
 

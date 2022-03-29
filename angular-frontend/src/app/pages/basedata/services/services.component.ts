@@ -1,8 +1,10 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { mockInfrastructures } from "../../administration/infrastructure/infrastructure.component";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { Infrastructure, Service } from "../../../rest-interfaces";
+import { RestCacheService } from "../../../rest-cache.service";
+import { HttpClient } from "@angular/common/http";
+import { RestAPI } from "../../../rest-api";
 
 @Component({
   selector: 'app-services',
@@ -11,17 +13,23 @@ import { Infrastructure, Service } from "../../../rest-interfaces";
 })
 export class ServicesComponent implements OnInit {
   @ViewChild('createService') createServiceTemplate?: TemplateRef<any>;
-  services: Service[];
-  infrastructures: Infrastructure[];
-  selectedService: Service;
+  infrastructures?: Infrastructure[];
+  activeService?: Service;
+  indicators: any[] = [];
 
-  constructor(private dialog: MatDialog) {
-    this.infrastructures = mockInfrastructures;
-    this.services = mockInfrastructures[0].services;
-    this.selectedService = mockInfrastructures[0].services[0];
-  }
+  constructor(private dialog: MatDialog, private http: HttpClient,
+              private restService: RestCacheService, private rest: RestAPI) {}
 
   ngOnInit(): void {
+    this.restService.getInfrastructures().subscribe(infrastructures => {
+      this.infrastructures = infrastructures || [];
+      if (infrastructures.length === 0) return;
+      const services = infrastructures[0].services || [];
+      if (services.length > 0) {
+        this.activeService = services[0];
+        this.getIndicatorDescription();
+      }
+    })
   }
 
   onCreateService() {
@@ -35,5 +43,15 @@ export class ServicesComponent implements OnInit {
         closeOnConfirm: false
       }
     });
+  }
+
+  onServiceChange() {
+    this.getIndicatorDescription();
+  }
+
+  getIndicatorDescription() {
+    this.http.get<any>(`${this.rest.URLS.services}${this.activeService!.id}/get_indicators/`).subscribe(indicators => {
+      this.indicators = indicators;
+    })
   }
 }
