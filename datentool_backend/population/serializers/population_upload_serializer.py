@@ -17,7 +17,8 @@ from openpyxl.worksheet.datavalidation import DataValidation
 
 from datentool_backend.area.models import AreaLevel, Area, AreaField
 from datentool_backend.demand.models import Gender, AgeGroup, Year
-from datentool_backend.population.models import Population, Prognosis, PopulationRaster
+from datentool_backend.population.models import (Population, Prognosis,
+                                                 PopulationRaster, PopulationEntry)
 
 
 
@@ -46,6 +47,7 @@ class PopulationTemplateSerializer(serializers.Serializer):
                         prognosis_id: int,
                         ) -> bytes:
         """Create a template file for population/prognosis"""
+        popraster = PopulationRaster.objects.get(default=True)
 
         area_level = AreaLevel.objects.get(pk=area_level_id)
         if prognosis_id is None:
@@ -90,6 +92,8 @@ class PopulationTemplateSerializer(serializers.Serializer):
         # create an empty dataframe
         df_areas = pd.DataFrame(index=idx_areas,
                                 columns=idx_cols)
+        if not isinstance(years, list):
+            years = [int(y) for y in years.split(',')]
 
 
         fn = os.path.join(settings.MEDIA_ROOT, excel_filename)
@@ -109,6 +113,26 @@ class PopulationTemplateSerializer(serializers.Serializer):
                 meta['C4'] = prognosis.name
 
             for year in years:
+
+                population = Population.objects.get(
+                    prognosis_id=prognosis_id,
+                    year__year=year,
+                    popraster=popraster,
+                    )
+                columns = ['area_id', 'gender_id', 'age_group_id', 'value']
+
+                df_values = pd.DataFrame(PopulationEntry.objects.filter(population=population)\
+                             .values(*columns),
+                             columns=columns,
+                             )\
+                    .rename(columns={'area_id': 'id',})\
+                    .set_index('id')
+
+                if len(df_values):
+                    df_values = df_values.pivot_table(values='value',
+                                                      index=df_values.index,
+                                                      columns=['gender_id', 'age_group_id'])
+                    df_areas.loc[df_values.index, :] = df_values.values
 
                 df_areas.to_excel(writer,
                                   sheet_name=str(year),
