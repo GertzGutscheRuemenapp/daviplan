@@ -2,7 +2,7 @@ from django.db.models import Q, Max
 from django.core.exceptions import BadRequest
 from django.contrib.auth.models import User
 
-from rest_framework import viewsets, permissions, status, response
+from rest_framework import viewsets, permissions, status, response, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -123,18 +123,18 @@ class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                    request=inline_serializer(
                        name='YearRangeSerializer',
                        fields={
-                           'from_year': OpenApiParameter(name='Von', required=True, type=int),
-                           'to_year': OpenApiParameter(name='Bis', required=True, type=int),
+                           'from_year': serializers.IntegerField(required=True),
+                           'to_year': serializers.IntegerField(required=True),
                        }
                    )
-                   )
+                )
     @action(methods=['POST'], detail=False)
     def set_range(self, request):
         """create or delete years, if required"""
         try:
             from_year = int(request.data.get('from_year'))
             to_year = int(request.data.get('to_year'))
-        except ValueError:
+        except (ValueError, TypeError):
             raise BadRequest('from_year and to_year must be integers')
 
         years_to_delete = Year.objects.exclude(year__range=(from_year, to_year))
