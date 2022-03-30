@@ -194,7 +194,7 @@ class TestPopulationAPI(WriteOnlyWithCanEditBaseDataTest,
         """Test the route of years with population and prognosis """
         Year.objects.all().delete()
         for y in range(1910, 1930):
-            Year.objects.create(year=y, is_default=(y==2020) or None)
+            Year.objects.create(year=y, is_default=(y==2020))
         for y in range(1910, 1921):
             year = Year.objects.get(year=y)
             Population.objects.create(year=year, prognosis=None)
