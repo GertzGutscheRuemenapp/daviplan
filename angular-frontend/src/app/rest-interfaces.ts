@@ -67,6 +67,13 @@ export interface Source {
   url: string;
 }
 
+export interface Indicator {
+  id: number;
+  service: number;
+  name: string;
+  description: string;
+}
+
 export interface AreaLevel {
   id: number;
   name: string;
@@ -153,8 +160,13 @@ export interface Service {
   name: string,
   demandSingularUnit: string,
   demandPluralUnit: string,
+  hasCapacity: boolean,
   capacitySingularUnit: string,
   capacityPluralUnit: string,
+  facilitySingularUnit: 'der' | 'die' | 'das',
+  facilityArticle: string,
+  facilityPluralUnit: string,
+  directionWayRelationship: 1 | 2,
   minCapacity: number,
   maxCapacity: number
 }

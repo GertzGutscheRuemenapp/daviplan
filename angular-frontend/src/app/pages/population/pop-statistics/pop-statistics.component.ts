@@ -190,7 +190,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         else {
           this.activeArea = undefined;
         }
-        this.cookies.set(`pop-area-${this.areaLevel!.id}`, this.activeArea!.id);
+        this.cookies.set(`pop-area-${this.areaLevel!.id}`, this.activeArea?.id);
         this.updateDiagrams();
       })
     })

@@ -1,17 +1,10 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { Indicator, mockIndicators } from "../../basedata/indicators/indicators.component";
 import { CookieService } from "../../../helpers/cookies.service";
-import { mockInfrastructures } from "../../administration/infrastructure/infrastructure.component";
 import { environment } from "../../../../environments/environment";
 import { MatDialog } from "@angular/material/dialog";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import { PlanningService } from "../planning.service";
-import { AreaLevel, Infrastructure, PlanningProcess } from "../../../rest-interfaces";
-
-const mockCustomIndicators: Indicator[] = [
-  {id: 6, service: mockInfrastructures[0].services[0].id, name: 'Test + langer Text der die maximale Größe des Containers überschreiten sollte', description: 'eigener Testindikator'},
-  {id: 7, service: mockInfrastructures[0].services[0].id, name: 'zweiter Indikator', description: 'noch ein eigener Testindikator'},
-]
+import { AreaLevel, Indicator, Infrastructure, PlanningProcess } from "../../../rest-interfaces";
 
 @Component({
   selector: 'app-rating',
@@ -24,11 +17,10 @@ export class RatingComponent implements OnInit {
   years = [2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025];
   compareSupply = true;
   compareStatus = 'option 1';
-  indicators = mockIndicators;
+  indicators: Indicator[] = [];
+  activeIndicator?: Indicator;
   selectedAreaLevel?: AreaLevel;
   areaLevels?: AreaLevel[];
-  activeIndicator = mockIndicators[0];
-  customIndicators = mockCustomIndicators;
   infrastructures?: Infrastructure[];
   selectedInfrastructure?: Infrastructure;
   activeProcess?: PlanningProcess;
@@ -48,11 +40,11 @@ export class RatingComponent implements OnInit {
     })
   }
 
-  ngOnInit(): void {
+  onIndicatorChange(id: number): void {
+    this.activeIndicator = this.indicators.find(ind => ind.id === id);
   }
 
-  onIndicatorChange(id: number): void {
-    this.activeIndicator = this.indicators.concat(this.customIndicators).filter(ind => ind.id === id)[0];
+  ngOnInit(): void {
   }
 
   onFullscreenDialog(): void {

@@ -23,7 +23,7 @@
           <div mat-subheader>{{infrastructure.name}}</div>
           <mat-list-option *ngFor="let service of infrastructure.services"
                            (click)="selectedService = service"
-                           [selected]="(service.id === selectedService.id)">
+                           [selected]="(service.id === selectedService?.id)">
             <div class="option-text">{{service.name}}</div>
           </mat-list-option>
           <mat-divider></mat-divider>
@@ -34,7 +34,7 @@
   <div fxLayout="column" fxFlex="900px">
     <app-input-card [title]="'Definition der Nachfragequote für ausgewählte Leistung'"
                     [editTemplate]="ageGroupEdit"
-                    [subtitle]="'Leistung ' + selectedService.name"
+                    [subtitle]="'Leistung ' + selectedService?.name"
                     infoText="<p>Klicken Sie auf Editieren, wenn Sie die angezeigte Definition der Nachfragequote für die ausgewählten Leistung verändern oder ergänzen möchten.</p>
                     <p>Die Definition umfasst die folgenden Punkte: </p>
                     <p>Maßeinheit der Nachfrage: Legen Sie fest, wie die Maßeinheit der Nachfrage für diese Leistung heißt, z.B. „Kitakinder“, „Schüler*innen“, „Patienten“ oder „Brandfälle“. Um im weiteren Verlauf Anzeigen wie „1 Kitakinder“ zu vermeiden, geben Sie bitte neben der Mehrzahl auch die Einzahl („Kitakind“) an.</p>
@@ -88,7 +88,7 @@
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
     <app-input-card [title]="'Nachfragequoten-Sets'"
-                    [subtitle]="'Leistung ' + selectedService.name"
+                    [subtitle]="'Leistung ' + selectedService?.name"
                     infoText="<p>Klicken Sie auf „Hinzufügen“, um ein Nachfragequoten-Set zu definieren. </p>
                     <p>Ein Nachfragequoten-Set legt die Nachfragequote für jede in der Box „Definition der Nachfragequote für ausgewählte Leistung“ ausgewählte Altersgruppe sowie für jedes Prognosejahr fest. Sofern in der Box „Einwohner-Differenzierung“ für die Leistung eine geschlechterspezifische Differenzierung der Quoten ausgewählt wurde, sind dabei die Nachfragequoten auch nach Geschlecht zu differenzieren.</p>
                     <p>Für jede Leistung muss mindestens ein Nachfragequoten-Set definiert sein. </p>
@@ -127,7 +127,7 @@
   </div>
   <div fxLayout="column" fxFlex="900px">
     <app-input-card [title]="'Werte des ausgewählten Nachfragequoten-Sets'"
-                    [subtitle]="'Leistung ' + selectedService.name + ' / ' + 'Set „' + selectedQuota + '“'"
+                    [subtitle]="'Leistung ' + selectedService?.name + ' / ' + 'Set „' + selectedQuota + '“'"
                     [editTemplate]="quotaEdit"
                     [topRightHelp]="true"
                     infoText="<p>In dieser Box können Sie die Quoten des ausgewählten Nachfragequoten-Sets eintragen bzw. bereits eingetragene Werte in Tabellen- und Diagrammform betrachten und kontrollieren.</p>

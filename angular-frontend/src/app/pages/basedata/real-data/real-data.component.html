@@ -3,14 +3,14 @@
                  width="1430px">
   <p>Für die Abschätzung der Nachfrage nach Infrastrukturen werden u.a. Einwohnerdaten benötigt. Auf dieser Seite können Realdaten, also Daten zur Einwohnerzahl und Altersstruktur in den zurückliegenden Jahren einlesen. Prognosedaten werden hingegen im entsprechend benannten Menüpunkt eingepflegt.</p>
   <p>Legen Sie zunächst in der Box „Gebietseinteilung“ fest, auf welche Gebietseinteilung sich Ihre Daten beziehen. Häufig ist dies die Ebene „Gemeinden“.</p>
-  <p>Klicken Sie anschließend in der Box „Jahre“ auf „Hinzufügen“ und geben Sie die Jahreszahl ein, für die Sie Einwohnerdaten erfassen möchten. Daraufhin haben Sie in der Box „Einwohnerdaten des ausgewählten Jahres hochladen“ die Möglichkeit eine Vorlagedatei („Template“) für dieses Jahr herunterzuladen. Befüllen Sie diese mit Ihren Daten und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch.</p>
+  <p>Klicken Sie anschließend in der Box „Jahre“ auf „Hinzufügen“ und geben Sie die Jahreszahl ein, für die Sie Einwohnerdaten erfassen möchten. Daraufhin haben Sie in der Box „Ergänzende Einwohnerdaten hochladen“ die Möglichkeit eine Vorlagedatei („Template“) für dieses Jahr herunterzuladen. Befüllen Sie diese mit Ihren Daten und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch.</p>
   <p>Wiederholen Sie dieses Vorgehen bitte für alle zurückliegenden Jahre, für die Sie Ihren Nutzer*innen reale Einwohnerdaten zur Verfügung stellen möchten.</p>
   <p>Bereits hochgeladene Daten können über die Bevölkerungspyramide betrachtet werden. Wählen Sie hierzu in der Box „Jahre“ ein Jahr und über die Karte oder die Auswahlliste eine Gebietseinheit aus.</p>
   <p>Zudem sind sie für alle Nutzer*innen im Hauptmenübereich „Bevölkerung“ sichtbar und stehen für Auswertungen im Hauptmenübereich „Infrastrukturplanung“ zur Verfügung.</p>
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
-    <app-input-card [title]="'Online-Datenabruf '"
+    <app-input-card [title]="'Einwohnerdaten online abrufen'"
                     infoText="<p>ToDo: nur verfügbar wenn: Gemeinden, Altersgruppen gemäß Regionalstatistik</p>"
                     [subtitle]="'Abruf der Regionalstatistik'">
       <table>
@@ -28,7 +28,7 @@
     <app-input-card [title]="'Jahre'"
                     subtitle="Jahre hinzufügen bzw. bereits hinzugefügte bearbeiten"
                     infoText="<p>Klicken Sie auf „Hinzufügen“, um das erste oder ein weiteres Jahr mit Realdaten hinzuzufügen. In dem sich öffnenden Dialog geben Sie dazu nur die Jahreszahl an. Die hinzugefügte Jahreszahl erscheint dann in der Liste der Jahre.</p>
-                    <p>Für ein dort ausgewähltes Jahr können Sie dann in der Box „Einwohnerdaten des ausgewählten Jahres hochladen“ eine Vorlagedatei herunterzuladen. Befüllen Sie diese mit Ihren Daten und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch.</p>
+                    <p>Für ein dort ausgewähltes Jahr können Sie dann in der Box „Ergänzende Einwohnerdaten hochladen“ eine Vorlagedatei herunterzuladen. Befüllen Sie diese mit Ihren Daten und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch.</p>
                     <p>Wiederholen Sie dieses Vorgehen bitte für alle zurückliegenden Jahre, für die Sie Ihren Nutzer*innen reale Einwohnerdaten zur Verfügung stellen möchten.</p>
                     <p>Um ein Jahr samt seinen ggf. bereits hochgeladenen Daten zu löschen wählen Sie dieses in der Liste der Jahre aus und klicken auf „Entfernen“.</p>">
       <mat-selection-list [multiple]="false"
@@ -53,15 +53,12 @@
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="1100px">
-    <app-input-card [title]="'Einwohnerdaten des ausgewählten Jahres hochladen'"
+    <app-input-card [title]="'Ergänzende Einwohnerdaten hochladen'"
                     [topRightHelp]="true"
                     infoText="<p>Wenn Sie für dieses Jahr noch keine Einwohnerdaten hochgeladen haben (oder die bereits hochgeladenen Daten ersetzen möchten), können Sie sich mit der Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excelformat  herunterladen. Befüllen Sie diese mit Ihren Daten für das angezeigte Jahr und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Zur Kontrolle können Sie sich die hochgeladenen Daten anschließend in der Box „Alterspyramide“ für einzelne Gebiete anschauen. Alternativ können Sie sich die Gesamttabelle des Jahres über die Schaltfläche „Datentabelle ansehen“ anzeigen lassen.</p>
                     <p>Um die Daten weiterer Jahre hochzuladen, fügen Sie bitte in der Box „Jahre“ weitere Jahre hinzu und wiederholen das Vorgehen entsprechend. Für jedes Jahr benötigen Sie eine eigene Vorlagedatei.</p>">
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
-          <span class="subtitle1 sub">
-            Jahr {{selectedYear}}
-          </span>
           <div style="margin-top: 15px; display: flex;">
             <table>
               <tr>

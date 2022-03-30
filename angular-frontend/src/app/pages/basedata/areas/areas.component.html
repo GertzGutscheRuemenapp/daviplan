@@ -118,6 +118,19 @@
             </div>
           </td>
         </tr>
+        <tr>
+          <td i18n>ID-Feld</td>
+          <td>
+            <div *ngIf="selectedAreaLevel?.symbol"
+                 style="margin-bottom: -5px;"
+                 class="symbol square"
+                 [style.backgroundColor]="selectedAreaLevel?.symbol?.strokeColor">
+            </div>
+            <div *ngIf="!selectedAreaLevel?.symbol">
+              keine Darstellung
+            </div>
+          </td>
+        </tr>
       </table>
     </app-input-card>
   </div>
