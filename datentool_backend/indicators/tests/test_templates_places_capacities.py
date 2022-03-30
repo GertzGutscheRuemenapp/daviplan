@@ -1,10 +1,12 @@
 import os
 from io import BytesIO
-from openpyxl.reader.excel import load_workbook
+
 import pandas as pd
+from openpyxl.reader.excel import load_workbook
 
 from django.urls import reverse
 from test_plus import APITestCase
+
 from datentool_backend.api_test import LoginTestCase
 from datentool_backend.infrastructure.factories import (InfrastructureFactory,
                                                         ServiceFactory,
@@ -122,7 +124,8 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
 
         places = Place.objects.filter(infrastructure=self.infra)
         place_names = places.values_list('name', flat=True)
-        self.assertQuerysetEqual(place_names, df['Name'], ordered=False)
+        assert set(df['Name']).issubset(place_names),\
+               'place names in excel_file are not uploaded correcty'
 
         for place_id, place_row in df.iterrows():
             place = Place.objects.get(infrastructure=self.infra, name=place_row['Name'])

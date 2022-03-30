@@ -12,28 +12,27 @@ from drf_spectacular.utils import (extend_schema,
                                    )
 
 from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
-from datentool_backend.utils.serializers import drop_constraints
-from datentool_backend.utils.permissions import (
-    HasAdminAccessOrReadOnly, CanEditBasedata,)
+from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
+                                                 CanEditBasedata,)
 
-from .permissions import CanEditScenarioPermission
+from datentool_backend.infrastructure.permissions import CanEditScenarioPermission
 
 from datentool_backend.user.models import InfrastructureAccess
 
-from .models import (Scenario,
-                     Place,
-                     Capacity,
-                     PlaceField,
-                     PlaceAttribute,
-                     )
+from datentool_backend.infrastructure.models import (Scenario,
+                                                     Place,
+                                                     Capacity,
+                                                     PlaceField,
+                                                     PlaceAttribute,
+                                                     )
 
-from .serializers import (ScenarioSerializer,
-                          PlaceSerializer,
-                          CapacitySerializer,
-                          PlaceFieldSerializer,
-                          PlacesTemplateSerializer,
-                          infrastructure_id_serializer,
-                          )
+from datentool_backend.infrastructure.serializers import (ScenarioSerializer,
+                                                          PlaceSerializer,
+                                                          CapacitySerializer,
+                                                          PlaceFieldSerializer,
+                                                          PlacesTemplateSerializer,
+                                                          infrastructure_id_serializer,
+                                                          )
 
 
 class ScenarioViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

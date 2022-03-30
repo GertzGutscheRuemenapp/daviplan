@@ -7,7 +7,7 @@ from django.http.request import QueryDict
 
 from datentool_backend.utils.dict_cursor import dictfetchall
 
-from .base import ComputeIndicator, ResultSerializer
+from datentool_backend.indicators.compute.base import ComputeIndicator, ResultSerializer
 from datentool_backend.area.models import Area
 from datentool_backend.population.models import (RasterCellPopulationAgeGender,
                                                  AreaCell,

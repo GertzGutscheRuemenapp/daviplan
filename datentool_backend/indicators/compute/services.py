@@ -4,7 +4,7 @@ from django.db.models.functions import Coalesce
 from sql_util.utils import Exists
 from django.http.request import QueryDict
 
-from .base import ComputeIndicator, ResultSerializer
+from datentool_backend.indicators.compute.base import ComputeIndicator, ResultSerializer
 from datentool_backend.area.models import Area, AreaLevel
 from datentool_backend.infrastructure.models import Place, Capacity
 
@@ -24,10 +24,6 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
 
         area_level = AreaLevel.objects.get(pk=area_level_id)
         areas = area_level.area_set.all()
-
-        #areas = areas.annotate(
-            #label=KeyTextTransform(area_level.label_field, 'attributes'))
-
 
         capacities = Capacity.objects.all()
         capacities = Capacity.filter_queryset(capacities,

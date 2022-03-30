@@ -56,7 +56,7 @@ class ExcelTemplateMixin:
     @action(methods=['POST'], detail=False)
     def upload_template(self, request, queryset=None, **kwargs):
         """Upload the filled out Stops-Template"""
-        qs = queryset or self.get_queryset()
+        qs = queryset if queryset is not None else self.get_queryset()
         model = qs.model
         manager = model.copymanager
         drop_constraints = bool(strtobool(

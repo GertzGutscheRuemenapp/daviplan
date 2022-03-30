@@ -211,7 +211,7 @@ class Migration(migrations.Migration):
             name='Years',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('year', models.IntegerField()),
+                ('year', models.IntegerField(unique=True)),
             ],
         ),
         migrations.CreateModel(

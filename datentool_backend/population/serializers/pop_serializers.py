@@ -2,11 +2,12 @@ from typing import List
 from rest_framework import serializers
 
 
-from .models import (Raster, PopulationRaster,
-                     Prognosis, Population, PopulationEntry,
-                     PopStatistic, PopStatEntry,
-                     RasterCellPopulationAgeGender,
-                     Year)
+from datentool_backend.population.models import (
+    Raster, PopulationRaster,
+    Prognosis, Population, PopulationEntry,
+    PopStatistic, PopStatEntry,
+    RasterCellPopulationAgeGender,
+    Year)
 
 
 class RasterSerializer(serializers.ModelSerializer):
@@ -87,7 +88,3 @@ class PopStatEntrySerializer(serializers.ModelSerializer):
         model = PopStatEntry
         fields = ('id', 'popstatistic', 'area', 'immigration', 'emigration',
                   'births', 'deaths', 'year')
-
-
-class MessageSerializer(serializers.Serializer):
-    message = serializers.CharField()

@@ -10,9 +10,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from django.db import transaction
-from django.db.models import F, Max, Sum
+from django.db.models import Max, Sum
 
-from datentool_backend.utils.views import ProtectCascadeMixin
+from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 
@@ -49,6 +49,10 @@ from datentool_backend.population.serializers import (RasterSerializer,
                                                       PopulationEntrySerializer,
                                                       PopStatisticSerializer,
                                                       PopStatEntrySerializer,
+                                                      PopulationTemplateSerializer,
+                                                      prognosis_id_serializer,
+                                                      area_level_id_serializer,
+                                                      years_serializer,
                           )
 
 from datentool_backend.area.models import Area, AreaLevel
@@ -393,10 +397,36 @@ class PopulationViewSet(viewsets.ModelViewSet):
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
 
-class PopulationEntryViewSet(viewsets.ModelViewSet):
+class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
     queryset = PopulationEntry.objects.all()
     serializer_class = PopulationEntrySerializer
+    serializer_action_classes = {'create_template': PopulationTemplateSerializer,
+                                 'upload_template': PopulationTemplateSerializer,
+                                 }
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+    @extend_schema(description='Upload Population Template',
+                   request=inline_serializer(
+                       name='PopulationUploadTemplateSerializer',
+                       fields={
+                           'area_level': area_level_id_serializer,
+                           'years': years_serializer,
+                           'prognosis': prognosis_id_serializer,
+                           'drop_constraints': drop_constraints
+                       }
+                       ),
+                   )
+    @action(methods=['POST'], detail=False, permission_classes=[CanEditBasedata])
+    def create_template(self, request, **kwargs):
+        area_level_id = request.data.get('area_level')
+        prognosis_id = request.data.get('prognosis')
+        years = request.data.get('years')
+        return super().create_template(request,
+                                       area_level_id=area_level_id,
+                                       years=years,
+                                       prognosis_id=prognosis_id,
+                                       )
+
 
 
 class PopStatisticViewSet(viewsets.ModelViewSet):
