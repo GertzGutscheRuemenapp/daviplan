@@ -27,7 +27,7 @@ export class ServicesComponent implements OnInit {
       const services = infrastructures[0].services || [];
       if (services.length > 0) {
         this.activeService = services[0];
-        this.getIndicatorDescription();
+        this.onServiceChange();
       }
     })
   }
@@ -46,11 +46,11 @@ export class ServicesComponent implements OnInit {
   }
 
   onServiceChange() {
-    this.getIndicatorDescription();
-  }
-
-  getIndicatorDescription() {
-    this.http.get<any>(`${this.rest.URLS.services}${this.activeService!.id}/get_indicators/`).subscribe(indicators => {
+    if (!this.activeService) {
+      this.indicators = [];
+      return;
+    }
+    this.http.get<any>(`${this.rest.URLS.services}${this.activeService.id}/get_indicators/`).subscribe(indicators => {
       this.indicators = indicators;
     })
   }

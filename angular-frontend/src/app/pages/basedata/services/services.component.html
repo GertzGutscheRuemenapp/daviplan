@@ -15,12 +15,11 @@
                     <p>Um die Eigenschaften bereits hinzugefügter Leistungen zu sehen und ggf. zu verändern, wählen Sie diese in der Liste der Leistungen aus. Die drei anderen Eingabeboxen zeigen Ihnen die bisher definierten Eigenschaften. Über den jeweilige Schaltfläche „Editieren“ können Sie diese verändern.</p>">
       <mat-selection-list [multiple]="false"
                           class="categorized"
-                          (selectionChange)="onServiceChange()"
                           id="service-select">
         <ng-container *ngFor="let infrastructure of infrastructures">
           <div mat-subheader>{{infrastructure.name}}</div>
           <mat-list-option *ngFor="let service of infrastructure.services"
-                           (click)="activeService = service"
+                           (click)="activeService = service; onServiceChange();"
                            [selected]="(service.id === activeService?.id)">
             <div class="option-text">{{service.name}}</div>
           </mat-list-option>
@@ -106,7 +105,16 @@
             <td>{{(activeService.directionWayRelationship === 1)? 'Zu': (activeService.directionWayRelationship === 2)? 'Von': '-'}}</td>
           </tr>
         </table>
-        {{(indicators.length > 0)? indicators[6].description: ''}}
+      </div>
+      <div after>
+        <br>
+        <div *ngIf="(indicators.length > 0)">
+          <span class="subtitle1 sub"> Beispieltexte </span>
+          <br>
+          <li *ngFor="let indicator of indicators" style="margin-top: 10px; color: grey;">
+            {{indicator.description}}
+          </li>
+        </div>
       </div>
     </app-input-card>
 <!--    <app-input-card [title]="'Nachfrageeinheit der ausgewählten Leistung'"
