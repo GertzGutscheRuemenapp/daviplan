@@ -37,7 +37,7 @@ from datentool_backend.population.models import (Raster,
 from datentool_backend.indicators.factories import StopFactory
 
 
-class CreateInfrastructureTestdataMixin:
+class CreateTestdataMixin:
     """Create Testdata for Indicator Tests"""
 
     @classmethod
@@ -300,7 +300,7 @@ class CreateInfrastructureTestdataMixin:
         """Create years, genders and agegroups"""
         Year.objects.create(year=2022, is_default=True)
         for year in range(2023, 2030):
-            Year.objects.create(year=year, is_default=False)
+            Year.objects.create(year=year)
 
         cls.years = Year.objects.all()
         Gender.objects.create(name='Male')

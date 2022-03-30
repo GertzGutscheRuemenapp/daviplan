@@ -9,26 +9,28 @@ from datentool_backend.api_test import (BasicModelTest,
                                         )
 
 
-from .models import (Year,
-                     PopulationRaster,
-                     PopulationEntry,
-                     PopStatistic,
-                     PopStatEntry,
-                     Prognosis,
-                     Population)
-from .factories import (RasterCellFactory,
-                        AgeGroupFactory,
-                        GenderFactory,
-                        PopulationFactory,
-                        RasterCellPopulationFactory,
-                        RasterCellPopulationAgeGenderFactory,
-                        AreaFactory,
-                        PrognosisFactory,
-                        PopStatEntryFactory,
-                        RasterFactory,
-                        PopulationRasterFactory,
-                        PopulationEntryFactory,
-                        PopStatisticFactory)
+from datentool_backend.population.models import (Year,
+                                                 PopulationRaster,
+                                                 PopulationEntry,
+                                                 PopStatistic,
+                                                 PopStatEntry,
+                                                 Prognosis,
+                                                 Population)
+from datentool_backend.population.factories import (
+    YearFactory,
+    RasterCellFactory,
+    AgeGroupFactory,
+    GenderFactory,
+    PopulationFactory,
+    RasterCellPopulationFactory,
+    RasterCellPopulationAgeGenderFactory,
+    AreaFactory,
+    PrognosisFactory,
+    PopStatEntryFactory,
+    RasterFactory,
+    PopulationRasterFactory,
+    PopulationEntryFactory,
+    PopStatisticFactory)
 
 from faker import Faker
 
@@ -39,10 +41,7 @@ class TestPopulation(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.years = Year.objects.bulk_create([Year(year=y)
-                                              for y in range(2010, 2015)],
-                                              )
-        cls.years = Year.objects.all()
+        cls.years = [YearFactory() for y in range(5)]
         str(cls.years[0])
         cls.cell = RasterCellFactory()
         cls.genders = [GenderFactory() for i in range(3)]

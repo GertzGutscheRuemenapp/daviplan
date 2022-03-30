@@ -6,7 +6,7 @@ from datentool_backend.api_test import (BasicModelTest,
 from datentool_backend.area.tests import TestAPIMixin, TestPermissionsMixin
 
 
-from ..factories import (RouterFactory)
+from datentool_backend.indicators.factories import RouterFactory
 
 
 from faker import Faker

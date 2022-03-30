@@ -2,8 +2,8 @@ from typing import Tuple, Set, List
 from collections import OrderedDict
 
 from django.test import TestCase
-from test_plus import APITestCase
 from django.contrib.gis.geos import Point
+from test_plus import APITestCase
 
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,

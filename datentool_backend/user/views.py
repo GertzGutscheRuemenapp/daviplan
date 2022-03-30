@@ -2,11 +2,14 @@ from django.db.models import Q, Max
 from django.core.exceptions import BadRequest
 from django.contrib.auth.models import User
 
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, permissions, status, response, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.utils import (extend_schema,
+                                   extend_schema_view,
+                                   OpenApiParameter,
+                                   inline_serializer)
 
 from datentool_backend.indicators.compute.base import (
     ServiceIndicator, ResultSerializer)
@@ -87,6 +90,8 @@ class UserViewSet(viewsets.ModelViewSet):
                          description='if true, only years where population data is available'),
         OpenApiParameter(name='with_prognosis', required=False, type=bool ,
                          description='if true, only years where data from any prognosis is available'),
+        OpenApiParameter(name='prognosis_years', required=False, type=bool ,
+                         description='if true, only prognosis-years should be returned'),
     ]
 ))
 class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
@@ -99,6 +104,7 @@ class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         prognosis = self.request.query_params.get('prognosis')
         with_population = self.request.query_params.get('with_population')
         with_prognosis = self.request.query_params.get('with_prognosis')
+        prognosis_years = self.request.query_params.get('prognosis_years')
 
         if with_population:
             expr = Q(population__isnull=False) & Q(population__prognosis__isnull=True)
@@ -109,7 +115,36 @@ class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         elif prognosis:
             expr = Q(population__isnull=False) & Q(population__prognosis_id=prognosis)
             qs = qs.filter(expr)
+        elif prognosis_years:
+            qs = qs.filter(is_prognosis=True)
         return qs.order_by('year')
+
+    @extend_schema(description='Set Year Range',
+                   request=inline_serializer(
+                       name='YearRangeSerializer',
+                       fields={
+                           'from_year': serializers.IntegerField(required=True),
+                           'to_year': serializers.IntegerField(required=True),
+                       }
+                   )
+                )
+    @action(methods=['POST'], detail=False)
+    def set_range(self, request):
+        """create or delete years, if required"""
+        try:
+            from_year = int(request.data.get('from_year'))
+            to_year = int(request.data.get('to_year'))
+        except (ValueError, TypeError):
+            raise BadRequest('from_year and to_year must be integers')
+
+        years_to_delete = Year.objects.exclude(year__range=(from_year, to_year))
+        years_to_delete.delete()
+
+        for y in range(from_year, to_year+1):
+            year = Year.objects.get_or_create(year=y)
+
+        return response.Response(f'Years set to {from_year}-{to_year}',
+                                 status=status.HTTP_201_CREATED)
 
 
 class PlanningProcessViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

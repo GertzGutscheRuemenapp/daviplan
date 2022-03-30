@@ -41,8 +41,9 @@ def save_user_profile(sender, instance, **kwargs):
 
 class Year(DatentoolModelMixin, models.Model):
     """years available"""
-    year = models.IntegerField()
+    year = models.IntegerField(unique=True)
     is_default = models.BooleanField(default=False)
+    is_prognosis = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__}: {self.year}'

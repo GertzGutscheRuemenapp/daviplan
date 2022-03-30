@@ -1,4 +1,4 @@
-from .base import ComputeIndicator, ResultSerializer
+from datentool_backend.indicators.compute.base import ComputeIndicator, ResultSerializer
 
 
 class ReachabilityPlace(ComputeIndicator):

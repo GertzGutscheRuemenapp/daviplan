@@ -1,5 +1,8 @@
-from .base import (register_indicator, ServiceIndicator, ResultSerializer,
-                   IndicatorChoiceParameter, IndicatorNumberParameter)
+from datentool_backend.indicators.compute.base import (register_indicator,
+                                                       ServiceIndicator,
+                                                       ResultSerializer,
+                                                       IndicatorChoiceParameter,
+                                                       IndicatorNumberParameter)
 
 from datentool_backend.modes.models import Mode
 

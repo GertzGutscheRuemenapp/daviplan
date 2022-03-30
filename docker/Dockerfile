@@ -1,4 +1,4 @@
-FROM osgeo/gdal:ubuntu-small-3.2.0
+FROM osgeo/gdal:ubuntu-small-3.4.2
 RUN curl -sL https://deb.nodesource.com/setup_14.x -o nodesource_setup.sh
 RUN bash nodesource_setup.sh
 RUN apt-get -y update \
