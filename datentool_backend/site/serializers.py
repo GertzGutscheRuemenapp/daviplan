@@ -1,17 +1,28 @@
 from typing import Dict
-
 from rest_framework import serializers
 from .models import SiteSetting, ProjectSetting, BaseDataSetting, AreaLevel
+from django.db.models import Max, Min
+
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
-from datentool_backend.models import DemandRateSet, Prognosis, ModeVariant
+from datentool_backend.models import DemandRateSet, Prognosis, ModeVariant, Year
 
 
 class ProjectSettingSerializer(serializers.ModelSerializer):
     project_area = MultiPolygonGeometrySRIDField(srid=3857)
+    start_year = serializers.SerializerMethodField(read_only=True)
+    end_year = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ProjectSetting
         fields = ('project_area', 'start_year', 'end_year')
+
+    def get_start_year(self, obj):
+        agg = Year.objects.all().aggregate(Min('year'))
+        return agg['year__min']
+
+    def get_end_year(self,  obj):
+        agg = Year.objects.all().aggregate(Max('year'))
+        return agg['year__max']
 
 
 class BaseDataSettingSerializer(serializers.ModelSerializer):
