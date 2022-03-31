@@ -1,14 +1,15 @@
 import numpy as np
-
+from unittest import skip
 from django.test import TestCase
 from test_plus import APITestCase
+
+from .regionalstatistik import Regionalstatistik
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         TestAPIMixin,
                                         TestPermissionsMixin,
+                                        LoginTestCase
                                         )
-
-
 from datentool_backend.population.models import (Year,
                                                  PopulationRaster,
                                                  PopulationEntry,
@@ -31,10 +32,67 @@ from datentool_backend.population.factories import (
     PopulationRasterFactory,
     PopulationEntryFactory,
     PopStatisticFactory)
+from datentool_backend.area.models import Area
+from datentool_backend.area.factories import (AreaLevelFactory,
+                                              AreaFactory,
+                                              AreaFieldFactory,
+                                              FieldTypes,
+                                              )
+from datentool_backend.demand.factories import AgeGroupFactory
+from datentool_backend.demand.constants import RegStatAgeGroups
 
 from faker import Faker
 
 faker = Faker('de-DE')
+
+
+class TestRegionalstatistikAPI(LoginTestCase, APITestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.profile.admin_access = True
+        cls.profile.save()
+
+        cls.years = [YearFactory(year=y) for y in range(2012, 2015)]
+
+        area_level = AreaLevelFactory(is_statistic_level=True)
+        AreaFieldFactory(name='gen',
+                         area_level=area_level,
+                         field_type__ftype=FieldTypes.STRING,
+                         is_label=True)
+        AreaFieldFactory(name='ags',
+                         area_level=area_level,
+                         field_type__ftype=FieldTypes.STRING,
+                         is_key=True)
+        AreaFactory(
+            area_level=area_level,
+            attributes={'ags': '01003000', 'gen': 'Lübeck'},
+        )
+        AreaFactory(
+            area_level=area_level,
+            attributes={'ags': '01053038', 'gen': 'Grinau'},
+        )
+        AreaFactory(
+            area_level=area_level,
+            attributes={'ags': '01053099', 'gen': 'Poggensee'},
+        )
+        cls.age_groups = [AgeGroupFactory(from_age=r.from_age, to_age=r.to_age)
+                          for r in RegStatAgeGroups.agegroups]
+
+        cls.api = Regionalstatistik(start_year=2012, end_year=2014)
+
+    @skip
+    def test_genesis_request(self):
+        df = self.api.query_population(ags=self.ags)
+        db_ags = [a.attributes.get(field__name='ags').value
+                  for a in Area.objects.all()]
+        self.assertAlmostEqual(list(df['AGS'].unique()), db_ags)
+        self.assertAlmostEqual(list(df['year'].unique()), range(2012, 2015))
+
+    @skip
+    def test_rest(self):
+        res = self.post('populations-pull-regionalstatistik')
 
 
 class TestPopulation(TestCase):
@@ -42,7 +100,6 @@ class TestPopulation(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.years = [YearFactory() for y in range(5)]
-        str(cls.years[0])
         cls.cell = RasterCellFactory()
         cls.genders = [GenderFactory() for i in range(3)]
         cls.population = PopulationFactory(genders=cls.genders)

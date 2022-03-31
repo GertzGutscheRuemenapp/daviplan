@@ -4,7 +4,10 @@ from distutils.util import strtobool
 from django.http.request import QueryDict
 from django.db import connection
 from django_filters import rest_framework as filters
-
+from django.db.models import Max, Min
+from drf_spectacular.utils import (extend_schema,
+                                   OpenApiResponse,
+                                   inline_serializer)
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -15,12 +18,8 @@ from django.db.models import Max, Sum
 from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
-
-from drf_spectacular.utils import (extend_schema,
-                                   OpenApiResponse,
-                                   inline_serializer)
-
 from datentool_backend.area.views import intersect_areas_with_raster
+from .regionalstatistik import Regionalstatistik
 from .models import (Raster,
                      PopulationRaster,
                      Prognosis,
@@ -33,7 +32,10 @@ from .models import (Raster,
                      AreaPopulationAgeGender,
                      PopulationAreaLevel,
                      AreaCell,
+                     Year
                      )
+from datentool_backend.demand.constants import RegStatAgeGroups
+from datentool_backend.demand.models import AgeGroup
 
 from datentool_backend.utils.serializers import (MessageSerializer,
                                                  use_intersected_data,
@@ -395,6 +397,59 @@ class PopulationViewSet(viewsets.ModelViewSet):
 
         msg = 'Aggregations of all Populations were successful.'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
+
+    @extend_schema(description='Pull population data in default statistics level '
+                   'for all available years from Regionalstatistik GENESIS API. '
+                   'ALL EXISTING POPULATION DATA WILL BE DELETED!',
+                   responses={202: OpenApiResponse(MessageSerializer,
+                                                   'Pull successful'),
+                              406: OpenApiResponse(MessageSerializer,
+                                                   'Not Acceptable'),
+                              500: OpenApiResponse(MessageSerializer,
+                                                   'Pull failed')})
+    @action(methods=['POST'], detail=False,
+            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+    def pull_regionalstatistik(self, request, **kwargs):
+
+        age_groups = AgeGroup.objects.all()
+        if not RegStatAgeGroups.check(age_groups):
+            return Response({'message': 'Die Altersklassen stimmen nicht mit '
+                             'denen der Regionalstatistik überein'},
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        min_max_years = Year.objects.all().aggregate(Min('year'), Max('year'))
+        # ToDo: username, password for bigger data?
+        api = Regionalstatistik(start_year=min_max_years['year__min'],
+                                end_year=min_max_years['year__max'])
+        ags = [a.attributes.get(field__name='ags').value
+               for a in Area.objects.all()]
+        try:
+            df_population = api.query_population(ags=ags)
+        except Exception as e:
+            return Response({'message': str(e),},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # ToDo: what to delete?
+        # Population.objects.all().delete()
+        year_grouped = df_population.groupby('year')
+        for y, year_group in year_grouped:
+            try:
+                year = Year.objects.get(year=y)
+            except Year.DoesNotExist:
+                continue
+            # ToDo: create Population (?)
+            # Population.objects.create()
+            ag_grouped = year_group.groupby('ALTX20')
+            for ag, ag_group in ag_grouped:
+                reg_ag = RegStatAgeGroups.get(ag)
+                # should actually not happen unless Regionalstatistik changes
+                # the age groups or codes (throw exception?)
+                if not reg_ag:
+                    continue
+                # should be in, was checked at the beginning
+                age_group = AgeGroup.objects.get(from_age=reg_ag.from_age,
+                                                 to_age=reg_ag.to_age)
+                # ToDo:create PopEntry per agegroup, gender and area
+                raise NotImplementedError
 
 
 class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
