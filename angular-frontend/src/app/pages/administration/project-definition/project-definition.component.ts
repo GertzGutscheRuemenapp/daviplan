@@ -16,6 +16,7 @@ import { Observable } from "rxjs";
 import { Layer } from "ol/layer";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
+import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 
 export interface ProjectSettings {
   projectArea: string,
@@ -45,6 +46,9 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   previewMapControl?: MapControl;
   areaSelectMapControl?: MapControl;
   projectGeom?: MultiPolygon;
+  startYear: number = 0;
+  endYear: number = 0;
+  years?: number[];
   ageGroups: AgeGroup[] = [];
   __ageGroups: AgeGroup[] = [];
   ageGroupDefaults: AgeGroup[] = [];
@@ -73,8 +77,10 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     this.setupPreviewMap();
     this.setupAreaCard();
     this.fetchProjectSettings().subscribe(settings => {
-      this.setupYearCard();
       this.updatePreviewLayer();
+    });
+    this.fetchYears().subscribe(settings => {
+      this.setupYearCard();
     });
     this.fetchAgeGroups().subscribe(ageGroups => {
       this.setupAgeGroupCard();
@@ -87,6 +93,22 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       this.projectSettings = projectSettings;
     })
     return query;
+  }
+
+  fetchYears(): Observable<any> {
+    let query = this.http.get<any[]>(this.rest.URLS.years);
+    query.subscribe(years => {
+      this.applyYears(years);
+    })
+    return query;
+  }
+
+  private applyYears(years: any[]) {
+    let ys = years.map((y: any) => y.year);
+    ys.sort();
+    this.years = ys;
+    this.startYear = ys[0];
+    this.endYear = ys[ys.length - 1];
   }
 
   fetchAgeGroups(): Observable<AgeGroup[]> {
@@ -169,8 +191,8 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
 
   setupYearCard(): void {
     this.yearForm = this.formBuilder.group({
-      startYear: this.projectSettings!.startYear,
-      endYear: this.projectSettings!.endYear
+      startYear: this.years![0],
+      endYear: this.years![this.years!.length - 1]
     });
     this.yearCard.dialogConfirmed.subscribe(()=>{
       this.yearForm.setErrors(null);
@@ -178,33 +200,55 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       if (this.yearForm.invalid) return;
       const startYear = this.yearForm.value.startYear,
         endYear = this.yearForm.value.endYear;
+      const newYears = Array.from({length: 1 + endYear - startYear}, (_, i) => i + startYear);
+      const curYears = Array.from({length: 1 + this.endYear - this.startYear}, (_, i) => i + this.startYear);
+      const yearsToDelete = curYears.filter(y => !newYears.includes(y));
       if (endYear <= startYear) {
         this.yearForm.controls['startYear'].setErrors({'tooHigh': true});
         return;
       }
       let attributes: any = {
-        startYear: startYear,
-        endYear: endYear
+        from_year: startYear,
+        to_year: endYear
       }
-      this.yearCard.setLoading(true);
-      this.http.patch<ProjectSettings>(this.rest.URLS.projectSettings, attributes
-      ).subscribe(settings => {
-        this.yearCard.closeDialog(true);
-        this.projectSettings = settings;
-      },(error) => {
-        // ToDo: set specific errors to fields
-        this.yearForm.setErrors(error.error);
-        this.yearCard.setLoading(false);
-      });
-    })
-    this.yearCard.dialogClosed.subscribe((ok)=>{
-      // reset form on cancel
-      if (!ok){
-        this.yearForm.reset({
-          startYear: this.projectSettings!.startYear,
-          endYear: this.projectSettings!.endYear
+      const _this = this;
+      function postYears(){
+        _this.yearCard.setLoading(true);
+        _this.http.post<any[]>(`${_this.rest.URLS.years}set_range/`, attributes
+        ).subscribe(years => {
+          _this.applyYears(years);
+          _this.yearCard.setLoading(false);
+          _this.yearCard.closeDialog(true);
+        }, (error) => {
+          // ToDo: set specific errors to fields
+          _this.yearForm.setErrors(error.error);
+          _this.yearCard.setLoading(false);
         });
       }
+      if (yearsToDelete.length > 0){
+        const dialogRef = this.dialog.open(RemoveDialogComponent, {
+          width: '500px',
+          data: {
+            title: $localize`Das Konto wirklich entfernen?`,
+            confirmButtonText: $localize`Änderung des Zeitraums bestätigen`,
+            value: yearsToDelete.join(', '),
+            message: 'Bereits in der Datenbank angelegte Jahre, die nicht im angegebenen neuen Betrachtungszeitraum liegen, ' +
+              'werden gelöscht. Alle für diese Jahre vorhandenen Daten (Bevölkerung, Nachfragequoten) ' +
+              'werden ebenfalls entfernt. Folgende Jahre und damit verknüpfte Daten sind von der Löschung betroffen: '
+          }
+        });
+        dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+          if (confirmed) postYears();
+        })
+      }
+      else
+        postYears()
+    })
+    this.yearCard.dialogOpened.subscribe((ok)=>{
+      this.yearForm.reset({
+        startYear: this.years![0],
+        endYear: this.years![this.years!.length - 1]
+      });
     })
   }
 

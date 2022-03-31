@@ -6,8 +6,6 @@ from datentool_backend.utils.models import SingletonModel
 
 class ProjectSetting(SingletonModel):
     project_area = MultiPolygonField(null=True, srid=3857)
-    start_year = models.IntegerField(default=2000)
-    end_year = models.IntegerField(default=2020)
 
 
 class BaseDataSetting(SingletonModel):

@@ -143,8 +143,10 @@ class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         for y in range(from_year, to_year+1):
             year = Year.objects.get_or_create(year=y)
 
-        return response.Response(f'Years set to {from_year}-{to_year}',
-                                 status=status.HTTP_201_CREATED)
+        qs = Year.objects.all()
+        data = self.serializer_class(qs, many=True).data
+
+        return response.Response(data, status=status.HTTP_201_CREATED)
 
 
 class PlanningProcessViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
