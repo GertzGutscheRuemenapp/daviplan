@@ -97,22 +97,31 @@ class TestYearAPI(WriteOnlyWithCanEditBaseDataTest,
         self.profile.save()
         url = 'years-set-range'
         res = self.post(url, data={'from_year': 2000, 'to_year': 2014,},
-                                 extra={'format': 'json'})
+                        extra={'format': 'json'})
         self.assert_http_201_created(res)
+        res_years = [r['year'] for r in res.data]
         qs = Year.objects.values_list('year', flat=True)
-        self.assertQuerysetEqual(qs, list(range(2000, 2015)), ordered=False)
+        expected = list(range(2000, 2015))
+        self.assertQuerysetEqual(qs, expected, ordered=False)
+        self.assertQuerysetEqual(res_years, expected, ordered=False)
 
         res = self.post(url, data={'from_year': 1990, 'to_year': 2010,},
                                  extra={'format': 'json'})
         self.assert_http_201_created(res)
+        res_years = [r['year'] for r in res.data]
         qs = Year.objects.values_list('year', flat=True)
-        self.assertQuerysetEqual(qs, list(range(1990, 2011)), ordered=False)
+        expected = list(range(1990, 2011))
+        self.assertQuerysetEqual(qs, expected, ordered=False)
+        self.assertQuerysetEqual(res_years, expected, ordered=False)
 
         res = self.post(url, data={'from_year': '2030', 'to_year': 2040,},
                                  extra={'format': 'json'})
         self.assert_http_201_created(res)
+        res_years = [r['year'] for r in res.data]
         qs = Year.objects.values_list('year', flat=True)
-        self.assertQuerysetEqual(qs, list(range(2030, 2041)), ordered=False)
+        expected = list(range(2030, 2041))
+        self.assertQuerysetEqual(qs, expected, ordered=False)
+        self.assertQuerysetEqual(res_years, expected, ordered=False)
 
         res = self.post(url, data={'from_year': '2030.2', 'to_year': 2040,},
                                  extra={'format': 'json'})

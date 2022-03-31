@@ -18,12 +18,10 @@ export class BasedataComponent implements OnInit {
     },
     {name:  $localize`Infrastrukturdaten`, icon: 'business', url: '', children: [
         {name:  $localize`Leistungen`, url: 'grundlagendaten/leistungen', davicon: 'icon-GGR-davicons-Font-Simple-3-Standorte-Leistungen', children: []},
-        {name:  $localize`Standorte`, url: 'grundlagendaten/standorte', icon: 'place', children: []},
-        {name:  $localize`Leistungen an Standorten`, url: 'grundlagendaten/kapazitaeten', icon: 'other_houses', children: []},
+        {name:  $localize`Standorte und Kapazitäten`, url: 'grundlagendaten/standorte', icon: 'place', children: []},
         {name:  $localize`Nachfragequoten`, url: 'grundlagendaten/nachfragequoten', icon: 'percent', children: []}
       ]
     },
-    {name:  $localize`Indikatoren`, url: 'grundlagendaten/indikatoren', icon: 'lightbulb', children: []},
     {name:  $localize`Erreichbarkeiten`, davicon: 'icon-GGR-davicons-Font-Simple-5-Fortbewegung-Wegezeit', url: '', children: [
         {name:  $localize`Verkehrsnetz`, url: 'grundlagendaten/verkehrsnetz', icon: 'route', children: []},
         {name:  $localize`Erreichbarkeiten`, url: 'grundlagendaten/erreichbarkeiten', icon: 'directions_bus_filled', children: []}

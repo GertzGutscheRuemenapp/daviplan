@@ -62,7 +62,7 @@
     <mat-select disableOptionCentering panelClass="custom-option-panel"
                 disableRipple
                 (selectionChange)="onIndicatorChange($event.value)"
-                [value]="activeIndicator.id"
+                [value]="activeIndicator?.id"
                 [ngbPopover]="activeIndicator?.description"
                 placement="right"
                 container="body"
@@ -72,37 +72,7 @@
           {{ activeIndicator.name }}
         </span>
       </mat-select-trigger>
-      <mat-optgroup label="Meine Indikatoren">
-        <button mat-icon-button color="primary" class="small"
-                title="Indikator hinzufügen"
-                style="position: absolute; right: 6px; top: 5px;">
-          <mat-icon>add</mat-icon>
-        </button>
-        <mat-option *ngFor="let indicator of customIndicators"
-                    [value]="indicator.id"
-                    class="custom-option"
-                    [ngbPopover]="indicator.description"
-                    placement="right"
-                    container="body"
-                    triggers="mouseenter:mouseleave">
-          <div class="option-title">
-            {{indicator.name}}
-          </div>
-          <div class="option-controls">
-            <button mat-icon-button color="primary" class="small"
-                    (click)="$event.stopPropagation()"
-                    title="Indikator editieren">
-              <mat-icon>edit</mat-icon>
-            </button>
-            <button mat-icon-button color="primary" class="small"
-                    (click)="$event.stopPropagation()"
-                    title="Indikator löschen">
-              <mat-icon>remove</mat-icon>
-            </button>
-          </div>
-        </mat-option>
-      </mat-optgroup>
-      <mat-optgroup label="Vorgegebene Indikatoren">
+      <mat-optgroup label="Indikatoren">
         <mat-option *ngFor="let indicator of indicators"
                     [value]="indicator.id"
                     [ngbPopover]="indicator.description"
