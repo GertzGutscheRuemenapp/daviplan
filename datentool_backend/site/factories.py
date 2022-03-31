@@ -16,8 +16,6 @@ class ProjectSettingFactory(DjangoModelFactory):
     project_area = MultiPolygon(
         Polygon(((0, 0), (10, 0), (10, 10), (0, 10), (0, 0)))
         )
-    start_year = 2000
-    end_year = 2040
 
 
 class BaseDataSettingFactory(DjangoModelFactory):
