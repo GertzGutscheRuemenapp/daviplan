@@ -91,6 +91,7 @@ class TestRegionalstatistikAPI(LoginTestCase, APITestCase):
         self.assertAlmostEqual(list(df['year'].unique()),
                                list(range(2012, 2015)))
 
+    @skip
     def test_genesis_stats_request(self):
         df = self.api.query_migration(ags=self.ags)
         df = self.api.query_births(ags=self.ags)
