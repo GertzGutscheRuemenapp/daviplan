@@ -77,22 +77,31 @@ class TestRegionalstatistikAPI(LoginTestCase, APITestCase):
             area_level=area_level,
             attributes={'ags': '01053099', 'gen': 'Poggensee'},
         )
+        cls.ags = [a.attributes.get(field__name='ags').value
+                   for a in Area.objects.all()]
         cls.age_groups = [AgeGroupFactory(from_age=r.from_age, to_age=r.to_age)
                           for r in RegStatAgeGroups.agegroups]
 
         cls.api = Regionalstatistik(start_year=2012, end_year=2014)
 
     @skip
-    def test_genesis_request(self):
+    def test_genesis_pop_request(self):
         df = self.api.query_population(ags=self.ags)
-        db_ags = [a.attributes.get(field__name='ags').value
-                  for a in Area.objects.all()]
-        self.assertAlmostEqual(list(df['AGS'].unique()), db_ags)
-        self.assertAlmostEqual(list(df['year'].unique()), range(2012, 2015))
+        self.assertAlmostEqual(list(df['AGS'].unique()), self.ags)
+        self.assertAlmostEqual(list(df['year'].unique()),
+                               list(range(2012, 2015)))
+
+    def test_genesis_stats_request(self):
+        df = self.api.query_migration(ags=self.ags)
+        df = self.api.query_births(ags=self.ags)
+        df = self.api.query_deaths(ags=self.ags)
+        # ToDo: some tests?
 
     @skip
     def test_rest(self):
         res = self.post('populations-pull-regionalstatistik')
+        # ToDo: permission test
+        # ToDo: mock data
 
 
 class TestPopulation(TestCase):

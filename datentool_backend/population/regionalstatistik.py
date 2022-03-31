@@ -74,12 +74,41 @@ class GenesisAPI():
 class Regionalstatistik(GenesisAPI):
     URL = f'https://www.regionalstatistik.de/genesisws/rest/2020'
     POP_CODE = '12411-02-03-5'
+    MIGRATION_CODE = '12711-91-01-5'
+    BIRTHS_CODE = '12612-91-01-5'
+    DEATHS_CODE = '12613-91-01-5'
 
     def __init__(self, username=None, password=None,
                  start_year=1900, end_year=2100):
         super().__init__(self.URL, username=username, password=password)
         self.start_year = start_year
         self.end_year = end_year
+
+    @staticmethod
+    def _parse_df(fftxt: str, value_columns: dict) -> pd.DataFrame:
+        df = pd.read_csv(StringIO(fftxt), delimiter=';', decimal=",",
+                         dtype='str')
+        code_columns = [c for c in df.columns.values
+                        if c.endswith('Merkmal_Code')]
+        df_parsed = pd.DataFrame()
+        # ToDo: actually it is "Stichtag" 31.12. of this year, so +1?
+        df_parsed['year'] = df['Zeit'].apply(
+            lambda y: y.split('.')[-1]).astype('int')
+        for column in code_columns:
+            i = column.split('_')[0]
+            col_name = df[column].unique()[0]
+            df_parsed[col_name] = df[f'{i}_Auspraegung_Code']
+        df_parsed.rename(columns={'GEMEIN': 'AGS'}, inplace=True)
+        # ToDo: value_columns keys as regex?
+        for code in value_columns.keys():
+            column = None
+            for col in df.columns:
+                if col.startswith(code):
+                    column = col
+            values = df[column]
+            values[values=='-'] = 0
+            df_parsed[value_columns[code]] = values.astype('int')
+        return df_parsed
 
     def query_population(self, ags=[]) -> pd.DataFrame:
         '''
@@ -88,23 +117,73 @@ class Regionalstatistik(GenesisAPI):
         AGS - AGS of the area
         GES - GESW(=female) | GESM(=male) | NaN(=both)
         ALTX20 - Age group code (NaN = sum over groups)
-        value - number of inhabitants
+        inhabitants - number of inhabitants
         '''
         fftxt = self.query_table(self.POP_CODE, ags=ags,
                                  start_year=self.start_year,
                                  end_year=self.end_year)
-        df = pd.read_csv(StringIO(fftxt), delimiter=';', decimal=",", dtype='str')
-        code_columns = [c for c in df.columns.values
-                        if c.endswith('Merkmal_Code')]
-        pop_df = pd.DataFrame()
-        # ToDo: actually it is "Stichtag" 31.12. of this year, so +1?
-        pop_df['year'] = df['Zeit'].apply(lambda y: y.split('.')[-1])
-        for column in code_columns:
-            i = column.split('_')[0]
-            col_name = df[column].unique()[0]
-            pop_df[col_name] = df[f'{i}_Auspraegung_Code']
-        values = df['BEVSTD__Bevoelkerungsstand__Anzahl']
-        values[values=='-'] = 0
-        pop_df['value'] = values.astype('int')
-        pop_df.rename(columns={'GEMEIN': 'AGS'}, inplace=True)
+        pop_df = self._parse_df(
+            fftxt,
+            {
+                'BEVSTD': 'inhabitants'
+            }
+        )
         return pop_df
+
+    def query_migration(self, ags=[]) -> pd.DataFrame:
+        '''
+        columns of dataframe:
+        year - year
+        AGS - AGS of the area
+        immigration - number of immigrants
+        emigration - number of emigrants
+        '''
+        fftxt = self.query_table(self.MIGRATION_CODE, ags=ags,
+                                 start_year=self.start_year,
+                                 end_year=self.end_year)
+        mig_df = self._parse_df(
+            fftxt,
+            {
+                'BEV981': 'immigration',
+                'BEV982': 'emigration'
+            }
+        )
+        return mig_df
+
+    def query_births(self, ags=[]) -> pd.DataFrame:
+        '''
+        columns of dataframe:
+        year - year
+        AGS - AGS of the area
+        births - number of births
+        '''
+        fftxt = self.query_table(self.BIRTHS_CODE, ags=ags,
+                                 start_year=self.start_year,
+                                 end_year=self.end_year)
+        birth_df = self._parse_df(
+            fftxt,
+            {
+                'BEV901': 'births',
+            }
+        )
+        return birth_df
+
+    def query_deaths(self, ags=[]) -> pd.DataFrame:
+        '''
+        columns of dataframe:
+        year - year
+        AGS - AGS of the area
+        deaths - number of deaths
+        '''
+        fftxt = self.query_table(self.DEATHS_CODE, ags=ags,
+                                 start_year=self.start_year,
+                                 end_year=self.end_year)
+        death_df = self._parse_df(
+            fftxt,
+            {
+                'BEV902': 'deaths',
+            }
+        )
+        return death_df
+
+
