@@ -27,7 +27,6 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   @ViewChild('createAreaLevel') createLevelTemplate?: TemplateRef<any>;
   mapControl?: MapControl;
   selectedAreaLevel?: AreaLevel;
-  defaultAreaLevelId?: number;
   presetLevels: AreaLevel[] = [];
   customAreaLevels: AreaLevel[] = [];
   colorSelection: string = 'black';
@@ -50,24 +49,11 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       order: -1
     }, false)
 
-    this.fetchBasedataSettings().subscribe(res => {
-      this.fetchAreas().subscribe(res => {
-        this.selectAreaLevel(this.presetLevels[0]);
-        this.colorSelection = this.selectedAreaLevel!.symbol?.fillColor || 'black';
-      })
+    this.fetchAreas().subscribe(res => {
+      this.selectAreaLevel(this.presetLevels[0]);
+      this.colorSelection = this.selectedAreaLevel!.symbol?.fillColor || 'black';
     })
     this.setupEditLevelCard();
-  }
-
-  /**
-   * fetch basedata-settings
-   */
-  fetchBasedataSettings(): Observable<BasedataSettings> {
-    const query = this.http.get<BasedataSettings>(this.rest.URLS.basedataSettings);
-    query.subscribe((basedataSettings) => {
-      this.defaultAreaLevelId = basedataSettings.defaultPopAreaLevel;
-    });
-    return query;
   }
 
   /**
@@ -219,8 +205,6 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
           const idx = this.customAreaLevels.indexOf(this.selectedAreaLevel!);
           if (idx >= 0) {
             this.customAreaLevels.splice(idx, 1);
-            if (this.selectedAreaLevel!.id === this.defaultAreaLevelId)
-              this.setDefaultAreaLevel(null);
             this.selectedAreaLevel = undefined;
             this.mapControl?.refresh({ internal: true });
           }
@@ -283,12 +267,13 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     this.patchOrder(this.customAreaLevels);
   }
 
-  setDefaultAreaLevel(level: AreaLevel | null): void {
-    if (level?.id === this.defaultAreaLevelId) return;
-    const attributes = { defaultPopAreaLevel: level? level.id : null };
-    this.http.patch<BasedataSettings>(this.rest.URLS.basedataSettings, attributes
-    ).subscribe(settings => {
-      this.defaultAreaLevelId = settings.defaultPopAreaLevel;
+  setDefaultAreaLevel(areaLevel: AreaLevel | null): void {
+    if (!areaLevel || areaLevel.isDefaultPopLevel) return;
+    const attributes = { isDefaultPopLevel: true };
+    this.http.patch<AreaLevel>(`${this.rest.URLS.arealevels}${areaLevel.id}/`, attributes
+    ).subscribe(al => {
+      this.customAreaLevels.concat(this.presetLevels).forEach(l => l.isDefaultPopLevel = false);
+      areaLevel.isDefaultPopLevel = al.isDefaultPopLevel;
     })
   }
 

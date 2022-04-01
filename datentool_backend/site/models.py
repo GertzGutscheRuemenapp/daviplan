@@ -8,11 +8,6 @@ class ProjectSetting(SingletonModel):
     project_area = MultiPolygonField(null=True, srid=3857)
 
 
-class BaseDataSetting(SingletonModel):
-    default_pop_area_level = models.ForeignKey(AreaLevel, null=True,
-                                               on_delete=models.SET_NULL)
-
-
 class SiteSetting(SingletonModel):
     name = models.CharField(max_length=50, unique=True)
     title = models.TextField(default='Datentool')

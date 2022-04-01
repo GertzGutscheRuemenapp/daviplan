@@ -12,32 +12,12 @@ from datentool_backend.api_test import (BasicModelSingletonTest,
                                         TestAPIMixin)
 from datentool_backend.user.factories import ProfileFactory
 from datentool_backend.site.factories import (ProjectSettingFactory,
-                                              BaseDataSettingFactory,
                                               SiteSettingFactory)
 
 from datentool_backend.area.factories import AreaLevelFactory
 
 from faker import Faker
 faker = Faker('de-DE')
-
-
-class TestBaseDataSetting(SingletonWriteOnlyWithCanEditBaseDataTest,
-                          BasicModelSingletonTest, APITestCase):
-
-    url_key = "basedatasettings"
-
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        cls.area_level1 = AreaLevelFactory(order=2)
-        cls.area_level2 = AreaLevelFactory(order=3)
-        cls.obj = BaseDataSettingFactory(default_pop_area_level=cls.area_level1)
-
-
-        data = dict(default_pop_area_level=cls.area_level2.pk)
-
-        cls.put_data = data
-        cls.patch_data = data
 
 
 class TestProjectSetting(SingletonWriteOnlyWithAdminAccessTest,
