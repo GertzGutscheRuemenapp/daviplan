@@ -1,13 +1,13 @@
 from datentool_backend.utils.views import SingletonViewSet
+from rest_framework import mixins, viewsets
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly,
-    CanEditBasedata,
     HasAdminAccessOrReadOnlyAny,
 )
+from rest_framework.response import Response
 
 from .models import (SiteSetting,
                      ProjectSetting,
-                     BaseDataSetting,
                      )
 from .serializers import (SiteSettingSerializer,
                           ProjectSettingSerializer,
@@ -22,11 +22,11 @@ class ProjectSettingViewSet(SingletonViewSet):
     permission_classes = [HasAdminAccessOrReadOnly]
 
 
-class BaseDataSettingViewSet(SingletonViewSet):
-    queryset = BaseDataSetting.objects.all()
-    model_class = BaseDataSetting
+class BaseDataSettingViewSet(viewsets.GenericViewSet):
     serializer_class = BaseDataSettingSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    def list(self, request):
+        results = self.serializer_class({}, many=False).data
+        return Response(results)
 
 
 class SiteSettingViewSet(SingletonViewSet):
