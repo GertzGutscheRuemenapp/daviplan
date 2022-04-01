@@ -1,6 +1,6 @@
 from typing import Dict
 from rest_framework import serializers
-from .models import SiteSetting, ProjectSetting, BaseDataSetting, AreaLevel
+from .models import SiteSetting, ProjectSetting, AreaLevel
 from django.db.models import Max, Min
 
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
@@ -25,14 +25,14 @@ class ProjectSettingSerializer(serializers.ModelSerializer):
         return agg['year__max']
 
 
-class BaseDataSettingSerializer(serializers.ModelSerializer):
+class BaseDataSettingSerializer(serializers.Serializer):
+    default_pop_area_level = serializers.SerializerMethodField(read_only=True)
     pop_statistics_area_level = serializers.SerializerMethodField(read_only=True)
     default_demand_rate_sets = serializers.SerializerMethodField(read_only=True)
     default_mode_variants = serializers.SerializerMethodField(read_only=True)
     default_prognosis = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        model = BaseDataSetting
         fields = ('default_pop_area_level', 'pop_statistics_area_level',
                   'default_demand_rate_sets', 'default_mode_variants',
                   'default_prognosis')
@@ -43,6 +43,13 @@ class BaseDataSettingSerializer(serializers.ModelSerializer):
     def get_pop_statistics_area_level(self, obj) -> int:
         try:
             level = AreaLevel.objects.get(is_statistic_level=True)
+            return level.id
+        except AreaLevel.DoesNotExist:
+            return
+
+    def get_default_pop_area_level(self, obj) -> int:
+        try:
+            level = AreaLevel.objects.get(is_default_pop_level=True)
             return level.id
         except AreaLevel.DoesNotExist:
             return
