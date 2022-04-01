@@ -19,7 +19,7 @@ from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixi
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 from datentool_backend.area.views import intersect_areas_with_raster
-from .regionalstatistik import Regionalstatistik
+from datentool_backend.utils.regionalstatistik import Regionalstatistik
 from .models import (Raster,
                      PopulationRaster,
                      Prognosis,
@@ -417,12 +417,14 @@ class PopulationViewSet(viewsets.ModelViewSet):
                              'denen der Regionalstatistik überein'},
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
+        areas = Area.objects.filter(area_level__is_statistic_level=True)
+
         min_max_years = Year.objects.all().aggregate(Min('year'), Max('year'))
         # ToDo: username, password for bigger data?
         api = Regionalstatistik(start_year=min_max_years['year__min'],
                                 end_year=min_max_years['year__max'])
-        ags = [a.attributes.get(field__name='ags').value
-               for a in Area.objects.all()]
+        areas = Area.objects.filter(area_level=area_level)
+        ags = [a.attributes.get(field__name='ags').value for a in areas]
         try:
             df_population = api.query_population(ags=ags)
         except Exception as e:
@@ -483,12 +485,38 @@ class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
                                        )
 
 
-
 class PopStatisticViewSet(viewsets.ModelViewSet):
     queryset = PopStatistic.objects.all()
     serializer_class = PopStatisticSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
     filter_fields = ['year']
+
+    @extend_schema(description='Pull statistics (births, deaths, migration) '
+                   'in default statistics level for all available years '
+                   'from Regionalstatistik GENESIS API. '
+                   'ALL EXISTING STATISTICS DATA WILL BE DELETED!',
+                   responses={202: OpenApiResponse(MessageSerializer,
+                                                   'Pull successful'),
+                              500: OpenApiResponse(MessageSerializer,
+                                                   'Pull failed')})
+    @action(methods=['POST'], detail=False,
+            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+    def pull_regionalstatistik(self, request, **kwargs):
+
+        min_max_years = Year.objects.all().aggregate(Min('year'), Max('year'))
+        # ToDo: username, password for bigger data?
+        api = Regionalstatistik(start_year=min_max_years['year__min'],
+                                end_year=min_max_years['year__max'])
+        areas = Area.objects.filter(area_level__is_statistic_level=True)
+        ags = [a.attributes.get(field__name='ags').value for a in areas]
+        try:
+            df_births = api.query_births(ags=ags)
+            df_deaths = api.query_deaths(ags=ags)
+            df_migration = api.query_migration(ags=ags)
+        except Exception as e:
+            return Response({'message': str(e),},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        raise NotImplementedError
 
 
 class PopStatEntryFilter(filters.FilterSet):

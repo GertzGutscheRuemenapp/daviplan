@@ -3,7 +3,7 @@ from unittest import skip
 from django.test import TestCase
 from test_plus import APITestCase
 
-from .regionalstatistik import Regionalstatistik
+from datentool_backend.utils.regionalstatistik import Regionalstatistik
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         TestAPIMixin,
@@ -65,6 +65,7 @@ class TestRegionalstatistikAPI(LoginTestCase, APITestCase):
                          area_level=area_level,
                          field_type__ftype=FieldTypes.STRING,
                          is_key=True)
+
         AreaFactory(
             area_level=area_level,
             attributes={'ags': '01003000', 'gen': 'Lübeck'},
@@ -101,6 +102,7 @@ class TestRegionalstatistikAPI(LoginTestCase, APITestCase):
     @skip
     def test_rest(self):
         res = self.post('populations-pull-regionalstatistik')
+        res = self.post('popstatistics-pull-regionalstatistik')
         # ToDo: permission test
         # ToDo: mock data
 
