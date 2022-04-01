@@ -85,6 +85,8 @@ class TestRegionalstatistikAPI(LoginTestCase, APITestCase):
 
         cls.api = Regionalstatistik(start_year=2012, end_year=2014)
 
+    # leave this skipped, because test_rest does the calls anyway,
+    # only here for debugging
     @skip
     def test_genesis_pop_request(self):
         df = self.api.query_population(ags=self.ags)
@@ -92,19 +94,21 @@ class TestRegionalstatistikAPI(LoginTestCase, APITestCase):
         self.assertAlmostEqual(list(df['year'].unique()),
                                list(range(2012, 2015)))
 
+    # same as above
     @skip
     def test_genesis_stats_request(self):
         df = self.api.query_migration(ags=self.ags)
         df = self.api.query_births(ags=self.ags)
         df = self.api.query_deaths(ags=self.ags)
-        # ToDo: some tests?
 
+    # skipped for now, routes not fully implemented
     @skip
     def test_rest(self):
         res = self.post('populations-pull-regionalstatistik')
         res = self.post('popstatistics-pull-regionalstatistik')
         # ToDo: permission test
         # ToDo: mock data
+        # ToDo: test user and password
 
 
 class TestPopulation(TestCase):

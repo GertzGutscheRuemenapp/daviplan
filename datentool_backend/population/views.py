@@ -56,7 +56,7 @@ from datentool_backend.population.serializers import (RasterSerializer,
                                                       area_level_id_serializer,
                                                       years_serializer,
                           )
-
+from datentool_backend.site.models import SiteSetting
 from datentool_backend.area.models import Area, AreaLevel
 
 
@@ -416,13 +416,19 @@ class PopulationViewSet(viewsets.ModelViewSet):
             return Response({'message': 'Die Altersklassen stimmen nicht mit '
                              'denen der Regionalstatistik überein'},
                             status=status.HTTP_406_NOT_ACCEPTABLE)
-
+        # ToDo: there is also is_default_pop_level. set is_default_pop_level
+        # automatically to the is_statistic_level level on completion
+        # or complain here with 406 if they are not the same atm?
         areas = Area.objects.filter(area_level__is_statistic_level=True)
 
         min_max_years = Year.objects.all().aggregate(Min('year'), Max('year'))
-        # ToDo: username, password for bigger data?
+        settings = SiteSetting.load()
+        username = settings.regionalstatistik_user or None
+        password = settings.regionalstatistik_password or None
         api = Regionalstatistik(start_year=min_max_years['year__min'],
-                                end_year=min_max_years['year__max'])
+                                end_year=min_max_years['year__max'],
+                                username=username,
+                                password=password)
         areas = Area.objects.filter(area_level=area_level)
         ags = [a.attributes.get(field__name='ags').value for a in areas]
         try:
@@ -504,9 +510,13 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
     def pull_regionalstatistik(self, request, **kwargs):
 
         min_max_years = Year.objects.all().aggregate(Min('year'), Max('year'))
-        # ToDo: username, password for bigger data?
+        settings = SiteSetting.load()
+        username = settings.regionalstatistik_user or None
+        password = settings.regionalstatistik_password or None
         api = Regionalstatistik(start_year=min_max_years['year__min'],
-                                end_year=min_max_years['year__max'])
+                                end_year=min_max_years['year__max'],
+                                username=username,
+                                password=password)
         areas = Area.objects.filter(area_level__is_statistic_level=True)
         ags = [a.attributes.get(field__name='ags').value for a in areas]
         try:
