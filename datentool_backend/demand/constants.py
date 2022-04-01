@@ -68,7 +68,7 @@ class RegStatAgeGroups:
     ]
 
     @classmethod
-    def check(cls, agegroups: List[AgeGroup]):
+    def check(cls, agegroups: List[AgeGroup]) -> bool:
         """
         check if the agegroups are compatible to the regionalstatistik
         in any order
@@ -84,3 +84,10 @@ class RegStatAgeGroups:
             if not found:
                 return False
         return True
+
+    @classmethod
+    def get(cls, code: str) -> RegStatAgeGroup:
+        for ag in cls.agegroups:
+            if ag.code == code:
+                return ag
+        return None

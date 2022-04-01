@@ -2,7 +2,6 @@ from django.test import TestCase
 from test_plus import APITestCase
 from unittest import skip
 
-
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         WriteOnlyWithAdminAccessTest,
