@@ -26,3 +26,4 @@ drf-spectacular
 django-postgres-copy
 openpyxl
 matrixconverters
+packaging
