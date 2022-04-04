@@ -244,7 +244,7 @@ class AreaSerializer(GeoFeatureModelSerializer):
     class Meta:
         model = Area
         geo_field = 'geom'
-        fields = ('id', 'area_level', 'attributes', 'label')
+        fields = ('id', 'area_level', 'attributes', 'label', 'key')
 
     def get_label(self, obj: Area) -> str:
         return obj.label

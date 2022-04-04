@@ -145,7 +145,13 @@ class Area(DatentoolModelMixin, models.Model):
             .annotate(**annotations)
         return qs
 
-
+    @property
+    def key(self):
+        try:
+            key_attr = self.areaattribute_set.get(field__is_key=True)
+        except AreaAttribute.DoesNotExist:
+            return ''
+        return str(key_attr.value)
 
     @property
     def label(self):
