@@ -90,6 +90,7 @@ class TestWfs(LoginTestCase, APITestCase):
         keys = set([a.key for a in areas])
         self.assertEqual(len(keys), len(areas))
         # ToDo: test permissions
+        # ToDo: test 'truncate' and 'simplify' query params
 
 
 class TestAreas(TestCase):

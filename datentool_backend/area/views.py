@@ -7,7 +7,7 @@ import json
 from io import StringIO
 from owslib.wfs import WebFeatureService
 
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos import GEOSGeometry, Polygon, MultiPolygon
 from django.views.generic import DetailView
 from django.http import JsonResponse
 from django.db.models import OuterRef, Subquery, CharField, Case, When, F, JSONField, Func
@@ -44,7 +44,8 @@ from .models import (MapSymbol,
                      FClass,
                      AreaAttribute,
                      FieldTypes,
-                     SourceTypes
+                     SourceTypes,
+                     AreaField
                      )
 from .serializers import (MapSymbolSerializer,
                           LayerGroupSerializer,
@@ -339,6 +340,19 @@ class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
     @extend_schema(description='Pull areas of area level incl. geometries '
                    'from assigned WFS-service ("source")',
+                   request=inline_serializer(
+                       name='PullAreaSerializer',
+                       fields={
+                           'simplify': serializers.BooleanField(
+                               required=False,
+                               help_text='simplify the fetched geometries'),
+                           'truncate': serializers.BooleanField(
+                               required=False,
+                               help_text='''drop all existing areas if true.
+                               Otherwise update existing areas with same key field
+                               values resp. add new ones.'''),
+                       }
+                   ),
                    responses={
                        202: OpenApiResponse(MessageSerializer, 'Pull successful'),
                        406: OpenApiResponse(MessageSerializer, 'Pull failed'),
@@ -352,7 +366,8 @@ class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         except AreaLevel.DoesNotExist:
             msg = f'Area level for {kwargs} not found'
             return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
-        if (area_level.source.source_type != SourceTypes.WFS):
+        if (not area_level.source or
+            area_level.source.source_type != SourceTypes.WFS):
             msg = 'Source of Area Level has to be a Feature-Service to pull from'
             return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
         url = area_level.source.url
@@ -388,16 +403,44 @@ class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             return Response({'message': str(e)},
                             status.HTTP_500_INTERNAL_SERVER_ERROR)
         res_json = json.loads(response.read())
-        Area.objects.filter(area_level=area_level).delete()
+        truncate = request.data.get('truncate', 'false').lower() == 'true'
+        if truncate:
+            Area.objects.filter(area_level=area_level).delete()
+        simplify = request.data.get('simplify', 'false').lower() == 'true'
+        level_areas = Area.annotated_qs(area_level)
+        # ToDo: throw error if key is not defined? or force truncate?
+        # (field is auto created atm)
+        try:
+            key_field = AreaField.objects.get(area_level=area_level,
+                                              is_key=True).name
+        except AreaField.DoesNotExist:
+            key_field = None
         #fields = area_level.areafield_set.values_list('name', flat=True)
         for feature in res_json['features']:
+            # ToDo: intersect with project area and continue if not in (only bbox atm)
             geom = GEOSGeometry(str(feature['geometry']))
             geom.srid = 3857
+            if (simplify):
+                # ToDo: pass distance between points as param?
+                geom = geom.simplify(100)
+            if isinstance(geom, Polygon):
+                geom = MultiPolygon(geom)
             #attributes = {}
             properties = feature.get('properties', {})
             #for field in fields:
                 #attributes[field] = properties.get(field, '')
-            area = Area.objects.create(area_level=area_level, geom=geom)
+            # ToDo: how to ensure that key column is unique?
+            if not truncate and key_field and properties.get(key_field):
+                existing = level_areas.filter(
+                    **{key_field: properties.get(key_field)})
+            else:
+                existing = None
+            if existing:
+                area = existing[0]
+                area.geom = geom
+                area.save()
+            else:
+                area = Area.objects.create(area_level=area_level, geom=geom)
             # Note: creates fields on the fly depending on returned properties
             # is this as intented or only use predefined fields?
             area.attributes = properties
