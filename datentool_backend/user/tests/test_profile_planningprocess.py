@@ -203,7 +203,7 @@ class PostOnlyWithCanCreateProcessTest:
 
     def test_user_not_owner_put_patch(self): 
         """ Test, no put or patch permission if user is not owner"""
-        # create a user who is not owner and can't create processes
+        # create a user who is not owner and can't create a process
         self.profile3 = ProfileFactory(can_create_process=False)
         self.profile3.save()
         
