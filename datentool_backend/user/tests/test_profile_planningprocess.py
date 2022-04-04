@@ -201,10 +201,16 @@ class PostOnlyWithCanCreateProcessTest:
         self._test_post()
         self.client.logout()
 
-        # ToDo: test forbidden patch-access by another user
-        #self.client.force_login(user=self.profile.user)
-        #self._test_put_patch_forbidden()
-
+    def test_user_not_owner_put_patch(self): 
+        """ Test, no put or patch permission if user is not owner"""
+        # create a user who is not owner and can't create processes
+        self.profile3 = ProfileFactory(can_create_process=False)
+        self.profile3.save()
+        
+        self.user = self.profile3.user
+        self._test_put_patch_forbidden()
+        self.client.logout()
+        
     def test_user_not_owner_delete(self):
         """Test, no delete permission if user is not owner"""
         # Request user profile is the owner and profile can_create_process
