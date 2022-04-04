@@ -49,7 +49,6 @@ class SourceFactory(DjangoModelFactory):
         model = Source
     source_type = faker.random_element(SourceTypes)
     date = faker.date()
-    id_field = faker.uuid4()
     url = faker.url()
     layer = faker.word()
 

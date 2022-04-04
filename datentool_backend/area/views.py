@@ -194,6 +194,7 @@ class ProtectPresetPermission(permissions.BasePermission):
                 request.method == 'DELETE' or
                 'name' in request.data or
                 'label_field' in request.data or
+                'key_field' in request.data or
                 (
                     'source' in request.data and
                     set(request.data['source']) > set(['date'])
@@ -444,6 +445,8 @@ class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             # Note: creates fields on the fly depending on returned properties
             # is this as intented or only use predefined fields?
             area.attributes = properties
+        # ToDo: update source date
+        # ToDo: call intersect_areas?
         n_created = Area.objects.filter(area_level=area_level).count()
         return Response({'message': f'{n_created} Areas pulled into database'},
                         status.HTTP_202_ACCEPTED)
