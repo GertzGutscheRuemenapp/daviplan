@@ -11,6 +11,7 @@ from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         TestAPIMixin,
                                         TestPermissionsMixin,
+                                        LoginTestCase
                                         )
 from datentool_backend.area.serializers import (MapSymbolSerializer,
                                                 SourceSerializer)
@@ -18,9 +19,11 @@ from datentool_backend.area.serializers import (MapSymbolSerializer,
 from .factories import (WMSLayerFactory,
                         AreaFactory,
                         AreaLevelFactory,
+                        AreaFieldFactory,
                         SourceFactory,
                         LayerGroupFactory,
                         FClassFactory,
+                        SourceFactory
                         )
 
 from .models import (WMSLayer,
@@ -31,7 +34,9 @@ from .models import (WMSLayer,
                      AreaAttribute,
                      FieldType,
                      FieldTypes,
+                     SourceTypes
                      )
+from datentool_backend.site.factories import ProjectSettingFactory
 
 from django.urls import reverse
 from django.contrib.gis.geos import MultiPolygon, Polygon
@@ -39,6 +44,53 @@ from django.contrib.gis.geos import MultiPolygon, Polygon
 from faker import Faker
 
 faker = Faker('de-DE')
+
+
+class TestWfs(LoginTestCase, APITestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.profile.admin_access = True
+        cls.profile.save()
+        source = SourceFactory(
+            url='https://sgx.geodatenzentrum.de/wfs_vg250',
+            layer='vg250_gem',
+            source_type=SourceTypes.WFS
+        )
+        cls.area_level = AreaLevelFactory(source=source)
+        AreaFieldFactory(name='gen',
+                         area_level=cls.area_level,
+                         field_type__ftype=FieldTypes.STRING,
+                         is_label=True)
+        AreaFieldFactory(name='ags',
+                         area_level=cls.area_level,
+                         field_type__ftype=FieldTypes.STRING,
+                         is_key=True)
+        source = SourceFactory(
+            source_type=SourceTypes.FILE
+        )
+        cls.area_level_no_wfs = AreaLevelFactory(source=source)
+
+        # area around Lübeck
+        ewkt = 'SRID=3857;MULTIPOLYGON(((1152670 7165895, 1205564 7165895, 1205564 7114543, 1152670 7114543, 1152670 7165895)))'
+        geom = MultiPolygon.from_ewkt(ewkt)
+        ProjectSettingFactory(project_area=geom)
+
+    def test_pull_areas(self):
+        response = self.post('arealevels-pull-areas',
+                             pk=self.area_level_no_wfs.id)
+        self.assert_http_406_not_acceptable(response)
+
+        response = self.post('arealevels-pull-areas', pk=self.area_level.id)
+        self.assert_http_202_accepted(response)
+        areas = Area.objects.filter(area_level=self.area_level)
+        labels = set([a.label for a in areas])
+        self.assertGreater(len(labels), 1)
+        keys = set([a.key for a in areas])
+        self.assertEqual(len(keys), len(areas))
+        # ToDo: test permissions
+        # ToDo: test 'truncate' and 'simplify' query params
 
 
 class TestAreas(TestCase):

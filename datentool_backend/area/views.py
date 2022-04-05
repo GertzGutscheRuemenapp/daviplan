@@ -3,8 +3,11 @@ from requests.exceptions import (MissingSchema, ConnectionError, HTTPError)
 from typing import List
 from distutils.util import strtobool
 import pandas as pd
+import json
 from io import StringIO
+from owslib.wfs import WebFeatureService
 
+from django.contrib.gis.geos import GEOSGeometry, Polygon, MultiPolygon
 from django.views.generic import DetailView
 from django.http import JsonResponse
 from django.db.models import OuterRef, Subquery, CharField, Case, When, F, JSONField, Func
@@ -41,6 +44,8 @@ from .models import (MapSymbol,
                      FClass,
                      AreaAttribute,
                      FieldTypes,
+                     SourceTypes,
+                     AreaField
                      )
 from .serializers import (MapSymbolSerializer,
                           LayerGroupSerializer,
@@ -52,6 +57,7 @@ from .serializers import (MapSymbolSerializer,
                           FieldTypeSerializer,
                           FClassSerializer,
                           )
+from datentool_backend.site.models import ProjectSetting
 
 
 class JsonObject(Func):
@@ -188,6 +194,7 @@ class ProtectPresetPermission(permissions.BasePermission):
                 request.method == 'DELETE' or
                 'name' in request.data or
                 'label_field' in request.data or
+                'key_field' in request.data or
                 (
                     'source' in request.data and
                     set(request.data['source']) > set(['date'])
@@ -331,6 +338,118 @@ class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
         msg = f'{len(areas)} Areas were successfully intersected with Rastercells.\n'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
+
+    @extend_schema(description='Pull areas of area level incl. geometries '
+                   'from assigned WFS-service ("source")',
+                   request=inline_serializer(
+                       name='PullAreaSerializer',
+                       fields={
+                           'simplify': serializers.BooleanField(
+                               required=False,
+                               help_text='simplify the fetched geometries'),
+                           'truncate': serializers.BooleanField(
+                               required=False,
+                               help_text='''drop all existing areas if true.
+                               Otherwise update existing areas with same key field
+                               values resp. add new ones.'''),
+                       }
+                   ),
+                   responses={
+                       202: OpenApiResponse(MessageSerializer, 'Pull successful'),
+                       406: OpenApiResponse(MessageSerializer, 'Pull failed'),
+                       500: OpenApiResponse(MessageSerializer, 'Pull failed')
+                   })
+    @action(methods=['POST'], detail=True,
+            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+    def pull_areas(self, request, **kwargs):
+        try:
+            area_level: AreaLevel = self.queryset.get(**kwargs)
+        except AreaLevel.DoesNotExist:
+            msg = f'Area level for {kwargs} not found'
+            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+        if (not area_level.source or
+            area_level.source.source_type != SourceTypes.WFS):
+            msg = 'Source of Area Level has to be a Feature-Service to pull from'
+            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+        url = area_level.source.url
+        layer = area_level.source.layer
+        if not url or not layer:
+            msg = 'Source of Area Level is not completely defined'
+            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+
+        project_area = ProjectSetting.load().project_area
+        if not project_area:
+            msg = 'Project area is not defined'
+            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+        # project bbox with srs
+        bbox = list(project_area.extent)
+        bbox.append('EPSG:3857')
+
+        wfs = WebFeatureService(url=url, version='1.1.0')
+        typename = None
+        # find layer in available item
+        for key, l in wfs.items():
+            # name space might be missing in definition
+            if key == layer or key.split(':')[-1] == layer:
+                typename = key
+                break
+        if not key:
+            msg = 'Layer not found in capabilities of service'
+            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+        try:
+            response = wfs.getfeature(typename=typename, bbox=bbox,
+                                      srsname='EPSG:3857',
+                                      outputFormat='application/json')
+        except Exception as e:
+            return Response({'message': str(e)},
+                            status.HTTP_500_INTERNAL_SERVER_ERROR)
+        res_json = json.loads(response.read())
+        truncate = request.data.get('truncate', 'false').lower() == 'true'
+        if truncate:
+            Area.objects.filter(area_level=area_level).delete()
+        simplify = request.data.get('simplify', 'false').lower() == 'true'
+        level_areas = Area.annotated_qs(area_level)
+        # ToDo: throw error if key is not defined? or force truncate?
+        # (field is auto created atm)
+        try:
+            key_field = AreaField.objects.get(area_level=area_level,
+                                              is_key=True).name
+        except AreaField.DoesNotExist:
+            key_field = None
+        #fields = area_level.areafield_set.values_list('name', flat=True)
+        for feature in res_json['features']:
+            # ToDo: intersect with project area and continue if not in (only bbox atm)
+            geom = GEOSGeometry(str(feature['geometry']))
+            geom.srid = 3857
+            if (simplify):
+                # ToDo: pass distance between points as param?
+                geom = geom.simplify(100)
+            if isinstance(geom, Polygon):
+                geom = MultiPolygon(geom)
+            #attributes = {}
+            properties = feature.get('properties', {})
+            #for field in fields:
+                #attributes[field] = properties.get(field, '')
+            # ToDo: how to ensure that key column is unique?
+            if not truncate and key_field and properties.get(key_field):
+                existing = level_areas.filter(
+                    **{key_field: properties.get(key_field)})
+            else:
+                existing = None
+            if existing:
+                area = existing[0]
+                area.geom = geom
+                area.save()
+            else:
+                area = Area.objects.create(area_level=area_level, geom=geom)
+            # Note: creates fields on the fly depending on returned properties
+            # is this as intented or only use predefined fields?
+            area.attributes = properties
+        # ToDo: update source date
+        # ToDo: call intersect_areas?
+        n_created = Area.objects.filter(area_level=area_level).count()
+        return Response({'message': f'{n_created} Areas pulled into database'},
+                        status.HTTP_202_ACCEPTED)
 
 
 class AreaViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

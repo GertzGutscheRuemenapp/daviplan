@@ -3,7 +3,7 @@ from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import Polygon, MultiPolygon
 from faker import Faker
 
-from .models import ProjectSetting, BaseDataSetting, SiteSetting
+from .models import ProjectSetting, SiteSetting
 from datentool_backend.area.factories import AreaLevelFactory
 
 
@@ -16,13 +16,6 @@ class ProjectSettingFactory(DjangoModelFactory):
     project_area = MultiPolygon(
         Polygon(((0, 0), (10, 0), (10, 10), (0, 10), (0, 0)))
         )
-
-
-class BaseDataSettingFactory(DjangoModelFactory):
-    class Meta:
-        model = BaseDataSetting
-
-    default_pop_area_level = factory.SubFactory(AreaLevelFactory)
 
 
 class SiteSettingFactory(DjangoModelFactory):

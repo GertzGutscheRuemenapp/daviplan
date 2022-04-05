@@ -111,11 +111,11 @@ router.register(r'infrastructures', InfrastructureViewSet,
 router.register(r'services', ServiceViewSet, basename='services')
 
 # site
+router.register('basedatasettings', BaseDataSettingViewSet,
+                basename='basedatasettings')
 srouter = SingletonRouter()
 srouter.register('projectsettings', ProjectSettingViewSet,
                  basename='projectsettings')
-srouter.register('basedatasettings', BaseDataSettingViewSet,
-                 basename='basedatasettings')
 srouter.register('sitesettings', SiteSettingViewSet, basename='sitesettings')
 
 urlpatterns = router.urls + srouter.urls

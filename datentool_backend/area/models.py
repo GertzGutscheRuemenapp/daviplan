@@ -63,7 +63,6 @@ class Source(DatentoolModelMixin, models.Model):
     """a generic source"""
     source_type = models.CharField(max_length=4, choices=SourceTypes.choices)
     date = models.DateField()
-    id_field = models.TextField()
     url = models.URLField(null=True, blank=True)
     layer = models.TextField(null=True, blank=True)
 
@@ -79,6 +78,7 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
     is_active = models.BooleanField(default=True)
     is_preset = models.BooleanField(default=False)
     is_statistic_level = models.BooleanField(default=False)
+    is_default_pop_level = models.BooleanField(default=False)
     max_population = models.FloatField(null=True)
     population_cache_dirty = models.BooleanField(default=True)
 
@@ -88,13 +88,26 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
         try:
             return self.areafield_set.get(is_label=True).name
         except AreaField.DoesNotExist:
-            return ''
+            return
+
+    @property
+    def key_field(self) -> str:
+        """the label field derived from the Fields"""
+        try:
+            return self.areafield_set.get(is_key=True).name
+        except AreaField.DoesNotExist:
+            return
 
     def save(self, *args, **kwargs):
-        if self.is_statistic_level:
+        # only one statistic / default pop level at a time
+        if self.is_statistic_level or self.is_default_pop_level:
             with transaction.atomic():
-                AreaLevel.objects.filter(
-                    is_statistic_level=True).update(is_statistic_level=False)
+                if self.is_statistic_level:
+                    AreaLevel.objects.filter(is_statistic_level=True)\
+                        .update(is_statistic_level=False)
+                if self.is_default_pop_level:
+                    AreaLevel.objects.filter(is_default_pop_level=True)\
+                        .update(is_default_pop_level=False)
         return super().save(*args, **kwargs)
 
 
@@ -139,7 +152,13 @@ class Area(DatentoolModelMixin, models.Model):
             .annotate(**annotations)
         return qs
 
-
+    @property
+    def key(self):
+        try:
+            key_attr = self.areaattribute_set.get(field__is_key=True)
+        except AreaAttribute.DoesNotExist:
+            return ''
+        return str(key_attr.value)
 
     @property
     def label(self):

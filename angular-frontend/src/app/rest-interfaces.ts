@@ -85,6 +85,8 @@ export interface AreaLevel {
   isPreset?: boolean;
   isActive?: boolean;
   areaCount?: number;
+  isStatisticLevel?: boolean;
+  isDefaultPopLevel?: boolean;
   maxValues?: {
     population: number,
     immigration?: number,
