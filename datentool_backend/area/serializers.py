@@ -60,7 +60,7 @@ class SourceSerializer(serializers.ModelSerializer):
                                  input_formats=['%d.%m.%Y', 'iso-8601'])
     class Meta:
         model = Source
-        fields = ('source_type', 'date', 'id_field', 'url', 'layer')
+        fields = ('source_type', 'date', 'url', 'layer')
 
 
 class AreaLevelSerializer(serializers.ModelSerializer):
@@ -68,14 +68,18 @@ class AreaLevelSerializer(serializers.ModelSerializer):
     symbol = MapSymbolSerializer(allow_null=True, required=False)
     area_count = serializers.IntegerField(source='area_set.count',
                                           read_only=True)
-    tile_url = serializers.SerializerMethodField()
-    max_values = serializers.SerializerMethodField()
+    tile_url = serializers.SerializerMethodField(read_only=True)
+    max_values = serializers.SerializerMethodField(read_only=True)
+    area_fields = serializers.SerializerMethodField(read_only=True)
+    label_field = serializers.CharField(required=False)
+    key_field = serializers.CharField(required=False)
 
     class Meta:
         model = AreaLevel
         fields = ('id', 'name', 'order', 'source', 'symbol', 'is_active',
                   'is_preset', 'area_count', 'tile_url', 'label_field',
-                  'max_values', 'is_statistic_level', 'is_default_pop_level')
+                  'max_values', 'is_statistic_level', 'is_default_pop_level',
+                  'area_fields', 'label_field', 'key_field')
         read_only_fields = ('is_preset', 'is_statistic_level')
 
     def get_max_values(self, obj) -> Dict[str, float]:
@@ -95,6 +99,9 @@ class AreaLevelSerializer(serializers.ModelSerializer):
             ret['nature_diff'] = mvs['nature_diff__max']
             ret['migration_diff'] = mvs['migration_diff__max']
         return ret
+
+    def get_area_fields(self, obj):
+        return obj.areafield_set.values_list('name', flat=True)
 
     def get_tile_url(self, obj) -> str:
         # x,y,z have to be passed to reverse
@@ -134,8 +141,23 @@ class AreaLevelSerializer(serializers.ModelSerializer):
         update_source = 'source' in validated_data
         source_data = validated_data.pop('source', None)
 
-        # ToDo: set label field
-        label_field = validated_data.pop('label_field', None)
+        # ToDo: set label field, key field
+        #label_field = validated_data.pop('label_field', None)
+        #if label_field:
+            ## ToDo: does setting to None work this way?
+            #instance.areafield_set.update(is_label=None)
+            ## ToDo: field type
+            #field = AreaField.objects.get_or_create(
+                #area_level=instance, name=label_field)
+            #field.is_label = True
+            #field.save()
+        #key_field = validated_data.pop('label_field', None)
+        #if key_field:
+            #instance.areafield_set.update(is_label=None)
+            #field = AreaField.objects.get_or_create(
+                #area_level=instance, name=label_field)
+            #field.is_key = True
+            #field.save()
 
         instance = super().update(instance, validated_data)
         if update_symbol:
@@ -244,7 +266,7 @@ class AreaSerializer(GeoFeatureModelSerializer):
     class Meta:
         model = Area
         geo_field = 'geom'
-        fields = ('id', 'area_level', 'attributes', 'label')
+        fields = ('id', 'area_level', 'attributes', 'label', 'key')
 
     def get_label(self, obj: Area) -> str:
         return obj.label

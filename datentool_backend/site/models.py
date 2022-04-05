@@ -16,6 +16,14 @@ class SiteSetting(SingletonModel):
     primary_color = models.CharField(default='#50AF32', max_length=30)
     secondary_color = models.CharField(default='#0390fc', max_length=30)
     welcome_text = models.TextField(default='Willkommen', null=True, blank=True)
+    bkg_user = models.TextField(default='', null=True, blank=True)
+    regionalstatistik_user = models.TextField(default='', null=True, blank=True)
+    # store passwords unhashed as plain text, because we need to retrieve and
+    # send them in queries unhashed
+    # ToDo: is this a security issue?
+    bkg_password = models.TextField(default='', null=True, blank=True)
+    regionalstatistik_password = models.TextField(
+        default='', null=True, blank=True)
 
 
 

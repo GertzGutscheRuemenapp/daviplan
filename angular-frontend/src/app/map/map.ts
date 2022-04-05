@@ -28,6 +28,7 @@ export class OlMap {
   map: Map;
   layers: Record<string, Layer<any>> = {};
   overlays: Record<string, Layer<any>> = {};
+  tileOverlays: Record<string, Layer<any>> = {};
   mapProjection: string;
   div: HTMLElement | null;
   tooltipOverlay: Overlay;
@@ -216,7 +217,7 @@ export class OlMap {
           width: options?.stroke?.width || 1
         })
       })
-      const selectionLayer = new VectorTileLayer({
+      this.tileOverlays[layer.get('name')] = new VectorTileLayer({
         map: this.map,
         renderMode: 'vector',
         source: layer.getSource(),
@@ -229,6 +230,8 @@ export class OlMap {
       });
 
       this.map.on('pointermove', event => {
+        const selectionLayer = this.tileOverlays[layer.get('name')];
+        if (!selectionLayer) return;
         layer.getFeatures(event.pixel).then((features: Feature<any>[]) => {
           if (features.length === 0) {
             hoveredFeatId = undefined;
@@ -241,6 +244,8 @@ export class OlMap {
         });
       });
       this.map.getViewport().addEventListener('mouseout', event => {
+        const selectionLayer = this.tileOverlays[layer.get('name')];
+        if (!selectionLayer) return;
         hoveredFeatId = undefined;
         selectionLayer.changed();
       });
@@ -324,7 +329,6 @@ export class OlMap {
       valueField?: string,
       showLabel?: boolean
     } = {}): Layer<any> {
-
     // @ts-ignore
     const fillColor: string = (typeof(options?.fill?.color) === 'string')? options?.fill?.color: 'rgba(0, 0, 0, 0)';
     const strokeColor = options?.stroke?.color || 'rgba(0, 0, 0, 1.0)';
@@ -497,10 +501,12 @@ export class OlMap {
         return;
       };
       layer.getFeatures(event.pixel).then((features: Feature<any>[]) => {
-        const overlay = this.overlays[layer.get('name')];
-        if (overlay) {
-          overlay.getSource().clear();
-          overlay.getSource().addFeatures(features);
+        if (options.fillColor || options.strokeColor) {
+          const overlay = this.overlays[layer.get('name')];
+          if (overlay) {
+            overlay.getSource().clear();
+            overlay.getSource().addFeatures(features);
+          }
         }
         if (options.tooltipField) {
           let tooltip = this.tooltipOverlay.getElement()
@@ -595,7 +601,16 @@ export class OlMap {
     // ToDo: remove interactions
     let layer = this.layers[name];
     if (!layer) return;
-    delete this.overlays[layer.get('name')];
+    const overlay = this.overlays[layer.get('name')];
+    if (overlay) {
+      this.map.removeLayer(overlay);
+      delete this.overlays[layer.get('name')];
+    }
+    const tileOverlay = this.tileOverlays[layer.get('name')];
+    if (tileOverlay) {
+      this.map.removeLayer(tileOverlay);
+      delete this.tileOverlays[layer.get('name')];
+    }
     this.map.removeLayer(layer);
     delete this.layers[name];
   }

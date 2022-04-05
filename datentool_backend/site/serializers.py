@@ -79,4 +79,10 @@ class SiteSettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = SiteSetting
         fields = ('name', 'title', 'contact_mail', 'logo',
-                  'primary_color', 'secondary_color', 'welcome_text')
+                  'primary_color', 'secondary_color', 'welcome_text',
+                  'bkg_user', 'bkg_password', 'regionalstatistik_user',
+                  'regionalstatistik_password')
+        extra_kwargs = {
+            'bkg_password': {'write_only': True},
+            'regionalstatistik_password': {'write_only': True}
+        }

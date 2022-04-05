@@ -63,7 +63,6 @@ class Source(DatentoolModelMixin, models.Model):
     """a generic source"""
     source_type = models.CharField(max_length=4, choices=SourceTypes.choices)
     date = models.DateField()
-    id_field = models.TextField()
     url = models.URLField(null=True, blank=True)
     layer = models.TextField(null=True, blank=True)
 
@@ -89,7 +88,15 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
         try:
             return self.areafield_set.get(is_label=True).name
         except AreaField.DoesNotExist:
-            return ''
+            return
+
+    @property
+    def key_field(self) -> str:
+        """the label field derived from the Fields"""
+        try:
+            return self.areafield_set.get(is_key=True).name
+        except AreaField.DoesNotExist:
+            return
 
     def save(self, *args, **kwargs):
         # only one statistic / default pop level at a time
@@ -145,7 +152,13 @@ class Area(DatentoolModelMixin, models.Model):
             .annotate(**annotations)
         return qs
 
-
+    @property
+    def key(self):
+        try:
+            key_attr = self.areaattribute_set.get(field__is_key=True)
+        except AreaAttribute.DoesNotExist:
+            return ''
+        return str(key_attr.value)
 
     @property
     def label(self):

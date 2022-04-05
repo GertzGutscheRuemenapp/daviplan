@@ -9,10 +9,8 @@ import { RestAPI } from "../../../rest-api";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { MatCheckbox } from "@angular/material/checkbox";
-import { area } from "d3";
 import { environment } from "../../../../environments/environment";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
-import { User } from "../../login/users";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 
 
