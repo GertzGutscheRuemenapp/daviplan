@@ -85,7 +85,7 @@ class TestWfs(LoginTestCase, APITestCase):
         response = self.post('arealevels-pull-areas', pk=self.area_level.id)
         self.assert_http_202_accepted(response)
         areas = Area.objects.filter(area_level=self.area_level)
-        # ToDo: test intersection?
+        # ToDo: test intersection with project area?
         # (e.g. comparing bbox with project bbox or
         # joining areas and difference.area < sth)
         labels = set([a.label for a in areas])
@@ -95,6 +95,8 @@ class TestWfs(LoginTestCase, APITestCase):
         self.assertEqual(len(keys), len(areas))
         # ToDo: test permissions
         # ToDo: test 'truncate' and 'simplify' query params
+        # ToDo: test intersect with raster and aggregation?
+        # (setup raster and popultions required)
 
 
 class TestAreas(TestCase):
