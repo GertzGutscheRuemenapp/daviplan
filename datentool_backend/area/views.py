@@ -6,6 +6,7 @@ import pandas as pd
 import json
 from io import StringIO
 from owslib.wfs import WebFeatureService
+import datetime
 
 from django.contrib.gis.geos import GEOSGeometry, Polygon, MultiPolygon
 from django.views.generic import DetailView
@@ -362,6 +363,13 @@ class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     @action(methods=['POST'], detail=True,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def pull_areas(self, request, **kwargs):
+        # minimum area of feature in m² after intersection with project area
+        # otherwise ignored
+        MIN_AREA = 100000
+        # percentage of intersected area in relation to original geometry
+        # if above threshold uncut original geometry is taken
+        INTERSECT_THRESHOLD = 0.95
+        CUT_OUT_SUFFIX = '(Ausschnitt)'
         try:
             area_level: AreaLevel = self.queryset.get(**kwargs)
         except AreaLevel.DoesNotExist:
@@ -409,28 +417,29 @@ class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             Area.objects.filter(area_level=area_level).delete()
         simplify = request.data.get('simplify', 'false').lower() == 'true'
         level_areas = Area.annotated_qs(area_level)
-        # ToDo: throw error if key is not defined? or force truncate?
-        # (field is auto created atm)
-        try:
-            key_field = AreaField.objects.get(area_level=area_level,
-                                              is_key=True).name
-        except AreaField.DoesNotExist:
-            key_field = None
-        #fields = area_level.areafield_set.values_list('name', flat=True)
+        key_field = area_level.key_field
+        label_field = area_level.label_field
         for feature in res_json['features']:
-            # ToDo: intersect with project area and continue if not in (only bbox atm)
+            properties = feature.get('properties', {})
+            # ToDo: this only temporary, in case of presets (=bkg wfs)
+            # only take land and ignore water parts, should be handled
+            # differently, e.g. source params
+            if area_level.is_preset and properties['gf'] != 4:
+                continue
             geom = GEOSGeometry(str(feature['geometry']))
             geom.srid = 3857
+            intersection = project_area.intersection(geom)
+            if (intersection.area < MIN_AREA or
+                intersection.area / geom.area > INTERSECT_THRESHOLD):
+                continue
+            # ToDo: do simplification in database after all features are put in?
             if (simplify):
-                # ToDo: pass distance between points as param?
-                geom = geom.simplify(100)
-            if isinstance(geom, Polygon):
-                geom = MultiPolygon(geom)
-            #attributes = {}
-            properties = feature.get('properties', {})
-            #for field in fields:
-                #attributes[field] = properties.get(field, '')
-            # ToDo: how to ensure that key column is unique?
+                intersection = intersection.simplify(10, preserve_topology=True)
+            if isinstance(intersection, Polygon):
+                intersection = MultiPolygon(intersection)
+            if label_field and intersection.area < geom.area:
+                properties[label_field] = (f'{properties.get(label_field, "")} '
+                                           f'{CUT_OUT_SUFFIX}')
             if not truncate and key_field and properties.get(key_field):
                 existing = level_areas.filter(
                     **{key_field: properties.get(key_field)})
@@ -438,15 +447,16 @@ class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                 existing = None
             if existing:
                 area = existing[0]
-                area.geom = geom
+                area.geom = intersection
                 area.save()
             else:
-                area = Area.objects.create(area_level=area_level, geom=geom)
-            # Note: creates fields on the fly depending on returned properties
-            # is this as intented or only use predefined fields?
+                area = Area.objects.create(area_level=area_level,
+                                           geom=intersection)
             area.attributes = properties
-        # ToDo: update source date
-        # ToDo: call intersect_areas?
+        # ToDo: call intersect_areas with raster, disaggregate, aggregate?
+        now = datetime.datetime.now()
+        area_level.source.date = datetime.date(now.year, now.month, now.day)
+        area_level.source.save()
         n_created = Area.objects.filter(area_level=area_level).count()
         return Response({'message': f'{n_created} Areas pulled into database'},
                         status.HTTP_202_ACCEPTED)

@@ -58,7 +58,7 @@ class TestWfs(LoginTestCase, APITestCase):
             layer='vg250_gem',
             source_type=SourceTypes.WFS
         )
-        cls.area_level = AreaLevelFactory(source=source)
+        cls.area_level = AreaLevelFactory(source=source, is_preset=True)
         AreaFieldFactory(name='gen',
                          area_level=cls.area_level,
                          field_type__ftype=FieldTypes.STRING,
@@ -85,8 +85,12 @@ class TestWfs(LoginTestCase, APITestCase):
         response = self.post('arealevels-pull-areas', pk=self.area_level.id)
         self.assert_http_202_accepted(response)
         areas = Area.objects.filter(area_level=self.area_level)
+        # ToDo: test intersection?
+        # (e.g. comparing bbox with project bbox or
+        # joining areas and difference.area < sth)
         labels = set([a.label for a in areas])
         self.assertGreater(len(labels), 1)
+        # test for uniqueness
         keys = set([a.key for a in areas])
         self.assertEqual(len(keys), len(areas))
         # ToDo: test permissions
