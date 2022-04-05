@@ -356,17 +356,18 @@ class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             geom = GEOSGeometry(str(feature['geometry']))
             geom.srid = 3857
             intersection = project_area.intersection(geom)
-            if (intersection.area < MIN_AREA or
-                intersection.area / geom.area > INTERSECT_THRESHOLD):
+            if (intersection.area < MIN_AREA):
                 continue
+            if (intersection.area / geom.area > INTERSECT_THRESHOLD):
+                intersection = geom
+            if label_field and intersection.area < geom.area:
+                properties[label_field] = (f'{properties.get(label_field, "")} '
+                                           f'{CUT_OUT_SUFFIX}')
             # ToDo: do simplification in database after all features are put in?
             if (simplify):
                 intersection = intersection.simplify(10, preserve_topology=True)
             if isinstance(intersection, Polygon):
                 intersection = MultiPolygon(intersection)
-            if label_field and intersection.area < geom.area:
-                properties[label_field] = (f'{properties.get(label_field, "")} '
-                                           f'{CUT_OUT_SUFFIX}')
             if not truncate and key_field and properties.get(key_field):
                 existing = level_areas.filter(
                     **{key_field: properties.get(key_field)})
