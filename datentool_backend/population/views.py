@@ -78,10 +78,19 @@ class PrognosisViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
+class PopulationFilter(filters.FilterSet):
+    is_prognosis = filters.BooleanFilter(field_name='prognosis',
+                                         lookup_expr='isnull', exclude=True)
+    class Meta:
+        model = Population
+        fields = ['is_prognosis']
+
+
 class PopulationViewSet(viewsets.ModelViewSet):
     queryset = Population.objects.all()
     serializer_class = PopulationSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    filterset_class = PopulationFilter
 
     @extend_schema(description='return the population including the rastercellpopulationagegender_set',
                    responses=PopulationDetailSerializer)

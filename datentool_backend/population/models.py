@@ -79,7 +79,7 @@ class Population(DatentoolModelMixin, models.Model):
     genders = models.ManyToManyField(Gender, blank=True)
     prognosis = models.ForeignKey(Prognosis, on_delete=PROTECT_CASCADE, null=True)
     popraster = models.ForeignKey(PopulationRaster,
-                               on_delete=PROTECT_CASCADE, null=True)
+                                  on_delete=PROTECT_CASCADE, null=True)
     arealevels = models.ManyToManyField(AreaLevel, through='PopulationAreaLevel')
 
 

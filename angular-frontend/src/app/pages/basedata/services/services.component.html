@@ -41,7 +41,8 @@
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="600px" [ngClass]="{'hidden': !activeService}">
-    <app-input-card [title]="'Bezeichnung der ausgewählten Leistung'"
+    <app-input-card #propertiesCard
+                    [title]="'Bezeichnung der ausgewählten Leistung'"
                     [editTemplate]="propertiesEdit"
                     infoText="<p>Der angezeigte Name entspricht der Bezeichnung in der Liste. Diese können Sie über die Schaltfläche „Editieren“ nachträglich noch verändern. Zudem können Sie eine Kurzbeschreibung hinzufügen.</p>
                     <p>Beide Eigenschaften sind für die Nutzer*innen des Hauptmenübereichs „Infrastrukturplanung“ als Auswahlbezeichnung bzw. kurzem Definitionstext sichtbar.</p>">
@@ -60,7 +61,8 @@
         </tr>
       </table>
     </app-input-card>
-    <app-input-card [title]="'Kapazitätseinheit der ausgewählten Leistung'"
+    <app-input-card #capacitiesCard
+                    [title]="'Kapazitätseinheit der ausgewählten Leistung'"
                     [editTemplate]="capacityEdit"
                     [subtitle]="activeService?.name || ''"
                     infoText="<p>In dieser Eingabebox können Sie über die Schaltfläche „Editieren“ festlegen, ob für diese Leistung die Kapazitäten der Einrichtungen berücksichtigt werden sollen. Dies können z.B. die genehmigten Plätze der Kitas oder die maximale Schülerzahl der Schulen sein.</p>
@@ -117,40 +119,80 @@
         </div>
       </div>
     </app-input-card>
-<!--    <app-input-card [title]="'Nachfrageeinheit der ausgewählten Leistung'"
-                    [editTemplate]="demandEdit"
-                    [subtitle]="selectedService.name"
-                    infoText="<p>In dieser Eingabebox können Sie über die Schaltfläche „Editieren“ festlegen, wie die Maßeinheit der Nachfrage für diese Leistung heißt, z.B. „Kitakinder“, „Schüler*innen“, „Patienten“ oder „Brandfälle“.</p>
-                    <p>Um im weiteren Verlauf Anzeigen wie „1 Kitakinder“ zu vermeiden, geben Sie bitte neben der Mehrzahl auch die Einzahl („Kitakind“) an.</p>">
-      <table style="margin-top: 10px;">
-        <tr>
-          <td>Nachfragende Einzahl</td>
-          <td>Schüler*in</td>
-        </tr>
-        <tr>
-          <td>Nachfragende Mehrzahl</td>
-          <td>Schüler*innen</td>
-        </tr>
-        <tr>
-          <td>Einheit Quote</td>
-          <td>Prozent</td>
-        </tr>
-      </table>
-    </app-input-card>-->
   </div>
 </div>
 
 <ng-template #propertiesEdit>
-  Funktionalität für den Prototyp noch nicht hinterlegt.
+  <form [formGroup]="propertiesForm">
+    <div *ngIf="propertiesForm.errors">
+      <mat-error *ngFor="let error of Object.values(propertiesForm.errors)" class="alert">
+        {{ error }}
+      </mat-error>
+    </div>
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Name</mat-label>
+        <input matInput formControlName="name" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Beschreibung</mat-label>
+        <textarea matInput formControlName="description"></textarea>
+      </mat-form-field>
+    </div>
+  </form>
 </ng-template>
 
 <ng-template #capacityEdit>
-  Funktionalität für den Prototyp noch nicht hinterlegt.
+  <form [formGroup]="capacitiesForm">
+    <div *ngIf="capacitiesForm.errors">
+      <mat-error *ngFor="let error of Object.values(capacitiesForm.errors)" class="alert">
+        {{ error }}
+      </mat-error>
+    </div>
+    <div fxLayout="column">
+      <mat-checkbox #hasCapCheck formControlName="hasCapacity" color="primary">
+        Für diese Leistung sollen die Kapazitäten der Einrichtungen berücksichtigt werden
+      </mat-checkbox>
+      <mat-form-field appearance="fill" *ngIf="hasCapCheck.checked">
+        <mat-label i18n>Einheit Einzahl</mat-label>
+        <input matInput formControlName="capacitySingularUnit" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill" *ngIf="hasCapCheck.checked">
+        <mat-label i18n>Einheit Mehrzahl</mat-label>
+        <input matInput formControlName="capacityPluralUnit" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Nachfragende Einzahl</mat-label>
+        <input matInput formControlName="demandSingularUnit" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Nachfragende Mehrzahl</mat-label>
+        <input matInput formControlName="demandPluralUnit" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Artikel Einrichtung (Einzahl)</mat-label>
+        <input matInput formControlName="facilityArticle" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Einrichtung Einzahl</mat-label>
+        <input matInput formControlName="facilitySingularUnit" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Einrichtung Mehrzahl</mat-label>
+        <input matInput formControlName="facilityPluralUnit" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Richtung der Wegebeziehung</mat-label>
+        <input matInput formControlName="directionWayRelationship" required>
+      </mat-form-field>
+    </div>
+  </form>
 </ng-template>
+<!--
+  <td>Richtung drer Wegebeziehung</td>
+<td>{{(activeSevice.directionWayRelationship === 1)? 'Zu': (activeService.directionWayRelationship === 2)? 'Von': '-'}}</td>
+-->
 
-<ng-template #demandEdit>
-  Funktionalität für den Prototyp noch nicht hinterlegt.
-</ng-template>
 
 <ng-template #createService>
   <div fxLayout="column">

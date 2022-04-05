@@ -125,6 +125,12 @@ export interface AreaIndicatorData {
   value: number
 }
 
+export interface Population {
+  id: number,
+  year: number,
+  prognosis: number
+}
+
 export interface PopulationData {
   year: number,
   gender: number,
