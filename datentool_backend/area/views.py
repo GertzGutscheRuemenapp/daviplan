@@ -1,4 +1,6 @@
 import requests
+import tempfile
+import os
 from requests.exceptions import (MissingSchema, ConnectionError, HTTPError)
 from distutils.util import strtobool
 import pandas as pd
@@ -12,7 +14,11 @@ from django.http import JsonResponse
 from django.db.models import OuterRef, Subquery, CharField, Case, When, F, JSONField, Func
 from django.db.models.functions import Cast
 from django.contrib.postgres.aggregates import ArrayAgg
+from django.contrib.gis.gdal import field as gdal_field
+from django.contrib.gis.gdal.error import GDALException
 from django_filters import rest_framework as filters
+
+from django.http.request import QueryDict
 
 from rest_framework.response import Response
 from rest_framework import viewsets, permissions, status, serializers
@@ -35,8 +41,11 @@ from datentool_backend.population.views import aggregate_population
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
+
 from datentool_backend.utils.pop_aggregation import (
     intersect_areas_with_raster, aggregate_population)
+
+from datentool_backend.utils.layermapping import CustomLayerMapping
 
 from .models import (MapSymbol,
                      LayerGroup,
@@ -47,7 +56,8 @@ from .models import (MapSymbol,
                      FClass,
                      AreaAttribute,
                      FieldTypes,
-                     SourceTypes
+                     SourceTypes,
+                     AreaField
                      )
 from .serializers import (MapSymbolSerializer,
                           LayerGroupSerializer,
@@ -58,6 +68,7 @@ from .serializers import (MapSymbolSerializer,
                           AreaSerializer,
                           FieldTypeSerializer,
                           FClassSerializer,
+                          area_level_id_serializer, 
                           )
 from datentool_backend.site.models import ProjectSetting
 
@@ -398,6 +409,69 @@ class AreaViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     serializer_class = AreaSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
     filter_fields = ['area_level']
+
+    @extend_schema(description='Upload ShapeFile with Area',
+                   request=inline_serializer(
+                       name='PlaceFileDropConstraintSerializer',
+                       fields={'area_level_id': area_level_id_serializer,
+                               'file': serializers.FileField(),
+                               }
+                       )
+                   )
+    @action(methods=['POST'], detail=False, permission_classes=[CanEditBasedata])
+    
+    def upload_shapefile(self, request):
+        """Download the Template"""
+        area_level_id = request.data.get('area_level_id')
+        geo_file = request.FILES['file']
+        ext = '.'.join([''] + geo_file.name.split('.')[1:])
+        mapping = {
+                   'geom': 'MULTIPOLYGON',}
+        with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as fp:
+            with open(fp.name, 'wb') as f:
+                f.write(geo_file.file.read())
+       
+        try:
+            lm = CustomLayerMapping(Area,
+                                    fp.name,
+                                    mapping,
+                                    custom={'area_level_id': area_level_id,})
+            
+            layer = lm.layer
+            attributes = {}
+            for i, field_name in enumerate(layer.fields):
+                field_type = layer.field_types[i]
+                if issubclass(field_type, (gdal_field.OFTInteger,
+                                           gdal_field.OFTInteger64,
+                                           gdal_field.OFTReal)):
+                    ft = FieldTypes.NUMBER
+                else:
+                    ft = FieldTypes.STRING
+                try:
+                    af = AreaField.objects.get(area_level_id=area_level_id,
+                                               name=field_name)
+                except AreaField.DoesNotExist:
+                    field_type, created= FieldType.objects.get_or_create(ftype=ft)
+                    af = AreaField.objects.create(area_level_id=area_level_id,
+                                                  name=field_name,
+                                                  field_type=field_type)
+                attributes[field_name] = layer.get_fields(field_name)
+            
+            lm.save(verbose=True, strict=True)
+        except GDALException as e:
+            msg = f'Upload failed: {e}'
+            return Response({'message': msg,},
+                            status=status.HTTP_406_NOT_ACCEPTABLE)            
+            
+        areas = Area.objects.filter(area_level_id=area_level_id)
+        for i, area in enumerate(areas):
+            area_attrs = {field_name: attrs[i]
+                          for field_name, attrs
+                          in attributes.items()}
+            area.attributes = area_attrs
+            area.save
+        msg = f'Upload successful of {layer.num_feat} areas'
+        return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)            
 
 
 class FieldTypeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
