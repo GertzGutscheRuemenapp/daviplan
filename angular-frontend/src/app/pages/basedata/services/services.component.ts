@@ -1,12 +1,14 @@
 import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core';
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
-import { Infrastructure, Service } from "../../../rest-interfaces";
+import { AreaLevel, Infrastructure, Service } from "../../../rest-interfaces";
 import { RestCacheService } from "../../../rest-cache.service";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { InputCardComponent } from "../../../dash/input-card.component";
+import { User } from "../../login/users";
+import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 
 @Component({
   selector: 'app-services',
@@ -21,6 +23,7 @@ export class ServicesComponent implements AfterViewInit {
   activeService?: Service;
   indicators: any[] = [];
   propertiesForm: FormGroup;
+  serviceForm: FormGroup;
   capacitiesForm: FormGroup;
   Object = Object;
 
@@ -30,6 +33,10 @@ export class ServicesComponent implements AfterViewInit {
     this.propertiesForm = this.formBuilder.group({
       name: '',
       description: ''
+    });
+    this.serviceForm = this.formBuilder.group({
+      name: '',
+      infrastructure: null
     });
     this.capacitiesForm = this.formBuilder.group({
       hasCapacity: false,
@@ -65,6 +72,27 @@ export class ServicesComponent implements AfterViewInit {
         description: this.activeService!.description
       });
     })
+    this.propertiesCard.dialogConfirmed.subscribe((ok)=>{
+      this.propertiesForm.setErrors(null);
+      // display errors for all fields even if not touched
+      this.propertiesForm.markAllAsTouched();
+      if (this.propertiesForm.invalid) return;
+      let attributes: any = {
+        name: this.propertiesForm.value.name,
+        description: this.propertiesForm.value.description || '',
+      }
+      this.propertiesCard.setLoading(true);
+      this.http.patch<Service>(`${this.rest.URLS.services}${this.activeService!.id}/`, attributes
+      ).subscribe(service => {
+        Object.assign(this.activeService!, service);
+        this.onServiceChange();
+        this.propertiesCard.closeDialog(true);
+      },(error) => {
+        // ToDo: set specific errors to fields
+        this.propertiesForm.setErrors(error.error);
+        this.propertiesCard.setLoading(false);
+      });
+    })
   }
 
   setupCapacitiesCard() {
@@ -75,10 +103,40 @@ export class ServicesComponent implements AfterViewInit {
         capacityPluralUnit: this.activeService!.capacityPluralUnit,
         demandSingularUnit: this.activeService!.demandSingularUnit,
         demandPluralUnit: this.activeService!.demandPluralUnit,
-        facilityArticle: this.activeService!.facilityArticle,
+        facilityArticle: this.activeService!.facilityArticle || 'die',
         facilitySingularUnit: this.activeService!.facilitySingularUnit,
         facilityPluralUnit: this.activeService!.facilityPluralUnit,
         directionWayRelationship: this.activeService!.directionWayRelationship
+      });
+    })
+    this.capacitiesCard.dialogConfirmed.subscribe((ok)=>{
+      this.capacitiesForm.setErrors(null);
+      // display errors for all fields even if not touched
+      this.capacitiesForm.markAllAsTouched();
+      if (this.capacitiesForm.invalid) return;
+      let attributes: any = {
+        hasCapacity:  this.capacitiesForm.value.hasCapacity,
+        demandSingularUnit: this.capacitiesForm.value.demandSingularUnit || '',
+        demandPluralUnit: this.capacitiesForm.value.demandPluralUnit || '',
+        facilityArticle: this.capacitiesForm.value.facilityArticle || '',
+        facilitySingularUnit: this.capacitiesForm.value.facilitySingularUnit || '',
+        facilityPluralUnit: this.capacitiesForm.value.facilityPluralUnit || '',
+        directionWayRelationship: this.capacitiesForm.value.directionWayRelationship
+      }
+      if (this.capacitiesForm.value.hasCapacity){
+        attributes.capacitySingularUnit = this.capacitiesForm.value.capacitySingularUnit || '';
+        attributes.capacityPluralUnit = this.capacitiesForm.value.capacityPluralUnit || '';
+      }
+      this.capacitiesCard.setLoading(true);
+      this.http.patch<Service>(`${this.rest.URLS.services}${this.activeService!.id}/`, attributes
+      ).subscribe(service => {
+        Object.assign(this.activeService!, service);
+        this.onServiceChange();
+        this.capacitiesCard.closeDialog(true);
+      },(error) => {
+        // ToDo: set specific errors to fields
+        this.capacitiesForm.setErrors(error.error);
+        this.capacitiesCard.setLoading(false);
       });
     })
   }
@@ -92,6 +150,57 @@ export class ServicesComponent implements AfterViewInit {
         title: 'Neue Leistung',
         template: this.createServiceTemplate,
         closeOnConfirm: false
+      }
+    });
+    dialogRef.afterOpened().subscribe(() => {
+      this.serviceForm.reset();
+    })
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      // display errors for all fields even if not touched
+      this.serviceForm.markAllAsTouched();
+      if (this.serviceForm.invalid) return;
+      dialogRef.componentInstance.isLoading = true;
+      let attributes = {
+        name: this.serviceForm.value.name,
+        infrastructure: this.serviceForm.value.infrastructure
+      };
+      this.http.post<Service>(this.rest.URLS.services, attributes
+      ).subscribe(service => {
+        const infrastructure = this.infrastructures!.find(i => i.id === service.infrastructure);
+        infrastructure?.services.push(service);
+        dialogRef.close();
+      },(error) => {
+        this.serviceForm.setErrors(error.error);
+        dialogRef.componentInstance.isLoading = false;
+      });
+    });
+  }
+
+  onDeleteService(): void {
+    if (!this.activeService)
+      return;
+    const dialogRef = this.dialog.open(RemoveDialogComponent, {
+      width: '400px',
+      data: {
+        title: $localize`Die Leistung wirklich entfernen?`,
+        message: 'Die Entfernung der Leistung entfernt auch alle damit verknüpften Daten aus der Datenbank (z.B. die Standortkapazitäten der Leistung)',
+        confirmButtonText: $localize`Leistung entfernen`,
+        value: this.activeService.name
+      }
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.http.delete(`${this.rest.URLS.services}${this.activeService!.id}/`
+        ).subscribe(res => {
+          const infrastructure = this.infrastructures!.find(i => i.id === this.activeService!.infrastructure);
+          if (!infrastructure) return;
+          const idx = infrastructure?.services.indexOf(this.activeService!);
+          if (idx >= 0)
+            infrastructure.services.splice(idx, 1);
+          this.activeService = undefined;
+        }, error => {
+          console.log('there was an error sending the query', error);
+        });
       }
     });
   }

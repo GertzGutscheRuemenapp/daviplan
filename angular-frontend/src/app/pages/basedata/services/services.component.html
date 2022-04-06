@@ -34,7 +34,8 @@
         </button>
         <button mat-button color="primary"
                 style="margin-left: 40px;"
-                class="mat-button-dv">
+                class="mat-button-dv"
+                (click)="onDeleteService()">
           <mat-icon>close</mat-icon>entfernen
         </button>
       </div>
@@ -155,35 +156,52 @@
       </mat-checkbox>
       <mat-form-field appearance="fill" *ngIf="hasCapCheck.checked">
         <mat-label i18n>Einheit Einzahl</mat-label>
-        <input matInput formControlName="capacitySingularUnit" required>
+        <input matInput formControlName="capacitySingularUnit">
       </mat-form-field>
       <mat-form-field appearance="fill" *ngIf="hasCapCheck.checked">
         <mat-label i18n>Einheit Mehrzahl</mat-label>
-        <input matInput formControlName="capacityPluralUnit" required>
+        <input matInput formControlName="capacityPluralUnit">
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label i18n>Nachfragende Einzahl</mat-label>
-        <input matInput formControlName="demandSingularUnit" required>
+        <input matInput formControlName="demandSingularUnit">
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label i18n>Nachfragende Mehrzahl</mat-label>
-        <input matInput formControlName="demandPluralUnit" required>
+        <input matInput formControlName="demandPluralUnit">
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label i18n>Artikel Einrichtung (Einzahl)</mat-label>
-        <input matInput formControlName="facilityArticle" required>
+        <mat-select disableRipple formControlName="facilityArticle" required>
+          <mat-option value="der">
+            der
+          </mat-option>
+          <mat-option [value]="'die'">
+            die
+          </mat-option>
+          <mat-option value="das">
+            das
+          </mat-option>
+        </mat-select>
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label i18n>Einrichtung Einzahl</mat-label>
-        <input matInput formControlName="facilitySingularUnit" required>
+        <input matInput formControlName="facilitySingularUnit">
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label i18n>Einrichtung Mehrzahl</mat-label>
-        <input matInput formControlName="facilityPluralUnit" required>
+        <input matInput formControlName="facilityPluralUnit">
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label i18n>Richtung der Wegebeziehung</mat-label>
-        <input matInput formControlName="directionWayRelationship" required>
+        <mat-select disableRipple formControlName="directionWayRelationship" required>
+          <mat-option [value]="1">
+            Zu
+          </mat-option>
+          <mat-option [value]="2">
+            Von
+          </mat-option>
+        </mat-select>
       </mat-form-field>
     </div>
   </form>
@@ -195,18 +213,25 @@
 
 
 <ng-template #createService>
-  <div fxLayout="column">
-    <mat-form-field appearance="fill">
-      <mat-label i18n>Infrastruktur</mat-label>
-      <mat-select disableRipple> <!-- [value]="infrastructures[0].id">-->
-        <mat-option *ngFor="let infrastructure of infrastructures" [value]="infrastructure.id">
-          {{infrastructure.name}}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-    <mat-form-field appearance="fill">
-      <mat-label i18n>Name der Leistung</mat-label>
-      <input matInput formControlName="username" required>
-    </mat-form-field>
-  </div>
+  <form [formGroup]="serviceForm">
+    <div *ngIf="serviceForm.errors">
+      <mat-error *ngFor="let error of Object.values(serviceForm.errors)" class="alert">
+        {{ error }}
+      </mat-error>
+    </div>
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Infrastruktur</mat-label>
+        <mat-select disableRipple formControlName="infrastructure" required> <!-- [value]="infrastructures[0].id">-->
+          <mat-option *ngFor="let infrastructure of infrastructures" [value]="infrastructure.id">
+            {{infrastructure.name}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Name der Leistung</mat-label>
+        <input matInput formControlName="name" required>
+      </mat-form-field>
+    </div>
+  </form>
 </ng-template>
