@@ -1,6 +1,6 @@
 from rest_framework import permissions
 
-from .models import Profile
+from .models.profile import Profile
 
 
 class CanUpdateProcessPermission(permissions.BasePermission):

@@ -5,13 +5,14 @@ from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from datentool_backend.area.models import FClass, FieldTypes
 
-from datentool_backend.infrastructure.models import (Place,
-                                                     Capacity,
-                                                     PlaceField,
-                                                     )
+from datentool_backend.infrastructure.models.places import (Place,
+                                                            Capacity,
+                                                            PlaceField,
+                                                            )
 from datentool_backend.area.serializers import FieldTypeSerializer
 from datentool_backend.utils.geometry_fields import GeometrySRIDField
-from datentool_backend.user.models import Infrastructure
+from datentool_backend.infrastructure.models.infrastructures import (
+    Infrastructure)
 
 
 class CapacitySerializer(serializers.ModelSerializer):

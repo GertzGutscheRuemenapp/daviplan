@@ -1,6 +1,6 @@
 from rest_framework import permissions
 
-from datentool_backend.user.models import PlanningProcess
+from datentool_backend.user.models.process import PlanningProcess
 
 
 class CanEditScenarioPermission(permissions.BasePermission):

@@ -12,39 +12,10 @@ from datentool_backend.base import (NamedModel,
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.utils.copy_postgres import DirectCopyManager
 
-from datentool_backend.user.models import (PlanningProcess,
-                                           Infrastructure,
-                                           Service,
-                                           PlaceField,
-                                           )
-from datentool_backend.area.models import FieldType, FieldTypes, FieldAttribute
-from datentool_backend.population.models import Prognosis
-from datentool_backend.modes.models import Mode, ModeVariant
-from datentool_backend.demand.models import DemandRateSet
-
-
-class Scenario(DatentoolModelMixin, NamedModel, models.Model):
-    """BULE-Scenario"""
-    name = models.TextField()
-    planning_process = models.ForeignKey(PlanningProcess,
-                                         on_delete=PROTECT_CASCADE)
-    prognosis = models.ForeignKey(Prognosis, on_delete=PROTECT_CASCADE,
-                                  null=True)
-    demandratesets = models.ManyToManyField(DemandRateSet,
-                                            related_name='scenario_service',
-                                            blank=True,
-                                            through='ScenarioService')
-
-
-class ScenarioMode(models.Model):
-    scenario = models.ForeignKey(Scenario, on_delete=PROTECT_CASCADE)
-    variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
-
-
-class ScenarioService(models.Model):
-    scenario = models.ForeignKey(Scenario, on_delete=PROTECT_CASCADE)
-    service = models.ForeignKey(Service, on_delete=PROTECT_CASCADE)
-    demandrateset = models.ForeignKey(DemandRateSet, on_delete=PROTECT_CASCADE)
+from datentool_backend.area.models import (FieldType, FieldTypes,
+                                           FieldAttribute)
+from datentool_backend.user.models.process import Scenario
+from .infrastructures import Infrastructure, Service, PlaceField
 
 
 class Place(DatentoolModelMixin, NamedModel, models.Model):
@@ -123,6 +94,7 @@ class PlaceAttribute(FieldAttribute):
 
     class Meta:
         unique_together = [['place', 'field']]
+
 
 
 class Capacity(DatentoolModelMixin, models.Model):

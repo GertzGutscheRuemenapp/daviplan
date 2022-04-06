@@ -9,10 +9,9 @@ from datentool_backend.api_test import (BasicModelTest,
 from datentool_backend.user.factories import (ProfileFactory,
                                               PlanningProcessFactory,
                                               )
-from datentool_backend.infrastructure.models import (Scenario,
-                                                     ScenarioMode,
-                                                     ScenarioService,
-                                                     )
+from datentool_backend.user.models.process import (Scenario,
+                                                   ScenarioMode,
+                                                   ScenarioService)
 from datentool_backend.infrastructure.factories import ScenarioFactory
 from datentool_backend.modes.factories import ModeVariantFactory
 from datentool_backend.demand.factories import DemandRateSetFactory

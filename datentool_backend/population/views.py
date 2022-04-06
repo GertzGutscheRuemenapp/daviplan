@@ -2,7 +2,6 @@ import pandas as pd
 from io import StringIO
 from distutils.util import strtobool
 from django.http.request import QueryDict
-from django.db import connection
 from django_filters import rest_framework as filters
 from django.db.models import Max, Min
 from drf_spectacular.utils import (extend_schema,
@@ -18,7 +17,8 @@ from django.db.models import Max, Sum
 from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
-from datentool_backend.area.views import intersect_areas_with_raster
+from datentool_backend.utils.pop_aggregation import (
+    intersect_areas_with_raster, aggregate_population)
 from datentool_backend.utils.regionalstatistik import Regionalstatistik
 from .models import (Raster,
                      PopulationRaster,
@@ -287,66 +287,11 @@ class PopulationViewSet(viewsets.ModelViewSet):
             msg = f'Population for {kwargs} not found'
             return Response({'message': msg, }, status.HTTP_406_NOT_ACCEPTABLE)
 
-        area_level_id = request.data.get('area_level')
-        acells = AreaCell.objects.filter(area__area_level_id=area_level_id)
-
-        rasterpop = RasterCellPopulationAgeGender.objects.filter(population=population)
-        rcp = RasterCellPopulation.objects.all()
-
-        q_acells, p_acells = acells.values(
-            'area_id', 'cell_id', 'share_area_of_cell').query.sql_with_params()
-        q_pop, p_pop = rasterpop.values(
-            'population_id', 'cell_id', 'value', 'age_group_id', 'gender_id')\
-            .query.sql_with_params()
-        q_rcp, p_rcp = rcp.values(
-            'id', 'cell_id').query.sql_with_params()
-
-        query = f'''SELECT
-          p."population_id",
-          ac."area_id",
-          p."age_group_id",
-          p."gender_id",
-          SUM(p."value" * ac."share_area_of_cell") AS "value"
-        FROM
-          ({q_acells}) AS ac,
-          ({q_pop}) AS p,
-          ({q_rcp}) AS rcp
-        WHERE ac."cell_id" = rcp."id"
-        AND p."cell_id" = rcp."cell_id"
-        GROUP BY p."population_id", ac."area_id", p."age_group_id", p."gender_id"
-        '''
-
-        params = p_acells + p_pop + p_rcp
-
-        columns = ['population_id', 'area_id', 'age_group_id', 'gender_id', 'value']
-
-        with connection.cursor() as cursor:
-            cursor.execute(query, params)
-            rows = cursor.fetchall()
-        df_areaagegender = pd.DataFrame(rows, columns=columns)
-
-        ap_exist = AreaPopulationAgeGender.objects\
-            .filter(population=population, area__area_level_id=area_level_id)
-        ap_exist.delete()
-
         drop_constraints = bool(strtobool(
             request.data.get('drop_constraints', 'False')))
-
-        with StringIO() as file:
-            df_areaagegender.to_csv(file, index=False)
-            file.seek(0)
-            AreaPopulationAgeGender.copymanager.from_csv(
-                file,
-                drop_constraints=drop_constraints, drop_indexes=drop_constraints,
-            )
-        msg = f'Aggregation of Population was successful.\n'
-
-        # validate_cache
-        pop_arealevel, created = PopulationAreaLevel.objects.get_or_create(
-            population=population,
-            area_level_id=area_level_id)
-        pop_arealevel.up_to_date = True
-        pop_arealevel.save()
+        area_level = AreaLevel.objects.get(id=request.data.get('area_level'))
+        aggregate_population(area_level, population,
+                             drop_constraints=drop_constraints)
 
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
@@ -385,7 +330,8 @@ class PopulationViewSet(viewsets.ModelViewSet):
             for area_level in AreaLevel.objects.all():
                 for population in Population.objects.all():
                     data['area_level'] = area_level.id
-                    self.aggregate_from_cell_to_area(request, **{'pk': population.id})
+                    aggregate_population(area_level, population,
+                                         drop_constraints=drop_constraints)
                 entries = AreaPopulationAgeGender.objects.filter(
                     area__area_level=area_level)
                 summed_values = entries.values(

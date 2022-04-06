@@ -5,8 +5,7 @@ from unittest import skip
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         WriteOnlyWithAdminAccessTest,
-                                        )
-from datentool_backend.area.tests import TestAPIMixin, TestPermissionsMixin
+                                        TestAPIMixin, TestPermissionsMixin)
 
 from .factories import (AgeGroupFactory,
                         GenderFactory,

@@ -4,8 +4,8 @@ from unittest import skip
 
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
-                                        WriteOnlyWithAdminAccessTest)
-from datentool_backend.api_test import TestAPIMixin, TestPermissionsMixin
+                                        WriteOnlyWithAdminAccessTest,
+                                        TestAPIMixin, TestPermissionsMixin)
 
 
 from datentool_backend.area.serializers import MapSymbolSerializer
@@ -16,7 +16,7 @@ from datentool_backend.user.factories import (
     ServiceFactory,
 )
 
-from datentool_backend.user.models import (
+from datentool_backend.infrastructure.models.infrastructures import (
     Infrastructure,
     Service,
 )

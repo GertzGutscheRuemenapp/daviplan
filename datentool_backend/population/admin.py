@@ -10,9 +10,11 @@ from .models import (
     PopulationEntry,
     PopStatistic,
     PopStatEntry,
+    Year
     )
 
 admin.site.register(Raster)
+admin.site.register(Year)
 admin.site.register(PopulationRaster)
 admin.site.register(RasterCell)
 admin.site.register(RasterCellPopulation)

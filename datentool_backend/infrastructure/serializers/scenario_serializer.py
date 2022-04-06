@@ -1,9 +1,8 @@
 from rest_framework import serializers
 
-from datentool_backend.infrastructure.models import (Scenario,
-                                                     ScenarioMode,
-                                                     ScenarioService,
-                                                     )
+from datentool_backend.user.models.process import (Scenario,
+                                                   ScenarioMode,
+                                                   ScenarioService)
 
 
 class ScenarioModeSerializer(serializers.ModelSerializer):

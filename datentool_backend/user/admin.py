@@ -1,9 +1,7 @@
 from django.contrib import admin
-from .models import (Profile, Year, PlanningProcess, Infrastructure, Service)
-
+from .models.profile import Profile
+from .models.process import PlanningProcess, Scenario
 
 admin.site.register(Profile)
-admin.site.register(Year)
 admin.site.register(PlanningProcess)
-admin.site.register(Infrastructure)
-admin.site.register(Service)
+admin.site.register(Scenario)

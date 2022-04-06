@@ -1,11 +1,12 @@
 import requests
+import tempfile
+import os
 from requests.exceptions import (MissingSchema, ConnectionError, HTTPError)
-from typing import List
 from distutils.util import strtobool
 import pandas as pd
 import json
-from io import StringIO
 from owslib.wfs import WebFeatureService
+import datetime
 
 from django.contrib.gis.geos import GEOSGeometry, Polygon, MultiPolygon
 from django.views.generic import DetailView
@@ -13,7 +14,11 @@ from django.http import JsonResponse
 from django.db.models import OuterRef, Subquery, CharField, Case, When, F, JSONField, Func
 from django.db.models.functions import Cast
 from django.contrib.postgres.aggregates import ArrayAgg
+from django.contrib.gis.gdal import field as gdal_field
+from django.contrib.gis.gdal.error import GDALException
 from django_filters import rest_framework as filters
+
+from django.http.request import QueryDict
 
 from rest_framework.response import Response
 from rest_framework import viewsets, permissions, status, serializers
@@ -30,10 +35,17 @@ from drf_spectacular.utils import extend_schema
 
 from datentool_backend.utils.serializers import (drop_constraints,
                                                  MessageSerializer)
-from datentool_backend.population.models import PopulationRaster, AreaCell
+from datentool_backend.population.models import (PopulationRaster,
+                                                 Population)
+from datentool_backend.population.views import aggregate_population
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
+
+from datentool_backend.utils.pop_aggregation import (
+    intersect_areas_with_raster, aggregate_population)
+
+from datentool_backend.utils.layermapping import CustomLayerMapping
 
 from .models import (MapSymbol,
                      LayerGroup,
@@ -55,7 +67,7 @@ from .serializers import (MapSymbolSerializer,
                           AreaLevelSerializer,
                           AreaSerializer,
                           FieldTypeSerializer,
-                          FClassSerializer,
+                          FClassSerializer
                           )
 from datentool_backend.site.models import ProjectSetting
 
@@ -211,80 +223,6 @@ class AreaLevelFilter(filters.FilterSet):
         fields = ['is_active']
 
 
-def intersect_areas_with_raster(
-    areas: List[Area], pop_raster: PopulationRaster=None,
-    drop_constraints: bool=False):
-    '''
-    intersect areas with raster creating AreaCells in database,
-    already existing AreaCells for areas in this raster are dropped
-    '''
-
-    if not pop_raster:
-        pop_raster = PopulationRaster.objects.first()
-
-    # use only cells with population and put values from Census to column pop
-    raster_cells = pop_raster.raster.rastercell_set
-
-    raster_cells_with_inhabitants = raster_cells\
-        .filter(rastercellpopulation__isnull=False)\
-        .annotate(pop=F('rastercellpopulation__value'),
-                  rcp_id=F('rastercellpopulation__id'),
-                  )
-
-    # spatial intersect with areas from given area_level
-    area_tbl = Area._meta.db_table
-
-    rr = raster_cells_with_inhabitants.extra(
-        select={f'area_id': f'"{area_tbl}".id',
-                f'm2_raster': 'st_area(st_transform(poly, 3035))',
-                f'm2_intersect': f'st_area(st_transform(st_intersection(poly, "{area_tbl}".geom), 3035))',
-                },
-        tables=[area_tbl],
-        where=[f'''st_intersects(poly, "{area_tbl}".geom)
-        AND "{area_tbl}".id IN %s
-        '''],
-        params=(tuple(areas.values_list('id', flat=True)),),
-    )
-
-    df = pd.DataFrame.from_records(
-        rr.values('id', 'area_id', 'pop', 'rcp_id',
-                  'm2_raster', 'm2_intersect', 'cellcode'))\
-        .set_index(['id', 'area_id'])
-
-    df['share_area_of_cell'] = df['m2_intersect'] / df['m2_raster']
-
-    # calculate weight as Census-Population *
-    # share of area of the total area of the rastercell
-    df['weight'] = df['pop'] * df['m2_intersect'] / df['m2_raster']
-
-    # sum up the weights of all rastercells in an area
-    area_weight = df['weight'].groupby(level='area_id').sum().rename('total_weight')
-
-    # calculate the share of population, a rastercell
-    # should get from the total population
-    df = df.merge(area_weight, left_on='area_id', right_index=True)
-    df['share_cell_of_area'] = df['weight'] / df['total_weight']
-
-    # sum up the weights of all areas in a cell
-    cell_weight = df['weight'].groupby(level='id').sum().rename('total_weight_cell')
-
-    df = df.merge(cell_weight, left_on='id', right_index=True)
-    df['share_area_of_cell'] = df['weight'] / df['total_weight_cell']
-
-    df2 = df[['rcp_id', 'share_area_of_cell', 'share_cell_of_area']]\
-        .reset_index()\
-        .rename(columns={'rcp_id': 'cell_id'})[['area_id', 'cell_id', 'share_area_of_cell', 'share_cell_of_area']]
-
-    ac = AreaCell.objects.filter(area__in=areas, cell__popraster=pop_raster)
-    ac.delete()
-
-    with StringIO() as file:
-        df2.to_csv(file, index=False)
-        file.seek(0)
-        AreaCell.copymanager.from_csv(file,
-            drop_constraints=drop_constraints, drop_indexes=drop_constraints)
-
-
 class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = AreaLevel.objects.all()
     serializer_class = AreaLevelSerializer
@@ -362,6 +300,13 @@ class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     @action(methods=['POST'], detail=True,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def pull_areas(self, request, **kwargs):
+        # minimum area of feature in m² after intersection with project area
+        # otherwise ignored
+        MIN_AREA = 100000
+        # percentage of intersected area in relation to original geometry
+        # if above threshold uncut original geometry is taken
+        INTERSECT_THRESHOLD = 0.95
+        CUT_OUT_SUFFIX = '(Ausschnitt)'
         try:
             area_level: AreaLevel = self.queryset.get(**kwargs)
         except AreaLevel.DoesNotExist:
@@ -409,28 +354,30 @@ class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             Area.objects.filter(area_level=area_level).delete()
         simplify = request.data.get('simplify', 'false').lower() == 'true'
         level_areas = Area.annotated_qs(area_level)
-        # ToDo: throw error if key is not defined? or force truncate?
-        # (field is auto created atm)
-        try:
-            key_field = AreaField.objects.get(area_level=area_level,
-                                              is_key=True).name
-        except AreaField.DoesNotExist:
-            key_field = None
-        #fields = area_level.areafield_set.values_list('name', flat=True)
+        key_field = area_level.key_field
+        label_field = area_level.label_field
         for feature in res_json['features']:
-            # ToDo: intersect with project area and continue if not in (only bbox atm)
+            properties = feature.get('properties', {})
+            # ToDo: this only temporary, in case of presets (=bkg wfs)
+            # only take land and ignore water parts, should be handled
+            # differently, e.g. source params
+            if area_level.is_preset and properties['gf'] != 4:
+                continue
             geom = GEOSGeometry(str(feature['geometry']))
             geom.srid = 3857
+            intersection = project_area.intersection(geom)
+            if (intersection.area < MIN_AREA):
+                continue
+            if (intersection.area / geom.area > INTERSECT_THRESHOLD):
+                intersection = geom
+            if label_field and intersection.area < geom.area:
+                properties[label_field] = (f'{properties.get(label_field, "")} '
+                                           f'{CUT_OUT_SUFFIX}')
+            # ToDo: do simplification in database after all features are put in?
             if (simplify):
-                # ToDo: pass distance between points as param?
-                geom = geom.simplify(100)
-            if isinstance(geom, Polygon):
-                geom = MultiPolygon(geom)
-            #attributes = {}
-            properties = feature.get('properties', {})
-            #for field in fields:
-                #attributes[field] = properties.get(field, '')
-            # ToDo: how to ensure that key column is unique?
+                intersection = intersection.simplify(10, preserve_topology=True)
+            if isinstance(intersection, Polygon):
+                intersection = MultiPolygon(intersection)
             if not truncate and key_field and properties.get(key_field):
                 existing = level_areas.filter(
                     **{key_field: properties.get(key_field)})
@@ -438,18 +385,93 @@ class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                 existing = None
             if existing:
                 area = existing[0]
-                area.geom = geom
+                area.geom = intersection
                 area.save()
             else:
-                area = Area.objects.create(area_level=area_level, geom=geom)
-            # Note: creates fields on the fly depending on returned properties
-            # is this as intented or only use predefined fields?
+                area = Area.objects.create(area_level=area_level,
+                                           geom=intersection)
             area.attributes = properties
-        # ToDo: update source date
-        # ToDo: call intersect_areas?
-        n_created = Area.objects.filter(area_level=area_level).count()
-        return Response({'message': f'{n_created} Areas pulled into database'},
+        # ToDo: call intersect_areas with raster, disaggregate, aggregate?
+        now = datetime.datetime.now()
+        area_level.source.date = datetime.date(now.year, now.month, now.day)
+        area_level.source.save()
+        areas = Area.objects.filter(area_level=area_level)
+        intersect_areas_with_raster(areas, drop_constraints=True)
+        for population in Population.objects.all():
+            aggregate_population(area_level, population, drop_constraints=True)
+        return Response({'message': f'{areas.count()} Areas pulled into database'},
                         status.HTTP_202_ACCEPTED)
+
+    @extend_schema(description='Upload Geopackage/ZippedShapeFile with Areas',
+                   request=inline_serializer(
+                       name='PlaceFileDropConstraintSerializer',
+                       fields={'file': serializers.FileField()}
+                   ))
+    @action(methods=['POST'], detail=True,
+            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+
+    def upload_shapefile(self, request, **kwargs):
+        """Download the Template"""
+        try:
+            area_level: AreaLevel = self.queryset.get(**kwargs)
+        except AreaLevel.DoesNotExist:
+            msg = f'Area level for {kwargs} not found'
+            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+        # ToDo: option to truncate or to update existing entries
+        # when keys match
+        # delete existing data
+        Area.objects.filter(area_level=area_level).delete()
+        geo_file = request.FILES['file']
+        ext = '.'.join([''] + geo_file.name.split('.')[1:])
+        mapping = {'geom': 'MULTIPOLYGON',}
+        with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as fp:
+            with open(fp.name, 'wb') as f:
+                f.write(geo_file.file.read())
+            fp.close()
+            try:
+                lm = CustomLayerMapping(Area,
+                                        fp.name,
+                                        mapping,
+                                        custom={'area_level': area_level, })
+
+                layer = lm.layer
+                attributes = {}
+                for i, field_name in enumerate(layer.fields):
+                    field_type = layer.field_types[i]
+                    if issubclass(field_type, (gdal_field.OFTInteger,
+                                               gdal_field.OFTInteger64,
+                                               gdal_field.OFTReal)):
+                        ft = FieldTypes.NUMBER
+                    else:
+                        ft = FieldTypes.STRING
+                    try:
+                        af = AreaField.objects.get(area_level=area_level,
+                                                   name=field_name)
+                    except AreaField.DoesNotExist:
+                        field_type, created = FieldType.objects.get_or_create(ftype=ft)
+                        af = AreaField.objects.create(area_level=area_level,
+                                                      name=field_name,
+                                                      field_type=field_type)
+                    attributes[field_name] = layer.get_fields(field_name)
+
+                lm.save(verbose=True, strict=True)
+            except GDALException as e:
+                msg = f'Upload failed: {e}'
+                return Response({'message': msg, },
+                                status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        areas = Area.objects.filter(area_level=area_level)
+        for i, area in enumerate(areas):
+            area_attrs = {field_name: attrs[i]
+                          for field_name, attrs
+                          in attributes.items()}
+            area.attributes = area_attrs
+            area.save
+        intersect_areas_with_raster(areas, drop_constraints=True)
+        for population in Population.objects.all():
+            aggregate_population(area_level, population, drop_constraints=True)
+        msg = f'Upload successful of {layer.num_feat} areas'
+        return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
 
 class AreaViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
@@ -460,8 +482,7 @@ class AreaViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
 
 class FieldTypeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = FieldType.objects.all()  # prefetch_related('classification_set',
-                                         #         to_attr='classifications')
+    queryset = FieldType.objects.all()
     serializer_class = FieldTypeSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
