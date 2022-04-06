@@ -51,7 +51,7 @@ class PopulationDetailSerializer(serializers.ModelSerializer):
 
 
 class PopulationSerializer(serializers.ModelSerializer):
-    year = serializers.IntegerField(source='year.year')
+    #year = serializers.IntegerField(source='year.year')
     class Meta:
         model = Population
         fields = ('id', 'year', 'genders', 'popraster',
