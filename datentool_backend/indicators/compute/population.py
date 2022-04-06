@@ -16,7 +16,7 @@ from datentool_backend.population.models import (RasterCellPopulationAgeGender,
                                                  PopulationAreaLevel,
                                                  Population,
                                                  )
-from datentool_backend.infrastructure.models import Scenario
+from datentool_backend.user.models.process import Scenario
 
 
 class PopulationIndicatorMixin:

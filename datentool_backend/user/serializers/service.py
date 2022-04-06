@@ -1,11 +1,8 @@
 from django.db.models import Min
-
 from rest_framework import serializers
 
-from datentool_backend.user.models import Service
-
-from datentool_backend.infrastructure.models import Capacity
-
+from datentool_backend.infrastructure.models.infrastructures import Service
+from datentool_backend.infrastructure.models.places import Capacity
 
 
 class ServiceSerializer(serializers.ModelSerializer):

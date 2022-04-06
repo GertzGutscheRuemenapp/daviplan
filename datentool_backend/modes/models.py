@@ -3,7 +3,7 @@ from datentool_backend.base import (NamedModel,
                                     JsonAttributes,
                                     DatentoolModelMixin, )
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
-from datentool_backend.user.models import (Infrastructure)
+from datentool_backend.infrastructure.models.infrastructures import Infrastructure
 
 
 class Mode(models.IntegerChoices):

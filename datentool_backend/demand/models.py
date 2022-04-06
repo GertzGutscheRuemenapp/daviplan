@@ -1,29 +1,13 @@
 from django.db import models, transaction
-from django.core.validators import (MinValueValidator, MaxValueValidator)
 
 from datentool_backend.base import NamedModel
-from datentool_backend.user.models import (Year, Service)
+from datentool_backend.infrastructure.models.infrastructures import Service
+from datentool_backend.population.models import Year, AgeGroup, Gender
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.base import NamedModel, DatentoolModelMixin
 from datentool_backend.utils.permissions import (CanEditBasedata,
                                                  HasAdminAccessOrReadOnly,
                                                  )
-
-class Gender(DatentoolModelMixin, NamedModel, models.Model):
-    """the genders available"""
-    name = models.TextField()
-
-
-class AgeGroup(DatentoolModelMixin, models.Model):
-    """an age group in an age classification"""
-    from_age = models.IntegerField(validators=[MinValueValidator(0),
-                                               MaxValueValidator(127)])
-    to_age = models.IntegerField(validators=[MinValueValidator(0),
-                                             MaxValueValidator(127)])
-
-    @property
-    def name(self) -> str:
-        return f'{self.from_age} bis {self.to_age} Jahre'
 
 
 class DemandRateSet(DatentoolModelMixin, NamedModel, models.Model):

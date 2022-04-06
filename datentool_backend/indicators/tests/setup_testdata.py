@@ -17,9 +17,9 @@ from datentool_backend.infrastructure.factories import (ScenarioFactory,
                                                         PlaceFactory,
                                                         ServiceFactory,
                                                         CapacityFactory)
-from datentool_backend.infrastructure.models import ScenarioService
+from datentool_backend.user.models.process import ScenarioService
 
-from datentool_backend.user.models import Year
+from datentool_backend.population.models import Year
 from datentool_backend.demand.models import (Gender,
                                              AgeGroup,
                                              DemandRateSet,

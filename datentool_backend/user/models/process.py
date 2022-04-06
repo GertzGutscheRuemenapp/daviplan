@@ -4,6 +4,9 @@ from datentool_backend.base import NamedModel, DatentoolModelMixin
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.population.models import Prognosis
 from datentool_backend.demand.models import DemandRateSet
+from datentool_backend.modes.models import ModeVariant
+from datentool_backend.infrastructure.models.infrastructures import Service
+from .profile import Profile
 
 
 class PlanningProcess(DatentoolModelMixin, NamedModel, models.Model):
@@ -29,3 +32,14 @@ class Scenario(DatentoolModelMixin, NamedModel, models.Model):
                                             related_name='scenario_service',
                                             blank=True,
                                             through='ScenarioService')
+
+
+class ScenarioMode(models.Model):
+    scenario = models.ForeignKey(Scenario, on_delete=PROTECT_CASCADE)
+    variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
+
+
+class ScenarioService(models.Model):
+    scenario = models.ForeignKey(Scenario, on_delete=PROTECT_CASCADE)
+    service = models.ForeignKey(Service, on_delete=PROTECT_CASCADE)
+    demandrateset = models.ForeignKey(DemandRateSet, on_delete=PROTECT_CASCADE)

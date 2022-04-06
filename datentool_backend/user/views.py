@@ -19,20 +19,17 @@ from datentool_backend.utils.permissions import(CanEditBasedata,
                                                 IsOwner
                                                 )
 from datentool_backend.indicators.serializers import IndicatorSerializer
-
 from .permissions import CanUpdateProcessPermission, CanPatchSymbol
-
 from .serializers import (UserSerializer,
                           YearSerializer,
                           PlanningProcessSerializer,
                           InfrastructureSerializer,
                           ServiceSerializer,
                           )
-from .models import (Year,
-                     PlanningProcess,
-                     Infrastructure,
-                     Service,
-                     )
+from datentool_backend.models import (Year,
+                                      PlanningProcess,
+                                      Infrastructure,
+                                      Service)
 
 
 class UserViewSet(viewsets.ModelViewSet):

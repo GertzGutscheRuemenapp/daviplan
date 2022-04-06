@@ -4,7 +4,7 @@ from enum import Enum
 
 from django.http.request import QueryDict
 
-from datentool_backend.user.models import Service
+from datentool_backend.infrastructure.models.infrastructures import Service
 from datentool_backend.indicators.serializers import (
     IndicatorAreaResultSerializer,
     IndicatorRasterResultSerializer,

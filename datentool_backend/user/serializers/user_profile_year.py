@@ -5,11 +5,11 @@ from django.db.models import Min
 
 from rest_framework import serializers
 
-from datentool_backend.user.models import (Profile,
-                                           Year,
-                                           PlanningProcess,
-                                           InfrastructureAccess,
-                                           )
+from datentool_backend.user.models.profile import Profile
+from datentool_backend.user.models.process import PlanningProcess
+from datentool_backend.population.models import Year
+from datentool_backend.infrastructure.models.infrastructures import (
+    InfrastructureAccess)
 
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):

@@ -3,11 +3,8 @@ from factory.django import DjangoModelFactory
 from datentool_backend.utils.geometry_fields import get_point_from_latlon
 from datentool_backend.area.factories import FieldTypeFactory
 
-from .models import (Scenario,
-                     Place,
-                     Capacity,
-                     PlaceField,
-                     )
+from .models.places import Place, Capacity, PlaceField
+from datentool_backend.user.models.process import Scenario
 
 from datentool_backend.user.factories import (PlanningProcessFactory,
                                               InfrastructureFactory,

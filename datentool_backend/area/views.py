@@ -35,7 +35,7 @@ from drf_spectacular.utils import extend_schema
 
 from datentool_backend.utils.serializers import (drop_constraints,
                                                  MessageSerializer)
-from datentool_backend.population.models import (PopulationRaster, AreaCell,
+from datentool_backend.population.models import (PopulationRaster,
                                                  Population)
 from datentool_backend.population.views import aggregate_population
 from datentool_backend.utils.views import ProtectCascadeMixin
@@ -67,8 +67,7 @@ from .serializers import (MapSymbolSerializer,
                           AreaLevelSerializer,
                           AreaSerializer,
                           FieldTypeSerializer,
-                          FClassSerializer,
-                          area_level_id_serializer,
+                          FClassSerializer
                           )
 from datentool_backend.site.models import ProjectSetting
 

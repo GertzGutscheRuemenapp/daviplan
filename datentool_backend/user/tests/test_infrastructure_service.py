@@ -16,7 +16,7 @@ from datentool_backend.user.factories import (
     ServiceFactory,
 )
 
-from datentool_backend.user.models import (
+from datentool_backend.infrastructure.models.infrastructures import (
     Infrastructure,
     Service,
 )

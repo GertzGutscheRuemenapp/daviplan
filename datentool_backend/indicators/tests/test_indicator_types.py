@@ -8,7 +8,7 @@ from datentool_backend.indicators.factories import (
 from datentool_backend.indicators.compute import (
     register_indicator, ServiceIndicator)
 
-from datentool_backend.infrastructure.models import FieldTypes
+from datentool_backend.infrastructure.models.places import FieldTypes
 
 
 class TestIndicator(TestCase):

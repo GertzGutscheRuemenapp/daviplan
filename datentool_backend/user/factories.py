@@ -1,15 +1,13 @@
 import factory
 from factory.django import DjangoModelFactory, mute_signals
 from faker import Faker
+from django.db.models.signals import post_save
 
-from .models import (User,
-                     Profile,
-                     post_save,
-                     Year,
-                     PlanningProcess,
-                     Infrastructure,
-                     Service,
-                     )
+from .models.profile import User, Profile
+from .models.process import PlanningProcess
+from datentool_backend.infrastructure.models.infrastructures import(
+                     Infrastructure, Service)
+from datentool_backend.population.models import Year
 
 from datentool_backend.area.factories import MapSymbolFactory
 

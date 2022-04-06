@@ -1,26 +1,8 @@
-import os
-from collections import OrderedDict
-import pandas as pd
-
-from django.conf import settings
-from django.db.models.fields import FloatField
-from django.contrib.gis.db.models.functions import GeoFunc, Transform, Distance
 from rest_framework import serializers
 
-from openpyxl.utils import get_column_letter, quote_sheetname
-from openpyxl import styles
-from openpyxl.worksheet.worksheet import Worksheet
-from openpyxl.worksheet.dimensions import ColumnDimension, RowDimension
-from openpyxl.worksheet.datavalidation import DataValidation
-
-from datentool_backend.user.models import (Infrastructure,
-                                           InfrastructureAccess,
-                                           )
-
-from datentool_backend.infrastructure.models import (PlaceAttribute, Place,
-                                                     PlaceField, Capacity)
-
-from datentool_backend.area.models import MapSymbol, FieldTypes
+from datentool_backend.infrastructure.models.infrastructures import (
+    InfrastructureAccess, Infrastructure)
+from datentool_backend.area.models import MapSymbol
 from datentool_backend.area.serializers import MapSymbolSerializer
 from datentool_backend.infrastructure.serializers import PlaceFieldInfraSerializer
 
@@ -60,7 +42,8 @@ class InfrastructureSerializer(serializers.ModelSerializer):
             infrastructure_access = InfrastructureAccess.objects.get(
                 infrastructure=instance,
                 profile=profile_access['profile'])
-            infrastructure_access.allow_sensitive_data = profile_access['allow_sensitive_data']
+            infrastructure_access.allow_sensitive_data = profile_access[
+                'allow_sensitive_data']
             infrastructure_access.save()
 
         return instance

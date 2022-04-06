@@ -4,8 +4,8 @@ from datentool_backend.population.models import AreaCell, RasterCellPopulation
 from datentool_backend.indicators.compute.base import ComputeIndicator, ResultSerializer
 from datentool_backend.indicators.compute.population import PopulationIndicatorMixin
 from datentool_backend.demand.models import DemandRateSet, DemandRate
-from datentool_backend.infrastructure.models import ScenarioService
-from datentool_backend.user.models import Year
+from datentool_backend.user.models.process import ScenarioService
+from datentool_backend.population.models import Year
 from datentool_backend.area.models import Area
 from datentool_backend.population.models import PopulationAreaLevel
 
