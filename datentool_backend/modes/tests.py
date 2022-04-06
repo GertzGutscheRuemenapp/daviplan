@@ -1,8 +1,8 @@
 from django.test import TestCase
 from test_plus import APITestCase
 from datentool_backend.api_test import (BasicModelTest,
-                                        WriteOnlyWithCanEditBaseDataTest)
-from datentool_backend.area.tests import TestAPIMixin, TestPermissionsMixin
+                                        WriteOnlyWithCanEditBaseDataTest,
+                                        TestAPIMixin, TestPermissionsMixin)
 
 from faker import Faker
 

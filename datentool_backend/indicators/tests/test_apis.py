@@ -2,8 +2,7 @@ from test_plus import APITestCase
 
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
-                                        )
-from datentool_backend.area.tests import TestAPIMixin, TestPermissionsMixin
+                                        TestAPIMixin, TestPermissionsMixin)
 
 
 from datentool_backend.indicators.factories import RouterFactory
