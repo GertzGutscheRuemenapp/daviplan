@@ -123,16 +123,16 @@ class Service(DatentoolModelMixin, NamedModel, models.Model):
     editable_by = models.ManyToManyField(Profile,
                                          related_name='service_editable_by',
                                          blank=True)
-    capacity_singular_unit = models.TextField()
-    capacity_plural_unit = models.TextField()
-    has_capacity = models.BooleanField()
-    demand_singular_unit = models.TextField()
-    demand_plural_unit = models.TextField()
+    capacity_singular_unit = models.TextField(null=True, blank=True)
+    capacity_plural_unit = models.TextField(null=True, blank=True)
+    has_capacity = models.BooleanField(null=True, blank=True)
+    demand_singular_unit = models.TextField(null=True, blank=True)
+    demand_plural_unit = models.TextField(null=True, blank=True)
     demand_name = models.TextField(null=True, blank=True)
     demand_description = models.TextField(null=True, blank=True)
-    has_capacity = models.BooleanField()
+    has_capacity = models.BooleanField(default=True)
     facility_singular_unit = models.TextField(null=True, blank=True)
     facility_article = models.TextField(null=True, blank=True)
     facility_plural_unit = models.TextField(null=True, blank=True)
     direction_way_relationship = models.IntegerField(
-        choices=WayRelationship.choices)
+        choices=WayRelationship.choices, default=WayRelationship.TO)
