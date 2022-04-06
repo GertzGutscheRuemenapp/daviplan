@@ -173,7 +173,8 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         name: this.editLevelForm.value.name,
         isPreset: false,
         isActive: false,
-        order: 100 + this.customAreaLevels.length
+        order: 100 + this.customAreaLevels.length,
+        source: { sourceType: 'FILE' }
       };
       this.http.post<AreaLevel>(this.rest.URLS.arealevels, attributes
       ).subscribe(level => {

@@ -63,10 +63,13 @@ class GetCapabilitiesResponseSerializer(serializers.Serializer):
 
 class SourceSerializer(serializers.ModelSerializer):
     date = serializers.DateField(format='%d.%m.%Y',
-                                 input_formats=['%d.%m.%Y', 'iso-8601'])
+                                 input_formats=['%d.%m.%Y', 'iso-8601'],
+                                 read_only=True)
     class Meta:
         model = Source
         fields = ('source_type', 'date', 'url', 'layer')
+        extra_kwargs = {'url': {'required': False},
+                        'layer': {'required': False}}
 
 
 class AreaLevelSerializer(serializers.ModelSerializer):
@@ -128,8 +131,8 @@ class AreaLevelSerializer(serializers.ModelSerializer):
         symbol = MapSymbol.objects.create(**symbol_data) \
             if symbol_data else None
         source_data = validated_data.pop('source', {})
-        date = source_data.pop('date', dt_date.today())
-        source = Source.objects.create(date=date, **source_data)
+        #date = source_data.pop('date', dt_date.today())
+        source = Source.objects.create(**source_data)
 
         instance = AreaLevel.objects.create(
             symbol=symbol, source=source, **validated_data)

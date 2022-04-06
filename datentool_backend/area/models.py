@@ -62,7 +62,7 @@ class SourceTypes(models.TextChoices):
 class Source(DatentoolModelMixin, models.Model):
     """a generic source"""
     source_type = models.CharField(max_length=4, choices=SourceTypes.choices)
-    date = models.DateField()
+    date = models.DateField(null=True)
     url = models.URLField(null=True, blank=True)
     layer = models.TextField(null=True, blank=True)
 

@@ -138,7 +138,9 @@
     <app-input-card [title]="'Daten der ausgewählten Gebietseinteilung'"
                     [topRightHelp]="true"
                     [dialogTitle]="'Kontakt E-Mail ändern'"
-                    infoText="<p>Klicken Sie auf „Daten abrufen bzw. aktualisieren“, um die Daten erstmalig oder – zum Aktualisieren – erneut vom Bundesamt für Kartographie und Geodäsie (BKG) herunterzuladen. Den Zeitpunkt der letzten Aktualisierung können Sie der Aktualisierungshistorie entnehmen.</p>">
+                    [infoText]="(selectedAreaLevel?.source?.sourceType === 'WFS')?
+                    '<p>Klicken Sie auf „Daten abrufen bzw. aktualisieren“, um die Daten erstmalig oder – zum Aktualisieren – erneut vom Bundesamt für Kartographie und Geodäsie (BKG) herunterzuladen. Den Zeitpunkt der letzten Aktualisierung können Sie der Aktualisierungshistorie entnehmen.</p>':
+                    'Platzhalter'">
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
           <span class="subtitle1 sub">
@@ -155,7 +157,7 @@
                 {{selectedAreaLevel?.source?.sourceType}}
               </td>
             </tr>
-            <tr>
+            <tr *ngIf="selectedAreaLevel?.source?.sourceType === 'WFS'">
               <td i18n>URL</td>
               <td style="max-width: 100px; overflow: hidden; text-overflow: ellipsis;">
                 {{selectedAreaLevel?.source?.url}}
