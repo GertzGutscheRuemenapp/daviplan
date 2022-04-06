@@ -16,26 +16,26 @@ from datentool_backend.api_test import (BasicModelTest,
 from datentool_backend.area.serializers import (MapSymbolSerializer,
                                                 SourceSerializer)
 
-from .factories import (WMSLayerFactory,
-                        AreaFactory,
-                        AreaLevelFactory,
-                        AreaFieldFactory,
-                        SourceFactory,
-                        LayerGroupFactory,
-                        FClassFactory,
-                        SourceFactory
-                        )
+from datentool_backend.area.factories import (WMSLayerFactory,
+                                              AreaFactory,
+                                              AreaLevelFactory,
+                                              AreaFieldFactory,
+                                              SourceFactory,
+                                              LayerGroupFactory,
+                                              FClassFactory,
+                                              SourceFactory
+                                              )
 
-from .models import (WMSLayer,
-                     AreaLevel,
-                     Area,
-                     FClass,
-                     AreaField,
-                     AreaAttribute,
-                     FieldType,
-                     FieldTypes,
-                     SourceTypes
-                     )
+from datentool_backend.area.models import (WMSLayer,
+                                           AreaLevel,
+                                           Area,
+                                           FClass,
+                                           AreaField,
+                                           AreaAttribute,
+                                           FieldType,
+                                           FieldTypes,
+                                           SourceTypes
+                                           )
 from datentool_backend.site.factories import ProjectSettingFactory
 
 from django.urls import reverse

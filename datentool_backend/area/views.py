@@ -403,28 +403,25 @@ class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         return Response({'message': f'{areas.count()} Areas pulled into database'},
                         status.HTTP_202_ACCEPTED)
 
-
-class AreaViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = Area.objects.all()
-    serializer_class = AreaSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-    filter_fields = ['area_level']
-
     @extend_schema(description='Upload Geopackage/ZippedShapeFile with Areas',
                    request=inline_serializer(
                        name='PlaceFileDropConstraintSerializer',
-                       fields={'area_level_id': area_level_id_serializer,
-                               'file': serializers.FileField(),
-                               }
-                   )
-                   )
-    @action(methods=['POST'], detail=False, permission_classes=[CanEditBasedata])
+                       fields={'file': serializers.FileField()}
+                   ))
+    @action(methods=['POST'], detail=True,
+            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
 
-    def upload_shapefile(self, request):
+    def upload_shapefile(self, request, **kwargs):
         """Download the Template"""
-        area_level_id = request.data.get('area_level_id')
+        try:
+            area_level: AreaLevel = self.queryset.get(**kwargs)
+        except AreaLevel.DoesNotExist:
+            msg = f'Area level for {kwargs} not found'
+            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+        # ToDo: option to truncate or to update existing entries
+        # when keys match
         # delete existing data
-        Area.objects.filter(area_level_id=area_level_id).delete()
+        Area.objects.filter(area_level=area_level).delete()
         geo_file = request.FILES['file']
         ext = '.'.join([''] + geo_file.name.split('.')[1:])
         mapping = {'geom': 'MULTIPOLYGON',}
@@ -436,7 +433,7 @@ class AreaViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                 lm = CustomLayerMapping(Area,
                                         fp.name,
                                         mapping,
-                                        custom={'area_level_id': area_level_id, })
+                                        custom={'area_level': area_level, })
 
                 layer = lm.layer
                 attributes = {}
@@ -449,11 +446,11 @@ class AreaViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                     else:
                         ft = FieldTypes.STRING
                     try:
-                        af = AreaField.objects.get(area_level_id=area_level_id,
+                        af = AreaField.objects.get(area_level=area_level,
                                                    name=field_name)
                     except AreaField.DoesNotExist:
                         field_type, created = FieldType.objects.get_or_create(ftype=ft)
-                        af = AreaField.objects.create(area_level_id=area_level_id,
+                        af = AreaField.objects.create(area_level=area_level,
                                                       name=field_name,
                                                       field_type=field_type)
                     attributes[field_name] = layer.get_fields(field_name)
@@ -464,15 +461,25 @@ class AreaViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                 return Response({'message': msg, },
                                 status=status.HTTP_406_NOT_ACCEPTABLE)
 
-        areas = Area.objects.filter(area_level_id=area_level_id)
+        areas = Area.objects.filter(area_level=area_level)
         for i, area in enumerate(areas):
             area_attrs = {field_name: attrs[i]
                           for field_name, attrs
                           in attributes.items()}
             area.attributes = area_attrs
             area.save
+        intersect_areas_with_raster(areas, drop_constraints=True)
+        for population in Population.objects.all():
+            aggregate_population(area_level, population, drop_constraints=True)
         msg = f'Upload successful of {layer.num_feat} areas'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
+
+
+class AreaViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+    queryset = Area.objects.all()
+    serializer_class = AreaSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    filter_fields = ['area_level']
 
 
 class FieldTypeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
