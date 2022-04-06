@@ -6,7 +6,7 @@ from django.http.request import QueryDict
 
 from datentool_backend.indicators.compute.base import ComputeIndicator, ResultSerializer
 from datentool_backend.area.models import Area, AreaLevel
-from datentool_backend.infrastructure.models import Place, Capacity
+from datentool_backend.infrastructure.models.places import Place, Capacity
 
 
 class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):

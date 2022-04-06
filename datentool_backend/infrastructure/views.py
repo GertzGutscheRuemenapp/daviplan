@@ -1,10 +1,8 @@
 from django.db.models import Prefetch, Q
 from django.http.request import QueryDict
-
 from rest_framework import viewsets, status, serializers
 from rest_framework.response import Response
 from rest_framework.decorators import action
-
 from drf_spectacular.utils import (extend_schema,
                                    OpenApiParameter,
                                    extend_schema_view,
@@ -14,18 +12,13 @@ from drf_spectacular.utils import (extend_schema,
 from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
 from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
                                                  CanEditBasedata,)
-
 from datentool_backend.infrastructure.permissions import CanEditScenarioPermission
-
-from datentool_backend.user.models import InfrastructureAccess
-
-from datentool_backend.infrastructure.models import (Scenario,
-                                                     Place,
-                                                     Capacity,
-                                                     PlaceField,
-                                                     PlaceAttribute,
-                                                     )
-
+from datentool_backend.models import (Scenario,
+                                      InfrastructureAccess,
+                                      Place,
+                                      Capacity,
+                                      PlaceField,
+                                      PlaceAttribute)
 from datentool_backend.infrastructure.serializers import (ScenarioSerializer,
                                                           PlaceSerializer,
                                                           CapacitySerializer,

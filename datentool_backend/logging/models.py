@@ -1,7 +1,8 @@
 from django.db import models
 from datentool_backend.base import NamedModel
-from datentool_backend.user.models import Profile
-from datentool_backend.infrastructure.models import Infrastructure, Service
+from datentool_backend.user.models.profile import Profile
+from datentool_backend.infrastructure.models.infrastructures import (
+    Infrastructure, Service)
 from datentool_backend.area.models import AreaLevel
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 

@@ -16,26 +16,26 @@ from datentool_backend.api_test import (BasicModelTest,
 from datentool_backend.area.serializers import (MapSymbolSerializer,
                                                 SourceSerializer)
 
-from .factories import (WMSLayerFactory,
-                        AreaFactory,
-                        AreaLevelFactory,
-                        AreaFieldFactory,
-                        SourceFactory,
-                        LayerGroupFactory,
-                        FClassFactory,
-                        SourceFactory
-                        )
+from datentool_backend.area.factories import (WMSLayerFactory,
+                                              AreaFactory,
+                                              AreaLevelFactory,
+                                              AreaFieldFactory,
+                                              SourceFactory,
+                                              LayerGroupFactory,
+                                              FClassFactory,
+                                              SourceFactory
+                                              )
 
-from .models import (WMSLayer,
-                     AreaLevel,
-                     Area,
-                     FClass,
-                     AreaField,
-                     AreaAttribute,
-                     FieldType,
-                     FieldTypes,
-                     SourceTypes
-                     )
+from datentool_backend.area.models import (WMSLayer,
+                                           AreaLevel,
+                                           Area,
+                                           FClass,
+                                           AreaField,
+                                           AreaAttribute,
+                                           FieldType,
+                                           FieldTypes,
+                                           SourceTypes
+                                           )
 from datentool_backend.site.factories import ProjectSettingFactory
 
 from django.urls import reverse
@@ -58,7 +58,7 @@ class TestWfs(LoginTestCase, APITestCase):
             layer='vg250_gem',
             source_type=SourceTypes.WFS
         )
-        cls.area_level = AreaLevelFactory(source=source)
+        cls.area_level = AreaLevelFactory(source=source, is_preset=True)
         AreaFieldFactory(name='gen',
                          area_level=cls.area_level,
                          field_type__ftype=FieldTypes.STRING,
@@ -85,12 +85,18 @@ class TestWfs(LoginTestCase, APITestCase):
         response = self.post('arealevels-pull-areas', pk=self.area_level.id)
         self.assert_http_202_accepted(response)
         areas = Area.objects.filter(area_level=self.area_level)
+        # ToDo: test intersection with project area?
+        # (e.g. comparing bbox with project bbox or
+        # joining areas and difference.area < sth)
         labels = set([a.label for a in areas])
         self.assertGreater(len(labels), 1)
+        # test for uniqueness
         keys = set([a.key for a in areas])
         self.assertEqual(len(keys), len(areas))
         # ToDo: test permissions
         # ToDo: test 'truncate' and 'simplify' query params
+        # ToDo: test intersect with raster and aggregation?
+        # (setup raster and popultions required)
 
 
 class TestAreas(TestCase):

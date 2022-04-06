@@ -21,9 +21,7 @@ from datentool_backend.area.factories import (AreaLevelFactory,
 from datentool_backend.population.factories import (PopulationRasterFactory,
                                                     PopulationFactory,
                                                     PrognosisFactory,
-                                                    PopulationEntry,
-                                                    PopStatEntry,
-                                                    )
+                                                    PopulationEntry)
 
 
 class PopulationTemplateTest(LoginTestCase, APITestCase, CreateTestdataMixin):

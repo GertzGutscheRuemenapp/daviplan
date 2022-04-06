@@ -14,11 +14,9 @@ from datentool_backend.user.factories import (ProfileFactory,
                                               YearFactory,
                                               PlanningProcessFactory,
                                               )
-from datentool_backend.user.models import (User,
-                                           Profile,
-                                           PlanningProcess,
-                                           Year,
-                                           )
+from datentool_backend.user.models.profile import User, Profile
+from datentool_backend.user.models.process import PlanningProcess
+from datentool_backend.population.models import Year
 
 from faker import Faker
 faker = Faker('de-DE')
@@ -201,16 +199,16 @@ class PostOnlyWithCanCreateProcessTest:
         self._test_post()
         self.client.logout()
 
-    def test_user_not_owner_put_patch(self): 
+    def test_user_not_owner_put_patch(self):
         """ Test, no put or patch permission if user is not owner"""
         # create a user who is not owner and can't create a process
         self.profile3 = ProfileFactory(can_create_process=False)
         self.profile3.save()
-        
+
         self.user = self.profile3.user
         self._test_put_patch_forbidden()
         self.client.logout()
-        
+
     def test_user_not_owner_delete(self):
         """Test, no delete permission if user is not owner"""
         # Request user profile is the owner and profile can_create_process

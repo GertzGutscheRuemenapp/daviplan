@@ -4,7 +4,7 @@ from rest_framework import serializers
 from datentool_backend.indicators.models import Router
 from datentool_backend.area.models import Area
 from datentool_backend.population.models import RasterCell
-from datentool_backend.infrastructure.models import Place
+from datentool_backend.infrastructure.models.places import Place
 
 
 class IndicatorSerializer(serializers.Serializer):

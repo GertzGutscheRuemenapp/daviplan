@@ -15,6 +15,12 @@ from .models import (MapSymbol, LayerGroup, WMSLayer,
 from datentool_backend.models import PopStatEntry
 
 
+area_level_id_serializer = serializers.PrimaryKeyRelatedField(
+    queryset=AreaLevel.objects.all(),
+    help_text='area_level_id',)
+
+
+
 class MapSymbolSerializer(serializers.ModelSerializer):
     class Meta:
         model = MapSymbol

@@ -4,7 +4,6 @@ from collections import OrderedDict
 from typing import Tuple
 import pandas as pd
 
-
 from django.conf import settings
 from django.db.models.fields import FloatField
 from django.contrib.gis.geos import Point
@@ -17,18 +16,13 @@ from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.worksheet.dimensions import ColumnDimension, RowDimension
 from openpyxl.worksheet.datavalidation import DataValidation
 
-from datentool_backend.user.models import (Infrastructure,
-
-                                           )
-
 from datentool_backend.area.models import FClass, FieldType, FieldTypes
-from datentool_backend.infrastructure.models import (PlaceAttribute,
-                                                     Place,
-                                                     PlaceField,
-                                                     Capacity,
-                                                     )
-
-
+from datentool_backend.infrastructure.models.places import (PlaceAttribute,
+                                                            Place,
+                                                            PlaceField,
+                                                            Capacity)
+from datentool_backend.infrastructure.models.infrastructures import (
+    Infrastructure)
 
 infrastructure_id_serializer = serializers.PrimaryKeyRelatedField(
     queryset=Infrastructure.objects.all(),

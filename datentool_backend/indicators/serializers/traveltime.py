@@ -20,7 +20,7 @@ from datentool_backend.indicators.models import (Stop,
                                                  MatrixCellStop,
                                                  MatrixPlaceStop,
                                                  )
-from datentool_backend.infrastructure.models import Place
+from datentool_backend.infrastructure.models.places import Place
 from datentool_backend.population.models import RasterCell, RasterCellPopulation
 
 
