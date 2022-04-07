@@ -257,6 +257,9 @@ class AreaField(DatentoolModelMixin, models.Model):
                            ['area_level', 'is_key'],
                            ]
 
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__}: {self.name} ({self.area_level.name})'
+
 
 class FieldAttribute(DatentoolModelMixin, NamedModel, models.Model):
     """a value of an Area"""
