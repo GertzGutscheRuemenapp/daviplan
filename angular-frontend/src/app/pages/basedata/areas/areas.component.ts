@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
-import { AreaLevel, BasedataSettings, Layer, LayerGroup } from "../../../rest-interfaces";
-import { forkJoin, Observable } from "rxjs";
+import { Area, AreaLevel, BasedataSettings, Layer, LayerGroup } from "../../../rest-interfaces";
+import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { arrayMove, sortBy } from "../../../helpers/utils";
 import { HttpClient } from "@angular/common/http";
 import { MatDialog } from "@angular/material/dialog";
@@ -12,6 +12,8 @@ import { MatCheckbox } from "@angular/material/checkbox";
 import { environment } from "../../../../environments/environment";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
+import { RestCacheService } from "../../../rest-cache.service";
+import * as d3 from "d3";
 
 
 @Component({
@@ -24,16 +26,20 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   @ViewChild('enableLayerCheck') enableLayerCheck?: MatCheckbox;
   @ViewChild('createAreaLevel') createLevelTemplate?: TemplateRef<any>;
   mapControl?: MapControl;
-  selectedAreaLevel?: AreaLevel;
+  activeLevel?: AreaLevel;
   presetLevels: AreaLevel[] = [];
   customAreaLevels: AreaLevel[] = [];
   colorSelection: string = 'black';
   legendGroup?: LayerGroup;
   editLevelForm: FormGroup;
+  areaLayer?: Layer;
+  areas: Area[] = [];
+  isLoading$ = new BehaviorSubject<boolean>(false);
+  orderIsChanging$ = new BehaviorSubject<boolean>(false);
   Object = Object;
 
   constructor(private mapService: MapService, private http: HttpClient, private dialog: MatDialog,
-              private rest: RestAPI, private formBuilder: FormBuilder) {
+              private rest: RestAPI, private formBuilder: FormBuilder, private restService: RestCacheService) {
     this.editLevelForm = this.formBuilder.group({
       name: new FormControl(''),
       labelField: new FormControl('')
@@ -46,10 +52,11 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       name: 'Auswahl',
       order: -1
     }, false)
-
+    this.isLoading$.next(true);
     this.fetchAreas().subscribe(res => {
       this.selectAreaLevel(this.presetLevels[0]);
-      this.colorSelection = this.selectedAreaLevel!.symbol?.fillColor || 'black';
+      this.colorSelection = this.activeLevel!.symbol?.fillColor || 'black';
+      this.isLoading$.next(false);
     })
     this.setupEditLevelCard();
   }
@@ -80,10 +87,10 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   setupEditLevelCard(): void {
     this.editArealevelCard.dialogOpened.subscribe(ok => {
       this.editLevelForm.reset({
-        name: this.selectedAreaLevel?.name,
-        labelField: this.selectedAreaLevel?.labelField
+        name: this.activeLevel?.name,
+        labelField: this.activeLevel?.labelField
       });
-      if (this.selectedAreaLevel?.isPreset) {
+      if (this.activeLevel?.isPreset) {
         this.editLevelForm.controls['name'].disable();
         this.editLevelForm.controls['labelField'].disable();
       }
@@ -91,7 +98,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         this.editLevelForm.controls['name'].enable();
         this.editLevelForm.controls['labelField'].enable();
       }
-      this.colorSelection = this.selectedAreaLevel?.symbol?.strokeColor || 'black';
+      this.colorSelection = this.activeLevel?.symbol?.strokeColor || 'black';
       this.editLevelForm.setErrors(null);
     })
     this.editArealevelCard.dialogConfirmed.subscribe((ok)=>{
@@ -102,16 +109,16 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       }: {
         symbol: null
       }
-      if (!this.selectedAreaLevel?.isPreset) {
+      if (!this.activeLevel?.isPreset) {
         attributes['name'] = this.editLevelForm.value.name;
         attributes['labelField'] = this.editLevelForm.value.labelField;
       }
       this.editArealevelCard.setLoading(true);
-      this.http.patch<AreaLevel>(`${this.rest.URLS.arealevels}${this.selectedAreaLevel?.id}/`, attributes
+      this.http.patch<AreaLevel>(`${this.rest.URLS.arealevels}${this.activeLevel?.id}/`, attributes
       ).subscribe(arealevel => {
-        this.selectedAreaLevel!.name = arealevel.name;
-        this.selectedAreaLevel!.labelField = arealevel.labelField;
-        this.selectedAreaLevel!.symbol = arealevel.symbol;
+        this.activeLevel!.name = arealevel.name;
+        this.activeLevel!.labelField = arealevel.labelField;
+        this.activeLevel!.symbol = arealevel.symbol;
         this.editArealevelCard.closeDialog(true);
         this.mapControl?.refresh({ internal: true });
       },(error) => {
@@ -121,31 +128,38 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     })
   }
 
-  selectAreaLevel(areaLevel: AreaLevel): void {
-    this.selectedAreaLevel = areaLevel;
-    this.mapControl?.clearGroup(this.legendGroup!.id!);
+  selectAreaLevel(areaLevel: AreaLevel, reset: boolean = false): void {
+    this.activeLevel = areaLevel;
+    if (this.areaLayer) {
+      this.mapControl?.removeLayer(this.areaLayer.id!);
+      this.areaLayer = undefined;
+    }
     if (!areaLevel) return;
-    const layer = this.mapControl?.addLayer({
-      name: areaLevel.name,
-      description: '',
-      group: this.legendGroup?.id,
-      order: 0,
-      url: areaLevel.tileUrl!,
-      type: 'vector-tiles',
-      opacity: 1,
-      symbol: {
-        fillColor: 'yellow',
-        strokeColor: 'orange',
-        symbol: 'line'
-      }
-    }, {
-      visible: true,
-      tooltipField: 'label',
-      mouseOver: {
-        fillColor: 'lightblue',
-        strokeColor: 'blue'
-      }
-    })
+    this.restService.getAreas(this.activeLevel.id,
+      {targetProjection: this.mapControl?.map?.mapProjection, reset: reset}).subscribe(areas => {
+        this.areas = areas;
+        this.areaLayer = this.mapControl?.addLayer({
+          name: this.activeLevel!.name,
+          description: '',
+          group: this.legendGroup?.id,
+          order: 0,
+          type: 'vector',
+          opacity: 1,
+          symbol: {
+            fillColor: 'yellow',
+            strokeColor: 'orange',
+            symbol: 'line'
+          }
+        }, {
+          visible: true,
+          tooltipField: 'label',
+          mouseOver: {
+            fillColor: 'lightblue',
+            strokeColor: 'blue'
+          }
+        });
+        this.mapControl?.addFeatures(this.areaLayer!.id!, this.areas);
+      })
   }
 
   onCreateArea(): void {
@@ -173,7 +187,8 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         name: this.editLevelForm.value.name,
         isPreset: false,
         isActive: false,
-        order: 100 + this.customAreaLevels.length
+        order: 100 + this.customAreaLevels.length,
+        source: { sourceType: 'FILE' }
       };
       this.http.post<AreaLevel>(this.rest.URLS.arealevels, attributes
       ).subscribe(level => {
@@ -187,23 +202,23 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   }
 
   onDeleteArea(): void {
-    if (!this.selectedAreaLevel || this.selectedAreaLevel.isPreset)
+    if (!this.activeLevel || this.activeLevel.isPreset)
       return;
     const dialogRef = this.dialog.open(RemoveDialogComponent, {
       data: {
         title: $localize`Die Gebietseinteilung wirklich entfernen?`,
         confirmButtonText: $localize`Gebietseinteilung entfernen`,
-        value: this.selectedAreaLevel.name
+        value: this.activeLevel.name
       }
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.arealevels}${this.selectedAreaLevel!.id}/`
+        this.http.delete(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/`
         ).subscribe(res => {
-          const idx = this.customAreaLevels.indexOf(this.selectedAreaLevel!);
+          const idx = this.customAreaLevels.indexOf(this.activeLevel!);
           if (idx >= 0) {
             this.customAreaLevels.splice(idx, 1);
-            this.selectedAreaLevel = undefined;
+            this.activeLevel = undefined;
             this.mapControl?.refresh({ internal: true });
           }
         }, error => {
@@ -228,6 +243,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   patchOrder(areaLevels: AreaLevel[]): void {
     if (areaLevels.length === 0) return;
     let observables: Observable<any>[] = [];
+    this.orderIsChanging$.next(true);
     for ( let i = 0; i < areaLevels.length; i += 1){
       const areaLevel = areaLevels[i];
       const request = this.http.patch<any>(`${this.rest.URLS.arealevels}${areaLevel.id}/`,
@@ -241,6 +257,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     forkJoin(...observables).subscribe(next => {
       this.mapControl?.refresh({ internal: true });
       this.customAreaLevels = sortBy(this.customAreaLevels, 'order');
+      this.orderIsChanging$.next(false);
     })
   }
 
@@ -250,8 +267,8 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
    * @param direction - 'up' or 'down'
    */
   moveSelected(direction: string): void {
-    if (!this.selectedAreaLevel) return;
-    const idx = this.customAreaLevels.indexOf(this.selectedAreaLevel);
+    if (!this.activeLevel) return;
+    const idx = this.customAreaLevels.indexOf(this.activeLevel);
     if (direction === 'up'){
       if (idx <= 0) return;
       arrayMove(this.customAreaLevels, idx, idx - 1);

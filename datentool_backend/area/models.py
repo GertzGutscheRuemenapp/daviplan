@@ -62,7 +62,7 @@ class SourceTypes(models.TextChoices):
 class Source(DatentoolModelMixin, models.Model):
     """a generic source"""
     source_type = models.CharField(max_length=4, choices=SourceTypes.choices)
-    date = models.DateField()
+    date = models.DateField(null=True)
     url = models.URLField(null=True, blank=True)
     layer = models.TextField(null=True, blank=True)
 
@@ -256,6 +256,9 @@ class AreaField(DatentoolModelMixin, models.Model):
                            ['area_level', 'is_label'],
                            ['area_level', 'is_key'],
                            ]
+
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__}: {self.name} ({self.area_level.name})'
 
 
 class FieldAttribute(DatentoolModelMixin, NamedModel, models.Model):

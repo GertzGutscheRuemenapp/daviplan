@@ -1,15 +1,10 @@
 import {
-  AfterContentInit,
   Component,
   EventEmitter,
   Input,
-  OnChanges,
-  OnDestroy,
   OnInit,
   TemplateRef
 } from '@angular/core';
-import { CdkAccordionItem } from "@angular/cdk/accordion/accordion-item";
-import { MatExpansionPanel } from "@angular/material/expansion";
 
 @Component({
   selector: 'app-side-toggle',

@@ -4,6 +4,8 @@ import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../rest-api";
 import { TimeSliderComponent } from "../../elements/time-slider/time-slider.component";
 import { RestCacheService } from "../../rest-cache.service";
+import { Observable } from "rxjs";
+import { Population, PopulationData } from "../../rest-interfaces";
 
 @Injectable({
   providedIn: 'root'
@@ -21,5 +23,11 @@ export class PopulationService extends RestCacheService {
   setReady(ready: boolean): void {
     this.isReady = ready;
     this.ready.emit(ready);
+  }
+
+  fetchPopulations(isPrognosis: boolean = false): Observable<Population[]>{
+    const query = this.http.get<Population[]>(this.rest.URLS.populations,
+      { params: { is_prognosis: isPrognosis }});
+    return query;
   }
 }
