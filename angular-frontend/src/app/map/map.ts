@@ -470,7 +470,7 @@ export class OlMap {
         if (options?.styleFunc) {
           const style = options.styleFunc(feature).clone();
           style.getFill().setColor(fillColor);
-          style.getStroke().setColor(fillColor);
+          style.getStroke().setColor(strokeColor);
           const shape = style?.getImage();
           if (shape instanceof CircleStyle) {
             // shapes are ready rendered without possibility to change attributes

@@ -135,6 +135,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       this.areaLayer = undefined;
     }
     if (!areaLevel) return;
+    this.isLoading$.next(true);
     this.restService.getAreas(this.activeLevel.id,
       {targetProjection: this.mapControl?.map?.mapProjection, reset: reset}).subscribe(areas => {
         this.areas = areas;
@@ -159,6 +160,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
           }
         });
         this.mapControl?.addFeatures(this.areaLayer!.id!, this.areas);
+        this.isLoading$.next(false);
       })
   }
 
