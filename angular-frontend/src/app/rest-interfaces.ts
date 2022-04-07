@@ -63,6 +63,7 @@ export interface Layer {
 export interface Source {
   id: number;
   sourceType: 'WFS' | 'FILE';
+  layer: string;
   date: string;
   url: string;
 }

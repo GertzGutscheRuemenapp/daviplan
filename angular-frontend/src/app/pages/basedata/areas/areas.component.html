@@ -1,3 +1,6 @@
+<div class="loadOverlay" *ngIf="isLoading$ | async">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
 <app-header-card [title]="'Gebiete'"
                  cookieId="exp-areas-header"
                  width="1380px">
@@ -23,7 +26,7 @@
           <div class="option-wrapper" *ngFor="let areaLevel of presetLevels">
             <mat-list-option [value]="areaLevel"
                              (click)="selectAreaLevel(areaLevel)"
-                             [selected]="(selectedAreaLevel && (areaLevel.id === selectedAreaLevel.id))">
+                             [selected]="(activeLevel && (areaLevel.id === activeLevel.id))">
               <div class="option-text">{{ areaLevel.name }}</div>
               <mat-icon *ngIf="areaLevel.isDefaultPopLevel" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
             </mat-list-option>
@@ -40,7 +43,7 @@
           <div class="option-wrapper" *ngFor="let areaLevel of customAreaLevels">
             <mat-list-option [value]="areaLevel"
                              (click)="selectAreaLevel(areaLevel)"
-                             [selected]="(selectedAreaLevel && (areaLevel.id === selectedAreaLevel.id))">
+                             [selected]="(activeLevel && (areaLevel.id === activeLevel.id))">
               <div class="option-text">{{ areaLevel.name }}</div>
               <mat-icon *ngIf="areaLevel.isDefaultPopLevel" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
             </mat-list-option>
@@ -53,14 +56,14 @@
         <div class="order-controls">
           <button mat-icon-button
                   title="In der Sortierung eins nach oben"
-                  [disabled] = "(orderIsChanging$ | async) || !selectedAreaLevel || selectedAreaLevel?.isPreset || selectedAreaLevel === customAreaLevels[0]"
+                  [disabled] = "(orderIsChanging$ | async) || !activeLevel || activeLevel?.isPreset || activeLevel === customAreaLevels[0]"
                   (click)="moveSelected('up')">
             <mat-icon>expand_less</mat-icon>
           </button>
           <button mat-icon-button
-                  [disabled]="selectedAreaLevel?.isPreset"
+                  [disabled]="activeLevel?.isPreset"
                   title="In der Sortierung eins nach unten"
-                  [disabled] = "(orderIsChanging$ | async) || !selectedAreaLevel || selectedAreaLevel?.isPreset || selectedAreaLevel === customAreaLevels[customAreaLevels.length - 1]"
+                  [disabled] = "(orderIsChanging$ | async) || !activeLevel || activeLevel?.isPreset || activeLevel === customAreaLevels[customAreaLevels.length - 1]"
                   (click)="moveSelected('down')">
             <mat-icon>expand_more</mat-icon>
           </button>
@@ -69,8 +72,8 @@
       <button mat-button color="primary"
               class="multiline-button"
               style="width: 86%;"
-              (click)="selectedAreaLevel && setDefaultAreaLevel(selectedAreaLevel)"
-              [disabled]="selectedAreaLevel?.isPreset && selectedAreaLevel !== presetLevels[presetLevels.length-1]">
+              (click)="activeLevel && setDefaultAreaLevel(activeLevel)"
+              [disabled]="activeLevel?.isPreset && activeLevel !== presetLevels[presetLevels.length-1]">
         <mat-icon class="material-icons-outlined">verified</mat-icon>
         Als Gebietseinheit für alle Einwohnerdaten festlegen
       </button>
@@ -83,37 +86,37 @@
         <button mat-button color="primary"
                 style="margin-left: 40px;"
                 class="mat-button-dv"
-                [disabled]="selectedAreaLevel?.isPreset"
+                [disabled]="activeLevel?.isPreset"
                 (click)="onDeleteArea()" i18n>
           <mat-icon>close</mat-icon>entfernen
         </button>
       </div>
     </app-input-card>
     <app-input-card #editArealevelCard
-                    [ngClass]="{'hidden': !selectedAreaLevel}"
+                    [ngClass]="{'hidden': !activeLevel}"
                     [title]="'Darstellung der ausgewählten Gebietseinteilung'"
                     [editTemplate]="propertiesEdit"
                     [subtitle]="'In allen Karten der Anwendung so darstellen'"
                     infoText="<p>Über die Schaltfläche „Editieren“ können Sie festlegen, wie die gerade ausgewählte Gebietseinteilung in allen Karten dieser Anwendung, d.h. auch in den Bereichen „Bevölkerung“ und „Infrastrukturplanung“ des Hauptmenüs dargestellt und bezeichnet werden soll.</p>"
                     dialogInfoText="<p>Namen und Beschriftungsfelder der vorgegebenen administrativen Ebenen können nicht verändert werden.</p>">
-      <table *ngIf="selectedAreaLevel">
+      <table *ngIf="activeLevel">
         <tr>
           <td i18n>Name</td>
-          <td [style.color]="selectedAreaLevel.isPreset? 'grey': ''">{{selectedAreaLevel?.name}}</td>
+          <td [style.color]="activeLevel.isPreset? 'grey': ''">{{activeLevel?.name}}</td>
         </tr>
         <tr>
           <td i18n>Beschriftung</td>
-          <td [style.color]="selectedAreaLevel.isPreset? 'grey': ''">{{selectedAreaLevel?.labelField}}</td>
+          <td [style.color]="activeLevel.isPreset? 'grey': ''">{{activeLevel?.labelField}}</td>
         </tr>
         <tr>
           <td i18n>Linienfarbe</td>
           <td>
-            <div *ngIf="selectedAreaLevel?.symbol"
+            <div *ngIf="activeLevel?.symbol"
                  style="margin-bottom: -5px;"
                  class="symbol square"
-                 [style.backgroundColor]="selectedAreaLevel?.symbol?.strokeColor">
+                 [style.backgroundColor]="activeLevel?.symbol?.strokeColor">
             </div>
-            <div *ngIf="!selectedAreaLevel?.symbol">
+            <div *ngIf="!activeLevel?.symbol">
               keine Darstellung
             </div>
           </td>
@@ -121,12 +124,12 @@
         <tr>
           <td i18n>ID-Feld</td>
           <td>
-            <div *ngIf="selectedAreaLevel?.symbol"
+            <div *ngIf="activeLevel?.symbol"
                  style="margin-bottom: -5px;"
                  class="symbol square"
-                 [style.backgroundColor]="selectedAreaLevel?.symbol?.strokeColor">
+                 [style.backgroundColor]="activeLevel?.symbol?.strokeColor">
             </div>
-            <div *ngIf="!selectedAreaLevel?.symbol">
+            <div *ngIf="!activeLevel?.symbol">
               keine Darstellung
             </div>
           </td>
@@ -138,53 +141,68 @@
     <app-input-card [title]="'Daten der ausgewählten Gebietseinteilung'"
                     [topRightHelp]="true"
                     [dialogTitle]="'Kontakt E-Mail ändern'"
-                    [infoText]="(selectedAreaLevel?.source?.sourceType === 'WFS')?
+                    [infoText]="(activeLevel?.source?.sourceType === 'WFS')?
                     '<p>Klicken Sie auf „Daten abrufen bzw. aktualisieren“, um die Daten erstmalig oder – zum Aktualisieren – erneut vom Bundesamt für Kartographie und Geodäsie (BKG) herunterzuladen. Den Zeitpunkt der letzten Aktualisierung können Sie der Aktualisierungshistorie entnehmen.</p>':
                     'Platzhalter'">
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
           <span class="subtitle1 sub">
-            {{selectedAreaLevel?.name}}
+            {{activeLevel?.name}}
           </span>
           <table style="margin-top: 15px;">
             <tr>
               <td i18n>Gebiete (Features)</td>
-              <td>{{selectedAreaLevel?.areaCount}}</td>
+              <td>{{activeLevel?.areaCount}}</td>
             </tr>
             <tr>
               <td i18n>Quelle</td>
               <td>
-                {{selectedAreaLevel?.source?.sourceType}}
+                {{activeLevel?.source?.sourceType}}
               </td>
             </tr>
-            <tr *ngIf="selectedAreaLevel?.source?.sourceType === 'WFS'">
+            <tr *ngIf="activeLevel?.source?.sourceType === 'WFS'">
+              <td i18n>Layer</td>
+              <td style="max-width: 100px; overflow: hidden; text-overflow: ellipsis;">
+                {{activeLevel?.source?.url}}
+              </td>
+            </tr>
+            <tr *ngIf="activeLevel?.source?.sourceType === 'WFS'">
               <td i18n>URL</td>
               <td style="max-width: 100px; overflow: hidden; text-overflow: ellipsis;">
-                {{selectedAreaLevel?.source?.url}}
+                {{activeLevel?.source?.layer}}
               </td>
             </tr>
             <tr>
-              <td i18n>{{(selectedAreaLevel?.source?.sourceType === 'WFS')? 'letzter Abruf': 'letzter Upload'}}/td>
+              <td i18n>{{(activeLevel?.source?.sourceType === 'WFS')? 'letzter Abruf': 'letzter Upload'}}</td>
               <td>
-                {{selectedAreaLevel?.source?.date}}
+                {{activeLevel?.source?.date}}
               </td>
             </tr>
           </table>
-          <button class="mat-button-dv"
+          <button *ngIf="activeLevel?.source?.sourceType === 'WFS'"
+                  class="mat-button-dv"
                   mat-button color="primary"
                   style="margin-top: 20px;" i18n>
-            <mat-icon class="material-icons-outlined">refresh</mat-icon> Daten abrufen bzw. aktualisieren
+            <mat-icon class="material-icons-outlined">refresh</mat-icon>
+            Daten abrufen bzw. aktualisieren
+          </button>
+          <button *ngIf="activeLevel?.source?.sourceType === 'FILE'"
+                  class="mat-button-dv"
+                  mat-button color="primary"
+                  style="margin-top: 20px;" i18n>
+            <mat-icon class="material-icons-outlined">upload</mat-icon>
+            Shapefile oder Geopackage hochladen
           </button>
           <div>
             <button class="mat-button-dv"
                     mat-button color="primary" i18n>
               <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
             </button>
-            <button mat-mini-fab color="primary"
+<!--            <button mat-mini-fab color="primary"
                     aria-label="Daten herunterladen" title="Daten herunterladen"
                     style="float: right; margin-right: 10px; box-shadow: none;">
               <mat-icon>download</mat-icon>
-            </button>
+            </button>-->
           </div>
         </div>
         <div id="log-window" style="width: 50%">
@@ -229,7 +247,7 @@
       </mat-form-field>
       <mat-checkbox color="primary"
                     #enableLayerCheck
-                    [checked]="!!selectedAreaLevel?.symbol?.strokeColor"
+                    [checked]="!!activeLevel?.symbol?.strokeColor"
                     title="Gebietseinheit als Layer in Karte zur Verfügung stellen">
         Gebietseinheit als Layer zur Verfügung stellen
       </mat-checkbox>

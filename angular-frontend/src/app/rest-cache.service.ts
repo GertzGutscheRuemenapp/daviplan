@@ -166,11 +166,11 @@ export class RestCacheService {
     return observable;
   }
 
-  getAreas(areaLevelId: number, options?: { targetProjection?: string }): Observable<Area[]>{
+  getAreas(areaLevelId: number, options?: { targetProjection?: string, reset?: boolean }): Observable<Area[]>{
     // ToDo: return clones of areas to avoid side-effects
     const observable = new Observable<Area[]>(subscriber => {
       const cached = this.areaCache[areaLevelId];
-      if (!cached) {
+      if (options?.reset || !cached) {
         const targetProjection = (options?.targetProjection !== undefined)? options?.targetProjection: 'EPSG:4326';
         this.setLoading(true);
         const query = this.http.get<any>(`${this.rest.URLS.areas}?area_level=${areaLevelId}`);
