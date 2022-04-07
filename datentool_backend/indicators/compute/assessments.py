@@ -20,12 +20,13 @@ class DemandAreaCapacity(ServiceIndicator):
     '''Nachfragende nach betrachteter Leistung in einer Gebietseinheit pro
     Kapazitätseinheit für diese Leistung in der gleichen Gebietseinheit'''
     capacity_required = True
-    title = 'Nachfrage pro Einrichtung'
+    title = 'Nachfrage pro Platz'
     result_serializer = ResultSerializer.AREA
+
     @property
     def description(self):
         return (f'{self.service.demand_plural_unit or "Nachfragende"} pro '
-                f'{self.service.facility_singular_unit or "Einrichtung"}')
+                f'{self.service.capacity_singular_unit or "Kapazitätseinheit"}')
 
     def compute(self):
         return []
@@ -35,13 +36,13 @@ class DemandAreaCapacity(ServiceIndicator):
 class DemandArea(ServiceIndicator):
     '''Nachfragende nach betrachteter Leistung in einer Gebietseinheit pro
     Einrichtung mit dieser Leistung in der gleichen Gebietseinheit'''
-    title = 'Nachfrage pro Platz'
+    title = 'Nachfrage pro Einrichtung'
     result_serializer = ResultSerializer.AREA
 
     @property
     def description(self):
         return (f'{self.service.demand_plural_unit or "Nachfragende"} pro '
-                f'{self.service.capacity_singular_unit or "Kapazitätseinheit"}')
+                f'{self.service.facility_singular_unit or "Einrichtung"}')
 
     def compute(self):
         return []
@@ -73,13 +74,13 @@ class SupplyAreaCapacity(ServiceIndicator):
     '''Kapazitätseinheiten für die betrachtete Leistung in einer Gebietseinheit
     pro 100 Nachfragen­den in der gleichen Gebietseinheit'''
     capacity_required = True
-    title = 'Einrichtungen pro Nachfrage'
+    title = 'Plätze pro Nachfrage'
     result_serializer = ResultSerializer.AREA
 
     @property
     def description(self):
-        return (f'{self.service.facility_plural_unit or "Einrichtungen"} pro '
-                f'100 {self.service.demand_plural_unit or "Nachfragende"}')
+        return (f'{self.service.capacity_plural_unit or "Kapazitätseinheiten"} '
+                f'pro 100 {self.service.demand_plural_unit or "Nachfragende"}')
 
     def compute(self):
         return []
@@ -89,13 +90,13 @@ class SupplyAreaCapacity(ServiceIndicator):
 class SupplyArea(ServiceIndicator):
     '''Einrichtungen mit der betrachteten Leistung in einer Gebietseinheit pro
     Nachfragen­de in der gleichen Gebietseinheit'''
-    title = 'Plätze pro Nachfrage'
+    title = 'Einrichtungen pro Nachfrage'
     result_serializer = ResultSerializer.AREA
 
     @property
     def description(self):
-        return (f'{self.service.capacity_plural_unit or "Kapazitätseinheiten"} '
-                f'pro 100 {self.service.demand_plural_unit or "Nachfragende"}')
+        return (f'{self.service.facility_plural_unit or "Einrichtungen"} pro '
+                f'100 {self.service.demand_plural_unit or "Nachfragende"}')
 
     def compute(self):
         return []

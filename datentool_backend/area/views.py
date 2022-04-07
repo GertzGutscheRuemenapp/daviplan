@@ -391,7 +391,6 @@ class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                 area = Area.objects.create(area_level=area_level,
                                            geom=intersection)
             area.attributes = properties
-        # ToDo: call intersect_areas with raster, disaggregate, aggregate?
         now = datetime.datetime.now()
         area_level.source.date = datetime.date(now.year, now.month, now.day)
         area_level.source.save()
@@ -466,7 +465,10 @@ class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                           for field_name, attrs
                           in attributes.items()}
             area.attributes = area_attrs
-            area.save
+            area.save()
+        now = datetime.datetime.now()
+        area_level.source.date = datetime.date(now.year, now.month, now.day)
+        area_level.source.save()
         intersect_areas_with_raster(areas, drop_constraints=True)
         for population in Population.objects.all():
             aggregate_population(area_level, population, drop_constraints=True)

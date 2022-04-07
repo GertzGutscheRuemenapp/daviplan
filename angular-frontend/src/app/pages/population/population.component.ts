@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, EventEmitter, Injectable, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../map/map.service";
 import { faArrowsAlt } from '@fortawesome/free-solid-svg-icons';
 import { TimeSliderComponent } from "../../elements/time-slider/time-slider.component";

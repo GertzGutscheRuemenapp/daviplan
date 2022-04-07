@@ -26,30 +26,18 @@
       </div>
     </app-input-card>
     <app-input-card [title]="'Jahre'"
-                    subtitle="Jahre hinzufügen bzw. bereits hinzugefügte bearbeiten"
-                    infoText="<p>Klicken Sie auf „Hinzufügen“, um das erste oder ein weiteres Jahr mit Realdaten hinzuzufügen. In dem sich öffnenden Dialog geben Sie dazu nur die Jahreszahl an. Die hinzugefügte Jahreszahl erscheint dann in der Liste der Jahre.</p>
-                    <p>Für ein dort ausgewähltes Jahr können Sie dann in der Box „Ergänzende Einwohnerdaten hochladen“ eine Vorlagedatei herunterzuladen. Befüllen Sie diese mit Ihren Daten und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch.</p>
-                    <p>Wiederholen Sie dieses Vorgehen bitte für alle zurückliegenden Jahre, für die Sie Ihren Nutzer*innen reale Einwohnerdaten zur Verfügung stellen möchten.</p>
-                    <p>Um ein Jahr samt seinen ggf. bereits hochgeladenen Daten zu löschen wählen Sie dieses in der Liste der Jahre aus und klicken auf „Entfernen“.</p>">
-      <mat-selection-list [multiple]="false"
-                          id="year-select">
-        <mat-list-option *ngFor="let year of years"
-                         (click)="selectedYear = year"
-                         [selected]="(year === selectedYear)">
-          <div class="option-text">{{year}}</div>
-        </mat-list-option>
-      </mat-selection-list>
-      <div style="margin-top: 10px;">
-        <button mat-button color="primary"
-                class="mat-button-dv" i18n>
-          <mat-icon>add</mat-icon>hinzufügen
-        </button>
-        <button mat-button color="primary"
-                style="margin-left: 40px;"
-                class="mat-button-dv" i18n>
-          <mat-icon>close</mat-icon>entfernen
-        </button>
-      </div>
+                    [editTemplate]="yearsEdit"
+                    infoText="<p></p>">
+      <table>
+        <tr>
+          <td i18n>Jahre</td>
+          <td>
+            <ng-container *ngFor="let pop of populations; let i = index;">
+              {{pop.year}}<ng-container *ngIf="i !== populations.length - 1">, </ng-container>
+            </ng-container>
+          </td>
+        </tr>
+      </table>
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="1100px">
@@ -62,15 +50,15 @@
           <div style="margin-top: 15px; display: flex;">
             <table>
               <tr>
-                <td i18n>Upload am</td>
+                <td i18n>letzter Upload am</td>
                 <td>02.06.2022</td>
               </tr>
             </table>
             <table style="margin-left: 20px; align-self: flex-end;">
-              <tr>
+<!--              <tr>
                 <td i18n>durch</td>
                 <td>Sascha Schmidt</td>
-              </tr>
+              </tr>-->
             </table>
           </div>
           <div style="margin: 20px 0 10px 0;">
@@ -132,6 +120,33 @@
   </div>
 </div>
 
-<ng-template #areaLevelEdit>
-  Funktionalität für den Prototyp noch nicht hinterlegt.
+<ng-template #yearsEdit>
+  <table>
+    <tr>
+      <th>Jahr</th>
+      <th>ausgewählt</th>
+      <th>Daten vorhanden</th>
+      <th>Daten löschen</th>
+    </tr>
+    <tr *ngFor="let year of years">
+      <td>{{year}}</td>
+      <td>
+        <mat-checkbox color="primary"
+                      [checked]="yearSelection.isSelected(year)"
+                      title="das Jahr auswählen als Jahr mit Bevölkerungsdaten ???">
+        </mat-checkbox>
+      </td>
+      <td>
+        <mat-checkbox [disabled]="true"
+                      [checked]="yearSelection.isSelected(year)"
+                      title="Zeigt an, ob für das Jahr bereits Bevölkerungsdaten vorliegen">
+        </mat-checkbox>
+      </td>
+      <td>
+        <button mat-icon-button color="warn">
+          <mat-icon>close</mat-icon>
+        </button>
+      </td>
+    </tr>
+  </table>
 </ng-template>

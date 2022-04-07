@@ -62,7 +62,8 @@ export interface Layer {
 
 export interface Source {
   id: number;
-  sourceType: string;
+  sourceType: 'WFS' | 'FILE';
+  layer: string;
   date: string;
   url: string;
 }
@@ -123,6 +124,12 @@ export interface AreaIndicatorData {
   areaId: number,
   label?: string,
   value: number
+}
+
+export interface Population {
+  id: number,
+  year: number,
+  prognosis: number
 }
 
 export interface PopulationData {

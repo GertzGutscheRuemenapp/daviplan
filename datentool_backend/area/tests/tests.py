@@ -302,13 +302,12 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
         super().setUpTestData()
         area_level: AreaLevel = cls.obj
         source_data = SourceSerializer(area_level.source).data
-        # workaround: for some reason
-        source_data['date'] = datetime.strptime(
-            source_data['date'], '%Y-%m-%d').strftime('%d.%m.%Y')
         symbol_data = MapSymbolSerializer(area_level.symbol).data
 
         data = dict(name=faker.word(), order=faker.random_int(),
                     source=source_data, symbol=symbol_data)
+        source_data['date'] = datetime.strptime(
+            source_data['date'], '%Y-%m-%d').strftime('%d.%m.%Y')
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
