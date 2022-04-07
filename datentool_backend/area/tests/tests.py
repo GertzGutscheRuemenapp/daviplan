@@ -306,6 +306,8 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
 
         data = dict(name=faker.word(), order=faker.random_int(),
                     source=source_data, symbol=symbol_data)
+        source_data['date'] = datetime.strptime(
+            source_data['date'], '%Y-%m-%d').strftime('%d.%m.%Y')
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
