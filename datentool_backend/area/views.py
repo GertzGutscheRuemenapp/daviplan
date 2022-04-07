@@ -496,7 +496,7 @@ class AreaViewSet(ProtectCascadeMixin,
     def get_queryset(self):
         """return the annotated queryset"""
         area_level = self.request.query_params.get('area_level')
-        areas = Area.annotated_qs(area_level)
+        areas = Area.label_annotated_qs(area_level)
         return areas
 
 

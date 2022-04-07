@@ -125,18 +125,29 @@ class Area(DatentoolModelMixin, models.Model):
         return self.attributes.get(field__name=attr).value
 
     @classmethod
-    def label_annotated_qs(cls) -> 'Area':
+    def label_annotated_qs(cls, area_level: AreaLevel) -> 'Area':
         attributes = AreaAttribute.value_annotated_qs()
+        area_attributes = attributes.filter(area=OuterRef('pk'))
+        area_fields = AreaField.objects.filter(area_level=area_level)
+
+        annotations = {area_field.name: Subquery(area_attributes
+                                                 .filter(field=area_field)
+                                                 .values('_value')[:1])
+                       for area_field in area_fields}
+
         label_attribute = attributes.filter(area=OuterRef('pk'),
                                             field__is_label=True)
         key_attribute = attributes.filter(area=OuterRef('pk'),
                                           field__is_key=True)
+
+        annotations['_label'] = Subquery(label_attribute.values('_value')[:1])
+        annotations['_key'] = Subquery(key_attribute.values('_value')[:1])
+
         qs = cls.objects\
             .select_related('area_level')\
             .prefetch_related(
                 Prefetch('areaattribute_set', queryset=attributes))\
-            .annotate(_label=Subquery(label_attribute.values('_value')[:1]))\
-            .annotate(_key=Subquery(key_attribute.values('_value')[:1]))
+            .annotate(**annotations)
 
         return qs
 

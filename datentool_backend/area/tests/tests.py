@@ -195,7 +195,7 @@ class TestAreas(TestCase):
         self.assertEqual(areas[0].label, '')
         self.assertEqual(areas[1].label, 'MyName')
 
-        areas = Area.label_annotated_qs().all()
+        areas = Area.label_annotated_qs(area_level=self.area.area_level).all()
         self.assertEqual(areas[0].label, None)
         self.assertEqual(areas[1].label, 'MyName')
         self.assertEqual(areas[1]._label, 'MyName')
