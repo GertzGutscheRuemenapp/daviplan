@@ -53,14 +53,14 @@
         <div class="order-controls">
           <button mat-icon-button
                   title="In der Sortierung eins nach oben"
-                  [disabled] = "( !selectedAreaLevel || selectedAreaLevel?.isPreset || selectedAreaLevel === customAreaLevels[0])"
+                  [disabled] = "(orderIsChanging$ | async) || !selectedAreaLevel || selectedAreaLevel?.isPreset || selectedAreaLevel === customAreaLevels[0]"
                   (click)="moveSelected('up')">
             <mat-icon>expand_less</mat-icon>
           </button>
           <button mat-icon-button
                   [disabled]="selectedAreaLevel?.isPreset"
                   title="In der Sortierung eins nach unten"
-                  [disabled] = "(!selectedAreaLevel || selectedAreaLevel?.isPreset || selectedAreaLevel === customAreaLevels[customAreaLevels.length - 1])"
+                  [disabled] = "(orderIsChanging$ | async) || !selectedAreaLevel || selectedAreaLevel?.isPreset || selectedAreaLevel === customAreaLevels[customAreaLevels.length - 1]"
                   (click)="moveSelected('down')">
             <mat-icon>expand_more</mat-icon>
           </button>
@@ -69,8 +69,8 @@
       <button mat-button color="primary"
               class="multiline-button"
               style="width: 86%;"
-              (click)="selectedAreaLevel && setDefaultAreaLevel(selectedAreaLevel)">
-<!--        [disabled]="selectedAreaLevel?.isPreset && selectedAreaLevel !== presetLevels[0]"-->
+              (click)="selectedAreaLevel && setDefaultAreaLevel(selectedAreaLevel)"
+              [disabled]="selectedAreaLevel?.isPreset && selectedAreaLevel !== presetLevels[presetLevels.length-1]">
         <mat-icon class="material-icons-outlined">verified</mat-icon>
         Als Gebietseinheit für alle Einwohnerdaten festlegen
       </button>
@@ -164,7 +164,7 @@
               </td>
             </tr>
             <tr>
-              <td i18n>letzter Abruf</td>
+              <td i18n>{{(selectedAreaLevel?.source?.sourceType === 'WFS')? 'letzter Abruf': 'letzter Upload'}}/td>
               <td>
                 {{selectedAreaLevel?.source?.date}}
               </td>

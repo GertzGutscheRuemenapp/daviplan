@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
 import { AreaLevel, BasedataSettings, Layer, LayerGroup } from "../../../rest-interfaces";
-import { forkJoin, Observable } from "rxjs";
+import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { arrayMove, sortBy } from "../../../helpers/utils";
 import { HttpClient } from "@angular/common/http";
 import { MatDialog } from "@angular/material/dialog";
@@ -30,6 +30,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   colorSelection: string = 'black';
   legendGroup?: LayerGroup;
   editLevelForm: FormGroup;
+  orderIsChanging$ = new BehaviorSubject<boolean>(false);
   Object = Object;
 
   constructor(private mapService: MapService, private http: HttpClient, private dialog: MatDialog,
@@ -229,6 +230,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   patchOrder(areaLevels: AreaLevel[]): void {
     if (areaLevels.length === 0) return;
     let observables: Observable<any>[] = [];
+    this.orderIsChanging$.next(true);
     for ( let i = 0; i < areaLevels.length; i += 1){
       const areaLevel = areaLevels[i];
       const request = this.http.patch<any>(`${this.rest.URLS.arealevels}${areaLevel.id}/`,
@@ -242,6 +244,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     forkJoin(...observables).subscribe(next => {
       this.mapControl?.refresh({ internal: true });
       this.customAreaLevels = sortBy(this.customAreaLevels, 'order');
+      this.orderIsChanging$.next(false);
     })
   }
 

@@ -194,7 +194,7 @@ export class OlMap {
       opacity: (options?.opacity != undefined) ? options?.opacity: 1,
       style: function(feature) {
         if (options?.labelField && layer.get('showLabel')) {
-          const text = (_this.view.getZoom()! > 10 )? String(feature.get(options?.labelField)) : ''
+          const text = (_this.view.getZoom()! > 10 )? String(feature.get(options?.labelField) || '') : ''
           style.getText().setText(text);
         }
         else {
@@ -368,7 +368,7 @@ export class OlMap {
     let source = new VectorSource(sourceOpt);
     const styleFunc = function(feature: any) {
       if (options?.labelField && layer.get('showLabel')) {
-        const text = (_this.view.getZoom()! > 9 )? String(feature.get(options?.labelField)) : ''
+        const text = (_this.view.getZoom()! > 9 )? String(feature.get(options?.labelField) || '') : ''
         style.getText().setText(text);
       }
       else {
@@ -513,8 +513,9 @@ export class OlMap {
           if (features.length > 0) {
             this.tooltipOverlay.setPosition(event.coordinate);
             // let coords = this.map.getCoordinateFromPixel(pixel);
-            tooltip!.innerHTML = features[0].get(options.tooltipField); // + `<br>${coords[0]}, ${coords[1]}`;
-            tooltip!.style.display = '';
+            const text = features[0].get(options.tooltipField);
+            tooltip!.innerHTML = text; // + `<br>${coords[0]}, ${coords[1]}`;
+            tooltip!.style.display = text? '': 'none';
           } else
             tooltip!.style.display = 'none';
         }
