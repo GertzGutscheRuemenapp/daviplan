@@ -262,8 +262,22 @@ class FieldTypeSerializer(serializers.ModelSerializer):
 
 class AreaAttributeField(serializers.JSONField):
 
+    def get_attribute(self, instance):
+        return instance
+
     def to_representation(self, value):
-        data = {aa.field.name: aa.value for aa in value.iterator()}
+        data = {}
+        for field_name in value.field_names.split(','):
+            try:
+                field_value = getattr(value, field_name)
+            except AttributeError:
+                try:
+                    field_value = AreaAttribute.objects\
+                        .get(area=value, field__name=field_name)\
+                        .value
+                except AreaAttribute.DoesNotExist:
+                    field_value = ''
+            data[field_name] = field_value
         return data
 
 
@@ -316,3 +330,9 @@ class AreaSerializer(GeoFeatureModelSerializer):
                                          field=field,
                                          value=value)
         return instance
+
+
+class AreaFieldSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AreaField
+        fields = ('id', 'name', 'area_level', 'is_label', 'is_key', 'field_type',)

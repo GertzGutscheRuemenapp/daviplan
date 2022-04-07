@@ -8,9 +8,10 @@ import json
 from owslib.wfs import WebFeatureService
 import datetime
 
+from django.core.exceptions import BadRequest
 from django.contrib.gis.geos import GEOSGeometry, Polygon, MultiPolygon
 from django.views.generic import DetailView
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.db.models import OuterRef, Subquery, CharField, Case, When, F, JSONField, Func
 from django.db.models.functions import Cast
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -25,6 +26,7 @@ from rest_framework import viewsets, permissions, status, serializers
 from rest_framework.exceptions import (ParseError, NotFound, APIException)
 from rest_framework.decorators import action
 from drf_spectacular.utils import (extend_schema,
+                                   OpenApiParameter,
                                    OpenApiResponse,
                                    inline_serializer)
 
@@ -67,7 +69,8 @@ from .serializers import (MapSymbolSerializer,
                           AreaLevelSerializer,
                           AreaSerializer,
                           FieldTypeSerializer,
-                          FClassSerializer
+                          FClassSerializer,
+                          AreaFieldSerializer,
                           )
 from datentool_backend.site.models import ProjectSetting
 
@@ -491,13 +494,26 @@ class AreaViewSet(ProtectCascadeMixin,
 
     serializer_class = AreaSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-    filter_fields = ['area_level']
 
     def get_queryset(self):
         """return the annotated queryset"""
-        area_level = self.request.query_params.get('area_level')
+        if self.detail:
+            try:
+                area_level = Area.objects.get(**self.kwargs).area_level_id
+            except Area.DoesNotExist as e:
+                raise Http404(str(e))
+        else:
+            area_level = self.request.query_params.get('area_level')
+        if not area_level:
+            raise BadRequest('No AreaLevel provided')
         areas = Area.label_annotated_qs(area_level)
         return areas
+
+    @extend_schema(
+        parameters=[OpenApiParameter(name='area_level', required=True, type=int)]
+    )
+    def list(self, request):
+        return super().list(request)
 
 
 class FieldTypeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
@@ -511,4 +527,9 @@ class FClassViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     serializer_class = FClassSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
+
+class AreaFieldViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+    queryset = AreaField.objects.all()
+    serializer_class = AreaFieldSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 

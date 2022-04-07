@@ -7,6 +7,7 @@ from datentool_backend.site.views import (SiteSettingViewSet,
 from .area.views import (LayerGroupViewSet, WMSLayerViewSet,
                          AreaLevelViewSet, AreaViewSet,
                          FieldTypeViewSet, FClassViewSet,
+                         AreaFieldViewSet,
                          )
 
 from .demand.views import (GenderViewSet,
@@ -55,6 +56,7 @@ router.register(r'layergroups', LayerGroupViewSet, basename='layergroups')
 router.register(r'wmslayers', WMSLayerViewSet, basename='wmslayers')
 router.register(r'arealevels', AreaLevelViewSet, basename='arealevels')
 router.register(r'areas', AreaViewSet, basename='areas')
+router.register(r'areafields', AreaFieldViewSet, basename='areafields')
 
 # demand
 router.register(r'demandratesets', DemandRateSetViewSet,

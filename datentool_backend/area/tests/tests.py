@@ -483,7 +483,7 @@ class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
     def setUpTestData(cls):
         super().setUpTestData()
         area: Area = cls.obj
-        area_level = area.area_level.pk
+        cls.area_level = area_level = area.area_level.pk
         name_field_type = FieldType.objects.create(ftype=FieldTypes.STRING,
                                                    name='name_field')
         int_field_type = FieldType.objects.create(ftype=FieldTypes.NUMBER,
@@ -535,6 +535,24 @@ class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.patch_data = geojson_patch
         cls.expected_patch_data = {'geometry': area.geom.ewkt,}
 
+    def test_is_logged_in(self):
+        """Test read, if user is authenticated"""
+        self.query_params['area_level'] = self.area_level
+        super().test_is_logged_in()
+        try:
+            del self.query_params['area_level']
+        except KeyError:
+            pass
+
+    def test_list(self):
+        """Test read, if user is authenticated"""
+        self.query_params['area_level'] = self.area_level
+        super().test_list()
+        try:
+            del self.query_params['area_level']
+        except KeyError:
+            pass
+
 
 class TestFClassAPI(WriteOnlyWithCanEditBaseDataTest,
                     TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
@@ -556,3 +574,25 @@ class TestFClassAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.patch_data = data
 
 
+class TestAreaFieldAPI(WriteOnlyWithCanEditBaseDataTest,
+                        TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
+    """Test to post, put and patch data"""
+    url_key = "areafields"
+    factory = AreaFieldFactory
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+
+        areafield: AreaField = cls.obj
+        area_level = areafield.area_level.pk
+        field_type = areafield.field_type.pk
+        data = dict(name=faker.unique.word(),
+                    area_level=area_level,
+                    field_type=field_type,
+                    is_key=True,
+                    is_label=False)
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data.copy()
+        cls.patch_data['is_key'] = False

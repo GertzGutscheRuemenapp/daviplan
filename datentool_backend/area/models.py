@@ -1,5 +1,5 @@
 from django.db import models, transaction
-from django.db.models import TextField, F, OuterRef, Subquery, Prefetch
+from django.db.models import TextField, F, OuterRef, Subquery, Prefetch, Value
 from django.db.models.functions import Cast, Coalesce
 from django.db.models.signals import post_save
 from django.contrib.gis.db import models as gis_models
@@ -129,19 +129,19 @@ class Area(DatentoolModelMixin, models.Model):
         attributes = AreaAttribute.value_annotated_qs()
         area_attributes = attributes.filter(area=OuterRef('pk'))
         area_fields = AreaField.objects.filter(area_level=area_level)
+        area_field_names = ','.join(area_fields.values_list('name', flat=True))
 
         annotations = {area_field.name: Subquery(area_attributes
                                                  .filter(field=area_field)
                                                  .values('_value')[:1])
                        for area_field in area_fields}
 
-        label_attribute = attributes.filter(area=OuterRef('pk'),
-                                            field__is_label=True)
-        key_attribute = attributes.filter(area=OuterRef('pk'),
-                                          field__is_key=True)
+        label_attribute = area_attributes.filter(is_label=True)
+        key_attribute = area_attributes.filter(is_key=True)
 
         annotations['_label'] = Subquery(label_attribute.values('_value')[:1])
         annotations['_key'] = Subquery(key_attribute.values('_value')[:1])
+        annotations['_field_names'] = Value(area_field_names)
 
         qs = cls.objects\
             .filter(area_level_id=area_level)\
@@ -214,6 +214,14 @@ class Area(DatentoolModelMixin, models.Model):
                                                  field_type=field_type,
                                                  )
             AreaAttribute.objects.create(area=self, field=field, value=value)
+
+    @property
+    def field_names(self):
+        if hasattr(self, '_field_names'):
+            return self._field_names
+        area_fields = AreaField.objects.filter(area_level=self.area_level)
+        area_field_names = ','.join(area_fields.values_list('name', flat=True))
+        return area_field_names
 
     @staticmethod
     def post_create(sender, instance, created, *args, **kwargs):
@@ -339,3 +347,12 @@ class AreaAttribute(FieldAttribute):
 
     class Meta:
         unique_together = [['area', 'field']]
+
+    @classmethod
+    def value_annotated_qs(cls) -> 'AreaAttribute':
+        """returns a queryset annotated with the value"""
+        qs = super().value_annotated_qs()
+        qs = qs.annotate(is_label=F('field__is_label'),
+                         is_key=F('field__is_key'),
+                         field_name=F('field__name'))
+        return qs
