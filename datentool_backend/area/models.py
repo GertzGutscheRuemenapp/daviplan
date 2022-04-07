@@ -144,6 +144,7 @@ class Area(DatentoolModelMixin, models.Model):
         annotations['_key'] = Subquery(key_attribute.values('_value')[:1])
 
         qs = cls.objects\
+            .filter(area_level_id=area_level)\
             .select_related('area_level')\
             .prefetch_related(
                 Prefetch('areaattribute_set', queryset=attributes))\

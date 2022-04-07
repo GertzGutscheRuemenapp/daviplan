@@ -188,6 +188,10 @@ class PopulationViewSet(viewsets.ModelViewSet):
         areas = population.populationentry_set.distinct('area_id')\
             .values_list('area_id', flat=True)
 
+        area_level = population.populationentry_set\
+            .distinct('area__area_level_id')\
+            .values_list('area_id', flat=True)[0]
+
         ac = AreaCell.objects.filter(area__in=areas,
                                      cell__popraster=population.popraster)
 
@@ -223,8 +227,10 @@ class PopulationViewSet(viewsets.ModelViewSet):
         population_not_located = dd.loc[has_no_rastercell].value.sum()
 
         if population_not_located:
-            areas_without_rastercells = Area.label_annotated_qs()\
+            areas_without_rastercells = Area\
+                .label_annotated_qs(area_level)\
                 .filter(id__in=dd.loc[has_no_rastercell, 'area_id'])
+
 
             msg += f'{population_not_located} Inhabitants not located to rastercells in {areas_without_rastercells}\n'
         else:
