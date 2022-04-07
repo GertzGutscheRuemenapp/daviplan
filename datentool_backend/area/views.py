@@ -486,18 +486,17 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
 
-class AreaViewSet(AnnotatedAreasMixin,
-                  ProtectCascadeMixin,
+class AreaViewSet(ProtectCascadeMixin,
                   viewsets.ModelViewSet):
-    queryset = Area.objects.all()
+
     serializer_class = AreaSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
     filter_fields = ['area_level']
 
     def get_queryset(self):
         """return the annotated queryset"""
-        areas = Area.objects.all()
-        areas = self.annotate_areas_with_label_and_attributes(areas)
+        area_level = self.request.query_params.get('area_level')
+        areas = Area.annotated_qs(area_level)
         return areas
 
 
