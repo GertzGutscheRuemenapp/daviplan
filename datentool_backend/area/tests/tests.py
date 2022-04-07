@@ -115,10 +115,13 @@ class TestAreas(TestCase):
         cls.area2 = AreaFactory(
             area_level=area_level,
             attributes={'areaname': 'MyName', 'Inhabitants': 123,
-                        'classfield': 'Class2', })
+                        'classfield': 'Class2', 'ags': '01234', })
         name_field = area_level.areafield_set.get(name='areaname')
         name_field.is_label = True
         name_field.save()
+        key_field = area_level.areafield_set.get(name='ags')
+        key_field.is_key = True
+        key_field.save()
         print(cls.area)
         print(cls.wfs_layer)
 
@@ -157,6 +160,8 @@ class TestAreas(TestCase):
         self.assertEqual(area_level.label_field, 'areaname')
         self.assertEqual(area2.label, 'MyName')
         self.assertEqual(area1.label, '')
+        self.assertEqual(area2.key, '01234')
+        self.assertEqual(area1.key, '')
 
         # areaname should be a string field
         name_field = area_level.areafield_set.get(name='areaname')
@@ -447,7 +452,7 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
 
         # url2 has content, exact tile with polygon
         features = result[area_level1.name]['features']
-        assert(features[0]['properties']['label'] == 'Area One')
+        assert(features[0]['properties']['_label'] == 'Area One')
 
         url2 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 10,
                                              'x': 550, 'y': 336})
@@ -487,6 +492,10 @@ class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
                                               name='gen',
                                               field_type=name_field_type,
                                               is_label=True)
+        key_field = AreaField.objects.create(area_level=area.area_level,
+                                              name='ags',
+                                              field_type=name_field_type,
+                                              is_key=True)
         int_field = AreaField.objects.create(area_level=area.area_level,
                                              name='inhabitants',
                                              field_type=int_field_type)
@@ -495,6 +504,11 @@ class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
                                           field=name_field,
                                           value='A-Town',
                                           )
+        aa = AreaAttribute.objects.create(area=area,
+                                          field=key_field,
+                                          value='012345',
+                                          )
+
 
         AreaAttribute.objects.create(area=area,
                                      field=int_field,

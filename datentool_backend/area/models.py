@@ -154,6 +154,9 @@ class Area(DatentoolModelMixin, models.Model):
 
     @property
     def key(self):
+        """The Area key"""
+        if hasattr(self, '_key'):
+            return self._key
         try:
             key_attr = self.areaattribute_set.get(field__is_key=True)
         except AreaAttribute.DoesNotExist:

@@ -271,6 +271,7 @@ class AreaSerializer(GeoFeatureModelSerializer):
     geom = MultiPolygonGeometrySRIDField(srid=3857)
     attributes = AreaAttributeField(source='areaattribute_set')
     label = serializers.SerializerMethodField()
+    key = serializers.SerializerMethodField()
 
     class Meta:
         model = Area
@@ -279,6 +280,9 @@ class AreaSerializer(GeoFeatureModelSerializer):
 
     def get_label(self, obj: Area) -> str:
         return obj.label
+
+    def get_key(self, obj: Area) -> str:
+        return obj.key
 
     def create(self, validated_data):
         """

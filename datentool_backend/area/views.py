@@ -77,19 +77,8 @@ class JsonObject(Func):
     output_field = JSONField()
 
 
-class AreaLevelTileView(MVTView, DetailView):
-    model = AreaLevel
-    vector_tile_fields = ('id', 'area_level', 'attributes', 'label')
-
-    def get_vector_tile_layer_name(self):
-        return self.get_object().name
-
-    def get_vector_tile_queryset(self):
-        areas = self.get_object().area_set.all()
-        # annotate the areas
-        return self.annotate_areas_with_label_and_attributes(areas)
-
-    def annotate_areas_with_label_and_attributes(self, areas):
+class AnnotatedAreasMixin:
+    def annotate_areas_with_label_and_attributes(self, areas: Area):
         """annotate the areas with label and attributes"""
         sq = AreaAttribute.objects.filter(area=OuterRef('pk'))
 
@@ -106,6 +95,10 @@ class AreaLevelTileView(MVTView, DetailView):
         sq_label = sq.filter(field__is_label=True)\
             .values('val')
 
+        # annotate the key
+        sq_key = sq.filter(field__is_key=True)\
+            .values('val')
+
         # annotate the attributes in json-format
         sq_attrs = sq.values('area')\
             .annotate(attributes=JsonObject(ArrayAgg(F('field__name')),
@@ -113,12 +106,27 @@ class AreaLevelTileView(MVTView, DetailView):
                                             output_field=CharField()))\
             .values('attributes')
 
-        # annotate attributes and label to the queryset
+        # annotate attributes and label and key to the queryset
         areas = areas\
             .annotate(attributes=Subquery(sq_attrs, output_field=CharField()))\
-            .annotate(label=Subquery(sq_label, output_field=CharField()))
+            .annotate(_label=Subquery(sq_label, output_field=CharField()))\
+            .annotate(_key=Subquery(sq_key, output_field=CharField()))
 
         return areas
+
+
+class AreaLevelTileView(AnnotatedAreasMixin, MVTView, DetailView):
+    model = AreaLevel
+    vector_tile_fields = ('id', 'area_level', 'attributes', '_label', '_key')
+
+    def get_vector_tile_layer_name(self):
+        return self.get_object().name
+
+    def get_vector_tile_queryset(self):
+        areas = self.get_object().area_set.all()
+        # annotate the areas
+        return self.annotate_areas_with_label_and_attributes(areas)
+
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -223,7 +231,9 @@ class AreaLevelFilter(filters.FilterSet):
         fields = ['is_active']
 
 
-class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+class AreaLevelViewSet(AnnotatedAreasMixin,
+                       ProtectCascadeMixin,
+                       viewsets.ModelViewSet):
     queryset = AreaLevel.objects.all()
     serializer_class = AreaLevelSerializer
     permission_classes = [ProtectPresetPermission &
@@ -476,11 +486,19 @@ class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
 
-class AreaViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+class AreaViewSet(AnnotatedAreasMixin,
+                  ProtectCascadeMixin,
+                  viewsets.ModelViewSet):
     queryset = Area.objects.all()
     serializer_class = AreaSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
     filter_fields = ['area_level']
+
+    def get_queryset(self):
+        """return the annotated queryset"""
+        areas = Area.objects.all()
+        areas = self.annotate_areas_with_label_and_attributes(areas)
+        return areas
 
 
 class FieldTypeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
