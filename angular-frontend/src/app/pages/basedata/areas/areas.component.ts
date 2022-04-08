@@ -95,11 +95,9 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       });
       if (this.activeLevel?.isPreset) {
         this.editLevelForm.controls['name'].disable();
-        this.editLevelForm.controls['labelField'].disable();
       }
       else {
         this.editLevelForm.controls['name'].enable();
-        this.editLevelForm.controls['labelField'].enable();
       }
       this.colorSelection = this.activeLevel?.symbol?.strokeColor || 'black';
       this.editLevelForm.setErrors(null);
@@ -163,6 +161,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
           }
         });
         this.mapControl?.addFeatures(this.areaLayer!.id!, this.areas);
+        this.activeLevel!.areaCount = this.areas.length;
         this.isLoading$.next(false);
         this.dataColumns = this.activeLevel!.areaFields;
         this.dataRows = this.areas.map(area => this.dataColumns.map(
@@ -236,6 +235,33 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  pullWfsAreas(): void {
+    if (!this.activeLevel || this.activeLevel.source?.sourceType !== 'WFS')
+      return;
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '300px',
+      data: {
+        title: `WFS Daten abrufen`, //für Gebietseinheit "${this.activeLevel.name}"`,
+        confirmButtonText: 'Daten abrufen',
+        closeOnConfirm: true,
+        message: `Sollen die Gebiete der Gebietseinheit "${this.activeLevel.name}" jetzt aus dem angegebenen WFS-Dienst abgerufen und eingespielt werden?`
+      }
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.isLoading$.next(true);
+        this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/pull_areas/`,
+          { truncate: true, simplify: false }).subscribe(res => {
+          this.selectAreaLevel(this.activeLevel!, true);
+          this.isLoading$.next(false);
+        }, error => {
+          console.log('there was an error sending the query', error);
+          this.isLoading$.next(false);
+        });
+      }
+    });
+  }
+
   onDeleteAreas(): void {
     if (!this.activeLevel)
       return;
@@ -243,14 +269,14 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       data: {
         title: $localize`Die Gebiete der Gebietseinheit wirklich entfernen?`,
         confirmButtonText: $localize`Daten löschen`,
-        value: this.activeLevel.name
+        value: this.activeLevel.name,
+        message: `Bei Bestätigung werden ${this.activeLevel.areaCount} Gebiete entfernt. `
       }
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
         this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/clear/`, {}
         ).subscribe(res => {
-          this.activeLevel!.areaCount = 0;
           this.selectAreaLevel(this.activeLevel!, true);
         }, error => {
           console.log('there was an error sending the query', error);

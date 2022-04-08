@@ -362,10 +362,10 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
             return Response({'message': str(e)},
                             status.HTTP_500_INTERNAL_SERVER_ERROR)
         res_json = json.loads(response.read())
-        truncate = request.data.get('truncate', 'false').lower() == 'true'
+        truncate = str(request.data.get('truncate', 'false')).lower() == 'true'
         if truncate:
             Area.objects.filter(area_level=area_level).delete()
-        simplify = request.data.get('simplify', 'false').lower() == 'true'
+        simplify = str(request.data.get('simplify', 'false')).lower() == 'true'
         level_areas = Area.annotated_qs(area_level)
         key_field = area_level.key_field
         label_field = area_level.label_field

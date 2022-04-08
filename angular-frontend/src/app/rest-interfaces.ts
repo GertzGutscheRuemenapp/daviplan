@@ -80,6 +80,7 @@ export interface AreaLevel {
   name: string;
   order: number;
   labelField: string;
+  keyField: string;
   tileUrl?: string;
   source?: Source;
   symbol?: Symbol;

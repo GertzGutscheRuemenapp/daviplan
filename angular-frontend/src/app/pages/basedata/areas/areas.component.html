@@ -105,24 +105,19 @@
           <td [style.color]="activeLevel.isPreset? 'grey': ''">{{activeLevel?.name}}</td>
         </tr>
         <tr>
-          <td i18n>Beschriftung</td>
-          <td [style.color]="activeLevel.isPreset? 'grey': ''">{{activeLevel?.labelField}}</td>
-        </tr>
-        <tr>
-          <td i18n>Linienfarbe</td>
-          <td>
-            <div *ngIf="activeLevel?.symbol"
-                 style="margin-bottom: -5px;"
-                 class="symbol square"
-                 [style.backgroundColor]="activeLevel?.symbol?.strokeColor">
-            </div>
-            <div *ngIf="!activeLevel?.symbol">
-              keine Darstellung
-            </div>
+          <td i18n>ID-Feld</td>
+          <td [style.color]="activeLevel.isPreset? 'grey': ''">
+            {{activeLevel.keyField || '-'}}
           </td>
         </tr>
         <tr>
-          <td i18n>ID-Feld</td>
+          <td i18n>Beschriftung</td>
+          <td [style.color]="activeLevel.isPreset? 'grey': ''">
+            {{activeLevel?.labelField || '-'}}
+          </td>
+        </tr>
+        <tr>
+          <td i18n>Linienfarbe</td>
           <td>
             <div *ngIf="activeLevel?.symbol"
                  style="margin-bottom: -5px;"
@@ -182,7 +177,8 @@
           <button *ngIf="activeLevel?.source?.sourceType === 'WFS'"
                   class="mat-button-dv"
                   mat-button color="primary"
-                  style="margin-top: 20px;">
+                  style="margin-top: 20px;"
+                  (click)="pullWfsAreas()">
             <mat-icon class="material-icons-outlined">refresh</mat-icon>
             Daten abrufen bzw. aktualisieren
           </button>
@@ -262,7 +258,7 @@
       </mat-checkbox>
       <div *ngIf="enableLayerCheck.checked" style="margin: 10px 0;">
         <table>
-          <tr>
+          <tr *ngIf="!activeLevel?.isPreset">
             <td i18n>Beschriftungsfeld</td>
             <td>
               <mat-form-field appearance="fill">
