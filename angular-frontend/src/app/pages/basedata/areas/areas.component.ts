@@ -1,6 +1,6 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
-import { Area, AreaLevel, BasedataSettings, Layer, LayerGroup } from "../../../rest-interfaces";
+import { Area, AreaLevel, Layer, LayerGroup } from "../../../rest-interfaces";
 import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { arrayMove, sortBy } from "../../../helpers/utils";
 import { HttpClient } from "@angular/common/http";
@@ -13,7 +13,7 @@ import { environment } from "../../../../environments/environment";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { RestCacheService } from "../../../rest-cache.service";
-import * as d3 from "d3";
+import { FileHandle } from "../../../helpers/dragndrop.directive";
 
 
 @Component({
@@ -26,6 +26,8 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   @ViewChild('enableLayerCheck') enableLayerCheck?: MatCheckbox;
   @ViewChild('createAreaLevel') createLevelTemplate?: TemplateRef<any>;
   @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
+  @ViewChild('fileUploadTemplate') fileUploadTemplate?: TemplateRef<any>;
+  @ViewChild('fileInput') fileInput?: HTMLInputElement;
   mapControl?: MapControl;
   activeLevel?: AreaLevel;
   presetLevels: AreaLevel[] = [];
@@ -40,6 +42,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   Object = Object;
   dataColumns: string[] = [];
   dataRows: any[][] = [];
+  file?: File;
 
   constructor(private mapService: MapService, private http: HttpClient, private dialog: MatDialog,
               private rest: RestAPI, private formBuilder: FormBuilder, private restService: RestCacheService) {
@@ -252,13 +255,48 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         this.isLoading$.next(true);
         this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/pull_areas/`,
           { truncate: true, simplify: false }).subscribe(res => {
-          this.selectAreaLevel(this.activeLevel!, true);
           this.isLoading$.next(false);
+          this.selectAreaLevel(this.activeLevel!, true);
         }, error => {
           console.log('there was an error sending the query', error);
           this.isLoading$.next(false);
         });
       }
+    });
+  }
+
+  setFiles(event: Event){
+    const element = event.currentTarget as HTMLInputElement;
+    const files: FileList | null = element.files;
+    this.file =  (files && files.length > 0)? files[0]: undefined;
+  }
+
+  uploadFile(): void {
+    if (!this.activeLevel || this.activeLevel.source?.sourceType !== 'FILE')
+      return;
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '350px',
+      data: {
+        title: `Daten hochladen`, //für Gebietseinheit "${this.activeLevel.name}"`,
+        confirmButtonText: 'Daten abrufen',
+        message: `Daten mit Gebieten für Gebietseinheit "${this.activeLevel.name}" hochladen`,
+        template: this.fileUploadTemplate
+      }
+    });
+    dialogRef.componentInstance.confirmed.subscribe((confirmed: boolean) => {
+      if (!this.file)
+        return;
+      const formData = new FormData();
+      formData.append('file', this.file);
+/*      this.isLoading$.next(true);
+      this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/upload_shapefile/`,
+        { file: true }).subscribe(res => {
+        this.isLoading$.next(false);
+        this.selectAreaLevel(this.activeLevel!, true);
+      }, error => {
+        console.log('there was an error sending the query', error);
+        this.isLoading$.next(false);
+      });*/
     });
   }
 

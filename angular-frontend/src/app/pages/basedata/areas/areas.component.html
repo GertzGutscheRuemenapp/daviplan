@@ -185,7 +185,8 @@
           <button *ngIf="activeLevel?.source?.sourceType === 'FILE'"
                   class="mat-button-dv"
                   mat-button color="primary"
-                  style="margin-top: 20px;">
+                  style="margin-top: 20px;"
+                  (click)="uploadFile()">
             <mat-icon class="material-icons-outlined">upload</mat-icon>
             Shapefile oder Geopackage hochladen
           </button>
@@ -304,4 +305,8 @@
 
 <ng-template #dataTemplate>
   <app-data-table [columns]="dataColumns" [rows]="dataRows"></app-data-table>
+</ng-template>
+
+<ng-template #fileUploadTemplate>
+  <input #fileInput type="file" accept=".zip,.gpkg" (change)="setFiles($event)">
 </ng-template>
