@@ -182,21 +182,23 @@
           <button *ngIf="activeLevel?.source?.sourceType === 'WFS'"
                   class="mat-button-dv"
                   mat-button color="primary"
-                  style="margin-top: 20px;" i18n>
+                  style="margin-top: 20px;">
             <mat-icon class="material-icons-outlined">refresh</mat-icon>
             Daten abrufen bzw. aktualisieren
           </button>
           <button *ngIf="activeLevel?.source?.sourceType === 'FILE'"
                   class="mat-button-dv"
                   mat-button color="primary"
-                  style="margin-top: 20px;" i18n>
+                  style="margin-top: 20px;">
             <mat-icon class="material-icons-outlined">upload</mat-icon>
             Shapefile oder Geopackage hochladen
           </button>
           <div>
             <button class="mat-button-dv"
-                    mat-button color="primary" i18n>
-              <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
+                    mat-button color="primary"
+                    (click)="showDataTable()">
+              <mat-icon class="material-icons-outlined">table_chart</mat-icon>
+              Datentabelle ansehen
             </button>
 <!--            <button mat-mini-fab color="primary"
                     aria-label="Daten herunterladen" title="Daten herunterladen"
@@ -295,4 +297,8 @@
       </mat-form-field>
     </div>
   </form>
+</ng-template>
+
+<ng-template #dataTemplate>
+  <app-data-table [columns]="dataColumns" [rows]="dataRows"></app-data-table>
 </ng-template>

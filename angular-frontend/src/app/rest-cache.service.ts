@@ -140,6 +140,7 @@ export class RestCacheService {
   }
 
   getCapacities(year: number, serviceId: number, scenarioId: number | undefined = undefined): Observable<Capacity[]>{
+    year = year || 0;
     let key = `${serviceId}-${year}`;
     if (scenarioId !== undefined)
       key += `-${scenarioId}`

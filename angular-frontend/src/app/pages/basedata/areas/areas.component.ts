@@ -25,6 +25,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   @ViewChild('editArealevelCard') editArealevelCard!: InputCardComponent;
   @ViewChild('enableLayerCheck') enableLayerCheck?: MatCheckbox;
   @ViewChild('createAreaLevel') createLevelTemplate?: TemplateRef<any>;
+  @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
   mapControl?: MapControl;
   activeLevel?: AreaLevel;
   presetLevels: AreaLevel[] = [];
@@ -37,6 +38,8 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   isLoading$ = new BehaviorSubject<boolean>(false);
   orderIsChanging$ = new BehaviorSubject<boolean>(false);
   Object = Object;
+  dataColumns: string[] = [];
+  dataRows: any[][] = [];
 
   constructor(private mapService: MapService, private http: HttpClient, private dialog: MatDialog,
               private rest: RestAPI, private formBuilder: FormBuilder, private restService: RestCacheService) {
@@ -53,7 +56,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       order: -1
     }, false)
     this.isLoading$.next(true);
-    this.fetchAreas().subscribe(res => {
+    this.fetchAreaLevels().subscribe(res => {
       this.selectAreaLevel(this.presetLevels[0]);
       this.colorSelection = this.activeLevel!.symbol?.fillColor || 'black';
       this.isLoading$.next(false);
@@ -64,7 +67,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   /**
    * fetch areas
    */
-  fetchAreas(): Observable<AreaLevel[]> {
+  fetchAreaLevels(): Observable<AreaLevel[]> {
     const query = this.http.get<AreaLevel[]>(this.rest.URLS.arealevels);
     query.subscribe((areaLevels) => {
       this.presetLevels = [];
@@ -161,6 +164,9 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         });
         this.mapControl?.addFeatures(this.areaLayer!.id!, this.areas);
         this.isLoading$.next(false);
+        this.dataColumns = this.activeLevel!.areaFields;
+        this.dataRows = this.areas.map(area => this.dataColumns.map(
+          column => area.properties.attributes[column] || ''));
       })
   }
 
@@ -292,6 +298,32 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       this.customAreaLevels.concat(this.presetLevels).forEach(l => l.isDefaultPopLevel = false);
       areaLevel.isDefaultPopLevel = al.isDefaultPopLevel;
     })
+  }
+
+  showDataTable(): void {
+    if (!this.activeLevel) return;
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '400',
+      disableClose: false,
+      autoFocus: false,
+      data: {
+        title: `Datentabelle Gebiete der Gebietseinheit "${this.activeLevel.name}"`,
+        template: this.dataTemplate,
+        hideConfirmButton: true,
+        cancelButtonText: 'OK'
+      }
+    });
+/*    this.dialogRef.afterOpened().subscribe(x => {
+      this.dialogOpened.emit();
+    })
+    this.dialogRef.afterClosed().subscribe((ok: boolean) => {
+      this.dialogClosed.emit(!!ok);
+    });
+    this.dialogRef.componentInstance.confirmed.subscribe(() => {
+      this.dialogConfirmed.emit();
+    });*/
+
   }
 
   ngOnDestroy(): void {

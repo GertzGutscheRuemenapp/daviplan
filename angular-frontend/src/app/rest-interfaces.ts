@@ -88,6 +88,7 @@ export interface AreaLevel {
   areaCount?: number;
   isStatisticLevel?: boolean;
   isDefaultPopLevel?: boolean;
+  areaFields: string[];
   maxValues?: {
     population: number,
     immigration?: number,
