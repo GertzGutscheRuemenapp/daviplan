@@ -488,6 +488,15 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
         msg = f'Upload successful of {layer.num_feat} areas'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
+    @action(methods=['POST'], detail=True,
+            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+    def clear(self, request, **kwargs):
+        areas = Area.objects.filter(area_level=kwargs['pk'])
+        count = areas.count()
+        areas.delete()
+        return Response({'message': f'{count} Areas deleted'},
+                        status=status.HTTP_200_OK)
+
 
 class AreaViewSet(ProtectCascadeMixin,
                   viewsets.ModelViewSet):

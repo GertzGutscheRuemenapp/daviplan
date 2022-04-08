@@ -209,7 +209,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  onDeleteArea(): void {
+  onDeleteAreaLevel(): void {
     if (!this.activeLevel || this.activeLevel.isPreset)
       return;
     const dialogRef = this.dialog.open(RemoveDialogComponent, {
@@ -229,6 +229,29 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
             this.activeLevel = undefined;
             this.mapControl?.refresh({ internal: true });
           }
+        }, error => {
+          console.log('there was an error sending the query', error);
+        });
+      }
+    });
+  }
+
+  onDeleteAreas(): void {
+    if (!this.activeLevel)
+      return;
+    const dialogRef = this.dialog.open(RemoveDialogComponent, {
+      data: {
+        title: $localize`Die Gebiete der Gebietseinheit wirklich entfernen?`,
+        confirmButtonText: $localize`Daten löschen`,
+        value: this.activeLevel.name
+      }
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/clear/`, {}
+        ).subscribe(res => {
+          this.activeLevel!.areaCount = 0;
+          this.selectAreaLevel(this.activeLevel!, true);
         }, error => {
           console.log('there was an error sending the query', error);
         });
@@ -314,16 +337,6 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         cancelButtonText: 'OK'
       }
     });
-/*    this.dialogRef.afterOpened().subscribe(x => {
-      this.dialogOpened.emit();
-    })
-    this.dialogRef.afterClosed().subscribe((ok: boolean) => {
-      this.dialogClosed.emit(!!ok);
-    });
-    this.dialogRef.componentInstance.confirmed.subscribe(() => {
-      this.dialogConfirmed.emit();
-    });*/
-
   }
 
   ngOnDestroy(): void {
