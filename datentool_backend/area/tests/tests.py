@@ -115,10 +115,13 @@ class TestAreas(TestCase):
         cls.area2 = AreaFactory(
             area_level=area_level,
             attributes={'areaname': 'MyName', 'Inhabitants': 123,
-                        'classfield': 'Class2', })
+                        'classfield': 'Class2', 'ags': '01234', })
         name_field = area_level.areafield_set.get(name='areaname')
         name_field.is_label = True
         name_field.save()
+        key_field = area_level.areafield_set.get(name='ags')
+        key_field.is_key = True
+        key_field.save()
         print(cls.area)
         print(cls.wfs_layer)
 
@@ -157,6 +160,8 @@ class TestAreas(TestCase):
         self.assertEqual(area_level.label_field, 'areaname')
         self.assertEqual(area2.label, 'MyName')
         self.assertEqual(area1.label, '')
+        self.assertEqual(area2.key, '01234')
+        self.assertEqual(area1.key, '')
 
         # areaname should be a string field
         name_field = area_level.areafield_set.get(name='areaname')
@@ -190,7 +195,7 @@ class TestAreas(TestCase):
         self.assertEqual(areas[0].label, '')
         self.assertEqual(areas[1].label, 'MyName')
 
-        areas = Area.label_annotated_qs().all()
+        areas = Area.label_annotated_qs(area_level=self.area.area_level).all()
         self.assertEqual(areas[0].label, None)
         self.assertEqual(areas[1].label, 'MyName')
         self.assertEqual(areas[1]._label, 'MyName')
@@ -447,7 +452,7 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
 
         # url2 has content, exact tile with polygon
         features = result[area_level1.name]['features']
-        assert(features[0]['properties']['label'] == 'Area One')
+        assert(features[0]['properties']['_label'] == 'Area One')
 
         url2 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 10,
                                              'x': 550, 'y': 336})
@@ -478,7 +483,7 @@ class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
     def setUpTestData(cls):
         super().setUpTestData()
         area: Area = cls.obj
-        area_level = area.area_level.pk
+        cls.area_level = area_level = area.area_level.pk
         name_field_type = FieldType.objects.create(ftype=FieldTypes.STRING,
                                                    name='name_field')
         int_field_type = FieldType.objects.create(ftype=FieldTypes.NUMBER,
@@ -487,6 +492,10 @@ class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
                                               name='gen',
                                               field_type=name_field_type,
                                               is_label=True)
+        key_field = AreaField.objects.create(area_level=area.area_level,
+                                              name='ags',
+                                              field_type=name_field_type,
+                                              is_key=True)
         int_field = AreaField.objects.create(area_level=area.area_level,
                                              name='inhabitants',
                                              field_type=int_field_type)
@@ -495,6 +504,11 @@ class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
                                           field=name_field,
                                           value='A-Town',
                                           )
+        aa = AreaAttribute.objects.create(area=area,
+                                          field=key_field,
+                                          value='012345',
+                                          )
+
 
         AreaAttribute.objects.create(area=area,
                                      field=int_field,
@@ -521,6 +535,24 @@ class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.patch_data = geojson_patch
         cls.expected_patch_data = {'geometry': area.geom.ewkt,}
 
+    def test_is_logged_in(self):
+        """Test read, if user is authenticated"""
+        self.query_params['area_level'] = self.area_level
+        super().test_is_logged_in()
+        try:
+            del self.query_params['area_level']
+        except KeyError:
+            pass
+
+    def test_list(self):
+        """Test read, if user is authenticated"""
+        self.query_params['area_level'] = self.area_level
+        super().test_list()
+        try:
+            del self.query_params['area_level']
+        except KeyError:
+            pass
+
 
 class TestFClassAPI(WriteOnlyWithCanEditBaseDataTest,
                     TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
@@ -542,3 +574,25 @@ class TestFClassAPI(WriteOnlyWithCanEditBaseDataTest,
         cls.patch_data = data
 
 
+class TestAreaFieldAPI(WriteOnlyWithCanEditBaseDataTest,
+                        TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
+    """Test to post, put and patch data"""
+    url_key = "areafields"
+    factory = AreaFieldFactory
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+
+        areafield: AreaField = cls.obj
+        area_level = areafield.area_level.pk
+        field_type = areafield.field_type.pk
+        data = dict(name=faker.unique.word(),
+                    area_level=area_level,
+                    field_type=field_type,
+                    is_key=True,
+                    is_label=False)
+        cls.post_data = data
+        cls.put_data = data
+        cls.patch_data = data.copy()
+        cls.patch_data['is_key'] = False
