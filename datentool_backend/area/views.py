@@ -8,9 +8,10 @@ import json
 from owslib.wfs import WebFeatureService
 import datetime
 
+from django.core.exceptions import BadRequest
 from django.contrib.gis.geos import GEOSGeometry, Polygon, MultiPolygon
 from django.views.generic import DetailView
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.db.models import OuterRef, Subquery, CharField, Case, When, F, JSONField, Func
 from django.db.models.functions import Cast
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -25,6 +26,7 @@ from rest_framework import viewsets, permissions, status, serializers
 from rest_framework.exceptions import (ParseError, NotFound, APIException)
 from rest_framework.decorators import action
 from drf_spectacular.utils import (extend_schema,
+                                   OpenApiParameter,
                                    OpenApiResponse,
                                    inline_serializer)
 
@@ -67,7 +69,8 @@ from .serializers import (MapSymbolSerializer,
                           AreaLevelSerializer,
                           AreaSerializer,
                           FieldTypeSerializer,
-                          FClassSerializer
+                          FClassSerializer,
+                          AreaFieldSerializer,
                           )
 from datentool_backend.site.models import ProjectSetting
 
@@ -77,19 +80,8 @@ class JsonObject(Func):
     output_field = JSONField()
 
 
-class AreaLevelTileView(MVTView, DetailView):
-    model = AreaLevel
-    vector_tile_fields = ('id', 'area_level', 'attributes', 'label')
-
-    def get_vector_tile_layer_name(self):
-        return self.get_object().name
-
-    def get_vector_tile_queryset(self):
-        areas = self.get_object().area_set.all()
-        # annotate the areas
-        return self.annotate_areas_with_label_and_attributes(areas)
-
-    def annotate_areas_with_label_and_attributes(self, areas):
+class AnnotatedAreasMixin:
+    def annotate_areas_with_label_and_attributes(self, areas: Area):
         """annotate the areas with label and attributes"""
         sq = AreaAttribute.objects.filter(area=OuterRef('pk'))
 
@@ -106,6 +98,10 @@ class AreaLevelTileView(MVTView, DetailView):
         sq_label = sq.filter(field__is_label=True)\
             .values('val')
 
+        # annotate the key
+        sq_key = sq.filter(field__is_key=True)\
+            .values('val')
+
         # annotate the attributes in json-format
         sq_attrs = sq.values('area')\
             .annotate(attributes=JsonObject(ArrayAgg(F('field__name')),
@@ -113,12 +109,27 @@ class AreaLevelTileView(MVTView, DetailView):
                                             output_field=CharField()))\
             .values('attributes')
 
-        # annotate attributes and label to the queryset
+        # annotate attributes and label and key to the queryset
         areas = areas\
             .annotate(attributes=Subquery(sq_attrs, output_field=CharField()))\
-            .annotate(label=Subquery(sq_label, output_field=CharField()))
+            .annotate(_label=Subquery(sq_label, output_field=CharField()))\
+            .annotate(_key=Subquery(sq_key, output_field=CharField()))
 
         return areas
+
+
+class AreaLevelTileView(AnnotatedAreasMixin, MVTView, DetailView):
+    model = AreaLevel
+    vector_tile_fields = ('id', 'area_level', 'attributes', '_label', '_key')
+
+    def get_vector_tile_layer_name(self):
+        return self.get_object().name
+
+    def get_vector_tile_queryset(self):
+        areas = self.get_object().area_set.all()
+        # annotate the areas
+        return self.annotate_areas_with_label_and_attributes(areas)
+
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -223,7 +234,9 @@ class AreaLevelFilter(filters.FilterSet):
         fields = ['is_active']
 
 
-class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+class AreaLevelViewSet(AnnotatedAreasMixin,
+                       ProtectCascadeMixin,
+                       viewsets.ModelViewSet):
     queryset = AreaLevel.objects.all()
     serializer_class = AreaLevelSerializer
     permission_classes = [ProtectPresetPermission &
@@ -476,11 +489,31 @@ class AreaLevelViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
 
-class AreaViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = Area.objects.all()
+class AreaViewSet(ProtectCascadeMixin,
+                  viewsets.ModelViewSet):
+
     serializer_class = AreaSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-    filter_fields = ['area_level']
+
+    def get_queryset(self):
+        """return the annotated queryset"""
+        if self.detail:
+            try:
+                area_level = Area.objects.get(**self.kwargs).area_level_id
+            except Area.DoesNotExist as e:
+                raise Http404(str(e))
+        else:
+            area_level = self.request.query_params.get('area_level')
+        if not area_level:
+            raise BadRequest('No AreaLevel provided')
+        areas = Area.label_annotated_qs(area_level)
+        return areas
+
+    @extend_schema(
+        parameters=[OpenApiParameter(name='area_level', required=True, type=int)]
+    )
+    def list(self, request):
+        return super().list(request)
 
 
 class FieldTypeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
@@ -494,4 +527,9 @@ class FClassViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     serializer_class = FClassSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
+
+class AreaFieldViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+    queryset = AreaField.objects.all()
+    serializer_class = AreaFieldSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
