@@ -457,7 +457,7 @@ export class OlMap {
     styleFunc?: ((d: any) => any)
   }){
     // avoid setting map interactions if nothing is defined to set anyway
-    if (!(options.cursor || options.tooltipField || options.fillColor || options.strokeColor) || !layer.getVisible()) return;
+    if (!(options.cursor || options.tooltipField || options.fillColor || options.strokeColor)) return;
 
     if (options.tooltipField)
       layer.set('showTooltip', true);
@@ -470,7 +470,7 @@ export class OlMap {
         if (options?.styleFunc) {
           const style = options.styleFunc(feature).clone();
           style.getFill().setColor(fillColor);
-          style.getStroke().setColor(fillColor);
+          style.getStroke().setColor(strokeColor);
           const shape = style?.getImage();
           if (shape instanceof CircleStyle) {
             // shapes are ready rendered without possibility to change attributes
@@ -508,7 +508,7 @@ export class OlMap {
             overlay.getSource().addFeatures(features);
           }
         }
-        if (options.tooltipField) {
+        if (options.tooltipField && layer.get('showTooltip')) {
           let tooltip = this.tooltipOverlay.getElement()
           if (features.length > 0) {
             this.tooltipOverlay.setPosition(event.coordinate);

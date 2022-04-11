@@ -1,10 +1,12 @@
 import os
 from test_plus import APITestCase
 from django.urls import reverse
+from django.contrib.gis.geos import MultiPolygon
 
 from datentool_backend.api_test import LoginTestCase
 from datentool_backend.area.models import Area
 from datentool_backend.area.factories import AreaLevelFactory
+from datentool_backend.site.factories import ProjectSettingFactory
 
 
 class UploadTest(LoginTestCase, APITestCase):
@@ -17,6 +19,10 @@ class UploadTest(LoginTestCase, APITestCase):
         cls.profile.can_edit_basedata = True
         cls.profile.save()
         cls.arealevel = AreaLevelFactory()
+        # area near Frankfurt a.M. (the shapes are placed there)
+        ewkt = 'SRID=4326;MultiPolygon (((8.90705161933894196 50.32431595519854284, 8.90382878427419833 50.24503421260585867, 9.02113998063085631 50.24761248065765074, 9.01662801154021487 50.33205075935393324, 8.90705161933894196 50.32431595519854284)))'
+        geom = MultiPolygon.from_ewkt(ewkt)
+        ProjectSettingFactory(project_area=geom)
 
     def test_upload_shape(self):
         # delete areas

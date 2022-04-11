@@ -88,6 +88,7 @@ import { HelpDialogComponent, FloatingDialog } from './dialogs/help-dialog/help-
 import { BalanceChartComponent } from './diagrams/balance-chart/balance-chart.component';
 import { RemoveDialogComponent } from './dialogs/remove-dialog/remove-dialog.component';
 import { PlaceFilterComponent } from './pages/planning/place-filter/place-filter.component';
+import { DataTableComponent } from './elements/data-table/data-table.component';
 
 @NgModule({
   declarations: [
@@ -145,7 +146,8 @@ import { PlaceFilterComponent } from './pages/planning/place-filter/place-filter
     FloatingDialog,
     BalanceChartComponent,
     RemoveDialogComponent,
-    PlaceFilterComponent
+    PlaceFilterComponent,
+    DataTableComponent
   ],
     imports: [
         BrowserModule,

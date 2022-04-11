@@ -80,6 +80,7 @@ export interface AreaLevel {
   name: string;
   order: number;
   labelField: string;
+  keyField: string;
   tileUrl?: string;
   source?: Source;
   symbol?: Symbol;
@@ -88,6 +89,7 @@ export interface AreaLevel {
   areaCount?: number;
   isStatisticLevel?: boolean;
   isDefaultPopLevel?: boolean;
+  areaFields: string[];
   maxValues?: {
     population: number,
     immigration?: number,
