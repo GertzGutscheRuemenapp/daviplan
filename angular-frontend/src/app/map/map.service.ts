@@ -312,7 +312,7 @@ export class MapControl {
 
   private onFeatureDeselected(ollayer: OlLayer<any>, deselected: Feature<any>[]): void {
     const layer = this.layerMap[this.olLayerIds[ollayer.get('name')]];
-    if (layer.featureSelected)
+    if (layer && layer.featureSelected)
       deselected.forEach(feature => layer.featureSelected!.emit({ feature: feature, selected: false }));
   }
 

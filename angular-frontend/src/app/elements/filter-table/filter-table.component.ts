@@ -97,7 +97,7 @@ class ClassFilter extends Filter {
 @Component({
   selector: 'app-filter-table',
   templateUrl: './filter-table.component.html',
-  styleUrls: ['./filter-table.component.scss']
+  styleUrls: ['../data-table/data-table.component.scss', './filter-table.component.scss']
 })
 export class FilterTableComponent implements OnInit {
   @Output() filtersChanged = new EventEmitter<FilterColumn[]>();

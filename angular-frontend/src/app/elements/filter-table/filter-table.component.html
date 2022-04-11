@@ -14,8 +14,7 @@
           </div>
           <span class="subtitle1"
                 (click)="toggleSort(i)"
-                style="color: grey; white-space: pre-wrap;">
-            {{th.name}}
+                style="color: grey; white-space: pre-wrap;">{{th.name}}
             <ng-container *ngIf="th.unit">({{th.unit}})</ng-container>
           </span>
           <div class="sort-icon"

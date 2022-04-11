@@ -311,14 +311,11 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
               )},
             visible: al === this.baseAreaLayer,
             selectable: true,
-            opacity: (al === _this.selectedAreaLayer)? 0.5 : 0,
             tooltipField: 'gen',
             stroke: { color: 'black', selectedColor: 'black',
-              mouseOverColor: 'blue', mouseOverWidth: 3 },
+               mouseOverColor: 'blue', mouseOverWidth: 3 },
             fill: { color: 'rgba(0, 0, 0, 0)', selectedColor: 'rgba(0, 0, 0, 0)' }
           });
-        layer?.set('showTooltip', al === this.selectedAreaLayer);
-        layer?.get('select').setActive(al === this.selectedAreaLayer);
         layer?.getSource().addEventListener('featuresloadend', function () {
           nLoaded += 1;
           if (nLoaded == _this.areaLayers.length){
@@ -327,6 +324,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
           }
         })
       })
+      this.changeAreaLayer();
       this.areaSelectMapControl.map?.map.getView().on('change', function(){
         if (_this.showAreaLayers) _this.updateAreasInExtent();
       })
@@ -439,15 +437,18 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
    * change active layer to currently selected one
    */
   changeAreaLayer(): void {
-    const _this = this;
     this.areaCard.setLoading(true);
     this.areaLayers.forEach(al => {
       const layer = this.areaSelectMapControl?.map?.getLayer(al.tag),
             select = layer?.get('select');
-      layer?.setOpacity((al === _this.selectedAreaLayer) ? 0.5 : 0);
-      select.setActive(al === this.selectedAreaLayer);
-      layer?.set('showTooltip', al === this.selectedAreaLayer);
-      this.areaSelectMapControl?.map?.overlays[layer?.get('name')]?.getSource().clear();
+      layer?.setOpacity((al.tag === this.selectedAreaLayer.tag) ? 0.5 : 0);
+      select.setActive(al.tag === this.selectedAreaLayer.tag);
+      layer?.set('showTooltip', al.tag === this.selectedAreaLayer.tag);
+      const overlay = this.areaSelectMapControl?.map?.overlays[layer?.get('name')];
+      if (overlay) {
+        // overlay.getSource().clear();
+        overlay.setVisible(al.tag === this.selectedAreaLayer.tag);
+      }
     })
     const layer = this.areaSelectMapControl?.map?.getLayer(this.selectedAreaLayer.tag),
           select = layer?.get('select');

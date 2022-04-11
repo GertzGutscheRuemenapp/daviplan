@@ -87,7 +87,7 @@
                 style="margin-left: 40px;"
                 class="mat-button-dv"
                 [disabled]="activeLevel?.isPreset"
-                (click)="onDeleteArea()" i18n>
+                (click)="onDeleteAreaLevel()" i18n>
           <mat-icon>close</mat-icon>entfernen
         </button>
       </div>
@@ -105,24 +105,19 @@
           <td [style.color]="activeLevel.isPreset? 'grey': ''">{{activeLevel?.name}}</td>
         </tr>
         <tr>
-          <td i18n>Beschriftung</td>
-          <td [style.color]="activeLevel.isPreset? 'grey': ''">{{activeLevel?.labelField}}</td>
-        </tr>
-        <tr>
-          <td i18n>Linienfarbe</td>
-          <td>
-            <div *ngIf="activeLevel?.symbol"
-                 style="margin-bottom: -5px;"
-                 class="symbol square"
-                 [style.backgroundColor]="activeLevel?.symbol?.strokeColor">
-            </div>
-            <div *ngIf="!activeLevel?.symbol">
-              keine Darstellung
-            </div>
+          <td i18n>ID-Feld</td>
+          <td [style.color]="activeLevel.isPreset? 'grey': ''">
+            {{activeLevel.keyField || '-'}}
           </td>
         </tr>
         <tr>
-          <td i18n>ID-Feld</td>
+          <td i18n>Beschriftung</td>
+          <td [style.color]="activeLevel.isPreset? 'grey': ''">
+            {{activeLevel?.labelField || '-'}}
+          </td>
+        </tr>
+        <tr>
+          <td i18n>Linienfarbe</td>
           <td>
             <div *ngIf="activeLevel?.symbol"
                  style="margin-bottom: -5px;"
@@ -182,21 +177,32 @@
           <button *ngIf="activeLevel?.source?.sourceType === 'WFS'"
                   class="mat-button-dv"
                   mat-button color="primary"
-                  style="margin-top: 20px;" i18n>
+                  style="margin-top: 20px;"
+                  (click)="pullWfsAreas()">
             <mat-icon class="material-icons-outlined">refresh</mat-icon>
             Daten abrufen bzw. aktualisieren
           </button>
           <button *ngIf="activeLevel?.source?.sourceType === 'FILE'"
                   class="mat-button-dv"
                   mat-button color="primary"
-                  style="margin-top: 20px;" i18n>
+                  style="margin-top: 20px;"
+                  (click)="uploadFile()">
             <mat-icon class="material-icons-outlined">upload</mat-icon>
             Shapefile oder Geopackage hochladen
           </button>
           <div>
             <button class="mat-button-dv"
-                    mat-button color="primary" i18n>
-              <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
+                    mat-button color="primary"
+                    (click)="showDataTable()">
+              <mat-icon class="material-icons-outlined">table_chart</mat-icon>
+              Datentabelle ansehen
+            </button>
+            <button class="mat-button-dv"
+                    mat-button color="warn"
+                    style="float: right; margin-right: 10px; box-shadow: none;"
+                    (click)="onDeleteAreas()">
+              <mat-icon>cancel</mat-icon>
+              Daten löschen
             </button>
 <!--            <button mat-mini-fab color="primary"
                     aria-label="Daten herunterladen" title="Daten herunterladen"
@@ -245,37 +251,41 @@
         <mat-label i18n>Name</mat-label>
         <input matInput formControlName="name" required>
       </mat-form-field>
+      <div *ngIf="!activeLevel?.isPreset" style="display: grid;">
+        <mat-form-field appearance="fill">
+          <mat-label i18n>Beschriftungsfeld</mat-label>
+          <mat-select disableRipple formControlName="labelField">
+            <mat-option *ngFor="let field of activeLevel?.areaFields" [value]="field">
+              {{field}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="fill">
+          <mat-label i18n>ID-Feld</mat-label>
+          <mat-select disableRipple formControlName="keyField">
+            <mat-option *ngFor="let field of activeLevel?.areaFields" [value]="field">
+              {{field}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
       <mat-checkbox color="primary"
                     #enableLayerCheck
                     [checked]="!!activeLevel?.symbol?.strokeColor"
                     title="Gebietseinheit als Layer in Karte zur Verfügung stellen">
         Gebietseinheit als Layer zur Verfügung stellen
       </mat-checkbox>
-      <div *ngIf="enableLayerCheck.checked" style="margin: 10px 0;">
-        <table>
-          <tr>
-            <td i18n>Beschriftungsfeld</td>
-            <td>
-              <mat-form-field appearance="fill">
-                <input matInput formControlName="labelField">
-              </mat-form-field>
-            </td>
-          </tr>
-          <tr>
-            <td i18n>Linienfarbe</td>
-            <td>
-              <div class="symbol square"
-                   [(colorPicker)]="colorSelection"
-                   [style.backgroundColor]="colorSelection"
-                   style="cursor: pointer; margin-top: 7px; float: left;">
-              </div>
-              <button mat-button color="primary"
-                      [(colorPicker)]="colorSelection">
-                Wählen
-              </button>
-            </td>
-          </tr>
-        </table>
+      <div *ngIf="enableLayerCheck.checked" style="display: flex; align-items: baseline;">
+        Linienfarbe
+        <div class="symbol square"
+             [(colorPicker)]="colorSelection"
+             [style.backgroundColor]="colorSelection"
+             style="cursor: pointer; align-self: center; margin-left: 15px;">
+        </div>
+        <button mat-button color="primary"
+                [(colorPicker)]="colorSelection">
+          Wählen
+        </button>
       </div>
     </div>
   </form>
@@ -296,3 +306,31 @@
     </div>
   </form>
 </ng-template>
+
+<ng-template #dataTemplate>
+  <app-data-table [columns]="dataColumns" [rows]="dataRows"></app-data-table>
+</ng-template>
+
+<ng-template #fileUploadTemplate>
+  <div *ngIf="uploadErrors">
+    <mat-error *ngFor="let error of Object.values(uploadErrors)" class="alert">
+      {{ error }}
+    </mat-error>
+  </div>
+  <p>
+    Daten mit Gebieten für Gebietseinheit "{{activeLevel?.name}}" hochladen
+  </p>
+  <input #fileInput type="file" accept=".zip,.gpkg" (change)="setFiles($event)">
+</ng-template>
+
+<ng-template #pullWfsTemplate>
+  <div *ngIf="uploadErrors">
+    <mat-error *ngFor="let error of Object.values(uploadErrors)" class="alert">
+      {{ error }}
+    </mat-error>
+  </div>
+  <p>
+    Sollen die Gebiete der Gebietseinheit "{{this.activeLevel?.name}}" jetzt aus dem angegebenen WFS-Dienst abgerufen und eingespielt werden?
+  </p>
+</ng-template>
+

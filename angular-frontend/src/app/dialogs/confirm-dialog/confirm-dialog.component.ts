@@ -39,7 +39,7 @@ export class ConfirmDialogComponent implements AfterViewInit  {
     // this.dialogRef._containerInstance._elementRef.nativeElement.focus()
     if (this.data.closeOnConfirm)
       this.dialogRef.close(true);
-    this.confirmed.emit();
+    this.confirmed.emit(true);
   }
 
   ngAfterViewInit() {
