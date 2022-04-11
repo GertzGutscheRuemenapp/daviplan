@@ -50,7 +50,8 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
               private rest: RestAPI, private formBuilder: FormBuilder, private restService: RestCacheService) {
     this.editLevelForm = this.formBuilder.group({
       name: new FormControl(''),
-      labelField: new FormControl('')
+      labelField: new FormControl(''),
+      keyField: new FormControl('')
     });
   }
 
@@ -92,11 +93,20 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     return query;
   }
 
+  refreshAreaLevel(areaLevel: AreaLevel): Observable<AreaLevel> {
+    const query = this.http.get<AreaLevel>(`${this.rest.URLS.arealevels}${areaLevel.id}/`);
+    query.subscribe(al => {
+      Object.assign(areaLevel, al);
+    });
+    return query;
+  }
+
   setupEditLevelCard(): void {
     this.editArealevelCard.dialogOpened.subscribe(ok => {
       this.editLevelForm.reset({
         name: this.activeLevel?.name,
-        labelField: this.activeLevel?.labelField
+        labelField: this.activeLevel?.labelField,
+        keyField: this.activeLevel?.keyField
       });
       if (this.activeLevel?.isPreset) {
         this.editLevelForm.controls['name'].disable();
@@ -118,15 +128,15 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       if (!this.activeLevel?.isPreset) {
         attributes['name'] = this.editLevelForm.value.name;
         attributes['labelField'] = this.editLevelForm.value.labelField;
+        attributes['keyField'] = this.editLevelForm.value.keyField;
       }
       this.editArealevelCard.setLoading(true);
       this.http.patch<AreaLevel>(`${this.rest.URLS.arealevels}${this.activeLevel?.id}/`, attributes
       ).subscribe(arealevel => {
-        this.activeLevel!.name = arealevel.name;
-        this.activeLevel!.labelField = arealevel.labelField;
-        this.activeLevel!.symbol = arealevel.symbol;
+        Object.assign(this.activeLevel!, arealevel);
         this.editArealevelCard.closeDialog(true);
         this.mapControl?.refresh({ internal: true });
+        this.selectAreaLevel(arealevel, true);
       },(error) => {
         this.editLevelForm.setErrors(error.error);
         this.editArealevelCard.setLoading(false);
@@ -293,7 +303,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       dialogRef.componentInstance.isLoading = true;
       this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/upload_shapefile/`, formData).subscribe(res => {
         dialogRef.close();
-        this.selectAreaLevel(this.activeLevel!, true);
+        this.refreshAreaLevel(this.activeLevel!).subscribe(al => this.selectAreaLevel(al, true));
       }, error => {
         this.uploadErrors = error.error;
         dialogRef.componentInstance.isLoading = false;

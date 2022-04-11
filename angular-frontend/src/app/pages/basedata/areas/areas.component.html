@@ -251,37 +251,41 @@
         <mat-label i18n>Name</mat-label>
         <input matInput formControlName="name" required>
       </mat-form-field>
+      <div *ngIf="!activeLevel?.isPreset" style="display: grid;">
+        <mat-form-field appearance="fill">
+          <mat-label i18n>Beschriftungsfeld</mat-label>
+          <mat-select disableRipple formControlName="labelField">
+            <mat-option *ngFor="let field of activeLevel?.areaFields" [value]="field">
+              {{field}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="fill">
+          <mat-label i18n>ID-Feld</mat-label>
+          <mat-select disableRipple formControlName="keyField">
+            <mat-option *ngFor="let field of activeLevel?.areaFields" [value]="field">
+              {{field}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
       <mat-checkbox color="primary"
                     #enableLayerCheck
                     [checked]="!!activeLevel?.symbol?.strokeColor"
                     title="Gebietseinheit als Layer in Karte zur Verfügung stellen">
         Gebietseinheit als Layer zur Verfügung stellen
       </mat-checkbox>
-      <div *ngIf="enableLayerCheck.checked" style="margin: 10px 0;">
-        <table>
-          <tr *ngIf="!activeLevel?.isPreset">
-            <td i18n>Beschriftungsfeld</td>
-            <td>
-              <mat-form-field appearance="fill">
-                <input matInput formControlName="labelField">
-              </mat-form-field>
-            </td>
-          </tr>
-          <tr>
-            <td i18n>Linienfarbe</td>
-            <td>
-              <div class="symbol square"
-                   [(colorPicker)]="colorSelection"
-                   [style.backgroundColor]="colorSelection"
-                   style="cursor: pointer; margin-top: 7px; float: left;">
-              </div>
-              <button mat-button color="primary"
-                      [(colorPicker)]="colorSelection">
-                Wählen
-              </button>
-            </td>
-          </tr>
-        </table>
+      <div *ngIf="enableLayerCheck.checked" style="display: flex; align-items: baseline;">
+        Linienfarbe
+        <div class="symbol square"
+             [(colorPicker)]="colorSelection"
+             [style.backgroundColor]="colorSelection"
+             style="cursor: pointer; align-self: center; margin-left: 15px;">
+        </div>
+        <button mat-button color="primary"
+                [(colorPicker)]="colorSelection">
+          Wählen
+        </button>
       </div>
     </div>
   </form>
@@ -314,7 +318,7 @@
     </mat-error>
   </div>
   <p>
-    Daten mit Gebieten für Gebietseinheit {{activeLevel?.name}} hochladen
+    Daten mit Gebieten für Gebietseinheit "{{activeLevel?.name}}" hochladen
   </p>
   <input #fileInput type="file" accept=".zip,.gpkg" (change)="setFiles($event)">
 </ng-template>
@@ -326,7 +330,7 @@
     </mat-error>
   </div>
   <p>
-    Sollen die Gebiete der Gebietseinheit {{this.activeLevel?.name}} jetzt aus dem angegebenen WFS-Dienst abgerufen und eingespielt werden?
+    Sollen die Gebiete der Gebietseinheit "{{this.activeLevel?.name}}" jetzt aus dem angegebenen WFS-Dienst abgerufen und eingespielt werden?
   </p>
 </ng-template>
 
