@@ -150,23 +150,24 @@ class AreaLevelSerializer(serializers.ModelSerializer):
         update_source = 'source' in validated_data
         source_data = validated_data.pop('source', None)
 
-        # ToDo: set label field, key field
-        #label_field = validated_data.pop('label_field', None)
-        #if label_field:
-            ## ToDo: does setting to None work this way?
-            #instance.areafield_set.update(is_label=None)
-            ## ToDo: field type
-            #field = AreaField.objects.get_or_create(
-                #area_level=instance, name=label_field)
-            #field.is_label = True
-            #field.save()
-        #key_field = validated_data.pop('label_field', None)
-        #if key_field:
-            #instance.areafield_set.update(is_label=None)
-            #field = AreaField.objects.get_or_create(
-                #area_level=instance, name=label_field)
-            #field.is_key = True
-            #field.save()
+        label_field = validated_data.pop('label_field', None)
+        if label_field:
+            # ToDo: does setting to None work this way?
+            instance.areafield_set.update(is_label=None)
+            # ToDo: field type
+            field, created = AreaField.objects.get_or_create(
+                area_level=instance, name=label_field)
+            field.is_label = True
+            field.save()
+
+        key_field = validated_data.pop('key_field', None)
+        # ToDo: validate uniqueness of column, return HTTPError otherwise
+        if key_field:
+            instance.areafield_set.update(is_key=None)
+            field, created = AreaField.objects.get_or_create(
+                area_level=instance, name=key_field)
+            field.is_key = True
+            field.save()
 
         instance = super().update(instance, validated_data)
         if update_symbol:
@@ -182,7 +183,7 @@ class AreaLevelSerializer(serializers.ModelSerializer):
                         setattr(symbol, k, v)
                     symbol.save()
             # symbol passed but is None -> intention to set it to null
-            else:
+            elif symbol:
                 symbol.delete()
                 instance.symbol = None
 
