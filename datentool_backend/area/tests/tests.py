@@ -5,6 +5,8 @@ from django.db.utils import IntegrityError
 from test_plus import APITestCase
 from datetime import datetime
 import mapbox_vector_tile
+from django.urls import reverse
+from django.contrib.gis.geos import MultiPolygon, Polygon
 
 from datentool_backend.utils.test_utils import no_connection
 from datentool_backend.api_test import (BasicModelTest,
@@ -37,9 +39,6 @@ from datentool_backend.area.models import (WMSLayer,
                                            SourceTypes
                                            )
 from datentool_backend.site.factories import ProjectSettingFactory
-
-from django.urls import reverse
-from django.contrib.gis.geos import MultiPolygon, Polygon
 
 from faker import Faker
 
