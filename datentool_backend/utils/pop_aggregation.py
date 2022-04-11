@@ -1,6 +1,7 @@
 import pandas as pd
 from io import StringIO
 from django.db import connection
+from django.db.utils import ProgrammingError
 from typing import List
 from django.db.models import F
 
@@ -47,6 +48,14 @@ def intersect_areas_with_raster(
         '''],
         params=(tuple(areas.values_list('id', flat=True)),),
     )
+
+    # ToDo: do intersection first to check number of areas that intersect with
+    # raster, causes error if no area intersects with raster
+    try:
+        if not rr:
+            return
+    except ProgrammingError:
+        return
 
     df = pd.DataFrame.from_records(
         rr.values('id', 'area_id', 'pop', 'rcp_id',

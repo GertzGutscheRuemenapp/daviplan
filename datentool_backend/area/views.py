@@ -234,6 +234,14 @@ class AreaLevelFilter(filters.FilterSet):
         fields = ['is_active']
 
 
+# minimum area of feature in m² after intersection with project area
+# otherwise ignored
+MIN_AREA = 100000
+# percentage of intersected area in relation to original geometry
+# if above threshold uncut original geometry is taken
+INTERSECT_THRESHOLD = 0.95
+CUT_OUT_SUFFIX = '(Ausschnitt)'
+
 class AreaLevelViewSet(AnnotatedAreasMixin,
                        ProtectCascadeMixin,
                        viewsets.ModelViewSet):
@@ -313,13 +321,6 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
     @action(methods=['POST'], detail=True,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def pull_areas(self, request, **kwargs):
-        # minimum area of feature in m² after intersection with project area
-        # otherwise ignored
-        MIN_AREA = 100000
-        # percentage of intersected area in relation to original geometry
-        # if above threshold uncut original geometry is taken
-        INTERSECT_THRESHOLD = 0.95
-        CUT_OUT_SUFFIX = '(Ausschnitt)'
         try:
             area_level: AreaLevel = self.queryset.get(**kwargs)
         except AreaLevel.DoesNotExist:
@@ -429,10 +430,15 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
         except AreaLevel.DoesNotExist:
             msg = f'Area level for {kwargs} not found'
             return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+        project_area = ProjectSetting.load().project_area
+        if not project_area:
+            msg = 'Project area is not defined'
+            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
         # ToDo: option to truncate or to update existing entries
         # when keys match
         # delete existing data
         Area.objects.filter(area_level=area_level).delete()
+        AreaField.objects.filter(area_level=area_level).delete()
         geo_file = request.FILES['file']
         ext = '.'.join([''] + geo_file.name.split('.')[1:])
         mapping = {'geom': 'MULTIPOLYGON',}
@@ -460,7 +466,8 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
                         af = AreaField.objects.get(area_level=area_level,
                                                    name=field_name)
                     except AreaField.DoesNotExist:
-                        field_type, created = FieldType.objects.get_or_create(ftype=ft)
+                        field_type, created = FieldType.objects.get_or_create(
+                            name=ft.value, ftype=ft)
                         af = AreaField.objects.create(area_level=area_level,
                                                       name=field_name,
                                                       field_type=field_type)
@@ -473,18 +480,35 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
                                 status=status.HTTP_406_NOT_ACCEPTABLE)
 
         areas = Area.objects.filter(area_level=area_level)
+        label_field = area_level.label_field
         for i, area in enumerate(areas):
             area_attrs = {field_name: attrs[i]
                           for field_name, attrs
                           in attributes.items()}
             area.attributes = area_attrs
+
+            intersection = project_area.intersection(area.geom)
+            # ToDo: remove too small fractions or only if it is 0?
+            if (intersection.area < MIN_AREA):
+                area.delete()
+                continue
+            # ToDo: there will be most likely be no label yet
+            if intersection.area / area.geom.area < INTERSECT_THRESHOLD:
+                if isinstance(intersection, Polygon):
+                    intersection = MultiPolygon(intersection)
+                area.geom = intersection
+                if label_field:
+                    setattr(area, label_field,
+                            f'{properties.get(label_field, "")} '
+                            f'{CUT_OUT_SUFFIX}')
             area.save()
         now = datetime.datetime.now()
         area_level.source.date = datetime.date(now.year, now.month, now.day)
         area_level.source.save()
-        intersect_areas_with_raster(areas, drop_constraints=True)
-        for population in Population.objects.all():
-            aggregate_population(area_level, population, drop_constraints=True)
+        if areas:
+            intersect_areas_with_raster(areas, drop_constraints=True)
+            for population in Population.objects.all():
+                aggregate_population(area_level, population, drop_constraints=True)
         msg = f'Upload successful of {layer.num_feat} areas'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
