@@ -182,9 +182,15 @@ export class RestCacheService {
             const geometry = wktToGeom(area.geometry as string,
               {targetProjection: targetProjection, ewkt: true});
             area.geometry = geometry;
-            const poly = turf.multiPolygon((geometry as MultiPolygon).getCoordinates());
-            const centroidGeom = format.readFeature(centroid(poly).geometry).getGeometry();
-            area.centroid = centroidGeom;
+            // if (geometry.getCoordinates().length === 0) return;
+            try {
+              const poly = turf.multiPolygon((geometry as MultiPolygon).getCoordinates());
+              const centroidGeom = format.readFeature(centroid(poly).geometry).getGeometry();
+              area.centroid = centroidGeom;
+            }
+            catch (e) {
+              console.log(e);
+            }
           })
           this.setLoading(false);
           subscriber.next(areas.features);

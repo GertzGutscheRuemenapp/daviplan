@@ -26,6 +26,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   @ViewChild('enableLayerCheck') enableLayerCheck?: MatCheckbox;
   @ViewChild('createAreaLevel') createLevelTemplate?: TemplateRef<any>;
   @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
+  @ViewChild('pullWfsTemplate') pullWfsTemplate?: TemplateRef<any>;
   @ViewChild('fileUploadTemplate') fileUploadTemplate?: TemplateRef<any>;
   @ViewChild('fileInput') fileInput?: HTMLInputElement;
   mapControl?: MapControl;
@@ -43,6 +44,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   dataColumns: string[] = [];
   dataRows: any[][] = [];
   file?: File;
+  uploadErrors: any = {};
 
   constructor(private mapService: MapService, private http: HttpClient, private dialog: MatDialog,
               private rest: RestAPI, private formBuilder: FormBuilder, private restService: RestCacheService) {
@@ -242,27 +244,28 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     if (!this.activeLevel || this.activeLevel.source?.sourceType !== 'WFS')
       return;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '300px',
+      width: '450px',
       data: {
         title: `WFS Daten abrufen`, //für Gebietseinheit "${this.activeLevel.name}"`,
         confirmButtonText: 'Daten abrufen',
-        closeOnConfirm: true,
-        message: `Sollen die Gebiete der Gebietseinheit "${this.activeLevel.name}" jetzt aus dem angegebenen WFS-Dienst abgerufen und eingespielt werden?`
+        closeOnConfirm: false,
+        template: this.pullWfsTemplate
       }
     });
-    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
-      if (confirmed) {
-        this.isLoading$.next(true);
-        this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/pull_areas/`,
-          { truncate: true, simplify: false }).subscribe(res => {
-          this.isLoading$.next(false);
-          this.selectAreaLevel(this.activeLevel!, true);
-        }, error => {
-          console.log('there was an error sending the query', error);
-          this.isLoading$.next(false);
-        });
-      }
+    dialogRef.componentInstance.confirmed.subscribe((confirmed: boolean) => {
+      dialogRef.componentInstance.isLoading = true;
+      this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/pull_areas/`,
+        { truncate: true, simplify: false }).subscribe(res => {
+        dialogRef.close();
+        this.selectAreaLevel(this.activeLevel!, true);
+      }, error => {
+        this.uploadErrors = error.error;
+        dialogRef.componentInstance.isLoading = false;
+      });
     });
+    dialogRef.afterClosed().subscribe(ok => {
+      this.uploadErrors = {};
+    })
   }
 
   setFiles(event: Event){
@@ -275,11 +278,10 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     if (!this.activeLevel || this.activeLevel.source?.sourceType !== 'FILE')
       return;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '350px',
+      width: '450px',
       data: {
         title: `Daten hochladen`, //für Gebietseinheit "${this.activeLevel.name}"`,
-        confirmButtonText: 'Daten abrufen',
-        message: `Daten mit Gebieten für Gebietseinheit "${this.activeLevel.name}" hochladen`,
+        confirmButtonText: 'Datei hochladen',
         template: this.fileUploadTemplate
       }
     });
@@ -288,16 +290,18 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         return;
       const formData = new FormData();
       formData.append('file', this.file);
-/*      this.isLoading$.next(true);
-      this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/upload_shapefile/`,
-        { file: true }).subscribe(res => {
-        this.isLoading$.next(false);
+      dialogRef.componentInstance.isLoading = true;
+      this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/upload_shapefile/`, formData).subscribe(res => {
+        dialogRef.close();
         this.selectAreaLevel(this.activeLevel!, true);
       }, error => {
-        console.log('there was an error sending the query', error);
-        this.isLoading$.next(false);
-      });*/
+        this.uploadErrors = error.error;
+        dialogRef.componentInstance.isLoading = false;
+      });
     });
+    dialogRef.afterClosed().subscribe(ok => {
+      this.uploadErrors = {};
+    })
   }
 
   onDeleteAreas(): void {

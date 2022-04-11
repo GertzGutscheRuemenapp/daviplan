@@ -308,5 +308,25 @@
 </ng-template>
 
 <ng-template #fileUploadTemplate>
+  <div *ngIf="uploadErrors">
+    <mat-error *ngFor="let error of Object.values(uploadErrors)" class="alert">
+      {{ error }}
+    </mat-error>
+  </div>
+  <p>
+    Daten mit Gebieten für Gebietseinheit {{activeLevel?.name}} hochladen
+  </p>
   <input #fileInput type="file" accept=".zip,.gpkg" (change)="setFiles($event)">
 </ng-template>
+
+<ng-template #pullWfsTemplate>
+  <div *ngIf="uploadErrors">
+    <mat-error *ngFor="let error of Object.values(uploadErrors)" class="alert">
+      {{ error }}
+    </mat-error>
+  </div>
+  <p>
+    Sollen die Gebiete der Gebietseinheit {{this.activeLevel?.name}} jetzt aus dem angegebenen WFS-Dienst abgerufen und eingespielt werden?
+  </p>
+</ng-template>
+
