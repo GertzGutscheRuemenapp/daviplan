@@ -61,12 +61,12 @@ export class RestCacheService {
   }
 
   getRealYears(): Observable<number[]> {
-    const url = `${this.rest.URLS.years}?with_population=true`;
+    const url = `${this.rest.URLS.years}?has_real_data=true`;
     return this.getYears(url);
   }
 
   getPrognosisYears(): Observable<number[]> {
-    const url = `${this.rest.URLS.years}?with_prognosis=true`;
+    const url = `${this.rest.URLS.years}?has_prognosis_data=true`;
     return this.getYears(url);
   }
 

@@ -1,6 +1,8 @@
 from django.db.models import Q, Max
 from django.core.exceptions import BadRequest
 from django.contrib.auth.models import User
+from django_filters import rest_framework as filters
+from distutils.util import strtobool
 
 from rest_framework import viewsets, permissions, status, response, serializers
 from rest_framework.decorators import action
@@ -78,42 +80,40 @@ class UserViewSet(viewsets.ModelViewSet):
 
         return Response(settings)
 
-
 @extend_schema_view(list=extend_schema(
     parameters=[
-        OpenApiParameter(name='prognosis', required=False, type=int,
-                         description='only years defined for prognosis with this pkey'),
-        OpenApiParameter(name='with_population', required=False, type=bool ,
+        OpenApiParameter(name='has_real_data', required=False, type=bool ,
                          description='if true, only years where population data is available'),
-        OpenApiParameter(name='with_prognosis', required=False, type=bool ,
+        OpenApiParameter(name='has_prognosis_data', required=False, type=bool ,
                          description='if true, only years where data from any prognosis is available'),
-        OpenApiParameter(name='prognosis_years', required=False, type=bool ,
-                         description='if true, only prognosis-years should be returned'),
     ]
 ))
 class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     serializer_class = YearSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    filter_fields = ['is_real', 'is_prognosis', 'population__prognosis']
 
     def get_queryset(self):
         """ get the years. Request-parameters with_prognosis/with_population """
         qs = Year.objects.all()
-        prognosis = self.request.query_params.get('prognosis')
-        with_population = self.request.query_params.get('with_population')
-        with_prognosis = self.request.query_params.get('with_prognosis')
-        prognosis_years = self.request.query_params.get('prognosis_years')
+        # overly complicated to implement combined filter with django filters
+        # doing it this way
+        has_real_data = self.request.query_params.get('has_real_data')
+        has_prognosis_data = self.request.query_params.get('has_prognosis_data')
 
-        if with_population:
-            expr = Q(population__isnull=False) & Q(population__prognosis__isnull=True)
-            qs = qs.filter(expr)
-        elif with_prognosis:
+        if has_real_data:
+            expr = (Q(population__isnull=False) &
+                    Q(population__prognosis__isnull=True))
+            if strtobool(has_real_data):
+                qs = qs.filter(expr).distinct()
+            else:
+                qs = qs.exclude(expr).distinct()
+        if has_prognosis_data:
             expr = Q(population__prognosis__isnull=False)
-            qs = qs.filter(expr).distinct()
-        elif prognosis:
-            expr = Q(population__isnull=False) & Q(population__prognosis_id=prognosis)
-            qs = qs.filter(expr)
-        elif prognosis_years:
-            qs = qs.filter(is_prognosis=True)
+            if strtobool(has_prognosis_data):
+                qs = qs.filter(expr).distinct()
+            else:
+                qs = qs.exclude(expr).distinct()
         return qs.order_by('year')
 
     @extend_schema(description='Set Year Range',
