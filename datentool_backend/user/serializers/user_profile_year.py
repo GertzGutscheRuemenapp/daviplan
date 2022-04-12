@@ -71,9 +71,14 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class YearSerializer(serializers.ModelSerializer):
+    has_real_data = serializers.BooleanField(source='has_real',
+                                             read_only=True)
+    has_prognosis_data = serializers.BooleanField(source='has_prognosis',
+                                                  read_only=True)
     class Meta:
         model = Year
-        fields = ('id', 'year', 'is_prognosis', 'is_real')
+        fields = ('id', 'year', 'is_prognosis', 'is_real',
+                  'has_real_data', 'has_prognosis_data')
 
 
 class PlanningProcessSerializer(serializers.ModelSerializer):

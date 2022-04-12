@@ -1,15 +1,13 @@
-from django.db.models import Q, Max
+from django.db.models import Q, Max, ExpressionWrapper, BooleanField
 from django.core.exceptions import BadRequest
 from django.contrib.auth.models import User
 from django_filters import rest_framework as filters
-from distutils.util import strtobool
 
 from rest_framework import viewsets, permissions, status, response, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from drf_spectacular.utils import (extend_schema,
-                                   extend_schema_view,
                                    OpenApiParameter,
                                    inline_serializer)
 
@@ -80,41 +78,36 @@ class UserViewSet(viewsets.ModelViewSet):
 
         return Response(settings)
 
-@extend_schema_view(list=extend_schema(
-    parameters=[
-        OpenApiParameter(name='has_real_data', required=False, type=bool ,
-                         description='if true, only years where population data is available'),
-        OpenApiParameter(name='has_prognosis_data', required=False, type=bool ,
-                         description='if true, only years where data from any prognosis is available'),
-    ]
-))
+
+class YearFilter(filters.FilterSet):
+    active = filters.BooleanFilter(field_name='is_active')
+    prognosis = filters.NumberFilter(field_name='population__prognosis')
+    has_real_data = filters.BooleanFilter(field_name='has_real')
+    has_prognosis_data = filters.BooleanFilter(field_name='has_prognosis')
+    class Meta:
+        model = Year
+        fields = ['is_real', 'is_prognosis', 'population__prognosis',
+                  'has_real_data', 'has_prognosis_data']
+
+
 class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     serializer_class = YearSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-    filter_fields = ['is_real', 'is_prognosis', 'population__prognosis']
+    filter_class = YearFilter
 
     def get_queryset(self):
         """ get the years. Request-parameters with_prognosis/with_population """
         qs = Year.objects.all()
-        # overly complicated to implement combined filter with django filters
-        # doing it this way
-        has_real_data = self.request.query_params.get('has_real_data')
-        has_prognosis_data = self.request.query_params.get('has_prognosis_data')
 
-        if has_real_data:
-            expr = (Q(population__isnull=False) &
-                    Q(population__prognosis__isnull=True))
-            if strtobool(has_real_data):
-                qs = qs.filter(expr).distinct()
-            else:
-                qs = qs.exclude(expr).distinct()
-        if has_prognosis_data:
-            expr = Q(population__prognosis__isnull=False)
-            if strtobool(has_prognosis_data):
-                qs = qs.filter(expr).distinct()
-            else:
-                qs = qs.exclude(expr).distinct()
-        return qs.order_by('year')
+        has_real_data = (Q(population__isnull=False) &
+                         Q(population__prognosis__isnull=True))
+        has_prognosis_data = Q(population__prognosis__isnull=False)
+        qs = qs.annotate(
+            has_real=ExpressionWrapper(has_real_data,
+                                       output_field=BooleanField()),
+            has_prognosis=ExpressionWrapper(has_prognosis_data,
+                                            output_field=BooleanField()))
+        return qs.distinct().order_by('year')
 
     @extend_schema(description='Set Year Range',
                    request=inline_serializer(
