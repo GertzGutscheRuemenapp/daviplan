@@ -31,22 +31,22 @@ class SingletonViewSet(viewsets.ModelViewSet):
 
 class ProtectCascadeMixin:
     @extend_schema(parameters=[
-        OpenApiParameter(name='override_protection', type=bool, required=False,
+        OpenApiParameter(name='force', type=bool, required=False,
                          description='''if true, delete depending objects cascadedly,
                          even if they are protected'''),],
                    description='''Delete is not possible if there are depending objects,
-                   unless override_protection is passed as query-param''')
+                   unless force is passed as query-param''')
     def destroy(self, request, **kwargs):
         """
         try to delete an object. If it is protected,
         because of referencing objects, only delete, if
-        override_protection is provided in the request-data or the query_params
+        force is provided in the request-data or the query_params
         """
         # param to override protection may be in the url or inside the form data
-        override_protection = request.query_params.get(
-            'override_protection', False) or request.data.get(
-            'override_protection', False)
-        self.use_protection = override_protection not in ('true', 'True', True)
+        force = request.query_params.get(
+            'force', False) or request.data.get(
+            'force', False)
+        self.use_protection = force not in ('true', 'True', True)
         try:
             response = super().destroy(request, **kwargs)
         except ProtectedError as err:
