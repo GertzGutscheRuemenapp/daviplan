@@ -286,17 +286,17 @@ class TestPopulationAPI(WriteOnlyWithCanEditBaseDataTest,
                             set(range(1910, 1930)))
 
         response = self.get_check_200(url='years-list',
-                                      data={'with_population': 1},)
+                                      data={'has_real_data': 1},)
         self.assertSetEqual({d['year'] for d in response.data},
                             set(range(1910, 1921)))
 
         response = self.get_check_200(url='years-list',
-                                      data={'prognosis': prognosis1.pk},)
+                                      data={'population__prognosis': prognosis1.pk},)
         self.assertSetEqual({d['year'] for d in response.data},
                             set(range(1919, 1923)))
 
         response = self.get_check_200(url='years-list',
-                                      data={'prognosis': prognosis2.pk},)
+                                      data={'population__prognosis': prognosis2.pk},)
         self.assertSetEqual({d['year'] for d in response.data},
                             set(range(1927, 1930)))
 
