@@ -138,7 +138,7 @@ class TestYearAPI(WriteOnlyWithCanEditBaseDataTest,
                              list(range(2020, 2050, 1)))
         # prognosis years
         res = self.get_check_200(url,
-                                 data={'prognosis_years': True,},
+                                 data={'is_prognosis': True,},
                                  extra={'format': 'json'})
         self.assertListEqual([r['year'] for r in res.data],
                              list(range(2020, 2050, 5)))

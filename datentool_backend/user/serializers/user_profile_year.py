@@ -73,7 +73,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 class YearSerializer(serializers.ModelSerializer):
     class Meta:
         model = Year
-        fields = ('id', 'year')
+        fields = ('id', 'year', 'is_prognosis', 'is_real')
 
 
 class PlanningProcessSerializer(serializers.ModelSerializer):
