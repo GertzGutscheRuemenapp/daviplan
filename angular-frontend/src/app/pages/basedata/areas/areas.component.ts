@@ -14,6 +14,7 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { RestCacheService } from "../../../rest-cache.service";
 import { FileHandle } from "../../../helpers/dragndrop.directive";
+import { map, shareReplay } from "rxjs/operators";
 
 
 @Component({
@@ -89,14 +90,6 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       })
       this.presetLevels = sortBy(this.presetLevels, 'order');
       this.customAreaLevels = sortBy(this.customAreaLevels, 'order');
-    });
-    return query;
-  }
-
-  refreshAreaLevel(areaLevel: AreaLevel): Observable<AreaLevel> {
-    const query = this.http.get<AreaLevel>(`${this.rest.URLS.arealevels}${areaLevel.id}/`);
-    query.subscribe(al => {
-      Object.assign(areaLevel, al);
     });
     return query;
   }
@@ -235,8 +228,8 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/`
-        ).subscribe(res => {
+        this.http.delete(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/`,
+          { params: { force: true }}).subscribe(res => {
           const idx = this.customAreaLevels.indexOf(this.activeLevel!);
           if (idx >= 0) {
             this.customAreaLevels.splice(idx, 1);
@@ -303,7 +296,10 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       dialogRef.componentInstance.isLoading = true;
       this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/upload_shapefile/`, formData).subscribe(res => {
         dialogRef.close();
-        this.refreshAreaLevel(this.activeLevel!).subscribe(al => this.selectAreaLevel(al, true));
+        this.http.get<AreaLevel>(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/`).subscribe(al => {
+          Object.assign(this.activeLevel, al);
+          this.selectAreaLevel(this.activeLevel!, true);
+        })
       }, error => {
         this.uploadErrors = error.error;
         dialogRef.componentInstance.isLoading = false;

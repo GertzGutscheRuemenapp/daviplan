@@ -321,7 +321,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         # from the place attributes
         response = self.delete('placefields-detail',
                                pk=int_field.pk,
-                               data=dict(override_protection=True))
+                               data=dict(force=True))
         self.response_204(msg=response.content)
 
         place_attributes = PlaceAttribute.objects.filter(
@@ -337,11 +337,11 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         place1.attributes = attributes
         place1.save()
 
-        # it should delete the text_field even without override_protection,
+        # it should delete the text_field even without force,
         # because it is not referenced any more
         response = self.delete('placefields-detail',
                                pk=text_field.pk,
-                               data=dict(override_protection=False))
+                               data=dict(force=False))
         self.response_204(msg=response.content)
 
         field_name = 'class_field'
@@ -352,13 +352,13 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         fclass1 = FClass.objects.get(ftype=class_field.field_type, value='Category_1')
         response = self.delete('fclasses-detail',
                                pk=fclass1.pk,
-                               data=dict(override_protection=False))
+                               data=dict(force=False))
         self.response_403(msg=response.content)
 
-        # deleting a FClass category should work with override_protection,
+        # deleting a FClass category should work with force,
         response = self.delete('fclasses-detail',
                                pk=fclass1.pk,
-                               data=dict(override_protection=True))
+                               data=dict(force=True))
         self.response_204(msg=response.content)
 
         # the attribute should have been removed now in place1
@@ -372,10 +372,10 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
                                 order=1,
                                 value='Category_3')
 
-        # this is not used, so it should be deleted also without override_protection
+        # this is not used, so it should be deleted also without force
         response = self.delete('fclasses-detail',
                                pk=fclass3.pk,
-                               data=dict(override_protection=False))
+                               data=dict(force=False))
         self.response_204(msg=response.content)
 
     def test_get_capacity_for_service(self):

@@ -204,12 +204,12 @@ class TestPlanningProcessProtectCascade(TestAPIMixin, LoginTestCase, APITestCase
         url = self.url_key + '-detail'
         response = self.get_check_200(url, **kwargs)
 
-        #  with override_protection=False it should fail
-        response = self.delete(url, data=dict(override_protection=False), **kwargs)
+        #  with force=False it should fail
+        response = self.delete(url, data=dict(force=False), **kwargs)
         self.response_403(msg=response.content)
 
-        #  with override_protection=True it should work
-        response = self.delete(url, data=dict(override_protection=True), **kwargs)
+        #  with force=True it should work
+        response = self.delete(url, data=dict(force=True), **kwargs)
         self.response_204(msg=response.content)
         #  assert that the referenced scenario is deleted
         self.assertEqual(Scenario.objects.count(), 0)
