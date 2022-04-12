@@ -115,6 +115,15 @@ export interface Area {
   }
 }
 
+export interface Year {
+  id: number,
+  year: number,
+  isPrognosis: boolean,
+  isReal: boolean,
+  hasRealData: boolean,
+  hasPrognosisData: boolean
+}
+
 export interface Prognosis {
   id: number,
   name: string,
