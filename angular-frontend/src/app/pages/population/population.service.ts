@@ -5,7 +5,7 @@ import { RestAPI } from "../../rest-api";
 import { TimeSliderComponent } from "../../elements/time-slider/time-slider.component";
 import { RestCacheService } from "../../rest-cache.service";
 import { Observable } from "rxjs";
-import { Population, PopulationData } from "../../rest-interfaces";
+import { Population } from "../../rest-interfaces";
 
 @Injectable({
   providedIn: 'root'

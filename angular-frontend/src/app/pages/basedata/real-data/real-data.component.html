@@ -32,8 +32,9 @@
         <tr>
           <td i18n>Jahre</td>
           <td>
-            <ng-container *ngFor="let pop of populations; let i = index;">
-              {{pop.year}}<ng-container *ngIf="i !== populations.length - 1">, </ng-container>
+            <ng-container *ngIf="realYears.length === 0">-</ng-container>
+            <ng-container *ngFor="let year of realYears; let i = index;">
+              {{year}}<ng-container *ngIf="i !== realYears.length - 1">, </ng-container>
             </ng-container>
           </td>
         </tr>
@@ -121,32 +122,46 @@
 </div>
 
 <ng-template #yearsEdit>
-  <table>
+  <table style="text-align: center;">
     <tr>
-      <th>Jahr</th>
+      <th colspan="2"></th>
+      <th colspan="2">vorhandene Daten</th>
+    </tr>
+    <tr>
+      <th style="text-align: left;">Jahr</th>
       <th>ausgewählt</th>
-      <th>Daten vorhanden</th>
-      <th>Daten löschen</th>
+      <th>Real</th>
+      <th>Prognose</th>
+<!--      <th>Realdaten löschen</th>-->
     </tr>
     <tr *ngFor="let year of years">
-      <td>{{year}}</td>
+      <td>{{year.year}}</td>
       <td>
         <mat-checkbox color="primary"
-                      [checked]="yearSelection.isSelected(year)"
+                      [checked]="year.isReal"
                       title="das Jahr auswählen als Jahr mit Bevölkerungsdaten ???">
         </mat-checkbox>
       </td>
       <td>
         <mat-checkbox [disabled]="true"
-                      [checked]="yearSelection.isSelected(year)"
+                      [checked]="year.hasRealData"
                       title="Zeigt an, ob für das Jahr bereits Bevölkerungsdaten vorliegen">
         </mat-checkbox>
-      </td>
-      <td>
         <button mat-icon-button color="warn">
           <mat-icon>close</mat-icon>
         </button>
       </td>
+      <td>
+        <mat-checkbox [disabled]="true"
+                      [checked]="year.hasPrognosisData"
+                      title="Zeigt an, ob für das Jahr bereits Prognose vorliegen">
+        </mat-checkbox>
+      </td>
+<!--      <td>
+        <button mat-icon-button color="warn">
+          <mat-icon>close</mat-icon>
+        </button>
+      </td>-->
     </tr>
   </table>
 </ng-template>

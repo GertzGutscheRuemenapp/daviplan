@@ -236,7 +236,7 @@ class AreaLevelFilter(filters.FilterSet):
 
 # minimum area of feature in m² after intersection with project area
 # otherwise ignored
-MIN_AREA = 100000
+MIN_AREA = 10000
 # percentage of intersected area in relation to original geometry
 # if above threshold uncut original geometry is taken
 INTERSECT_THRESHOLD = 0.95
@@ -488,7 +488,6 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
             area.attributes = area_attrs
 
             intersection = project_area.intersection(area.geom)
-            # ToDo: remove too small fractions or only if it is 0?
             if (intersection.area < MIN_AREA):
                 area.delete()
                 continue

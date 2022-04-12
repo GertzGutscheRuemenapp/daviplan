@@ -63,13 +63,13 @@ class GetCapabilitiesResponseSerializer(serializers.Serializer):
 
 class SourceSerializer(serializers.ModelSerializer):
     date = serializers.DateField(format='%d.%m.%Y',
-                                 input_formats=['%d.%m.%Y', 'iso-8601'])
+                                 input_formats=['%d.%m.%Y', 'iso-8601'],
+                                 required=False)
     class Meta:
         model = Source
         fields = ('source_type', 'date', 'url', 'layer')
         extra_kwargs = {'url': {'required': False},
-                        'layer': {'required': False},
-                        'date': {'required': False}}
+                        'layer': {'required': False}}
 
 
 class AreaLevelSerializer(serializers.ModelSerializer):
