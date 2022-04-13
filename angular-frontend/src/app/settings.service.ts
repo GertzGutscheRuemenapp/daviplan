@@ -71,7 +71,8 @@ export class SettingsService {
   projectSettings$ = new BehaviorSubject<ProjectSettings>({
     projectArea: '',
     startYear: 0,
-    endYear: 0
+    endYear: 0,
+    minYear: 0
   });
   user!: UserSettings;
 
