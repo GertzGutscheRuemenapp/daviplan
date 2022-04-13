@@ -1199,3 +1199,17 @@ mat-checkbox.reverse {
   left: 45%;
   top: 40%;
 }
+
+#years-check-table {
+  text-align: center;
+  width: 400px;
+  td mat-checkbox label{
+    margin: 0;
+  }
+  tr:hover:nth-child(n+3) {
+    background-color: #f6f6f6;
+  }
+  tr.active td:first-child {
+    color: $primary;
+  }
+}

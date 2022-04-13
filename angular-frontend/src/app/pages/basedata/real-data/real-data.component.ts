@@ -43,8 +43,8 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
           this.realYears.push(year.year);
         }
         this.years.push(year);
-        this.setupYearCard();
       })
+      this.setupYearCard();
     });
     // this.settings.projectSettings$.subscribe(settings => {
     //   this.availableYears = Array.from({ length: settings.endYear - settings.startYear + 1 }, (_, i) => i + settings.startYear)
@@ -68,6 +68,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
           if (year)
             Object.assign(year, ry);
         })
+        this.realYears.sort();
         this.yearCard?.closeDialog(true);
       });
     })

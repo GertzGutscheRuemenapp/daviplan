@@ -12,15 +12,21 @@
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
-    <app-input-card [title]="'Prognosejahre'"
-                    [editTemplate]="areaLevelEdit"
+    <app-input-card #yearCard
+                    [title]="'Prognosejahre'"
+                    [editTemplate]="yearsEdit"
                     infoText="<p>Bevor Sie Prognosedaten hochladen, müssen Sie an dieser Stelle die wichtigsten Rahmendaten der Prognose eintragen. Diese Rahmendaten definieren u.a. die Struktur der Vorlagedateien, die Sie sich in der Box „Prognosedaten der ausgewählten Variante hochladen“ herunterladen können. Nachträgliche Veränderungen an den Rahmendaten führen daher zu einem Löschen aller bereits hochgeladenen Prognosedaten.</p>
                               <p>Um konsistente Zeitreihen sicherzustellen, müssen sich die Prognosedaten auf die gleiche Gebietseinteilung beziehen wie die Realdaten der zurückliegenden Jahr. Die Eintragung hinter „Gebietseinheit“ wurde daher aus Ihren Einstellungen bei den Realdaten übernommen. Falls Sie eine andere Gebietseinteilung nutzen möchten, müssen Sie die Einstellung dort ändern.</p>
                               <p>Legen Sie zudem fest, für welche zukünftigen Jahre Ihnen aus der Ihnen vorliegenden Prognose Werte hochgeladen werden sollen. Prognosedaten für Jahre, für die zwischenzeitlich Realdaten hochgeladen wurden, werden in den Hauptmenübereichen „Bevölkerung“ und „Infrastrukturplanung“ nicht mehr angezeigt oder für Berechnungen verwendet. Sie müssen dafür nicht aktiv gelöscht werden.</p>">
       <table>
         <tr>
           <td i18n>Prognosejahre</td>
-          <td>2017, 2018, 2019, 2020, 2021, 2022</td>
+          <td>
+            <ng-container *ngIf="prognosisYears.length === 0">-</ng-container>
+            <ng-container *ngFor="let year of prognosisYears; let i = index;">
+              {{year}}<ng-container *ngIf="i !== prognosisYears.length - 1">, </ng-container>
+            </ng-container>
+          </td>
         </tr>
       </table>
     </app-input-card>
@@ -173,6 +179,47 @@
   </div>
 </div>
 
-<ng-template #areaLevelEdit>
-  Funktionalität für den Prototyp noch nicht hinterlegt.
+<ng-template #yearsEdit>
+  <table id="years-check-table">
+    <tr>
+      <th colspan="2"></th>
+      <th colspan="2">Daten in der Datenbank</th>
+    </tr>
+    <tr>
+      <th style="text-align: left;">Jahr</th>
+      <th>ausgewählt</th>
+      <th>Prognosedaten</th>
+      <th>Realdaten</th>
+    </tr>
+    <tr *ngFor="let year of years" [class.active]="yearSelection.isSelected(year.year)">
+      <td>{{year.year}}</td>
+      <td>
+        <mat-checkbox color="primary"
+                      [checked]="yearSelection.isSelected(year.year)"
+                      (change)="yearSelection.toggle(year.year)"
+                      title="{{year.year}} als Realdatenjahr aus/abwählen">
+        </mat-checkbox>
+      </td>
+      <td style="text-align: right;">
+        <mat-checkbox [disabled]="true"
+                      [checked]="year.hasPrognosisData"
+                      title="Zeigt an, ob für das Jahr bereits Bevölkerungsdaten vorliegen">
+        </mat-checkbox>
+        <button [style.opacity]="(!year.hasPrognosisData)? 0: 1"
+                [style.pointer-events]="(!year.hasPrognosisData)? 'none': ''"
+                (click)="deleteData(year)"
+                mat-icon-button color="warn"
+                title="Realdaten des Jahres {{year.year}} entfernen"
+                style="margin-left: 10px;">
+          <mat-icon>close</mat-icon>
+        </button>
+      </td>
+      <td>
+        <mat-checkbox [disabled]="true"
+                      [checked]="year.hasRealData"
+                      title="Zeigt an, ob für das Jahr bereits Prognosedaten vorliegen">
+        </mat-checkbox>
+      </td>
+    </tr>
+  </table>
 </ng-template>
