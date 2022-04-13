@@ -1,13 +1,8 @@
-import pandas as pd
-
 from django.contrib.auth.models import User
-from django.db.models import Min
 
 from rest_framework import serializers
 
 from datentool_backend.user.models.profile import Profile
-from datentool_backend.user.models.process import PlanningProcess
-from datentool_backend.population.models import Year
 from datentool_backend.infrastructure.models.infrastructures import (
     InfrastructureAccess)
 
@@ -68,31 +63,3 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
                     profile=profile)
                 infra_access.save()
         return super().update(instance, validated_data)
-
-
-class YearSerializer(serializers.ModelSerializer):
-    has_real_data = serializers.BooleanField(source='has_real',
-                                             read_only=True)
-    has_prognosis_data = serializers.BooleanField(source='has_prognosis',
-                                                  read_only=True)
-    class Meta:
-        model = Year
-        fields = ('id', 'year', 'is_prognosis', 'is_real',
-                  'has_real_data', 'has_prognosis_data')
-
-
-class PlanningProcessSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PlanningProcess
-        fields = ('id', 'name', 'owner', 'users', 'allow_shared_change',
-                  'description')
-        read_only_fields = ('owner', )
-
-    def create(self, validated_data):
-        request = self.context.get('request')
-        if request and hasattr(request, 'user'):
-            owner = request.user.profile
-            validated_data['owner'] = owner
-            return super().create(validated_data)
-        else:
-            raise serializers.ValidationError('user could not be determined')

@@ -4,14 +4,11 @@ from faker import Faker
 from django.db.models.signals import post_save
 
 from .models.profile import User, Profile
-from .models.process import PlanningProcess
-from datentool_backend.infrastructure.models.infrastructures import(
-                     Infrastructure, Service)
-from datentool_backend.population.models import Year
-
-from datentool_backend.area.factories import MapSymbolFactory
+from .models.process import PlanningProcess, Scenario
+from datentool_backend.population.factories import PrognosisFactory
 
 faker = Faker('de-DE')
+
 
 @mute_signals(post_save)
 class UserFactory(DjangoModelFactory):
@@ -34,13 +31,6 @@ class ProfileFactory(DjangoModelFactory):
     user = factory.SubFactory(UserFactory, profile=None)
 
 
-class YearFactory(DjangoModelFactory):
-    class Meta:
-        model = Year
-
-    year = factory.Sequence(lambda n: faker.unique.year())
-
-
 class PlanningProcessFactory(DjangoModelFactory):
     class Meta:
         model = PlanningProcess
@@ -50,64 +40,11 @@ class PlanningProcessFactory(DjangoModelFactory):
     allow_shared_change = faker.pybool()
 
 
-class InfrastructureFactory(DjangoModelFactory):
+class ScenarioFactory(DjangoModelFactory):
     class Meta:
-        model = Infrastructure
-    name = faker.word()
-    description = faker.sentence()
-    # sensitive_data
-    symbol = factory.SubFactory(MapSymbolFactory)
-    order = faker.unique.pyint(max_value=10)
-
-    @factory.post_generation
-    def editable_by(self, create, extracted, **kwargs):
-        if not create:
-            # Simple build, do nothing.
-            return
-
-        if extracted:
-            # A list of profiles were passed in, use them
-            for profile in extracted:
-                self.editable_by.add(profile)
-        else:
-            profile = Profile.objects.first()
-            if profile is not None:
-                self.editable_by.add(profile)
-
-    @factory.post_generation
-    def accessible_by(self, create, extracted, **kwargs):
-        if not create:
-            # Simple build, do nothing.
-            return
-
-        if extracted:
-            # A list of profiles were passed in, use them
-            for profile in extracted:
-                self.accessible_by.add(profile)
-        else:
-            profile = Profile.objects.first()
-            if profile is not None:
-                self.accessible_by.add(profile)
-
-
-class ServiceFactory(DjangoModelFactory):
-    class Meta:
-        model = Service
+        model = Scenario
 
     name = faker.word()
-    description = faker.sentence()
-    infrastructure = factory.SubFactory(InfrastructureFactory)
-    # editable_by
-    capacity_singular_unit = faker.word()
-    capacity_plural_unit = faker.word()
-    has_capacity = True
-    demand_singular_unit = faker.word()
-    demand_plural_unit = faker.word()
-    quota_type = faker.word()
-    demand_name = faker.word()
-    demand_description = faker.word()
-    facility_singular_unit = faker.word()
-    facility_article = faker.word()
-    facility_plural_unit = faker.word()
-    direction_way_relationship = faker.pyint(max_value=2, min_value=1)
+    planning_process = factory.SubFactory(PlanningProcessFactory)
+    prognosis = factory.SubFactory(PrognosisFactory)
 

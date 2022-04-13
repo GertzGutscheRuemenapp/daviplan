@@ -10,11 +10,10 @@ from datentool_backend.api_test import (BasicModelTest,
 
 from datentool_backend.area.serializers import MapSymbolSerializer
 
-from datentool_backend.user.factories import (
-    ProfileFactory,
-    InfrastructureFactory,
-    ServiceFactory,
-)
+from datentool_backend.user.factories import ProfileFactory
+from datentool_backend.infrastructure.factories import (InfrastructureFactory,
+                                                        ServiceFactory)
+
 
 from datentool_backend.infrastructure.models.infrastructures import (
     Infrastructure,

@@ -9,7 +9,7 @@ from test_plus import APITestCase
 from datentool_backend.indicators.tests.setup_testdata import CreateTestdataMixin
 from datentool_backend.api_test import LoginTestCase
 
-from datentool_backend.user.factories import YearFactory
+from datentool_backend.site.factories import YearFactory
 from datentool_backend.demand.factories import GenderFactory, AgeGroup
 from datentool_backend.area.factories import (AreaLevelFactory,
                                               AreaFactory,

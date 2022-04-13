@@ -1,18 +1,80 @@
 from datentool_backend.utils.views import SingletonViewSet
-from rest_framework import mixins, viewsets
-from datentool_backend.utils.permissions import (
-    HasAdminAccessOrReadOnly,
-    HasAdminAccessOrReadOnlyAny,
-)
+from rest_framework import viewsets
 from rest_framework.response import Response
+from django_filters import rest_framework as filters
+from django.db.models import ExpressionWrapper, BooleanField, Q
+from django.core.exceptions import BadRequest
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import viewsets, status, serializers
+from rest_framework.decorators import action
 
-from .models import (SiteSetting,
-                     ProjectSetting,
-                     )
-from .serializers import (SiteSettingSerializer,
-                          ProjectSettingSerializer,
-                          BaseDataSettingSerializer,
-                          )
+from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
+                                                 HasAdminAccessOrReadOnlyAny)
+from datentool_backend.utils.permissions import CanEditBasedata
+from datentool_backend.utils.views import ProtectCascadeMixin
+from .models import SiteSetting, ProjectSetting, Year
+from .serializers import (SiteSettingSerializer, ProjectSettingSerializer,
+                          BaseDataSettingSerializer, YearSerializer)
+
+
+class YearFilter(filters.FilterSet):
+    active = filters.BooleanFilter(field_name='is_active')
+    prognosis = filters.NumberFilter(field_name='population__prognosis')
+    has_real_data = filters.BooleanFilter(field_name='has_real')
+    has_prognosis_data = filters.BooleanFilter(field_name='has_prognosis')
+    class Meta:
+        model = Year
+        fields = ['is_real', 'is_prognosis', 'population__prognosis',
+                  'has_real_data', 'has_prognosis_data']
+
+
+class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+    serializer_class = YearSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    filter_class = YearFilter
+
+    def get_queryset(self):
+        """ get the years. Request-parameters with_prognosis/with_population """
+        qs = Year.objects.all()
+
+        has_real_data = (Q(population__isnull=False) &
+                         Q(population__prognosis__isnull=True))
+        has_prognosis_data = Q(population__prognosis__isnull=False)
+        qs = qs.annotate(
+            has_real=ExpressionWrapper(has_real_data,
+                                       output_field=BooleanField()),
+            has_prognosis=ExpressionWrapper(has_prognosis_data,
+                                            output_field=BooleanField()))
+        return qs.distinct().order_by('year')
+
+    @extend_schema(description='Set Year Range',
+                   request=inline_serializer(
+                       name='YearRangeSerializer',
+                       fields={
+                           'from_year': serializers.IntegerField(required=True),
+                           'to_year': serializers.IntegerField(required=True),
+                       }
+                   )
+                )
+    @action(methods=['POST'], detail=False)
+    def set_range(self, request):
+        """create or delete years, if required"""
+        try:
+            from_year = int(request.data.get('from_year'))
+            to_year = int(request.data.get('to_year'))
+        except (ValueError, TypeError):
+            raise BadRequest('from_year and to_year must be integers')
+
+        years_to_delete = Year.objects.exclude(year__range=(from_year, to_year))
+        years_to_delete.delete()
+
+        for y in range(from_year, to_year+1):
+            year = Year.objects.get_or_create(year=y)
+
+        qs = Year.objects.all()
+        data = self.serializer_class(qs, many=True).data
+
+        return Response(data, status=status.HTTP_201_CREATED)
 
 
 class ProjectSettingViewSet(SingletonViewSet):

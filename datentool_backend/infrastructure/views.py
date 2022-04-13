@@ -1,4 +1,4 @@
-from django.db.models import Prefetch, Q
+from django.db.models import Prefetch, Max
 from django.http.request import QueryDict
 from rest_framework import viewsets, status, serializers
 from rest_framework.response import Response
@@ -8,37 +8,22 @@ from drf_spectacular.utils import (extend_schema,
                                    extend_schema_view,
                                    inline_serializer,
                                    )
+from django.core.exceptions import BadRequest
 
 from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
 from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
                                                  CanEditBasedata,)
-from datentool_backend.infrastructure.permissions import CanEditScenarioPermission
-from datentool_backend.models import (Scenario,
-                                      InfrastructureAccess,
-                                      Place,
-                                      Capacity,
-                                      PlaceField,
-                                      PlaceAttribute)
-from datentool_backend.infrastructure.serializers import (ScenarioSerializer,
-                                                          PlaceSerializer,
-                                                          CapacitySerializer,
-                                                          PlaceFieldSerializer,
-                                                          PlacesTemplateSerializer,
-                                                          infrastructure_id_serializer,
-                                                          )
-
-
-class ScenarioViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = Scenario.objects.all()
-    serializer_class = ScenarioSerializer
-    permission_classes = [CanEditScenarioPermission]
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        condition_user_in_user = Q(planning_process__users__in=[self.request.user.profile])
-        condition_owner_in_user = Q(planning_process__owner=self.request.user.profile)
-
-        return qs.filter(condition_user_in_user | condition_owner_in_user)
+from datentool_backend.models import (
+    InfrastructureAccess, Infrastructure, Place, Capacity, PlaceField,
+    PlaceAttribute, Service)
+from .permissions import CanPatchSymbol
+from datentool_backend.infrastructure.serializers import (
+    PlaceSerializer, CapacitySerializer, PlaceFieldSerializer,
+    PlacesTemplateSerializer, infrastructure_id_serializer,
+    ServiceSerializer, InfrastructureSerializer)
+from datentool_backend.indicators.compute.base import (
+    ServiceIndicator, ResultSerializer)
+from datentool_backend.indicators.serializers import IndicatorSerializer
 
 
 @extend_schema_view(list=extend_schema(description='List Places',
@@ -170,4 +155,60 @@ class PlaceFieldViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = PlaceField.objects.all()
     serializer_class = PlaceFieldSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+
+class InfrastructureViewSet(ProtectCascadeMixin,
+                            viewsets.ModelViewSet):
+    queryset = Infrastructure.objects.all()
+    serializer_class = InfrastructureSerializer
+    permission_classes = [CanPatchSymbol]
+
+
+class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
+    queryset = Service.objects.all().annotate(
+        max_capacity=Max('capacity__capacity'))
+    serializer_class = ServiceSerializer
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+    @extend_schema(
+        description='Indicators available for this service',
+        responses=IndicatorSerializer(many=True),
+    )
+    @action(methods=['GET'], detail=True)
+    def get_indicators(self, request, **kwargs):
+        service_id = kwargs.get('pk')
+        service: Service = Service.objects.get(id=service_id)
+        indicators = []
+        for indicator_class in ServiceIndicator.registered.values():
+            if indicator_class.capacity_required and not service.has_capacity:
+                continue
+            indicators.append(indicator_class(service))
+        serializer = IndicatorSerializer(indicators, many=True)
+        return Response(serializer.data)
+
+    @extend_schema(
+        description=('Compute indicator for this service, structure of result '
+                     'depends on "result_type" of indicator'),
+        responses=dict((f'result_type: {k.lower()}', v.value(many=True))
+                       for k, v in ResultSerializer._member_map_.items()),
+        parameters=[
+            OpenApiParameter(
+                name='indicator', required=True, type=str,
+                description=('name of indicator to compute with'))
+        ]
+    )
+    @action(methods=['POST'], detail=True)
+    def compute_indicator(self, request, **kwargs):
+        indicator_name = request.data.get('indicator')
+        if not indicator_name:
+            raise BadRequest('query parameter "indicator" is required')
+        indicator_class = ServiceIndicator.registered.get(indicator_name)
+        if not indicator_class:
+            raise BadRequest(f'indicator "{indicator_name}" unknown')
+        service_id = kwargs.get('pk')
+        service: Service = Service.objects.get(id=service_id)
+        indicator = indicator_class(service, request.query_params)
+        results = indicator.compute()
+
+        return Response(indicator.serialize(results))
 
