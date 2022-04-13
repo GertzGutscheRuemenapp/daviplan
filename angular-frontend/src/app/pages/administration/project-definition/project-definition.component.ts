@@ -21,7 +21,8 @@ import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dia
 export interface ProjectSettings {
   projectArea: string,
   startYear: number,
-  endYear: number
+  endYear: number,
+  minYear: number
 }
 interface BKGLayer {
   name: string,

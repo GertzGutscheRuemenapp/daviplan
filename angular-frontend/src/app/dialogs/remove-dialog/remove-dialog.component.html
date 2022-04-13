@@ -4,7 +4,10 @@
     {{ data.message }}
   </p>
   <div style="display: flex; align-items: end;">
-    <mat-form-field appearance="fill" class="warning" style="width: 300px; margin-right: 10px;">
+    <mat-form-field [title]="data.value"
+                    appearance="fill"
+                    class="warning"
+                    style="width: 400px; margin-right: 10px;">
       <input disabled matInput [value]="data.value">
     </mat-form-field>
     <mat-icon class="material-icons-outlined warning" style="font-size: 40px; align-self: baseline;">report_problem</mat-icon>
