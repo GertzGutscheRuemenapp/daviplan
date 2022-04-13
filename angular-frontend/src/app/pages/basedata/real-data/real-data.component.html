@@ -25,7 +25,8 @@
         </button>
       </div>
     </app-input-card>
-    <app-input-card [title]="'Jahre'"
+    <app-input-card #yearCard
+                    [title]="'Jahre'"
                     [editTemplate]="yearsEdit"
                     infoText="<p></p>">
       <table>
@@ -122,46 +123,46 @@
 </div>
 
 <ng-template #yearsEdit>
-  <table style="text-align: center;">
+  <table id="years-check-table">
     <tr>
       <th colspan="2"></th>
-      <th colspan="2">vorhandene Daten</th>
+      <th colspan="2">Daten in der Datenbank</th>
     </tr>
     <tr>
       <th style="text-align: left;">Jahr</th>
       <th>ausgewählt</th>
-      <th>Real</th>
-      <th>Prognose</th>
-<!--      <th>Realdaten löschen</th>-->
+      <th>Realdaten</th>
+      <th>Prognosedaten</th>
     </tr>
-    <tr *ngFor="let year of years">
+    <tr *ngFor="let year of years" [class.active]="yearSelection.isSelected(year.year)">
       <td>{{year.year}}</td>
       <td>
         <mat-checkbox color="primary"
-                      [checked]="year.isReal"
-                      title="das Jahr auswählen als Jahr mit Bevölkerungsdaten ???">
+                      [checked]="yearSelection.isSelected(year.year)"
+                      (change)="yearSelection.toggle(year.year)"
+                      title="{{year.year}} als Realdatenjahr aus/abwählen">
         </mat-checkbox>
       </td>
-      <td>
+      <td style="text-align: right;">
         <mat-checkbox [disabled]="true"
                       [checked]="year.hasRealData"
                       title="Zeigt an, ob für das Jahr bereits Bevölkerungsdaten vorliegen">
         </mat-checkbox>
-        <button mat-icon-button color="warn">
+        <button [style.opacity]="(!year.hasRealData)? 0: 1"
+                [style.pointer-events]="(!year.hasRealData)? 'none': ''"
+                (click)="deleteData(year)"
+                mat-icon-button color="warn"
+                title="Realdaten des Jahres {{year.year}} entfernen"
+                style="margin-left: 10px;">
           <mat-icon>close</mat-icon>
         </button>
       </td>
       <td>
         <mat-checkbox [disabled]="true"
                       [checked]="year.hasPrognosisData"
-                      title="Zeigt an, ob für das Jahr bereits Prognose vorliegen">
+                      title="Zeigt an, ob für das Jahr bereits Prognosedaten vorliegen">
         </mat-checkbox>
       </td>
-<!--      <td>
-        <button mat-icon-button color="warn">
-          <mat-icon>close</mat-icon>
-        </button>
-      </td>-->
     </tr>
   </table>
 </ng-template>

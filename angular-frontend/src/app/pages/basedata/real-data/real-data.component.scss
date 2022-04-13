@@ -1,3 +1,5 @@
+@import "~src/constants";
+
 #year-select {
   min-height: 200px;
   max-height: 300px;
@@ -22,4 +24,18 @@
   padding: 5px;
   border: 1px solid lightgrey;
   box-sizing: border-box;
+}
+
+::ng-deep #years-check-table {
+  text-align: center;
+  width: 400px;
+  td mat-checkbox label{
+    margin: 0;
+  }
+  tr:hover:nth-child(n+3) {
+    background-color: #f6f6f6;
+  }
+  tr.active td:first-child {
+    color: $primary;
+  }
 }
