@@ -472,7 +472,10 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
 
                 lm.save(verbose=True, strict=True)
             except GDALException as e:
-                msg = f'Upload failed: {e}'
+                #msg = f'Upload failed: {e}'
+                msg = 'Die Datei konnte nicht gelesen werden. Bitte überprüfen '
+                'Sie, ob es sich um eine korrektes Shapefile bzw. Geopackage '
+                'handelt.'
                 return Response({'message': msg, },
                                 status=status.HTTP_406_NOT_ACCEPTABLE)
 
