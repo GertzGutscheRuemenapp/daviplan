@@ -8,19 +8,7 @@ from datentool_backend.base import NamedModel, DatentoolModelMixin
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 
 from datentool_backend.area.models import Area, AreaLevel
-
-
-class Year(DatentoolModelMixin, models.Model):
-    """years available"""
-    year = models.IntegerField(unique=True)
-    is_default = models.BooleanField(default=False)
-    # year is available to query prognosis data for
-    is_prognosis = models.BooleanField(default=False)
-    # year is available to query real data in for
-    is_real = models.BooleanField(default=False)
-
-    def __str__(self) -> str:
-        return f'{self.__class__.__name__}: {self.year}'
+from datentool_backend.site.models import Year
 
 
 class Gender(DatentoolModelMixin, NamedModel, models.Model):

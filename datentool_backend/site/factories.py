@@ -3,11 +3,17 @@ from factory.django import DjangoModelFactory
 from django.contrib.gis.geos import Polygon, MultiPolygon
 from faker import Faker
 
-from .models import ProjectSetting, SiteSetting
-from datentool_backend.area.factories import AreaLevelFactory
-
+from .models import ProjectSetting, SiteSetting, Year
 
 faker = Faker('de-DE')
+
+
+class YearFactory(DjangoModelFactory):
+    class Meta:
+        model = Year
+
+    year = factory.Sequence(lambda n: faker.unique.year())
+
 
 class ProjectSettingFactory(DjangoModelFactory):
     class Meta:

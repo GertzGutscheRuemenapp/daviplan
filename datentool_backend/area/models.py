@@ -113,7 +113,10 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
 
 class Area(DatentoolModelMixin, models.Model):
     """an area"""
+    CUT_OUT_SUFFIX = '(Ausschnitt)'
     area_level = models.ForeignKey(AreaLevel, on_delete=PROTECT_CASCADE)
+    # flag that is set when parts were cut while intersecting with project area
+    is_cut = models.BooleanField(default=False)
     geom = gis_models.MultiPolygonField(srid=3857)
 
     @property

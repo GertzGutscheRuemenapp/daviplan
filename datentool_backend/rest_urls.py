@@ -2,7 +2,8 @@ from rest_framework import routers
 from datentool_backend.user.views import UserViewSet
 from datentool_backend.site.views import (SiteSettingViewSet,
                                           ProjectSettingViewSet,
-                                          BaseDataSettingViewSet)
+                                          BaseDataSettingViewSet,
+                                          YearViewSet)
 
 from .area.views import (LayerGroupViewSet, WMSLayerViewSet,
                          AreaLevelViewSet, AreaViewSet,
@@ -26,10 +27,11 @@ from .indicators.views import (RouterViewSet,
                                MatrixPlaceStopViewSet,
                                )
 
-from .infrastructure.views import (ScenarioViewSet,
-                                   PlaceViewSet,
+from .infrastructure.views import (PlaceViewSet,
                                    CapacityViewSet,
                                    PlaceFieldViewSet,
+                                   InfrastructureViewSet,
+                                   ServiceViewSet
                                    )
 from .logging.views import (CapacityUploadLogViewSet,
                             PlaceUploadLogViewSet,
@@ -41,11 +43,7 @@ from .population.views import (RasterViewSet,
                                PopulationEntryViewSet,
                                PopStatisticViewSet,
                                PopStatEntryViewSet)
-
-from .user.views import (PlanningProcessViewSet,
-                         YearViewSet,
-                         InfrastructureViewSet,
-                         ServiceViewSet, )
+from .user.views import PlanningProcessViewSet, ScenarioViewSet
 from datentool_backend.utils.routers import SingletonRouter
 
 router = routers.SimpleRouter()

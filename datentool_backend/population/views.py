@@ -3,16 +3,14 @@ from io import StringIO
 from distutils.util import strtobool
 from django.http.request import QueryDict
 from django_filters import rest_framework as filters
-from django.db.models import Max, Min
+from django.db.models import Max, Min, ExpressionWrapper, BooleanField, Sum, Q
 from drf_spectacular.utils import (extend_schema,
                                    OpenApiResponse,
                                    inline_serializer)
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
 from django.db import transaction
-from django.db.models import Max, Sum
 from django.core.exceptions import BadRequest
 
 from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
@@ -29,14 +27,13 @@ from .models import (Raster,
                      PopStatistic,
                      PopStatEntry,
                      RasterCellPopulationAgeGender,
-                     RasterCellPopulation,
                      AreaPopulationAgeGender,
-                     PopulationAreaLevel,
                      AreaCell,
                      Year
                      )
 from datentool_backend.demand.constants import RegStatAgeGroups
 from datentool_backend.demand.models import AgeGroup
+from rest_framework.response import Response
 
 from datentool_backend.utils.serializers import (MessageSerializer,
                                                  use_intersected_data,
@@ -55,7 +52,7 @@ from datentool_backend.population.serializers import (RasterSerializer,
                                                       PopulationTemplateSerializer,
                                                       prognosis_id_serializer,
                                                       area_level_id_serializer,
-                                                      years_serializer,
+                                                      years_serializer
                           )
 from datentool_backend.site.models import SiteSetting
 from datentool_backend.area.models import Area, AreaLevel

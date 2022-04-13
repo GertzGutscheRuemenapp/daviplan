@@ -12,7 +12,7 @@ from datentool_backend.user.factories import (ProfileFactory,
 from datentool_backend.user.models.process import (Scenario,
                                                    ScenarioMode,
                                                    ScenarioService)
-from datentool_backend.infrastructure.factories import ScenarioFactory
+from datentool_backend.user.factories import ScenarioFactory
 from datentool_backend.modes.factories import ModeVariantFactory
 from datentool_backend.demand.factories import DemandRateSetFactory
 

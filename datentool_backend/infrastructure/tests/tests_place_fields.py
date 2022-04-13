@@ -10,21 +10,14 @@ from datentool_backend.api_test import (BasicModelTest,
                                         )
 from datentool_backend.api_test import TestAPIMixin, TestPermissionsMixin
 
-from datentool_backend.user.factories import (ProfileFactory,
-                                              InfrastructureFactory,
-                                              ServiceFactory,
-                                              )
+from datentool_backend.user.factories import ProfileFactory, ScenarioFactory
 from datentool_backend.user.models.profile import Profile
 from datentool_backend.infrastructure.models.infrastructures import (
     Infrastructure, InfrastructureAccess, Service)
 
 from datentool_backend.infrastructure.factories import (
-    ScenarioFactory,
-    PlaceFactory,
-    CapacityFactory,
-    PlaceFieldFactory,
-    FieldTypeFactory
-)
+    PlaceFactory, CapacityFactory, PlaceFieldFactory, FieldTypeFactory,
+    InfrastructureFactory, ServiceFactory)
 from datentool_backend.infrastructure.models.places import (
     Place,
     FieldTypes,
