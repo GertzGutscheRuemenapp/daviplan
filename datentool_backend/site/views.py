@@ -4,10 +4,12 @@ from rest_framework.response import Response
 from django_filters import rest_framework as filters
 from django.db.models import ExpressionWrapper, BooleanField, Q
 from django.core.exceptions import BadRequest
-from drf_spectacular.utils import extend_schema, inline_serializer
+from drf_spectacular.utils import (extend_schema, inline_serializer,
+                                   OpenApiResponse)
 from rest_framework import viewsets, status, serializers
 from rest_framework.decorators import action
 
+from datentool_backend.utils.serializers import MessageSerializer
 from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
                                                  HasAdminAccessOrReadOnlyAny)
 from datentool_backend.utils.permissions import CanEditBasedata
@@ -54,7 +56,11 @@ class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                            'from_year': serializers.IntegerField(required=True),
                            'to_year': serializers.IntegerField(required=True),
                        }
-                   )
+                   ),
+                   responses={
+                       201: OpenApiResponse(YearSerializer(many=True)),
+                       400: OpenApiResponse(MessageSerializer, 'Bad Request'),
+                   }
                 )
     @action(methods=['POST'], detail=False)
     def set_range(self, request):
@@ -80,6 +86,54 @@ class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         data = self.serializer_class(qs, many=True).data
 
         return Response(data, status=status.HTTP_201_CREATED)
+
+    @extend_schema(description='Set years for real population data',
+                   request=inline_serializer(
+                       name='RealYearSerializer',
+                       fields={
+                           'years': serializers.ListField(
+                               child=serializers.IntegerField(),
+                               required=True),
+                       }
+                   ),
+                   responses={
+                       201: OpenApiResponse(YearSerializer(many=True)),
+                   }
+                )
+    @action(methods=['POST'], detail=False)
+    def set_real_years(self, request):
+        years = request.data.get('years', [])
+        if isinstance(years, str):
+            years = years.split(',')
+        Year.objects.update(is_real=False)
+        update_years = Year.objects.filter(year__in=years)
+        update_years.update(is_real=True)
+        return Response(self.serializer_class(update_years, many=True).data,
+                        status=status.HTTP_201_CREATED)
+
+    @extend_schema(description='Set years for population prognosis data',
+                   request=inline_serializer(
+                       name='PrognosisYearSerializer',
+                       fields={
+                           'years': serializers.ListField(
+                               child=serializers.IntegerField(),
+                               required=True),
+                       }
+                   ),
+                   responses={
+                       201: OpenApiResponse(YearSerializer(many=True)),
+                   }
+                )
+    @action(methods=['POST'], detail=False)
+    def set_prognosis_years(self, request):
+        years = request.data.get('years', [])
+        if isinstance(years, str):
+            years = years.split(',')
+        Year.objects.update(is_prognosis=False)
+        update_years = Year.objects.filter(year__in=years)
+        update_years.update(is_prognosis=True)
+        return Response(self.serializer_class(update_years, many=True).data,
+                        status=status.HTTP_201_CREATED)
 
 
 class ProjectSettingViewSet(SingletonViewSet):

@@ -448,6 +448,10 @@ button.mat-icon-button {
   background-color: map-get($blue-palette, A200);
 }
 
+.mat-icon-button.mat-warn:hover:not(.mat-button-disabled) {
+  background-color: $warning-light;
+}
+
 .mat-mini-fab.small, .mat-icon-button.small {
   width: 30px;
   height: 30px;
@@ -1194,4 +1198,18 @@ mat-checkbox.reverse {
 .loadOverlay > mat-spinner {
   left: 45%;
   top: 40%;
+}
+
+#years-check-table {
+  text-align: center;
+  width: 400px;
+  td mat-checkbox label{
+    margin: 0;
+  }
+  tr:hover:nth-child(n+3) {
+    background-color: #f6f6f6;
+  }
+  tr.active td:first-child {
+    color: $primary;
+  }
 }
