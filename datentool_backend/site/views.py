@@ -64,6 +64,11 @@ class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             to_year = int(request.data.get('to_year'))
         except (ValueError, TypeError):
             raise BadRequest('from_year and to_year must be integers')
+        if from_year > to_year:
+            raise BadRequest('to_year has to be greater than or equal to '
+                             f'{Year.MIN_YEAR}')
+        if from_year < Year.MIN_YEAR:
+            raise BadRequest(f'from_year has to be greater than {Year.MIN_YEAR}')
 
         years_to_delete = Year.objects.exclude(year__range=(from_year, to_year))
         years_to_delete.delete()

@@ -22,18 +22,22 @@ class ProjectSettingSerializer(serializers.ModelSerializer):
     project_area = MultiPolygonGeometrySRIDField(srid=3857)
     start_year = serializers.SerializerMethodField(read_only=True)
     end_year = serializers.SerializerMethodField(read_only=True)
+    min_year = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ProjectSetting
-        fields = ('project_area', 'start_year', 'end_year')
+        fields = ('project_area', 'start_year', 'end_year', 'min_year')
 
     def get_start_year(self, obj):
         agg = Year.objects.all().aggregate(Min('year'))
         return agg['year__min']
 
-    def get_end_year(self,  obj):
+    def get_end_year(self, obj):
         agg = Year.objects.all().aggregate(Max('year'))
         return agg['year__max']
+
+    def get_min_year(self, obj):
+        return Year.MIN_YEAR
 
 
 class BaseDataSettingSerializer(serializers.Serializer):

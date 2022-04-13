@@ -6,6 +6,8 @@ from datentool_backend.base import DatentoolModelMixin
 
 class Year(DatentoolModelMixin, models.Model):
     """years available"""
+    # site wide minimum year that can be set
+    MIN_YEAR = 2011
     year = models.IntegerField(unique=True)
     is_default = models.BooleanField(default=False)
     # year is available to query prognosis data for
