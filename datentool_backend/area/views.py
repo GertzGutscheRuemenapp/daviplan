@@ -240,7 +240,6 @@ MIN_AREA = 10000
 # percentage of intersected area in relation to original geometry
 # if above threshold uncut original geometry is taken
 INTERSECT_THRESHOLD = 0.95
-CUT_OUT_SUFFIX = '(Ausschnitt)'
 
 class AreaLevelViewSet(AnnotatedAreasMixin,
                        ProtectCascadeMixin,
@@ -369,7 +368,6 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
         simplify = str(request.data.get('simplify', 'false')).lower() == 'true'
         level_areas = Area.annotated_qs(area_level)
         key_field = area_level.key_field
-        label_field = area_level.label_field
         for feature in res_json['features']:
             properties = feature.get('properties', {})
             # ToDo: this only temporary, in case of presets (=bkg wfs)
@@ -384,9 +382,6 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
                 continue
             if (intersection.area / geom.area > INTERSECT_THRESHOLD):
                 intersection = geom
-            if label_field and intersection.area < geom.area:
-                properties[label_field] = (f'{properties.get(label_field, "")} '
-                                           f'{CUT_OUT_SUFFIX}')
             # ToDo: do simplification in database after all features are put in?
             if (simplify):
                 intersection = intersection.simplify(10, preserve_topology=True)
@@ -397,12 +392,14 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
                     **{key_field: properties.get(key_field)})
             else:
                 existing = None
+            is_cut = intersection.area < geom.area
             if existing:
                 area = existing[0]
                 area.geom = intersection
+                area.is_cut = is_cut
                 area.save()
             else:
-                area = Area.objects.create(area_level=area_level,
+                area = Area.objects.create(area_level=area_level, is_cut=is_cut,
                                            geom=intersection)
             area.attributes = properties
         now = datetime.datetime.now()
@@ -480,7 +477,6 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
                                 status=status.HTTP_406_NOT_ACCEPTABLE)
 
         areas = Area.objects.filter(area_level=area_level)
-        label_field = area_level.label_field
         for i, area in enumerate(areas):
             area_attrs = {field_name: attrs[i]
                           for field_name, attrs
@@ -491,15 +487,11 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
             if (intersection.area < MIN_AREA):
                 area.delete()
                 continue
-            # ToDo: there will be most likely be no label yet
             if intersection.area / area.geom.area < INTERSECT_THRESHOLD:
                 if isinstance(intersection, Polygon):
                     intersection = MultiPolygon(intersection)
                 area.geom = intersection
-                if label_field:
-                    setattr(area, label_field,
-                            f'{properties.get(label_field, "")} '
-                            f'{CUT_OUT_SUFFIX}')
+                area.is_cut = True
             area.save()
         now = datetime.datetime.now()
         area_level.source.date = datetime.date(now.year, now.month, now.day)

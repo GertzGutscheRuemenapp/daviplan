@@ -4,7 +4,8 @@ from .models import SiteSetting, ProjectSetting
 from django.db.models import Max, Min
 
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
-from datentool_backend.models import DemandRateSet, Prognosis, ModeVariant, Year
+from datentool_backend.models import (DemandRateSet, Prognosis, ModeVariant,
+                                      Year, AreaLevel)
 
 
 class YearSerializer(serializers.ModelSerializer):
