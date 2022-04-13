@@ -9,14 +9,10 @@ from datentool_backend.area.factories import (AreaLevelFactory,
                                               FieldTypes,
                                               )
 from datentool_backend.area.models import AreaAttribute
-from datentool_backend.user.factories import (InfrastructureFactory,
-                                              Infrastructure,
-                                              ServiceFactory,
-                                              PlanningProcess)
-from datentool_backend.infrastructure.factories import (ScenarioFactory,
-                                                        PlaceFactory,
-                                                        ServiceFactory,
-                                                        CapacityFactory)
+from datentool_backend.infrastructure.factories import (
+    InfrastructureFactory, Infrastructure, ServiceFactory, PlaceFactory,
+    ServiceFactory, CapacityFactory)
+from datentool_backend.user.factories import PlanningProcess, ScenarioFactory
 from datentool_backend.user.models.process import ScenarioService
 
 from datentool_backend.population.models import Year

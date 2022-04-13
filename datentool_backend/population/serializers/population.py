@@ -1,13 +1,12 @@
 from typing import List
 from rest_framework import serializers
 
-
 from datentool_backend.population.models import (
     Raster, PopulationRaster,
     Prognosis, Population, PopulationEntry,
     PopStatistic, PopStatEntry,
-    RasterCellPopulationAgeGender,
-    Year)
+    RasterCellPopulationAgeGender)
+from datentool_backend.site.models import Year
 
 
 class RasterSerializer(serializers.ModelSerializer):

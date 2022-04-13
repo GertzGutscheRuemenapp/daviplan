@@ -14,7 +14,7 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { RestCacheService } from "../../../rest-cache.service";
 import { FileHandle } from "../../../helpers/dragndrop.directive";
-import { map, shareReplay } from "rxjs/operators";
+import { map, shareReplay, tap } from "rxjs/operators";
 
 
 @Component({
@@ -75,8 +75,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
    * fetch areas
    */
   fetchAreaLevels(): Observable<AreaLevel[]> {
-    const query = this.http.get<AreaLevel[]>(this.rest.URLS.arealevels);
-    query.subscribe((areaLevels) => {
+    const query = this.http.get<AreaLevel[]>(this.rest.URLS.arealevels).pipe(tap(areaLevels => {
       this.presetLevels = [];
       this.customAreaLevels = [];
       areaLevels.forEach(level => {
@@ -90,7 +89,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       })
       this.presetLevels = sortBy(this.presetLevels, 'order');
       this.customAreaLevels = sortBy(this.customAreaLevels, 'order');
-    });
+    }));
     return query;
   }
 

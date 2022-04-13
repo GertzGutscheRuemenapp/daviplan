@@ -1,7 +1,7 @@
 from factory.django import DjangoModelFactory
 
 from .models import (Mode, ModeVariant, CutOffTime)
-from datentool_backend.user.factories import InfrastructureFactory
+from datentool_backend.infrastructure.factories import InfrastructureFactory
 
 import factory
 from faker import Faker

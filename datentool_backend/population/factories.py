@@ -10,7 +10,7 @@ from .models import (Raster, PopulationRaster,
                      PopStatistic, PopStatEntry,
                      )
 from datentool_backend.area.factories import AreaFactory
-from datentool_backend.user.factories import YearFactory
+from datentool_backend.site.factories import YearFactory
 from datentool_backend.demand.factories import AgeGroupFactory, GenderFactory
 
 from faker import Faker

@@ -2,7 +2,8 @@ from rest_framework import serializers
 
 from datentool_backend.user.models.process import (Scenario,
                                                    ScenarioMode,
-                                                   ScenarioService)
+                                                   ScenarioService,
+                                                   PlanningProcess)
 
 
 class ScenarioModeSerializer(serializers.ModelSerializer):
@@ -70,3 +71,19 @@ class ScenarioSerializer(serializers.ModelSerializer):
                                            demandrateset=service['demandrateset'])
         return instance
 
+
+class PlanningProcessSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlanningProcess
+        fields = ('id', 'name', 'owner', 'users', 'allow_shared_change',
+                  'description')
+        read_only_fields = ('owner', )
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            owner = request.user.profile
+            validated_data['owner'] = owner
+            return super().create(validated_data)
+        else:
+            raise serializers.ValidationError('user could not be determined')

@@ -10,6 +10,7 @@ from datentool_backend.api_test import (BasicModelTest,
                                         TestPermissionsMixin,
                                         LoginTestCase
                                         )
+from datentool_backend.site.factories import YearFactory
 from datentool_backend.population.models import (Year,
                                                  PopulationRaster,
                                                  PopulationEntry,
@@ -18,7 +19,6 @@ from datentool_backend.population.models import (Year,
                                                  Prognosis,
                                                  Population)
 from datentool_backend.population.factories import (
-    YearFactory,
     RasterCellFactory,
     AgeGroupFactory,
     GenderFactory,
@@ -31,7 +31,8 @@ from datentool_backend.population.factories import (
     RasterFactory,
     PopulationRasterFactory,
     PopulationEntryFactory,
-    PopStatisticFactory)
+    PopStatisticFactory
+)
 from datentool_backend.area.models import Area
 from datentool_backend.area.factories import (AreaLevelFactory,
                                               AreaFactory,

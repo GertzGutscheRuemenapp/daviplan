@@ -5,18 +5,14 @@ from test_plus import APITestCase
 
 from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithAdminAccessTest,
-                                        WriteOnlyWithCanEditBaseDataTest,
                                         TestAPIMixin,
-                                        TestPermissionsMixin,
                                         )
 
 from datentool_backend.user.factories import (ProfileFactory,
-                                              YearFactory,
                                               PlanningProcessFactory,
                                               )
 from datentool_backend.user.models.profile import User, Profile
 from datentool_backend.user.models.process import PlanningProcess
-from datentool_backend.population.models import Year
 
 from faker import Faker
 faker = Faker('de-DE')
@@ -73,75 +69,6 @@ class TestUserAPI(WriteOnlyWithAdminAccessTest,
         cls.patch_data = {'username': 'changed',
                          'profile': {'admin_access': False,
                                      'can_edit_basedata': False,},}
-
-
-class TestYearAPI(WriteOnlyWithCanEditBaseDataTest,
-                  TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
-    """"""
-    url_key = "years"
-    factory = YearFactory
-
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-
-        cls.post_data = dict(year=1990)
-        cls.put_data = dict(year=1995)
-        cls.patch_data = dict(year=2000, is_default=True)
-
-    def test_create_years(self):
-        """test setting years"""
-        self.profile.can_edit_basedata = True
-        self.profile.save()
-        url = 'years-set-range'
-        res = self.post(url, data={'from_year': 2000, 'to_year': 2014,},
-                        extra={'format': 'json'})
-        self.assert_http_201_created(res)
-        res_years = [r['year'] for r in res.data]
-        qs = Year.objects.values_list('year', flat=True)
-        expected = list(range(2000, 2015))
-        self.assertQuerysetEqual(qs, expected, ordered=False)
-        self.assertQuerysetEqual(res_years, expected, ordered=False)
-
-        res = self.post(url, data={'from_year': 1990, 'to_year': 2010,},
-                                 extra={'format': 'json'})
-        self.assert_http_201_created(res)
-        res_years = [r['year'] for r in res.data]
-        qs = Year.objects.values_list('year', flat=True)
-        expected = list(range(1990, 2011))
-        self.assertQuerysetEqual(qs, expected, ordered=False)
-        self.assertQuerysetEqual(res_years, expected, ordered=False)
-
-        res = self.post(url, data={'from_year': '2030', 'to_year': 2040,},
-                                 extra={'format': 'json'})
-        self.assert_http_201_created(res)
-        res_years = [r['year'] for r in res.data]
-        qs = Year.objects.values_list('year', flat=True)
-        expected = list(range(2030, 2041))
-        self.assertQuerysetEqual(qs, expected, ordered=False)
-        self.assertQuerysetEqual(res_years, expected, ordered=False)
-
-        res = self.post(url, data={'from_year': '2030.2', 'to_year': 2040,},
-                                 extra={'format': 'json'})
-        self.assert_http_400_bad_request(res)
-
-    def test_query_params(self):
-        """test the query params"""
-        Year.objects.all().delete()
-        for y in range(2020, 2050):
-            year = Year.objects.create(year=y, is_prognosis=not(y % 5))
-        url = 'years-list'
-        # all years
-        res = self.get_check_200(url,
-                                 extra={'format': 'json'})
-        self.assertListEqual([r['year'] for r in res.data],
-                             list(range(2020, 2050, 1)))
-        # prognosis years
-        res = self.get_check_200(url,
-                                 data={'is_prognosis': True,},
-                                 extra={'format': 'json'})
-        self.assertListEqual([r['year'] for r in res.data],
-                             list(range(2020, 2050, 5)))
 
 
 class PostOnlyWithCanCreateProcessTest:

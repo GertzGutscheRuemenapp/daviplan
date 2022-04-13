@@ -1,28 +1,44 @@
 from typing import Dict
 from rest_framework import serializers
-from .models import SiteSetting, ProjectSetting, AreaLevel
+from .models import SiteSetting, ProjectSetting
 from django.db.models import Max, Min
 
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
-from datentool_backend.models import DemandRateSet, Prognosis, ModeVariant, Year
+from datentool_backend.models import (DemandRateSet, Prognosis, ModeVariant,
+                                      Year, AreaLevel)
+
+
+class YearSerializer(serializers.ModelSerializer):
+    has_real_data = serializers.BooleanField(source='has_real',
+                                             read_only=True)
+    has_prognosis_data = serializers.BooleanField(source='has_prognosis',
+                                                  read_only=True)
+    class Meta:
+        model = Year
+        fields = ('id', 'year', 'is_prognosis', 'is_real',
+                  'has_real_data', 'has_prognosis_data')
 
 
 class ProjectSettingSerializer(serializers.ModelSerializer):
     project_area = MultiPolygonGeometrySRIDField(srid=3857)
     start_year = serializers.SerializerMethodField(read_only=True)
     end_year = serializers.SerializerMethodField(read_only=True)
+    min_year = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ProjectSetting
-        fields = ('project_area', 'start_year', 'end_year')
+        fields = ('project_area', 'start_year', 'end_year', 'min_year')
 
     def get_start_year(self, obj):
         agg = Year.objects.all().aggregate(Min('year'))
         return agg['year__min']
 
-    def get_end_year(self,  obj):
+    def get_end_year(self, obj):
         agg = Year.objects.all().aggregate(Max('year'))
         return agg['year__max']
+
+    def get_min_year(self, obj):
+        return Year.MIN_YEAR
 
 
 class BaseDataSettingSerializer(serializers.Serializer):
