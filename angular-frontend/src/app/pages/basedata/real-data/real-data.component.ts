@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular
 import { MapControl, MapService } from "../../../map/map.service";
 import { environment } from "../../../../environments/environment";
 import { PopulationService } from "../../population/population.service";
-import { AreaLevel, Infrastructure, Population, Year } from "../../../rest-interfaces";
+import { Area, AreaLevel, Infrastructure, Population, Year } from "../../../rest-interfaces";
 import { sortBy } from "../../../helpers/utils";
 import { SettingsService } from "../../../settings.service";
 import { SelectionModel } from "@angular/cdk/collections";
@@ -23,7 +23,9 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   mapControl?: MapControl;
   years: Year[] = [];
   popLevel?: AreaLevel;
+  popLevelMissing = false;
   defaultPopLevel?: AreaLevel;
+  areas?: Area[];
   realYears: number[] = [];
   // dataYears: number[] = [];
   yearSelection = new SelectionModel<number>(true);
@@ -31,14 +33,21 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   maxYear = new Date().getFullYear() - 1;
 
   constructor(private mapService: MapService, private popService: PopulationService, private dialog: MatDialog,
-              private settings: SettingsService, private rest: RestAPI, private http: HttpClient) { }
+              private settings: SettingsService, private rest: RestAPI, private http: HttpClient) {
+
+  }
 
   ngAfterViewInit(): void {
-    this.mapControl = this.mapService.get('base-real-data-map');
-    this.popService.getAreaLevels({reset: true}).subscribe(areaLevels => {
+    this.popService.getAreaLevels({ reset: true }).subscribe(areaLevels => {
       this.defaultPopLevel = areaLevels.find(al => al.isDefaultPopLevel);
       this.popLevel = areaLevels.find(al => al.isPopLevel);
+      if (this.popLevel) {
+        this.popService.getAreas(this.popLevel.id, { reset: true }).subscribe(areas => this.areas = areas);
+      }
+      else
+        this.popLevelMissing = true;
     })
+    this.mapControl = this.mapService.get('base-real-data-map');
     this.http.get<Year[]>(this.rest.URLS.years).subscribe(years => {
       years.forEach(year => {
         if (year.year > this.maxYear) return;
@@ -48,10 +57,10 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         this.years.push(year);
       })
       this.popService.fetchPopulations().subscribe(populations => {
- /*       this.populations.forEach(population => {
-          const year = this.years.find(y => y.id == population.year);
-          if (year) this.dataYears.push(year.year);
-        });*/
+        /*       this.populations.forEach(population => {
+                 const year = this.years.find(y => y.id == population.year);
+                 if (year) this.dataYears.push(year.year);
+               });*/
         this.setupYearCard();
       });
     });

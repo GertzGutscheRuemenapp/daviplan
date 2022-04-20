@@ -71,7 +71,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
     observables.push(this.planningService.getInfrastructures().pipe(map(infrastructures => {
       this.infrastructures = infrastructures;
     })))
-    observables.push(this.planningService.getAreaLevels().pipe(map(areaLevels => {
+    observables.push(this.planningService.getAreaLevels({ active: true }).pipe(map(areaLevels => {
       this.areaLevels = areaLevels;
     })))
     observables.push(this.planningService.getRealYears().pipe( map(years => {

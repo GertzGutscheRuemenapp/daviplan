@@ -87,8 +87,10 @@ export class RestCacheService {
     }));
   }
 
-  getAreaLevels(options?: { reset?: boolean }): Observable<AreaLevel[]> {
-    const url = `${this.rest.URLS.arealevels}?active=true`;
+  getAreaLevels(options?: { reset?: boolean, active?: boolean }): Observable<AreaLevel[]> {
+    let url = this.rest.URLS.arealevels;
+    if (options?.active)
+      url += '?active=true';
     const query = this.getCachedData<AreaLevel[]>(url, options);
     return query.pipe(map(areaLevels => {
       return sortBy(areaLevels, 'order');

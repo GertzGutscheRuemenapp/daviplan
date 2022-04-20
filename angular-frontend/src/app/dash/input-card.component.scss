@@ -5,6 +5,11 @@
   .title {
     color: grey;
   }
+  pointer-events: none;
+
+  .info-text {
+    pointer-events: all;
+  }
 }
 
 .dashboard-card:not(.borderless) {

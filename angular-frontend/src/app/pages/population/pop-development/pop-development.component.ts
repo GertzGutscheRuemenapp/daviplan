@@ -89,7 +89,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       }
       this.genders = [genderAll].concat(genders);
     })))
-    observables.push(this.populationService.getAreaLevels().pipe(map(areaLevels => {
+    observables.push(this.populationService.getAreaLevels({ active: true }).pipe(map(areaLevels => {
       this.areaLevels = areaLevels;
     })))
     observables.push(this.populationService.getAgeGroups().pipe(map(ageGroups => {

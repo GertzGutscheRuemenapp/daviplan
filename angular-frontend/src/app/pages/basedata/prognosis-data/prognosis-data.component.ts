@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
 import { StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
-import { Population, Year } from "../../../rest-interfaces";
+import { Area, AreaLevel, Population, Year } from "../../../rest-interfaces";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { SelectionModel } from "@angular/cdk/collections";
 import { SettingsService } from "../../../settings.service";
@@ -48,6 +48,10 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   data: StackedData[] = mockdata;
   populations: Population[] = [];
   labels: string[] = ['65+', '19-64', '0-18']
+  popLevel?: AreaLevel;
+  popLevelMissing = false;
+  defaultPopLevel?: AreaLevel;
+  areas?: Area[];
   xSeparator = {
     leftLabel: $localize`Realdaten`,
     rightLabel: $localize`Prognose (Basisjahr: 2003)`,
@@ -59,8 +63,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
               private rest: RestAPI, private http: HttpClient, private popService: PopulationService) { }
 
   ngAfterViewInit(): void {
-    this.mapControl = this.mapService.get('base-prog-data-map');
-    let first = mockdata[0].values;
+/*    let first = mockdata[0].values;
     let relData = mockdata.map(d => { return {
       group: d.group,
       values: d.values.map((v, i) => Math.round(10000 * v / first[i]) / 100 )
@@ -69,7 +72,17 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       min = Math.min(...relData.map(d => Math.min(...d.values)));
     this.lineChart!.min = Math.floor(min / 10) * 10;
     this.lineChart!.max = Math.ceil(max / 10) * 10;
-    this.lineChart?.draw(relData);
+    this.lineChart?.draw(relData);*/
+    this.popService.getAreaLevels({ reset: true }).subscribe(areaLevels => {
+      this.defaultPopLevel = areaLevels.find(al => al.isDefaultPopLevel);
+      this.popLevel = areaLevels.find(al => al.isPopLevel);
+      if (this.popLevel) {
+        this.popService.getAreas(this.popLevel.id, { reset: true }).subscribe(areas => this.areas = areas);
+      }
+      else
+        this.popLevelMissing = true;
+    })
+    this.mapControl = this.mapService.get('base-prog-data-map');
     this.http.get<Year[]>(this.rest.URLS.years).subscribe(years => {
       years.forEach(year => {
         if (year.isPrognosis) {
