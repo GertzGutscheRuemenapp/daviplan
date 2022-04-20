@@ -144,6 +144,15 @@ export interface Population {
   prognosis: number
 }
 
+export interface PopEntry {
+  id: number,
+  population: number,
+  area: number,
+  gender: number,
+  age_group: number,
+  value: number
+}
+
 export interface PopulationData {
   year: number,
   gender: number,

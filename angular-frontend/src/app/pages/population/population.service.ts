@@ -5,7 +5,7 @@ import { RestAPI } from "../../rest-api";
 import { TimeSliderComponent } from "../../elements/time-slider/time-slider.component";
 import { RestCacheService } from "../../rest-cache.service";
 import { Observable } from "rxjs";
-import { Population } from "../../rest-interfaces";
+import { PopEntry, Population } from "../../rest-interfaces";
 
 @Injectable({
   providedIn: 'root'
@@ -23,6 +23,10 @@ export class PopulationService extends RestCacheService {
   setReady(ready: boolean): void {
     this.isReady = ready;
     this.ready.emit(ready);
+  }
+
+  getPopEntries(population: number): Observable<PopEntry[]> {
+    return this.getCachedData<PopEntry[]>(`${this.rest.URLS.popEntries}?population=${population}`);
   }
 
   fetchPopulations(isPrognosis: boolean = false): Observable<Population[]>{

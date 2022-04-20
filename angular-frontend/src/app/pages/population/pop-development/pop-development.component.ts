@@ -367,7 +367,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       description = 'Bitte Gebietseinheit wählen';
     else {
       const genderDesc = `Geschlecht: ${this.selectedGender?.name || '-'}`;
-      const ageGroupDesc = `${(this.ageGroupSelection.selected.length == this.ageGroups.length)? 'alle' : 'ausgewählte'} Altersgruppen`;
+      const ageGroupDesc = `${(this.ageGroupSelection.selected.length == this.ageGroups.length)? 'alle' : this.ageGroupSelection.selected.length === 0? 'keine': 'ausgewählte'} Altersgruppen`;
       const progDesc = (this.realYears?.indexOf(this.year) === -1)? `${this.activePrognosis?.name} `: '';
       description = `Bevölkerungsentwicklung für Gebietseinheit ${this.activeLevel.name} | ${progDesc}${this.year} <br>` +
                     `${genderDesc} | ${ageGroupDesc}`;
