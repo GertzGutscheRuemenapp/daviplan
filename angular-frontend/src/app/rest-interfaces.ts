@@ -2,7 +2,7 @@ import { EventEmitter } from "@angular/core";
 import { Geometry } from "ol/geom";
 
 export interface BasedataSettings {
-  defaultPopAreaLevel: number,
+  popAreaLevel: number,
   popStatisticsAreaLevel: number,
   defaultDemandRateSets: Record<number, number>,
   defaultModeVariants: Record<number, number>,

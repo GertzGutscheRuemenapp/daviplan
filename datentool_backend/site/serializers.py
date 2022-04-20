@@ -42,7 +42,7 @@ class ProjectSettingSerializer(serializers.ModelSerializer):
 
 
 class BaseDataSettingSerializer(serializers.Serializer):
-    default_pop_area_level = serializers.SerializerMethodField(read_only=True)
+    pop_area_level = serializers.SerializerMethodField(read_only=True)
     pop_statistics_area_level = serializers.SerializerMethodField(read_only=True)
     default_demand_rate_sets = serializers.SerializerMethodField(read_only=True)
     default_mode_variants = serializers.SerializerMethodField(read_only=True)
@@ -63,9 +63,9 @@ class BaseDataSettingSerializer(serializers.Serializer):
         except AreaLevel.DoesNotExist:
             return
 
-    def get_default_pop_area_level(self, obj) -> int:
+    def get_pop_area_level(self, obj) -> int:
         try:
-            level = AreaLevel.objects.get(is_default_pop_level=True)
+            level = AreaLevel.objects.get(is_pop_level=True)
             return level.id
         except AreaLevel.DoesNotExist:
             return
