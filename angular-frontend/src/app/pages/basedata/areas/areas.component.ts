@@ -386,13 +386,13 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     this.patchOrder(this.customAreaLevels);
   }
 
-  setDefaultAreaLevel(areaLevel: AreaLevel | null): void {
-    if (!areaLevel || areaLevel.isDefaultPopLevel) return;
-    const attributes = { isDefaultPopLevel: true };
+  setPopAreaLevel(areaLevel: AreaLevel | null): void {
+    if (!areaLevel || areaLevel.isPopLevel) return;
+    const attributes = { isPopLevel: true };
     this.http.patch<AreaLevel>(`${this.rest.URLS.arealevels}${areaLevel.id}/`, attributes
     ).subscribe(al => {
-      this.customAreaLevels.concat(this.presetLevels).forEach(l => l.isDefaultPopLevel = false);
-      areaLevel.isDefaultPopLevel = al.isDefaultPopLevel;
+      this.customAreaLevels.concat(this.presetLevels).forEach(l => l.isPopLevel = false);
+      areaLevel.isPopLevel = al.isPopLevel;
     })
   }
 
