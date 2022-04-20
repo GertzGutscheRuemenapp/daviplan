@@ -12,18 +12,22 @@
   <div fxLayout="column" fxFlex="350px">
     <app-input-card [title]="'Einwohnerdaten online abrufen'"
                     infoText="<p>ToDo: nur verfügbar wenn: Gemeinden, Altersgruppen gemäß Regionalstatistik</p>"
-                    [subtitle]="'Abruf der Regionalstatistik'">
-      <table>
-        <tr>
-          <td i18n>letzter Abruf</td>
-          <td>02.06.2022</td>
-        </tr>
-      </table>
-      <div style="margin-top: 10px">
-        <button mat-flat-button color="primary" i18n>
-          <mat-icon>refresh</mat-icon> Abrufen
-        </button>
-      </div>
+                    [subtitle]="'Abruf der Regionalstatistik'"
+                    [disabled]="!popLevel || !popLevel.isDefaultPopLevel">
+      <ng-container *ngIf="popLevel && popLevel.isDefaultPopLevel; else notAvailable">
+        <table>
+          <tr>
+            <td i18n>letzter Abruf</td>
+            <td>02.06.2022</td>
+          </tr>
+        </table>
+        <div style="margin-top: 10px">
+          <button mat-flat-button color="primary" i18n>
+            <mat-icon>refresh</mat-icon> Abrufen
+          </button>
+        </div>
+      </ng-container>
+      <ng-template #notAvailable>Die Regionalstatistik kann nur abgerufen werden, wenn "{{defaultPopLevel?.name || '!!!Fehler!!!'}}" als Gebietseinheit für die Bevölkerungsdaten ausgewählt wurde</ng-template>
     </app-input-card>
     <app-input-card #yearCard
                     [title]="'Jahre'"

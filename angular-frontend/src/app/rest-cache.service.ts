@@ -31,9 +31,9 @@ export class RestCacheService {
 
   constructor(protected http: HttpClient, protected rest: RestAPI) { }
 
-  protected getCachedData<Type>(url: string): Observable<Type> {
+  protected getCachedData<Type>(url: string, options?: { reset?: boolean }): Observable<Type> {
     const observable = new Observable<Type>(subscriber => {
-      if (!this.genericCache[url]){
+      if (options?.reset || !this.genericCache[url]){
         this.http.get<Type>(url).subscribe(data => {
           this.genericCache[url] = data;
           subscriber.next(data);
@@ -87,9 +87,9 @@ export class RestCacheService {
     }));
   }
 
-  getAreaLevels(): Observable<AreaLevel[]> {
+  getAreaLevels(options?: { reset?: boolean }): Observable<AreaLevel[]> {
     const url = `${this.rest.URLS.arealevels}?active=true`;
-    const query = this.getCachedData<AreaLevel[]>(url);
+    const query = this.getCachedData<AreaLevel[]>(url, options);
     return query.pipe(map(areaLevels => {
       return sortBy(areaLevels, 'order');
     }));

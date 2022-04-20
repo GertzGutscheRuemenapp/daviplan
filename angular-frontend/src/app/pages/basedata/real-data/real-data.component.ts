@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular
 import { MapControl, MapService } from "../../../map/map.service";
 import { environment } from "../../../../environments/environment";
 import { PopulationService } from "../../population/population.service";
-import { Infrastructure, Population, Year } from "../../../rest-interfaces";
+import { AreaLevel, Infrastructure, Population, Year } from "../../../rest-interfaces";
 import { sortBy } from "../../../helpers/utils";
 import { SettingsService } from "../../../settings.service";
 import { SelectionModel } from "@angular/cdk/collections";
@@ -22,6 +22,8 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   backend: string = environment.backend;
   mapControl?: MapControl;
   years: Year[] = [];
+  popLevel?: AreaLevel;
+  defaultPopLevel?: AreaLevel;
   realYears: number[] = [];
   // dataYears: number[] = [];
   yearSelection = new SelectionModel<number>(true);
@@ -33,6 +35,10 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-real-data-map');
+    this.popService.getAreaLevels({reset: true}).subscribe(areaLevels => {
+      this.defaultPopLevel = areaLevels.find(al => al.isDefaultPopLevel);
+      this.popLevel = areaLevels.find(al => al.isPopLevel);
+    })
     this.http.get<Year[]>(this.rest.URLS.years).subscribe(years => {
       years.forEach(year => {
         if (year.year > this.maxYear) return;
