@@ -1,9 +1,7 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
 import { environment } from "../../../../environments/environment";
-import { forkJoin, Observable, Subscription } from "rxjs";
-import { map, shareReplay } from "rxjs/operators";
-import { BreakpointObserver } from "@angular/cdk/layout";
+import { Subscription } from "rxjs";
 import { MultilineChartComponent, MultilineData } from "../../../diagrams/multiline-chart/multiline-chart.component";
 import { BalanceChartComponent, BalanceChartData } from "../../../diagrams/balance-chart/balance-chart.component";
 import { PopulationService } from "../population.service";
@@ -28,11 +26,6 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   years?: number[];
   year?: number;
   theme: 'nature' | 'migration' = 'nature';
-  isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 50em)')
-    .pipe(
-      map(result => result.matches),
-      shareReplay()
-    );
   statisticsLayer?: Layer;
   subscriptions: Subscription[] = [];
   legendGroup?: LayerGroup;
@@ -42,7 +35,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   showImmigration: boolean = true;
   showEmigration: boolean = true;
 
-  constructor(private breakpointObserver: BreakpointObserver, private mapService: MapService,
+  constructor(private mapService: MapService,
               private populationService: PopulationService, private settings: SettingsService,
               private cookies: CookieService) {}
 

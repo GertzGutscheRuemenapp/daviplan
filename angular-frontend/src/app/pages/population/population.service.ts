@@ -6,6 +6,8 @@ import { TimeSliderComponent } from "../../elements/time-slider/time-slider.comp
 import { RestCacheService } from "../../rest-cache.service";
 import { Observable } from "rxjs";
 import { PopEntry, Population } from "../../rest-interfaces";
+import { map, shareReplay } from "rxjs/operators";
+import { BreakpointObserver } from "@angular/cdk/layout";
 
 @Injectable({
   providedIn: 'root'

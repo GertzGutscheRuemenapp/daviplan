@@ -3,7 +3,6 @@ import { MapControl, MapService } from "../../../map/map.service";
 import { StackedBarchartComponent, StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
 import { forkJoin, Observable, Subscription } from "rxjs";
-import { BreakpointObserver } from "@angular/cdk/layout";
 import { map, shareReplay } from "rxjs/operators";
 import { MatDialog } from "@angular/material/dialog";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
@@ -41,16 +40,11 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   activeArea?: Area;
   selectedGender?: Gender;
   year: number = 0;
-  isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 50em)')
-    .pipe(
-      map(result => result.matches),
-      shareReplay()
-    );
   ageGroupSelection = new SelectionModel<AgeGroup>(true );
   allAgeGroupsChecked: boolean = true;
   ageGroupColors: Record<number, string> = {};
 
-  constructor(private breakpointObserver: BreakpointObserver, private mapService: MapService, private dialog: MatDialog,
+  constructor(private mapService: MapService, private dialog: MatDialog,
               private populationService: PopulationService, private settings: SettingsService,
               private cookies: CookieService) {
   }
