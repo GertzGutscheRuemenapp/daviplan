@@ -23,6 +23,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   mapControl?: MapControl;
   years: Year[] = [];
   realYears: number[] = [];
+  // dataYears: number[] = [];
   yearSelection = new SelectionModel<number>(true);
   populations: Population[] = [];
   maxYear = new Date().getFullYear() - 1;
@@ -32,10 +33,6 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-real-data-map');
-    this.popService.fetchPopulations().subscribe(populations => {
-      this.populations = sortBy(populations,'year');
-      // this.populations.forEach(pop => this.yearSelection.select(pop.year))
-    });
     this.http.get<Year[]>(this.rest.URLS.years).subscribe(years => {
       years.forEach(year => {
         if (year.year > this.maxYear) return;
@@ -44,11 +41,14 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         }
         this.years.push(year);
       })
-      this.setupYearCard();
+      this.popService.fetchPopulations().subscribe(populations => {
+ /*       this.populations.forEach(population => {
+          const year = this.years.find(y => y.id == population.year);
+          if (year) this.dataYears.push(year.year);
+        });*/
+        this.setupYearCard();
+      });
     });
-    // this.settings.projectSettings$.subscribe(settings => {
-    //   this.availableYears = Array.from({ length: settings.endYear - settings.startYear + 1 }, (_, i) => i + settings.startYear)
-    // })
   }
 
   setupYearCard(): void {
@@ -86,15 +86,18 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
       }
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
-      // ToDo: route for deletion of real data (population?)
-/*      if (confirmed) {
-        this.http.delete(`${this.rest.URLS.years}${year.id}/`
+      const population = this.populations.find(p => p.year === year.id);
+      if (!population) return;
+      if (confirmed) {
+        this.http.delete(`${this.rest.URLS.populations}${population.id}/`
         ).subscribe(res => {
+          const idx = this.populations.indexOf(population);
+          if (idx > -1) this.populations.splice(idx, 1);
           year.hasRealData = false;
         },(error) => {
           console.log('there was an error sending the query', error);
         });
-      }*/
+      }
     });
   }
 

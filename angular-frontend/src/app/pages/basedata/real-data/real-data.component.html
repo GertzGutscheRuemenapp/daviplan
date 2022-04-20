@@ -135,7 +135,9 @@
       <th>Prognosedaten</th>
     </tr>
     <tr *ngFor="let year of years" [class.active]="yearSelection.isSelected(year.year)">
-      <td>{{year.year}}</td>
+      <td [title]="yearSelection.isSelected(year.year)? year.year + ' (Realdatenjahr)': year.year">
+        {{year.year}}
+      </td>
       <td>
         <mat-checkbox color="primary"
                       [checked]="yearSelection.isSelected(year.year)"

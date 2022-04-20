@@ -1203,6 +1203,7 @@ mat-checkbox.reverse {
 #years-check-table {
   text-align: center;
   width: 400px;
+  user-select: none;
   td mat-checkbox label{
     margin: 0;
   }
@@ -1211,5 +1212,8 @@ mat-checkbox.reverse {
   }
   tr.active td:first-child {
     color: $primary;
+  }
+  tr.warn td:first-child {
+    color: $warning;
   }
 }

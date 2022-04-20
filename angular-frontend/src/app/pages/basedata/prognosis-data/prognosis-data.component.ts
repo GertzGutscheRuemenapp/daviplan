@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
 import { StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
-import { Year } from "../../../rest-interfaces";
+import { Population, Year } from "../../../rest-interfaces";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { SelectionModel } from "@angular/cdk/collections";
 import { SettingsService } from "../../../settings.service";
@@ -10,6 +10,7 @@ import { RestAPI } from "../../../rest-api";
 import { HttpClient } from "@angular/common/http";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
+import { PopulationService } from "../../population/population.service";
 
 export const mockPrognoses = ['Trendfortschreibung', 'mehr Zuwanderung', 'mehr Abwanderung'];
 
@@ -45,6 +46,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   yearSelection = new SelectionModel<number>(true);
   prognosisYears: number[] = [];
   data: StackedData[] = mockdata;
+  populations: Population[] = [];
   labels: string[] = ['65+', '19-64', '0-18']
   xSeparator = {
     leftLabel: $localize`Realdaten`,
@@ -54,7 +56,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   }
 
   constructor(private mapService: MapService,private settings: SettingsService, private dialog: MatDialog,
-              private rest: RestAPI, private http: HttpClient) { }
+              private rest: RestAPI, private http: HttpClient, private popService: PopulationService) { }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-prog-data-map');
@@ -75,7 +77,9 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
         }
         this.years.push(year);
       })
-      this.setupYearCard();
+      this.popService.fetchPopulations(true).subscribe(populations => {
+        this.setupYearCard();
+      });
     });
   }
 
@@ -105,7 +109,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   deleteData(year: Year): void {
     if (!year.hasPrognosisData) return;
     const dialogRef = this.dialog.open(RemoveDialogComponent, {
-      width: '350px',
+      width: '400px',
       data: {
         title: 'Entfernung von Prognosedaten',
         message: 'Sollen die Prognosedaten dieses Jahres wirklich entfernt werden?',
@@ -114,6 +118,18 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       }
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      const population = this.populations.find(p => p.year === year.id);
+      if (!population) return;
+      if (confirmed) {
+        this.http.delete(`${this.rest.URLS.populations}${population.id}/`
+        ).subscribe(res => {
+          const idx = this.populations.indexOf(population);
+          if (idx > -1) this.populations.splice(idx, 1);
+          year.hasPrognosisData = false;
+        },(error) => {
+          console.log('there was an error sending the query', error);
+        });
+      }
     });
   }
 

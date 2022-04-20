@@ -186,30 +186,38 @@
       <th colspan="2">Daten in der Datenbank</th>
     </tr>
     <tr>
-      <th style="text-align: left;">Jahr</th>
+      <th>Jahr</th>
       <th>ausgewählt</th>
       <th>Prognosedaten</th>
       <th>Realdaten</th>
     </tr>
-    <tr *ngFor="let year of years" [class.active]="yearSelection.isSelected(year.year)">
-      <td>{{year.year}}</td>
+    <tr *ngFor="let year of years"
+        [class.active]="yearSelection.isSelected(year.year)"
+        [class.warn]="yearSelection.isSelected(year.year) && year.isReal">
+      <td [title]="(yearSelection.isSelected(year.year) && year.isReal)? 'Das Jahr ' + year.year + ' wurde bereits als Realdatenjahr ausgewählt, die Prognosedaten werden später in allen Anzeigen ignoriert.':
+                   (year.isReal)? year.year + ' (Realdatenjahr)': (yearSelection.isSelected(year.year))? year.year + ' (Prognosejahr)': year.year"
+          [style.color]="(!yearSelection.isSelected(year.year) && year.isReal)? 'black': ''">
+        <mat-icon [style.opacity]="(yearSelection.isSelected(year.year) && year.isReal)? 1: 0"
+                  style="vertical-align: bottom;">warning</mat-icon>
+        {{year.year}}
+      </td>
       <td>
-        <mat-checkbox color="primary"
+        <mat-checkbox [color]="!(yearSelection.isSelected(year.year) && year.isReal)? 'primary': ''"
                       [checked]="yearSelection.isSelected(year.year)"
                       (change)="yearSelection.toggle(year.year)"
-                      title="{{year.year}} als Realdatenjahr aus/abwählen">
+                      title="{{year.year}} als Prognosejahr aus/abwählen">
         </mat-checkbox>
       </td>
       <td style="text-align: right;">
         <mat-checkbox [disabled]="true"
                       [checked]="year.hasPrognosisData"
-                      title="Zeigt an, ob für das Jahr bereits Bevölkerungsdaten vorliegen">
+                      title="Zeigt an, ob für das Jahr bereits Prognosedaten vorliegen">
         </mat-checkbox>
         <button [style.opacity]="(!year.hasPrognosisData)? 0: 1"
                 [style.pointer-events]="(!year.hasPrognosisData)? 'none': ''"
                 (click)="deleteData(year)"
                 mat-icon-button color="warn"
-                title="Realdaten des Jahres {{year.year}} entfernen"
+                title="Prognosedaten des Jahres {{year.year}} entfernen"
                 style="margin-left: 10px;">
           <mat-icon>close</mat-icon>
         </button>
