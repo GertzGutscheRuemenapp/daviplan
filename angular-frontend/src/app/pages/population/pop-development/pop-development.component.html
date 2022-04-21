@@ -1,135 +1,128 @@
-<mat-sidenav #drawer class="context-bar"
-             [autoFocus]="false"
-             [opened]="(isSM$ | async) === false">
-  <mat-expansion-panel cookieExpansion="exp-pop-area">
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        <div class="mini-fab-icon">
-          <mat-icon class="material-icons-outlined">flip_to_front</mat-icon>
-        </div>
-        Gebietseinheit
-        <app-help-button title="Gebietseinheit" position="right">
-          <p>Wählen Sie aus dem Dropdown-Menü die Gebietseinheit, für die Werte in der Karte angezeigt werden sollen. Es werden Werte für alle Gebiete der ausgewählten Gebietseinheit dargestellt.</p>
-        </app-help-button>
-      </mat-panel-title>
-    </mat-expansion-panel-header>
-    <mat-form-field floatLabel="never" appearance="outline" class="small">
-      <mat-select disableOptionCentering disableRipple
-                  placeholder="Gebietseinheit auswählen"
-                  [(ngModel)]="activeLevel"
-                  (ngModelChange)="onLevelChange()">
-        <mat-option [value]="areaLevel" *ngFor="let areaLevel of areaLevels">
-          {{areaLevel.name}}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-  </mat-expansion-panel>
-  <mat-expansion-panel cookieExpansion="exp-pop-prog">
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        <div class="mini-fab-icon">
-          <mat-icon class="material-icons-outlined">auto_graph</mat-icon>
-        </div>
-        Prognoseszenario
-        <app-help-button title="Prognoseszenario" position="right">
-          <p>Wählen Sie aus dem Dropdown-Menü das Prognose-Szenario, für das Werte in der Karte angezeigt werden sollen. Zur Auswahl stehen alle in den Grundlagendaten eingepflegten Prognoseszenarien.</p>
-        </app-help-button>
-      </mat-panel-title>
-    </mat-expansion-panel-header>
-    <mat-form-field appearance="outline" class="small">
-      <mat-select disableOptionCentering disableRipple
-                  placeholder="Prognose auswählen"
-                  [(ngModel)]="activePrognosis"
-                  (ngModelChange)="onPrognosisChange()">
-        <mat-option *ngFor="let prognosis of prognoses" [value]="prognosis">
-          {{prognosis.name}}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-  </mat-expansion-panel>
-  <mat-expansion-panel cookieExpansion="exp-pop-groups">
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        <div class="mini-fab-icon">
-          <mat-icon class="material-icons-outlined">group</mat-icon>
-        </div>
-        Bevölkerungsgruppe
-        <app-help-button title="Bevölkerungsgruppe" position="right">
-          <p>Beschreiben Sie in diesem Bereich die Bevölkerungsgruppe für die Werte in der Karte dargestellt werden sollen. Wählen Sie dafür das Geschlecht aus dem Dropdown-Menü und die Altersgruppe/n für die Darstellung mit den Checkboxen aus. Werden mehrere Altersgruppen ausgewählt, erfolgt die Darstellung der Summe über die ausgewählten Altersklassen.</p>
-        </app-help-button>
-      </mat-panel-title>
-    </mat-expansion-panel-header>
-    <mat-form-field appearance="outline" class="small">
-      <mat-label i18n>Geschlecht</mat-label>
-      <mat-select disableOptionCentering disableRipple
-                  [(ngModel)]="selectedGender"
-                  (ngModelChange)="onGenderChange()">
-        <mat-option *ngFor="let gender of genders" [value]="gender">
-          {{gender.name}}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-    <div class="sub-select-box">
-      <span style="color: grey;" class="subtitle1" i18n> Enthaltene Altersgruppen </span>
-      <button mat-icon-button color="primary"
-              style="position: absolute; right: 10px; margin-top: -8px;"
-              (click)="editAgeGroups()">
-        <mat-icon>edit</mat-icon>
-      </button>
-      <div class="border-box" style="margin-top: 10px">
-        <mat-checkbox class="reverse" color="primary"
-                      [indeterminate]="someAgeGroupsChecked()"
-                      [checked]="allAgeGroupsChecked"
-                      (change)="setAllAgeGroupsChecked($event.checked)">
-          alle
-        </mat-checkbox>
-        <mat-divider style="margin-bottom: 10px;"></mat-divider>
-        <mat-checkbox class="reverse" color="primary"
-                      *ngFor="let ageGroup of ageGroups"
-                      [checked]="ageGroupSelection.isSelected(ageGroup)"
-                      (change)="ageGroupSelection.toggle(ageGroup); updateGroupsChecked()">
-          {{ageGroup.label}}
-        </mat-checkbox>
+<mat-expansion-panel cookieExpansion="exp-pop-area">
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <div class="mini-fab-icon">
+        <mat-icon class="material-icons-outlined">flip_to_front</mat-icon>
       </div>
+      Gebietseinheit
+      <app-help-button title="Gebietseinheit" position="right">
+        <p>Wählen Sie aus dem Dropdown-Menü die Gebietseinheit, für die Werte in der Karte angezeigt werden sollen. Es werden Werte für alle Gebiete der ausgewählten Gebietseinheit dargestellt.</p>
+      </app-help-button>
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  <mat-form-field floatLabel="never" appearance="outline" class="small">
+    <mat-select disableOptionCentering disableRipple
+                placeholder="Gebietseinheit auswählen"
+                [(ngModel)]="activeLevel"
+                (ngModelChange)="onLevelChange()">
+      <mat-option [value]="areaLevel" *ngFor="let areaLevel of areaLevels">
+        {{areaLevel.name}}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</mat-expansion-panel>
+<mat-expansion-panel cookieExpansion="exp-pop-prog">
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <div class="mini-fab-icon">
+        <mat-icon class="material-icons-outlined">auto_graph</mat-icon>
+      </div>
+      Prognoseszenario
+      <app-help-button title="Prognoseszenario" position="right">
+        <p>Wählen Sie aus dem Dropdown-Menü das Prognose-Szenario, für das Werte in der Karte angezeigt werden sollen. Zur Auswahl stehen alle in den Grundlagendaten eingepflegten Prognoseszenarien.</p>
+      </app-help-button>
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  <mat-form-field appearance="outline" class="small">
+    <mat-select disableOptionCentering disableRipple
+                placeholder="Prognose auswählen"
+                [(ngModel)]="activePrognosis"
+                (ngModelChange)="onPrognosisChange()">
+      <mat-option *ngFor="let prognosis of prognoses" [value]="prognosis">
+        {{prognosis.name}}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</mat-expansion-panel>
+<mat-expansion-panel cookieExpansion="exp-pop-groups">
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <div class="mini-fab-icon">
+        <mat-icon class="material-icons-outlined">group</mat-icon>
+      </div>
+      Bevölkerungsgruppe
+      <app-help-button title="Bevölkerungsgruppe" position="right">
+        <p>Beschreiben Sie in diesem Bereich die Bevölkerungsgruppe für die Werte in der Karte dargestellt werden sollen. Wählen Sie dafür das Geschlecht aus dem Dropdown-Menü und die Altersgruppe/n für die Darstellung mit den Checkboxen aus. Werden mehrere Altersgruppen ausgewählt, erfolgt die Darstellung der Summe über die ausgewählten Altersklassen.</p>
+      </app-help-button>
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  <mat-form-field appearance="outline" class="small">
+    <mat-label i18n>Geschlecht</mat-label>
+    <mat-select disableOptionCentering disableRipple
+                [(ngModel)]="selectedGender"
+                (ngModelChange)="onGenderChange()">
+      <mat-option *ngFor="let gender of genders" [value]="gender">
+        {{gender.name}}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <div class="sub-select-box">
+    <span style="color: grey;" class="subtitle1" i18n> Enthaltene Altersgruppen </span>
+    <button mat-icon-button color="primary"
+            style="position: absolute; right: 10px; margin-top: -8px;"
+            (click)="editAgeGroups()">
+      <mat-icon>edit</mat-icon>
+    </button>
+    <div class="border-box" style="margin-top: 10px">
+      <mat-checkbox class="reverse" color="primary"
+                    [indeterminate]="someAgeGroupsChecked()"
+                    [checked]="allAgeGroupsChecked"
+                    (change)="setAllAgeGroupsChecked($event.checked)">
+        alle
+      </mat-checkbox>
+      <mat-divider style="margin-bottom: 10px;"></mat-divider>
+      <mat-checkbox class="reverse" color="primary"
+                    *ngFor="let ageGroup of ageGroups"
+                    [checked]="ageGroupSelection.isSelected(ageGroup)"
+                    (change)="ageGroupSelection.toggle(ageGroup); updateGroupsChecked()">
+        {{ageGroup.label}}
+      </mat-checkbox>
     </div>
-  </mat-expansion-panel>
-  <mat-expansion-panel cookieExpansion="exp-pop-compare">
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        <div class="mini-fab-icon">
-          <div class="davicon icon-GGR-davicons-Font-Simple-4-Vergleichsdarstellung"></div>
-        </div>
-        Vergleichsdarstellung
-        <app-help-button title="Vergleichsdarstellung" position="right">
-          <p></p>
-        </app-help-button>
-      </mat-panel-title>
-    </mat-expansion-panel-header>
-    <mat-checkbox color="primary" [(ngModel)]="compareYears" style="width: 230px; margin-bottom: 10px;"
-                  i18n>Ausgewählte Bevölkerungs- daten vergleichen mit denen aus dem Jahr
-    </mat-checkbox> <!--style="margin: 0 0 10px -12px;"-->
+  </div>
+</mat-expansion-panel>
+<mat-expansion-panel cookieExpansion="exp-pop-compare">
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <div class="mini-fab-icon">
+        <div class="davicon icon-GGR-davicons-Font-Simple-4-Vergleichsdarstellung"></div>
+      </div>
+      Vergleichsdarstellung
+      <app-help-button title="Vergleichsdarstellung" position="right">
+        <p></p>
+      </app-help-button>
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  <mat-checkbox color="primary" [(ngModel)]="compareYears" style="width: 230px; margin-bottom: 10px;"
+                i18n>Ausgewählte Bevölkerungs- daten vergleichen mit denen aus dem Jahr
+  </mat-checkbox> <!--style="margin: 0 0 10px -12px;"-->
 <!--    Bevölkerungsstruktur vergleichen-->
-    <mat-form-field *ngIf="realYears && prognosisYears" appearance="outline" class="small">
-      <mat-label>Jahr</mat-label>
-      <mat-select disableOptionCentering disableRipple [value]="realYears[0]" [disabled]="!compareYears">
-        <mat-option *ngFor="let year of realYears.concat(prognosisYears)" [value]="year">
-          {{year}}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-  </mat-expansion-panel>
-</mat-sidenav>
-<button type="button"
-        id="toggle-settings"
-        aria-label="Toggle sidenav"
-        mat-icon-button
-        color="primary"
-        (click)="drawer.toggle()"
-        *ngIf="isSM$ | async">
-  <mat-icon aria-label="Side nav toggle icon">arrow_circle_down</mat-icon>
-</button>
+  <mat-form-field *ngIf="realYears && prognosisYears" appearance="outline" class="small">
+    <mat-label>Jahr</mat-label>
+    <mat-select disableOptionCentering disableRipple [value]="realYears[0]" [disabled]="!compareYears">
+      <mat-option *ngFor="let year of realYears.concat(prognosisYears)" [value]="year">
+        {{year}}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</mat-expansion-panel>
 
-<div id="diagram-bar">
+<!--this div is only there to cover glitched shadow of chart toggle-->
+<div style="width: 100%; height: 20px; background-color: white;"></div>
+<app-side-toggle id="chart-toggle"
+                 icon="multiline_chart"
+                 direction="right"
+                 name="Diagramme"
+                 cookieExpansion="exp-pop-diagrams">
   <div>
     <mat-form-field appearance="outline" class="small">
       <mat-label>Gebiet</mat-label>
@@ -146,37 +139,68 @@
       <p>Alternativ können Sie ein Gebiet auch in der Karte auswählen durch einen Klick auf selbiges.</p>
     </app-help-button>
   </div>
-  <div class="diagram-wrapper">
-    <app-help-button title="Bevölkerungsentwicklung" position="left"
-                     style="position: absolute; right: 0; top: 10px; z-index: 1;">
-      <p>Das Diagramm stellt die absolute Entwicklung der Bevölkerungszahl des oben ausgewählten Gebiets dar. Passen Sie die Darstellung ggf. durch Auswahl des Geschlechtes sowie der Altersklassen auf der linken Seite an.</p>
-    </app-help-button>
-    <div>
-      <app-stacked-barchart #barChart
-                            xLabel="Jahre"
-                            yLabel="Einwohner"
-                            [animate]="true">
-      </app-stacked-barchart>
-    </div>
-  </div>
-  <div class="diagram-wrapper">
-    <app-help-button title="relative Altersgruppenentwicklung" position="left"
-                     style="position: absolute; right: 0; top: 10px; z-index: 1;">
-      <p>Das Diagramm stellt die relative Entwicklung der Bevölkerungszahl des oben ausgewählten Gebiets dar. Das erste im Datensatz verfügbare Jahr wird auf 100%, alle anderen Jahre dazu ins Verhältnis gesetzt. Passen Sie die Darstellung ggf. durch Auswahl des Geschlechtes sowie der Altersklassen auf der linken Seite an.</p>
-    </app-help-button>
-    <div>
-      <app-multiline-chart #lineChart
-                           figureId="einwohnerrelativ"
-                           xLabel="Jahre"
-                           yLabel="Einwohner relativ"
-                           [animate]="true"
-                           [yOrigin]="100"
-                           [shiftXLabelDown]="true"
-                           unit="%">
-      </app-multiline-chart>
-    </div>
-  </div>
-</div>
+  <mat-tab-group (selectedIndexChange)="selectedTab = $event">
+    <mat-tab label="Bevölkerungsentwicklung">
+      <ng-template matTabContent>
+        <div class="diagram-wrapper">
+          <app-help-button title="Bevölkerungsentwicklung" position="left"
+                           style="position: absolute; right: 0; top: 10px; z-index: 1;">
+            <p>Das Diagramm stellt die absolute Entwicklung der Bevölkerungszahl des oben ausgewählten Gebiets dar. Passen Sie die Darstellung ggf. durch Auswahl des Geschlechtes sowie der Altersklassen auf der linken Seite an.</p>
+          </app-help-button>
+          <div *ngIf="selectedTab===0">
+            <app-stacked-barchart #barChart
+                                  xLabel="Jahre"
+                                  yLabel="Einwohner"
+                                  [animate]="true"
+                                  [labels]="barChartProps.labels"
+                                  [colors]="barChartProps.colors"
+                                  [title]="barChartProps.title"
+                                  [subtitle]="barChartProps.subtitle"
+                                  [xSeparator]="barChartProps.xSeparator"
+                                  [data]="barChartProps.data">
+            </app-stacked-barchart>
+          </div>
+        </div>
+      </ng-template>
+    </mat-tab>
+    <mat-tab label="Altersgruppenentwicklung">
+      <ng-template matTabContent>
+        <div class="diagram-wrapper">
+          <app-help-button title="relative Altersgruppenentwicklung" position="left"
+                           style="position: absolute; right: 0; top: 10px; z-index: 1;">
+            <p>Das Diagramm stellt die relative Entwicklung der Bevölkerungszahl des oben ausgewählten Gebiets dar. Das erste im Datensatz verfügbare Jahr wird auf 100%, alle anderen Jahre dazu ins Verhältnis gesetzt. Passen Sie die Darstellung ggf. durch Auswahl des Geschlechtes sowie der Altersklassen auf der linken Seite an.</p>
+          </app-help-button>
+          <div *ngIf="selectedTab===1">
+            <app-multiline-chart #lineChart
+                                 figureId="einwohnerrelativ"
+                                 xLabel="Jahre"
+                                 yLabel="Einwohner relativ"
+                                 [animate]="true"
+                                 [yOrigin]="100"
+                                 [shiftXLabelDown]="true"
+                                 [labels]="lineChartProps.labels"
+                                 [colors]="lineChartProps.colors"
+                                 [title]="lineChartProps.title"
+                                 [subtitle]="lineChartProps.subtitle"
+                                 [min]="lineChartProps.min"
+                                 [max]="lineChartProps.max"
+                                 [xSeparator]="lineChartProps.xSeparator"
+                                 [data]="lineChartProps.data"
+                                 unit="%">
+            </app-multiline-chart>
+          </div>
+        </div>
+      </ng-template>
+    </mat-tab>
+    <mat-tab label="Bevölkerungspyramide">
+      <div class="diagram-wrapper">
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+  <!--<div id="diagram-bar">
+  </div>-->
+</app-side-toggle>
+
 
 <ng-template #ageGroupTemplate>
   <i>Funktionalität des Altersgruppen-Sliders noch nicht implementiert</i>

@@ -28,7 +28,7 @@
                              (click)="selectAreaLevel(areaLevel)"
                              [selected]="(activeLevel && (areaLevel.id === activeLevel.id))">
               <div class="option-text">{{ areaLevel.name }}</div>
-              <mat-icon *ngIf="areaLevel.isDefaultPopLevel" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
+              <mat-icon *ngIf="areaLevel.isPopLevel" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
             </mat-list-option>
             <mat-checkbox color="primary"
                           [checked]="areaLevel.isActive!"
@@ -45,7 +45,7 @@
                              (click)="selectAreaLevel(areaLevel)"
                              [selected]="(activeLevel && (areaLevel.id === activeLevel.id))">
               <div class="option-text">{{ areaLevel.name }}</div>
-              <mat-icon *ngIf="areaLevel.isDefaultPopLevel" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
+              <mat-icon *ngIf="areaLevel.isPopLevel" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
             </mat-list-option>
             <mat-checkbox color="primary"
                           [checked]="areaLevel.isActive!"
@@ -72,8 +72,8 @@
       <button mat-button color="primary"
               class="multiline-button"
               style="width: 86%;"
-              (click)="activeLevel && setDefaultAreaLevel(activeLevel)"
-              [disabled]="activeLevel?.isPreset && activeLevel !== presetLevels[presetLevels.length-1]">
+              (click)="activeLevel && setPopAreaLevel(activeLevel)"
+              [disabled]="activeLevel?.isPreset && !activeLevel?.isDefaultPopLevel">
         <mat-icon class="material-icons-outlined">verified</mat-icon>
         Als Gebietseinheit für alle Einwohnerdaten festlegen
       </button>

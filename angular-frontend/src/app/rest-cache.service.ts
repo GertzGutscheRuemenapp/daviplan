@@ -31,13 +31,15 @@ export class RestCacheService {
 
   constructor(protected http: HttpClient, protected rest: RestAPI) { }
 
-  protected getCachedData<Type>(url: string): Observable<Type> {
+  protected getCachedData<Type>(url: string, options?: { reset?: boolean }): Observable<Type> {
     const observable = new Observable<Type>(subscriber => {
-      if (!this.genericCache[url]){
+      if (options?.reset || !this.genericCache[url]){
+        this.setLoading(true);
         this.http.get<Type>(url).subscribe(data => {
           this.genericCache[url] = data;
           subscriber.next(data);
           subscriber.complete();
+          this.setLoading(false);
         });
       }
       else {
@@ -87,9 +89,11 @@ export class RestCacheService {
     }));
   }
 
-  getAreaLevels(): Observable<AreaLevel[]> {
-    const url = `${this.rest.URLS.arealevels}?active=true`;
-    const query = this.getCachedData<AreaLevel[]>(url);
+  getAreaLevels(options?: { reset?: boolean, active?: boolean }): Observable<AreaLevel[]> {
+    let url = this.rest.URLS.arealevels;
+    if (options?.active)
+      url += '?active=true';
+    const query = this.getCachedData<AreaLevel[]>(url, options);
     return query.pipe(map(areaLevels => {
       return sortBy(areaLevels, 'order');
     }));
@@ -176,9 +180,11 @@ export class RestCacheService {
         this.setLoading(true);
         const query = this.http.get<any>(`${this.rest.URLS.areas}?area_level=${areaLevelId}`);
         query.subscribe( areas => {
-          this.areaCache[areaLevelId] = areas.features;
+          areas.features.forEach((f: any) => f.label = f.properties.label);
+          const features = sortBy(areas.features, 'label')
+          this.areaCache[areaLevelId] = features;
           const format = new GeoJSON();
-          areas.features.forEach((area: Area )=> {
+          features.forEach((area: Area )=> {
             const geometry = wktToGeom(area.geometry as string,
               {targetProjection: targetProjection, ewkt: true});
             area.geometry = geometry;
@@ -193,7 +199,7 @@ export class RestCacheService {
             }
           })
           this.setLoading(false);
-          subscriber.next(areas.features);
+          subscriber.next(features);
           subscriber.complete();
         });
       }

@@ -32,19 +32,19 @@ export class MultilineChartComponent implements AfterViewInit {
   @Input() colors?: string[];
   @Input() yPadding: number = 0;
   @Input() yOrigin: number = 0;
+  @Input() xLegendOffset: number = 70;
+  @Input() yLegendOffset: number = 0;
   @Input() animate?: boolean;
   @Input() xSeparator?: { leftLabel?: string, rightLabel?:string, x: string, highlight?: boolean };
   @Input() shiftXLabelDown?: boolean;
 
   private svg: any;
-  public margin: {top: number, bottom: number, left: number, right: number } = {
+  @Input() margin: {top: number, bottom: number, left: number, right: number } = {
     top: 50,
     bottom: 50,
     left: 60,
     right: 130
   };
-  xLegendOffset = 70;
-  yLegendOffset = 0;
 
   localeFormatter = d3.formatLocale({
     decimal: ',',
@@ -79,6 +79,7 @@ export class MultilineChartComponent implements AfterViewInit {
 
   public draw(data: MultilineData[]): void {
     this.clear();
+    console.log(this.subtitle)
     if (data.length == 0) return;
 
     if (!this.labels)
@@ -146,7 +147,7 @@ export class MultilineChartComponent implements AfterViewInit {
 
     if (this.xLabel)
       this.svg.append('text')
-        .attr("y", this.margin.top + y(this.yOrigin) + 20)
+        .attr("y", this.shiftXLabelDown? this.margin.top + y(min!): this.margin.top + y(this.yOrigin) + 20)
         .attr("x", this.width! - this.margin.right + 10)
         .attr('dy', '0.5em')
         .style('text-anchor', 'end')

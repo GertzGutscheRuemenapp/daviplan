@@ -1,3 +1,6 @@
+<div class="loadOverlay" *ngIf="popService.isLoading$ | async">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
 <app-header-card [title]="'Realdaten (= Einwohnerdaten der zurückliegenden Jahre)'"
                  cookieId="exp-realdata-header"
                  width="1430px">
@@ -8,27 +11,35 @@
   <p>Bereits hochgeladene Daten können über die Bevölkerungspyramide betrachtet werden. Wählen Sie hierzu in der Box „Jahre“ ein Jahr und über die Karte oder die Auswahlliste eine Gebietseinheit aus.</p>
   <p>Zudem sind sie für alle Nutzer*innen im Hauptmenübereich „Bevölkerung“ sichtbar und stehen für Auswertungen im Hauptmenübereich „Infrastrukturplanung“ zur Verfügung.</p>
 </app-header-card>
+<div *ngIf="popLevelMissing">
+  <h1 style="color: red; margin: 30px;">Fehler: Es ist keine Gebietseinheit für die Bevölkerungsdaten festgelegt!</h1>
+</div>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
     <app-input-card [title]="'Einwohnerdaten online abrufen'"
                     infoText="<p>ToDo: nur verfügbar wenn: Gemeinden, Altersgruppen gemäß Regionalstatistik</p>"
-                    [subtitle]="'Abruf der Regionalstatistik'">
-      <table>
-        <tr>
-          <td i18n>letzter Abruf</td>
-          <td>02.06.2022</td>
-        </tr>
-      </table>
-      <div style="margin-top: 10px">
-        <button mat-flat-button color="primary" i18n>
-          <mat-icon>refresh</mat-icon> Abrufen
-        </button>
-      </div>
+                    [subtitle]="'Abruf der Regionalstatistik'"
+                    [disabled]="!popLevel || !popLevel.isDefaultPopLevel">
+      <ng-container *ngIf="popLevel && popLevel.isDefaultPopLevel; else notAvailable">
+        <table>
+          <tr>
+            <td i18n>letzter Abruf</td>
+            <td>02.06.2022</td>
+          </tr>
+        </table>
+        <div style="margin-top: 10px">
+          <button mat-flat-button color="primary" i18n>
+            <mat-icon>refresh</mat-icon> Abrufen
+          </button>
+        </div>
+      </ng-container>
+      <ng-template #notAvailable>Die Regionalstatistik kann nur abgerufen werden, wenn "{{defaultPopLevel?.name}}" als Gebietseinheit für die Bevölkerungsdaten ausgewählt wurde</ng-template>
     </app-input-card>
     <app-input-card #yearCard
                     [title]="'Jahre'"
                     [editTemplate]="yearsEdit"
-                    infoText="<p></p>">
+                    infoText="<p></p>"
+                    [disabled]="!popLevel">
       <table>
         <tr>
           <td i18n>Jahre</td>
@@ -45,6 +56,7 @@
   <div fxLayout="column" fxFlex="1100px">
     <app-input-card [title]="'Ergänzende Einwohnerdaten hochladen'"
                     [topRightHelp]="true"
+                    [disabled]="!popLevel"
                     infoText="<p>Wenn Sie für dieses Jahr noch keine Einwohnerdaten hochgeladen haben (oder die bereits hochgeladenen Daten ersetzen möchten), können Sie sich mit der Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excelformat  herunterladen. Befüllen Sie diese mit Ihren Daten für das angezeigte Jahr und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Zur Kontrolle können Sie sich die hochgeladenen Daten anschließend in der Box „Alterspyramide“ für einzelne Gebiete anschauen. Alternativ können Sie sich die Gesamttabelle des Jahres über die Schaltfläche „Datentabelle ansehen“ anzeigen lassen.</p>
                     <p>Um die Daten weiterer Jahre hochzuladen, fügen Sie bitte in der Box „Jahre“ weitere Jahre hinzu und wiederholen das Vorgehen entsprechend. Für jedes Jahr benötigen Sie eine eigene Vorlagedatei.</p>">
       <div style="width: 100%; display: flex;">
@@ -71,15 +83,15 @@
               <mat-icon>upload</mat-icon> Daten hochladen
             </button>
           </div>
-          <button class="mat-button-dv"
+          <button class="mat-button-dv" disabled
                   mat-button color="primary" i18n>
             <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
           </button>
-          <button mat-mini-fab color="primary"
+<!--          <button mat-mini-fab color="primary"
                   aria-label="Daten herunterladen" title="Daten herunterladen"
                   style="float: right; margin: -10px 15px 0 0; box-shadow: none;">
             <mat-icon>download</mat-icon>
-          </button>
+          </button>-->
         </div>
         <div id="log-window" style="width: 50%">
           <span class="subtitle1">Daten-Historie</span>
@@ -89,15 +101,29 @@
     </app-input-card>
     <app-input-card [title]="'Alterspyramide für ausgewähltes Jahr und ein ausgewähltes Gebiet'"
                     [topRightHelp]="true"
+                    [disabled]="!popLevel"
                     subtitle="Auswahl eines Gebiets über die Karte bzw. die Auswahlbox"
                     infoText="<p>Wählen Sie in der Auswahlliste „Gebiet“ ein Gebiet aus, um dessen Einwohnerdaten in der Alterspyramide anzuzeigen. Alternativ können Sie das Gebiet auch durch Anklicken in der Karte auswählen. Die Daten der Alterspyramide beziehen sich auf das in der Box „Jahre“ ausgewählte Jahr. Um für das gleiche Gebiet zwischen den Jahren zu springen, klicken Sie in der Box „Jahre“ ein anderes Jahr an.</p>
                     <p>Voraussetzung für die Anzeige ist, dass Sie bereits Einwohnerdaten für mindestens ein Jahr hochgeladen haben.</p>">
       <div>
+        <mat-form-field appearance="outline" class="small" style="margin-right: 10px;">
+          <mat-label>Jahr</mat-label>
+          <mat-select disableOptionCentering disableRipple
+                      [(ngModel)]="previewYear"
+                      (ngModelChange)="updatePreview()">
+            <ng-container *ngFor="let year of years">
+              <mat-option *ngIf="year.isReal" [value]="year">
+                {{year.year}}
+                <!--              <ng-container *ngIf="year.isReal">(aktiv)</ng-container>-->
+              </mat-option>
+            </ng-container>
+          </mat-select>
+        </mat-form-field>
         <mat-form-field appearance="outline" class="small">
           <mat-label>Gebiet</mat-label>
-          <mat-select disableOptionCentering disableRipple value="irgendwo">
-            <mat-option value="irgendwo">
-              [Gebietseinheit]
+          <mat-select disableOptionCentering disableRipple>
+            <mat-option *ngFor="let area of areas" [value]="area">
+              {{area.properties.label}}
             </mat-option>
           </mat-select>
         </mat-form-field>
@@ -135,7 +161,9 @@
       <th>Prognosedaten</th>
     </tr>
     <tr *ngFor="let year of years" [class.active]="yearSelection.isSelected(year.year)">
-      <td>{{year.year}}</td>
+      <td [title]="yearSelection.isSelected(year.year)? year.year + ' (Realdatenjahr)': year.year">
+        {{year.year}}
+      </td>
       <td>
         <mat-checkbox color="primary"
                       [checked]="yearSelection.isSelected(year.year)"
