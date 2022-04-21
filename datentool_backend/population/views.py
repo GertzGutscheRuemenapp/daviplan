@@ -393,7 +393,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                                 end_year=min_max_years['year__max'],
                                 username=username,
                                 password=password)
-        areas = Area.objects.filter(area_level=area_level)
+        #areas = Area.objects.filter(area_level=area_level)
         ags = [a.attributes.get(field__name='ags').value for a in areas]
         try:
             df_population = api.query_population(ags=ags)

@@ -103,7 +103,7 @@ class TestRegionalstatistikAPI(LoginTestCase, APITestCase):
         df = self.api.query_deaths(ags=self.ags)
 
     # skipped for now, routes not fully implemented
-    @skip
+    #@skip
     def test_rest(self):
         res = self.post('populations-pull-regionalstatistik')
         res = self.post('popstatistics-pull-regionalstatistik')
