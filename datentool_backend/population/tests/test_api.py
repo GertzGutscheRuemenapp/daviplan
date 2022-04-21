@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import pandas as pd
 from unittest import skip
 from unittest.mock import Mock, patch
 from django.test import TestCase
@@ -41,7 +42,7 @@ from datentool_backend.area.factories import (AreaLevelFactory,
                                               AreaFieldFactory,
                                               FieldTypes,
                                               )
-from datentool_backend.demand.factories import AgeGroupFactory
+from datentool_backend.demand.factories import AgeGroupFactory, GenderFactory
 from datentool_backend.demand.constants import RegStatAgeGroups
 
 from faker import Faker
@@ -87,6 +88,13 @@ class TestRegionalstatistikAPI(LoginTestCase, APITestCase):
                           for r in RegStatAgeGroups.agegroups]
 
         cls.api = Regionalstatistik(start_year=2012, end_year=2014)
+        for y in range(2012, 2015):
+            year = Year.objects.get(year=y)
+            year.is_real = True
+            year.save()
+        GenderFactory(id=1, name='männlich')
+        GenderFactory(id=2, name='weiblich')
+
 
     # leave this skipped, because test_rest does the calls anyway,
     # only here for debugging
@@ -122,8 +130,29 @@ class TestRegionalstatistikAPI(LoginTestCase, APITestCase):
                 return fftxt
 
         mock_get.return_value = MyMock(ok=True, status_code=200, _get=mock_get)
-        res = self.post('populations-pull-regionalstatistik')
-        res = self.post('popstatistics-pull-regionalstatistik')
+        res = self.post('populations-pull-regionalstatistik',
+                        data={'drop_constraints': False, })
+
+        popentries = pd.DataFrame(PopulationEntry.objects.values())
+
+        actual = popentries.groupby(['area_id', 'population_id']).sum()['value']
+        target = [211713, 212958, 214420, 311, 305, 315, 349, 335, 354]
+        self.assertListEqual(list(actual), target)
+
+        res = self.post('popstatistics-pull-regionalstatistik',
+                        data={'drop_constraints': False, })
+
+        popstatentries = pd.DataFrame(PopStatEntry.objects.values())
+
+        actual = popstatentries.groupby(['area_id']).mean()\
+            [['immigration', 'emigration', 'births', 'deaths']]
+        target = pd.DataFrame.from_dict(
+            {'immigration': [12061, 32, 35],
+             'emigration': [10012, 13, 26],
+             'births': [1813, 0.3, 4],
+             'deaths': [2678, 16, 9]}).set_index(actual.index)
+        pd.testing.assert_frame_equal(actual, target, atol=0.5, check_dtype=False)
+
         # ToDo: permission test
         # ToDo: test user and password
 
