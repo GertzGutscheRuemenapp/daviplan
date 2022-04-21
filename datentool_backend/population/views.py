@@ -421,7 +421,9 @@ class PopulationViewSet(viewsets.ModelViewSet):
                 age_group = AgeGroup.objects.get(from_age=reg_ag.from_age,
                                                  to_age=reg_ag.to_age)
                 # ToDo:create PopEntry per agegroup, gender and area
-                raise NotImplementedError
+                #raise NotImplementedError
+        msg = 'Download of Population successful'
+        return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
 
 class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
@@ -491,7 +493,9 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'message': str(e),},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        raise NotImplementedError
+
+        msg = 'Download of Population successful'
+        return Response({'message': msg, }, status=status.HTTP_202_ACCEPTED)
 
 
 class PopStatEntryFilter(filters.FilterSet):

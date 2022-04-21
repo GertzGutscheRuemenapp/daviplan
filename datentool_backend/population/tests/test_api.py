@@ -1,5 +1,7 @@
+import os
 import numpy as np
 from unittest import skip
+from unittest.mock import Mock, patch
 from django.test import TestCase
 from test_plus import APITestCase
 
@@ -102,13 +104,27 @@ class TestRegionalstatistikAPI(LoginTestCase, APITestCase):
         df = self.api.query_births(ags=self.ags)
         df = self.api.query_deaths(ags=self.ags)
 
-    # skipped for now, routes not fully implemented
-    #@skip
-    def test_rest(self):
+    @patch('datentool_backend.utils.regionalstatistik.requests.get')
+    def test_rest(self, mock_get):
+
+        class MyMock(Mock):
+            _testdatadir = os.path.join(os.path.dirname(__file__), 'data')
+            _fnames = {Regionalstatistik.POP_CODE: 'population.ffcsv',
+                       Regionalstatistik.MIGRATION_CODE: 'migration.ffcsv',
+                       Regionalstatistik.BIRTHS_CODE: 'births.ffcsv',
+                       Regionalstatistik.DEATHS_CODE: 'deaths.ffcsv',
+                       }
+            @property
+            def text(self) -> str:
+                code = self._get.call_args[1]['params']['name']
+                fn = self._fnames.get(code)
+                fftxt = open(os.path.join(self._testdatadir, fn)).read()
+                return fftxt
+
+        mock_get.return_value = MyMock(ok=True, status_code=200, _get=mock_get)
         res = self.post('populations-pull-regionalstatistik')
         res = self.post('popstatistics-pull-regionalstatistik')
         # ToDo: permission test
-        # ToDo: mock data
         # ToDo: test user and password
 
 
