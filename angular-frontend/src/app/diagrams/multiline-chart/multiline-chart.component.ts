@@ -79,6 +79,7 @@ export class MultilineChartComponent implements AfterViewInit {
 
   public draw(data: MultilineData[]): void {
     this.clear();
+    console.log(this.subtitle)
     if (data.length == 0) return;
 
     if (!this.labels)
@@ -146,7 +147,7 @@ export class MultilineChartComponent implements AfterViewInit {
 
     if (this.xLabel)
       this.svg.append('text')
-        .attr("y", this.margin.top + y(this.yOrigin) + 20)
+        .attr("y", this.shiftXLabelDown? this.margin.top + y(min!): this.margin.top + y(this.yOrigin) + 20)
         .attr("x", this.width! - this.margin.right + 10)
         .attr('dy', '0.5em')
         .style('text-anchor', 'end')

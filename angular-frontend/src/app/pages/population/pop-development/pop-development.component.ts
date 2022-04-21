@@ -3,7 +3,7 @@ import { MapControl, MapService } from "../../../map/map.service";
 import { StackedBarchartComponent, StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
 import { forkJoin, Observable, Subscription } from "rxjs";
-import { map, shareReplay } from "rxjs/operators";
+import { map } from "rxjs/operators";
 import { MatDialog } from "@angular/material/dialog";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { PopulationService } from "../population.service";
@@ -13,6 +13,7 @@ import { SelectionModel } from "@angular/cdk/collections";
 import { sortBy } from "../../../helpers/utils";
 import { SettingsService } from "../../../settings.service";
 import { CookieService } from "../../../helpers/cookies.service";
+import { MatTabGroup } from "@angular/material/tabs";
 
 @Component({
   selector: 'app-pop-development',
@@ -20,9 +21,19 @@ import { CookieService } from "../../../helpers/cookies.service";
   styleUrls: ['./pop-development.component.scss']
 })
 export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
-  @ViewChild('lineChart') lineChart?: MultilineChartComponent;
-  @ViewChild('barChart') barChart?: StackedBarchartComponent;
+  lineChart?: MultilineChartComponent;
+  barChart?: StackedBarchartComponent;
+  @ViewChild('lineChart', { static: false }) set _lineChart(content: MultilineChartComponent) {
+    if (content) this.lineChart = content;
+  }
+  @ViewChild('barChart', { static: false }) set _barChart(content: StackedBarchartComponent) {
+    if (content) this.barChart = content;
+  }
+/*  @ViewChild('lineChart', { static: false }) lineChart?: MultilineChartComponent;
+  @ViewChild('barChart', { static: false }) barChart?: StackedBarchartComponent;*/
   @ViewChild('ageGroupTemplate') ageGroupTemplate!: TemplateRef<any>;
+  barChartProps: any = {};
+  lineChartProps: any = {};
   subscriptions: Subscription[] = [];
   populationLayer?: Layer;
   legendGroup?: LayerGroup;
@@ -30,6 +41,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   areaLevels: AreaLevel[] = [];
   areas: Area[] = [];
   realYears?: number[];
+  selectedTab = 0;
   prognosisYears?: number[];
   prognoses?: Prognosis[];
   activePrognosis?: Prognosis;
@@ -254,6 +266,10 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     })
   }
 
+  test(): void {
+    console.log(new Date(Date.now()))
+  }
+
   updateDiagrams(): void {
     const genders = (this.selectedGender?.id !== -1)? [this.selectedGender!.id]: undefined;
     let ageGroups = this.ageGroupSelection.selected;
@@ -294,14 +310,14 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         }
 
         //Stacked Bar Chart
-        this.barChart!.labels = labels;
-        this.barChart!.colors = colors;
-        this.barChart!.title = 'Bevölkerungsentwicklung';
+        this.barChartProps.labels = labels;
+        this.barChartProps.colors = colors;
+        this.barChartProps.title = 'Bevölkerungsentwicklung';
         if (this.selectedGender!.id !== -1)
-          this.barChart!.title += ` (${this.selectedGender!.name})`;
-        this.barChart!.subtitle = this.activeArea?.properties.label!;
-        this.barChart!.xSeparator = xSeparator;
-        this.barChart?.draw(transformedData);
+          this.barChartProps.title += ` (${this.selectedGender!.name})`;
+        this.barChartProps.subtitle = this.activeArea?.properties.label!;
+        this.barChartProps.xSeparator = xSeparator;
+        this.barChartProps.data = transformedData;
 
         // Line Chart
         let first = transformedData[0].values;
@@ -311,16 +327,21 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         }})
         let max = Math.max(...relData.map(d => Math.max(...d.values))),
           min = Math.min(...relData.map(d => Math.min(...d.values)));
-        this.lineChart!.labels = labels;
-        this.lineChart!.colors = colors;
-        this.lineChart!.title = 'relative Altersgruppenentwicklung';
+        this.lineChartProps.labels = labels;
+        this.lineChartProps.colors = colors;
+        this.lineChartProps.title = 'relative Altersgruppenentwicklung';
         if (this.selectedGender!.id !== -1)
-          this.lineChart!.title += ` (${this.selectedGender!.name})`;
-        this.lineChart!.subtitle = this.activeArea?.properties.label!;
-        this.lineChart!.min = Math.floor(min / 10) * 10;
-        this.lineChart!.max = Math.ceil(max / 10) * 10;
-        this.lineChart!.xSeparator = xSeparator;
-        this.lineChart?.draw(relData);
+          this.lineChartProps.title += ` (${this.selectedGender!.name})`;
+        this.lineChartProps.subtitle = this.activeArea?.properties.label!;
+        this.lineChartProps.min = Math.floor(min / 10) * 10;
+        this.lineChartProps.max = Math.ceil(max / 10) * 10;
+        this.lineChartProps.xSeparator = xSeparator;
+        this.lineChartProps.data = relData;
+
+        // workaround to force redraw of diagram by triggering ngIf wrapper
+        const _prev = this.selectedTab;
+        this.selectedTab = -1;
+        setTimeout(() => {  this.selectedTab = _prev; }, 1);
       })
     })
   }

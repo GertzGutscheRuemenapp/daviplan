@@ -20,7 +20,7 @@
   #chart-toggle {
     position: fixed;
     left: $context-bar-width;
-    top: 360px;
+    top: 240px;
     z-index: -1;
     // side toggle for charts does not "lie under" side nav (context bar)
     // workaround to make it look like it does by adding left inner shadow
@@ -30,6 +30,9 @@
     .side-toggle-content-wrapper {
       box-shadow: inset 8px 1px 7px -8px #a7a7a7, 5px 1px 10px -3px #a7a7a7;
     }
+    .side-toggle-content {
+      padding: 10px;
+    }
   }
 
   .context-bar {
@@ -38,8 +41,8 @@
     //z-index: 12;
   }
   .diagram-wrapper {
-    width: 100%;
-    padding-bottom: 60%;
+    width: 700px;
+    height: 400px;
     position: relative;
     border-top: 1px solid lightgrey;
     padding-top: 20px;
@@ -92,7 +95,6 @@
   .map-wrapper {
     padding-left: 0;
     width: 100%;
-    height: 30em;
   }
   .sub-nav {
     padding-left: 60px;

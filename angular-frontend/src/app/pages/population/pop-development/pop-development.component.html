@@ -139,42 +139,65 @@
       <p>Alternativ können Sie ein Gebiet auch in der Karte auswählen durch einen Klick auf selbiges.</p>
     </app-help-button>
   </div>
-  <mat-tab-group>
-    <mat-tab label="First"> Content 1 </mat-tab>
-    <mat-tab label="Second"> Content 2 </mat-tab>
-    <mat-tab label="Third"> Content 3 </mat-tab>
+  <mat-tab-group (selectedIndexChange)="this.selectedTab = $event">
+    <mat-tab label="Bevölkerungsentwicklung">
+      <ng-template matTabContent>
+        <div class="diagram-wrapper">
+          <app-help-button title="Bevölkerungsentwicklung" position="left"
+                           style="position: absolute; right: 0; top: 10px; z-index: 1;">
+            <p>Das Diagramm stellt die absolute Entwicklung der Bevölkerungszahl des oben ausgewählten Gebiets dar. Passen Sie die Darstellung ggf. durch Auswahl des Geschlechtes sowie der Altersklassen auf der linken Seite an.</p>
+          </app-help-button>
+          <div *ngIf="selectedTab==0">
+            <app-stacked-barchart #barChart
+                                  xLabel="Jahre"
+                                  yLabel="Einwohner"
+                                  [animate]="true"
+                                  [labels]="barChartProps.labels"
+                                  [colors]="barChartProps.colors"
+                                  [title]="barChartProps.title"
+                                  [subtitle]="barChartProps.subtitle"
+                                  [xSeparator]="barChartProps.xSeparator"
+                                  [data]="barChartProps.data">
+            </app-stacked-barchart>
+          </div>
+        </div>
+      </ng-template>
+    </mat-tab>
+    <mat-tab label="Altersgruppenentwicklung">
+      <ng-template matTabContent>
+        <div class="diagram-wrapper">
+          <app-help-button title="relative Altersgruppenentwicklung" position="left"
+                           style="position: absolute; right: 0; top: 10px; z-index: 1;">
+            <p>Das Diagramm stellt die relative Entwicklung der Bevölkerungszahl des oben ausgewählten Gebiets dar. Das erste im Datensatz verfügbare Jahr wird auf 100%, alle anderen Jahre dazu ins Verhältnis gesetzt. Passen Sie die Darstellung ggf. durch Auswahl des Geschlechtes sowie der Altersklassen auf der linken Seite an.</p>
+          </app-help-button>
+          <div *ngIf="selectedTab==1">
+            <app-multiline-chart #lineChart
+                                 figureId="einwohnerrelativ"
+                                 xLabel="Jahre"
+                                 yLabel="Einwohner relativ"
+                                 [animate]="true"
+                                 [yOrigin]="100"
+                                 [shiftXLabelDown]="true"
+                                 [labels]="lineChartProps.labels"
+                                 [colors]="lineChartProps.colors"
+                                 [title]="lineChartProps.title"
+                                 [subtitle]="lineChartProps.subtitle"
+                                 [min]="lineChartProps.min"
+                                 [max]="lineChartProps.max"
+                                 [xSeparator]="lineChartProps.xSeparator"
+                                 [data]="lineChartProps.data"
+                                 unit="%">
+            </app-multiline-chart>
+          </div>
+        </div>
+      </ng-template>
+    </mat-tab>
+    <mat-tab label="Bevölkerungspyramide">
+      <div class="diagram-wrapper">
+      </div>
+    </mat-tab>
   </mat-tab-group>
   <!--<div id="diagram-bar">
-    <div class="diagram-wrapper">
-      <app-help-button title="Bevölkerungsentwicklung" position="left"
-                       style="position: absolute; right: 0; top: 10px; z-index: 1;">
-        <p>Das Diagramm stellt die absolute Entwicklung der Bevölkerungszahl des oben ausgewählten Gebiets dar. Passen Sie die Darstellung ggf. durch Auswahl des Geschlechtes sowie der Altersklassen auf der linken Seite an.</p>
-      </app-help-button>
-      <div>
-        <app-stacked-barchart #barChart
-                              xLabel="Jahre"
-                              yLabel="Einwohner"
-                              [animate]="true">
-        </app-stacked-barchart>
-      </div>
-    </div>
-    <div class="diagram-wrapper">
-      <app-help-button title="relative Altersgruppenentwicklung" position="left"
-                       style="position: absolute; right: 0; top: 10px; z-index: 1;">
-        <p>Das Diagramm stellt die relative Entwicklung der Bevölkerungszahl des oben ausgewählten Gebiets dar. Das erste im Datensatz verfügbare Jahr wird auf 100%, alle anderen Jahre dazu ins Verhältnis gesetzt. Passen Sie die Darstellung ggf. durch Auswahl des Geschlechtes sowie der Altersklassen auf der linken Seite an.</p>
-      </app-help-button>
-      <div>
-        <app-multiline-chart #lineChart
-                             figureId="einwohnerrelativ"
-                             xLabel="Jahre"
-                             yLabel="Einwohner relativ"
-                             [animate]="true"
-                             [yOrigin]="100"
-                             [shiftXLabelDown]="true"
-                             unit="%">
-        </app-multiline-chart>
-      </div>
-    </div>
   </div>-->
 </app-side-toggle>
 
