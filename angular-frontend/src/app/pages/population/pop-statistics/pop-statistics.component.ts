@@ -17,8 +17,17 @@ import { CookieService } from "../../../helpers/cookies.service";
   styleUrls: ['./pop-statistics.component.scss']
 })
 export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
-  @ViewChild('totalChart') totalChart?: MultilineChartComponent;
-  @ViewChild('balanceChart') balanceChart?: BalanceChartComponent;
+  totalChart?: MultilineChartComponent;
+  balanceChart?: BalanceChartComponent;
+  @ViewChild('totalChart', { static: false }) set _totalChart(content: MultilineChartComponent) {
+    if (content) this.totalChart = content;
+  }
+  @ViewChild('balanceChart', { static: false }) set _balanceChart(content: BalanceChartComponent) {
+    if (content) this.balanceChart = content;
+  }
+  totalChartProps: any = {};
+  balanceChartProps: any = {};
+  selectedTab = 0;
   mapControl?: MapControl;
   backend: string = environment.backend;
   areas: Area[] = [];
@@ -190,8 +199,6 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   }
 
   updateDiagrams(): void {
-    this.balanceChart?.clear();
-    this.totalChart?.clear();
     if (!this.activeArea) return;
     this.populationService.getStatistics({ areaId: this.activeArea.id }).subscribe(statistics => {
       let totalData: MultilineData[] = [];
@@ -209,28 +216,29 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         totalData.push({ group: yearData.year.toString(), values: [diffValue] });
       })
       // ToDo: calc yPadding (10% of min/max or sth like that)
-      this.balanceChart!.title = (this.theme === 'nature')? 'Natürliche Bevölkerungsentwicklung': 'Wanderung';
-      this.balanceChart!.subtitle = this.totalChart!.subtitle = this.activeArea!.properties.label;
+      this.balanceChartProps.title = (this.theme === 'nature')? 'Natürliche Bevölkerungsentwicklung': 'Wanderung';
+      this.balanceChartProps.subtitle = this.totalChartProps.subtitle = this.activeArea!.properties.label;
       const topLabel = (this.theme === 'nature')? 'Geburten': 'Zuzüge';
       const bottomLabel = (this.theme === 'nature')? 'Sterbefälle': 'Fortzüge';
-      this.balanceChart!.yTopLabel = topLabel;
-      this.balanceChart!.yBottomLabel = bottomLabel;
-      this.balanceChart!.labels = [topLabel, bottomLabel];
+      this.balanceChartProps.yTopLabel = topLabel;
+      this.balanceChartProps.yBottomLabel = bottomLabel;
+      this.balanceChartProps.labels = [topLabel, bottomLabel];
       const tchTitle = (this.theme === 'nature')? 'Natürlicher Saldo': 'Wanderungssaldo';
-      this.balanceChart!.lineLabel = tchTitle;
-      this.balanceChart!.yPadding = Math.ceil(Math.max(maxValue, -minValue) * 0.2);
+      this.balanceChartProps.lineLabel = tchTitle;
+      this.balanceChartProps.yPadding = Math.ceil(Math.max(maxValue, -minValue) * 0.2);
+      this.balanceChartProps.data = balanceData;
 
-      this.totalChart!.title = tchTitle;
-      this.totalChart!.labels = [tchTitle];
-      this.totalChart!.yTopLabel = 'mehr ' + topLabel;
-      this.totalChart!.yBottomLabel = 'mehr ' + bottomLabel;
-      this.totalChart!.xLegendOffset = 0;
-      this.totalChart!.yLegendOffset = 30;
-      this.totalChart!.margin.right = 60;
-      this.totalChart!.yPadding = Math.ceil(Math.max(maxTotal, -minTotal) * 0.2)
+      this.totalChartProps.title = tchTitle;
+      this.totalChartProps.labels = [tchTitle];
+      this.totalChartProps.yTopLabel = 'mehr ' + topLabel;
+      this.totalChartProps.yBottomLabel = 'mehr ' + bottomLabel;
+      this.totalChartProps.yPadding = Math.ceil(Math.max(maxTotal, -minTotal) * 0.2);
+      this.totalChartProps.data = totalData;
 
-      this.balanceChart?.draw(balanceData);
-      this.totalChart?.draw(totalData);
+      // workaround to force redraw of diagram by triggering ngIf wrapper
+      const _prev = this.selectedTab;
+      this.selectedTab = -1;
+      setTimeout(() => {  this.selectedTab = _prev; }, 1);
     })
   }
 

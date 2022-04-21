@@ -32,19 +32,19 @@ export class MultilineChartComponent implements AfterViewInit {
   @Input() colors?: string[];
   @Input() yPadding: number = 0;
   @Input() yOrigin: number = 0;
+  @Input() xLegendOffset: number = 70;
+  @Input() yLegendOffset: number = 0;
   @Input() animate?: boolean;
   @Input() xSeparator?: { leftLabel?: string, rightLabel?:string, x: string, highlight?: boolean };
   @Input() shiftXLabelDown?: boolean;
 
   private svg: any;
-  public margin: {top: number, bottom: number, left: number, right: number } = {
+  @Input() margin: {top: number, bottom: number, left: number, right: number } = {
     top: 50,
     bottom: 50,
     left: 60,
     right: 130
   };
-  xLegendOffset = 70;
-  yLegendOffset = 0;
 
   localeFormatter = d3.formatLocale({
     decimal: ',',

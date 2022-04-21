@@ -58,7 +58,12 @@
   </div>
 </mat-expansion-panel>
 
-<div id="diagram-bar">
+
+<app-side-toggle id="chart-toggle"
+                 icon="multiline_chart"
+                 direction="right"
+                 name="Diagramme"
+                 cookieExpansion="exp-pop-diagrams">
   <div>
     <mat-form-field appearance="outline" class="small">
       <mat-label>Gebiet</mat-label>
@@ -75,37 +80,64 @@
       <p>Alternativ können Sie ein Gebiet auch in der Karte auswählen durch einen Klick auf selbiges.</p>
     </app-help-button>
   </div>
-  <br>
-  <div class="diagram-wrapper">
-    <app-help-button title="Wanderung" position="left"
-                     style="position: absolute; right: 0; top: 10px; z-index: 1;">
-      <p>Platzhalter Erklärung Diagramm</p>
-    </app-help-button>
-    <div>
-      <app-balance-chart #balanceChart
-                         figureId="areaSaldo"
-                         [colors]="['#1a9850', '#d73027']"
-                         lineColor="#2196f3"
-                         xLabel="Jahre"
-                         [animate]="true"
-                         [yOrigin]="0">
-      </app-balance-chart>
-    </div>
-  </div>
-  <div class="diagram-wrapper">
-    <app-help-button title="Wanderungssaldo Gesamtgebiet" position="left"
-                     style="position: absolute; right: 0; top: 10px; z-index: 1;">
-      <p>Platzhalter Erklärung Diagramm</p>
-    </app-help-button>
-    <div>
-      <app-multiline-chart #totalChart
-                           figureId="totalSaldo"
-                           xLabel="Jahre"
-                           yLabel="Differenz"
-                           [animate]="true"
-                           [yOrigin]="0"
-                           [colors]="['#2196f3']">
-      </app-multiline-chart>
-    </div>
-  </div>
-</div>
+  <mat-tab-group (selectedIndexChange)="selectedTab = $event">
+    <mat-tab label="Bevölkerungsentwicklung">
+      <ng-template matTabContent>
+        <div class="diagram-wrapper">
+          <app-help-button title="Wanderung" position="left"
+                           style="position: absolute; right: 0; top: 10px; z-index: 1;">
+            <p>Platzhalter Erklärung Diagramm</p>
+          </app-help-button>
+          <div *ngIf="selectedTab===0">
+            <app-balance-chart #balanceChart
+                               figureId="areaSaldo"
+                               [colors]="['#1a9850', '#d73027']"
+                               lineColor="#2196f3"
+                               xLabel="Jahre"
+                               [animate]="true"
+                               [yOrigin]="0"
+                               [labels]="balanceChartProps.labels"
+                               [title]="balanceChartProps.title"
+                               [subtitle]="balanceChartProps.subtitle"
+                               [lineLabel]="balanceChartProps.lineLabel"
+                               [yBottomLabel]="balanceChartProps.yBottomLabel"
+                               [data]="balanceChartProps.data"
+                               [yTopLabel]="balanceChartProps.yTopLabel"
+                               [yPadding]="balanceChartProps.yPadding">
+            </app-balance-chart>
+          </div>
+        </div>
+      </ng-template>
+    </mat-tab>
+    <mat-tab label="Altersgruppenentwicklung">
+      <ng-template matTabContent>
+        <div class="diagram-wrapper">
+          <app-help-button title="Wanderungssaldo Gesamtgebiet" position="left"
+                           style="position: absolute; right: 0; top: 10px; z-index: 1;">
+            <p>Platzhalter Erklärung Diagramm</p>
+          </app-help-button>
+          <div *ngIf="selectedTab===1">
+            <app-multiline-chart #totalChart
+                                 figureId="totalSaldo"
+                                 xLabel="Jahre"
+                                 yLabel="Differenz"
+                                 [animate]="true"
+                                 [yOrigin]="0"
+                                 [colors]="['#2196f3']"
+                                 [labels]="totalChartProps.labels"
+                                 [title]="totalChartProps.title"
+                                 [yTopLabel]="totalChartProps.yTopLabel"
+                                 [subtitle]="totalChartProps.subtitle"
+                                 [yBottomLabel]="totalChartProps.yBottomLabel"
+                                 [data]="totalChartProps.data"
+                                 [yLegendOffset] = "30"
+                                 [xLegendOffset] = "0"
+                                 [margin] = "{ top: 50, bottom: 50, left: 60, right: 60 }"
+                                 [yPadding]="balanceChartProps.yPadding">
+            </app-multiline-chart>
+          </div>
+        </div>
+      </ng-template>
+    </mat-tab>
+  </mat-tab-group>
+</app-side-toggle>

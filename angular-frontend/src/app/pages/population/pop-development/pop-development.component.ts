@@ -13,7 +13,6 @@ import { SelectionModel } from "@angular/cdk/collections";
 import { sortBy } from "../../../helpers/utils";
 import { SettingsService } from "../../../settings.service";
 import { CookieService } from "../../../helpers/cookies.service";
-import { MatTabGroup } from "@angular/material/tabs";
 
 @Component({
   selector: 'app-pop-development',
@@ -29,8 +28,6 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   @ViewChild('barChart', { static: false }) set _barChart(content: StackedBarchartComponent) {
     if (content) this.barChart = content;
   }
-/*  @ViewChild('lineChart', { static: false }) lineChart?: MultilineChartComponent;
-  @ViewChild('barChart', { static: false }) barChart?: StackedBarchartComponent;*/
   @ViewChild('ageGroupTemplate') ageGroupTemplate!: TemplateRef<any>;
   barChartProps: any = {};
   lineChartProps: any = {};
@@ -58,8 +55,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
   constructor(private mapService: MapService, private dialog: MatDialog,
               private populationService: PopulationService, private settings: SettingsService,
-              private cookies: CookieService) {
-  }
+              private cookies: CookieService) { }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');

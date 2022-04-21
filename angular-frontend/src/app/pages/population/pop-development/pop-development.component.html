@@ -139,7 +139,7 @@
       <p>Alternativ können Sie ein Gebiet auch in der Karte auswählen durch einen Klick auf selbiges.</p>
     </app-help-button>
   </div>
-  <mat-tab-group (selectedIndexChange)="this.selectedTab = $event">
+  <mat-tab-group (selectedIndexChange)="selectedTab = $event">
     <mat-tab label="Bevölkerungsentwicklung">
       <ng-template matTabContent>
         <div class="diagram-wrapper">
@@ -147,7 +147,7 @@
                            style="position: absolute; right: 0; top: 10px; z-index: 1;">
             <p>Das Diagramm stellt die absolute Entwicklung der Bevölkerungszahl des oben ausgewählten Gebiets dar. Passen Sie die Darstellung ggf. durch Auswahl des Geschlechtes sowie der Altersklassen auf der linken Seite an.</p>
           </app-help-button>
-          <div *ngIf="selectedTab==0">
+          <div *ngIf="selectedTab===0">
             <app-stacked-barchart #barChart
                                   xLabel="Jahre"
                                   yLabel="Einwohner"
@@ -170,7 +170,7 @@
                            style="position: absolute; right: 0; top: 10px; z-index: 1;">
             <p>Das Diagramm stellt die relative Entwicklung der Bevölkerungszahl des oben ausgewählten Gebiets dar. Das erste im Datensatz verfügbare Jahr wird auf 100%, alle anderen Jahre dazu ins Verhältnis gesetzt. Passen Sie die Darstellung ggf. durch Auswahl des Geschlechtes sowie der Altersklassen auf der linken Seite an.</p>
           </app-help-button>
-          <div *ngIf="selectedTab==1">
+          <div *ngIf="selectedTab===1">
             <app-multiline-chart #lineChart
                                  figureId="einwohnerrelativ"
                                  xLabel="Jahre"
