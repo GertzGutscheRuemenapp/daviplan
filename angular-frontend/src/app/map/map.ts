@@ -419,7 +419,7 @@ export class OlMap {
         }));
         featStyle.getFill().setColor(selectFillColor);
         if (options?.shape) {
-          const radius = (typeof options?.radius === 'function')? options.radius(Number(feature.get(options?.valueField || 'value'))): options?.radius;
+          const radius = (typeof options?.radius === 'function')? options.radius(Math.abs(Number(feature.get(options?.valueField || 'value')))): options?.radius;
           const shape = _this.getShape(options?.shape, { fillColor: selectFillColor, strokeColor: selectStrokeColor, radius: radius });
           style.setImage(shape);
         }

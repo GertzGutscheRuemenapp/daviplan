@@ -63,7 +63,7 @@ export class SettingsService {
   });
   baseDataSettings$ = new BehaviorSubject<BasedataSettings>({
     popStatisticsAreaLevel: 0,
-    defaultPopAreaLevel: 0,
+    popAreaLevel: 0,
     defaultDemandRateSets: {},
     defaultModeVariants: {},
     defaultPrognosis: 0

@@ -2,7 +2,7 @@ import { EventEmitter } from "@angular/core";
 import { Geometry } from "ol/geom";
 
 export interface BasedataSettings {
-  defaultPopAreaLevel: number,
+  popAreaLevel: number,
   popStatisticsAreaLevel: number,
   defaultDemandRateSets: Record<number, number>,
   defaultModeVariants: Record<number, number>,
@@ -89,6 +89,7 @@ export interface AreaLevel {
   areaCount?: number;
   isStatisticLevel?: boolean;
   isDefaultPopLevel?: boolean;
+  isPopLevel?: boolean;
   areaFields: string[];
   maxValues?: {
     population: number,
@@ -141,6 +142,15 @@ export interface Population {
   id: number,
   year: number,
   prognosis: number
+}
+
+export interface PopEntry {
+  id: number,
+  population: number,
+  area: number,
+  gender: number,
+  age_group: number,
+  value: number
 }
 
 export interface PopulationData {

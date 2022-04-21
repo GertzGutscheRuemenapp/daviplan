@@ -431,6 +431,7 @@ class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
                                  'upload_template': PopulationTemplateSerializer,
                                  }
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    filter_fields = ['population']
 
     @extend_schema(description='Upload Population Template',
                    request=inline_serializer(

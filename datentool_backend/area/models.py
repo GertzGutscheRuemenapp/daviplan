@@ -77,8 +77,12 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
                                   blank=True)
     is_active = models.BooleanField(default=True)
     is_preset = models.BooleanField(default=False)
-    is_statistic_level = models.BooleanField(default=False)
+    # level defaults to being the pop level for adding population entries
     is_default_pop_level = models.BooleanField(default=False)
+    # level for pulling data from regionalstatistik
+    is_statistic_level = models.BooleanField(default=False)
+    # user set level for adding pop entries
+    is_pop_level = models.BooleanField(default=False)
     max_population = models.FloatField(null=True)
     population_cache_dirty = models.BooleanField(default=True)
 
@@ -99,15 +103,15 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
             return
 
     def save(self, *args, **kwargs):
-        # only one statistic / default pop level at a time
-        if self.is_statistic_level or self.is_default_pop_level:
+        # only one statistic / pop level at a time
+        if self.is_statistic_level or self.is_pop_level:
             with transaction.atomic():
                 if self.is_statistic_level:
                     AreaLevel.objects.filter(is_statistic_level=True)\
                         .update(is_statistic_level=False)
-                if self.is_default_pop_level:
-                    AreaLevel.objects.filter(is_default_pop_level=True)\
-                        .update(is_default_pop_level=False)
+                if self.is_pop_level:
+                    AreaLevel.objects.filter(is_pop_level=True)\
+                        .update(is_pop_level=False)
         return super().save(*args, **kwargs)
 
 

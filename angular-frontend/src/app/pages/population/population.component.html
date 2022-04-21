@@ -43,5 +43,9 @@
     </app-side-toggle>
   </div>
 </div>
-<router-outlet>
-</router-outlet>
+<mat-sidenav #drawer class="context-bar"
+             [autoFocus]="false"
+             [opened]="(isSM$ | async) === false">
+  <router-outlet>
+  </router-outlet>
+</mat-sidenav>

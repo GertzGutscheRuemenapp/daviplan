@@ -1,15 +1,11 @@
 @import "~src/constants";
 
-$diagram-bar-width: 30%;
-
 .map-wrapper {
   position: absolute;
   top: $sub-nav-height;
   height: calc(100% - #{$sub-nav-height});
-  //width: calc(100% - #{$context-bar-width} - #{$diagram-bar-width} - 40px);
   width: 100%;
   padding-left: $context-bar-width;
-  padding-right: $diagram-bar-width;
 }
 #population-map {
   position: relative;
@@ -21,26 +17,32 @@ $diagram-bar-width: 30%;
 ::ng-deep app-population {
   overflow-y: hidden;
 
+  #chart-toggle {
+    position: fixed;
+    left: $context-bar-width;
+    top: 240px;
+    z-index: -1;
+    // side toggle for charts does not "lie under" side nav (context bar)
+    // workaround to make it look like it does by adding left inner shadow
+    .side-toggle-indicator {
+      box-shadow: inset 8px 1px 7px -8px #a7a7a7, 1px 0px 3px 1px #a7a7a7;
+    }
+    .side-toggle-content-wrapper {
+      box-shadow: inset 8px 1px 7px -8px #a7a7a7, 5px 1px 10px -3px #a7a7a7;
+    }
+    .side-toggle-content {
+      padding: 10px;
+    }
+  }
+
   .context-bar {
     position: fixed;
     top: 60px + $sub-nav-height;
     //z-index: 12;
   }
-  #diagram-bar {
-    position: absolute;
-    top: 60px;
-    right: 0px;
-    width: $diagram-bar-width;
-    background-color: white;
-    height: calc(100% - 60px);
-    overflow-y: auto;
-    padding: 18px 20px;
-    z-index: 11;
-    box-shadow: inset -3px 3px 5px -1px rgb(0 0 0 / 20%), 0px 5px 5px -1px rgb(0 0 0 / 20%), 0px 10px 10px 0px rgb(0 0 0 / 14%), 2px 18px 18px 0px rgb(0 0 0 / 12%);
-  }
   .diagram-wrapper {
-    width: 100%;
-    padding-bottom: 60%;
+    width: 700px;
+    height: 400px;
     position: relative;
     border-top: 1px solid lightgrey;
     padding-top: 20px;
@@ -82,29 +84,6 @@ $diagram-bar-width: 30%;
   position: fixed;
 }
 
-// medium
-@media only screen and (max-width: 80em) {
-  .map-wrapper {
-    padding-right: 0px;
-    height: 60vh;
-  }
-  ::ng-deep app-population {
-    .diagram-wrapper {
-      width: 100%;
-      padding-bottom: 60%;
-    }
-    #diagram-bar {
-      position: absolute;
-      width: calc(100% - #{$context-bar-width} - 40px);
-      height: auto;
-      top: calc(60vh + #{$sub-nav-height});
-      padding: 20px;
-      box-shadow: none;
-      z-index: 10;
-    }
-  }
-}
-
 // small
 @media only screen and (max-width: 50em) {
   .sub-links {
@@ -116,27 +95,8 @@ $diagram-bar-width: 30%;
   .map-wrapper {
     padding-left: 0;
     width: 100%;
-    height: 30em;
   }
   .sub-nav {
     padding-left: 60px;
-  }
-
-  ::ng-deep app-population {
-    #diagram-bar {
-      top: calc(30em + #{$sub-nav-height});
-      width: calc(100% - 20px);
-      left: 0;
-      padding: 10px;
-    }
-    .context-bar {
-      top: 64px + $sub-nav-height;
-    }
-    #legend {
-      top: 10em;
-      .legend-body {
-        max-height: calc(20em - 70px);
-      }
-    }
   }
 }

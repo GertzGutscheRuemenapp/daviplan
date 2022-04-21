@@ -80,7 +80,7 @@ class PopulationIndicatorMixin:
             filter_params['year__year'] = year
         return filter_params
 
-    def get_areas(self, area_level_id: int) -> Area:
+    def get_areas(self, area_level_id: int = None) -> Area:
         """get the relevant areas"""
         # filter areas
         area_filter = {}
@@ -90,6 +90,13 @@ class PopulationIndicatorMixin:
             areas = self.data.get('area')
         if areas and areas != ['']:
             area_filter['id__in'] = areas
+
+        if area_level_id is None:
+            levels = Area.objects.filter(**area_filter).values_list(
+                'area_level_id', flat=True).distinct()
+            if len(levels) > 1:
+                raise Exception('Areas have to be of the same level')
+            area_level_id = levels[0]
 
         areas = Area.label_annotated_qs(area_level=area_level_id)\
             .filter(**area_filter)
@@ -188,8 +195,7 @@ class ComputePopulationDetailIndicator(PopulationIndicatorMixin,
 
     def compute(self):
         """"""
-        area_level = self.data.get('area_level_id')
-        areas = self.get_areas(area_level_id=area_level)
+        areas = self.get_areas()
         area_levels = areas.values('area_level_id').annotate(cnt=Count('pk'))
         populations = self.get_populations()
 

@@ -10,11 +10,15 @@
   <p>Bereits hochgeladene Prognosedaten können in der Box „Veranschaulichung für ausgewähltes Gebiet“ in Grafiken dargestellt werden.</p>
   <p>Zudem sind sie für alle Nutzer*innen im Hauptmenübereich „Bevölkerung“ sichtbar und stehen für Auswertungen im Hauptmenübereich „Infrastrukturplanung“ zur Verfügung.</p>
 </app-header-card>
+<div *ngIf="popLevelMissing">
+  <h1 style="color: red; margin: 30px;">Fehler: Es ist keine Gebietseinheit für die Bevölkerungsdaten festgelegt!</h1>
+</div>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
     <app-input-card #yearCard
                     [title]="'Prognosejahre'"
                     [editTemplate]="yearsEdit"
+                    [disabled]="!popLevel"
                     infoText="<p>Bevor Sie Prognosedaten hochladen, müssen Sie an dieser Stelle die wichtigsten Rahmendaten der Prognose eintragen. Diese Rahmendaten definieren u.a. die Struktur der Vorlagedateien, die Sie sich in der Box „Prognosedaten der ausgewählten Variante hochladen“ herunterladen können. Nachträgliche Veränderungen an den Rahmendaten führen daher zu einem Löschen aller bereits hochgeladenen Prognosedaten.</p>
                               <p>Um konsistente Zeitreihen sicherzustellen, müssen sich die Prognosedaten auf die gleiche Gebietseinteilung beziehen wie die Realdaten der zurückliegenden Jahr. Die Eintragung hinter „Gebietseinheit“ wurde daher aus Ihren Einstellungen bei den Realdaten übernommen. Falls Sie eine andere Gebietseinteilung nutzen möchten, müssen Sie die Einstellung dort ändern.</p>
                               <p>Legen Sie zudem fest, für welche zukünftigen Jahre Ihnen aus der Ihnen vorliegenden Prognose Werte hochgeladen werden sollen. Prognosedaten für Jahre, für die zwischenzeitlich Realdaten hochgeladen wurden, werden in den Hauptmenübereichen „Bevölkerung“ und „Infrastrukturplanung“ nicht mehr angezeigt oder für Berechnungen verwendet. Sie müssen dafür nicht aktiv gelöscht werden.</p>">
@@ -31,6 +35,7 @@
       </table>
     </app-input-card>
     <app-input-card [title]="'Prognosevarianten'"
+                    [disabled]="!popLevel"
                     subtitle="Varianten hinzufügen bzw. bereits hinzugefügte bearbeiten"
                     infoText="<p>Klicken Sie auf „Hinzufügen“, um die erste Prognosevariante hinzuzufügen. Tun Sie dies auch, wenn Ihre Prognose keine Varianten ausweist.</p>
                               <p>In dem sich öffnenden Dialog geben Sie nur die Bezeichnung dieser Variante an, z.B. „Basisvariante“, „Trendfortschreibung“, „mehr Zuzug“ oder auch „einzige Variante“. Die hinzugefügte Variante erscheint dann in der Liste.</p>
@@ -61,6 +66,7 @@
   <div fxLayout="column" fxFlex="1100px">
     <app-input-card [title]="'Prognosedaten der ausgewählten Variante hochladen'"
                     [topRightHelp]="true"
+                    [disabled]="!popLevel"
                     infoText="<p>Wenn Sie für diese Prognosevariante noch keine Einwohnerdaten hochgeladen haben (oder die bereits hochgeladenen Daten ersetzen möchten), können Sie sich mit der Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excelformat  herunterladen. Befüllen Sie diese mit Ihren Daten für die angezeigte Variante und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Zur Kontrolle können Sie sich die hochgeladenen Daten anschließend in der Box „Veranschaulichung“ für einzelne Gebiete anschauen. Alternativ können Sie sich die Gesamttabelle der Prognosevariante über die Schaltfläche „Datentabelle ansehen“ anzeigen lassen.</p>
                               <p>Um die Daten weitere Prognosevarianten hochzuladen, fügen Sie bitte in der Box „Prognosevariante“ weitere Varianten hinzu und wiederholen das Vorgehen entsprechend. Für jede Prognosevariante benötigen Sie eine eigene Vorlagedatei.</p>">
       <div style="width: 100%; display: flex;">
@@ -108,6 +114,7 @@
     </app-input-card>
     <app-input-card [title]="'Veranschaulichung der ausgewählten Variante für ein ausgewähltes Gebiet'"
                     [topRightHelp]="true"
+                    [disabled]="!popLevel"
                     subtitle="Auswahl eines Gebiets über die Karte bzw. die Auswahlbox"
                     infoText="<p>Wählen Sie in der Auswahlliste „Gebiet“ ein Gebiet aus, um dessen Prognosedaten in den Diagrammen anzuzeigen. Alternativ können Sie das Gebiet auch durch Anklicken in der Karte auswählen. Die Daten der Diagramme beziehen sich auf die in der Box „Prognosevarianten“ ausgewählte Variante. Um für das gleiche Gebiet zwischen den Prognosevarianten zu springen, klicken Sie in der Box „Prognosevarianten“ eine andere Variante an.</p>
                     <p>Voraussetzung für die Anzeige ist, dass Sie bereits Einwohnerdaten für mindestens eine Prognosevariante hochgeladen haben.</p>">
@@ -186,30 +193,38 @@
       <th colspan="2">Daten in der Datenbank</th>
     </tr>
     <tr>
-      <th style="text-align: left;">Jahr</th>
+      <th>Jahr</th>
       <th>ausgewählt</th>
       <th>Prognosedaten</th>
       <th>Realdaten</th>
     </tr>
-    <tr *ngFor="let year of years" [class.active]="yearSelection.isSelected(year.year)">
-      <td>{{year.year}}</td>
+    <tr *ngFor="let year of years"
+        [class.active]="yearSelection.isSelected(year.year)"
+        [class.warn]="yearSelection.isSelected(year.year) && year.isReal">
+      <td [title]="(yearSelection.isSelected(year.year) && year.isReal)? 'Das Jahr ' + year.year + ' wurde bereits als Realdatenjahr ausgewählt, die Prognosedaten werden später in allen Anzeigen ignoriert.':
+                   (year.isReal)? year.year + ' (Realdatenjahr)': (yearSelection.isSelected(year.year))? year.year + ' (Prognosejahr)': year.year"
+          [style.color]="(!yearSelection.isSelected(year.year) && year.isReal)? 'black': ''">
+        <mat-icon [style.opacity]="(yearSelection.isSelected(year.year) && year.isReal)? 1: 0"
+                  style="vertical-align: bottom;">warning</mat-icon>
+        {{year.year}}
+      </td>
       <td>
-        <mat-checkbox color="primary"
+        <mat-checkbox [color]="!(yearSelection.isSelected(year.year) && year.isReal)? 'primary': ''"
                       [checked]="yearSelection.isSelected(year.year)"
                       (change)="yearSelection.toggle(year.year)"
-                      title="{{year.year}} als Realdatenjahr aus/abwählen">
+                      title="{{year.year}} als Prognosejahr aus/abwählen">
         </mat-checkbox>
       </td>
       <td style="text-align: right;">
         <mat-checkbox [disabled]="true"
                       [checked]="year.hasPrognosisData"
-                      title="Zeigt an, ob für das Jahr bereits Bevölkerungsdaten vorliegen">
+                      title="Zeigt an, ob für das Jahr bereits Prognosedaten vorliegen">
         </mat-checkbox>
         <button [style.opacity]="(!year.hasPrognosisData)? 0: 1"
                 [style.pointer-events]="(!year.hasPrognosisData)? 'none': ''"
                 (click)="deleteData(year)"
                 mat-icon-button color="warn"
-                title="Realdaten des Jahres {{year.year}} entfernen"
+                title="Prognosedaten des Jahres {{year.year}} entfernen"
                 style="margin-left: 10px;">
           <mat-icon>close</mat-icon>
         </button>

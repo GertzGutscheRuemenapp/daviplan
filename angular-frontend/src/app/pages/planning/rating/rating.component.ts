@@ -31,7 +31,7 @@ export class RatingComponent implements OnInit {
       this.infrastructures = infrastructures;
       this.selectedInfrastructure = infrastructures[0];
     });
-    this.planningService.getAreaLevels().subscribe(areaLevels => {
+    this.planningService.getAreaLevels({ active: true }).subscribe(areaLevels => {
       this.areaLevels = areaLevels;
       this.selectedAreaLevel = areaLevels[0];
     })

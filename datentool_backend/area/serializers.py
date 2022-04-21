@@ -88,8 +88,9 @@ class AreaLevelSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'order', 'source', 'symbol', 'is_active',
                   'is_preset', 'area_count', 'tile_url', 'label_field',
                   'max_values', 'is_statistic_level', 'is_default_pop_level',
-                  'area_fields', 'label_field', 'key_field')
-        read_only_fields = ('is_preset', 'is_statistic_level')
+                  'is_pop_level', 'area_fields', 'label_field', 'key_field')
+        read_only_fields = ('is_preset', 'is_statistic_level',
+                            'is_default_pop_level')
 
     def get_max_values(self, obj) -> Dict[str, float]:
         ret = {'population': obj.max_population}
