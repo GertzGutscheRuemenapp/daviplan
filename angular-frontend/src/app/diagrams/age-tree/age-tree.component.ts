@@ -172,8 +172,8 @@ export class AgeTreeComponent implements AfterViewInit {
       // @ts-ignore
       const i = event.currentTarget?.getAttribute('index');
       if (i === undefined) return;
-      const leftBar = d3.select(leftBars._groups[0][i]);
-      const rightBar = d3.select(rightBars._groups[0][i]);
+      const leftBar = d3.select(left._groups[0][i]);
+      const rightBar = d3.select(right._groups[0][i]);
       leftBar.selectAll('rect').classed('highlight', true);
       rightBar.selectAll('rect').classed('highlight', true);
 
@@ -186,8 +186,8 @@ export class AgeTreeComponent implements AfterViewInit {
     };
 
     const mouseOutBar = function (event: MouseEvent, d: any) {
-      leftBars.selectAll('rect').classed('highlight', false);
-      rightBars.selectAll('rect').classed('highlight', false);
+      left.selectAll('rect').classed('highlight', false);
+      right.selectAll('rect').classed('highlight', false);
       tooltip.style("display", 'none');
     };
 
