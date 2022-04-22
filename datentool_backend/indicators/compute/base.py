@@ -4,6 +4,7 @@ from enum import Enum
 
 from django.http.request import QueryDict
 
+from datentool_backend.modes.models import Mode
 from datentool_backend.infrastructure.models.infrastructures import Service
 from datentool_backend.indicators.serializers import (
     IndicatorAreaResultSerializer,
@@ -53,6 +54,14 @@ class IndicatorChoiceParameter(IndicatorParameter):
         ret = super() .serialize()
         ret['choices'] = self.choices
         return ret
+
+
+class ModeParameter(IndicatorChoiceParameter):
+    name = 'mode'
+    title = 'Verkehrsmittel'
+    choices = Mode.choices
+    def __init__(self):
+        super().__init__(self.name, self.choices, title=self.title)
 
 
 class ResultSerializer(Enum):
