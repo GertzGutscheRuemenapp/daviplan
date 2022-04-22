@@ -2,7 +2,9 @@ import { AfterViewInit, Component, Input, ViewEncapsulation } from '@angular/cor
 import * as d3 from "d3";
 
 export interface AgeTreeData {
-  group: string,
+  label: string,
+  fromAge: number,
+  toAge?: number,
   female: number,
   male: number
 }
@@ -20,10 +22,12 @@ function translation(x: number, y: number) {
 export class AgeTreeComponent implements AfterViewInit {
   @Input() data?: AgeTreeData[];
   @Input() figureId: String = 'age-tree';
+  @Input() ageCutoff: number = 90;
   @Input() width: number = 0;
   @Input() height: number = 0;
   @Input() title: string = '';
   @Input() subtitle: string = '';
+  @Input() animate?: boolean;
 
   private svg: any;
   public margin: { top: number, bottom: number, left: number, right: number, middle: number } = {
@@ -56,9 +60,28 @@ export class AgeTreeComponent implements AfterViewInit {
 
   public draw(data: AgeTreeData[]): void {
 
-    const groups = data.map(d => d.group),
-          femaleAges = data.map(d => d.female),
-          maleAges = data.map(d => d.male);
+    let femaleAges = Array(this.ageCutoff).fill(0),
+        labels = Array(this.ageCutoff),
+        yAxisLabels = Array(this.ageCutoff),
+        maleAges = Array(this.ageCutoff).fill(0),
+        femaleWidths = Array(this.ageCutoff).fill(0),
+        maleWidths = Array(this.ageCutoff).fill(0),
+        barHeights = Array(this.ageCutoff).fill(1);
+
+    data.forEach((d, i) => {
+      if (d.fromAge > this.ageCutoff) return;
+      const toAge = Math.min(d.toAge || d.fromAge, this.ageCutoff);
+      const diff = 1 + toAge - d.fromAge;
+      labels[d.fromAge] = d.label;
+      yAxisLabels[d.fromAge] = d.fromAge;
+      femaleWidths[d.fromAge] = d.female / diff;
+      maleWidths[d.fromAge] = d.male / diff;
+      barHeights[d.fromAge] = diff;
+      femaleAges[d.fromAge] = d.female;
+      maleAges[d.fromAge] = d.male;
+    })
+
+    yAxisLabels[yAxisLabels.length - 1] = '+';
 
     const width = this.width - (this.margin.left + this.margin.right) - 20;
     const height = this.height - (this.margin.top + this.margin.bottom);
@@ -67,7 +90,57 @@ export class AgeTreeComponent implements AfterViewInit {
     const pointA = regionWidth,
           pointB = width - regionWidth;
 
-    // TITLE
+    // const maxX = femaleAges.concat(maleAges).reduce((a, b) => Math.max(a, b));
+    // const maxY = data.length;
+    const maxX = femaleWidths.concat(maleWidths).reduce((a, b) => Math.max(a, b));
+    const maxY = this.ageCutoff;
+
+    const xScale = d3.scaleLinear()
+      .domain([0, maxX])
+      .range([0, regionWidth])
+      .nice();
+
+    const yScale = d3.scaleLinear()
+      .domain([0, maxY])
+      .range([height, 0]);
+
+    // axes
+    this.svg.append("g")
+      .attr('class', 'axis y')
+      .attr('transform', translation(this.margin.left + width / 2, this.margin.top))
+      .call(
+        d3.axisRight(yScale)
+          .ticks(maxY)
+          .tickSize(0)
+          .tickPadding(1)
+          .tickFormat((d: any, i: number) => yAxisLabels[i])
+      )
+      .selectAll('text')
+      .attr('class', 'shadow')
+      .attr('font-size', '0.8em')
+      .style('text-anchor', 'middle');
+
+    this.svg.append("g")
+      .attr('class', 'axis x right')
+      .attr('transform', translation(this.margin.left + pointB, height + 3 + this.margin.top))
+      .call(
+        d3.axisBottom(xScale)
+          .ticks(5)
+          .tickSize(-height)
+          .tickFormat(d3.format("d"))
+      );
+
+    this.svg.append("g")
+      .attr('class', 'axis x left')
+      .attr('transform', translation(this.margin.left, height + 3 + this.margin.top))
+      .call(
+        d3.axisBottom(xScale.copy().range([pointA, 0]))
+          .ticks(5)
+          .tickSize(-height)
+          .tickFormat(d3.format("d"))
+      );
+
+    // title
 
     this.svg.append('text')
       .attr('class', 'title')
@@ -82,18 +155,6 @@ export class AgeTreeComponent implements AfterViewInit {
       .attr('font-size', '0.8em')
       .attr('dy', '1em')
       .text(this.subtitle);
-
-    const maxX = femaleAges.concat(maleAges).reduce((a, b) => Math.max(a, b));
-    const maxY = data.length;
-
-    const xScale = d3.scaleLinear()
-      .domain([0, maxX])
-      .range([0, regionWidth])
-      .nice();
-
-    const yScale = d3.scaleLinear()
-      .domain([0, maxY])
-      .range([height, 0]);
 
     // tooltip
 
@@ -116,7 +177,7 @@ export class AgeTreeComponent implements AfterViewInit {
       leftBar.selectAll('rect').classed('highlight', true);
       rightBar.selectAll('rect').classed('highlight', true);
 
-      let text = `${groups[i]} <br>`;
+      let text = `${labels[i]} <br>`;
       text += 'Anzahl weiblich: <b>' + femaleAges[i] + '</b><br>';
       text += 'Anzahl männlich: <b>' + maleAges[i] + '</b><br>';
 
@@ -131,28 +192,40 @@ export class AgeTreeComponent implements AfterViewInit {
     };
 
     const barHeight = height / maxY;
+    const _this = this;
 
     const maleGroup = this.svg.append('g')
       .attr('class', 'maleGroup')
-      .attr('transform', translation(pointA, this.margin.top) + 'scale(-1,1)');
+      .attr('transform', translation(this.margin.left + pointA, this.margin.top) + 'scale(-1,1)');
 
     const femaleGroup = this.svg.append('g')
       .attr('class', 'femaleGroup')
-      .attr('transform', translation(pointB, this.margin.top));
+      .attr('transform', translation(this.margin.left + pointB, this.margin.top));
 
-    const rightBars = femaleGroup.selectAll('g')
+    const right = femaleGroup.selectAll('g')
       .data(femaleAges)
       .enter().append('g')
       .attr('transform', function (d: number, i: number) {
-        return translation(0, (maxY - i) * barHeight - barHeight / 2);
+        return translation(0, (maxY - i - barHeights[i]) * barHeight - barHeight / 2);
       });
 
     // bars
 
-    rightBars.append('rect')
+    function widthScale(d: number, i: number): number {
+      const bh = barHeights[i];
+      if (!bh) return 0;
+      return xScale(d / bh);
+    }
+
+    const rightBars = right.append('rect')
       .attr('class', 'female')
-      .attr('width', xScale)
-      .attr('height', barHeight - 1)
+      .attr('width', (d: number, i: number) => {
+        if (this.animate) return 0;
+        return widthScale(d, i);
+      })
+      .attr('height', function (d: number, i: number) {
+        return barHeight * barHeights[i] - 1;
+      })
       .attr('index', function (d: number, i: number) {
         return i;
       })
@@ -160,17 +233,22 @@ export class AgeTreeComponent implements AfterViewInit {
       .on('mouseover', mouseOverBar)
       .on('mouseout', mouseOutBar);
 
-    const leftBars = maleGroup.selectAll('g')
+    const left = maleGroup.selectAll('g')
       .data(maleAges)
       .enter().append('g')
       .attr('transform', function (d: number, i: number) {
-        return translation(0, (maxY - i) * barHeight - barHeight / 2);
+        return translation(0, (maxY - i - barHeights[i]) * barHeight - barHeight / 2);
       });
 
-    leftBars.append('rect')
+    const leftBars = left.append('rect')
       .attr('class', 'male')
-      .attr('width', xScale)
-      .attr('height', barHeight - 1)
+      .attr('width', (d: number, i: number) => {
+        if (this.animate) return 0;
+        return widthScale(d, i);
+      })
+      .attr('height', function (d: number, i: number) {
+        return barHeight * barHeights[i] - 1;
+      })
       .attr('index', function (d: number, i: number) {
         return i;
       })
@@ -178,48 +256,26 @@ export class AgeTreeComponent implements AfterViewInit {
       .on('mouseover', mouseOverBar)
       .on('mouseout', mouseOutBar);
 
-    // axes
-    this.svg.append("g")
-      .attr('class', 'axis y')
-      .attr('transform', translation(width / 2, this.margin.top))
-      .call(
-        d3.axisRight(yScale)
-          .ticks(maxY)
-          .tickSize(0)
-          .tickPadding(1)
-          .tickFormat((d: any) => groups[d])
-      )
-      .selectAll('text')
-      .attr('class', 'shadow')
-      .style('text-anchor', 'middle');
-
-    this.svg.append("g")
-      .attr('class', 'axis x right')
-      .attr('transform', translation(pointB, height + 10 + this.margin.top))
-      .call(
-        d3.axisBottom(xScale)
-          .ticks(5)
-          .tickSize(-height)
-          .tickFormat(d3.format("d"))
-      );
-
-    this.svg.append("g")
-      .attr('class', 'axis x left')
-      .attr('transform', translation(0, height + 10 + this.margin.top))
-      .call(
-        d3.axisBottom(xScale.copy().range([pointA, 0]))
-          .ticks(5)
-          .tickSize(-height)
-          .tickFormat(d3.format("d"))
-      );
-
+    if (this.animate) {
+      rightBars.transition()
+        .duration(800)
+        .attr("width", (d: number, i: number) => {
+          return widthScale(d, i) - widthScale(0, i);
+        });
+      leftBars.transition()
+        .duration(800)
+        .attr("width", (d: number, i: number) => {
+          return widthScale(d, i) - widthScale(0, i);
+        });
+    }
 
     // legend
 
     this.svg.append('text')
       .attr('x', (width / 2) + this.margin.left + 2)
-      .attr('y', -5)
-      .attr('font-weight', 'bold')
+      .attr('y', this.margin.top - 10)
+      .attr('font-size', '0.8em')
+      // .attr('font-weight', 'bold')
       .attr('text-anchor', 'middle')
       .text('Alter');
 
@@ -227,6 +283,7 @@ export class AgeTreeComponent implements AfterViewInit {
       .attr('class', 'male')
       .attr('text-anchor', 'middle')
       .text('Anzahl männlich')
+      .attr('font-size', '0.8em')
       .attr('x', width / 4 + this.margin.left)
       .attr('y', height + this.margin.top + this.margin.bottom);
 
@@ -234,6 +291,7 @@ export class AgeTreeComponent implements AfterViewInit {
       .attr('class', 'female')
       .attr('text-anchor', 'middle')
       .text('Anzahl weiblich')
+      .attr('font-size', '0.8em')
       .attr('x', 3 * width / 4 + this.margin.left)
       .attr('y', height + this.margin.top + this.margin.bottom);
 

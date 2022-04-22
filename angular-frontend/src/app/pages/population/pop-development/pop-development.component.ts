@@ -303,8 +303,10 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
             const ad = yearData.filter(d => d.agegroup === ageGroup.id);
             yearAgeData.push({
               male: ad.find(d => d.gender === maleId)?.value || 0,
+              fromAge: ageGroup.fromAge,
+              toAge: ageGroup.toAge,
               female: ad.find(d => d.gender === femaleId)?.value || 0,
-              group: ageGroup.label || ''
+              label: ageGroup.label || ''
             })
             const sum = (ad)? ad.reduce((a, d) => a + d.value, 0): 0;
             summed.push(sum);

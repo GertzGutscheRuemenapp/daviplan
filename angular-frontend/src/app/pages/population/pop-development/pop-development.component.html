@@ -202,6 +202,7 @@
           <div *ngIf="selectedTab===2">
             <app-age-tree #ageTree
                           figureId="bevpyramide"
+                          [animate]="true"
                           [title]="ageTreeProps.title"
                           [subtitle]="ageTreeProps.subtitle"
                           [data]="ageTreeProps.data[year]">
