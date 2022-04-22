@@ -193,8 +193,23 @@
       </ng-template>
     </mat-tab>
     <mat-tab label="Bevölkerungspyramide">
-      <div class="diagram-wrapper">
-      </div>
+      <ng-template matTabContent>
+        <div class="diagram-wrapper">
+          <app-help-button title="Bevölkerungspyramide" position="left"
+                           style="position: absolute; right: 0; top: 10px; z-index: 1;">
+            <p>Platzhalter</p>
+          </app-help-button>
+          <div *ngIf="selectedTab===2">
+            <app-age-tree #ageTree
+                          figureId="bevpyramide"
+                          [animate]="true"
+                          [title]="ageTreeProps.title"
+                          [subtitle]="ageTreeProps.subtitle"
+                          [data]="ageTreeProps.data[year]">
+            </app-age-tree>
+          </div>
+        </div>
+      </ng-template>
     </mat-tab>
   </mat-tab-group>
   <!--<div id="diagram-bar">
