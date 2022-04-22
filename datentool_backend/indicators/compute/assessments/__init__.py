@@ -1,4 +1,4 @@
-from .demand_per_capacity import DemandAreaCapacity
+from .demand_per_capacity import DemandPerCapacity
 from .demand_per_facility import DemandPerFacility
 from .accessible_demand import AccessibleDemandPerArea
 from .capacity_per_demand import CapacityPerDemandInArea
