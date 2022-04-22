@@ -79,7 +79,6 @@ export class MultilineChartComponent implements AfterViewInit {
 
   public draw(data: MultilineData[]): void {
     this.clear();
-    console.log(this.subtitle)
     if (data.length == 0) return;
 
     if (!this.labels)
@@ -195,9 +194,10 @@ export class MultilineChartComponent implements AfterViewInit {
         .attr("transform", (d: null, i: number) => `translate(${x(groups[xIdx])}, ${y(groupData.values[i])})`);
       let text = `<b>${groupData.group}</b><br>`;
       const formatter = _this.localeFormatter.format(',.2f');
-      _this.labels?.forEach((label, i)=>{
-        let color = (_this.colors)? _this.colors[i]: colorScale(i);
-        text += `<b style="color: ${color}">${label}</b>: ${formatter(groupData.values[i])}${(_this.unit)? _this.unit : ''}<br>`;
+      _this.labels?.slice().reverse().forEach((label, i)=>{
+        const j = _this.labels!.length - i - 1;
+        let color = (_this.colors)? _this.colors[j]: colorScale(j);
+        text += `<b style="color: ${color}">${label}</b>: ${formatter(groupData.values[j])}${(_this.unit)? _this.unit : ''}<br>`;
       })
       tooltip.html(text);
       tooltip.style('left', event.pageX - 70 + 'px')
@@ -240,23 +240,29 @@ export class MultilineChartComponent implements AfterViewInit {
       let size = 15;
 
       this.svg.selectAll("legendRect")
-        .data(this.labels.reverse())
+        .data(this.labels.slice().reverse())
         .enter()
         .append("rect")
         .attr("x", innerWidth + this.xLegendOffset)
         .attr("y", (d: string, i: number) => 10 + this.yLegendOffset + (i * (size + 1)))
         .attr("width", size)
         .attr("height", 3)
-        .style("fill", (d: string, i: number) => (this.colors)? this.colors[i]: colorScale(i));
+        .style("fill", (d: string, i: number) => {
+          const j = this.labels!.length - i - 1;
+          return (this.colors) ? this.colors[j] : colorScale(j)
+        })
 
       this.svg.selectAll("legendLabels")
-        .data(this.labels.reverse())
+        .data(this.labels.slice().reverse())
         .enter()
         .append("text")
         .attr('font-size', '0.7em')
         .attr("x", innerWidth + this.xLegendOffset + size * 1.2)
         .attr("y", (d: string, i: number) => 5 + this.yLegendOffset + (i * (size + 1) + (size / 2)))
-        .style("fill", (d: string, i: number) => (this.colors)? this.colors[i]: colorScale(i))
+        .style("fill", (d: string, i: number) => {
+          const j = this.labels!.length - i - 1;
+          return (this.colors) ? this.colors[j] : colorScale(j)
+        })
         .text((d: string) => d)
         .attr("text-anchor", "left")
         .style("alignment-baseline", "middle")

@@ -291,8 +291,8 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         const years = [... new Set(data.map(d => d.year))].sort();
         let stackedData: StackedData[] = [];
         let ageTreeData: Record<number, AgeTreeData[]> = {}
-        const labels = this.ageGroupSelection.selected.map(ag => ag.label!);
-        const colors = this.ageGroupSelection.selected.map(ag => this.ageGroupColors[ag.id!]);
+        const labels = ageGroups.map(ag => ag.label!);
+        const colors = ageGroups.map(ag => this.ageGroupColors[ag.id!]);
         const maleId = this.genders.find(g => g.name === 'männlich')?.id || 1;
         const femaleId = this.genders.find(g => g.name === 'weiblich')?.id || 2;
         years.forEach(year => {
