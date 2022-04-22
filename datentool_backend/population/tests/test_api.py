@@ -84,8 +84,10 @@ class TestRegionalstatistikAPI(LoginTestCase, APITestCase):
         )
         cls.ags = [a.attributes.get(field__name='ags').value
                    for a in Area.objects.all()]
-        cls.age_groups = [AgeGroupFactory(from_age=r.from_age, to_age=r.to_age)
-                          for r in RegStatAgeGroups.agegroups]
+        cls.age_groups = [AgeGroupFactory(id=i + 1,
+                                          from_age=r.from_age,
+                                          to_age=r.to_age)
+                          for i, r in enumerate(RegStatAgeGroups.agegroups)]
 
         cls.api = Regionalstatistik(start_year=2012, end_year=2014)
         for y in range(2012, 2015):
