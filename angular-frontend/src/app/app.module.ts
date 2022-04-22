@@ -90,6 +90,7 @@ import { RemoveDialogComponent } from './dialogs/remove-dialog/remove-dialog.com
 import { PlaceFilterComponent } from './pages/planning/place-filter/place-filter.component';
 import { DataTableComponent } from './elements/data-table/data-table.component';
 import { MatTabsModule } from "@angular/material/tabs";
+import { AgeTreeComponent } from './diagrams/age-tree/age-tree.component';
 
 @NgModule({
   declarations: [
@@ -148,7 +149,8 @@ import { MatTabsModule } from "@angular/material/tabs";
     BalanceChartComponent,
     RemoveDialogComponent,
     PlaceFilterComponent,
-    DataTableComponent
+    DataTableComponent,
+    AgeTreeComponent
   ],
   imports: [
     BrowserModule,

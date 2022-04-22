@@ -59,7 +59,7 @@ export class MultilineChartComponent implements AfterViewInit {
   }
 
   private createSvg(): void {
-    let figure = d3.select(`figure#${ this.figureId }`);
+    let figure = d3.select(`figure#${this.figureId}`);
     if (!(this.width && this.height)){
       let node: any = figure.node()
       let bbox = node.getBoundingClientRect();
