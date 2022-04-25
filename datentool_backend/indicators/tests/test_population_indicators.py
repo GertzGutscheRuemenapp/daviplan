@@ -212,24 +212,6 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         actual = df[['gender', 'value']].groupby('gender').sum()
         pd.testing.assert_frame_equal(actual, expected)
 
-    def prepare_population(self):
-        """prepare the population for the tests"""
-        populations = Population.objects.all()
-        for population in populations:
-            self.post('populations-disaggregate', pk=population.pk,
-                      data={'use_intersected_data': True,
-                            'drop_constraints': False, })
-            data = {
-                'pop_raster': self.popraster.pk,
-                'drop_constraints': False
-            }
-            self.post('arealevels-intersect-areas', pk=self.area_level2.pk,
-                      data=data)
-            self.post('arealevels-intersect-areas', pk=self.area_level3.pk,
-                      data=data)
-            self.post('arealevels-intersect-areas', pk=self.area_level4.pk,
-                      data=data)
-
     def aggregate_population(self):
         """aggregate populations to all arealevels"""
         self.post('populations-aggregateall-from-cell-to-area',

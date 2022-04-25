@@ -1,6 +1,8 @@
+import json
 import pandas as pd
 import requests
 from io import StringIO
+from django.core.exceptions import PermissionDenied
 
 
 class GenesisAPI():
@@ -88,6 +90,9 @@ class Regionalstatistik(GenesisAPI):
     def _parse_df(fftxt: str, value_columns: dict) -> pd.DataFrame:
         df = pd.read_csv(StringIO(fftxt), delimiter=';', decimal=",",
                          dtype='str')
+        if len(df) == 0:
+            raise PermissionDenied(json.loads(fftxt))
+
         code_columns = [c for c in df.columns.values
                         if c.endswith('Merkmal_Code')]
         df_parsed = pd.DataFrame()

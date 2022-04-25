@@ -15,7 +15,7 @@ from datentool_backend.infrastructure.factories import (
 from datentool_backend.user.factories import PlanningProcess, ScenarioFactory
 from datentool_backend.user.models.process import ScenarioService
 
-from datentool_backend.population.models import Year
+from datentool_backend.population.models import Year, Population
 from datentool_backend.demand.models import (Gender,
                                              AgeGroup,
                                              DemandRateSet,
@@ -428,3 +428,21 @@ class CreateTestdataMixin:
                                     value=value)
                     demand_rates.append(dr)
         DemandRate.objects.bulk_create(demand_rates)
+
+    def prepare_population(self):
+        """prepare the population for the tests"""
+        populations = Population.objects.all()
+        for population in populations:
+            self.post('populations-disaggregate', pk=population.pk,
+                      data={'use_intersected_data': True,
+                            'drop_constraints': False, })
+            data = {
+                'pop_raster': self.popraster.pk,
+                'drop_constraints': False
+            }
+            self.post('arealevels-intersect-areas', pk=self.area_level2.pk,
+                      data=data)
+            self.post('arealevels-intersect-areas', pk=self.area_level3.pk,
+                      data=data)
+            self.post('arealevels-intersect-areas', pk=self.area_level4.pk,
+                      data=data)

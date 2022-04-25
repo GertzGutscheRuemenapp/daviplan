@@ -207,7 +207,9 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             raise BadRequest(f'indicator "{indicator_name}" unknown')
         service_id = kwargs.get('pk')
         service: Service = Service.objects.get(id=service_id)
-        indicator = indicator_class(service, request.query_params)
+        data = request.data
+        data['service'] = service_id
+        indicator = indicator_class(service, data)
         results = indicator.compute()
 
         return Response(indicator.serialize(results))
