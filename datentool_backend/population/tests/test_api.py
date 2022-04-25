@@ -1,5 +1,8 @@
+import os
 import numpy as np
+import pandas as pd
 from unittest import skip
+from unittest.mock import Mock, patch
 from django.test import TestCase
 from test_plus import APITestCase
 
@@ -39,7 +42,7 @@ from datentool_backend.area.factories import (AreaLevelFactory,
                                               AreaFieldFactory,
                                               FieldTypes,
                                               )
-from datentool_backend.demand.factories import AgeGroupFactory
+from datentool_backend.demand.factories import AgeGroupFactory, GenderFactory
 from datentool_backend.demand.constants import RegStatAgeGroups
 
 from faker import Faker
@@ -81,10 +84,19 @@ class TestRegionalstatistikAPI(LoginTestCase, APITestCase):
         )
         cls.ags = [a.attributes.get(field__name='ags').value
                    for a in Area.objects.all()]
-        cls.age_groups = [AgeGroupFactory(from_age=r.from_age, to_age=r.to_age)
-                          for r in RegStatAgeGroups.agegroups]
+        cls.age_groups = [AgeGroupFactory(id=i + 1,
+                                          from_age=r.from_age,
+                                          to_age=r.to_age)
+                          for i, r in enumerate(RegStatAgeGroups.agegroups)]
 
         cls.api = Regionalstatistik(start_year=2012, end_year=2014)
+        for y in range(2012, 2015):
+            year = Year.objects.get(year=y)
+            year.is_real = True
+            year.save()
+        GenderFactory(id=1, name='männlich')
+        GenderFactory(id=2, name='weiblich')
+
 
     # leave this skipped, because test_rest does the calls anyway,
     # only here for debugging
@@ -102,13 +114,48 @@ class TestRegionalstatistikAPI(LoginTestCase, APITestCase):
         df = self.api.query_births(ags=self.ags)
         df = self.api.query_deaths(ags=self.ags)
 
-    # skipped for now, routes not fully implemented
-    @skip
-    def test_rest(self):
-        res = self.post('populations-pull-regionalstatistik')
-        res = self.post('popstatistics-pull-regionalstatistik')
+    @patch('datentool_backend.utils.regionalstatistik.requests.get')
+    def test_rest(self, mock_get):
+
+        class MyMock(Mock):
+            _testdatadir = os.path.join(os.path.dirname(__file__), 'data')
+            _fnames = {Regionalstatistik.POP_CODE: 'population.ffcsv',
+                       Regionalstatistik.MIGRATION_CODE: 'migration.ffcsv',
+                       Regionalstatistik.BIRTHS_CODE: 'births.ffcsv',
+                       Regionalstatistik.DEATHS_CODE: 'deaths.ffcsv',
+                       }
+            @property
+            def text(self) -> str:
+                code = self._get.call_args[1]['params']['name']
+                fn = self._fnames.get(code)
+                fftxt = open(os.path.join(self._testdatadir, fn)).read()
+                return fftxt
+
+        mock_get.return_value = MyMock(ok=True, status_code=200, _get=mock_get)
+        res = self.post('populations-pull-regionalstatistik',
+                        data={'drop_constraints': False, })
+
+        popentries = pd.DataFrame(PopulationEntry.objects.values())
+
+        actual = popentries.groupby(['area_id', 'population_id']).sum()['value']
+        target = [211713, 212958, 214420, 311, 305, 315, 349, 335, 354]
+        self.assertListEqual(list(actual), target)
+
+        res = self.post('popstatistics-pull-regionalstatistik',
+                        data={'drop_constraints': False, })
+
+        popstatentries = pd.DataFrame(PopStatEntry.objects.values())
+
+        actual = popstatentries.groupby(['area_id']).mean()\
+            [['immigration', 'emigration', 'births', 'deaths']]
+        target = pd.DataFrame.from_dict(
+            {'immigration': [12061, 32, 35],
+             'emigration': [10012, 13, 26],
+             'births': [1813, 0.3, 4],
+             'deaths': [2678, 16, 9]}).set_index(actual.index)
+        pd.testing.assert_frame_equal(actual, target, atol=0.5, check_dtype=False)
+
         # ToDo: permission test
-        # ToDo: mock data
         # ToDo: test user and password
 
 

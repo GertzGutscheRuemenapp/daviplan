@@ -1,5 +1,6 @@
 from typing import List, Union
-from .models import AgeGroup
+import pandas as pd
+from datentool_backend.demand.models import AgeGroup
 
 
 class RegStatAgeGroup:
@@ -91,3 +92,15 @@ class RegStatAgeGroups:
             if ag.code == code:
                 return ag
         return None
+
+    @classmethod
+    def as_series(cls) -> pd.Series:
+        """return as pandas.Series"""
+        return pd.Series(range(1, 18),
+                         index=[repr(ag) for ag in cls.agegroups],
+                         name='age_group_id')
+
+
+regstatgenders = pd.Series([1, 2],
+                           index=['GESM', 'GESW'],
+                           name='gender_id')

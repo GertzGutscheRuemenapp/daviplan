@@ -1,3 +1,6 @@
+from typing import Tuple, List
+
+
 from django.core.exceptions import BadRequest
 
 from datentool_backend.population.models import AreaCell, RasterCellPopulation
@@ -16,8 +19,9 @@ class DemandAreaIndicator(PopulationIndicatorMixin,
     description = 'Total Demand for Service per Area'
     result_serializer = ResultSerializer.AREA
 
-    def compute(self):
-        """"""
+    def get_query_and_params(self) -> Tuple[str, List[str]]:
+        """get the query and the params for the indicator"""
+
         area_level_id = self.data.get('area_level')
         if area_level_id is None:
             raise BadRequest('No AreaLevel provided')
@@ -104,9 +108,12 @@ class DemandAreaIndicator(PopulationIndicatorMixin,
             '''
 
             params = p_areas + p_acells + p_pop + p_rcp + p_drs
+        return query, params
 
+    def compute(self):
+        """"""
+        query, params = self.get_query_and_params()
         areas_with_demand = Area.objects.raw(query, params)
-
         return areas_with_demand
 
     def get_demand_rates(self) -> DemandRate:
