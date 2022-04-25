@@ -2,6 +2,7 @@ import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
 import { environment } from "../../../../environments/environment";
 import { PopulationService } from "../../population/population.service";
+import * as fileSaver from 'file-saver';
 import {
   AgeGroup,
   Area,
@@ -21,7 +22,6 @@ import { MatDialog } from "@angular/material/dialog";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import * as d3 from "d3";
 import { AgeTreeComponent, AgeTreeData } from "../../../diagrams/age-tree/age-tree.component";
-import { map } from "rxjs/operators";
 import { sortBy } from "../../../helpers/utils";
 
 @Component({
@@ -210,6 +210,24 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         this.updateAgeTree();
       })
     })
+  }
+
+  onAreaChange(): void {
+    this.mapControl?.selectFeatures([this.previewArea!.id], this.previewLayer!.id!, { silent: true, clear: true });
+    this.updateAgeTree();
+  }
+
+  downloadTemplate(): void {
+    if (!this.popLevel) return;
+    const url = `${this.rest.URLS.popEntries}create_template/`;
+    this.popService.setLoading(true);
+    this.http.post(url, { area_level: this.popLevel.id, years: this.realYears }, { responseType: 'blob' }).subscribe((res:any) => {
+      const blob: any = new Blob([res],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      this.popService.setLoading(false);
+      fileSaver.saveAs(blob, 'template.xlsx');
+    },(error) => {
+      this.popService.setLoading(false);
+    });
   }
 
   updateAgeTree(): void {
