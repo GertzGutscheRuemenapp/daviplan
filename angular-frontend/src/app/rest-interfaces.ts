@@ -149,7 +149,7 @@ export interface PopEntry {
   population: number,
   area: number,
   gender: number,
-  age_group: number,
+  ageGroup: number,
   value: number
 }
 

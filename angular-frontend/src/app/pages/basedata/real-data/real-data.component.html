@@ -121,7 +121,9 @@
         </mat-form-field>
         <mat-form-field appearance="outline" class="small">
           <mat-label>Gebiet</mat-label>
-          <mat-select disableOptionCentering disableRipple>
+          <mat-select disableOptionCentering disableRipple
+                      [(ngModel)]="previewArea"
+                      (ngModelChange)="updateAgeTree()">
             <mat-option *ngFor="let area of areas" [value]="area">
               {{area.properties.label}}
             </mat-option>
@@ -140,7 +142,11 @@
         </div>
         <div class="diagram-container">
           <div class="diagram-wrapper">
-            <img src="{{backend}}/static/img/Bev-pyramide Screenshot.png" width="100%">
+            <app-age-tree #ageTree
+                          figureId="bevpyramide"
+                          [animate]="true"
+                          [title]="'Bevölkerungspyramide'">
+            </app-age-tree>
           </div>
         </div>
       </div>
