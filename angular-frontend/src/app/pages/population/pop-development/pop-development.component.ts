@@ -2,6 +2,7 @@ import { Component, AfterViewInit, ViewChild, TemplateRef, OnDestroy } from '@an
 import { MapControl, MapService } from "../../../map/map.service";
 import { StackedBarchartComponent, StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
+import { AgeTreeComponent, AgeTreeData } from "../../../diagrams/age-tree/age-tree.component";
 import { forkJoin, Observable, Subscription } from "rxjs";
 import { map } from "rxjs/operators";
 import { MatDialog } from "@angular/material/dialog";
@@ -22,15 +23,20 @@ import { CookieService } from "../../../helpers/cookies.service";
 export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   lineChart?: MultilineChartComponent;
   barChart?: StackedBarchartComponent;
+  ageTree?: AgeTreeComponent;
   @ViewChild('lineChart', { static: false }) set _lineChart(content: MultilineChartComponent) {
     if (content) this.lineChart = content;
   }
   @ViewChild('barChart', { static: false }) set _barChart(content: StackedBarchartComponent) {
     if (content) this.barChart = content;
   }
+  @ViewChild('ageTree', { static: false }) set _ageTree(content: AgeTreeComponent) {
+    if (content) this.ageTree = content;
+  }
   @ViewChild('ageGroupTemplate') ageGroupTemplate!: TemplateRef<any>;
   barChartProps: any = {};
   lineChartProps: any = {};
+  ageTreeProps: any = {};
   subscriptions: Subscription[] = [];
   populationLayer?: Layer;
   legendGroup?: LayerGroup;
@@ -113,6 +119,11 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       this.year = year;
       this.cookies.set('pop-year', year);
       this.updateMap();
+      // update age tree on year change
+      if (this.selectedTab === 2 && this.activeArea) {
+        this.ageTreeProps.subtitle = `${this.activeArea?.properties.label!} ${year}`;
+        this.forceDiagramReload();
+      }
     }))
   }
 
@@ -262,38 +273,48 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     })
   }
 
-  test(): void {
-    console.log(new Date(Date.now()))
-  }
-
   updateDiagrams(): void {
     const genders = (this.selectedGender?.id !== -1)? [this.selectedGender!.id]: undefined;
     let ageGroups = this.ageGroupSelection.selected;
     if (ageGroups.length === 0 || !this.activeArea) {
-      this.barChart?.clear();
-      this.lineChart?.clear();
+      this.barChartProps.data = [];
+      this.lineChartProps.data = [];
+      this.ageTreeProps.data = [];
+      this.forceDiagramReload();
       return;
     }
-    ageGroups = sortBy(ageGroups, 'fromAge', { reverse: true });
+    ageGroups = sortBy(ageGroups, 'fromAge');
     this.populationService.getPopulationData(this.activeArea.id, { genders: genders }).subscribe( popData => {
       this.populationService.getPopulationData(this.activeArea!.id, { prognosis: this.activePrognosis?.id, genders: genders }).subscribe(progData => {
         const data = popData.concat(progData);
         if (data.length === 0) return;
         const years = [... new Set(data.map(d => d.year))].sort();
-        let transformedData: StackedData[] = [];
-        const labels = this.ageGroupSelection.selected.map(ag => ag.label!);
-        const colors = this.ageGroupSelection.selected.map(ag => this.ageGroupColors[ag.id!]);
+        let stackedData: StackedData[] = [];
+        let ageTreeData: Record<number, AgeTreeData[]> = {}
+        const labels = ageGroups.map(ag => ag.label!);
+        const colors = ageGroups.map(ag => this.ageGroupColors[ag.id!]);
+        const maleId = this.genders.find(g => g.name === 'männlich')?.id || 1;
+        const femaleId = this.genders.find(g => g.name === 'weiblich')?.id || 2;
         years.forEach(year => {
-          let values: number[] = [];
+          let summed: number[] = [];
+          let yearAgeData: AgeTreeData[] = [];
           const yearData = data.filter(d => d.year === year)!;
           ageGroups.forEach(ageGroup => {
             const ad = yearData.filter(d => d.agegroup === ageGroup.id);
-            const value = (ad)? ad.reduce((a, d) => a + d.value, 0): 0;
-            values.push(value);
+            yearAgeData.push({
+              male: ad.find(d => d.gender === maleId)?.value || 0,
+              fromAge: ageGroup.fromAge,
+              toAge: ageGroup.toAge,
+              female: ad.find(d => d.gender === femaleId)?.value || 0,
+              label: ageGroup.label || ''
+            })
+            const sum = (ad)? ad.reduce((a, d) => a + d.value, 0): 0;
+            summed.push(sum);
           })
-          transformedData.push({
+          ageTreeData[year] = yearAgeData;
+          stackedData.push({
             group: String(year),
-            values: values
+            values: summed
           });
         })
 
@@ -313,11 +334,11 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
           this.barChartProps.title += ` (${this.selectedGender!.name})`;
         this.barChartProps.subtitle = this.activeArea?.properties.label!;
         this.barChartProps.xSeparator = xSeparator;
-        this.barChartProps.data = transformedData;
+        this.barChartProps.data = stackedData;
 
         // Line Chart
-        let first = transformedData[0].values;
-        let relData = transformedData.map(d => { return {
+        let first = stackedData[0].values;
+        let relData = stackedData.map(d => { return {
           group: d.group,
           values: d.values.map((v, i) => 100 * v / first[i] )
         }})
@@ -334,12 +355,20 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         this.lineChartProps.xSeparator = xSeparator;
         this.lineChartProps.data = relData;
 
-        // workaround to force redraw of diagram by triggering ngIf wrapper
-        const _prev = this.selectedTab;
-        this.selectedTab = -1;
-        setTimeout(() => {  this.selectedTab = _prev; }, 1);
+        this.ageTreeProps.title = 'Bevölkerungspyramide';
+        this.ageTreeProps.subtitle = `${this.activeArea?.properties.label!} ${this.year}`;
+        this.ageTreeProps.data = ageTreeData;
+
+        this.forceDiagramReload();
       })
     })
+  }
+
+  forceDiagramReload(): void {
+    // workaround to force redraw of diagram by triggering ngIf wrapper
+    const _prev = this.selectedTab;
+    this.selectedTab = -1;
+    setTimeout(() => {  this.selectedTab = _prev; }, 1);
   }
 
   someAgeGroupsChecked(): boolean {

@@ -1,9 +1,15 @@
 @import "~src/constants";
 
+::ng-deep app-side-toggle {
+  pointer-events: none;
+}
+
 .side-toggle{
   min-height: 50px;
   display: inline-flex;
+  pointer-events: none;
   .side-toggle-content-wrapper {
+    pointer-events: all;
     background-color: white;
     transition: 0.4s width ease-in;
     overflow:hidden;
@@ -17,6 +23,7 @@
     //padding: 5px 10px;
   }
   .side-toggle-trigger {
+    pointer-events: all;
     cursor: pointer;
     display: flex;
   }
