@@ -11,7 +11,8 @@ export interface SiteSettings {
   title: string,
   contactMail: string,
   welcomeText: string,
-  logo: string
+  logo: string,
+  regionalstatistikUser: string
 }
 
 class UserSettings {
@@ -59,7 +60,7 @@ class UserSettings {
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
   siteSettings$ = new BehaviorSubject<SiteSettings>({
-    id: 0, title: '', contactMail: '', welcomeText: '', logo: ''
+    id: 0, title: '', contactMail: '', welcomeText: '', logo: '', regionalstatistikUser: ''
   });
   baseDataSettings$ = new BehaviorSubject<BasedataSettings>({
     popStatisticsAreaLevel: 0,

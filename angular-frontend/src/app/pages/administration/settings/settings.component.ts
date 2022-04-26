@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ViewChild, ChangeDetectorRef, Input, TemplateRef, ElementRef } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { SettingsService, SiteSettings } from "../../../settings.service";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { HttpClient } from "@angular/common/http";
@@ -8,8 +8,8 @@ import { MatDialog } from "@angular/material/dialog";
 import '@ckeditor/ckeditor5-build-classic/build/translations/de';
 import * as ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import { FileHandle } from "../../../helpers/dragndrop.directive";
-import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-settings',
@@ -18,20 +18,17 @@ import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dia
 })
 export class SettingsComponent implements AfterViewInit {
   @ViewChild('titleEdit') titleEdit!: InputCardComponent;
-  @ViewChild('titleTemplate') titleTemplate!: TemplateRef<any>;
-  @ViewChild('titleEditButton') titleEditButton!: HTMLElement;
   @ViewChild('contactEdit') contactEdit!: InputCardComponent;
-  @ViewChild('contactTemplate') contactTemplate!: TemplateRef<any>;
-  @ViewChild('contactEditButton') contactEditButton!: HTMLElement;
   @ViewChild('welcomeTextEdit') welcomeTextEdit!: InputCardComponent;
-  @ViewChild('welcomeTextTemplate') welcomeTextTemplate!: TemplateRef<any>;
-  @ViewChild('welcomeTextEditButton') welcomeTextEditButton!: HTMLElement;
   @ViewChild('logoEdit') logoEdit!: InputCardComponent;
-  @ViewChild('logoTemplate') logoTemplate!: TemplateRef<any>;
-  @ViewChild('logoEditButton') logoEditButton!: HTMLElement;
+  @ViewChild('regstatEdit') regstatEdit!: InputCardComponent;
+  faEye = faEye;
+  faEyeSlash = faEyeSlash;
   settings?: SiteSettings;
   titleForm!: FormGroup;
   contactForm!: FormGroup;
+  regstatForm!: FormGroup;
+  showRegstatPassword: boolean = false;
   welcomeTextInput: string = '';
   welcomeTextErrors: any = {};
   logoErrors: any = {};
@@ -61,6 +58,7 @@ export class SettingsComponent implements AfterViewInit {
     this.setupContactDialog();
     this.setupWelcomeTextDialog();
     this.setupLogoDialog();
+    this.setupRegstatDialog();
   }
 
   setupTitleDialog(): void {
@@ -207,4 +205,37 @@ export class SettingsComponent implements AfterViewInit {
     return split[split.length - 1];
   }
 
+  setupRegstatDialog(): void {
+    this.regstatForm = this.formBuilder.group({
+      regstatUser: this.settings!.regionalstatistikUser,
+      regstatPassword: ''
+    });
+    this.regstatEdit.dialogConfirmed.subscribe(()=>{
+      this.regstatForm.setErrors(null);
+      this.regstatForm.markAllAsTouched();
+      if (this.regstatForm.invalid) return;
+      this.regstatEdit.setLoading(true);
+      let attributes: any = {
+        regionalstatistikUser: this.regstatForm.value.regstatUser,
+        regionalstatistikPassword: this.regstatForm.value.regstatPassword
+      }
+      this.regstatEdit.setLoading(true);
+      this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, attributes
+      ).subscribe(data => {
+        this.regstatEdit.closeDialog(true);
+        // update global settings
+        this.settingsService.refresh();
+      },(error) => {
+        this.regstatEdit.setLoading(false);
+      });
+    })
+    this.regstatEdit.dialogClosed.subscribe((ok)=>{
+      if (!ok){
+        this.contactForm.reset({
+          regstatUser: this.settings!.regionalstatistikUser,
+          regstatPassword: ''
+        });
+      }
+    })
+  }
 }
