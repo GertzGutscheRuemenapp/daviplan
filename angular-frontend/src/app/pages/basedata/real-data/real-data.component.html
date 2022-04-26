@@ -28,7 +28,8 @@
           </tr>
         </table>
         <div style="margin-top: 10px">
-          <button mat-flat-button color="primary" i18n>
+          <button mat-flat-button color="primary"
+                  (click)="pullService()">
             <mat-icon>refresh</mat-icon> Abrufen
           </button>
         </div>
@@ -200,4 +201,18 @@
       </td>
     </tr>
   </table>
+</ng-template>
+
+<ng-template #pullServiceTemplate>
+  <div *ngIf="pullErrors">
+    <mat-error *ngFor="let error of Object.values(pullErrors)" class="alert">
+      {{ error }}
+    </mat-error>
+  </div>
+  <p>
+    Sollen die Einwohnerdaten aus der Regionalstatistik jetzt abgerufen und als Realdaten in die Datenbank eingespielt werden?
+  </p>
+  <p>
+    Achtung: bereits eingespielte Realdaten werden überschrieben!
+  </p>
 </ng-template>

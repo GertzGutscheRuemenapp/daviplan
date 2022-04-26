@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
 import { environment } from "../../../../environments/environment";
 import { PopulationService } from "../../population/population.service";
@@ -23,6 +23,7 @@ import { InputCardComponent } from "../../../dash/input-card.component";
 import * as d3 from "d3";
 import { AgeTreeComponent, AgeTreeData } from "../../../diagrams/age-tree/age-tree.component";
 import { sortBy } from "../../../helpers/utils";
+import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 
 @Component({
   selector: 'app-real-data',
@@ -32,6 +33,7 @@ import { sortBy } from "../../../helpers/utils";
 export class RealDataComponent implements AfterViewInit, OnDestroy {
   @ViewChild('yearCard') yearCard?: InputCardComponent;
   @ViewChild('ageTree') ageTree?: AgeTreeComponent;
+  @ViewChild('pullServiceTemplate') pullServiceTemplate?: TemplateRef<any>;
   backend: string = environment.backend;
   mapControl?: MapControl;
   years: Year[] = [];
@@ -51,6 +53,8 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   // dataYears: number[] = [];
   yearSelection = new SelectionModel<number>(true);
   maxYear = new Date().getFullYear() - 1;
+  pullErrors: any = {};
+  Object = Object;
 
   constructor(private mapService: MapService, public popService: PopulationService, private dialog: MatDialog,
               private settings: SettingsService, private rest: RestAPI, private http: HttpClient) {
@@ -213,6 +217,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   }
 
   onAreaChange(): void {
+    if (!this.previewLayer) return;
     this.mapControl?.selectFeatures([this.previewArea!.id], this.previewLayer!.id!, { silent: true, clear: true });
     this.updateAgeTree();
   }
@@ -222,7 +227,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
     const url = `${this.rest.URLS.popEntries}create_template/`;
     this.popService.setLoading(true);
     this.http.post(url, { area_level: this.popLevel.id, years: this.realYears }, { responseType: 'blob' }).subscribe((res:any) => {
-      const blob: any = new Blob([res],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      const blob: any = new Blob([res],{ type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       this.popService.setLoading(false);
       fileSaver.saveAs(blob, 'template.xlsx');
     },(error) => {
@@ -232,7 +237,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
 
   updateAgeTree(): void {
     this.ageTree?.clear();
-    if (!this.previewArea) return;
+    if (!this.previewArea || !this.previewYear) return;
     const areaData = this.popEntries[this.previewArea.id];
     const maleId = this.genders.find(g => g.name === 'männlich')?.id || 1;
     const femaleId = this.genders.find(g => g.name === 'weiblich')?.id || 2;
@@ -249,6 +254,29 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
     })
     this.ageTree!.subtitle = `${this.previewArea?.properties.label!} ${this.previewYear?.year}`;
     this.ageTree!.draw(ageTreeData);
+  }
+
+  pullService(): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Einwohnerdaten abrufen',
+        confirmButtonText: 'Daten abrufen',
+        template: this.pullServiceTemplate,
+        closeOnConfirm: false
+      }
+    });
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      const url = `${this.rest.URLS.populations}pull_regionalstatistik/`;
+      dialogRef.componentInstance.isLoading = true;
+      this.http.post(url, {}).subscribe(() => {
+
+        dialogRef.close();
+      }, error => {
+        this.pullErrors = error.error;
+        dialogRef.componentInstance.isLoading = false;
+      })
+    })
   }
 
   ngOnDestroy(): void {
