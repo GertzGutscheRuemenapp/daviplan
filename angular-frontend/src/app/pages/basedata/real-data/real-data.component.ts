@@ -1,11 +1,12 @@
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
 import { environment } from "../../../../environments/environment";
 import { PopulationService } from "../../population/population.service";
+import * as fileSaver from 'file-saver';
 import {
+  AgeGroup,
   Area,
-  AreaLevel,
-  Infrastructure,
+  AreaLevel, Gender,
   Layer,
   LayerGroup,
   PopEntry,
@@ -20,6 +21,9 @@ import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dia
 import { MatDialog } from "@angular/material/dialog";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import * as d3 from "d3";
+import { AgeTreeComponent, AgeTreeData } from "../../../diagrams/age-tree/age-tree.component";
+import { sortBy } from "../../../helpers/utils";
+import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 
 @Component({
   selector: 'app-real-data',
@@ -28,6 +32,8 @@ import * as d3 from "d3";
 })
 export class RealDataComponent implements AfterViewInit, OnDestroy {
   @ViewChild('yearCard') yearCard?: InputCardComponent;
+  @ViewChild('ageTree') ageTree?: AgeTreeComponent;
+  @ViewChild('pullServiceTemplate') pullServiceTemplate?: TemplateRef<any>;
   backend: string = environment.backend;
   mapControl?: MapControl;
   years: Year[] = [];
@@ -42,9 +48,13 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   legendGroup?: LayerGroup;
   popEntries: Record<number, PopEntry[]> = {};
   populations: Population[] = [];
+  genders: Gender[] = [];
+  ageGroups: AgeGroup[] = [];
   // dataYears: number[] = [];
   yearSelection = new SelectionModel<number>(true);
   maxYear = new Date().getFullYear() - 1;
+  pullErrors: any = {};
+  Object = Object;
 
   constructor(private mapService: MapService, public popService: PopulationService, private dialog: MatDialog,
               private settings: SettingsService, private rest: RestAPI, private http: HttpClient) {
@@ -66,22 +76,24 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
       name: 'Bevölkerungsentwicklung',
       order: -1
     }, false)
-    this.http.get<Year[]>(this.rest.URLS.years).subscribe(years => {
-      years.forEach(year => {
-        if (year.year > this.maxYear) return;
-        if (year.isReal) {
-          this.realYears.push(year.year);
-        }
-        this.years.push(year);
+    this.popService.getGenders().subscribe(genders => {
+      this.genders = genders;
+      this.popService.getAgeGroups().subscribe(ageGroups => {
+        this.ageGroups = sortBy(ageGroups, 'fromAge');
+        this.http.get<Year[]>(this.rest.URLS.years).subscribe(years => {
+          years.forEach(year => {
+            if (year.year > this.maxYear) return;
+            if (year.isReal) {
+              this.realYears.push(year.year);
+            }
+            this.years.push(year);
+          })
+          this.popService.fetchPopulations().subscribe(populations => {
+            this.populations = populations;
+            this.setupYearCard();
+          });
+        });
       })
-      this.popService.fetchPopulations().subscribe(populations => {
-        this.populations = populations;
-        /*       this.populations.forEach(population => {
-                 const year = this.years.find(y => y.id == population.year);
-                 if (year) this.dataYears.push(year.year);
-               });*/
-        this.setupYearCard();
-      });
     });
   }
 
@@ -191,16 +203,79 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         });
       this.mapControl?.addFeatures(this.previewLayer!.id!, this.areas,
         { properties: 'properties', geometry: 'centroid', zIndex: 'value' });
-      // this.populationLayer!.featureSelected?.subscribe(evt => {
-      //   if (evt.selected) {
-      //     this.activeArea = this.areas.find(area => area.id === evt.feature.get('id'));
-      //   }
-      //   else {
-      //     this.activeArea = undefined;
-      //   }
-      //   this.cookies.set(`pop-area-${this.activeLevel!.id}`, this.activeArea?.id);
-      //   this.updateDiagrams();
-      // })
+      this.updateAgeTree();
+      this.previewLayer!.featureSelected?.subscribe(evt => {
+        if (evt.selected) {
+          this.previewArea = this.areas.find(area => area.id === evt.feature.get('id'));
+        }
+        else {
+          this.previewArea = undefined;
+        }
+        this.updateAgeTree();
+      })
+    })
+  }
+
+  onAreaChange(): void {
+    if (!this.previewLayer) return;
+    this.mapControl?.selectFeatures([this.previewArea!.id], this.previewLayer!.id!, { silent: true, clear: true });
+    this.updateAgeTree();
+  }
+
+  downloadTemplate(): void {
+    if (!this.popLevel) return;
+    const url = `${this.rest.URLS.popEntries}create_template/`;
+    this.popService.setLoading(true);
+    this.http.post(url, { area_level: this.popLevel.id, years: this.realYears }, { responseType: 'blob' }).subscribe((res:any) => {
+      const blob: any = new Blob([res],{ type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      this.popService.setLoading(false);
+      fileSaver.saveAs(blob, 'template.xlsx');
+    },(error) => {
+      this.popService.setLoading(false);
+    });
+  }
+
+  updateAgeTree(): void {
+    this.ageTree?.clear();
+    if (!this.previewArea || !this.previewYear) return;
+    const areaData = this.popEntries[this.previewArea.id];
+    const maleId = this.genders.find(g => g.name === 'männlich')?.id || 1;
+    const femaleId = this.genders.find(g => g.name === 'weiblich')?.id || 2;
+    const ageTreeData: AgeTreeData[] = [];
+    this.ageGroups.forEach(ageGroup => {
+      const ad = areaData.filter(d => d.ageGroup === ageGroup.id);
+      ageTreeData.push({
+        male: ad.find(d => d.gender === maleId)?.value || 0,
+        fromAge: ageGroup.fromAge,
+        toAge: ageGroup.toAge,
+        female: ad.find(d => d.gender === femaleId)?.value || 0,
+        label: ageGroup.label || ''
+      })
+    })
+    this.ageTree!.subtitle = `${this.previewArea?.properties.label!} ${this.previewYear?.year}`;
+    this.ageTree!.draw(ageTreeData);
+  }
+
+  pullService(): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Einwohnerdaten abrufen',
+        confirmButtonText: 'Daten abrufen',
+        template: this.pullServiceTemplate,
+        closeOnConfirm: false
+      }
+    });
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      const url = `${this.rest.URLS.populations}pull_regionalstatistik/`;
+      dialogRef.componentInstance.isLoading = true;
+      this.http.post(url, {}).subscribe(() => {
+
+        dialogRef.close();
+      }, error => {
+        this.pullErrors = error.error;
+        dialogRef.componentInstance.isLoading = false;
+      })
     })
   }
 

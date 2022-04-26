@@ -2,16 +2,18 @@
                  cookieId="exp-infra-header"
                  width="980px">
   <p>Das Arbeiten mit daviplan gliedert sich anhand von Infrastrukturbereichen (z.B. Kinderbetreuung, Schule, Ärztliche Versorgung, Feuerwehr, …). Diese werden hier definiert.</p>
-  <p>Im nachfolgenden Schritt „Koordination der Grundlagendaten“ kann einer oder mehreren Personen die Verantwortung für die Grundlagendaten jeder dieser Infrastrukturbereiche zugeordnet werden. Im Zuge der Erfassung der Grundlagendaten können die Infrastrukturbereich noch weiter ausdifferenziert werden, indem ihnen „Leistungen“ zugewiesen werden. Leistungen im Infrastrukturbereich „Kinderbetreuung“ könnten z.B. Krippe, Elementarbetreuung und Hort sein.</p>
+  <p>Im Zuge der Erfassung der Grundlagendaten können die Infrastrukturbereich noch weiter ausdifferenziert werden, indem ihnen „Leistungen“ zugewiesen werden. Leistungen im Infrastrukturbereich „Kinderbetreuung“ könnten z.B. „Krippe“, „Elementarbetreuung“ und „Hort“ sein.</p>
   <p>Legen Sie auf dieser Seite zunächst nur die Infrastrukturbereiche fest.</p>
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="400px">
-    <app-input-card [title]="'Definierte Infrastrukturbereiche'"
+    <app-input-card [title]="'Betrachtete Infrastrukturbereiche'"
                     #infrastructureCard
                     subtitle="Diese Infrastrukturbereiche sollen behandelt werden:"
-                    infoText="<p>Klicken Sie auf „Hinzufügen“, um der Liste einen Infrastrukturbereich hinzuzufügen. Sie können den neuen Infrastrukturbereich frei definieren oder auf eine der Vorlagen zurückgreifen, die Ihnen dann angezeigt werden.</p>
-                    <p>Um einen Infrastrukturbereich umzubenennen oder seine Beschreibung zu verändern, klicken Sie im Bereich „Eigenschaften des ausgewählten Infrastrukturbereichs“ auf „Editieren“.</p>">
+                    infoText="<p>Klicken Sie auf „Hinzufügen“, um der Liste einen Infrastrukturbereich hinzuzufügen. Geben Sie dem Infrastrukturbereich einen möglichst kurzen Namen (z.B. „Schulen“ oder „Ärzte“) und eine ggf. etwas längere Beschreibung (z.B. „Allgemeinbildende Schulen“ oder „Haus- und Fachärzte“). Im Bereich „Infrastrukturplanung“ werden die Namen der Infrastrukturbereiche in den Auswahllisten erscheinen. Die Beschreibungen werden den Nutzenden als Mouse-Over-Infotexte angezeigt.</p>
+                    <p>Wenn Sie einen bereits definierten Infrastrukturbereich in der Liste anklicken, erscheint seine Beschreibung in der Anzeigebox „Eigenschaften des ausgewählten Infrastrukturbereichs“.</p>
+                    <p>Um einen Infrastrukturbereich umzubenennen oder seine Beschreibung zu verändern, klicken Sie im Bereich „Eigenschaften des ausgewählten Infrastrukturbereichs“ auf „Editieren“.</p>
+                    <p>Mit den Pfeiltasten rechts der Liste können Sie festlegen, in welcher Reihenfolge Ihre Infrastrukturbereiche in allen Auswahllisten und Menüs angezeigt werden sollen.</p>">
       <div style="display: inline-flex;">
         <mat-selection-list [multiple]="false"
                             id="infrastructure-select">

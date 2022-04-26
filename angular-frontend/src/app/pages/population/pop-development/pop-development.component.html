@@ -204,7 +204,7 @@
                           figureId="bevpyramide"
                           [animate]="true"
                           [title]="ageTreeProps.title"
-                          [subtitle]="ageTreeProps.subtitle"
+                          subtitle="{{ageTreeProps.subtitle}} {{year}}"
                           [data]="ageTreeProps.data[year]">
             </app-age-tree>
           </div>

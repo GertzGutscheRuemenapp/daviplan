@@ -247,6 +247,7 @@ export class BalanceChartComponent implements AfterViewInit {
     let path = lineG.append("path")
       .datum(sums)
       .attr("class", "line")
+      .style("pointer-events", "none")
       .attr("fill", "none")
       .attr("stroke", this.lineColor)
       .attr("stroke-width", 3)

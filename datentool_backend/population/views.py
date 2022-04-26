@@ -408,8 +408,14 @@ class PopulationViewSet(viewsets.ModelViewSet):
         try:
             df_population = api.query_population(ags=ags)
         except PermissionDenied as e:
-            return Response({'message': str(e), },
-                            status=status.HTTP_401_UNAUTHORIZED)
+            msg = ('Die Datenmenge ist zu groß, um sie ohne Konto bei der '
+            'Regionalstatistik abrufen zu können. Bitte benachrichtigen Sie '
+            'den/die Toolkoordinator/in, dass ein Konto beantragt und die '
+            'Zugangsdaten in den Grundeinstellungen von daviplan eingetragen '
+            'werden müssen. Falls dort bereits ein Konto eingetragen ist, '
+            'überprüfen Sie bitte die Gültigkeit der Zugangsdaten.')
+            return Response({'message': msg, },
+                            status=status.HTTP_403_FORBIDDEN)
         except Exception as e:
             return Response({'message': str(e),},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)

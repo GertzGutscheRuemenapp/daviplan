@@ -2,7 +2,7 @@
                  cookieId="exp-settings-header"
                  width="780px">
   Hier legen Sie fest, wie Ihre individuelle kommunale oder
-  regionale Anwendung von daviplan für die Nutzer erscheinen soll (Name, Logo, Willkommenstext, Kontakt)
+  regionale Anwendung von daviplan für die Nutzenden erscheinen soll (Name, Logo, Willkommenstext, Kontakt)
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="400px">
@@ -39,6 +39,23 @@
             <mat-icon>edit</mat-icon>
           </button>
         </div>
+      </div>
+    </app-input-card>
+    <app-input-card #regstatEdit
+                    [title]="'Regionalstatistik (optional)'"
+                    subtitle="Zugangsdaten ändern"
+                    [dialogTitle]="'Zugangsdaten für die Regionalstatistik'"
+                    dialogWidth="600px"
+                    infoText="<p><a href='https://www.regionalstatistik.de/genesis/online?Menu=Registrierung' target='_blank'>Regionalstatistik Registrierung</a></p>
+                    <p>Bitte nach der Bestätigungsmail einmalig auf der Regionalstatistik-Webseite anmelden, um das Passwort zu ändern. Dieses dann hier eintragen."
+                    [editTemplate]="regstatTemplate"
+                    [editButton]="regstatEditButton">
+      <div #regstatEditButton class="row-button" style="width: 90%">
+        <label>{{settings?.regionalstatistikUser || '-'}}</label>
+        <div class="fill-space"></div>
+        <button mat-icon-button color="primary">
+          <mat-icon>edit</mat-icon>
+        </button>
       </div>
     </app-input-card>
   </div>
@@ -143,4 +160,25 @@
       </div>
     </div>
   </div>
+</ng-template>
+
+<ng-template #regstatTemplate>
+  <form [formGroup]="regstatForm">
+    <div *ngIf="regstatForm.errors">
+      <mat-error *ngFor="let error of Object.values(regstatForm.errors)" class="alert">
+        {{ error }}
+      </mat-error>
+    </div>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label i18n>Nutzername</mat-label>
+      <input matInput formControlName="regstatUser" autocomplete="regstat-user"/>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label i18n>Passwort</mat-label>
+      <input matInput formControlName="regstatPassword" autocomplete="regstat-pass"
+             [type]="showRegstatPassword ? 'text' : 'password'"
+             placeholder="·········" required>
+      <fa-icon matSuffix [icon]="showRegstatPassword? faEyeSlash: faEye" (click)="showRegstatPassword = !showRegstatPassword"></fa-icon>
+    </mat-form-field>
+  </form>
 </ng-template>

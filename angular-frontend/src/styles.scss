@@ -412,7 +412,7 @@ app-basedata, app-administration{
 
 rect.highlight{
   //fill: mat.get-color-from-palette($app-primary, 400)!important;
-  fill: mat.get-color-from-palette($app-primary, 800)!important;
+  fill: gold!important;
 }
 
 div.d3-tooltip, div.tooltip {
@@ -1215,5 +1215,20 @@ mat-checkbox.reverse {
   }
   tr.warn td:first-child {
     color: $warning;
+  }
+}
+
+.under-construction {
+  color: black;
+  background-color: #ffcd00;
+  border: 2px solid black;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 20px;
+  margin: 10px;
+  text-align: center;
+  mat-icon {
+    //font-size: 30px;
+    margin-right: 10px;
   }
 }
