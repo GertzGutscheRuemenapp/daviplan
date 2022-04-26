@@ -37,13 +37,16 @@ export class MainNavComponent implements OnInit{
   }
 
   buildMenu(): void {
-    if (this.user)
+    if (this.user) {
       this.menuItems = [
-        { name:  $localize`Bevölkerung`, url: 'bevoelkerung' },
-        { name:  $localize`Infrastrukturplanung`, url: 'planung' },
-        { name:  $localize`Grundlagendaten`, url: 'grundlagendaten' },
-        { name:  $localize`Administration`, url: 'admin' }
-      ];
+        { name: $localize`Bevölkerung`, url: 'bevoelkerung' },
+        { name: $localize`Infrastrukturplanung`, url: 'planung' },
+      ]
+      if (this.user.profile.canEditBasedata || this.user.profile.adminAccess || this.user.isSuperuser)
+        this.menuItems.push({ name:  $localize`Grundlagendaten`, url: 'grundlagendaten' })
+      if (this.user.profile.adminAccess || this.user.isSuperuser)
+        this.menuItems.push({ name:  $localize`Administration`, url: 'admin' })
+    }
   }
 
   logout(): void {

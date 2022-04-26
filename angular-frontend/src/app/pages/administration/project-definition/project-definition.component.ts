@@ -58,7 +58,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   yearForm!: FormGroup;
   Object = Object;
   areaLayers = areaLayers;
-  selectedAreaLayer: BKGLayer = areaLayers[2];
+  selectedAreaLayer: BKGLayer = areaLayers[0];
   baseAreaLayer: BKGLayer = areaLayers[areaLayers.length - 1];
   selectedBaseAreaMapping = new Map<string, Feature<any>>();
   baseAreasInExtent: Feature<any>[] = [];
