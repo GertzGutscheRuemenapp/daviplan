@@ -121,7 +121,6 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       this.updateMap();
       // update age tree on year change
       if (this.selectedTab === 2 && this.activeArea) {
-        this.ageTreeProps.subtitle = `${this.activeArea?.properties.label!} ${year}`;
         this.forceDiagramReload();
       }
     }))
@@ -356,7 +355,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         this.lineChartProps.data = relData;
 
         this.ageTreeProps.title = 'Bevölkerungspyramide';
-        this.ageTreeProps.subtitle = `${this.activeArea?.properties.label!} ${this.year}`;
+        this.ageTreeProps.subtitle = this.activeArea?.properties.label!;
         this.ageTreeProps.data = ageTreeData;
 
         this.forceDiagramReload();
