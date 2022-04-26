@@ -1,11 +1,11 @@
 <app-header-card [title]="'Projektdefinition'"
                  cookieId="exp-project-header"
                  width="930px">
-  <b><i>ToDo: Hilfetext anpassen</i></b>
   <p>
-    Für Ihre kommunale oder regionale Anwendung von daviplan müssen sie ein Projektgebiet festgelegt. Das Projektgebiet muss alle Gebietskörperschaften umfassen,
-    für die Sie Infrastrukturen erfassen, Einwohnerentwicklungen betrachten, Nachfrage abschätzen, Szenarien der Infrastrukturentwicklung durchspielen und
-    Versorgungsquoten ermitteln wollen. Auswertungen für Teilbereiche (z.B. einzelne Gemeinden oder Ortsteile) innerhalb dieses Projektgebiets sind möglich.
+    Für Ihre kommunale oder regionale Anwendung von daviplan müssen Sie zu Beginn drei zentrale Festlegungen treffen, deren spätere Veränderung nur mit größeren Aufwand möglich ist. Sie müssen ein Projektgebiet abgrenzen, einen Betrachtungszeitraum definieren und eine Altersgruppeneinteilung vornehmen.
+  </p>
+  <p>
+    Wie dies im Einzelnen geht, wird Ihnen in den Hilfetexten der drei nachstehenden Eingabeboxen erläutert.
   </p>
 </app-header-card>
 <div fxLayout="row wrap">
@@ -13,10 +13,11 @@
     <app-input-card #yearCard
                     [title]="'Betrachtungszeitraum'"
                     [editTemplate]="yearEdit"
-                    infoText="<b><i>ToDo: Hilfetext</i></b>">
+                    infoText="<p>Klicken Sie auf „Editieren“, um den angezeigten Betrachtungszeitraum zu verändern. Der Betrachtungszeitraum umfasst alle Jahre, für die sich die Nutzenden Daten anzeigen lassen oder Szenarien entwickeln können.</p>
+                    <p>Es empfiehlt sich, den Betrachtungszeitraum so zu wählen, dass sowohl die zurückliegende Entwicklung (z.B. die letzten 10 Jahre) als auch Szenarien für die Zukunft (z.B. die kommenden 20 Jahre) abgebildet werden. Wählen Sie den Betrachtungszeitraum so, dass vorliegende Prognose gut darin abgebildet werden können.</p>">
       <table>
         <tr>
-          <td i18n>Betrachtungs-<br>zeitraum</td>
+          <td>Betrachtungs-<br>zeitraum</td>
           <td>{{startYear}} bis {{endYear}}</td>
         </tr>
       </table>
@@ -25,7 +26,9 @@
                     [title]="'Altersgruppeneinteilung'"
                     [editTemplate]="ageGroupsEdit"
                     dialogWidth="470px"
-                    infoText="<b><i>ToDo: Hilfetext</i></b>">
+                    infoText="<p>Legen Sie hier die Altersgruppen fest, auf deren Basis in der Anwendung die Einwohnerdaten erfasst und angezeigt werden sollen. Die Altersgruppeneinteilung bildet zudem die Grundlage für die Definition der Nachfragequoten nach den von Ihnen definierten Leistungen. Die Einteilung der Altersgruppen sollte daher vor dem Import von Einwohnerdaten sowie der Festlegung von Nachfragequoten erfolgen. Achtung: Eine nachträgliche Veränderung kann die Löschung bereits vorgenommener Datenimporte und Dateneintragungen nach sich ziehen.</p>
+                    <p>Daviplan kennt eine Standardeinteilung mit 17 Altersgruppen. Diese entspricht der Altersgruppendefinition der Regionalstatistik, dem gemeinsamen Statistikangebot der Statistischen Landesämter. Wird diese Standardeinteilung übernommen, können Einwohnerdaten online abgefragt werden und müssen nicht händisch importiert werden. Daher wird die Nutzung der Standardeinteilung empfohlen. Um dies zu tun, ändern Sie die Altersgruppenteilung nicht oder setzen Sie diese über die Schaltflächen „Editieren“ und „Auf Default zurücksetzen“ auf den Standard zurück. </p>
+                    <p>Um eine eigene Altersgruppeneinteilung vorzunehmen, klicken Sie auf „Editieren“. Dort können Sie die einzelnen Altersgruppen verändern, löschen oder weitere hinzufügen.</p>">
       <table>
         <tr>
           <td i18n>Altersgruppen</td>
@@ -47,10 +50,16 @@
   <div fxLayout="column" fxFlex="600px">
     <app-input-card #areaCard
                     [title]="'Projektgebiet'"
-                    subtitle="Manuelle Auswahl des Projektgebiets"
                     [topRightHelp]="true"
                     infoText="Um Ihr Projektgebiet festzulegen oder zu verändern, klicken Sie bitte auf „Editieren“. Sie gelangen dann zu einer Kartendarstellung, in der Sie Ihr Projektgebiet aus einzelnen Gemeinden, Verwaltungsgemeinschaften und Landkreisen zusammensetzen können."
                     [editTemplate]="projectAreaEdit"
+                    dialogInfoText="<p>Das Projektgebiet definiert, für welche Gemeinden die Nutzende Ihrer daviplan-Anwendung Daten sehen und ggf. verändern können. Alle Gemeinden außerhalb des Projektgebiets sind nur als Hintergrundkarte sichtbar</p>
+                    <p>Um ein Projektgebiet zu definieren oder eine bestehende Definition zu ändern, klicken Sie bitte auf die Schaltfläche „Gebietsauswahl deaktiviert“, um in den Editiermodus zu gelangen.</p>
+                    <p>Die Definition des Projektgebiets erfolgt grundsätzlich auf der Ebene der Gemeinden. Im Editiermodus sehen Sie rechts eine Liste der ausgewählten Gemeinden. Darunter finden Sie eine Liste der bisher nicht ausgewählten Gemeinden, die im aktuellen Kartenausschnitt liegen.</p>
+                    <p>Wenn Sie eine Gemeinden der unteren Liste anklicken, wird diese dem Projektgebiet hinzugefügt und in der Karte braun eingefärbt. Das gleich passiert, wenn Sie eine Gemeinde in der Karte anklicken. Wenn Sie sie erneut anklicken, wird sie wieder aus dem Projektgebiet herausgenommen. Um eine Gemeinde aus dem Projektgebiet zu entfernen, können Sie sich auch in der Liste der ausgewählten Gemeinden anklicken.</p>
+                    <p>Sie können sich in der Karte unterschiedliche Verwaltungsebenen anzeigen lassen. Klicken Sie einen Landkreis an, werden alle Gemeinden dieses Landkreises Ihrem Projektgebiet hinzugefügt. Klicken Sie den Landkreis erneut an, werden alle Gemeinden des Landkreises wieder aus Ihrem Projektgebiet herausgenommen. Durch ein Hin- und Herschalten zwischen den Verwaltungsebenen lassen sich so z.B. alle Gemeinden eines Landkreises erst zuzufügen und dann in einem zweiten Schritt alle Gemeinden einer bestimmten Verwaltungsgemeinschaft (Amt, Samtgemeinde, Verbandsgemeinde, ...) wieder herausnehmen.</p>
+                    <p>Klicken Sie auf Speichern, um Ihre Gebietsdefinition zu speichern.</p>
+                    <p>Ihre Gebietsdefinition sollte nach Möglichkeit später nicht mehr verändert werden. Um einen flächendeckenden Datenbestand sicher zu stellen, muss daviplan bei einer nachträglichen Veränderung des Gebietsstandes ggf. bereits importierte Strukturdaten wieder löschen.</p>"
                     dialogWidth="1200px">
       <div id="project-preview-map" class="map-container">
         <app-map-controls target="project-preview-map"></app-map-controls>

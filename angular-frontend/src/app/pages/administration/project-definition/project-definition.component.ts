@@ -32,7 +32,7 @@ interface BKGLayer {
 const areaLayers: BKGLayer[] = [
   { name: 'Kreise', tag: 'vg250_krs' },
   { name: 'Verwaltungsgemeinschaften', tag: 'vg250_vwg' },
-  { name: 'Gemeinden', tag: 'vg250_gem' },
+  { name: 'Gemeinden', tag: 'vg250_gem' }
 ]
 
 proj4.defs("EPSG:25832", "+proj=utm +zone=32 +ellps=GRS80 +units=m +no_defs");
@@ -58,7 +58,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   yearForm!: FormGroup;
   Object = Object;
   areaLayers = areaLayers;
-  selectedAreaLayer: BKGLayer = areaLayers[0];
+  selectedAreaLayer: BKGLayer = areaLayers[2];
   baseAreaLayer: BKGLayer = areaLayers[areaLayers.length - 1];
   selectedBaseAreaMapping = new Map<string, Feature<any>>();
   baseAreasInExtent: Feature<any>[] = [];

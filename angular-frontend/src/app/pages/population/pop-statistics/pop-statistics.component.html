@@ -81,7 +81,7 @@
     </app-help-button>
   </div>
   <mat-tab-group (selectedIndexChange)="selectedTab = $event">
-    <mat-tab label="Bevölkerungsentwicklung">
+    <mat-tab label="Entwicklung">
       <ng-template matTabContent>
         <div class="diagram-wrapper">
           <app-help-button title="Wanderung" position="left"
@@ -91,7 +91,7 @@
           <div *ngIf="selectedTab===0">
             <app-balance-chart #balanceChart
                                figureId="areaSaldo"
-                               [colors]="['#1a9850', '#d73027']"
+                               [colors]="['#32B06B', '#D75046']"
                                lineColor="#2196f3"
                                xLabel="Jahre"
                                [animate]="true"
@@ -109,7 +109,7 @@
         </div>
       </ng-template>
     </mat-tab>
-    <mat-tab label="Altersgruppenentwicklung">
+    <mat-tab label="Sad">
       <ng-template matTabContent>
         <div class="diagram-wrapper">
           <app-help-button title="Wanderungssaldo Gesamtgebiet" position="left"
