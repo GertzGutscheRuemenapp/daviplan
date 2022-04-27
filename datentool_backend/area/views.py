@@ -9,7 +9,8 @@ from owslib.wfs import WebFeatureService
 import datetime
 
 from django.core.exceptions import BadRequest
-from django.contrib.gis.geos import GEOSGeometry, Polygon, MultiPolygon
+from django.contrib.gis.geos import (GEOSGeometry, Polygon, MultiPolygon,
+                                     GeometryCollection)
 from django.views.generic import DetailView
 from django.http import JsonResponse, Http404
 from django.db.models import OuterRef, Subquery, CharField, Case, When, F, JSONField, Func
@@ -18,8 +19,6 @@ from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.gis.gdal import field as gdal_field
 from django.contrib.gis.gdal.error import GDALException
 from django_filters import rest_framework as filters
-
-from django.http.request import QueryDict
 
 from rest_framework.response import Response
 from rest_framework import viewsets, permissions, status, serializers
@@ -387,6 +386,12 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
                 intersection = intersection.simplify(10, preserve_topology=True)
             if isinstance(intersection, Polygon):
                 intersection = MultiPolygon(intersection)
+            if isinstance(intersection, GeometryCollection):
+                polys = []
+                for geometry in intersection:
+                    if isinstance(geometry, Polygon):
+                        polys.append(geometry)
+                intersection = MultiPolygon(polys)
             if not truncate and key_field and properties.get(key_field):
                 existing = level_areas.filter(
                     **{key_field: properties.get(key_field)})
