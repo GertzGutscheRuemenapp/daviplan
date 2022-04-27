@@ -353,6 +353,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       this.showAreaLayers = false;
     })
     this.areaCard.dialogConfirmed.subscribe(ok => {
+      this.areaCard.setLoading(true);
       const format = new WKT();
       let projectGeom = this.getMergedSelectGeometry();
       let wkt = projectGeom? `SRID=${this.areaSelectMapControl?.srid};` + format.writeGeometry(projectGeom) : null
@@ -364,6 +365,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
         this.updatePreviewLayer();
       },(error) => {
         this.projectAreaErrors = error.error;
+        this.areaCard.setLoading(false);
       });
     })
   }

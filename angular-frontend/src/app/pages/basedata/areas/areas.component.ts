@@ -196,7 +196,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       // display errors for all fields even if not touched
       this.editLevelForm.markAllAsTouched();
       if (this.editLevelForm.invalid) return;
-      dialogRef.componentInstance.isLoading = true;
+      dialogRef.componentInstance.isLoading$.next(true);
       let attributes = {
         name: this.editLevelForm.value.name,
         isPreset: false,
@@ -210,7 +210,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         dialogRef.close();
       },(error) => {
         this.editLevelForm.setErrors(error.error);
-        dialogRef.componentInstance.isLoading = false;
+        dialogRef.componentInstance.isLoading$.next(false);
       });
     });
   }
@@ -255,14 +255,14 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       }
     });
     dialogRef.componentInstance.confirmed.subscribe((confirmed: boolean) => {
-      dialogRef.componentInstance.isLoading = true;
+      dialogRef.componentInstance.isLoading$.next(true);
       this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/pull_areas/`,
         { truncate: true, simplify: false }).subscribe(res => {
         dialogRef.close();
         this.selectAreaLevel(this.activeLevel!, true);
       }, error => {
         this.uploadErrors = error.error;
-        dialogRef.componentInstance.isLoading = false;
+        dialogRef.componentInstance.isLoading$.next(false);
       });
     });
     dialogRef.afterClosed().subscribe(ok => {
@@ -292,7 +292,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         return;
       const formData = new FormData();
       formData.append('file', this.file);
-      dialogRef.componentInstance.isLoading = true;
+      dialogRef.componentInstance.isLoading$.next(true);
       this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/upload_shapefile/`, formData).subscribe(res => {
         dialogRef.close();
         this.http.get<AreaLevel>(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/`).subscribe(al => {
@@ -301,7 +301,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         })
       }, error => {
         this.uploadErrors = error.error;
-        dialogRef.componentInstance.isLoading = false;
+        dialogRef.componentInstance.isLoading$.next(false);
       });
     });
     dialogRef.afterClosed().subscribe(ok => {

@@ -159,7 +159,7 @@ export class ServicesComponent implements AfterViewInit {
       // display errors for all fields even if not touched
       this.serviceForm.markAllAsTouched();
       if (this.serviceForm.invalid) return;
-      dialogRef.componentInstance.isLoading = true;
+      dialogRef.componentInstance.isLoading$.next(true);
       let attributes = {
         name: this.serviceForm.value.name,
         infrastructure: this.serviceForm.value.infrastructure
@@ -171,7 +171,7 @@ export class ServicesComponent implements AfterViewInit {
         dialogRef.close();
       },(error) => {
         this.serviceForm.setErrors(error.error);
-        dialogRef.componentInstance.isLoading = false;
+        dialogRef.componentInstance.isLoading$.next(false);
       });
     });
   }

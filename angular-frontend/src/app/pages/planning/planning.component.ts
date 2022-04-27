@@ -158,7 +158,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
       // display errors for all fields even if not touched
       this.editProcessForm.markAllAsTouched();
       if (this.editProcessForm.invalid) return;
-      dialogRef.componentInstance.isLoading = true;
+      dialogRef.componentInstance.isLoading$.next(true);
       let attributes = {
         name: this.editProcessForm.value.name,
         description: this.editProcessForm.value.description,
@@ -171,7 +171,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
         dialogRef.close();
       },(error) => {
         this.editProcessForm.setErrors(error.error);
-        dialogRef.componentInstance.isLoading = false;
+        dialogRef.componentInstance.isLoading$.next(false);
       });
     });
   }
@@ -201,7 +201,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
       // display errors for all fields even if not touched
       this.editProcessForm.markAllAsTouched();
       if (this.editProcessForm.invalid) return;
-      dialogRef.componentInstance.isLoading = true;
+      dialogRef.componentInstance.isLoading$.next(true);
       let attributes = {
         name: this.editProcessForm.value.name,
         description: this.editProcessForm.value.description,
@@ -215,7 +215,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
         dialogRef.close();
       },(error) => {
         this.editProcessForm.setErrors(error.error);
-        dialogRef.componentInstance.isLoading = false;
+        dialogRef.componentInstance.isLoading$.next(false);
       });
     });
   }

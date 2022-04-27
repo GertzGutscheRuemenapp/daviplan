@@ -286,7 +286,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
       const url = `${this.rest.URLS.populations}pull_regionalstatistik/`;
-      dialogRef.componentInstance.isLoading = true;
+      dialogRef.componentInstance.isLoading$.next(true);
       this.http.post(url, {}).subscribe(() => {
 /*        this.router.routeReuseStrategy.shouldReuseRoute = () => false;
         this.router.navigate([this.router.url]);*/
@@ -294,7 +294,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         dialogRef.close();
       }, error => {
         this.pullErrors = error.error;
-        dialogRef.componentInstance.isLoading = false;
+        dialogRef.componentInstance.isLoading$.next(false);
       })
     })
   }

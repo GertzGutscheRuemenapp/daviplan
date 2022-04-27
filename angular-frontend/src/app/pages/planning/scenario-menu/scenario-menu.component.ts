@@ -110,7 +110,7 @@ export class ScenarioMenuComponent implements OnInit {
     dialogRef.componentInstance.confirmed.subscribe(() => {
       this.editScenarioForm.markAllAsTouched();
       if (this.editScenarioForm.invalid) return;
-      dialogRef.componentInstance.isLoading = true;
+      dialogRef.componentInstance.isLoading$.next(true);
       let attributes = {
         name: this.editScenarioForm.value.scenarioName,
         planningProcess: this.process!.id
@@ -121,7 +121,7 @@ export class ScenarioMenuComponent implements OnInit {
         this.process!.scenarios.push(scenario);
         this.scenarios.push(scenario);
       },(error) => {
-        dialogRef.componentInstance.isLoading = false;
+        dialogRef.componentInstance.isLoading$.next(false);
       });
     });
   }
@@ -145,7 +145,7 @@ export class ScenarioMenuComponent implements OnInit {
     dialogRef.componentInstance.confirmed.subscribe(() => {
       this.editScenarioForm.markAllAsTouched();
       if (this.editScenarioForm.invalid) return;
-      dialogRef.componentInstance.isLoading = true;
+      dialogRef.componentInstance.isLoading$.next(true);
       let attributes = {
         name: this.editScenarioForm.value.scenarioName
       };
@@ -153,7 +153,7 @@ export class ScenarioMenuComponent implements OnInit {
       ).subscribe(scenario => {
         this.activeScenario!.name = scenario.name;
       },(error) => {
-        dialogRef.componentInstance.isLoading = false;
+        dialogRef.componentInstance.isLoading$.next(false);
       });
     });
   }

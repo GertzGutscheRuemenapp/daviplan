@@ -87,6 +87,6 @@ export class InputCardComponent implements AfterViewInit {
 
   setLoading(enable: boolean){
     if (this.dialogRef)
-      this.dialogRef.componentInstance.isLoading = enable;
+      this.dialogRef.componentInstance.isLoading$.next(enable);
   }
 }
