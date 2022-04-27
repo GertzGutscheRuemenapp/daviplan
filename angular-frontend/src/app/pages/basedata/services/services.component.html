@@ -1,6 +1,6 @@
 <app-header-card [title]="'Leistungen in den Infrastrukturbereichen'"
                  cookieId="exp-services-header"
-                 width="930px">
+                 width="1130px">
   <p>Im Administrationsbereich wurde festgelegt, welche Infrastrukturbereiche der Daseinsvorsorge (z.B. Kindertagesbetreuung, Schule, Feuerwehr, ärztliche Versorgung, Einzelhandel, …) mit daviplan betrachtet werden sollen.</p>
   <p>An dieser Stelle differenzieren Sie die Infrastrukturbereiche weiter aus, in dem Sie Ihnen „Leistungen“ zuordnen. Leistungen sind die einzelnen Angebote der Infrastrukturen, die von den Nutzer*innen nachgefragt und genutzt werden. Alle Nachfrageschätzungen, Kapazitätsangaben und Nachfrage-Angebot-Vergleiche im Hauptmenüabschnitt „Infrastrukturplanung“ werden sich auf diese Leistungen beziehen.</p>
   <p>Für den Infrastrukturbereich „Kindertagesbetreuung“ könnten z.B. „Krippe“, „Elementarbetreuung“ und „Hort“ drei mögliche Leistungen sein. Bei der ärztlichen Versorgung z.B. „Hausärzte“ und „Fachärzte“, wobei ggf. bei den Fachärzten noch zwischen den wichtigsten Fachrichtungen unterschieden werden können, indem diese jeweils als eigene Leistung definiert werden. Für die Feuerwehr könnten z.B. unterschiedliche Einsatztypen durch entsprechende definierte Leistungen abgebildet werden.</p>
@@ -41,7 +41,7 @@
       </div>
     </app-input-card>
   </div>
-  <div fxLayout="column" fxFlex="600px" [ngClass]="{'hidden': !activeService}">
+  <div fxLayout="column" fxFlex="400px" [ngClass]="{'hidden': !activeService}">
     <app-input-card #propertiesCard
                     [title]="'Bezeichnung der ausgewählten Leistung'"
                     [editTemplate]="propertiesEdit"
@@ -63,7 +63,7 @@
       </table>
     </app-input-card>
     <app-input-card #capacitiesCard
-                    [title]="'Kapazitätseinheit der ausgewählten Leistung'"
+                    [title]="'Kapazitätseinheit der Einrichtungen'"
                     [editTemplate]="capacityEdit"
                     [subtitle]="activeService?.name || ''"
                     infoText="<p>In dieser Eingabebox können Sie über die Schaltfläche „Editieren“ festlegen, ob für diese Leistung die Kapazitäten der Einrichtungen berücksichtigt werden sollen. Dies können z.B. die genehmigten Plätze der Kitas oder die maximale Schülerzahl der Schulen sein.</p>
@@ -84,14 +84,6 @@
             <td>{{activeService.capacityPluralUnit}}</td>
           </tr>
           <tr>
-            <td>Nachfragende Einzahl</td>
-            <td>{{activeService.demandSingularUnit}}</td>
-          </tr>
-          <tr>
-            <td>Nachfragende Mehrzahl</td>
-            <td>{{activeService.demandPluralUnit}}</td>
-          </tr>
-          <tr>
             <td>Artikel Einrichtung (Einzahl)</td>
             <td>{{activeService.facilityArticle}}</td>
           </tr>
@@ -103,23 +95,41 @@
             <td>Einrichtung Mehrzahl</td>
             <td>{{activeService.facilityPluralUnit}}</td>
           </tr>
+        </table>
+      </div>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="400px" [ngClass]="{'hidden': !activeService}">
+    <app-input-card #demandCard
+                    [title]="'Kapazitätseinheit der ausgewählten Leistung'"
+                    [editTemplate]="demandEdit"
+                    [subtitle]="activeService?.name || ''"
+                    infoText="<p>In dieser Eingabebox können Sie über die Schaltfläche „Editieren“ festlegen, ob für diese Leistung die Kapazitäten der Einrichtungen berücksichtigt werden sollen. Dies können z.B. die genehmigten Plätze der Kitas oder die maximale Schülerzahl der Schulen sein.</p>
+                    <p>Bei manchen Leistungen ist es hingegen eher relevant, dass diese überhaupt an einem Ort verfügbar ist, wohingegen die Kapazität für Ihre Fragestellung eher zweitrangig ist (oder Ihnen keine Daten hierzu vorliegen). Dies können z.B. Feuerwehrstandorte, Ärzte oder Lebensmittelläden sein. In diesem Fall löschen Sie bitte das Häkchen vor der Eingangsfrage.</p>
+                    <p>Je nach Fragestellung oder Datenstand können Sie aber natürlich auch für diese beispielhaft genannten Infrastrukturen eine Kapazität definieren. In diesem Fall setzen Sie das Häkchen.</p>
+                    <p>Wenn Sie das Häkchen gesetzt haben, werden Sie gebeten anzugeben, wie die Maßeinheit der Kapazität für diese Leistung heißt, z.B. „Plätze“ oder „Patienten (max.)“ (Die eigentlichen Werte geben Sie im nachfolgenden Menüpunkt „Kapazitäten“ an.). Um im weiteren Verlauf Anzeigen wie „1 Plätze“ zu vermeiden, geben Sie bitte neben der Mehrzahl auch die Einzahl („Platz“) an.</p>">
+      <div *ngIf="activeService">
+        <table style="margin-top: 10px;">
+          <tr>
+            <td>Nachfragende Einzahl</td>
+            <td>{{activeService.demandSingularUnit}}</td>
+          </tr>
+          <tr>
+            <td>Nachfragende Mehrzahl</td>
+            <td>{{activeService.demandPluralUnit}}</td>
+          </tr>
           <tr>
             <td>Richtung der Wegebeziehung</td>
             <td>{{(activeService.directionWayRelationship === 1)? 'Zu': (activeService.directionWayRelationship === 2)? 'Von': '-'}}</td>
           </tr>
         </table>
       </div>
-      <div after>
-        <br>
-        <div *ngIf="(indicators.length > 0)">
-          <span class="subtitle1 sub"> Beispieltexte </span>
-          <br>
-          <li *ngFor="let indicator of indicators" style="margin-top: 10px; color: grey;">
-            {{indicator.description}}
-          </li>
-        </div>
-      </div>
     </app-input-card>
+    <app-dash-card subtitle="Beispieltexte" *ngIf="(indicators.length > 0)">
+      <li *ngFor="let indicator of indicators" style="margin-top: 10px; color: grey;">
+        {{indicator.description}}
+      </li>
+    </app-dash-card>
   </div>
 </div>
 
@@ -163,14 +173,6 @@
         <input matInput formControlName="capacityPluralUnit">
       </mat-form-field>
       <mat-form-field appearance="fill">
-        <mat-label i18n>Nachfragende Einzahl</mat-label>
-        <input matInput formControlName="demandSingularUnit">
-      </mat-form-field>
-      <mat-form-field appearance="fill">
-        <mat-label i18n>Nachfragende Mehrzahl</mat-label>
-        <input matInput formControlName="demandPluralUnit">
-      </mat-form-field>
-      <mat-form-field appearance="fill">
         <mat-label i18n>Artikel Einrichtung (Einzahl)</mat-label>
         <mat-select disableRipple formControlName="facilityArticle" required>
           <mat-option value="der">
@@ -191,6 +193,26 @@
       <mat-form-field appearance="fill">
         <mat-label i18n>Einrichtung Mehrzahl</mat-label>
         <input matInput formControlName="facilityPluralUnit">
+      </mat-form-field>
+    </div>
+  </form>
+</ng-template>
+
+<ng-template #demandEdit>
+  <form [formGroup]="demandForm">
+    <div *ngIf="demandForm.errors">
+      <mat-error *ngFor="let error of Object.values(demandForm.errors)" class="alert">
+        {{ error }}
+      </mat-error>
+    </div>
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Nachfragende Einzahl</mat-label>
+        <input matInput formControlName="demandSingularUnit">
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Nachfragende Mehrzahl</mat-label>
+        <input matInput formControlName="demandPluralUnit">
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label i18n>Richtung der Wegebeziehung</mat-label>
