@@ -164,9 +164,17 @@ export class AuthGuard implements CanActivate {
     next: ActivatedRouteSnapshot,
     state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
     return this.authService.getCurrentUser().pipe(
-      map(user => !!user),
-      tap(isLogged => {
-        if (!isLogged) {
+      map(user => {
+        const expectedRole = next.data.expectedRole;
+        const isLoggedIn = !!user;
+        if (expectedRole === 'admin')
+          return isLoggedIn && (user?.profile.adminAccess || user?.isSuperuser);
+        if (expectedRole === 'dataEditor')
+          return isLoggedIn && (user?.profile.canEditBasedata || user?.profile.adminAccess || user?.isSuperuser);
+        return isLoggedIn;
+      }),
+      tap(hasAccess => {
+        if (!hasAccess) {
           this.router.navigateByUrl('/login');
         }
       })
