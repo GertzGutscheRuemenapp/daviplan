@@ -24,6 +24,7 @@ import * as d3 from "d3";
 import { AgeTreeComponent, AgeTreeData } from "../../../diagrams/age-tree/age-tree.component";
 import { sortBy } from "../../../helpers/utils";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
+import { Router } from "@angular/router";
 
 @Component({
   selector: 'app-real-data',
@@ -56,10 +57,9 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   pullErrors: any = {};
   Object = Object;
 
-  constructor(private mapService: MapService, public popService: PopulationService, private dialog: MatDialog,
-              private settings: SettingsService, private rest: RestAPI, private http: HttpClient) {
-
-  }
+  constructor(private mapService: MapService, public popService: PopulationService,
+              private dialog: MatDialog, private settings: SettingsService,
+              private rest: RestAPI, private http: HttpClient, private router: Router) {}
 
   ngAfterViewInit(): void {
     this.popService.getAreaLevels({ reset: true }).subscribe(areaLevels => {
@@ -76,11 +76,22 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
       name: 'Bevölkerungsentwicklung',
       order: -1
     }, false)
+    this.fetchData();
+    this.setupYearCard();
+  }
+
+  fetchData(): void {
+    this.previewYear = undefined;
+    this.previewArea = undefined;
+    this.ageTree?.clear();
+    this.updatePreview();
     this.popService.getGenders().subscribe(genders => {
       this.genders = genders;
       this.popService.getAgeGroups().subscribe(ageGroups => {
         this.ageGroups = sortBy(ageGroups, 'fromAge');
         this.http.get<Year[]>(this.rest.URLS.years).subscribe(years => {
+          this.years = [];
+          this.realYears = [];
           years.forEach(year => {
             if (year.year > this.maxYear) return;
             if (year.isReal) {
@@ -90,7 +101,6 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
           })
           this.popService.fetchPopulations().subscribe(populations => {
             this.populations = populations;
-            this.setupYearCard();
           });
         });
       })
@@ -116,6 +126,9 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
             Object.assign(year, ry);
         })
         this.realYears.sort();
+        this.previewYear = undefined;
+        this.ageTree?.clear();
+        this.updatePreview();
         this.yearCard?.closeDialog(true);
       });
     })
@@ -141,6 +154,11 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
           const idx = this.populations.indexOf(population);
           if (idx > -1) this.populations.splice(idx, 1);
           year.hasRealData = false;
+          if(year === this.previewYear) {
+            this.previewYear = undefined;
+            this.ageTree?.clear();
+            this.updatePreview();
+          }
         },(error) => {
           console.log('there was an error sending the query', error);
         });
@@ -149,11 +167,11 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   }
 
   updatePreview(): void {
-    if (!this.previewYear) return;
     if (this.previewLayer) {
       this.mapControl?.removeLayer(this.previewLayer.id!);
       this.previewLayer = undefined;
     }
+    if (!this.previewYear) return;
     const population = this.populations.find(p => p.year === this.previewYear!.id);
     if (!population) return;
     this.popService.getPopEntries(population.id).subscribe(popEntries => {
@@ -270,7 +288,9 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
       const url = `${this.rest.URLS.populations}pull_regionalstatistik/`;
       dialogRef.componentInstance.isLoading = true;
       this.http.post(url, {}).subscribe(() => {
-
+/*        this.router.routeReuseStrategy.shouldReuseRoute = () => false;
+        this.router.navigate([this.router.url]);*/
+        this.fetchData();
         dialogRef.close();
       }, error => {
         this.pullErrors = error.error;

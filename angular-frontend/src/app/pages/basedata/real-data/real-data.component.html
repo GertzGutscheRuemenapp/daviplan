@@ -21,12 +21,12 @@
                     [subtitle]="'Abruf der Regionalstatistik'"
                     [disabled]="!popLevel || !popLevel.isDefaultPopLevel">
       <ng-container *ngIf="popLevel && popLevel.isDefaultPopLevel; else notAvailable">
-        <table>
+<!--        <table>
           <tr>
             <td i18n>letzter Abruf</td>
             <td>02.06.2022</td>
           </tr>
-        </table>
+        </table>-->
         <div style="margin-top: 10px">
           <button mat-flat-button color="primary"
                   (click)="pullService()">
@@ -63,12 +63,12 @@
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
           <div style="margin-top: 15px; display: flex;">
-            <table>
+<!--            <table>
               <tr>
                 <td i18n>letzter Upload am</td>
                 <td>02.06.2022</td>
               </tr>
-            </table>
+            </table>-->
             <table style="margin-left: 20px; align-self: flex-end;">
 <!--              <tr>
                 <td i18n>durch</td>
