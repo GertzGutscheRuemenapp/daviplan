@@ -26,8 +26,8 @@
         <ng-container *ngFor="let infrastructure of infrastructures">
           <div mat-subheader>{{infrastructure.name}}</div>
           <mat-list-option *ngFor="let service of infrastructure.services"
-                           (click)="selectedService = service"
-                           [selected]="(service.id === selectedService?.id)">
+                           (click)="activeService = service"
+                           [selected]="(service.id === activeService?.id)">
             <div class="option-text">{{service.name}}</div>
           </mat-list-option>
           <mat-divider></mat-divider>
@@ -35,163 +35,120 @@
       </mat-selection-list>
     </app-input-card>
   </div>
-  <div fxLayout="column" fxFlex="900px">
-    <app-input-card [title]="'Definition der Nachfragequote für ausgewählte Leistung'"
+  <div fxLayout="column" fxFlex="400px" [ngClass]="{'hidden': !activeService}">
+    <app-input-card [title]="'Prinzip der Nachfrageberechnung'"
                     [editTemplate]="ageGroupEdit"
-                    [subtitle]="'Leistung ' + selectedService?.name"
-                    infoText="<p>Klicken Sie auf Editieren, wenn Sie die angezeigte Definition der Nachfragequote für die ausgewählten Leistung verändern oder ergänzen möchten.</p>
-                    <p>Die Definition umfasst die folgenden Punkte: </p>
-                    <p>Maßeinheit der Nachfrage: Legen Sie fest, wie die Maßeinheit der Nachfrage für diese Leistung heißt, z.B. „Kitakinder“, „Schüler*innen“, „Patienten“ oder „Brandfälle“. Um im weiteren Verlauf Anzeigen wie „1 Kitakinder“ zu vermeiden, geben Sie bitte neben der Mehrzahl auch die Einzahl („Kitakind“) an.</p>
-                    <p>Bezeichnung der Nachfragequote: Diese Bezeichnung wird den Nutzer*innen des Hauptmenübereichs „Infrastrukturplanung“ angezeigt und sollte entsprechend verständlich sein, z.B. „Nachfragequote U3“ oder „Hausarztkontakte pro Jahr“.</p>
-                    <p>Kurzbeschreibung: Auch diese Kurzbeschreibung wird den Nutzer*innen des Hauptmenübereichs „Infrastrukturplanung“ angezeigt. Sie kann für eine kurze Definition verwendet werden, z.B. „Anteil der Kinder unter 3 Jahre, für die eine Krippenbetreuung gewünscht wird“ oder „Mittlere Anzahl der Arztkontakte pro Jahr (nur Hausarzt)“.</p>
-                    <p>Einheit der Nachfragequote: Tragen Sie hier ein, welche Einheit hinter allen Zahlenangaben der Quote stehen soll, damit diese richtig interpretiert wird, z.B. „Prozent“ oder „Arztkontakte pro Jahr“.</p>
-                    <p>Altersgruppen: Wählen Sie hier die Altersgruppen aus, für die Sie Nutzungsquoten definieren möchten. Für alle nicht ausgewählten Altersgruppen wird die Nutzungsquote auf 0 gesetzt. Die Altersgruppeneinteilung entspricht der Einteilung aus dem Menüabschnitt „Prognosedaten“.</p>
-                    <p>Differenzierung nach Geschlecht: Setzen Sie das Häkchen, wenn Sie die Nachfragequoten zusätzlich nach Geschlecht differenzieren möchten.</p>
-                    <p>Wenn Sie mit der Definition zufrieden sind, können Sie auf deren Basis in der Box „Nachfragequoten-Sets der ausgewählten Leistung“ Nachfragequoten-Sets hinzufügen.</p>">
-      <div style="display: flex">
-        <div style="width: 50%; margin-right: 10px;">
-          <table>
-            <tr>
-              <td>Bezeichnung</td>
-              <td>Nachfrage Gymnasium</td>
-            </tr>
-            <tr>
-              <td>Kurzbeschreibung</td>
-              <td>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.</td>
-            </tr>
-          </table>
-        </div>
-        <div>
-          <table>
-            <tr>
-              <td>Maßeinheit<br>Einzahl</td>
-              <td>Schüler*in</td>
-            </tr>
-            <tr>
-              <td>Maßeinheit<br>Mehrzahl</td>
-              <td>Schüler*innen</td>
-            </tr>
-            <tr>
-              <td i18n>Alters- <br> gruppen</td>
-              <td>
-                9 bis unter 12 Jahre <br>
-                12 bis unter 15 Jahre <br>
-                15 bis unter 20 Jahre
-              </td>
-            </tr>
-          </table>
-          <mat-checkbox disabled [checked]="true" style="margin-top: 5px;">
-            Differenzierung nach Geschlecht
-          </mat-checkbox>
-        </div>
-      </div>
+                    [subtitle]="'Leistung ' + activeService?.name"
+                    infoText="Platzhalter">
     </app-input-card>
   </div>
 </div>
-<mat-divider style="margin: 10px 0; max-width: 1250px;"></mat-divider>
-<div fxLayout="row wrap">
-  <div fxLayout="column" fxFlex="350px">
-    <app-input-card [title]="'Nachfragequoten-Sets'"
-                    [subtitle]="'Leistung ' + selectedService?.name"
-                    infoText="<p>Klicken Sie auf „Hinzufügen“, um ein Nachfragequoten-Set zu definieren. </p>
+<div [ngClass]="{'hidden': !activeService}">
+  <mat-divider style="margin: 10px 0; max-width: 1250px;"></mat-divider>
+  <div fxLayout="row wrap">
+    <div fxLayout="column" fxFlex="350px">
+      <app-input-card [title]="'Nachfragequoten-Sets'"
+                      [subtitle]="'Leistung ' + activeService?.name"
+                      infoText="<p>Klicken Sie auf „Hinzufügen“, um ein Nachfragequoten-Set zu definieren. </p>
                     <p>Ein Nachfragequoten-Set legt die Nachfragequote für jede in der Box „Definition der Nachfragequote für ausgewählte Leistung“ ausgewählte Altersgruppe sowie für jedes Prognosejahr fest. Sofern in der Box „Einwohner-Differenzierung“ für die Leistung eine geschlechterspezifische Differenzierung der Quoten ausgewählt wurde, sind dabei die Nachfragequoten auch nach Geschlecht zu differenzieren.</p>
                     <p>Für jede Leistung muss mindestens ein Nachfragequoten-Set definiert sein. </p>
                     <p>Im Sinne von Szenarien können für eine Leistung auch mehrere Nachfragequoten-Sets definiert werden, auf die die Nutzer*innen im Hauptmenüabschnitt „Infrastrukturplanung“ dann für alternative Planungs- und Auswertungsvarianten zurückgreifen können.</p>
                     <p>Wenn Sie für eine Leistung mehr als ein Nachfragequoten-Set definieren, müssen Sie noch festlegen, welches Set davon für das im Hauptmenüabschnitt „Infrastrukturplanung“ immer automatisch erzeugte Planungsszenario „Trendfortschreibung“ verwendet werden soll. Wählen Sie hierzu das betreffende Set in der Liste aus und klicken Sie auf „Als Annahme für Trendfortschreibung festlegen“</p>">
-      <mat-selection-list [multiple]="false"
-                          id="quota-select">
-        <mat-list-option *ngFor="let quota of quotas"
-                         (click)="selectedQuota = quota"
-                         [selected]="(quota === selectedQuota)" [ngClass]="{'star-option': quota===statusQuoQuota}"
-                         [title]="quota + ((quota===statusQuoQuota)? ' (Annahme für Trendfortschreibung)': '')">
-          <div class="option-text">{{quota}}</div>
-          <mat-icon *ngIf="quota===statusQuoQuota" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
-        </mat-list-option>
-      </mat-selection-list>
-      <button mat-button color="primary"
-              class="multiline-button"
-              (click)="statusQuoQuota = selectedQuota">
-<!--        (click)="statusQuoQuota = (statusQuoQuota===selectedQuota)? undefined : selectedQuota"-->
-        <mat-icon class="material-icons-outlined">verified</mat-icon>
-        Als Annahme für Trendfortschreibung festlegen
-      </button>
-      <div>
+        <mat-selection-list [multiple]="false"
+                            id="quota-select">
+          <mat-list-option *ngFor="let quota of quotas"
+                           (click)="selectedQuota = quota"
+                           [selected]="(quota === selectedQuota)" [ngClass]="{'star-option': quota===statusQuoQuota}"
+                           [title]="quota + ((quota===statusQuoQuota)? ' (Annahme für Trendfortschreibung)': '')">
+            <div class="option-text">{{quota}}</div>
+            <mat-icon *ngIf="quota===statusQuoQuota" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
+          </mat-list-option>
+        </mat-selection-list>
         <button mat-button color="primary"
-                class="mat-button-dv">
-          <mat-icon>add</mat-icon>hinzufügen
+                class="multiline-button"
+                (click)="statusQuoQuota = selectedQuota">
+          <!--        (click)="statusQuoQuota = (statusQuoQuota===selectedQuota)? undefined : selectedQuota"-->
+          <mat-icon class="material-icons-outlined">verified</mat-icon>
+          Als Annahme für Trendfortschreibung festlegen
         </button>
-        <button mat-button color="primary"
-                style="float: right;"
-                class="mat-button-dv">
-<!--                [disabled]="selectedQuota==='aktuelle Quoten'"-->
-          <mat-icon>close</mat-icon>entfernen
-        </button>
-      </div>
-    </app-input-card>
-  </div>
-  <div fxLayout="column" fxFlex="900px">
-    <app-input-card [title]="'Werte des ausgewählten Nachfragequoten-Sets'"
-                    [subtitle]="'Leistung ' + selectedService?.name + ' / ' + 'Set „' + selectedQuota + '“'"
-                    [editTemplate]="quotaEdit"
-                    [topRightHelp]="true"
-                    infoText="<p>In dieser Box können Sie die Quoten des ausgewählten Nachfragequoten-Sets eintragen bzw. bereits eingetragene Werte in Tabellen- und Diagrammform betrachten und kontrollieren.</p>
+        <div>
+          <button mat-button color="primary"
+                  class="mat-button-dv">
+            <mat-icon>add</mat-icon>hinzufügen
+          </button>
+          <button mat-button color="primary"
+                  style="float: right;"
+                  class="mat-button-dv">
+            <!--                [disabled]="selectedQuota==='aktuelle Quoten'"-->
+            <mat-icon>close</mat-icon>entfernen
+          </button>
+        </div>
+      </app-input-card>
+    </div>
+    <div fxLayout="column" fxFlex="900px">
+      <app-input-card [title]="'Werte des ausgewählten Nachfragequoten-Sets'"
+                      [subtitle]="'Leistung ' + activeService?.name + ' / ' + 'Set „' + selectedQuota + '“'"
+                      [editTemplate]="quotaEdit"
+                      [topRightHelp]="true"
+                      infoText="<p>In dieser Box können Sie die Quoten des ausgewählten Nachfragequoten-Sets eintragen bzw. bereits eingetragene Werte in Tabellen- und Diagrammform betrachten und kontrollieren.</p>
                     <p>Klicken Sie auf „Editieren“, um die Werte der Quoten des ausgewählten Nachfragequoten-Sets erstmalig einzutragen oder zu verändern.</p>
                     <p>Für die Betrachtung und Kontrolle der Nachfragequoten stehen Ihnen zwei Ansichten zur Verfügung.</p>
                     <p>Mit dem Jahres-Schieber können Sie zwischen den Jahren hin- und herspringen. Dabei passen sich die Tabelle und das obere der beiden Diagramme an und zeigen jeweils die Quoten der einzelnen Altersgruppen in dem gerade ausgewählten Jahr.</p>
                     <p>Wenn Sie in der Tabelle eine Altersgruppe anklicken, passt sich zudem das untere Diagramm an und zeigt Ihnen die im ausgewählten Set definierte Veränderung der Nachfragequote dieser Altersgruppe im Laufe der Zeit.</p>">
-      <table>
-        <tr>
-          <td i18n>Name</td>
-          <td>{{selectedQuota}}</td>
-        </tr>
-      </table>
-      <div style="display: flex;">
-        <mat-slider #timeSlider color="primary"
-                    thumbLabel min="2000" max="2100" step="1" value="2010" tickInterval="1"
-                    style="width: 420px; margin-top: 15px;"></mat-slider>
-        <label style="padding-top: 20px;">{{timeSlider.value}}</label>
-      </div>
-      <div style="width: 100%; display: flex; align-items: stretch;">
-        <div style="width: 40%; border: solid #0000001F; padding: 8px;">
-          <table style="width: 100%; text-align: center;">
-            <tr>
-              <th style="text-align: left;">{{timeSlider.value}}</th>
-              <th colspan="2" style="text-align: center">Quote (in Prozent)</th>
-            </tr>
-            <tr>
-              <th style="min-width: 20%;"></th>
-              <th>weiblich</th>
-              <th>männlich</th>
-            </tr>
-            <tr>
-              <td>9 bis unter 12 Jahre</td>
-              <td>20</td>
-              <td>19</td>
-            </tr>
-            <tr>
-              <td>12 bis unter 15 Jahre</td>
-              <td>30</td>
-              <td>24</td>
-            </tr>
-            <tr>
-              <td>15 bis unter 20 Jahre</td>
-              <td>18</td>
-              <td>15</td>
-            </tr>
-          </table>
+        <table>
+          <tr>
+            <td i18n>Name</td>
+            <td>{{selectedQuota}}</td>
+          </tr>
+        </table>
+        <div style="display: flex;">
+          <mat-slider #timeSlider color="primary"
+                      thumbLabel min="2000" max="2100" step="1" value="2010" tickInterval="1"
+                      style="width: 420px; margin-top: 15px;"></mat-slider>
+          <label style="padding-top: 20px;">{{timeSlider.value}}</label>
         </div>
-        <div style="display: flex; width: 55%; margin-left: 10px; flex-flow: row wrap;">
-          <span class="subtitle1" style="color: grey;">Nachfragequote nach Altersgruppe im ausgewählten Jahr {{timeSlider.value}}</span>
-          <div class="diagram-wrapper" style="width: 100%;">
-            <img src="{{backend}}/static/img/Nachfragequoten alle Altersklassen screenshot.png" width="100%">
+        <div style="width: 100%; display: flex; align-items: stretch;">
+          <div style="width: 40%; border: solid #0000001F; padding: 8px;">
+            <table style="width: 100%; text-align: center;">
+              <tr>
+                <th style="text-align: left;">{{timeSlider.value}}</th>
+                <th colspan="2" style="text-align: center">Quote (in Prozent)</th>
+              </tr>
+              <tr>
+                <th style="min-width: 20%;"></th>
+                <th>weiblich</th>
+                <th>männlich</th>
+              </tr>
+              <tr>
+                <td>9 bis unter 12 Jahre</td>
+                <td>20</td>
+                <td>19</td>
+              </tr>
+              <tr>
+                <td>12 bis unter 15 Jahre</td>
+                <td>30</td>
+                <td>24</td>
+              </tr>
+              <tr>
+                <td>15 bis unter 20 Jahre</td>
+                <td>18</td>
+                <td>15</td>
+              </tr>
+            </table>
           </div>
-          <span class="subtitle1" style="color: grey;">Nachfragequote der ausgewählten Altersgruppe [xxx] nach Jahr</span>
-          <div class="diagram-wrapper" style="width: 100%;">
-            <img src="{{backend}}/static/img/Nachfrage Altersklasse screenshot.png" width="100%">
+          <div style="display: flex; width: 55%; margin-left: 10px; flex-flow: row wrap;">
+            <span class="subtitle1" style="color: grey;">Nachfragequote nach Altersgruppe im ausgewählten Jahr {{timeSlider.value}}</span>
+            <div class="diagram-wrapper" style="width: 100%;">
+              <img src="{{backend}}/static/img/Nachfragequoten alle Altersklassen screenshot.png" width="100%">
+            </div>
+            <span class="subtitle1" style="color: grey;">Nachfragequote der ausgewählten Altersgruppe [xxx] nach Jahr</span>
+            <div class="diagram-wrapper" style="width: 100%;">
+              <img src="{{backend}}/static/img/Nachfrage Altersklasse screenshot.png" width="100%">
+            </div>
           </div>
         </div>
-      </div>
-    </app-input-card>
+      </app-input-card>
+    </div>
   </div>
 </div>
 

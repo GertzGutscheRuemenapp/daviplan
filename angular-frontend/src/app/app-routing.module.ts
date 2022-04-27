@@ -155,7 +155,7 @@ const routes: Routes = [
         component: ServicesComponent
       },
       {
-        path: 'nachfragequoten',
+        path: 'nachfrage',
         component: DemandQuotasComponent
       },
       {
