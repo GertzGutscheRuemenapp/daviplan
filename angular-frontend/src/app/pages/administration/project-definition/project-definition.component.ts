@@ -17,6 +17,7 @@ import { Layer } from "ol/layer";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
+import { tap } from "rxjs/operators";
 
 export interface ProjectSettings {
   projectArea: string,
@@ -89,18 +90,16 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   }
 
   fetchProjectSettings(): Observable<ProjectSettings> {
-    let query = this.http.get<ProjectSettings>(this.rest.URLS.projectSettings);
-    query.subscribe(projectSettings => {
+    let query = this.http.get<ProjectSettings>(this.rest.URLS.projectSettings).pipe(tap(projectSettings => {
       this.projectSettings = projectSettings;
-    })
+    }));
     return query;
   }
 
   fetchYears(): Observable<any> {
-    let query = this.http.get<any[]>(this.rest.URLS.years);
-    query.subscribe(years => {
+    let query = this.http.get<any[]>(this.rest.URLS.years).pipe(tap(years => {
       this.applyYears(years);
-    })
+    }));
     return query;
   }
 
@@ -116,10 +115,9 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     this.http.get<AgeGroup[]>(this.rest.URLS.ageGroups, {params: {defaults: true}}).subscribe(ageGroups => {
       this.ageGroupDefaults = ageGroups;
     })
-    let query = this.http.get<AgeGroup[]>(this.rest.URLS.ageGroups);
-    query.subscribe(ageGroups => {
+    let query = this.http.get<AgeGroup[]>(this.rest.URLS.ageGroups).pipe(tap(ageGroups => {
       this.ageGroups = ageGroups;
-    })
+    }))
     return query;
   }
 
@@ -290,8 +288,8 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       if (hasProjectArea) {
         projectLayer?.getSource().addFeature(new Feature(this.projectGeom));
         this.areaSelectMapControl.map?.centerOnLayer('project-area');
-        projectLayer?.getSource().clear();
       }
+      projectLayer?.getSource().clear();
       this.areaSelectMapControl.map?.selected.subscribe(event => {
         this.featuresSelected(event.layer, event.selected, event.deselected);
       })
@@ -338,6 +336,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       });
       this._baseSelectLayer?.getSource().once('featuresloadend', function () {
         _this.areaCard.setLoading(false);
+        _this._baseSelectLayer?.setVisible(false);
         if (!hasProjectArea) return;
         let intersections = _this.getIntersections(_this.projectGeom!, _this._baseSelectLayer!);
         intersections.forEach((feature: Feature<any>) => {
@@ -346,7 +345,6 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
           _this.selectedBaseAreaMapping.set(feature.get('debkg_id'), feature)
         })
         _this.updateProjectLayer();
-        _this._baseSelectLayer?.setVisible(false);
       });
     })
     this.areaCard.dialogClosed.subscribe(x => {
@@ -479,11 +477,11 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     if (layer !== this._baseSelectLayer){
       selected.forEach(feature => {
         if (feature.get('gf') != 4) return;
-        let intersections =  this.getBaseIntersections(feature);
+        let intersections = this.getBaseIntersections(feature);
         selectedBaseFeatures = selectedBaseFeatures.concat(intersections);
       })
       deselected.forEach(feature => {
-        let intersections =  this.getBaseIntersections(feature);
+        let intersections = this.getBaseIntersections(feature);
         deselectedBaseFeatures = selectedBaseFeatures.concat(intersections);
       })
     }
@@ -491,15 +489,29 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       selectedBaseFeatures = selected;
       deselectedBaseFeatures = deselected;
     }
+    const _this = this;
+
+    // there is some kind of bug in the selection, workaround to determine
+    // if it is really selected or actually deselected resp. other way around
+    function toggleSelect(feature: Feature<any>): void {
+      // select
+      if (!_this.selectedBaseAreaMapping.get(feature.get('debkg_id'))){
+        if (feature.get('gf') != 4) return;
+        feature.set('inSelection', true);
+        _this.selectedBaseAreaMapping.set(feature.get('debkg_id'), feature);
+      }
+      // deselect
+      else {
+        feature.set('inSelection', false);
+        _this.selectedBaseAreaMapping.delete(feature.get('debkg_id'));
+      }
+    }
 
     selectedBaseFeatures.forEach(feature => {
-      if (feature.get('gf') != 4) return;
-      feature.set('inSelection', true);
-      this.selectedBaseAreaMapping.set(feature.get('debkg_id'), feature);
+      toggleSelect(feature);
     })
     deselectedBaseFeatures.forEach(feature => {
-      feature.set('inSelection', false);
-      this.selectedBaseAreaMapping.delete(feature.get('debkg_id'));
+      toggleSelect(feature);
     })
     this.updateProjectLayer();
     this.areaCard.setLoading(false);
