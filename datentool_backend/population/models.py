@@ -132,7 +132,7 @@ class RasterCellPopulationAgeGender(models.Model):
 
 
 class AreaPopulationAgeGender(models.Model):
-    """a raster cell with a disaggregated value"""
+    """an area with reaggregated population entries"""
     population = models.ForeignKey(Population, on_delete=PROTECT_CASCADE, null=True)
     area = models.ForeignKey(Area, on_delete=PROTECT_CASCADE)
     age_group = models.ForeignKey(AgeGroup, on_delete=PROTECT_CASCADE)
