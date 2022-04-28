@@ -24,7 +24,6 @@ class DemandRateSerializer(serializers.ModelSerializer):
 
 
 class DemandRateSetSerializer(serializers.ModelSerializer):
-    filter_fields = ['service']
     demand_rates = DemandRateSerializer(many=True, required=False,
                                         source='demandrate_set')
     class Meta:
