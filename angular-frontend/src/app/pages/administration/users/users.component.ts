@@ -246,7 +246,7 @@ export class UsersComponent implements AfterViewInit  {
         this.createUserForm.controls['confirmPass'].setErrors({'notMatching': true});
         return;
       }
-      dialogRef.componentInstance.isLoading = true;
+      dialogRef.componentInstance.isLoading$.next(true);
       let attributes = {
         username: username,
         password: password
@@ -257,7 +257,7 @@ export class UsersComponent implements AfterViewInit  {
         dialogRef.close();
       },(error) => {
         this.createUserForm.setErrors(error.error);
-        dialogRef.componentInstance.isLoading = false;
+        dialogRef.componentInstance.isLoading$.next(false);
       });
     });
   }

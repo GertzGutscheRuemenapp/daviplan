@@ -1,5 +1,7 @@
 <div (mouseenter)="showOnHover && toggle()" (mouseleave)="showOnHover && toggle()">
-  <div id="leftDialBack" [ngClass]="{'expanded': expanded}">
+  <div id="leftDialBack" [ngClass]="{'expanded': expanded}"
+       [style.width]="bookmarks? '180px': '130px'"
+       [style.margin-left]="bookmarks? '-160px': '-110px'">
     <div></div>
   </div>
   <eco-fab-speed-dial #leftDial direction="left" [fixed]="true">
@@ -18,7 +20,8 @@
               (click)="savePNG()">
         <mat-icon>download</mat-icon>
       </button>
-      <button mat-mini-fab
+      <button *ngIf="bookmarks"
+              mat-mini-fab
               class="no-shadow"
               color="primary"
               title="Kartenausschnitte (Bookmarks)"

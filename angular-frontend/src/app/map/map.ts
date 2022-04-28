@@ -101,7 +101,6 @@ export class OlMap {
    * @param duration - animation duration
    */
   zoom(zoom: number, duration: number = 250): void {
-    console.log(zoom)
     this.view.animate({
       zoom: this.view.getZoom()! + zoom,
       duration: duration
@@ -505,7 +504,6 @@ export class OlMap {
       if (!layer.getVisible()) return;
       const overlay = this.overlays[layer.get('name')];
       if ((!overlay || !overlay.getVisible()) && !layer.get('showTooltip')) return;
-      console.log(layer.get('name'))
       layer.getFeatures(event.pixel).then((features: Feature<any>[]) => {
         if (options.fillColor || options.strokeColor) {
           if (overlay && overlay.getVisible()) {

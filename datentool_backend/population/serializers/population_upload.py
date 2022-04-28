@@ -47,7 +47,7 @@ class PopulationTemplateSerializer(serializers.Serializer):
                         prognosis_id: int,
                         ) -> bytes:
         """Create a template file for population/prognosis"""
-        popraster = PopulationRaster.objects.get(default=True)
+        #popraster = PopulationRaster.objects.get(default=True)
 
         area_level = AreaLevel.objects.get(pk=area_level_id)
         if prognosis_id is None:
@@ -113,20 +113,19 @@ class PopulationTemplateSerializer(serializers.Serializer):
                 meta['C4'] = prognosis.name
 
             for year in years:
-
-                population = Population.objects.get(
-                    prognosis_id=prognosis_id,
-                    year__year=year,
-                    popraster=popraster,
-                    )
                 columns = ['area_id', 'gender_id', 'age_group_id', 'value']
-
-                df_values = pd.DataFrame(PopulationEntry.objects.filter(population=population)\
-                             .values(*columns),
-                             columns=columns,
-                             )\
-                    .rename(columns={'area_id': 'id',})\
-                    .set_index('id')
+                try:
+                    population = Population.objects.get(
+                        prognosis_id=prognosis_id, year=year,
+                        #popraster=popraster,
+                    )
+                    rows = PopulationEntry.objects.filter(
+                        population=population).values(*columns)
+                except Population.DoesNotExist:
+                    rows = []
+                df_values = pd.DataFrame(
+                    rows, columns=columns).rename(
+                        columns={'area_id': 'id',}).set_index('id')
 
                 if len(df_values):
                     df_values = df_values.pivot_table(values='value',
@@ -178,7 +177,7 @@ class PopulationTemplateSerializer(serializers.Serializer):
     def read_excel_file(self, request) -> pd.DataFrame:
         """read excelfile and return a dataframe"""
         excel_file = request.FILES['excel_file']
-        popraster = PopulationRaster.objects.get(default=True)
+        #popraster = PopulationRaster.objects.get(default=True)
         columns = ['population_id', 'area_id', 'gender_id', 'age_group_id', 'value']
         df = pd.DataFrame(columns=columns)
 
@@ -210,7 +209,7 @@ class PopulationTemplateSerializer(serializers.Serializer):
             population, created = Population.objects.get_or_create(
                 prognosis__name=prognosis_name,
                 year=year,
-                popraster=popraster,
+                #popraster=popraster,
                 )
 
 

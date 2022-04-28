@@ -12,7 +12,7 @@ class YearFactory(DjangoModelFactory):
     class Meta:
         model = Year
 
-    year = factory.Sequence(lambda n: faker.unique.year())
+    year = factory.Sequence(lambda n: int(faker.unique.year()))
 
 
 class ProjectSettingFactory(DjangoModelFactory):
