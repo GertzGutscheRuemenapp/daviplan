@@ -13,6 +13,7 @@ import { MatDialog } from "@angular/material/dialog";
 export class MapControlsComponent implements AfterViewInit {
   @Input() target!: string;
   @Input() showOnHover?: boolean = false;
+  @Input() bookmarks?: boolean = false;
   @ViewChild('leftDial') leftDial?: EcoFabSpeedDialComponent;
   @ViewChild('rightDial') rightDial?: EcoFabSpeedDialComponent;
   @ViewChild('leftDialBack') leftDialBack?: HTMLElement;

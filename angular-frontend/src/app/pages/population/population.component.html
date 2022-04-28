@@ -13,7 +13,7 @@
 </mat-toolbar>
 <div class="map-wrapper">
   <div id="population-map">
-    <app-map-controls target="population-map"></app-map-controls>
+    <app-map-controls target="population-map" [bookmarks]="true"></app-map-controls>
     <div id="info" class="map-drag-element" cdkDrag cdkDragBoundary="#population-map">
       <div class="handle" title="Anzeigeinformationen" cdkDragHandle>
         <mat-icon color="primary">info</mat-icon>
