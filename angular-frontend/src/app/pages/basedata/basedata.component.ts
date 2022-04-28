@@ -19,7 +19,7 @@ export class BasedataComponent implements OnInit {
     {name:  $localize`Infrastrukturdaten`, icon: 'business', url: '', children: [
         {name:  $localize`Leistungen`, url: 'grundlagendaten/leistungen', davicon: 'icon-GGR-davicons-Font-Simple-3-Standorte-Leistungen', children: []},
         {name:  $localize`Standorte und Kapazitäten`, url: 'grundlagendaten/standorte', icon: 'place', children: []},
-        {name:  $localize`Nachfragequoten`, url: 'grundlagendaten/nachfragequoten', icon: 'percent', children: []}
+        {name:  $localize`Nachfrageberechnung`, url: 'grundlagendaten/nachfrage', icon: 'reduce_capacity', children: []}
       ]
     },
     {name:  $localize`Erreichbarkeiten`, davicon: 'icon-GGR-davicons-Font-Simple-5-Fortbewegung-Wegezeit', url: '', children: [

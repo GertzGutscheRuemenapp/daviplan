@@ -1,6 +1,7 @@
-import { View, Feature, Map, Overlay, Collection } from 'ol';
+import { View, Feature, Map, Overlay } from 'ol';
 import { Coordinate } from 'ol/coordinate';
 import { ScaleLine, defaults as DefaultControls } from 'ol/control';
+import { defaults as DefaultInteractions } from 'ol/interaction';
 import * as olProj from 'ol/proj'
 import { Layer } from 'ol/layer';
 import VectorSource from 'ol/source/Vector';
@@ -37,7 +38,7 @@ export class OlMap {
 
   constructor( target: string,
                options: { center?: Coordinate, zoom?: number, projection?: string,
-                 showDefaultControls?: boolean} = {}) {
+                 showDefaultControls?: boolean, doubleClickZoom?: boolean } = {}) {
     // this.layers = layers;
     const zoom = options.zoom || 8;
     const center = options.center || [13.3392,52.5192];
@@ -58,6 +59,9 @@ export class OlMap {
       target: target,
       view: this.view,
       controls: controls,
+      interactions: DefaultInteractions({
+        doubleClickZoom: options.doubleClickZoom || false
+      })
     });
     this.mapProjection = projection;
     this.div = document.getElementById(target);
@@ -497,19 +501,18 @@ export class OlMap {
       });
     }
     this.map.on('pointermove', event => {
-      if (!layer.getVisible()) {
-        return;
-      };
+      if (!layer.getVisible()) return;
+      const overlay = this.overlays[layer.get('name')];
+      if ((!overlay || !overlay.getVisible()) && !layer.get('showTooltip')) return;
       layer.getFeatures(event.pixel).then((features: Feature<any>[]) => {
         if (options.fillColor || options.strokeColor) {
-          const overlay = this.overlays[layer.get('name')];
-          if (overlay) {
+          if (overlay && overlay.getVisible()) {
             overlay.getSource().clear();
             overlay.getSource().addFeatures(features);
           }
         }
         if (options.tooltipField && layer.get('showTooltip')) {
-          let tooltip = this.tooltipOverlay.getElement()
+          let tooltip = this.tooltipOverlay.getElement();
           if (features.length > 0) {
             this.tooltipOverlay.setPosition(event.coordinate);
             // let coords = this.map.getCoordinateFromPixel(pixel);

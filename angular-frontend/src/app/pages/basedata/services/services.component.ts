@@ -19,12 +19,14 @@ export class ServicesComponent implements AfterViewInit {
   @ViewChild('createService') createServiceTemplate?: TemplateRef<any>;
   @ViewChild('propertiesCard') propertiesCard!: InputCardComponent;
   @ViewChild('capacitiesCard') capacitiesCard!: InputCardComponent;
+  @ViewChild('demandCard') demandCard!: InputCardComponent;
   infrastructures?: Infrastructure[];
   activeService?: Service;
   indicators: any[] = [];
   propertiesForm: FormGroup;
   serviceForm: FormGroup;
   capacitiesForm: FormGroup;
+  demandForm: FormGroup;
   Object = Object;
 
   constructor(private dialog: MatDialog, private http: HttpClient,
@@ -42,11 +44,13 @@ export class ServicesComponent implements AfterViewInit {
       hasCapacity: false,
       capacitySingularUnit: '',
       capacityPluralUnit: '',
-      demandSingularUnit: '',
-      demandPluralUnit: '',
       facilityArticle: '',
       facilitySingularUnit: '',
-      facilityPluralUnit: '',
+      facilityPluralUnit: ''
+    });
+    this.demandForm = this.formBuilder.group({
+      demandSingularUnit: '',
+      demandPluralUnit: '',
       directionWayRelationship: 'To'
     });
   }
@@ -63,6 +67,7 @@ export class ServicesComponent implements AfterViewInit {
     })
     this.setupPropertiesCard();
     this.setupCapacitiesCard();
+    this.setupDemandCard();
   }
 
   setupPropertiesCard() {
@@ -101,12 +106,9 @@ export class ServicesComponent implements AfterViewInit {
         hasCapacity: this.activeService!.hasCapacity,
         capacitySingularUnit: this.activeService!.capacitySingularUnit,
         capacityPluralUnit: this.activeService!.capacityPluralUnit,
-        demandSingularUnit: this.activeService!.demandSingularUnit,
-        demandPluralUnit: this.activeService!.demandPluralUnit,
         facilityArticle: this.activeService!.facilityArticle || 'die',
         facilitySingularUnit: this.activeService!.facilitySingularUnit,
         facilityPluralUnit: this.activeService!.facilityPluralUnit,
-        directionWayRelationship: this.activeService!.directionWayRelationship
       });
     })
     this.capacitiesCard.dialogConfirmed.subscribe((ok)=>{
@@ -116,12 +118,9 @@ export class ServicesComponent implements AfterViewInit {
       if (this.capacitiesForm.invalid) return;
       let attributes: any = {
         hasCapacity:  this.capacitiesForm.value.hasCapacity,
-        demandSingularUnit: this.capacitiesForm.value.demandSingularUnit || '',
-        demandPluralUnit: this.capacitiesForm.value.demandPluralUnit || '',
         facilityArticle: this.capacitiesForm.value.facilityArticle || '',
         facilitySingularUnit: this.capacitiesForm.value.facilitySingularUnit || '',
-        facilityPluralUnit: this.capacitiesForm.value.facilityPluralUnit || '',
-        directionWayRelationship: this.capacitiesForm.value.directionWayRelationship
+        facilityPluralUnit: this.capacitiesForm.value.facilityPluralUnit || ''
       }
       if (this.capacitiesForm.value.hasCapacity){
         attributes.capacitySingularUnit = this.capacitiesForm.value.capacitySingularUnit || '';
@@ -137,6 +136,38 @@ export class ServicesComponent implements AfterViewInit {
         // ToDo: set specific errors to fields
         this.capacitiesForm.setErrors(error.error);
         this.capacitiesCard.setLoading(false);
+      });
+    })
+  }
+
+  setupDemandCard() {
+    this.demandCard.dialogOpened.subscribe(() => {
+      this.demandForm.reset({
+        demandSingularUnit: this.activeService!.demandSingularUnit,
+        demandPluralUnit: this.activeService!.demandPluralUnit,
+        directionWayRelationship: this.activeService!.directionWayRelationship
+      });
+    })
+    this.demandCard.dialogConfirmed.subscribe((ok)=>{
+      this.demandForm.setErrors(null);
+      // display errors for all fields even if not touched
+      this.demandForm.markAllAsTouched();
+      if (this.demandForm.invalid) return;
+      let attributes: any = {
+        demandSingularUnit: this.demandForm.value.demandSingularUnit || '',
+        demandPluralUnit: this.demandForm.value.demandPluralUnit || '',
+        directionWayRelationship: this.demandForm.value.directionWayRelationship
+      }
+      this.demandCard.setLoading(true);
+      this.http.patch<Service>(`${this.rest.URLS.services}${this.activeService!.id}/`, attributes
+      ).subscribe(service => {
+        Object.assign(this.activeService!, service);
+        this.onServiceChange();
+        this.demandCard.closeDialog(true);
+      },(error) => {
+        // ToDo: set specific errors to fields
+        this.demandForm.setErrors(error.error);
+        this.demandCard.setLoading(false);
       });
     })
   }
@@ -159,7 +190,7 @@ export class ServicesComponent implements AfterViewInit {
       // display errors for all fields even if not touched
       this.serviceForm.markAllAsTouched();
       if (this.serviceForm.invalid) return;
-      dialogRef.componentInstance.isLoading = true;
+      dialogRef.componentInstance.isLoading$.next(true);
       let attributes = {
         name: this.serviceForm.value.name,
         infrastructure: this.serviceForm.value.infrastructure
@@ -171,7 +202,7 @@ export class ServicesComponent implements AfterViewInit {
         dialogRef.close();
       },(error) => {
         this.serviceForm.setErrors(error.error);
-        dialogRef.componentInstance.isLoading = false;
+        dialogRef.componentInstance.isLoading$.next(false);
       });
     });
   }

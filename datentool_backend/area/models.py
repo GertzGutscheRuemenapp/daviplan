@@ -66,6 +66,9 @@ class Source(DatentoolModelMixin, models.Model):
     url = models.URLField(null=True, blank=True)
     layer = models.TextField(null=True, blank=True)
 
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__}: {self.source_type} {self.layer or ""}'
+
 
 class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
     """an area level"""
@@ -113,6 +116,13 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
                     AreaLevel.objects.filter(is_pop_level=True)\
                         .update(is_pop_level=False)
         return super().save(*args, **kwargs)
+
+    def delete(self, **kwargs):
+        if self.symbol:
+            self.symbol.delete()
+        if self.source:
+            self.source.delete()
+        return super().delete(**kwargs)
 
 
 class Area(DatentoolModelMixin, models.Model):

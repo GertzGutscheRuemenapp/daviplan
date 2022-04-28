@@ -99,9 +99,9 @@ export class InfrastructureComponent implements AfterViewInit  {
       if (this.infrastructureForm.invalid) return;
       let attributes: any = {
         name: this.infrastructureForm.value.name,
-        description: this.infrastructureForm.value.description
+        description: this.infrastructureForm.value.description || ''
       }
-      dialogRef.componentInstance.isLoading = true;
+      dialogRef.componentInstance.isLoading$.next(true);
       this.http.post<Infrastructure>(this.rest.URLS.infrastructures, attributes
       ).subscribe(infrastructure => {
         this.infrastructures.push(infrastructure);
@@ -109,7 +109,7 @@ export class InfrastructureComponent implements AfterViewInit  {
         dialogRef.close();
       },(error) => {
         this.infrastructureForm.setErrors(error.error);
-        dialogRef.componentInstance.isLoading = false;
+        dialogRef.componentInstance.isLoading$.next(false);
       });
     });
   }

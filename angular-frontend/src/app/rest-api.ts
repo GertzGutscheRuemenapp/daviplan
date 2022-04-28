@@ -20,6 +20,7 @@ export class RestAPI {
     places: `${ this.API_ENDPOINT }/places/`,
     capacities: `${ this.API_ENDPOINT }/capacities/`,
     services: `${ this.API_ENDPOINT }/services/`,
+    demandRateSets: `${ this.API_ENDPOINT }/demandratesets/`,
     arealevels: `${ this.API_ENDPOINT }/arealevels/`,
     populations: `${ this.API_ENDPOINT }/populations/`,
     popEntries: `${ this.API_ENDPOINT }/populationentries/`,

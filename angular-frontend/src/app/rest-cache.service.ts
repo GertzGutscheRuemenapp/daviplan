@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
 import {
   Place, AreaLevel, Area, Gender, AreaIndicatorData, PopulationData, AgeGroup,
-  Infrastructure, Service, Capacity, Prognosis, StatisticsData
+  Infrastructure, Service, Capacity, Prognosis, StatisticsData, DemandRateSet
 } from "./rest-interfaces";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
@@ -301,6 +301,11 @@ export class RestCacheService {
       }
     });
     return observable;
+  }
+
+  getDemandRateSets(service: number, options?: { reset: boolean }): Observable<DemandRateSet[]> {
+    const url = `${this.rest.URLS.demandRateSets}?service=${service}`;
+    return this.getCachedData<DemandRateSet[]>(url, options);
   }
 
   getStatistics(options?: { year?: number, areaId?: number }): Observable<StatisticsData[]> {

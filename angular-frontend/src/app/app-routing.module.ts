@@ -57,6 +57,9 @@ const routes: Routes = [
     path: 'admin',
     component: AdministrationComponent,
     canActivate: [AuthGuard],
+    data: {
+      expectedRole: 'admin'
+    },
     children: [
       {
         path: 'einstellungen',
@@ -119,6 +122,9 @@ const routes: Routes = [
     path: 'grundlagendaten',
     component: BasedataComponent,
     canActivate: [AuthGuard],
+    data: {
+      expectedRole: 'dataEditor'
+    },
     children: [
       {
         path: 'gebiete',
@@ -149,7 +155,7 @@ const routes: Routes = [
         component: ServicesComponent
       },
       {
-        path: 'nachfragequoten',
+        path: 'nachfrage',
         component: DemandQuotasComponent
       },
       {
@@ -188,7 +194,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
+  imports: [RouterModule.forRoot(routes, {onSameUrlNavigation: 'reload'})],
   exports: [RouterModule]
 })
 export class AppRoutingModule { }

@@ -13,9 +13,7 @@ from .area.views import (LayerGroupViewSet, WMSLayerViewSet,
 
 from .demand.views import (GenderViewSet,
                            AgeGroupViewSet,
-                           DemandRateSetViewSet,
-                           DemandRateViewSet,
-                           )
+                           DemandRateSetViewSet)
 
 from .modes.views import ModeVariantViewSet
 from .indicators.views import (RouterViewSet,
@@ -59,7 +57,6 @@ router.register(r'areafields', AreaFieldViewSet, basename='areafields')
 # demand
 router.register(r'demandratesets', DemandRateSetViewSet,
                 basename='demandratesets')
-router.register(r'demandrates', DemandRateViewSet, basename='demandrates')
 
 # indicator
 router.register(r'modevariants', ModeVariantViewSet, basename='modevariants')

@@ -259,7 +259,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         order: this.layerGroups.length + 1,
         external: true
       }
-      dialogRef.componentInstance.isLoading = true;
+      dialogRef.componentInstance.isLoading$.next(true);
       this.http.post<LayerGroup>(this.rest.URLS.layerGroups, attributes
       ).subscribe(group => {
         group.children = [];
@@ -270,7 +270,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         dialogRef.close();
       },(error) => {
         this.layerGroupForm.setErrors(error.error);
-        dialogRef.componentInstance.isLoading = false;
+        dialogRef.componentInstance.isLoading$.next(false);
       });
     });
   }
@@ -303,7 +303,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         order: parent.children?.length,
         group: parent.id
       }
-      dialogRef.componentInstance.isLoading = true;
+      dialogRef.componentInstance.isLoading$.next(true);
       this.http.post<Layer>(this.rest.URLS.layers, attributes).subscribe(layer => {
         const group = this.getGroup(layer.group);
         group?.children?.push(layer);
@@ -313,7 +313,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         dialogRef.close();
       },(error) => {
         this.addLayerForm.setErrors(error.error);
-        dialogRef.componentInstance.isLoading = false;
+        dialogRef.componentInstance.isLoading$.next(false);
       });
     });
   }

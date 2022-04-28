@@ -1,8 +1,11 @@
 <app-header-card [title]="'Personen und Berechtigungen'"
                  cookieId="exp-users-header"
                  width="1180px">
-  <p>Diese Seite dient der zentralen Nutzerverwaltung. Hier können Sie Nutzer*innen anlegen, verwalten und wieder löschen.</p>
-  <p>Zudem können Sie die Rechte der einzelnen Nutzer*innen festlegen. Hierzu legen Sie unter „Berechtigungen“ fest, was die betreffende Person verändern darf – und im Bereich „Datenzugriff“, welche im vorstehenden Schritt definierten Infrastrukturbereiche sie sehen (und je nach Berechtigung verändern) kann.</p>
+  <p>Diese Seite dient der Nutzerverwaltung. In der Eingabebox „Benutzerkonten“ können Sie daviplan-Nutzende anlegen, verwalten und wieder löschen. Wenn Sie ein Benutzerkonto in der Liste anklicken, werden dessen Eigenschaften und Berechtigungen in drei weiteren Eingabeboxen sichtbar und können hier editiert werden. Für das Administratorkonto werden keine Berechtigungen angezeigt, da es über alle Berechtigungen verfügt.</p>
+  <p>Legen Sie für jedes Nicht-Admin-Nutzerkonto zunächst in der Eingabebox „Sichtbarkeit der Infrastrukturbereiche“ fest, welche Infrastrukturbereiche die betreffende Person sehen können soll. Sie können dabei auch auswählen, ob dieser Person dabei auch als sensibel gekennzeichnete Daten anzeigt werden sollen.</p>
+  <p>Eine Sichtberechtigung für einen Infrastrukturbereich bedeutet, dass die Nutzenden Daten- und Modellergebnisse sehen und im Rahmen von Szenarien verändern können.</p>
+  <p>Möchten Sie einen Nutzerkonto weitere Berechtigungen geben, wählen Sie diese bitte in der Eingabebox „Weitergehende Berechtigungen“ aus.</p>
+  <p>Stellen Sie sich, dass für jeden Infrastrukturbereich mindestens eine Person die Grundlagendaten editieren und Planungsprozesse anlegen kann. Das Admin-Konto hat immer auch diese Berechtigungen. </p>
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="400px">
@@ -71,7 +74,7 @@
         </table>
       </app-input-card>
       <app-input-card #permissionCard
-                      [title]="'Berechtigungen des ausgewählten Kontos'"
+                      [title]="'Weitergehende Berechtigungen des ausgewählten Kontos'"
                       infoText="<p>Über die Schaltfläche „Editieren“ können Sie die Berechtigungen des ausgewählten Kontos einstellen.</p>
                       <p>Die Optionen „Kann Grundlagendaten editieren“ und „Kann Planungsprozesse anlegen“ gelten für alle Infrastrukturbereiche, für die Sie in der Box „Zugang zu Infrastrukturbereichen“ einen Zugriff gewähren.</p>
                       <p>Für Nutzer*innen mit der aktivierten Option „Kann Seite administrieren“ ist der Hauptmenübereich „Administration“ sicht- und editierbar. </p>
@@ -97,11 +100,11 @@
     </div>
     <div fxLayout="column" fxFlex="400px" [ngClass]="{'hidden': !selectedUser || selectedUser.isSuperuser}">
       <app-input-card #accessCard
-                      [title]="'Datenzugriff des ausgewählten Kontos'"
+                      [title]="'Sichtberechtigung des ausgewählten Kontos'"
                       infoText="<p>Die Auswahlliste umfasst alle Infrastrukturbereiche, die im vorstehenden Menüpunkt „Infrastrukturbereiche“ definiert wurden.</p>
-                      <p>Sie können dem ausgewählten Konto Zugriff auf alle oder einzelne Infrastrukturbereiche gewähren, indem Sie auf „Editieren“ klicken. Hier können Sie auch festlegen, ob die betreffende Personen Daten sehen darf, die im Hauptmenübereich „Grundlagendaten“ als „sensible Daten“ mit einem besonderen Datenschutzstatus versehen wurden.</p>
-                      <p>Die genaue Form des Zugriffs (nur lesen oder auch bearbeiten) legen Sie in der Box „Berechtigungen“ fest. Eine Differenzierung der Berechtigungen nach Infrastrukturbereich ist nicht möglich.</p>"
-                      subtitle="Ausgewähltes Konto hat Zugriff auf diese Infrastrukturbereiche"
+                      <p>Sie können dem ausgewählten Konto einen Sichtzugriff auf alle oder einzelne Infrastrukturbereiche gewähren, indem Sie auf „Editieren“ klicken. Hier können Sie auch festlegen, ob die betreffende Personen Daten sehen darf, die im Hauptmenübereich „Grundlagendaten“ als „sensible Daten“ mit einem besonderen Datenschutzstatus versehen wurden.</p>
+                      <p>Wenn Sie die Zugriffsberechtigung über das reine Anzeigen von Daten (sowie das Anlegen und Bearbeiten von Szenarien) erweitern wollen, legen Sie dies bitte in der Box „Weitergehende Berechtigungen“ fest. Diese weiteren Berechtigungen gelten für alle hier ausgewählten Infrastrukturbereiche.</p>"
+                      subtitle="Das auswählte Konto kann diese Infrastrukturbereiche sehen"
                       dialogWidth="430px"
                       [editTemplate]="dataAccessEdit">
         <div style="display: flex;" *ngFor="let infrastructure of infrastructures">

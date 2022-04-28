@@ -21,14 +21,15 @@
                     [subtitle]="'Abruf der Regionalstatistik'"
                     [disabled]="!popLevel || !popLevel.isDefaultPopLevel">
       <ng-container *ngIf="popLevel && popLevel.isDefaultPopLevel; else notAvailable">
-        <table>
+<!--        <table>
           <tr>
             <td i18n>letzter Abruf</td>
             <td>02.06.2022</td>
           </tr>
-        </table>
+        </table>-->
         <div style="margin-top: 10px">
-          <button mat-flat-button color="primary" i18n>
+          <button mat-flat-button color="primary"
+                  (click)="pullService()">
             <mat-icon>refresh</mat-icon> Abrufen
           </button>
         </div>
@@ -62,12 +63,12 @@
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
           <div style="margin-top: 15px; display: flex;">
-            <table>
+<!--            <table>
               <tr>
                 <td i18n>letzter Upload am</td>
                 <td>02.06.2022</td>
               </tr>
-            </table>
+            </table>-->
             <table style="margin-left: 20px; align-self: flex-end;">
 <!--              <tr>
                 <td i18n>durch</td>
@@ -76,7 +77,8 @@
             </table>
           </div>
           <div style="margin: 20px 0 10px 0;">
-            <button mat-stroked-button color="primary" style="margin-right: 10px;">
+            <button mat-stroked-button color="primary" style="margin-right: 10px;"
+                    (click)="downloadTemplate()">
               <mat-icon>download</mat-icon> Vorlage herunterladen
             </button>
             <button mat-flat-button color="primary">
@@ -121,7 +123,9 @@
         </mat-form-field>
         <mat-form-field appearance="outline" class="small">
           <mat-label>Gebiet</mat-label>
-          <mat-select disableOptionCentering disableRipple>
+          <mat-select disableOptionCentering disableRipple
+                      [(ngModel)]="previewArea"
+                      (ngModelChange)="onAreaChange()">
             <mat-option *ngFor="let area of areas" [value]="area">
               {{area.properties.label}}
             </mat-option>
@@ -140,7 +144,11 @@
         </div>
         <div class="diagram-container">
           <div class="diagram-wrapper">
-            <img src="{{backend}}/static/img/Bev-pyramide Screenshot.png" width="100%">
+            <app-age-tree #ageTree
+                          figureId="bevpyramide"
+                          [animate]="true"
+                          [title]="'Bevölkerungspyramide'">
+            </app-age-tree>
           </div>
         </div>
       </div>
@@ -193,4 +201,18 @@
       </td>
     </tr>
   </table>
+</ng-template>
+
+<ng-template #pullServiceTemplate>
+  <div *ngIf="pullErrors">
+    <mat-error *ngFor="let error of Object.values(pullErrors)" class="alert">
+      {{ error }}
+    </mat-error>
+  </div>
+  <p>
+    Sollen die Einwohnerdaten aus der Regionalstatistik jetzt abgerufen und als Realdaten in die Datenbank eingespielt werden?
+  </p>
+  <p>
+    Achtung: bereits eingespielte Realdaten werden überschrieben!
+  </p>
 </ng-template>

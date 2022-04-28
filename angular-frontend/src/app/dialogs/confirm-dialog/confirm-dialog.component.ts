@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, EventEmitter, Inject, Input, Output, TemplateRef } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { BehaviorSubject } from "rxjs";
 
 interface DialogData {
   title: string,
@@ -22,7 +23,7 @@ interface DialogData {
 })
 
 export class ConfirmDialogComponent implements AfterViewInit  {
-  public isLoading: boolean = false;
+  isLoading$ = new BehaviorSubject<boolean>(false);
   @Output() confirmed = new EventEmitter<boolean>();
   initReady = false;
 

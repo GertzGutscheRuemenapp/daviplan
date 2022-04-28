@@ -7,6 +7,7 @@ from django.db.models import Max, Min, Sum, Q
 from drf_spectacular.utils import (extend_schema,
                                    OpenApiResponse,
                                    inline_serializer)
+import math
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -378,7 +379,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
     @action(methods=['POST'], detail=False,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def pull_regionalstatistik(self, request, **kwargs):
-
+        CHUNK_SIZE = 10
         age_groups = AgeGroup.objects.all()
         if not RegStatAgeGroups.check(age_groups):
             return Response({'message': 'Die Altersklassen stimmen nicht mit '
@@ -404,18 +405,31 @@ class PopulationViewSet(viewsets.ModelViewSet):
                                 end_year=min_max_years['year__max'],
                                 username=username,
                                 password=password)
-        ags = areas.values_list('ags', flat=True)
+        ags_list = areas.values_list('ags', flat=True)
+        frames = []
         try:
-            df_population = api.query_population(ags=ags)
+            chunks = math.ceil(len(ags_list) / CHUNK_SIZE)
+            for i in range(0, chunks):
+                j = i * CHUNK_SIZE
+                ags = ags_list[j:min(j+CHUNK_SIZE, len(ags_list))]
+                frames.append(api.query_population(ags=ags))
         except PermissionDenied as e:
-            return Response({'message': str(e), },
-                            status=status.HTTP_401_UNAUTHORIZED)
+            msg = ('Die Datenmenge ist zu groß, um sie ohne Konto bei der '
+            'Regionalstatistik abrufen zu können. Bitte benachrichtigen Sie '
+            'den/die Toolkoordinator/in, dass ein Konto beantragt und die '
+            'Zugangsdaten in den Grundeinstellungen von daviplan eingetragen '
+            'werden müssen. Falls dort bereits ein Konto eingetragen ist, '
+            'überprüfen Sie bitte die Gültigkeit der Zugangsdaten.')
+            return Response({'message': msg, },
+                            status=status.HTTP_403_FORBIDDEN)
         except Exception as e:
             return Response({'message': str(e),},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+        df_population = pd.concat(frames)
         regstatagegroups = RegStatAgeGroups.as_series()
-        area_ids = pd.DataFrame(areas.values('id', 'ags')).set_index('ags').loc[:, 'id']
+        area_ids = pd.DataFrame(
+            areas.values('id', 'ags')).set_index('ags').loc[:, 'id']
         area_ids.name = 'area_id'
 
         year_grouped = df_population.groupby('year')

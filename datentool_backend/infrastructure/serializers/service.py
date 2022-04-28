@@ -16,8 +16,10 @@ class ServiceSerializer(serializers.ModelSerializer):
                   'quota_type', 'demand_name', 'demand_description',
                   'min_capacity', 'max_capacity',
                   'facility_singular_unit', 'facility_article',
-                  'facility_plural_unit', 'direction_way_relationship')
-        extra_kwargs = {'capacity_singular_unit': {'required': False},
+                  'facility_plural_unit', 'direction_way_relationship',
+                  'demand_type')
+        extra_kwargs = {'description': {'required':  False},
+                        'capacity_singular_unit': {'required': False},
                         'capacity_plural_unit': {'required': False},
                         'has_capacity': {'required': False},
                         'demand_singular_unit': {'required': False},
@@ -28,7 +30,8 @@ class ServiceSerializer(serializers.ModelSerializer):
                         'facility_singular_unit': {'required': False},
                         'facility_article': {'required': False},
                         'facility_plural_unit': {'required': False},
-                        'direction_way_relationship': {'required': False}}
+                        'direction_way_relationship': {'required': False},
+                        'demand_type': {'required': False}}
 
     def get_min_capacity(self, obj) -> float:
         mc = Capacity.objects.filter(capacity__gt=0).aggregate(

@@ -1,7 +1,6 @@
 import { Component, OnInit, ViewChildren, QueryList, ElementRef, ViewChild, TemplateRef, Input } from '@angular/core';
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
-import { mockQuotas } from "../../basedata/demand-quotas/demand-quotas.component";
 import { mockPrognoses } from "../../basedata/prognosis-data/prognosis-data.component";
 import { environment } from "../../../../environments/environment";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
@@ -11,6 +10,8 @@ import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { CookieService } from "../../../helpers/cookies.service";
+
+export const mockQuotas = ['aktuelle Quoten', 'erhöhte Nachfrage ab 2030', 'Name mit langem Text, um Umbruch zu erzwingen']
 
 @Component({
   selector: 'app-scenario-menu',
@@ -110,7 +111,7 @@ export class ScenarioMenuComponent implements OnInit {
     dialogRef.componentInstance.confirmed.subscribe(() => {
       this.editScenarioForm.markAllAsTouched();
       if (this.editScenarioForm.invalid) return;
-      dialogRef.componentInstance.isLoading = true;
+      dialogRef.componentInstance.isLoading$.next(true);
       let attributes = {
         name: this.editScenarioForm.value.scenarioName,
         planningProcess: this.process!.id
@@ -121,7 +122,7 @@ export class ScenarioMenuComponent implements OnInit {
         this.process!.scenarios.push(scenario);
         this.scenarios.push(scenario);
       },(error) => {
-        dialogRef.componentInstance.isLoading = false;
+        dialogRef.componentInstance.isLoading$.next(false);
       });
     });
   }
@@ -145,7 +146,7 @@ export class ScenarioMenuComponent implements OnInit {
     dialogRef.componentInstance.confirmed.subscribe(() => {
       this.editScenarioForm.markAllAsTouched();
       if (this.editScenarioForm.invalid) return;
-      dialogRef.componentInstance.isLoading = true;
+      dialogRef.componentInstance.isLoading$.next(true);
       let attributes = {
         name: this.editScenarioForm.value.scenarioName
       };
@@ -153,7 +154,7 @@ export class ScenarioMenuComponent implements OnInit {
       ).subscribe(scenario => {
         this.activeScenario!.name = scenario.name;
       },(error) => {
-        dialogRef.componentInstance.isLoading = false;
+        dialogRef.componentInstance.isLoading$.next(false);
       });
     });
   }
