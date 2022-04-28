@@ -11,6 +11,7 @@ from .factories import (AgeGroupFactory,
                         GenderFactory,
                         DemandRateSetFactory,
                         DemandRateFactory,
+                        YearFactory
                         )
 from .models import (DemandRate, DemandRateSet)
 from .constants import RegStatAgeGroup, RegStatAgeGroups
@@ -180,34 +181,28 @@ class TestDemandRateSetAPI(WriteOnlyWithCanEditBaseDataTest,
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        demandrateset: DemandRateSet = cls.obj
-        service = demandrateset.service.pk
+        demand_rate_set: DemandRateSet = cls.obj
+        service = demand_rate_set.service.pk
+        demand_rate = DemandRateFactory(demand_rate_set=demand_rate_set)
 
-        data = dict(name=faker.word(), is_default=faker.pybool(), service=service)
+        demand_rate_data = [
+            # already existing
+            dict(year=demand_rate.year.year,
+                 age_group=demand_rate.age_group.id,
+                 gender=demand_rate.gender.id,
+                 value=45),
+            # new one (another year)
+            dict(year=YearFactory().year,
+                 age_group=demand_rate.age_group.id,
+                 gender=demand_rate.gender.id,
+                 value=0.5)
+        ]
+
+        data = dict(name=faker.word(), is_default=faker.pybool(),
+                    service=service, demand_rates=demand_rate_data)
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data
 
-
-class TestDemandRateAPI(WriteOnlyWithCanEditBaseDataTest,
-                        TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
-    """Test to post, put and patch data"""
-    url_key = "demandrates"
-    factory = DemandRateFactory
-
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        demandrate: DemandRate = cls.obj
-        year = demandrate.year.pk
-        age_group = demandrate.age_group.pk
-        gender = demandrate.gender.pk
-        demand_rate_set = demandrate.demand_rate_set.pk
-
-        data = dict(year=year,
-                    age_group=age_group,
-                    gender=gender,
-                    demand_rate_set=demand_rate_set)
-        cls.post_data = data
-        cls.put_data = data
-        cls.patch_data = data
+        # ToDo: test consistency of updating and creating demand rates and
+        # the deletion of the ones that were not passed

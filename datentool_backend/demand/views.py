@@ -81,9 +81,3 @@ class DemandRateSetViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     serializer_class = DemandRateSetSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
-
-class DemandRateViewSet(viewsets.ModelViewSet):
-    queryset = DemandRate.objects.all()
-    serializer_class = DemandRateSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-
