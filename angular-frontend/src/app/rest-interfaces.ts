@@ -202,11 +202,20 @@ export interface Service {
   demandType: 1 | 2 | 3
 }
 
+export interface DemandRate {
+  year: number,
+  ageGroup: number,
+  gender: number,
+  value: number
+}
+
 export interface DemandRateSet {
-  name: string;
-  isDefault: boolean;
+  id: number,
+  name: string,
+  isDefault: boolean,
   service: number,
   description: string
+  demandRates: DemandRate[]
 }
 
 export interface FClass {

@@ -26,7 +26,7 @@
         <ng-container *ngFor="let infrastructure of infrastructures">
           <div mat-subheader>{{infrastructure.name}}</div>
           <mat-list-option *ngFor="let service of infrastructure.services"
-                           (click)="activeService = service"
+                           (click)="activeService = service; onServiceChange();"
                            [selected]="(service.id === activeService?.id)">
             <div class="option-text">{{service.name}}</div>
           </mat-list-option>
@@ -56,14 +56,15 @@
                     <p>Für jede Leistung muss mindestens ein Nachfragequoten-Set definiert sein. </p>
                     <p>Im Sinne von Szenarien können für eine Leistung auch mehrere Nachfragequoten-Sets definiert werden, auf die die Nutzer*innen im Hauptmenüabschnitt „Infrastrukturplanung“ dann für alternative Planungs- und Auswertungsvarianten zurückgreifen können.</p>
                     <p>Wenn Sie für eine Leistung mehr als ein Nachfragequoten-Set definieren, müssen Sie noch festlegen, welches Set davon für das im Hauptmenüabschnitt „Infrastrukturplanung“ immer automatisch erzeugte Planungsszenario „Trendfortschreibung“ verwendet werden soll. Wählen Sie hierzu das betreffende Set in der Liste aus und klicken Sie auf „Als Annahme für Trendfortschreibung festlegen“</p>">
-        <mat-selection-list [multiple]="false"
-                            id="quota-select">
+        {{activeDemandRateSet?.name}}
+        <mat-selection-list [multiple]="false" id="quota-select">
           <mat-list-option *ngFor="let set of demandRateSets"
-                           (click)="activeDemandRateSet = set"
-                           [selected]="(set === activeDemandRateSet)" [ngClass]="{'star-option': set===activeDemandRateSet}"
-                           [title]="set + ((set===activeDemandRateSet)? ' (Annahme für Trendfortschreibung)': '')">
+                           (click)="activeDemandRateSet = set; onDemandRateSetChange();"
+                           [selected]="(set.id === activeDemandRateSet?.id)"
+                           [ngClass]="{'star-option': set.isDefault}"
+                           [title]="set.name + (set.isDefault? ' (Annahme für Trendfortschreibung)': '')">
             <div class="option-text">{{set.name}}</div>
-            <mat-icon *ngIf="set===activeDemandRateSet" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
+            <mat-icon *ngIf="set.isDefault" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
           </mat-list-option>
         </mat-selection-list>
         <button mat-button color="primary"

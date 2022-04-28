@@ -22,11 +22,12 @@ export class DemandQuotasComponent implements AfterViewInit {
   @ViewChild('demandTypeCard') demandTypeCard?: InputCardComponent;
   backend: string = environment.backend;
   infrastructures: Infrastructure[] = [];
-  demandRateSets: DemandRateSet[] = [];
   activeService?: Service;
   activeDemandRateSet?: DemandRateSet;
   demandTypes = demandTypes;
   demandTypeForm: FormGroup;
+  demandRateSets: DemandRateSet[] = [];
+  demandRateSetCache: Record<number, DemandRateSet[]> = {};
 
   constructor(private restService: RestCacheService, private formBuilder: FormBuilder,
               private http: HttpClient, private rest: RestAPI) {
@@ -75,6 +76,23 @@ export class DemandQuotasComponent implements AfterViewInit {
   }
 
   onServiceChange(): void {
+    if (!this.activeService) return;
+    const demandRateSets = this.demandRateSetCache[this.activeService!.id];
+    if (demandRateSets) {
+      this.demandRateSets = demandRateSets;
+      this.activeDemandRateSet = demandRateSets[0];
+      this.onDemandRateSetChange();
+    }
+    else
+      this.restService.getDemandRateSets(this.activeService.id).subscribe(sets => {
+        this.demandRateSetCache[this.activeService!.id] = sets;
+        this.demandRateSets = sets;
+        this.activeDemandRateSet = sets[0];
+        this.onDemandRateSetChange();
+      });
+  }
+
+  onDemandRateSetChange(): void {
 
   }
 
