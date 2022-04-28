@@ -69,6 +69,10 @@ class Service(DatentoolModelMixin, NamedModel, models.Model):
     class WayRelationship(models.IntegerChoices):
         TO = 1
         FROM = 2
+    class DemandType(models.IntegerChoices):
+        QUOTA = 1
+        FREQUENCY = 2
+        UNIFORM = 3
 
     name = models.TextField()
     quota_type = models.TextField()
@@ -91,3 +95,5 @@ class Service(DatentoolModelMixin, NamedModel, models.Model):
     facility_plural_unit = models.TextField(null=True, blank=True)
     direction_way_relationship = models.IntegerField(
         choices=WayRelationship.choices, default=WayRelationship.TO)
+    demand_type = models.IntegerField(
+        choices=DemandType.choices, default=DemandType.QUOTA)

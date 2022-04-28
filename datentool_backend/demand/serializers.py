@@ -16,9 +16,11 @@ class AgeGroupSerializer(serializers.ModelSerializer):
 
 
 class DemandRateSetSerializer(serializers.ModelSerializer):
+    filter_fields = ['service']
     class Meta:
         model = DemandRateSet
-        fields = ('id', 'name', 'is_default', 'service')
+        fields = ('id', 'name', 'is_default', 'service', 'description')
+        extra_kwargs = {'description': {'required':  False}}
 
 
 class DemandRateSerializer(serializers.ModelSerializer):

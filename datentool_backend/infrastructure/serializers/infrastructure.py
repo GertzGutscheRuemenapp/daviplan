@@ -26,6 +26,7 @@ class InfrastructureSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'description',
                   'editable_by', 'accessible_by',
                   'order', 'symbol', 'place_fields')
+        extra_kwargs = {'description': {'required':  False}}
 
     def create(self, validated_data):
         symbol_data = validated_data.pop('symbol', None)

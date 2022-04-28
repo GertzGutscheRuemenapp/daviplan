@@ -16,6 +16,7 @@ class DemandRateSet(DatentoolModelMixin, NamedModel, models.Model):
     is_default = models.BooleanField(default=False)
     service = models.ForeignKey(Service, on_delete=PROTECT_CASCADE)
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    description = models.TextField(blank=True, default='')
 
     def save(self, *args, **kwargs):
         # only one default per service

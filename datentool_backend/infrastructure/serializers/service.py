@@ -17,7 +17,8 @@ class ServiceSerializer(serializers.ModelSerializer):
                   'min_capacity', 'max_capacity',
                   'facility_singular_unit', 'facility_article',
                   'facility_plural_unit', 'direction_way_relationship')
-        extra_kwargs = {'capacity_singular_unit': {'required': False},
+        extra_kwargs = {'description': {'required':  False},
+                        'capacity_singular_unit': {'required': False},
                         'capacity_plural_unit': {'required': False},
                         'has_capacity': {'required': False},
                         'demand_singular_unit': {'required': False},
