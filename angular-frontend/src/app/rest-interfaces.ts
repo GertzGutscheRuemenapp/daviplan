@@ -198,7 +198,15 @@ export interface Service {
   facilityPluralUnit: string,
   directionWayRelationship: 1 | 2,
   minCapacity: number,
-  maxCapacity: number
+  maxCapacity: number,
+  demandType: 1 | 2 | 3
+}
+
+export interface DemandRateSet {
+  name: string;
+  isDefault: boolean;
+  service: number,
+  description: string
 }
 
 export interface FClass {

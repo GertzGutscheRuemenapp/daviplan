@@ -36,18 +36,20 @@
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="400px" [ngClass]="{'hidden': !activeService}">
-    <app-input-card [title]="'Prinzip der Nachfrageberechnung'"
-                    [editTemplate]="ageGroupEdit"
+    <app-input-card #demandTypeCard
+                    [title]="'Prinzip der Nachfrageberechnung'"
+                    [editTemplate]="demandTypeEdit"
                     [subtitle]="'Leistung ' + activeService?.name"
                     infoText="Platzhalter">
+      <li *ngIf="activeService">{{demandTypes[activeService.demandType][0]}}</li>
     </app-input-card>
   </div>
 </div>
-<div [ngClass]="{'hidden': !activeService}">
+<div [ngClass]="{'hidden': !activeService || activeService?.demandType === 3}">
   <mat-divider style="margin: 10px 0; max-width: 1250px;"></mat-divider>
   <div fxLayout="row wrap">
     <div fxLayout="column" fxFlex="350px">
-      <app-input-card [title]="'Nachfragequoten-Sets'"
+      <app-input-card [title]="'Varianten'"
                       [subtitle]="'Leistung ' + activeService?.name"
                       infoText="<p>Klicken Sie auf „Hinzufügen“, um ein Nachfragequoten-Set zu definieren. </p>
                     <p>Ein Nachfragequoten-Set legt die Nachfragequote für jede in der Box „Definition der Nachfragequote für ausgewählte Leistung“ ausgewählte Altersgruppe sowie für jedes Prognosejahr fest. Sofern in der Box „Einwohner-Differenzierung“ für die Leistung eine geschlechterspezifische Differenzierung der Quoten ausgewählt wurde, sind dabei die Nachfragequoten auch nach Geschlecht zu differenzieren.</p>
@@ -56,17 +58,17 @@
                     <p>Wenn Sie für eine Leistung mehr als ein Nachfragequoten-Set definieren, müssen Sie noch festlegen, welches Set davon für das im Hauptmenüabschnitt „Infrastrukturplanung“ immer automatisch erzeugte Planungsszenario „Trendfortschreibung“ verwendet werden soll. Wählen Sie hierzu das betreffende Set in der Liste aus und klicken Sie auf „Als Annahme für Trendfortschreibung festlegen“</p>">
         <mat-selection-list [multiple]="false"
                             id="quota-select">
-          <mat-list-option *ngFor="let quota of quotas"
-                           (click)="selectedQuota = quota"
-                           [selected]="(quota === selectedQuota)" [ngClass]="{'star-option': quota===statusQuoQuota}"
-                           [title]="quota + ((quota===statusQuoQuota)? ' (Annahme für Trendfortschreibung)': '')">
-            <div class="option-text">{{quota}}</div>
-            <mat-icon *ngIf="quota===statusQuoQuota" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
+          <mat-list-option *ngFor="let set of demandRateSets"
+                           (click)="activeDemandRateSet = set"
+                           [selected]="(set === activeDemandRateSet)" [ngClass]="{'star-option': set===activeDemandRateSet}"
+                           [title]="set + ((set===activeDemandRateSet)? ' (Annahme für Trendfortschreibung)': '')">
+            <div class="option-text">{{set.name}}</div>
+            <mat-icon *ngIf="set===activeDemandRateSet" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
           </mat-list-option>
         </mat-selection-list>
         <button mat-button color="primary"
                 class="multiline-button"
-                (click)="statusQuoQuota = selectedQuota">
+                (click)="setDefaultDemandRateSet()">
           <!--        (click)="statusQuoQuota = (statusQuoQuota===selectedQuota)? undefined : selectedQuota"-->
           <mat-icon class="material-icons-outlined">verified</mat-icon>
           Als Annahme für Trendfortschreibung festlegen
@@ -84,11 +86,31 @@
           </button>
         </div>
       </app-input-card>
+      <app-input-card #propertiesCard
+                      [ngClass]="{'hidden': !activeDemandRateSet}"
+                      [title]="'Bezeichnung der ausgewählten Variante'"
+                      [editTemplate]="propertiesEdit"
+                      infoText="Platzhalter">
+        <table *ngIf="activeDemandRateSet">
+          <tr>
+            <td>Name</td>
+            <td>{{activeDemandRateSet.name}}</td>
+          </tr>
+          <tr>
+            <td>Beschreibung</td>
+            <td>
+              <div style="overflow: hidden; -webkit-line-clamp: 5; -webkit-box-orient: vertical; display: -webkit-box;">
+                {{activeDemandRateSet.description}}
+              </div>
+            </td>
+          </tr>
+        </table>
+      </app-input-card>
     </div>
-    <div fxLayout="column" fxFlex="900px">
-      <app-input-card [title]="'Werte des ausgewählten Nachfragequoten-Sets'"
-                      [subtitle]="'Leistung ' + activeService?.name + ' / ' + 'Set „' + selectedQuota + '“'"
-                      [editTemplate]="quotaEdit"
+    <div fxLayout="column" fxFlex="900px" [ngClass]="{'hidden': !activeDemandRateSet}">
+      <app-input-card [title]="'Werte der ausgewählten Variante'"
+                      [subtitle]="'Leistung ' + activeService?.name + ' / ' + 'Set „' + activeDemandRateSet?.name + '“'"
+                      [editTemplate]="demandRateSetEdit"
                       [topRightHelp]="true"
                       infoText="<p>In dieser Box können Sie die Quoten des ausgewählten Nachfragequoten-Sets eintragen bzw. bereits eingetragene Werte in Tabellen- und Diagrammform betrachten und kontrollieren.</p>
                     <p>Klicken Sie auf „Editieren“, um die Werte der Quoten des ausgewählten Nachfragequoten-Sets erstmalig einzutragen oder zu verändern.</p>
@@ -98,7 +120,7 @@
         <table>
           <tr>
             <td i18n>Name</td>
-            <td>{{selectedQuota}}</td>
+            <td>{{activeDemandRateSet?.name}}</td>
           </tr>
         </table>
         <div style="display: flex;">
@@ -152,10 +174,19 @@
   </div>
 </div>
 
-<ng-template #ageGroupEdit>
+<ng-template #demandTypeEdit>
+  <form [formGroup]="demandTypeForm" style="padding: 10px 0;">
+    <mat-radio-group formControlName="demandType">
+      <mat-radio-button *ngFor="let item of demandTypes | keyvalue" [value]="item.key">
+        {{item.value[0]}} {{item.value[1]}}
+      </mat-radio-button>
+    </mat-radio-group>
+  </form>
+</ng-template>
+
+<ng-template #propertiesEdit>
   Funktionalität für den Prototyp noch nicht hinterlegt.
 </ng-template>
 
-<ng-template #quotaEdit>
-  Funktionalität für den Prototyp noch nicht hinterlegt.
+<ng-template #demandRateSetEdit>
 </ng-template>

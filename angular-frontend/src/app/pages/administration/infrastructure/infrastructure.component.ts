@@ -99,7 +99,7 @@ export class InfrastructureComponent implements AfterViewInit  {
       if (this.infrastructureForm.invalid) return;
       let attributes: any = {
         name: this.infrastructureForm.value.name,
-        description: this.infrastructureForm.value.description
+        description: this.infrastructureForm.value.description || ''
       }
       dialogRef.componentInstance.isLoading$.next(true);
       this.http.post<Infrastructure>(this.rest.URLS.infrastructures, attributes
