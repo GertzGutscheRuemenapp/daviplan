@@ -95,24 +95,24 @@
   </div>
   <div class="age-group-container" #ageGroupContainer>
     <div>
-      <div class="age-row" *ngFor="let ageGroup of __ageGroups; let i = index;">
+      <div class="age-row" *ngFor="let ageGroup of editAgeGroups; let i = index;">
         <mat-form-field appearance="outline" class="small">
-          <mat-label i18n>{{(i < __ageGroups.length - 1) ? 'von': 'ab'}}</mat-label>
+          <mat-label i18n>{{(i < editAgeGroups.length - 1) ? 'von': 'ab'}}</mat-label>
           <input matInput type="number"
                  [disabled]="i===0"
-                 [min]="(i===0)? 0: __ageGroups![i-1].toAge + 1"
+                 [min]="(i===0)? 0: editAgeGroups![i-1].toAge"
                  [max]="ageGroup.toAge - 1"
                  [(ngModel)]="ageGroup.fromAge"
                  (change)="ageGroupErrors = []"
                  required>
         </mat-form-field>
-        <ng-container *ngIf="(i < __ageGroups.length-1)">
+        <ng-container *ngIf="(i < editAgeGroups.length-1)">
           &nbsp;-&nbsp;
           <mat-form-field appearance="outline" class="small">
-            <mat-label i18n>bis</mat-label>
+            <mat-label i18n>bis unter</mat-label>
             <input matInput type="number"
                    [min]="ageGroup.fromAge + 1"
-                   [max]="__ageGroups![i+1].fromAge - 1"
+                   [max]="editAgeGroups![i+1].fromAge"
                    [(ngModel)]="ageGroup.toAge"
                    (change)="ageGroupErrors = []"
                    required>
