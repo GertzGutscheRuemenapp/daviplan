@@ -91,7 +91,7 @@ import { PlaceFilterComponent } from './pages/planning/place-filter/place-filter
 import { DataTableComponent } from './elements/data-table/data-table.component';
 import { MatTabsModule } from "@angular/material/tabs";
 import { AgeTreeComponent } from './diagrams/age-tree/age-tree.component';
-import { DemandQuotaViewComponent } from './pages/basedata/demand-quotas/demand-quota-view/demand-quota-view.component';
+import { DemandRateSetViewComponent } from './pages/basedata/demand-quotas/demand-rate-set-view/demand-rate-set-view.component';
 
 @NgModule({
   declarations: [
@@ -152,7 +152,7 @@ import { DemandQuotaViewComponent } from './pages/basedata/demand-quotas/demand-
     PlaceFilterComponent,
     DataTableComponent,
     AgeTreeComponent,
-    DemandQuotaViewComponent
+    DemandRateSetViewComponent
   ],
   imports: [
     BrowserModule,

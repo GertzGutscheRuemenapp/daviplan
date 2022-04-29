@@ -19,7 +19,8 @@ class DemandRateSet(DatentoolModelMixin, NamedModel, models.Model):
         if self.is_default:
             with transaction.atomic():
                 DemandRateSet.objects.filter(
-                    is_default=True, service=self.service).update(is_default=False)
+                    is_default=True, service=self.service
+                    ).update(is_default=False)
         return super().save(*args, **kwargs)
 
 

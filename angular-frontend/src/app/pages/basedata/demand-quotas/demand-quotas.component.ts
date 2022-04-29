@@ -198,7 +198,13 @@ export class DemandQuotasComponent implements AfterViewInit {
 
   }
 
-  setDefaultDemandRateSet(): void {
-
+  setDefaultDemandRateSet(set: DemandRateSet): void {
+    if (!set || set.isDefault) return;
+    const attributes = { isDefault: true };
+    this.http.patch<DemandRateSet>(`${this.rest.URLS.demandRateSets}${set.id}/`, attributes
+    ).subscribe(ds => {
+      this.demandRateSets.forEach(s => s.isDefault = false);
+      set.isDefault = ds.isDefault;
+    })
   }
 }
