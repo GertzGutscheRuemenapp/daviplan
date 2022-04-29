@@ -95,24 +95,24 @@
   </div>
   <div class="age-group-container" #ageGroupContainer>
     <div>
-      <div class="age-row" *ngFor="let ageGroup of editAgeGroups; let i = index;">
-        <mat-form-field appearance="outline" class="small">
-          <mat-label i18n>{{(i < editAgeGroups.length - 1) ? 'von': 'ab'}}</mat-label>
-          <input matInput type="number"
-                 [disabled]="i===0"
-                 [min]="(i===0)? 0: editAgeGroups![i-1].toAge"
-                 [max]="ageGroup.toAge - 1"
-                 [(ngModel)]="ageGroup.fromAge"
-                 (change)="ageGroupErrors = []"
-                 required>
-        </mat-form-field>
-        <ng-container *ngIf="(i < editAgeGroups.length-1)">
+      <ng-container *ngFor="let ageGroup of editAgeGroups; let i = index;">
+        <div class="age-row">
+          <mat-form-field appearance="outline" class="small">
+            <mat-label i18n>ab</mat-label>
+            <input matInput type="number"
+                   [disabled]="i===0"
+                   [min]="(i===0)? 0: editAgeGroups![i-1].toAge"
+                   [max]="ageGroup.toAge - 1"
+                   [(ngModel)]="ageGroup.fromAge"
+                   (change)="ageGroupErrors = []"
+                   required>
+          </mat-form-field>
           &nbsp;-&nbsp;
           <mat-form-field appearance="outline" class="small">
             <mat-label i18n>bis unter</mat-label>
             <input matInput type="number"
                    [min]="ageGroup.fromAge + 1"
-                   [max]="editAgeGroups![i+1].fromAge"
+                   [max]="(i < editAgeGroups.length - 1)? editAgeGroups![i+1].fromAge: 998"
                    [(ngModel)]="ageGroup.toAge"
                    (change)="ageGroupErrors = []"
                    required>
@@ -120,29 +120,45 @@
               Das Startjahr muss vor dem Endjahr liegen
             </mat-error>
           </mat-form-field>
-        </ng-container>
-        Jahre
+          Jahre
+          <button mat-button color="warn"
+                  class="mat-button-dv"
+                  (click)="removeAgeGroup(ageGroup)"
+                  title="Altersgruppe entfernen"
+                  style="float: right;">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
         <button mat-button color="primary"
                 class="mat-button-dv"
-                (click)="removeAgeGroup(ageGroup)"
-                title="Altersgruppe entfernen"
-                style="float: right;">
-          <mat-icon>close</mat-icon>
+                *ngIf="(i < editAgeGroups.length-1) && ageGroup.toAge < editAgeGroups![i+1].fromAge"
+                (click)="insertAgeGroup(i)"
+                title="Altersgruppe einfügen" i18n>
+          <mat-icon>add</mat-icon>einfügen
         </button>
+      </ng-container>
+      <div class="age-row">
+        <mat-form-field appearance="outline" class="small">
+          <mat-label i18n>ab</mat-label>
+          <input matInput type="number"
+                 [disabled]="true"
+                 [value]="(editAgeGroups.length === 0)? 0: editAgeGroups[editAgeGroups.length-1].toAge">
+        </mat-form-field>
+        Jahre
       </div>
     </div>
-  </div>
-  <div>
     <button mat-button color="primary"
             class="mat-button-dv"
             (click)="addAgeGroup()"
             title="Altersgruppe hinzufügen" i18n>
       <mat-icon>add</mat-icon>hinzufügen
     </button>
-    <button mat-button color="primary"
+  </div>
+  <div>
+    <button mat-button color="warn"
             class="mat-button-dv"
-            (click)="removeAllAgeGroups()"
-            style="margin-left: 30px;"
+            (click)="editAgeGroups = []"
+            style="float: right;"
             title="Alle Altersgruppen entfernen" i18n>
       <mat-icon>close</mat-icon>Alle entfernen
     </button>

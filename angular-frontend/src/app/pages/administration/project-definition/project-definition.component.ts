@@ -40,9 +40,12 @@ proj4.defs("EPSG:25832", "+proj=utm +zone=32 +ellps=GRS80 +units=m +no_defs");
 register(proj4);
 
 function transformAgeGroups(ageGroups: AgeGroup[]): AgeGroup[] {
-  return ageGroups.map(ag => {
-    return { id: ag.id, fromAge: ag.fromAge, toAge: ag.toAge + 1 }
+  const trans = ageGroups.map(ag => {
+    return { fromAge: ag.fromAge, toAge: ag.toAge + 1 }
   })
+  // remove last element
+  trans.pop();
+  return trans;
 }
 
 @Component({
@@ -141,8 +144,16 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     this.editAgeGroups = transformAgeGroups(this.ageGroups);
 
     this.ageGroupCard.dialogConfirmed.subscribe(ok => {
+      // transformation raised toAge, revert
       const changedGroups = this.editAgeGroups.map(ag => {
-        return { id: ag.id, fromAge: ag.fromAge, toAge: ag.toAge - 1 }
+        return { fromAge: ag.fromAge, toAge: ag.toAge - 1 }
+      })
+      // append last group that was cut
+      if (this.editAgeGroups.length === 0)
+        changedGroups.push({ fromAge: 0, toAge: 999 })
+      changedGroups.push({
+        fromAge: (this.editAgeGroups.length === 0)? 0: this.editAgeGroups[this.editAgeGroups.length-1].toAge,
+        toAge: 999
       })
       const valid = this.validateAgeGroups(changedGroups),
             _this = this;
@@ -417,11 +428,10 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   addAgeGroup(): void {
     if (this.editAgeGroups.length > 0) {
       const lastAgeGroup = this.editAgeGroups[this.editAgeGroups?.length - 1];
-      lastAgeGroup.toAge = lastAgeGroup.fromAge + 1;
-      this.editAgeGroups.push({ fromAge: lastAgeGroup.toAge + 1, toAge: 999});
+      this.editAgeGroups.push({ fromAge: lastAgeGroup.toAge, toAge: lastAgeGroup.toAge + 1});
     }
     else {
-      this.editAgeGroups = [{ fromAge: 0, toAge: 999 }];
+      this.editAgeGroups = [{ fromAge: 0, toAge: 1 }];
     }
     this.ageGroupErrors = [];
     this.ageGroupContainer.nativeElement.scrollTop = this.ageGroupContainer.nativeElement.scrollHeight;
@@ -430,17 +440,19 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   removeAgeGroup(ageGroup: AgeGroup): void {
     const index = this.editAgeGroups.indexOf(ageGroup);
     if (index == -1) return;
-    if (index > 0)
-      this.editAgeGroups[index - 1].toAge = (index < this.editAgeGroups.length - 1)? ageGroup.toAge: 999;
-    else
-      this.editAgeGroups[index + 1].fromAge = 0;
+    // if (index > 0)
+    //   this.editAgeGroups[index - 1].toAge = (index < this.editAgeGroups.length - 1)? ageGroup.toAge: 999;
+    // else
+    //   this.editAgeGroups[index + 1].fromAge = 0;
     this.editAgeGroups.splice(index, 1);
     this.ageGroupErrors = [];
   }
 
-  removeAllAgeGroups(): void {
-    this.editAgeGroups = [];
-    this.addAgeGroup();
+  insertAgeGroup(index: number) {
+    this.editAgeGroups.splice(index+1, 0, {
+      fromAge: this.editAgeGroups[index].toAge,
+      toAge: this.editAgeGroups[index+1].fromAge,
+    })
   }
 
   /**
