@@ -1,11 +1,13 @@
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
-import { environment } from "../../../../environments/environment";
+import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core';
 import { Infrastructure, Service, DemandRateSet } from "../../../rest-interfaces";
 import { RestCacheService } from "../../../rest-cache.service";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
+import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
+import { MatDialog } from "@angular/material/dialog";
+import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 
 const demandTypes = {
   1: ['Nachfragequote', '(z.B. 30% der Kinder einer Altersklasse)'],
@@ -20,19 +22,25 @@ const demandTypes = {
 })
 export class DemandQuotasComponent implements AfterViewInit {
   @ViewChild('demandTypeCard') demandTypeCard?: InputCardComponent;
-  backend: string = environment.backend;
+  @ViewChild('propertiesCard') propertiesCard?: InputCardComponent;
+  @ViewChild('propertiesEdit') propertiesEdit?: TemplateRef<any>;
   infrastructures: Infrastructure[] = [];
   activeService?: Service;
   activeDemandRateSet?: DemandRateSet;
   demandTypes = demandTypes;
   demandTypeForm: FormGroup;
+  propertiesForm: FormGroup;
   demandRateSets: DemandRateSet[] = [];
   demandRateSetCache: Record<number, DemandRateSet[]> = {};
 
   constructor(private restService: RestCacheService, private formBuilder: FormBuilder,
-              private http: HttpClient, private rest: RestAPI) {
+              private dialog: MatDialog, private http: HttpClient, private rest: RestAPI) {
     this.demandTypeForm = this.formBuilder.group({
       demandType: new FormControl('1')
+    });
+    this.propertiesForm = this.formBuilder.group({
+      name: new FormControl(''),
+      description: new FormControl('')
     });
   }
 
@@ -47,6 +55,7 @@ export class DemandQuotasComponent implements AfterViewInit {
       }
     })
     this.setupDemandTypeCard();
+    this.setupPropertiesCard();
   }
 
   setupDemandTypeCard(): void {
@@ -73,6 +82,99 @@ export class DemandQuotasComponent implements AfterViewInit {
         this.demandTypeCard?.setLoading(false);
       });
     })
+  }
+
+  setupPropertiesCard(): void {
+    this.propertiesCard?.dialogOpened.subscribe(ok => {
+      this.propertiesForm.reset({
+        name: this.activeDemandRateSet?.name,
+        description: this.activeDemandRateSet?.description,
+      });
+    })
+    this.propertiesCard?.dialogConfirmed.subscribe((ok)=>{
+      this.propertiesForm.setErrors(null);
+      this.propertiesForm.markAllAsTouched();
+      if (this.propertiesForm.invalid) return;
+      let attributes: any = {
+        name: this.propertiesForm.value.name,
+        description: this.propertiesForm.value.description
+      }
+      this.propertiesCard?.setLoading(true);
+      this.http.patch<DemandRateSet>(`${this.rest.URLS.demandRateSets}${this.activeDemandRateSet?.id}/`, attributes
+      ).subscribe(set => {
+        Object.assign(this.activeDemandRateSet!, set);
+        this.propertiesCard?.closeDialog(true);
+      },(error) => {
+        // ToDo: set specific errors to fields
+        this.propertiesForm.setErrors(error.error);
+        this.propertiesCard?.setLoading(false);
+      });
+    })
+  }
+
+  createDemandRateSet(): void {
+    let dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '300px',
+      disableClose: true,
+      data: {
+        title: 'Neue Nachfragevariante',
+        template: this.propertiesEdit,
+        closeOnConfirm: false
+      }
+    });
+    dialogRef.afterOpened().subscribe(ok => {
+      this.propertiesForm.reset();
+    });
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      this.propertiesForm.setErrors(null);
+      // display errors for all fields even if not touched
+      this.propertiesForm.markAllAsTouched();
+      if (this.propertiesForm.invalid) return;
+      let attributes: any = {
+        name: this.propertiesForm.value.name,
+        description: this.propertiesForm.value.description || '',
+        service: this.activeService?.id
+      }
+      dialogRef.componentInstance.isLoading$.next(true);
+      this.http.post<DemandRateSet>(this.rest.URLS.demandRateSets, attributes
+      ).subscribe(set => {
+        this.demandRateSets.push(set);
+        this.activeDemandRateSet = set;
+        dialogRef.close();
+      },(error) => {
+        this.propertiesForm.setErrors(error.error);
+        dialogRef.componentInstance.isLoading$.next(false);
+      });
+    });
+  }
+
+  removeDemandRateSet(): void {
+    if (!this.activeDemandRateSet)
+      return;
+    const dialogRef = this.dialog.open(RemoveDialogComponent, {
+      width: '400px',
+      data: {
+        title: $localize`Die Nachfragevariante wirklich entfernen?`,
+        confirmButtonText: $localize`Variante entfernen`,
+        message: `Es werden auch alle bereits definierten Nachfragewerte der Variante entfernt. <br><br> ${this.activeService?.name}`,
+        value: this.activeDemandRateSet.name
+      }
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.http.delete(`${this.rest.URLS.demandRateSets}${this.activeDemandRateSet?.id}/`
+        ).subscribe(() => {
+          const idx = this.demandRateSets.indexOf(this.activeDemandRateSet!);
+          if (idx > -1) {
+            this.demandRateSets.splice(idx, 1);
+          }
+          this.activeDemandRateSet = undefined;
+        },(error) => {
+          console.log('there was an error sending the query', error);
+        });
+      }
+    });
   }
 
   onServiceChange(): void {

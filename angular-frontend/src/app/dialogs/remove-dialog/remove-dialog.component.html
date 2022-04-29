@@ -1,8 +1,6 @@
 <h4 *ngIf="data.title" mat-dialog-title>{{ data.title }}</h4>
 <mat-dialog-content>
-  <p *ngIf="data.message">
-    {{ data.message }}
-  </p>
+  <p *ngIf="data.message" [innerHTML]="data.message"></p>
   <div style="display: flex; align-items: end;">
     <mat-form-field [title]="data.value"
                     appearance="fill"

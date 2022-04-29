@@ -76,12 +76,14 @@
         </button>
         <div>
           <button mat-button color="primary"
-                  class="mat-button-dv">
+                  class="mat-button-dv"
+                  (click)="createDemandRateSet()">
             <mat-icon>add</mat-icon>hinzufügen
           </button>
           <button mat-button color="primary"
                   style="float: right;"
-                  class="mat-button-dv">
+                  class="mat-button-dv"
+                  (click)="removeDemandRateSet()">
             <!--                [disabled]="selectedQuota==='aktuelle Quoten'"-->
             <mat-icon>close</mat-icon>entfernen
           </button>
@@ -118,58 +120,7 @@
                     <p>Für die Betrachtung und Kontrolle der Nachfragequoten stehen Ihnen zwei Ansichten zur Verfügung.</p>
                     <p>Mit dem Jahres-Schieber können Sie zwischen den Jahren hin- und herspringen. Dabei passen sich die Tabelle und das obere der beiden Diagramme an und zeigen jeweils die Quoten der einzelnen Altersgruppen in dem gerade ausgewählten Jahr.</p>
                     <p>Wenn Sie in der Tabelle eine Altersgruppe anklicken, passt sich zudem das untere Diagramm an und zeigt Ihnen die im ausgewählten Set definierte Veränderung der Nachfragequote dieser Altersgruppe im Laufe der Zeit.</p>">
-        <table>
-          <tr>
-            <td i18n>Name</td>
-            <td>{{activeDemandRateSet?.name}}</td>
-          </tr>
-        </table>
-        <div style="display: flex;">
-          <mat-slider #timeSlider color="primary"
-                      thumbLabel min="2000" max="2100" step="1" value="2010" tickInterval="1"
-                      style="width: 420px; margin-top: 15px;"></mat-slider>
-          <label style="padding-top: 20px;">{{timeSlider.value}}</label>
-        </div>
-        <div style="width: 100%; display: flex; align-items: stretch;">
-          <div style="width: 40%; border: solid #0000001F; padding: 8px;">
-            <table style="width: 100%; text-align: center;">
-              <tr>
-                <th style="text-align: left;">{{timeSlider.value}}</th>
-                <th colspan="2" style="text-align: center">Quote (in Prozent)</th>
-              </tr>
-              <tr>
-                <th style="min-width: 20%;"></th>
-                <th>weiblich</th>
-                <th>männlich</th>
-              </tr>
-              <tr>
-                <td>9 bis unter 12 Jahre</td>
-                <td>20</td>
-                <td>19</td>
-              </tr>
-              <tr>
-                <td>12 bis unter 15 Jahre</td>
-                <td>30</td>
-                <td>24</td>
-              </tr>
-              <tr>
-                <td>15 bis unter 20 Jahre</td>
-                <td>18</td>
-                <td>15</td>
-              </tr>
-            </table>
-          </div>
-          <div style="display: flex; width: 55%; margin-left: 10px; flex-flow: row wrap;">
-            <span class="subtitle1" style="color: grey;">Nachfragequote nach Altersgruppe im ausgewählten Jahr {{timeSlider.value}}</span>
-            <div class="diagram-wrapper" style="width: 100%;">
-              <img src="{{backend}}/static/img/Nachfragequoten alle Altersklassen screenshot.png" width="100%">
-            </div>
-            <span class="subtitle1" style="color: grey;">Nachfragequote der ausgewählten Altersgruppe [xxx] nach Jahr</span>
-            <div class="diagram-wrapper" style="width: 100%;">
-              <img src="{{backend}}/static/img/Nachfrage Altersklasse screenshot.png" width="100%">
-            </div>
-          </div>
-        </div>
+        <app-demand-quota-view></app-demand-quota-view>
       </app-input-card>
     </div>
   </div>
@@ -177,6 +128,11 @@
 
 <ng-template #demandTypeEdit>
   <form [formGroup]="demandTypeForm" style="padding: 10px 0;">
+    <div *ngIf="demandTypeForm.errors">
+      <mat-error *ngFor="let error of demandTypeForm.errors | keyvalue" class="alert">
+        {{ error.key }} {{ error.value }}
+      </mat-error>
+    </div>
     <mat-radio-group formControlName="demandType">
       <mat-radio-button *ngFor="let item of demandTypes | keyvalue" [value]="item.key">
         {{item.value[0]}} {{item.value[1]}}
@@ -186,7 +142,23 @@
 </ng-template>
 
 <ng-template #propertiesEdit>
-  Funktionalität für den Prototyp noch nicht hinterlegt.
+  <form [formGroup]="propertiesForm" style="padding: 10px 0;">
+    <div *ngIf="propertiesForm.errors">
+      <mat-error *ngFor="let error of propertiesForm.errors | keyvalue" class="alert">
+        {{ error.key }} - {{ error.value }}
+      </mat-error>
+    </div>
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Name</mat-label>
+        <input matInput formControlName="name" autocomplete="demand-variant-name" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Beschreibung</mat-label>
+        <input matInput formControlName="description" autocomplete="demand-variant-desc">
+      </mat-form-field>
+    </div>
+  </form>
 </ng-template>
 
 <ng-template #demandRateSetEdit>
