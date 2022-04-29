@@ -64,12 +64,13 @@
 }
 
 .age-group-container {
+  user-select: none;
   max-height: 50vh;
   overflow-y: auto;
   border: 1px solid lightgrey;
   padding: 5px 0 5px 5px;
   > div {
-    width: 360px;
+    width: 100%;
     margin: auto;
   }
 }

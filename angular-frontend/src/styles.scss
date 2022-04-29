@@ -6,7 +6,7 @@ $app-primary: mat.define-palette($blue-palette, 500);
 $app-accent: mat.define-palette($golden-palette, 500);
 
 $app-typography: mat.define-typography-config(
-  $font-family: 'Calibri',
+  $font-family: 'Calibri, Candara, Segoe',
     //$headline: mat.define-typography-level(54px, 54px, 400),
     //$title: mat.define-typography-level(28px, 28px, 500),
     //$subheading-2: mat.define-typography-level(26px, 26px, 400),

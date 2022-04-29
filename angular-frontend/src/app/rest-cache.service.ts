@@ -55,21 +55,24 @@ export class RestCacheService {
     return this.getCachedData<Prognosis[]>(url);
   }
 
-  private getYears(url: string): Observable<number[]> {
+  getYears(options?: { params: string }): Observable<number[]> {
+    let url = this.rest.URLS.years;
+    // ToDo: pass params as list of dicts
+    if (options?.params)
+      url += `?${options.params}`;
     const query = this.getCachedData<any[]>(url);
     return query.pipe(map(years => {
-      return years.map( year => { return year.year })
+      const ys = years.map( year => { return year.year });
+      return ys.sort();
     }));
   }
 
   getRealYears(): Observable<number[]> {
-    const url = `${this.rest.URLS.years}?has_real_data=true`;
-    return this.getYears(url);
+    return this.getYears({ params: 'has_real_data=true&isReal=true' });
   }
 
   getPrognosisYears(): Observable<number[]> {
-    const url = `${this.rest.URLS.years}?has_prognosis_data=true`;
-    return this.getYears(url);
+    return this.getYears({ params: 'has_prognosis_data=true&isPrognosis=true' });
   }
 
   getGenders(): Observable<Gender[]> {
