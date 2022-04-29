@@ -109,16 +109,19 @@
       </app-input-card>
     </div>
     <div fxLayout="column" fxFlex="900px" [ngClass]="{'hidden': !activeDemandRateSet}">
-      <app-input-card [title]="'Werte der ausgewählten Variante'"
+      <app-input-card #demandRateSetCard
+                      [title]="'Werte der ausgewählten Variante'"
                       [subtitle]="'Leistung ' + activeService?.name + ' / ' + 'Set „' + activeDemandRateSet?.name + '“'"
                       [editTemplate]="demandRateSetEdit"
+                      dialogWidth="1200px"
                       [topRightHelp]="true"
                       infoText="<p>In dieser Box können Sie die Quoten des ausgewählten Nachfragequoten-Sets eintragen bzw. bereits eingetragene Werte in Tabellen- und Diagrammform betrachten und kontrollieren.</p>
                     <p>Klicken Sie auf „Editieren“, um die Werte der Quoten des ausgewählten Nachfragequoten-Sets erstmalig einzutragen oder zu verändern.</p>
                     <p>Für die Betrachtung und Kontrolle der Nachfragequoten stehen Ihnen zwei Ansichten zur Verfügung.</p>
                     <p>Mit dem Jahres-Schieber können Sie zwischen den Jahren hin- und herspringen. Dabei passen sich die Tabelle und das obere der beiden Diagramme an und zeigen jeweils die Quoten der einzelnen Altersgruppen in dem gerade ausgewählten Jahr.</p>
                     <p>Wenn Sie in der Tabelle eine Altersgruppe anklicken, passt sich zudem das untere Diagramm an und zeigt Ihnen die im ausgewählten Set definierte Veränderung der Nachfragequote dieser Altersgruppe im Laufe der Zeit.</p>">
-        <app-demand-rate-set-view [years]="years"
+        <app-demand-rate-set-view #demandRateSetPreview
+                                  [years]="years"
                                   [demandRateSet]="activeDemandRateSet"
                                   [demandTypeLabel]="activeService? demandTypes[activeService.demandType][0]: ''"
                                   [unit]="(activeService?.demandType === 1)? '%': ''"
@@ -166,4 +169,14 @@
 </ng-template>
 
 <ng-template #demandRateSetEdit>
+  <app-demand-rate-set-view [years]="years"
+                            [edit]="true"
+                            [inPlace]="true"
+                            [maxInputValue]="(activeService?.demandType === 1)? 100: 9999"
+                            [demandRateSet]="editDemandRateSet"
+                            [demandTypeLabel]="activeService? demandTypes[activeService.demandType][0]: ''"
+                            [unit]="(activeService?.demandType === 1)? '%': ''"
+                            [genders]="genders"
+                            [ageGroups]="ageGroups">
+  </app-demand-rate-set-view>
 </ng-template>

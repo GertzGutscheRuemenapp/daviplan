@@ -22,6 +22,8 @@ export class DemandRateSetViewComponent implements AfterViewInit {
   @Input() demandTypeLabel: string = '';
   @Input() unit: string = '';
   @Input() edit: boolean = false;
+  @Input() maxInputValue = 100;
+  @Input() inPlace = false;
   @ViewChild('timeSlider') timeSlider?: TimeSliderComponent;
   backend: string = environment.backend;
   year?: number;
@@ -41,7 +43,7 @@ export class DemandRateSetViewComponent implements AfterViewInit {
 
   @Input() set demandRateSet(set: DemandRateSet | undefined) {
     // deep clone
-    if (set)
+    if (!this.inPlace && set)
       set = JSON.parse(JSON.stringify(set));
     this._demandRateSet = set;
     this.setDemandRates();
@@ -71,10 +73,10 @@ export class DemandRateSetViewComponent implements AfterViewInit {
       return;
     }
     // const genderLabels = this._genders.map(gender => gender.name);
-    const yearDemandRates = this._demandRateSet.demandRates.filter(dr => dr.year === this.year) || [];
+    this.demandRates = this._demandRateSet.demandRates.filter(dr => dr.year === this.year) || [];
     // this.columns = [''].concat(genderLabels);
     this._ageGroups.forEach(ageGroup => {
-      const groupDemandRates = yearDemandRates.filter(dr => dr.ageGroup === ageGroup.id!) || [];
+      const groupDemandRates = this.demandRates.filter(dr => dr.ageGroup === ageGroup.id!) || [];
       let entries: Entry[] = [];
       this._genders.forEach(gender => {
         const demandRate = groupDemandRates.find(dr => dr.gender === gender.id);
@@ -89,5 +91,22 @@ export class DemandRateSetViewComponent implements AfterViewInit {
     if (year === null) return;
     this.year = year;
     this.setDemandRates();
+  }
+
+  changeDemandRate(value: number, ageGroup: AgeGroup, gender: Gender){
+    if (!this.year) return;
+    let demandRate = this.demandRates.find(dr => dr.ageGroup === ageGroup.id && dr.gender === gender.id);
+    // demandRate is not existing yet
+    if (!demandRate) {
+      demandRate = {
+        year: this.year,
+        ageGroup: ageGroup.id!,
+        gender: gender.id
+      }
+      this.demandRates.push(demandRate);
+      // if demandRate was not found it does not exist in demandRateSet yet either
+      this._demandRateSet?.demandRates.push(demandRate);
+    }
+    demandRate.value = value;
   }
 }

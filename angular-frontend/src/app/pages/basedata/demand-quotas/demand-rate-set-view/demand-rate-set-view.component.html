@@ -19,17 +19,22 @@
           {{gender.name}}
         </th>
       </tr>
-      <tr *ngFor="let row of rows">
+      <tr *ngFor="let row of rows" [class.editRow]="edit">
         <td style="text-align: end;">{{row.ageGroup.label}}</td>
-        <ng-container *ngIf="!edit">
-          <td *ngFor="let entry of row.entries">
+        <td *ngFor="let entry of row.entries">
+          <ng-container *ngIf="!edit">
             {{(entry.value !== undefined)? entry.value: 'null'}}
-            <ng-container *ngIf="unit && entry.value !== undefined"> {{unit}}</ng-container>
-          </td>
-        </ng-container>
-        <ng-container *ngIf="edit">
-
-        </ng-container>
+          </ng-container>
+          <ng-container *ngIf="edit">
+            <mat-form-field class="small" appearance="outline" style="width: 80px; margin-right: 3px;">
+              <input matInput type="number"
+                     min="0" [max]="maxInputValue"
+                     value="{{entry.value || 0}}"
+                     (change)="changeDemandRate($any($event.target).value, row.ageGroup, entry.gender)">
+            </mat-form-field>
+          </ng-container>
+          <ng-container *ngIf="edit || (unit && entry.value !== undefined)"> {{unit}}</ng-container>
+        </td>
       </tr>
     </table>
   </div>

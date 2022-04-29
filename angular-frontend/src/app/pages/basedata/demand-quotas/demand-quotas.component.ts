@@ -8,6 +8,7 @@ import { RestAPI } from "../../../rest-api";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
+import { DemandRateSetViewComponent } from "./demand-rate-set-view/demand-rate-set-view.component";
 
 const demandTypes = {
   1: ['Nachfragequote', '(z.B. 30% der Kinder einer Altersklasse)'],
@@ -23,6 +24,8 @@ const demandTypes = {
 export class DemandQuotasComponent implements AfterViewInit {
   @ViewChild('demandTypeCard') demandTypeCard?: InputCardComponent;
   @ViewChild('propertiesCard') propertiesCard?: InputCardComponent;
+  @ViewChild('demandRateSetCard') demandRateSetCard?: InputCardComponent;
+  @ViewChild('demandRateSetPreview') demandRateSetPreview?: DemandRateSetViewComponent;
   @ViewChild('propertiesEdit') propertiesEdit?: TemplateRef<any>;
   years: number[] = [];
   genders: Gender[] = [];
@@ -30,6 +33,7 @@ export class DemandQuotasComponent implements AfterViewInit {
   infrastructures: Infrastructure[] = [];
   activeService?: Service;
   activeDemandRateSet?: DemandRateSet;
+  editDemandRateSet?: DemandRateSet;
   demandTypes = demandTypes;
   demandTypeForm: FormGroup;
   propertiesForm: FormGroup;
@@ -62,6 +66,7 @@ export class DemandQuotasComponent implements AfterViewInit {
     })
     this.setupDemandTypeCard();
     this.setupPropertiesCard();
+    this.setupDemandRateSetCard()
   }
 
   setupDemandTypeCard(): void {
@@ -109,11 +114,31 @@ export class DemandQuotasComponent implements AfterViewInit {
       this.http.patch<DemandRateSet>(`${this.rest.URLS.demandRateSets}${this.activeDemandRateSet?.id}/`, attributes
       ).subscribe(set => {
         Object.assign(this.activeDemandRateSet!, set);
+        // trigger reload of demand rate card
+        const activeDemandRateSet = this.activeDemandRateSet;
+        this.activeDemandRateSet = undefined;
+        setTimeout(() => {  this.activeDemandRateSet = activeDemandRateSet; }, 1);
         this.propertiesCard?.closeDialog(true);
       },(error) => {
         // ToDo: set specific errors to fields
         this.propertiesForm.setErrors(error.error);
         this.propertiesCard?.setLoading(false);
+      });
+    })
+  }
+
+  setupDemandRateSetCard(): void {
+    this.demandRateSetCard?.dialogConfirmed.subscribe((ok)=>{
+      const attributes = { demandRates: this.editDemandRateSet?.demandRates }
+      this.demandRateSetCard?.setLoading(true);
+      this.http.patch<DemandRateSet>(`${this.rest.URLS.demandRateSets}${this.activeDemandRateSet?.id}/`, attributes
+      ).subscribe(set => {
+        Object.assign(this.activeDemandRateSet!, set);
+        this.demandRateSetPreview!.demandRateSet = set;
+        this.demandRateSetCard?.closeDialog(true);
+      },(error) => {
+        // ToDo: set errors
+        this.demandRateSetCard?.setLoading(false);
       });
     })
   }
@@ -147,6 +172,7 @@ export class DemandQuotasComponent implements AfterViewInit {
       ).subscribe(set => {
         this.demandRateSets.push(set);
         this.activeDemandRateSet = set;
+        this.onDemandRateSetChange();
         dialogRef.close();
       },(error) => {
         this.propertiesForm.setErrors(error.error);
@@ -201,7 +227,8 @@ export class DemandQuotasComponent implements AfterViewInit {
   }
 
   onDemandRateSetChange(): void {
-
+    // deep clone
+    this.editDemandRateSet = JSON.parse(JSON.stringify(this.activeDemandRateSet));
   }
 
   setDefaultDemandRateSet(set: DemandRateSet): void {

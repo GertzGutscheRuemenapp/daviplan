@@ -206,7 +206,7 @@ export interface DemandRate {
   year: number,
   ageGroup: number,
   gender: number,
-  value: number | undefined
+  value?: number
 }
 
 export interface DemandRateSet {
