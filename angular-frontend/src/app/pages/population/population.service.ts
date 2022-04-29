@@ -15,10 +15,8 @@ import { BreakpointObserver } from "@angular/cdk/layout";
 export class PopulationService extends RestCacheService {
   legend?: LegendComponent;
   timeSlider?: TimeSliderComponent;
-  year$ = new BehaviorSubject<number>(0);
   isReady: boolean = false;
   ready: EventEmitter<any> = new EventEmitter();
-  yearChanged: EventEmitter<number> = new EventEmitter();
 
   constructor(protected http: HttpClient, protected rest: RestAPI) {
     super(http, rest);
