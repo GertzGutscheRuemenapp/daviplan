@@ -4,7 +4,7 @@ import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../rest-api";
 import { TimeSliderComponent } from "../../elements/time-slider/time-slider.component";
 import { RestCacheService } from "../../rest-cache.service";
-import { Observable } from "rxjs";
+import { BehaviorSubject, Observable } from "rxjs";
 import { PopEntry, Population } from "../../rest-interfaces";
 import { map, shareReplay } from "rxjs/operators";
 import { BreakpointObserver } from "@angular/cdk/layout";
@@ -15,8 +15,10 @@ import { BreakpointObserver } from "@angular/cdk/layout";
 export class PopulationService extends RestCacheService {
   legend?: LegendComponent;
   timeSlider?: TimeSliderComponent;
+  year$ = new BehaviorSubject<number>(0);
   isReady: boolean = false;
   ready: EventEmitter<any> = new EventEmitter();
+  yearChanged: EventEmitter<number> = new EventEmitter();
 
   constructor(protected http: HttpClient, protected rest: RestAPI) {
     super(http, rest);

@@ -42,7 +42,7 @@ export class PlaceFilterComponent implements AfterViewInit {
         this.updateData();
       })
     })
-    this.timeSlider?.valueChanged.subscribe(value => {
+    this.timeSlider?.onChange.subscribe(value => {
       if (value) {
         this.year = value;
         this.updateData();

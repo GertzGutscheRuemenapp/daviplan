@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core';
-import { Infrastructure, Service, DemandRateSet } from "../../../rest-interfaces";
+import { Infrastructure, Service, DemandRateSet, Gender, AgeGroup } from "../../../rest-interfaces";
 import { RestCacheService } from "../../../rest-cache.service";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { InputCardComponent } from "../../../dash/input-card.component";
@@ -24,6 +24,9 @@ export class DemandQuotasComponent implements AfterViewInit {
   @ViewChild('demandTypeCard') demandTypeCard?: InputCardComponent;
   @ViewChild('propertiesCard') propertiesCard?: InputCardComponent;
   @ViewChild('propertiesEdit') propertiesEdit?: TemplateRef<any>;
+  years: number[] = [];
+  genders: Gender[] = [];
+  ageGroups: AgeGroup[] = [];
   infrastructures: Infrastructure[] = [];
   activeService?: Service;
   activeDemandRateSet?: DemandRateSet;
@@ -45,6 +48,9 @@ export class DemandQuotasComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    this.restService.getYears().subscribe(years => this.years = years);
+    this.restService.getGenders().subscribe(genders => this.genders = genders);
+    this.restService.getAgeGroups().subscribe(ageGroups => this.ageGroups = ageGroups);
     this.restService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures || [];
       if (infrastructures.length === 0) return;

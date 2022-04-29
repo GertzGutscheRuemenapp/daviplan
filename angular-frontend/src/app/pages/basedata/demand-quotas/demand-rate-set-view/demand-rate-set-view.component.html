@@ -1,6 +1,8 @@
 <div style="display: flex;">
   <mat-slider #timeSlider color="primary"
-              thumbLabel min="2000" max="2100" step="1" value="2010" tickInterval="1"
+              thumbLabel [min]="_years[0] || 0" [max]="_years[_years.length-1] || 0" step="1"
+              [value]="_years[0]" tickInterval="1"
+              (change)="changeYear($event.value)"
               style="width: 420px; margin-top: 15px;"></mat-slider>
   <label style="padding-top: 20px;">{{timeSlider.value}}</label>
 </div>
@@ -9,27 +11,25 @@
     <table style="width: 100%; text-align: center;">
       <tr>
         <th style="text-align: left;">{{timeSlider.value}}</th>
-        <th colspan="2" style="text-align: center">Quote (in Prozent)</th>
+        <th colspan="2" style="text-align: center">{{demandTypeLabel}}</th>  <!--{{unit? '(in ' + unit + ')': ''}}-->
       </tr>
       <tr>
         <th style="min-width: 20%;"></th>
-        <th>weiblich</th>
-        <th>männlich</th>
+        <th *ngFor="let gender of _genders">
+          {{gender.name}}
+        </th>
       </tr>
-      <tr>
-        <td>9 bis unter 12 Jahre</td>
-        <td>20</td>
-        <td>19</td>
-      </tr>
-      <tr>
-        <td>12 bis unter 15 Jahre</td>
-        <td>30</td>
-        <td>24</td>
-      </tr>
-      <tr>
-        <td>15 bis unter 20 Jahre</td>
-        <td>18</td>
-        <td>15</td>
+      <tr *ngFor="let row of rows">
+        <td style="text-align: end;">{{row.ageGroup.label}}</td>
+        <ng-container *ngIf="!edit">
+          <td *ngFor="let entry of row.entries">
+            {{(entry.value !== undefined)? entry.value: 'null'}}
+            <ng-container *ngIf="unit && entry.value !== undefined"> {{unit}}</ng-container>
+          </td>
+        </ng-container>
+        <ng-container *ngIf="edit">
+
+        </ng-container>
       </tr>
     </table>
   </div>

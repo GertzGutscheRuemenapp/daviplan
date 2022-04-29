@@ -82,7 +82,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         })
       })
     })
-    this.subscriptions.push(this.populationService.timeSlider!.valueChanged.subscribe(year => {
+    this.subscriptions.push(this.populationService.yearChanged.subscribe(year => {
       this.year = year;
       this.cookies.set('pop-year', year);
       this.updateMap();

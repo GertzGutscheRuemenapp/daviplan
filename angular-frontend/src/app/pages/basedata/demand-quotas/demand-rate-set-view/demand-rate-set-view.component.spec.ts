@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DemandQuotaViewComponent } from './demand-quota-view.component';
+import { DemandRateSetViewComponent } from './demand-rate-set-view.component';
 
 describe('DemandQuotaViewComponent', () => {
-  let component: DemandQuotaViewComponent;
-  let fixture: ComponentFixture<DemandQuotaViewComponent>;
+  let component: DemandRateSetViewComponent;
+  let fixture: ComponentFixture<DemandRateSetViewComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ DemandQuotaViewComponent ]
+      declarations: [ DemandRateSetViewComponent ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(DemandQuotaViewComponent);
+    fixture = TestBed.createComponent(DemandRateSetViewComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

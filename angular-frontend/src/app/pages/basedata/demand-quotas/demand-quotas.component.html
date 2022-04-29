@@ -118,7 +118,13 @@
                     <p>Für die Betrachtung und Kontrolle der Nachfragequoten stehen Ihnen zwei Ansichten zur Verfügung.</p>
                     <p>Mit dem Jahres-Schieber können Sie zwischen den Jahren hin- und herspringen. Dabei passen sich die Tabelle und das obere der beiden Diagramme an und zeigen jeweils die Quoten der einzelnen Altersgruppen in dem gerade ausgewählten Jahr.</p>
                     <p>Wenn Sie in der Tabelle eine Altersgruppe anklicken, passt sich zudem das untere Diagramm an und zeigt Ihnen die im ausgewählten Set definierte Veränderung der Nachfragequote dieser Altersgruppe im Laufe der Zeit.</p>">
-        <app-demand-rate-set-view></app-demand-rate-set-view>
+        <app-demand-rate-set-view [years]="years"
+                                  [demandRateSet]="activeDemandRateSet"
+                                  [demandTypeLabel]="activeService? demandTypes[activeService.demandType][0]: ''"
+                                  [unit]="(activeService?.demandType === 1)? '%': ''"
+                                  [genders]="genders"
+                                  [ageGroups]="ageGroups">
+        </app-demand-rate-set-view>
       </app-input-card>
     </div>
   </div>
