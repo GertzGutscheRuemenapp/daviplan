@@ -41,6 +41,7 @@ export class DemandRateSetViewComponent implements AfterViewInit {
   // columns: string[] = [];
   yearDemandRates: DemandRate[] = [];
   rows: Row[] = [];
+  genderColors: string[] = [];
 
   @Input() set years(years: number[]) {
     this._years = years;
@@ -58,6 +59,14 @@ export class DemandRateSetViewComponent implements AfterViewInit {
 
   @Input() set genders(genders: Gender[]) {
     this._genders = genders;
+    if (genders.length > 0) {
+      this.genderColors = [];
+      genders.forEach(gender => {
+        this.genderColors.push(
+          (gender.name === 'männlich') ? '#2c81ff' :
+            (gender.name === 'weiblich') ? '#ee4a4a' : 'black')
+      })
+    }
     this.init();
   }
 
@@ -146,6 +155,7 @@ export class DemandRateSetViewComponent implements AfterViewInit {
         values: values
       });
     })
+    this.yearChart.colors = this.genderColors;
     this.yearChart.subtitle = this.year.toString();
     this.yearChart.labels = this._genders.map(g => g.name);
     this.yearChart.draw(data);
@@ -170,6 +180,7 @@ export class DemandRateSetViewComponent implements AfterViewInit {
         values: values
       });
     })
+    this.ageGroupChart.colors = this.genderColors;
     this.ageGroupChart.subtitle = this.selectedAgeGroup.label || '';
     this.ageGroupChart.labels = this._genders.map(g => g.name);
     this.ageGroupChart.draw(data);
