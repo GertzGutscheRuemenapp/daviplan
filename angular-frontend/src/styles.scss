@@ -216,7 +216,9 @@ button.large {
 }
 
 .hidden {
-  display: None!important;
+  //display: None!important;
+ opacity: 0;
+ pointer-events: none!important;
 }
 
 .fill-space {

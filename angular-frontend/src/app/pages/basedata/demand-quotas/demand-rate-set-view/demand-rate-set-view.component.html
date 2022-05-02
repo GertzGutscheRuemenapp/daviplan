@@ -7,7 +7,7 @@
   <label style="padding-top: 20px;">{{timeSlider.value}}</label>
 </div>
 <div style="width: 100%; display: flex; align-items: stretch;">
-  <div style="width: 40%; border: solid #0000001F; padding: 8px;">
+  <div style="width: 40%; border: 1px solid lightgrey; padding: 8px;">
     <table style="width: 100%; text-align: center;">
       <tr>
         <th style="text-align: left;">{{timeSlider.value}}</th>
@@ -39,12 +39,20 @@
     </table>
   </div>
   <div style="display: flex; width: 55%; margin-left: 10px; flex-flow: row wrap;">
-    <span class="subtitle1" style="color: grey;">Nachfragequote nach Altersgruppe im ausgewählten Jahr {{timeSlider.value}}</span>
-    <div class="diagram-wrapper" style="width: 100%;">
-      <img src="{{backend}}/static/img/Nachfragequoten alle Altersklassen screenshot.png" width="100%">
+    <div style="width: 100%; border: 1px solid lightgrey; padding: 5px;">
+      <app-multiline-chart #yearChart
+                           [title]="'Nachfragequote nach Altersgruppe'"
+                           [figureId]="figureId"
+                           [height]="chartHeight"
+                           [yLegendOffset]="50"
+                           [xLegendOffset]="40"
+                           [margin]="{top: 50, bottom: 40, left: 40, right: 80}"
+                           [min]="0"
+                           unit="%">
+      </app-multiline-chart>
     </div>
     <span class="subtitle1" style="color: grey;">Nachfragequote der ausgewählten Altersgruppe [xxx] nach Jahr</span>
-    <div class="diagram-wrapper" style="width: 100%;">
+    <div style="width: 100%;">
       <img src="{{backend}}/static/img/Nachfrage Altersklasse screenshot.png" width="100%">
     </div>
   </div>

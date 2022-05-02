@@ -122,7 +122,8 @@
                                   [demandTypeLabel]="activeService? demandTypes[activeService.demandType][0]: ''"
                                   [unit]="(activeService?.demandType === 1)? '%': ''"
                                   [genders]="genders"
-                                  [ageGroups]="ageGroups">
+                                  [ageGroups]="ageGroups"
+                                  [chartHeight]="250">
         </app-demand-rate-set-view>
       </app-input-card>
     </div>
@@ -173,6 +174,7 @@
                             [demandTypeLabel]="activeService? demandTypes[activeService.demandType][0]: ''"
                             [unit]="(activeService?.demandType === 1)? '%': ''"
                             [genders]="genders"
-                            [ageGroups]="ageGroups">
+                            [ageGroups]="ageGroups"
+                            [chartHeight]="300">
   </app-demand-rate-set-view>
 </ng-template>

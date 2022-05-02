@@ -1,6 +1,5 @@
 import { AfterViewInit, Component, Input } from '@angular/core';
 import * as d3 from 'd3';
-import { StackedData } from "../stacked-barchart/stacked-barchart.component";
 
 export interface MultilineData {
   group: string,
@@ -96,7 +95,7 @@ export class MultilineChartComponent implements AfterViewInit {
 
     let max = this.max || d3.max(data, d => { return d3.max(d.values) });
     max! += this.yPadding;
-    let min = this.min || d3.min(data, d => { return d3.min(d.values) });
+    let min = (this.min === undefined)? d3.min(data, d => { return d3.min(d.values) }): this.min;
     min! -= this.yPadding;
     const y = d3.scaleLinear()
       .domain([min!, max!])
