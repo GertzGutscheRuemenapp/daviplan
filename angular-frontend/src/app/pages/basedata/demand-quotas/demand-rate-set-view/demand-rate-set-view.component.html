@@ -1,16 +1,17 @@
-<div style="display: flex;">
+<div style="display: flex; margin-top: -10px;">
+  <label style="padding-top: 20px;">{{timeSlider.min}}</label>
   <mat-slider #timeSlider color="primary"
               thumbLabel [min]="_years[0] || 0" [max]="_years[_years.length-1] || 0" step="1"
               [value]="_years[0]" tickInterval="1"
               (change)="changeYear($event.value)"
               style="width: 420px; margin-top: 15px;"></mat-slider>
-  <label style="padding-top: 20px;">{{timeSlider.value}}</label>
+  <label style="padding-top: 20px;">{{timeSlider.max}}</label>
 </div>
 <div style="width: 100%; display: flex; align-items: stretch;">
-  <div style="width: 40%; border: 1px solid lightgrey; padding: 8px;">
+  <div style="width: 40%; border: 1px solid lightgrey; padding: 8px; max-height: 700px; overflow-y: auto;">
     <table style="width: 100%; text-align: center;">
       <tr>
-        <th style="text-align: left;">{{timeSlider.value}}</th>
+        <th style="text-align: left;">{{year}}</th>
         <th colspan="2" style="text-align: center">{{demandTypeLabel}}</th>  <!--{{unit? '(in ' + unit + ')': ''}}-->
       </tr>
       <tr>
@@ -39,21 +40,41 @@
     </table>
   </div>
   <div style="display: flex; width: 55%; margin-left: 10px; flex-flow: row wrap;">
-    <div style="width: 100%; border: 1px solid lightgrey; padding: 5px;">
+    <div style="width: 100%; border: 1px solid lightgrey; padding: 5px; margin-bottom: 15px;">
       <app-multiline-chart #yearChart
-                           [title]="'Nachfragequote nach Altersgruppe'"
-                           [figureId]="figureId"
+                           [title]="'Nachfragequoten nach Altersgruppen'"
                            [height]="chartHeight"
                            [yLegendOffset]="50"
                            [xLegendOffset]="40"
                            [margin]="{top: 50, bottom: 40, left: 40, right: 80}"
                            [min]="0"
+                           xLabel="Altersgruppe"
                            unit="%">
       </app-multiline-chart>
     </div>
-    <span class="subtitle1" style="color: grey;">Nachfragequote der ausgewählten Altersgruppe [xxx] nach Jahr</span>
-    <div style="width: 100%;">
-      <img src="{{backend}}/static/img/Nachfrage Altersklasse screenshot.png" width="100%">
+<!--    <mat-divider style="margin: 10px 0;"></mat-divider>-->
+    <mat-form-field appearance="outline" class="small">
+      <mat-label>Altersgruppe</mat-label>
+      <mat-select disableOptionCentering disableRipple
+                  [(ngModel)]="selectedAgeGroup"
+                  (ngModelChange)="updateAgeGroupDiagram()">
+        <mat-option *ngFor="let ageGroup of _ageGroups" [value]="ageGroup">
+          {{ageGroup.label}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <div style="width: 100%; border: 1px solid lightgrey; padding: 5px;">
+      <app-multiline-chart #ageGroupChart
+                           [title]="'Nachfragequoten'"
+                           [height]="chartHeight"
+                           [yLegendOffset]="50"
+                           [xLegendOffset]="40"
+                           [yTicks]="10"
+                           [margin]="{top: 50, bottom: 40, left: 40, right: 80}"
+                           [min]="0"
+                           xLabel="Jahr"
+                           unit="%">
+      </app-multiline-chart>
     </div>
   </div>
 </div>

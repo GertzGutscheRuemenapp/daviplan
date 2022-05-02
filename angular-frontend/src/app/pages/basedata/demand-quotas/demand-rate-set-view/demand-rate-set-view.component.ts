@@ -30,21 +30,22 @@ export class DemandRateSetViewComponent implements AfterViewInit {
   @Input() inPlace = false;
   @ViewChild('timeSlider') timeSlider?: TimeSliderComponent;
   @ViewChild('yearChart') yearChart!: MultilineChartComponent;
-  figureId = `figure${uuid()}`;
+  @ViewChild('ageGroupChart') ageGroupChart!: MultilineChartComponent;
   backend: string = environment.backend;
   year?: number;
+  selectedAgeGroup?: AgeGroup;
   _years: number[] = [];
   _demandRateSet?: DemandRateSet;
   _genders: Gender[] = [];
   _ageGroups: AgeGroup[] = [];
   // columns: string[] = [];
-  demandRates: DemandRate[] = [];
+  yearDemandRates: DemandRate[] = [];
   rows: Row[] = [];
 
   @Input() set years(years: number[]) {
     this._years = years;
     if (years.length > 0) this.year = years[0];
-    this.setDemandRates();
+    this.init();
   }
 
   @Input() set demandRateSet(set: DemandRateSet | undefined) {
@@ -52,23 +53,32 @@ export class DemandRateSetViewComponent implements AfterViewInit {
     if (!this.inPlace && set)
       set = JSON.parse(JSON.stringify(set));
     this._demandRateSet = set;
-    this.setDemandRates();
+    this.init();
   }
 
   @Input() set genders(genders: Gender[]) {
     this._genders = genders;
-    this.setDemandRates();
+    this.init();
   }
 
   @Input() set ageGroups(ageGroups: AgeGroup[]) {
     this._ageGroups = ageGroups;
-    this.setDemandRates();
+    if (ageGroups.length > 0) this.selectedAgeGroup = ageGroups[0];
+    this.init();
   }
 
   constructor() { }
 
   ngAfterViewInit(): void {
+    this.init();
+  }
+
+  init(): void {
+    if (!this.year || !this._demandRateSet || this._genders.length === 0 || this._ageGroups.length === 0 )
+      return;
     this.setDemandRates();
+    this.updateYearDiagram();
+    this.updateAgeGroupDiagram();
   }
 
   /**
@@ -76,15 +86,12 @@ export class DemandRateSetViewComponent implements AfterViewInit {
    */
   private setDemandRates(): void {
     this.rows = [];
-    if (!this.year || !this._demandRateSet || this._genders.length === 0 || this._ageGroups.length === 0 ) {
-      this.demandRates = [];
-      return;
-    }
+    if(!this._demandRateSet) return;
     // const genderLabels = this._genders.map(gender => gender.name);
-    this.demandRates = this._demandRateSet.demandRates.filter(dr => dr.year === this.year) || [];
+    this.yearDemandRates = this._demandRateSet.demandRates.filter(dr => dr.year === this.year) || [];
     // this.columns = [''].concat(genderLabels);
     this._ageGroups.forEach(ageGroup => {
-      const groupDemandRates = this.demandRates.filter(dr => dr.ageGroup === ageGroup.id!) || [];
+      const groupDemandRates = this.yearDemandRates.filter(dr => dr.ageGroup === ageGroup.id!) || [];
       let entries: Entry[] = [];
       this._genders.forEach(gender => {
         const demandRate = groupDemandRates.find(dr => dr.gender === gender.id);
@@ -93,7 +100,6 @@ export class DemandRateSetViewComponent implements AfterViewInit {
       })
       this.rows.push({ ageGroup: ageGroup, entries: entries });
     })
-    this.updateYearDiagram();
   }
 
   changeYear(year: number | null): void {
@@ -104,7 +110,7 @@ export class DemandRateSetViewComponent implements AfterViewInit {
 
   changeDemandRate(value: number, ageGroup: AgeGroup, gender: Gender){
     if (!this.year) return;
-    let demandRate = this.demandRates.find(dr => dr.ageGroup === ageGroup.id && dr.gender === gender.id);
+    let demandRate = this.yearDemandRates.find(dr => dr.ageGroup === ageGroup.id && dr.gender === gender.id);
     // demandRate is not existing yet
     if (!demandRate) {
       demandRate = {
@@ -112,24 +118,25 @@ export class DemandRateSetViewComponent implements AfterViewInit {
         ageGroup: ageGroup.id!,
         gender: gender.id
       }
-      this.demandRates.push(demandRate);
+      this.yearDemandRates.push(demandRate);
       // if demandRate was not found it does not exist in demandRateSet yet either
       this._demandRateSet?.demandRates.push(demandRate);
     }
     demandRate.value = Number(value);
     this.updateYearDiagram();
+    if (ageGroup.id === this.selectedAgeGroup?.id)
+      this.updateAgeGroupDiagram();
   }
 
   updateYearDiagram(): void {
     if (!this.yearChart) return;
     this.yearChart.clear();
     if (!this.year) return;
-    const yearRates = this.demandRates.filter(dr => dr.year === this.year) || [];
-    const max = Math.max(...yearRates.map(dr => dr.value || 0), 0);
+    const max = Math.max(...this.yearDemandRates.map(dr => dr.value || 0), 0);
     this.yearChart.max = Math.min(Math.floor(max / 10) * 10 + 10, 100)
     const data: MultilineData[] = [];
     this._ageGroups.forEach(ageGroup => {
-      const groupRates = sortBy(yearRates.filter(dr => dr.ageGroup === ageGroup.id) || [], 'fromAge');
+      const groupRates = sortBy(this.yearDemandRates.filter(dr => dr.ageGroup === ageGroup.id) || [], 'fromAge');
       let values: number[] = [];
       this._genders.forEach(gender => {
         values.push(groupRates.find(dr => dr.gender === gender.id)?.value || 0);
@@ -145,6 +152,26 @@ export class DemandRateSetViewComponent implements AfterViewInit {
   }
 
   updateAgeGroupDiagram(): void {
-
+    if (!this.ageGroupChart) return;
+    this.ageGroupChart.clear();
+    if (!this.selectedAgeGroup) return;
+    const max = Math.max(...this.yearDemandRates.map(dr => dr.value || 0), 0);
+    this.ageGroupChart.max = Math.min(Math.floor(max / 10) * 10 + 10, 100)
+    const data: MultilineData[] = [];
+    const groupRates = this._demandRateSet?.demandRates.filter(dr => dr.ageGroup === this.selectedAgeGroup!.id) || [];
+    this._years.forEach(year => {
+      let values: number[] = [];
+      const yearRates = groupRates.filter(dr => dr.year === year);
+      this._genders.forEach(gender => {
+        values.push(yearRates.find(dr => dr.gender === gender.id)?.value || 0);
+      })
+      data.push({
+        group: year.toString(),
+        values: values
+      });
+    })
+    this.ageGroupChart.subtitle = this.selectedAgeGroup.label || '';
+    this.ageGroupChart.labels = this._genders.map(g => g.name);
+    this.ageGroupChart.draw(data);
   }
 }
