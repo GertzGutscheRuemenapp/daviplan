@@ -119,8 +119,7 @@
         <app-demand-rate-set-view #demandRateSetPreview
                                   [years]="years"
                                   [demandRateSet]="activeDemandRateSet"
-                                  [demandTypeLabel]="activeService? demandTypes[activeService.demandType][0]: ''"
-                                  [unit]="(activeService?.demandType === 1)? '%': ''"
+                                  [demandType]="activeService? activeService.demandType: 1"
                                   [genders]="genders"
                                   [ageGroups]="ageGroups"
                                   [chartHeight]="250">
@@ -169,10 +168,8 @@
   <app-demand-rate-set-view [years]="years"
                             [edit]="true"
                             [inPlace]="true"
-                            [maxInputValue]="(activeService?.demandType === 1)? 100: 9999"
                             [demandRateSet]="editDemandRateSet"
-                            [demandTypeLabel]="activeService? demandTypes[activeService.demandType][0]: ''"
-                            [unit]="(activeService?.demandType === 1)? '%': ''"
+                            [demandType]="activeService? activeService.demandType: 1"
                             [genders]="genders"
                             [ageGroups]="ageGroups"
                             [chartHeight]="300">

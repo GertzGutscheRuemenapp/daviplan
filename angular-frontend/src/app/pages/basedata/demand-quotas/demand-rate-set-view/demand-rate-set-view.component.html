@@ -8,7 +8,7 @@
   <label style="padding-top: 20px;">{{timeSlider.max}}</label>
 </div>
 <div style="width: 100%; display: flex; align-items: stretch;">
-  <div style="width: 40%; border: 1px solid lightgrey; padding: 8px; max-height: 700px; overflow-y: auto;">
+  <div class="table-wrapper">
     <table style="width: 100%; text-align: center;">
       <tr>
         <th style="text-align: left;">{{year}}</th>
@@ -29,7 +29,7 @@
           <ng-container *ngIf="edit">
             <mat-form-field class="small" appearance="outline" style="width: 80px; margin-right: 3px;">
               <input matInput type="number"
-                     min="0" [max]="maxInputValue"
+                     min="0" [max]="maxValue"
                      value="{{entry.value || 0}}"
                      (change)="changeDemandRate($any($event.target).value, row.ageGroup, entry.gender)">
             </mat-form-field>
@@ -40,16 +40,14 @@
     </table>
   </div>
   <div style="display: flex; width: 55%; margin-left: 10px; flex-flow: row wrap;">
-    <div style="width: 100%; border: 1px solid lightgrey; padding: 5px; margin-bottom: 15px;">
+    <div class="diagram-wrapper">
       <app-multiline-chart #yearChart
-                           [title]="'Nachfragequoten nach Altersgruppen'"
                            [height]="chartHeight"
                            [yLegendOffset]="50"
                            [xLegendOffset]="40"
                            [margin]="{top: 50, bottom: 40, left: 40, right: 80}"
                            [min]="0"
-                           xLabel="Altersgruppe"
-                           unit="%">
+                           xLabel="Altersgruppe">
       </app-multiline-chart>
     </div>
 <!--    <mat-divider style="margin: 10px 0;"></mat-divider>-->
@@ -65,15 +63,13 @@
     </mat-form-field>
     <div style="width: 100%; border: 1px solid lightgrey; padding: 5px;">
       <app-multiline-chart #ageGroupChart
-                           [title]="'Nachfragequoten'"
                            [height]="chartHeight"
                            [yLegendOffset]="50"
                            [xLegendOffset]="40"
                            [yTicks]="10"
                            [margin]="{top: 50, bottom: 40, left: 40, right: 80}"
                            [min]="0"
-                           xLabel="Jahr"
-                           unit="%">
+                           xLabel="Jahr">
       </app-multiline-chart>
     </div>
   </div>

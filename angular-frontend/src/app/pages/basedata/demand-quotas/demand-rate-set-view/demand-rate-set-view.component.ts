@@ -4,7 +4,7 @@ import { AgeGroup, DemandRate, DemandRateSet, Gender } from "../../../../rest-in
 import { TimeSliderComponent } from "../../../../elements/time-slider/time-slider.component";
 import { MultilineChartComponent, MultilineData } from "../../../../diagrams/multiline-chart/multiline-chart.component";
 import { sortBy } from "../../../../helpers/utils";
-import { v4 as uuid } from 'uuid';
+import { DemandTypes } from "../../../../rest-interfaces";
 
 interface Row {
   ageGroup: AgeGroup,
@@ -22,10 +22,7 @@ interface Entry {
   styleUrls: ['./demand-rate-set-view.component.scss']
 })
 export class DemandRateSetViewComponent implements AfterViewInit {
-  @Input() demandTypeLabel: string = '';
-  @Input() unit: string = '';
   @Input() edit: boolean = false;
-  @Input() maxInputValue = 100;
   @Input() chartHeight = 300;
   @Input() inPlace = false;
   @ViewChild('timeSlider') timeSlider?: TimeSliderComponent;
@@ -34,6 +31,10 @@ export class DemandRateSetViewComponent implements AfterViewInit {
   backend: string = environment.backend;
   year?: number;
   selectedAgeGroup?: AgeGroup;
+  unit: string = '';
+  demandTypeLabel: string = '';
+  maxValue: number = 100;
+  _demandType?: 1 | 2 | 3;
   _years: number[] = [];
   _demandRateSet?: DemandRateSet;
   _genders: Gender[] = [];
@@ -76,6 +77,16 @@ export class DemandRateSetViewComponent implements AfterViewInit {
     this.init();
   }
 
+  @Input() set demandType(demandType: 1 | 2 | 3) {
+    this._demandType = demandType;
+    if (demandType) {
+      this.unit = (demandType === 1)? '%': '';
+      this.demandTypeLabel = DemandTypes[demandType][0];
+      this.maxValue = (demandType === 1)? 100: 9999;
+    }
+    this.init();
+  }
+
   constructor() { }
 
   ngAfterViewInit(): void {
@@ -83,7 +94,8 @@ export class DemandRateSetViewComponent implements AfterViewInit {
   }
 
   init(): void {
-    if (!this.year || !this._demandRateSet || this._genders.length === 0 || this._ageGroups.length === 0 )
+    if (!this.year || !this._demandRateSet || this._genders.length === 0 ||
+      this._ageGroups.length === 0 || !this._demandType)
       return;
     this.setDemandRates();
     this.updateYearDiagram();
@@ -131,7 +143,7 @@ export class DemandRateSetViewComponent implements AfterViewInit {
       // if demandRate was not found it does not exist in demandRateSet yet either
       this._demandRateSet?.demandRates.push(demandRate);
     }
-    demandRate.value = Number(value);
+    demandRate.value = Math.min(Number(value), this.maxValue);
     this.updateYearDiagram();
     if (ageGroup.id === this.selectedAgeGroup?.id)
       this.updateAgeGroupDiagram();
@@ -142,7 +154,7 @@ export class DemandRateSetViewComponent implements AfterViewInit {
     this.yearChart.clear();
     if (!this.year) return;
     const max = Math.max(...this.yearDemandRates.map(dr => dr.value || 0), 0);
-    this.yearChart.max = Math.min(Math.floor(max / 10) * 10 + 10, 100)
+    this.yearChart.max = Math.min(Math.floor(max / 10) * 10 + 10, this.maxValue)
     const data: MultilineData[] = [];
     this._ageGroups.forEach(ageGroup => {
       const groupRates = sortBy(this.yearDemandRates.filter(dr => dr.ageGroup === ageGroup.id) || [], 'fromAge');
@@ -156,7 +168,8 @@ export class DemandRateSetViewComponent implements AfterViewInit {
       });
     })
     this.yearChart.colors = this.genderColors;
-    this.yearChart.subtitle = this.year.toString();
+    this.yearChart.title = `${this.demandTypeLabel} nach Altersgruppen`;
+    this.yearChart.subtitle = `im Jahr ${this.year}`;
     this.yearChart.labels = this._genders.map(g => g.name);
     this.yearChart.draw(data);
   }
@@ -166,7 +179,7 @@ export class DemandRateSetViewComponent implements AfterViewInit {
     this.ageGroupChart.clear();
     if (!this.selectedAgeGroup) return;
     const max = Math.max(...this.yearDemandRates.map(dr => dr.value || 0), 0);
-    this.ageGroupChart.max = Math.min(Math.floor(max / 10) * 10 + 10, 100)
+    this.ageGroupChart.max = Math.min(Math.floor(max / 10) * 10 + 10, this.maxValue)
     const data: MultilineData[] = [];
     const groupRates = this._demandRateSet?.demandRates.filter(dr => dr.ageGroup === this.selectedAgeGroup!.id) || [];
     this._years.forEach(year => {
@@ -180,6 +193,7 @@ export class DemandRateSetViewComponent implements AfterViewInit {
         values: values
       });
     })
+    this.ageGroupChart.title = this.demandTypeLabel;
     this.ageGroupChart.colors = this.genderColors;
     this.ageGroupChart.subtitle = this.selectedAgeGroup.label || '';
     this.ageGroupChart.labels = this._genders.map(g => g.name);

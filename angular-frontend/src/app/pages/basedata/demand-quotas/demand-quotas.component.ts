@@ -9,12 +9,7 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { MatDialog } from "@angular/material/dialog";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { DemandRateSetViewComponent } from "./demand-rate-set-view/demand-rate-set-view.component";
-
-const demandTypes = {
-  1: ['Nachfragequote', '(z.B. 30% der Kinder einer Altersklasse)'],
-  2: ['Nutzungshäufigkeit pro Einwohner', '(z.B. 15 Arztbesuche pro Jahr.)'],
-  3: ['Einwohnerzahl insgesamt', '(z.B. Brandschutz oder Einzelhandelsversorgung, keine weitere Angaben erforderlich)']
-}
+import { DemandTypes } from "../../../rest-interfaces";
 
 @Component({
   selector: 'app-demand-quotas',
@@ -34,7 +29,7 @@ export class DemandQuotasComponent implements AfterViewInit {
   activeService?: Service;
   activeDemandRateSet?: DemandRateSet;
   editDemandRateSet?: DemandRateSet;
-  demandTypes = demandTypes;
+  demandTypes = DemandTypes;
   demandTypeForm: FormGroup;
   propertiesForm: FormGroup;
   demandRateSets: DemandRateSet[] = [];
