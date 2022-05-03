@@ -10,6 +10,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { DemandRateSetViewComponent } from "./demand-rate-set-view/demand-rate-set-view.component";
 import { DemandTypes } from "../../../rest-interfaces";
+import { BehaviorSubject } from "rxjs";
 
 @Component({
   selector: 'app-demand-quotas',
@@ -22,6 +23,7 @@ export class DemandQuotasComponent implements AfterViewInit {
   @ViewChild('demandRateSetCard') demandRateSetCard?: InputCardComponent;
   @ViewChild('demandRateSetPreview') demandRateSetPreview?: DemandRateSetViewComponent;
   @ViewChild('propertiesEdit') propertiesEdit?: TemplateRef<any>;
+  isLoading$ = new BehaviorSubject<boolean>(false);
   years: number[] = [];
   genders: Gender[] = [];
   ageGroups: AgeGroup[] = [];
@@ -50,10 +52,12 @@ export class DemandQuotasComponent implements AfterViewInit {
     this.restService.getYears().subscribe(years => this.years = years);
     this.restService.getGenders().subscribe(genders => this.genders = genders);
     this.restService.getAgeGroups().subscribe(ageGroups => this.ageGroups = ageGroups);
+    this.isLoading$.next(true);
     this.restService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures || [];
       if (infrastructures.length === 0) return;
       const services = infrastructures[0].services || [];
+      this.isLoading$.next(false);
       if (services.length > 0) {
         this.activeService = services[0];
         this.onServiceChange();
@@ -266,13 +270,16 @@ export class DemandQuotasComponent implements AfterViewInit {
       this.activeDemandRateSet = demandRateSets[0];
       this.onDemandRateSetChange();
     }
-    else
+    else {
+      this.isLoading$.next(true);
       this.restService.getDemandRateSets(this.activeService.id).subscribe(sets => {
         this.demandRateSetCache[this.activeService!.id] = sets;
         this.demandRateSets = sets;
         this.activeDemandRateSet = sets[0];
         this.onDemandRateSetChange();
+        this.isLoading$.next(false);
       });
+    }
   }
 
   onDemandRateSetChange(): void {

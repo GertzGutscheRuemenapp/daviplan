@@ -178,8 +178,8 @@ export class AgeTreeComponent implements AfterViewInit {
       rightBar.selectAll('rect').classed('highlight', true);
 
       let text = `${labels[i]} <br>`;
-      text += 'Anzahl weiblich: <b>' + femaleAges[i] + '</b><br>';
-      text += 'Anzahl männlich: <b>' + maleAges[i] + '</b><br>';
+      text += `<span class="female">Anzahl weiblich:</span><b> ${femaleAges[i]} </b><br>`;
+      text += `<span class="male">Anzahl männlich:</span><b> ${maleAges[i]} </b><br>`;
 
       tooltip.style("display", null);
       tooltip.html(text);
@@ -282,7 +282,7 @@ export class AgeTreeComponent implements AfterViewInit {
     this.svg.append('text')
       .attr('class', 'male')
       .attr('text-anchor', 'middle')
-      .text('Anzahl männlich')
+      .text('Anzahl männlich pro Jahrgang')
       .attr('font-size', '0.8em')
       .attr('x', width / 4 + this.margin.left)
       .attr('y', height + this.margin.top + this.margin.bottom);
@@ -290,11 +290,10 @@ export class AgeTreeComponent implements AfterViewInit {
     this.svg.append('text')
       .attr('class', 'female')
       .attr('text-anchor', 'middle')
-      .text('Anzahl weiblich')
+      .text('Anzahl weiblich pro Jahrgang')
       .attr('font-size', '0.8em')
       .attr('x', 3 * width / 4 + this.margin.left)
       .attr('y', height + this.margin.top + this.margin.bottom);
-
   }
 
   public clear(): void {

@@ -30,15 +30,15 @@ export class DemandRateSetViewComponent implements AfterViewInit {
   @ViewChild('timeSlider') timeSlider?: TimeSliderComponent;
   @ViewChild('yearChart') yearChart!: MultilineChartComponent;
   @ViewChild('ageGroupChart') ageGroupChart!: MultilineChartComponent;
-  @ViewChild('copyYearData') copyYearDataTemlate!: TemplateRef<any>;
+  @ViewChild('copyYearDataTemplate') copyYearDataTemlate!: TemplateRef<any>;
   backend: string = environment.backend;
   year?: number;
   selectedAgeGroup?: AgeGroup;
   unit: string = '';
   demandTypeLabel: string = '';
   maxValue: number = 100;
-  copyFromYear: number = 0;
-  copyToYear: number = 0;
+  processFromYear: number = 0;
+  processToYear: number = 0;
   _demandType?: 1 | 2 | 3;
   _years: number[] = [];
   _demandRateSet?: DemandRateSet;
@@ -87,7 +87,7 @@ export class DemandRateSetViewComponent implements AfterViewInit {
     if (demandType) {
       this.unit = (demandType === 1)? '%': '';
       this.demandTypeLabel = DemandTypes[demandType][0];
-      this.maxValue = (demandType === 1)? 100: 9999;
+      this.maxValue = (demandType === 1)? 999: 9999;
     }
     this.init();
   }
@@ -197,19 +197,53 @@ export class DemandRateSetViewComponent implements AfterViewInit {
       }
     });
     dialogRef.afterOpened().subscribe(x => {
-      this.copyFromYear = this.copyToYear = this.year || 0;
+      this.processFromYear = this.processToYear = this.year || 0;
     })
     dialogRef.componentInstance.confirmed.subscribe(() => {
-      if (this.copyFromYear === this.copyToYear) return;
+      if (this.processFromYear === this.processToYear) return;
       this.copyColumn(this._genders[0], this._genders[0],
-        { fromYear: this.copyFromYear, toYear: this.copyToYear, update: false });
+        { fromYear: this.processFromYear, toYear: this.processToYear, update: false });
       this.copyColumn(this._genders[1], this._genders[1],
-        { fromYear: this.copyFromYear, toYear: this.copyToYear, update: false });
-      if (this.copyToYear === this.year) {
+        { fromYear: this.processFromYear, toYear: this.processToYear, update: false });
+      if (this.processToYear === this.year) {
         this.setDemandRates();
         this.updateYearDiagram();
       }
       this.updateAgeGroupDiagram();
+    });
+  }
+
+  interpolate(): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      autoFocus: false,
+      width: '280px',
+      data: {
+        title: 'Daten interpolieren',
+        template: this.copyYearDataTemlate,
+        closeOnConfirm: true,
+        message: 'Daten zwischen den Jahren linear interpolieren',
+        confirmButtonText: 'Interpolieren'
+      }
+    });
+    dialogRef.afterOpened().subscribe(x => {
+      this.processFromYear = this.processToYear = this.year || 0;
+    })
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      // there has to be at least 1 year in between
+      if (Math.abs(this.processFromYear - this.processToYear) < 2) return;
+      this._ageGroups.forEach(ageGroup => {
+        const groupRates = this._demandRateSet?.demandRates.filter(dr => dr.ageGroup === ageGroup.id) || [];
+        this._genders.forEach(gender => {
+          const genderRates = groupRates.filter(dr => dr.gender === gender.id)
+          const fromRate = this._demandRateSet?.demandRates.find(dr => dr.year = this.processFromYear);
+          const toRate = this._demandRateSet?.demandRates.find(dr => dr.year = this.processToYear);
+          const start = fromRate?.value || 0;
+          const target = toRate?.value || 0;
+          const diff = start - target;
+          const years = [...Array(this.processToYear-this.processFromYear-2).keys()].map(i => i + this.processToYear + 1)
+        })
+      })
     });
   }
 

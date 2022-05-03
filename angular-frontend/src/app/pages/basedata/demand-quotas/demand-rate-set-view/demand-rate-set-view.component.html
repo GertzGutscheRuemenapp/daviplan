@@ -14,7 +14,8 @@
   </button>
   <button *ngIf="edit" style="margin-top: 10px;"
           mat-mini-fab color="primary"
-          title="Werte zwischen den Jahren interpolieren">
+          (click)="interpolate()"
+          title="Werte zwischen Jahren interpolieren">
     <mat-icon>auto_graph</mat-icon>
   </button>
 </div>
@@ -100,20 +101,21 @@
   </div>
 </div>
 
-<ng-template #copyYearData>
+<ng-template #copyYearDataTemplate>
   <div style="display: flex">
     <mat-form-field class="small" appearance="outline" style="width: 80px;">
       <mat-label>Quelle</mat-label>
       <input matInput type="number"
              [min]="_years[0] || 0" [max]="_years[_years.length-1] || 0"
-             [(ngModel)]="copyFromYear">
+             [(ngModel)]="processFromYear">
     </mat-form-field>
     <mat-icon style="margin: 0 10px; align-self: center;">keyboard_double_arrow_right</mat-icon>
     <mat-form-field class="small" appearance="outline" style="width: 80px;">
       <mat-label>Ziel</mat-label>
       <input matInput type="number"
              [min]="_years[0] || 0" [max]="_years[_years.length-1] || 0"
-             [(ngModel)]="copyToYear">
+             [(ngModel)]="processToYear">
     </mat-form-field>
   </div>
 </ng-template>
+

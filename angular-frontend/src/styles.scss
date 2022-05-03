@@ -417,6 +417,13 @@ rect.highlight{
   fill: gold!important;
 }
 
+span.male {
+  color: #2c81ff;
+}
+span.female {
+  color: #ee4a4a;
+}
+
 div.d3-tooltip, div.tooltip {
   position: absolute;
   //text-align: center;
@@ -1181,7 +1188,7 @@ mat-checkbox.reverse {
 }
 
 .deactivateOverlay, .loadOverlay {
-  position: absolute;
+  position: fixed;
   width: 100%;
   height: 100%;
   top: 0;
