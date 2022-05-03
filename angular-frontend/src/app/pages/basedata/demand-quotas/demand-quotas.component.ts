@@ -176,6 +176,60 @@ export class DemandQuotasComponent implements AfterViewInit {
     });
   }
 
+  cloneDemandRateSet(): void {
+    if (!this.activeDemandRateSet) return;
+    let dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '300px',
+      disableClose: true,
+      data: {
+        title: 'Nachfragevariante klonen',
+        template: this.propertiesEdit,
+        closeOnConfirm: false
+      }
+    });
+    dialogRef.afterOpened().subscribe(ok => {
+      let i = 2;
+      let name = '';
+      const existingNames = this.demandRateSets.map(drs => drs.name);
+      while (true) {
+        const newName = `${this.activeDemandRateSet!.name} (${i})`;
+        if (existingNames.indexOf(newName) === -1){
+          name = newName;
+          break;
+        }
+        i += 1;
+      }
+      this.propertiesForm.reset({
+        name: name,
+        description: this.activeDemandRateSet!.description,
+      });
+    });
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      this.propertiesForm.setErrors(null);
+      // display errors for all fields even if not touched
+      this.propertiesForm.markAllAsTouched();
+      if (this.propertiesForm.invalid) return;
+      let attributes: any = {
+        name: this.propertiesForm.value.name,
+        description: this.propertiesForm.value.description || '',
+        service: this.activeService?.id,
+        demandRates: this.activeDemandRateSet?.demandRates
+      }
+      dialogRef.componentInstance.isLoading$.next(true);
+      this.http.post<DemandRateSet>(this.rest.URLS.demandRateSets, attributes
+      ).subscribe(set => {
+        this.demandRateSets.push(set);
+        this.activeDemandRateSet = set;
+        this.onDemandRateSetChange();
+        dialogRef.close();
+      },(error) => {
+        this.propertiesForm.setErrors(error.error);
+        dialogRef.componentInstance.isLoading$.next(false);
+      });
+    });
+  }
+
   removeDemandRateSet(): void {
     if (!this.activeDemandRateSet)
       return;

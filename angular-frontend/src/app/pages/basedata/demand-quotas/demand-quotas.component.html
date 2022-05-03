@@ -82,6 +82,13 @@
             <mat-icon>close</mat-icon>entfernen
           </button>
         </div>
+        <div>
+          <button mat-button color="primary"
+                  class="mat-button-dv"
+                  (click)="cloneDemandRateSet()">
+            <mat-icon>content_copy</mat-icon>Klonen
+          </button>
+        </div>
       </app-input-card>
       <app-input-card #propertiesCard
                       [ngClass]="{'hidden': !activeDemandRateSet}"
