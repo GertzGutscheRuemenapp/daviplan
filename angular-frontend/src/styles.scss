@@ -427,7 +427,7 @@ div.d3-tooltip, div.tooltip {
   border: solid 1px grey;
   pointer-events: none;
   //opacity: 0.9;
-  z-index: 100;
+  z-index: 1000;
   box-shadow: 0px 0px 5px 1px #a7a7a7!important;
 }
 

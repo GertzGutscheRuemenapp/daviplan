@@ -1,10 +1,12 @@
-import { AfterViewInit, Component, Input, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Input, TemplateRef, ViewChild } from '@angular/core';
 import { environment } from "../../../../../environments/environment";
 import { AgeGroup, DemandRate, DemandRateSet, Gender } from "../../../../rest-interfaces";
 import { TimeSliderComponent } from "../../../../elements/time-slider/time-slider.component";
 import { MultilineChartComponent, MultilineData } from "../../../../diagrams/multiline-chart/multiline-chart.component";
 import { sortBy } from "../../../../helpers/utils";
 import { DemandTypes } from "../../../../rest-interfaces";
+import { ConfirmDialogComponent } from "../../../../dialogs/confirm-dialog/confirm-dialog.component";
+import { MatDialog } from "@angular/material/dialog";
 
 interface Row {
   ageGroup: AgeGroup,
@@ -28,12 +30,15 @@ export class DemandRateSetViewComponent implements AfterViewInit {
   @ViewChild('timeSlider') timeSlider?: TimeSliderComponent;
   @ViewChild('yearChart') yearChart!: MultilineChartComponent;
   @ViewChild('ageGroupChart') ageGroupChart!: MultilineChartComponent;
+  @ViewChild('copyYearData') copyYearDataTemlate!: TemplateRef<any>;
   backend: string = environment.backend;
   year?: number;
   selectedAgeGroup?: AgeGroup;
   unit: string = '';
   demandTypeLabel: string = '';
   maxValue: number = 100;
+  copyFromYear: number = 0;
+  copyToYear: number = 0;
   _demandType?: 1 | 2 | 3;
   _years: number[] = [];
   _demandRateSet?: DemandRateSet;
@@ -87,7 +92,7 @@ export class DemandRateSetViewComponent implements AfterViewInit {
     this.init();
   }
 
-  constructor() { }
+  constructor(private dialog: MatDialog) { }
 
   ngAfterViewInit(): void {
     this.init();
@@ -127,26 +132,85 @@ export class DemandRateSetViewComponent implements AfterViewInit {
     if (year === null) return;
     this.year = year;
     this.setDemandRates();
+    this.updateYearDiagram();
   }
 
   changeDemandRate(value: number, ageGroup: AgeGroup, gender: Gender){
     if (!this.year) return;
     let demandRate = this.yearDemandRates.find(dr => dr.ageGroup === ageGroup.id && dr.gender === gender.id);
     // demandRate is not existing yet
-    if (!demandRate) {
-      demandRate = {
-        year: this.year,
-        ageGroup: ageGroup.id!,
-        gender: gender.id
-      }
-      this.yearDemandRates.push(demandRate);
-      // if demandRate was not found it does not exist in demandRateSet yet either
-      this._demandRateSet?.demandRates.push(demandRate);
-    }
+    if (!demandRate)
+      demandRate = this.addDemandRate(this.year!, ageGroup, gender);
     demandRate.value = Math.min(Number(value), this.maxValue);
     this.updateYearDiagram();
     if (ageGroup.id === this.selectedAgeGroup?.id)
       this.updateAgeGroupDiagram();
+  }
+
+  private addDemandRate(year: number, ageGroup: AgeGroup, gender: Gender): DemandRate {
+    let demandRate: DemandRate = {
+      year: year,
+      ageGroup: ageGroup.id!,
+      gender: gender.id
+    }
+    if (year === this.year)
+      this.yearDemandRates.push(demandRate);
+    // if demandRate was not found it does not exist in demandRateSet yet either
+    this._demandRateSet?.demandRates.push(demandRate);
+    return demandRate;
+  }
+
+  copyColumn(fromGender: Gender, toGender: Gender, options?: { fromYear?: number, toYear?: number, update?: boolean }): void {
+    const fromYear = options?.fromYear || this.year;
+    const toYear = options?.toYear || this.year;
+    const update = (options?.update !== undefined)? options.update: true;
+    let fromYearRates = this._demandRateSet!.demandRates.filter(dr => dr.year === fromYear);
+    let toYearRates = this._demandRateSet!.demandRates.filter(dr => dr.year === toYear);
+    this._ageGroups.forEach(ageGroup => {
+      const fromGroupRates = fromYearRates.filter(dr => dr.ageGroup === ageGroup.id);
+      const toGroupRates = toYearRates.filter(dr => dr.ageGroup === ageGroup.id);
+      const fromDemandRate = fromGroupRates.find(dr => dr.gender === fromGender.id);
+      let toDemandRate = toGroupRates.find(dr => dr.gender === toGender.id);
+      const value = fromDemandRate?.value || 0;
+      if (!toDemandRate)
+        toDemandRate = this.addDemandRate(this.year!, ageGroup, toGender);
+      toDemandRate.value = value;
+    })
+    if (update) {
+      this.setDemandRates();
+      this.updateYearDiagram();
+      this.updateAgeGroupDiagram();
+    }
+  }
+
+  copyYear(): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      autoFocus: false,
+      width: '270px',
+      data: {
+        title: 'Daten übertragen',
+        template: this.copyYearDataTemlate,
+        closeOnConfirm: true,
+        // message: 'Alle Einträge des links ausgewählten Jahres in das Rechte übertragen',
+        confirmButtonText: 'Übertragen'
+      }
+    });
+    dialogRef.afterOpened().subscribe(x => {
+      this.copyFromYear = this.copyToYear = this.year || 0;
+    })
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      if (this.copyFromYear === this.copyToYear) return;
+      this.copyColumn(this._genders[0], this._genders[0],
+        { fromYear: this.copyFromYear, toYear: this.copyToYear, update: false });
+      this.copyColumn(this._genders[1], this._genders[1],
+        { fromYear: this.copyFromYear, toYear: this.copyToYear, update: false });
+      if (this.copyToYear === this.year) {
+        this.setDemandRates();
+        this.updateYearDiagram();
+      }
+      this.updateAgeGroupDiagram();
+    });
   }
 
   updateYearDiagram(): void {

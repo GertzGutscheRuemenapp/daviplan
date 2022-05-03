@@ -18,3 +18,14 @@
   max-height: 700px;
   overflow-y: auto;
 }
+
+.mat-mini-fab {
+  box-shadow: none;
+}
+
+table .mat-mini-fab.small {
+  top: 5px;
+  .mat-icon {
+    margin-top: -12px;
+  }
+}
