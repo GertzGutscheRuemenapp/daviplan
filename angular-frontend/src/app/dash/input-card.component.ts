@@ -58,7 +58,7 @@ export class InputCardComponent implements AfterViewInit {
     this.dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
       width: this.dialogWidth,
-      disableClose: false,
+      disableClose: true,
       autoFocus: false,
       data: {
         title: this.dialogTitle || this.title,

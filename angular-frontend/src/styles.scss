@@ -216,7 +216,9 @@ button.large {
 }
 
 .hidden {
-  display: None!important;
+  //display: None!important;
+ opacity: 0;
+ pointer-events: none!important;
 }
 
 .fill-space {
@@ -415,6 +417,13 @@ rect.highlight{
   fill: gold!important;
 }
 
+span.male {
+  color: #2c81ff;
+}
+span.female {
+  color: #ee4a4a;
+}
+
 div.d3-tooltip, div.tooltip {
   position: absolute;
   //text-align: center;
@@ -425,7 +434,7 @@ div.d3-tooltip, div.tooltip {
   border: solid 1px grey;
   pointer-events: none;
   //opacity: 0.9;
-  z-index: 100;
+  z-index: 1000;
   box-shadow: 0px 0px 5px 1px #a7a7a7!important;
 }
 
@@ -1179,7 +1188,7 @@ mat-checkbox.reverse {
 }
 
 .deactivateOverlay, .loadOverlay {
-  position: absolute;
+  position: fixed;
   width: 100%;
   height: 100%;
   top: 0;

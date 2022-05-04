@@ -9,12 +9,8 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { MatDialog } from "@angular/material/dialog";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { DemandRateSetViewComponent } from "./demand-rate-set-view/demand-rate-set-view.component";
-
-const demandTypes = {
-  1: ['Nachfragequote', '(z.B. 30% der Kinder einer Altersklasse)'],
-  2: ['Nutzungshäufigkeit pro Einwohner', '(z.B. 15 Arztbesuche pro Jahr.)'],
-  3: ['Einwohnerzahl insgesamt', '(z.B. Brandschutz oder Einzelhandelsversorgung, keine weitere Angaben erforderlich)']
-}
+import { DemandTypes } from "../../../rest-interfaces";
+import { BehaviorSubject } from "rxjs";
 
 @Component({
   selector: 'app-demand-quotas',
@@ -27,6 +23,7 @@ export class DemandQuotasComponent implements AfterViewInit {
   @ViewChild('demandRateSetCard') demandRateSetCard?: InputCardComponent;
   @ViewChild('demandRateSetPreview') demandRateSetPreview?: DemandRateSetViewComponent;
   @ViewChild('propertiesEdit') propertiesEdit?: TemplateRef<any>;
+  isLoading$ = new BehaviorSubject<boolean>(false);
   years: number[] = [];
   genders: Gender[] = [];
   ageGroups: AgeGroup[] = [];
@@ -34,7 +31,7 @@ export class DemandQuotasComponent implements AfterViewInit {
   activeService?: Service;
   activeDemandRateSet?: DemandRateSet;
   editDemandRateSet?: DemandRateSet;
-  demandTypes = demandTypes;
+  demandTypes = DemandTypes;
   demandTypeForm: FormGroup;
   propertiesForm: FormGroup;
   demandRateSets: DemandRateSet[] = [];
@@ -55,10 +52,12 @@ export class DemandQuotasComponent implements AfterViewInit {
     this.restService.getYears().subscribe(years => this.years = years);
     this.restService.getGenders().subscribe(genders => this.genders = genders);
     this.restService.getAgeGroups().subscribe(ageGroups => this.ageGroups = ageGroups);
+    this.isLoading$.next(true);
     this.restService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures || [];
       if (infrastructures.length === 0) return;
       const services = infrastructures[0].services || [];
+      this.isLoading$.next(false);
       if (services.length > 0) {
         this.activeService = services[0];
         this.onServiceChange();
@@ -141,6 +140,9 @@ export class DemandQuotasComponent implements AfterViewInit {
         this.demandRateSetCard?.setLoading(false);
       });
     })
+    this.demandRateSetCard?.dialogClosed.subscribe(() => {
+      this.editDemandRateSet = JSON.parse(JSON.stringify(this.activeDemandRateSet));
+    })
   }
 
   createDemandRateSet(): void {
@@ -166,6 +168,60 @@ export class DemandQuotasComponent implements AfterViewInit {
         name: this.propertiesForm.value.name,
         description: this.propertiesForm.value.description || '',
         service: this.activeService?.id
+      }
+      dialogRef.componentInstance.isLoading$.next(true);
+      this.http.post<DemandRateSet>(this.rest.URLS.demandRateSets, attributes
+      ).subscribe(set => {
+        this.demandRateSets.push(set);
+        this.activeDemandRateSet = set;
+        this.onDemandRateSetChange();
+        dialogRef.close();
+      },(error) => {
+        this.propertiesForm.setErrors(error.error);
+        dialogRef.componentInstance.isLoading$.next(false);
+      });
+    });
+  }
+
+  cloneDemandRateSet(): void {
+    if (!this.activeDemandRateSet) return;
+    let dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '300px',
+      disableClose: true,
+      data: {
+        title: 'Nachfragevariante klonen',
+        template: this.propertiesEdit,
+        closeOnConfirm: false
+      }
+    });
+    dialogRef.afterOpened().subscribe(ok => {
+      let i = 2;
+      let name = '';
+      const existingNames = this.demandRateSets.map(drs => drs.name);
+      while (true) {
+        const newName = `${this.activeDemandRateSet!.name} (${i})`;
+        if (existingNames.indexOf(newName) === -1){
+          name = newName;
+          break;
+        }
+        i += 1;
+      }
+      this.propertiesForm.reset({
+        name: name,
+        description: this.activeDemandRateSet!.description,
+      });
+    });
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      this.propertiesForm.setErrors(null);
+      // display errors for all fields even if not touched
+      this.propertiesForm.markAllAsTouched();
+      if (this.propertiesForm.invalid) return;
+      let attributes: any = {
+        name: this.propertiesForm.value.name,
+        description: this.propertiesForm.value.description || '',
+        service: this.activeService?.id,
+        demandRates: this.activeDemandRateSet?.demandRates
       }
       dialogRef.componentInstance.isLoading$.next(true);
       this.http.post<DemandRateSet>(this.rest.URLS.demandRateSets, attributes
@@ -217,16 +273,20 @@ export class DemandQuotasComponent implements AfterViewInit {
       this.activeDemandRateSet = demandRateSets[0];
       this.onDemandRateSetChange();
     }
-    else
+    else {
+      this.isLoading$.next(true);
       this.restService.getDemandRateSets(this.activeService.id).subscribe(sets => {
         this.demandRateSetCache[this.activeService!.id] = sets;
         this.demandRateSets = sets;
         this.activeDemandRateSet = sets[0];
         this.onDemandRateSetChange();
+        this.isLoading$.next(false);
       });
+    }
   }
 
   onDemandRateSetChange(): void {
+    if(!this.activeDemandRateSet) return;
     // deep clone
     this.editDemandRateSet = JSON.parse(JSON.stringify(this.activeDemandRateSet));
   }
