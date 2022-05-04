@@ -108,19 +108,37 @@
       <mat-label>Quelle</mat-label>
       <input matInput type="number"
              [min]="_years[0] || 0" [max]="_years[_years.length-1] || 0"
-             [(ngModel)]="processFromYear">
+             [(ngModel)]="copyFromYear">
     </mat-form-field>
     <mat-icon style="margin: 0 10px; align-self: center;">keyboard_double_arrow_right</mat-icon>
     <mat-form-field class="small" appearance="outline" style="width: 80px;">
       <mat-label>Ziel</mat-label>
       <input matInput type="number"
              [min]="_years[0] || 0" [max]="_years[_years.length-1] || 0"
-             [(ngModel)]="processToYear">
+             [(ngModel)]="copyToYear">
     </mat-form-field>
   </div>
   <mat-checkbox color="primary"
                 [(ngModel)]="applyCopyInBetween">
-    Auf alle Jahre dazwischen übertragen
+    Daten auch auf alle Jahre dazwischen übertragen
   </mat-checkbox>
 </ng-template>
 
+<ng-template #interpolateYearDataTemplate>
+  <div style="display: flex">
+    <mat-form-field class="small" appearance="outline" style="width: 80px;">
+      <mat-label>Quelle</mat-label>
+      <input matInput type="number"
+             [min]="_years[0] || 0" [max]="_years[_years.length-1] || 0"
+             [(ngModel)]="interpolateFromYear">
+    </mat-form-field>
+    <mat-icon style="margin-left: 10px; align-self: center;">chevron_left</mat-icon>
+    <mat-icon style="margin-right: 10px; align-self: center;">chevron_right</mat-icon>
+    <mat-form-field class="small" appearance="outline" style="width: 80px;">
+      <mat-label>Ziel</mat-label>
+      <input matInput type="number"
+             [min]="_years[0] || 0" [max]="_years[_years.length-1] || 0"
+             [(ngModel)]="interpolateToYear">
+    </mat-form-field>
+  </div>
+</ng-template>

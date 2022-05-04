@@ -140,6 +140,9 @@ export class DemandQuotasComponent implements AfterViewInit {
         this.demandRateSetCard?.setLoading(false);
       });
     })
+    this.demandRateSetCard?.dialogClosed.subscribe(() => {
+      this.editDemandRateSet = JSON.parse(JSON.stringify(this.activeDemandRateSet));
+    })
   }
 
   createDemandRateSet(): void {
