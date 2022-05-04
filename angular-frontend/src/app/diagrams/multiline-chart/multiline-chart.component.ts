@@ -203,8 +203,8 @@ export class MultilineChartComponent implements AfterViewInit {
         text += `<b style="color: ${color}">${label}</b>: ${formatter(groupData.values[j])}${(_this.unit)? _this.unit : ''}<br>`;
       })
       tooltip.html(text);
-      tooltip.style('left', event.pageX - 70 + 'px')
-        .style('top', event.pageY + 20 + 'px');
+      tooltip.style('left', event.pageX + 20 + 'px')
+        .style('top', event.pageY + 10 + 'px');
     }
 
     this.labels.forEach((label, i)=>{

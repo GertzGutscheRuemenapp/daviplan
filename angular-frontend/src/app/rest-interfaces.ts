@@ -3,7 +3,7 @@ import { Geometry } from "ol/geom";
 
 export const DemandTypes = {
   1: ['Nachfragequote', '(z.B. 30% der Kinder einer Altersklasse)'],
-  2: ['Nutzungshäufigkeit pro Einwohner', '(z.B. 15 Arztbesuche pro Jahr.)'],
+  2: ['Nutzungshäufigkeit pro Einwohner und Jahr', '(z.B. 15 Arztbesuche pro Einwohner und Jahr.)'],
   3: ['Einwohnerzahl insgesamt', '(z.B. Brandschutz oder Einzelhandelsversorgung, keine weitere Angaben erforderlich)']
 }
 

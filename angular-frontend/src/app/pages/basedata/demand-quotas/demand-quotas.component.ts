@@ -283,6 +283,7 @@ export class DemandQuotasComponent implements AfterViewInit {
   }
 
   onDemandRateSetChange(): void {
+    if(!this.activeDemandRateSet) return;
     // deep clone
     this.editDemandRateSet = JSON.parse(JSON.stringify(this.activeDemandRateSet));
   }

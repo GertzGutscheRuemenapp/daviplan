@@ -164,8 +164,8 @@ export class AgeTreeComponent implements AfterViewInit {
       .style("display", 'none');
 
     function onMouseMove(this: any, event: MouseEvent){
-      tooltip.style('left', (event.pageX + 10) + 'px')
-        .style('top', (event.pageY - parseInt(tooltip.style('height'))) + 'px');
+      tooltip.style('left', event.pageX + 20 + 'px')
+        .style('top', event.pageY + 10 + 'px');
     }
 
     const mouseOverBar = function (event: MouseEvent, d: any) {
@@ -177,9 +177,9 @@ export class AgeTreeComponent implements AfterViewInit {
       leftBar.selectAll('rect').classed('highlight', true);
       rightBar.selectAll('rect').classed('highlight', true);
 
-      let text = `${labels[i]} <br>`;
-      text += `<span class="female">Anzahl weiblich:</span><b> ${femaleAges[i]} </b><br>`;
-      text += `<span class="male">Anzahl männlich:</span><b> ${maleAges[i]} </b><br>`;
+      let text = `<b>${labels[i]}</b><br>`;
+      text += `<span class="female"><b>Anzahl weiblich:</b></span> ${femaleAges[i]}<br>`;
+      text += `<span class="male"><b>Anzahl männlich:</b></span> ${maleAges[i]}<br>`;
 
       tooltip.style("display", null);
       tooltip.html(text);

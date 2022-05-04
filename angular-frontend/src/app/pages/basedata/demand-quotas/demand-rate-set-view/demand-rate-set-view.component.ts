@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, Input, TemplateRef, ViewChild } from '@angular/core';
 import { environment } from "../../../../../environments/environment";
-import { AgeGroup, DemandRate, DemandRateSet, Gender } from "../../../../rest-interfaces";
+import { AgeGroup, DemandRate, DemandRateSet, Gender, Service } from "../../../../rest-interfaces";
 import { TimeSliderComponent } from "../../../../elements/time-slider/time-slider.component";
 import { MultilineChartComponent, MultilineData } from "../../../../diagrams/multiline-chart/multiline-chart.component";
 import { sortBy } from "../../../../helpers/utils";
@@ -39,7 +39,8 @@ export class DemandRateSetViewComponent implements AfterViewInit {
   maxValue: number = 100;
   processFromYear: number = 0;
   processToYear: number = 0;
-  _demandType?: 1 | 2 | 3;
+  applyCopyInBetween: boolean = false;
+  _service?: Service;
   _years: number[] = [];
   _demandRateSet?: DemandRateSet;
   _genders: Gender[] = [];
@@ -51,8 +52,10 @@ export class DemandRateSetViewComponent implements AfterViewInit {
 
   @Input() set years(years: number[]) {
     this._years = years;
-    if (years.length > 0) this.year = years[0];
-    this.init();
+    if (years.length > 0) {
+      this.year = years[0];
+      this.init();
+    }
   }
 
   @Input() set demandRateSet(set: DemandRateSet | undefined) {
@@ -72,24 +75,26 @@ export class DemandRateSetViewComponent implements AfterViewInit {
           (gender.name === 'männlich') ? '#2c81ff' :
             (gender.name === 'weiblich') ? '#ee4a4a' : 'black')
       })
+      this.init();
     }
-    this.init();
   }
 
   @Input() set ageGroups(ageGroups: AgeGroup[]) {
     this._ageGroups = ageGroups;
-    if (ageGroups.length > 0) this.selectedAgeGroup = ageGroups[0];
-    this.init();
+    if (ageGroups.length > 0) {
+      this.selectedAgeGroup = ageGroups[0];
+      this.init();
+    }
   }
 
-  @Input() set demandType(demandType: 1 | 2 | 3) {
-    this._demandType = demandType;
-    if (demandType) {
-      this.unit = (demandType === 1)? '%': '';
-      this.demandTypeLabel = DemandTypes[demandType][0];
-      this.maxValue = (demandType === 1)? 999: 9999;
+  @Input() set service(service: Service | undefined) {
+    if (service) {
+      this._service = service;
+      this.unit = (this._service.demandType === 1)? '%': '';
+      this.demandTypeLabel = DemandTypes[this._service.demandType][0];
+      this.maxValue = (this._service.demandType === 1)? 999: 9999;
+      this.init();
     }
-    this.init();
   }
 
   constructor(private dialog: MatDialog) { }
@@ -100,7 +105,7 @@ export class DemandRateSetViewComponent implements AfterViewInit {
 
   init(): void {
     if (!this.year || !this._demandRateSet || this._genders.length === 0 ||
-      this._ageGroups.length === 0 || !this._demandType)
+      this._ageGroups.length === 0 || !this._service)
       return;
     this.setDemandRates();
     this.updateYearDiagram();
@@ -161,8 +166,8 @@ export class DemandRateSetViewComponent implements AfterViewInit {
   }
 
   copyColumn(fromGender: Gender, toGender: Gender, options?: { fromYear?: number, toYear?: number, update?: boolean }): void {
-    const fromYear = options?.fromYear || this.year;
-    const toYear = options?.toYear || this.year;
+    const fromYear = options?.fromYear || this.year!;
+    const toYear = options?.toYear || this.year!;
     const update = (options?.update !== undefined)? options.update: true;
     let fromYearRates = this._demandRateSet!.demandRates.filter(dr => dr.year === fromYear);
     let toYearRates = this._demandRateSet!.demandRates.filter(dr => dr.year === toYear);
@@ -173,7 +178,7 @@ export class DemandRateSetViewComponent implements AfterViewInit {
       let toDemandRate = toGroupRates.find(dr => dr.gender === toGender.id);
       const value = fromDemandRate?.value || 0;
       if (!toDemandRate)
-        toDemandRate = this.addDemandRate(this.year!, ageGroup, toGender);
+        toDemandRate = this.addDemandRate(toYear, ageGroup, toGender);
       toDemandRate.value = value;
     })
     if (update) {
@@ -201,15 +206,18 @@ export class DemandRateSetViewComponent implements AfterViewInit {
     })
     dialogRef.componentInstance.confirmed.subscribe(() => {
       if (this.processFromYear === this.processToYear) return;
-      this.copyColumn(this._genders[0], this._genders[0],
-        { fromYear: this.processFromYear, toYear: this.processToYear, update: false });
-      this.copyColumn(this._genders[1], this._genders[1],
-        { fromYear: this.processFromYear, toYear: this.processToYear, update: false });
-      if (this.processToYear === this.year) {
-        this.setDemandRates();
-        this.updateYearDiagram();
-      }
-      this.updateAgeGroupDiagram();
+      const years = this.applyCopyInBetween? [...Array(this.processToYear-this.processFromYear-1).keys()].map(i => i + this.processFromYear + 1): [this.processToYear];
+      years.forEach(year => {
+        this.copyColumn(this._genders[0], this._genders[0],
+          { fromYear: this.processFromYear, toYear: year, update: false });
+        this.copyColumn(this._genders[1], this._genders[1],
+          { fromYear: this.processFromYear, toYear: year, update: false });
+        if (this.processToYear === this.year) {
+          this.setDemandRates();
+          this.updateYearDiagram();
+        }
+        this.updateAgeGroupDiagram();
+      })
     });
   }
 
@@ -267,7 +275,7 @@ export class DemandRateSetViewComponent implements AfterViewInit {
     })
     this.yearChart.colors = this.genderColors;
     this.yearChart.title = `${this.demandTypeLabel} nach Altersgruppen`;
-    this.yearChart.subtitle = `im Jahr ${this.year}`;
+    this.yearChart.subtitle = `${this._service?.name} im Jahr ${this.year}`;
     this.yearChart.labels = this._genders.map(g => g.name);
     this.yearChart.draw(data);
   }
@@ -293,7 +301,7 @@ export class DemandRateSetViewComponent implements AfterViewInit {
     })
     this.ageGroupChart.title = this.demandTypeLabel;
     this.ageGroupChart.colors = this.genderColors;
-    this.ageGroupChart.subtitle = this.selectedAgeGroup.label || '';
+    this.ageGroupChart.subtitle = `${this._service?.name}, ${this.selectedAgeGroup.label}` ;
     this.ageGroupChart.labels = this._genders.map(g => g.name);
     this.ageGroupChart.draw(data);
   }

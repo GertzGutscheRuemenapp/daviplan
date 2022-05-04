@@ -50,7 +50,8 @@
         <td style="text-align: end;">{{row.ageGroup.label}}</td>
         <td *ngFor="let entry of row.entries">
           <ng-container *ngIf="!edit">
-            {{(entry.value !== undefined)? entry.value: 'null'}}
+            {{(entry.value !== undefined)? entry.value: 0 }}
+<!--            'null'}}-->
           </ng-container>
           <ng-container *ngIf="edit">
             <mat-form-field class="small" appearance="outline" style="width: 80px; margin-right: 3px;">
@@ -117,5 +118,9 @@
              [(ngModel)]="processToYear">
     </mat-form-field>
   </div>
+  <mat-checkbox color="primary"
+                [(ngModel)]="applyCopyInBetween">
+    Auf alle Jahre dazwischen übertragen
+  </mat-checkbox>
 </ng-template>
 
