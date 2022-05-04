@@ -1,5 +1,10 @@
 @import "~src/constants";
 
+#year-select {
+  min-height: 200px;
+  max-height: 340px;
+}
+
 #base-statistics-map {
   margin-top: 10px;
   width: 100%;

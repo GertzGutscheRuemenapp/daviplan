@@ -117,7 +117,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
          this.theme === 'migration' && !this.showImmigration && !this.showEmigration){
       return;
     }
-    this.populationService.getStatistics({ year: this.year! }).subscribe(statistics => {
+    this.populationService.getStatisticsData({ year: this.year! }).subscribe(statistics => {
       let descr = '';
       let max: number;
       let color: string;
@@ -200,7 +200,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
 
   updateDiagrams(): void {
     if (!this.activeArea) return;
-    this.populationService.getStatistics({ areaId: this.activeArea.id }).subscribe(statistics => {
+    this.populationService.getStatisticsData({ areaId: this.activeArea.id }).subscribe(statistics => {
       let totalData: MultilineData[] = [];
       let balanceData: BalanceChartData[] = [];
       let maxTotal = 0, minTotal = 0, maxValue = 0, minValue = 0;

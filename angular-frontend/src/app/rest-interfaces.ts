@@ -166,6 +166,11 @@ export interface PopulationData {
   value: number
 }
 
+export interface Statistic {
+  id: number,
+  year: number
+}
+
 export interface StatisticsData {
   id: number,
   popstatistic: number,

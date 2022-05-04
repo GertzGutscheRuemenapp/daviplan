@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
 import {
   Place, AreaLevel, Area, Gender, AreaIndicatorData, PopulationData, AgeGroup,
-  Infrastructure, Service, Capacity, Prognosis, StatisticsData, DemandRateSet
+  Infrastructure, Service, Capacity, Prognosis, StatisticsData, DemandRateSet, Statistic
 } from "./rest-interfaces";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
@@ -55,12 +55,12 @@ export class RestCacheService {
     return this.getCachedData<Prognosis[]>(url);
   }
 
-  getYears(options?: { params: string }): Observable<number[]> {
+  getYears(options?: { params?: string, reset?: boolean }): Observable<number[]> {
     let url = this.rest.URLS.years;
     // ToDo: pass params as list of dicts
     if (options?.params)
       url += `?${options.params}`;
-    const query = this.getCachedData<any[]>(url);
+    const query = this.getCachedData<any[]>(url, { reset: options?.reset });
     return query.pipe(map(years => {
       const ys = years.map( year => { return year.year });
       return ys.sort();
@@ -311,7 +311,12 @@ export class RestCacheService {
     return this.getCachedData<DemandRateSet[]>(url, options);
   }
 
-  getStatistics(options?: { year?: number, areaId?: number }): Observable<StatisticsData[]> {
+  getStatistics(options?: { reset?: boolean }): Observable<Statistic[]>{
+    const url = this.rest.URLS.statistics;
+    return this.getCachedData<Statistic[]>(url, options);
+  }
+
+  getStatisticsData(options?: { year?: number, areaId?: number }): Observable<StatisticsData[]> {
     const key = `${options?.areaId}-${options?.year}`;
     const observable = new Observable<StatisticsData[]>(subscriber => {
       const cached = this.statisticsCache[key];
@@ -333,7 +338,6 @@ export class RestCacheService {
         subscriber.next(cached);
         subscriber.complete();
       }
-
     })
     return observable;
   }
