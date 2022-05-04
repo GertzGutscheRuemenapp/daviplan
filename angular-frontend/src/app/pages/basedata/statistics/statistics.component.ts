@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { environment } from "../../../../environments/environment";
 import { MapControl, MapService } from "../../../map/map.service";
 import { RestCacheService } from "../../../rest-cache.service";
@@ -7,6 +7,8 @@ import { sortBy } from "../../../helpers/utils";
 import * as d3 from "d3";
 import { SettingsService } from "../../../settings.service";
 import { BehaviorSubject } from "rxjs";
+import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
+import { MatDialog } from "@angular/material/dialog";
 
 @Component({
   selector: 'app-statistics',
@@ -14,6 +16,7 @@ import { BehaviorSubject } from "rxjs";
   styleUrls: ['./statistics.component.scss']
 })
 export class StatisticsComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
   backend: string = environment.backend;
   mapControl?: MapControl;
   statistics?: Statistic[];
@@ -29,9 +32,11 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
   showImmigration: boolean = true;
   showEmigration: boolean = true;
   isLoading$ = new BehaviorSubject<boolean>(false);
+  dataColumns: string[] = ['Gebiet', 'AGS', 'Geburten', 'Sterbefälle', 'Zuzüge', 'Fortzüge'];
+  dataRows: any[][] = [];
 
   constructor(private mapService: MapService, private restService: RestCacheService,
-              private settings: SettingsService) { }
+              private settings: SettingsService, private dialog: MatDialog) { }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-statistics-map');
@@ -42,6 +47,7 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
     this.isLoading$.next(true);
     this.settings.baseDataSettings$.subscribe(baseSettings => {
       const baseLevel = baseSettings.popStatisticsAreaLevel;
+      // ToDo: warn if areas are empty, disable pull
       this.restService.getAreaLevels({ active: true }).subscribe(areaLevels => {
         this.areaLevel = areaLevels.find(al => al.id === baseLevel);
         this.restService.getAreas(baseLevel,
@@ -68,6 +74,13 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
     this.isLoading$.next(true);
     this.restService.getStatisticsData({ year: this.year! }).subscribe(data => {
       this.statisticsData = data;
+      this.dataRows = [];
+      data.forEach(stat => {
+        const area = this.areas.find(a => a.id === stat.area);
+        if (!area) return;
+        this.dataRows.push([area.properties.label, area.properties.attributes.ags || '',
+          stat.births, stat.deaths, stat.immigration, stat.emigration])
+      });
       this.isLoading$.next(false);
       this.updateMap();
     })
@@ -79,7 +92,11 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
       this.mapControl?.removeLayer(this.statisticsLayer.id!);
       this.statisticsLayer = undefined;
     }
-    if (!this.statisticsData) return;
+    if (!this.statisticsData ||
+      (this.theme === 'nature' && !this.showBirths && !this.showDeaths) ||
+      this.theme === 'migration' && !this.showImmigration && !this.showEmigration){
+      return;
+    }
     this.isLoading$.next(true);
     let descr = '';
     let max: number;
@@ -147,6 +164,22 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
     this.mapControl?.addFeatures(this.statisticsLayer!.id!, this.areas,
       { properties: 'properties', geometry: 'centroid', zIndex: 'value' });
     this.isLoading$.next(false);
+  }
+
+  showDataTable(): void {
+    if (!this.year) return;
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '400',
+      disableClose: false,
+      autoFocus: false,
+      data: {
+        title: `Datentabelle Statistiken im Jahr "${this.year}"`,
+        template: this.dataTemplate,
+        hideConfirmButton: true,
+        cancelButtonText: 'OK'
+      }
+    });
   }
 
   ngOnDestroy(): void {
