@@ -259,7 +259,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
     this.http.post(url, { area_level: this.popLevel.id, years: this.realYears }, { responseType: 'blob' }).subscribe((res:any) => {
       const blob: any = new Blob([res],{ type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       this.popService.setLoading(false);
-      fileSaver.saveAs(blob, 'template.xlsx');
+      fileSaver.saveAs(blob, 'realdaten-template.xlsx');
     },(error) => {
       this.popService.setLoading(false);
     });

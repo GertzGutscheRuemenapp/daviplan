@@ -25,6 +25,7 @@ import * as d3 from "d3";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { BehaviorSubject } from "rxjs";
+import * as fileSaver from "file-saver";
 
 @Component({
   selector: 'app-prognosis-data',
@@ -418,6 +419,19 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       this.dataRows = rows;
       this.isLoading$.next(false);
     })
+  }
+
+  downloadTemplate(): void {
+    if (!(this.popLevel && this.activePrognosis)) return;
+    const url = `${this.rest.URLS.popEntries}create_template/`;
+    this.popService.setLoading(true);
+    this.http.post(url, { area_level: this.popLevel.id, years: this.prognosisYears, prognosis: this.activePrognosis.id }, { responseType: 'blob' }).subscribe((res:any) => {
+      const blob: any = new Blob([res],{ type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      this.popService.setLoading(false);
+      fileSaver.saveAs(blob, 'prognosedaten-template.xlsx');
+    },(error) => {
+      this.popService.setLoading(false);
+    });
   }
 
   ngOnDestroy(): void {
