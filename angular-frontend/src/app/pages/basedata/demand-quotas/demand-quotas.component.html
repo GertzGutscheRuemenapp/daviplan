@@ -49,12 +49,7 @@
   <div fxLayout="row wrap">
     <div fxLayout="column" fxFlex="350px">
       <app-input-card [title]="'Varianten'"
-                      [subtitle]="'Leistung ' + activeService?.name"
-                      infoText="<p>Klicken Sie auf „Hinzufügen“, um ein Nachfragequoten-Set zu definieren. </p>
-                    <p>Ein Nachfragequoten-Set legt die Nachfragequote für jede in der Box „Definition der Nachfragequote für ausgewählte Leistung“ ausgewählte Altersgruppe sowie für jedes Prognosejahr fest. Sofern in der Box „Einwohner-Differenzierung“ für die Leistung eine geschlechterspezifische Differenzierung der Quoten ausgewählt wurde, sind dabei die Nachfragequoten auch nach Geschlecht zu differenzieren.</p>
-                    <p>Für jede Leistung muss mindestens ein Nachfragequoten-Set definiert sein. </p>
-                    <p>Im Sinne von Szenarien können für eine Leistung auch mehrere Nachfragequoten-Sets definiert werden, auf die die Nutzer*innen im Hauptmenüabschnitt „Infrastrukturplanung“ dann für alternative Planungs- und Auswertungsvarianten zurückgreifen können.</p>
-                    <p>Wenn Sie für eine Leistung mehr als ein Nachfragequoten-Set definieren, müssen Sie noch festlegen, welches Set davon für das im Hauptmenüabschnitt „Infrastrukturplanung“ immer automatisch erzeugte Planungsszenario „Trendfortschreibung“ verwendet werden soll. Wählen Sie hierzu das betreffende Set in der Liste aus und klicken Sie auf „Als Annahme für Trendfortschreibung festlegen“</p>">
+                      [subtitle]="'Leistung ' + activeService?.name">
         {{activeDemandRateSet?.name}}
         <mat-selection-list [multiple]="false" id="quota-select">
           <mat-list-option *ngFor="let set of demandRateSets"
@@ -75,43 +70,56 @@
         <div>
           <button mat-button color="primary"
                   class="mat-button-dv"
+                  title="Nachfragevariante hinzufügen"
                   (click)="createDemandRateSet()">
-            <mat-icon>add</mat-icon>hinzufügen
+            <mat-icon>add</mat-icon>hinzuf.
+          </button>
+          <button mat-button color="primary"
+                  class="mat-button-dv"
+                  title="Ausgewählte Nachfragevariante duplizieren"
+                  [disabled]="!activeDemandRateSet"
+                  (click)="cloneDemandRateSet()">
+            <mat-icon>content_copy</mat-icon>Klonen
           </button>
           <button mat-button color="primary"
                   style="float: right;"
+                  title="Ausgewählte Nachfragevariante löschen"
                   class="mat-button-dv"
+                  [disabled]="!activeDemandRateSet"
                   (click)="removeDemandRateSet()">
             <mat-icon>close</mat-icon>entfernen
           </button>
         </div>
-        <div>
-          <button mat-button color="primary"
-                  class="mat-button-dv"
-                  (click)="cloneDemandRateSet()">
-            <mat-icon>content_copy</mat-icon>Klonen
-          </button>
+        <div after>
+          <mat-divider style="margin: 10px 0;"></mat-divider>
+          <div style="padding: 10px 0;">
+            <app-input-card #propertiesCard
+                            [ngClass]="{'hidden': !activeDemandRateSet}"
+                            [borderless]="true"
+                            [subtitle]="'Bezeichnung der ausgewählten Variante'"
+                            [editTemplate]="propertiesEdit"
+                            infoText="<p>Klicken Sie auf „Hinzufügen“, um ein Nachfragequoten-Set zu definieren. </p>
+                          <p>Ein Nachfragequoten-Set legt die Nachfragequote für jede in der Box „Definition der Nachfragequote für ausgewählte Leistung“ ausgewählte Altersgruppe sowie für jedes Prognosejahr fest. Sofern in der Box „Einwohner-Differenzierung“ für die Leistung eine geschlechterspezifische Differenzierung der Quoten ausgewählt wurde, sind dabei die Nachfragequoten auch nach Geschlecht zu differenzieren.</p>
+                          <p>Für jede Leistung muss mindestens ein Nachfragequoten-Set definiert sein. </p>
+                          <p>Im Sinne von Szenarien können für eine Leistung auch mehrere Nachfragequoten-Sets definiert werden, auf die die Nutzer*innen im Hauptmenüabschnitt „Infrastrukturplanung“ dann für alternative Planungs- und Auswertungsvarianten zurückgreifen können.</p>
+                          <p>Wenn Sie für eine Leistung mehr als ein Nachfragequoten-Set definieren, müssen Sie noch festlegen, welches Set davon für das im Hauptmenüabschnitt „Infrastrukturplanung“ immer automatisch erzeugte Planungsszenario „Trendfortschreibung“ verwendet werden soll. Wählen Sie hierzu das betreffende Set in der Liste aus und klicken Sie auf „Als Annahme für Trendfortschreibung festlegen“</p>">
+              <table *ngIf="activeDemandRateSet">
+                <tr>
+                  <td>Name</td>
+                  <td>{{activeDemandRateSet.name}}</td>
+                </tr>
+                <tr>
+                  <td>Beschreibung</td>
+                  <td>
+                    <div style="overflow: hidden; -webkit-line-clamp: 5; -webkit-box-orient: vertical; display: -webkit-box;">
+                      {{activeDemandRateSet.description}}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </app-input-card>
+          </div>
         </div>
-      </app-input-card>
-      <app-input-card #propertiesCard
-                      [ngClass]="{'hidden': !activeDemandRateSet}"
-                      [title]="'Bezeichnung der ausgewählten Variante'"
-                      [editTemplate]="propertiesEdit"
-                      infoText="Platzhalter">
-        <table *ngIf="activeDemandRateSet">
-          <tr>
-            <td>Name</td>
-            <td>{{activeDemandRateSet.name}}</td>
-          </tr>
-          <tr>
-            <td>Beschreibung</td>
-            <td>
-              <div style="overflow: hidden; -webkit-line-clamp: 5; -webkit-box-orient: vertical; display: -webkit-box;">
-                {{activeDemandRateSet.description}}
-              </div>
-            </td>
-          </tr>
-        </table>
       </app-input-card>
     </div>
     <div fxLayout="column" fxFlex="900px" [ngClass]="{'hidden': !activeDemandRateSet}">
