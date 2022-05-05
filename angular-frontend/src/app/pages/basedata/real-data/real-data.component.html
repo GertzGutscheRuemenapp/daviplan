@@ -85,8 +85,9 @@
               <mat-icon>upload</mat-icon> Daten hochladen
             </button>
           </div>
-          <button class="mat-button-dv" disabled
-                  mat-button color="primary" i18n>
+          <button class="mat-button-dv"
+                  mat-button color="primary"
+                  (click)="showDataTable()">
             <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
           </button>
 <!--          <button mat-mini-fab color="primary"
@@ -215,4 +216,23 @@
   <p>
     Achtung: bereits eingespielte Realdaten werden überschrieben!
   </p>
+</ng-template>
+
+<ng-template #dataTemplate>
+  <div class="loadOverlay" *ngIf="isLoading$ | async">
+    <mat-spinner [diameter]="50"></mat-spinner>
+  </div>
+  <mat-form-field appearance="outline" class="small" style="margin-right: 10px;">
+    <mat-label>Jahr</mat-label>
+    <mat-select disableOptionCentering disableRipple
+                [(ngModel)]="dataYear"
+                (ngModelChange)="updateTableData()">
+      <ng-container *ngFor="let year of years">
+        <mat-option *ngIf="year.isReal" [value]="year">
+          {{year.year}}
+        </mat-option>
+      </ng-container>
+    </mat-select>
+  </mat-form-field>
+  <app-data-table [columns]="dataColumns" [rows]="dataRows"></app-data-table>
 </ng-template>

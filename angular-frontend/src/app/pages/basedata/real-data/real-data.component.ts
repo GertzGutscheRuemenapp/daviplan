@@ -25,6 +25,7 @@ import { AgeTreeComponent, AgeTreeData } from "../../../diagrams/age-tree/age-tr
 import { sortBy } from "../../../helpers/utils";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { Router } from "@angular/router";
+import { BehaviorSubject } from "rxjs";
 
 @Component({
   selector: 'app-real-data',
@@ -35,6 +36,8 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   @ViewChild('yearCard') yearCard?: InputCardComponent;
   @ViewChild('ageTree') ageTree?: AgeTreeComponent;
   @ViewChild('pullServiceTemplate') pullServiceTemplate?: TemplateRef<any>;
+  @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
+  isLoading$ = new BehaviorSubject<boolean>(false);
   backend: string = environment.backend;
   mapControl?: MapControl;
   years: Year[] = [];
@@ -56,6 +59,9 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   maxYear = new Date().getFullYear() - 1;
   pullErrors: any = {};
   Object = Object;
+  dataColumns: string[] = [];
+  dataRows: any[][] = [];
+  dataYear?: Year;
 
   constructor(private mapService: MapService, public popService: PopulationService,
               private dialog: MatDialog, private settings: SettingsService,
@@ -85,9 +91,13 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
     this.previewArea = undefined;
     this.ageTree?.clear();
     this.updatePreview();
+    this.dataColumns = ['Gebiet']
     this.popService.getGenders().subscribe(genders => {
       this.genders = genders;
       this.popService.getAgeGroups().subscribe(ageGroups => {
+        this.genders.forEach(gender => {
+          this.dataColumns = this.dataColumns.concat(ageGroups.map(ag => `${ag.label} (${gender.name})`));
+        })
         this.ageGroups = sortBy(ageGroups, 'fromAge');
         this.http.get<Year[]>(this.rest.URLS.years).subscribe(years => {
           this.years = [];
@@ -157,6 +167,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
           if(year === this.previewYear) {
             this.previewYear = undefined;
             this.ageTree?.clear();
+            this.dataRows = [];
             this.updatePreview();
           }
         },(error) => {
@@ -181,9 +192,10 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         this.popEntries[pe.area].push(pe);
       })
       let max = 1000;
+      this.dataRows = [];
       this.areas.forEach(area => {
         const entries = this.popEntries[area.id];
-        if (!entries) return;
+        // map data
         const value = entries.reduce((p: number, e: PopEntry) => p + e.value, 0);
         area.properties.value = value;
         area.properties.description = `<b>${area.properties.label}</b><br>Bevölkerung: ${area.properties.value}`
@@ -302,5 +314,47 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.mapControl?.destroy();
+  }
+
+  showDataTable(): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '400',
+      disableClose: false,
+      autoFocus: false,
+      data: {
+        title: `Datentabelle Realdaten`,
+        template: this.dataTemplate,
+        hideConfirmButton: true,
+        cancelButtonText: 'OK'
+      }
+    });
+  }
+
+  updateTableData(): void {
+    this.dataRows = [];
+    if (!this.dataYear) return;
+    const population = this.populations.find(p => p.year === this.dataYear!.id);
+    if (!population) return;
+    let rows: any[][] = [];
+    this.isLoading$.next(true);
+    this.popService.getPopEntries(population.id).subscribe(popEntries => {
+      this.areas.forEach(area => {
+        const entries = popEntries.filter(e => e.area === area.id);
+        const row: any[] = [area.properties.label]
+        if (!entries) return;
+        // table data
+        this.genders.forEach(gender => {
+          const gEntries = entries.filter(e => e.gender === gender.id);
+          this.ageGroups.forEach(ageGroup => {
+            const entry = gEntries.find(e => e.ageGroup === ageGroup.id);
+            row.push(entry?.value || 0);
+          })
+        })
+        rows.push(row);
+      })
+      this.dataRows = rows;
+      this.isLoading$.next(false);
+    })
   }
 }
