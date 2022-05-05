@@ -24,6 +24,7 @@ import { AgeTreeComponent, AgeTreeData } from "../../../diagrams/age-tree/age-tr
 import * as d3 from "d3";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
+import { BehaviorSubject } from "rxjs";
 
 @Component({
   selector: 'app-prognosis-data',
@@ -35,6 +36,8 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   @ViewChild('ageTree') ageTree?: AgeTreeComponent;
   @ViewChild('propertiesEdit') propertiesEdit?: TemplateRef<any>;
   @ViewChild('propertiesCard') propertiesCard?: InputCardComponent;
+  @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
+  isLoading$ = new BehaviorSubject<boolean>(false);
   mapControl?: MapControl;
   legendGroup?: LayerGroup;
   activePrognosis?: Prognosis;
@@ -119,6 +122,8 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   }
 
   onPrognosisChange() {
+    // this.previewArea = undefined;
+    this.ageTree?.clear();
     this.updatePreview();
   }
 
@@ -204,6 +209,8 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
         });
       this.mapControl?.addFeatures(this.previewLayer!.id!, this.areas,
         { properties: 'properties', geometry: 'centroid', zIndex: 'value' });
+      if (this.previewArea)
+        this.mapControl?.selectFeatures([this.previewArea.id], this.previewLayer!.id!, { silent: true });
       this.updateAgeTree();
       this.previewLayer!.featureSelected?.subscribe(evt => {
         if (evt.selected) {
@@ -368,6 +375,49 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
         });
       }
     });
+  }
+
+  showDataTable(): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '400',
+      disableClose: false,
+      autoFocus: false,
+      data: {
+        title: `Datentabelle Realdaten`,
+        template: this.dataTemplate,
+        hideConfirmButton: true,
+        cancelButtonText: 'OK'
+      }
+    });
+    dialogRef.afterOpened().subscribe(()=> this.updateTableData())
+  }
+
+  updateTableData(): void {
+    this.dataRows = [];
+    if (!this.dataYear) return;
+    const population = this.populations.find(p => p.year === this.dataYear!.id && p.prognosis === this.activePrognosis!.id);
+    if (!population) return;
+    let rows: any[][] = [];
+    this.isLoading$.next(true);
+    this.popService.getPopEntries(population.id).subscribe(popEntries => {
+      this.areas.forEach(area => {
+        const entries = popEntries.filter(e => e.area === area.id);
+        const row: any[] = [area.properties.label]
+        if (!entries) return;
+        // table data
+        this.genders.forEach(gender => {
+          const gEntries = entries.filter(e => e.gender === gender.id);
+          this.ageGroups.forEach(ageGroup => {
+            const entry = gEntries.find(e => e.ageGroup === ageGroup.id);
+            row.push(entry?.value || 0);
+          })
+        })
+        rows.push(row);
+      })
+      this.dataRows = rows;
+      this.isLoading$.next(false);
+    })
   }
 
   ngOnDestroy(): void {

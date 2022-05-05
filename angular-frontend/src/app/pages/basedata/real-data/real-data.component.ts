@@ -329,6 +329,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         cancelButtonText: 'OK'
       }
     });
+    dialogRef.afterOpened().subscribe(()=> this.updateTableData())
   }
 
   updateTableData(): void {
