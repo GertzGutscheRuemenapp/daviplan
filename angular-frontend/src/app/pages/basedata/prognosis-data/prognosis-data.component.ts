@@ -138,15 +138,17 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       const progYears = this.yearSelection.selected;
       this.http.post<Year[]>(`${this.rest.URLS.years}set_prognosis_years/`, { years: progYears }
       ).subscribe(years => {
+        this.years.forEach(y => y.isPrognosis = false);
         this.prognosisYears = [];
         years.forEach(ry => {
-          this.prognosisYears.push(ry.year);
+          if (ry.isPrognosis) this.prognosisYears.push(ry.year);
           const year = this.years.find(y => y.id === ry.id);
           if (year)
             Object.assign(year, ry);
         })
         this.prognosisYears.sort();
         this.previewYear = undefined;
+        this.dataYear = undefined;
         this.ageTree?.clear();
         this.updatePreview();
         this.yearCard?.closeDialog(true);

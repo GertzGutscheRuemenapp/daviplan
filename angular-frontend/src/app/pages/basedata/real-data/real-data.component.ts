@@ -137,6 +137,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         })
         this.realYears.sort();
         this.previewYear = undefined;
+        this.dataYear = undefined;
         this.ageTree?.clear();
         this.updatePreview();
         this.yearCard?.closeDialog(true);
