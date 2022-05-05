@@ -278,7 +278,8 @@ export class DemandQuotasComponent implements AfterViewInit {
       this.restService.getDemandRateSets(this.activeService.id).subscribe(sets => {
         this.demandRateSetCache[this.activeService!.id] = sets;
         this.demandRateSets = sets;
-        this.activeDemandRateSet = sets[0];
+        this.activeDemandRateSet = undefined;
+        // this.activeDemandRateSet = sets[0];
         this.onDemandRateSetChange();
         this.isLoading$.next(false);
       });

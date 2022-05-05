@@ -68,6 +68,11 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
               private rest: RestAPI, private http: HttpClient, private router: Router) {}
 
   ngAfterViewInit(): void {
+    this.mapControl = this.mapService.get('base-real-data-map');
+    this.legendGroup = this.mapControl.addGroup({
+      name: 'Bevölkerungsentwicklung',
+      order: -1
+    }, false)
     this.popService.getAreaLevels({ reset: true }).subscribe(areaLevels => {
       this.defaultPopLevel = areaLevels.find(al => al.isDefaultPopLevel);
       this.popLevel = areaLevels.find(al => al.isPopLevel);
@@ -77,11 +82,6 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
       else
         this.popLevelMissing = true;
     })
-    this.mapControl = this.mapService.get('base-real-data-map');
-    this.legendGroup = this.mapControl.addGroup({
-      name: 'Bevölkerungsentwicklung',
-      order: -1
-    }, false)
     this.fetchData();
     this.setupYearCard();
   }

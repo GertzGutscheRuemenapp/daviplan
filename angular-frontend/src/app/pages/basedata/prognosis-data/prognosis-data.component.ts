@@ -1,8 +1,16 @@
-import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
-import { StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
-import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
-import { Area, AreaLevel, Population, Year } from "../../../rest-interfaces";
+import {
+  Area,
+  AreaLevel,
+  Population,
+  Year,
+  Prognosis,
+  Layer,
+  LayerGroup,
+  Gender,
+  AgeGroup, PopEntry, DemandRateSet
+} from "../../../rest-interfaces";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { SelectionModel } from "@angular/cdk/collections";
 import { SettingsService } from "../../../settings.service";
@@ -11,68 +19,60 @@ import { HttpClient } from "@angular/common/http";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { PopulationService } from "../../population/population.service";
-
-export const mockPrognoses = ['Trendfortschreibung', 'mehr Zuwanderung', 'mehr Abwanderung'];
-
-const mockdata: StackedData[] = [
-  { group: '2000', values: [200, 300, 280] },
-  { group: '2001', values: [190, 310, 290] },
-  { group: '2002', values: [192, 335, 293] },
-  { group: '2003', values: [195, 340, 295] },
-  { group: '2004', values: [189, 342, 293] },
-  { group: '2005', values: [182, 345, 300] },
-  { group: '2006', values: [176, 345, 298] },
-  { group: '2007', values: [195, 330, 290] },
-  { group: '2008', values: [195, 340, 295] },
-  { group: '2009', values: [192, 335, 293] },
-  { group: '2010', values: [195, 340, 295] },
-  { group: '2012', values: [189, 342, 293] },
-  { group: '2013', values: [200, 300, 280] },
-  { group: '2014', values: [195, 340, 295] },
-]
+import { sortBy } from "../../../helpers/utils";
+import { AgeTreeComponent, AgeTreeData } from "../../../diagrams/age-tree/age-tree.component";
+import * as d3 from "d3";
+import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
+import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 
 @Component({
   selector: 'app-prognosis-data',
   templateUrl: './prognosis-data.component.html',
-  styleUrls: ['./prognosis-data.component.scss']
+  styleUrls: ['./prognosis-data.component.scss','../real-data/real-data.component.scss']
 })
 export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   @ViewChild('yearCard') yearCard?: InputCardComponent;
-  @ViewChild('lineChart') lineChart?: MultilineChartComponent;
+  @ViewChild('ageTree') ageTree?: AgeTreeComponent;
+  @ViewChild('propertiesEdit') propertiesEdit?: TemplateRef<any>;
+  @ViewChild('propertiesCard') propertiesCard?: InputCardComponent;
   mapControl?: MapControl;
-  prognoses = mockPrognoses;
-  selectedPrognosis = 'Trendfortschreibung';
+  legendGroup?: LayerGroup;
+  activePrognosis?: Prognosis;
+  genders: Gender[] = [];
+  ageGroups: AgeGroup[] = [];
   years: Year[] = [];
   yearSelection = new SelectionModel<number>(true);
+  prognoses: Prognosis[] = [];
   prognosisYears: number[] = [];
-  data: StackedData[] = mockdata;
   populations: Population[] = [];
-  labels: string[] = ['65+', '19-64', '0-18']
   popLevel?: AreaLevel;
+  popEntries: Record<number, PopEntry[]> = {};
   popLevelMissing = false;
   defaultPopLevel?: AreaLevel;
-  areas?: Area[];
-  xSeparator = {
-    leftLabel: $localize`Realdaten`,
-    rightLabel: $localize`Prognose (Basisjahr: 2003)`,
-    x: '2003',
-    highlight: false
-  }
+  areas: Area[] = [];
+  previewYear?: Year;
+  previewArea?: Area;
+  previewLayer?: Layer;
+  dataColumns: string[] = [];
+  dataRows: any[][] = [];
+  dataYear?: Year;
+  propertiesForm: FormGroup;
 
   constructor(private mapService: MapService,private settings: SettingsService, private dialog: MatDialog,
-              private rest: RestAPI, private http: HttpClient, private popService: PopulationService) { }
+              private rest: RestAPI, private http: HttpClient, public popService: PopulationService, private formBuilder: FormBuilder) {
+    this.propertiesForm = this.formBuilder.group({
+      name: new FormControl(''),
+      description: new FormControl('')
+    });
+  }
 
+  // ToDo: shares a lot of Code with real-data-component, at least the map view should be seperated into reusable view
   ngAfterViewInit(): void {
-/*    let first = mockdata[0].values;
-    let relData = mockdata.map(d => { return {
-      group: d.group,
-      values: d.values.map((v, i) => Math.round(10000 * v / first[i]) / 100 )
-    }})
-    let max = Math.max(...relData.map(d => Math.max(...d.values))),
-      min = Math.min(...relData.map(d => Math.min(...d.values)));
-    this.lineChart!.min = Math.floor(min / 10) * 10;
-    this.lineChart!.max = Math.ceil(max / 10) * 10;
-    this.lineChart?.draw(relData);*/
+    this.mapControl = this.mapService.get('base-prog-data-map');
+    this.legendGroup = this.mapControl.addGroup({
+      name: 'Bevölkerungsentwicklung (Prognose)',
+      order: -1
+    }, false)
     this.popService.getAreaLevels({ reset: true }).subscribe(areaLevels => {
       this.defaultPopLevel = areaLevels.find(al => al.isDefaultPopLevel);
       this.popLevel = areaLevels.find(al => al.isPopLevel);
@@ -82,18 +82,44 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       else
         this.popLevelMissing = true;
     })
-    this.mapControl = this.mapService.get('base-prog-data-map');
-    this.http.get<Year[]>(this.rest.URLS.years).subscribe(years => {
-      years.forEach(year => {
-        if (year.isPrognosis) {
-          this.prognosisYears.push(year.year);
-        }
-        this.years.push(year);
+    this.fetchData();
+    this.setupYearCard();
+    this.setupPropertiesCard();
+  }
+
+  fetchData(): void {
+    this.previewYear = undefined;
+    this.previewArea = undefined;
+    this.ageTree?.clear();
+    this.updatePreview();
+    this.dataColumns = ['Gebiet']
+    this.popService.getGenders().subscribe(genders => {
+      this.genders = genders;
+      this.popService.getAgeGroups().subscribe(ageGroups => {
+        this.genders.forEach(gender => {
+          this.dataColumns = this.dataColumns.concat(ageGroups.map(ag => `${ag.label} (${gender.name})`));
+        })
+        this.ageGroups = sortBy(ageGroups, 'fromAge');
+        this.http.get<Year[]>(this.rest.URLS.years).subscribe(years => {
+          this.years = [];
+          this.prognosisYears = [];
+          years.forEach(year => {
+            if (year.isPrognosis) {
+              this.prognosisYears.push(year.year);
+            }
+            this.years.push(year);
+          })
+          this.popService.fetchPopulations(true).subscribe(populations => {
+            this.populations = populations;
+            this.popService.fetchPrognoses().subscribe(prognoses => this.prognoses = prognoses);
+          });
+        });
       })
-      this.popService.fetchPopulations(true).subscribe(populations => {
-        this.setupYearCard();
-      });
     });
+  }
+
+  onPrognosisChange() {
+    this.updatePreview();
   }
 
   setupYearCard(): void {
@@ -114,8 +140,80 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
             Object.assign(year, ry);
         })
         this.prognosisYears.sort();
+        this.previewYear = undefined;
+        this.ageTree?.clear();
+        this.updatePreview();
         this.yearCard?.closeDialog(true);
       });
+    })
+  }
+
+  updatePreview(): void {
+    if (this.previewLayer) {
+      this.mapControl?.removeLayer(this.previewLayer.id!);
+      this.previewLayer = undefined;
+    }
+    if (!(this.previewYear && this.activePrognosis)) return;
+    const population = this.populations.find(p => p.year === this.previewYear!.id && p.prognosis === this.activePrognosis!.id);
+    if (!population) return;
+    this.popService.getPopEntries(population.id).subscribe(popEntries => {
+      this.popEntries = {};
+      popEntries.forEach(pe => {
+        if (!this.popEntries[pe.area]) this.popEntries[pe.area] = [];
+        this.popEntries[pe.area].push(pe);
+      })
+      let max = 1000;
+      this.dataRows = [];
+      this.areas.forEach(area => {
+        const entries = this.popEntries[area.id];
+        // map data
+        const value = entries.reduce((p: number, e: PopEntry) => p + e.value, 0);
+        area.properties.value = value;
+        area.properties.description = `<b>${area.properties.label}</b><br>Bevölkerung: ${area.properties.value}`
+        max = Math.max(max, value);
+      })
+      const radiusFunc = d3.scaleLinear().domain([0, max]).range([5, 50]);
+      this.previewLayer = this.mapControl?.addLayer({
+          order: 0,
+          type: 'vector',
+          group: this.legendGroup?.id,
+          name: this.popLevel!.name,
+          description: this.popLevel!.name,
+          opacity: 1,
+          symbol: {
+            strokeColor: 'white',
+            fillColor: 'rgba(165, 15, 21, 0.9)',
+            symbol: 'circle'
+          },
+          labelField: 'value',
+          showLabel: true
+        },
+        {
+          visible: true,
+          tooltipField: 'description',
+          mouseOver: {
+            strokeColor: 'yellow',
+            fillColor: 'rgba(255, 255, 0, 0.7)'
+          },
+          selectable: true,
+          select: {
+            strokeColor: 'rgb(180, 180, 0)',
+            fillColor: 'rgba(255, 255, 0, 0.9)'
+          },
+          radiusFunc: radiusFunc
+        });
+      this.mapControl?.addFeatures(this.previewLayer!.id!, this.areas,
+        { properties: 'properties', geometry: 'centroid', zIndex: 'value' });
+      this.updateAgeTree();
+      this.previewLayer!.featureSelected?.subscribe(evt => {
+        if (evt.selected) {
+          this.previewArea = this.areas.find(area => area.id === evt.feature.get('id'));
+        }
+        else {
+          this.previewArea = undefined;
+        }
+        this.updateAgeTree();
+      })
     })
   }
 
@@ -139,6 +237,132 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
           const idx = this.populations.indexOf(population);
           if (idx > -1) this.populations.splice(idx, 1);
           year.hasPrognosisData = false;
+          if (year === this.previewYear) {
+            this.previewYear = undefined;
+            this.ageTree?.clear();
+            this.dataRows = [];
+            this.updatePreview();
+          }
+        },(error) => {
+          console.log('there was an error sending the query', error);
+        });
+      }
+    });
+  }
+
+  onAreaChange(): void {
+    if (!this.previewLayer) return;
+    this.mapControl?.selectFeatures([this.previewArea!.id], this.previewLayer!.id!, { silent: true, clear: true });
+    this.updateAgeTree();
+  }
+
+  updateAgeTree(): void {
+    this.ageTree?.clear();
+    if (!this.previewArea || !this.previewYear) return;
+    const areaData = this.popEntries[this.previewArea.id];
+    const maleId = this.genders.find(g => g.name === 'männlich')?.id || 1;
+    const femaleId = this.genders.find(g => g.name === 'weiblich')?.id || 2;
+    const ageTreeData: AgeTreeData[] = [];
+    this.ageGroups.forEach(ageGroup => {
+      const ad = areaData.filter(d => d.ageGroup === ageGroup.id);
+      ageTreeData.push({
+        male: ad.find(d => d.gender === maleId)?.value || 0,
+        fromAge: ageGroup.fromAge,
+        toAge: ageGroup.toAge,
+        female: ad.find(d => d.gender === femaleId)?.value || 0,
+        label: ageGroup.label || ''
+      })
+    })
+    this.ageTree!.subtitle = `${this.previewArea?.properties.label!} ${this.previewYear?.year}`;
+    this.ageTree!.draw(ageTreeData);
+  }
+
+  setupPropertiesCard(): void {
+    this.propertiesCard?.dialogOpened.subscribe(ok => {
+      this.propertiesForm.reset({
+        name: this.activePrognosis?.name,
+        description: this.activePrognosis?.description,
+      });
+    })
+    this.propertiesCard?.dialogConfirmed.subscribe((ok)=>{
+      this.propertiesForm.setErrors(null);
+      this.propertiesForm.markAllAsTouched();
+      if (this.propertiesForm.invalid) return;
+      let attributes: any = {
+        name: this.propertiesForm.value.name,
+        description: this.propertiesForm.value.description
+      }
+      this.propertiesCard?.setLoading(true);
+      this.http.patch<DemandRateSet>(`${this.rest.URLS.prognoses}${this.activePrognosis?.id}/`, attributes
+      ).subscribe(prognosis => {
+        Object.assign(this.activePrognosis!, prognosis);
+        this.propertiesCard?.closeDialog(true);
+      },(error) => {
+        // ToDo: set specific errors to fields
+        this.propertiesForm.setErrors(error.error);
+        this.propertiesCard?.setLoading(false);
+      });
+    })
+  }
+
+  createPrognosis(): void {
+    let dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '300px',
+      disableClose: true,
+      data: {
+        title: 'Neue Nachfragevariante',
+        template: this.propertiesEdit,
+        closeOnConfirm: false
+      }
+    });
+    dialogRef.afterOpened().subscribe(ok => {
+      this.propertiesForm.reset();
+    });
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      this.propertiesForm.setErrors(null);
+      // display errors for all fields even if not touched
+      this.propertiesForm.markAllAsTouched();
+      if (this.propertiesForm.invalid) return;
+      let attributes: any = {
+        name: this.propertiesForm.value.name,
+        description: this.propertiesForm.value.description || ''
+      }
+      dialogRef.componentInstance.isLoading$.next(true);
+      this.http.post<Prognosis>(this.rest.URLS.prognoses, attributes
+      ).subscribe(prognosis => {
+        this.prognoses.push(prognosis);
+        this.activePrognosis = prognosis;
+        this.onPrognosisChange();
+        dialogRef.close();
+      },(error) => {
+        this.propertiesForm.setErrors(error.error);
+        dialogRef.componentInstance.isLoading$.next(false);
+      });
+    });
+  }
+
+  removePrognosis(): void {
+    if (!this.activePrognosis)
+      return;
+    const dialogRef = this.dialog.open(RemoveDialogComponent, {
+      width: '400px',
+      data: {
+        title: $localize`Die Prognosevariante wirklich entfernen?`,
+        confirmButtonText: $localize`Variante entfernen`,
+        message: 'Es werden auch alle bereits eingespielten Daten der Variante entfernt.',
+        value: this.activePrognosis.name
+      }
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.http.delete(`${this.rest.URLS.prognoses}${this.activePrognosis?.id}/`
+        ).subscribe(() => {
+          const idx = this.prognoses.indexOf(this.activePrognosis!);
+          if (idx > -1) {
+            this.prognoses.splice(idx, 1);
+          }
+          this.activePrognosis = undefined;
         },(error) => {
           console.log('there was an error sending the query', error);
         });

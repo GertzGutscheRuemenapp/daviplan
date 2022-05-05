@@ -215,7 +215,7 @@ button.large {
   padding: 10px!important;
 }
 
-.hidden {
+.hidden, .hidden > * {
   //display: None!important;
  opacity: 0;
  pointer-events: none!important;
@@ -1211,8 +1211,11 @@ mat-checkbox.reverse {
 
 #years-check-table {
   text-align: center;
-  width: 400px;
+  width: 430px;
   user-select: none;
+  th {
+    padding-right: 10px;
+  }
   td mat-checkbox label{
     margin: 0;
   }

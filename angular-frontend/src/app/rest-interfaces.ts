@@ -134,6 +134,7 @@ export interface Year {
 export interface Prognosis {
   id: number,
   name: string,
+  description: string,
   isDefault: boolean,
   years: number[]
 }

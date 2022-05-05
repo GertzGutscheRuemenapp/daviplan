@@ -80,6 +80,7 @@ class AreaCell(models.Model):
 class Prognosis(DatentoolModelMixin, NamedModel, models.Model):
     """a prognosis"""
     name = models.TextField()
+    description = models.TextField(blank=True, default='')
     is_default = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
