@@ -290,6 +290,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
       this.http.post(url, {}).subscribe(() => {
 /*        this.router.routeReuseStrategy.shouldReuseRoute = () => false;
         this.router.navigate([this.router.url]);*/
+        this.popService.reset();
         this.fetchData();
         dialogRef.close();
       }, error => {

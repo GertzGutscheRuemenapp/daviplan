@@ -23,7 +23,8 @@
         </tr>
       </table>-->
       <div style="margin-top: 10px">
-        <button mat-flat-button color="primary" i18n>
+        <button mat-flat-button color="primary"
+                (click)="pullService()">
           <mat-icon>refresh</mat-icon> Abrufen
         </button>
       </div>
@@ -43,7 +44,9 @@
       </mat-selection-list>
       <div style="margin-top: 10px;">
         <button mat-button color="primary"
-                class="mat-button-dv" i18n>
+                class="mat-button-dv"
+                [disabled]="!year"
+                (click)="onRemoveStatistics()">
           <mat-icon>close</mat-icon>entfernen
         </button>
       </div>
@@ -132,4 +135,18 @@
 
 <ng-template #dataTemplate>
   <app-data-table [columns]="dataColumns" [rows]="dataRows"></app-data-table>
+</ng-template>
+
+<ng-template #pullServiceTemplate>
+  <div *ngIf="pullErrors">
+    <mat-error *ngFor="let error of pullErrors | keyvalue" class="alert">
+      {{ error.key }} {{ error.value }}
+    </mat-error>
+  </div>
+  <p>
+    Sollen die Daten aus der Regionalstatistik jetzt abgerufen und in die Datenbank eingespielt werden?
+  </p>
+  <p>
+    Achtung: bereits eingespielte Statistiken werden überschrieben!
+  </p>
 </ng-template>

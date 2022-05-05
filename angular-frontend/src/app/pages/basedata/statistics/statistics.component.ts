@@ -2,13 +2,16 @@ import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@an
 import { environment } from "../../../../environments/environment";
 import { MapControl, MapService } from "../../../map/map.service";
 import { RestCacheService } from "../../../rest-cache.service";
-import { Area, AreaLevel, Layer, LayerGroup, Statistic, StatisticsData } from "../../../rest-interfaces";
+import { Area, AreaLevel, Layer, LayerGroup, Statistic, StatisticsData, Year } from "../../../rest-interfaces";
 import { sortBy } from "../../../helpers/utils";
 import * as d3 from "d3";
 import { SettingsService } from "../../../settings.service";
 import { BehaviorSubject } from "rxjs";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
+import { HttpClient } from "@angular/common/http";
+import { RestAPI } from "../../../rest-api";
+import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 
 @Component({
   selector: 'app-statistics',
@@ -17,6 +20,7 @@ import { MatDialog } from "@angular/material/dialog";
 })
 export class StatisticsComponent implements AfterViewInit, OnDestroy {
   @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
+  @ViewChild('pullServiceTemplate') pullServiceTemplate?: TemplateRef<any>;
   backend: string = environment.backend;
   mapControl?: MapControl;
   statistics?: Statistic[];
@@ -34,9 +38,10 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
   isLoading$ = new BehaviorSubject<boolean>(false);
   dataColumns: string[] = ['Gebiet', 'AGS', 'Geburten', 'Sterbefälle', 'Zuzüge', 'Fortzüge'];
   dataRows: any[][] = [];
+  pullErrors: any = {};
 
-  constructor(private mapService: MapService, private restService: RestCacheService,
-              private settings: SettingsService, private dialog: MatDialog) { }
+  constructor(private mapService: MapService, private restService: RestCacheService, private rest: RestAPI,
+              private settings: SettingsService, private dialog: MatDialog, private http: HttpClient) { }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-statistics-map');
@@ -63,18 +68,21 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
     this.restService.getStatistics({ reset: true }).subscribe(statistics => {
       this.statistics = sortBy(statistics, 'year');
       this.isLoading$.next(false);
-      if (this.statistics.length > 0) {
-        this.year = this.statistics[0].year;
-        this.onYearChange();
-      }
+      this.year = (this.statistics.length > 0)? this.statistics[0].year: undefined;
+      this.onYearChange();
     });
   }
 
   onYearChange(): void {
+    this.dataRows = [];
+    if (!this.year) {
+      this.statisticsData = undefined;
+      this.updateMap();
+      return;
+    };
     this.isLoading$.next(true);
-    this.restService.getStatisticsData({ year: this.year! }).subscribe(data => {
+    this.restService.getStatisticsData({ year: this.year }).subscribe(data => {
       this.statisticsData = data;
-      this.dataRows = [];
       data.forEach(stat => {
         const area = this.areas.find(a => a.id === stat.area);
         if (!area) return;
@@ -178,6 +186,58 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
         template: this.dataTemplate,
         hideConfirmButton: true,
         cancelButtonText: 'OK'
+      }
+    });
+  }
+
+  pullService(): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Einwohnerdaten abrufen',
+        confirmButtonText: 'Daten abrufen',
+        template: this.pullServiceTemplate,
+        closeOnConfirm: false
+      }
+    });
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      const url = `${this.rest.URLS.statistics}pull_regionalstatistik/`;
+      dialogRef.componentInstance.isLoading$.next(true);
+      this.http.post(url, {}).subscribe(() => {
+        this.restService.reset();
+        this.fetchData();
+        dialogRef.close();
+      }, error => {
+        this.pullErrors = error.error;
+        dialogRef.componentInstance.isLoading$.next(false);
+      })
+    })
+  }
+
+  onRemoveStatistics(): void {
+    if (!this.year) return;
+    const statistics = this.statistics?.find(s => s.year === this.year);
+    if (!statistics) return;
+    const dialogRef = this.dialog.open(RemoveDialogComponent, {
+      width: '350px',
+      data: {
+        title: 'Entfernung von Statistikdaten',
+        message: 'Sollen die Statistikdaten dieses Jahres wirklich entfernt werden?',
+        confirmButtonText: 'Daten entfernen',
+        value: this.year
+      }
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.http.delete(`${this.rest.URLS.statistics}${statistics.id}/`
+        ).subscribe(() => {
+          const idx = this.statistics!.indexOf(statistics);
+          if (idx > -1) this.statistics!.splice(idx, 1);
+          this.year = undefined;
+          this.onYearChange();
+        },(error) => {
+          console.log('there was an error sending the query', error);
+        });
       }
     });
   }

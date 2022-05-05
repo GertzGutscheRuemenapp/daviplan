@@ -342,6 +342,17 @@ export class RestCacheService {
     return observable;
   }
 
+  reset(): void {
+    this.genericCache = {};
+    this.areaCache = {};
+    this.demandAreaCache = {};
+    this.popDataCache = {};
+    this.popAreaCache = {};
+    this.placesCache = {};
+    this.capacitiesCache = {};
+    this.statisticsCache = {};
+  }
+
   setLoading(isLoading: boolean) {
     this.isLoading$.next(isLoading);
   }
