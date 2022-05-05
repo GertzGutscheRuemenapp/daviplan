@@ -134,6 +134,7 @@ export interface Year {
 export interface Prognosis {
   id: number,
   name: string,
+  description: string,
   isDefault: boolean,
   years: number[]
 }
@@ -164,6 +165,11 @@ export interface PopulationData {
   gender: number,
   agegroup: number,
   value: number
+}
+
+export interface Statistic {
+  id: number,
+  year: number
 }
 
 export interface StatisticsData {
