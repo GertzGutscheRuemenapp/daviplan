@@ -32,7 +32,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   backend: string = environment.backend;
   areas: Area[] = [];
   areaLevel?: AreaLevel;
-  years?: number[];
+  years: number[] = [];
   year?: number;
   theme: 'nature' | 'migration' = 'nature';
   statisticsLayer?: Layer;
@@ -65,7 +65,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   }
 
   initData(): void {
-    this.populationService.getRealYears().subscribe(years => {
+    this.populationService.getYears({ params: 'has_statistics_data=true' }).subscribe(years => {
       this.years = years;
       this.year = years[0];
       this.setSlider();
@@ -86,7 +86,6 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       this.year = year;
       this.cookies.set('pop-year', year);
       this.updateMap();
-      this.updateDiagrams();
     }))
   }
 
@@ -101,7 +100,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
     this.showEmigration = this.cookies.get('pop-stat-emigration', 'boolean');
     this.showEmigration = this.cookies.get('pop-stat-emigration', 'boolean');
     const year = this.cookies.get('pop-year','number');
-    this.year = year || this.years![this.years!.length - 1];
+    this.year = (year && this.years!.indexOf(year) > -1)? year: (this.years.length > 0)? this.years[0]: undefined;
     this.setSlider();
     this.updateMap();
     this.updateDiagrams();

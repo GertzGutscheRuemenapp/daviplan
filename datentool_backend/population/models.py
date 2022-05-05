@@ -145,7 +145,8 @@ class AreaPopulationAgeGender(models.Model):
 
 class PopStatistic(DatentoolModelMixin, models.Model):
     """population statistic for a certain year"""
-    year = models.ForeignKey(Year, on_delete=PROTECT_CASCADE)
+    year = models.ForeignKey(Year, on_delete=PROTECT_CASCADE,
+                             related_name='statistics')
 
 
 class PopStatEntry(models.Model):
