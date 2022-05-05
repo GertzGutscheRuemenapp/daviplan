@@ -31,7 +31,7 @@ class DemandAreaIndicator(PopulationIndicatorMixin,
 
         populations = self.get_populations()
         if not populations:
-            return []
+            return None, None
         population = populations[0]
 
         pop_arealevel, created = PopulationAreaLevel.objects.get_or_create(
@@ -40,7 +40,7 @@ class DemandAreaIndicator(PopulationIndicatorMixin,
 
         demand_rates = self.get_demand_rates()
         if not demand_rates:
-            return []
+            return None, None
 
         q_drs, p_drs = demand_rates.values('age_group_id', 'gender_id', 'value')\
             .query.sql_with_params()
@@ -113,6 +113,8 @@ class DemandAreaIndicator(PopulationIndicatorMixin,
     def compute(self):
         """"""
         query, params = self.get_query_and_params()
+        if not query:
+            return []
         areas_with_demand = Area.objects.raw(query, params)
         return areas_with_demand
 
