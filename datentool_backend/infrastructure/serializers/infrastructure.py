@@ -6,7 +6,6 @@ from datentool_backend.area.models import MapSymbol
 from datentool_backend.area.serializers import MapSymbolSerializer
 from datentool_backend.infrastructure.serializers import PlaceFieldInfraSerializer
 
-
 class InfrastructureAccessSerializer(serializers.ModelSerializer):
     class Meta:
         model = InfrastructureAccess
@@ -20,12 +19,13 @@ class InfrastructureSerializer(serializers.ModelSerializer):
         many=True, source='infrastructureaccess_set', required=False)
     place_fields = PlaceFieldInfraSerializer(many=True, source='placefield_set',
                                              required=False, read_only=True)
+    places_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Infrastructure
         fields = ('id', 'name', 'description',
                   'editable_by', 'accessible_by',
-                  'order', 'symbol', 'place_fields')
+                  'order', 'symbol', 'place_fields', 'places_count')
         extra_kwargs = {'description': {'required':  False}}
 
     def create(self, validated_data):
@@ -86,4 +86,7 @@ class InfrastructureSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+    def get_places_count(self, instance):
+        return instance.place_set.count()
 

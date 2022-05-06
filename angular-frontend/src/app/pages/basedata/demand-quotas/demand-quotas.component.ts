@@ -11,6 +11,7 @@ import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dia
 import { DemandRateSetViewComponent } from "./demand-rate-set-view/demand-rate-set-view.component";
 import { DemandTypes } from "../../../rest-interfaces";
 import { BehaviorSubject } from "rxjs";
+import { MatSelectionList } from "@angular/material/list";
 
 @Component({
   selector: 'app-demand-quotas',
@@ -23,6 +24,7 @@ export class DemandQuotasComponent implements AfterViewInit {
   @ViewChild('demandRateSetCard') demandRateSetCard?: InputCardComponent;
   @ViewChild('demandRateSetPreview') demandRateSetPreview?: DemandRateSetViewComponent;
   @ViewChild('propertiesEdit') propertiesEdit?: TemplateRef<any>;
+  @ViewChild('demandSetSelection') demandSetSelection?: MatSelectionList;
   isLoading$ = new BehaviorSubject<boolean>(false);
   years: number[] = [];
   genders: Gender[] = [];
@@ -270,20 +272,24 @@ export class DemandQuotasComponent implements AfterViewInit {
     const demandRateSets = this.demandRateSetCache[this.activeService!.id];
     if (demandRateSets) {
       this.demandRateSets = demandRateSets;
-      this.activeDemandRateSet = demandRateSets[0];
-      this.onDemandRateSetChange();
+      // this.activeDemandRateSet = demandRateSets[0];
     }
     else {
       this.isLoading$.next(true);
       this.restService.getDemandRateSets(this.activeService.id).subscribe(sets => {
         this.demandRateSetCache[this.activeService!.id] = sets;
         this.demandRateSets = sets;
-        this.activeDemandRateSet = undefined;
         // this.activeDemandRateSet = sets[0];
-        this.onDemandRateSetChange();
+        // this.onDemandRateSetChange();
         this.isLoading$.next(false);
+        // workaround: mat-selection always seems to select sth when adding options, even if nothing is defined
+        // as selected
+        this.demandSetSelection?.deselectAll();
       });
     }
+    this.activeDemandRateSet = undefined;
+    this.demandSetSelection?.deselectAll();
+    this.onDemandRateSetChange();
   }
 
   onDemandRateSetChange(): void {

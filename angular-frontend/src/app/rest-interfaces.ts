@@ -235,6 +235,12 @@ export interface FClass {
   value: string
 }
 
+export const FType = {
+  'CLA': 'Klassifikation',
+  'NUM': 'Zahl',
+  'STR': 'Zeichenkette'
+}
+
 export interface FieldType{
   id: number,
   name: string,
@@ -258,7 +264,8 @@ export interface Infrastructure {
   services: Service[],
   order: number,
   symbol?: Symbol,
-  placeFields?: PlaceField[]
+  placeFields?: PlaceField[],
+  placesCount: number
 }
 
 export interface Place {
@@ -279,6 +286,6 @@ export interface Capacity {
   place: number,
   service: number,
   capacity: number,
-  from_year: number,
-  scenario: number
+  fromYear: number,
+  scenario?: number
 }

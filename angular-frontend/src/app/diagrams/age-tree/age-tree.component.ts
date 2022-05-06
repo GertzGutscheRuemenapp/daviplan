@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, Input, ViewEncapsulation } from '@angular/core';
 import * as d3 from "d3";
+import { v4 as uuid } from "uuid";
 
 export interface AgeTreeData {
   label: string,
@@ -21,7 +22,7 @@ function translation(x: number, y: number) {
 })
 export class AgeTreeComponent implements AfterViewInit {
   @Input() data?: AgeTreeData[];
-  @Input() figureId: String = 'age-tree';
+  @Input() figureId: String = `figure${uuid()}`;
   @Input() ageCutoff: number = 90;
   @Input() width: number = 0;
   @Input() height: number = 0;

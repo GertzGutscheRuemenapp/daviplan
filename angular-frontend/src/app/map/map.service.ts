@@ -293,6 +293,7 @@ export class MapControl {
     if (!layer) return;
     const layerGroups = this._localLayerGroups.concat(this._serviceLayerGroups);
     const group = layerGroups.find(group => layer.group === group.id)!;
+    if (!group) return;
     const idx = group.children!.indexOf(layer);
     this._removeLayerFromMap(layer);
     if (idx >= 0)

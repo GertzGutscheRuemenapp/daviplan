@@ -148,7 +148,7 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
           strokeColor: 'yellow',
           fillColor: 'rgba(255, 255, 0, 0.7)',
         },
-        selectable: true,
+        selectable: false,
         select: {
           strokeColor: 'rgb(180, 180, 0)',
           fillColor: 'rgba(255, 255, 0, 0.9)'

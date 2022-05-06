@@ -54,7 +54,6 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   populations: Population[] = [];
   genders: Gender[] = [];
   ageGroups: AgeGroup[] = [];
-  // dataYears: number[] = [];
   yearSelection = new SelectionModel<number>(true);
   maxYear = new Date().getFullYear() - 1;
   pullErrors: any = {};
@@ -256,13 +255,13 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   downloadTemplate(): void {
     if (!this.popLevel) return;
     const url = `${this.rest.URLS.popEntries}create_template/`;
-    this.popService.setLoading(true);
+    this.isLoading$.next(true);
     this.http.post(url, { area_level: this.popLevel.id, years: this.realYears }, { responseType: 'blob' }).subscribe((res:any) => {
       const blob: any = new Blob([res],{ type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      this.popService.setLoading(false);
+      this.isLoading$.next(false);
       fileSaver.saveAs(blob, 'realdaten-template.xlsx');
     },(error) => {
-      this.popService.setLoading(false);
+      this.isLoading$.next(false);
     });
   }
 

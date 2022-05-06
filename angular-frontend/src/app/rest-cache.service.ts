@@ -31,7 +31,15 @@ export class RestCacheService {
 
   constructor(protected http: HttpClient, protected rest: RestAPI) { }
 
-  protected getCachedData<Type>(url: string, options?: { reset?: boolean }): Observable<Type> {
+  protected getCachedData<Type>(url: string, options?: { params?: Record<string, any>, reset?: boolean }): Observable<Type> {
+    if (options?.params) {
+      let queryParams = '';
+      Object.keys(options?.params).forEach(key => {
+        queryParams += `${key}=${options!.params![key]}`;
+      })
+      if (queryParams.length > 0)
+        url += `?${queryParams}`;
+    }
     const observable = new Observable<Type>(subscriber => {
       if (options?.reset || !this.genericCache[url]){
         this.setLoading(true);
@@ -146,32 +154,16 @@ export class RestCacheService {
     return observable;
   }
 
-  getCapacities(year: number, serviceId: number, scenarioId: number | undefined = undefined): Observable<Capacity[]>{
-    year = year || 0;
-    let key = `${serviceId}-${year}`;
-    if (scenarioId !== undefined)
-      key += `-${scenarioId}`
-    const observable = new Observable<Capacity[]>(subscriber => {
-      const cached = this.capacitiesCache[key];
-      if (!cached) {
-        this.setLoading(true);
-        let url = `${this.rest.URLS.capacities}?service=${serviceId}&year=${year}`;
-        if (scenarioId !== undefined)
-          url += `&scenario=${scenarioId}`;
-        const query = this.http.get<Capacity[]>(url);
-        query.subscribe( capacities => {
-          this.capacitiesCache[key] = capacities;
-          this.setLoading(false);
-          subscriber.next(capacities);
-          subscriber.complete();
-        });
-      }
-      else {
-        subscriber.next(cached);
-        subscriber.complete();
-      }
-    });
-    return observable;
+  getCapacities(options?: { year?: number, service?: number, scenario?: number }): Observable<Capacity[]>{
+    let url = this.rest.URLS.capacities;
+    let params: any = {};
+    if (options?.year !== undefined)
+      params['year'] = options.year;
+    if (options?.service !== undefined)
+      params['service'] = options.service;
+    if (options?.scenario !== undefined)
+      params['scenario'] = options.scenario;
+    return this.getCachedData<Capacity[]>(url, { params: params })
   }
 
   getAreas(areaLevelId: number, options?: { targetProjection?: string, reset?: boolean }): Observable<Area[]>{
