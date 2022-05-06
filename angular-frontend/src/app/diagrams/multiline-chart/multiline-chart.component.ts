@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, Input } from '@angular/core';
 import * as d3 from 'd3';
-import { StackedData } from "../stacked-barchart/stacked-barchart.component";
+import { v4 as uuid } from "uuid";
 
 export interface MultilineData {
   group: string,
@@ -15,13 +15,14 @@ export interface MultilineData {
 export class MultilineChartComponent implements AfterViewInit {
 
   @Input() data?: MultilineData[];
-  @Input() figureId: String = 'multiline-chart';
+  @Input() figureId: String = `figure${uuid()}`;
   @Input() title: string = '';
   @Input() subtitle: string = '';
   @Input() labels?: string[];
   @Input() drawLegend: boolean = true;
   @Input() xLabel?: string;
   @Input() yLabel?: string;
+  @Input() yTicks?: number;
   @Input() yTopLabel?: string;
   @Input() yBottomLabel?: string;
   @Input() width?: number;
@@ -94,18 +95,20 @@ export class MultilineChartComponent implements AfterViewInit {
       .domain(groups)
       .padding(0);
 
-    let max = this.max || d3.max(data, d => { return d3.max(d.values) });
+    let max = this.max || Math.max(d3.max(data, d => { return d3.max(d.values) }) || 0, 0);
     max! += this.yPadding;
-    let min = this.min || d3.min(data, d => { return d3.min(d.values) });
+    let min = (this.min === undefined)? d3.min(data, d => { return d3.min(d.values) }): this.min;
     min! -= this.yPadding;
     const y = d3.scaleLinear()
       .domain([min!, max!])
       .range([innerHeight, 0]);
 
+    const nthTick: number | undefined = (this.yTicks !== undefined)? Math.floor(data.length / this.yTicks) : undefined;
+
     // x axis
     this.svg.append("g")
       .attr("transform",`translate(${this.margin.left},${this.margin.top + y(this.yOrigin)})`)
-      .call(d3.axisBottom(x))
+      .call(d3.axisBottom(x).tickFormat((x: any, i: number) => (nthTick && i % nthTick !== 0)? '': x))
       .selectAll("text")
       .attr("transform", `translate(-10,${this.shiftXLabelDown? y(min!) - y(this.yOrigin): 0})rotate(-45)`)
       .style("text-anchor", "end");
@@ -149,7 +152,7 @@ export class MultilineChartComponent implements AfterViewInit {
         .attr("y", this.shiftXLabelDown? this.margin.top + y(min!): this.margin.top + y(this.yOrigin) + 20)
         .attr("x", this.width! - this.margin.right + 10)
         .attr('dy', '0.5em')
-        .style('text-anchor', 'end')
+        .style('text-anchor', 'middle')
         .attr('font-size', '0.8em')
         .text(this.xLabel);
 
@@ -200,8 +203,8 @@ export class MultilineChartComponent implements AfterViewInit {
         text += `<b style="color: ${color}">${label}</b>: ${formatter(groupData.values[j])}${(_this.unit)? _this.unit : ''}<br>`;
       })
       tooltip.html(text);
-      tooltip.style('left', event.pageX - 70 + 'px')
-        .style('top', event.pageY + 20 + 'px');
+      tooltip.style('left', event.pageX + 20 + 'px')
+        .style('top', event.pageY + 10 + 'px');
     }
 
     this.labels.forEach((label, i)=>{

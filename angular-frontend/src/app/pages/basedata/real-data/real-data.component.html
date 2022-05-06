@@ -40,6 +40,7 @@
                     [title]="'Jahre'"
                     [editTemplate]="yearsEdit"
                     infoText="<p></p>"
+                    dialogWidth="500px"
                     [disabled]="!popLevel">
       <table>
         <tr>
@@ -62,20 +63,20 @@
                     <p>Um die Daten weiterer Jahre hochzuladen, fügen Sie bitte in der Box „Jahre“ weitere Jahre hinzu und wiederholen das Vorgehen entsprechend. Für jedes Jahr benötigen Sie eine eigene Vorlagedatei.</p>">
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
-          <div style="margin-top: 15px; display: flex;">
-<!--            <table>
+<!--          <div style="margin-top: 15px; display: flex;">
+            <table>
               <tr>
                 <td i18n>letzter Upload am</td>
                 <td>02.06.2022</td>
               </tr>
-            </table>-->
+            </table>
             <table style="margin-left: 20px; align-self: flex-end;">
-<!--              <tr>
+              <tr>
                 <td i18n>durch</td>
                 <td>Sascha Schmidt</td>
-              </tr>-->
+              </tr>
             </table>
-          </div>
+          </div>-->
           <div style="margin: 20px 0 10px 0;">
             <button mat-stroked-button color="primary" style="margin-right: 10px;"
                     (click)="downloadTemplate()">
@@ -85,8 +86,9 @@
               <mat-icon>upload</mat-icon> Daten hochladen
             </button>
           </div>
-          <button class="mat-button-dv" disabled
-                  mat-button color="primary" i18n>
+          <button class="mat-button-dv"
+                  mat-button color="primary"
+                  (click)="showDataTable()">
             <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
           </button>
 <!--          <button mat-mini-fab color="primary"
@@ -135,17 +137,18 @@
       <div style="width: 100%; display: flex;">
         <div id="base-real-data-map" class="map-container">
           <app-map-controls target="base-real-data-map"></app-map-controls>
-          <app-side-toggle id="legend"
+          <app-side-toggle *ngIf="popLevel"
+                           id="legend"
                            icon="layers"
                            name="Legenden- und Layersteuerung"
                            direction="left">
-            <app-legend target="base-real-data-map"></app-legend>
+            <app-legend *ngIf="popLevel"
+                        target="base-real-data-map"></app-legend>
           </app-side-toggle>
         </div>
         <div class="diagram-container">
           <div class="diagram-wrapper">
             <app-age-tree #ageTree
-                          figureId="bevpyramide"
                           [animate]="true"
                           [title]="'Bevölkerungspyramide'">
             </app-age-tree>
@@ -164,7 +167,7 @@
     </tr>
     <tr>
       <th style="text-align: left;">Jahr</th>
-      <th>ausgewählt</th>
+      <th>als Realdatenjahr ausgewählt</th>
       <th>Realdaten</th>
       <th>Prognosedaten</th>
     </tr>
@@ -189,7 +192,7 @@
                 (click)="deleteData(year)"
                 mat-icon-button color="warn"
                 title="Realdaten des Jahres {{year.year}} entfernen"
-                style="margin-left: 10px;">
+                style="margin-left: 3px;">
           <mat-icon>close</mat-icon>
         </button>
       </td>
@@ -215,4 +218,23 @@
   <p>
     Achtung: bereits eingespielte Realdaten werden überschrieben!
   </p>
+</ng-template>
+
+<ng-template #dataTemplate>
+  <div class="loadOverlay" *ngIf="isLoading$ | async">
+    <mat-spinner [diameter]="50"></mat-spinner>
+  </div>
+  <mat-form-field appearance="outline" class="small" style="margin-right: 10px;">
+    <mat-label>Jahr</mat-label>
+    <mat-select disableOptionCentering disableRipple
+                [(ngModel)]="dataYear"
+                (ngModelChange)="updateTableData()">
+      <ng-container *ngFor="let year of years">
+        <mat-option *ngIf="year.isReal" [value]="year">
+          {{year.year}}
+        </mat-option>
+      </ng-container>
+    </mat-select>
+  </mat-form-field>
+  <app-data-table [columns]="dataColumns" [rows]="dataRows"></app-data-table>
 </ng-template>

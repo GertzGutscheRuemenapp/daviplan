@@ -96,7 +96,6 @@ class PlaceAttribute(FieldAttribute):
         unique_together = [['place', 'field']]
 
 
-
 class Capacity(DatentoolModelMixin, models.Model):
     """Capacity of an infrastructure for a service"""
     objects = models.Manager()

@@ -81,7 +81,7 @@
     </app-help-button>
   </div>
   <mat-tab-group (selectedIndexChange)="selectedTab = $event">
-    <mat-tab label="Entwicklung">
+    <mat-tab [label]="(theme === 'nature')? 'Bevölkerungsentwicklung': 'Wanderung'">
       <ng-template matTabContent>
         <div class="diagram-wrapper">
           <app-help-button title="Wanderung" position="left"
@@ -109,7 +109,7 @@
         </div>
       </ng-template>
     </mat-tab>
-    <mat-tab label="Sad">
+    <mat-tab [label]="(theme === 'nature')? 'Natürlicher Saldo': 'Wanderungssaldo'">
       <ng-template matTabContent>
         <div class="diagram-wrapper">
           <app-help-button title="Wanderungssaldo Gesamtgebiet" position="left"

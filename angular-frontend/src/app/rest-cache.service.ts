@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
 import {
   Place, AreaLevel, Area, Gender, AreaIndicatorData, PopulationData, AgeGroup,
-  Infrastructure, Service, Capacity, Prognosis, StatisticsData, DemandRateSet
+  Infrastructure, Service, Capacity, Prognosis, StatisticsData, DemandRateSet, Statistic
 } from "./rest-interfaces";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
@@ -31,7 +31,15 @@ export class RestCacheService {
 
   constructor(protected http: HttpClient, protected rest: RestAPI) { }
 
-  protected getCachedData<Type>(url: string, options?: { reset?: boolean }): Observable<Type> {
+  protected getCachedData<Type>(url: string, options?: { params?: Record<string, any>, reset?: boolean }): Observable<Type> {
+    if (options?.params) {
+      let queryParams = '';
+      Object.keys(options?.params).forEach(key => {
+        queryParams += `${key}=${options!.params![key]}`;
+      })
+      if (queryParams.length > 0)
+        url += `?${queryParams}`;
+    }
     const observable = new Observable<Type>(subscriber => {
       if (options?.reset || !this.genericCache[url]){
         this.setLoading(true);
@@ -55,21 +63,24 @@ export class RestCacheService {
     return this.getCachedData<Prognosis[]>(url);
   }
 
-  private getYears(url: string): Observable<number[]> {
-    const query = this.getCachedData<any[]>(url);
+  getYears(options?: { params?: string, reset?: boolean }): Observable<number[]> {
+    let url = this.rest.URLS.years;
+    // ToDo: pass params as list of dicts
+    if (options?.params)
+      url += `?${options.params}`;
+    const query = this.getCachedData<any[]>(url, { reset: options?.reset });
     return query.pipe(map(years => {
-      return years.map( year => { return year.year })
+      const ys = years.map( year => { return year.year });
+      return ys.sort();
     }));
   }
 
   getRealYears(): Observable<number[]> {
-    const url = `${this.rest.URLS.years}?has_real_data=true`;
-    return this.getYears(url);
+    return this.getYears({ params: 'has_real_data=true&isReal=true' });
   }
 
   getPrognosisYears(): Observable<number[]> {
-    const url = `${this.rest.URLS.years}?has_prognosis_data=true`;
-    return this.getYears(url);
+    return this.getYears({ params: 'has_prognosis_data=true&isPrognosis=true' });
   }
 
   getGenders(): Observable<Gender[]> {
@@ -143,32 +154,16 @@ export class RestCacheService {
     return observable;
   }
 
-  getCapacities(year: number, serviceId: number, scenarioId: number | undefined = undefined): Observable<Capacity[]>{
-    year = year || 0;
-    let key = `${serviceId}-${year}`;
-    if (scenarioId !== undefined)
-      key += `-${scenarioId}`
-    const observable = new Observable<Capacity[]>(subscriber => {
-      const cached = this.capacitiesCache[key];
-      if (!cached) {
-        this.setLoading(true);
-        let url = `${this.rest.URLS.capacities}?service=${serviceId}&year=${year}`;
-        if (scenarioId !== undefined)
-          url += `&scenario=${scenarioId}`;
-        const query = this.http.get<Capacity[]>(url);
-        query.subscribe( capacities => {
-          this.capacitiesCache[key] = capacities;
-          this.setLoading(false);
-          subscriber.next(capacities);
-          subscriber.complete();
-        });
-      }
-      else {
-        subscriber.next(cached);
-        subscriber.complete();
-      }
-    });
-    return observable;
+  getCapacities(options?: { year?: number, service?: number, scenario?: number }): Observable<Capacity[]>{
+    let url = this.rest.URLS.capacities;
+    let params: any = {};
+    if (options?.year !== undefined)
+      params['year'] = options.year;
+    if (options?.service !== undefined)
+      params['service'] = options.service;
+    if (options?.scenario !== undefined)
+      params['scenario'] = options.scenario;
+    return this.getCachedData<Capacity[]>(url, { params: params })
   }
 
   getAreas(areaLevelId: number, options?: { targetProjection?: string, reset?: boolean }): Observable<Area[]>{
@@ -308,7 +303,12 @@ export class RestCacheService {
     return this.getCachedData<DemandRateSet[]>(url, options);
   }
 
-  getStatistics(options?: { year?: number, areaId?: number }): Observable<StatisticsData[]> {
+  getStatistics(options?: { reset?: boolean }): Observable<Statistic[]>{
+    const url = this.rest.URLS.statistics;
+    return this.getCachedData<Statistic[]>(url, options);
+  }
+
+  getStatisticsData(options?: { year?: number, areaId?: number }): Observable<StatisticsData[]> {
     const key = `${options?.areaId}-${options?.year}`;
     const observable = new Observable<StatisticsData[]>(subscriber => {
       const cached = this.statisticsCache[key];
@@ -330,9 +330,19 @@ export class RestCacheService {
         subscriber.next(cached);
         subscriber.complete();
       }
-
     })
     return observable;
+  }
+
+  reset(): void {
+    this.genericCache = {};
+    this.areaCache = {};
+    this.demandAreaCache = {};
+    this.popDataCache = {};
+    this.popAreaCache = {};
+    this.placesCache = {};
+    this.capacitiesCache = {};
+    this.statisticsCache = {};
   }
 
   setLoading(isLoading: boolean) {

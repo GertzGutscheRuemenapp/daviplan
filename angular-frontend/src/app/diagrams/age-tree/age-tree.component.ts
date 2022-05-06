@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, Input, ViewEncapsulation } from '@angular/core';
 import * as d3 from "d3";
+import { v4 as uuid } from "uuid";
 
 export interface AgeTreeData {
   label: string,
@@ -21,7 +22,7 @@ function translation(x: number, y: number) {
 })
 export class AgeTreeComponent implements AfterViewInit {
   @Input() data?: AgeTreeData[];
-  @Input() figureId: String = 'age-tree';
+  @Input() figureId: String = `figure${uuid()}`;
   @Input() ageCutoff: number = 90;
   @Input() width: number = 0;
   @Input() height: number = 0;
@@ -164,8 +165,8 @@ export class AgeTreeComponent implements AfterViewInit {
       .style("display", 'none');
 
     function onMouseMove(this: any, event: MouseEvent){
-      tooltip.style('left', (event.pageX + 10) + 'px')
-        .style('top', (event.pageY - parseInt(tooltip.style('height'))) + 'px');
+      tooltip.style('left', event.pageX + 20 + 'px')
+        .style('top', event.pageY + 10 + 'px');
     }
 
     const mouseOverBar = function (event: MouseEvent, d: any) {
@@ -177,9 +178,9 @@ export class AgeTreeComponent implements AfterViewInit {
       leftBar.selectAll('rect').classed('highlight', true);
       rightBar.selectAll('rect').classed('highlight', true);
 
-      let text = `${labels[i]} <br>`;
-      text += 'Anzahl weiblich: <b>' + femaleAges[i] + '</b><br>';
-      text += 'Anzahl männlich: <b>' + maleAges[i] + '</b><br>';
+      let text = `<b>${labels[i]}</b><br>`;
+      text += `<span class="female"><b>Anzahl weiblich:</b></span> ${femaleAges[i]}<br>`;
+      text += `<span class="male"><b>Anzahl männlich:</b></span> ${maleAges[i]}<br>`;
 
       tooltip.style("display", null);
       tooltip.html(text);
@@ -282,7 +283,7 @@ export class AgeTreeComponent implements AfterViewInit {
     this.svg.append('text')
       .attr('class', 'male')
       .attr('text-anchor', 'middle')
-      .text('Anzahl männlich')
+      .text('Anzahl männlich pro Jahrgang')
       .attr('font-size', '0.8em')
       .attr('x', width / 4 + this.margin.left)
       .attr('y', height + this.margin.top + this.margin.bottom);
@@ -290,11 +291,10 @@ export class AgeTreeComponent implements AfterViewInit {
     this.svg.append('text')
       .attr('class', 'female')
       .attr('text-anchor', 'middle')
-      .text('Anzahl weiblich')
+      .text('Anzahl weiblich pro Jahrgang')
       .attr('font-size', '0.8em')
       .attr('x', 3 * width / 4 + this.margin.left)
       .attr('y', height + this.margin.top + this.margin.bottom);
-
   }
 
   public clear(): void {

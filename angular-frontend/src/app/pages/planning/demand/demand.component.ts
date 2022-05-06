@@ -95,6 +95,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   }
 
   onAreaLevelChange(): void {
+    if(!this.activeLevel) return;
     this.planningService.getAreas(this.activeLevel!.id).subscribe(areas => {
       this.areas = areas;
       this.cookies.set('planning-area-level', this.activeLevel?.id);

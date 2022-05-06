@@ -118,10 +118,12 @@ export class InfrastructureComponent implements AfterViewInit  {
     if (!this.selectedInfrastructure)
       return;
     const dialogRef = this.dialog.open(RemoveDialogComponent, {
+      width: '500px',
       data: {
         title: $localize`Die Infrastruktur wirklich entfernen?`,
         confirmButtonText: $localize`Infrastruktur entfernen`,
-        value: this.selectedInfrastructure?.name
+        value: this.selectedInfrastructure?.name,
+        message: 'Alle mit der Infrastruktur verbundenen Daten (Leistungen, Standorte, Nachfragequoten ...) werden ebenfalls entfernt.'
       }
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, EventEmitter, Input, OnInit, Renderer2, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, OnInit, Output, Renderer2, ViewChild } from '@angular/core';
 import { MatSlider } from "@angular/material/slider";
 
 @Component({
@@ -12,7 +12,7 @@ export class TimeSliderComponent implements AfterViewInit {
   @Input() value?: number = 0;
   @Input() prognosisStart?: number;
   @Input() helpYOffset = -130;
-  valueChanged: EventEmitter<number> = new EventEmitter();
+  @Output() onChange: EventEmitter<number> = new EventEmitter();
   overlay: any;
 
   constructor(private renderer: Renderer2) { }
@@ -99,6 +99,6 @@ export class TimeSliderComponent implements AfterViewInit {
   }
 
   inputChanged(ev: any){
-    this.valueChanged.emit(this.value);
+    this.onChange.emit(this.value);
   }
 }

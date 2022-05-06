@@ -82,7 +82,7 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
     @action(methods=['POST'], detail=False, permission_classes=[CanEditBasedata])
     def create_template(self, request):
         """Download the Template"""
-        infrastructure_id = request.data.get('infrastructure_id')
+        infrastructure_id = request.data.get('infrastructure')
         return super().create_template(request, infrastructure_id=infrastructure_id)
 
     @extend_schema(description='Upload Excel-File with Places and Capacities',
@@ -97,7 +97,7 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
     @action(methods=['POST'], detail=False, permission_classes=[CanEditBasedata])
     def upload_template(self, request):
         """Download the Template"""
-        infrastructure_id = request.data.get('infrastructure_id')
+        infrastructure_id = request.data.get('infrastructure')
         # no constraint dropping, because we use individual updates
         data = QueryDict(mutable=True)
         data.update(self.request.data)
@@ -135,7 +135,7 @@ class CapacityViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         query_params = self.request.query_params
         service_ids = query_params.getlist('service')
-        year = query_params.get('year', 0)
+        year = query_params.get('year')
         scenario = query_params.get('scenario')
         places = query_params.getlist('place')
 

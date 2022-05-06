@@ -25,6 +25,7 @@ import { AgeTreeComponent, AgeTreeData } from "../../../diagrams/age-tree/age-tr
 import { sortBy } from "../../../helpers/utils";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { Router } from "@angular/router";
+import { BehaviorSubject } from "rxjs";
 
 @Component({
   selector: 'app-real-data',
@@ -35,6 +36,8 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   @ViewChild('yearCard') yearCard?: InputCardComponent;
   @ViewChild('ageTree') ageTree?: AgeTreeComponent;
   @ViewChild('pullServiceTemplate') pullServiceTemplate?: TemplateRef<any>;
+  @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
+  isLoading$ = new BehaviorSubject<boolean>(false);
   backend: string = environment.backend;
   mapControl?: MapControl;
   years: Year[] = [];
@@ -51,17 +54,24 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   populations: Population[] = [];
   genders: Gender[] = [];
   ageGroups: AgeGroup[] = [];
-  // dataYears: number[] = [];
   yearSelection = new SelectionModel<number>(true);
   maxYear = new Date().getFullYear() - 1;
   pullErrors: any = {};
   Object = Object;
+  dataColumns: string[] = [];
+  dataRows: any[][] = [];
+  dataYear?: Year;
 
   constructor(private mapService: MapService, public popService: PopulationService,
               private dialog: MatDialog, private settings: SettingsService,
               private rest: RestAPI, private http: HttpClient, private router: Router) {}
 
   ngAfterViewInit(): void {
+    this.mapControl = this.mapService.get('base-real-data-map');
+    this.legendGroup = this.mapControl.addGroup({
+      name: 'Bevölkerungsentwicklung',
+      order: -1
+    }, false)
     this.popService.getAreaLevels({ reset: true }).subscribe(areaLevels => {
       this.defaultPopLevel = areaLevels.find(al => al.isDefaultPopLevel);
       this.popLevel = areaLevels.find(al => al.isPopLevel);
@@ -71,11 +81,6 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
       else
         this.popLevelMissing = true;
     })
-    this.mapControl = this.mapService.get('base-real-data-map');
-    this.legendGroup = this.mapControl.addGroup({
-      name: 'Bevölkerungsentwicklung',
-      order: -1
-    }, false)
     this.fetchData();
     this.setupYearCard();
   }
@@ -85,9 +90,13 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
     this.previewArea = undefined;
     this.ageTree?.clear();
     this.updatePreview();
+    this.dataColumns = ['Gebiet']
     this.popService.getGenders().subscribe(genders => {
       this.genders = genders;
       this.popService.getAgeGroups().subscribe(ageGroups => {
+        this.genders.forEach(gender => {
+          this.dataColumns = this.dataColumns.concat(ageGroups.map(ag => `${ag.label} (${gender.name})`));
+        })
         this.ageGroups = sortBy(ageGroups, 'fromAge');
         this.http.get<Year[]>(this.rest.URLS.years).subscribe(years => {
           this.years = [];
@@ -127,6 +136,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         })
         this.realYears.sort();
         this.previewYear = undefined;
+        this.dataYear = undefined;
         this.ageTree?.clear();
         this.updatePreview();
         this.yearCard?.closeDialog(true);
@@ -157,6 +167,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
           if(year === this.previewYear) {
             this.previewYear = undefined;
             this.ageTree?.clear();
+            this.dataRows = [];
             this.updatePreview();
           }
         },(error) => {
@@ -181,9 +192,10 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         this.popEntries[pe.area].push(pe);
       })
       let max = 1000;
+      this.dataRows = [];
       this.areas.forEach(area => {
         const entries = this.popEntries[area.id];
-        if (!entries) return;
+        // map data
         const value = entries.reduce((p: number, e: PopEntry) => p + e.value, 0);
         area.properties.value = value;
         area.properties.description = `<b>${area.properties.label}</b><br>Bevölkerung: ${area.properties.value}`
@@ -243,13 +255,13 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   downloadTemplate(): void {
     if (!this.popLevel) return;
     const url = `${this.rest.URLS.popEntries}create_template/`;
-    this.popService.setLoading(true);
+    this.isLoading$.next(true);
     this.http.post(url, { area_level: this.popLevel.id, years: this.realYears }, { responseType: 'blob' }).subscribe((res:any) => {
       const blob: any = new Blob([res],{ type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      this.popService.setLoading(false);
-      fileSaver.saveAs(blob, 'template.xlsx');
+      this.isLoading$.next(false);
+      fileSaver.saveAs(blob, 'realdaten-template.xlsx');
     },(error) => {
-      this.popService.setLoading(false);
+      this.isLoading$.next(false);
     });
   }
 
@@ -290,6 +302,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
       this.http.post(url, {}).subscribe(() => {
 /*        this.router.routeReuseStrategy.shouldReuseRoute = () => false;
         this.router.navigate([this.router.url]);*/
+        this.popService.reset();
         this.fetchData();
         dialogRef.close();
       }, error => {
@@ -301,5 +314,48 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.mapControl?.destroy();
+  }
+
+  showDataTable(): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '400',
+      disableClose: false,
+      autoFocus: false,
+      data: {
+        title: `Datentabelle Realdaten`,
+        template: this.dataTemplate,
+        hideConfirmButton: true,
+        cancelButtonText: 'OK'
+      }
+    });
+    dialogRef.afterOpened().subscribe(()=> this.updateTableData())
+  }
+
+  updateTableData(): void {
+    this.dataRows = [];
+    if (!this.dataYear) return;
+    const population = this.populations.find(p => p.year === this.dataYear!.id);
+    if (!population) return;
+    let rows: any[][] = [];
+    this.isLoading$.next(true);
+    this.popService.getPopEntries(population.id).subscribe(popEntries => {
+      this.areas.forEach(area => {
+        const entries = popEntries.filter(e => e.area === area.id);
+        const row: any[] = [area.properties.label]
+        if (!entries) return;
+        // table data
+        this.genders.forEach(gender => {
+          const gEntries = entries.filter(e => e.gender === gender.id);
+          this.ageGroups.forEach(ageGroup => {
+            const entry = gEntries.find(e => e.ageGroup === ageGroup.id);
+            row.push(entry?.value || 0);
+          })
+        })
+        rows.push(row);
+      })
+      this.dataRows = rows;
+      this.isLoading$.next(false);
+    })
   }
 }
