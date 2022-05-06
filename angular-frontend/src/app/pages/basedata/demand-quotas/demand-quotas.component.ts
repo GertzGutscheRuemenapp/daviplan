@@ -282,7 +282,7 @@ export class DemandQuotasComponent implements AfterViewInit {
         // this.activeDemandRateSet = sets[0];
         // this.onDemandRateSetChange();
         this.isLoading$.next(false);
-        // workaround: mat-selection always seems to select sth when adding options, even if nothing is defined 
+        // workaround: mat-selection always seems to select sth when adding options, even if nothing is defined
         // as selected
         this.demandSetSelection?.deselectAll();
       });

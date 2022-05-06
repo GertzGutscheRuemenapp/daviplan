@@ -95,7 +95,7 @@ export class MultilineChartComponent implements AfterViewInit {
       .domain(groups)
       .padding(0);
 
-    let max = this.max || d3.max(data, d => { return d3.max(d.values) });
+    let max = this.max || Math.max(d3.max(data, d => { return d3.max(d.values) }) || 0, 0);
     max! += this.yPadding;
     let min = (this.min === undefined)? d3.min(data, d => { return d3.min(d.values) }): this.min;
     min! -= this.yPadding;

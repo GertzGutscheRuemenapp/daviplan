@@ -56,7 +56,7 @@ export class PlaceFilterComponent implements AfterViewInit {
       let placeCaps: Record<string, number> = {};
       this.capacities[this.year!] = placeCaps;
       this.services?.forEach(service => {
-        observables.push(this.planningService.getCapacities(this.year!, service.id).pipe(map(capacities => {
+        observables.push(this.planningService.getCapacities({ year: this.year!, service: service.id! }).pipe(map(capacities => {
           this.places.forEach(place => {
             const key = `${service.id}-${place.id}`;
             placeCaps[key] = capacities.find(c => c.place === place.id)?.capacity || 0;

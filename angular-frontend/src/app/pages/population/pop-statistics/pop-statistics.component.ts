@@ -209,7 +209,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         const diffValue = posValue + negValue;
         maxValue = Math.max(maxValue, posValue);
         minValue = Math.min(minValue, negValue);
-        maxTotal = Math.max(maxTotal, diffValue);
+        maxTotal = Math.max(maxTotal, diffValue, 1);
         minTotal = Math.min(minTotal, diffValue);
         balanceData.push({ group: yearData.year.toString(), values: [posValue, negValue] })
         totalData.push({ group: yearData.year.toString(), values: [diffValue] });
@@ -224,14 +224,14 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       this.balanceChartProps.labels = [topLabel, bottomLabel];
       const tchTitle = (this.theme === 'nature')? 'Natürlicher Saldo': 'Wanderungssaldo';
       this.balanceChartProps.lineLabel = tchTitle;
-      this.balanceChartProps.yPadding = Math.ceil(Math.max(maxValue, -minValue) * 0.2);
+      this.balanceChartProps.yPadding = Math.ceil(Math.max(maxValue, Math.abs(minValue)) * 0.2);
       this.balanceChartProps.data = balanceData;
 
       this.totalChartProps.title = tchTitle;
       this.totalChartProps.labels = [tchTitle];
       this.totalChartProps.yTopLabel = 'mehr ' + topLabel;
       this.totalChartProps.yBottomLabel = 'mehr ' + bottomLabel;
-      this.totalChartProps.yPadding = Math.ceil(Math.max(maxTotal, -minTotal) * 0.2);
+      this.totalChartProps.yPadding = Math.ceil(Math.max(maxTotal, Math.abs(minTotal)) * 0.2);
       this.totalChartProps.data = totalData;
 
       // workaround to force redraw of diagram by triggering ngIf wrapper

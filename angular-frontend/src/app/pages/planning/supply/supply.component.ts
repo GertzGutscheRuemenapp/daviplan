@@ -139,7 +139,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         this.mapControl?.removeLayer(this.placesLayer.id!);
       }
       if (!this.activeService) this.activeService = this.activeInfrastructure!.services[0];
-      this.planningService.getCapacities(this.year!, this.activeService.id).subscribe(capacities => {
+      this.planningService.getCapacities({ year: this.year!, service: this.activeService.id }).subscribe(capacities => {
         this.capacities = capacities;
         let displayedPlaces: Place[] = [];
         this.places?.forEach(place => {

@@ -288,7 +288,7 @@ export class DemandRateSetViewComponent implements AfterViewInit {
     if (!this.yearChart) return;
     this.yearChart.clear();
     if (!this.year) return;
-    const max = Math.max(...this.yearDemandRates.map(dr => dr.value || 0), 0);
+    const max = Math.max(...this.yearDemandRates.map(dr => dr.value || 0), 0.1);
     // this.yearChart.max = Math.min(Math.floor(max / 10) * 10 + 10, this.maxValue)
     this.yearChart.max = Math.min(Math.ceil(max * 1.1), this.maxValue);
     const data: MultilineData[] = [];
@@ -316,7 +316,7 @@ export class DemandRateSetViewComponent implements AfterViewInit {
     if (!this.selectedAgeGroup) return;
     const data: MultilineData[] = [];
     const groupRates = this._demandRateSet?.demandRates.filter(dr => dr.ageGroup === this.selectedAgeGroup!.id) || [];
-    const max = Math.max(...groupRates.map(dr => dr.value || 0), 0);
+    const max = Math.max(...groupRates.map(dr => dr.value || 0), 0.1);
     // this.ageGroupChart.max = Math.min(Math.floor(max / 10) * 10 + 10, this.maxValue);
     this.ageGroupChart.max = Math.min(Math.ceil(max * 1.1), this.maxValue);
     this._years.forEach(year => {
