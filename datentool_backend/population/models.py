@@ -39,6 +39,8 @@ class PopulationRaster(DatentoolModelMixin, NamedModel, models.Model):
     raster = models.ForeignKey(Raster, on_delete=PROTECT_CASCADE)
     year = models.ForeignKey(Year, on_delete=PROTECT_CASCADE)
     default = models.BooleanField(default=False)
+    filename = models.TextField(null=True)
+    srid = models.IntegerField(default=3035)
 
 
 class RasterCell(DatentoolModelMixin, models.Model):
@@ -47,6 +49,9 @@ class RasterCell(DatentoolModelMixin, models.Model):
     cellcode = models.TextField(validators=[MaxLengthValidator(13)])
     pnt = gis_models.PointField(srid=3857)
     poly = gis_models.PolygonField(srid=3857)
+
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__}: {self.raster.name}-{self.cellcode}'
@@ -58,6 +63,10 @@ class RasterCellPopulation(models.Model):
     cell = models.ForeignKey(RasterCell, on_delete=PROTECT_CASCADE)
     value = models.FloatField()
     area = models.ManyToManyField(Area, through='AreaCell')
+
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
+
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__}: {self.popraster.name}-{self.cell.cellcode}'
