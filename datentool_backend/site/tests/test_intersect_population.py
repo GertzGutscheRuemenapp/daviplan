@@ -2,7 +2,6 @@ from test_plus import APITestCase
 from django.contrib.gis.geos import MultiPolygon
 from django.db.models import Sum
 
-
 from datentool_backend.api_test import (LoginTestCase
                                         )
 from datentool_backend.site.models import ProjectSetting
@@ -86,5 +85,3 @@ class TestIntersectZensus(LoginTestCase,
             .filter(popraster=self.popraster500)\
             .aggregate(Sum('value'))
         self.assertAlmostEqual(value_sum['value__sum'], expected_population)
-
-

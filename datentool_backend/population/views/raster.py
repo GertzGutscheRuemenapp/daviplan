@@ -1,5 +1,5 @@
 import os
-import shutil
+import pyproj
 import tempfile
 import numpy as np
 import pandas as pd
@@ -28,6 +28,8 @@ from datentool_backend.population.models import (
     PopulationRaster,
     RasterCell,
     RasterCellPopulation,
+    RasterCellPopulationAgeGender,
+    AreaCell,
     )
 from rest_framework.response import Response
 
@@ -149,15 +151,20 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             raster_id = popraster.raster_id
             # Iterate over the Numpy points..
 
+            proj = pyproj.Transformer.from_crs(srid, target_srs, always_xy=True)
+            centroids_3057 = np.array(proj.transform(centroids[0], centroids[1]))
+            corners_3057 = np.array(proj.transform(corners[0].flatten(),
+                                                   corners[1].flatten(),
+                                                   )).reshape(2, 5, n_cells)
             for i in range(n_cells):
                 cellcode = str(i)
-                x, y = centroids[:, i]
-                pnt = Point(x, y, srid=srid)
-                poly = Polygon(corners[:, :, i].T, srid=srid)
+                x, y = centroids_3057[:, i]
+                pnt = Point(x, y, srid=target_srs)
+                poly = Polygon(corners_3057[:, :, i].T, srid=target_srs)
                 rastercells.append([raster_id,
                                     cellcode,
-                                    pnt.transform(target_srs, clone=True),
-                                    poly.transform(target_srs, clone=True),
+                                    pnt,
+                                    poly,
                                     ])
                 einwohner = int(a[y_index[i], x_index[i]])
                 rastercellpopulation.append([popraster_id, einwohner])
@@ -167,6 +174,16 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             df_rastercells = pd.DataFrame(rastercells,
                                           columns=['raster_id', 'cellcode',
                                                    'pnt', 'poly'])
+
+            # for LAEA-Raster use the cellcode definition
+            if popraster.raster.name == 'LAEA-Raster':
+                cellcode_coords = np.round(corners[:, 3] / 100, 0).astype(int)
+                df_coords = pd.DataFrame({'x': cellcode_coords[0],
+                                          'y': cellcode_coords [1],})
+                def get_cellcode(row):
+                    return f"100mN{row['y']:05d}E{row['x']:05d}"
+                df_rastercells['cellcode'] = df_coords.apply(get_cellcode, axis=1)
+
 
             df_rcpopulation = pd.DataFrame(rastercellpopulation,
                                            columns=['popraster_id', 'value'])
@@ -183,8 +200,18 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                     rcp_manager.drop_constraints()
                     rcp_manager.drop_indexes()
 
-                qs_rc = RasterCell.objects.filter(raster=raster_id)
-                qs_rc.delete()
+                from datentool_backend.indicators.models import (MatrixCellPlace,
+                                                                 MatrixCellStop)
+                MatrixCellPlace.truncate()
+                MatrixCellStop.truncate()
+                AreaCell.truncate()
+                RasterCellPopulationAgeGender.truncate()
+                RasterCellPopulation.truncate()
+                RasterCell.truncate()
+
+                # delete casade can take forever, so use truncate to all depending
+                #qs_rc = RasterCell.objects.filter(raster=raster_id)
+                #qs_rc.delete()
 
                 try:
                     if len(df_rastercells):
@@ -211,7 +238,8 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
                 except Exception as e:
                     msg = str(e)
-                    return Response({'message': msg,}, status=status.HTTP_406_NOT_ACCEPTABLE)
+                    return Response({'message': msg,},
+                                    status=status.HTTP_406_NOT_ACCEPTABLE)
 
                 finally:
                     # recreate indices
@@ -221,10 +249,9 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                         rcp_manager.restore_constraints()
                         rcp_manager.restore_indexes()
 
-
         except Exception as e:
             msg = str(e)
             return Response({'message': msg,}, status=status.HTTP_406_NOT_ACCEPTABLE)
         n_inhabitants = df_rcpopulation['value'].sum()
-        msg = f'intersected project areas with {n_cells} cells and {n_inhabitants} inhabitants'
+        msg = f'intersected project area with {n_cells} cells and {n_inhabitants} inhabitants'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
