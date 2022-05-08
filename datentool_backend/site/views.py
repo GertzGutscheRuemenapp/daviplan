@@ -2,7 +2,7 @@ from datentool_backend.utils.views import SingletonViewSet
 from rest_framework import viewsets
 from rest_framework.response import Response
 from django_filters import rest_framework as filters
-from django.db.models import ExpressionWrapper, BooleanField, Q
+from django.db.models import ExpressionWrapper, BooleanField, Q, Count
 from django.core.exceptions import BadRequest
 from drf_spectacular.utils import (extend_schema, inline_serializer,
                                    OpenApiResponse)
@@ -24,6 +24,7 @@ class YearFilter(filters.FilterSet):
     prognosis = filters.NumberFilter(field_name='population__prognosis')
     has_real_data = filters.BooleanFilter(field_name='has_real')
     has_prognosis_data = filters.BooleanFilter(field_name='has_prognosis')
+    has_statistics_data = filters.BooleanFilter(field_name='has_statistics')
     class Meta:
         model = Year
         fields = ['is_real', 'is_prognosis', 'population__prognosis',
@@ -42,11 +43,16 @@ class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         has_real_data = (Q(population__isnull=False) &
                          Q(population__prognosis__isnull=True))
         has_prognosis_data = Q(population__prognosis__isnull=False)
-        qs = qs.annotate(
+        has_statistics_data = Q(stat_count__gt=0)
+
+        qs = qs.annotate(stat_count=Count('statistics')).annotate(
             has_real=ExpressionWrapper(has_real_data,
                                        output_field=BooleanField()),
             has_prognosis=ExpressionWrapper(has_prognosis_data,
-                                            output_field=BooleanField()))
+                                            output_field=BooleanField()),
+            has_statistics=ExpressionWrapper(has_statistics_data,
+                                             output_field=BooleanField()),
+        )
         return qs.distinct().order_by('year')
 
     @extend_schema(description='Set Year Range',
@@ -155,5 +161,4 @@ class SiteSettingViewSet(SingletonViewSet):
     model_class = SiteSetting
     serializer_class = SiteSettingSerializer
     permission_classes = [HasAdminAccessOrReadOnlyAny]
-    #authentication_classes = []
 

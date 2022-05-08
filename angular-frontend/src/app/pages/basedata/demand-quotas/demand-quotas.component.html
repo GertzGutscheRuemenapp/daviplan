@@ -1,7 +1,6 @@
-<p class="under-construction">
-  <mat-icon class="material-icons-outlined">construction</mat-icon>
-  Diese Seite ist noch nicht fertig implementiert. Die gezeigten Daten sind zur Zeit nur Platzhalter. Das Layout wird noch überarbeitet.
-</p>
+<div class="loadOverlay" *ngIf="isLoading$ | async">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
 <app-header-card [title]="'Nachfragequoten'"
                  cookieId="exp-quota-header"
                  width="1230px">
@@ -21,8 +20,8 @@
                     <p>Legen Sie anschließend in der Box „Definition der Nachfragequote für ausgewählte Leistung“ fest, wie genau die Nachfragequote dieser Leistung definiert und bezeichnet sein soll.</p>
                     <p>Anschließend können Sie auf Basis dieser Rahmenfestlegungen in der Box „Nachfragequoten-Sets der ausgewählten Leistung“ ein erstes Nachfragequoten-Set hinzufügen.</p>">
     <mat-selection-list [multiple]="false"
-                          class="categorized"
-                          id="service-select">
+                        class="categorized"
+                        id="service-select">
         <ng-container *ngFor="let infrastructure of infrastructures">
           <div mat-subheader>{{infrastructure.name}}</div>
           <mat-list-option *ngFor="let service of infrastructure.services"
@@ -35,7 +34,7 @@
       </mat-selection-list>
     </app-input-card>
   </div>
-  <div fxLayout="column" fxFlex="400px" [ngClass]="{'hidden': !activeService}">
+  <div fxLayout="column" fxFlex="400px" [class.hidden]="!activeService">
     <app-input-card #demandTypeCard
                     [title]="'Prinzip der Nachfrageberechnung'"
                     [editTemplate]="demandTypeEdit"
@@ -52,124 +51,97 @@
       <app-input-card [title]="'Varianten'"
                       [subtitle]="'Leistung ' + activeService?.name"
                       infoText="<p>Klicken Sie auf „Hinzufügen“, um ein Nachfragequoten-Set zu definieren. </p>
-                    <p>Ein Nachfragequoten-Set legt die Nachfragequote für jede in der Box „Definition der Nachfragequote für ausgewählte Leistung“ ausgewählte Altersgruppe sowie für jedes Prognosejahr fest. Sofern in der Box „Einwohner-Differenzierung“ für die Leistung eine geschlechterspezifische Differenzierung der Quoten ausgewählt wurde, sind dabei die Nachfragequoten auch nach Geschlecht zu differenzieren.</p>
-                    <p>Für jede Leistung muss mindestens ein Nachfragequoten-Set definiert sein. </p>
-                    <p>Im Sinne von Szenarien können für eine Leistung auch mehrere Nachfragequoten-Sets definiert werden, auf die die Nutzer*innen im Hauptmenüabschnitt „Infrastrukturplanung“ dann für alternative Planungs- und Auswertungsvarianten zurückgreifen können.</p>
-                    <p>Wenn Sie für eine Leistung mehr als ein Nachfragequoten-Set definieren, müssen Sie noch festlegen, welches Set davon für das im Hauptmenüabschnitt „Infrastrukturplanung“ immer automatisch erzeugte Planungsszenario „Trendfortschreibung“ verwendet werden soll. Wählen Sie hierzu das betreffende Set in der Liste aus und klicken Sie auf „Als Annahme für Trendfortschreibung festlegen“</p>">
+                                <p>Ein Nachfragequoten-Set legt die Nachfragequote für jede in der Box „Definition der Nachfragequote für ausgewählte Leistung“ ausgewählte Altersgruppe sowie für jedes Prognosejahr fest. Sofern in der Box „Einwohner-Differenzierung“ für die Leistung eine geschlechterspezifische Differenzierung der Quoten ausgewählt wurde, sind dabei die Nachfragequoten auch nach Geschlecht zu differenzieren.</p>
+                                <p>Für jede Leistung muss mindestens ein Nachfragequoten-Set definiert sein. </p>
+                                <p>Im Sinne von Szenarien können für eine Leistung auch mehrere Nachfragequoten-Sets definiert werden, auf die die Nutzer*innen im Hauptmenüabschnitt „Infrastrukturplanung“ dann für alternative Planungs- und Auswertungsvarianten zurückgreifen können.</p>
+                                <p>Wenn Sie für eine Leistung mehr als ein Nachfragequoten-Set definieren, müssen Sie noch festlegen, welches Set davon für das im Hauptmenüabschnitt „Infrastrukturplanung“ immer automatisch erzeugte Planungsszenario „Trendfortschreibung“ verwendet werden soll. Wählen Sie hierzu das betreffende Set in der Liste aus und klicken Sie auf „Als Annahme für Trendfortschreibung festlegen“</p>">
         {{activeDemandRateSet?.name}}
-        <mat-selection-list [multiple]="false" id="quota-select">
-          <mat-list-option *ngFor="let set of demandRateSets"
-                           (click)="activeDemandRateSet = set; onDemandRateSetChange();"
-                           [selected]="(set.id === activeDemandRateSet?.id)"
-                           [ngClass]="{'star-option': set.isDefault}"
-                           [title]="set.name + (set.isDefault? ' (Annahme für Trendfortschreibung)': '')">
-            <div class="option-text">{{set.name}}</div>
-            <mat-icon *ngIf="set.isDefault" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
+        <mat-selection-list #demandSetSelection [multiple]="false" id="quota-select" >
+          <mat-list-option *ngFor="let demandRateSet of demandRateSets"
+                           (click)="activeDemandRateSet = demandRateSet; onDemandRateSetChange();"
+                           [selected]="(demandRateSet.id === activeDemandRateSet?.id)"
+                           [ngClass]="{'star-option': demandRateSet.isDefault}"
+                           [title]="demandRateSet.name + (demandRateSet.isDefault? ' (Annahme für Trendfortschreibung)': '')">
+            <div class="option-text">{{demandRateSet.name}}</div>
+            <mat-icon *ngIf="demandRateSet.isDefault" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
           </mat-list-option>
         </mat-selection-list>
         <button mat-button color="primary"
                 class="multiline-button"
-                (click)="setDefaultDemandRateSet()">
-          <!--        (click)="statusQuoQuota = (statusQuoQuota===selectedQuota)? undefined : selectedQuota"-->
+                (click)="activeDemandRateSet && setDefaultDemandRateSet(activeDemandRateSet)">
           <mat-icon class="material-icons-outlined">verified</mat-icon>
           Als Annahme für Trendfortschreibung festlegen
         </button>
         <div>
           <button mat-button color="primary"
-                  class="mat-button-dv">
-            <mat-icon>add</mat-icon>hinzufügen
+                  class="mat-button-dv"
+                  title="Nachfragevariante hinzufügen"
+                  (click)="createDemandRateSet()">
+            <mat-icon>add</mat-icon>hinzuf.
+          </button>
+          <button mat-button color="primary"
+                  class="mat-button-dv"
+                  title="Ausgewählte Nachfragevariante duplizieren"
+                  [disabled]="!activeDemandRateSet"
+                  (click)="cloneDemandRateSet()">
+            <mat-icon>content_copy</mat-icon>Klonen
           </button>
           <button mat-button color="primary"
                   style="float: right;"
-                  class="mat-button-dv">
-            <!--                [disabled]="selectedQuota==='aktuelle Quoten'"-->
+                  title="Ausgewählte Nachfragevariante löschen"
+                  class="mat-button-dv"
+                  [disabled]="!activeDemandRateSet"
+                  (click)="removeDemandRateSet()">
             <mat-icon>close</mat-icon>entfernen
           </button>
         </div>
-      </app-input-card>
-      <app-input-card #propertiesCard
-                      [ngClass]="{'hidden': !activeDemandRateSet}"
-                      [title]="'Bezeichnung der ausgewählten Variante'"
-                      [editTemplate]="propertiesEdit"
-                      infoText="Platzhalter">
-        <table *ngIf="activeDemandRateSet">
-          <tr>
-            <td>Name</td>
-            <td>{{activeDemandRateSet.name}}</td>
-          </tr>
-          <tr>
-            <td>Beschreibung</td>
-            <td>
-              <div style="overflow: hidden; -webkit-line-clamp: 5; -webkit-box-orient: vertical; display: -webkit-box;">
-                {{activeDemandRateSet.description}}
-              </div>
-            </td>
-          </tr>
-        </table>
+        <div [class.hidden]="!activeDemandRateSet" [style.height]="!activeDemandRateSet? '0px': ''"
+             between>
+          <mat-divider style="margin: 10px 0;"></mat-divider>
+          <div style="padding: 10px 0;">
+            <app-input-card #propertiesCard
+                            [borderless]="true"
+                            [subtitle]="'Bezeichnung der ausgewählten Variante'"
+                            [editTemplate]="propertiesEdit">
+              <table *ngIf="activeDemandRateSet">
+                <tr>
+                  <td>Name</td>
+                  <td>{{activeDemandRateSet.name}}</td>
+                </tr>
+                <tr>
+                  <td>Beschreibung</td>
+                  <td>
+                    <div style="overflow: hidden; -webkit-line-clamp: 5; -webkit-box-orient: vertical; display: -webkit-box;">
+                      {{activeDemandRateSet.description}}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </app-input-card>
+          </div>
+        </div>
       </app-input-card>
     </div>
-    <div fxLayout="column" fxFlex="900px" [ngClass]="{'hidden': !activeDemandRateSet}">
-      <app-input-card [title]="'Werte der ausgewählten Variante'"
+    <div fxLayout="column" fxFlex="900px" [class.hidden]="!activeDemandRateSet">
+      <app-input-card #demandRateSetCard
+                      [title]="'Werte der ausgewählten Variante'"
                       [subtitle]="'Leistung ' + activeService?.name + ' / ' + 'Set „' + activeDemandRateSet?.name + '“'"
                       [editTemplate]="demandRateSetEdit"
+                      dialogWidth="1200px"
                       [topRightHelp]="true"
                       infoText="<p>In dieser Box können Sie die Quoten des ausgewählten Nachfragequoten-Sets eintragen bzw. bereits eingetragene Werte in Tabellen- und Diagrammform betrachten und kontrollieren.</p>
-                    <p>Klicken Sie auf „Editieren“, um die Werte der Quoten des ausgewählten Nachfragequoten-Sets erstmalig einzutragen oder zu verändern.</p>
-                    <p>Für die Betrachtung und Kontrolle der Nachfragequoten stehen Ihnen zwei Ansichten zur Verfügung.</p>
-                    <p>Mit dem Jahres-Schieber können Sie zwischen den Jahren hin- und herspringen. Dabei passen sich die Tabelle und das obere der beiden Diagramme an und zeigen jeweils die Quoten der einzelnen Altersgruppen in dem gerade ausgewählten Jahr.</p>
-                    <p>Wenn Sie in der Tabelle eine Altersgruppe anklicken, passt sich zudem das untere Diagramm an und zeigt Ihnen die im ausgewählten Set definierte Veränderung der Nachfragequote dieser Altersgruppe im Laufe der Zeit.</p>">
-        <table>
-          <tr>
-            <td i18n>Name</td>
-            <td>{{activeDemandRateSet?.name}}</td>
-          </tr>
-        </table>
-        <div style="display: flex;">
-          <mat-slider #timeSlider color="primary"
-                      thumbLabel min="2000" max="2100" step="1" value="2010" tickInterval="1"
-                      style="width: 420px; margin-top: 15px;"></mat-slider>
-          <label style="padding-top: 20px;">{{timeSlider.value}}</label>
-        </div>
-        <div style="width: 100%; display: flex; align-items: stretch;">
-          <div style="width: 40%; border: solid #0000001F; padding: 8px;">
-            <table style="width: 100%; text-align: center;">
-              <tr>
-                <th style="text-align: left;">{{timeSlider.value}}</th>
-                <th colspan="2" style="text-align: center">Quote (in Prozent)</th>
-              </tr>
-              <tr>
-                <th style="min-width: 20%;"></th>
-                <th>weiblich</th>
-                <th>männlich</th>
-              </tr>
-              <tr>
-                <td>9 bis unter 12 Jahre</td>
-                <td>20</td>
-                <td>19</td>
-              </tr>
-              <tr>
-                <td>12 bis unter 15 Jahre</td>
-                <td>30</td>
-                <td>24</td>
-              </tr>
-              <tr>
-                <td>15 bis unter 20 Jahre</td>
-                <td>18</td>
-                <td>15</td>
-              </tr>
-            </table>
-          </div>
-          <div style="display: flex; width: 55%; margin-left: 10px; flex-flow: row wrap;">
-            <span class="subtitle1" style="color: grey;">Nachfragequote nach Altersgruppe im ausgewählten Jahr {{timeSlider.value}}</span>
-            <div class="diagram-wrapper" style="width: 100%;">
-              <img src="{{backend}}/static/img/Nachfragequoten alle Altersklassen screenshot.png" width="100%">
-            </div>
-            <span class="subtitle1" style="color: grey;">Nachfragequote der ausgewählten Altersgruppe [xxx] nach Jahr</span>
-            <div class="diagram-wrapper" style="width: 100%;">
-              <img src="{{backend}}/static/img/Nachfrage Altersklasse screenshot.png" width="100%">
-            </div>
-          </div>
-        </div>
+                                <p>Klicken Sie auf „Editieren“, um die Werte der Quoten des ausgewählten Nachfragequoten-Sets erstmalig einzutragen oder zu verändern.</p>
+                                <p>Für die Betrachtung und Kontrolle der Nachfragequoten stehen Ihnen zwei Ansichten zur Verfügung.</p>
+                                <p>Mit dem Jahres-Schieber können Sie zwischen den Jahren hin- und herspringen. Dabei passen sich die Tabelle und das obere der beiden Diagramme an und zeigen jeweils die Quoten der einzelnen Altersgruppen in dem gerade ausgewählten Jahr.</p>
+                                <p>Wenn Sie in der Tabelle eine Altersgruppe anklicken, passt sich zudem das untere Diagramm an und zeigt Ihnen die im ausgewählten Set definierte Veränderung der Nachfragequote dieser Altersgruppe im Laufe der Zeit.</p>">
+        <app-demand-rate-set-view #demandRateSetPreview
+                                  [years]="years"
+                                  [demandRateSet]="activeDemandRateSet"
+                                  [service]="activeService"
+                                  [genders]="genders"
+                                  [ageGroups]="ageGroups"
+                                  [chartHeight]="250">
+        </app-demand-rate-set-view>
       </app-input-card>
     </div>
   </div>
@@ -177,6 +149,11 @@
 
 <ng-template #demandTypeEdit>
   <form [formGroup]="demandTypeForm" style="padding: 10px 0;">
+    <div *ngIf="demandTypeForm.errors">
+      <mat-error *ngFor="let error of demandTypeForm.errors | keyvalue" class="alert">
+        {{ error.key }} {{ error.value }}
+      </mat-error>
+    </div>
     <mat-radio-group formControlName="demandType">
       <mat-radio-button *ngFor="let item of demandTypes | keyvalue" [value]="item.key">
         {{item.value[0]}} {{item.value[1]}}
@@ -186,8 +163,35 @@
 </ng-template>
 
 <ng-template #propertiesEdit>
-  Funktionalität für den Prototyp noch nicht hinterlegt.
+  <form [formGroup]="propertiesForm" style="padding: 10px 0;">
+    <div *ngIf="propertiesForm.errors">
+      <mat-error *ngFor="let error of propertiesForm.errors | keyvalue" class="alert">
+        {{ error.key }} - {{ error.value }}
+      </mat-error>
+    </div>
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Name</mat-label>
+        <input matInput formControlName="name" autocomplete="demand-variant-name" required>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Beschreibung</mat-label>
+        <textarea matInput formControlName="description"
+                  cdkTextareaAutosize cdkAutosizeMinRows="3"
+                  autocomplete="demand-variant-desc"></textarea>
+      </mat-form-field>
+    </div>
+  </form>
 </ng-template>
 
 <ng-template #demandRateSetEdit>
+  <app-demand-rate-set-view [years]="years"
+                            [edit]="true"
+                            [inPlace]="true"
+                            [demandRateSet]="editDemandRateSet"
+                            [service]="activeService"
+                            [genders]="genders"
+                            [ageGroups]="ageGroups"
+                            [chartHeight]="300">
+  </app-demand-rate-set-view>
 </ng-template>

@@ -39,6 +39,8 @@ class PopulationRaster(DatentoolModelMixin, NamedModel, models.Model):
     raster = models.ForeignKey(Raster, on_delete=PROTECT_CASCADE)
     year = models.ForeignKey(Year, on_delete=PROTECT_CASCADE)
     default = models.BooleanField(default=False)
+    filename = models.TextField(null=True)
+    srid = models.IntegerField(default=3035)
 
 
 class RasterCell(DatentoolModelMixin, models.Model):
@@ -48,22 +50,29 @@ class RasterCell(DatentoolModelMixin, models.Model):
     pnt = gis_models.PointField(srid=3857)
     poly = gis_models.PolygonField(srid=3857)
 
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
+
     def __str__(self) -> str:
         return f'{self.__class__.__name__}: {self.raster.name}-{self.cellcode}'
 
 
-class RasterCellPopulation(models.Model):
+class RasterCellPopulation(DatentoolModelMixin, models.Model):
     """the population in a cell in a certain PopulationRaster"""
     popraster = models.ForeignKey(PopulationRaster, on_delete=PROTECT_CASCADE)
     cell = models.ForeignKey(RasterCell, on_delete=PROTECT_CASCADE)
     value = models.FloatField()
     area = models.ManyToManyField(Area, through='AreaCell')
 
+    objects = models.Manager()
+    copymanager = DirectCopyManager()
+
+
     def __str__(self) -> str:
         return f'{self.__class__.__name__}: {self.popraster.name}-{self.cell.cellcode}'
 
 
-class AreaCell(models.Model):
+class AreaCell(DatentoolModelMixin, models.Model):
     """
     stores the share of the cell on the whole area population
     and the share of the area on the cells area
@@ -80,6 +89,7 @@ class AreaCell(models.Model):
 class Prognosis(DatentoolModelMixin, NamedModel, models.Model):
     """a prognosis"""
     name = models.TextField()
+    description = models.TextField(blank=True, default='')
     is_default = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
@@ -119,7 +129,7 @@ class PopulationEntry(models.Model):
     value = models.FloatField()
 
 
-class RasterCellPopulationAgeGender(models.Model):
+class RasterCellPopulationAgeGender(DatentoolModelMixin, models.Model):
     """a raster cell with a disaggregated value"""
     population = models.ForeignKey(Population, on_delete=PROTECT_CASCADE, null=True)
     cell = models.ForeignKey(RasterCell, on_delete=PROTECT_CASCADE)
@@ -145,7 +155,8 @@ class AreaPopulationAgeGender(models.Model):
 
 class PopStatistic(DatentoolModelMixin, models.Model):
     """population statistic for a certain year"""
-    year = models.ForeignKey(Year, on_delete=PROTECT_CASCADE)
+    year = models.ForeignKey(Year, on_delete=PROTECT_CASCADE,
+                             related_name='statistics')
 
 
 class PopStatEntry(models.Model):

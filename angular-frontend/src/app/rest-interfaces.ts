@@ -1,6 +1,12 @@
 import { EventEmitter } from "@angular/core";
 import { Geometry } from "ol/geom";
 
+export const DemandTypes = {
+  1: ['Nachfragequote', '(z.B. 30% der Kinder einer Altersklasse)'],
+  2: ['Nutzungshäufigkeit pro Einwohner und Jahr', '(z.B. 15 Arztbesuche pro Einwohner und Jahr.)'],
+  3: ['Einwohnerzahl insgesamt', '(z.B. Brandschutz oder Einzelhandelsversorgung, keine weitere Angaben erforderlich)']
+}
+
 export interface BasedataSettings {
   popAreaLevel: number,
   popStatisticsAreaLevel: number,
@@ -128,6 +134,7 @@ export interface Year {
 export interface Prognosis {
   id: number,
   name: string,
+  description: string,
   isDefault: boolean,
   years: number[]
 }
@@ -158,6 +165,11 @@ export interface PopulationData {
   gender: number,
   agegroup: number,
   value: number
+}
+
+export interface Statistic {
+  id: number,
+  year: number
 }
 
 export interface StatisticsData {
@@ -206,7 +218,7 @@ export interface DemandRate {
   year: number,
   ageGroup: number,
   gender: number,
-  value: number
+  value?: number
 }
 
 export interface DemandRateSet {
@@ -221,6 +233,12 @@ export interface DemandRateSet {
 export interface FClass {
   order: number,
   value: string
+}
+
+export const FType = {
+  'CLA': 'Klassifikation',
+  'NUM': 'Zahl',
+  'STR': 'Zeichenkette'
 }
 
 export interface FieldType{
@@ -246,7 +264,8 @@ export interface Infrastructure {
   services: Service[],
   order: number,
   symbol?: Symbol,
-  placeFields?: PlaceField[]
+  placeFields?: PlaceField[],
+  placesCount: number
 }
 
 export interface Place {
@@ -267,6 +286,6 @@ export interface Capacity {
   place: number,
   service: number,
   capacity: number,
-  from_year: number,
-  scenario: number
+  fromYear: number,
+  scenario?: number
 }

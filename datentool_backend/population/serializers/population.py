@@ -18,14 +18,15 @@ class RasterSerializer(serializers.ModelSerializer):
 class PopulationRasterSerializer(serializers.ModelSerializer):
     class Meta:
         model = PopulationRaster
-        fields = ('id', 'name', 'raster', 'year', 'default')
+        fields = ('id', 'name', 'raster', 'year', 'default', 'filename', 'srid')
 
 
 class PrognosisSerializer(serializers.ModelSerializer):
     years = serializers.SerializerMethodField()
     class Meta:
         model = Prognosis
-        fields = ('id', 'name', 'years', 'is_default')
+        fields = ('id', 'name', 'years', 'is_default', 'description')
+        extra_kwargs = {'description': {'required': False}}
 
     def get_years(self, obj) -> List[int]:
         populations = Population.objects.filter(prognosis=obj)

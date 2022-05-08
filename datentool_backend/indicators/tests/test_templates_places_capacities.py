@@ -90,7 +90,7 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
 
     def test_create_infrastructure_template(self):
         url = reverse('places-create-template')
-        res = self.post(url, data={'infrastructure_id': self.infra.pk,})
+        res = self.post(url, data={'infrastructure': self.infra.pk,})
         self.assert_http_200_ok(res)
         wb = load_workbook(BytesIO(res.content))
         self.assertSetEqual(set(wb.sheetnames),
@@ -111,7 +111,7 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
         file_content = open(file_path_places, 'rb')
         data = {
             'excel_file' : file_content,
-            'infrastructure_id': self.infra.pk,
+            'infrastructure': self.infra.pk,
         }
 
         url = reverse('places-upload-template')

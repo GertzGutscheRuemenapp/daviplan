@@ -6,6 +6,7 @@ import { Component, Input, OnInit } from '@angular/core';
   styleUrls: ['./data-table.component.scss']
 })
 export class DataTableComponent implements OnInit {
+  @Input() height = '70vh';
   _columns: string[] = [];
   private _rows: any[][] = [];
   sortedRows: any[][] = [];

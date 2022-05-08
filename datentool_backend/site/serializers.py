@@ -13,10 +13,12 @@ class YearSerializer(serializers.ModelSerializer):
                                              read_only=True)
     has_prognosis_data = serializers.BooleanField(source='has_prognosis',
                                                   read_only=True)
+    has_statistics_data = serializers.BooleanField(source='has_statistics',
+                                                   read_only=True)
     class Meta:
         model = Year
         fields = ('id', 'year', 'is_prognosis', 'is_real',
-                  'has_real_data', 'has_prognosis_data')
+                  'has_real_data', 'has_prognosis_data', 'has_statistics_data')
 
 
 class ProjectSettingSerializer(serializers.ModelSerializer):

@@ -39,6 +39,15 @@ const areaLayers: BKGLayer[] = [
 proj4.defs("EPSG:25832", "+proj=utm +zone=32 +ellps=GRS80 +units=m +no_defs");
 register(proj4);
 
+function transformAgeGroups(ageGroups: AgeGroup[]): AgeGroup[] {
+  const trans = ageGroups.map(ag => {
+    return { fromAge: ag.fromAge, toAge: ag.toAge + 1 }
+  })
+  // remove last element
+  trans.pop();
+  return trans;
+}
+
 @Component({
   selector: 'app-project-definition',
   templateUrl: './project-definition.component.html',
@@ -52,7 +61,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   endYear: number = 0;
   years?: number[];
   ageGroups: AgeGroup[] = [];
-  __ageGroups: AgeGroup[] = [];
+  editAgeGroups: AgeGroup[] = [];
   ageGroupDefaults: AgeGroup[] = [];
   projectAreaErrors = [];
   projectSettings?: ProjectSettings;
@@ -132,19 +141,30 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   }
 
   setupAgeGroupCard(): void {
-    this.__ageGroups = JSON.parse(JSON.stringify(this.ageGroups!));
+    this.editAgeGroups = transformAgeGroups(this.ageGroups);
 
     this.ageGroupCard.dialogConfirmed.subscribe(ok => {
-      const valid = this.validateAgeGroups(this.__ageGroups),
+      // transformation raised toAge, revert
+      const changedGroups = this.editAgeGroups.map(ag => {
+        return { fromAge: ag.fromAge, toAge: ag.toAge - 1 }
+      })
+      // append last group that was cut
+      if (this.editAgeGroups.length === 0)
+        changedGroups.push({ fromAge: 0, toAge: 999 })
+      changedGroups.push({
+        fromAge: (this.editAgeGroups.length === 0)? 0: this.editAgeGroups[this.editAgeGroups.length-1].toAge,
+        toAge: 999
+      })
+      const valid = this.validateAgeGroups(changedGroups),
             _this = this;
       if (!valid) {
         this.ageGroupErrors = ['Die Altersgruppen müssen lückenlos sein und dürfen sich nicht überschneiden'];
         return;
       }
-      const matchesDefaults = this.compareAgeGroupsDefault(this.__ageGroups);
+      const matchesDefaults = this.compareAgeGroupsDefault(changedGroups);
       function postAgeGroups(){
         _this.ageGroupCard.setLoading(true);
-        _this.http.post<AgeGroup[]>(`${_this.rest.URLS.ageGroups}replace/`, _this.__ageGroups
+        _this.http.post<AgeGroup[]>(`${_this.rest.URLS.ageGroups}replace/`, changedGroups
         ).subscribe(ageGroups => {
           _this.ageGroupCard.closeDialog(true);
           _this.ageGroups = ageGroups;
@@ -183,7 +203,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       // reset form on cancel
       if (!ok){
       }
-      this.__ageGroups = JSON.parse(JSON.stringify(this.ageGroups!));
+      this.editAgeGroups = transformAgeGroups(this.ageGroups);
       this.ageGroupErrors = [];
     })
   }
@@ -401,37 +421,38 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   }
 
   resetAgeGroups(): void {
-    this.__ageGroups = JSON.parse(JSON.stringify(this.ageGroupDefaults));
+    this.editAgeGroups = transformAgeGroups(this.ageGroupDefaults);
     this.ageGroupErrors = [];
   }
 
   addAgeGroup(): void {
-    if (this.__ageGroups.length > 0) {
-      const lastAgeGroup = this.__ageGroups[this.__ageGroups?.length - 1];
-      lastAgeGroup.toAge = lastAgeGroup.fromAge + 1;
-      this.__ageGroups.push({ fromAge: lastAgeGroup.toAge + 1, toAge: 999});
+    if (this.editAgeGroups.length > 0) {
+      const lastAgeGroup = this.editAgeGroups[this.editAgeGroups?.length - 1];
+      this.editAgeGroups.push({ fromAge: lastAgeGroup.toAge, toAge: lastAgeGroup.toAge + 1});
     }
     else {
-      this.__ageGroups = [{ fromAge: 0, toAge: 999 }];
+      this.editAgeGroups = [{ fromAge: 0, toAge: 1 }];
     }
     this.ageGroupErrors = [];
     this.ageGroupContainer.nativeElement.scrollTop = this.ageGroupContainer.nativeElement.scrollHeight;
   }
 
   removeAgeGroup(ageGroup: AgeGroup): void {
-    const index = this.__ageGroups.indexOf(ageGroup);
+    const index = this.editAgeGroups.indexOf(ageGroup);
     if (index == -1) return;
-    if (index > 0)
-      this.__ageGroups[index - 1].toAge = (index < this.__ageGroups.length - 1)? ageGroup.toAge: 999;
-    else
-      this.__ageGroups[index + 1].fromAge = 0;
-    this.__ageGroups.splice(index, 1);
+    // if (index > 0)
+    //   this.editAgeGroups[index - 1].toAge = (index < this.editAgeGroups.length - 1)? ageGroup.toAge: 999;
+    // else
+    //   this.editAgeGroups[index + 1].fromAge = 0;
+    this.editAgeGroups.splice(index, 1);
     this.ageGroupErrors = [];
   }
 
-  removeAllAgeGroups(): void {
-    this.__ageGroups = [];
-    this.addAgeGroup();
+  insertAgeGroup(index: number) {
+    this.editAgeGroups.splice(index+1, 0, {
+      fromAge: this.editAgeGroups[index].toAge,
+      toAge: this.editAgeGroups[index+1].fromAge,
+    })
   }
 
   /**

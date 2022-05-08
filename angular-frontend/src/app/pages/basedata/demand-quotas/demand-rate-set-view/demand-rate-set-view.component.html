@@ -1,0 +1,144 @@
+<div style="display: flex;">
+  <label style="padding-top: 20px;">{{timeSlider.min}}</label>
+  <mat-slider #timeSlider color="primary"
+              thumbLabel [min]="_years[0] || 0" [max]="_years[_years.length-1] || 0" step="1"
+              [value]="_years[0]" tickInterval="1"
+              (change)="changeYear($event.value)"
+              style="width: 420px; margin-top: 15px;"></mat-slider>
+  <label style="padding-top: 20px;">{{timeSlider.max}}</label>
+  <button *ngIf="edit" style="margin: 10px 5px 0 10px;"
+          mat-mini-fab color="primary"
+          (click)="copyYear()"
+          title="Werte zwischen Jahren kopieren">
+    <mat-icon>content_copy</mat-icon>
+  </button>
+  <button *ngIf="edit" style="margin-top: 10px;"
+          mat-mini-fab color="primary"
+          (click)="interpolate()"
+          title="Werte zwischen Jahren interpolieren">
+    <mat-icon>auto_graph</mat-icon>
+  </button>
+</div>
+<div style="width: 100%; display: flex; align-items: stretch;">
+  <div class="table-wrapper">
+    <table style="width: 100%; text-align: center;">
+      <tr>
+        <th style="text-align: left;">{{year}}</th>
+        <th colspan="2" style="text-align: center">{{demandTypeLabel}}</th>  <!--{{unit? '(in ' + unit + ')': ''}}-->
+      </tr>
+      <tr>
+        <th style="min-width: 20%;"></th>
+        <th *ngFor="let gender of _genders; let i = index;">
+          <button *ngIf="edit && i===1"
+                  mat-mini-fab color="primary"
+                  class="small"
+                  (click)="copyColumn(gender, _genders[0])"
+                  title="Werte der rechten auf die linke Spalte übertragen">
+            <mat-icon>keyboard_double_arrow_left</mat-icon>
+          </button>
+          {{gender.name}}
+          <button *ngIf="edit && i===0"
+                  mat-mini-fab color="primary"
+                  class="small"
+                  (click)="copyColumn(gender, _genders[1])"
+                  title="Werte der linken auf die rechte Spalte übertragen">
+            <mat-icon>keyboard_double_arrow_right</mat-icon>
+          </button>
+        </th>
+      </tr>
+      <tr *ngFor="let row of rows" [class.editRow]="edit">
+        <td style="text-align: end;">{{row.ageGroup.label}}</td>
+        <td *ngFor="let entry of row.entries">
+          <ng-container *ngIf="!edit">
+            {{(entry.value !== undefined)? entry.value: 0 }}
+<!--            'null'}}-->
+          </ng-container>
+          <ng-container *ngIf="edit">
+            <mat-form-field class="small" appearance="outline" style="width: 80px; margin-right: 3px;">
+              <input matInput type="number"
+                     min="0" [max]="maxValue"
+                     value="{{entry.value || 0}}"
+                     (change)="changeDemandRate($any($event.target).value, row.ageGroup, entry.gender)">
+            </mat-form-field>
+          </ng-container>
+          <ng-container *ngIf="edit || (unit && entry.value !== undefined)"> {{unit}}</ng-container>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <div style="display: flex; width: 55%; margin-left: 10px; flex-flow: row wrap;">
+    <div class="diagram-wrapper">
+      <app-multiline-chart #yearChart
+                           [height]="chartHeight"
+                           [yLegendOffset]="50"
+                           [xLegendOffset]="40"
+                           [margin]="{top: 50, bottom: 40, left: 40, right: 80}"
+                           [min]="0"
+                           xLabel="Altersgruppe">
+      </app-multiline-chart>
+    </div>
+<!--    <mat-divider style="margin: 10px 0;"></mat-divider>-->
+    <mat-form-field appearance="outline" class="small">
+      <mat-label>Altersgruppe</mat-label>
+      <mat-select disableOptionCentering disableRipple
+                  [(ngModel)]="selectedAgeGroup"
+                  (ngModelChange)="updateAgeGroupDiagram()">
+        <mat-option *ngFor="let ageGroup of _ageGroups" [value]="ageGroup">
+          {{ageGroup.label}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <div style="width: 100%; border: 1px solid lightgrey; padding: 5px;">
+      <app-multiline-chart #ageGroupChart
+                           [height]="chartHeight"
+                           [yLegendOffset]="50"
+                           [xLegendOffset]="40"
+                           [yTicks]="10"
+                           [margin]="{top: 50, bottom: 40, left: 40, right: 80}"
+                           [min]="0"
+                           xLabel="Jahr">
+      </app-multiline-chart>
+    </div>
+  </div>
+</div>
+
+<ng-template #copyYearDataTemplate>
+  <div style="display: flex">
+    <mat-form-field class="small" appearance="outline" style="width: 80px;">
+      <mat-label>Quelle</mat-label>
+      <input matInput type="number"
+             [min]="_years[0] || 0" [max]="_years[_years.length-1] || 0"
+             [(ngModel)]="copyFromYear">
+    </mat-form-field>
+    <mat-icon style="margin: 0 10px; align-self: center;">keyboard_double_arrow_right</mat-icon>
+    <mat-form-field class="small" appearance="outline" style="width: 80px;">
+      <mat-label>Ziel</mat-label>
+      <input matInput type="number"
+             [min]="_years[0] || 0" [max]="_years[_years.length-1] || 0"
+             [(ngModel)]="copyToYear">
+    </mat-form-field>
+  </div>
+  <mat-checkbox color="primary"
+                [(ngModel)]="applyCopyInBetween">
+    Daten auch auf alle Jahre dazwischen übertragen
+  </mat-checkbox>
+</ng-template>
+
+<ng-template #interpolateYearDataTemplate>
+  <div style="display: flex">
+    <mat-form-field class="small" appearance="outline" style="width: 80px;">
+      <mat-label>Quelle</mat-label>
+      <input matInput type="number"
+             [min]="_years[0] || 0" [max]="_years[_years.length-1] || 0"
+             [(ngModel)]="interpolateFromYear">
+    </mat-form-field>
+    <mat-icon style="margin-left: 10px; align-self: center;">chevron_left</mat-icon>
+    <mat-icon style="margin-right: 10px; align-self: center;">chevron_right</mat-icon>
+    <mat-form-field class="small" appearance="outline" style="width: 80px;">
+      <mat-label>Ziel</mat-label>
+      <input matInput type="number"
+             [min]="_years[0] || 0" [max]="_years[_years.length-1] || 0"
+             [(ngModel)]="interpolateToYear">
+    </mat-form-field>
+  </div>
+</ng-template>

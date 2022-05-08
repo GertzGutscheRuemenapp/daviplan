@@ -468,15 +468,15 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
                         scenario=scenario3)
 
         #  In the base scenario, test the scenario for service1 and service2
-        self.check_place_with_capacity(service1, place=place1.id, expected=[50])
-        self.check_place_with_capacity(service2, place=place1.id, expected=[99])
+        self.check_place_with_capacity(service1, year=0, place=place1.id, expected=[50])
+        self.check_place_with_capacity(service2, year=0, place=place1.id, expected=[99])
 
         #  In scenario1, it should change
-        self.check_place_with_capacity(service1, scenario=scenario1.pk,
+        self.check_place_with_capacity(service1, year=0, scenario=scenario1.pk,
                                        place=place1.id, expected=[100])
         #  In scenario2, no new capacity defined,
         # so take the base value for the base year
-        self.check_place_with_capacity(service1, scenario=scenario2.pk,
+        self.check_place_with_capacity(service1, year=0, scenario=scenario2.pk,
                                        place=place1.id, expected=[50])
         #  .. and the base-scenario value vor year 2026
         self.check_place_with_capacity(service1, scenario=scenario2.pk,
@@ -501,12 +501,12 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         CapacityFactory(place=place2, service=service1, scenario=scenario1, capacity=55)
         CapacityFactory(place=place2, service=service1, scenario=scenario2, capacity=33)
 
-        self.check_place_with_capacity(service1, expected=[50, 88])
+        self.check_place_with_capacity(service1, year=0, expected=[50, 88])
         self.check_place_with_capacity(service1, year=2023, expected=[50, 99])
         self.check_place_with_capacity(service1, year=2026, expected=[77, 99])
-        self.check_place_with_capacity(service1, scenario=scenario1.id, expected=[100, 55])
-        self.check_place_with_capacity(service1, scenario=scenario2.id, expected=[50, 33])
-        self.check_place_with_capacity(service1, scenario=scenario3.id, expected=[100, 88])
+        self.check_place_with_capacity(service1, year=0, scenario=scenario1.id, expected=[100, 55])
+        self.check_place_with_capacity(service1, year=0, scenario=scenario2.id, expected=[50, 33])
+        self.check_place_with_capacity(service1, year=0, scenario=scenario3.id, expected=[100, 88])
 
 
 class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,

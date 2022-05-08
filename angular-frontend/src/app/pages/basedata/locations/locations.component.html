@@ -1,7 +1,6 @@
-<p class="under-construction">
-  <mat-icon class="material-icons-outlined">construction</mat-icon>
-  Diese Seite ist noch nicht fertig implementiert. Die gezeigten Daten sind zur Zeit nur Platzhalter.
-</p>
+<div class="loadOverlay" *ngIf="isLoading$ | async">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
 <app-header-card [title]="'Standorte der Infrastrukturen und Kapazitäten für Leistungen'"
                  cookieId="exp-locations-header"
                  width="1430px">
@@ -20,43 +19,33 @@
       <mat-selection-list [multiple]="false">
 <!--        ngmodel does not work here as it always returns arrays even ig multiple=false-->
         <mat-list-option *ngFor="let infrastructure of infrastructures"
-                         (click)="selectedInfrastructure = infrastructure"
+                         (click)="selectedInfrastructure = infrastructure; onInfrastructureChange();"
                          [selected]="(infrastructure.id === selectedInfrastructure?.id)">
           <div class="option-text">{{infrastructure.name}}</div>
         </mat-list-option>
       </mat-selection-list>
-      <div after>
-        <mat-divider style="margin: 10px 0 15px 0;"></mat-divider>
-        <app-input-card [title]="'Standorteigenschaften'"
-                        [borderless]="true"
-                        [editTemplate]="attributesEdit"
-                        [subtitle]="selectedInfrastructure?.name || ''"
-                        infoText="<p>Neben der räumlichen Lage können sie die einzelnen Standorte anhand weiterer Eigenschaften („Attribute“) beschreiben. Welche dies sind (z.B. Name, Gebäudezustand, Typ, Budget, Investitionsbedarf …) entscheiden Sie selbst.</p>
-                        <p>Klicken Sie hierzu auf die Schaltfläche „Editieren“ und folgenden Sie den Erläuterungen im Hilfetext des dann erscheinenden Eingabedialogs.</p>">
-          <table>
-            <tr>
-              <td>Name</td>
-              <td>Zeichenkette</td>
-            </tr>
-            <tr>
-              <td>Zustand</td>
-              <td>Zustand</td>
-            </tr>
-            <tr>
-              <td>Schultyp</td>
-              <td>Schultyp</td>
-            </tr>
-            <tr>
-              <td>Budget</td>
-              <td>Budget</td>
-            </tr>
-          </table>
-        </app-input-card>
-      </div>
+    </app-input-card>
+    <app-input-card [title]="'Standorteigenschaften'"
+                    [editTemplate]="attributesEdit"
+                    [class.hidden]="!selectedInfrastructure"
+                    [subtitle]="selectedInfrastructure?.name || ''"
+                    infoText="<p>Neben der räumlichen Lage können sie die einzelnen Standorte anhand weiterer Eigenschaften („Attribute“) beschreiben. Welche dies sind (z.B. Name, Gebäudezustand, Typ, Budget, Investitionsbedarf …) entscheiden Sie selbst.</p>
+                    <p>Klicken Sie hierzu auf die Schaltfläche „Editieren“ und folgenden Sie den Erläuterungen im Hilfetext des dann erscheinenden Eingabedialogs.</p>">
+      <table>
+        <tr>
+          <td>Name</td>
+          <td>Zeichenkette</td>
+        </tr>
+        <tr *ngFor="let field of selectedInfrastructure?.placeFields">
+          <td>{{field.name}}</td>
+          <td>{{FType[field.fieldType.ftype]}}</td>
+        </tr>
+      </table>
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="1100px">
     <app-input-card [title]="'Standortdaten und Kapazitäten'"
+                    [class.hidden]="!selectedInfrastructure"
                     [topRightHelp]="true"
                     infoText="<p>Nachdem Sie in der Box „Standorteigenschaften“ die Datenstruktur zur Beschreibung der Standorte des gewählten Infrastrukturbereichs definiert haben, können Sie sich über die Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excel-Format  herunterladen.</p>
                     <p>Tragen Sie in diese Vorlage bitte alle für den Infrastrukturbereich relevanten Standorte ein, unabhängig davon, welche Leistungen des Infrastrukturbereichs in welchem dieser Standorte angeboten wird. (Dies ist erst Gegenstand des nachfolgenden Menüpunkts „Kapazitäten“.)</p>
@@ -73,9 +62,9 @@
             <table>
               <tr>
                 <td i18n>Standorte</td>
-                <td>102</td>
+                <td>{{selectedInfrastructure?.placesCount}}</td>
               </tr>
-              <tr>
+ <!--             <tr>
                 <td i18n>Upload am</td>
                 <td>02.06.2022</td>
               </tr>
@@ -85,11 +74,13 @@
               <tr>
                 <td i18n>durch</td>
                 <td>Sascha Schmidt</td>
-              </tr>
+              </tr>-->
             </table>
           </div>
           <div style="margin: 20px 0 10px 0;">
-            <button mat-stroked-button color="primary" style="margin-right: 10px;">
+            <button mat-stroked-button color="primary"
+                    style="margin-right: 10px;"
+                    (click)="downloadTemplate()">
               <mat-icon>download</mat-icon> Vorlage herunterladen
             </button>
             <button mat-flat-button color="primary">
@@ -97,14 +88,15 @@
             </button>
           </div>
           <button class="mat-button-dv"
-                  mat-button color="primary" i18n>
+                  mat-button color="primary"
+                  (click)="showDataTable()">
             <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
           </button>
-          <button mat-mini-fab color="primary"
+<!--          <button mat-mini-fab color="primary"
                   aria-label="Daten herunterladen" title="Daten herunterladen"
                   style="float: right; margin: -10px 15px 0 0; box-shadow: none;">
             <mat-icon>download</mat-icon>
-          </button>
+          </button>-->
         </div>
         <div id="log-window" style="width: 50%">
           <span class="subtitle1">Daten-Historie</span>
@@ -121,7 +113,7 @@
         </app-side-toggle>
         <app-side-toggle id="add-overlay" icon="add_location_alt"
                          name="Funktion zum Hinzufügen von Standorten">
-          <div class="row-button" [ngClass]="{'active': addPlaceMode}" (click)="addPlaceMode = !addPlaceMode" style="padding-left: 10px;">
+          <div class="row-button" [class.active]="addPlaceMode" (click)="addPlaceMode = !addPlaceMode" style="padding-left: 10px;">
             <label i18n>Neuen Standort hinzufügen</label>
             <div class="fill-space"></div>
             <button color="primary" *ngIf="!addPlaceMode" mat-icon-button>
@@ -139,4 +131,31 @@
 
 <ng-template #attributesEdit>
   Funktionalität für den Prototyp noch nicht hinterlegt.
+</ng-template>
+
+<ng-template #dataTemplate>
+  <app-data-table [columns]="dataColumns" [rows]="dataRows"></app-data-table>
+</ng-template>
+
+<ng-template #placePreviewTemplate>
+  <div *ngIf="selectedPlace">
+    <b>{{ selectedPlace.properties?.name }}</b>
+    <ng-container *ngIf="selectedPlace.properties?.attributes">
+      <div *ngFor="let item of selectedPlace.properties.attributes | keyvalue">
+        {{item.key}}: <i>{{item.value}}</i>
+      </div>
+    </ng-container>
+    <br>
+    <div *ngFor="let service of selectedInfrastructure?.services">
+      <b>Kapazitäten {{service.name}}</b>
+      <table>
+        <tr *ngFor="let capacity of getPlaceCapacities(selectedPlace, service); let i = index;">
+          <td *ngIf="i===0" style="width: 80px;">Startjahr</td>
+          <td *ngIf="i>0">ab {{capacity.fromYear}} </td>
+          <td>{{capacity.capacity}} {{(capacity.capacity === 1)? service.capacitySingularUnit: service.capacityPluralUnit}}</td>
+        </tr>
+      </table>
+      <br>
+    </div>
+  </div>
 </ng-template>

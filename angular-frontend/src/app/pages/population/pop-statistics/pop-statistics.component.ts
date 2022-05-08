@@ -32,7 +32,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   backend: string = environment.backend;
   areas: Area[] = [];
   areaLevel?: AreaLevel;
-  years?: number[];
+  years: number[] = [];
   year?: number;
   theme: 'nature' | 'migration' = 'nature';
   statisticsLayer?: Layer;
@@ -65,7 +65,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   }
 
   initData(): void {
-    this.populationService.getRealYears().subscribe(years => {
+    this.populationService.getYears({ params: 'has_statistics_data=true' }).subscribe(years => {
       this.years = years;
       this.year = years[0];
       this.setSlider();
@@ -82,11 +82,10 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         })
       })
     })
-    this.subscriptions.push(this.populationService.timeSlider!.valueChanged.subscribe(year => {
+    this.subscriptions.push(this.populationService.timeSlider!.onChange.subscribe(year => {
       this.year = year;
       this.cookies.set('pop-year', year);
       this.updateMap();
-      this.updateDiagrams();
     }))
   }
 
@@ -101,7 +100,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
     this.showEmigration = this.cookies.get('pop-stat-emigration', 'boolean');
     this.showEmigration = this.cookies.get('pop-stat-emigration', 'boolean');
     const year = this.cookies.get('pop-year','number');
-    this.year = year || this.years![this.years!.length - 1];
+    this.year = (year && this.years!.indexOf(year) > -1)? year: (this.years.length > 0)? this.years[0]: undefined;
     this.setSlider();
     this.updateMap();
     this.updateDiagrams();
@@ -117,7 +116,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
          this.theme === 'migration' && !this.showImmigration && !this.showEmigration){
       return;
     }
-    this.populationService.getStatistics({ year: this.year! }).subscribe(statistics => {
+    this.populationService.getStatisticsData({ year: this.year! }).subscribe(statistics => {
       let descr = '';
       let max: number;
       let color: string;
@@ -200,7 +199,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
 
   updateDiagrams(): void {
     if (!this.activeArea) return;
-    this.populationService.getStatistics({ areaId: this.activeArea.id }).subscribe(statistics => {
+    this.populationService.getStatisticsData({ areaId: this.activeArea.id }).subscribe(statistics => {
       let totalData: MultilineData[] = [];
       let balanceData: BalanceChartData[] = [];
       let maxTotal = 0, minTotal = 0, maxValue = 0, minValue = 0;
@@ -210,7 +209,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         const diffValue = posValue + negValue;
         maxValue = Math.max(maxValue, posValue);
         minValue = Math.min(minValue, negValue);
-        maxTotal = Math.max(maxTotal, diffValue);
+        maxTotal = Math.max(maxTotal, diffValue, 1);
         minTotal = Math.min(minTotal, diffValue);
         balanceData.push({ group: yearData.year.toString(), values: [posValue, negValue] })
         totalData.push({ group: yearData.year.toString(), values: [diffValue] });
@@ -225,14 +224,14 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       this.balanceChartProps.labels = [topLabel, bottomLabel];
       const tchTitle = (this.theme === 'nature')? 'Natürlicher Saldo': 'Wanderungssaldo';
       this.balanceChartProps.lineLabel = tchTitle;
-      this.balanceChartProps.yPadding = Math.ceil(Math.max(maxValue, -minValue) * 0.2);
+      this.balanceChartProps.yPadding = Math.ceil(Math.max(maxValue, Math.abs(minValue)) * 0.2);
       this.balanceChartProps.data = balanceData;
 
       this.totalChartProps.title = tchTitle;
       this.totalChartProps.labels = [tchTitle];
       this.totalChartProps.yTopLabel = 'mehr ' + topLabel;
       this.totalChartProps.yBottomLabel = 'mehr ' + bottomLabel;
-      this.totalChartProps.yPadding = Math.ceil(Math.max(maxTotal, -minTotal) * 0.2);
+      this.totalChartProps.yPadding = Math.ceil(Math.max(maxTotal, Math.abs(minTotal)) * 0.2);
       this.totalChartProps.data = totalData;
 
       // workaround to force redraw of diagram by triggering ngIf wrapper

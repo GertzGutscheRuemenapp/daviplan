@@ -4,8 +4,8 @@ import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../rest-api";
 import { TimeSliderComponent } from "../../elements/time-slider/time-slider.component";
 import { RestCacheService } from "../../rest-cache.service";
-import { Observable } from "rxjs";
-import { PopEntry, Population } from "../../rest-interfaces";
+import { BehaviorSubject, Observable } from "rxjs";
+import { PopEntry, Population, Prognosis } from "../../rest-interfaces";
 import { map, shareReplay } from "rxjs/operators";
 import { BreakpointObserver } from "@angular/cdk/layout";
 
@@ -34,6 +34,11 @@ export class PopulationService extends RestCacheService {
   fetchPopulations(isPrognosis: boolean = false): Observable<Population[]>{
     const query = this.http.get<Population[]>(this.rest.URLS.populations,
       { params: { is_prognosis: isPrognosis }});
+    return query;
+  }
+
+  fetchPrognoses(): Observable<Prognosis[]>{
+    const query = this.http.get<Prognosis[]>(this.rest.URLS.prognoses);
     return query;
   }
 }

@@ -156,8 +156,8 @@ export class StackedBarchartComponent implements AfterViewInit {
     }
 
     function onMouseMove(this: any, event: MouseEvent){
-      tooltip.style('left', event.pageX - 30 + 'px')
-        .style('top', event.pageY + 20 + 'px');
+      tooltip.style('left', event.pageX + 20 + 'px')
+        .style('top', event.pageY + 10 + 'px');
     }
 
     // stacked bars

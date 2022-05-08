@@ -1,7 +1,6 @@
 import { Component, OnInit, ViewChildren, QueryList, ElementRef, ViewChild, TemplateRef, Input } from '@angular/core';
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
-import { mockPrognoses } from "../../basedata/prognosis-data/prognosis-data.component";
 import { environment } from "../../../../environments/environment";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { PlanningService } from "../planning.service";
@@ -11,6 +10,7 @@ import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { CookieService } from "../../../helpers/cookies.service";
 
+export const mockPrognoses = ['Trendfortschreibung', 'mehr Zuwanderung', 'mehr Abwanderung'];
 export const mockQuotas = ['aktuelle Quoten', 'erhöhte Nachfrage ab 2030', 'Name mit langem Text, um Umbruch zu erzwingen']
 
 @Component({
