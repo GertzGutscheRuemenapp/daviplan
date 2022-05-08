@@ -31,7 +31,7 @@ class TestIntersectZensus(LoginTestCase,
         projectsettings.save()
         cls.projectsettings = projectsettings
         year = YearFactory(year=2011)
-        raster = RasterFactory(name='laea3035')
+        raster = RasterFactory(name='LAEA-Raster')
         cls.popraster100 = PopulationRaster.objects.create(
             year=year,
             raster=raster,
@@ -52,7 +52,7 @@ class TestIntersectZensus(LoginTestCase,
 
         response = self.post('populationrasters-intersect-census',
                              pk=self.popraster100.pk,)
-        self.assert_http_202_accepted(response)
+        self.assert_http_202_accepted(response, response.data)
 
         expected_population = 37710
         expected_cells = 1113
@@ -70,7 +70,7 @@ class TestIntersectZensus(LoginTestCase,
 
         response = self.post('populationrasters-intersect-census',
                              pk=self.popraster500.pk,)
-        self.assert_http_202_accepted(response)
+        self.assert_http_202_accepted(response, response.data)
 
         expected_population = 36141
         expected_cells = 111

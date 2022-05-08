@@ -76,15 +76,6 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             srs = raster.GetSpatialRef()
             epsg = srs.GetAttrValue('AUTHORITY',1)
 
-            raster.RasterXSize
-            raster.RasterYSize
-
-            # Number of bands
-            raster.RasterCount
-
-            # Metadata for the raster dataset
-            #raster.GetMetadata(fp, raster)
-
             projectsettings = ProjectSetting.objects.first()
             project_area = projectsettings.project_area
             project_area.transform(epsg)
@@ -199,6 +190,13 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                     rc_manager.drop_indexes()
                     rcp_manager.drop_constraints()
                     rcp_manager.drop_indexes()
+                # in unittests
+                else:
+                    rc_manager.set_constraints_immediate()
+
+                # delete casade can take forever, so use truncate to all depending
+                #qs_rc = RasterCell.objects.filter(raster=raster_id)
+                #qs_rc.delete()
 
                 from datentool_backend.indicators.models import (MatrixCellPlace,
                                                                  MatrixCellStop)
@@ -208,10 +206,6 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                 RasterCellPopulationAgeGender.truncate()
                 RasterCellPopulation.truncate()
                 RasterCell.truncate()
-
-                # delete casade can take forever, so use truncate to all depending
-                #qs_rc = RasterCell.objects.filter(raster=raster_id)
-                #qs_rc.delete()
 
                 try:
                     if len(df_rastercells):
@@ -248,6 +242,9 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                         rc_manager.restore_indexes()
                         rcp_manager.restore_constraints()
                         rcp_manager.restore_indexes()
+                    # in unittests
+                    else:
+                        rc_manager.set_constraints_deferred()
 
         except Exception as e:
             msg = str(e)
