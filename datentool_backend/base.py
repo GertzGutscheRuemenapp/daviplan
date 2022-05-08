@@ -1,5 +1,5 @@
 import json
-from django.db import router
+from django.db import router, connections
 from django.db.models.deletion import Collector
 
 
@@ -54,3 +54,11 @@ class DatentoolModelMixin:
         collector.use_protection = use_protection
         collector.collect([self], keep_parents=keep_parents)
         return collector.delete()
+
+    @classmethod
+    def truncate(cls, using: str=None):
+        """Truncate the database table cascadingly"""
+        using = using or router.db_for_write(cls)
+        connection = connections[using]
+        with connection.cursor() as cursor:
+            cursor.execute(f'TRUNCATE TABLE "{cls._meta.db_table}" CASCADE')
