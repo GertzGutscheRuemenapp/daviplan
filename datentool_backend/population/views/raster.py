@@ -121,6 +121,13 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             print(os.path.getsize(fp_clip))
 
             r = gdal.Open(fp_clip)
+            print(r.GetProjectionRef())
+            print(f'rastercount: {r.RasterCount}')
+            print(f'{r.RasterXSize} x {r.RasterYSize}')
+            arr = r.ReadAsArray()
+            print(arr)
+            print(arr.sum())
+            print(r.ReadRaster())
             band = r.GetRasterBand(1)
             (upper_left_x,
              x_size,
@@ -131,6 +138,7 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
             a = band.ReadAsArray()
             print(a)
+            print(a.shape)
             (y_index, x_index) = np.nonzero((a > 0))
             n_cells = len(x_index)
             print(n_cells)
