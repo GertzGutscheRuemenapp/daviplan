@@ -129,7 +129,8 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
              y_rotation,
              y_size) = r.GetGeoTransform()
 
-            a = band.ReadAsArray().astype(np.int)
+            a = band.ReadAsArray().astype(int)
+            print(a)
             (y_index, x_index) = np.nonzero((a > 0))
             n_cells = len(x_index)
             print(n_cells)
