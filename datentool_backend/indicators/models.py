@@ -19,7 +19,7 @@ class Stop(DatentoolModelMixin, NamedModel, models.Model):
     copymanager = DirectCopyManager()
 
 
-class MatrixCellPlace(models.Model):
+class MatrixCellPlace(DatentoolModelMixin, models.Model):
     """Reachabliliy Matrix between raster cell and place with a mode variante"""
     cell = models.ForeignKey(RasterCell, on_delete=PROTECT_CASCADE,
                              related_name='cell_place')
@@ -32,7 +32,7 @@ class MatrixCellPlace(models.Model):
     copymanager = DirectCopyManager()
 
 
-class MatrixCellStop(models.Model):
+class MatrixCellStop(DatentoolModelMixin, models.Model):
     """Reachabliliy Matrix between raster cell and stop with a mode variante"""
     cell = models.ForeignKey(RasterCell, on_delete=PROTECT_CASCADE,
                              related_name='cell_stop')

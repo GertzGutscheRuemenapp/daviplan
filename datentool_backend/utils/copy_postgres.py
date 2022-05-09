@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 from postgres_copy import CopyQuerySet
 from postgres_copy.copy_from import CopyMapping
 from django.contrib.humanize.templatetags.humanize import intcomma
-from django.db import connection, models
+from django.db import connection, models, router, connections
 from django.db.transaction import TransactionManagementError
 
 
@@ -98,6 +98,20 @@ class DirectCopyQuerySet(CopyQuerySet):
             self.restore_indexes()
 
         return insert_count
+
+    def set_constraints_immediate(self):
+        """set constraints to immediate to execute at the beginning of the unittests"""
+        using = router.db_for_write(self.model)
+        connection = connections[using]
+        with connection.cursor() as cursor:
+            cursor.execute('SET CONSTRAINTS ALL IMMEDIATE')
+
+    def set_constraints_deferred(self):
+        """set constraints to immediate to execute at the end of the unittests"""
+        using = router.db_for_write(self.model)
+        connection = connections[using]
+        with connection.cursor() as cursor:
+            cursor.execute('SET CONSTRAINTS ALL DEFERRED')
 
 
 DirectCopyManager = models.Manager.from_queryset(DirectCopyQuerySet)
