@@ -172,10 +172,16 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             if popraster.raster.name == 'LAEA-Raster':
                 cellcode_coords = np.round(corners[:, 3] / 100, 0).astype(int)
                 df_coords = pd.DataFrame({'x': cellcode_coords[0],
-                                          'y': cellcode_coords [1],})
+                                          'y': cellcode_coords[1],})
                 def get_cellcode(row):
                     return f"100mN{row['y']:05d}E{row['x']:05d}"
-                df_rastercells['cellcode'] = df_coords.apply(get_cellcode, axis=1)
+                cellcodes = df_coords.apply(get_cellcode, axis=1)
+                print(cellcodes)
+                print(len(cellcodes))
+                print(df_rastercells)
+                print(len(df_rastercells))
+
+                df_rastercells['cellcode'] = cellcodes
 
 
             df_rcpopulation = pd.DataFrame(rastercellpopulation,
