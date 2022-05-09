@@ -114,8 +114,6 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                            srcNodata=-(2 ** 31),
                            dstNodata=0,
                            )
-            import time
-            time.sleep(3)
             assert ret is not None, 'clip raster failed'
             os.remove(gpkgfile)
             print(fp_clip)
@@ -131,7 +129,7 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
              y_rotation,
              y_size) = r.GetGeoTransform()
 
-            a = band.ReadAsArray().astype(int)
+            a = band.ReadAsArray()
             print(a)
             (y_index, x_index) = np.nonzero((a > 0))
             n_cells = len(x_index)
@@ -197,7 +195,7 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
             df_rcpopulation = pd.DataFrame(rastercellpopulation,
                                            columns=['popraster_id', 'value'])
-
+            df_rcpopulation['value'] = df_rcpopulation['value'].astype(int)
             rc_manager = RasterCell.copymanager
             rcp_manager = RasterCellPopulation.copymanager
             drop_constraints = bool(strtobool(
