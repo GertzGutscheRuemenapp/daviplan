@@ -105,18 +105,18 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             layer.CreateFeature(feature)
             ds.Destroy()
 
-            ret = gdal.Warp(fp_clip,
-                           fp,
-                           format='GTiff',
-                           cutlineDSName=gpkgfile,
-                           cutlineLayer='region',
-                           cropToCutline=True,
-                           srcNodata=-(2 ** 31),
-                           dstNodata=0,
-                           )
-            assert ret is not None, 'clip raster failed'
+            r = gdal.Warp(fp_clip,
+                          fp,
+                          format='GTiff',
+                          cutlineDSName=gpkgfile,
+                          cutlineLayer='region',
+                          cropToCutline=True,
+                          srcNodata=-(2 ** 31),
+                          dstNodata=0,
+                          )
+            assert r is not None, 'clip raster failed'
             os.remove(gpkgfile)
-            r = gdal.Open(fp_clip)
+            #r = gdal.Open(fp_clip)
             band = r.GetRasterBand(1)
             (upper_left_x,
              x_size,
