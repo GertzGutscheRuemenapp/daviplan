@@ -74,6 +74,10 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
             fp = os.path.join(settings.POPRASTER_ROOT, popraster.filename)
             fp_clip = os.path.join(settings.POPRASTER_ROOT, 'clipped.tif')
+
+            print(fp)
+            print(os.path.exists(fp))
+
             raster = gdal.Open(fp)
             srs = raster.GetSpatialRef()
             epsg = srs.GetAttrValue('AUTHORITY',1)
@@ -112,6 +116,9 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                            )
             assert ret is not None, 'clip raster failed'
             os.remove(gpkgfile)
+            print(fp_clip)
+            print(os.path.exists(fp_clip))
+            print(os.path.getsize(fp_clip))
 
             r = gdal.Open(fp_clip)
             band = r.GetRasterBand(1)
@@ -125,6 +132,7 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             a = band.ReadAsArray().astype(np.int)
             (y_index, x_index) = np.nonzero((a > 0))
             n_cells = len(x_index)
+            print(n_cells)
 
             # make corners of polygon
             corners = np.empty((2, 5, n_cells))
