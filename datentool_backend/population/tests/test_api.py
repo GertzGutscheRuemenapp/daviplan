@@ -266,9 +266,8 @@ class TestPopulationRasterAPI(WriteOnlyWithCanEditBaseDataTest,
         populationraster: PopulationRaster = cls.obj
         str(cls.obj)
         raster = populationraster.raster.pk
-        year = populationraster.year.pk
 
-        data = dict(name=faker.word(), raster=raster, year=year, default=faker.pybool())
+        data = dict(name=faker.word(), raster=raster, default=faker.pybool())
         cls.post_data = data
         cls.put_data = data
         cls.patch_data = data

@@ -41,7 +41,7 @@ class PopulationTemplateTest(LoginTestCase, APITestCase, CreateTestdataMixin):
 
         cls.age_groups = AgeGroup.objects.all()
 
-        cls.popraster = PopulationRasterFactory(year__year=2011, default=True)
+        cls.popraster = PopulationRasterFactory(default=True)
 
         cls.years = [YearFactory(year=y, is_default=(y==2022))
                      for y in range(2015, 2023)]

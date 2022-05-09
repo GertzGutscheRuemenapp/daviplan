@@ -33,14 +33,12 @@ class TestIntersectZensus(LoginTestCase,
         year = YearFactory(year=2011)
         raster = RasterFactory(name='LAEA-Raster')
         cls.popraster100 = PopulationRaster.objects.create(
-            year=year,
             raster=raster,
             name='Zensus 2011 100m',
             filename='Zensus2011Einwohner100_LAEA3035.tif',
             default=True)
         raster4326 = RasterFactory(name='laea4326')
         cls.popraster500 = PopulationRaster.objects.create(
-            year=year,
             raster=raster4326,
             name='Zensus 2011 500m',
             filename='Zensus2011Einwohner500.tif',

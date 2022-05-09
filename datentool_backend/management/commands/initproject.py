@@ -16,6 +16,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         """handle the command"""
 
+        '''
         # add years
         Year.truncate()
         this_year = datetime.date.today().year
@@ -23,6 +24,7 @@ class Command(BaseCommand):
             Year.objects.create(year=year, is_real=True)
         for year in range(this_year, 2050):
             Year.objects.create(year=year, is_prognosis=True)
+        '''
 
         # add genders
         Gender.truncate()
@@ -58,12 +60,10 @@ class Command(BaseCommand):
         Raster.truncate()
         PopulationRaster.truncate()
         raster = Raster.objects.create(id=1, name='LAEA-Raster')
-        census_year = Year.objects.get(year=2011)
         PopulationRaster.objects.create(id=1,
                                         raster=raster,
                                         name='Zensus-2011-Raster',
                                         filename='Zensus2011Einwohner100_LAEA3035.tif',
-                                        default=True,
-                                        year=census_year)
+                                        default=True)
 
         self.stdout.write(self.style.SUCCESS('Successfully initialized project'))
