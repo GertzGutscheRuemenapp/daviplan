@@ -1,4 +1,6 @@
 import os
+import sys
+import traceback
 import pyproj
 import tempfile
 import numpy as np
@@ -232,6 +234,8 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
                 except Exception as e:
                     msg = str(e)
+                    exc_type, exc_value, exc_traceback = sys.exc_info()
+                    msg = repr(traceback.format_tb(exc_traceback))
                     return Response({'message': msg,},
                                     status=status.HTTP_406_NOT_ACCEPTABLE)
 
@@ -248,6 +252,8 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
         except Exception as e:
             msg = str(e)
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            msg = repr(traceback.format_tb(exc_traceback))
             return Response({'message': msg,}, status=status.HTTP_406_NOT_ACCEPTABLE)
         n_inhabitants = df_rcpopulation['value'].sum()
         msg = f'intersected project area with {n_cells} cells and {n_inhabitants} inhabitants'
