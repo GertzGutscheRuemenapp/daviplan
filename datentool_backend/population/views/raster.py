@@ -116,21 +116,7 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                            )
             assert ret is not None, 'clip raster failed'
             os.remove(gpkgfile)
-            print(fp_clip)
-            print(os.path.exists(fp_clip))
-            print(os.path.getsize(fp_clip))
 
-            r = gdal.Open(fp_clip)
-            print(r.GetProjectionRef())
-            print(f'rastercount: {r.RasterCount}')
-            print(f'{r.RasterXSize} x {r.RasterYSize}')
-            import time
-            for i in range(0, 10):
-                arr = r.ReadAsArray()
-                print(arr)
-                print(arr.sum())
-                time.sleep(1)
-            print(r.ReadRaster())
             r = gdal.Open(fp_clip)
             band = r.GetRasterBand(1)
             (upper_left_x,
@@ -141,11 +127,8 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
              y_size) = r.GetGeoTransform()
 
             a = band.ReadAsArray()
-            print(a)
-            print(a.shape)
             (y_index, x_index) = np.nonzero((a > 0))
             n_cells = len(x_index)
-            print(n_cells)
 
             # make corners of polygon
             corners = np.empty((2, 5, n_cells))
@@ -197,11 +180,6 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                 def get_cellcode(row):
                     return f"100mN{row['y']:05d}E{row['x']:05d}"
                 cellcodes = df_coords.apply(get_cellcode, axis=1)
-                print(cellcodes)
-                print(len(cellcodes))
-                print(df_rastercells)
-                print(len(df_rastercells))
-
                 df_rastercells['cellcode'] = cellcodes
 
 
