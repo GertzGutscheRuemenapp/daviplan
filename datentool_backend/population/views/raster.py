@@ -5,6 +5,7 @@ import pyproj
 import tempfile
 import numpy as np
 import pandas as pd
+import pdb
 
 from io import StringIO
 from distutils.util import strtobool
@@ -116,7 +117,7 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                            )
             assert ret is not None, 'clip raster failed'
             os.remove(gpkgfile)
-
+            pdb.set_trace()
             r = gdal.Open(fp_clip)
             band = r.GetRasterBand(1)
             (upper_left_x,
