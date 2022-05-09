@@ -114,6 +114,8 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                            srcNodata=-(2 ** 31),
                            dstNodata=0,
                            )
+            import time
+            time.sleep(3)
             assert ret is not None, 'clip raster failed'
             os.remove(gpkgfile)
             print(fp_clip)
