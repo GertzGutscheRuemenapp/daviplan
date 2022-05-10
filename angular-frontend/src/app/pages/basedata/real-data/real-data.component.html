@@ -1,4 +1,4 @@
-<div class="loadOverlay" *ngIf="popService.isLoading$ | async">
+<div class="loadOverlay" *ngIf="(popService.isLoading$ | async) || (this.isLoading$ | async)">
   <mat-spinner [diameter]="50"></mat-spinner>
 </div>
 <app-header-card [title]="'Realdaten (= Einwohnerdaten der zurückliegenden Jahre)'"

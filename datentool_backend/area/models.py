@@ -179,6 +179,7 @@ class Area(DatentoolModelMixin, models.Model):
                                                  .values('_value')[:1])
                        for area_field in area_fields}
         qs=cls.objects\
+            .filter(area_level=area_level)\
             .select_related('area_level')\
             .prefetch_related(
                 Prefetch('areaattribute_set', queryset=attributes))\

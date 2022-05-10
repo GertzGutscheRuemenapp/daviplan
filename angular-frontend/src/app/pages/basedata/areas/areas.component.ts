@@ -13,9 +13,7 @@ import { environment } from "../../../../environments/environment";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { RestCacheService } from "../../../rest-cache.service";
-import { FileHandle } from "../../../helpers/dragndrop.directive";
-import { map, shareReplay, tap } from "rxjs/operators";
-
+import { tap } from "rxjs/operators";
 
 @Component({
   selector: 'app-areas',
@@ -333,10 +331,12 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   }
 
   setLevelActive(areaLevel: AreaLevel, active: boolean) {
+    this.isLoading$.next(true);
     this.http.patch<AreaLevel>(`${this.rest.URLS.arealevels}${areaLevel.id}/`, { isActive: active }
     ).subscribe(level => {
       areaLevel.isActive = level.isActive;
       this.mapControl?.refresh({ internal: true });
+      this.isLoading$.next(false);
     });
   }
 
@@ -389,10 +389,12 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   setPopAreaLevel(areaLevel: AreaLevel | null): void {
     if (!areaLevel || areaLevel.isPopLevel) return;
     const attributes = { isPopLevel: true };
+    this.isLoading$.next(true);
     this.http.patch<AreaLevel>(`${this.rest.URLS.arealevels}${areaLevel.id}/`, attributes
     ).subscribe(al => {
       this.customAreaLevels.concat(this.presetLevels).forEach(l => l.isPopLevel = false);
       areaLevel.isPopLevel = al.isPopLevel;
+      this.isLoading$.next(false);
     })
   }
 
