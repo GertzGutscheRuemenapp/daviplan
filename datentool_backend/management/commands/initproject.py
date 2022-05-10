@@ -1,8 +1,7 @@
-import datetime
-
 from django.core.management.base import BaseCommand
-from datentool_backend.area.models import AreaLevel
-from datentool_backend.site.models import Year
+from datentool_backend.area.models import (AreaLevel, MapSymbol, Source,
+                                           SourceTypes, AreaField, FieldType,
+                                           FieldTypes)
 from datentool_backend.population.models import Gender, Raster, PopulationRaster
 
 
@@ -31,30 +30,83 @@ class Command(BaseCommand):
         Gender.objects.create(id=1, name='männlich')
         Gender.objects.create(id=2, name='weiblich')
 
-        # add area levels
+        # generic field types
+        str_field = FieldType.objects.create(name='Zeichenkette',
+                                             ftype=FieldTypes.STRING)
+        FieldType.objects.create(name='Zeichenkette',
+                                 ftype=FieldTypes.NUMBER)
+
+        # area levels with BKG API URLs
         AreaLevel.truncate()
-        AreaLevel.objects.create(id=1,
-                                 name='Gemeinde',
-                                 is_preset=True,
-                                 is_default_pop_level=True,
-                                 is_statistic_level=True,
-                                 is_pop_level=True)
-        AreaLevel.objects.create(id=2,
-                                 name='Verwaltungsgemeinschaft',
-                                 is_preset=True,
-                                 )
-        AreaLevel.objects.create(id=3,
-                                 name='Kreis',
-                                 is_preset=True,
-                                 )
-        AreaLevel.objects.create(id=4,
-                                 name='Regierungsbezirk',
-                                 is_preset=True,
-                                 )
-        AreaLevel.objects.create(id=5,
-                                 name='Bundesland',
-                                 is_preset=True,
-                                 )
+
+        symbol = MapSymbol.objects.create(symbol=MapSymbol.Symbol.LINE,
+                                          stroke_color='yellow')
+        source = Source.objects.create(
+            url='https://sgx.geodatenzentrum.de/wfs_vg250',
+            layer='vg250_gem',
+            source_type=SourceTypes.WFS
+        )
+        gem = AreaLevel.objects.create(id=1,
+                                       name='Gemeinde',
+                                       symbol=symbol,
+                                       source=source,
+                                       is_preset=True,
+                                       is_default_pop_level=True,
+                                       is_statistic_level=True,
+                                       is_pop_level=True,
+                                       order=3)
+
+        symbol = MapSymbol.objects.create(symbol=MapSymbol.Symbol.LINE,
+                                          stroke_color='red')
+        source = Source.objects.create(
+            url='https://sgx.geodatenzentrum.de/wfs_vg250',
+            layer='vg250_vwg',
+            source_type=SourceTypes.WFS
+        )
+        vwg = AreaLevel.objects.create(id=2,
+                                       name='Verwaltungsgemeinschaft',
+                                       symbol=symbol,
+                                       source=source,
+                                       is_preset=True,
+                                       order=2
+                                       )
+
+        symbol = MapSymbol.objects.create(symbol=MapSymbol.Symbol.LINE,
+                                          stroke_color='green')
+        source = Source.objects.create(
+            url='https://sgx.geodatenzentrum.de/wfs_vg250',
+            layer='vg250_krs',
+            source_type=SourceTypes.WFS
+        )
+        krs = AreaLevel.objects.create(id=3,
+                                       name='Kreis',
+                                       symbol=symbol,
+                                       source=source,
+                                       is_preset=True,
+                                       order=1
+                                       )
+
+        symbol = MapSymbol.objects.create(symbol=MapSymbol.Symbol.LINE,
+                                          stroke_color='black')
+        source = Source.objects.create(
+            url='https://sgx.geodatenzentrum.de/wfs_vg250',
+            layer='vg250_lan',
+            source_type=SourceTypes.WFS
+        )
+        lan = AreaLevel.objects.create(id=4,
+                                       name='Bundesland',
+                                       symbol=symbol,
+                                       source=source,
+                                       is_preset=True,
+                                       order=0
+                                       )
+
+        # label and key fields for each level (as provided by BKG API)
+        for level in [gem, vwg, krs, lan]:
+            AreaField.objects.create(area_level=level, name='gen',
+                                     is_label=True, field_type=str_field)
+            AreaField.objects.create(area_level=level, name='ags',
+                                     is_key=True, field_type=str_field)
 
         # add raster
         Raster.truncate()
