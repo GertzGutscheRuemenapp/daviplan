@@ -248,7 +248,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
         const dialogRef = this.dialog.open(RemoveDialogComponent, {
           width: '500px',
           data: {
-            title: $localize`Das Konto wirklich entfernen?`,
+            title: $localize`Zeitraum bestätigen`,
             confirmButtonText: $localize`Änderung des Zeitraums bestätigen`,
             value: yearsToDelete.join(', '),
             message: 'Bereits in der Datenbank angelegte Jahre, die nicht im angegebenen neuen Betrachtungszeitraum liegen, ' +
