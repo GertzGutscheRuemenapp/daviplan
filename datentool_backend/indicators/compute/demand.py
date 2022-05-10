@@ -61,12 +61,12 @@ class DemandAreaIndicator(PopulationIndicatorMixin,
             LEFT JOIN (
               SELECT
                 ap."area_id",
-                SUM(ap."value" * dr."value") AS "value"
+                SUM(ap."value" * COALESCE(dr."value", 0)) AS "value"
               FROM
-                ({q_areapop}) AS ap,
-                ({q_drs}) AS dr
-              WHERE ap.age_group_id = dr.age_group_id
-              AND ap.gender_id = dr.gender_id
+                ({q_areapop}) AS ap
+                LEFT JOIN ({q_drs}) AS dr
+              ON (ap.age_group_id = dr.age_group_id
+              AND ap.gender_id = dr.gender_id)
               GROUP BY ap."area_id"
             ) val ON (val."area_id" = a."id")
             '''

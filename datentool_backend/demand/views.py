@@ -12,11 +12,11 @@ from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 
 from .constants import RegStatAgeGroups, RegStatAgeGroup
-from .models import (AgeGroup, Gender, DemandRateSet, DemandRate)
+from .models import (AgeGroup, Gender, DemandRateSet)
 from .serializers import (GenderSerializer,
                           AgeGroupSerializer,
                           DemandRateSetSerializer,
-                          DemandRateSerializer)
+                          )
 
 
 class GenderViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
