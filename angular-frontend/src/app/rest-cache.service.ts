@@ -34,7 +34,8 @@ export class RestCacheService {
   protected getCachedData<Type>(url: string, options?: { params?: Record<string, any>, reset?: boolean }): Observable<Type> {
     if (options?.params) {
       let queryParams = '';
-      Object.keys(options?.params).forEach(key => {
+      Object.keys(options?.params).forEach((key,i) => {
+        if (i > 0) queryParams += '&';
         queryParams += `${key}=${options!.params![key]}`;
       })
       if (queryParams.length > 0)
