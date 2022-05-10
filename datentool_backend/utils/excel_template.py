@@ -55,7 +55,7 @@ class ExcelTemplateMixin:
                                                    'Upload failed')})
     @action(methods=['POST'], detail=False)
     def upload_template(self, request, queryset=None, **kwargs):
-        """Upload the filled out Stops-Template"""
+        """Upload the filled out Template"""
         qs = queryset if queryset is not None else self.get_queryset()
         model = qs.model
         manager = model.copymanager
