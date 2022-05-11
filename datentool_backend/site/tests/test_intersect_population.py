@@ -46,8 +46,6 @@ class TestIntersectZensus(LoginTestCase,
 
     def test_intersect_population(self):
         """test intersection with population"""
-
-
         response = self.post('populationrasters-intersect-census',
                              pk=self.popraster100.pk,)
         self.assert_http_202_accepted(response, response.data)

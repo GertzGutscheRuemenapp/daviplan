@@ -4,9 +4,11 @@ from .models import SiteSetting, ProjectSetting
 from django.db.models import Max, Min
 
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
-from datentool_backend.utils.areas import pull_areas
+from datentool_backend.utils.pop_aggregation import intersect_areas_with_raster
+from datentool_backend.area.views import AreaLevelViewSet
+from datentool_backend.population.views.raster import PopulationRasterViewSet
 from datentool_backend.models import (DemandRateSet, Prognosis, ModeVariant,
-                                      Year, AreaLevel)
+                                      Year, AreaLevel, PopulationRaster)
 
 
 class YearSerializer(serializers.ModelSerializer):
@@ -47,9 +49,14 @@ class ProjectSettingSerializer(serializers.ModelSerializer):
         instance = super().update(instance, validated_data)
         # trigger various calculations on project area change
         if (validated_data.get('project_area')):
+            for popraster in PopulationRaster.objects.all():
+                PopulationRasterViewSet._intersect_census(
+                    popraster, drop_constraints=True)
             for area_level in AreaLevel.objects.filter(is_preset=True):
                 try:
-                    pull_areas(area_level, instance.project_area, truncate=True)
+                    areas = AreaLevelViewSet._pull_areas(
+                        area_level, instance.project_area, truncate=True)
+                    intersect_areas_with_raster(areas, drop_constraints=True)
                 except:
                     pass
         return instance
