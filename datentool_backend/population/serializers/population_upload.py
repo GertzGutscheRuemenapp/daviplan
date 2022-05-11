@@ -1,15 +1,12 @@
-from io import StringIO
 import os
-from collections import OrderedDict
-from typing import Tuple, List
+from typing import List
 import pandas as pd
 from openpyxl.reader.excel import load_workbook
 
 from django.conf import settings
-from django.db.models.fields import FloatField
 from rest_framework import serializers
 
-from openpyxl.utils import get_column_letter, quote_sheetname
+from openpyxl.utils import get_column_letter
 from openpyxl import styles
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.worksheet.dimensions import ColumnDimension, RowDimension
@@ -18,7 +15,9 @@ from openpyxl.worksheet.datavalidation import DataValidation
 from datentool_backend.area.models import AreaLevel, Area, AreaField
 from datentool_backend.demand.models import Gender, AgeGroup, Year
 from datentool_backend.population.models import (Population, Prognosis,
-                                                 PopulationRaster, PopulationEntry)
+                                                 PopulationEntry)
+from datentool_backend.utils.pop_aggregation import (
+        disaggregate_population, aggregate_many)
 
 
 
@@ -204,6 +203,7 @@ class PopulationTemplateSerializer(serializers.Serializer):
             #prognosis
         n_years = meta['B2'].value
         years = [meta.cell(3, n).value for n in range(2, n_years + 2)]
+        populations = []
         for y in years:
             year, created = Year.objects.get_or_create(year=y)
             population, created = Population.objects.get_or_create(
@@ -211,7 +211,6 @@ class PopulationTemplateSerializer(serializers.Serializer):
                 year=year,
                 #popraster=popraster,
                 )
-
 
             # get the values and unpivot the data
             df_pop = pd.read_excel(excel_file.file,
@@ -230,5 +229,13 @@ class PopulationTemplateSerializer(serializers.Serializer):
 
             df_pop.rename(columns={0: 'value',}, inplace=True)
             df_pop['population_id'] = population.id
+            populations.append(population)
             df = pd.concat([df, df_pop[columns]])
+
+        for population in populations:
+            disaggregate_population(population, use_intersected_data=True,
+                                    drop_constraints=False)
+        aggregate_many(AreaLevel.objects.all(), populations,
+                       drop_constraints=False)
+
         return df

@@ -58,8 +58,6 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
     @staticmethod
     def _intersect_census(popraster, drop_constraints=False):
-        import time
-        start_time = time.time()
         fp = os.path.join(settings.POPRASTER_ROOT, popraster.filename)
         fp_clip = os.path.join(settings.POPRASTER_ROOT, 'clipped.tif')
 
@@ -230,7 +228,6 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                 # in unittests
                 else:
                     rc_manager.set_constraints_deferred()
-        print(time.time() - start_time)
         return df_rcpopulation
 
     @extend_schema(description='Intersect Project Area with Census Data',

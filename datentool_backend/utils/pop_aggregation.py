@@ -4,6 +4,8 @@ from django.db import connection
 from django.db.utils import ProgrammingError
 from typing import List
 from django.db.models import F
+from django.db import transaction
+from django.db.models import Max, Sum
 
 from datentool_backend.models import (Area, PopulationRaster, AreaCell,
                                       AreaLevel, Population,
@@ -11,6 +13,97 @@ from datentool_backend.models import (Area, PopulationRaster, AreaCell,
                                       AreaPopulationAgeGender,
                                       RasterCellPopulationAgeGender,
                                       RasterCellPopulation)
+
+def disaggregate_population(population, use_intersected_data=False,
+                            drop_constraints=False):
+    areas = population.populationentry_set.distinct('area_id')\
+        .values_list('area_id', flat=True)
+
+    popraster = population.popraster or PopulationRaster.objects.first()
+
+    ac = AreaCell.objects.filter(area__in=areas,
+                                 cell__popraster=popraster)
+
+    # if rastercells are not intersected yet
+    if ac and use_intersected_data:
+        msg = 'use precalculated rastercells\n'
+    else:
+        intersect_areas_with_raster(Area.objects.filter(id__in=areas),
+                                    pop_raster=population.popraster)
+        msg = f'{len(areas)} Areas intersected with Rastercells.\n'
+        ac = AreaCell.objects.filter(area__in=areas,
+                                     cell__popraster=population.popraster)
+    if not ac:
+        return 'no area cells found to intersect with'
+
+    # get the intersected data from the database
+    df_area_cells = pd.DataFrame.from_records(
+        ac.values('cell__cell_id', 'area_id', 'share_cell_of_area'))\
+        .rename(columns={'cell__cell_id': 'cell_id', })
+
+    # take the Area population by age_group and gender
+    entries = population.populationentry_set
+    df_pop = pd.DataFrame.from_records(
+        entries.values('area_id', 'gender_id', 'age_group_id', 'value'))
+
+    # left join with the shares of each rastercell
+    dd = df_pop.merge(df_area_cells,
+                      on='area_id',
+                      how='left')\
+        .set_index(['cell_id', 'gender_id', 'age_group_id'])
+
+    # areas without rastercells have no cell_id assigned
+    cell_ids = dd.index.get_level_values('cell_id')
+    has_no_rastercell = pd.isna(cell_ids)
+    population_not_located = dd.loc[has_no_rastercell].value.sum()
+
+    if population_not_located:
+        area_levels = population.populationentry_set\
+            .distinct('area__area_level_id')\
+            .values('area__area_level')
+        area_level = area_levels[0]['area__area_level']
+
+        areas_without_rastercells = Area\
+            .label_annotated_qs(area_level)\
+            .filter(id__in=dd.loc[has_no_rastercell, 'area_id'])\
+            .values_list('_label', flat=True)
+
+        msg += f'{population_not_located} Inhabitants not located '\
+        f'to rastercells in {list(areas_without_rastercells)}\n'
+    else:
+        msg += 'all areas have rastercells with inhabitants\n'
+
+    # can work only when rastercells are found
+    dd = dd.loc[~has_no_rastercell]
+
+    # population by age_group and gender in each rastercell
+    dd.loc[:, 'pop'] = dd['value'] * dd['share_cell_of_area']
+
+    # has to be summed up by rastercell, age_group and gender, because a rastercell
+    # might have population from two areas
+    df_cellagegender: pd.DataFrame = dd['pop']\
+        .groupby(['cell_id', 'gender_id', 'age_group_id'])\
+        .sum()\
+        .rename('value')\
+        .reset_index()
+
+    df_cellagegender['cell_id'] = df_cellagegender['cell_id'].astype('i8')
+    df_cellagegender['population_id'] = population.id
+
+    # delete the existing entries
+    # updating would leave values for rastercells, that do not exist any more
+    rc_exist = RasterCellPopulationAgeGender.objects\
+        .filter(population=population)
+    rc_exist.delete()
+
+    with StringIO() as file:
+        df_cellagegender.to_csv(file, index=False)
+        file.seek(0)
+        RasterCellPopulationAgeGender.copymanager.from_csv(
+            file,
+            drop_constraints=drop_constraints, drop_indexes=drop_constraints,
+        )
+    return msg
 
 def intersect_areas_with_raster(
     areas: List[Area], pop_raster: PopulationRaster=None,
@@ -94,6 +187,33 @@ def intersect_areas_with_raster(
         file.seek(0)
         AreaCell.copymanager.from_csv(file,
             drop_constraints=drop_constraints, drop_indexes=drop_constraints)
+
+def aggregate_many(area_levels, populations, drop_constraints=False):
+
+    manager = AreaPopulationAgeGender.copymanager
+    with transaction.atomic():
+        if drop_constraints:
+            manager.drop_constraints()
+            manager.drop_indexes()
+
+        for area_level in area_levels:
+            for population in populations:
+                aggregate_population(area_level, population,
+                                     drop_constraints=False)
+            entries = AreaPopulationAgeGender.objects.filter(
+                area__area_level=area_level)
+            summed_values = entries.values(
+                'population__year', 'area', 'population__prognosis')\
+                .annotate(Sum('value'))
+            max_value = summed_values.aggregate(
+                Max('value__sum'))['value__sum__max']
+            area_level.max_population = max_value
+            area_level.population_cache_dirty = False
+            area_level.save()
+
+        if drop_constraints:
+            manager.restore_constraints()
+            manager.restore_indexes()
 
 def aggregate_population(area_level: AreaLevel, population: Population,
                          drop_constraints=False):
