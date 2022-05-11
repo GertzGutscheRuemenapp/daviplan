@@ -241,11 +241,11 @@ class PopulationTemplateSerializer(serializers.Serializer):
 
         return df
 
-    def post_processing(self, dataframe):
+    def post_processing(self, dataframe, drop_constraints=False):
         populations = Population.objects.filter(
             id__in=dataframe['population_id'].unique())
         for population in populations:
             disaggregate_population(population, use_intersected_data=True,
-                                    drop_constraints=True)
+                                    drop_constraints=drop_constraints)
         aggregate_many(AreaLevel.objects.all(), populations,
-                       drop_constraints=True)
+                       drop_constraints=drop_constraints)

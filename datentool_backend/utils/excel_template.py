@@ -92,7 +92,7 @@ class ExcelTemplateMixin:
                     manager.restore_indexes()
 
         if hasattr(serializer, 'post_processing'):
-            serializer.post_processing(df)
+            serializer.post_processing(df, drop_constraints)
 
         msg = f'Upload successful of {len(df)} rows'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
