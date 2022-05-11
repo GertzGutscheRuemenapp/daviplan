@@ -127,9 +127,9 @@ class PopulationTemplateSerializer(serializers.Serializer):
                         columns={'area_id': 'id',}).set_index('id')
 
                 if len(df_values):
-                    df_values = df_values.pivot_table(values='value',
-                                                      index=df_values.index,
-                                                      columns=['gender_id', 'age_group_id'])
+                    df_values = df_values.pivot_table(
+                        values='value', index=df_values.index,
+                        columns=['gender_id', 'age_group_id'])
                     df_areas.loc[df_values.index, :] = df_values.values
 
                 df_areas.to_excel(writer,
@@ -147,7 +147,8 @@ class PopulationTemplateSerializer(serializers.Serializer):
                 row12 = ws[1:6]
                 for row in row12:
                     for cell in row:
-                        cell.alignment = styles.Alignment(horizontal='center', wrap_text=True)
+                        cell.alignment = styles.Alignment(horizontal='center',
+                                                          wrap_text=True)
 
                 from_row = 7
                 to_row = from_row + df_areas.shape[0] - 1
@@ -163,12 +164,16 @@ class PopulationTemplateSerializer(serializers.Serializer):
                 ws.row_dimensions[2] = RowDimension(ws, index=2, hidden=True)
                 ws.row_dimensions[4] = RowDimension(ws, index=4, hidden=True)
 
-                ws.column_dimensions['A'] = ColumnDimension(ws, index='A', hidden=True)
-                ws.column_dimensions['B'] = ColumnDimension(ws, index='B', width=20)
-                ws.column_dimensions['C'] = ColumnDimension(ws, index='C', width=30)
+                ws.column_dimensions['A'] = ColumnDimension(ws, index='A',
+                                                            hidden=True)
+                ws.column_dimensions['B'] = ColumnDimension(ws, index='B',
+                                                            width=20)
+                ws.column_dimensions['C'] = ColumnDimension(ws, index='C',
+                                                            width=30)
                 for col_no in range(4, 4 + df_areas.shape[1]):
                     col = get_column_letter(col_no)
-                    ws.column_dimensions[col] = ColumnDimension(ws, index=col, width=12)
+                    ws.column_dimensions[col] = ColumnDimension(ws, index=col,
+                                                                width=12)
 
         content = open(fn, 'rb').read()
         return content
@@ -177,7 +182,8 @@ class PopulationTemplateSerializer(serializers.Serializer):
         """read excelfile and return a dataframe"""
         excel_file = request.FILES['excel_file']
         #popraster = PopulationRaster.objects.get(default=True)
-        columns = ['population_id', 'area_id', 'gender_id', 'age_group_id', 'value']
+        columns = ['population_id', 'area_id', 'gender_id',
+                   'age_group_id', 'value']
         df = pd.DataFrame(columns=columns)
 
         wb = load_workbook(excel_file.file)
@@ -194,7 +200,8 @@ class PopulationTemplateSerializer(serializers.Serializer):
         df_genders = pd.DataFrame(Gender.objects.values('id', 'name'))\
             .set_index('name')\
             .rename(columns={'id': 'gender_id',})
-        df_agegroups = pd.DataFrame([[ag.id, ag.name] for ag in AgeGroup.objects.all()],
+        df_agegroups = pd.DataFrame([[ag.id, ag.name] for
+                                     ag in AgeGroup.objects.all()],
                                     columns=['age_group_id', 'Altersgruppe'])\
             .set_index('Altersgruppe')
 
@@ -232,10 +239,13 @@ class PopulationTemplateSerializer(serializers.Serializer):
             populations.append(population)
             df = pd.concat([df, df_pop[columns]])
 
+        return df
+
+    def post_processing(self, dataframe):
+        populations = Population.objects.filter(
+            id__in=dataframe['population_id'].unique())
         for population in populations:
             disaggregate_population(population, use_intersected_data=True,
-                                    drop_constraints=False)
+                                    drop_constraints=True)
         aggregate_many(AreaLevel.objects.all(), populations,
-                       drop_constraints=False)
-
-        return df
+                       drop_constraints=True)
