@@ -1,5 +1,5 @@
 from typing import Dict
-from django.core.exceptions import BadRequest
+from rest_framework.exceptions import NotAcceptable
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
@@ -250,9 +250,9 @@ class FieldTypeSerializer(serializers.ModelSerializer):
 
     def _patch_classification(self, instance, data):
         classifications = []
-        names = [f.name for f in classifications]
+        names = [f['value'] for f in data]
         if (len(set(names)) != len(names)):
-            raise BadRequest('Die Werte der Klassen müssen einzigartig sein!')
+            raise NotAcceptable('Die Werte der Klassen müssen einzigartig sein!')
         for classification in data:
             order = classification.get('order', 0)
             try:
