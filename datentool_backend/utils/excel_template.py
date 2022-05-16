@@ -55,13 +55,14 @@ class ExcelTemplateMixin:
                                                    'Upload failed')})
     @action(methods=['POST'], detail=False)
     def upload_template(self, request, queryset=None, **kwargs):
-        """Upload the filled out Stops-Template"""
+        """Upload the filled out Template"""
         qs = queryset if queryset is not None else self.get_queryset()
         model = qs.model
         manager = model.copymanager
         drop_constraints = bool(strtobool(
             request.data.get('drop_constraints', 'False')))
 
+        serializer = self.get_serializer()
         with transaction.atomic():
             if drop_constraints:
                 manager.drop_constraints()
@@ -70,7 +71,6 @@ class ExcelTemplateMixin:
             qs.delete()
 
             try:
-                serializer = self.get_serializer()
                 df = serializer.read_excel_file(request, **kwargs)
                 if len(df):
                     with StringIO() as file:
@@ -90,6 +90,9 @@ class ExcelTemplateMixin:
                 if drop_constraints:
                     manager.restore_constraints()
                     manager.restore_indexes()
+
+        if hasattr(serializer, 'post_processing'):
+            serializer.post_processing(df, drop_constraints)
 
         msg = f'Upload successful of {len(df)} rows'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)

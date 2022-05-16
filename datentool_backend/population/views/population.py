@@ -3,7 +3,7 @@ from io import StringIO
 from distutils.util import strtobool
 from django.http.request import QueryDict
 from django_filters import rest_framework as filters
-from django.db.models import Max, Min, Sum, Q
+from django.db.models import Max, Min, Sum
 from drf_spectacular.utils import (extend_schema,
                                    OpenApiResponse,
                                    inline_serializer)
@@ -18,7 +18,8 @@ from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixi
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 from datentool_backend.utils.pop_aggregation import (
-    intersect_areas_with_raster, aggregate_population)
+    intersect_areas_with_raster, aggregate_population, aggregate_many,
+    disaggregate_population)
 from datentool_backend.utils.regionalstatistik import Regionalstatistik
 from datentool_backend.population.models import (
     PopulationRaster,
@@ -26,7 +27,6 @@ from datentool_backend.population.models import (
     Population,
     PopulationEntry,
     RasterCellPopulationAgeGender,
-    AreaPopulationAgeGender,
     AreaCell,
     Year
     )
@@ -37,8 +37,7 @@ from rest_framework.response import Response
 from datentool_backend.utils.serializers import (MessageSerializer,
                                                  use_intersected_data,
                                                  drop_constraints,
-                                                 area_level,
-                                                 )
+                                                 area_level)
 
 from datentool_backend.population.serializers import (PrognosisSerializer,
                                                       PopulationSerializer,
@@ -47,8 +46,7 @@ from datentool_backend.population.serializers import (PrognosisSerializer,
                                                       PopulationTemplateSerializer,
                                                       prognosis_id_serializer,
                                                       area_level_id_serializer,
-                                                      years_serializer
-                          )
+                                                      years_serializer)
 from datentool_backend.site.models import SiteSetting
 from datentool_backend.area.models import Area, AreaLevel
 
@@ -166,95 +164,13 @@ class PopulationViewSet(viewsets.ModelViewSet):
             msg = f'Population for {kwargs} not found'
             return Response({'message': msg,}, status.HTTP_406_NOT_ACCEPTABLE)
 
-        areas = population.populationentry_set.distinct('area_id')\
-            .values_list('area_id', flat=True)
-
-        ac = AreaCell.objects.filter(area__in=areas,
-                                     cell__popraster=population.popraster)
-
-        # if rastercells are not intersected yet
-        if ac and bool(strtobool(request.data.get('use_intersected_data', 'False'))):
-            msg = 'use precalculated rastercells\n'
-        else:
-            intersect_areas_with_raster(Area.objects.filter(id__in=areas),
-                                        pop_raster=population.popraster)
-            msg = f'{len(areas)} Areas intersected with Rastercells.\n'
-            ac = AreaCell.objects.filter(area__in=areas,
-                                         cell__popraster=population.popraster)
-
-        # get the intersected data from the database
-        df_area_cells = pd.DataFrame.from_records(
-            ac.values('cell__cell_id', 'area_id', 'share_cell_of_area'))\
-            .rename(columns={'cell__cell_id': 'cell_id', })
-
-        # take the Area population by age_group and gender
-        entries = population.populationentry_set
-        df_pop = pd.DataFrame.from_records(
-            entries.values('area_id', 'gender_id', 'age_group_id', 'value'))
-
-        # left join with the shares of each rastercell
-        dd = df_pop.merge(df_area_cells,
-                          on='area_id',
-                          how='left')\
-            .set_index(['cell_id', 'gender_id', 'age_group_id'])
-
-        # areas without rastercells have no cell_id assigned
-        cell_ids = dd.index.get_level_values('cell_id')
-        has_no_rastercell = pd.isna(cell_ids)
-        population_not_located = dd.loc[has_no_rastercell].value.sum()
-
-        if population_not_located:
-            area_levels = population.populationentry_set\
-                .distinct('area__area_level_id')\
-                .values('area__area_level')
-            if not len(area_levels) == 1:
-                raise BadRequest(
-                    f'Areas are not from one AreaLevel but from {area_levels}')
-            area_level = area_levels[0]['area__area_level']
-
-            areas_without_rastercells = Area\
-                .label_annotated_qs(area_level)\
-                .filter(id__in=dd.loc[has_no_rastercell, 'area_id'])\
-                .values_list('_label', flat=True)
-
-            msg += f'{population_not_located} Inhabitants not located '\
-            f'to rastercells in {list(areas_without_rastercells)}\n'
-        else:
-            msg += 'all areas have rastercells with inhabitants\n'
-
-        # can work only when rastercells are found
-        dd = dd.loc[~has_no_rastercell]
-
-        # population by age_group and gender in each rastercell
-        dd.loc[:, 'pop'] = dd['value'] * dd['share_cell_of_area']
-
-        # has to be summed up by rastercell, age_group and gender, because a rastercell
-        # might have population from two areas
-        df_cellagegender: pd.DataFrame = dd['pop']\
-            .groupby(['cell_id', 'gender_id', 'age_group_id'])\
-            .sum()\
-            .rename('value')\
-            .reset_index()
-
-        df_cellagegender['cell_id'] = df_cellagegender['cell_id'].astype('i8')
-        df_cellagegender['population_id'] = population.id
-
-        # delete the existing entries
-        # updating would leave values for rastercells, that do not exist any more
-        rc_exist = RasterCellPopulationAgeGender.objects\
-            .filter(population=population)
-        rc_exist.delete()
-
+        use_intersected_data = bool(strtobool(
+            request.data.get('use_intersected_data', 'False')))
         drop_constraints = bool(strtobool(
             request.data.get('drop_constraints', 'False')))
-
-        with StringIO() as file:
-            df_cellagegender.to_csv(file, index=False)
-            file.seek(0)
-            RasterCellPopulationAgeGender.copymanager.from_csv(
-                file,
-                drop_constraints=drop_constraints, drop_indexes=drop_constraints,
-            )
+        msg = disaggregate_population(
+            population, use_intersected_data=use_intersected_data,
+            drop_constraints=drop_constraints)
         msg += f'Disaggregation of Population was successful.\n'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
@@ -303,44 +219,11 @@ class PopulationViewSet(viewsets.ModelViewSet):
     @action(methods=['POST'], detail=False,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def aggregateall_from_cell_to_area(self, request, **kwargs):
-        manager = AreaPopulationAgeGender.copymanager
         drop_constraints = bool(strtobool(
             request.data.get('drop_constraints', 'False')))
 
-        with transaction.atomic():
-            if drop_constraints:
-                manager.drop_constraints()
-                manager.drop_indexes()
-
-            #  set new query-params
-            old_data = self.request.data
-            data = QueryDict(mutable=True)
-            data.update(self.request.data)
-            data['drop_constraints'] = 'False'
-            request._full_data = data
-
-            for area_level in AreaLevel.objects.all():
-                for population in Population.objects.all():
-                    data['area_level'] = area_level.id
-                    aggregate_population(area_level, population,
-                                         drop_constraints=drop_constraints)
-                entries = AreaPopulationAgeGender.objects.filter(
-                    area__area_level=area_level)
-                summed_values = entries.values(
-                    'population__year', 'area', 'population__prognosis')\
-                    .annotate(Sum('value'))
-                max_value = summed_values.aggregate(
-                    Max('value__sum'))['value__sum__max']
-                area_level.max_population = max_value
-                area_level.population_cache_dirty = False
-                area_level.save()
-
-            # restore the data
-            request._full_data = old_data
-
-            if drop_constraints:
-                manager.restore_constraints()
-                manager.restore_indexes()
+        aggregate_many(AreaLevel.objects.all(), Population.objects.all(),
+                       drop_constraints=drop_constraints)
 
         msg = 'Aggregations of all Populations were successful.'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
@@ -416,6 +299,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
 
         year_grouped = df_population.groupby('year')
         year2population = {}
+        populations = []
         for y, year_group in year_grouped:
             try:
                 year = Year.objects.get(year=y)
@@ -429,6 +313,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                 pass
             # (Re-)Create Population
             population = Population.objects.create(year=year, prognosis=None)
+            populations.append(population)
             year2population[year.year] = population.id
 
         y2p = pd.Series(year2population, name='population_id')
@@ -452,7 +337,11 @@ class PopulationViewSet(viewsets.ModelViewSet):
                 file,
                 drop_constraints=drop_constraints, drop_indexes=drop_constraints,
             )
-
+        for population in populations:
+            disaggregate_population(population, use_intersected_data=True,
+                                    drop_constraints=drop_constraints)
+        aggregate_many(AreaLevel.objects.all(), populations,
+                       drop_constraints=drop_constraints)
         msg = 'Download of Population from Regionalstatistik successful'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 

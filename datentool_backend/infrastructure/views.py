@@ -76,8 +76,8 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
     @extend_schema(description='Create Excel-Template to download',
                    request=inline_serializer(
                        name='PlaceCreateSerializer',
-                       fields={'infrastructure_id': infrastructure_id_serializer}
-                       ),
+                       fields={'infrastructure': infrastructure_id_serializer}
+                   ),
                    )
     @action(methods=['POST'], detail=False, permission_classes=[CanEditBasedata])
     def create_template(self, request):
@@ -87,17 +87,12 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
 
     @extend_schema(description='Upload Excel-File with Places and Capacities',
                    request=inline_serializer(
-                       name='PlaceFileDropConstraintSerializer',
-                       fields={'infrastructure_id': infrastructure_id_serializer,
-                               #'drop_constraints': drop_constraints,
-                               'excel_file': serializers.FileField(),
-                               }
-                       )
-                   )
+                       name='PlaceFileUploadSerializer',
+                       fields={'excel_file': serializers.FileField(),}
+                   ))
     @action(methods=['POST'], detail=False, permission_classes=[CanEditBasedata])
     def upload_template(self, request):
         """Download the Template"""
-        infrastructure_id = request.data.get('infrastructure')
         # no constraint dropping, because we use individual updates
         data = QueryDict(mutable=True)
         data.update(self.request.data)
@@ -106,8 +101,7 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
 
         queryset = Place.objects.none()
         return super().upload_template(request,
-                                       queryset=queryset,
-                                       infrastructure_id=infrastructure_id)
+                                       queryset=queryset,)
 
 
 capacity_params = [

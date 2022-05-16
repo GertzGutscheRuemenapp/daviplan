@@ -1,15 +1,12 @@
 import requests
 import tempfile
-import os
 from requests.exceptions import (MissingSchema, ConnectionError, HTTPError)
 from distutils.util import strtobool
-import pandas as pd
-import json
-from owslib.wfs import WebFeatureService
 import datetime
+import json
 
 from django.core.exceptions import BadRequest
-from django.contrib.gis.geos import (GEOSGeometry, Polygon, MultiPolygon,
+from django.contrib.gis.geos import (Polygon, MultiPolygon, GEOSGeometry,
                                      GeometryCollection)
 from django.views.generic import DetailView
 from django.http import JsonResponse, Http404
@@ -29,6 +26,7 @@ from drf_spectacular.utils import (extend_schema,
                                    OpenApiResponse,
                                    inline_serializer)
 
+from owslib.wfs import WebFeatureService
 from owslib.wms import WebMapService
 
 from vectortiles.postgis.views import MVTView, BaseVectorTileView
@@ -45,7 +43,6 @@ from datentool_backend.utils.permissions import (
 
 from datentool_backend.utils.pop_aggregation import (
     intersect_areas_with_raster, aggregate_population)
-
 from datentool_backend.utils.layermapping import CustomLayerMapping
 
 from .models import (MapSymbol,
@@ -57,9 +54,10 @@ from .models import (MapSymbol,
                      FClass,
                      AreaAttribute,
                      FieldTypes,
-                     SourceTypes,
-                     AreaField
+                     AreaField,
+                     SourceTypes
                      )
+
 from .serializers import (MapSymbolSerializer,
                           LayerGroupSerializer,
                           WMSLayerSerializer,
@@ -296,48 +294,14 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
         msg = f'{len(areas)} Areas were successfully intersected with Rastercells.\n'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
-    @extend_schema(description='Pull areas of area level incl. geometries '
-                   'from assigned WFS-service ("source")',
-                   request=inline_serializer(
-                       name='PullAreaSerializer',
-                       fields={
-                           'simplify': serializers.BooleanField(
-                               required=False,
-                               help_text='simplify the fetched geometries'),
-                           'truncate': serializers.BooleanField(
-                               required=False,
-                               help_text='''drop all existing areas if true.
-                               Otherwise update existing areas with same key field
-                               values resp. add new ones.'''),
-                       }
-                   ),
-                   responses={
-                       202: OpenApiResponse(MessageSerializer, 'Pull successful'),
-                       406: OpenApiResponse(MessageSerializer, 'Pull failed'),
-                       500: OpenApiResponse(MessageSerializer, 'Pull failed')
-                   })
-    @action(methods=['POST'], detail=True,
-            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
-    def pull_areas(self, request, **kwargs):
-        try:
-            area_level: AreaLevel = self.queryset.get(**kwargs)
-        except AreaLevel.DoesNotExist:
-            msg = f'Area level for {kwargs} not found'
-            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
-        if (not area_level.source or
-            area_level.source.source_type != SourceTypes.WFS):
-            msg = 'Source of Area Level has to be a Feature-Service to pull from'
-            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+    @staticmethod
+    def _pull_areas(area_level: AreaLevel, project_area,
+                   truncate=False, simplify=False):
+
         url = area_level.source.url
         layer = area_level.source.layer
         if not url or not layer:
-            msg = 'Source of Area Level is not completely defined'
-            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
-
-        project_area = ProjectSetting.load().project_area
-        if not project_area:
-            msg = 'Project area is not defined'
-            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+            return []
         # project bbox with srs
         bbox = list(project_area.extent)
         bbox.append('EPSG:3857')
@@ -353,18 +317,12 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
         if not key:
             msg = 'Layer not found in capabilities of service'
             return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
-        try:
-            response = wfs.getfeature(typename=typename, bbox=bbox,
-                                      srsname='EPSG:3857',
-                                      outputFormat='application/json')
-        except Exception as e:
-            return Response({'message': str(e)},
-                            status.HTTP_500_INTERNAL_SERVER_ERROR)
+        response = wfs.getfeature(typename=typename, bbox=bbox,
+                                  srsname='EPSG:3857',
+                                  outputFormat='application/json')
         res_json = json.loads(response.read())
-        truncate = str(request.data.get('truncate', 'false')).lower() == 'true'
         if truncate:
             Area.objects.filter(area_level=area_level).delete()
-        simplify = str(request.data.get('simplify', 'false')).lower() == 'true'
         level_areas = Area.annotated_qs(area_level)
         key_field = area_level.key_field
         for feature in res_json['features']:
@@ -411,6 +369,56 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
         area_level.source.date = datetime.date(now.year, now.month, now.day)
         area_level.source.save()
         areas = Area.objects.filter(area_level=area_level)
+        return areas
+
+    @extend_schema(description='Pull areas of area level incl. geometries '
+                   'from assigned WFS-service ("source")',
+                   request=inline_serializer(
+                       name='PullAreaSerializer',
+                       fields={
+                           'simplify': serializers.BooleanField(
+                               required=False,
+                               help_text='simplify the fetched geometries'),
+                           'truncate': serializers.BooleanField(
+                               required=False,
+                               help_text='''drop all existing areas if true.
+                               Otherwise update existing areas with same key field
+                               values resp. add new ones.'''),
+                       }
+                   ),
+                   responses={
+                       202: OpenApiResponse(MessageSerializer, 'Pull successful'),
+                       406: OpenApiResponse(MessageSerializer, 'Pull failed'),
+                       500: OpenApiResponse(MessageSerializer, 'Pull failed')
+                   })
+    @action(methods=['POST'], detail=True,
+            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+    def pull_areas(self, request, **kwargs):
+        try:
+            area_level: AreaLevel = self.queryset.get(**kwargs)
+        except AreaLevel.DoesNotExist:
+            msg = f'Area level for {kwargs} not found'
+            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+        if (not area_level.source or
+            area_level.source.source_type != SourceTypes.WFS):
+            msg = 'Source of Area Level has to be a Feature-Service to pull from'
+            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+        if not area_level.source.url or not area_level.source.layer:
+            msg = 'Source of Area Level is not completely defined'
+            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+        project_area = ProjectSetting.load().project_area
+        if not project_area:
+            msg = 'Project area is not defined'
+            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+
+        truncate = str(request.data.get('truncate', 'false')).lower() == 'true'
+        simplify = str(request.data.get('simplify', 'false')).lower() == 'true'
+        try:
+            areas = self._pull_areas(area_level, project_area,
+                               truncate=truncate, simplify=simplify)
+        except Exception as e:
+            return Response({'message': str(e)},
+                            status.HTTP_500_INTERNAL_SERVER_ERROR)
         intersect_areas_with_raster(areas, drop_constraints=True)
         for population in Population.objects.all():
             aggregate_population(area_level, population, drop_constraints=True)
