@@ -215,6 +215,7 @@ class ProtectPresetPermission(permissions.BasePermission):
                 'name' in request.data or
                 'label_field' in request.data or
                 'key_field' in request.data or
+                'ftype' in request.data or
                 (
                     'source' in request.data and
                     set(request.data['source']) > set(['date'])
@@ -559,7 +560,8 @@ class AreaViewSet(ProtectCascadeMixin,
 class FieldTypeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = FieldType.objects.all()
     serializer_class = FieldTypeSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    permission_classes = [ProtectPresetPermission &
+                          (HasAdminAccessOrReadOnly | CanEditBasedata)]
 
 
 class FClassViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

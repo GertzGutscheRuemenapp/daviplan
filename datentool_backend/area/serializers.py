@@ -230,7 +230,8 @@ class FieldTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FieldType
-        fields = ('id', 'name', 'ftype', 'classification')
+        fields = ('id', 'name', 'is_preset', 'ftype', 'classification')
+        read_only_fields = ('is_preset',)
 
     def create(self, validated_data):
         classification_data = validated_data.pop('fclass_set', {})

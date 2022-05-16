@@ -266,6 +266,7 @@ class FieldType(DatentoolModelMixin, NamedModel, models.Model):
     """a generic field type"""
     ftype = models.CharField(max_length=3, choices=FieldTypes.choices)
     name = models.TextField()
+    is_preset = models.BooleanField(default=False)
 
     def validate_datatype(self, data) -> bool:
         """validate the datatype of the given data"""

@@ -32,8 +32,10 @@ class Command(BaseCommand):
 
         # generic field types
         str_field = FieldType.objects.create(name='Zeichenkette',
+                                             is_preset=True,
                                              ftype=FieldTypes.STRING)
-        FieldType.objects.create(name='Zeichenkette',
+        FieldType.objects.create(name='Zahl',
+                                 is_preset=True,
                                  ftype=FieldTypes.NUMBER)
 
         # area levels with BKG API URLs
