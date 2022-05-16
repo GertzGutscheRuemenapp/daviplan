@@ -1,5 +1,5 @@
 from typing import Dict
-
+from django.core.exceptions import BadRequest
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
@@ -238,29 +238,36 @@ class FieldTypeSerializer(serializers.ModelSerializer):
         instance = super().create(validated_data)
         instance.save()
         if classification_data and instance.ftype == FieldTypes.CLASSIFICATION:
-            for classification in classification_data:
-                fclass = FClass(order=classification['order'],
-                                ftype=instance,
-                                value=classification['value'])
-                fclass.save()
+            self._patch_classification(instance, classification_data)
         return instance
 
     def update(self, instance, validated_data):
         classification_data = validated_data.pop('fclass_set', {})
         instance = super().update(instance, validated_data)
         if classification_data and instance.ftype == FieldTypes.CLASSIFICATION:
-            classification_list = []
-            for classification in classification_data:
-                fclass = FClass(order=classification['order'],
-                                ftype=instance,
-                                value=classification['value'])
-                fclass.save()
-                classification_list.append(fclass)
-            classification_data_ids = [f.id for f in classification_list]
-            for fclass in instance.fclass_set.all():
-                if fclass.id not in classification_data_ids:
-                    fclass.delete(keep_parents=True)
+            self._patch_classification(instance, classification_data)
         return instance
+
+    def _patch_classification(self, instance, data):
+        classifications = []
+        names = [f.name for f in classifications]
+        if (len(set(names)) != len(names)):
+            raise BadRequest('Die Werte der Klassen müssen einzigartig sein!')
+        for classification in data:
+            order = classification.get('order', 0)
+            try:
+                fclass = FClass.objects.get(ftype=instance,
+                                            value=classification['value'])
+                fclass.order = order
+                fclass.save()
+            except FClass.DoesNotExist:
+                fclass = FClass.objects.create(
+                    ftype=instance, value=classification['value'], order=order)
+            classifications.append(fclass)
+        classification_data_ids = [f.id for f in classifications]
+        for fclass in instance.fclass_set.all():
+            if fclass.id not in classification_data_ids:
+                fclass.delete(keep_parents=True)
 
 
 class AreaAttributeField(serializers.JSONField):

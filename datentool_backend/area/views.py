@@ -564,12 +564,6 @@ class FieldTypeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                           (HasAdminAccessOrReadOnly | CanEditBasedata)]
 
 
-class FClassViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = FClass.objects.all()
-    serializer_class = FClassSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-
-
 class AreaFieldViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = AreaField.objects.all()
     serializer_class = AreaFieldSerializer

@@ -553,26 +553,6 @@ class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
             pass
 
 
-class TestFClassAPI(WriteOnlyWithCanEditBaseDataTest,
-                    TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
-    """Test to post, put and patch data"""
-    url_key = "fclasses"
-    factory = FClassFactory
-
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-
-        fclass: FClass = cls.obj
-        classification = fclass.ftype.pk
-        data = dict(ftype_id=classification,
-                    order=faker.unique.pyint(max_value=100),
-                    value=faker.unique.word())
-        cls.post_data = data
-        cls.put_data = data
-        cls.patch_data = data
-
-
 class TestAreaFieldAPI(WriteOnlyWithCanEditBaseDataTest,
                         TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """Test to post, put and patch data"""

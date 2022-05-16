@@ -1,6 +1,4 @@
 from typing import Tuple, List
-
-
 from django.core.exceptions import BadRequest
 
 from datentool_backend.population.models import AreaCell, RasterCellPopulation
