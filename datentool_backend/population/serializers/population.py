@@ -18,7 +18,7 @@ class RasterSerializer(serializers.ModelSerializer):
 class PopulationRasterSerializer(serializers.ModelSerializer):
     class Meta:
         model = PopulationRaster
-        fields = ('id', 'name', 'raster', 'year', 'default', 'filename', 'srid')
+        fields = ('id', 'name', 'raster', 'default', 'filename', 'srid')
 
 
 class PrognosisSerializer(serializers.ModelSerializer):

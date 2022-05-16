@@ -38,11 +38,11 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
                                       has_capacity=True,
                                       infrastructure=cls.infra)
 
-        cls.str_field = PlaceFieldFactory(infrastructure=cls.infra,
-                                          field_type__name='PlaceName',
-                                          field_type__ftype=FieldTypes.STRING,
-                                          name='Bezeichnung',
-                                          is_label=True)
+        #cls.str_field = PlaceFieldFactory(infrastructure=cls.infra,
+                                          #field_type__name='PlaceName',
+                                          #field_type__ftype=FieldTypes.STRING,
+                                          #name='Bezeichnung',
+                                          #is_label=True)
         cls.hnr_field = PlaceFieldFactory(infrastructure=cls.infra,
                                           field_type__name='Hnr',
                                           name='Hausnummer',
@@ -69,15 +69,17 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
         cv21 = FClassFactory(ftype=cls.cla_field2.field_type, value='AA', order=1)
         cv22 = FClassFactory(ftype=cls.cla_field2.field_type, value='BB', order=2)
 
-        place1 = PlaceFactory(infrastructure=cls.infra, attributes={
-            cls.str_field.name: 'Place1',
+        place1 = PlaceFactory(infrastructure=cls.infra,
+                              name='Place1',
+                              attributes={
             cls.num_field.name: 1234,
             cls.hnr_field.name: '44b',
             cls.cla_field.name: 'Zwei',
             cls.cla_field2.name: 'BB',
         })
-        place2 = PlaceFactory(infrastructure=cls.infra, attributes={
-            cls.str_field.name: 'Place2',
+        place2 = PlaceFactory(infrastructure=cls.infra,
+                              name='Place2',
+                              attributes={
             cls.num_field.name: 567,
             cls.hnr_field.name: '33',
             cls.cla_field.name: 'Drei',
@@ -111,7 +113,7 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
         file_content = open(file_path_places, 'rb')
         data = {
             'excel_file' : file_content,
-            'infrastructure': self.infra.pk,
+            #'infrastructure': self.infra.pk,
         }
 
         url = reverse('places-upload-template')

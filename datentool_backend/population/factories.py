@@ -26,11 +26,10 @@ class RasterFactory(DjangoModelFactory):
 class PopulationRasterFactory(DjangoModelFactory):
     class Meta:
         model = PopulationRaster
-        django_get_or_create = ('year', 'raster')
+        django_get_or_create = ('raster', )
 
     name = faker.word()
     raster = factory.SubFactory(RasterFactory)
-    year = factory.SubFactory(YearFactory)
 
 
 def _get_poly_from_cellcode(rc: 'RasterCell') -> Polygon:

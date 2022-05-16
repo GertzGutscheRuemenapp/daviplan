@@ -61,6 +61,10 @@ class PopulationIndicatorMixin:
         else:
             genders = self.data.get('gender')
             age_groups = self.data.get('age_group')
+            if isinstance(genders, str):
+                genders = genders.split(',')
+            if isinstance(age_groups, str):
+                age_groups = age_groups.split(',')
 
         if genders and genders != ['']:
             filter_params['gender__in'] = genders

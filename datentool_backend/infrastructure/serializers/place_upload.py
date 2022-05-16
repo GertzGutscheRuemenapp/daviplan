@@ -5,6 +5,7 @@ from typing import Tuple
 import pandas as pd
 
 from django.conf import settings
+from django.db.models import Q
 from django.db.models.fields import FloatField
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db.models.functions import GeoFunc, Transform
@@ -92,18 +93,17 @@ class PlacesTemplateSerializer(serializers.Serializer):
         place_attrs = PlaceAttribute\
             .value_annotated_qs()\
             .filter(place__infrastructure=infrastructure)
-        labels = pd.DataFrame(place_attrs\
-            .filter(field__name=infrastructure.label_field)\
-            .values('place_id', '_value'),
-            columns=['place_id', '_value'])\
-            .set_index('place_id')
-        df_places['Name'] = labels['_value']
 
+        places = Place.objects.filter(infrastructure=infrastructure)
+        df_placename = pd.DataFrame(places.values('id', 'name'))\
+            .rename(columns={'id': 'place_id', })\
+            .set_index('place_id')
+        df_places['Name'] = df_placename['name']
         for col in ['Straße', 'Hausnummer', 'PLZ', 'Ort']:
             try:
                 infrastructure.placefield_set.get(name=col)
-                attrs = pd.DataFrame(place_attrs\
-                    .filter(field__name=col)\
+                attrs = pd.DataFrame(place_attrs
+                    .filter(field__name=col)
                     .values('place_id', '_value'),
                     columns=['place_id', '_value'])\
                     .set_index('place_id')
@@ -251,7 +251,9 @@ class PlacesTemplateSerializer(serializers.Serializer):
         content = open(fn, 'rb').read()
         return content
 
-    def read_excel_file(self, request, infrastructure_id: int) -> pd.DataFrame:
+    def read_excel_file(self, request,
+                        #infrastructure_id: int,
+                        ) -> pd.DataFrame:
         """read excelfile and return a dataframe"""
         excel_file = request.FILES['excel_file']
 
@@ -265,8 +267,8 @@ class PlacesTemplateSerializer(serializers.Serializer):
         except Infrastructure.DoesNotExist:
             raise ValueError(f'Excel-File is for infrastructure with id {infra_id}, '
                              f'which does not exist')
-        msg = f'file is for infrastructure {infra.name} with id {infra_id}, but request was sent to id {infrastructure_id}'
-        assert int(infrastructure_id) == df_meta.loc['infrastructure', 'value'], msg
+        #msg = f'file is for infrastructure {infra.name} with id {infra_id}, but request was sent to id {infrastructure_id}'
+        #assert int(infrastructure_id) == df_meta.loc['infrastructure', 'value'], msg
 
         # Check the classification
 

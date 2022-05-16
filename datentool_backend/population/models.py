@@ -37,7 +37,6 @@ class PopulationRaster(DatentoolModelMixin, NamedModel, models.Model):
     """a raster with population data"""
     name = models.TextField()
     raster = models.ForeignKey(Raster, on_delete=PROTECT_CASCADE)
-    year = models.ForeignKey(Year, on_delete=PROTECT_CASCADE)
     default = models.BooleanField(default=False)
     filename = models.TextField(null=True)
     srid = models.IntegerField(default=3035)
