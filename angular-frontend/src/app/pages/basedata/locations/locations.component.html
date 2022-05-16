@@ -1,4 +1,4 @@
-<div class="loadOverlay" *ngIf="isLoading$ | async">
+<div class="loadOverlay" *ngIf="isLoading$ | async" xmlns="http://www.w3.org/1999/html">
   <mat-spinner [diameter]="50"></mat-spinner>
 </div>
 <app-header-card [title]="'Standorte der Infrastrukturen und Kapazitäten für Leistungen'"
@@ -16,7 +16,7 @@
                     subtitle="Infrastrukturbereich auswählen, um Standorte anzuzeigen bzw. einzutragen"
                     infoText="<p>Wählen Sie in der Liste den Infrastrukturbereich aus, dessen Standort sie anzeigen, hochladen oder verändern möchten.</p>
                     <p>Bevor Sie eine Standortliste hochladen oder Standorte in die Karte einzeichnen, legen Sie bitte erst die Attribute der Standortliste fest, indem Sie auf die Schaltfläche „Editieren“ am Fuß dieser Eingabebox klicken. Weitere Informationen finden Sie in der darunter stehenden Hilfe.</p>">
-      <mat-selection-list [multiple]="false">
+      <mat-selection-list id="infrastructure-select" [multiple]="false">
 <!--        ngmodel does not work here as it always returns arrays even ig multiple=false-->
         <mat-list-option *ngFor="let infrastructure of infrastructures"
                          (click)="selectedInfrastructure = infrastructure; onInfrastructureChange();"
@@ -26,9 +26,11 @@
       </mat-selection-list>
     </app-input-card>
     <app-input-card [title]="'Standorteigenschaften'"
-                    [editTemplate]="attributesEdit"
+                    [editTemplate]="attributesEditTemplate"
                     [class.hidden]="!selectedInfrastructure"
                     [subtitle]="selectedInfrastructure?.name || ''"
+                    dialogWidth="850px"
+                    dialogInfoText="ToDo: Attributtype kann nachträglich nicht geändert werden. Attribut Name fest vorgegeben. Attribut löschen, löscht Daten (falls schon vorhanden). Klassifikationen erklären"
                     infoText="<p>Neben der räumlichen Lage können sie die einzelnen Standorte anhand weiterer Eigenschaften („Attribute“) beschreiben. Welche dies sind (z.B. Name, Gebäudezustand, Typ, Budget, Investitionsbedarf …) entscheiden Sie selbst.</p>
                     <p>Klicken Sie hierzu auf die Schaltfläche „Editieren“ und folgenden Sie den Erläuterungen im Hilfetext des dann erscheinenden Eingabedialogs.</p>">
       <table>
@@ -38,7 +40,7 @@
         </tr>
         <tr *ngFor="let field of selectedInfrastructure?.placeFields">
           <td>{{field.name}}</td>
-          <td>{{FType[field.fieldType.ftype]}}</td>
+          <td>{{field.fieldType.name}}</td>
         </tr>
       </table>
     </app-input-card>
@@ -129,10 +131,6 @@
   </div>
 </div>
 
-<ng-template #attributesEdit>
-  Funktionalität für den Prototyp noch nicht hinterlegt.
-</ng-template>
-
 <ng-template #dataTemplate>
   <app-data-table [columns]="dataColumns" [rows]="dataRows"></app-data-table>
 </ng-template>
@@ -158,4 +156,88 @@
       <br>
     </div>
   </div>
+</ng-template>
+
+<ng-template #attributesEditTemplate>
+  <table id="place-attr-table">
+    <tr>
+      <th>Name des Attributs</th>
+      <th>Attributtyp</th>
+      <th>Einheit</th>
+      <th style="width: 1%; text-align: center;">
+        sensible Information
+      </th>
+      <th></th>
+    </tr>
+    <tr>
+      <td class="not-first-child">
+        <input disabled value="Name">
+      </td>
+      <td>
+        <mat-form-field class="small" appearance="outline" style="margin-right: 10px;">
+          <mat-select disabled value="Zeichenkette">
+            <mat-option value="Zeichenkette">
+              Zeichenkette
+            </mat-option>
+          </mat-select>
+        </mat-form-field></td>
+      <td></td><td></td>
+    </tr>
+    <tr *ngFor="let field of editFields">
+      <td class="not-first-child"><input [(ngModel)]="field.name"></td>
+      <td>
+        <mat-form-field class="small" appearance="outline" style="margin-right: 10px;">
+          <mat-select [disabled]="!field.edit"
+                      [value]="field.fieldType.id"
+                      (selectionChange)="field.fieldType = getFieldType($event.value);">
+            <mat-option *ngFor="let fieldType of fieldTypes" [value]="fieldType.id">
+              {{fieldType.name}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </td>
+      <td>
+        <ng-container *ngIf="field.fieldType.ftype !== 'STR'">
+          <input  [(ngModel)]="field.unit">
+        </ng-container>
+      </td>
+      <td style="text-align: center;">
+        <mat-checkbox color="primary"
+                      [(ngModel)]="field.sensitive">
+        </mat-checkbox>
+      </td>
+      <td>
+        <button mat-button color="warn"
+                class="mat-button-dv"
+                (click)="removeField(field)"
+                title="Attribut entfernen">
+          <mat-icon>close</mat-icon>
+        </button>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <button mat-button color="primary"
+                class="mat-button-dv"
+                (click)="addField()"
+                style="margin-top: 10px"
+                title="Attribut hinzufügen" i18n>
+          <mat-icon>add</mat-icon>Attribut hinzufügen
+        </button>
+      </td>
+      <td>
+        <button mat-button color="primary"
+                class="mat-button-dv"
+                (click)="editClassifications()"
+                style="margin-top: 10px"
+                title="Klassifikationen (Attributtypen) bearbeiten" i18n>
+          <mat-icon>edit</mat-icon>Klassifikationen
+        </button>
+      </td>
+    </tr>
+  </table>
+</ng-template>
+
+<ng-template #editClassificationsTemplate>
+  <app-classifications [classifications]="fieldTypes"></app-classifications>
 </ng-template>

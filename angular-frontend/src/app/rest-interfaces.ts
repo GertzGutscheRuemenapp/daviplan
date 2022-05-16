@@ -235,12 +235,6 @@ export interface FClass {
   value: string
 }
 
-export const FType = {
-  'CLA': 'Klassifikation',
-  'NUM': 'Zahl',
-  'STR': 'Zeichenkette'
-}
-
 export interface FieldType{
   id: number,
   name: string,
@@ -249,12 +243,13 @@ export interface FieldType{
 }
 
 export interface PlaceField{
-  id: number,
+  id?: number,
   name: string,
   unit: string,
   infrastructure: number,
   fieldType: FieldType,
-  sensitive: boolean
+  sensitive: boolean,
+  edit?: boolean
 }
 
 export interface Infrastructure {

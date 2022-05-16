@@ -1,6 +1,15 @@
 import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
-import { Infrastructure, FType, Place, LayerGroup, Layer, Capacity, Service } from "../../../rest-interfaces";
+import {
+  Infrastructure,
+  Place,
+  LayerGroup,
+  Layer,
+  Capacity,
+  Service,
+  FieldType,
+  PlaceField, FClass
+} from "../../../rest-interfaces";
 import { RestCacheService } from "../../../rest-cache.service";
 import * as fileSaver from "file-saver";
 import { RestAPI } from "../../../rest-api";
@@ -19,13 +28,16 @@ import { sortBy } from "../../../helpers/utils";
 export class LocationsComponent implements AfterViewInit, OnDestroy {
   @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
   @ViewChild('placePreviewTemplate') placePreviewTemplate!: TemplateRef<any>;
+  @ViewChild('editClassificationsTemplate') editClassificationsTemplate!: TemplateRef<any>;
   infrastructures: Infrastructure[] = [];
+  fieldTypes: FieldType[] = [];
+  fieldRemoved: boolean = false;
   selectedInfrastructure?: Infrastructure;
+  editFields?: PlaceField[] = [];
   mapControl?: MapControl;
   legendGroup?: LayerGroup;
   placesLayer?: Layer;
   addPlaceMode = false;
-  FType = FType;
   isLoading$ = new BehaviorSubject<boolean>(false);
   places?: Place[];
   dataColumns: string[] = [];
@@ -43,9 +55,12 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       order: -1
     }, false);
     this.isLoading$.next(true);
-    this.restService.getInfrastructures().subscribe(infrastructures => {
-      this.infrastructures = infrastructures;
-      this.isLoading$.next(false);
+    this.http.get<FieldType[]>(this.rest.URLS.fieldTypes).subscribe(fieldTypes => {
+      this.fieldTypes = fieldTypes;
+      this.restService.getInfrastructures().subscribe(infrastructures => {
+        this.infrastructures = infrastructures;
+        this.isLoading$.next(false);
+      })
     })
   }
 
@@ -53,6 +68,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
     this.places = [];
     this.mapControl?.removeLayer(this.placesLayer?.id!);
     if (!this.selectedInfrastructure) return;
+    this.editFields = JSON.parse(JSON.stringify(this.selectedInfrastructure.placeFields));
     this.isLoading$.next(true);
     this.restService.getPlaces(this.selectedInfrastructure.id).subscribe(places => {
       this.isLoading$.next(false);
@@ -198,6 +214,46 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
 
   getPlaceCapacities(place: Place, service: Service): Capacity[]{
     return sortBy(place.capacities!.filter(c => c.service === service.id), 'fromYear');
+  }
+
+  setupAttributeCard(): void {
+    this.fieldRemoved = false;
+  }
+
+  addField(): void {
+    this.editFields?.push({
+      name: '', unit: '', sensitive: false,
+      fieldType: this.fieldTypes.find(ft => ft.ftype == 'NUM') || this.fieldTypes[0],
+      infrastructure: this.selectedInfrastructure!.id,
+      edit: true
+    })
+  }
+
+  editClassifications(): void {
+    let dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '700px',
+      disableClose: true,
+      data: {
+        title: 'Klassifikationen (Attributtypen)',
+        template: this.editClassificationsTemplate,
+        closeOnConfirm: true,
+        hideConfirmButton: true,
+        infoText: 'ToDo: Reihenfolge der Klassen erklären (je weiter oben, desto "besser")'
+      }
+    });
+  }
+
+  removeField(field: PlaceField) {
+    if (field.id !== undefined) this.fieldRemoved = true;
+    const idx = this.editFields!.indexOf(field);
+    if (idx > -1) {
+      this.editFields!.splice(idx, 1);
+    }
+  }
+
+  getFieldType(id: number): FieldType {
+    return this.fieldTypes.find(f => f.id === id) || this.fieldTypes[0];
   }
 
   ngOnDestroy(): void {
