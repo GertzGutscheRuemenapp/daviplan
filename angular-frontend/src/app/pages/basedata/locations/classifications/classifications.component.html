@@ -37,13 +37,29 @@
   </div>
   <div>
     <span class="sub">Klassen</span>
-    <mat-selection-list id="classes-select" [multiple]="false">
-      <mat-list-option *ngFor="let class of selectedClassification?.classification"
-                       (click)="selectedClass = class;"
-                       [selected]="(selectedClass?.value === class.value)">
-        {{class.value}}
-      </mat-list-option>
-    </mat-selection-list>
+    <div fxLayout="row">
+      <mat-selection-list id="classes-select" [multiple]="false">
+        <mat-list-option *ngFor="let class of selectedClassification?.classification"
+                         (click)="selectedClass = class;"
+                         [selected]="(selectedClass?.value === class.value)">
+          {{class.value}}
+        </mat-list-option>
+      </mat-selection-list>
+      <div class="order-controls">
+        <button mat-icon-button
+                title='In der Sortierung eins nach oben'
+                [disabled] = "(orderIsChanging$ | async) || !selectedClass || selectedClass == selectedClassification!.classification![0]"
+                (click)="moveClass('up')">
+          <mat-icon>expand_less</mat-icon>
+        </button>
+        <button mat-icon-button
+                title='In der Sortierung eins nach unten'
+                [disabled] = "(orderIsChanging$ | async) || !selectedClass || selectedClass == selectedClassification!.classification![selectedClassification!.classification!.length - 1]"
+                (click)="moveClass('down')">
+          <mat-icon>expand_more</mat-icon>
+        </button>
+      </div>
+    </div>
     <button mat-button color="primary"
             class="mat-button-dv"
             (click)="addClass()"
@@ -56,7 +72,7 @@
             class="mat-button-dv"
             (click)="removeClass()"
             [disabled]="!selectedClass"
-            style="margin-top: 10px; float: right;"
+            style="margin-top: 10px; margin-right: 50px; float: right;"
             title="Klasse entfernen" i18n>
       <mat-icon>close</mat-icon>entfernen
     </button>

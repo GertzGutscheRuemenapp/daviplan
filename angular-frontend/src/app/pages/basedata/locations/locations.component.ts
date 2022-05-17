@@ -230,7 +230,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   }
 
   editClassifications(): void {
-    let dialogRef = this.dialog.open(ConfirmDialogComponent, {
+    this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
       width: '700px',
       disableClose: true,

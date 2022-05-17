@@ -1,12 +1,13 @@
 import { Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { AreaLevel, FClass, FieldType, Infrastructure } from "../../../../rest-interfaces";
-import { Observable } from "rxjs";
+import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { RestAPI } from "../../../../rest-api";
 import { HttpClient } from "@angular/common/http";
 import { MatDialog } from "@angular/material/dialog";
 import { RemoveDialogComponent } from "../../../../dialogs/remove-dialog/remove-dialog.component";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { ConfirmDialogComponent } from "../../../../dialogs/confirm-dialog/confirm-dialog.component";
+import { arrayMove, sortBy } from "../../../../helpers/utils";
 
 @Component({
   selector: 'app-classifications',
@@ -16,6 +17,7 @@ import { ConfirmDialogComponent } from "../../../../dialogs/confirm-dialog/confi
 export class ClassificationsComponent implements OnInit {
   @Input() classifications: FieldType[] = [];
   @ViewChild('nameTemplate') nameTemplate?: TemplateRef<any>;
+  orderIsChanging$ = new BehaviorSubject<boolean>(false);
   selectedClassification?: FieldType;
   selectedClass?: FClass;
   nameForm: FormGroup;
@@ -27,14 +29,7 @@ export class ClassificationsComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {
-    if (this.classifications.length > 0) {
-      this.selectedClassification = this.classifications[0];
-      const classes = this.selectedClassification.classification || [];
-      if (classes.length > 0)
-        this.selectedClass = classes[0];
-    }
-  }
+  ngOnInit(): void {}
 
   addClassification(): void {
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
@@ -118,9 +113,8 @@ export class ClassificationsComponent implements OnInit {
           if (idx > -1) {
             this.classifications.splice(idx, 1);
           }
-          this.selectedClassification = (this.classifications.length > 0)? this.classifications[0]: undefined;
-          const classes = this.selectedClassification?.classification || [];
-          this.selectedClass = (classes.length > 0)? classes[0]: undefined;
+          this.selectedClassification = undefined;
+          this.selectedClass = undefined;
         },(error) => {
           this.showErrorMessage(error);
         });
@@ -148,7 +142,7 @@ export class ClassificationsComponent implements OnInit {
       if (this.nameForm.invalid) return;
       let classes = Object.assign([],this.selectedClassification!.classification || []);
       const value = this.nameForm.value.name;
-      classes.push({ value: value, order: classes!.length || 0 })
+      classes.push({ value: value, order: classes!.length || 1 })
       const attributes = { classification: classes };
       this.patchClassificaton(this.selectedClassification!.id, attributes).subscribe(fieldType => {
         Object.assign(this.selectedClassification!, fieldType);
@@ -205,5 +199,26 @@ export class ClassificationsComponent implements OnInit {
         closeOnConfirm: true
       }
     });
+  }
+
+  moveClass(direction: string): void {
+    if (!this.selectedClass || !this.selectedClassification) return;
+    this.orderIsChanging$.next(true);
+    const idx = this.selectedClassification.classification!.indexOf(this.selectedClass);
+    if (direction === 'up'){
+      if (idx <= 0) return;
+      arrayMove(this.selectedClassification.classification!, idx, idx - 1);
+    }
+    else if (direction === 'down'){
+      if (idx === -1 || idx === this.selectedClassification.classification!.length - 1) return;
+      arrayMove(this.selectedClassification.classification!, idx, idx + 1);
+    }
+    else return;
+
+    this.selectedClassification.classification!.forEach((fclass,i) => {
+        fclass.order = i + 1;
+    });
+    this.patchClassificaton(this.selectedClassification.id, { classification: this.selectedClassification.classification })
+      .subscribe(() => this.orderIsChanging$.next(false))
   }
 }

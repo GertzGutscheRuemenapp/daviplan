@@ -284,6 +284,9 @@ class FClass(DatentoolModelMixin, models.Model):
     order = models.IntegerField()
     value = models.TextField()
 
+    class Meta:
+        ordering = ['order']
+
     def __str__(self) -> str:
         return (f'{self.__class__.__name__}: {self.ftype.name}: '
                 f'{self.order} - {self.value}')

@@ -2,5 +2,11 @@
   height: 250px;
   width: 260px;
   border: solid #0000001F;
+  user-select: none;
   overflow-y: auto;
+}
+
+.order-controls {
+  width: 50px;
+  padding-left: 5px;
 }
