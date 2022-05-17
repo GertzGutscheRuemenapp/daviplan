@@ -8,17 +8,26 @@ import {
   Capacity,
   Service,
   FieldType,
+  InfrastructurePlaceField,
   PlaceField
 } from "../../../rest-interfaces";
 import { RestCacheService } from "../../../rest-cache.service";
 import * as fileSaver from "file-saver";
 import { RestAPI } from "../../../rest-api";
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
 import { sortBy } from "../../../helpers/utils";
+import { InputCardComponent } from "../../../dash/input-card.component";
+import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
+
+interface PlaceEditField extends InfrastructurePlaceField{
+  edited?: boolean;
+  new?: boolean;
+  removed?: boolean;
+}
 
 @Component({
   selector: 'app-locations',
@@ -28,12 +37,14 @@ import { sortBy } from "../../../helpers/utils";
 export class LocationsComponent implements AfterViewInit, OnDestroy {
   @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
   @ViewChild('placePreviewTemplate') placePreviewTemplate!: TemplateRef<any>;
+  @ViewChild('editAttributesCard') editAttributesCard!: InputCardComponent;
   @ViewChild('editClassificationsTemplate') editClassificationsTemplate!: TemplateRef<any>;
   infrastructures: Infrastructure[] = [];
   fieldTypes: FieldType[] = [];
   fieldRemoved: boolean = false;
   selectedInfrastructure?: Infrastructure;
-  editFields?: PlaceField[] = [];
+  editFields: PlaceEditField[] = [];
+  editError?: any;
   mapControl?: MapControl;
   legendGroup?: LayerGroup;
   placesLayer?: Layer;
@@ -62,6 +73,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         this.isLoading$.next(false);
       })
     })
+    this.setupAttributeCard();
   }
 
   onInfrastructureChange(): void {
@@ -217,7 +229,63 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   }
 
   setupAttributeCard(): void {
-    this.fieldRemoved = false;
+    this.editAttributesCard.dialogClosed.subscribe(() => {
+      this.fieldRemoved = false;
+      this.editError = undefined;
+      this.editFields = [];
+    })
+    this.editAttributesCard.dialogConfirmed.subscribe((ok)=> {
+      const removeFields = this.editFields.filter(f => f.removed);
+      const _this = this;
+      if (removeFields.length > 0) {
+        const dialogRef = this.dialog.open(RemoveDialogComponent, {
+          width: '500px',
+          data: {
+            title: 'Änderungen an den Attributen',
+            confirmButtonText: 'Änderungen bestätigen',
+            message: 'Die Änderungen enthalten Löschungen von bestehenden Attributen. Damit verbundene Daten werden ebenfalls gelöscht.',
+            value: removeFields.map(r => r.name).join(', ')
+          }
+        });
+        dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+          patch();
+        });
+      }
+      else
+        patch();
+
+      function patch(){
+        _this.isLoading$.next(true);
+        _this.patchPlaceFields().subscribe(() => {
+          _this.isLoading$.next(false);
+        }, error => {
+          _this.isLoading$.next(false);
+          _this.editError = error
+        });
+      }
+    })
+  }
+
+  patchPlaceFields(): Observable<any> {
+    const placeFields = this.editFields
+
+    let observables: Observable<any>[] = [];
+    const removeFields = this.editFields.filter(f => f.removed);
+    const addFields = this.editFields.filter(f => f.new);
+    const editFields = this.editFields.filter(f => f.edited);
+/*    removeFields.forEach(field => {
+      observables.push(this.http.delete(`${this.rest.URLS.placeFields}${this.selectedInfrastructure!.id}/`))
+    })
+    addFields.forEach(field => {
+      const placeField: PlaceField = {
+        fieldType: field.fieldType.id;
+        name: field.name,
+        unit: field.unit,
+        infrastructure: this.selectedInfrastructure!.id,
+
+      }
+    })*/
+    return forkJoin(...observables);
   }
 
   addField(): void {
@@ -225,7 +293,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       name: '', unit: '', sensitive: false,
       fieldType: this.fieldTypes.find(ft => ft.ftype == 'NUM') || this.fieldTypes[0],
       infrastructure: this.selectedInfrastructure!.id,
-      edit: true
+      new: true
     })
   }
 
@@ -242,14 +310,6 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         infoText: 'ToDo: Reihenfolge der Klassen erklären (je weiter oben, desto "besser"), Änderungen erfolgen sofort'
       }
     });
-  }
-
-  removeField(field: PlaceField) {
-    if (field.id !== undefined) this.fieldRemoved = true;
-    const idx = this.editFields!.indexOf(field);
-    if (idx > -1) {
-      this.editFields!.splice(idx, 1);
-    }
   }
 
   getFieldType(id: number): FieldType {

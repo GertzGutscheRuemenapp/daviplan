@@ -242,14 +242,20 @@ export interface FieldType{
   classification?: FClass[]
 }
 
-export interface PlaceField{
+interface GenPlaceField {
   id?: number,
   name: string,
   unit: string,
   infrastructure: number,
-  fieldType: FieldType,
-  sensitive: boolean,
-  edit?: boolean
+  sensitive: boolean
+}
+
+export interface PlaceField extends GenPlaceField {
+  fieldType: number
+}
+
+export interface InfrastructurePlaceField extends GenPlaceField {
+  fieldType: FieldType
 }
 
 export interface Infrastructure {
@@ -259,7 +265,7 @@ export interface Infrastructure {
   services: Service[],
   order: number,
   symbol?: Symbol,
-  placeFields?: PlaceField[],
+  placeFields?: InfrastructurePlaceField[],
   placesCount: number
 }
 

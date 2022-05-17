@@ -19,6 +19,7 @@ export class RestAPI {
     fieldTypes: `${ this.API_ENDPOINT }/fieldtypes/`,
     infrastructures: `${ this.API_ENDPOINT }/infrastructures/`,
     places: `${ this.API_ENDPOINT }/places/`,
+    placeFields: `${ this.API_ENDPOINT }/placefields/`,
     capacities: `${ this.API_ENDPOINT }/capacities/`,
     services: `${ this.API_ENDPOINT }/services/`,
     demandRateSets: `${ this.API_ENDPOINT }/demandratesets/`,

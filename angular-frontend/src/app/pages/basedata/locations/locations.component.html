@@ -25,8 +25,9 @@
         </mat-list-option>
       </mat-selection-list>
     </app-input-card>
-    <app-input-card [title]="'Standorteigenschaften'"
-                    [editTemplate]="attributesEditTemplate"
+    <app-input-card #editAttributesCard
+                    [title]="'Standorteigenschaften'"
+                    [editTemplate]="editAttributesTemplate"
                     [class.hidden]="!selectedInfrastructure"
                     [subtitle]="selectedInfrastructure?.name || ''"
                     dialogWidth="850px"
@@ -158,7 +159,12 @@
   </div>
 </ng-template>
 
-<ng-template #attributesEditTemplate>
+<ng-template #editAttributesTemplate>
+  <div *ngIf="editError">
+    <mat-error class="alert">
+      {{editError}}
+    </mat-error>
+  </div>
   <table id="place-attr-table">
     <tr>
       <th>Name des Attributs</th>
@@ -183,38 +189,41 @@
         </mat-form-field></td>
       <td></td><td></td>
     </tr>
-    <tr *ngFor="let field of editFields">
-      <td class="not-first-child"><input [(ngModel)]="field.name"></td>
-      <td>
-        <mat-form-field class="small" appearance="outline" style="margin-right: 10px;">
-          <mat-select [disabled]="!field.edit"
-                      [value]="field.fieldType.id"
-                      (selectionChange)="field.fieldType = getFieldType($event.value);">
-            <mat-option *ngFor="let fieldType of fieldTypes" [value]="fieldType.id">
-              {{fieldType.name}}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-      </td>
-      <td>
-        <ng-container *ngIf="field.fieldType.ftype !== 'STR'">
-          <input  [(ngModel)]="field.unit">
-        </ng-container>
-      </td>
-      <td style="text-align: center;">
-        <mat-checkbox color="primary"
-                      [(ngModel)]="field.sensitive">
-        </mat-checkbox>
-      </td>
-      <td>
-        <button mat-button color="warn"
-                class="mat-button-dv"
-                (click)="removeField(field)"
-                title="Attribut entfernen">
-          <mat-icon>close</mat-icon>
-        </button>
-      </td>
-    </tr>
+    <ng-container *ngFor="let field of editFields">
+      <tr *ngIf="!field.removed">
+        <td class="not-first-child"><input [(ngModel)]="field.name"></td>
+        <td>
+          <mat-form-field class="small" appearance="outline" style="margin-right: 10px;">
+            <mat-select [disabled]="!field.new"
+                        [value]="field.fieldType.id"
+                        (selectionChange)="field.fieldType = getFieldType($event.value); field.edited = true;">
+              <mat-option *ngFor="let fieldType of fieldTypes" [value]="fieldType.id">
+                {{fieldType.name}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </td>
+        <td>
+          <ng-container *ngIf="field.fieldType.ftype !== 'STR'">
+            <input [(ngModel)]="field.unit" (change)="field.edited = true;">
+          </ng-container>
+        </td>
+        <td style="text-align: center;">
+          <mat-checkbox color="primary"
+                        [(ngModel)]="field.sensitive"
+                        (change)="field.edited = true;">
+          </mat-checkbox>
+        </td>
+        <td>
+          <button mat-button color="warn"
+                  class="mat-button-dv"
+                  (click)="field.removed = true;"
+                  title="Attribut entfernen">
+            <mat-icon>close</mat-icon>
+          </button>
+        </td>
+      </tr>
+    </ng-container>
     <tr>
       <td>
         <button mat-button color="primary"
