@@ -8,7 +8,7 @@ import {
   Capacity,
   Service,
   FieldType,
-  PlaceField, FClass
+  PlaceField
 } from "../../../rest-interfaces";
 import { RestCacheService } from "../../../rest-cache.service";
 import * as fileSaver from "file-saver";
@@ -239,7 +239,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         template: this.editClassificationsTemplate,
         closeOnConfirm: true,
         hideConfirmButton: true,
-        infoText: 'ToDo: Reihenfolge der Klassen erklären (je weiter oben, desto "besser")'
+        infoText: 'ToDo: Reihenfolge der Klassen erklären (je weiter oben, desto "besser"), Änderungen erfolgen sofort'
       }
     });
   }

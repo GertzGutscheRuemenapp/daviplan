@@ -36,7 +36,6 @@ export class ClassificationsComponent implements OnInit {
     }
   }
 
-
   addClassification(): void {
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
@@ -114,14 +113,14 @@ export class ClassificationsComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.fieldTypes}${this.selectedClassification?.id}/`
-        ).subscribe(res => {
+        this.http.delete(`${this.rest.URLS.fieldTypes}${this.selectedClassification?.id}/?force=true`).subscribe(res => {
           const idx = this.classifications.indexOf(this.selectedClassification!);
           if (idx > -1) {
             this.classifications.splice(idx, 1);
           }
-          this.selectedClassification = undefined;
-          this.selectedClass = undefined;
+          this.selectedClassification = (this.classifications.length > 0)? this.classifications[0]: undefined;
+          const classes = this.selectedClassification?.classification || [];
+          this.selectedClass = (classes.length > 0)? classes[0]: undefined;
         },(error) => {
           this.showErrorMessage(error);
         });
@@ -162,7 +161,32 @@ export class ClassificationsComponent implements OnInit {
   }
 
   removeClass(): void {
-
+    if (!this.selectedClass || !this.selectedClassification)
+      return;
+    const dialogRef = this.dialog.open(RemoveDialogComponent, {
+      width: '500px',
+      data: {
+        title: $localize`Die Klasse wirklich entfernen?`,
+        confirmButtonText: $localize`Klasse entfernen`,
+        value: this.selectedClass?.value
+      }
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        const classes = Object.assign([], this.selectedClassification!.classification);
+        const idx = classes.indexOf(this.selectedClass!);
+        if (idx > -1) {
+          classes.splice(idx, 1);
+        }
+        this.patchClassificaton(this.selectedClassification!.id, { classification: classes }).subscribe(fieldType => {
+          Object.assign(this.selectedClassification!, fieldType);
+          const classes = this.selectedClassification!.classification || [];
+          this.selectedClass = (classes.length > 0)? classes[0]: undefined;
+        },(error) => {
+          this.showErrorMessage(error);
+        });
+      }
+    });
   }
 
   patchClassificaton(id: number, attributes: any): Observable<FieldType> {
@@ -170,6 +194,16 @@ export class ClassificationsComponent implements OnInit {
   }
 
   showErrorMessage(error: any): void {
-
+    this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '300px',
+      disableClose: true,
+      data: {
+        title: 'Fehler',
+        hideConfirmButton: true,
+        message: `<i>${error.error}</i>`,
+        closeOnConfirm: true
+      }
+    });
   }
 }
