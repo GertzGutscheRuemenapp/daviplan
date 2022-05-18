@@ -86,7 +86,7 @@
                     (click)="downloadTemplate()">
               <mat-icon>download</mat-icon> Vorlage herunterladen
             </button>
-            <button mat-flat-button color="primary">
+            <button mat-flat-button color="primary" (click)="uploadTemplate()">
               <mat-icon>upload</mat-icon> Daten hochladen
             </button>
           </div>
@@ -260,4 +260,16 @@
 
 <ng-template #editClassificationsTemplate>
   <app-classifications [classifications]="fieldTypes"></app-classifications>
+</ng-template>
+
+<ng-template #fileUploadTemplate>
+  <div *ngIf="uploadErrors">
+    <mat-error *ngFor="let error of uploadErrors | keyvalue" class="alert">
+      {{ error.key }}: {{ error.value }}
+    </mat-error>
+  </div>
+  <p>
+    Befülltes Excel-Template mit Standortdaten für Infrastruktur "{{selectedInfrastructure?.name}}" hochladen
+  </p>
+  <input #fileInput type="file" accept=".xlsx,xls" (change)="setFiles($event)">
 </ng-template>

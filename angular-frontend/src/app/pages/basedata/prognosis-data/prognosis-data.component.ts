@@ -38,6 +38,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   @ViewChild('propertiesEdit') propertiesEdit?: TemplateRef<any>;
   @ViewChild('propertiesCard') propertiesCard?: InputCardComponent;
   @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
+  @ViewChild('fileUploadTemplate') fileUploadTemplate?: TemplateRef<any>;
   isLoading$ = new BehaviorSubject<boolean>(false);
   mapControl?: MapControl;
   legendGroup?: LayerGroup;
@@ -61,6 +62,8 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   dataRows: any[][] = [];
   dataYear?: Year;
   propertiesForm: FormGroup;
+  file?: File;
+  uploadErrors: any = {};
 
   constructor(private mapService: MapService,private settings: SettingsService, private dialog: MatDialog,
               private rest: RestAPI, private http: HttpClient, public popService: PopulationService, private formBuilder: FormBuilder) {
@@ -434,6 +437,42 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
     },(error) => {
       this.popService.setLoading(false);
     });
+  }
+
+  uploadTemplate(): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '450px',
+      data: {
+        title: `Template hochladen`,
+        confirmButtonText: 'Datei hochladen',
+        template: this.fileUploadTemplate
+      }
+    });
+    dialogRef.componentInstance.confirmed.subscribe((confirmed: boolean) => {
+      if (!this.file)
+        return;
+      const formData = new FormData();
+      formData.append('excel_file', this.file);
+      dialogRef.componentInstance.isLoading$.next(true);
+      const url = `${this.rest.URLS.popEntries}upload_template/`;
+      this.http.post(url, formData).subscribe(res => {
+        this.popService.reset();
+        this.fetchData();
+        dialogRef.close();
+      }, error => {
+        this.uploadErrors = error.error;
+        dialogRef.componentInstance.isLoading$.next(false);
+      });
+    });
+    dialogRef.afterClosed().subscribe(ok => {
+      this.uploadErrors = {};
+    })
+  }
+
+  setFiles(event: Event){
+    const element = event.currentTarget as HTMLInputElement;
+    const files: FileList | null = element.files;
+    this.file =  (files && files.length > 0)? files[0]: undefined;
   }
 
   ngOnDestroy(): void {

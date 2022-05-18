@@ -82,7 +82,8 @@
                     (click)="downloadTemplate()">
               <mat-icon>download</mat-icon> Vorlage herunterladen
             </button>
-            <button mat-flat-button color="primary">
+            <button mat-flat-button color="primary"
+                    (click)="uploadTemplate()">
               <mat-icon>upload</mat-icon> Daten hochladen
             </button>
           </div>
@@ -237,4 +238,16 @@
     </mat-select>
   </mat-form-field>
   <app-data-table [columns]="dataColumns" [rows]="dataRows"></app-data-table>
+</ng-template>
+
+<ng-template #fileUploadTemplate>
+  <div *ngIf="uploadErrors">
+    <mat-error *ngFor="let error of uploadErrors | keyvalue" class="alert">
+      {{ error.key }}: {{ error.value }}
+    </mat-error>
+  </div>
+  <p>
+    Befülltes Excel-Template mit Bevölkerungsdaten hochladen
+  </p>
+  <input #fileInput type="file" accept=".xlsx,xls" (change)="setFiles($event)">
 </ng-template>

@@ -90,7 +90,8 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
                        name='PlaceFileUploadSerializer',
                        fields={'excel_file': serializers.FileField(),}
                    ))
-    @action(methods=['POST'], detail=False, permission_classes=[CanEditBasedata])
+    @action(methods=['POST'], detail=False,
+            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def upload_template(self, request):
         """Download the Template"""
         # no constraint dropping, because we use individual updates

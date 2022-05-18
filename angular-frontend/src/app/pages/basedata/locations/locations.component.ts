@@ -38,6 +38,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   @ViewChild('placePreviewTemplate') placePreviewTemplate!: TemplateRef<any>;
   @ViewChild('editAttributesCard') editAttributesCard!: InputCardComponent;
   @ViewChild('editClassificationsTemplate') editClassificationsTemplate!: TemplateRef<any>;
+  @ViewChild('fileUploadTemplate') fileUploadTemplate?: TemplateRef<any>;
   infrastructures: Infrastructure[] = [];
   fieldTypes: FieldType[] = [];
   fieldRemoved: boolean = false;
@@ -54,6 +55,8 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   dataRows: any[][] = [];
   selectedPlace?: Place;
   placeDialogRef?: MatDialogRef<any>;
+  file?: File;
+  uploadErrors: any = {};
 
   constructor(private mapService: MapService, private rest: RestAPI, private http: HttpClient,
               private dialog: MatDialog, private restService: RestCacheService) { }
@@ -82,6 +85,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
     this.editFields = JSON.parse(JSON.stringify(this.selectedInfrastructure.placeFields));
     this.isLoading$.next(true);
     this.restService.getPlaces(this.selectedInfrastructure.id, { reset: reset }).subscribe(places => {
+      this.selectedInfrastructure!.placesCount = places.length;
       this.isLoading$.next(false);
       this.dataColumns = ['Standort'];
       this.selectedInfrastructure!.placeFields?.forEach(field => {
@@ -299,6 +303,41 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
 
   getFieldType(id: number): FieldType {
     return this.fieldTypes.find(f => f.id === id) || this.fieldTypes[0];
+  }
+
+  uploadTemplate(): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '450px',
+      data: {
+        title: `Template hochladen`,
+        confirmButtonText: 'Datei hochladen',
+        template: this.fileUploadTemplate
+      }
+    });
+    dialogRef.componentInstance.confirmed.subscribe((confirmed: boolean) => {
+      if (!this.file)
+        return;
+      const formData = new FormData();
+      formData.append('excel_file', this.file);
+      dialogRef.componentInstance.isLoading$.next(true);
+      const url = `${this.rest.URLS.places}upload_template/`;
+      this.http.post(url, formData).subscribe(res => {
+        this.onInfrastructureChange(true);
+        dialogRef.close();
+      }, error => {
+        this.uploadErrors = error.error;
+        dialogRef.componentInstance.isLoading$.next(false);
+      });
+    });
+    dialogRef.afterClosed().subscribe(ok => {
+      this.uploadErrors = {};
+    })
+  }
+
+  setFiles(event: Event){
+    const element = event.currentTarget as HTMLInputElement;
+    const files: FileList | null = element.files;
+    this.file =  (files && files.length > 0)? files[0]: undefined;
   }
 
   ngOnDestroy(): void {

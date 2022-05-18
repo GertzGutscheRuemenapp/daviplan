@@ -31,6 +31,7 @@ class Command(BaseCommand):
         Gender.objects.create(id=2, name='weiblich')
 
         # generic field types
+        FieldType.truncate()
         str_field = FieldType.objects.create(name='Zeichenkette',
                                              is_preset=True,
                                              ftype=FieldTypes.STRING)
@@ -40,7 +41,6 @@ class Command(BaseCommand):
 
         # area levels with BKG API URLs
         AreaLevel.truncate()
-
         symbol = MapSymbol.objects.create(symbol=MapSymbol.Symbol.LINE,
                                           stroke_color='yellow')
         source = Source.objects.create(
