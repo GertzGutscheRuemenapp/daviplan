@@ -61,6 +61,9 @@ class PlaceField(DatentoolModelMixin, models.Model):
         unique_together = [['infrastructure', 'name'],
                            ['infrastructure', 'is_label']]
 
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__}: {self.name} ({self.infrastructure.name})'
+
 
 class Service(DatentoolModelMixin, NamedModel, models.Model):
     '''

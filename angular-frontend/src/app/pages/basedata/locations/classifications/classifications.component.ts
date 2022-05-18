@@ -108,7 +108,7 @@ export class ClassificationsComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.fieldTypes}${this.selectedClassification?.id}/?force=true`).subscribe(res => {
+        this.http.delete(`${this.rest.URLS.fieldTypes}${this.selectedClassification?.id}/`).subscribe(res => {
           const idx = this.classifications.indexOf(this.selectedClassification!);
           if (idx > -1) {
             this.classifications.splice(idx, 1);

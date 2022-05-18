@@ -280,7 +280,7 @@ class FieldType(DatentoolModelMixin, NamedModel, models.Model):
 
 class FClass(DatentoolModelMixin, models.Model):
     """a class in a classification"""
-    ftype = models.ForeignKey(FieldType, on_delete=PROTECT_CASCADE)
+    ftype = models.ForeignKey(FieldType, on_delete=models.CASCADE)
     order = models.IntegerField()
     value = models.TextField()
 
