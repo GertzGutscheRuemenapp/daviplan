@@ -238,17 +238,17 @@ class FieldTypeSerializer(serializers.ModelSerializer):
         instance = super().create(validated_data)
         instance.save()
         if classification_data and instance.ftype == FieldTypes.CLASSIFICATION:
-            self._patch_classification(instance, classification_data)
+            self._update_classification(instance, classification_data)
         return instance
 
     def update(self, instance, validated_data):
         classification_data = validated_data.pop('fclass_set', {})
         instance = super().update(instance, validated_data)
         if classification_data and instance.ftype == FieldTypes.CLASSIFICATION:
-            self._patch_classification(instance, classification_data)
+            self._update_classification(instance, classification_data)
         return instance
 
-    def _patch_classification(self, instance, data):
+    def _update_classification(self, instance, data):
         classifications = []
         names = [f['value'] for f in data]
         if (len(set(names)) != len(names)):
