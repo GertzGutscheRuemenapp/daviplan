@@ -31,7 +31,7 @@
                     [class.hidden]="!selectedInfrastructure"
                     [subtitle]="selectedInfrastructure?.name || ''"
                     dialogWidth="850px"
-                    dialogInfoText="ToDo: Attributtype kann nachträglich nicht geändert werden. Attribut Name fest vorgegeben. Attribut löschen, löscht Daten (falls schon vorhanden). Klassifikationen erklären"
+                    dialogInfoText="ToDo: Erklärung Attributtyp kann nachträglich nicht geändert werden. Attribut löschen, löscht Daten (falls schon vorhanden). Klassifikationen erklären"
                     infoText="<p>Neben der räumlichen Lage können sie die einzelnen Standorte anhand weiterer Eigenschaften („Attribute“) beschreiben. Welche dies sind (z.B. Name, Gebäudezustand, Typ, Budget, Investitionsbedarf …) entscheiden Sie selbst.</p>
                     <p>Klicken Sie hierzu auf die Schaltfläche „Editieren“ und folgenden Sie den Erläuterungen im Hilfetext des dann erscheinenden Eingabedialogs.</p>">
       <table>
@@ -168,7 +168,7 @@
   <table id="place-attr-table">
     <tr>
       <th>Name des Attributs</th>
-      <th>Attributtyp</th>
+      <th>Attributtyp / Klassifikation</th>
       <th>Einheit</th>
       <th style="width: 1%; text-align: center;">
         sensible Information
@@ -197,9 +197,20 @@
             <mat-select [disabled]="!field.new"
                         [value]="field.fieldType"
                         (selectionChange)="field.fieldType = $event.value; field.edited = true;">
-              <mat-option *ngFor="let fieldType of fieldTypes" [value]="fieldType.id">
-                {{fieldType.name}}
-              </mat-option>
+              <mat-optgroup label="Basistypen">
+                <ng-container *ngFor="let fieldType of fieldTypes">
+                  <mat-option *ngIf="fieldType.ftype != 'CLA'" [value]="fieldType.id">
+                    {{fieldType.name}}
+                  </mat-option>
+                </ng-container>
+              </mat-optgroup>
+              <mat-optgroup label="Klassifikationen">
+                <ng-container *ngFor="let fieldType of fieldTypes">
+                  <mat-option *ngIf="fieldType.ftype == 'CLA'" [value]="fieldType.id">
+                    {{fieldType.name}}
+                  </mat-option>
+                </ng-container>
+              </mat-optgroup>
             </mat-select>
           </mat-form-field>
         </td>

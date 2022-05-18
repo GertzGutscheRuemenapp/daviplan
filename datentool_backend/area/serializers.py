@@ -234,17 +234,17 @@ class FieldTypeSerializer(serializers.ModelSerializer):
         read_only_fields = ('is_preset',)
 
     def create(self, validated_data):
-        classification_data = validated_data.pop('fclass_set', {})
+        classification_data = validated_data.pop('fclass_set', None)
         instance = super().create(validated_data)
         instance.save()
-        if classification_data and instance.ftype == FieldTypes.CLASSIFICATION:
+        if classification_data is not None and instance.ftype == FieldTypes.CLASSIFICATION:
             self._update_classification(instance, classification_data)
         return instance
 
     def update(self, instance, validated_data):
-        classification_data = validated_data.pop('fclass_set', {})
+        classification_data = validated_data.pop('fclass_set', None)
         instance = super().update(instance, validated_data)
-        if classification_data and instance.ftype == FieldTypes.CLASSIFICATION:
+        if classification_data is not None and instance.ftype == FieldTypes.CLASSIFICATION:
             self._update_classification(instance, classification_data)
         return instance
 

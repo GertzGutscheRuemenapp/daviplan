@@ -292,7 +292,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         template: this.editClassificationsTemplate,
         closeOnConfirm: true,
         hideConfirmButton: true,
-        infoText: 'ToDo: Reihenfolge der Klassen erklären (je weiter oben, desto "besser"), Änderungen erfolgen sofort'
+        infoText: 'ToDo: Erklärung Sortier- und Filterreihenfolge, Änderungen erfolgen sofort'
       }
     });
   }

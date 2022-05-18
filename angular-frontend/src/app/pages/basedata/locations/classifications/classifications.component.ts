@@ -160,8 +160,9 @@ export class ClassificationsComponent implements OnInit {
     const dialogRef = this.dialog.open(RemoveDialogComponent, {
       width: '500px',
       data: {
-        title: $localize`Die Klasse wirklich entfernen?`,
-        confirmButtonText: $localize`Klasse entfernen`,
+        title: `Die Klasse wirklich entfernen?`,
+        confirmButtonText: `Klasse entfernen`,
+        message: 'Es werden eventuell vorhandene Einträge dieser Klasse auf leere Zeichenketten gesetzt.',
         value: this.selectedClass?.value
       }
     });

@@ -46,13 +46,13 @@
       </mat-selection-list>
       <div class="order-controls">
         <button mat-icon-button
-                title='In der Sortierung eins nach oben'
+                title='In der Sortier- und Filterreihenfolge eins nach oben'
                 [disabled] = "(orderIsChanging$ | async) || !selectedClass || selectedClass == selectedClassification!.classification![0]"
                 (click)="moveClass('up')">
           <mat-icon>expand_less</mat-icon>
         </button>
         <button mat-icon-button
-                title='In der Sortierung eins nach unten'
+                title='In der Sortier- und Filterreihenfolge eins nach unten'
                 [disabled] = "(orderIsChanging$ | async) || !selectedClass || selectedClass == selectedClassification!.classification![selectedClassification!.classification!.length - 1]"
                 (click)="moveClass('down')">
           <mat-icon>expand_more</mat-icon>
