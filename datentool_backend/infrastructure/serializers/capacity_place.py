@@ -110,13 +110,14 @@ class PlaceSerializer(GeoFeatureModelSerializer):
 class PlaceFieldSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlaceField
-        fields = ('id', 'name', 'unit', 'infrastructure',
-                  'field_type', 'sensitive')
+        fields = ('id', 'name', 'unit', 'infrastructure', 'field_type', 'sensitive')
 
 
-class PlaceFieldInfraSerializer(serializers.ModelSerializer):
-    field_type = FieldTypeSerializer(read_only=True)
+class PlaceFieldNestedSerializer(serializers.ModelSerializer):
+    # id is explicitly needed here, otherwise it is not appearing
+    # in the validated data
+    id = serializers.IntegerField(required=False)
     class Meta:
         model = PlaceField
-        fields = ('id', 'name', 'unit', 'infrastructure',
-                  'field_type', 'sensitive')
+        fields = ('id', 'name', 'unit', 'field_type', 'sensitive')
+

@@ -210,9 +210,11 @@ export class DemandRateSetViewComponent implements AfterViewInit {
     })
     dialogRef.componentInstance.confirmed.subscribe(() => {
       if (this.copyFromYear === this.copyToYear ||
-        this.copyFromYear < this.years[0] || this.copyToYear > this.years[this.years.length-1])
+        this.copyFromYear < this._years[0] || this.copyToYear > this._years[this._years.length-1])
         return;
-      let years = (this.applyCopyInBetween)? this.getYearsInBetween(this.copyFromYear, this.copyToYear): [this.copyToYear];
+      let years = [this.copyToYear];
+      if (this.applyCopyInBetween)
+        years = this.getYearsInBetween(this.copyFromYear, this.copyToYear).concat(years);
       years.forEach(year => {
         this.copyColumn(this._genders[0], this._genders[0],
           { fromYear: this.copyFromYear, toYear: year, update: false });

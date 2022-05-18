@@ -215,6 +215,7 @@ class ProtectPresetPermission(permissions.BasePermission):
                 'name' in request.data or
                 'label_field' in request.data or
                 'key_field' in request.data or
+                'ftype' in request.data or
                 (
                     'source' in request.data and
                     set(request.data['source']) > set(['date'])
@@ -413,12 +414,8 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
 
         truncate = str(request.data.get('truncate', 'false')).lower() == 'true'
         simplify = str(request.data.get('simplify', 'false')).lower() == 'true'
-        try:
-            areas = self._pull_areas(area_level, project_area,
-                               truncate=truncate, simplify=simplify)
-        except Exception as e:
-            return Response({'message': str(e)},
-                            status.HTTP_500_INTERNAL_SERVER_ERROR)
+        areas = self._pull_areas(area_level, project_area,
+                                 truncate=truncate, simplify=simplify)
         intersect_areas_with_raster(areas, drop_constraints=True)
         for population in Population.objects.all():
             aggregate_population(area_level, population, drop_constraints=True)
@@ -476,8 +473,11 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
                         af = AreaField.objects.get(area_level=area_level,
                                                    name=field_name)
                     except AreaField.DoesNotExist:
-                        field_type, created = FieldType.objects.get_or_create(
-                            name=ft.value, ftype=ft)
+                        try:
+                            field_type = FieldType.objects.get(ftype=ft)
+                        except FieldType.DoesNotExist:
+                            field_type = FieldType.objects.create(ftype=ft,
+                                                                  name=ft.value)
                         af = AreaField.objects.create(area_level=area_level,
                                                       name=field_name,
                                                       field_type=field_type)
@@ -559,13 +559,8 @@ class AreaViewSet(ProtectCascadeMixin,
 class FieldTypeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = FieldType.objects.all()
     serializer_class = FieldTypeSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-
-
-class FClassViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = FClass.objects.all()
-    serializer_class = FClassSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    permission_classes = [ProtectPresetPermission &
+                          (HasAdminAccessOrReadOnly | CanEditBasedata)]
 
 
 class AreaFieldViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

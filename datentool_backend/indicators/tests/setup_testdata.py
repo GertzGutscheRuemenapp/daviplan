@@ -26,6 +26,7 @@ from datentool_backend.population.factories import (PopulationRasterFactory,
                                                     RasterCellPopulationFactory,
                                                     PopulationFactory,
                                                     )
+from datentool_backend.area.factories import FieldTypeFactory
 from datentool_backend.population.models import (Raster,
                                                  RasterCell,
                                                  PopulationEntry,
@@ -64,9 +65,10 @@ class CreateTestdataMixin:
     @classmethod
     def create_areas(cls):
         cls.obj = area_level = AreaLevelFactory()
+        field_type = FieldTypeFactory(ftype=FieldTypes.STRING)
         name_field = AreaFieldFactory(name='gen',
                                       area_level=area_level,
-                                      field_type__ftype=FieldTypes.STRING,
+                                      field_type=field_type,
                                       is_label=True)
         cls.url_pk = dict(pk=cls.obj.pk)
 
@@ -115,7 +117,7 @@ class CreateTestdataMixin:
         cls.area_level2 = AreaLevelFactory(name='Districts')
         name_field = AreaFieldFactory(name='gen',
                                       area_level=cls.area_level2,
-                                      field_type__ftype=FieldTypes.STRING,
+                                      field_type=field_type,
                                       is_label=True)
         # District1
         coords = np.array([(-500, 0),
@@ -148,7 +150,7 @@ class CreateTestdataMixin:
         cls.area_level3 = AreaLevelFactory(name='Country')
         name_field = AreaFieldFactory(name='gen',
                                       area_level=cls.area_level3,
-                                      field_type__ftype=FieldTypes.STRING,
+                                      field_type=field_type,
                                       is_label=True)
         # District1
         coords = np.array([(-5000, -5000),
@@ -167,7 +169,7 @@ class CreateTestdataMixin:
         cls.area_level4 = AreaLevelFactory(name='Quadrants')
         name_field = AreaFieldFactory(name='gen',
                                       area_level=cls.area_level4,
-                                      field_type__ftype=FieldTypes.STRING,
+                                      field_type=field_type,
                                       is_label=True)
 
         coords = np.array([(-5000, -5000), (-5000, 0), (0, 0), (0, -5000), (-5000, -5000)])\

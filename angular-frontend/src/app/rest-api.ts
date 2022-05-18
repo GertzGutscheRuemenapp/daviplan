@@ -16,6 +16,7 @@ export class RestAPI {
     projectSettings: `${ this.API_ENDPOINT }/projectsettings/`,
     basedataSettings: `${ this.API_ENDPOINT }/basedatasettings/`,
     ageGroups: `${ this.API_ENDPOINT }/agegroups/`,
+    fieldTypes: `${ this.API_ENDPOINT }/fieldtypes/`,
     infrastructures: `${ this.API_ENDPOINT }/infrastructures/`,
     places: `${ this.API_ENDPOINT }/places/`,
     capacities: `${ this.API_ENDPOINT }/capacities/`,

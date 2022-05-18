@@ -1,15 +1,32 @@
 import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
-import { Infrastructure, FType, Place, LayerGroup, Layer, Capacity, Service } from "../../../rest-interfaces";
+import {
+  Infrastructure,
+  Place,
+  LayerGroup,
+  Layer,
+  Capacity,
+  Service,
+  FieldType,
+  PlaceField
+} from "../../../rest-interfaces";
 import { RestCacheService } from "../../../rest-cache.service";
 import * as fileSaver from "file-saver";
 import { RestAPI } from "../../../rest-api";
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
 import { sortBy } from "../../../helpers/utils";
+import { InputCardComponent } from "../../../dash/input-card.component";
+import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
+
+interface PlaceEditField extends PlaceField {
+  edited?: boolean;
+  new?: boolean;
+  removed?: boolean;
+}
 
 @Component({
   selector: 'app-locations',
@@ -19,19 +36,27 @@ import { sortBy } from "../../../helpers/utils";
 export class LocationsComponent implements AfterViewInit, OnDestroy {
   @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
   @ViewChild('placePreviewTemplate') placePreviewTemplate!: TemplateRef<any>;
+  @ViewChild('editAttributesCard') editAttributesCard!: InputCardComponent;
+  @ViewChild('editClassificationsTemplate') editClassificationsTemplate!: TemplateRef<any>;
+  @ViewChild('fileUploadTemplate') fileUploadTemplate?: TemplateRef<any>;
   infrastructures: Infrastructure[] = [];
+  fieldTypes: FieldType[] = [];
+  fieldRemoved: boolean = false;
   selectedInfrastructure?: Infrastructure;
+  editFields: PlaceEditField[] = [];
+  editErrors?: any;
   mapControl?: MapControl;
   legendGroup?: LayerGroup;
   placesLayer?: Layer;
   addPlaceMode = false;
-  FType = FType;
   isLoading$ = new BehaviorSubject<boolean>(false);
   places?: Place[];
   dataColumns: string[] = [];
   dataRows: any[][] = [];
   selectedPlace?: Place;
   placeDialogRef?: MatDialogRef<any>;
+  file?: File;
+  uploadErrors: any = {};
 
   constructor(private mapService: MapService, private rest: RestAPI, private http: HttpClient,
               private dialog: MatDialog, private restService: RestCacheService) { }
@@ -43,18 +68,24 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       order: -1
     }, false);
     this.isLoading$.next(true);
-    this.restService.getInfrastructures().subscribe(infrastructures => {
-      this.infrastructures = infrastructures;
-      this.isLoading$.next(false);
+    this.http.get<FieldType[]>(this.rest.URLS.fieldTypes).subscribe(fieldTypes => {
+      this.fieldTypes = fieldTypes;
+      this.restService.getInfrastructures().subscribe(infrastructures => {
+        this.infrastructures = infrastructures;
+        this.isLoading$.next(false);
+      })
     })
+    this.setupAttributeCard();
   }
 
-  onInfrastructureChange(): void {
+  onInfrastructureChange(reset: boolean = false): void {
     this.places = [];
     this.mapControl?.removeLayer(this.placesLayer?.id!);
     if (!this.selectedInfrastructure) return;
+    this.editFields = JSON.parse(JSON.stringify(this.selectedInfrastructure.placeFields));
     this.isLoading$.next(true);
-    this.restService.getPlaces(this.selectedInfrastructure.id).subscribe(places => {
+    this.restService.getPlaces(this.selectedInfrastructure.id, { reset: reset }).subscribe(places => {
+      this.selectedInfrastructure!.placesCount = places.length;
       this.isLoading$.next(false);
       this.dataColumns = ['Standort'];
       this.selectedInfrastructure!.placeFields?.forEach(field => {
@@ -198,6 +229,138 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
 
   getPlaceCapacities(place: Place, service: Service): Capacity[]{
     return sortBy(place.capacities!.filter(c => c.service === service.id), 'fromYear');
+  }
+
+  setupAttributeCard(): void {
+    this.editAttributesCard.dialogClosed.subscribe(() => {
+      this.fieldRemoved = false;
+      this.editErrors = undefined;
+      this.editFields = JSON.parse(JSON.stringify(this.selectedInfrastructure?.placeFields || []));
+    })
+    this.editAttributesCard.dialogConfirmed.subscribe((ok)=> {
+      const removeFields = this.editFields.filter(f => f.removed && !f.new);
+      const _this = this;
+      if (removeFields.length > 0) {
+        const dialogRef = this.dialog.open(RemoveDialogComponent, {
+          width: '500px',
+          data: {
+            title: 'Änderungen an den Attributen',
+            confirmButtonText: 'Änderungen bestätigen',
+            message: 'Die Änderungen enthalten Löschungen von bestehenden Attributen. Damit verbundene Daten werden ebenfalls gelöscht.',
+            value: removeFields.map(r => r.name).join(', ')
+          }
+        });
+        dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+          patch();
+        });
+      }
+      else
+        patch();
+
+      function patch(){
+        const changedFields = _this.editFields.filter(f => f.removed || f.new || f.edited);
+        if (changedFields.length === 0) {
+          _this.editAttributesCard?.closeDialog();
+          return;
+        }
+        _this.isLoading$.next(true);
+        const body = { place_fields: _this.editFields.filter(f => !f.removed) }
+        _this.http.patch<Infrastructure>(`${_this.rest.URLS.infrastructures}${_this.selectedInfrastructure!.id}/`, body).subscribe(infrastructure => {
+          Object.assign(_this.selectedInfrastructure!, infrastructure);
+          _this.isLoading$.next(false);
+          _this.editAttributesCard?.closeDialog();
+          _this.onInfrastructureChange(true);
+        }, error => {
+          _this.isLoading$.next(false);
+          _this.editErrors = error.error
+        });
+      }
+    })
+  }
+
+  addField(): void {
+    this.editFields?.push({
+      name: '', unit: '', sensitive: false,
+      fieldType: (this.fieldTypes.find(ft => ft.ftype == 'NUM') || this.fieldTypes[0]).id,
+      new: true
+    })
+  }
+
+  editClassifications(): void {
+    this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '700px',
+      disableClose: true,
+      data: {
+        title: 'Klassifikationen (Attributtypen)',
+        template: this.editClassificationsTemplate,
+        closeOnConfirm: true,
+        hideConfirmButton: true,
+        infoText: 'ToDo: Erklärung Sortier- und Filterreihenfolge, Änderungen erfolgen sofort'
+      }
+    });
+  }
+
+  getFieldType(id: number): FieldType {
+    return this.fieldTypes.find(f => f.id === id) || this.fieldTypes[0];
+  }
+
+  uploadTemplate(): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '450px',
+      data: {
+        title: `Template hochladen`,
+        confirmButtonText: 'Datei hochladen',
+        template: this.fileUploadTemplate
+      }
+    });
+    dialogRef.componentInstance.confirmed.subscribe((confirmed: boolean) => {
+      if (!this.file)
+        return;
+      const formData = new FormData();
+      formData.append('excel_file', this.file);
+      dialogRef.componentInstance.isLoading$.next(true);
+      const url = `${this.rest.URLS.places}upload_template/`;
+      this.http.post(url, formData).subscribe(res => {
+        this.onInfrastructureChange(true);
+        dialogRef.close();
+      }, error => {
+        this.uploadErrors = error.error;
+        dialogRef.componentInstance.isLoading$.next(false);
+      });
+    });
+    dialogRef.afterClosed().subscribe(ok => {
+      this.uploadErrors = {};
+    })
+  }
+
+  setFiles(event: Event){
+    const element = event.currentTarget as HTMLInputElement;
+    const files: FileList | null = element.files;
+    this.file =  (files && files.length > 0)? files[0]: undefined;
+  }
+
+  onDeletePlaces(): void {
+    if (!this.selectedInfrastructure)
+      return;
+    const dialogRef = this.dialog.open(RemoveDialogComponent, {
+      data: {
+        title: $localize`Die Standorte wirklich entfernen?`,
+        confirmButtonText: $localize`Daten löschen`,
+        value: this.selectedInfrastructure.name,
+        message: `Bei Bestätigung werden ${this.selectedInfrastructure.placesCount} Standorte entfernt. `
+      }
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.http.post(`${this.rest.URLS.places}clear/`, { infrastructure: this.selectedInfrastructure!.id }
+        ).subscribe(res => {
+          this.onInfrastructureChange(true);
+        }, error => {
+          console.log('there was an error sending the query', error);
+        });
+      }
+    });
   }
 
   ngOnDestroy(): void {

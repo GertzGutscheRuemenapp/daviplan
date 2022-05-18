@@ -55,11 +55,14 @@ class PlaceField(DatentoolModelMixin, models.Model):
     field_type = models.ForeignKey(FieldType, on_delete=PROTECT_CASCADE)
     is_label = models.BooleanField(null=True, default=None)
     sensitive = models.BooleanField(default=False)
-    unit = models.TextField()
+    unit = models.TextField(blank=True, default='')
 
     class Meta:
         unique_together = [['infrastructure', 'name'],
                            ['infrastructure', 'is_label']]
+
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__}: {self.name} ({self.infrastructure.name})'
 
 
 class Service(DatentoolModelMixin, NamedModel, models.Model):

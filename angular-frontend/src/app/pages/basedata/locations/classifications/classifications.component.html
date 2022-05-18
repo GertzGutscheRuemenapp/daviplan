@@ -1,0 +1,96 @@
+<div fxLayout="row">
+  <div style="margin-right: 50px">
+    <span class="sub">Klassifikationen</span>
+    <mat-selection-list id="classification-select" [multiple]="false">
+      <ng-container *ngFor="let fieldType of classifications">
+        <mat-list-option *ngIf="fieldType.ftype === 'CLA'"
+                         (click)="selectedClassification = fieldType; selectedClass = (fieldType.classification && fieldType.classification.length > 0)? fieldType.classification[0]: undefined;"
+                         [selected]="(selectedClassification?.id === fieldType.id)">
+          {{fieldType.name}}
+        </mat-list-option>
+      </ng-container>
+    </mat-selection-list>
+    <button mat-button color="primary"
+            class="mat-button-dv"
+            (click)="renameClassification()"
+            [disabled]="!selectedClassification"
+            style="margin-top: 10px;"
+            title="Klassifikation umbenennen" i18n>
+      <mat-icon>edit</mat-icon>umbenennen
+    </button>
+    <button mat-button color="primary"
+            class="mat-button-dv"
+            (click)="removeClassification()"
+            [disabled]="!selectedClassification"
+            style="margin-top: 10px; float: right;"
+            title="Klassifikation entfernen" i18n>
+      <mat-icon>close</mat-icon>entfernen
+    </button>
+    <br>
+    <button mat-button color="primary"
+            class="mat-button-dv"
+            (click)="addClassification()"
+            title="Klassifikation hinzufügen" i18n>
+      <mat-icon>add</mat-icon>hinzufügen
+    </button>
+  </div>
+  <div>
+    <span class="sub">Klassen</span>
+    <div fxLayout="row">
+      <mat-selection-list id="classes-select" [multiple]="false">
+        <mat-list-option *ngFor="let class of selectedClassification?.classification"
+                         (click)="selectedClass = class;"
+                         [selected]="(selectedClass?.value === class.value)">
+          {{class.value}}
+        </mat-list-option>
+      </mat-selection-list>
+      <div class="order-controls">
+        <button mat-icon-button
+                title='In der Sortier- und Filterreihenfolge eins nach oben'
+                [disabled] = "(orderIsChanging$ | async) || !selectedClass || selectedClass == selectedClassification!.classification![0]"
+                (click)="moveClass('up')">
+          <mat-icon>expand_less</mat-icon>
+        </button>
+        <button mat-icon-button
+                title='In der Sortier- und Filterreihenfolge eins nach unten'
+                [disabled] = "(orderIsChanging$ | async) || !selectedClass || selectedClass == selectedClassification!.classification![selectedClassification!.classification!.length - 1]"
+                (click)="moveClass('down')">
+          <mat-icon>expand_more</mat-icon>
+        </button>
+      </div>
+    </div>
+    <button mat-button color="primary"
+            class="mat-button-dv"
+            (click)="addClass()"
+            [disabled]="!selectedClassification"
+            style="margin-top: 10px;"
+            title="Klasse hinzufügen" i18n>
+      <mat-icon>add</mat-icon>hinzufügen
+    </button>
+    <button mat-button color="primary"
+            class="mat-button-dv"
+            (click)="removeClass()"
+            [disabled]="!selectedClass"
+            style="margin-top: 10px; margin-right: 50px; float: right;"
+            title="Klasse entfernen" i18n>
+      <mat-icon>close</mat-icon>entfernen
+    </button>
+  </div>
+</div>
+<i>Hinweis: Änderungen an den Klassifikationen werden sofort vorgenommen</i>
+
+<ng-template #nameTemplate>
+  <form [formGroup]="nameForm">
+    <div *ngIf="nameForm.errors">
+      <mat-error class="alert" *ngFor="let error of nameForm.errors | keyvalue">
+        {{error.key}}: <i>{{error.value}}</i>
+      </mat-error>
+    </div>
+    <div fxLayout="column">
+      <mat-form-field appearance="fill" style="width: 100%">
+        <mat-label i18n>Name</mat-label>
+        <input matInput formControlName="name" required>
+      </mat-form-field>
+    </div>
+  </form>
+</ng-template>

@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { Infrastructure, Place, Scenario, Service } from "../../../rest-interfaces";
+import { FieldType, Infrastructure, Place, Scenario, Service } from "../../../rest-interfaces";
 import { PlanningService } from "../planning.service";
 import { TimeSliderComponent } from "../../../elements/time-slider/time-slider.component";
 import { forkJoin, Observable } from "rxjs";
@@ -23,6 +23,7 @@ export class PlaceFilterComponent implements AfterViewInit {
   @ViewChild('filterTable') filterTable?: FilterTableComponent;
   realYears?: number[];
   prognosisYears?: number[];
+  fieldTypes: FieldType[] = [];
   public columns: FilterColumn[] = [];
   public rows: any[][] = [];
   private capacities: Record<number, Record<string, number>> = {};
@@ -32,7 +33,10 @@ export class PlaceFilterComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     if (!this.services) this.services = this.infrastructure.services;
-    this.columns = this.getColumns();
+    this.planningService.getFieldTypes().subscribe(fieldTypes => {
+      this.fieldTypes = fieldTypes;
+      this.columns = this.getColumns();
+    })
     this.planningService.getRealYears().subscribe( years => {
       this.realYears = years;
       this.planningService.getPrognosisYears().subscribe( years => {
@@ -87,11 +91,13 @@ export class PlaceFilterComponent implements AfterViewInit {
       columns.push(column);
     })
     this.infrastructure.placeFields?.forEach(field => {
+      const fieldType = this.fieldTypes.find(ft => ft.id == field.fieldType);
+      if (!fieldType) return;
       const column: FilterColumn = {
         name: field.name,
         attribute: field.name,
-        type: field.fieldType.ftype,
-        classes: field.fieldType.classification?.map(c => c.value),
+        type: fieldType.ftype,
+        classes: fieldType.classification?.map(c => c.value),
         unit: field.unit
       };
       const filterInput = this.filterColumns?.find(c => c.attribute === field.name);

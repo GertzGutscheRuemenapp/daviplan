@@ -4,9 +4,7 @@
   <div class="loadOverlay" *ngIf="isLoading$ | async">
     <mat-spinner [diameter]="50"></mat-spinner>
   </div>
-  <p *ngIf="data.message" style="text-align: justify;">
-    {{ data.message }}
-  </p>
+  <p *ngIf="data.message" [innerHTML]="data.message" style="text-align: justify;"></p>
   <ng-container *ngTemplateOutlet="data.template; context: data.context"></ng-container>
   <div *ngIf="data.infoText" class="info-text" style="margin-top: 15px;"
        [@.disabled]="!initReady">

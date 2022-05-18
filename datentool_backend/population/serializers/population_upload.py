@@ -58,9 +58,9 @@ class PopulationTemplateSerializer(serializers.Serializer):
             title = f'Prognosevariante {prognosis.name}'
 
         dv_pos_float = DataValidation(type="decimal",
-                                operator="greaterThanOrEqual",
-                                formula1=0,
-                                allow_blank=True)
+                                      operator="greaterThanOrEqual",
+                                      formula1=0,
+                                      allow_blank=True)
         dv_pos_float.error = 'Nur Zahlen >= 0 erlaubt'
         dv_pos_float.title = 'Ungültige positive Zahlen-Werte'
 
@@ -115,7 +115,7 @@ class PopulationTemplateSerializer(serializers.Serializer):
                 columns = ['area_id', 'gender_id', 'age_group_id', 'value']
                 try:
                     population = Population.objects.get(
-                        prognosis_id=prognosis_id, year=year,
+                        prognosis_id=prognosis_id, year__year=year,
                         #popraster=popraster,
                     )
                     rows = PopulationEntry.objects.filter(
