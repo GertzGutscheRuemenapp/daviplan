@@ -340,6 +340,29 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
     this.file =  (files && files.length > 0)? files[0]: undefined;
   }
 
+  onDeletePlaces(): void {
+    if (!this.selectedInfrastructure)
+      return;
+    const dialogRef = this.dialog.open(RemoveDialogComponent, {
+      data: {
+        title: $localize`Die Standorte wirklich entfernen?`,
+        confirmButtonText: $localize`Daten löschen`,
+        value: this.selectedInfrastructure.name,
+        message: `Bei Bestätigung werden ${this.selectedInfrastructure.placesCount} Standorte entfernt. `
+      }
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.http.post(`${this.rest.URLS.places}clear/`, { infrastructure: this.selectedInfrastructure!.id }
+        ).subscribe(res => {
+          this.onInfrastructureChange(true);
+        }, error => {
+          console.log('there was an error sending the query', error);
+        });
+      }
+    });
+  }
+
   ngOnDestroy(): void {
     this.mapControl?.destroy();
   }

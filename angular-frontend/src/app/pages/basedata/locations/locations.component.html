@@ -95,6 +95,13 @@
                   (click)="showDataTable()">
             <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
           </button>
+          <button class="mat-button-dv"
+                  mat-button color="warn"
+                  style="float: right; margin-right: 10px; box-shadow: none;"
+                  (click)="onDeletePlaces()">
+            <mat-icon>cancel</mat-icon>
+            Daten löschen
+          </button>
 <!--          <button mat-mini-fab color="primary"
                   aria-label="Daten herunterladen" title="Daten herunterladen"
                   style="float: right; margin: -10px 15px 0 0; box-shadow: none;">

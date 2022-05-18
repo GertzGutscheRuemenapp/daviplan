@@ -104,6 +104,20 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
         return super().upload_template(request,
                                        queryset=queryset,)
 
+    @action(methods=['POST'], detail=False,
+            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+    def clear(self, request, **kwargs):
+        infrastructure_id = request.data.get('infrastructure')
+        if (infrastructure_id is not None):
+            places = Place.objects.filter(infrastructure=infrastructure_id)
+        else:
+            places = Place.objects.all()
+        count = places.count()
+        places.delete()
+        return Response({'message': f'{count} Areas deleted'},
+                        status=status.HTTP_200_OK)
+
+
 
 capacity_params = [
     OpenApiParameter(name='service',
