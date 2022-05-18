@@ -276,8 +276,8 @@ class PlacesTemplateSerializer(serializers.Serializer):
                            sheet_name='Klassifizierungen').set_index('order')
 
         for field_name, series in df_klassifizierungen.items():
-            ft, created = FieldType.objects.get_or_create(name=field_name,
-                                                 ftype=FieldTypes.CLASSIFICATION)
+            ft, created = FieldType.objects.get_or_create(
+                name=field_name, ftype=FieldTypes.CLASSIFICATION)
             series = series.loc[~pd.isna(series)]
             # add/change entries of the classification values
             for order, value in series.iteritems():

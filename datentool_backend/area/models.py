@@ -225,8 +225,11 @@ class Area(DatentoolModelMixin, models.Model):
                     ftype = FieldTypes.NUMBER
                 else:
                     ftype = FieldTypes.STRING
-                field_type, created = FieldType.objects.get_or_create(ftype=ftype,
-                                                                      name=ftype.value)
+                try:
+                    field_type = FieldType.objects.get(ftype=ftype)
+                except FieldType.DoesNotExist:
+                    field_type = FieldType.objects.create(ftype=ftype,
+                                                          name=ftype.value)
                 field = AreaField.objects.create(area_level=self.area_level,
                                                  name=field_name,
                                                  field_type=field_type,

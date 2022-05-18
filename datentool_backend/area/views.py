@@ -414,12 +414,8 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
 
         truncate = str(request.data.get('truncate', 'false')).lower() == 'true'
         simplify = str(request.data.get('simplify', 'false')).lower() == 'true'
-        try:
-            areas = self._pull_areas(area_level, project_area,
-                               truncate=truncate, simplify=simplify)
-        except Exception as e:
-            return Response({'message': str(e)},
-                            status.HTTP_500_INTERNAL_SERVER_ERROR)
+        areas = self._pull_areas(area_level, project_area,
+                                 truncate=truncate, simplify=simplify)
         intersect_areas_with_raster(areas, drop_constraints=True)
         for population in Population.objects.all():
             aggregate_population(area_level, population, drop_constraints=True)
@@ -477,8 +473,11 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
                         af = AreaField.objects.get(area_level=area_level,
                                                    name=field_name)
                     except AreaField.DoesNotExist:
-                        field_type, created = FieldType.objects.get_or_create(
-                            name=ft.value, ftype=ft)
+                        try:
+                            field_type = FieldType.objects.get(ftype=ft)
+                        except FieldType.DoesNotExist:
+                            field_type = FieldType.objects.create(ftype=ft,
+                                                                  name=ft.value)
                         af = AreaField.objects.create(area_level=area_level,
                                                       name=field_name,
                                                       field_type=field_type)

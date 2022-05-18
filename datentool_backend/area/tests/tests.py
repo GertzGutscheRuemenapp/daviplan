@@ -25,13 +25,13 @@ from datentool_backend.area.factories import (WMSLayerFactory,
                                               SourceFactory,
                                               LayerGroupFactory,
                                               FClassFactory,
-                                              SourceFactory
+                                              SourceFactory,
+                                              FieldTypeFactory
                                               )
 
 from datentool_backend.area.models import (WMSLayer,
                                            AreaLevel,
                                            Area,
-                                           FClass,
                                            AreaField,
                                            AreaAttribute,
                                            FieldType,
@@ -58,13 +58,14 @@ class TestWfs(LoginTestCase, APITestCase):
             source_type=SourceTypes.WFS
         )
         cls.area_level = AreaLevelFactory(source=source, is_preset=True)
+        field_type = FieldTypeFactory(ftype=FieldTypes.STRING)
         AreaFieldFactory(name='gen',
                          area_level=cls.area_level,
-                         field_type__ftype=FieldTypes.STRING,
+                         field_type=field_type,
                          is_label=True)
         AreaFieldFactory(name='ags',
                          area_level=cls.area_level,
-                         field_type__ftype=FieldTypes.STRING,
+                         field_type=field_type,
                          is_key=True)
         source = SourceFactory(
             source_type=SourceTypes.FILE

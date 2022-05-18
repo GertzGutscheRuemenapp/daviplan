@@ -41,6 +41,7 @@ from datentool_backend.area.factories import (AreaLevelFactory,
                                               AreaFactory,
                                               AreaFieldFactory,
                                               FieldTypes,
+                                              FieldTypeFactory
                                               )
 from datentool_backend.demand.factories import AgeGroupFactory, GenderFactory
 from datentool_backend.demand.constants import RegStatAgeGroups
@@ -61,13 +62,15 @@ class TestRegionalstatistikAPI(LoginTestCase, APITestCase):
         cls.years = [YearFactory(year=y) for y in range(2012, 2015)]
 
         area_level = AreaLevelFactory(is_statistic_level=True)
+
+        field_type = FieldTypeFactory(ftype=FieldTypes.STRING)
         AreaFieldFactory(name='gen',
                          area_level=area_level,
-                         field_type__ftype=FieldTypes.STRING,
+                         field_type=field_type,
                          is_label=True)
         AreaFieldFactory(name='ags',
                          area_level=area_level,
-                         field_type__ftype=FieldTypes.STRING,
+                         field_type=field_type,
                          is_key=True)
 
         AreaFactory(
