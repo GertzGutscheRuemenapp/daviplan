@@ -25,13 +25,13 @@ from datentool_backend.area.factories import (WMSLayerFactory,
                                               SourceFactory,
                                               LayerGroupFactory,
                                               FClassFactory,
-                                              SourceFactory
+                                              SourceFactory,
+                                              FieldTypeFactory
                                               )
 
 from datentool_backend.area.models import (WMSLayer,
                                            AreaLevel,
                                            Area,
-                                           FClass,
                                            AreaField,
                                            AreaAttribute,
                                            FieldType,
@@ -58,13 +58,14 @@ class TestWfs(LoginTestCase, APITestCase):
             source_type=SourceTypes.WFS
         )
         cls.area_level = AreaLevelFactory(source=source, is_preset=True)
+        field_type = FieldTypeFactory(ftype=FieldTypes.STRING)
         AreaFieldFactory(name='gen',
                          area_level=cls.area_level,
-                         field_type__ftype=FieldTypes.STRING,
+                         field_type=field_type,
                          is_label=True)
         AreaFieldFactory(name='ags',
                          area_level=cls.area_level,
-                         field_type__ftype=FieldTypes.STRING,
+                         field_type=field_type,
                          is_key=True)
         source = SourceFactory(
             source_type=SourceTypes.FILE
@@ -551,26 +552,6 @@ class TestAreaAPI(WriteOnlyWithCanEditBaseDataTest,
             del self.query_params['area_level']
         except KeyError:
             pass
-
-
-class TestFClassAPI(WriteOnlyWithCanEditBaseDataTest,
-                    TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
-    """Test to post, put and patch data"""
-    url_key = "fclasses"
-    factory = FClassFactory
-
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-
-        fclass: FClass = cls.obj
-        classification = fclass.ftype.pk
-        data = dict(ftype_id=classification,
-                    order=faker.unique.pyint(max_value=100),
-                    value=faker.unique.word())
-        cls.post_data = data
-        cls.put_data = data
-        cls.patch_data = data
 
 
 class TestAreaFieldAPI(WriteOnlyWithCanEditBaseDataTest,

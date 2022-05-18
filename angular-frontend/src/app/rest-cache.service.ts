@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
 import {
   Place, AreaLevel, Area, Gender, AreaIndicatorData, PopulationData, AgeGroup,
-  Infrastructure, Service, Capacity, Prognosis, StatisticsData, DemandRateSet, Statistic
+  Infrastructure, Service, Capacity, Prognosis, StatisticsData, DemandRateSet, Statistic, FieldType
 } from "./rest-interfaces";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
@@ -34,7 +34,8 @@ export class RestCacheService {
   protected getCachedData<Type>(url: string, options?: { params?: Record<string, any>, reset?: boolean }): Observable<Type> {
     if (options?.params) {
       let queryParams = '';
-      Object.keys(options?.params).forEach(key => {
+      Object.keys(options?.params).forEach((key,i) => {
+        if (i > 0) queryParams += '&';
         queryParams += `${key}=${options!.params![key]}`;
       })
       if (queryParams.length > 0)
@@ -127,10 +128,15 @@ export class RestCacheService {
     return observable;
   }
 
-  getPlaces(infrastructureId: number, options?: { targetProjection?: string }): Observable<Place[]>{
+  getFieldTypes(): Observable<FieldType[]> {
+    const url = this.rest.URLS.fieldTypes;
+    return this.getCachedData<FieldType[]>(url);
+  }
+
+  getPlaces(infrastructureId: number, options?: { targetProjection?: string, reset?: boolean }): Observable<Place[]>{
     const observable = new Observable<Place[]>(subscriber => {
       const cached = this.placesCache[infrastructureId];
-      if (!cached) {
+      if (!cached || options?.reset) {
         const targetProjection = (options?.targetProjection !== undefined)? options?.targetProjection: 'EPSG:4326';
         this.setLoading(true);
         const query = this.http.get<any>(`${this.rest.URLS.places}?infrastructure=${infrastructureId}`);

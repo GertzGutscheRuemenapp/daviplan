@@ -1,10 +1,11 @@
 from rest_framework import serializers
 
+from rest_framework.exceptions import NotAcceptable
 from datentool_backend.infrastructure.models.infrastructures import (
-    InfrastructureAccess, Infrastructure)
+    InfrastructureAccess, Infrastructure, PlaceField)
 from datentool_backend.area.models import MapSymbol
 from datentool_backend.area.serializers import MapSymbolSerializer
-from datentool_backend.infrastructure.serializers import PlaceFieldInfraSerializer
+from datentool_backend.infrastructure.serializers import PlaceFieldNestedSerializer
 
 class InfrastructureAccessSerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,8 +18,8 @@ class InfrastructureSerializer(serializers.ModelSerializer):
     symbol = MapSymbolSerializer(allow_null=True, required=False)
     accessible_by = InfrastructureAccessSerializer(
         many=True, source='infrastructureaccess_set', required=False)
-    place_fields = PlaceFieldInfraSerializer(many=True, source='placefield_set',
-                                             required=False, read_only=True)
+    place_fields = PlaceFieldNestedSerializer(
+        many=True, source='placefield_set', required=False)
     places_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -27,6 +28,7 @@ class InfrastructureSerializer(serializers.ModelSerializer):
                   'editable_by', 'accessible_by',
                   'order', 'symbol', 'place_fields', 'places_count')
         extra_kwargs = {'description': {'required':  False}}
+        #read_only_fields = (place_fields, )
 
     def create(self, validated_data):
         symbol_data = validated_data.pop('symbol', None)
@@ -47,16 +49,24 @@ class InfrastructureSerializer(serializers.ModelSerializer):
                 'allow_sensitive_data']
             infrastructure_access.save()
 
+        placefield_data = validated_data.pop('placefield_set', None)
+        if placefield_data is not None:
+            self._update_placefields(instance, placefield_data)
+
         return instance
 
     def update(self, instance, validated_data):
         # symbol is nullable
         update_symbol = 'symbol' in validated_data
         symbol_data = validated_data.pop('symbol', None)
-
+        placefield_data = validated_data.pop('placefield_set', None)
         editable_by = validated_data.pop('editable_by', None)
         accessible_by = validated_data.pop('infrastructureaccess_set', None)
+
         instance = super().update(instance, validated_data)
+
+        if placefield_data is not None:
+            self._update_placefields(instance, placefield_data)
         if editable_by is not None:
             instance.editable_by.set(editable_by)
         if accessible_by is not None:
@@ -68,7 +78,6 @@ class InfrastructureSerializer(serializers.ModelSerializer):
                 infrastructure_access.allow_sensitive_data = profile_access[
                     'allow_sensitive_data']
                 infrastructure_access.save()
-
         if update_symbol:
             symbol = instance.symbol
             if symbol_data:
@@ -86,6 +95,32 @@ class InfrastructureSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+    def _update_placefields(self, instance, data):
+        place_fields = []
+        names = [f['name'] for f in data]
+        if (len(set(names)) != len(names)):
+            raise NotAcceptable('Die Namen der Attribute müssen einzigartig sein!')
+        for pf_data in data:
+            pf_id = pf_data.get('id', None)
+            if pf_id is not None:
+                place_field = PlaceField.objects.get(id=pf_id)
+                place_field.field_type = pf_data['field_type']
+                place_field.name = pf_data['name']
+            else:
+                place_field = PlaceField.objects.create(
+                    infrastructure=instance,
+                    name=pf_data['name'],
+                    field_type=pf_data['field_type']
+                )
+            place_field.unit = pf_data.get('unit', '')
+            place_field.sensitive = pf_data.get('sensitive', False)
+            place_field.save()
+            place_fields.append(place_field)
+        place_fields_ids = [f.id for f in place_fields]
+        for place_field in instance.placefield_set.exclude(
+            id__in=place_fields_ids):
+            place_field.delete(keep_parents=True)
 
     def get_places_count(self, instance):
         return instance.place_set.count()

@@ -151,7 +151,7 @@
   <form [formGroup]="demandTypeForm" style="padding: 10px 0;">
     <div *ngIf="demandTypeForm.errors">
       <mat-error *ngFor="let error of demandTypeForm.errors | keyvalue" class="alert">
-        {{ error.key }} {{ error.value }}
+        {{ error.key }}: {{ error.value }}
       </mat-error>
     </div>
     <mat-radio-group formControlName="demandType">

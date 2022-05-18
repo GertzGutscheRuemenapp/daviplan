@@ -179,6 +179,7 @@ class Area(DatentoolModelMixin, models.Model):
                                                  .values('_value')[:1])
                        for area_field in area_fields}
         qs=cls.objects\
+            .filter(area_level=area_level)\
             .select_related('area_level')\
             .prefetch_related(
                 Prefetch('areaattribute_set', queryset=attributes))\
@@ -224,8 +225,11 @@ class Area(DatentoolModelMixin, models.Model):
                     ftype = FieldTypes.NUMBER
                 else:
                     ftype = FieldTypes.STRING
-                field_type, created = FieldType.objects.get_or_create(ftype=ftype,
-                                                                      name=ftype.value)
+                try:
+                    field_type = FieldType.objects.get(ftype=ftype)
+                except FieldType.DoesNotExist:
+                    field_type = FieldType.objects.create(ftype=ftype,
+                                                          name=ftype.value)
                 field = AreaField.objects.create(area_level=self.area_level,
                                                  name=field_name,
                                                  field_type=field_type,
@@ -265,6 +269,7 @@ class FieldType(DatentoolModelMixin, NamedModel, models.Model):
     """a generic field type"""
     ftype = models.CharField(max_length=3, choices=FieldTypes.choices)
     name = models.TextField()
+    is_preset = models.BooleanField(default=False)
 
     def validate_datatype(self, data) -> bool:
         """validate the datatype of the given data"""
@@ -278,9 +283,12 @@ class FieldType(DatentoolModelMixin, NamedModel, models.Model):
 
 class FClass(DatentoolModelMixin, models.Model):
     """a class in a classification"""
-    ftype = models.ForeignKey(FieldType, on_delete=PROTECT_CASCADE)
+    ftype = models.ForeignKey(FieldType, on_delete=models.CASCADE)
     order = models.IntegerField()
     value = models.TextField()
+
+    class Meta:
+        ordering = ['order']
 
     def __str__(self) -> str:
         return (f'{self.__class__.__name__}: {self.ftype.name}: '
