@@ -8,7 +8,6 @@ import {
   Capacity,
   Service,
   FieldType,
-  InfrastructurePlaceField,
   PlaceField
 } from "../../../rest-interfaces";
 import { RestCacheService } from "../../../rest-cache.service";
@@ -23,7 +22,7 @@ import { sortBy } from "../../../helpers/utils";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 
-interface PlaceEditField extends InfrastructurePlaceField{
+interface PlaceEditField extends PlaceField {
   edited?: boolean;
   new?: boolean;
   removed?: boolean;
@@ -44,7 +43,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   fieldRemoved: boolean = false;
   selectedInfrastructure?: Infrastructure;
   editFields: PlaceEditField[] = [];
-  editError?: any;
+  editErrors?: any;
   mapControl?: MapControl;
   legendGroup?: LayerGroup;
   placesLayer?: Layer;
@@ -231,11 +230,11 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   setupAttributeCard(): void {
     this.editAttributesCard.dialogClosed.subscribe(() => {
       this.fieldRemoved = false;
-      this.editError = undefined;
-      this.editFields = [];
+      this.editErrors = undefined;
+      this.editFields = JSON.parse(JSON.stringify(this.selectedInfrastructure?.placeFields || []));
     })
     this.editAttributesCard.dialogConfirmed.subscribe((ok)=> {
-      const removeFields = this.editFields.filter(f => f.removed);
+      const removeFields = this.editFields.filter(f => f.removed && !f.new);
       const _this = this;
       if (removeFields.length > 0) {
         const dialogRef = this.dialog.open(RemoveDialogComponent, {
@@ -255,44 +254,30 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         patch();
 
       function patch(){
+        const changedFields = _this.editFields.filter(f => f.removed || f.new || f.edited);
+        if (changedFields.length === 0) {
+          _this.editAttributesCard?.closeDialog();
+          return;
+        }
         _this.isLoading$.next(true);
-        _this.patchPlaceFields().subscribe(() => {
+        const body = { place_fields: _this.editFields.filter(f => !f.removed) }
+        _this.http.patch<Infrastructure>(`${_this.rest.URLS.infrastructures}${_this.selectedInfrastructure!.id}/`, body).subscribe(infrastructure => {
+          Object.assign(_this.selectedInfrastructure!, infrastructure);
           _this.isLoading$.next(false);
+          _this.editAttributesCard?.closeDialog();
+          _this.onInfrastructureChange();
         }, error => {
           _this.isLoading$.next(false);
-          _this.editError = error
+          _this.editErrors = error.error
         });
       }
     })
   }
 
-  patchPlaceFields(): Observable<any> {
-    const placeFields = this.editFields
-
-    let observables: Observable<any>[] = [];
-    const removeFields = this.editFields.filter(f => f.removed);
-    const addFields = this.editFields.filter(f => f.new);
-    const editFields = this.editFields.filter(f => f.edited);
-/*    removeFields.forEach(field => {
-      observables.push(this.http.delete(`${this.rest.URLS.placeFields}${this.selectedInfrastructure!.id}/`))
-    })
-    addFields.forEach(field => {
-      const placeField: PlaceField = {
-        fieldType: field.fieldType.id;
-        name: field.name,
-        unit: field.unit,
-        infrastructure: this.selectedInfrastructure!.id,
-
-      }
-    })*/
-    return forkJoin(...observables);
-  }
-
   addField(): void {
     this.editFields?.push({
       name: '', unit: '', sensitive: false,
-      fieldType: this.fieldTypes.find(ft => ft.ftype == 'NUM') || this.fieldTypes[0],
-      infrastructure: this.selectedInfrastructure!.id,
+      fieldType: (this.fieldTypes.find(ft => ft.ftype == 'NUM') || this.fieldTypes[0]).id,
       new: true
     })
   }

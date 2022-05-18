@@ -41,7 +41,7 @@
         </tr>
         <tr *ngFor="let field of selectedInfrastructure?.placeFields">
           <td>{{field.name}}</td>
-          <td>{{field.fieldType.name}}</td>
+          <td>{{getFieldType(field.fieldType).name}}</td>
         </tr>
       </table>
     </app-input-card>
@@ -160,9 +160,9 @@
 </ng-template>
 
 <ng-template #editAttributesTemplate>
-  <div *ngIf="editError">
-    <mat-error class="alert">
-      {{editError}}
+  <div *ngIf="editErrors">
+    <mat-error class="alert" *ngFor="let error of editErrors | keyvalue">
+      {{ error.key }}: {{ error.value }}
     </mat-error>
   </div>
   <table id="place-attr-table">
@@ -195,8 +195,8 @@
         <td>
           <mat-form-field class="small" appearance="outline" style="margin-right: 10px;">
             <mat-select [disabled]="!field.new"
-                        [value]="field.fieldType.id"
-                        (selectionChange)="field.fieldType = getFieldType($event.value); field.edited = true;">
+                        [value]="field.fieldType"
+                        (selectionChange)="field.fieldType = $event.value; field.edited = true;">
               <mat-option *ngFor="let fieldType of fieldTypes" [value]="fieldType.id">
                 {{fieldType.name}}
               </mat-option>
@@ -204,7 +204,7 @@
           </mat-form-field>
         </td>
         <td>
-          <ng-container *ngIf="field.fieldType.ftype !== 'STR'">
+          <ng-container *ngIf="getFieldType(field.fieldType).ftype !== 'STR'">
             <input [(ngModel)]="field.unit" (change)="field.edited = true;">
           </ng-container>
         </td>

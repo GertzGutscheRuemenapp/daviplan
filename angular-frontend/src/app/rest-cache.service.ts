@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
 import {
   Place, AreaLevel, Area, Gender, AreaIndicatorData, PopulationData, AgeGroup,
-  Infrastructure, Service, Capacity, Prognosis, StatisticsData, DemandRateSet, Statistic
+  Infrastructure, Service, Capacity, Prognosis, StatisticsData, DemandRateSet, Statistic, FieldType
 } from "./rest-interfaces";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
@@ -126,6 +126,11 @@ export class RestCacheService {
       });
     });
     return observable;
+  }
+
+  getFieldTypes(): Observable<FieldType[]> {
+    const url = this.rest.URLS.fieldTypes;
+    return this.getCachedData<FieldType[]>(url);
   }
 
   getPlaces(infrastructureId: number, options?: { targetProjection?: string }): Observable<Place[]>{
