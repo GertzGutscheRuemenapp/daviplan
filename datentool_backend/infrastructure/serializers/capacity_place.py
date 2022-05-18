@@ -114,7 +114,10 @@ class PlaceFieldSerializer(serializers.ModelSerializer):
 
 
 class PlaceFieldNestedSerializer(serializers.ModelSerializer):
+    # id is explicitly needed here, otherwise it is not appearing
+    # in the validated data
+    id = serializers.IntegerField(required=False)
     class Meta:
         model = PlaceField
-        fields = ('name', 'unit', 'field_type', 'sensitive')
+        fields = ('id', 'name', 'unit', 'field_type', 'sensitive')
 

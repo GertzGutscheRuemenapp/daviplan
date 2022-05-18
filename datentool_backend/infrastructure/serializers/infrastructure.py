@@ -102,12 +102,12 @@ class InfrastructureSerializer(serializers.ModelSerializer):
         if (len(set(names)) != len(names)):
             raise NotAcceptable('Die Namen der Attribute müssen einzigartig sein!')
         for pf_data in data:
-            try:
-                place_field = PlaceField.objects.get(
-                    infrastructure=instance,
-                    name=pf_data['name'])
+            pf_id = pf_data.get('id', None)
+            if pf_id is not None:
+                place_field = PlaceField.objects.get(id=pf_id)
                 place_field.field_type = pf_data['field_type']
-            except PlaceField.DoesNotExist:
+                place_field.name = pf_data['name']
+            else:
                 place_field = PlaceField.objects.create(
                     infrastructure=instance,
                     name=pf_data['name'],

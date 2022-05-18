@@ -191,7 +191,7 @@
     </tr>
     <ng-container *ngFor="let field of editFields">
       <tr *ngIf="!field.removed">
-        <td class="not-first-child"><input [(ngModel)]="field.name"></td>
+        <td class="not-first-child"><input [(ngModel)]="field.name" (change)="field.edited = true;"></td>
         <td>
           <mat-form-field class="small" appearance="outline" style="margin-right: 10px;">
             <mat-select [disabled]="!field.new"

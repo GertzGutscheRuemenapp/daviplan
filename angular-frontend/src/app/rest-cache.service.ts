@@ -133,10 +133,10 @@ export class RestCacheService {
     return this.getCachedData<FieldType[]>(url);
   }
 
-  getPlaces(infrastructureId: number, options?: { targetProjection?: string }): Observable<Place[]>{
+  getPlaces(infrastructureId: number, options?: { targetProjection?: string, reset?: boolean }): Observable<Place[]>{
     const observable = new Observable<Place[]>(subscriber => {
       const cached = this.placesCache[infrastructureId];
-      if (!cached) {
+      if (!cached || options?.reset) {
         const targetProjection = (options?.targetProjection !== undefined)? options?.targetProjection: 'EPSG:4326';
         this.setLoading(true);
         const query = this.http.get<any>(`${this.rest.URLS.places}?infrastructure=${infrastructureId}`);

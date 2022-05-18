@@ -75,13 +75,13 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
     this.setupAttributeCard();
   }
 
-  onInfrastructureChange(): void {
+  onInfrastructureChange(reset: boolean = false): void {
     this.places = [];
     this.mapControl?.removeLayer(this.placesLayer?.id!);
     if (!this.selectedInfrastructure) return;
     this.editFields = JSON.parse(JSON.stringify(this.selectedInfrastructure.placeFields));
     this.isLoading$.next(true);
-    this.restService.getPlaces(this.selectedInfrastructure.id).subscribe(places => {
+    this.restService.getPlaces(this.selectedInfrastructure.id, { reset: reset }).subscribe(places => {
       this.isLoading$.next(false);
       this.dataColumns = ['Standort'];
       this.selectedInfrastructure!.placeFields?.forEach(field => {
@@ -265,7 +265,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
           Object.assign(_this.selectedInfrastructure!, infrastructure);
           _this.isLoading$.next(false);
           _this.editAttributesCard?.closeDialog();
-          _this.onInfrastructureChange();
+          _this.onInfrastructureChange(true);
         }, error => {
           _this.isLoading$.next(false);
           _this.editErrors = error.error

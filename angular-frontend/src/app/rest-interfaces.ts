@@ -243,6 +243,7 @@ export interface FieldType{
 }
 
 export interface PlaceField {
+  id?: number,
   fieldType: number
   name: string,
   unit: string,
