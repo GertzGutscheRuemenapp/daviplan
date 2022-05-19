@@ -18,6 +18,7 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { MatDialog } from "@angular/material/dialog";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { tap } from "rxjs/operators";
+import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 
 export interface ProjectSettings {
   projectArea: string,
@@ -373,19 +374,24 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       this.showAreaLayers = false;
     })
     this.areaCard.dialogConfirmed.subscribe(ok => {
-      this.areaCard.setLoading(true);
+      const dialogRef = SimpleDialogComponent.show(
+        'Geometrie des Projektgebietes wird hochgeladen und mit dem Raster verschnitten. ' +
+                'Die Gebiete der vordefinierten Gebietseinteilungen innerhalb des Projektgebietes werden heruntergeladen.<br><br>' +
+                'Dies kann einige Minuten dauern. Bitte warten',
+        this.dialog, { showAnimatedDots: true, width: '400px' });
       const format = new WKT();
       let projectGeom = this.getMergedSelectGeometry();
       let wkt = projectGeom? `SRID=${this.areaSelectMapControl?.srid};` + format.writeGeometry(projectGeom) : null
       this.http.patch<ProjectSettings>(`${this.rest.URLS.projectSettings}`,
         { projectArea: wkt }
       ).subscribe(settings => {
+        dialogRef.close();
         this.areaCard?.closeDialog(true);
         this.projectSettings = settings;
         this.updatePreviewLayer();
       },(error) => {
+        dialogRef.close();
         this.projectAreaErrors = error.error;
-        this.areaCard.setLoading(false);
       });
     })
   }

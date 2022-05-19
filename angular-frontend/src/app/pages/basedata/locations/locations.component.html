@@ -59,7 +59,7 @@
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
           <span class="subtitle1 sub">
-            Infrastrukturbereich "{{selectedInfrastructure?.name}}"
+            Infrastrukturbereich: <p style="font-size: 1.5em;">"{{selectedInfrastructure?.name || '-'}}"</p>
           </span>
           <div style="display: flex; margin-top: 15px;">
             <table>
@@ -276,7 +276,7 @@
     </mat-error>
   </div>
   <p>
-    Befülltes Excel-Template mit Standortdaten für Infrastruktur "{{selectedInfrastructure?.name}}" hochladen
+    Befülltes Excel-Template mit Standortdaten für den Infrastrukturbereich <b>"{{selectedInfrastructure?.name}}"</b> hochladen
   </p>
   <input #fileInput type="file" accept=".xlsx,xls" (change)="setFiles($event)">
 </ng-template>

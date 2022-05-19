@@ -18,6 +18,7 @@ from datentool_backend.population.models import (Population, Prognosis,
                                                  PopulationEntry)
 from datentool_backend.utils.pop_aggregation import (
         disaggregate_population, aggregate_many)
+from datentool_backend.utils.excel_template import ColumnError
 
 
 
@@ -27,7 +28,6 @@ area_level_id_serializer = serializers.PrimaryKeyRelatedField(
 
 years_serializer = serializers.ListField(child=serializers.IntegerField(),
                                          help_text='years to incude in the template',)
-
 
 prognosis_id_serializer = serializers.PrimaryKeyRelatedField(
     queryset=Prognosis.objects.all(),
@@ -107,9 +107,8 @@ class PopulationTemplateSerializer(serializers.Serializer):
             for i, year in enumerate(years):
                 meta.cell(3, i+2, year)
             meta['A4'] = 'prognosis'
-            meta['B4'] = prognosis_id
             if prognosis_id:
-                meta['C4'] = prognosis.name
+                meta['B4'] = prognosis.name
 
             for year in years:
                 columns = ['area_id', 'gender_id', 'age_group_id', 'value']
@@ -181,6 +180,7 @@ class PopulationTemplateSerializer(serializers.Serializer):
     def read_excel_file(self, request) -> pd.DataFrame:
         """read excelfile and return a dataframe"""
         excel_file = request.FILES['excel_file']
+        prognosis_id = request.data.get('prognosis')
         #popraster = PopulationRaster.objects.get(default=True)
         columns = ['population_id', 'area_id', 'gender_id',
                    'age_group_id', 'value']
@@ -205,7 +205,6 @@ class PopulationTemplateSerializer(serializers.Serializer):
                                     columns=['age_group_id', 'Altersgruppe'])\
             .set_index('Altersgruppe')
 
-        prognosis_name = meta['C4'].value
         #if prognosis_name:
             #prognosis
         n_years = meta['B2'].value
@@ -214,28 +213,31 @@ class PopulationTemplateSerializer(serializers.Serializer):
         for y in years:
             year, created = Year.objects.get_or_create(year=y)
             population, created = Population.objects.get_or_create(
-                prognosis__name=prognosis_name,
+                prognosis_id=prognosis_id,
                 year=year,
                 #popraster=popraster,
                 )
 
-            # get the values and unpivot the data
-            df_pop = pd.read_excel(excel_file.file,
-                                   sheet_name=str(y),
-                                   header=[1, 2, 3, 4],
-                                   #skiprows=[1],
-                                   dtype={key_attr: object,},
-                                   index_col=[0, 1, 2])\
-                .stack(level=[0, 1, 2, 3])\
-                .reset_index()
-            df_pop = df_pop.drop(['id', 'gender_id', 'age_group_id'], axis=1)
-            df_pop = df_pop\
-                .merge(df_areas, left_on=key_attr, right_index=True)\
-                .merge(df_genders, left_on='Geschlecht', right_index=True)\
-                .merge(df_agegroups, left_on='Altersgruppe', right_index=True)
+            try:
+                # get the values and unpivot the data
+                df_pop = pd.read_excel(excel_file.file,
+                                       sheet_name=str(y),
+                                       header=[1, 2, 3, 4],
+                                       #skiprows=[1],
+                                       dtype={key_attr: object,},
+                                       index_col=[0, 1, 2])\
+                    .stack(level=[0, 1, 2, 3])\
+                    .reset_index()
+                df_pop = df_pop.drop(['id', 'gender_id', 'age_group_id'], axis=1)
+                df_pop = df_pop\
+                    .merge(df_areas, left_on=key_attr, right_index=True)\
+                    .merge(df_genders, left_on='Geschlecht', right_index=True)\
+                    .merge(df_agegroups, left_on='Altersgruppe', right_index=True)
 
-            df_pop.rename(columns={0: 'value',}, inplace=True)
-            df_pop['population_id'] = population.id
+                df_pop.rename(columns={0: 'value',}, inplace=True)
+                df_pop['population_id'] = population.id
+            except KeyError as e:
+                raise ColumnError(f'Spalte {e} wurde nicht gefunden.')
             populations.append(population)
             df = pd.concat([df, df_pop[columns]])
 

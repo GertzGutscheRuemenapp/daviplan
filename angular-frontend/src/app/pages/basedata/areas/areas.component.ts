@@ -14,6 +14,7 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { RestCacheService } from "../../../rest-cache.service";
 import { tap } from "rxjs/operators";
+import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 
 @Component({
   selector: 'app-areas',
@@ -253,12 +254,16 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       }
     });
     dialogRef.componentInstance.confirmed.subscribe((confirmed: boolean) => {
-      dialogRef.componentInstance.isLoading$.next(true);
+      const dialogRef2 = SimpleDialogComponent.show(
+        'Die Gebiete werden abgerufen und mit eventuell vorhandenen Bevölkerungsdaten verschnitten. Bitte warten',
+        this.dialog, { showAnimatedDots: true, width: '350px' });
       this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/pull_areas/`,
         { truncate: true, simplify: false }).subscribe(res => {
+        dialogRef2.close();
         dialogRef.close();
         this.selectAreaLevel(this.activeLevel!, true);
       }, error => {
+        dialogRef2.close();
         this.uploadErrors = error.error;
         dialogRef.componentInstance.isLoading$.next(false);
       });
@@ -290,16 +295,19 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         return;
       const formData = new FormData();
       formData.append('file', this.file);
-      dialogRef.componentInstance.isLoading$.next(true);
+      const dialogRef2 = SimpleDialogComponent.show(
+        'Die Gebiete werden hochgeladen und mit eventuell vorhandenen Bevölkerungsdaten verschnitten. Bitte warten',
+        this.dialog, { showAnimatedDots: true, width: '350px' });
       this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/upload_shapefile/`, formData).subscribe(res => {
         dialogRef.close();
+        dialogRef2.close();
         this.http.get<AreaLevel>(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/`).subscribe(al => {
           Object.assign(this.activeLevel, al);
           this.selectAreaLevel(this.activeLevel!, true);
         })
       }, error => {
         this.uploadErrors = error.error;
-        dialogRef.componentInstance.isLoading$.next(false);
+        dialogRef2.close();
       });
     });
     dialogRef.afterClosed().subscribe(ok => {
