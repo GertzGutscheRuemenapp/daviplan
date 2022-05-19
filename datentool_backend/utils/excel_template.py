@@ -1,5 +1,7 @@
 from io import StringIO
 from distutils.util import strtobool
+import sys
+import traceback
 
 from django.http import HttpResponse
 from django.db import transaction
@@ -10,6 +12,10 @@ from rest_framework.decorators import action
 from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
 
 from datentool_backend.utils.serializers import MessageSerializer, drop_constraints
+
+
+class ColumnError(Exception):
+    pass
 
 
 class ExcelTemplateMixin:
@@ -80,10 +86,16 @@ class ExcelTemplateMixin:
                             file,
                             drop_constraints=False, drop_indexes=False,
                         )
+            except ColumnError as e:
+                return Response({'Fehler': f'{e} '
+                                 'Bitte überprüfen Sie das Template.'},
+                                status=status.HTTP_406_NOT_ACCEPTABLE)
 
             except Exception as e:
-                msg = str(e)
-                return Response({'message': msg,}, status=status.HTTP_406_NOT_ACCEPTABLE)
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                msg = repr(traceback.format_tb(exc_traceback))
+                return Response({'Fehler': msg},
+                                status=status.HTTP_406_NOT_ACCEPTABLE)
 
             finally:
                 # recreate indices

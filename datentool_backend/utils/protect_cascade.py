@@ -8,6 +8,7 @@ def PROTECT_CASCADE(collector, field, sub_objs, using):
     Otherwise use CASCADE
     """
     use_protection = getattr(collector, 'use_protection', False)
+    # ToDo: better (german) error messages for frontend
     if use_protection:
         PROTECT(collector, field, sub_objs, using)
     else:
