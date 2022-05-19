@@ -204,7 +204,7 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
     dialogRef.componentInstance.confirmed.subscribe(() => {
       const url = `${this.rest.URLS.statistics}pull_regionalstatistik/`;
       const dialogRef2 = SimpleDialogComponent.show(
-        'Die Bevölkerungstatistiken werden abgerufen. Bitte warten', this.dialog, { showAnimatedDots: true });
+        'Die Bevölkerungsstatistiken werden abgerufen. Bitte warten', this.dialog, { showAnimatedDots: true });
       this.http.post(url, {}).subscribe(() => {
         this.restService.reset();
         this.fetchData();

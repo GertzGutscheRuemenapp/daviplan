@@ -42,6 +42,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   isLoading$ = new BehaviorSubject<boolean>(false);
   backend: string = environment.backend;
   mapControl?: MapControl;
+  ageGroupsRegStatValid = false;
   years: Year[] = [];
   popLevel?: AreaLevel;
   popLevelMissing = false;
@@ -98,6 +99,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
     this.popService.getGenders().subscribe(genders => {
       this.genders = genders;
       this.popService.getAgeGroups().subscribe(ageGroups => {
+        this.checkAgeGroups(ageGroups);
         this.genders.forEach(gender => {
           this.dataColumns = this.dataColumns.concat(ageGroups.map(ag => `${ag.label} (${gender.name})`));
         })
@@ -145,6 +147,14 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         this.updatePreview();
         this.yearCard?.closeDialog(true);
       });
+    })
+  }
+
+  checkAgeGroups(ageGroups: AgeGroup[]){
+    this.http.post(`${this.rest.URLS.ageGroups}check/`, ageGroups).subscribe(res => {
+      this.ageGroupsRegStatValid = true;
+    }, error => {
+      this.ageGroupsRegStatValid = false;
     })
   }
 
@@ -305,16 +315,17 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
       const url = `${this.rest.URLS.populations}pull_regionalstatistik/`;
-      dialogRef.componentInstance.isLoading$.next(true);
+      const dialogRef2 = SimpleDialogComponent.show(
+        'Die Bevölkerungsdaten werden von der Regionalstatistik abgerufen. Sie werden auf das Raster disaggregiert und anschließend auf die vorhandenen Gebiete aggregiert.<br><br>' +
+        'Dies kann einige Minuten dauern. Bitte warten', this.dialog, { showAnimatedDots: true, width: '400px' });
       this.http.post(url, {}).subscribe(() => {
-/*        this.router.routeReuseStrategy.shouldReuseRoute = () => false;
-        this.router.navigate([this.router.url]);*/
         this.popService.reset();
         this.fetchData();
+        dialogRef2.close();
         dialogRef.close();
       }, error => {
         this.pullErrors = error.error;
-        dialogRef.componentInstance.isLoading$.next(false);
+        dialogRef2.close();
       })
     })
   }
