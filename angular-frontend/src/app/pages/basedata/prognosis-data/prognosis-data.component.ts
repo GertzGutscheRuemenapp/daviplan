@@ -26,6 +26,7 @@ import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { BehaviorSubject } from "rxjs";
 import * as fileSaver from "file-saver";
+import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 
 @Component({
   selector: 'app-prognosis-data',
@@ -429,17 +430,18 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   downloadTemplate(): void {
     if (!(this.popLevel && this.activePrognosis)) return;
     const url = `${this.rest.URLS.popEntries}create_template/`;
-    this.popService.setLoading(true);
+    const dialogRef = SimpleDialogComponent.show('Bereite Template vor. Bitte warten', this.dialog, { showAnimatedDots: true });
     this.http.post(url, { area_level: this.popLevel.id, years: this.prognosisYears, prognosis: this.activePrognosis.id }, { responseType: 'blob' }).subscribe((res:any) => {
       const blob: any = new Blob([res],{ type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      this.popService.setLoading(false);
       fileSaver.saveAs(blob, 'prognosedaten-template.xlsx');
+      dialogRef.close();
     },(error) => {
-      this.popService.setLoading(false);
+      dialogRef.close();
     });
   }
 
   uploadTemplate(): void {
+    if (!this.activePrognosis) return;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
       data: {
@@ -453,15 +455,20 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
         return;
       const formData = new FormData();
       formData.append('excel_file', this.file);
-      dialogRef.componentInstance.isLoading$.next(true);
+      formData.append('prognosis', this.activePrognosis!.id.toString());
+      const dialogRef2 = SimpleDialogComponent.show(
+        'Das Template wird hochgeladen. Die Bevölkerungsdaten werden auf das Raster disaggregiert und anschließend auf die vorhandenen Gebiete aggregiert.<br><br>' +
+        'Dies kann einige Minuten dauern. Bitte warten', this.dialog, { showAnimatedDots: true, width: '400px' });
       const url = `${this.rest.URLS.popEntries}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
         this.popService.reset();
         this.fetchData();
         dialogRef.close();
+        dialogRef2.close();
       }, error => {
         this.uploadErrors = error.error;
         dialogRef.componentInstance.isLoading$.next(false);
+        dialogRef2.close();
       });
     });
     dialogRef.afterClosed().subscribe(ok => {

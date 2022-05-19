@@ -21,6 +21,7 @@ import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.compone
 import { sortBy } from "../../../helpers/utils";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
+import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 
 interface PlaceEditField extends PlaceField {
   edited?: boolean;
@@ -182,13 +183,13 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
 
   downloadTemplate(): void {
     const url = `${this.rest.URLS.places}create_template/`;
-    this.isLoading$.next(true);
+    const dialogRef = SimpleDialogComponent.show('Bereite Template vor. Bitte warten', this.dialog, { showAnimatedDots: true });
     this.http.post(url, { infrastructure: this.selectedInfrastructure?.id }, { responseType: 'blob' }).subscribe((res:any) => {
       const blob: any = new Blob([res],{ type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      this.isLoading$.next(false);
+      dialogRef.close();
       fileSaver.saveAs(blob, 'standorte-template.xlsx');
     },(error) => {
-      this.isLoading$.next(false);
+      dialogRef.close();
     });
   }
 
@@ -318,15 +319,18 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       if (!this.file)
         return;
       const formData = new FormData();
+      formData.append('infrastructure', this.selectedInfrastructure!.id.toString());
       formData.append('excel_file', this.file);
-      dialogRef.componentInstance.isLoading$.next(true);
+      const dialogRef2 = SimpleDialogComponent.show(
+        'Das Template wird hochgeladen. Bitte warten', this.dialog, { showAnimatedDots: true });
       const url = `${this.rest.URLS.places}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
         this.onInfrastructureChange(true);
         dialogRef.close();
+        dialogRef2.close();
       }, error => {
         this.uploadErrors = error.error;
-        dialogRef.componentInstance.isLoading$.next(false);
+        dialogRef2.close();
       });
     });
     dialogRef.afterClosed().subscribe(ok => {
