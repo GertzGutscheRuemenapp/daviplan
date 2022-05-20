@@ -104,7 +104,7 @@
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
           <span class="subtitle1 sub">
-            Prognosevariante: {{(activePrognosis)? '"' + activePrognosis.name + '"': '-'}}
+            Prognosevariante: <p style="font-size: 1.5em;">"{{activePrognosis?.name || '-'}}"</p>
           </span>
 <!--          <div style="margin-top: 15px; display: flex;">
             <table>
@@ -304,7 +304,7 @@
     </mat-error>
   </div>
   <p>
-    Befülltes Excel-Template mit Prognosedaten hochladen
+    Befülltes Excel-Template mit Bevölkerungsdaten für die Prognose <b>"{{activePrognosis?.name}}"</b> hochladen
   </p>
   <input #fileInput type="file" accept=".xlsx,xls" (change)="setFiles($event)">
 </ng-template>

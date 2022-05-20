@@ -113,7 +113,7 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
         file_content = open(file_path_places, 'rb')
         data = {
             'excel_file' : file_content,
-            #'infrastructure': self.infra.pk,
+            'infrastructure': self.infra.pk,
         }
 
         url = reverse('places-upload-template')

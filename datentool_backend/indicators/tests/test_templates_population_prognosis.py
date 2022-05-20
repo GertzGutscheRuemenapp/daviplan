@@ -119,6 +119,7 @@ class PopulationTemplateTest(LoginTestCase, APITestCase, CreateTestdataMixin):
             file_content = open(file_path_popdata, 'rb')
             data = {
                 'excel_file' : file_content,
+                'prognosis': 1,
             }
 
             url = reverse('populationentries-upload-template')

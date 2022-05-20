@@ -26,6 +26,7 @@ import { sortBy } from "../../../helpers/utils";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { Router } from "@angular/router";
 import { BehaviorSubject } from "rxjs";
+import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 
 @Component({
   selector: 'app-real-data',
@@ -41,6 +42,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   isLoading$ = new BehaviorSubject<boolean>(false);
   backend: string = environment.backend;
   mapControl?: MapControl;
+  ageGroupsRegStatValid = false;
   years: Year[] = [];
   popLevel?: AreaLevel;
   popLevelMissing = false;
@@ -97,6 +99,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
     this.popService.getGenders().subscribe(genders => {
       this.genders = genders;
       this.popService.getAgeGroups().subscribe(ageGroups => {
+        this.checkAgeGroups(ageGroups);
         this.genders.forEach(gender => {
           this.dataColumns = this.dataColumns.concat(ageGroups.map(ag => `${ag.label} (${gender.name})`));
         })
@@ -147,6 +150,14 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
     })
   }
 
+  checkAgeGroups(ageGroups: AgeGroup[]){
+    this.http.post(`${this.rest.URLS.ageGroups}check/`, ageGroups).subscribe(res => {
+      this.ageGroupsRegStatValid = true;
+    }, error => {
+      this.ageGroupsRegStatValid = false;
+    })
+  }
+
   deleteData(year: Year): void {
     if (!year.hasRealData) return;
     const dialogRef = this.dialog.open(RemoveDialogComponent, {
@@ -162,7 +173,8 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
       const population = this.populations.find(p => p.year === year.id);
       if (!population) return;
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.populations}${population.id}/`
+        this.yearCard?.setLoading(true);
+        this.http.delete(`${this.rest.URLS.populations}${population.id}/?force=true/`
         ).subscribe(res => {
           const idx = this.populations.indexOf(population);
           if (idx > -1) this.populations.splice(idx, 1);
@@ -173,8 +185,10 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
             this.dataRows = [];
             this.updatePreview();
           }
+          this.yearCard?.setLoading(false);
         },(error) => {
           console.log('there was an error sending the query', error);
+          this.yearCard?.setLoading(false);
         });
       }
     });
@@ -258,13 +272,13 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   downloadTemplate(): void {
     if (!this.popLevel) return;
     const url = `${this.rest.URLS.popEntries}create_template/`;
-    this.isLoading$.next(true);
+    const dialogRef = SimpleDialogComponent.show('Bereite Template vor. Bitte warten', this.dialog, { showAnimatedDots: true });
     this.http.post(url, { area_level: this.popLevel.id, years: this.realYears }, { responseType: 'blob' }).subscribe((res:any) => {
       const blob: any = new Blob([res],{ type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      this.isLoading$.next(false);
+      dialogRef.close();
       fileSaver.saveAs(blob, 'realdaten-template.xlsx');
     },(error) => {
-      this.isLoading$.next(false);
+      dialogRef.close();
     });
   }
 
@@ -301,16 +315,17 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
       const url = `${this.rest.URLS.populations}pull_regionalstatistik/`;
-      dialogRef.componentInstance.isLoading$.next(true);
+      const dialogRef2 = SimpleDialogComponent.show(
+        'Die Bevölkerungsdaten werden von der Regionalstatistik abgerufen. Sie werden auf das Raster disaggregiert und anschließend auf die vorhandenen Gebiete aggregiert.<br><br>' +
+        'Dies kann einige Minuten dauern. Bitte warten', this.dialog, { showAnimatedDots: true, width: '400px' });
       this.http.post(url, {}).subscribe(() => {
-/*        this.router.routeReuseStrategy.shouldReuseRoute = () => false;
-        this.router.navigate([this.router.url]);*/
         this.popService.reset();
         this.fetchData();
+        dialogRef2.close();
         dialogRef.close();
       }, error => {
         this.pullErrors = error.error;
-        dialogRef.componentInstance.isLoading$.next(false);
+        dialogRef2.close();
       })
     })
   }
@@ -376,15 +391,18 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         return;
       const formData = new FormData();
       formData.append('excel_file', this.file);
-      dialogRef.componentInstance.isLoading$.next(true);
+      const dialogRef2 = SimpleDialogComponent.show(
+        'Das Template wird hochgeladen. Die Bevölkerungsdaten werden auf das Raster disaggregiert und anschließend auf die vorhandenen Gebiete aggregiert.<br><br>' +
+        'Dies kann einige Minuten dauern. Bitte warten', this.dialog, { showAnimatedDots: true, width: '400px' });
       const url = `${this.rest.URLS.popEntries}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
         this.popService.reset();
         this.fetchData();
         dialogRef.close();
+        dialogRef2.close();
       }, error => {
         this.uploadErrors = error.error;
-        dialogRef.componentInstance.isLoading$.next(false);
+        dialogRef2.close();
       });
     });
     dialogRef.afterClosed().subscribe(ok => {

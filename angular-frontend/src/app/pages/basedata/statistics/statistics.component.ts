@@ -12,6 +12,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
+import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 
 @Component({
   selector: 'app-statistics',
@@ -202,14 +203,17 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
       const url = `${this.rest.URLS.statistics}pull_regionalstatistik/`;
-      dialogRef.componentInstance.isLoading$.next(true);
+      const dialogRef2 = SimpleDialogComponent.show(
+        'Die Bevölkerungsstatistiken werden abgerufen. Bitte warten', this.dialog, { showAnimatedDots: true });
       this.http.post(url, {}).subscribe(() => {
         this.restService.reset();
         this.fetchData();
         dialogRef.close();
+        dialogRef2.close();
       }, error => {
         this.pullErrors = error.error;
         dialogRef.componentInstance.isLoading$.next(false);
+        dialogRef2.close();
       })
     })
   }

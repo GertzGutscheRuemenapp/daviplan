@@ -95,10 +95,11 @@ class PlacesTemplateSerializer(serializers.Serializer):
             .filter(place__infrastructure=infrastructure)
 
         places = Place.objects.filter(infrastructure=infrastructure)
-        df_placename = pd.DataFrame(places.values('id', 'name'))\
-            .rename(columns={'id': 'place_id', })\
-            .set_index('place_id')
-        df_places['Name'] = df_placename['name']
+        if places:
+            df_placename = pd.DataFrame(places.values('id', 'name'))\
+                .rename(columns={'id': 'place_id', })\
+                .set_index('place_id')
+            df_places['Name'] = df_placename['name']
         for col in ['Straße', 'Hausnummer', 'PLZ', 'Ort']:
             try:
                 infrastructure.placefield_set.get(name=col)
@@ -201,9 +202,9 @@ class PlacesTemplateSerializer(serializers.Serializer):
         fn = os.path.join(settings.MEDIA_ROOT, excel_filename)
         sheetname = 'Standorte und Kapazitäten'
         with pd.ExcelWriter(fn, engine='openpyxl') as writer:
-            df_meta = pd.DataFrame({'value': [infrastructure_id]},
-                                   index=pd.Index(['infrastructure'], name='key'))
-            df_meta.to_excel(writer, sheet_name='meta')
+            meta = writer.book.create_sheet('meta')
+            meta['A1'] = 'infrastructure'
+            meta['B1'] = infrastructure.name
 
             df_classification.reset_index().to_excel(writer,
                                                      sheet_name=sn_classifications,
@@ -256,19 +257,12 @@ class PlacesTemplateSerializer(serializers.Serializer):
                         ) -> pd.DataFrame:
         """read excelfile and return a dataframe"""
         excel_file = request.FILES['excel_file']
+        infrastructure_id = request.data.get('infrastructure')
 
-        # check if the right Excel-File is uploaded
-        df_meta = pd.read_excel(excel_file.file,
-                           sheet_name='meta').set_index('key')
+        if infrastructure_id is None:
+            raise Exception(f'Die ID der Infrastruktur muss im Formular mit übergeben werden.')
 
-        infra_id = df_meta.loc['infrastructure', 'value']
-        try:
-            infra = Infrastructure.objects.get(pk=infra_id)
-        except Infrastructure.DoesNotExist:
-            raise ValueError(f'Excel-File is for infrastructure with id {infra_id}, '
-                             f'which does not exist')
-        #msg = f'file is for infrastructure {infra.name} with id {infra_id}, but request was sent to id {infrastructure_id}'
-        #assert int(infrastructure_id) == df_meta.loc['infrastructure', 'value'], msg
+        infra = Infrastructure.objects.get(pk=infrastructure_id)
 
         # Check the classification
 
