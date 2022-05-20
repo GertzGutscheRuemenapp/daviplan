@@ -58,7 +58,7 @@ export class SettingsComponent implements AfterViewInit {
     this.setupContactDialog();
     this.setupWelcomeTextDialog();
     this.setupLogoDialog();
-    this.setupRegstatDialog();
+    // this.setupRegstatDialog();
   }
 
   setupTitleDialog(): void {

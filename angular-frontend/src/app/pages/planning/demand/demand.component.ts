@@ -135,15 +135,16 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
           area.properties.value = value;
           area.properties.description = `<b>${area.properties.label}</b><br>Nachfrage: ${area.properties.value}`
         })
-        const radiusFunc = d3.scaleLinear().domain([(min <= max)? min: 0, max]).range([5, 50]);
+        max = Math.max(max, 10);
         // const colorFunc = d3.scaleSequential().domain([0, 9 || 0])
         // .interpolator(d3.interpolateViridis);
-        const steps = (max < 1.2 * min)? 3: (max < 1.4)? 5: (max < 1.6 * min)? 7: 9;
+        const steps = (max < 1.2 * min)? 3: (max < 1.4 * min)? 5: (max < 1.6 * min)? 7: 9;
         // const colorFunc = d3.scaleThreshold<string>()
         //   .domain(d3.range(min, max, max/steps) ) //[20, 40, 60, 80]
         //   .range(d3.schemeBlues[steps]);
-        const colorFunc = d3.scaleLog<string>().domain(d3.range(min, max, max/steps))
-          .range(d3.schemeBlues[steps])
+        // workaround: schemeBlues first bin is black
+        const colorFunc = ((x: number) => d3.scaleLog<string>().domain(d3.range(min, max+max/(steps-1), max/(steps-1)))
+          .range(d3.schemeBlues[steps])(x+max/(steps-1)));
         this.demandLayer = this.mapControl?.addLayer({
             order: 0,
             type: 'vector',

@@ -198,7 +198,8 @@ export class OlMap {
       opacity: (options?.opacity != undefined) ? options?.opacity: 1,
       style: function(feature) {
         if (options?.labelField && layer.get('showLabel')) {
-          const text = (_this.view.getZoom()! > 10 )? String(feature.get(options?.labelField) || '') : ''
+          const label = feature.get(options?.labelField);
+          const text = (_this.view.getZoom()! > 10 )? String( (label != undefined)? label: 0) : ''
           style.getText().setText(text);
         }
         else {
@@ -372,7 +373,8 @@ export class OlMap {
     let source = new VectorSource(sourceOpt);
     const styleFunc = function(feature: any) {
       if (options?.labelField && layer.get('showLabel')) {
-        const text = (_this.view.getZoom()! > 9 )? String(feature.get(options?.labelField) || '') : ''
+        const label = feature.get(options?.labelField);
+        const text = (_this.view.getZoom()! > 10 )? String( (label != undefined)? label: 0) : ''
         style.getText().setText(text);
       }
       else {
