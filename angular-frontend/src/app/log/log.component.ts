@@ -1,5 +1,6 @@
 import { Component, AfterViewInit, ElementRef, ViewChild, Input } from '@angular/core';
 import { mockLogs, LogEntry } from "./logs";
+import { environment } from "../../environments/environment";
 
 @Component({
   selector: 'app-log',
@@ -9,10 +10,19 @@ import { mockLogs, LogEntry } from "./logs";
 export class LogComponent implements AfterViewInit {
   @ViewChild('log') logEl!: ElementRef;
   @Input() height: string = '100%';
+  @Input() room: string = '';
+  private wsURL = `${ environment.apiPath }/ws/log/`;
+  private chatSocket: WebSocket;
 
   entries: LogEntry[] = [];
 
-  constructor() { }
+  constructor() {
+    this.wsURL = this.wsURL.replace('http:', environment.production? 'wss:': 'ws');
+    this.chatSocket = new WebSocket(`${ this.wsURL }${ this.room }`);
+    this.chatSocket.onmessage = function (e) {
+      console.log(e);
+    }
+  }
 
   ngAfterViewInit(): void {
     this.entries = mockLogs;

@@ -14,7 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, re_path
 from django.conf.urls import url, include
 from django.conf import settings
 from django.conf.urls.static import static
@@ -23,14 +23,13 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView
 )
-
 from drf_spectacular.views import (SpectacularAPIView,
                                    SpectacularRedocView,
                                    SpectacularSwaggerView)
 
 
 from datentool_backend.views import AreaLevelTileView
-
+from .loggers import LogConsumer
 from .views import HomePageView
 
 urlpatterns = [
@@ -57,3 +56,7 @@ urlpatterns = [
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+websocket_urlpatterns = [
+    re_path(r'ws/log/(?P<room_name>\w+)/$', LogConsumer.as_asgi()),
+]

@@ -36,6 +36,8 @@ ALLOWED_HOSTS = [
     'datentool.ggr-planung.de'
 ]
 
+REDIS_HOST = os.environ.get('REDIS_HOST', '127.0.0.1')
+REDIS_PORT = os.environ.get('REDIS_PORT', 6379)
 
 # Application definition
 
@@ -52,7 +54,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'drf_spectacular',
     'django_cleanup.apps.CleanupConfig',
-    'django_filters'
+    'django_filters',
+    'channels'
 ]
 
 MIDDLEWARE = [
@@ -125,6 +128,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'datentool.wsgi.application'
+ASGI_APPLICATION = 'datentool.routing.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [(REDIS_HOST, REDIS_PORT)],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
