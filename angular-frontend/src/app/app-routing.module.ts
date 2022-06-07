@@ -159,7 +159,7 @@ const routes: Routes = [
         component: DemandQuotasComponent
       },
       {
-        path: 'verkehrsnetz',
+        path: 'strassennetz',
         component: RouterSettingsComponent
       },
       {
