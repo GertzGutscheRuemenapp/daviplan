@@ -146,7 +146,7 @@ class ProjectSettingViewSet(SingletonViewSet):
     queryset = ProjectSetting.objects.all()
     model_class = ProjectSetting
     serializer_class = ProjectSettingSerializer
-    permission_classes = [HasAdminAccessOrReadOnly]
+    permission_classes = [HasAdminAccessOrReadOnlyAny]
 
 
 class BaseDataSettingViewSet(viewsets.GenericViewSet):

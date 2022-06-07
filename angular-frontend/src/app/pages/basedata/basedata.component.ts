@@ -23,7 +23,7 @@ export class BasedataComponent implements OnInit {
       ]
     },
     {name:  $localize`Erreichbarkeiten`, davicon: 'icon-GGR-davicons-Font-Simple-5-Fortbewegung-Wegezeit', url: '', children: [
-        {name:  $localize`Verkehrsnetz`, url: 'grundlagendaten/verkehrsnetz', icon: 'route', children: []},
+        {name:  $localize`Straßennetz`, url: 'grundlagendaten/strassennetz', icon: 'route', children: []},
         {name:  $localize`Erreichbarkeiten`, url: 'grundlagendaten/erreichbarkeiten', icon: 'directions_bus_filled', children: []}
       ]
     },

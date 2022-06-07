@@ -5,6 +5,7 @@ import { HttpClient } from "@angular/common/http";
 import { Title } from "@angular/platform-browser";
 import { ProjectSettings } from "./pages/administration/project-definition/project-definition.component";
 import { BasedataSettings } from "./rest-interfaces";
+import { environment } from "../environments/environment";
 
 export interface SiteSettings {
   id: number,
@@ -90,7 +91,12 @@ export class SettingsService {
 
   private fetchSiteSettings(): void {
     this.http.get<SiteSettings>(this.rest.URLS.siteSettings)
-      .subscribe(siteSettings => this.siteSettings$.next(siteSettings));
+      .subscribe(siteSettings => {
+        if (environment.production) {
+          siteSettings.logo = siteSettings.logo.replace('http:', 'https:');
+        }
+        this.siteSettings$.next(siteSettings)
+      });
   }
 
   private fetchProjectSettings(): void {

@@ -21,7 +21,7 @@ const data: { [name: string]: DataDomain[] } = {
     { name: 'Prognosedaten', url: '/grundlagendaten/prognosedaten/', users: [mockUsers[1]], status: { text: '-', detail:'' }, marker: 3}
   ],
   'erreichbarkeit' : [
-    { name: 'Verkehrsnetz', url: '/grundlagendaten/verkehrsnetz/', users: [mockUsers[0]], status: { text: '-', detail:'' }},
+    { name: 'Straßennetz', url: '/grundlagendaten/strassennetz/', users: [mockUsers[0]], status: { text: '-', detail:'' }},
     { name: 'Zu Fuß', url: '/grundlagendaten/erreichbarkeiten/', users: [mockUsers[0]], status: { text: '-', detail:'' }},
     { name: 'Rad', url: '/grundlagendaten/erreichbarkeiten/', users: [mockUsers[0]], status: { text: '-', detail:'' }},
     { name: 'Auto', url: '/grundlagendaten/erreichbarkeiten/', users: [mockUsers[0]], status: { text: '-', detail:'' }},
