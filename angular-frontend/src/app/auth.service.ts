@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
-import { Observable, ReplaySubject, Subject, of, BehaviorSubject, throwError } from 'rxjs';
+import { Observable, ReplaySubject, Subject, of, BehaviorSubject, throwError, Subscription } from 'rxjs';
 import { User } from './pages/login/users';
-import { catchError, filter, switchMap, take, tap, map } from 'rxjs/operators';
+import { catchError, filter, switchMap, take, tap, map, delay } from 'rxjs/operators';
 import { RestAPI } from "./rest-api";
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree, Router } from "@angular/router";
 
@@ -14,20 +14,37 @@ interface Token {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   user$ = new BehaviorSubject<User | undefined>(undefined);
+  private timer?: Subscription;
 
-  constructor(private rest: RestAPI, private http: HttpClient) { }
+  constructor(private rest: RestAPI, private http: HttpClient, private router: Router) { }
+
+  setLocalStorage(token: Token) {
+    localStorage.setItem('accessToken', token.access);
+    localStorage.setItem('refreshToken', token.refresh);
+  }
+
+  clearLocalStorage() {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+  }
 
   login(credentials: { username: string; password: string }): Observable<Token> {
-    // localStorage.removeItem('token');
     let query = this.http.post<Token>(this.rest.URLS.token, credentials)
       .pipe(
         tap(token => {
-          localStorage.setItem('token', token.access);
-          localStorage.setItem('refreshToken', token.refresh);
+          this.setLocalStorage(token);
+          this.startTokenTimer();
           this.fetchCurrentUser().subscribe(user=>this.user$.next(user));
         })
       );
       return query;
+  }
+
+  logout(): void {
+    this.clearLocalStorage();
+    this.stopTokenTimer();
+    this.user$.next(undefined);
+    this.router.navigateByUrl('/login');
   }
 
   getCurrentUser(): Observable<User | undefined> {
@@ -37,13 +54,11 @@ export class AuthService {
         if (user) {
           return of(user);
         }
-
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('accessToken');
         // if there is token then fetch the current user
         if (token) {
           return this.fetchCurrentUser();
         }
-
         return of(undefined);
       })
     );
@@ -53,6 +68,7 @@ export class AuthService {
     return this.http.get<User>(this.rest.URLS.currentUser)
       .pipe(
         catchError(err => {
+          this.logout();
           return of(undefined);
         }),
         tap(user => {
@@ -63,21 +79,42 @@ export class AuthService {
 
   refreshToken(): Observable<Token> {
     const refreshToken = localStorage.getItem('refreshToken');
-    // localStorage.removeItem('token');
     return this.http.post<Token>(
       this.rest.URLS.refreshToken,{ refresh: refreshToken }
     ).pipe(
       tap(token => {
-        localStorage.setItem('token', token.access);
-        localStorage.setItem('refreshToken', token.refresh);
+        this.setLocalStorage(token);
+        this.startTokenTimer();
       })
     );
   }
 
-  logout(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    this.user$.next(undefined);
+  private getTokenRemainingTime() {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      return 0;
+    }
+    const jwtToken = JSON.parse(atob(accessToken.split('.')[1]));
+    const expires = new Date(jwtToken.exp * 1000);
+    return expires.getTime() - Date.now();
+  }
+
+  private startTokenTimer() {
+    const timeout = this.getTokenRemainingTime();
+    if (this.timer || !timeout) this.stopTokenTimer();
+    this.timer = of(true)
+      .pipe(
+        delay(timeout),
+        tap({
+          next: () => this.refreshToken().subscribe(),
+        })
+      )
+      .subscribe();
+  }
+
+  private stopTokenTimer() {
+    this.timer?.unsubscribe();
+    this.timer = undefined;
   }
 }
 
@@ -89,7 +126,7 @@ export class TokenInterceptor implements HttpInterceptor {
   constructor( private authService: AuthService, private router: Router) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const accessToken = localStorage.getItem('token');
+    const accessToken = localStorage.getItem('accessToken');
 
     return next.handle(this.addAuthorizationHeader(req, accessToken || '')).pipe(
       catchError(err => {
@@ -120,7 +157,6 @@ export class TokenInterceptor implements HttpInterceptor {
 
   private logoutAndRedirect(err: any): Observable<HttpEvent<any>> {
     this.authService.logout();
-    this.router.navigateByUrl('/login');
     return throwError(err);
   }
 
@@ -128,7 +164,7 @@ export class TokenInterceptor implements HttpInterceptor {
     // get new token, if no refreshing is in progress
     if (!this.refreshingInProgress) {
       this.refreshingInProgress = true;
-      localStorage.removeItem('token');
+      localStorage.removeItem('accessToken');
       return this.authService.refreshToken().pipe(
         switchMap((res) => {
           this.refreshingInProgress = false;
