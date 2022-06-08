@@ -21,6 +21,7 @@ from datentool_backend.population.models import (
     )
 from rest_framework.response import Response
 
+from datentool_backend.utils.processes import ProtectedProcessManager
 from datentool_backend.utils.serializers import (MessageSerializer,
                                                  drop_constraints,
                                                  )
@@ -53,7 +54,7 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
     @action(methods=['POST'], detail=False,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def pull_regionalstatistik(self, request, **kwargs):
-
+        #with ProtectedProcessManager(request.user):
         min_max_years = Year.objects.all().aggregate(Min('year'), Max('year'))
         settings = SiteSetting.load()
         username = settings.regionalstatistik_user or None

@@ -177,6 +177,10 @@ class PopulationTemplateSerializer(serializers.Serializer):
         content = open(fn, 'rb').read()
         return content
 
+    def get_queryset(self, request):
+        prognosis_id = request.data.get('prognosis', None)
+        return PopulationEntry.objects.filter(population__prognosis_id=prognosis_id)
+
     def read_excel_file(self, request) -> pd.DataFrame:
         """read excelfile and return a dataframe"""
         excel_file = request.FILES['excel_file']

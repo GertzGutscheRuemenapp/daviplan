@@ -38,7 +38,7 @@ from datentool_backend.utils.serializers import (MessageSerializer,
                                                  use_intersected_data,
                                                  drop_constraints,
                                                  area_level)
-
+from datentool_backend.utils.processes import ProtectedProcessManager
 from datentool_backend.population.serializers import (PrognosisSerializer,
                                                       PopulationSerializer,
                                                       PopulationDetailSerializer,
@@ -244,6 +244,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
     @action(methods=['POST'], detail=False,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def pull_regionalstatistik(self, request, **kwargs):
+        #with ProtectedProcessManager(request.user):
         CHUNK_SIZE = 10
         age_groups = AgeGroup.objects.all()
         if not RegStatAgeGroups.check(age_groups):

@@ -59,22 +59,25 @@ class ExcelTemplateMixin:
                                                    'Upload successful'),
                               406: OpenApiResponse(MessageSerializer,
                                                    'Upload failed')})
+
     @action(methods=['POST'], detail=False)
     def upload_template(self, request, queryset=None, **kwargs):
         """Upload the filled out Template"""
-        qs = queryset if queryset is not None else self.get_queryset()
-        model = qs.model
+        serializer = self.get_serializer()
+        if queryset is None:
+            queryset = serializer.get_queryset(request) \
+                if hasattr(serializer, 'get_queryset') else self.get_queryset()
+        model = queryset.model
         manager = model.copymanager
         drop_constraints = bool(strtobool(
             request.data.get('drop_constraints', 'False')))
 
-        serializer = self.get_serializer()
         with transaction.atomic():
             if drop_constraints:
                 manager.drop_constraints()
                 manager.drop_indexes()
 
-            qs.delete()
+            queryset.delete()
 
             try:
                 df = serializer.read_excel_file(request, **kwargs)
