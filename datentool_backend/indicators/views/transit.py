@@ -31,6 +31,7 @@ from datentool_backend.indicators.serializers import (StopSerializer,
                                                       MatrixCellStopSerializer,
                                                       MatrixPlaceStopSerializer,
                           )
+from datentool_backend.utils.processes import ProtectedProcessManager
 
 
 class StopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSet):
@@ -70,7 +71,8 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
     @action(methods=['POST'], detail=False)
     def upload_template(self, request):
         """Upload the filled out Stops-Template"""
-        return super().upload_template(request)
+        with ProtectedProcessManager(request.user):
+            return super().upload_template(request)
 
 
 class RouterViewSet(viewsets.ModelViewSet):
