@@ -155,7 +155,7 @@ class MatrixCellPlaceViewSet(AirDistanceRouterMixin, ProtectCascadeMixin, viewse
         network.is_default = True
         network.save()
         for mode in (Mode.WALK, Mode.BIKE, Mode.CAR):
-            variant, created = ModeVariant.get_or_create(
+            variant, created = ModeVariant.objects.get_or_create(
                 network=network, mode=mode.value)
             data = QueryDict(mutable=True)
             data.update(self.request.data)

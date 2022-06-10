@@ -14,6 +14,8 @@ from rest_framework.fields import FileField, IntegerField, BooleanField
 
 from matrixconverters.read_ptv import ReadPTVMatrix
 
+from datentool_backend.modes.models import (MODE_MAX_DISTANCE, MODE_SPEED,
+                                            ModeVariant)
 from datentool_backend.indicators.models import (Stop,
                                                  MatrixStopStop,
                                                  MatrixCellPlace,
@@ -120,12 +122,10 @@ class MatrixAirDistanceMixin(serializers.Serializer):
     def calculate_traveltimes(self, request) -> pd.DataFrame:
         """calculate traveltimes"""
 
-        max_distance = float(request.data.get('max_distance', 10000))
-        speed = float(request.data.get('speed', 10))
-        variant = int(request.data.get('variant'))
+        variant = ModeVariant.objects.get(id=request.data.get('variant'))
+        max_distance = MODE_MAX_DISTANCE[variant.mode]
+        speed = MODE_SPEED[variant.mode]
 
-        # TODO: dict speeds
-        # TODO: dict max dist
         query = self.get_query()
         params = (speed, max_distance)
 
@@ -134,7 +134,7 @@ class MatrixAirDistanceMixin(serializers.Serializer):
             df = pd.DataFrame(cursor.fetchall(),
                               columns=self.Meta.fields)
 
-        df['variant_id'] = variant
+        df['variant_id'] = variant.id
 
         return df
 
