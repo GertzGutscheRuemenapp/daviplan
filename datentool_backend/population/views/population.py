@@ -3,7 +3,7 @@ from io import StringIO
 from distutils.util import strtobool
 from django.http.request import QueryDict
 from django_filters import rest_framework as filters
-from django.db.models import Max, Min, Sum
+from django.db.models import Max, Min
 from drf_spectacular.utils import (extend_schema,
                                    OpenApiResponse,
                                    inline_serializer)
@@ -12,7 +12,8 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import transaction
-from django.core.exceptions import BadRequest, PermissionDenied
+from django.core.exceptions import PermissionDenied
+from rest_framework.response import Response
 
 from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
 from datentool_backend.utils.permissions import (
@@ -32,8 +33,6 @@ from datentool_backend.population.models import (
     )
 from datentool_backend.demand.constants import RegStatAgeGroups, regstatgenders
 from datentool_backend.demand.models import AgeGroup
-from rest_framework.response import Response
-
 from datentool_backend.utils.serializers import (MessageSerializer,
                                                  use_intersected_data,
                                                  drop_constraints,
@@ -244,107 +243,107 @@ class PopulationViewSet(viewsets.ModelViewSet):
     @action(methods=['POST'], detail=False,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def pull_regionalstatistik(self, request, **kwargs):
-        #with ProtectedProcessManager(request.user):
-        CHUNK_SIZE = 10
-        age_groups = AgeGroup.objects.all()
-        if not RegStatAgeGroups.check(age_groups):
-            return Response({'message': 'Die Altersklassen stimmen nicht mit '
-                             'denen der Regionalstatistik überein'},
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
-        # ToDo: there is also is_default_pop_level. set is_default_pop_level
-        # automatically to the is_statistic_level level on completion
-        # or complain here with 406 if they are not the same atm?
-        try:
-            area_level = AreaLevel.objects.get(is_statistic_level=True)
-        except AreaLevel.DoesNotExist:
-            msg = 'No AreaLevel for statistics defined'
-            return Response({'message': msg, },
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
-
-        areas = Area.annotated_qs(area_level).filter(area_level=area_level)
-
-        min_max_years = Year.objects.all().aggregate(Min('year'), Max('year'))
-        settings = SiteSetting.load()
-        username = settings.regionalstatistik_user or None
-        password = settings.regionalstatistik_password or None
-        api = Regionalstatistik(start_year=min_max_years['year__min'],
-                                end_year=min_max_years['year__max'],
-                                username=username,
-                                password=password)
-        ags_list = areas.values_list('ags', flat=True)
-        frames = []
-        try:
-            chunks = math.ceil(len(ags_list) / CHUNK_SIZE)
-            for i in range(0, chunks):
-                j = i * CHUNK_SIZE
-                ags = ags_list[j:min(j+CHUNK_SIZE, len(ags_list))]
-                frames.append(api.query_population(ags=ags))
-        except PermissionDenied as e:
-            msg = ('Die Datenmenge ist zu groß, um sie ohne Konto bei der '
-            'Regionalstatistik abrufen zu können. Bitte benachrichtigen Sie '
-            'den/die Toolkoordinator/in, dass ein Konto beantragt und die '
-            'Zugangsdaten in den Grundeinstellungen von daviplan eingetragen '
-            'werden müssen. Falls dort bereits ein Konto eingetragen ist, '
-            'überprüfen Sie bitte die Gültigkeit der Zugangsdaten.')
-            return Response({'message': msg, },
-                            status=status.HTTP_403_FORBIDDEN)
-        except Exception as e:
-            return Response({'message': str(e),},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        df_population = pd.concat(frames)
-        regstatagegroups = RegStatAgeGroups.as_series()
-        area_ids = pd.DataFrame(
-            areas.values('id', 'ags')).set_index('ags').loc[:, 'id']
-        area_ids.name = 'area_id'
-
-        year_grouped = df_population.groupby('year')
-        year2population = {}
-        populations = []
-        for y, year_group in year_grouped:
+        with ProtectedProcessManager(request.user):
+            CHUNK_SIZE = 10
+            age_groups = AgeGroup.objects.all()
+            if not RegStatAgeGroups.check(age_groups):
+                return Response({'message': 'Die Altersklassen stimmen nicht mit '
+                                 'denen der Regionalstatistik überein'},
+                                status=status.HTTP_406_NOT_ACCEPTABLE)
+            # ToDo: there is also is_default_pop_level. set is_default_pop_level
+            # automatically to the is_statistic_level level on completion
+            # or complain here with 406 if they are not the same atm?
             try:
-                year = Year.objects.get(year=y)
-            except Year.DoesNotExist:
-                continue
-            # delete existing population and all depending objects
+                area_level = AreaLevel.objects.get(is_statistic_level=True)
+            except AreaLevel.DoesNotExist:
+                msg = 'No AreaLevel for statistics defined'
+                return Response({'message': msg, },
+                                status=status.HTTP_406_NOT_ACCEPTABLE)
+
+            areas = Area.annotated_qs(area_level).filter(area_level=area_level)
+
+            min_max_years = Year.objects.all().aggregate(Min('year'), Max('year'))
+            settings = SiteSetting.load()
+            username = settings.regionalstatistik_user or None
+            password = settings.regionalstatistik_password or None
+            api = Regionalstatistik(start_year=min_max_years['year__min'],
+                                    end_year=min_max_years['year__max'],
+                                    username=username,
+                                    password=password)
+            ags_list = areas.values_list('ags', flat=True)
+            frames = []
             try:
-                population = Population.objects.get(year=year, prognosis=None)
-                population.delete()
-            except Population.DoesNotExist:
-                pass
-            # (Re-)Create Population
-            population = Population.objects.create(year=year, prognosis=None)
-            populations.append(population)
-            year2population[year.year] = population.id
+                chunks = math.ceil(len(ags_list) / CHUNK_SIZE)
+                for i in range(0, chunks):
+                    j = i * CHUNK_SIZE
+                    ags = ags_list[j:min(j+CHUNK_SIZE, len(ags_list))]
+                    frames.append(api.query_population(ags=ags))
+            except PermissionDenied as e:
+                msg = ('Die Datenmenge ist zu groß, um sie ohne Konto bei der '
+                'Regionalstatistik abrufen zu können. Bitte benachrichtigen Sie '
+                'den/die Toolkoordinator/in, dass ein Konto beantragt und die '
+                'Zugangsdaten in den Grundeinstellungen von daviplan eingetragen '
+                'werden müssen. Falls dort bereits ein Konto eingetragen ist, '
+                'überprüfen Sie bitte die Gültigkeit der Zugangsdaten.')
+                return Response({'message': msg, },
+                                status=status.HTTP_403_FORBIDDEN)
+            except Exception as e:
+                return Response({'message': str(e),},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        y2p = pd.Series(year2population, name='population_id')
-        # add gender_id, agegroup_id, area_id and population_id
-        df_population = df_population\
-            .merge(regstatgenders, left_on='GES', right_index=True)\
-            .merge(regstatagegroups, left_on='ALTX20', right_index=True)\
-            .merge(area_ids, left_on='AGS', right_index=True)\
-            .merge(y2p, left_on='year', right_index=True)\
-            .rename(columns={'inhabitants': 'value', })\
-            .loc[:, ['population_id', 'area_id', 'gender_id', 'age_group_id', 'value']]
+            df_population = pd.concat(frames)
+            regstatagegroups = RegStatAgeGroups.as_series()
+            area_ids = pd.DataFrame(
+                areas.values('id', 'ags')).set_index('ags').loc[:, 'id']
+            area_ids.name = 'area_id'
 
-        drop_constraints = request.data.get('drop_constraints', True)
-        if not isinstance(drop_constraints, bool):
-            drop_constraints = strtobool(drop_constraints)
+            year_grouped = df_population.groupby('year')
+            year2population = {}
+            populations = []
+            for y, year_group in year_grouped:
+                try:
+                    year = Year.objects.get(year=y)
+                except Year.DoesNotExist:
+                    continue
+                # delete existing population and all depending objects
+                try:
+                    population = Population.objects.get(year=year, prognosis=None)
+                    population.delete()
+                except Population.DoesNotExist:
+                    pass
+                # (Re-)Create Population
+                population = Population.objects.create(year=year, prognosis=None)
+                populations.append(population)
+                year2population[year.year] = population.id
 
-        with StringIO() as file:
-            df_population.to_csv(file, index=False)
-            file.seek(0)
-            PopulationEntry.copymanager.from_csv(
-                file,
-                drop_constraints=drop_constraints, drop_indexes=drop_constraints,
-            )
-        for population in populations:
-            disaggregate_population(population, use_intersected_data=True,
-                                    drop_constraints=drop_constraints)
-        aggregate_many(AreaLevel.objects.all(), populations,
-                       drop_constraints=drop_constraints)
-        msg = 'Download of Population from Regionalstatistik successful'
-        return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
+            y2p = pd.Series(year2population, name='population_id')
+            # add gender_id, agegroup_id, area_id and population_id
+            df_population = df_population\
+                .merge(regstatgenders, left_on='GES', right_index=True)\
+                .merge(regstatagegroups, left_on='ALTX20', right_index=True)\
+                .merge(area_ids, left_on='AGS', right_index=True)\
+                .merge(y2p, left_on='year', right_index=True)\
+                .rename(columns={'inhabitants': 'value', })\
+                .loc[:, ['population_id', 'area_id', 'gender_id', 'age_group_id', 'value']]
+
+            drop_constraints = request.data.get('drop_constraints', True)
+            if not isinstance(drop_constraints, bool):
+                drop_constraints = strtobool(drop_constraints)
+
+            with StringIO() as file:
+                df_population.to_csv(file, index=False)
+                file.seek(0)
+                PopulationEntry.copymanager.from_csv(
+                    file,
+                    drop_constraints=drop_constraints, drop_indexes=drop_constraints,
+                )
+            for population in populations:
+                disaggregate_population(population, use_intersected_data=True,
+                                        drop_constraints=drop_constraints)
+            aggregate_many(AreaLevel.objects.all(), populations,
+                           drop_constraints=drop_constraints)
+            msg = 'Download of Population from Regionalstatistik successful'
+            return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
 
 class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
@@ -377,3 +376,9 @@ class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
                                        years=years,
                                        prognosis_id=prognosis_id,
                                        )
+
+    @action(methods=['POST'], detail=False)
+    def upload_template(self, request):
+        """Upload the filled out Stops-Template"""
+        with ProtectedProcessManager(request.user):
+            return super().upload_template(request)

@@ -75,10 +75,11 @@ export interface Source {
 }
 
 export interface Indicator {
-  id: number;
   service: number;
   name: string;
+  title: string;
   description: string;
+  resultType: 'place' | 'area' | 'raster' | 'pop';
 }
 
 export interface AreaLevel {

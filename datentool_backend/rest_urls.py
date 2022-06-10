@@ -14,7 +14,7 @@ from .demand.views import (GenderViewSet,
                            AgeGroupViewSet,
                            DemandRateSetViewSet)
 
-from .modes.views import ModeVariantViewSet
+from .modes.views import NetworkViewSet
 from .indicators.views import (RouterViewSet,
                                FixedIndicatorViewSet,
                                StopViewSet,
@@ -58,7 +58,7 @@ router.register(r'demandratesets', DemandRateSetViewSet,
                 basename='demandratesets')
 
 # indicator
-router.register(r'modevariants', ModeVariantViewSet, basename='modevariants')
+router.register(r'networks', NetworkViewSet, basename='networks')
 router.register(r'stops', StopViewSet, basename='stops')
 router.register(r'matrixstopstops', MatrixStopStopViewSet, basename='matrixstopstops')
 router.register(r'matrixcellplaces', MatrixCellPlaceViewSet, basename='matrixcellplaces')

@@ -260,7 +260,7 @@
   <form [formGroup]="propertiesForm" style="padding: 10px 0;">
     <div *ngIf="propertiesForm.errors">
       <mat-error *ngFor="let error of propertiesForm.errors | keyvalue" class="alert">
-        {{ error.key }} - {{ error.value }}
+        {{ error.key }}: {{ error.value }}
       </mat-error>
     </div>
     <div fxLayout="column">

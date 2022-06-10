@@ -140,7 +140,7 @@
 <ng-template #pullServiceTemplate>
   <div *ngIf="pullErrors">
     <mat-error *ngFor="let error of pullErrors | keyvalue" class="alert">
-      {{ error.key }} {{ error.value }}
+      {{ error.key }}: {{ error.value }}
     </mat-error>
   </div>
   <p>
