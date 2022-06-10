@@ -32,6 +32,7 @@ from datentool_backend.population.models import (
     RasterCellPopulation,
     RasterCellPopulationAgeGender,
     AreaCell,
+    RasterCell
     )
 from rest_framework.response import Response
 
@@ -39,9 +40,8 @@ from datentool_backend.utils.serializers import (MessageSerializer,
                                                  drop_constraints,
                                                  )
 
-from datentool_backend.population.serializers import (RasterSerializer,
-                                                      PopulationRasterSerializer,
-                          )
+from datentool_backend.population.serializers import (
+    RasterSerializer, PopulationRasterSerializer, RasterCellSerializer)
 from datentool_backend.site.models import ProjectSetting
 
 
@@ -49,6 +49,30 @@ class RasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Raster.objects.all()
     serializer_class = RasterSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+
+class RasterCellViewSet(viewsets.ModelViewSet):
+    queryset = RasterCell.objects.all()
+    serializer_class = RasterCellSerializer
+    permission_classes = [HasAdminAccessOrReadOnly]
+
+    def get_queryset(self, request):
+        pop_raster_id = request.query_params.get('raster')
+        if pop_raster_id is not None:
+            pop_raster = PopulationRaster.objects.get(id=pop_raster_id)
+        else:
+            pop_raster = PopulationRaster.objects.first()
+        if not pop_raster:
+            return RasterCell.objects.none()
+
+        raster_cells = self.queryset.filter(pop_raster=pop_raster)
+
+        #raster_cells_with_inhabitants = raster_cells\
+            #.filter(rastercellpopulation__isnull=False)\
+            #.annotate(pop=F('rastercellpopulation__value'),
+                      #rcp_id=F('rastercellpopulation__id'),
+                      #)
+        return raster_cells
 
 
 class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

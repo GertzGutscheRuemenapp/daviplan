@@ -119,6 +119,10 @@ class MatrixStopStopTemplateSerializer(serializers.Serializer):
 class MatrixAirDistanceMixin(serializers.Serializer):
     drop_constraints = BooleanField(default=True)
 
+    def get_queryset(self, request):
+        variant = ModeVariant.objects.get(id=request.data.get('variant'))
+        return MatrixCellPlace.objects.filter(variant_id=variant)
+
     def calculate_traveltimes(self, request) -> pd.DataFrame:
         """calculate traveltimes"""
 

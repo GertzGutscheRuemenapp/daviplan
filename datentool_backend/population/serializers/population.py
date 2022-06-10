@@ -1,8 +1,10 @@
 from typing import List
 from rest_framework import serializers
+from rest_framework_gis.serializers import GeoFeatureModelSerializer
+from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
 
 from datentool_backend.population.models import (
-    Raster, PopulationRaster,
+    Raster, PopulationRaster, RasterCell,
     Prognosis, Population, PopulationEntry,
     PopStatistic, PopStatEntry,
     RasterCellPopulationAgeGender)
@@ -13,6 +15,13 @@ class RasterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Raster
         fields = ('id', 'name')
+
+
+class RasterCellSerializer(GeoFeatureModelSerializer):
+    geom = MultiPolygonGeometrySRIDField(srid=3857)
+    class Meta:
+        model = RasterCell
+        fields = ('id', 'name', 'value')
 
 
 class PopulationRasterSerializer(serializers.ModelSerializer):

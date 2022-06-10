@@ -101,8 +101,10 @@ class AirDistanceRouterMixin:
     @action(methods=['POST'], detail=False)
     def precalculate_traveltime(self, request):
         """Calculate traveltime with a air distance router"""
-        qs = self.get_queryset()
-        model = qs.model
+        serializer = self.get_serializer()
+        queryset = serializer.get_queryset(request) \
+            if hasattr(serializer, 'get_queryset') else self.get_queryset()
+        model = queryset.model
         manager = model.copymanager
         drop_constraints = bool(strtobool(
             request.data.get('drop_constraints', 'False')))
@@ -112,10 +114,9 @@ class AirDistanceRouterMixin:
                 manager.drop_constraints()
                 manager.drop_indexes()
 
-            qs.delete()
+            queryset.delete()
 
             try:
-                serializer = self.get_serializer()
                 df = serializer.calculate_traveltimes(request)
 
                 with StringIO() as file:
