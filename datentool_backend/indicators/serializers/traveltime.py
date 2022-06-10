@@ -120,8 +120,8 @@ class MatrixAirDistanceMixin(serializers.Serializer):
     def calculate_traveltimes(self, request) -> pd.DataFrame:
         """calculate traveltimes"""
 
-        max_distance = float(request.data.get('max_distance'))
-        speed = float(request.data.get('speed'))
+        max_distance = float(request.data.get('max_distance', 1000))
+        speed = float(request.data.get('speed', 10))
         variant = int(request.data.get('variant'))
 
         query = self.get_query()

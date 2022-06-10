@@ -19,7 +19,7 @@ class ModeVariant(DatentoolModelMixin, JsonAttributes, NamedModel, models.Model)
     '''
     mode = models.IntegerField(choices=Mode.choices)
     name = models.TextField()
-    meta = models.JSONField()
+    meta = models.JSONField(null=True)
     is_default = models.BooleanField(default=False)
     cutoff_time = models.ManyToManyField(Infrastructure, through='CutOffTime')
 

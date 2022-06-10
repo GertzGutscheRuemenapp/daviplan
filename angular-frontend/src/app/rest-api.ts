@@ -39,6 +39,7 @@ export class RestAPI {
     getCapabilities: `${ this.API_ENDPOINT }/wmslayers/getcapabilities/`,
     processes: `${ this.API_ENDPOINT }/planningprocesses/`,
     scenarios: `${ this.API_ENDPOINT }/scenarios/`,
+    matrixCellPlaces: `${ this.API_ENDPOINT }/matrixcellplaces/`,
   }
   // ToDo: functions with generalized HTTP calls in here
 }

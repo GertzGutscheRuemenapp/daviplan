@@ -1,5 +1,5 @@
 from django.db import transaction
-
+from django.http.request import QueryDict
 from io import StringIO
 from distutils.util import strtobool
 from rest_framework import viewsets, status
@@ -18,11 +18,11 @@ from datentool_backend.utils.permissions import (
 from datentool_backend.indicators.models import (Stop,
                                                  MatrixStopStop,
                                                  Router,
-                                                 ModeVariant,
                                                  MatrixCellPlace,
                                                  MatrixCellStop,
                                                  MatrixPlaceStop,
                                                  )
+from datentool_backend.modes.models import ModeVariant, Mode
 from datentool_backend.indicators.serializers import (StopSerializer,
                                                       StopTemplateSerializer,
                                                       MatrixStopStopTemplateSerializer,
@@ -147,6 +147,22 @@ class MatrixCellPlaceViewSet(AirDistanceRouterMixin, ProtectCascadeMixin, viewse
     def get_queryset(self):
         variant = self.request.data.get('variant')
         return MatrixCellPlace.objects.filter(variant=variant)
+
+    @action(methods=['POST'], detail=False)
+    def calculate_beelines(self, request):
+        for mode in (Mode.WALK, Mode.BIKE, Mode.CAR):
+            variant, created = ModeVariant.objects.get_or_create(
+                name='Basisnetz', mode=mode.value)
+            variant.is_default = True
+            variant.save()
+            data = QueryDict(mutable=True)
+            data.update(self.request.data)
+            data['drop_constraints'] = 'True'
+            data['variant'] = variant.id
+            request._full_data = data
+            self.precalculate_traveltime(request)
+        return Response({'message': 'Luftlinienberechnung abgeschlossen'},
+                        status=status.HTTP_202_ACCEPTED)
 
 
 class MatrixCellStopViewSet(AirDistanceRouterMixin, ProtectCascadeMixin, viewsets.GenericViewSet):

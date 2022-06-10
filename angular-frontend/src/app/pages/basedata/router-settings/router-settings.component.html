@@ -19,7 +19,16 @@
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
-    <app-input-card [title]="'Verkehrsnetze'"
+    <app-input-card [title]="'Basisnetz'"
+                    infoText="<p>Platzhalter</p>">
+      Status: noch nicht erzeugt
+      <button mat-flat-button color="primary" (click)="createBaseNetwork()">
+<!--        <mat-icon>build</mat-icon> -->
+        Basisnetz erzeugen
+      </button>
+    </app-input-card>
+    <app-input-card [title]="'Eigene Netzvarianten'"
+                    [disabled]="true"
                     infoText="<p>Klicken Sie auf „Hinzufügen“, um ein Verkehrsnetz hinzufügen und anschließend mit Hilfe der anderen Boxen genauer zu definieren.</p>
                     <p>Um die Eigenschaften eines Verkehrsnetzes zu betrachten und ggf. zu verändern, wählen Sie dieses in der Liste aus und kontrollieren Sie seine Eigenschaften in den anderen Boxen.</p>
                     <p>Um ein Verkehrsnetz zu löschen, wählen Sie dieses in der Liste aus und klicken Sie „Entfernen“.</p>
@@ -29,8 +38,7 @@
                       <li>Wenn Sie mit dem Verkehrsnetz eine ÖPNV-Erreichbarkeitsmatrix berechnen wollen müssen Sie ihm in der Box „ÖPNV-Daten (GTFS) des ausgewählten Verkehrsnetzes“ regionale Fahrplandaten hinzufügen. Es können bisher leider keine Standarddaten zur Verfügung gestellt werden. Weitere Informationen hierzu finden Sie dort.</li>
                       <li>Optional können Höhendaten in das Verkehrsnetz integriert werden um die Topografie zu berücksichtigen. Einem neu angelegten Verkehrsnetz wird automatisch ein Höhendatensatz hinzugefügt, den Sie optional austauschen können. Weitere Informationen hierzu finden Sie in der Box „Höhendaten des ausgewählten Verkehrsnetzes“.</li>
                     </ul>
-                    <p>Wenn Sie alle für Ihre Zwecke notwendigen Daten in den entsprechenden Eingabeboxen hinzufügt haben, klicken Sie bitte in der Box „Routensucher für das ausgewählte Verkehrsnetz“ auf „Routensucher erzeugen“.</p>"
-                    subtitle="Router mit verschiedenen Wegenetzen">
+                    <p>Wenn Sie alle für Ihre Zwecke notwendigen Daten in den entsprechenden Eingabeboxen hinzufügt haben, klicken Sie bitte in der Box „Routensucher für das ausgewählte Verkehrsnetz“ auf „Routensucher erzeugen“.</p>">
       <mat-selection-list [multiple]="false"
                           id="router-select">
         <mat-list-option *ngFor="let router of routers"
@@ -50,135 +58,57 @@
           <mat-icon>close</mat-icon>entfernen
         </button>
       </div>
+      <br>
+      <button mat-flat-button color="primary">
+<!--        <mat-icon>build</mat-icon> -->
+        Basisnetz exportieren
+      </button>
+      <br>
+      <button mat-flat-button color="primary">
+<!--        <mat-icon>build</mat-icon>-->
+        Eigene Netzvariante hochladen
+      </button>
+      <br>
+      <button mat-flat-button color="primary">
+<!--        <mat-icon>build</mat-icon> -->
+        Ausgewählte Variante löschen
+      </button>
     </app-input-card>
   </div>
-  <div fxLayout="column">
-    <div style="display: flex; flex-flow: wrap; max-width: 900px;">
-      <div style="width: 300px;">
-        <app-input-card [title]="'OpenStreetMap Daten'"
-                        infoText="<p>Jedes Verkehrsnetz benötigt Straßennetzdaten im Datenformat der OpenStreetMap-Daten.</p>
-                        <p>Einem in der Box „Verkehrsnetze“ neu hinzugefügten Verkehrsnetz wird automatisch ein Standarddatensatz mit OpenStreetMap-Daten (Stand 2021) hinzugefügt. Sie haben die Möglichkeit, diesen durch eigene, z.B. aktuellere oder modifizierte OpenStreetMap-Daten zu ersetzen. Klicken Sie hierzu auf „Daten hochladen“. Wenn Sie doch wieder den Standarddatensatz verwenden möchten, klicken Sie auf die Schaltfläche „Auf Vorgabe zurücksetzen“.</p>"
-                        [subtitle]="'für Verkehrsnetz „' + selectedRouter + '“'">
-          <div style="height: 80px;">
-            <table>
-              <tr>
-                <td>Datei</td>
-                <td>germany.osm.pbf</td>
-              </tr>
-              <tr>
-                <td>Upload</td>
-                <td>31.05.2022</td>
-              </tr>
-            </table>
-          </div>
-          <div>
-            <button mat-button class="mat-button-dv" color="primary">
-              <mat-icon style="transform: scaleX(-1);">refresh</mat-icon> Auf Vorgabe zurücksetzen
+  <div fxLayout="column" fxFlex="900px">
+    <app-input-card [title]="'???'"
+                    [disabled]="true"
+                    infoText="<p>Platzhalter</p>">
+      <div style="width: 100%; display: flex;">
+        <div style="width: 40%;">
+<!--          <span class="subtitle1 sub">
+            Verkehrsnetz „{{selectedRouter}}“
+          </span>-->
+          <!--<table>
+            <tr>
+              <td style="min-width: 130px;; white-space: normal;">Buffer um das Projektgebiet</td>
+              <td>10km</td>
+            </tr>
+            <tr>
+              <td>erzeugt am</td>
+              <td>31.05.2022</td>
+            </tr>
+            <tr>
+              <td>von</td>
+              <td>Sascha Schmidt</td>
+            </tr>
+          </table>-->
+          <div style="margin-top: 50px;">
+            <button mat-flat-button color="primary">
+              <mat-icon>build</mat-icon> Reisezeitmatrizen erzeugen
             </button>
           </div>
-          <div>
-            <button mat-button class="mat-button-dv" color="primary">
-              <mat-icon>upload</mat-icon> Datei hochladen
-            </button>
-          </div>
-        </app-input-card>
+        </div>
+        <div id="log-window" style="width: 60%">
+          <span class="subtitle1">Historie</span>
+          <app-log height="calc(100% - 25px)"></app-log>
+        </div>
       </div>
-      <div style="width: 300px;">
-        <app-input-card [title]="'Höhendaten (optional)'"
-                        [subtitle]="'für Verkehrsnetz „' + selectedRouter + '“'"
-                        infoText="<p>Dem Verkehrsnetz können optional Höhendaten im Datenformat GeoTIFF hinzugefügt werden.</p>
-                        <p>Einem in der Box „Verkehrsnetze“ neu hinzugefügten Verkehrsnetz wird automatisch ein Standarddatensatz mit ASTER-Daten (Stand 2021) hinzugefügt. Sie haben die Möglichkeit, diesen durch eigene Höhendaten zu ersetzen. Klicken Sie hierzu auf „Daten hochladen“. Wenn Sie doch wieder den Standarddatensatz verwenden möchten, klicken Sie auf die Schaltfläche „Auf Vorgabe zurücksetzen“.</p>">
-          <div style="height: 80px;">
-            <table>
-              <tr>
-                <td>Datei</td>
-                <td>Vorgabe (deutschlandweite Aster)</td>
-              </tr>
-              <tr>
-                <td>Upload</td>
-                <td>-</td>
-              </tr>
-            </table>
-          </div>
-          <div>
-            <button mat-button class="mat-button-dv" color="primary">
-              <mat-icon style="transform: scaleX(-1);">refresh</mat-icon> Auf Vorgabe zurücksetzen
-            </button>
-          </div>
-          <div>
-            <button mat-button class="mat-button-dv" color="primary">
-              <mat-icon>upload</mat-icon> Datei hochladen
-            </button>
-          </div>
-        </app-input-card>
-      </div>
-      <div style="width: 300px;">
-        <app-input-card [title]="'ÖPNV-Daten (optional)'"
-                        [subtitle]="'für Verkehrsnetz „' + selectedRouter + '“'"
-                        infoText="<p>Wenn Sie dieses Verkehrsnetz im nachfolgenden Menüpunkt „Erreichbarkeiten“ verwenden möchten, um eine ÖPNV-Erreichbarkeitsmatrize zu berechnen, müssen Sie diesen an dieser Stelle regionale Fahrplandaten im GTFS-Format hinzufügen.</p>
-                        <p>Einem in der Box „Verkehrsnetze“ neu hinzugefügten Verkehrsnetz werden nicht automatisch Standarddaten zum ÖPNV hinzugefügt, weil diese bisher noch nicht flächendeckend vorliegen.</p>
-                        <p>Um dem ausgewählten Verkehrsnetz eigene ÖPNV-Fahrplandaten im GTFS-Format hinzuzufügen, klicken Sie bitte auf „Daten hochladen“. Wenn Sie diese wieder aus dem Verkehrsnetz entfernen möchten, klicken Sie auf „Entfernen“.</p>">
-          <div style="height: 80px;">
-            <table>
-              <tr>
-                <td>Datei</td>
-                <td>-</td>
-              </tr>
-              <tr>
-                <td>Upload</td>
-                <td>-</td>
-              </tr>
-            </table>
-          </div>
-          <div>
-            <button mat-button class="mat-button-dv" color="primary">
-              <mat-icon>close</mat-icon> entfernen
-            </button>
-          </div>
-          <div>
-            <button mat-button class="mat-button-dv" color="primary">
-              <mat-icon>upload</mat-icon> Datei hochladen
-            </button>
-          </div>
-        </app-input-card>
-      </div>
-      <div fxLayout="column" fxFlex="900px">
-        <app-input-card [title]="'Routensucher für das ausgewählte Wegenetz'"
-                        infoText="<p>Wenn Sie alle notwendigen Grundlagendaten (Straßennetz, ggf. Höhendaten und ÖPNV-Daten) hinzugefügt bzw. auf den Vorgabewerten belassen haben, müssen Sie für dieses Verkehr einen Routensucher erzeugen. Klicken Sie hierzu auf „Routensucher erzeugen“.</p>
-                        <p>Erst wenn für Ihr Verkehrsnetz ein Routensucher erzeugt wurde, können Sie mit diesem Verkehrsnetz im nachfolgenden Menüpunkt „Erreichbarkeiten“ Erreichbarkeitsmatrizen berechnen.</p>
-                        <p>Hintergrundinfo: Technisch gesprochen entspricht ein Routensucher einem „routing-fähigen Graphen“.</p>">
-          <div style="width: 100%; display: flex;">
-            <div style="width: 40%;">
-              <span class="subtitle1 sub">
-                Verkehrsnetz „{{selectedRouter}}“
-              </span>
-              <table>
-                <tr>
-                  <td style="min-width: 130px;; white-space: normal;">Buffer um das Projektgebiet</td>
-                  <td>10km</td>
-                </tr>
-                <tr>
-                  <td>erzeugt am</td>
-                  <td>31.05.2022</td>
-                </tr>
-                <tr>
-                  <td>von</td>
-                  <td>Sascha Schmidt</td>
-                </tr>
-              </table>
-              <div style="margin-top: 50px;">
-                <button mat-flat-button color="primary">
-                  <mat-icon>build</mat-icon> Routensucher erzeugen
-                </button>
-              </div>
-            </div>
-            <div id="log-window" style="width: 60%">
-              <span class="subtitle1">Historie</span>
-              <app-log height="calc(100% - 25px)"></app-log>
-            </div>
-          </div>
-        </app-input-card>
-      </div>
-    </div>
+    </app-input-card>
   </div>
 </div>
