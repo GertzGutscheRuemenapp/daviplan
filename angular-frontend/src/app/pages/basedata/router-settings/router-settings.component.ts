@@ -24,7 +24,7 @@ export class RouterSettingsComponent implements OnInit {
     const dialogRef = SimpleDialogComponent.show(
       'Das Basisnetz wird erstellt mit den Luftlinien zwischen Orten und Rasterzellen ' +
       '(wird später in der Entwicklung durch echtes Routing ersetzt). Bitte warten',
-      this.dialog, { showAnimatedDots: true, width: '350px' });
+      this.dialog, { showAnimatedDots: true, width: '400px' });
     this.http.post<any>(`${this.rest.URLS.matrixCellPlaces}calculate_beelines/`, {}).subscribe(() => {
       dialogRef.close();
     },(error) => {

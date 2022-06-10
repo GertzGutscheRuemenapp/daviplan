@@ -30,10 +30,12 @@
     <mat-select disableOptionCentering disableRipple
                 [(value)]="selectedInfrastructure"
                 [ngbPopover]="selectedInfrastructure?.description"
+                (selectionChange)="onInfrastructureChange()"
                 placement="right"
                 container="body"
                 triggers="mouseenter:mouseleave">
-      <mat-option [value]="infrastructure" *ngFor="let infrastructure of infrastructures"
+      <mat-option *ngFor="let infrastructure of infrastructures"
+                  [value]="infrastructure"
                   [ngbPopover]="infrastructure.description"
                   placement="right"
                   container="body"
@@ -46,7 +48,8 @@
     <mat-radio-group>
       <mat-radio-button *ngFor="let service of selectedInfrastructure.services; let first = first;"
                         [value]="service"
-                        [checked]="first"
+                        [checked]="service === selectedService"
+                        (change)="selectedService = service; onServiceChange();"
                         style="margin-right: 100%;"
                         color="primary"
                         [ngbPopover]="service.description"
@@ -61,27 +64,20 @@
     <mat-label>Indikator</mat-label>
     <mat-select disableOptionCentering panelClass="custom-option-panel"
                 disableRipple
-                (selectionChange)="onIndicatorChange($event.value)"
-                [value]="activeIndicator?.id"
-                [ngbPopover]="activeIndicator?.description"
+                [(value)]="selectedIndicator"
+                (selectionChange)="onIndicatorChange()"
+                [ngbPopover]="selectedIndicator?.description"
                 placement="right"
                 container="body"
                 triggers="mouseenter:mouseleave">
-      <mat-select-trigger>
-        <span *ngIf="activeIndicator">
-          {{ activeIndicator.name }}
-        </span>
-      </mat-select-trigger>
-      <mat-optgroup label="Indikatoren">
-        <mat-option *ngFor="let indicator of indicators"
-                    [value]="indicator.id"
-                    [ngbPopover]="indicator.description"
-                    placement="right"
-                    container="body"
-                    triggers="mouseenter:mouseleave">
-          {{indicator.name}}
-        </mat-option>
-      </mat-optgroup>
+      <mat-option *ngFor="let indicator of indicators"
+                  [value]="indicator"
+                  [ngbPopover]="indicator.description"
+                  placement="right"
+                  container="body"
+                  triggers="mouseenter:mouseleave">
+        {{indicator.title}}
+      </mat-option>
     </mat-select>
   </mat-form-field>
 </mat-expansion-panel>
@@ -98,7 +94,9 @@
     </mat-panel-title>
   </mat-expansion-panel-header>
   <mat-form-field appearance="outline" class="small">
-    <mat-select disableOptionCentering disableRipple [value]="selectedAreaLevel">
+    <mat-select disableOptionCentering disableRipple
+                [(value)]="selectedAreaLevel"
+                (selectionChange)="onAreaLevelChange()">
       <mat-option [value]="areaLevel" *ngFor="let areaLevel of areaLevels">
         {{areaLevel.name}}
       </mat-option>
