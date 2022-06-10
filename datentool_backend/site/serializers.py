@@ -97,7 +97,7 @@ class BaseDataSettingSerializer(serializers.Serializer):
         return dict(sets.values_list('service_id', 'id'))
 
     def get_default_mode_variants(self, obj) -> Dict[int, int]:
-        sets = ModeVariant.objects.filter(is_default=True).order_by('mode')
+        sets = ModeVariant.objects.filter(network__is_default=True).order_by('mode')
         return dict(sets.values_list('mode', 'id'))
 
     def get_default_prognosis(self, obj) -> int:

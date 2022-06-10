@@ -1,6 +1,6 @@
 from factory.django import DjangoModelFactory
 
-from .models import (Mode, ModeVariant, CutOffTime)
+from .models import (Mode, ModeVariant, CutOffTime, Network)
 from datentool_backend.infrastructure.factories import InfrastructureFactory
 
 import factory
@@ -8,15 +8,18 @@ from faker import Faker
 faker = Faker('de-DE')
 
 
+class NetworkFactory(DjangoModelFactory):
+    class Meta:
+        model = Network
+    name = faker.word()
+
+
 class ModeVariantFactory(DjangoModelFactory):
     class Meta:
         model = ModeVariant
-
+    network = factory.SubFactory(NetworkFactory)
     mode = factory.Faker(
         'random_element', elements=[x[0] for x in Mode.choices])
-    name = factory.LazyAttribute(lambda o: f'{Mode(o.mode).label}_Variant')
-    meta = faker.json(num_rows=3, indent=True)
-    is_default = faker.pybool()
 
 
 class CutOffTimeFactory(DjangoModelFactory):

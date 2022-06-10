@@ -4,7 +4,7 @@ import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../rest-api";
 import { RestCacheService } from "../../rest-cache.service";
 import { BehaviorSubject, Observable } from "rxjs";
-import { PlanningProcess, Scenario } from "../../rest-interfaces";
+import { Indicator, PlanningProcess, Scenario } from "../../rest-interfaces";
 import { SettingsService } from "../../settings.service";
 import { CookieService } from "../../helpers/cookies.service";
 
@@ -36,6 +36,11 @@ export class PlanningService extends RestCacheService {
     this.activeScenario$.subscribe(scenario => {
       this.cookies.set('planning-scenario', scenario?.id);
     })*/
+  }
+
+  getIndicators(serviceId: number): Observable<Indicator[]>{
+    const url = `${this.rest.URLS.services}${serviceId}/get_indicators/`;
+    return this.getCachedData<Indicator[]>(url);
   }
 
   getProcesses(): Observable<PlanningProcess[]>{

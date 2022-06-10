@@ -24,6 +24,7 @@ from datentool_backend.infrastructure.serializers import (
 from datentool_backend.indicators.compute.base import (
     ServiceIndicator, ResultSerializer)
 from datentool_backend.indicators.serializers import IndicatorSerializer
+from datentool_backend.utils.processes import ProtectedProcessManager
 
 
 @extend_schema_view(list=extend_schema(description='List Places',
@@ -94,15 +95,16 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def upload_template(self, request):
         """Download the Template"""
-        # no constraint dropping, because we use individual updates
-        data = QueryDict(mutable=True)
-        data.update(self.request.data)
-        data['drop_constraints'] = 'False'
-        request._full_data = data
+        with ProtectedProcessManager(request.user):
+            # no constraint dropping, because we use individual updates
+            data = QueryDict(mutable=True)
+            data.update(self.request.data)
+            data['drop_constraints'] = 'False'
+            request._full_data = data
 
-        queryset = Place.objects.none()
-        return super().upload_template(request,
-                                       queryset=queryset,)
+            queryset = Place.objects.none()
+            return super().upload_template(request,
+                                           queryset=queryset,)
 
     @action(methods=['POST'], detail=False,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])

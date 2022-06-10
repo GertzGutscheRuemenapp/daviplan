@@ -1,5 +1,5 @@
 from django.db import transaction
-
+from django.http.request import QueryDict
 from io import StringIO
 from distutils.util import strtobool
 from rest_framework import viewsets, status
@@ -18,11 +18,11 @@ from datentool_backend.utils.permissions import (
 from datentool_backend.indicators.models import (Stop,
                                                  MatrixStopStop,
                                                  Router,
-                                                 ModeVariant,
                                                  MatrixCellPlace,
                                                  MatrixCellStop,
                                                  MatrixPlaceStop,
                                                  )
+from datentool_backend.modes.models import ModeVariant, Mode, Network
 from datentool_backend.indicators.serializers import (StopSerializer,
                                                       StopTemplateSerializer,
                                                       MatrixStopStopTemplateSerializer,
@@ -31,6 +31,7 @@ from datentool_backend.indicators.serializers import (StopSerializer,
                                                       MatrixCellStopSerializer,
                                                       MatrixPlaceStopSerializer,
                           )
+from datentool_backend.utils.processes import ProtectedProcessManager
 
 
 class StopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSet):
@@ -70,7 +71,8 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
     @action(methods=['POST'], detail=False)
     def upload_template(self, request):
         """Upload the filled out Stops-Template"""
-        return super().upload_template(request)
+        with ProtectedProcessManager(request.user):
+            return super().upload_template(request)
 
 
 class RouterViewSet(viewsets.ModelViewSet):
@@ -145,6 +147,24 @@ class MatrixCellPlaceViewSet(AirDistanceRouterMixin, ProtectCascadeMixin, viewse
     def get_queryset(self):
         variant = self.request.data.get('variant')
         return MatrixCellPlace.objects.filter(variant=variant)
+
+    @action(methods=['POST'], detail=False)
+    def calculate_beelines(self, request):
+        network, created = Network.objects.get_or_create(
+            name='Basisnetz')
+        network.is_default = True
+        network.save()
+        for mode in (Mode.WALK, Mode.BIKE, Mode.CAR):
+            variant, created = ModeVariant.get_or_create(
+                network=network, mode=mode.value)
+            data = QueryDict(mutable=True)
+            data.update(self.request.data)
+            data['drop_constraints'] = 'True'
+            data['variant'] = variant.id
+            request._full_data = data
+            self.precalculate_traveltime(request)
+        return Response({'message': 'Luftlinienberechnung abgeschlossen'},
+                        status=status.HTTP_202_ACCEPTED)
 
 
 class MatrixCellStopViewSet(AirDistanceRouterMixin, ProtectCascadeMixin, viewsets.GenericViewSet):

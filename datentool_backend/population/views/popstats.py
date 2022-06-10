@@ -54,80 +54,80 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
     @action(methods=['POST'], detail=False,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def pull_regionalstatistik(self, request, **kwargs):
-        #with ProtectedProcessManager(request.user):
-        min_max_years = Year.objects.all().aggregate(Min('year'), Max('year'))
-        settings = SiteSetting.load()
-        username = settings.regionalstatistik_user or None
-        password = settings.regionalstatistik_password or None
-        api = Regionalstatistik(start_year=min_max_years['year__min'],
-                                end_year=min_max_years['year__max'],
-                                username=username,
-                                password=password)
-        try:
-            area_level = AreaLevel.objects.get(is_statistic_level=True)
-        except AreaLevel.DoesNotExist:
-            msg = 'No AreaLevel for statistics defined'
-            return Response({'message': msg, },
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
-
-        areas = Area.annotated_qs(area_level).filter(area_level=area_level)
-        ags = areas.values_list('ags', flat=True)
-        try:
-            df_births = api.query_births(ags=ags)
-            df_deaths = api.query_deaths(ags=ags)
-            df_migration = api.query_migration(ags=ags)
-        except PermissionDenied as e:
-            return Response({'message': str(e), },
-                            status=status.HTTP_401_UNAUTHORIZED)
-        except Exception as e:
-            return Response({'message': str(e), },
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        year_grouped = df_births.groupby('year')
-        year2popstatistic = {}
-        for y, year_group in year_grouped:
+        with ProtectedProcessManager(request.user):
+            min_max_years = Year.objects.all().aggregate(Min('year'), Max('year'))
+            settings = SiteSetting.load()
+            username = settings.regionalstatistik_user or None
+            password = settings.regionalstatistik_password or None
+            api = Regionalstatistik(start_year=min_max_years['year__min'],
+                                    end_year=min_max_years['year__max'],
+                                    username=username,
+                                    password=password)
             try:
-                year = Year.objects.get(year=y)
-            except Year.DoesNotExist:
-                continue
-            # delete existing popstatistics and all depending objects
+                area_level = AreaLevel.objects.get(is_statistic_level=True)
+            except AreaLevel.DoesNotExist:
+                msg = 'No AreaLevel for statistics defined'
+                return Response({'message': msg, },
+                                status=status.HTTP_406_NOT_ACCEPTABLE)
+
+            areas = Area.annotated_qs(area_level).filter(area_level=area_level)
+            ags = areas.values_list('ags', flat=True)
             try:
-                popstat = PopStatistic.objects.get(year=year)
-                popstat.delete()
-            except PopStatistic.DoesNotExist:
-                pass
-            # (Re-)Create PopStatistic
-            popstat = PopStatistic.objects.create(year=year)
-            year2popstatistic[year.year] = popstat.id
+                df_births = api.query_births(ags=ags)
+                df_deaths = api.query_deaths(ags=ags)
+                df_migration = api.query_migration(ags=ags)
+            except PermissionDenied as e:
+                return Response({'message': str(e), },
+                                status=status.HTTP_401_UNAUTHORIZED)
+            except Exception as e:
+                return Response({'message': str(e), },
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        y2p = pd.Series(year2popstatistic, name='popstatistic_id')
+            year_grouped = df_births.groupby('year')
+            year2popstatistic = {}
+            for y, year_group in year_grouped:
+                try:
+                    year = Year.objects.get(year=y)
+                except Year.DoesNotExist:
+                    continue
+                # delete existing popstatistics and all depending objects
+                try:
+                    popstat = PopStatistic.objects.get(year=year)
+                    popstat.delete()
+                except PopStatistic.DoesNotExist:
+                    pass
+                # (Re-)Create PopStatistic
+                popstat = PopStatistic.objects.create(year=year)
+                year2popstatistic[year.year] = popstat.id
 
-        area_ids = pd.DataFrame(areas.values('id', 'ags')).set_index('ags').loc[:, 'id']
-        area_ids.name = 'area_id'
+            y2p = pd.Series(year2popstatistic, name='popstatistic_id')
 
-        df_popstat = df_births\
-            .merge(df_deaths, on=['year', 'AGS'])\
-            .merge(df_migration, on=['year', 'AGS'])\
-            .merge(area_ids, left_on='AGS', right_index=True)\
-            .merge(y2p, left_on='year', right_index=True)\
-            .loc[:, ['popstatistic_id', 'area_id',
-                     'births', 'deaths',
-                     'immigration', 'emigration']]
+            area_ids = pd.DataFrame(areas.values('id', 'ags')).set_index('ags').loc[:, 'id']
+            area_ids.name = 'area_id'
 
-        drop_constraints = request.data.get('drop_constraints', True)
-        if not isinstance(drop_constraints, bool):
-            drop_constraints = strtobool(drop_constraints)
+            df_popstat = df_births\
+                .merge(df_deaths, on=['year', 'AGS'])\
+                .merge(df_migration, on=['year', 'AGS'])\
+                .merge(area_ids, left_on='AGS', right_index=True)\
+                .merge(y2p, left_on='year', right_index=True)\
+                .loc[:, ['popstatistic_id', 'area_id',
+                         'births', 'deaths',
+                         'immigration', 'emigration']]
+
+            drop_constraints = request.data.get('drop_constraints', True)
+            if not isinstance(drop_constraints, bool):
+                drop_constraints = strtobool(drop_constraints)
 
 
-        with StringIO() as file:
-            df_popstat.to_csv(file, index=False)
-            file.seek(0)
-            PopStatEntry.copymanager.from_csv(
-                file,
-                drop_constraints=drop_constraints, drop_indexes=drop_constraints,
-            )
-        msg = 'Download of Population Statistics from Regionalstatistik successful'
-        return Response({'message': msg, }, status=status.HTTP_202_ACCEPTED)
+            with StringIO() as file:
+                df_popstat.to_csv(file, index=False)
+                file.seek(0)
+                PopStatEntry.copymanager.from_csv(
+                    file,
+                    drop_constraints=drop_constraints, drop_indexes=drop_constraints,
+                )
+            msg = 'Download of Population Statistics from Regionalstatistik successful'
+            return Response({'message': msg, }, status=status.HTTP_202_ACCEPTED)
 
 
 class PopStatEntryFilter(filters.FilterSet):
