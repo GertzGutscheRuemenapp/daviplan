@@ -22,7 +22,7 @@ from datentool_backend.indicators.models import (Stop,
                                                  MatrixCellStop,
                                                  MatrixPlaceStop,
                                                  )
-from datentool_backend.modes.models import ModeVariant, Mode
+from datentool_backend.modes.models import ModeVariant, Mode, Network
 from datentool_backend.indicators.serializers import (StopSerializer,
                                                       StopTemplateSerializer,
                                                       MatrixStopStopTemplateSerializer,
@@ -150,11 +150,13 @@ class MatrixCellPlaceViewSet(AirDistanceRouterMixin, ProtectCascadeMixin, viewse
 
     @action(methods=['POST'], detail=False)
     def calculate_beelines(self, request):
+        network, created = Network.objects.get_or_create(
+            name='Basisnetz')
+        network.is_default = True
+        network.save()
         for mode in (Mode.WALK, Mode.BIKE, Mode.CAR):
-            variant, created = ModeVariant.objects.get_or_create(
-                name='Basisnetz', mode=mode.value)
-            variant.is_default = True
-            variant.save()
+            variant, created = ModeVariant.get_or_create(
+                network=network, mode=mode.value)
             data = QueryDict(mutable=True)
             data.update(self.request.data)
             data['drop_constraints'] = 'True'

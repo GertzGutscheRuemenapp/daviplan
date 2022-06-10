@@ -12,24 +12,38 @@ class Mode(models.IntegerChoices):
     CAR = 3, 'Auto'
     TRANSIT = 4, 'ÖPNV'
 
+MODE_SPEEDS = {
+    Mode.WALK: 3.5,
+    Mode.BIKE: 10.5,
+    Mode.CAR: 25
+}
 
-class ModeVariant(DatentoolModelMixin, JsonAttributes, NamedModel, models.Model):
+MODE_MAX_DISTANCE = {
+    Mode.WALK: 4000,
+    Mode.BIKE: 10000,
+    Mode.CAR: 25000
+}
+
+
+class Network(DatentoolModelMixin, NamedModel, models.Model):
+    name = models.TextField()
+    is_default = models.BooleanField(default=False)
+    network_file = models.FileField(null=True)
+
+    def save(self, *args, **kwargs):
+        # only one network can be a default
+        if self.is_default:
+            Network.objects.filter(is_default=True).update(is_default=False)
+        return super().save(*args, **kwargs)
+
+
+class ModeVariant(DatentoolModelMixin, NamedModel, models.Model):
     '''
     modes
     '''
+    network = models.ForeignKey(Network, on_delete=models.CASCADE, null=True)
     mode = models.IntegerField(choices=Mode.choices)
-    name = models.TextField()
-    meta = models.JSONField(null=True)
-    is_default = models.BooleanField(default=False)
     cutoff_time = models.ManyToManyField(Infrastructure, through='CutOffTime')
-
-    def save(self, *args, **kwargs):
-        # only one variant per mode can be a default
-        if self.is_default:
-            with transaction.atomic():
-                ModeVariant.objects.filter(
-                    is_default=True, mode=self.mode).update(is_default=False)
-        return super().save(*args, **kwargs)
 
 
 class CutOffTime(models.Model):

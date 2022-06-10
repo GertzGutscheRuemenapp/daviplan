@@ -7,7 +7,8 @@ from datentool_backend.indicators.models import (MatrixCellPlace,
                                                  MatrixPlaceStop,
                                                  )
 
-from datentool_backend.modes.factories import Mode, ModeVariantFactory
+from datentool_backend.modes.factories import (Mode, ModeVariantFactory,
+                                               NetworkFactory)
 
 
 class TestMatrixCreation(CreateTestdataMixin,
@@ -28,8 +29,9 @@ class TestMatrixCreation(CreateTestdataMixin,
 
     def test_create_airdistance_matrix(self):
         """Test to create an air distance matrix"""
-        walk = ModeVariantFactory(mode=Mode.WALK, is_default=True)
-        car = ModeVariantFactory(mode=Mode.CAR, is_default=True)
+        network = NetworkFactory()
+        walk = ModeVariantFactory(mode=Mode.WALK, network=network)
+        car = ModeVariantFactory(mode=Mode.CAR, network=network)
 
         data = {'variant': walk.pk,
                 'drop_constraints': False,
