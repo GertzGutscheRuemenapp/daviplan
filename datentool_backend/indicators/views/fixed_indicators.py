@@ -135,7 +135,8 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
         request=inline_serializer(
             name='PlaceIdSerializer',
             fields={
-                'place': serializers.IntegerField(required=False),
+                'place': serializers.IntegerField(required=True),
+                'mode': serializers.CharField(required=True),
             }
         ),
         responses=ReachabilityPlace.result_serializer.value(many=True),
@@ -163,6 +164,7 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
                                               help_text='WGS84-Longitude'),
                 'lat': serializers.FloatField(required=True, label='y-coord',
                                               help_text='WGS84-Latitude'),
+                'mode': serializers.CharField(required=True),
             }
         ),
         responses=ReachabilityCell.result_serializer.value(many=True),

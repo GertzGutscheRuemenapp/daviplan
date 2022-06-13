@@ -1,4 +1,10 @@
-from datentool_backend.indicators.compute.base import ComputeIndicator, ResultSerializer
+from django.db.models import F
+
+from datentool_backend.indicators.compute.base import (ComputeIndicator,
+                                                       ResultSerializer)
+from datentool_backend.modes.models import Mode, ModeVariant
+from datentool_backend.indicators.models import MatrixCellPlace
+from datentool_backend.infrastructure.models.places import Place
 
 
 class ReachabilityPlace(ComputeIndicator):
@@ -10,7 +16,12 @@ class ReachabilityPlace(ComputeIndicator):
     result_serializer = ResultSerializer.RASTER
 
     def compute(self):
-        return []
+        mode = getattr(Mode, self.data.get('mode', 'WALK').upper())
+        variant = ModeVariant.objects.get(mode=mode, network__name='Basisnetz')
+        place = Place.objects.get(id=self.data.get('place'))
+        cells = MatrixCellPlace.objects.filter(variant=variant, place=place)
+        cells = cells.annotate(cell_code=F('cell__cellcode'), value=F('minutes'))
+        return cells
 
 
 class ReachabilityCell(ComputeIndicator):
