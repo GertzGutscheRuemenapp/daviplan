@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
 import {
   Place, AreaLevel, Area, Gender, AreaIndicatorData, PopulationData, AgeGroup,
-  Infrastructure, Service, Capacity, Prognosis, StatisticsData, DemandRateSet, Statistic, FieldType
+  Infrastructure, Service, Capacity, Prognosis, StatisticsData, DemandRateSet, Statistic, FieldType, RasterCell
 } from "./rest-interfaces";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
@@ -11,7 +11,7 @@ import * as turf from "@turf/helpers";
 import centroid from '@turf/centroid';
 import { MultiPolygon, Polygon } from "ol/geom";
 import { GeoJSON } from "ol/format";
-import { map } from "rxjs/operators";
+import { map, tap } from "rxjs/operators";
 
 @Injectable({
   providedIn: 'root'
@@ -185,7 +185,7 @@ export class RestCacheService {
           const features = sortBy(areas.features, 'label')
           this.areaCache[areaLevelId] = features;
           const format = new GeoJSON();
-          features.forEach((area: Area )=> {
+          features.forEach((area: Area) => {
             const geometry = wktToGeom(area.geometry as string,
               {targetProjection: targetProjection, ewkt: true});
             area.geometry = geometry;
@@ -209,6 +209,22 @@ export class RestCacheService {
         subscriber.complete();
       }
     });
+    return observable;
+  }
+
+  getRasterCells(options?: { targetProjection?: string, reset?: boolean }): Observable<RasterCell[]>{
+    const targetProjection = (options?.targetProjection !== undefined)? options?.targetProjection: 'EPSG:4326';
+    const observable = new Observable<RasterCell[]>(subscriber => {
+      this.getCachedData<any>(this.rest.URLS.rasterCells, { reset: options?.reset }).subscribe(res => {
+        res.features.forEach((rasterCell: RasterCell) => {
+          const geometry = wktToGeom(rasterCell.geometry as string,
+            { targetProjection: targetProjection, ewkt: true});
+          rasterCell.geometry = geometry;
+        })
+        subscriber.next(res.features);
+        subscriber.complete();
+      });
+    })
     return observable;
   }
 

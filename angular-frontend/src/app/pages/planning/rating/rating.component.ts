@@ -1,29 +1,36 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core';
 import { CookieService } from "../../../helpers/cookies.service";
 import { environment } from "../../../../environments/environment";
 import { MatDialog } from "@angular/material/dialog";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import { PlanningService } from "../planning.service";
-import { AreaLevel, Indicator, Infrastructure, PlanningProcess, Service } from "../../../rest-interfaces";
+import {
+  AreaLevel,
+  Indicator,
+  Infrastructure,
+  LayerGroup,
+  PlanningProcess,
+  RasterCell,
+  Service
+} from "../../../rest-interfaces";
 import { RestAPI } from "../../../rest-api";
 import { HttpClient } from "@angular/common/http";
 import { SelectionModel } from "@angular/cdk/collections";
-import { Observable } from "rxjs";
-import { tap } from 'rxjs/operators';
+import { MapControl, MapService } from "../../../map/map.service";
 
 @Component({
   selector: 'app-rating',
   templateUrl: './rating.component.html',
   styleUrls: ['./rating.component.scss']
 })
-export class RatingComponent implements OnInit {
+export class RatingComponent implements AfterViewInit {
   @ViewChild('diagramDialog') diagramDialogTemplate!: TemplateRef<any>;
   backend: string = environment.backend;
   years = [2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025];
   compareSupply = true;
   compareStatus = 'option 1';
   indicators: Indicator[] = [];
-  areaLevels: AreaLevel[] = []
+  areaLevels: AreaLevel[] = [];
   infrastructures?: Infrastructure[];
   selectedService?: Service;
   selectedIndicator?: Indicator;
@@ -46,7 +53,7 @@ export class RatingComponent implements OnInit {
     })
   }
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
   }
 
   applyUserSettings(): void {

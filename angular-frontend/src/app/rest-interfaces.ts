@@ -82,6 +82,15 @@ export interface Indicator {
   resultType: 'place' | 'area' | 'raster' | 'pop';
 }
 
+export interface RasterCell {
+  id: number,
+  geometry: string | Geometry,
+  properties: {
+    cellcode?: string,
+    population?: number
+  }
+}
+
 export interface AreaLevel {
   id: number;
   name: string;

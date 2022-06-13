@@ -1,27 +1,32 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core';
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
-import { Infrastructure, PlanningProcess } from "../../../rest-interfaces";
+import { Infrastructure, Layer, LayerGroup, PlanningProcess, RasterCell } from "../../../rest-interfaces";
+import { MapControl, MapService } from "../../../map/map.service";
 
 @Component({
   selector: 'app-reachabilities',
   templateUrl: './reachabilities.component.html',
   styleUrls: ['./reachabilities.component.scss']
 })
-export class ReachabilitiesComponent implements OnInit {
+export class ReachabilitiesComponent implements AfterViewInit {
+  @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
   selectMode = false;
+  rasterCells: RasterCell[] = [];
   transportMode = 1;
   indicator = 'option 1';
   selectFacMode = false;
   selectLivMode = false;
   infrastructures?: Infrastructure[];
   selectedInfrastructure?: Infrastructure;
-  @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
   activeProcess?: PlanningProcess;
+  mapControl?: MapControl;
+  legendGroup?: LayerGroup;
+  rasterLayer?: Layer;
 
-  constructor(private dialog: MatDialog, public cookies: CookieService,
+  constructor(private mapService: MapService, private dialog: MatDialog, public cookies: CookieService,
               public planningService: PlanningService) {
     this.planningService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures;
@@ -32,8 +37,42 @@ export class ReachabilitiesComponent implements OnInit {
     })
   }
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
+    this.mapControl = this.mapService.get('planning-map');
+    this.legendGroup = this.mapControl.addGroup({
+      name: 'Erreichbarkeiten',
+      order: -1
+    }, false)
+    this.planningService.getRasterCells().subscribe(rasterCells => {
+      this.rasterCells = rasterCells;
+      this.drawRaster();
+    })
   }
+
+  drawRaster(): void {
+    this.rasterLayer = this.mapControl?.addLayer({
+        order: 0,
+        type: 'vector',
+        group: this.legendGroup?.id,
+        name: 'Rasterzellen',
+        description: 'Zensus-Raster (LAEA)',
+        opacity: 1,
+        symbol: {
+          fillColor: 'rgba(0, 0, 0, 0)',
+          strokeColor: 'black',
+          symbol: 'line'
+        },
+        labelField: 'label',
+        showLabel: false
+      },
+      {
+        visible: true
+      });
+    this.mapControl?.clearFeatures(this.rasterLayer!.id!);
+    this.mapControl?.addFeatures(this.rasterLayer!.id!, this.rasterCells,
+      { properties: 'properties', geometry: 'geometry' });
+  }
+
 
   toggleIndicator(): void {
     this.selectFacMode = false;
