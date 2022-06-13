@@ -119,10 +119,6 @@ class MatrixStopStopTemplateSerializer(serializers.Serializer):
 class MatrixAirDistanceMixin(serializers.Serializer):
     drop_constraints = BooleanField(default=True)
 
-    def get_queryset(self, request):
-        variant = ModeVariant.objects.get(id=request.data.get('variant'))
-        return MatrixCellPlace.objects.filter(variant_id=variant)
-
     def calculate_traveltimes(self, request) -> pd.DataFrame:
         """calculate traveltimes"""
 
@@ -148,6 +144,10 @@ class MatrixCellStopSerializer(MatrixAirDistanceMixin):
     class Meta:
         model = MatrixCellStop
         fields = ('cell_id', 'stop_id', 'minutes')
+
+    def get_queryset(self, request):
+        variant = ModeVariant.objects.get(id=request.data.get('variant'))
+        return MatrixCellStop.objects.filter(variant_id=variant)
 
     def get_query(self) -> str:
 
@@ -184,6 +184,10 @@ class MatrixCellPlaceSerializer(MatrixAirDistanceMixin):
         model = MatrixCellPlace
         fields = ('cell_id', 'place_id', 'minutes')
 
+    def get_queryset(self, request):
+        variant = ModeVariant.objects.get(id=request.data.get('variant'))
+        return MatrixCellPlace.objects.filter(variant_id=variant)
+
     def get_query(self) -> str:
 
         cell_tbl = RasterCell._meta.db_table
@@ -218,6 +222,10 @@ class MatrixPlaceStopSerializer(MatrixAirDistanceMixin):
     class Meta:
         model = MatrixPlaceStop
         fields = ('place_id', 'stop_id', 'minutes')
+
+    def get_queryset(self, request):
+        variant = ModeVariant.objects.get(id=request.data.get('variant'))
+        return MatrixPlaceStop.objects.filter(variant_id=variant)
 
     def get_query(self) -> str:
 
