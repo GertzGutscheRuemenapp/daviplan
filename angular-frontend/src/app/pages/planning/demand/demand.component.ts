@@ -74,10 +74,10 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
     observables.push(this.planningService.getAreaLevels({ active: true }).pipe(map(areaLevels => {
       this.areaLevels = areaLevels;
     })))
-    observables.push(this.planningService.getRealYears().pipe( map(years => {
+    observables.push(this.planningService.getRealYears().pipe(map(years => {
       this.realYears = years;
     })))
-    observables.push(this.planningService.getPrognosisYears().pipe( map(years => {
+    observables.push(this.planningService.getPrognosisYears().pipe(map(years => {
       this.prognosisYears = years;
     })))
     forkJoin(...observables).subscribe(() => {

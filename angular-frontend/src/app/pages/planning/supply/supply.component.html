@@ -33,7 +33,7 @@
         <mat-label>Infrastrukturbereich</mat-label>
         <mat-select disableOptionCentering disableRipple
                     [(ngModel)]="activeInfrastructure"
-                    (ngModelChange)="updatePlaces();"
+                    (ngModelChange)="onInfrastructureChange()"
                     [ngbPopover]="activeInfrastructure?.description"
                     placement="right"
                     container="body"
@@ -56,7 +56,7 @@
     </div>
     <div class="sub-select-wrapper" *ngIf="activeInfrastructure">
       <mat-radio-group [(ngModel)]="activeService"
-                       (ngModelChange)="updatePlaces();">
+                       (ngModelChange)="onServiceChange();">
         <mat-radio-button *ngFor="let service of activeInfrastructure.services; let first = first;"
                           [value]="service"
                           [checked]="first"

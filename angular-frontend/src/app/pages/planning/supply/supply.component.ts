@@ -17,7 +17,8 @@ import { MapControl, MapService } from "../../../map/map.service";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
 import * as d3 from "d3";
 import { FilterColumn } from "../../../elements/filter-table/filter-table.component";
-import { Subscription } from "rxjs";
+import { forkJoin, Observable, Subscription } from "rxjs";
+import { map } from "rxjs/operators";
 
 @Component({
   selector: 'app-supply',
@@ -51,11 +52,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   subscriptions: Subscription[] = [];
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
-              public planningService: PlanningService) {
-    this.planningService.getInfrastructures().subscribe(infrastructures => {
-      this.infrastructures = infrastructures;
-    })
-  }
+              public planningService: PlanningService) { }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
@@ -78,20 +75,33 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     this.subscriptions.push(this.planningService.year$.subscribe(year => {
       this.year = year;
       this.updatePlaces();
-    }))
-    this.planningService.activeProcess$.subscribe(process => {
+    }));
+    this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
       this.activeProcess = process;
-    })
-    this.planningService.activeScenario$.subscribe(scenario => {
+    }));
+    this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
       this.activeScenario = scenario;
       this.updatePlaces();
-    })
-    this.planningService.getRealYears().subscribe( years => {
+    }));
+    let observables: Observable<any>[] = [];
+    observables.push(this.planningService.getRealYears().pipe(map(years => {
       this.realYears = years;
-    })
-    this.planningService.getPrognosisYears().subscribe( years => {
+    })));
+    observables.push(this.planningService.getPrognosisYears().pipe(map(years => {
       this.prognosisYears = years;
-    })
+    })));
+    observables.push(this.planningService.getInfrastructures().pipe(map(infrastructures => {
+      this.infrastructures = infrastructures;
+    })));
+    forkJoin(...observables).subscribe(() => {
+      this.applyUserSettings();
+    });
+  }
+
+  applyUserSettings(): void {
+    this.activeInfrastructure = this.infrastructures?.find(i => i.id === this.cookies.get('planning-infrastructure', 'number'));
+    this.activeService = this.activeInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number'));
+    this.updatePlaces();
   }
 
   onFilter(): void {
@@ -125,6 +135,18 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   onFilterChange(columns: FilterColumn[]): void {
     this._filterColumnsTemp = columns;
+  }
+
+  onInfrastructureChange(): void {
+    this.cookies.set('planning-infrastructure', this.activeInfrastructure?.id);
+    if (this.activeInfrastructure!.services.length > 0)
+      this.activeService = this.activeInfrastructure!.services[0];
+    this.updatePlaces();
+  }
+
+  onServiceChange(): void {
+    this.cookies.set('planning-service', this.activeService?.id);
+    this.updatePlaces();
   }
 
   updatePlaces(): void {

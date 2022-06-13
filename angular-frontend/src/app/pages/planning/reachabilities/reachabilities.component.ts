@@ -99,6 +99,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.mapControl?.removeGroup(this.legendGroup?.id!);
+    if (this.legendGroup) {
+      this.mapControl?.removeGroup(this.legendGroup.id!);
+    }
   }
 }
