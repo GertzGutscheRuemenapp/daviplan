@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { CookieService } from "../../../helpers/cookies.service";
@@ -11,7 +11,7 @@ import { MapControl, MapService } from "../../../map/map.service";
   templateUrl: './reachabilities.component.html',
   styleUrls: ['./reachabilities.component.scss']
 })
-export class ReachabilitiesComponent implements AfterViewInit {
+export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
   selectMode = false;
   rasterCells: RasterCell[] = [];
@@ -42,7 +42,7 @@ export class ReachabilitiesComponent implements AfterViewInit {
     this.legendGroup = this.mapControl.addGroup({
       name: 'Erreichbarkeiten',
       order: -1
-    }, false)
+    }, true)
     this.planningService.getRasterCells().subscribe(rasterCells => {
       this.rasterCells = rasterCells;
       this.drawRaster();
@@ -66,7 +66,8 @@ export class ReachabilitiesComponent implements AfterViewInit {
         showLabel: false
       },
       {
-        visible: true
+        visible: true,
+        strokeWidth: 1
       });
     this.mapControl?.clearFeatures(this.rasterLayer!.id!);
     this.mapControl?.addFeatures(this.rasterLayer!.id!, this.rasterCells,
@@ -97,4 +98,7 @@ export class ReachabilitiesComponent implements AfterViewInit {
     dialogRef.componentInstance.confirmed.subscribe(() => {  });
   }
 
+  ngOnDestroy(): void {
+    this.mapControl?.removeGroup(this.legendGroup?.id!);
+  }
 }

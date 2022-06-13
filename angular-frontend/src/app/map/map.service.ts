@@ -340,6 +340,7 @@ export class MapControl {
       strokeColor?: string,
       cursor?: string
     },
+    strokeWidth?: number,
     select?: {
       multi?: boolean,
       fillColor?: string,
@@ -368,7 +369,8 @@ export class MapControl {
       valueField: options?.valueField,
       mouseOver: options?.mouseOver,
       select: options?.select,
-      selectable: options?.selectable
+      selectable: options?.selectable,
+      strokeWidth: options?.strokeWidth
     });
     if (options?.selectable){
       layer.featureSelected = new EventEmitter<any>();
@@ -387,9 +389,10 @@ export class MapControl {
     colorFunc?: ((d: number) => string),
     radiusFunc?: ((d: number) => number),
     valueField?: string,
+    strokeWidth?: number,
     mouseOver?: {
       fillColor?: string,
-      strokeColor?: string
+      strokeColor?: string,
       cursor?: string
     },
     select?: {
@@ -408,7 +411,7 @@ export class MapControl {
         mouseOverCursor: options?.mouseOver?.cursor,
         multiSelect: options?.select?.multi,
         stroke: {
-          color: layer.symbol?.strokeColor, width: 2,
+          color: layer.symbol?.strokeColor, width: options?.strokeWidth || 2,
           mouseOverColor: options?.mouseOver?.strokeColor,
           selectedColor: options?.select?.strokeColor
         },

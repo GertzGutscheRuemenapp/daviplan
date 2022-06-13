@@ -9,7 +9,7 @@ import { RestAPI } from "./rest-api";
 import { sortBy, wktToGeom } from "./helpers/utils";
 import * as turf from "@turf/helpers";
 import centroid from '@turf/centroid';
-import { MultiPolygon, Polygon } from "ol/geom";
+import { Geometry, MultiPolygon, Polygon } from "ol/geom";
 import { GeoJSON } from "ol/format";
 import { map, tap } from "rxjs/operators";
 
@@ -217,9 +217,9 @@ export class RestCacheService {
     const observable = new Observable<RasterCell[]>(subscriber => {
       this.getCachedData<any>(this.rest.URLS.rasterCells, { reset: options?.reset }).subscribe(res => {
         res.features.forEach((rasterCell: RasterCell) => {
-          const geometry = wktToGeom(rasterCell.geometry as string,
-            { targetProjection: targetProjection, ewkt: true});
-          rasterCell.geometry = geometry;
+          if (!(rasterCell.geometry instanceof Geometry))
+            rasterCell.geometry = wktToGeom(rasterCell.geometry as string,
+              { targetProjection: targetProjection, ewkt: true});
         })
         subscriber.next(res.features);
         subscriber.complete();
