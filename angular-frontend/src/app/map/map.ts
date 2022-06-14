@@ -27,6 +27,7 @@ export class OlMap {
   target: string;
   view: View;
   map: Map;
+  cursor = '';
   layers: Record<string, Layer<any>> = {};
   overlays: Record<string, Layer<any>> = {};
   tileOverlays: Record<string, Layer<any>> = {};
@@ -407,7 +408,7 @@ export class OlMap {
     layer.set('name', name);
     this.setMouseOverLayer(layer, {
       tooltipField: options?.tooltipField,
-      cursor: (options?.mouseOverCursor)? options?.mouseOverCursor: (options?.selectable)? 'pointer': undefined,
+      cursor: (options?.mouseOverCursor != undefined)? options?.mouseOverCursor: (options?.selectable)? 'pointer': undefined,
       fillColor: options?.fill?.mouseOverColor,
       strokeColor: options?.stroke?.mouseOverColor,
       strokeWidth: options?.stroke?.mouseOverWidth || options?.stroke?.width || 1,
@@ -525,16 +526,21 @@ export class OlMap {
             tooltip!.style.display = 'none';
         }
         if (options.cursor) {
-          this.div!.style.cursor = features.length > 0 ? options.cursor : '';
+          this.div!.style.cursor = features.length > 0 ? options.cursor : this.cursor;
         }
       });
     });
     const overlay = this.overlays[layer.get('name')];
     if (overlay)
       this.map.getViewport().addEventListener('mouseout', event => {
-        this.div!.style.cursor = '';
+        this.div!.style.cursor = this.cursor;
         overlay.getSource().clear();
       });
+  }
+
+  setCursor(cursor: string): void {
+    this.cursor = cursor;
+    this.div!.style.cursor = cursor;
   }
 
   addFeatures(layername: string, features: Feature<any>[]){

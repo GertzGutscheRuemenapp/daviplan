@@ -150,7 +150,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   updatePlaces(): void {
-    if (!this.activeInfrastructure || this.activeInfrastructure.services.length === 0) return;
+    if (!this.activeInfrastructure || !this.activeService) return;
     this.updateMapDescription();
     this.planningService.getPlaces(this.activeInfrastructure.id,
       { targetProjection: this.mapControl!.map!.mapProjection }).subscribe(places => {
@@ -160,8 +160,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         showLabel = !!this.placesLayer.showLabel;
         this.mapControl?.removeLayer(this.placesLayer.id!);
       }
-      if (!this.activeService) this.activeService = this.activeInfrastructure!.services[0];
-      this.planningService.getCapacities({ year: this.year!, service: this.activeService.id }).subscribe(capacities => {
+      this.planningService.getCapacities({ year: this.year!, service: this.activeService!.id }).subscribe(capacities => {
         this.capacities = capacities;
         let displayedPlaces: Place[] = [];
         this.places?.forEach(place => {

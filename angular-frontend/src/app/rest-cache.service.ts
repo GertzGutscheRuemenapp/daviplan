@@ -1,8 +1,23 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
 import {
-  Place, AreaLevel, Area, Gender, AreaIndicatorData, PopulationData, AgeGroup,
-  Infrastructure, Service, Capacity, Prognosis, StatisticsData, DemandRateSet, Statistic, FieldType, RasterCell
+  Place,
+  AreaLevel,
+  Area,
+  Gender,
+  AreaIndicatorData,
+  PopulationData,
+  AgeGroup,
+  Infrastructure,
+  Service,
+  Capacity,
+  Prognosis,
+  StatisticsData,
+  DemandRateSet,
+  Statistic,
+  FieldType,
+  RasterCell,
+  TransportMode, CellData
 } from "./rest-interfaces";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
@@ -31,28 +46,41 @@ export class RestCacheService {
 
   constructor(protected http: HttpClient, protected rest: RestAPI) { }
 
-  protected getCachedData<Type>(url: string, options?: { params?: Record<string, any>, reset?: boolean }): Observable<Type> {
+  protected getCachedData<Type>(url: string, options?: { params?: Record<string, any>, reset?: boolean, method?: 'GET' | 'POST' }): Observable<Type> {
+    const method = options?.method || 'GET';
     if (options?.params) {
-      let queryParams = '';
-      Object.keys(options?.params).forEach((key,i) => {
-        if (i > 0) queryParams += '&';
-        queryParams += `${key}=${options!.params![key]}`;
-      })
-      if (queryParams.length > 0)
-        url += `?${queryParams}`;
+      if (method === 'GET') {
+        let queryParams = '';
+        Object.keys(options?.params).forEach((key, i) => {
+          if (i > 0) queryParams += '&';
+          queryParams += `${key}=${options!.params![key]}`;
+        })
+        if (queryParams.length > 0)
+          url += `?${queryParams}`;
+      }
     }
+    const key = (method === 'GET' || !options?.params)? url: url + options.params.toString();
+    const _this = this;
     const observable = new Observable<Type>(subscriber => {
-      if (options?.reset || !this.genericCache[url]){
+      if (options?.reset || !this.genericCache[key]){
         this.setLoading(true);
-        this.http.get<Type>(url).subscribe(data => {
-          this.genericCache[url] = data;
+        function done(data: any) {
+          _this.genericCache[url] = data;
           subscriber.next(data);
           subscriber.complete();
-          this.setLoading(false);
-        });
+          _this.setLoading(false);
+        }
+        if (method === 'GET')
+          this.http.get<Type>(url).subscribe(data => {
+            done(data);
+          });
+        else
+          this.http.post<Type>(url, options?.params).subscribe(data => {
+            done(data);
+          });
       }
       else {
-        subscriber.next(this.genericCache[url]);
+        subscriber.next(this.genericCache[key]);
         subscriber.complete();
       }
     })
@@ -354,6 +382,11 @@ export class RestCacheService {
       }
     })
     return observable;
+  }
+
+  getPlaceReachability(placeId: number, mode: TransportMode): Observable<CellData[]>{
+    return this.getCachedData(this.rest.URLS.reachabilityPlace,
+      { params: { mode: mode, place: placeId }, method: 'POST' });
   }
 
   reset(): void {

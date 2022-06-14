@@ -87,7 +87,8 @@ export interface RasterCell {
   geometry: string | Geometry,
   properties: {
     cellcode?: string,
-    population?: number
+    population?: number,
+    value?: number
   }
 }
 
@@ -291,4 +292,16 @@ export interface Capacity {
   capacity: number,
   fromYear: number,
   scenario?: number
+}
+
+export enum TransportMode {
+  WALK = 1,
+  CAR = 2,
+  BIKE = 3,
+  TRANSIT = 4
+}
+
+export interface CellData {
+  cellCode: string,
+  value: number
 }

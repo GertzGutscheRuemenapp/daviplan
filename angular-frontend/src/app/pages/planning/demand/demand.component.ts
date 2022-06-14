@@ -52,13 +52,13 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
       name: 'Nachfrage',
       order: -1
     }, false)
-    this.planningService.activeProcess$.subscribe(process => {
+    this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
       this.activeProcess = process;
-    })
-    this.planningService.activeScenario$.subscribe(scenario => {
+    }));
+    this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
       this.activeScenario = scenario;
       this.updateMap();
-    })
+    }));
     this.initData();
   }
 

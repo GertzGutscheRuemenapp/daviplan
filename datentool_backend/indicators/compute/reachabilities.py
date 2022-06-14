@@ -16,7 +16,7 @@ class ReachabilityPlace(ComputeIndicator):
     result_serializer = ResultSerializer.RASTER
 
     def compute(self):
-        mode = getattr(Mode, self.data.get('mode', 'WALK').upper())
+        mode = self.data.get('mode', Mode.WALK)
         variant = ModeVariant.objects.get(mode=mode, network__name='Basisnetz')
         place = Place.objects.get(id=self.data.get('place'))
         cells = MatrixCellPlace.objects.filter(variant=variant, place=place)

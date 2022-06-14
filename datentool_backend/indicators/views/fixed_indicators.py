@@ -136,7 +136,7 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
             name='PlaceIdSerializer',
             fields={
                 'place': serializers.IntegerField(required=True),
-                'mode': serializers.CharField(required=True),
+                'mode': serializers.CharField(required=False),
             }
         ),
         responses=ReachabilityPlace.result_serializer.value(many=True),

@@ -288,6 +288,11 @@ export class MapControl {
     this.map?.setShowLabel(this.mapId(layer), show);
   }
 
+  setSelect(id: number | string, selectable: boolean): void {
+    const layer = this.layerMap[id];
+    this.map?.setSelectActive(this.mapId(layer), selectable);
+  }
+
   removeLayer(id: number | string, emit= true): void {
     const layer = this.layerMap[id];
     if (!layer) return;
