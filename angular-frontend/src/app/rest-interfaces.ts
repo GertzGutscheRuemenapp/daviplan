@@ -296,8 +296,8 @@ export interface Capacity {
 
 export enum TransportMode {
   WALK = 1,
-  CAR = 2,
-  BIKE = 3,
+  BIKE = 2,
+  CAR = 3,
   TRANSIT = 4
 }
 

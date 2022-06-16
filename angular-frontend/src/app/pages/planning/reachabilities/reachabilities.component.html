@@ -146,9 +146,9 @@
           <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
         </button>
       </div>
-<!--      <mat-radio-button value="option 3" color="primary" i18n>
+      <mat-radio-button value="option 3" color="primary" i18n>
         von allen Wohnstandorten <br> zum jeweils nächsten Angebot
-      </mat-radio-button>-->
+      </mat-radio-button>
     </mat-radio-group>
   </div>
 </mat-expansion-panel>
@@ -165,7 +165,7 @@
     </mat-panel-title>
   </mat-expansion-panel-header>
   <div id="mode-select" class="sub-select-wrapper" style="display: flex">
-    <div (click)="mode = TransportMode.WALK" title="zu Fuß"
+    <div (click)="changeMode(TransportMode.WALK)" title="zu Fuß"
          [ngClass]="{'selected': mode === TransportMode.WALK}">
       <div class="mini-fab-icon primary"
            [ngClass]="{'inverted': mode === TransportMode.WALK}"
@@ -176,7 +176,7 @@
         zu Fuß
       </div>
     </div>
-    <div (click)="mode = TransportMode.BIKE" title="Fahrrad"
+    <div (click)="changeMode(TransportMode.BIKE)" title="Fahrrad"
          [ngClass]="{'selected': mode === TransportMode.BIKE}">
       <div class="mini-fab-icon primary"
            [ngClass]="{'inverted': mode === TransportMode.BIKE}"
@@ -187,7 +187,7 @@
         Rad
       </div>
     </div>
-    <div (click)="mode = TransportMode.CAR" title="Auto"
+    <div (click)="changeMode(TransportMode.CAR)" title="Auto"
          [ngClass]="{'selected': mode === TransportMode.CAR}">
       <div class="mini-fab-icon primary"
            [ngClass]="{'inverted': mode === TransportMode.CAR}"
@@ -234,5 +234,5 @@
       </div>
     </div>
   </div>
-  <app-filter-table></app-filter-table>
+  <app-filter-table maxTableHeight="60vh"></app-filter-table>
 </ng-template>

@@ -1,5 +1,4 @@
 import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
-import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
@@ -10,12 +9,12 @@ import {
   Place,
   PlanningProcess,
   RasterCell,
-  Service, TransportMode
+  Service,
+  TransportMode
 } from "../../../rest-interfaces";
 import { MapControl, MapService } from "../../../map/map.service";
 import { Subscription } from "rxjs";
 import * as d3 from "d3";
-import { FilterColumn } from "../../../elements/filter-table/filter-table.component";
 
 @Component({
   selector: 'app-reachabilities',
@@ -43,6 +42,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   placesLayer?: Layer;
   placeReachabilityLayer?: Layer;
   TransportMode = TransportMode;
+  selectedPlaceId?: number;
 
   constructor(private mapService: MapService, private dialog: MatDialog, public cookies: CookieService,
               public planningService: PlanningService) { }
@@ -55,10 +55,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     }, true);
     this.planningService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures;
-      this.applyUserSettings();
       this.planningService.getRasterCells().subscribe(rasterCells => {
         this.rasterCells = rasterCells;
-        this.drawRaster();
+        this.applyUserSettings();
+        // this.drawRaster();
       });
     });
     this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
@@ -69,6 +69,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   applyUserSettings(): void {
     this.selectedInfrastructure = this.infrastructures?.find(i => i.id === this.cookies.get('planning-infrastructure', 'number'));
     this.selectedService = this.selectedInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number'));
+    this.selectedPlaceId = this.cookies.get('reachability-place', 'number');
+    this.mode = this.cookies.get('planning-mode', 'number') || TransportMode.WALK;
     this.updatePlaces();
   }
 
@@ -152,11 +154,16 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         { properties: 'properties', geometry: 'geometry' });
       this.mapControl?.setSelect(this.placesLayer!.id!, this.selectPlaceMode);
       this.placesLayer?.featureSelected?.subscribe(evt => {
-        if (evt.selected)
-          this.showPlaceReachability(evt.feature.get('id'));
+        if (evt.selected) {
+          this.selectedPlaceId = evt.feature.get('id');
+          this.cookies.set('reachability-place', this.selectedPlaceId);
+          this.showPlaceReachability();
+        }
         else
           this.removePlaceReachability();
       })
+      if (this.selectedPlaceId)
+        this.mapControl?.selectFeatures([this.selectedPlaceId], this.placesLayer!.id!, { silent: false });
     })
   }
 
@@ -168,9 +175,9 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
   }
 
-  showPlaceReachability(placeId: number): void {
-    if (!this.rasterCells) return;
-    this.planningService.getPlaceReachability(placeId, this.mode).subscribe(cellResults => {
+  showPlaceReachability(): void {
+    if (!this.rasterCells || this.selectedPlaceId === undefined) return;
+    this.planningService.getPlaceReachability(this.selectedPlaceId, this.mode).subscribe(cellResults => {
       if(this.reachRasterLayer) this.mapControl?.removeLayer(this.reachRasterLayer.id!);
       let features: RasterCell[] = [];
       cellResults.forEach(cellResult => {
@@ -193,7 +200,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           opacity: 1,
           symbol: {
             fillColor: 'rgba(0, 0, 0, 0)',
-            strokeColor: 'black',
+            strokeColor: 'rgba(0, 0, 0, 0)',
             symbol: 'line'
           },
           labelField: 'value',
@@ -225,10 +232,17 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.mapControl?.setSelect(this.placesLayer?.id!, this.selectPlaceMode);
   }
 
+  changeMode(mode: TransportMode): void {
+    this.mode = mode;
+    this.cookies.set('planning-mode', mode);
+    this.showPlaceReachability();
+  }
+
   ngOnDestroy(): void {
     if (this.legendGroup) {
       this.mapControl?.removeGroup(this.legendGroup.id!);
     }
+    this.mapControl?.map?.setCursor('');
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }

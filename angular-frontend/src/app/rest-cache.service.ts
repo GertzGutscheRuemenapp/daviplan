@@ -43,6 +43,7 @@ export class RestCacheService {
   private capacitiesCache: Record<string, Capacity[]> = {};
   private statisticsCache: Record<string, StatisticsData[]> = {};
   isLoading$ = new BehaviorSubject<boolean>(false);
+  private loadCount = 0;
 
   constructor(protected http: HttpClient, protected rest: RestAPI) { }
 
@@ -73,10 +74,14 @@ export class RestCacheService {
         if (method === 'GET')
           this.http.get<Type>(url).subscribe(data => {
             done(data);
+          }, error => {
+            this.setLoading(false);
           });
         else
           this.http.post<Type>(url, options?.params).subscribe(data => {
             done(data);
+          }, error => {
+            this.setLoading(false);
           });
       }
       else {
@@ -178,6 +183,8 @@ export class RestCacheService {
           this.setLoading(false);
           subscriber.next(places.features);
           subscriber.complete();
+        }, error => {
+          this.setLoading(false);
         });
       }
       else {
@@ -230,6 +237,8 @@ export class RestCacheService {
           this.setLoading(false);
           subscriber.next(features);
           subscriber.complete();
+        }, error => {
+          this.setLoading(false);
         });
       }
       else {
@@ -251,6 +260,8 @@ export class RestCacheService {
         })
         subscriber.next(res.features);
         subscriber.complete();
+      }, error => {
+        this.setLoading(false);
       });
     })
     return observable;
@@ -375,6 +386,8 @@ export class RestCacheService {
           this.setLoading(false);
           subscriber.next(data);
           subscriber.complete();
+        }, error => {
+          this.setLoading(false);
         })
       } else {
         subscriber.next(cached);
@@ -401,6 +414,8 @@ export class RestCacheService {
   }
 
   setLoading(isLoading: boolean) {
-    this.isLoading$.next(isLoading);
+    this.loadCount += isLoading? 1: -1;
+    console.log(this.loadCount);
+    this.isLoading$.next(this.loadCount > 0);
   }
 }
