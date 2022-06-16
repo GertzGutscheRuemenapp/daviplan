@@ -13,12 +13,13 @@ from osgeo import gdal, ogr, osr
 from django.contrib.gis.geos import Point, Polygon
 from django.db import transaction
 from django.db.models import F
-
+from django.contrib.gis.db.models.functions import Distance
 from django.conf import settings
+from django.contrib.gis.geos import Point
 
 from drf_spectacular.utils import (extend_schema,
                                    inline_serializer,
-                                   OpenApiResponse,)
+                                   OpenApiResponse, OpenApiParameter)
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -75,6 +76,30 @@ class RasterCellViewSet(viewsets.ModelViewSet):
             .filter(rastercellpopulation__isnull=False)\
             .annotate(population=F('rastercellpopulation__value'))
         return raster_cells_with_inhabitants
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='lon', required=True, type=str,
+                description=('WGS84-Longitude')),
+            OpenApiParameter(
+                name='lat', required=True, type=str,
+                description=('WGS84-Latitude')),
+        ],
+        responses=RasterCellSerializer,
+        methods=['GET']
+    )
+    @action(methods=['GET'], detail=False)
+    def closest_cell(self, request, **kwargs):
+        lat = request.query_params.get('lat')
+        lon = request.query_params.get('lon')
+        pnt = Point(x=float(lon), y=float(lat), srid=4326)
+        pnt.transform(3857)
+        closest = self.get_queryset().annotate(
+            distance=Distance('pnt', pnt)
+            ).order_by('distance').first()
+        return Response(RasterCellSerializer(closest).data,
+                        status=status.HTTP_200_OK)
 
 
 class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

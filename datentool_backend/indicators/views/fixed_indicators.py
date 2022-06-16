@@ -158,21 +158,18 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
     )
     @extend_schema(
         request=inline_serializer(
-            name='LatLonSerializer',
+            name='CellIdSerializer',
             fields={
-                'lon': serializers.FloatField(required=True, label='x-coord',
-                                              help_text='WGS84-Longitude'),
-                'lat': serializers.FloatField(required=True, label='y-coord',
-                                              help_text='WGS84-Latitude'),
-                'mode': serializers.CharField(required=True),
+                'cell_code': serializers.CharField(required=True),
+                'mode': serializers.CharField(required=False),
             }
         ),
         responses=ReachabilityCell.result_serializer.value(many=True),
         methods=['POST']
     )
     @action(methods=['GET', 'POST'], detail=False)
-    def reachibility_cells(self, request, **kwargs):
-        """get places with reachabilities to cells"""
+    def reachibility_cell(self, request, **kwargs):
+        """get places with reachabilities to cell closest to given coordinate"""
         indicator = ReachabilityCell(self.request.data)
         if request.method == 'GET':
             return Response(IndicatorSerializer(indicator).data)

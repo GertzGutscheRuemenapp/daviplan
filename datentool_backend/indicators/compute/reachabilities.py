@@ -33,4 +33,10 @@ class ReachabilityCell(ComputeIndicator):
     result_serializer = ResultSerializer.PLACE
 
     def compute(self):
-        return []
+        mode = self.data.get('mode', Mode.WALK)
+        variant = ModeVariant.objects.get(mode=mode, network__name='Basisnetz')
+        cell_code = self.data.get('cell_code')
+        places = MatrixCellPlace.objects.filter(variant=variant,
+                                                cell__cellcode=cell_code)
+        places = places.annotate(value=F('minutes'))
+        return places
