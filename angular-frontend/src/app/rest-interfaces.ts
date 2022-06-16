@@ -280,7 +280,8 @@ export interface Place {
     infrastructure: number,
     attributes: any,
     label?: string,
-    capacity?: number
+    capacity?: number,
+    value?: number
   },
   capacities?: Capacity[]
 }
@@ -301,7 +302,12 @@ export enum TransportMode {
   TRANSIT = 4
 }
 
-export interface CellData {
+export interface CellResult {
   cellCode: string,
+  value: number
+}
+
+export interface PlaceResult {
+  placeId: number,
   value: number
 }

@@ -16,6 +16,7 @@ import { click, always } from 'ol/events/condition';
 import { EventEmitter } from "@angular/core";
 import { Polygon } from "ol/geom";
 import { fromExtent } from 'ol/geom/Polygon';
+import { transform } from 'ol/proj';
 import { saveAs } from 'file-saver';
 import MVT from 'ol/format/MVT';
 import VectorTileLayer from 'ol/layer/VectorTile';
@@ -36,6 +37,7 @@ export class OlMap {
   tooltipOverlay: Overlay;
   // emits all selected features
   selected = new EventEmitter<{ layer: Layer<any>, selected: Feature<any>[], deselected: Feature<any>[] }>();
+  mapClicked = new EventEmitter<number[]>();
 
   constructor( target: string,
                options: { center?: Coordinate, zoom?: number, projection?: string,
@@ -77,6 +79,9 @@ export class OlMap {
     this.map.addOverlay(this.tooltipOverlay);
     this.map.getViewport().addEventListener('mouseout', event => {
       tooltip.style.display = 'none';
+    });
+    this.map.on('singleclick', evt => {
+      this.mapClicked.emit(transform(evt.coordinate, this.mapProjection, 'EPSG:4326'));
     });
   }
 
@@ -388,10 +393,12 @@ export class OlMap {
         style.setZIndex(zIndex);
       }
       const valueField = options?.valueField || 'value';
-      const fc = (typeof options?.fill?.color === 'function')? options.fill.color(Number(feature.get(valueField))): fillColor;
+      let value = feature.get(valueField);
+      if (value instanceof String) value = Number(value);
+      const fc = (typeof options?.fill?.color === 'function' && value !== undefined)? options.fill.color(value): fillColor;
       style.getFill().setColor(fc);
       if (options?.shape) {
-        const radius = (typeof options?.radius === 'function')? Math.abs(options.radius(Number(feature.get(valueField)))): options?.radius;
+        const radius = (typeof options?.radius === 'function')? Math.abs(options.radius(value)): options?.radius;
         const shape = _this.getShape(options?.shape, { fillColor: fc, strokeColor: strokeColor, radius: radius });
         style.setImage(shape);
       }

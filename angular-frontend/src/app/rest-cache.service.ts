@@ -17,14 +17,14 @@ import {
   Statistic,
   FieldType,
   RasterCell,
-  TransportMode, CellData
+  TransportMode, CellResult, PlaceResult
 } from "./rest-interfaces";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
 import { sortBy, wktToGeom } from "./helpers/utils";
 import * as turf from "@turf/helpers";
 import centroid from '@turf/centroid';
-import { Geometry, MultiPolygon, Polygon } from "ol/geom";
+import { Geometry, MultiPolygon } from "ol/geom";
 import { GeoJSON } from "ol/format";
 import { map, tap } from "rxjs/operators";
 
@@ -397,9 +397,19 @@ export class RestCacheService {
     return observable;
   }
 
-  getPlaceReachability(placeId: number, mode: TransportMode): Observable<CellData[]>{
-    return this.getCachedData(this.rest.URLS.reachabilityPlace,
+  getPlaceReachability(placeId: number, mode: TransportMode): Observable<CellResult[]>{
+    return this.getCachedData<CellResult[]>(this.rest.URLS.reachabilityPlace,
       { params: { mode: mode, place: placeId }, method: 'POST' });
+  }
+
+  getClosestCell(lat: number, lon: number): Observable<RasterCell> {
+    return this.getCachedData<RasterCell> (this.rest.URLS.closestCell,
+      { params: { lat: lat, lon: lon }, method: 'GET' });
+  }
+
+  getCellReachability(cellCode: string, mode: TransportMode): Observable<PlaceResult[]>{
+    return this.getCachedData<PlaceResult[]>(this.rest.URLS.reachabilityCell,
+      { params: { cell_code: cellCode, mode: mode }, method: 'POST' });
   }
 
   reset(): void {
@@ -415,7 +425,6 @@ export class RestCacheService {
 
   setLoading(isLoading: boolean) {
     this.loadCount += isLoading? 1: -1;
-    console.log(this.loadCount);
     this.isLoading$.next(this.loadCount > 0);
   }
 }

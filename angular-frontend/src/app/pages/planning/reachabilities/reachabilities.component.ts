@@ -3,6 +3,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
 import {
+  Capacity,
   Infrastructure,
   Layer,
   LayerGroup,
@@ -28,27 +29,37 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   mode: TransportMode = TransportMode.WALK;
   indicator = 'option 1';
   selectPlaceMode = false;
-  selectCellMode = false;
+  placeMarkerMode = false;
   infrastructures?: Infrastructure[];
   places?: Place[];
+  displayedPlaces: Place[] = [];
   selectedInfrastructure?: Infrastructure;
   selectedService?: Service;
   activeProcess?: PlanningProcess;
   mapControl?: MapControl;
+  placeLegendGroup?: LayerGroup;
   legendGroup?: LayerGroup;
   baseRasterLayer?: Layer;
   reachRasterLayer?: Layer;
-  subscriptions: Subscription[] = [];
+  private subscriptions: Subscription[] = [];
+  private mapClickSub?: Subscription;
   placesLayer?: Layer;
+  capacities?: Capacity[];
+  year?: number;
   placeReachabilityLayer?: Layer;
   TransportMode = TransportMode;
   selectedPlaceId?: number;
+  pickedCoords?: number[];
 
   constructor(private mapService: MapService, private dialog: MatDialog, public cookies: CookieService,
               public planningService: PlanningService) { }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
+    this.placeLegendGroup = this.mapControl.addGroup({
+      name: 'Standorte',
+      order: -1
+    }, true);
     this.legendGroup = this.mapControl.addGroup({
       name: 'Erreichbarkeiten',
       order: -1
@@ -63,6 +74,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     });
     this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
       this.activeProcess = process;
+    }));
+    this.subscriptions.push(this.planningService.year$.subscribe(year => {
+      this.year = year;
+      this.updatePlaces();
     }));
   }
 
@@ -117,53 +132,63 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.planningService.getPlaces(this.selectedInfrastructure.id,
       { targetProjection: this.mapControl!.map!.mapProjection }).subscribe(places => {
       this.places = places;
-      let showLabel = true;
-      if (this.placesLayer){
-        showLabel = !!this.placesLayer.showLabel;
-        this.mapControl?.removeLayer(this.placesLayer.id!);
-      }
-      this.placesLayer = this.mapControl?.addLayer({
-          order: 0,
-          type: 'vector',
-          group: this.legendGroup?.id,
-          name: this.selectedInfrastructure!.name,
-          description: this.selectedInfrastructure!.name,
-          opacity: 1,
-          symbol: {
-            fillColor: '#2171b5',
-            strokeColor: 'black',
-            symbol: 'circle'
-          },
-          labelField: 'name',
-          showLabel: showLabel
-        },
-        {
-          visible: true,
-          tooltipField: 'name',
-          selectable: true,
-          mouseOver: {
-            cursor: ''
-          },
-          select: {
-            fillColor: 'yellow',
-            multi: false
-          },
-        });
-      this.mapControl?.clearFeatures(this.placesLayer!.id!);
-      this.mapControl?.addFeatures(this.placesLayer!.id!, places,
-        { properties: 'properties', geometry: 'geometry' });
-      this.mapControl?.setSelect(this.placesLayer!.id!, this.selectPlaceMode);
-      this.placesLayer?.featureSelected?.subscribe(evt => {
-        if (evt.selected) {
-          this.selectedPlaceId = evt.feature.get('id');
-          this.cookies.set('reachability-place', this.selectedPlaceId);
-          this.showPlaceReachability();
+      this.planningService.getCapacities({ year: this.year!, service: this.selectedService!.id }).subscribe(capacities => {
+        this.capacities = capacities;
+        this.displayedPlaces = [];
+        this.places?.forEach(place => {
+          // if (!this.filter(place)) return;
+          const capacity = this.getCapacity(this.selectedService!.id, place.id);
+          if (!capacity) return;
+          this.displayedPlaces.push(place);
+        })
+        let showLabel = true;
+        if (this.placesLayer){
+          showLabel = !!this.placesLayer.showLabel;
+          this.mapControl?.removeLayer(this.placesLayer.id!);
         }
-        else
-          this.removePlaceReachability();
+        this.placesLayer = this.mapControl?.addLayer({
+            order: 0,
+            type: 'vector',
+            group: this.placeLegendGroup?.id,
+            name: this.selectedInfrastructure!.name,
+            description: this.selectedInfrastructure!.name,
+            opacity: 1,
+            symbol: {
+              fillColor: '#2171b5',
+              strokeColor: 'black',
+              symbol: 'circle'
+            },
+            labelField: 'name',
+            showLabel: showLabel
+          },
+          {
+            visible: true,
+            tooltipField: 'name',
+            selectable: true,
+            mouseOver: {
+              cursor: ''
+            },
+            select: {
+              fillColor: 'yellow',
+              multi: false
+            },
+          });
+        this.mapControl?.clearFeatures(this.placesLayer!.id!);
+        this.mapControl?.addFeatures(this.placesLayer!.id!, this.displayedPlaces,
+          { properties: 'properties', geometry: 'geometry' });
+        this.mapControl?.setSelect(this.placesLayer!.id!, this.selectPlaceMode);
+        this.placesLayer?.featureSelected?.subscribe(evt => {
+          if (evt.selected) {
+            this.selectedPlaceId = evt.feature.get('id');
+            this.cookies.set('reachability-place', this.selectedPlaceId);
+            this.showPlaceReachability();
+          }
+          else
+            this.removePlaceReachability();
+        })
+        if (this.selectedPlaceId)
+          this.mapControl?.selectFeatures([this.selectedPlaceId], this.placesLayer!.id!, { silent: false });
       })
-      if (this.selectedPlaceId)
-        this.mapControl?.selectFeatures([this.selectedPlaceId], this.placesLayer!.id!, { silent: false });
     })
   }
 
@@ -188,7 +213,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         }
       })
       const max = Math.max(...cellResults.map(c => c.value));
-
       const colorFunc = d3.scaleSequential(d3.interpolateRdYlGn).domain([max, 0]);
 
       this.reachRasterLayer = this.mapControl?.addLayer({
@@ -221,15 +245,75 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
   }
 
-  toggleIndicator(): void {
-    this.selectPlaceMode = false;
-    this.selectCellMode = false;
+  showCellReachability(): void {
+    if (!this.rasterCells || this.pickedCoords === undefined) return;
+    const lat = this.pickedCoords[1];
+    const lon = this.pickedCoords[0];
+    this.planningService.getClosestCell(lat, lon).subscribe(cell => {
+      this.planningService.getCellReachability(cell.properties.cellcode!, this.mode).subscribe(placeResults => {
+        let showLabel = true;
+        if (this.placeReachabilityLayer){
+          showLabel = !!this.placeReachabilityLayer.showLabel;
+          this.mapControl?.removeLayer(this.placeReachabilityLayer.id!);
+        }
+        this.displayedPlaces.forEach(place => {
+          const res = placeResults.find(p => p.placeId === place.id);
+          place.properties.value = res?.value || 999999999;
+        })
+        const max = Math.max(...placeResults.map(c => c.value));
+        const colorFunc = d3.scaleSequential(d3.interpolateRdYlGn).domain([max || 100, 0]);
+        this.placeReachabilityLayer = this.mapControl?.addLayer({
+            order: 0,
+            type: 'vector',
+            group: this.legendGroup?.id,
+            name: this.selectedInfrastructure!.name,
+            description: this.selectedInfrastructure!.name,
+            opacity: 1,
+            symbol: {
+              fillColor: 'green',
+              strokeColor: 'black',
+              symbol: 'circle'
+            },
+            labelField: 'value',
+            showLabel: showLabel
+          },
+          {
+            visible: true,
+            tooltipField: 'value',
+            valueField: 'value',
+            colorFunc: colorFunc
+          });
+        this.mapControl?.clearFeatures(this.placeReachabilityLayer!.id!);
+        this.mapControl?.addFeatures(this.placeReachabilityLayer!.id!, this.displayedPlaces,
+          { properties: 'properties', geometry: 'geometry' });
+      })
+    });
   }
 
-  togglePlaceSelection(): void {
-    this.selectPlaceMode = !this.selectPlaceMode;
-    this.mapControl?.map?.setCursor(this.selectPlaceMode? 'crosshair': '');
-    this.mapControl?.setSelect(this.placesLayer?.id!, this.selectPlaceMode);
+  toggleIndicator(): void {
+    this.setPlaceSelection(false);
+    this.setMarkerPlacement(false);
+  }
+
+  setPlaceSelection(enable: boolean): void {
+    this.selectPlaceMode = enable;
+    this.mapControl?.map?.setCursor(enable? 'crosshair': '');
+    this.mapControl?.setSelect(this.placesLayer?.id!, enable);
+  }
+
+  setMarkerPlacement(enable: boolean): void {
+    this.placeMarkerMode = enable;
+    if (this.mapClickSub) {
+      this.mapClickSub.unsubscribe();
+      this.mapClickSub = undefined;
+    }
+    if (enable) {
+      this.mapClickSub = this.mapControl?.map?.mapClicked.subscribe(coords => {
+        this.pickedCoords = coords;
+        this.showCellReachability();
+      })
+    }
+    this.mapControl?.map?.setCursor(enable? 'crosshair': '');
   }
 
   changeMode(mode: TransportMode): void {
@@ -238,11 +322,16 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.showPlaceReachability();
   }
 
+  getCapacity(serviceId: number, placeId: number): number{
+    const cap = this.capacities?.find(capacity => capacity.place === placeId);
+    return cap?.capacity || 0;
+  }
+
   ngOnDestroy(): void {
-    if (this.legendGroup) {
-      this.mapControl?.removeGroup(this.legendGroup.id!);
-    }
+    if (this.legendGroup) this.mapControl?.removeGroup(this.legendGroup.id!);
+    if (this.placeLegendGroup) this.mapControl?.removeGroup(this.placeLegendGroup.id!);
     this.mapControl?.map?.setCursor('');
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
+    if (this.mapClickSub) this.mapClickSub.unsubscribe();
   }
 }

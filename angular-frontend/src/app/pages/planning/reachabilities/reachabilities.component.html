@@ -123,7 +123,7 @@
       </mat-radio-button>
       <div class="row-button"
            [ngClass]="{'active': selectPlaceMode, 'disabled': indicator!=='option 1'}"
-           (click)="togglePlaceSelection()">
+           (click)="setPlaceSelection(!selectPlaceMode)">
         <label i18n>Einrichtung auswählen</label>
         <div class="fill-space"></div>
         <button color="primary"
@@ -135,14 +135,14 @@
         von einem Wohnstandort <br> zu allen Angeboten
       </mat-radio-button>
       <div class="row-button"
-           [ngClass]="{'active': selectCellMode, 'disabled': indicator!=='option 2'}"
-           (click)="selectCellMode = !selectCellMode">
+           [ngClass]="{'active': placeMarkerMode, 'disabled': indicator!=='option 2'}"
+           (click)="setMarkerPlacement(!placeMarkerMode)">
         <label i18n>Wohnstandort auswählen</label>
         <div class="fill-space"></div>
-        <button color="primary" *ngIf="!selectCellMode" class="small" mat-icon-button>
+        <button color="primary" *ngIf="!placeMarkerMode" class="small" mat-icon-button>
           <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
         </button>
-        <button color="primary" *ngIf="selectCellMode" class="small no-shadow" mat-mini-fab>
+        <button color="primary" *ngIf="placeMarkerMode" class="small no-shadow" mat-mini-fab>
           <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
         </button>
       </div>

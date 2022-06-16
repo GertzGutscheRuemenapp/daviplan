@@ -28,6 +28,7 @@ export class RestAPI {
     areaPopulation: `${ this.API_ENDPOINT }/indicators/aggregate_population/`,
     populationData: `${ this.API_ENDPOINT }/indicators/population_details/`,
     reachabilityPlace: `${ this.API_ENDPOINT }/indicators/reachability_place/`,
+    reachabilityCell: `${ this.API_ENDPOINT }/indicators/reachibility_cell/`,
     areaDemand: `${ this.API_ENDPOINT }/indicators/demand/`,
     statistics: `${ this.API_ENDPOINT }/popstatistics/`,
     statisticsData: `${ this.API_ENDPOINT }/popstatentries/`,
@@ -41,7 +42,8 @@ export class RestAPI {
     processes: `${ this.API_ENDPOINT }/planningprocesses/`,
     scenarios: `${ this.API_ENDPOINT }/scenarios/`,
     matrixCellPlaces: `${ this.API_ENDPOINT }/matrixcellplaces/`,
-    rasterCells: `${ this.API_ENDPOINT }/rastercells/`
+    rasterCells: `${ this.API_ENDPOINT }/rastercells/`,
+    closestCell: `${ this.API_ENDPOINT }/rastercells/closest_cell/`,
   }
   // ToDo: functions with generalized HTTP calls in here
 }
