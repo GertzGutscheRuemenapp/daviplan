@@ -60,13 +60,13 @@ export class RestCacheService {
           url += `?${queryParams}`;
       }
     }
-    const key = (method === 'GET' || !options?.params)? url: url + options.params.toString();
+    const key = (method === 'GET' || !options?.params)? url: url + JSON.stringify(options.params);
     const _this = this;
     const observable = new Observable<Type>(subscriber => {
       if (options?.reset || !this.genericCache[key]){
         this.setLoading(true);
         function done(data: any) {
-          _this.genericCache[url] = data;
+          _this.genericCache[key] = data;
           subscriber.next(data);
           subscriber.complete();
           _this.setLoading(false);
