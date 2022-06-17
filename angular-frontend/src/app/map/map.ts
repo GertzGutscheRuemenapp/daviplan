@@ -338,7 +338,8 @@ export class OlMap {
       radius?: number | ((d: number) => number),
       labelField?: string,
       valueField?: string,
-      showLabel?: boolean
+      showLabel?: boolean,
+      zIndex?: number,
     } = {}): Layer<any> {
     // @ts-ignore
     const fillColor: string = (typeof(options?.fill?.color) === 'string')? options?.fill?.color: 'rgba(0, 0, 0, 0)';
@@ -410,6 +411,9 @@ export class OlMap {
       opacity: (options?.opacity != undefined) ? options?.opacity: 1,
       style: styleFunc
     });
+
+    if (options.zIndex)
+      layer.setZIndex(options.zIndex);
 
     layer.set('showLabel', options?.showLabel || false);
     layer.set('name', name);

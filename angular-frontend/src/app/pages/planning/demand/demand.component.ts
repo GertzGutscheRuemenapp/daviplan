@@ -26,7 +26,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   years = [2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025];
   compareSupply = true;
   compareStatus = 'option 1';
-  infrastructures?: Infrastructure[];
+  infrastructures: Infrastructure[] = [];
   activeInfrastructure?: Infrastructure;
   activeLevel?: AreaLevel;
   activeService?: Service;
@@ -54,6 +54,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
     }, false)
     this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
       this.activeProcess = process;
+      this.updateMap();
     }));
     this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
       this.activeScenario = scenario;
@@ -86,11 +87,11 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   }
 
   applyUserSettings(): void {
-    this.activeLevel = this.areaLevels.find(al => al.id === this.cookies.get('planning-area-level', 'number'));
-    this.activeInfrastructure = this.infrastructures?.find(i => i.id === this.cookies.get('planning-infrastructure', 'number'));
-    this.activeService = this.activeInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number'));
-    if (this.activeInfrastructure)
-      this.serviceSelection.select(this.activeService || this.activeInfrastructure.services[0]);
+    this.activeLevel = this.areaLevels.find(al => al.id === this.cookies.get('planning-area-level', 'number')) || (this.areaLevels.length > 0)? this.areaLevels[this.areaLevels.length - 1]: undefined;
+    this.activeInfrastructure = this.infrastructures?.find(i => i.id === this.cookies.get('planning-infrastructure', 'number'))  || (this.infrastructures.length > 0)? this.infrastructures[0]: undefined;
+    this.activeService = this.activeInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number'))  || (this.activeInfrastructure && this.activeInfrastructure.services.length > 0)? this.activeInfrastructure.services[0]: undefined;
+    if (this.activeService)
+      this.serviceSelection.select(this.activeService);
     this.onAreaLevelChange();
   }
 
@@ -120,7 +121,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
       this.mapControl?.removeLayer(this.demandLayer.id!);
       this.demandLayer = undefined;
     }
-    if (!this.year || !this.activeLevel || !this.activeService) return;
+    if (!this.year || !this.activeLevel || !this.activeService || !this.activeProcess) return;
     this.updateMapDescription();
 
     this.planningService.getDemand(this.activeLevel.id,

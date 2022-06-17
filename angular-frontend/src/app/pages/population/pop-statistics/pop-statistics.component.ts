@@ -94,11 +94,15 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
     this.activeArea = this.areas?.find(a => a.id === areaId);
     const theme = this.cookies.get('pop-stat-theme', 'string');
     this.theme = theme as any || 'nature';
-    this.showBirths = this.cookies.get('pop-stat-births', 'boolean');
-    this.showDeaths = this.cookies.get('pop-stat-deaths', 'boolean');
-    this.showImmigration = this.cookies.get('pop-stat-immigration', 'boolean');
-    this.showEmigration = this.cookies.get('pop-stat-emigration', 'boolean');
-    this.showEmigration = this.cookies.get('pop-stat-emigration', 'boolean');
+    // all true by default
+    const showBirths = this.cookies.get('pop-stat-births', 'boolean');
+    this.showBirths = (showBirths !== undefined)? showBirths: true;
+    const showDeaths = this.cookies.get('pop-stat-deaths', 'boolean');
+    this.showDeaths = (showDeaths !== undefined)? showDeaths: true;
+    const showImmigration = this.cookies.get('pop-stat-immigration', 'boolean');
+    this.showImmigration = (showImmigration !== undefined)? showImmigration: true;
+    const showEmigration = this.cookies.get('pop-stat-emigration', 'boolean');
+    this.showEmigration = (showEmigration !== undefined)? showEmigration: true;
     const year = this.cookies.get('pop-year','number');
     this.year = (year && this.years!.indexOf(year) > -1)? year: (this.years.length > 0)? this.years[0]: undefined;
     this.setSlider();

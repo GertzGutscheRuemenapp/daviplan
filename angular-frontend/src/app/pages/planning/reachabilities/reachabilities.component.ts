@@ -16,7 +16,6 @@ import {
 import { MapControl, MapService } from "../../../map/map.service";
 import { Subscription } from "rxjs";
 import * as d3 from "d3";
-import { wktToGeom } from "../../../helpers/utils";
 import { Geometry } from "ol/geom";
 
 @Component({
@@ -32,7 +31,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   indicator = 'option 1';
   selectPlaceMode = false;
   placeMarkerMode = false;
-  infrastructures?: Infrastructure[];
+  infrastructures: Infrastructure[] = [];
   places?: Place[];
   displayedPlaces: Place[] = [];
   selectedInfrastructure?: Infrastructure;
@@ -76,6 +75,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     });
     this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
       this.activeProcess = process;
+      this.updatePlaces();
     }));
     this.subscriptions.push(this.planningService.year$.subscribe(year => {
       this.year = year;
@@ -84,8 +84,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   applyUserSettings(): void {
-    this.selectedInfrastructure = this.infrastructures?.find(i => i.id === this.cookies.get('planning-infrastructure', 'number'));
-    this.selectedService = this.selectedInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number'));
+    this.selectedInfrastructure = this.infrastructures.find(i => i.id === this.cookies.get('planning-infrastructure', 'number'))  || (this.infrastructures.length > 0)? this.infrastructures[0]: undefined;
+    this.selectedService = this.selectedInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number'))  || (this.selectedInfrastructure && this.selectedInfrastructure.services.length > 0)? this.selectedInfrastructure.services[0]: undefined;
     this.selectedPlaceId = this.cookies.get('reachability-place', 'number');
     this.mode = this.cookies.get('planning-mode', 'number') || TransportMode.WALK;
     this.updatePlaces();
@@ -129,7 +129,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   updatePlaces(): void {
-    if (!this.selectedInfrastructure || !this.selectedService) return;
+    if (!this.selectedInfrastructure || !this.selectedService || !this.activeProcess) return;
     this.updateMapDescription();
     this.planningService.getPlaces(this.selectedInfrastructure.id,
       { targetProjection: this.mapControl!.map!.mapProjection }).subscribe(places => {
@@ -252,7 +252,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     const lat = this.pickedCoords[1];
     const lon = this.pickedCoords[0];
     this.planningService.getClosestCell(lat, lon, {targetProjection: this.mapControl?.map?.mapProjection }).subscribe(cell => {
-      this.mapControl?.addMarker(cell.geometry as Geometry);
+      const marker = this.mapControl?.addMarker(cell.geometry as Geometry);
       this.planningService.getCellReachability(cell.properties.cellcode!, this.mode).subscribe(placeResults => {
         let showLabel = true;
         if (this.placeReachabilityLayer){
@@ -334,6 +334,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     if (this.legendGroup) this.mapControl?.removeGroup(this.legendGroup.id!);
     if (this.placeLegendGroup) this.mapControl?.removeGroup(this.placeLegendGroup.id!);
     this.mapControl?.map?.setCursor('');
+    this.mapControl?.removeMarker();
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
     if (this.mapClickSub) this.mapClickSub.unsubscribe();
   }
