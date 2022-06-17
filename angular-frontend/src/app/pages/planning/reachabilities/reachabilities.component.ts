@@ -333,6 +333,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     if (this.legendGroup) this.mapControl?.removeGroup(this.legendGroup.id!);
     if (this.placeLegendGroup) this.mapControl?.removeGroup(this.placeLegendGroup.id!);
     this.mapControl?.map?.setCursor('');
+    this.mapControl?.removeMarker();
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
     if (this.mapClickSub) this.mapClickSub.unsubscribe();
   }

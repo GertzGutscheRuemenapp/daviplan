@@ -139,6 +139,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   onInfrastructureChange(): void {
     this.cookies.set('planning-infrastructure', this.activeInfrastructure?.id);
+    this.filterColumns = [];
     if (this.activeInfrastructure!.services.length > 0)
       this.activeService = this.activeInfrastructure!.services[0];
     this.updatePlaces();
