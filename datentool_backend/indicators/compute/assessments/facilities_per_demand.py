@@ -23,6 +23,8 @@ class FacilitiesPerDemandInArea(ServiceIndicator):
     def compute(self):
         demand_area_indicator = DemandAreaIndicator(self.data)
         areas_with_demand = demand_area_indicator.compute()
+        if not areas_with_demand:
+            return []
         q_d = areas_with_demand.raw_query
         p_d = areas_with_demand.params
 
