@@ -184,8 +184,6 @@ export class MapControl {
 
   init(): void {
     this.map = new OlMap(this.target, { projection: `EPSG:${this.srid}` });
-    this.markerLayer = this.map!.addVectorLayer('marker-layer',
-      {shape: 'circle', stroke: {width: 3, color: 'red'}, fill: {color: 'red'}, radius: 10});
     this.map.selected.subscribe(evt => {
       if (evt.selected && evt.selected.length > 0)
         this.onFeatureSelected(evt.layer, evt.selected);
@@ -226,19 +224,22 @@ export class MapControl {
       })
       this.layerGroups.next(this._serviceLayerGroups);
     })
+    this.markerLayer = this.map!.addVectorLayer('marker-layer',
+      {shape: 'x', stroke: {width: 5, color: 'red'}, fill: {color: 'red'}, radius: 10, visible: true, zIndex: 100});
   }
 
   getBackgroundLayers(): Layer[]{
     return this.mapService.backgroundLayers;
   }
 
-  addMarker(geometry: Geometry): void {
+  addMarker(geometry: Geometry): Feature<any> {
     this.removeMarker();
     if (geometry instanceof Polygon) {
       geometry = new Point(getCenter(geometry.getExtent()));
     }
     const marker = new Feature(geometry);
     this.map?.addFeatures('marker-layer', [marker]);
+    return marker;
   }
 
   removeMarker(): void {

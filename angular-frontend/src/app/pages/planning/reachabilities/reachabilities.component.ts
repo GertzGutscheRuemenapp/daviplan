@@ -16,7 +16,6 @@ import {
 import { MapControl, MapService } from "../../../map/map.service";
 import { Subscription } from "rxjs";
 import * as d3 from "d3";
-import { wktToGeom } from "../../../helpers/utils";
 import { Geometry } from "ol/geom";
 
 @Component({
@@ -252,7 +251,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     const lat = this.pickedCoords[1];
     const lon = this.pickedCoords[0];
     this.planningService.getClosestCell(lat, lon, {targetProjection: this.mapControl?.map?.mapProjection }).subscribe(cell => {
-      this.mapControl?.addMarker(cell.geometry as Geometry);
+      const marker = this.mapControl?.addMarker(cell.geometry as Geometry);
       this.planningService.getCellReachability(cell.properties.cellcode!, this.mode).subscribe(placeResults => {
         let showLabel = true;
         if (this.placeReachabilityLayer){

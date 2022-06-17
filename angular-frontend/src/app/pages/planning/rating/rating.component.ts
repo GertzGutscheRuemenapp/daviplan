@@ -11,11 +11,8 @@ import {
   Infrastructure, Layer,
   LayerGroup,
   PlanningProcess,
-  RasterCell,
   Service
 } from "../../../rest-interfaces";
-import { RestAPI } from "../../../rest-api";
-import { HttpClient } from "@angular/common/http";
 import { SelectionModel } from "@angular/cdk/collections";
 import { MapControl, MapService } from "../../../map/map.service";
 import * as d3 from "d3";
@@ -167,7 +164,6 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   }
 
   onIndicatorChange(): void {
-    console.log(this.selectedIndicator)
     this.cookies.set('planning-indicator', this.selectedIndicator?.name);
     this.updateMap();
   }
