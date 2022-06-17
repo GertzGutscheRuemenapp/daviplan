@@ -12,6 +12,8 @@ import { v4 as uuid } from 'uuid';
 import { SelectionModel } from "@angular/cdk/collections";
 import { Feature } from 'ol';
 import { Layer as OlLayer } from 'ol/layer'
+import { Geometry, Polygon, Point } from "ol/geom";
+import { getCenter } from 'ol/extent';
 
 const backgroundLayers: Layer[] = [
   {
@@ -162,6 +164,7 @@ export class MapControl {
   private _localLayerGroups: LayerGroup[] = [];
   private _serviceLayerGroups: LayerGroup[] = [];
   private checklistSelection = new SelectionModel<Layer>(true );
+  private markerLayer?: OlLayer<any>;
   mapSettings: any = {};
   mapExtents: any = {};
   editMode: boolean = true;
@@ -181,6 +184,8 @@ export class MapControl {
 
   init(): void {
     this.map = new OlMap(this.target, { projection: `EPSG:${this.srid}` });
+    this.markerLayer = this.map!.addVectorLayer('marker-layer',
+      {shape: 'circle', stroke: {width: 3, color: 'red'}, fill: {color: 'red'}, radius: 10});
     this.map.selected.subscribe(evt => {
       if (evt.selected && evt.selected.length > 0)
         this.onFeatureSelected(evt.layer, evt.selected);
@@ -225,6 +230,19 @@ export class MapControl {
 
   getBackgroundLayers(): Layer[]{
     return this.mapService.backgroundLayers;
+  }
+
+  addMarker(geometry: Geometry): void {
+    this.removeMarker();
+    if (geometry instanceof Polygon) {
+      geometry = new Point(getCenter(geometry.getExtent()));
+    }
+    const marker = new Feature(geometry);
+    this.map?.addFeatures('marker-layer', [marker]);
+  }
+
+  removeMarker(): void {
+    this.map?.clear('marker-layer');
   }
 
   clear(clearForegroundOnly= false) {

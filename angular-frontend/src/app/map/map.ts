@@ -394,7 +394,7 @@ export class OlMap {
       }
       const valueField = options?.valueField || 'value';
       let value = feature.get(valueField);
-      if (value instanceof String) value = Number(value);
+      if (typeof value === 'string') value = Number(value);
       const fc = (typeof options?.fill?.color === 'function' && value !== undefined)? options.fill.color(value): fillColor;
       style.getFill().setColor(fc);
       if (options?.shape) {
