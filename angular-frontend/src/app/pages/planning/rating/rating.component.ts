@@ -130,15 +130,15 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         max = Math.max(max, value);
         min = Math.min(min, value);
         area.properties.value = value;
-        area.properties.description = `<b>${area.properties.label}</b><br>Nachfrage: ${area.properties.value}`
+        area.properties.description = `<b>${area.properties.label}</b><br>${this.selectedIndicator!.title}: ${area.properties.value}`
       })
       const colorFunc = d3.scaleSequential(d3.interpolatePurples).domain([min, max || 1]);
       this.indicatorLayer = this.mapControl?.addLayer({
           order: 0,
           type: 'vector',
           group: this.legendGroup?.id,
-          name: this.selectedAreaLevel!.name,
-          description: this.selectedAreaLevel!.name,
+          name: `${this.selectedIndicator!.title} (${this.selectedAreaLevel!.name})`,
+          description: this.selectedIndicator!.description,
           opacity: 1,
           symbol: {
             strokeColor: 'white',
