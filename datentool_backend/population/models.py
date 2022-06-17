@@ -66,7 +66,6 @@ class RasterCellPopulation(DatentoolModelMixin, models.Model):
     objects = models.Manager()
     copymanager = DirectCopyManager()
 
-
     def __str__(self) -> str:
         return f'{self.__class__.__name__}: {self.popraster.name}-{self.cell.cellcode}'
 

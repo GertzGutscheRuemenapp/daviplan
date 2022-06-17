@@ -66,7 +66,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   file?: File;
   uploadErrors: any = {};
 
-  constructor(private mapService: MapService,private settings: SettingsService, private dialog: MatDialog,
+  constructor(private mapService: MapService, private settings: SettingsService, private dialog: MatDialog,
               private rest: RestAPI, private http: HttpClient, public popService: PopulationService, private formBuilder: FormBuilder) {
     this.propertiesForm = this.formBuilder.group({
       name: new FormControl(''),

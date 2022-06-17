@@ -12,6 +12,8 @@ import { v4 as uuid } from 'uuid';
 import { SelectionModel } from "@angular/cdk/collections";
 import { Feature } from 'ol';
 import { Layer as OlLayer } from 'ol/layer'
+import { Geometry, Polygon, Point } from "ol/geom";
+import { getCenter } from 'ol/extent';
 
 const backgroundLayers: Layer[] = [
   {
@@ -162,6 +164,7 @@ export class MapControl {
   private _localLayerGroups: LayerGroup[] = [];
   private _serviceLayerGroups: LayerGroup[] = [];
   private checklistSelection = new SelectionModel<Layer>(true );
+  private markerLayer?: OlLayer<any>;
   mapSettings: any = {};
   mapExtents: any = {};
   editMode: boolean = true;
@@ -181,6 +184,8 @@ export class MapControl {
 
   init(): void {
     this.map = new OlMap(this.target, { projection: `EPSG:${this.srid}` });
+    this.markerLayer = this.map!.addVectorLayer('marker-layer',
+      {shape: 'circle', stroke: {width: 3, color: 'red'}, fill: {color: 'red'}, radius: 10});
     this.map.selected.subscribe(evt => {
       if (evt.selected && evt.selected.length > 0)
         this.onFeatureSelected(evt.layer, evt.selected);
@@ -225,6 +230,19 @@ export class MapControl {
 
   getBackgroundLayers(): Layer[]{
     return this.mapService.backgroundLayers;
+  }
+
+  addMarker(geometry: Geometry): void {
+    this.removeMarker();
+    if (geometry instanceof Polygon) {
+      geometry = new Point(getCenter(geometry.getExtent()));
+    }
+    const marker = new Feature(geometry);
+    this.map?.addFeatures('marker-layer', [marker]);
+  }
+
+  removeMarker(): void {
+    this.map?.clear('marker-layer');
   }
 
   clear(clearForegroundOnly= false) {
@@ -288,6 +306,11 @@ export class MapControl {
     this.map?.setShowLabel(this.mapId(layer), show);
   }
 
+  setSelect(id: number | string, selectable: boolean): void {
+    const layer = this.layerMap[id];
+    this.map?.setSelectActive(this.mapId(layer), selectable);
+  }
+
   removeLayer(id: number | string, emit= true): void {
     const layer = this.layerMap[id];
     if (!layer) return;
@@ -340,6 +363,7 @@ export class MapControl {
       strokeColor?: string,
       cursor?: string
     },
+    strokeWidth?: number,
     select?: {
       multi?: boolean,
       fillColor?: string,
@@ -368,7 +392,8 @@ export class MapControl {
       valueField: options?.valueField,
       mouseOver: options?.mouseOver,
       select: options?.select,
-      selectable: options?.selectable
+      selectable: options?.selectable,
+      strokeWidth: options?.strokeWidth
     });
     if (options?.selectable){
       layer.featureSelected = new EventEmitter<any>();
@@ -387,9 +412,10 @@ export class MapControl {
     colorFunc?: ((d: number) => string),
     radiusFunc?: ((d: number) => number),
     valueField?: string,
+    strokeWidth?: number,
     mouseOver?: {
       fillColor?: string,
-      strokeColor?: string
+      strokeColor?: string,
       cursor?: string
     },
     select?: {
@@ -408,7 +434,7 @@ export class MapControl {
         mouseOverCursor: options?.mouseOver?.cursor,
         multiSelect: options?.select?.multi,
         stroke: {
-          color: layer.symbol?.strokeColor, width: 2,
+          color: layer.symbol?.strokeColor, width: options?.strokeWidth || 2,
           mouseOverColor: options?.mouseOver?.strokeColor,
           selectedColor: options?.select?.strokeColor
         },

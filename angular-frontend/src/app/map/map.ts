@@ -16,6 +16,7 @@ import { click, always } from 'ol/events/condition';
 import { EventEmitter } from "@angular/core";
 import { Polygon } from "ol/geom";
 import { fromExtent } from 'ol/geom/Polygon';
+import { transform } from 'ol/proj';
 import { saveAs } from 'file-saver';
 import MVT from 'ol/format/MVT';
 import VectorTileLayer from 'ol/layer/VectorTile';
@@ -27,6 +28,7 @@ export class OlMap {
   target: string;
   view: View;
   map: Map;
+  cursor = '';
   layers: Record<string, Layer<any>> = {};
   overlays: Record<string, Layer<any>> = {};
   tileOverlays: Record<string, Layer<any>> = {};
@@ -35,6 +37,7 @@ export class OlMap {
   tooltipOverlay: Overlay;
   // emits all selected features
   selected = new EventEmitter<{ layer: Layer<any>, selected: Feature<any>[], deselected: Feature<any>[] }>();
+  mapClicked = new EventEmitter<number[]>();
 
   constructor( target: string,
                options: { center?: Coordinate, zoom?: number, projection?: string,
@@ -76,6 +79,9 @@ export class OlMap {
     this.map.addOverlay(this.tooltipOverlay);
     this.map.getViewport().addEventListener('mouseout', event => {
       tooltip.style.display = 'none';
+    });
+    this.map.on('singleclick', evt => {
+      this.mapClicked.emit(transform(evt.coordinate, this.mapProjection, 'EPSG:4326'));
     });
   }
 
@@ -387,10 +393,12 @@ export class OlMap {
         style.setZIndex(zIndex);
       }
       const valueField = options?.valueField || 'value';
-      const fc = (typeof options?.fill?.color === 'function')? options.fill.color(Number(feature.get(valueField))): fillColor;
+      let value = feature.get(valueField);
+      if (typeof value === 'string') value = Number(value);
+      const fc = (typeof options?.fill?.color === 'function' && value !== undefined)? options.fill.color(value): fillColor;
       style.getFill().setColor(fc);
       if (options?.shape) {
-        const radius = (typeof options?.radius === 'function')? Math.abs(options.radius(Number(feature.get(valueField)))): options?.radius;
+        const radius = (typeof options?.radius === 'function')? Math.abs(options.radius(value)): options?.radius;
         const shape = _this.getShape(options?.shape, { fillColor: fc, strokeColor: strokeColor, radius: radius });
         style.setImage(shape);
       }
@@ -407,7 +415,7 @@ export class OlMap {
     layer.set('name', name);
     this.setMouseOverLayer(layer, {
       tooltipField: options?.tooltipField,
-      cursor: (options?.mouseOverCursor)? options?.mouseOverCursor: (options?.selectable)? 'pointer': undefined,
+      cursor: (options?.mouseOverCursor != undefined)? options?.mouseOverCursor: (options?.selectable)? 'pointer': undefined,
       fillColor: options?.fill?.mouseOverColor,
       strokeColor: options?.stroke?.mouseOverColor,
       strokeWidth: options?.stroke?.mouseOverWidth || options?.stroke?.width || 1,
@@ -525,16 +533,21 @@ export class OlMap {
             tooltip!.style.display = 'none';
         }
         if (options.cursor) {
-          this.div!.style.cursor = features.length > 0 ? options.cursor : '';
+          this.div!.style.cursor = features.length > 0 ? options.cursor : this.cursor;
         }
       });
     });
     const overlay = this.overlays[layer.get('name')];
     if (overlay)
       this.map.getViewport().addEventListener('mouseout', event => {
-        this.div!.style.cursor = '';
+        this.div!.style.cursor = this.cursor;
         overlay.getSource().clear();
       });
+  }
+
+  setCursor(cursor: string): void {
+    this.cursor = cursor;
+    this.div!.style.cursor = cursor;
   }
 
   addFeatures(layername: string, features: Feature<any>[]){

@@ -18,4 +18,4 @@
     <app-time-slider id="time-slider" [helpYOffset]="0" #timeSlider></app-time-slider>
   </div>
 </div>
-<app-filter-table #filterTable (filtersChanged)="onFilterChange($event)" [columns]="columns" [rows]="rows"></app-filter-table>
+<app-filter-table maxTableHeight="40vh" #filterTable (filtersChanged)="onFilterChange($event)" [columns]="columns" [rows]="rows"></app-filter-table>

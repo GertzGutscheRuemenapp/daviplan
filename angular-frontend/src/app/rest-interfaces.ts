@@ -82,6 +82,16 @@ export interface Indicator {
   resultType: 'place' | 'area' | 'raster' | 'pop';
 }
 
+export interface RasterCell {
+  id: number,
+  geometry: string | Geometry,
+  properties: {
+    cellcode?: string,
+    population?: number,
+    value?: number
+  }
+}
+
 export interface AreaLevel {
   id: number;
   name: string;
@@ -140,7 +150,7 @@ export interface Prognosis {
   years: number[]
 }
 
-export interface AreaIndicatorData {
+export interface AreaIndicatorResult {
   areaId: number,
   label?: string,
   value: number
@@ -270,7 +280,8 @@ export interface Place {
     infrastructure: number,
     attributes: any,
     label?: string,
-    capacity?: number
+    capacity?: number,
+    value?: number
   },
   capacities?: Capacity[]
 }
@@ -282,4 +293,21 @@ export interface Capacity {
   capacity: number,
   fromYear: number,
   scenario?: number
+}
+
+export enum TransportMode {
+  WALK = 1,
+  BIKE = 2,
+  CAR = 3,
+  TRANSIT = 4
+}
+
+export interface CellResult {
+  cellCode: string,
+  value: number
+}
+
+export interface PlaceResult {
+  placeId: number,
+  value: number
 }

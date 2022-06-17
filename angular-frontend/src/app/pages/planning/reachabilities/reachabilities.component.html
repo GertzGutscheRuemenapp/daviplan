@@ -31,8 +31,9 @@
       <mat-form-field appearance="outline" class="small">
         <mat-label>Infrastrukturbereich</mat-label>
         <mat-select disableOptionCentering disableRipple
-                    [(value)]="selectedInfrastructure"
+                    [(ngModel)]="selectedInfrastructure"
                     [ngbPopover]="selectedInfrastructure?.description"
+                    (ngModelChange)="onInfrastructureChange()"
                     placement="right"
                     container="body"
                     triggers="mouseenter:mouseleave">
@@ -51,7 +52,7 @@
         <mat-icon>filter_list</mat-icon>
       </button>
     </div>
-    <div class="sub-select-wrapper" *ngIf="selectedInfrastructure">
+<!--    <div class="sub-select-wrapper" *ngIf="selectedInfrastructure">
       <mat-checkbox *ngFor="let service of selectedInfrastructure.services; let first = first;"
                     [value]="service.name"
                     [checked]="first"
@@ -63,6 +64,22 @@
                     triggers="mouseenter:mouseleave">
         {{service.name}}
       </mat-checkbox>
+    </div>-->
+    <div class="sub-select-wrapper" *ngIf="selectedInfrastructure">
+      <mat-radio-group>
+        <mat-radio-button *ngFor="let service of selectedInfrastructure.services; let first = first;"
+                          [value]="service"
+                          [checked]="service === selectedService"
+                          (change)="selectedService = service; onServiceChange();"
+                          style="margin-right: 100%;"
+                          color="primary"
+                          [ngbPopover]="service.description"
+                          placement="right"
+                          container="body"
+                          triggers="mouseenter:mouseleave">
+          {{service.name}}
+        </mat-radio-button>
+      </mat-radio-group>
     </div>
   </div>
   <mat-divider></mat-divider>
@@ -104,23 +121,28 @@
       <mat-radio-button value="option 1" color="primary" i18n>
         von allen Wohnstandorten <br> zum Angebot
       </mat-radio-button>
-      <div class="row-button" [ngClass]="{'active': selectFacMode, 'disabled': indicator!=='option 1'}" (click)="selectFacMode = !selectFacMode">
+      <div class="row-button"
+           [ngClass]="{'active': selectPlaceMode, 'disabled': indicator!=='option 1'}"
+           (click)="setPlaceSelection(!selectPlaceMode)">
         <label i18n>Einrichtung auswählen</label>
         <div class="fill-space"></div>
-        <button color="primary" [ngClass]="{inverted: selectFacMode}" class="small" mat-icon-button>
+        <button color="primary"
+                [ngClass]="{inverted: selectPlaceMode}" class="small" mat-icon-button>
           <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
         </button>
       </div>
       <mat-radio-button value="option 2" color="primary" i18n>
         von einem Wohnstandort <br> zu allen Angeboten
       </mat-radio-button>
-      <div class="row-button" [ngClass]="{'active': selectLivMode, 'disabled': indicator!=='option 2'}" (click)="selectLivMode = !selectLivMode">
+      <div class="row-button"
+           [ngClass]="{'active': placeMarkerMode, 'disabled': indicator!=='option 2'}"
+           (click)="setMarkerPlacement(!placeMarkerMode)">
         <label i18n>Wohnstandort auswählen</label>
         <div class="fill-space"></div>
-        <button color="primary" *ngIf="!selectLivMode" class="small" mat-icon-button>
+        <button color="primary" *ngIf="!placeMarkerMode" class="small" mat-icon-button>
           <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
         </button>
-        <button color="primary" *ngIf="selectLivMode" class="small no-shadow" mat-mini-fab>
+        <button color="primary" *ngIf="placeMarkerMode" class="small no-shadow" mat-mini-fab>
           <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
         </button>
       </div>
@@ -143,9 +165,10 @@
     </mat-panel-title>
   </mat-expansion-panel-header>
   <div id="mode-select" class="sub-select-wrapper" style="display: flex">
-    <div (click)="transportMode=1" title="zu Fuß" [ngClass]="{'selected': transportMode === 1}">
+    <div (click)="changeMode(TransportMode.WALK)" title="zu Fuß"
+         [ngClass]="{'selected': mode === TransportMode.WALK}">
       <div class="mini-fab-icon primary"
-           [ngClass]="{'inverted': transportMode === 1}"
+           [ngClass]="{'inverted': mode === TransportMode.WALK}"
            style="cursor: pointer;">
         <mat-icon style="font-size: 20px;" class="material-icons-outlined">directions_walk</mat-icon>
       </div>
@@ -153,9 +176,10 @@
         zu Fuß
       </div>
     </div>
-    <div (click)="transportMode=2" title="Fahrrad"  [ngClass]="{'selected': transportMode === 2}">
+    <div (click)="changeMode(TransportMode.BIKE)" title="Fahrrad"
+         [ngClass]="{'selected': mode === TransportMode.BIKE}">
       <div class="mini-fab-icon primary"
-           [ngClass]="{'inverted': transportMode === 2}"
+           [ngClass]="{'inverted': mode === TransportMode.BIKE}"
            title="Fahrrad" style="cursor: pointer;">
         <mat-icon style="font-size: 20px;" class="material-icons-outlined">directions_bike</mat-icon>
       </div>
@@ -163,9 +187,10 @@
         Rad
       </div>
     </div>
-    <div (click)="transportMode=3" title="Auto"  [ngClass]="{'selected': transportMode === 3}">
+    <div (click)="changeMode(TransportMode.CAR)" title="Auto"
+         [ngClass]="{'selected': mode === TransportMode.CAR}">
       <div class="mini-fab-icon primary"
-           [ngClass]="{'inverted': transportMode === 3}"
+           [ngClass]="{'inverted': mode === TransportMode.CAR}"
            style="cursor: pointer;">
         <div class="davicon icon-GGR-davicons-Font-Simple-17-PKW"></div>
       </div>
@@ -173,9 +198,10 @@
         Auto
       </div>
     </div>
-    <div title="ÖPNV (nicht verfügbar)" class="disabled" [ngClass]="{'selected': transportMode === 4}"> <!--(click)="transportMode=4"-->
+    <div title="ÖPNV (nicht verfügbar)" class="disabled"
+         [ngClass]="{'selected': mode === TransportMode.TRANSIT}"> <!--(click)="transportMode = TransportMode.TRANSIT"-->
       <div class="mini-fab-icon primary disabled"
-           [ngClass]="{'inverted': transportMode === 4}"
+           [ngClass]="{'inverted': mode === TransportMode.TRANSIT}"
            style="cursor: pointer;">
         <div class="davicon icon-GGR-davicons-Font-Simple-18-OEPNV"></div>
       </div>
@@ -208,5 +234,5 @@
       </div>
     </div>
   </div>
-  <app-filter-table></app-filter-table>
+  <app-filter-table maxTableHeight="60vh"></app-filter-table>
 </ng-template>
