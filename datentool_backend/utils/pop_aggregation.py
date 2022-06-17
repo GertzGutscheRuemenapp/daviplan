@@ -3,9 +3,8 @@ from io import StringIO
 from django.db import connection
 from django.db.utils import ProgrammingError
 from typing import List
-from django.db.models import F
 from django.db import transaction
-from django.db.models import Max, Sum
+from django.db.models import Max, Sum, F
 
 from datentool_backend.models import (Area, PopulationRaster, AreaCell,
                                       AreaLevel, Population,

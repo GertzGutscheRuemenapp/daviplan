@@ -34,6 +34,7 @@ from .logging.views import (CapacityUploadLogViewSet,
                             PlaceUploadLogViewSet,
                             AreaUploadLogViewSet)
 from .population.views import (RasterViewSet,
+                               RasterCellViewSet,
                                PopulationRasterViewSet,
                                PrognosisViewSet,
                                PopulationViewSet,
@@ -85,6 +86,7 @@ router.register(r'areauploadlogs', AreaUploadLogViewSet,
 # population
 router.register(r'years', YearViewSet, basename='years')
 router.register(r'rasters', RasterViewSet, basename='rasters')
+router.register(r'rastercells', RasterCellViewSet, basename='rastercells')
 router.register(r'populationrasters', PopulationRasterViewSet,
                 basename='populationrasters')
 router.register(r'genders', GenderViewSet, basename='gender')

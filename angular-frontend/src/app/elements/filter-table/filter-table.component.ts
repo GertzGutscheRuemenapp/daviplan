@@ -101,6 +101,7 @@ class ClassFilter extends Filter {
 })
 export class FilterTableComponent implements OnInit {
   @Output() filtersChanged = new EventEmitter<FilterColumn[]>();
+  @Input() maxTableHeight = '100%';
   _columns: FilterColumn[] = [];
   processedRows: any[][] = [];
   _rows: any[][] = [];

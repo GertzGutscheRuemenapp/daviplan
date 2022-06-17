@@ -12,7 +12,7 @@ class Mode(models.IntegerChoices):
     CAR = 3, 'Auto'
     TRANSIT = 4, 'ÖPNV'
 
-MODE_SPEEDS = {
+MODE_SPEED = {
     Mode.WALK: 3.5,
     Mode.BIKE: 10.5,
     Mode.CAR: 25
@@ -37,7 +37,7 @@ class Network(DatentoolModelMixin, NamedModel, models.Model):
         return super().save(*args, **kwargs)
 
 
-class ModeVariant(DatentoolModelMixin, NamedModel, models.Model):
+class ModeVariant(DatentoolModelMixin, models.Model):
     '''
     modes
     '''

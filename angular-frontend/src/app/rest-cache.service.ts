@@ -1,17 +1,32 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
 import {
-  Place, AreaLevel, Area, Gender, AreaIndicatorData, PopulationData, AgeGroup,
-  Infrastructure, Service, Capacity, Prognosis, StatisticsData, DemandRateSet, Statistic, FieldType
+  Place,
+  AreaLevel,
+  Area,
+  Gender,
+  AreaIndicatorResult,
+  PopulationData,
+  AgeGroup,
+  Infrastructure,
+  Service,
+  Capacity,
+  Prognosis,
+  StatisticsData,
+  DemandRateSet,
+  Statistic,
+  FieldType,
+  RasterCell,
+  TransportMode, CellResult, PlaceResult
 } from "./rest-interfaces";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
 import { sortBy, wktToGeom } from "./helpers/utils";
 import * as turf from "@turf/helpers";
 import centroid from '@turf/centroid';
-import { MultiPolygon, Polygon } from "ol/geom";
+import { Geometry, MultiPolygon } from "ol/geom";
 import { GeoJSON } from "ol/format";
-import { map } from "rxjs/operators";
+import { map, tap } from "rxjs/operators";
 
 @Injectable({
   providedIn: 'root'
@@ -21,38 +36,56 @@ export class RestCacheService {
 
   private genericCache: Record<string, any> = {};
   private areaCache: Record<number, Area[]> = {};
-  private demandAreaCache: Record<string, AreaIndicatorData[]> = {};
+  private demandAreaCache: Record<string, AreaIndicatorResult[]> = {};
   private popDataCache: Record<string, PopulationData[]> = {};
-  private popAreaCache: Record<string, AreaIndicatorData[]> = {};
+  private popAreaCache: Record<string, AreaIndicatorResult[]> = {};
   private placesCache: Record<number, Place[]> = {};
   private capacitiesCache: Record<string, Capacity[]> = {};
   private statisticsCache: Record<string, StatisticsData[]> = {};
   isLoading$ = new BehaviorSubject<boolean>(false);
+  private loadCount = 0;
 
   constructor(protected http: HttpClient, protected rest: RestAPI) { }
 
-  protected getCachedData<Type>(url: string, options?: { params?: Record<string, any>, reset?: boolean }): Observable<Type> {
+  protected getCachedData<Type>(url: string, options?: { params?: Record<string, any>, reset?: boolean, method?: 'GET' | 'POST' }): Observable<Type> {
+    const method = options?.method || 'GET';
     if (options?.params) {
-      let queryParams = '';
-      Object.keys(options?.params).forEach((key,i) => {
-        if (i > 0) queryParams += '&';
-        queryParams += `${key}=${options!.params![key]}`;
-      })
-      if (queryParams.length > 0)
-        url += `?${queryParams}`;
+      if (method === 'GET') {
+        let queryParams = '';
+        Object.keys(options?.params).forEach((key, i) => {
+          if (i > 0) queryParams += '&';
+          queryParams += `${key}=${options!.params![key]}`;
+        })
+        if (queryParams.length > 0)
+          url += `?${queryParams}`;
+      }
     }
+    const key = (method === 'GET' || !options?.params)? url: url + JSON.stringify(options.params);
+    const _this = this;
     const observable = new Observable<Type>(subscriber => {
-      if (options?.reset || !this.genericCache[url]){
+      if (options?.reset || !this.genericCache[key]){
         this.setLoading(true);
-        this.http.get<Type>(url).subscribe(data => {
-          this.genericCache[url] = data;
+        function done(data: any) {
+          _this.genericCache[key] = data;
           subscriber.next(data);
           subscriber.complete();
-          this.setLoading(false);
-        });
+          _this.setLoading(false);
+        }
+        if (method === 'GET')
+          this.http.get<Type>(url).subscribe(data => {
+            done(data);
+          }, error => {
+            this.setLoading(false);
+          });
+        else
+          this.http.post<Type>(url, options?.params).subscribe(data => {
+            done(data);
+          }, error => {
+            this.setLoading(false);
+          });
       }
       else {
-        subscriber.next(this.genericCache[url]);
+        subscriber.next(this.genericCache[key]);
         subscriber.complete();
       }
     })
@@ -150,6 +183,8 @@ export class RestCacheService {
           this.setLoading(false);
           subscriber.next(places.features);
           subscriber.complete();
+        }, error => {
+          this.setLoading(false);
         });
       }
       else {
@@ -185,7 +220,7 @@ export class RestCacheService {
           const features = sortBy(areas.features, 'label')
           this.areaCache[areaLevelId] = features;
           const format = new GeoJSON();
-          features.forEach((area: Area )=> {
+          features.forEach((area: Area) => {
             const geometry = wktToGeom(area.geometry as string,
               {targetProjection: targetProjection, ewkt: true});
             area.geometry = geometry;
@@ -202,6 +237,8 @@ export class RestCacheService {
           this.setLoading(false);
           subscriber.next(features);
           subscriber.complete();
+        }, error => {
+          this.setLoading(false);
         });
       }
       else {
@@ -212,7 +249,25 @@ export class RestCacheService {
     return observable;
   }
 
-  getAreaLevelPopulation(areaLevelId: number, year: number, options?: { genders?: number[], prognosis?: number, ageGroups?: number[] }): Observable<AreaIndicatorData[]> {
+  getRasterCells(options?: { targetProjection?: string, reset?: boolean }): Observable<RasterCell[]>{
+    const targetProjection = (options?.targetProjection !== undefined)? options?.targetProjection: 'EPSG:4326';
+    const observable = new Observable<RasterCell[]>(subscriber => {
+      this.getCachedData<any>(this.rest.URLS.rasterCells, { reset: options?.reset }).subscribe(res => {
+        res.features.forEach((rasterCell: RasterCell) => {
+          if (!(rasterCell.geometry instanceof Geometry))
+            rasterCell.geometry = wktToGeom(rasterCell.geometry as string,
+              { targetProjection: targetProjection, ewkt: true});
+        })
+        subscriber.next(res.features);
+        subscriber.complete();
+      }, error => {
+        this.setLoading(false);
+      });
+    })
+    return observable;
+  }
+
+  getAreaLevelPopulation(areaLevelId: number, year: number, options?: { genders?: number[], prognosis?: number, ageGroups?: number[] }): Observable<AreaIndicatorResult[]> {
     const key = `${areaLevelId}-${year}-${options?.prognosis}-${options?.genders}-${options?.ageGroups}`;
     const data: any = { area_level: areaLevelId, year: year };
     if (options?.prognosis != undefined)
@@ -221,11 +276,11 @@ export class RestCacheService {
       data.gender = options.genders;
     if (options?.ageGroups)
       data.age_group = options.ageGroups;
-    const observable = new Observable<AreaIndicatorData[]>(subscriber => {
+    const observable = new Observable<AreaIndicatorResult[]>(subscriber => {
       const cached = this.popAreaCache[key];
       if (!cached) {
         this.setLoading(true);
-        const query = this.http.post<AreaIndicatorData[]>(this.rest.URLS.areaPopulation, data);
+        const query = this.http.post<AreaIndicatorResult[]>(this.rest.URLS.areaPopulation, data);
         query.subscribe(data => {
           this.popAreaCache[key] = data;
           this.setLoading(false);
@@ -274,9 +329,22 @@ export class RestCacheService {
     return observable;
   }
 
-  getDemand(areaLevelId: number, options?: { year?: number, prognosis?: number, service?: number }): Observable<AreaIndicatorData[]> {
+  computeIndicator(indicatorName: string, areaLevelId: number, serviceId: number, options?: { year?: number, prognosis?: number }): Observable<AreaIndicatorResult[]> {
+    const url = `${this.rest.URLS.services}${serviceId}/compute_indicator/`;
+    let params: any = {
+      area_level: areaLevelId,
+      indicator: indicatorName
+    };
+    if (options?.year != undefined)
+      params.year = options?.year;
+    if (options?.prognosis != undefined)
+      params.prognosis = options?.prognosis;
+    return this.getCachedData<AreaIndicatorResult[]>(url, { params: params, method: 'POST' });
+  }
+
+  getDemand(areaLevelId: number, options?: { year?: number, prognosis?: number, service?: number }): Observable<AreaIndicatorResult[]> {
     const key = `${areaLevelId}-${options?.year}-${options?.prognosis}-${options?.service}`;
-    const observable = new Observable<AreaIndicatorData[]>(subscriber => {
+    const observable = new Observable<AreaIndicatorResult[]>(subscriber => {
       const cached = this.demandAreaCache[key];
       if (!cached) {
         let data: any = { area_level: areaLevelId };
@@ -287,7 +355,7 @@ export class RestCacheService {
         if (options?.service != undefined)
           data.service = options?.service;
         this.setLoading(true);
-        const query = this.http.post<AreaIndicatorData[]>(this.rest.URLS.areaDemand, data);
+        const query = this.http.post<AreaIndicatorResult[]>(this.rest.URLS.areaDemand, data);
         query.subscribe(data => {
           this.demandAreaCache[key] = data;
           this.setLoading(false);
@@ -331,6 +399,8 @@ export class RestCacheService {
           this.setLoading(false);
           subscriber.next(data);
           subscriber.complete();
+        }, error => {
+          this.setLoading(false);
         })
       } else {
         subscriber.next(cached);
@@ -338,6 +408,29 @@ export class RestCacheService {
       }
     })
     return observable;
+  }
+
+  getPlaceReachability(placeId: number, mode: TransportMode): Observable<CellResult[]>{
+    return this.getCachedData<CellResult[]>(this.rest.URLS.reachabilityPlace,
+      { params: { mode: mode, place: placeId }, method: 'POST' });
+  }
+
+  getClosestCell(lat: number, lon: number, options?: { targetProjection?: string }): Observable<RasterCell> {
+    const query = this.getCachedData<RasterCell> (this.rest.URLS.closestCell,
+      { params: { lat: lat, lon: lon }, method: 'GET' });
+    const targetProjection = (options?.targetProjection !== undefined)? options?.targetProjection: 'EPSG:4326';
+    return query.pipe(map(cell => {
+      if (typeof cell.geometry === 'string') {
+        cell.geometry = wktToGeom(cell.geometry as string,
+          {targetProjection: targetProjection, ewkt: true});
+      }
+      return cell;
+    }))
+  }
+
+  getCellReachability(cellCode: string, mode: TransportMode): Observable<PlaceResult[]>{
+    return this.getCachedData<PlaceResult[]>(this.rest.URLS.reachabilityCell,
+      { params: { cell_code: cellCode, mode: mode }, method: 'POST' });
   }
 
   reset(): void {
@@ -352,6 +445,7 @@ export class RestCacheService {
   }
 
   setLoading(isLoading: boolean) {
-    this.isLoading$.next(isLoading);
+    this.loadCount += isLoading? 1: -1;
+    this.isLoading$.next(this.loadCount > 0);
   }
 }
