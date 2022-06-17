@@ -128,13 +128,13 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
   applyUserSettings(): void {
     const ageGroupIds = this.cookies.get('pop-ageGroups', 'array');
-    if (ageGroupIds) {
-      this.ageGroups.forEach(ag => {
-        const select = ageGroupIds? ageGroupIds.indexOf(ag.id!.toString()) >= 0 : true;
-        if (select)
-          this.ageGroupSelection.select(ag);
-      })
-    }
+    this.ageGroups.forEach(ag => {
+      const select = ageGroupIds? ageGroupIds.indexOf(ag.id!.toString()) >= 0 : true;
+      // if cookies were not set yet, length of agegroups is 0
+      // but also means all are selected even if none were selected before intentionally. not ideal
+      if (select || ageGroupIds.length === 0)
+        this.ageGroupSelection.select(ag);
+    })
     this.allAgeGroupsChecked = this.ageGroupSelection.selected.length === this.ageGroups.length;
     const genderId = this.cookies.get('pop-gender','number');
     this.selectedGender = this.genders.find(g => g.id === genderId) || this.genders[0];
@@ -144,7 +144,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     const year = this.cookies.get('pop-year','number');
     this.year = year || this.realYears![this.realYears!.length - 1];
     const areaLevelId = this.cookies.get('pop-area-level','number');
-    this.activeLevel = this.areaLevels.find(al => al.id === areaLevelId);
+    this.activeLevel = this.areaLevels.find(al => al.id === areaLevelId) || (this.areaLevels.length > 0)? this.areaLevels[this.areaLevels.length - 1]: undefined;
 
     this.setSlider();
     this.onLevelChange();

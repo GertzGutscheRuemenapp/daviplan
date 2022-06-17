@@ -32,7 +32,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   indicators: Indicator[] = [];
   areaLevels: AreaLevel[] = [];
   areas: Area[] = [];
-  infrastructures?: Infrastructure[];
+  infrastructures: Infrastructure[] = [];
   selectedService?: Service;
   selectedIndicator?: Indicator;
   selectedAreaLevel?: AreaLevel;
@@ -67,13 +67,14 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     })
     this.planningService.activeProcess$.subscribe(process => {
       this.activeProcess = process;
+      this.updateMap();
     })
   }
 
   applyUserSettings(): void {
-    this.selectedAreaLevel = this.areaLevels.find(al => al.id === this.cookies.get('planning-area-level', 'number'));
-    this.selectedInfrastructure = this.infrastructures?.find(i => i.id === this.cookies.get('planning-infrastructure', 'number'));
-    this.selectedService = this.selectedInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number'));
+    this.selectedAreaLevel = this.areaLevels.find(al => al.id === this.cookies.get('planning-area-level', 'number')) || (this.areaLevels.length > 0)? this.areaLevels[this.areaLevels.length - 1]: undefined;
+    this.selectedInfrastructure = this.infrastructures.find(i => i.id === this.cookies.get('planning-infrastructure', 'number'))  || (this.infrastructures.length > 0)? this.infrastructures[0]: undefined;
+    this.selectedService = this.selectedInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number'))  || (this.selectedInfrastructure && this.selectedInfrastructure.services.length > 0)? this.selectedInfrastructure.services[0]: undefined;
     this.onServiceChange();
     this.onAreaLevelChange();
   }
@@ -114,7 +115,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
       this.mapControl?.removeLayer(this.indicatorLayer.id!);
       this.indicatorLayer = undefined;
     }
-    if (!this.year || !this.selectedAreaLevel || !this.selectedIndicator || !this.selectedService || this.areas.length === 0) return;
+    if (!this.year || !this.activeProcess || !this.selectedAreaLevel || !this.selectedIndicator || !this.selectedService || this.areas.length === 0) return;
     this.updateMapDescription();
 
     this.planningService.computeIndicator(this.selectedIndicator.name, this.selectedAreaLevel.id, this.selectedService.id,
