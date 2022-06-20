@@ -635,6 +635,9 @@ export class OlMap {
       delete this.tileOverlays[layer.get('name')];
     }
     this.map.removeLayer(layer);
+    // workaround for tooltips still visibly, layer still exists in enclosure
+    // ToDo: implement layer mouseover differently (no enclosure)
+    layer.setVisible(false);
     delete this.layers[name];
   }
 

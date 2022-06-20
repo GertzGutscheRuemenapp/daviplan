@@ -46,7 +46,8 @@ export class LoginComponent {
             this.settingsService.refresh();
             this.router.navigate(['/']);
           }, (error) => {
-            this.loginForm.setErrors({ 'error': $localize`Keine Übereinstimmung von Nutzer und Passwort` })
+            const msg = (error.status === 0) ? 'Server antwortet nicht': $localize`Keine Übereinstimmung von Nutzer und Passwort`;
+            this.loginForm.setErrors({ 'error': msg })
           });
   }
 }

@@ -268,7 +268,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.planningService.getClosestCell(lat, lon, {targetProjection: this.mapControl?.map?.mapProjection }).subscribe(cell => {
       const marker = this.mapControl?.addMarker(cell.geometry as Geometry);
       this.planningService.getCellReachability(cell.properties.cellcode!, this.mode).subscribe(placeResults => {
-        let showLabel = true;
+        let showLabel = false;
         if (this.placeReachabilityLayer){
           showLabel = !!this.placeReachabilityLayer.showLabel;
           this.mapControl?.removeLayer(this.placeReachabilityLayer.id!);
@@ -351,6 +351,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.mode = mode;
     this.cookies.set('planning-mode', mode);
     this.showPlaceReachability();
+    this.showCellReachability();
   }
 
   getCapacity(serviceId: number, placeId: number): number{
