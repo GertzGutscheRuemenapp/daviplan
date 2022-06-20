@@ -6,6 +6,7 @@
 
 .side-toggle{
   min-height: 50px;
+  cursor: default;
   display: inline-flex;
   pointer-events: none;
   .side-toggle-content-wrapper {

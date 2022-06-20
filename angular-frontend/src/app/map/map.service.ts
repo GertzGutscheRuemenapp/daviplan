@@ -424,7 +424,7 @@ export class MapControl {
       fillColor?: string,
       strokeColor?: string
     },
-    selectable?: boolean
+    selectable?: boolean,
   }) {
     const opacity = (layer.opacity !== undefined)? layer.opacity : 1;
     if (layer.type === 'vector') {

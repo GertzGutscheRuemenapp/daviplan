@@ -47,30 +47,42 @@
                 <p *ngIf="layer.description">{{ layer.description }}</p>
               </ng-template>
               <div class="entry-prefix">
-                <div *ngIf="layer.symbol"
-                     class="symbol"
-                     [style.background]="layer.symbol.fillColor || 'white'"
-                     [style.border-color]="layer.symbol.strokeColor || 'white'"
-                     [class]="layer.symbol.symbol">
-                </div>
-                <mat-icon *ngIf="layer.legendUrl"
-                          class="legend-image-link"
-                          title="Legendenbild anzeigen"
-                          (click)="toggleLegendImage(layer)">
-                  image
-                </mat-icon>
+                <mat-checkbox *ngIf="mapControl.editMode"
+                              color="primary"
+                              [checked]="mapControl.isSelected(layer) || false"
+                              (change)="toggleLayer(layer)"
+                              title="Layer anzeigen/verstecken">
+                </mat-checkbox>
+                <ng-container *ngIf="!mapControl.editMode">
+                  <ng-container *ngIf="layer.legend">
+                    <div title="Farblegende des Layer ein-/ausklappen" (click)="toggleLayerLegend(layer)">
+                      <mat-icon color="primary" *ngIf="layer.legend.elapsed">expand_less</mat-icon>
+                      <mat-icon color="primary" *ngIf="!layer.legend.elapsed">expand_more</mat-icon>
+                    </div>
+                  </ng-container>
+                  <ng-container *ngIf="!layer.legend">
+                    <div *ngIf="layer.symbol" style="cursor: pointer;"
+                         class="symbol"
+                         [style.background]="layer.symbol.fillColor || 'white'"
+                         [style.border-color]="layer.symbol.strokeColor || 'white'"
+                         [class]="layer.symbol.symbol">
+                    </div>
+                    <mat-icon *ngIf="layer.legendUrl"
+                              class="legend-image-link"
+                              title="Legendenbild anzeigen"
+                              (click)="toggleLegendImage(layer)">
+                      image
+                    </mat-icon>
+                  </ng-container>
+                </ng-container>
               </div>
               <div class="entry-title"
-                   [style.cursor]="(mapControl.editMode)? 'pointer': ''"
-                   (click)="mapControl.editMode && toggleLayer(layer)">
+                   [style.cursor]="layer.legend? 'pointer': ''"
+                   (click)="toggleLayerLegend(layer)">
                 {{ layer.name }}
               </div>
             </div>
             <div class="legend-layer-control" [style.display]="mapControl.editMode? '': 'none'">
-              <mat-checkbox color="primary" [checked]="mapControl.isSelected(layer) || false"
-                            (change)="toggleLayer(layer)"
-                            title="Layer anzeigen/verstecken">
-              </mat-checkbox>
               <mat-slider aria-label="Transparenz" color="primary"
                           [disabled]="!mapControl.isSelected(layer)"
                           min="100px"
@@ -84,6 +96,24 @@
                 <mat-icon class="material-icons-outlined">
                   {{(layer.showLabel)? 'label': 'label_off'}}
                 </mat-icon>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="layer.legend && layer.legend.elapsed">
+            <div class="legend-entry" *ngFor="let label of layer.legend.labels; let i = index;">
+              <div class="entry-header">
+                <div class="entry-prefix"></div>
+                <div class="row-title">
+                  <div class="row-label" style="display: flex">
+                    <div *ngIf="layer.legend.colors"
+                         [style.background]="layer.legend.colors[i]"
+                         class="symbol"
+                         style.border-color="black"
+                         [class]="layer.symbol?.symbol? (layer.symbol?.symbol === 'line')? 'square': layer.symbol?.symbol: 'circle'">
+                    </div>
+                    {{label}}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -155,6 +155,20 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           },
           colorFunc: colorFunc
         });
+      let colors: string[] = [];
+      let labels: string[] = [];
+      if (max) {
+        const step = (max - min) / 5;
+        Array.from({ length: 5 + 1 }, (v, k) => k * step).forEach((value, i) => {
+          colors.push(colorFunc(value));
+          labels.push(Number(value.toFixed(1)).toString());
+        })
+        this.indicatorLayer!.legend = {
+          colors: colors,
+          labels: labels,
+          elapsed: true
+        }
+      }
       this.mapControl?.addFeatures(this.indicatorLayer!.id!, this.areas,
         { properties: 'properties' });
     })
