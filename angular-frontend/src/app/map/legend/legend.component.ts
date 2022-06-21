@@ -88,4 +88,9 @@ export class LegendComponent implements AfterViewInit {
     this.mapControl?.setShowLabel(layer.id!, layer.showLabel);
   }
 
+  toggleLayerLegend(layer: Layer): void {
+    if (!layer.legend) return;
+    layer.legend.elapsed = !layer.legend.elapsed;
+  }
+
 }

@@ -14,6 +14,7 @@ import { Feature } from 'ol';
 import { Layer as OlLayer } from 'ol/layer'
 import { Geometry, Polygon, Point } from "ol/geom";
 import { getCenter } from 'ol/extent';
+import { Icon, Style } from "ol/style";
 
 const backgroundLayers: Layer[] = [
   {
@@ -170,6 +171,7 @@ export class MapControl {
   editMode: boolean = true;
   background?: Layer;
   backgroundOpacity = 1;
+  markerImg = `${environment.backend}/static/img/map-marker-red.svg`;
 
   isSelected = (layer: Layer) => this.checklistSelection.isSelected(layer);
 
@@ -225,7 +227,7 @@ export class MapControl {
       this.layerGroups.next(this._serviceLayerGroups);
     })
     this.markerLayer = this.map!.addVectorLayer('marker-layer',
-      {shape: 'x', stroke: {width: 5, color: 'red'}, fill: {color: 'red'}, radius: 10, visible: true, zIndex: 100});
+      {stroke: {width: 5, color: 'red'}, fill: {color: 'red'}, radius: 10, visible: true, zIndex: 100});
   }
 
   getBackgroundLayers(): Layer[]{
@@ -238,6 +240,18 @@ export class MapControl {
       geometry = new Point(getCenter(geometry.getExtent()));
     }
     const marker = new Feature(geometry);
+
+    const iconStyle = new Style({
+      image: new Icon({
+        anchor: [0.5, 0.8],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'fraction',
+        src: this.markerImg,
+        scale: 0.05
+      }),
+    });
+
+    marker.setStyle(iconStyle);
     this.map?.addFeatures('marker-layer', [marker]);
     return marker;
   }
@@ -424,7 +438,7 @@ export class MapControl {
       fillColor?: string,
       strokeColor?: string
     },
-    selectable?: boolean
+    selectable?: boolean,
   }) {
     const opacity = (layer.opacity !== undefined)? layer.opacity : 1;
     if (layer.type === 'vector') {

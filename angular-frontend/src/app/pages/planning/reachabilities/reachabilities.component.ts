@@ -221,13 +221,13 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           order: 0,
           type: 'vector',
           group: this.legendGroup?.id,
-          name: 'Erreichbarkeiten',
-          description: 'Ergebnisse',
+          name: 'gewählter Standort',
+          description: 'Erreichbarkeit des gewählten Standorts',
           opacity: 1,
           symbol: {
             fillColor: 'rgba(0, 0, 0, 0)',
             strokeColor: 'rgba(0, 0, 0, 0)',
-            symbol: 'line'
+            symbol: 'square'
           },
           labelField: 'value',
           showLabel: false
@@ -237,6 +237,20 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           strokeWidth: 1,
           colorFunc: colorFunc
         });
+      let colors: string[] = [];
+      let labels: string[] = [];
+      if (max) {
+        const step = max / 5;
+        Array.from({ length: 5 + 1 }, (v, k) => k * step).forEach((value, i) => {
+          colors.push(colorFunc(value));
+          labels.push(`${Number(value.toFixed(1))} Minuten`);
+        })
+      }
+      this.reachRasterLayer!.legend = {
+        colors: colors,
+        labels: labels,
+        elapsed: true
+      }
       this.mapControl?.clearFeatures(this.reachRasterLayer!.id!);
       this.mapControl?.addFeatures(this.reachRasterLayer!.id!, features,
         { properties: 'properties', geometry: 'geometry' });
@@ -254,7 +268,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.planningService.getClosestCell(lat, lon, {targetProjection: this.mapControl?.map?.mapProjection }).subscribe(cell => {
       const marker = this.mapControl?.addMarker(cell.geometry as Geometry);
       this.planningService.getCellReachability(cell.properties.cellcode!, this.mode).subscribe(placeResults => {
-        let showLabel = true;
+        let showLabel = false;
         if (this.placeReachabilityLayer){
           showLabel = !!this.placeReachabilityLayer.showLabel;
           this.mapControl?.removeLayer(this.placeReachabilityLayer.id!);
@@ -263,7 +277,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           const res = placeResults.find(p => p.placeId === place.id);
           place.properties.value = res?.value || 999999999;
         })
-        const max = Math.max(...placeResults.map(c => c.value));
+        const max = Math.max(...placeResults.map(c => c.value), 0);
         const colorFunc = d3.scaleSequential(d3.interpolateRdYlGn).domain([max || 100, 0]);
         this.placeReachabilityLayer = this.mapControl?.addLayer({
             order: 0,
@@ -286,6 +300,20 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
             valueField: 'value',
             colorFunc: colorFunc
           });
+        let colors: string[] = [];
+        let labels: string[] = [];
+        if (max && max > 0) {
+          const step = max / 5;
+          Array.from({ length: 5 + 1 }, (v, k) => k * step).forEach((value, i) => {
+            colors.push(colorFunc(value));
+            labels.push(`${Number(value.toFixed(1))} Minuten`);
+          })
+        }
+        this.placeReachabilityLayer!.legend = {
+          colors: colors,
+          labels: labels,
+          elapsed: true
+        }
         this.mapControl?.clearFeatures(this.placeReachabilityLayer!.id!);
         this.mapControl?.addFeatures(this.placeReachabilityLayer!.id!, this.displayedPlaces,
           { properties: 'properties', geometry: 'geometry' });
@@ -323,6 +351,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.mode = mode;
     this.cookies.set('planning-mode', mode);
     this.showPlaceReachability();
+    this.showCellReachability();
   }
 
   getCapacity(serviceId: number, placeId: number): number{

@@ -64,6 +64,11 @@ export interface Layer {
   labelField?: string,
   showLabel?: boolean,
   featureSelected?: EventEmitter<{ feature: any, selected: boolean }>
+  legend?: {
+    colors?: string[],
+    labels?: string[],
+    elapsed?: boolean
+  }
 }
 
 export interface Source {
