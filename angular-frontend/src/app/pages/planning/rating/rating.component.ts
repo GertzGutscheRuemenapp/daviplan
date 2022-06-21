@@ -72,9 +72,9 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   }
 
   applyUserSettings(): void {
-    this.selectedAreaLevel = this.areaLevels.find(al => al.id === this.cookies.get('planning-area-level', 'number')) || (this.areaLevels.length > 0)? this.areaLevels[this.areaLevels.length - 1]: undefined;
-    this.selectedInfrastructure = this.infrastructures.find(i => i.id === this.cookies.get('planning-infrastructure', 'number'))  || (this.infrastructures.length > 0)? this.infrastructures[0]: undefined;
-    this.selectedService = this.selectedInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number'))  || (this.selectedInfrastructure && this.selectedInfrastructure.services.length > 0)? this.selectedInfrastructure.services[0]: undefined;
+    this.selectedAreaLevel = this.areaLevels.find(al => al.id === this.cookies.get('planning-area-level', 'number')) || ((this.areaLevels.length > 0)? this.areaLevels[this.areaLevels.length - 1]: undefined);
+    this.selectedInfrastructure = this.infrastructures.find(i => i.id === this.cookies.get('planning-infrastructure', 'number')) || ((this.infrastructures.length > 0)? this.infrastructures[0]: undefined);
+    this.selectedService = this.selectedInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number')) || ((this.selectedInfrastructure && this.selectedInfrastructure.services.length > 0)? this.selectedInfrastructure.services[0]: undefined);
     this.onServiceChange();
     this.onAreaLevelChange();
   }
@@ -89,20 +89,21 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   }
 
   onInfrastructureChange(): void {
+    if(!this.selectedInfrastructure) return;
     this.serviceSelection.select();
-    this.cookies.set('planning-infrastructure', this.selectedInfrastructure?.id);
+    this.cookies.set('planning-infrastructure', this.selectedInfrastructure.id);
     const services = this.selectedInfrastructure!.services;
     this.selectedService = (services.length > 0)? services[0]: undefined;
     this.onServiceChange();
   }
 
   onServiceChange(): void {
-    this.cookies.set('planning-service', this.selectedService?.id);
     if (!this.selectedService) {
       this.indicators = [];
       this.selectedIndicator = undefined;
       return;
     }
+    this.cookies.set('planning-service', this.selectedService?.id);
     this.planningService.getIndicators(this.selectedService.id).subscribe(indicators => {
       this.indicators = indicators;
       this.selectedIndicator = indicators?.find(i => i.name === this.cookies.get('planning-indicator', 'string'));

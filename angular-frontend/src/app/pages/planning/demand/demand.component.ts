@@ -87,9 +87,9 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   }
 
   applyUserSettings(): void {
-    this.activeLevel = this.areaLevels.find(al => al.id === this.cookies.get('planning-area-level', 'number')) || (this.areaLevels.length > 0)? this.areaLevels[this.areaLevels.length - 1]: undefined;
-    this.activeInfrastructure = this.infrastructures?.find(i => i.id === this.cookies.get('planning-infrastructure', 'number'))  || (this.infrastructures.length > 0)? this.infrastructures[0]: undefined;
-    this.activeService = this.activeInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number'))  || (this.activeInfrastructure && this.activeInfrastructure.services.length > 0)? this.activeInfrastructure.services[0]: undefined;
+    this.activeLevel = this.areaLevels.find(al => al.id === this.cookies.get('planning-area-level', 'number')) || ((this.areaLevels.length > 0)? this.areaLevels[this.areaLevels.length - 1]: undefined);
+    this.activeInfrastructure = this.infrastructures?.find(i => i.id === this.cookies.get('planning-infrastructure', 'number')) || ((this.infrastructures.length > 0)? this.infrastructures[0]: undefined);
+    this.activeService = this.activeInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number'))  || ((this.activeInfrastructure && this.activeInfrastructure.services.length > 0)? this.activeInfrastructure.services[0]: undefined);
     if (this.activeService)
       this.serviceSelection.select(this.activeService);
     this.onAreaLevelChange();
