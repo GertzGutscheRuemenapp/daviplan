@@ -84,8 +84,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   applyUserSettings(): void {
-    this.selectedInfrastructure = this.infrastructures.find(i => i.id === this.cookies.get('planning-infrastructure', 'number'))  || (this.infrastructures.length > 0)? this.infrastructures[0]: undefined;
-    this.selectedService = this.selectedInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number'))  || (this.selectedInfrastructure && this.selectedInfrastructure.services.length > 0)? this.selectedInfrastructure.services[0]: undefined;
+    this.selectedInfrastructure = this.infrastructures.find(i => i.id === this.cookies.get('planning-infrastructure', 'number')) || ((this.infrastructures.length > 0)? this.infrastructures[0]: undefined);
+    this.selectedService = this.selectedInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number')) || ((this.selectedInfrastructure && this.selectedInfrastructure.services.length > 0)? this.selectedInfrastructure.services[0]: undefined);
     this.selectedPlaceId = this.cookies.get('reachability-place', 'number');
     this.mode = this.cookies.get('planning-mode', 'number') || TransportMode.WALK;
     this.updatePlaces();
