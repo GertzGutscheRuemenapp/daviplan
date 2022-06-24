@@ -157,7 +157,6 @@ export class OlMap {
   }
 
   addVectorTileLayer(name: string, url: string, options: {
-      params?: any,
       visible?: boolean, opacity?: number,
       stroke?: { color?: string, width?: number, dash?: number[], selectedColor?: string, selectedDash?: number[], mouseOverColor?: string },
       fill?: { color?: string, selectedColor?: string, mouseOverColor?: string },
@@ -321,7 +320,7 @@ export class OlMap {
   }
 
   addVectorLayer(name: string, options: {
-      url?: any, params?: any,
+      url?: any,
       visible?: boolean, opacity?: number,
       selectable?: boolean, tooltipField?: string,
       multiSelect?: boolean,

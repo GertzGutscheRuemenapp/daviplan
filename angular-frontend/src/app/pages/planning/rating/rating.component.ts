@@ -8,8 +8,8 @@ import {
   Area,
   AreaLevel,
   Indicator,
-  Infrastructure, Layer,
-  LayerGroup,
+  Infrastructure, ExtLayer,
+  ExtLayerGroup,
   PlanningProcess,
   Service
 } from "../../../rest-interfaces";
@@ -40,8 +40,8 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   activeProcess?: PlanningProcess;
   mapControl?: MapControl;
   serviceSelection = new SelectionModel<Service>(false);
-  indicatorLayer?: Layer;
-  legendGroup?: LayerGroup;
+  indicatorLayer?: ExtLayer;
+  legendGroup?: ExtLayerGroup;
   year?: number;
   subscriptions: Subscription[] = [];
 

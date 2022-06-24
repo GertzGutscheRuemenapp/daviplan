@@ -17,7 +17,7 @@ import {
   Statistic,
   FieldType,
   RasterCell,
-  TransportMode, CellResult, PlaceResult
+  TransportMode, CellResult, PlaceResult, ExtLayerGroup, ExtLayer
 } from "./rest-interfaces";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
@@ -95,6 +95,18 @@ export class RestCacheService {
   getPrognoses(): Observable<Prognosis[]> {
     const url = this.rest.URLS.prognoses;
     return this.getCachedData<Prognosis[]>(url);
+  }
+
+  getLayerGroups(options?: { reset?: boolean }): Observable<ExtLayerGroup[]> {
+    const url = this.rest.URLS.layerGroups;
+    return this.getCachedData<ExtLayerGroup[]>(url, options);
+  }
+
+  getLayers(options?: { active?: boolean, reset?: boolean }): Observable<ExtLayer[]> {
+    let url = this.rest.URLS.layers;
+    if (options?.active)
+      url += '?active=true';
+    return this.getCachedData<ExtLayer[]>(url, options);
   }
 
   getYears(options?: { params?: string, reset?: boolean }): Observable<number[]> {

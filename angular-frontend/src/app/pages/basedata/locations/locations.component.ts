@@ -3,8 +3,8 @@ import { MapControl, MapService } from "../../../map/map.service";
 import {
   Infrastructure,
   Place,
-  LayerGroup,
-  Layer,
+  ExtLayerGroup,
+  ExtLayer,
   Capacity,
   Service,
   FieldType,
@@ -47,8 +47,8 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   editFields: PlaceEditField[] = [];
   editErrors?: any;
   mapControl?: MapControl;
-  legendGroup?: LayerGroup;
-  placesLayer?: Layer;
+  legendGroup?: ExtLayerGroup;
+  placesLayer?: ExtLayer;
   addPlaceMode = false;
   isLoading$ = new BehaviorSubject<boolean>(false);
   places?: Place[];

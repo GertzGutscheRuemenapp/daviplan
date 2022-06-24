@@ -5,8 +5,8 @@ import {
   Area,
   AreaLevel,
   Infrastructure,
-  Layer,
-  LayerGroup,
+  ExtLayer,
+  ExtLayerGroup,
   PlanningProcess,
   Scenario,
   Service
@@ -37,8 +37,8 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   realYears?: number[];
   prognosisYears?: number[];
   mapControl?: MapControl;
-  demandLayer?: Layer;
-  legendGroup?: LayerGroup;
+  demandLayer?: ExtLayer;
+  legendGroup?: ExtLayerGroup;
   serviceSelection = new SelectionModel<Service>(false);
   year?: number;
   subscriptions: Subscription[] = [];

@@ -5,8 +5,8 @@ import { PlanningService } from "../planning.service";
 import {
   Capacity,
   Infrastructure,
-  Layer,
-  LayerGroup,
+  ExtLayer,
+  ExtLayerGroup,
   Place,
   PlanningProcess,
   RasterCell,
@@ -38,16 +38,16 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   selectedService?: Service;
   activeProcess?: PlanningProcess;
   mapControl?: MapControl;
-  placeLegendGroup?: LayerGroup;
-  legendGroup?: LayerGroup;
-  baseRasterLayer?: Layer;
-  reachRasterLayer?: Layer;
+  placeLegendGroup?: ExtLayerGroup;
+  legendGroup?: ExtLayerGroup;
+  baseRasterLayer?: ExtLayer;
+  reachRasterLayer?: ExtLayer;
   private subscriptions: Subscription[] = [];
   private mapClickSub?: Subscription;
-  placesLayer?: Layer;
+  placesLayer?: ExtLayer;
   capacities?: Capacity[];
   year?: number;
-  placeReachabilityLayer?: Layer;
+  placeReachabilityLayer?: ExtLayer;
   TransportMode = TransportMode;
   selectedPlaceId?: number;
   pickedCoords?: number[];

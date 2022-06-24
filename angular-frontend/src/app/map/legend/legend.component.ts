@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectorRef, Component, Input, TemplateRef, ViewChild } from '@angular/core';
-import { MapControl, MapService } from "../map.service";
-import { LayerGroup, Layer } from "../../rest-interfaces";
+import { MapControl, MapLayer, MapLayerGroup, MapService } from "../map.service";
+import { ExtLayerGroup, ExtLayer } from "../../rest-interfaces";
 import { FloatingDialog } from "../../dialogs/help-dialog/help-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { SettingsService } from "../../settings.service";
@@ -19,8 +19,8 @@ export class LegendComponent implements AfterViewInit {
   @ViewChild('legendImage') legendImageTemplate?: TemplateRef<any>;
   legendImageDialogs: Record<number | string, MatDialogRef<any>> = {};
   mapControl?: MapControl;
-  layerGroups: LayerGroup[] = [];
-  activeGroups: LayerGroup[] = [];
+  layerGroups: MapLayerGroup[] = [];
+  protected activeGroups: MapLayerGroup[] = [];
   Object = Object;
 
   constructor(public dialog: MatDialog, private mapService: MapService, private cdRef: ChangeDetectorRef) {
@@ -31,10 +31,10 @@ export class LegendComponent implements AfterViewInit {
     this.cdRef.detectChanges();
     this.mapControl.zoomToProject();
     this.mapControl.layerGroups.subscribe(groups => {
-      let layerGroups: LayerGroup[] = [];
+      let layerGroups: MapLayerGroup[] = [];
       // ToDo filter
       groups.forEach(group => {
-        if (!group.children || (!this.showExternal && group.external) || (!this.showInternal && !group.external))
+        if (group.children.length === 0 || (!this.showExternal && group.external) || (!this.showInternal && !group.external))
           return;
         layerGroups.push(group);
       });
@@ -48,16 +48,14 @@ export class LegendComponent implements AfterViewInit {
    *
    * @param layer
    */
-  toggleLayer(layer: Layer): void {
+  toggleLayer(layer: ExtLayer): void {
     this.mapControl?.toggleLayer(layer.id);
     this.filterActiveGroups();
   }
 
   // ToDo: use template filter
   filterActiveGroups(): void {
-    this.activeGroups = this.layerGroups.filter(g => g.children!.filter(
-      l => this.mapControl?.isSelected(l)).length > 0
-    );
+    this.activeGroups = this.layerGroups.filter(g => g.children!.filter(l => l.visible).length > 0);
   }
 
   /**
@@ -65,7 +63,7 @@ export class LegendComponent implements AfterViewInit {
    *
    * @param layer
    */
-  toggleLegendImage(layer: Layer): void {
+  toggleLegendImage(layer: MapLayer): void {
     if (layer.id === undefined) return;
     let dialogRef = this.legendImageDialogs[layer.id];
     if (dialogRef && dialogRef.getState() === 0)
@@ -83,12 +81,12 @@ export class LegendComponent implements AfterViewInit {
       });
   }
 
-  toggleLabel(layer: Layer): void {
+  toggleLabel(layer: MapLayer): void {
     layer.showLabel = !layer.showLabel;
     this.mapControl?.setShowLabel(layer.id!, layer.showLabel);
   }
 
-  toggleLayerLegend(layer: Layer): void {
+  toggleLayerLegend(layer: MapLayer): void {
     if (!layer.legend) return;
     layer.legend.elapsed = !layer.legend.elapsed;
   }

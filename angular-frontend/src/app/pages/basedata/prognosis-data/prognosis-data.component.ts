@@ -6,8 +6,8 @@ import {
   Population,
   Year,
   Prognosis,
-  Layer,
-  LayerGroup,
+  ExtLayer,
+  ExtLayerGroup,
   Gender,
   AgeGroup, PopEntry, DemandRateSet
 } from "../../../rest-interfaces";
@@ -42,7 +42,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   @ViewChild('fileUploadTemplate') fileUploadTemplate?: TemplateRef<any>;
   isLoading$ = new BehaviorSubject<boolean>(false);
   mapControl?: MapControl;
-  legendGroup?: LayerGroup;
+  legendGroup?: ExtLayerGroup;
   activePrognosis?: Prognosis;
   genders: Gender[] = [];
   ageGroups: AgeGroup[] = [];
@@ -58,7 +58,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   areas: Area[] = [];
   previewYear?: Year;
   previewArea?: Area;
-  previewLayer?: Layer;
+  previewLayer?: ExtLayer;
   dataColumns: string[] = [];
   dataRows: any[][] = [];
   dataYear?: Year;

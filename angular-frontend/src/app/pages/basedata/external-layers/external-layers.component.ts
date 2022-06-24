@@ -11,9 +11,9 @@ import { MatDialog } from "@angular/material/dialog";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { arrayMove } from "../../../helpers/utils";
 import { sortBy } from "../../../helpers/utils";
-import { LayerGroup, Layer } from "../../../rest-interfaces";
+import { ExtLayerGroup, ExtLayer } from "../../../rest-interfaces";
 
-function isLayer(obj: any): obj is Layer{
+function isLayer(obj: any): obj is ExtLayer{
   return 'layerName' in obj;
 }
 
@@ -29,17 +29,17 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   @ViewChild('editLayerGroupTemplate') editLayerGroupTemplate?: TemplateRef<any>;
   @ViewChild('layerCard') layerCard?: InputCardComponent;
   @ViewChild('layerGroupCard') layerGroupCard?: InputCardComponent;
-  layerGroups: LayerGroup[] = [];
+  layerGroups: ExtLayerGroup[] = [];
   mapControl?: MapControl;
   layerGroupForm: FormGroup;
   addLayerForm: FormGroup;
   editLayerForm: FormGroup;
 
-  selectedLayer?: Layer;
-  selectedGroup?: LayerGroup;
+  selectedLayer?: ExtLayer;
+  selectedGroup?: ExtLayerGroup;
   Object = Object;
 
-  availableLayers: Layer[] = [];
+  availableLayers: ExtLayer[] = [];
 
   constructor(private mapService: MapService, private http: HttpClient, private dialog: MatDialog,
               private rest: RestAPI, private formBuilder: FormBuilder) {
@@ -97,8 +97,8 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   /**
    * fetch layer groups (wo layers)
    */
-  fetchLayerGroups(): Observable<LayerGroup[]> {
-    const query = this.http.get<LayerGroup[]>(`${this.rest.URLS.layerGroups}?external=true`);
+  fetchLayerGroups(): Observable<ExtLayerGroup[]> {
+    const query = this.http.get<ExtLayerGroup[]>(`${this.rest.URLS.layerGroups}?external=true`);
     query.subscribe((layerGroups) => {
       layerGroups.forEach(layerGroup => {
         layerGroup.children = [];
@@ -111,8 +111,8 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   /**
    * fetch layers
    */
-  fetchLayers(): Observable<Layer[]> {
-    const query = this.http.get<Layer[]>(this.rest.URLS.layers);
+  fetchLayers(): Observable<ExtLayer[]> {
+    const query = this.http.get<ExtLayer[]>(this.rest.URLS.layers);
     query.subscribe((layers) => {
       layers = sortBy(layers, 'order');
       layers.forEach(layer => {
@@ -145,7 +145,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         description: this.editLayerForm.value.description
       }
       this.layerCard?.setLoading(true);
-      this.http.patch<Layer>(`${this.rest.URLS.layers}${this.selectedLayer?.id}/`, attributes
+      this.http.patch<ExtLayer>(`${this.rest.URLS.layers}${this.selectedLayer?.id}/`, attributes
       ).subscribe(layer => {
         this.selectedLayer!.name = layer.name;
         this.selectedLayer!.description = layer.description;
@@ -181,7 +181,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         name: this.layerGroupForm.value.name
       }
       this.layerGroupCard?.setLoading(true);
-      this.http.patch<LayerGroup>(`${this.rest.URLS.layerGroups}${this.selectedGroup?.id}/`, attributes
+      this.http.patch<ExtLayerGroup>(`${this.rest.URLS.layerGroups}${this.selectedGroup?.id}/`, attributes
       ).subscribe(group => {
         this.selectedGroup!.name = group.name;
         this.layerTree.refresh();
@@ -203,7 +203,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
    *
    * @param id
    */
-  getLayer(id: number | string | undefined): Layer | undefined {
+  getLayer(id: number | string | undefined): ExtLayer | undefined {
     if (id === undefined) return;
     for (let group of this.layerGroups) {
       if (!group.children) continue;
@@ -221,7 +221,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
    *
    * @param id
    */
-  getGroup(id: number | string | undefined): LayerGroup | undefined {
+  getGroup(id: number | string | undefined): ExtLayerGroup | undefined {
     if (id === undefined) return;
     for (let group of this.layerGroups) {
         if (group.id === id) {
@@ -260,7 +260,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         external: true
       }
       dialogRef.componentInstance.isLoading$.next(true);
-      this.http.post<LayerGroup>(this.rest.URLS.layerGroups, attributes
+      this.http.post<ExtLayerGroup>(this.rest.URLS.layerGroups, attributes
       ).subscribe(group => {
         group.children = [];
         this.layerGroups.push(group);
@@ -278,7 +278,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   /**
    * open dialog to create new layer, post to backend on confirm
    */
-  addLayer(parent: LayerGroup): void {
+  addLayer(parent: ExtLayerGroup): void {
     this.addLayerForm.reset();
     this.availableLayers = [];
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
@@ -304,7 +304,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         group: parent.id
       }
       dialogRef.componentInstance.isLoading$.next(true);
-      this.http.post<Layer>(this.rest.URLS.layers, attributes).subscribe(layer => {
+      this.http.post<ExtLayer>(this.rest.URLS.layers, attributes).subscribe(layer => {
         const group = this.getGroup(layer.group);
         group?.children?.push(layer);
         this.layerTree.refresh();
@@ -335,7 +335,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       }
       for (let i = 0; i < res.layers.length; i += 1) {
         const l = res.layers[i],
-              layer: Layer = {
+              layer: ExtLayer = {
           id: i,
           name: l.title,
           layerName: l.name,
@@ -380,7 +380,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
    *
    * @param layer
    */
-  removeLayer(layer: Layer){
+  removeLayer(layer: ExtLayer){
     const dialogRef = this.dialog.open(RemoveDialogComponent, {
       data: {
         title: $localize`Den Layer wirklich entfernen?`,
@@ -414,7 +414,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
    *
    * @param group
    */
-  removeGroup(group: LayerGroup){
+  removeGroup(group: ExtLayerGroup){
     const dialogRef = this.dialog.open(RemoveDialogComponent, {
       width: '420px',
       data: {
@@ -446,7 +446,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
    * patches layer-order of layers or layer-groups to their current place in the array
    *
    */
-  patchOrder(array: Layer[] | LayerGroup[]): void {
+  patchOrder(array: ExtLayer[] | ExtLayerGroup[]): void {
     if (array.length === 0) return;
     const url = isLayer(array[0]) ? this.rest.URLS.layers: this.rest.URLS.layerGroups;
     let observables: Observable<any>[] = [];
@@ -497,10 +497,10 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
    * @param active
    */
   onToggleActive(node: TreeItemNode, active: boolean): void {
-    const layers: Layer[] = (node.children)? this.getGroup(node.id)!.children || []: [this.getLayer(node.id)!];
+    const layers: ExtLayer[] = (node.children)? this.getGroup(node.id)!.children || []: [this.getLayer(node.id)!];
     let observables: Observable<any>[] = [];
     layers.forEach(layer => {
-      const req = this.http.patch<Layer>(`${this.rest.URLS.layers}${layer.id}/`,
+      const req = this.http.patch<ExtLayer>(`${this.rest.URLS.layers}${layer.id}/`,
         { active: active });
       observables.push(req);
     })

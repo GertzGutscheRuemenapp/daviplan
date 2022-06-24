@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
-import { Area, AreaLevel, Layer, LayerGroup } from "../../../rest-interfaces";
+import { Area, AreaLevel, ExtLayer, ExtLayerGroup } from "../../../rest-interfaces";
 import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { arrayMove, sortBy } from "../../../helpers/utils";
 import { HttpClient } from "@angular/common/http";
@@ -34,9 +34,9 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   presetLevels: AreaLevel[] = [];
   customAreaLevels: AreaLevel[] = [];
   colorSelection: string = 'black';
-  legendGroup?: LayerGroup;
+  legendGroup?: ExtLayerGroup;
   editLevelForm: FormGroup;
-  areaLayer?: Layer;
+  areaLayer?: ExtLayer;
   areas: Area[] = [];
   isLoading$ = new BehaviorSubject<boolean>(false);
   orderIsChanging$ = new BehaviorSubject<boolean>(false);

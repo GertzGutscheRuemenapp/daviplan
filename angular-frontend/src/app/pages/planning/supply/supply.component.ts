@@ -5,8 +5,8 @@ import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
 import {
   Infrastructure,
-  Layer,
-  LayerGroup,
+  ExtLayer,
+  ExtLayerGroup,
   Place,
   Service,
   Capacity,
@@ -37,8 +37,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   infrastructures: Infrastructure[] = [];
   activeInfrastructure?: Infrastructure;
   mapControl?: MapControl;
-  legendGroup?: LayerGroup;
-  placesLayer?: Layer;
+  legendGroup?: ExtLayerGroup;
+  placesLayer?: ExtLayer;
   places?: Place[];
   capacities?: Capacity[];
   selectedPlaces: Place[] = [];

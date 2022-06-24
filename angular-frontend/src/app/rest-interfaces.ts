@@ -33,42 +33,28 @@ export interface Scenario {
   demandratesets: Record<number, number>
 }
 
-export interface LayerGroup {
-  id?: number | string,
-  order: number,
-  name: string,
-  children?: Layer[],
-  external?: boolean
-}
-
 export interface Symbol {
   fillColor: string,
   strokeColor: string,
   symbol: 'line' | 'circle' | 'square' | 'star'
 }
 
-export interface Layer {
-  id?: number | string,
+export interface ExtLayerGroup {
+  id?: number,
+  order: number,
+  name: string,
+  external: boolean
+}
+
+export interface ExtLayer {
+  id?: number,
   order: number,
   url?: string,
   name: string,
   description: string,
   group?: number | string,
   layerName?: string,
-  attribution?: string,
-  active?: boolean,
-  legendUrl?: string,
-  opacity?: number,
-  symbol?: Symbol,
-  type?: "wms" | "vector-tiles" | "tiles" | "vector",
-  labelField?: string,
-  showLabel?: boolean,
-  featureSelected?: EventEmitter<{ feature: any, selected: boolean }>
-  legend?: {
-    colors?: string[],
-    labels?: string[],
-    elapsed?: boolean
-  }
+  active?: boolean
 }
 
 export interface Source {

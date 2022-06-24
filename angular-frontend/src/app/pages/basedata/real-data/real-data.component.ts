@@ -7,8 +7,8 @@ import {
   AgeGroup,
   Area,
   AreaLevel, Gender,
-  Layer,
-  LayerGroup,
+  ExtLayer,
+  ExtLayerGroup,
   PopEntry,
   Population,
   Year
@@ -51,8 +51,8 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   realYears: number[] = [];
   previewYear?: Year;
   previewArea?: Area;
-  previewLayer?: Layer;
-  legendGroup?: LayerGroup;
+  previewLayer?: ExtLayer;
+  legendGroup?: ExtLayerGroup;
   popEntries: Record<number, PopEntry[]> = {};
   populations: Population[] = [];
   genders: Gender[] = [];

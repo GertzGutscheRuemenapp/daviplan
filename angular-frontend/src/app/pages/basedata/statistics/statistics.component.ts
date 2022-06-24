@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@an
 import { environment } from "../../../../environments/environment";
 import { MapControl, MapService } from "../../../map/map.service";
 import { RestCacheService } from "../../../rest-cache.service";
-import { Area, AreaLevel, Layer, LayerGroup, Statistic, StatisticsData, Year } from "../../../rest-interfaces";
+import { Area, AreaLevel, ExtLayer, ExtLayerGroup, Statistic, StatisticsData, Year } from "../../../rest-interfaces";
 import { sortBy } from "../../../helpers/utils";
 import * as d3 from "d3";
 import { SettingsService } from "../../../settings.service";
@@ -29,8 +29,8 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
   year?: number;
   areaLevel?: AreaLevel;
   theme: 'nature' | 'migration' = 'nature';
-  legendGroup?: LayerGroup;
-  statisticsLayer?: Layer;
+  legendGroup?: ExtLayerGroup;
+  statisticsLayer?: ExtLayer;
   areas: Area[] = [];
   showBirths: boolean = true;
   showDeaths: boolean = true;

@@ -84,9 +84,9 @@
             </div>
             <div class="legend-layer-control" [style.display]="mapControl.editMode? '': 'none'">
               <mat-slider aria-label="Transparenz" color="primary"
-                          [disabled]="!mapControl.isSelected(layer)"
+                          [disabled]="!layer.visible"
                           min="100px"
-                          (input)="mapControl.setLayerAttr(layer.id, { opacity: $event.value || undefined })"
+                          (input)="layer.setOpacity($event.value || 0 )"
                           min="0" max="1" step="0.001"
                           [value]="layer.opacity"
                           title="Transparenz">
