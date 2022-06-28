@@ -250,6 +250,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
             radius: radiusFunc
           }
       });
+      this.layerGroup?.addLayer(this.populationLayer);
       this.areas.forEach(area => {
         const data = popData.find(d => d.areaId == area.id);
         area.properties.value = (data)? Math.round(data.value): 0;

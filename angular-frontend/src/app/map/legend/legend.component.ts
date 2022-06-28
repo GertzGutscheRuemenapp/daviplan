@@ -17,7 +17,6 @@ export class LegendComponent implements AfterViewInit {
   legendImageDialogs: Record<number | string, MatDialogRef<any>> = {};
   mapControl?: MapControl;
   layerGroups: MapLayerGroup[] = [];
-  activeGroups: MapLayerGroup[] = [];
   Object = Object;
 
   constructor(public dialog: MatDialog, private mapService: MapService, private cdRef: ChangeDetectorRef) {
@@ -27,7 +26,7 @@ export class LegendComponent implements AfterViewInit {
     this.mapControl = this.mapService.get(this.target);
     this.cdRef.detectChanges();
     this.mapControl.zoomToProject();
-    this.mapControl.layerGroups.subscribe(groups => {
+/*    this.mapControl.layerGroups.subscribe(groups => {
       let layerGroups: MapLayerGroup[] = [];
       // ToDo filter
       groups.forEach(group => {
@@ -37,7 +36,7 @@ export class LegendComponent implements AfterViewInit {
       });
       this.layerGroups = layerGroups;
       this.filterActiveGroups();
-    })
+    })*/
   }
 
   /**
@@ -46,13 +45,12 @@ export class LegendComponent implements AfterViewInit {
    * @param layer
    */
   toggleLayer(layer: MapLayer): void {
-    layer.setVisible(false);
-    this.filterActiveGroups();
+    layer.setVisible(!layer.visible);
   }
 
   // ToDo: use template filter
-  filterActiveGroups(): void {
-    this.activeGroups = this.layerGroups.filter(g => g.children!.filter(l => l.visible).length > 0);
+  nVisible(group: MapLayerGroup): number {
+    return group.children.filter(l => l.visible).length;
   }
 
   /**

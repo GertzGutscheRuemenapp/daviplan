@@ -33,7 +33,7 @@ export class MapLayerGroup {
 
   addLayer(layer: MapLayer): void {
     layer.group = this;
-    // if not already a child
+    // only add if not already a child
     if (this.children.indexOf(layer) < 0) {
       this.children.push(layer);
       layer.addToMap(this.map);

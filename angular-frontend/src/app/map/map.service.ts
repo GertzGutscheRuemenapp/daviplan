@@ -1,15 +1,12 @@
 import { Injectable, EventEmitter } from '@angular/core';
-import { AreaLevel, ExtLayer, ExtLayerGroup, Symbol } from '../rest-interfaces';
 import { OlMap } from './map'
 import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { HttpClient } from "@angular/common/http";
-import { RestAPI } from "../rest-api";
 import { sortBy } from "../helpers/utils";
 import { WKT } from "ol/format";
 import { SettingsService } from "../settings.service";
 import { environment } from "../../environments/environment";
 import { v4 as uuid } from 'uuid';
-import { SelectionModel } from "@angular/cdk/collections";
 import { Feature } from 'ol';
 import { Layer as OlLayer } from 'ol/layer'
 import { Geometry, Polygon, Point } from "ol/geom";
@@ -112,6 +109,7 @@ export class MapService {
             tileUrl = tileUrl.replace('http:', 'https:');
           }
           const mLayer = new VectorTileLayer(level.name, tileUrl, {
+            id: `area-layer-level-${level.id}`,
             description: `Gebiete der Gebietseinheit ${level.name}`,
             style: level.symbol,
             labelField: level.labelField
@@ -144,6 +142,7 @@ export class MapService {
             const mGroup = mGroups.find(mGroup => { return mGroup.id === layer.group });
             if (mGroup) {
               const mLayer = new WMSLayer(layer.name, layer.url!,{
+                id: layer.id,
                 layerName: layer.layerName,
                 description: layer.description,
                 order: layer.order,
@@ -167,12 +166,12 @@ export class MapControl {
   destroyed = new EventEmitter<string>();
   map?: OlMap;
   mapDescription = '';
-  layerGroups: BehaviorSubject<Array<MapLayerGroup>> = new BehaviorSubject<Array<MapLayerGroup>>([]);
-  private _layerGroups: MapLayerGroup[] = [];
+  layerGroups: MapLayerGroup[] = [];
   private markerLayer?: MapLayer;
   mapExtents: any = {};
   editMode: boolean = true;
   background?: TileLayer;
+  mapSettings: any = {};
   backgroundLayers: TileLayer[] = [];
   markerImg = `${environment.backend}/static/img/map-marker-red.svg`;
 
@@ -194,12 +193,12 @@ export class MapControl {
         this.onFeatureDeselected(evt.layer, evt.deselected);
     })
     this.settings.user?.get(this.target).subscribe(mapSettings => {
-      mapSettings = mapSettings || {};
-      const editMode = mapSettings['legend-edit-mode'];
+      this.mapSettings = mapSettings || {};
+      const editMode = this.mapSettings['legend-edit-mode'];
       this.editMode = (editMode != undefined)? editMode : true;
-      const backgroundId = mapSettings[`background-layer`] || backgroundLayerDefs[1].id;
+      const backgroundId = this.mapSettings['background-layer'] || backgroundLayerDefs[1].id;
       backgroundLayerDefs.forEach(layerDef => {
-        const opacity = parseFloat(mapSettings[`layer-opacity-${layerDef.id}`]) || 1;
+        const opacity = parseFloat(this.mapSettings[`layer-opacity-${layerDef.id}`]) || 1;
         const LayerCls = (layerDef.type === 'wms')? WMSLayer: TileLayer;
         const bg = new LayerCls(layerDef.name, layerDef.url, {
           id: layerDef.id,
@@ -213,8 +212,8 @@ export class MapControl {
         bg.addToMap(this.map);
       });
       this.background = this.backgroundLayers.find(l => { return l.id === backgroundId });
+      this.getServiceLayerGroups();
     })
-    this.getServiceLayerGroups();
     this.markerLayer = new VectorLayer('marker-layer', {});
     this.markerLayer.addToMap(this.map);
       /*
@@ -223,10 +222,14 @@ export class MapControl {
   }
 
   private getServiceLayerGroups(reset: boolean = false): void {
-    this.mapService.getLayers({ reset: reset }).subscribe(layerGroups => {
+    this.mapService.getLayers({ reset: reset, external: true, internal: true }).subscribe(layerGroups => {
       // ToDo: remember former checked layers on reset
       layerGroups.forEach(group => {
         if (!group.children) return;
+        group.children.forEach(layer => {
+          layer.opacity = parseFloat(this.mapSettings[`layer-opacity-${layer.id}`]) || 1;
+          layer.visible = this.mapSettings[`layer-visibility-${layer.id}`];
+        })
         this.addGroup(group);
 /*        for (let layer of group.layers!.slice().reverse()) {
           let visible = false;
@@ -238,13 +241,13 @@ export class MapControl {
           this._addLayerToMap(layer, { visible: visible });
         }*/
       })
-      this.layerGroups.next(this._layerGroups.filter(g => g.global));
+      // this.layerGroups.next(this.layerGroups.filter(g => g.global));
     })
   }
 
   getLayers(): MapLayer[] {
     let layers: MapLayer[] = [];
-    this._layerGroups.forEach(g => layers.concat(g.children));
+    this.layerGroups.forEach(g => layers = layers.concat(g.children));
     // if (this.background) layers.push(this.background);
     return layers;
   }
@@ -256,34 +259,22 @@ export class MapControl {
 
   getGroup(id: number | string): MapLayerGroup | undefined {
     // ToDo: background as well?
-    return this._layerGroups.find(g => g.id === id);
+    return this.layerGroups.find(g => g.id === id);
   }
 
   addLayer(layer: MapLayer, emit?: boolean): void {
     // if (layer.map) throw `Layer ${layer.name} already set to another map`;
     if (layer.map !== this.map) layer.map = this.map;
     if (!layer.group) {
-      let group = this._layerGroups.find(group => group.name === 'Sonstiges');
+      let group = this.layerGroups.find(group => group.name === 'Sonstiges');
       if (!group){
         group = new MapLayerGroup('Sonstiges', { order: 0 });
         this.addGroup(group, false);
       }
       group.addLayer(layer);
     }
-    if (emit) this.layerGroups.next(this._layerGroups);
+    // if (emit) this.layerGroups.next(this.layerGroups);
   }
-/*
-
-  private _addVectorLayerToMap(layer: MapLayer): OlLayer<any>{
-
-  }
-
-  private _addVectorTileLayerToMap(layer: MapLayer): OlLayer<any>{
-
-  }
-
-  private _addWmsLayerToMap(layer: MapLayer):
-*/
 
   addMarker(geometry: Geometry): Feature<any> {
     this.removeMarker();
@@ -330,8 +321,8 @@ export class MapControl {
       group.map = this.map;
       group.children.forEach(layer => layer.addToMap(this.map));
     }
-    this._layerGroups.push(group);
-    if (emit) this.layerGroups.next(this._layerGroups);
+    this.layerGroups.push(group);
+    // if (emit) this.layerGroups.next(this.layerGroups);
   }
 
   /**
@@ -342,11 +333,11 @@ export class MapControl {
    * @param emit
    */
   removeGroup(group: MapLayerGroup, emit= true): void {
-    const idx = this._layerGroups.findIndex(g => g === group);
+    const idx = this.layerGroups.findIndex(g => g === group);
     if (idx < 0) return;
     group.clear();
-    this._layerGroups.splice(idx, 1);
-    if (emit) this.layerGroups.next(this._layerGroups);
+    this.layerGroups.splice(idx, 1);
+    // if (emit) this.layerGroups.next(this.layerGroups);
   }
 
   private onFeatureSelected(ollayer: OlLayer<any>, selected: Feature<any>[]): void {
@@ -408,20 +399,19 @@ export class MapControl {
   }
 
   saveSettings(): void {
-    let mapSettings: any = {};
     const layers = this.getLayers();
     layers.forEach(layer => {
       if (layer.id != undefined) {
-        mapSettings[`layer-opacity-${layer.id}`] = layer.opacity;
-        mapSettings[`layer-visibility-${layer.id}`] = layer.visible;
+        this.mapSettings[`layer-opacity-${layer.id}`] = layer.opacity;
+        this.mapSettings[`layer-visibility-${layer.id}`] = layer.visible;
       }
     });
     this.backgroundLayers.forEach(layer => {
-      mapSettings[`layer-opacity-${layer.id}`] = layer.opacity;
+      this.mapSettings[`layer-opacity-${layer.id}`] = layer.opacity;
     })
-    mapSettings['background-layer'] = this.background?.id;
-    mapSettings['legend-edit-mode'] = this.editMode;
-    this.settings.user?.set(this.target, mapSettings, { patch: true });
+    this.mapSettings['background-layer'] = this.background?.id;
+    this.mapSettings['legend-edit-mode'] = this.editMode;
+    this.settings.user?.set(this.target, this.mapSettings, { patch: true });
     this.settings.user?.set('extents', this.mapExtents, { patch: true });
   }
 
