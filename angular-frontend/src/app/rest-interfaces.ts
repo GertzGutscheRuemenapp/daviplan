@@ -34,9 +34,9 @@ export interface Scenario {
 }
 
 export interface Symbol {
-  fillColor: string,
-  strokeColor: string,
-  symbol: 'line' | 'circle' | 'square' | 'star'
+  fillColor?: string,
+  strokeColor?: string,
+  symbol?: 'line' | 'circle' | 'square' | 'star'
 }
 
 export interface ExtLayerGroup {
@@ -47,14 +47,14 @@ export interface ExtLayerGroup {
 }
 
 export interface ExtLayer {
-  id?: number,
+  id: number,
   order: number,
-  url?: string,
+  url: string,
   name: string,
   description: string,
-  group?: number | string,
-  layerName?: string,
-  active?: boolean
+  group: number | string,
+  layerName: string,
+  active: boolean
 }
 
 export interface Source {

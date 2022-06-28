@@ -16,6 +16,7 @@ import { map } from "rxjs/operators";
 import { forkJoin, Observable, Subscription } from "rxjs";
 import { MapControl, MapService } from "../../../map/map.service";
 import { SelectionModel } from "@angular/cdk/collections";
+import { MapLayer, MapLayerGroup, VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-demand',
@@ -37,8 +38,8 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   realYears?: number[];
   prognosisYears?: number[];
   mapControl?: MapControl;
-  demandLayer?: ExtLayer;
-  legendGroup?: ExtLayerGroup;
+  demandLayer?: MapLayer;
+  layerGroup?: MapLayerGroup;
   serviceSelection = new SelectionModel<Service>(false);
   year?: number;
   subscriptions: Subscription[] = [];
@@ -48,10 +49,8 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
-    this.legendGroup = this.mapControl.addGroup({
-      name: 'Nachfrage',
-      order: -1
-    }, false)
+    this.layerGroup = new MapLayerGroup('Nachfrage', { order: -1 })
+    this.mapControl.addGroup(this.layerGroup, false);
     this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
       this.activeProcess = process;
       this.updateMap();
@@ -118,7 +117,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
 
   updateMap(): void {
     if (this.demandLayer) {
-      this.mapControl?.removeLayer(this.demandLayer.id!);
+      this.layerGroup?.removeLayer(this.demandLayer);
       this.demandLayer = undefined;
     }
     if (!this.year || !this.activeLevel || !this.activeService || !this.activeProcess) return;
@@ -139,31 +138,33 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
         max = Math.max(max, 10);
       const steps = (max < 1.2 * min)? 3: (max < 1.4 * min)? 5: (max < 1.6 * min)? 7: 9;
       const colorFunc = d3.scaleSequential(d3.interpolateBlues).domain([min, max]);
-        this.demandLayer = this.mapControl?.addLayer({
+        this.demandLayer = new VectorLayer(this.activeLevel!.name,{
             order: 0,
-            type: 'vector',
-            group: this.legendGroup?.id,
-            name: this.activeLevel!.name,
             description: this.activeLevel!.name,
             opacity: 1,
-            symbol: {
+            style: {
               strokeColor: 'white',
               fillColor: 'rgba(165, 15, 21, 0.9)',
               symbol: 'line'
             },
             labelField: 'value',
-            showLabel: true
-          },
-          {
-            visible: true,
+            showLabel: true,
             tooltipField: 'description',
             mouseOver: {
-              strokeColor: 'yellow',
-              fillColor: 'rgba(255, 255, 0, 0.7)'
+              enabled: true,
+              style: {
+                strokeColor: 'yellow',
+                fillColor: 'rgba(255, 255, 0, 0.7)'
+              }
             },
-            colorFunc: colorFunc
+            valueMapping: {
+              field: 'value',
+              fillColor: colorFunc
+            }
           });
-        let colors: string[] = [];
+        this.layerGroup?.addLayer(this.demandLayer);
+        this.demandLayer.addFeatures(this.areas, { properties: 'properties' })
+/*        let colors: string[] = [];
         let labels: string[] = [];
         const step = (max - min) / steps;
         Array.from({ length: steps + 1 },(v, k) => k * step).forEach((value, i) => {
@@ -174,9 +175,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
           colors: colors,
           labels: labels,
           elapsed: true
-        }
-        this.mapControl?.addFeatures(this.demandLayer!.id!, this.areas,
-          { properties: 'properties' });
+        }*/
     })
   }
 
@@ -187,8 +186,9 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.legendGroup) {
-      this.mapControl?.removeGroup(this.legendGroup.id!);
+    if (this.layerGroup) {
+      this.layerGroup.clear();
+      this.mapControl?.removeGroup(this.layerGroup);
     }
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }

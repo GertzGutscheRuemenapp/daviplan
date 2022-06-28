@@ -17,6 +17,7 @@ import { SelectionModel } from "@angular/cdk/collections";
 import { MapControl, MapService } from "../../../map/map.service";
 import * as d3 from "d3";
 import { Subscription } from "rxjs";
+import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-rating',
@@ -40,8 +41,8 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   activeProcess?: PlanningProcess;
   mapControl?: MapControl;
   serviceSelection = new SelectionModel<Service>(false);
-  indicatorLayer?: ExtLayer;
-  legendGroup?: ExtLayerGroup;
+  indicatorLayer?: VectorLayer;
+  layerGroup?: MapLayerGroup;
   year?: number;
   subscriptions: Subscription[] = [];
 
@@ -50,10 +51,8 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
-    this.legendGroup = this.mapControl.addGroup({
-      name: 'Bewertung',
-      order: -1
-    }, false)
+    this.layerGroup = new MapLayerGroup('Bewertung', { order: -1 })
+    this.mapControl.addGroup(this.layerGroup, false);
     this.subscriptions.push(this.planningService.year$.subscribe(year => {
       this.year = year;
       this.updateMap();
@@ -113,7 +112,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
 
   updateMap(): void {
     if (this.indicatorLayer) {
-      this.mapControl?.removeLayer(this.indicatorLayer.id!);
+      this.layerGroup?.removeLayer(this.indicatorLayer);
       this.indicatorLayer = undefined;
     }
     if (!this.year || !this.activeProcess || !this.selectedAreaLevel || !this.selectedIndicator || !this.selectedService || this.areas.length === 0) return;
@@ -132,30 +131,30 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         area.properties.description = `<b>${area.properties.label}</b><br>${this.selectedIndicator!.title}: ${area.properties.value}`
       })
       const colorFunc = d3.scaleSequential(d3.interpolatePurples).domain([min, max || 1]);
-      this.indicatorLayer = this.mapControl?.addLayer({
-          order: 0,
-          type: 'vector',
-          group: this.legendGroup?.id,
-          name: `${this.selectedIndicator!.title} (${this.selectedAreaLevel!.name})`,
-          description: this.selectedIndicator!.description,
-          opacity: 1,
-          symbol: {
-            strokeColor: 'white',
-            fillColor: 'rgba(165, 15, 21, 0.9)',
-            symbol: 'line'
-          },
-          labelField: 'value',
-          showLabel: true
+      this.indicatorLayer = new VectorLayer(`${this.selectedIndicator!.title} (${this.selectedAreaLevel!.name})`, {
+        order: 0,
+        description: this.selectedIndicator!.description,
+        opacity: 1,
+        style: {
+          strokeColor: 'white',
+          fillColor: 'rgba(165, 15, 21, 0.9)',
+          symbol: 'line'
         },
-        {
-          visible: true,
-          tooltipField: 'description',
-          mouseOver: {
+        labelField: 'value',
+        showLabel: true,
+        tooltipField: 'description',
+        mouseOver: {
+          enabled: true,
+          style: {
             strokeColor: 'yellow',
             fillColor: 'rgba(255, 255, 0, 0.7)'
-          },
-          colorFunc: colorFunc
-        });
+          }
+        },
+        valueMapping: {
+            field: 'value',
+          fillColor: colorFunc
+        }
+      });
       let colors: string[] = [];
       let labels: string[] = [];
       if (max) {
@@ -170,8 +169,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           elapsed: true
         }
       }
-      this.mapControl?.addFeatures(this.indicatorLayer!.id!, this.areas,
-        { properties: 'properties' });
+      this.indicatorLayer.addFeatures(this.areas,{ properties: 'properties' });
     })
   }
 
@@ -194,8 +192,8 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.legendGroup) {
-      this.mapControl?.removeGroup(this.legendGroup.id!);
+    if (this.layerGroup) {
+      this.mapControl?.removeGroup(this.layerGroup);
     }
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }

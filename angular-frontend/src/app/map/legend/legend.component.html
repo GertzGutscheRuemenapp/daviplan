@@ -35,8 +35,8 @@
         </mat-expansion-panel-header>
         <div *ngFor="let layer of group.children">
           <div class="legend-entry"
-               [ngClass]="{'checked': mapControl.isSelected(layer)}"
-               *ngIf="mapControl.editMode || mapControl.isSelected(layer)">
+               [ngClass]="{'checked': layer.visible}"
+               *ngIf="mapControl.editMode || layer.visible">
             <div class="entry-header"
                  [ngbPopover]="popover"
                  placement="left"
@@ -49,25 +49,25 @@
               <div class="entry-prefix">
                 <mat-checkbox *ngIf="mapControl.editMode"
                               color="primary"
-                              [checked]="mapControl.isSelected(layer) || false"
+                              [checked]="layer.visible || false"
                               (change)="toggleLayer(layer)"
                               title="Layer anzeigen/verstecken">
                 </mat-checkbox>
                 <ng-container *ngIf="!mapControl.editMode">
-                  <ng-container *ngIf="layer.legend">
-                    <div title="Farblegende des Layer ein-/ausklappen" (click)="toggleLayerLegend(layer)">
-                      <mat-icon color="primary" *ngIf="layer.legend.elapsed">expand_less</mat-icon>
-                      <mat-icon color="primary" *ngIf="!layer.legend.elapsed">expand_more</mat-icon>
+                  <ng-container *ngIf="$any(layer).legend">
+                    <div title="Farblegende des Layer ein-/ausklappen" (click)="toggleLayerLegend($any(layer))">
+                      <mat-icon color="primary" *ngIf="$any(layer).legend.elapsed">expand_less</mat-icon>
+                      <mat-icon color="primary" *ngIf="!$any(layer).legend.elapsed">expand_more</mat-icon>
                     </div>
                   </ng-container>
-                  <ng-container *ngIf="!layer.legend">
-                    <div *ngIf="layer.symbol" style="cursor: pointer;"
+                  <ng-container *ngIf="!$any(layer).legend">
+                    <div *ngIf="$any(layer).style" style="cursor: pointer;"
                          class="symbol"
-                         [style.background]="layer.symbol.fillColor || 'white'"
-                         [style.border-color]="layer.symbol.strokeColor || 'white'"
-                         [class]="layer.symbol.symbol">
+                         [style.background]="$any(layer).style.fillColor || 'white'"
+                         [style.border-color]="$any(layer).style.strokeColor || 'white'"
+                         [class]="$any(layer).style.symbol">
                     </div>
-                    <mat-icon *ngIf="layer.legendUrl"
+                    <mat-icon *ngIf="$any(layer).legendUrl"
                               class="legend-image-link"
                               title="Legendenbild anzeigen"
                               (click)="toggleLegendImage(layer)">
@@ -77,8 +77,8 @@
                 </ng-container>
               </div>
               <div class="entry-title"
-                   [style.cursor]="layer.legend? 'pointer': ''"
-                   (click)="toggleLayerLegend(layer)">
+                   [style.cursor]="$any(layer).legend? 'pointer': ''"
+                   (click)="toggleLayerLegend($any(layer))">
                 {{ layer.name }}
               </div>
             </div>
@@ -91,25 +91,25 @@
                           [value]="layer.opacity"
                           title="Transparenz">
               </mat-slider>
-              <div class="label-toggle" *ngIf="layer.labelField"
-                   (click)="toggleLabel(layer)" [title]="(layer.showLabel)? 'Labelanzeige ausschalten': 'Labelanzeige einschalten'">
+              <div class="label-toggle" *ngIf="$any(layer).labelField"
+                   (click)="toggleLabel($any(layer))" [title]="($any(layer).showLabel)? 'Labelanzeige ausschalten': 'Labelanzeige einschalten'">
                 <mat-icon class="material-icons-outlined">
-                  {{(layer.showLabel)? 'label': 'label_off'}}
+                  {{($any(layer).showLabel)? 'label': 'label_off'}}
                 </mat-icon>
               </div>
             </div>
           </div>
-          <div *ngIf="layer.legend && layer.legend.elapsed">
-            <div class="legend-entry" *ngFor="let label of layer.legend.labels; let i = index;">
+          <div *ngIf="$any(layer).legend && $any(layer).legend.elapsed">
+            <div class="legend-entry" *ngFor="let label of $any(layer).legend.labels; let i = index;">
               <div class="entry-header">
                 <div class="entry-prefix"></div>
                 <div class="row-title">
                   <div class="row-label" style="display: flex">
-                    <div *ngIf="layer.legend.colors"
-                         [style.background]="layer.legend.colors[i]"
+                    <div *ngIf="$any(layer).legend.colors"
+                         [style.background]="$any(layer).legend.colors[i]"
                          class="symbol"
                          style.border-color="black"
-                         [class]="layer.symbol?.symbol? (layer.symbol?.symbol === 'line')? 'square': layer.symbol?.symbol: 'circle'">
+                         [class]="$any(layer).style?.symbol? ($any(layer).style?.symbol === 'line')? 'square': $any(layer).style?.symbol: 'circle'">
                     </div>
                     {{label}}
                   </div>
@@ -173,8 +173,8 @@
              style="padding-left: 10px;">
           <mat-slider aria-label="Transparenz" color="primary"
                       style="margin-top: 10px;"
-                      [value]="mapControl.backgroundOpacity"
-                      (input)="mapControl.setLayerAttr(mapControl.background?.id, { opacity: $event.value || undefined })"
+                      [value]="mapControl.background?.opacity"
+                      (input)="mapControl.background.setOpacity($event.value)"
                       min="0" max="1" step="0.001">
           </mat-slider>
         </div>

@@ -22,6 +22,7 @@ import { sortBy } from "../../../helpers/utils";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
+import { MapLayer, MapLayerGroup, VectorLayer } from "../../../map/layers";
 
 interface PlaceEditField extends PlaceField {
   edited?: boolean;
@@ -47,8 +48,8 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   editFields: PlaceEditField[] = [];
   editErrors?: any;
   mapControl?: MapControl;
-  legendGroup?: ExtLayerGroup;
-  placesLayer?: ExtLayer;
+  layerGroup?: MapLayerGroup;
+  placesLayer?: VectorLayer;
   addPlaceMode = false;
   isLoading$ = new BehaviorSubject<boolean>(false);
   places?: Place[];
@@ -64,10 +65,8 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-locations-map');
-    this.legendGroup = this.mapControl.addGroup({
-      name: 'Standorte',
-      order: -1
-    }, false);
+    this.layerGroup = new MapLayerGroup('Standorte', { order: -1 });
+    this.mapControl.addGroup(this.layerGroup, false);
     this.isLoading$.next(true);
     this.http.get<FieldType[]>(this.rest.URLS.fieldTypes).subscribe(fieldTypes => {
       this.fieldTypes = fieldTypes;
@@ -81,7 +80,10 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
 
   onInfrastructureChange(reset: boolean = false): void {
     this.places = [];
-    this.mapControl?.removeLayer(this.placesLayer?.id!);
+    if (this.placesLayer) {
+      this.layerGroup?.removeLayer(this.placesLayer);
+      this.placesLayer = undefined;
+    }
     if (!this.selectedInfrastructure) return;
     this.editFields = JSON.parse(JSON.stringify(this.selectedInfrastructure.placeFields));
     this.isLoading$.next(true);
@@ -116,34 +118,31 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   }
 
   updateMap(): void {
-    this.mapControl?.removeLayer(this.placesLayer?.id!);
+    if (this.placesLayer) {
+      this.layerGroup?.removeLayer(this.placesLayer);
+      this.placesLayer = undefined;
+    }
     if (!this.places) return;
-    this.placesLayer = this.mapControl?.addLayer({
+    this.placesLayer = new VectorLayer(this.selectedInfrastructure!.name, {
         order: 0,
-        type: 'vector',
-        group: this.legendGroup?.id,
-        name: this.selectedInfrastructure!.name,
         description: this.selectedInfrastructure!.name,
         opacity: 1,
-        symbol: {
+        style: {
           fillColor: '#2171b5',
           strokeColor: 'black',
           symbol: 'circle'
         },
         labelField: 'name',
-        showLabel: true
-      },
-      {
-        visible: true,
         tooltipField: 'name',
-        selectable: true,
         select: {
-          fillColor: 'yellow',
+          style: { fillColor: 'yellow' },
+          enabled: true,
           multi: false
         },
+        showLabel: true
       });
-    this.mapControl?.clearFeatures(this.placesLayer!.id!);
-    this.mapControl?.addFeatures(this.placesLayer!.id!, this.places);
+    this.layerGroup?.addLayer(this.placesLayer);
+    this.placesLayer.addFeatures(this.places);
     this.placesLayer?.featureSelected?.subscribe(evt => {
       const placeId = evt.feature.get('id');
       if (evt.selected){
@@ -177,7 +176,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
     });
     this.placeDialogRef.afterClosed().subscribe(() => {
       this.selectedPlace = undefined;
-      this.mapControl?.deselectAllFeatures(this.placesLayer!.id!);
+      this.placesLayer?.deselectAllFeatures();
     })
   }
 

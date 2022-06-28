@@ -12,6 +12,8 @@ import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dia
 import { arrayMove } from "../../../helpers/utils";
 import { sortBy } from "../../../helpers/utils";
 import { ExtLayerGroup, ExtLayer } from "../../../rest-interfaces";
+import { RestCacheService } from "../../../rest-cache.service";
+import { MapLayer, MapLayerGroup, WMSLayer } from "../../../map/layers";
 
 function isLayer(obj: any): obj is ExtLayer{
   return 'layerName' in obj;
@@ -29,20 +31,20 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   @ViewChild('editLayerGroupTemplate') editLayerGroupTemplate?: TemplateRef<any>;
   @ViewChild('layerCard') layerCard?: InputCardComponent;
   @ViewChild('layerGroupCard') layerGroupCard?: InputCardComponent;
-  layerGroups: ExtLayerGroup[] = [];
+  layerGroups: MapLayerGroup[] = [];
   mapControl?: MapControl;
   layerGroupForm: FormGroup;
   addLayerForm: FormGroup;
   editLayerForm: FormGroup;
 
-  selectedLayer?: ExtLayer;
-  selectedGroup?: ExtLayerGroup;
+  selectedLayer?: MapLayer;
+  selectedGroup?: MapLayerGroup;
   Object = Object;
 
-  availableLayers: ExtLayer[] = [];
+  availableLayers: MapLayer[] = [];
 
   constructor(private mapService: MapService, private http: HttpClient, private dialog: MatDialog,
-              private rest: RestAPI, private formBuilder: FormBuilder) {
+              private rest: RestAPI, private restService: RestCacheService, private formBuilder: FormBuilder) {
     this.addLayerForm = this.formBuilder.group({
       name: new FormControl(''),
       url: new FormControl(''),
@@ -61,21 +63,12 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.fetchLayerGroups().subscribe(res => {
-      this.fetchLayers().subscribe(res => {
-        // const items: TreeItemNode[] = this.layerGroups.map(group => { return {
-        //   id: group.id,
-        //   name: group.name,
-        //   children: group.children? group.children.map(layer => { return {
-        //     id: layer.id, name: layer.name, checked: layer.active } }): [] }
-        // })
-        this.layerTree.setItems(this.layerGroups);
-        this.layerGroups.forEach(group => {
-          group.children?.forEach(layer => {
-            if (layer.active) this.layerTree.setChecked(layer, layer.active);
-           })
-        });
-      })
+    this.mapService.fetchExternalLayers().subscribe(groups => {
+      this.layerGroups.forEach(group => {
+        group.children?.forEach(layer => {
+          if (layer.active) this.layerTree.setChecked(layer, layer.active);
+        })
+      });
     })
     this.layerTree.addItemClicked.subscribe(node => {
       const parent = this.getGroup(node.id);
@@ -92,37 +85,6 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     this.mapControl = this.mapService.get('base-layers-map');
     this.setupLayerGroupCard();
     this.setupLayerCard();
-  }
-
-  /**
-   * fetch layer groups (wo layers)
-   */
-  fetchLayerGroups(): Observable<ExtLayerGroup[]> {
-    const query = this.http.get<ExtLayerGroup[]>(`${this.rest.URLS.layerGroups}?external=true`);
-    query.subscribe((layerGroups) => {
-      layerGroups.forEach(layerGroup => {
-        layerGroup.children = [];
-      })
-      this.layerGroups = sortBy(layerGroups, 'order');
-    });
-    return query;
-  }
-
-  /**
-   * fetch layers
-   */
-  fetchLayers(): Observable<ExtLayer[]> {
-    const query = this.http.get<ExtLayer[]>(this.rest.URLS.layers);
-    query.subscribe((layers) => {
-      layers = sortBy(layers, 'order');
-      layers.forEach(layer => {
-        const group = this.getGroup(layer.group);
-        if (group) {
-          group.children!.push(layer);
-        }
-      })
-    });
-    return query;
   }
 
   /**
@@ -203,7 +165,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
    *
    * @param id
    */
-  getLayer(id: number | string | undefined): ExtLayer | undefined {
+  getLayer(id: number | string | undefined): MapLayer | undefined {
     if (id === undefined) return;
     for (let group of this.layerGroups) {
       if (!group.children) continue;
@@ -221,7 +183,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
    *
    * @param id
    */
-  getGroup(id: number | string | undefined): ExtLayerGroup | undefined {
+  getGroup(id: number | string | undefined): MapLayerGroup | undefined {
     if (id === undefined) return;
     for (let group of this.layerGroups) {
         if (group.id === id) {
@@ -262,8 +224,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       dialogRef.componentInstance.isLoading$.next(true);
       this.http.post<ExtLayerGroup>(this.rest.URLS.layerGroups, attributes
       ).subscribe(group => {
-        group.children = [];
-        this.layerGroups.push(group);
+        this.layerGroups.push(new MapLayerGroup(group.name, { order: group.order, id: group.id, external: true }));
         this.layerTree.refresh();
         this.mapControl?.refresh({ external: true });
         this.layerTree.select(group);
@@ -278,7 +239,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   /**
    * open dialog to create new layer, post to backend on confirm
    */
-  addLayer(parent: ExtLayerGroup): void {
+  addLayer(parent: MapLayerGroup): void {
     this.addLayerForm.reset();
     this.availableLayers = [];
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
@@ -306,7 +267,13 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       dialogRef.componentInstance.isLoading$.next(true);
       this.http.post<ExtLayer>(this.rest.URLS.layers, attributes).subscribe(layer => {
         const group = this.getGroup(layer.group);
-        group?.children?.push(layer);
+        group?.addLayer(new WMSLayer(layer.name, layer.url, {
+          id: layer.id,
+          order: layer.order,
+          description: layer.description,
+          layerName: layer.layerName,
+          active: layer.active
+        }));
         this.layerTree.refresh();
         this.mapControl?.refresh({ external: true });
         this.layerTree.select(layer);
@@ -334,16 +301,13 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         return;
       }
       for (let i = 0; i < res.layers.length; i += 1) {
-        const l = res.layers[i],
-              layer: ExtLayer = {
+        const l = res.layers[i];
+        const layer = new WMSLayer(l.title, res.url,{
           id: i,
-          name: l.title,
           layerName: l.name,
-          url: res.url,
           order: 0,
-          group: -1,
           description: l.abstract
-        };
+        });
         this.availableLayers.push(layer);
         if (res.layers.length > 0)
           this.onAvLayerSelected(0);
@@ -363,7 +327,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
           controls = this.addLayerForm.controls;
     controls['name'].patchValue(layer.name);
     controls['description'].patchValue(layer.description);
-    controls['layerName'].patchValue(layer.layerName);
+    controls['layerName'].patchValue((layer as WMSLayer).layerName);
     controls['url'].patchValue(layer.url);
   }
 
@@ -380,7 +344,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
    *
    * @param layer
    */
-  removeLayer(layer: ExtLayer){
+  removeLayer(layer: MapLayer){
     const dialogRef = this.dialog.open(RemoveDialogComponent, {
       data: {
         title: $localize`Den Layer wirklich entfernen?`,
@@ -414,7 +378,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
    *
    * @param group
    */
-  removeGroup(group: ExtLayerGroup){
+  removeGroup(group: MapLayerGroup){
     const dialogRef = this.dialog.open(RemoveDialogComponent, {
       width: '420px',
       data: {
@@ -446,7 +410,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
    * patches layer-order of layers or layer-groups to their current place in the array
    *
    */
-  patchOrder(array: ExtLayer[] | ExtLayerGroup[]): void {
+  patchOrder(array: MapLayer[] | MapLayerGroup[]): void {
     if (array.length === 0) return;
     const url = isLayer(array[0]) ? this.rest.URLS.layers: this.rest.URLS.layerGroups;
     let observables: Observable<any>[] = [];
@@ -473,7 +437,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   moveSelected(direction: string): void {
     const selected = this.selectedLayer? this.selectedLayer: this.selectedGroup? this.selectedGroup: undefined;
     if (!selected) return;
-    const array = this.selectedLayer? this.getGroup(this.selectedLayer.group)!.children!: this.layerGroups;
+    const array = (this.selectedLayer && this.selectedLayer.group)? this.selectedLayer.group.children!: this.layerGroups;
     // @ts-ignore
     const idx = array.indexOf(selected);
     if (direction === 'up'){
@@ -497,7 +461,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
    * @param active
    */
   onToggleActive(node: TreeItemNode, active: boolean): void {
-    const layers: ExtLayer[] = (node.children)? this.getGroup(node.id)!.children || []: [this.getLayer(node.id)!];
+    const layers: MapLayer[] = (node.children)? this.getGroup(node.id)!.children || []: [this.getLayer(node.id)!];
     let observables: Observable<any>[] = [];
     layers.forEach(layer => {
       const req = this.http.patch<ExtLayer>(`${this.rest.URLS.layers}${layer.id}/`,

@@ -26,13 +26,13 @@
         <div class="order-controls">
           <button mat-icon-button
                   title="In der Sortierung eins nach oben"
-                  [disabled] = "(!selectedGroup || selectedGroup === layerGroups[0]) && (!selectedLayer || getGroup(selectedLayer.group)!.children!.indexOf(selectedLayer) < 1)"
+                  [disabled] = "(!selectedGroup || selectedGroup === layerGroups[0]) && (!selectedLayer || (selectedLayer.group && selectedLayer.group.children!.indexOf(selectedLayer) < 1))"
                   (click)="moveSelected('up')">
             <mat-icon>expand_less</mat-icon>
           </button>
           <button mat-icon-button
                   title="In der Sortierung eins nach unten"
-                  [disabled] = "(!selectedGroup || selectedGroup === layerGroups[layerGroups.length - 1]) && (!selectedLayer || getGroup(selectedLayer.group)!.children!.indexOf(selectedLayer) >= getGroup(selectedLayer.group)!.children!.length - 1)"
+                  [disabled] = "(!selectedGroup || selectedGroup === layerGroups[layerGroups.length - 1]) && (!selectedLayer || (selectedLayer.group && selectedLayer.group.children.indexOf(selectedLayer) >= selectedLayer.group.children.length - 1))"
                   (click)="moveSelected('down')">
             <mat-icon>expand_more</mat-icon>
           </button>
@@ -67,7 +67,7 @@
         </tr>
         <tr>
           <td>Layer</td>
-          <td style="color: grey">{{selectedLayer?.layerName}}</td>
+          <td style="color: grey">{{$any(selectedLayer)?.layerName}}</td>
         </tr>
         <tr>
           <td>Name</td>
@@ -151,7 +151,7 @@
                             placement="right"
                             container="body"
                             triggers="mouseenter:mouseleave">
-            {{ layer.layerName }}
+            {{ $any(layer).layerName }}
           </mat-radio-button>
         </ng-container>
       </mat-radio-group>

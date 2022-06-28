@@ -10,6 +10,7 @@ import { SettingsService } from "../../../settings.service";
 import * as d3 from "d3";
 import { sortBy } from "../../../helpers/utils";
 import { CookieService } from "../../../helpers/cookies.service";
+import { MapLayer, MapLayerGroup, VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-pop-statistics',
@@ -35,9 +36,9 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   years: number[] = [];
   year?: number;
   theme: 'nature' | 'migration' = 'nature';
-  statisticsLayer?: ExtLayer;
+  statisticsLayer?: VectorLayer;
   subscriptions: Subscription[] = [];
-  legendGroup?: ExtLayerGroup;
+  layerGroup?: MapLayerGroup;
   activeArea?: Area;
   showBirths: boolean = true;
   showDeaths: boolean = true;
@@ -50,10 +51,8 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
-    this.legendGroup = this.mapControl.addGroup({
-      name: 'Bevölkerungssalden',
-      order: -1
-    }, false)
+    this.layerGroup = new MapLayerGroup('Bevölkerungssalden', { order: -1 })
+    this.mapControl.addGroup(this.layerGroup, false);
     this.mapControl.mapDescription = '';
     if (this.populationService.isReady)
       this.initData();
@@ -112,7 +111,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
 
   updateMap(): void {
     if (this.statisticsLayer) {
-      this.mapControl?.removeLayer(this.statisticsLayer.id!);
+      this.layerGroup?.removeLayer(this.statisticsLayer);
       this.statisticsLayer = undefined;
     }
     this.updateMapDescription();
@@ -141,35 +140,37 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         return (value > 0)? '#1a9850': (value < 0)? '#d73027': 'grey';
       };
 
-      this.statisticsLayer = this.mapControl?.addLayer({
+      this.statisticsLayer = new VectorLayer(descr, {
         order: 0,
-        type: 'vector',
-        group: this.legendGroup?.id,
-        name: descr,
         description: 'ToDo',
         opacity: 1,
-        symbol: {
+        style: {
           strokeColor: 'white',
           fillColor: color,
           symbol: 'circle'
         },
         labelField: 'value',
-        showLabel: true
-      },
-      {
-        visible: true,
+        showLabel: true,
         tooltipField: 'description',
         mouseOver: {
-          strokeColor: 'yellow',
-          fillColor: 'rgba(255, 255, 0, 0.7)',
+          enabled: true,
+          style: {
+            strokeColor: 'yellow',
+            fillColor: 'rgba(255, 255, 0, 0.7)'
+          }
         },
-        selectable: true,
         select: {
-          strokeColor: 'rgb(180, 180, 0)',
-          fillColor: 'rgba(255, 255, 0, 0.9)'
+          enabled: true,
+          style: {
+            strokeColor: 'rgb(180, 180, 0)',
+            fillColor: 'rgba(255, 255, 0, 0.9)'
+          }
         },
-        colorFunc: diffDisplay? colorFunc: undefined,
-        radiusFunc: radiusFunc
+        valueMapping: {
+          field: 'value',
+          fillColor: diffDisplay? colorFunc: undefined,
+          radius: radiusFunc
+        }
       });
       this.areas.forEach(area => {
         const data = statistics.find(d => d.area == area.id);
@@ -184,10 +185,13 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         area.properties.value = value;
         area.properties.description = `<b>${area.properties.label}</b><br>${descr}: ${area.properties.value}`
       })
-      this.mapControl?.addFeatures(this.statisticsLayer!.id!, this.areas,
-        { properties: 'properties', geometry: 'centroid', zIndex: 'value' });
+      this.statisticsLayer.addFeatures(this.areas,{
+        properties: 'properties',
+        geometry: 'centroid',
+        zIndex: 'value'
+      });
       if (this.activeArea)
-        this.mapControl?.selectFeatures([this.activeArea.id], this.statisticsLayer!.id!, { silent: true });
+        this.statisticsLayer.selectFeatures([this.activeArea.id], { silent: true });
       this.statisticsLayer!.featureSelected?.subscribe(evt => {
         if (evt.selected) {
           this.activeArea = this.areas.find(area => area.id === evt.feature.get('id'));
@@ -247,7 +251,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
 
   onAreaChange(): void {
     this.cookies.set(`pop-area-${this.areaLevel!.id}`, this.activeArea!.id);
-    this.mapControl?.selectFeatures([this.activeArea!.id], this.statisticsLayer!.id!, { silent: true, clear: true });
+    this.statisticsLayer?.selectFeatures([this.activeArea!.id], { silent: true, clear: true });
     this.updateDiagrams();
   }
 
@@ -282,10 +286,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.statisticsLayer)
-      this.mapControl?.removeLayer(this.statisticsLayer.id!);
-    if (this.legendGroup)
-      this.mapControl?.removeGroup(this.legendGroup.id!)
+    if (this.layerGroup) this.mapControl?.removeGroup(this.layerGroup)
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 

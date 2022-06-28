@@ -27,6 +27,7 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { BehaviorSubject } from "rxjs";
 import * as fileSaver from "file-saver";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
+import { MapLayer, MapLayerGroup, VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-prognosis-data',
@@ -42,7 +43,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   @ViewChild('fileUploadTemplate') fileUploadTemplate?: TemplateRef<any>;
   isLoading$ = new BehaviorSubject<boolean>(false);
   mapControl?: MapControl;
-  legendGroup?: ExtLayerGroup;
+  layerGroup?: MapLayerGroup;
   activePrognosis?: Prognosis;
   genders: Gender[] = [];
   ageGroups: AgeGroup[] = [];
@@ -58,7 +59,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   areas: Area[] = [];
   previewYear?: Year;
   previewArea?: Area;
-  previewLayer?: ExtLayer;
+  previewLayer?: VectorLayer;
   dataColumns: string[] = [];
   dataRows: any[][] = [];
   dataYear?: Year;
@@ -77,10 +78,8 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   // ToDo: shares a lot of Code with real-data-component, at least the map view should be seperated into reusable view
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-prog-data-map');
-    this.legendGroup = this.mapControl.addGroup({
-      name: 'Bevölkerungsentwicklung (Prognose)',
-      order: -1
-    }, false)
+    this.layerGroup = new MapLayerGroup('Bevölkerungsentwicklung (Prognose)', { order: -1 })
+    this.mapControl.addGroup(this.layerGroup, false);
     this.popService.getAreaLevels({ reset: true }).subscribe(areaLevels => {
       this.defaultPopLevel = areaLevels.find(al => al.isDefaultPopLevel);
       this.popLevel = areaLevels.find(al => al.isPopLevel);
@@ -162,10 +161,10 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
 
   updatePreview(): void {
     if (this.previewLayer) {
-      this.mapControl?.removeLayer(this.previewLayer.id!);
+      this.layerGroup?.removeLayer(this.previewLayer);
       this.previewLayer = undefined;
     }
-    if (!(this.previewYear && this.activePrognosis)) return;
+    if (!this.activePrognosis) return;
     const population = this.populations.find(p => p.year === this.previewYear!.id && p.prognosis === this.activePrognosis!.id);
     if (!population) return;
     this.popService.getPopEntries(population.id).subscribe(popEntries => {
@@ -185,39 +184,44 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
         max = Math.max(max, value);
       })
       const radiusFunc = d3.scaleLinear().domain([0, max]).range([5, 50]);
-      this.previewLayer = this.mapControl?.addLayer({
-          order: 0,
-          type: 'vector',
-          group: this.legendGroup?.id,
-          name: this.popLevel!.name,
-          description: this.popLevel!.name,
-          opacity: 1,
-          symbol: {
-            strokeColor: 'white',
-            fillColor: 'rgba(165, 15, 21, 0.9)',
-            symbol: 'circle'
-          },
-          labelField: 'value',
-          showLabel: true
+      this.previewLayer = new VectorLayer(this.popLevel!.name, {
+        order: 0,
+        description: this.popLevel!.name,
+        opacity: 1,
+        style: {
+          strokeColor: 'white',
+          fillColor: 'rgba(165, 15, 21, 0.9)',
+          symbol: 'circle'
         },
-        {
-          visible: true,
-          tooltipField: 'description',
-          mouseOver: {
+        labelField: 'value',
+        tooltipField: 'description',
+        mouseOver: {
+          enabled: true,
+          style: {
             strokeColor: 'yellow',
             fillColor: 'rgba(255, 255, 0, 0.7)'
-          },
-          selectable: true,
-          select: {
+          }
+        },
+        select: {
+          enabled: true,
+          style: {
             strokeColor: 'rgb(180, 180, 0)',
             fillColor: 'rgba(255, 255, 0, 0.9)'
-          },
-          radiusFunc: radiusFunc
-        });
-      this.mapControl?.addFeatures(this.previewLayer!.id!, this.areas,
-        { properties: 'properties', geometry: 'centroid', zIndex: 'value' });
+          }
+        },
+        showLabel: true,
+        valueMapping: {
+          field: 'value',
+          radius: radiusFunc
+        }
+      });
+      this.previewLayer.addFeatures(this.areas, {
+        properties: 'properties',
+        geometry: 'centroid',
+        zIndex: 'value'
+      });
       if (this.previewArea)
-        this.mapControl?.selectFeatures([this.previewArea.id], this.previewLayer!.id!, { silent: true });
+        this.previewLayer?.selectFeatures([this.previewArea.id], { silent: true });
       this.updateAgeTree();
       this.previewLayer!.featureSelected?.subscribe(evt => {
         if (evt.selected) {
@@ -266,7 +270,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
 
   onAreaChange(): void {
     if (!this.previewLayer) return;
-    this.mapControl?.selectFeatures([this.previewArea!.id], this.previewLayer!.id!, { silent: true, clear: true });
+    this.previewLayer?.selectFeatures([this.previewArea!.id], { silent: true, clear: true });
     this.updateAgeTree();
   }
 

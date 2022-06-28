@@ -17,6 +17,7 @@ import { MapControl, MapService } from "../../../map/map.service";
 import { Subscription } from "rxjs";
 import * as d3 from "d3";
 import { Geometry } from "ol/geom";
+import { MapLayer, MapLayerGroup, VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-reachabilities',
@@ -38,16 +39,16 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   selectedService?: Service;
   activeProcess?: PlanningProcess;
   mapControl?: MapControl;
-  placeLegendGroup?: ExtLayerGroup;
-  legendGroup?: ExtLayerGroup;
-  baseRasterLayer?: ExtLayer;
-  reachRasterLayer?: ExtLayer;
+  placesLayerGroup?: MapLayerGroup;
+  reachLayerGroup?: MapLayerGroup;
+  baseRasterLayer?: VectorLayer;
+  reachRasterLayer?: VectorLayer;
   private subscriptions: Subscription[] = [];
   private mapClickSub?: Subscription;
-  placesLayer?: ExtLayer;
+  placesLayer?: VectorLayer;
   capacities?: Capacity[];
   year?: number;
-  placeReachabilityLayer?: ExtLayer;
+  placeReachabilityLayer?: VectorLayer;
   TransportMode = TransportMode;
   selectedPlaceId?: number;
   pickedCoords?: number[];
@@ -57,14 +58,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
-    this.placeLegendGroup = this.mapControl.addGroup({
-      name: 'Standorte',
-      order: -1
-    }, true);
-    this.legendGroup = this.mapControl.addGroup({
-      name: 'Erreichbarkeiten',
-      order: -1
-    }, true);
+    this.placesLayerGroup = new MapLayerGroup('Standorte', { order: -1 })
+    this.reachLayerGroup = new MapLayerGroup('Erreichbarkeiten', { order: -1 })
+    this.mapControl.addGroup(this.placesLayerGroup, false);
+    this.mapControl.addGroup(this.reachLayerGroup, false);
     this.planningService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures;
       this.planningService.getRasterCells().subscribe(rasterCells => {
@@ -92,28 +89,24 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   drawRaster(): void {
-    this.baseRasterLayer = this.mapControl?.addLayer({
+    this.baseRasterLayer = new VectorLayer( 'Rasterzellen', {
         order: 0,
-        type: 'vector',
-        group: this.legendGroup?.id,
-        name: 'Rasterzellen',
         description: 'Zensus-Raster (LAEA)',
         opacity: 1,
-        symbol: {
+        style: {
           fillColor: 'rgba(0, 0, 0, 0)',
+          strokeWidth: 1,
           strokeColor: 'black',
           symbol: 'line'
         },
         labelField: 'label',
         showLabel: false
-      },
-      {
-        visible: true,
-        strokeWidth: 1
       });
-    this.mapControl?.clearFeatures(this.baseRasterLayer!.id!);
-    this.mapControl?.addFeatures(this.baseRasterLayer!.id!, this.rasterCells,
-      { properties: 'properties', geometry: 'geometry' });
+    this.baseRasterLayer?.clearFeatures(this.baseRasterLayer!.id!);
+    this.baseRasterLayer?.addFeatures( this.rasterCells, {
+      properties: 'properties',
+      geometry: 'geometry'
+    });
   }
 
   onInfrastructureChange(): void {
@@ -144,41 +137,36 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           this.displayedPlaces.push(place);
         })
         let showLabel = true;
-        if (this.placesLayer){
-          showLabel = !!this.placesLayer.showLabel;
-          this.mapControl?.removeLayer(this.placesLayer.id!);
+        if (this.placesLayer) {
+          this.placesLayerGroup?.removeLayer(this.placesLayer);
+          this.placesLayer = undefined;
         }
-        this.placesLayer = this.mapControl?.addLayer({
-            order: 0,
-            type: 'vector',
-            group: this.placeLegendGroup?.id,
-            name: this.selectedInfrastructure!.name,
-            description: this.selectedInfrastructure!.name,
-            opacity: 1,
-            symbol: {
-              fillColor: '#2171b5',
-              strokeColor: 'black',
-              symbol: 'circle'
-            },
-            labelField: 'name',
-            showLabel: showLabel
+        this.placesLayer = new VectorLayer(this.selectedInfrastructure!.name, {
+          order: 0,
+          description: this.selectedInfrastructure!.name,
+          opacity: 1,
+          style: {
+            fillColor: '#2171b5',
+            strokeColor: 'black',
+            symbol: 'circle'
           },
-          {
-            visible: true,
-            tooltipField: 'name',
-            selectable: true,
-            mouseOver: {
-              cursor: ''
-            },
-            select: {
-              fillColor: 'yellow',
-              multi: false
-            },
-          });
-        this.mapControl?.clearFeatures(this.placesLayer!.id!);
-        this.mapControl?.addFeatures(this.placesLayer!.id!, this.displayedPlaces,
+          labelField: 'name',
+          showLabel: showLabel,
+          tooltipField: 'name',
+          mouseOver: {
+            enabled: true,
+            cursor: ''
+          },
+          select: {
+            enabled: true,
+            style: { fillColor: 'yellow' },
+            multi: false
+          }
+        });
+        this.placesLayerGroup?.addLayer(this.placesLayer);
+        this.placesLayer.addFeatures(this.displayedPlaces,
           { properties: 'properties', geometry: 'geometry' });
-        this.mapControl?.setSelect(this.placesLayer!.id!, this.selectPlaceMode);
+        // this.placesLayer?.setSelect(this.placesLayer!.id!, this.selectPlaceMode);
         this.placesLayer?.featureSelected?.subscribe(evt => {
           if (evt.selected) {
             this.selectedPlaceId = evt.feature.get('id');
@@ -189,7 +177,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
             this.removePlaceReachability();
         })
         if (this.selectedPlaceId)
-          this.mapControl?.selectFeatures([this.selectedPlaceId], this.placesLayer!.id!, { silent: false });
+          this.placesLayer.selectFeatures([this.selectedPlaceId], { silent: false });
       })
     })
   }
@@ -205,7 +193,9 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   showPlaceReachability(): void {
     if (!this.rasterCells || this.selectedPlaceId === undefined) return;
     this.planningService.getPlaceReachability(this.selectedPlaceId, this.mode).subscribe(cellResults => {
-      if(this.reachRasterLayer) this.mapControl?.removeLayer(this.reachRasterLayer.id!);
+      if (this.reachRasterLayer) {
+        this.reachLayerGroup?.removeLayer(this.reachRasterLayer);
+      }
       let features: RasterCell[] = [];
       cellResults.forEach(cellResult => {
         const cell = this.rasterCells.find(c => c.properties.cellcode === cellResult.cellCode);
@@ -217,26 +207,24 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       const max = Math.max(...cellResults.map(c => c.value));
       const colorFunc = d3.scaleSequential(d3.interpolateRdYlGn).domain([max, 0]);
 
-      this.reachRasterLayer = this.mapControl?.addLayer({
-          order: 0,
-          type: 'vector',
-          group: this.legendGroup?.id,
-          name: 'gewählter Standort',
-          description: 'Erreichbarkeit des gewählten Standorts',
-          opacity: 1,
-          symbol: {
-            fillColor: 'rgba(0, 0, 0, 0)',
-            strokeColor: 'rgba(0, 0, 0, 0)',
-            symbol: 'square'
-          },
-          labelField: 'value',
-          showLabel: false
-        },
-        {
-          visible: true,
+      this.reachRasterLayer = new VectorLayer('gewählter Standort', {
+        order: 0,
+        description: 'Erreichbarkeit des gewählten Standorts',
+        opacity: 1,
+        style: {
+          fillColor: 'rgba(0, 0, 0, 0)',
+          strokeColor: 'rgba(0, 0, 0, 0)',
           strokeWidth: 1,
-          colorFunc: colorFunc
-        });
+          symbol: 'square'
+        },
+        labelField: 'value',
+        showLabel: false,
+        valueMapping: {
+          field: 'value',
+          fillColor: colorFunc
+        }
+      });
+      this.reachLayerGroup?.addLayer(this.reachRasterLayer);
       let colors: string[] = [];
       let labels: string[] = [];
       if (max) {
@@ -251,9 +239,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         labels: labels,
         elapsed: true
       }
-      this.mapControl?.clearFeatures(this.reachRasterLayer!.id!);
-      this.mapControl?.addFeatures(this.reachRasterLayer!.id!, features,
-        { properties: 'properties', geometry: 'geometry' });
+      this.reachRasterLayer.addFeatures(features,{
+        properties: 'properties',
+        geometry: 'geometry'
+      });
     })
   }
 
@@ -269,9 +258,9 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       const marker = this.mapControl?.addMarker(cell.geometry as Geometry);
       this.planningService.getCellReachability(cell.properties.cellcode!, this.mode).subscribe(placeResults => {
         let showLabel = false;
-        if (this.placeReachabilityLayer){
-          showLabel = !!this.placeReachabilityLayer.showLabel;
-          this.mapControl?.removeLayer(this.placeReachabilityLayer.id!);
+        if (this.placeReachabilityLayer) {
+          this.reachLayerGroup?.removeLayer(this.placeReachabilityLayer);
+          this.placeReachabilityLayer = undefined;
         }
         this.displayedPlaces.forEach(place => {
           const res = placeResults.find(p => p.placeId === place.id);
@@ -279,27 +268,23 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         })
         const max = Math.max(...placeResults.map(c => c.value), 0);
         const colorFunc = d3.scaleSequential(d3.interpolateRdYlGn).domain([max || 100, 0]);
-        this.placeReachabilityLayer = this.mapControl?.addLayer({
-            order: 0,
-            type: 'vector',
-            group: this.legendGroup?.id,
-            name: this.selectedInfrastructure!.name,
-            description: this.selectedInfrastructure!.name,
-            opacity: 1,
-            symbol: {
-              fillColor: 'green',
-              strokeColor: 'black',
-              symbol: 'circle'
-            },
-            labelField: 'value',
-            showLabel: showLabel
+        this.placeReachabilityLayer = new VectorLayer(this.selectedInfrastructure!.name, {
+          order: 0,
+          description: this.selectedInfrastructure!.name,
+          opacity: 1,
+          style: {
+            fillColor: 'green',
+            strokeColor: 'black',
+            symbol: 'circle'
           },
-          {
-            visible: true,
-            tooltipField: 'value',
-            valueField: 'value',
-            colorFunc: colorFunc
-          });
+          labelField: 'value',
+          showLabel: showLabel,
+          tooltipField: 'value',
+          valueMapping: {
+            field: 'value',
+            fillColor: colorFunc
+          }
+        });
         let colors: string[] = [];
         let labels: string[] = [];
         if (max && max > 0) {
@@ -314,9 +299,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           labels: labels,
           elapsed: true
         }
-        this.mapControl?.clearFeatures(this.placeReachabilityLayer!.id!);
-        this.mapControl?.addFeatures(this.placeReachabilityLayer!.id!, this.displayedPlaces,
-          { properties: 'properties', geometry: 'geometry' });
+        this.placeReachabilityLayer.addFeatures(this.displayedPlaces,{
+          properties: 'properties',
+          geometry: 'geometry'
+        });
       })
     });
   }
@@ -329,7 +315,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   setPlaceSelection(enable: boolean): void {
     this.selectPlaceMode = enable;
     this.mapControl?.map?.setCursor(enable? 'crosshair': '');
-    this.mapControl?.setSelect(this.placesLayer?.id!, enable);
+    // this.mapControl?.setSelect(this.placesLayer?.id!, enable);
   }
 
   setMarkerPlacement(enable: boolean): void {
@@ -360,8 +346,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.legendGroup) this.mapControl?.removeGroup(this.legendGroup.id!);
-    if (this.placeLegendGroup) this.mapControl?.removeGroup(this.placeLegendGroup.id!);
+    if (this.reachLayerGroup) this.mapControl?.removeGroup(this.reachLayerGroup);
+    if (this.placesLayerGroup) this.mapControl?.removeGroup(this.placesLayerGroup);
     this.mapControl?.map?.setCursor('');
     this.mapControl?.removeMarker();
     this.subscriptions.forEach(subscription => subscription.unsubscribe());

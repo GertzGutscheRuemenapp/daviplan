@@ -97,8 +97,10 @@ export class RestCacheService {
     return this.getCachedData<Prognosis[]>(url);
   }
 
-  getLayerGroups(options?: { reset?: boolean }): Observable<ExtLayerGroup[]> {
-    const url = this.rest.URLS.layerGroups;
+  getLayerGroups(options?: { reset?: boolean, external?: true }): Observable<ExtLayerGroup[]> {
+    let url = this.rest.URLS.layerGroups;
+    if (options?.external)
+      url += '?external=true';
     return this.getCachedData<ExtLayerGroup[]>(url, options);
   }
 

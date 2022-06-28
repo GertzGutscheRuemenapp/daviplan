@@ -1,11 +1,8 @@
 import { AfterViewInit, ChangeDetectorRef, Component, Input, TemplateRef, ViewChild } from '@angular/core';
-import { MapControl, MapLayer, MapLayerGroup, MapService } from "../map.service";
-import { ExtLayerGroup, ExtLayer } from "../../rest-interfaces";
+import { MapControl, MapService } from "../map.service";
 import { FloatingDialog } from "../../dialogs/help-dialog/help-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
-import { SettingsService } from "../../settings.service";
-import { SelectionModel } from "@angular/cdk/collections";
-import { TreeItemFlatNode } from "../../elements/check-tree/check-tree.component";
+import { MapLayer, MapLayerGroup, VectorLayer } from '../layers';
 
 @Component({
   selector: 'app-legend',
@@ -48,8 +45,8 @@ export class LegendComponent implements AfterViewInit {
    *
    * @param layer
    */
-  toggleLayer(layer: ExtLayer): void {
-    this.mapControl?.toggleLayer(layer.id);
+  toggleLayer(layer: MapLayer): void {
+    layer.setVisible(false);
     this.filterActiveGroups();
   }
 
@@ -81,12 +78,11 @@ export class LegendComponent implements AfterViewInit {
       });
   }
 
-  toggleLabel(layer: MapLayer): void {
-    layer.showLabel = !layer.showLabel;
-    this.mapControl?.setShowLabel(layer.id!, layer.showLabel);
+  toggleLabel(layer: VectorLayer): void {
+    layer.setShowLabel(!layer.showLabel);
   }
 
-  toggleLayerLegend(layer: MapLayer): void {
+  toggleLayerLegend(layer: VectorLayer): void {
     if (!layer.legend) return;
     layer.legend.elapsed = !layer.legend.elapsed;
   }
