@@ -19,6 +19,7 @@ import { RestCacheService } from "../rest-cache.service";
 import { MapLayerGroup, MapLayer, VectorTileLayer, WMSLayer, TileLayer, VectorLayer } from "./layers";
 
 interface BackgroundLayerDef {
+  id: string | number,
   name: string,
   url: string,
   description: string,
@@ -27,8 +28,9 @@ interface BackgroundLayerDef {
   type: 'tiles' | 'wms'
 }
 
-const backgroundLayers: BackgroundLayerDef[] = [
+const backgroundLayerDefs: BackgroundLayerDef[] = [
   {
+    id: 'osm-back',
     name: 'OSM',
     url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     description: 'Offizielle Weltkarte von OpenStreetMap',
@@ -36,6 +38,7 @@ const backgroundLayers: BackgroundLayerDef[] = [
     type: 'tiles',
   },
   {
+    id: 'tpo-back',
     name: 'TopPlusOpen',
     url: 'https://sgx.geodatenzentrum.de/wms_topplus_open',
     description: 'Weltweite einheitliche Webkarte vom BKG. Normalausgabe',
@@ -43,6 +46,7 @@ const backgroundLayers: BackgroundLayerDef[] = [
     layerName: 'web'
   },
   {
+    id: 'tpo-grey-back',
     name: 'TopPlusOpen grau',
     url: 'https://sgx.geodatenzentrum.de/wms_topplus_open',
     description: 'Weltweite einheitliche Webkarte vom BKG. Graustufendarstellung',
@@ -58,7 +62,6 @@ const backgroundLayers: BackgroundLayerDef[] = [
 })
 export class MapService {
   private controls: Record<string, MapControl> = {};
-  backgroundLayers: any[] = backgroundLayers;
   // layerGroups$?: BehaviorSubject<Array<ExtLayerGroup>>;
 
   constructor(private http: HttpClient, private restService: RestCacheService, private settings: SettingsService) { }
@@ -194,24 +197,22 @@ export class MapControl {
       mapSettings = mapSettings || {};
       const editMode = mapSettings['legend-edit-mode'];
       this.editMode = (editMode != undefined)? editMode : true;
-      const backgroundId = parseInt(mapSettings[`background-layer`]);
-      this.mapService.backgroundLayers.forEach(layerDef => {
+      const backgroundId = mapSettings[`background-layer`] || backgroundLayerDefs[1].id;
+      backgroundLayerDefs.forEach(layerDef => {
         const opacity = parseFloat(mapSettings[`layer-opacity-${layerDef.id}`]) || 1;
-        const bg = (layerDef.type === 'wms')?
-          new WMSLayer(layerDef.name, layerDef.url, {visible: layerDef.id === backgroundId}):
-          new TileLayer(layerDef.name, layerDef.url, {visible: layerDef.id === backgroundId});
+        const LayerCls = (layerDef.type === 'wms')? WMSLayer: TileLayer;
+        const bg = new LayerCls(layerDef.name, layerDef.url, {
+          id: layerDef.id,
+          description: layerDef.description,
+          visible: layerDef.id === backgroundId,
+          layerName: layerDef.layerName,
+          opacity: opacity,
+          attribution: layerDef.attribution
+        });
         this.backgroundLayers.push(bg);
         bg.addToMap(this.map);
       });
-      this.background = this.mapService.backgroundLayers.find(
-        l => { return l.id === backgroundId }) || this.backgroundLayers[1];
-/*      if (this.background)
-        this.background.s = mapSettings[`layer-opacity-${this.background.id}`] || 1;*/
-/*      for (let layer of this.mapService.backgroundLayers) {
-          layer.opacity = parseFloat(mapSettings[`layer-opacity-${layer.id}`]) || 1;*/
-/*        this._addLayerToMap(layer, {
-          visible: layer === this.background
-        });*/
+      this.background = this.backgroundLayers.find(l => { return l.id === backgroundId });
     })
     this.getServiceLayerGroups();
     this.markerLayer = new VectorLayer('marker-layer', {});
@@ -283,10 +284,6 @@ export class MapControl {
 
   private _addWmsLayerToMap(layer: MapLayer):
 */
-
-  getBackgroundLayers(): ExtLayer[]{
-    return this.mapService.backgroundLayers;
-  }
 
   addMarker(geometry: Geometry): Feature<any> {
     this.removeMarker();
@@ -364,9 +361,7 @@ export class MapControl {
       deselected.forEach(feature => layer.featureSelected!.emit({ feature: feature, selected: false }));
   }
 
-  setBackground(id: number): void {
-/*    this.mapSettings['background-layer'] = id;
-    const layer = this.layerMap[id];*/
+  setBackground(id: number | string): void {
     this.background = this.backgroundLayers.find(l => l.id === id);
     this.backgroundLayers.forEach(l => l.setVisible(l.id === id));
   }
@@ -420,6 +415,9 @@ export class MapControl {
         mapSettings[`layer-opacity-${layer.id}`] = layer.opacity;
         mapSettings[`layer-visibility-${layer.id}`] = layer.visible;
       }
+    });
+    this.backgroundLayers.forEach(layer => {
+      mapSettings[`layer-opacity-${layer.id}`] = layer.opacity;
     })
     mapSettings['background-layer'] = this.background?.id;
     mapSettings['legend-edit-mode'] = this.editMode;

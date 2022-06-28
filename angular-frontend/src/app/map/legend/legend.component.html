@@ -151,7 +151,7 @@
               <mat-select disableRipple [value]="mapControl.background?.id || -100000"
                           (selectionChange)="mapControl.setBackground($event.value);">
                 <mat-option [value]="-100000"> kein Hintergrund </mat-option>
-                <ng-container *ngFor="let layer of mapControl.getBackgroundLayers()">
+                <ng-container *ngFor="let layer of mapControl.backgroundLayers">
                   <ng-template #popover>
                     <b>{{ layer.name }}</b>
                     <p *ngIf="layer.description">{{ layer.description }}</p>
@@ -174,7 +174,7 @@
           <mat-slider aria-label="Transparenz" color="primary"
                       style="margin-top: 10px;"
                       [value]="mapControl.background?.opacity"
-                      (input)="mapControl.background.setOpacity($event.value)"
+                      (input)="setBGOpacity($event.value)"
                       min="0" max="1" step="0.001">
           </mat-slider>
         </div>

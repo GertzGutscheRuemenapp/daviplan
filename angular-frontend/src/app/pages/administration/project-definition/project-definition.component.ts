@@ -133,7 +133,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
 
   setupPreviewMap(): void {
     this.previewMapControl = this.mapService.get('project-preview-map');
-    this.previewMapControl.setBackground(this.previewMapControl.getBackgroundLayers()[0].id);
+    this.previewMapControl.setBackground(this.previewMapControl.backgroundLayers[0].id!);
     this.previewMapControl.map?.addVectorLayer('project-area',{
       visible: true,
       stroke: { color: '#DA9A22', width: 3 },
@@ -297,7 +297,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     this.areaCard.dialogOpened.subscribe(x => {
       this.projectAreaErrors = [];
       this.areaSelectMapControl = this.mapService.get('project-area-select-map');
-      this.areaSelectMapControl.setBackground(this.areaSelectMapControl.getBackgroundLayers()[0].id)
+      this.areaSelectMapControl.setBackground(this.areaSelectMapControl.backgroundLayers[0].id!);
 
       const projectLayer = this.areaSelectMapControl.map?.addVectorLayer('project-area', {
         stroke: { color: 'rgba(0, 0, 0, 0)' },

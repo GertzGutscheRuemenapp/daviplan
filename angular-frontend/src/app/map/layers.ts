@@ -168,8 +168,9 @@ export class TileLayer extends MapLayer {
   }
 
   addToMap(map?: OlMap): OlLayer<any> | undefined {
-    if (!this.map || map === this.map) return;
+    if (map === this.map) return;
     if (map) this.map = map;
+    if (!this.map) return;
     this.mapId = uuid();
     return this.map.addTileServer(
       this.mapId, this.url!, {
@@ -183,7 +184,7 @@ export class TileLayer extends MapLayer {
 }
 
 export class WMSLayer extends TileLayer {
-  protected xyz: boolean = true;
+  protected xyz: boolean = false;
 
   addToMap(map?: OlMap): OlLayer<any> | undefined {
     const olLayer = super.addToMap(map);
@@ -243,8 +244,9 @@ export class VectorTileLayer extends MapLayer {
   }
 
   addToMap(map?: OlMap): OlLayer<any> | undefined {
-    if (!this.map || map === this.map) return;
+    if (map === this.map) return;
     if (map) this.map = map;
+    if (!this.map) return;
     this.mapId = uuid();
     return this.map.addVectorTileLayer(this.mapId, this.url!,{
       visible: this.visible,
@@ -302,8 +304,9 @@ export class VectorLayer extends VectorTileLayer {
   }
 
   addToMap(map?: OlMap): OlLayer<any> | undefined {
-    if (!this.map || map === this.map) return;
+    if (map === this.map) return;
     if (map) this.map = map;
+    if (!this.map) return;
     this.mapId = uuid();
     return this.map!.addVectorLayer(this.mapId, {
       visible: this.visible,

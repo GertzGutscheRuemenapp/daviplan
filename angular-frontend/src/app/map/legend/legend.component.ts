@@ -17,7 +17,7 @@ export class LegendComponent implements AfterViewInit {
   legendImageDialogs: Record<number | string, MatDialogRef<any>> = {};
   mapControl?: MapControl;
   layerGroups: MapLayerGroup[] = [];
-  protected activeGroups: MapLayerGroup[] = [];
+  activeGroups: MapLayerGroup[] = [];
   Object = Object;
 
   constructor(public dialog: MatDialog, private mapService: MapService, private cdRef: ChangeDetectorRef) {
@@ -85,6 +85,11 @@ export class LegendComponent implements AfterViewInit {
   toggleLayerLegend(layer: VectorLayer): void {
     if (!layer.legend) return;
     layer.legend.elapsed = !layer.legend.elapsed;
+  }
+
+  setBGOpacity(value: number | null) {
+    if (value === null) return;
+    this.mapControl?.background?.setOpacity(value);
   }
 
 }
