@@ -164,7 +164,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       this.layerGroup?.removeLayer(this.previewLayer);
       this.previewLayer = undefined;
     }
-    if (!this.activePrognosis) return;
+    if (!this.activePrognosis || !this.previewYear) return;
     const population = this.populations.find(p => p.year === this.previewYear!.id && p.prognosis === this.activePrognosis!.id);
     if (!population) return;
     this.popService.getPopEntries(population.id).subscribe(popEntries => {
@@ -215,6 +215,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
           radius: radiusFunc
         }
       });
+      this.layerGroup?.addLayer(this.previewLayer);
       this.previewLayer.addFeatures(this.areas, {
         properties: 'properties',
         geometry: 'centroid',

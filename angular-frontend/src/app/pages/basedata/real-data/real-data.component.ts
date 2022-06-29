@@ -249,6 +249,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
           radius: radiusFunc
         }
       });
+      this.layerGroup?.addLayer(this.previewLayer);
       this.previewLayer?.addFeatures(this.areas, {
         properties: 'properties',
         geometry: 'centroid',

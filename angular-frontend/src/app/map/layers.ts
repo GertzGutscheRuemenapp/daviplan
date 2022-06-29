@@ -16,7 +16,6 @@ export class MapLayerGroup {
   external?: boolean;
   map?: OlMap;
   order?: number;
-  global?: boolean;
 
   constructor(name: string, options?: {
     order?: number,
@@ -26,7 +25,6 @@ export class MapLayerGroup {
   }) {
     this.id = options?.id;
     this.name = name;
-    this.global = options?.global;
     this.external = options?.external;
     this.order = options?.order;
   }
