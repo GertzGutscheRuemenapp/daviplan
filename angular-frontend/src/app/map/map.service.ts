@@ -73,13 +73,13 @@ export class MapService {
     return control;
   }
 
-  getLayers( options?: { internal?: boolean, external?: boolean, reset?: boolean } ): Observable<MapLayerGroup[]>{
+  getLayers( options?: { internal?: boolean, external?: boolean, reset?: boolean, active?: boolean } ): Observable<MapLayerGroup[]>{
     const observable = new Observable<MapLayerGroup[]>(subscriber => {
       const observables: Observable<MapLayerGroup[]>[] = [];
       if (options?.internal)
         observables.push(this.fetchInternalLayers(options?.reset));
       if (options?.external)
-        observables.push(this.fetchExternalLayers({ reset: options?.reset, active: true }));
+        observables.push(this.fetchExternalLayers({ reset: options?.reset, active: options?.active }));
       forkJoin(...observables).subscribe((merged: MapLayerGroup[]) => {
         // @ts-ignore
         const flatGroups: MapLayerGroup[] = [].concat.apply([], merged);
@@ -205,7 +205,7 @@ export class MapControl {
         bg.addToMap(this.map);
       });
       this.background = this.backgroundLayers.find(l => { return l.id === backgroundId });
-      this.getServiceLayerGroups();
+      this.getServiceLayerGroups({ internal: true, external: true });
     })
     this.markerLayer = new VectorLayer('marker-layer', {});
     this.markerLayer.addToMap(this.map);
@@ -214,8 +214,8 @@ export class MapControl {
       {stroke: {width: 5, color: 'red'}, fill: {color: 'red'}, radius: 10, visible: true, zIndex: 100});*/
   }
 
-  private getServiceLayerGroups(reset: boolean = false): void {
-    this.mapService.getLayers({ reset: reset, external: true, internal: true }).subscribe(layerGroups => {
+  private getServiceLayerGroups(options?: { internal?: boolean, external?: boolean, reset?: boolean }): void {
+    this.mapService.getLayers({ reset: options?.reset, external: options?.external, internal: options?.internal }).subscribe(layerGroups => {
       // ToDo: remember former checked layers on reset
       layerGroups.forEach(group => {
         if (!group.children) return;
@@ -240,9 +240,11 @@ export class MapControl {
     })
   }
 
-  getLayers(): MapLayer[] {
+  getLayers(options?: { internal?: boolean, external?: boolean }): MapLayer[] {
     let layers: MapLayer[] = [];
-    this.layerGroups.forEach(g => layers = layers.concat(g.children));
+    let groups = this.layerGroups;
+    if (options?.internal || options?.external) groups = groups.filter(g => (options?.external && g.external === true) || (options?.internal && g.external === false));
+    groups.forEach(g => layers = layers.concat(g.children));
     // if (this.background) layers.push(this.background);
     return layers;
   }
@@ -298,8 +300,12 @@ export class MapControl {
   }
 
   refresh(options?: { internal?: boolean, external?: boolean }): void {
-    this.getLayers().forEach(l => l.removeFromMap());
-    this.getServiceLayerGroups();
+    if (options?.internal === false && !options?.external === false) return;
+    this.saveSettings();
+    this.getLayers(options).forEach(l => l.removeFromMap());
+    if (options?.internal) this.layerGroups = this.layerGroups.filter(g => g.external !== false);
+    if (options?.external) this.layerGroups = this.layerGroups.filter(g => g.external !== true);
+    this.getServiceLayerGroups({ reset: true, internal: options?.internal, external: options?.external });
   }
 
   /**

@@ -35,7 +35,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   presetLevels: AreaLevel[] = [];
   customAreaLevels: AreaLevel[] = [];
   colorSelection: string = 'black';
-  legendGroup?: MapLayerGroup;
+  layerGroup?: MapLayerGroup;
   editLevelForm: FormGroup;
   areaLayer?: MapLayer;
   areas: Area[] = [];
@@ -58,8 +58,8 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-areas-map');
-    this.legendGroup = new MapLayerGroup('Auswahl', { order: -1 });
-    this.mapControl.addGroup(this.legendGroup, false);
+    this.layerGroup = new MapLayerGroup('Auswahl', { order: -1 });
+    this.mapControl.addGroup(this.layerGroup, false);
     this.isLoading$.next(true);
     this.fetchAreaLevels().subscribe(res => {
       this.selectAreaLevel(this.presetLevels[0]);
@@ -137,7 +137,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   selectAreaLevel(areaLevel: AreaLevel, reset: boolean = false): void {
     this.activeLevel = areaLevel;
     if (this.areaLayer) {
-      this.legendGroup?.removeLayer(this.areaLayer);
+      this.layerGroup?.removeLayer(this.areaLayer);
       this.areaLayer = undefined;
     }
     if (!areaLevel) return;
@@ -162,7 +162,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
             }
           }
         })
-        this.legendGroup?.addLayer(this.areaLayer);
+        this.layerGroup?.addLayer(this.areaLayer);
         this.areaLayer.addFeatures(this.areas);
         this.activeLevel!.areaCount = this.areas.length;
         this.isLoading$.next(false);

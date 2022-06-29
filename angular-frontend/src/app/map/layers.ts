@@ -13,7 +13,7 @@ export class MapLayerGroup {
   name: string;
   id?: number | string;
   children: MapLayer[] = [];
-  external: boolean;
+  external?: boolean;
   map?: OlMap;
   order?: number;
   global?: boolean;
@@ -27,7 +27,7 @@ export class MapLayerGroup {
     this.id = options?.id;
     this.name = name;
     this.global = options?.global;
-    this.external = options?.external || false;
+    this.external = options?.external;
     this.order = options?.order;
   }
 
