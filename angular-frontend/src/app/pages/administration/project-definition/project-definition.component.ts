@@ -520,27 +520,15 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     }
     const _this = this;
 
-    // there is some kind of bug in the selection, workaround to determine
-    // if it is really selected or actually deselected resp. other way around
-    function toggleSelect(feature: Feature<any>): void {
-      // select
-      if (!_this.selectedBaseAreaMapping.get(feature.get('debkg_id'))){
-        if (feature.get('gf') != 4) return;
+    selectedBaseFeatures.forEach(feature => {
+      if (feature.get('gf') === 4) {
         feature.set('inSelection', true);
         _this.selectedBaseAreaMapping.set(feature.get('debkg_id'), feature);
       }
-      // deselect
-      else {
-        feature.set('inSelection', false);
-        _this.selectedBaseAreaMapping.delete(feature.get('debkg_id'));
-      }
-    }
-
-    selectedBaseFeatures.forEach(feature => {
-      toggleSelect(feature);
     })
     deselectedBaseFeatures.forEach(feature => {
-      toggleSelect(feature);
+      feature.set('inSelection', false);
+      _this.selectedBaseAreaMapping.delete(feature.get('debkg_id'));
     })
     this.updateProjectLayer();
     this.areaCard.setLoading(false);
