@@ -172,6 +172,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
           radius: radiusFunc
         }
       });
+      this.layerGroup?.addLayer(this.statisticsLayer);
       this.areas.forEach(area => {
         const data = statistics.find(d => d.area == area.id);
         let value = 0;

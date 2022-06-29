@@ -112,7 +112,7 @@ export class MapService {
             id: `area-layer-level-${level.id}`,
             description: `Gebiete der Gebietseinheit ${level.name}`,
             style: level.symbol,
-            labelField: level.labelField
+            labelField: '_label'
           })
           layers.push(mLayer);
         });
@@ -229,6 +229,8 @@ export class MapControl {
         group.children.forEach(layer => {
           layer.opacity = parseFloat(this.mapSettings[`layer-opacity-${layer.id}`]) || 1;
           layer.visible = this.mapSettings[`layer-visibility-${layer.id}`];
+          if (layer instanceof VectorTileLayer)
+            layer.showLabel = this.mapSettings[`layer-label-${layer.id}`] || true;
         })
         this.addGroup(group);
 /*        for (let layer of group.layers!.slice().reverse()) {
@@ -404,6 +406,8 @@ export class MapControl {
       if (layer.id != undefined) {
         this.mapSettings[`layer-opacity-${layer.id}`] = layer.opacity;
         this.mapSettings[`layer-visibility-${layer.id}`] = layer.visible;
+        if (layer instanceof VectorTileLayer)
+          this.mapSettings[`layer-label-${layer.id}`] = layer.showLabel;
       }
     });
     this.backgroundLayers.forEach(layer => {

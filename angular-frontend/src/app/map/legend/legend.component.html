@@ -28,7 +28,7 @@
   <div class="legend-body">
     <ng-container *ngIf="mapControl">
       <div *ngFor="let group of mapControl.layerGroups">
-        <mat-expansion-panel *ngIf="(group.children.length > 0) && !((this.showExternal && !group.external) || (!this.showInternal && !group.external))"
+        <mat-expansion-panel *ngIf="(group.children.length > 0)  && ((this.showExternal && group.external) || (this.showInternal && !group.external))"
                              [style.display]="mapControl.editMode || nVisible(group) > 0? '': 'none'"
                              expanded>
           <mat-expansion-panel-header>

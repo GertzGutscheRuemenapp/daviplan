@@ -255,7 +255,7 @@ export class VectorTileLayer extends MapLayer {
       fill: { color: this.style?.fillColor, mouseOverColor: this.mouseOverStyle?.fillColor },
       tooltipField: this.tooltipField,
       featureClass: this.mouseOver? 'feature': 'renderFeature',
-      labelField: 'label',
+      labelField: this.labelField,
       showLabel: this.showLabel
     });
   }
@@ -290,7 +290,6 @@ export class VectorLayer extends VectorTileLayer {
   attribution?: string;
   opacity?: number = 1;
   visible?: boolean = true;
-  symbol?: Symbol;
   valueMapping?: {
     field: string;
     radius?: ((d: number) => number);
@@ -315,19 +314,19 @@ export class VectorLayer extends VectorTileLayer {
       mouseOverCursor: this.mouseOverCursor,
       multiSelect: this.multiSelect,
       stroke: {
-        color: this.symbol?.strokeColor, width: this.style?.strokeWidth || 2,
+        color: this.style?.strokeColor, width: this.style?.strokeWidth || 2,
         mouseOverColor: this.mouseOverStyle?.strokeColor,
         selectedColor: this.selectStyle?.strokeColor
       },
       fill: {
-        color: (this.valueMapping?.fillColor)? this.valueMapping?.fillColor: this.symbol?.fillColor,
+        color: (this.valueMapping?.fillColor)? this.valueMapping?.fillColor: this.style?.fillColor,
         mouseOverColor: this.mouseOverStyle?.fillColor,
         selectedColor: this.selectStyle?.fillColor
       },
       radius: this.valueMapping?.radius || 5,
       labelField: this.labelField,
       tooltipField: this.tooltipField,
-      shape: (this.symbol?.symbol !== 'line')? this.symbol?.symbol: undefined,
+      shape: (this.style?.symbol !== 'line')? this.style?.symbol: undefined,
       selectable: this.selectable,
       showLabel: this.showLabel
     })
