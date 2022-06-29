@@ -263,7 +263,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       });
       if (this.activeArea)
         this.populationLayer.selectFeatures([this.activeArea.id], { silent: true });
-      this.populationLayer!.featureSelected?.subscribe(evt => {
+      this.populationLayer!.featureSelected.subscribe(evt => {
         if (evt.selected) {
           this.activeArea = this.areas.find(area => area.id === evt.feature.get('id'));
         }

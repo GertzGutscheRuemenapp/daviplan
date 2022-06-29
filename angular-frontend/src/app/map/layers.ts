@@ -66,7 +66,6 @@ interface LayerOptions {
 }
 
 export abstract class MapLayer {
-  featureSelected?: EventEmitter<{ feature: any, selected: boolean }>
   name: string;
   url?: string;
   id?: number | string;
@@ -216,6 +215,7 @@ interface VectorTileLayerOptions extends LayerOptions {
 }
 
 export class VectorTileLayer extends MapLayer {
+  featureSelected: EventEmitter<{ feature: any, selected: boolean }>
   showLabel?: boolean;
   tooltipField?: string;
   labelField?: string;
@@ -241,6 +241,7 @@ export class VectorTileLayer extends MapLayer {
     this.selectable = options?.select?.enabled;
     this.multiSelect = options?.select?.multi;
     this.mouseOverCursor = options?.mouseOver?.cursor;
+    this.featureSelected = new EventEmitter<any>();
   }
 
   addToMap(map?: OlMap): OlLayer<any> | undefined {
@@ -248,6 +249,7 @@ export class VectorTileLayer extends MapLayer {
     if (map) this.map = map;
     if (!this.map) return;
     this.mapId = uuid();
+    this.initSelect();
     return this.map.addVectorTileLayer(this.mapId, this.url!,{
       visible: this.visible,
       opacity: this.opacity,
@@ -258,6 +260,30 @@ export class VectorTileLayer extends MapLayer {
       labelField: this.labelField,
       showLabel: this.showLabel
     });
+  }
+
+  protected initSelect() {
+    this.map?.selected.subscribe(evt => {
+      if (evt.selected && evt.selected.length > 0)
+        evt.selected.forEach(feature => this.featureSelected.emit({ feature: feature, selected: true }));
+      if (evt.deselected && evt.deselected.length > 0)
+        evt.deselected.forEach(feature => this.featureSelected.emit({ feature: feature, selected: false }));
+    })
+  }
+
+  setSelectable(selectable: boolean): void {
+    this.selectable = selectable;
+    this.map?.setSelectActive(this.mapId!, selectable);
+  }
+
+  selectFeatures(ids: number[], options?: { silent?: boolean, clear?: boolean } ): void {
+    if (!this.mapId) return;
+    this.map?.selectFeatures(this.mapId, ids, options);
+  }
+
+  deselectAllFeatures(): void {
+    if (!this.mapId) return;
+    this.map?.deselectAllFeatures(this.mapId);
   }
 
   setShowLabel(show: boolean): void {
@@ -307,6 +333,7 @@ export class VectorLayer extends VectorTileLayer {
     if (map) this.map = map;
     if (!this.map) return;
     this.mapId = uuid();
+    this.initSelect();
     return this.map!.addVectorLayer(this.mapId, {
       visible: this.visible,
       opacity: this.opacity,
@@ -330,20 +357,5 @@ export class VectorLayer extends VectorTileLayer {
       selectable: this.selectable,
       showLabel: this.showLabel
     })
-  }
-
-  setSelectable(selectable: boolean): void {
-    this.selectable = selectable;
-    this.map?.setSelectActive(this.mapId!, selectable);
-  }
-
-  selectFeatures(ids: number[], options?: { silent?: boolean, clear?: boolean } ): void {
-    if (!this.mapId) return;
-    this.map?.selectFeatures(this.mapId, ids, options);
-  }
-
-  deselectAllFeatures(): void {
-    if (!this.mapId) return;
-    this.map?.deselectAllFeatures(this.mapId);
   }
 }

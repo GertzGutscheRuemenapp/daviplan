@@ -59,7 +59,6 @@ const backgroundLayerDefs: BackgroundLayerDef[] = [
 })
 export class MapService {
   private controls: Record<string, MapControl> = {};
-  // layerGroups$?: BehaviorSubject<Array<ExtLayerGroup>>;
 
   constructor(private http: HttpClient, private restService: RestCacheService, private settings: SettingsService) { }
 
@@ -186,12 +185,6 @@ export class MapControl {
 
   init(): void {
     this.map = new OlMap(this.target, { projection: `EPSG:${this.srid}` });
-    this.map.selected.subscribe(evt => {
-      if (evt.selected && evt.selected.length > 0)
-        this.onFeatureSelected(evt.layer, evt.selected);
-      if (evt.deselected && evt.deselected.length > 0)
-        this.onFeatureDeselected(evt.layer, evt.deselected);
-    })
     this.settings.user?.get(this.target).subscribe(mapSettings => {
       this.mapSettings = mapSettings || {};
       const editMode = this.mapSettings['legend-edit-mode'];
@@ -254,7 +247,7 @@ export class MapControl {
     return layers;
   }
 
-  getLayer(id: number |string): MapLayer | undefined {
+  getLayer(id: number | string): MapLayer | undefined {
     // ToDo: background as well?
     return this.getLayers().find(l => l.id === id);
   }
@@ -340,18 +333,6 @@ export class MapControl {
     group.clear();
     this.layerGroups.splice(idx, 1);
     // if (emit) this.layerGroups.next(this.layerGroups);
-  }
-
-  private onFeatureSelected(ollayer: OlLayer<any>, selected: Feature<any>[]): void {
-    const layer = this.getLayer(ollayer.get('name'));
-    if (layer && layer.featureSelected)
-      selected.forEach(feature => layer.featureSelected!.emit({ feature: feature, selected: true }));
-  }
-
-  private onFeatureDeselected(ollayer: OlLayer<any>, deselected: Feature<any>[]): void {
-    const layer = this.getLayers().find(l => l.mapId === ollayer.get('id'));
-    if (layer)
-      deselected.forEach(feature => layer.featureSelected!.emit({ feature: feature, selected: false }));
   }
 
   setBackground(id: number | string): void {
