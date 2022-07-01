@@ -16,7 +16,6 @@ export class LegendComponent implements AfterViewInit {
   @ViewChild('legendImage') legendImageTemplate?: TemplateRef<any>;
   legendImageDialogs: Record<number | string, MatDialogRef<any>> = {};
   mapControl?: MapControl;
-  layerGroups: MapLayerGroup[] = [];
   Object = Object;
 
   constructor(public dialog: MatDialog, private mapService: MapService, private cdRef: ChangeDetectorRef) {
@@ -26,17 +25,6 @@ export class LegendComponent implements AfterViewInit {
     this.mapControl = this.mapService.get(this.target);
     this.cdRef.detectChanges();
     this.mapControl.zoomToProject();
-/*    this.mapControl.layerGroups.subscribe(groups => {
-      let layerGroups: MapLayerGroup[] = [];
-      // ToDo filter
-      groups.forEach(group => {
-        if (group.children.length === 0 || (!this.showExternal && group.external) || (!this.showInternal && !group.external))
-          return;
-        layerGroups.push(group);
-      });
-      this.layerGroups = layerGroups;
-      this.filterActiveGroups();
-    })*/
   }
 
   /**

@@ -50,7 +50,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
     this.layerGroup = new MapLayerGroup('Nachfrage', { order: -1 })
-    this.mapControl.addGroup(this.layerGroup, false);
+    this.mapControl.addGroup(this.layerGroup);
     this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
       this.activeProcess = process;
       this.updateMap();

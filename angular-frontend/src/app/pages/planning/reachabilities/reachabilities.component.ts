@@ -60,8 +60,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.mapControl = this.mapService.get('planning-map');
     this.placesLayerGroup = new MapLayerGroup('Standorte', { order: -1 })
     this.reachLayerGroup = new MapLayerGroup('Erreichbarkeiten', { order: -1 })
-    this.mapControl.addGroup(this.placesLayerGroup, false);
-    this.mapControl.addGroup(this.reachLayerGroup, false);
+    this.mapControl.addGroup(this.placesLayerGroup);
+    this.mapControl.addGroup(this.reachLayerGroup);
     this.planningService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures;
       this.planningService.getRasterCells().subscribe(rasterCells => {

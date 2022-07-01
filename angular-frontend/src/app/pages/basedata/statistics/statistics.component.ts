@@ -48,7 +48,7 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-statistics-map');
     this.layerGroup = new MapLayerGroup('Bevölkerungssalden', { order: -1 });
-    this.mapControl.addGroup(this.layerGroup, false);
+    this.mapControl.addGroup(this.layerGroup);
     this.isLoading$.next(true);
     this.settings.baseDataSettings$.subscribe(baseSettings => {
       const baseLevel = baseSettings.popStatisticsAreaLevel;

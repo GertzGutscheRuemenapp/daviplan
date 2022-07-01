@@ -52,7 +52,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
     this.layerGroup = new MapLayerGroup('Bewertung', { order: -1 })
-    this.mapControl.addGroup(this.layerGroup, false);
+    this.mapControl.addGroup(this.layerGroup);
     this.subscriptions.push(this.planningService.year$.subscribe(year => {
       this.year = year;
       this.updateMap();

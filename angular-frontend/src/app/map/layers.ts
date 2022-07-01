@@ -4,6 +4,7 @@ import { OlMap } from "./map";
 import { Feature, Map } from "ol";
 import { Layer as OlLayer } from "ol/layer";
 import { v4 as uuid } from "uuid";
+import { sortBy } from "../helpers/utils";
 
 export interface LayerStyle extends Symbol {
   strokeWidth?: number;
@@ -34,6 +35,7 @@ export class MapLayerGroup {
     // only add if not already a child
     if (this.children.indexOf(layer) < 0) {
       this.children.push(layer);
+      this.children = sortBy(this.children, 'order');
       layer.addToMap(this.map);
     }
   }

@@ -52,7 +52,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
     this.layerGroup = new MapLayerGroup('Bevölkerungssalden', { order: -1 })
-    this.mapControl.addGroup(this.layerGroup, false);
+    this.mapControl.addGroup(this.layerGroup);
     this.mapControl.mapDescription = '';
     if (this.populationService.isReady)
       this.initData();

@@ -79,7 +79,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-prog-data-map');
     this.layerGroup = new MapLayerGroup('Bevölkerungsentwicklung (Prognose)', { order: -1 })
-    this.mapControl.addGroup(this.layerGroup, false);
+    this.mapControl.addGroup(this.layerGroup);
     this.popService.getAreaLevels({ reset: true }).subscribe(areaLevels => {
       this.defaultPopLevel = areaLevels.find(al => al.isDefaultPopLevel);
       this.popLevel = areaLevels.find(al => al.isPopLevel);

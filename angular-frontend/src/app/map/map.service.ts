@@ -1,6 +1,6 @@
 import { Injectable, EventEmitter } from '@angular/core';
 import { OlMap } from './map'
-import { BehaviorSubject, forkJoin, Observable } from "rxjs";
+import { forkJoin, Observable } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { sortBy } from "../helpers/utils";
 import { WKT } from "ol/format";
@@ -8,7 +8,6 @@ import { SettingsService } from "../settings.service";
 import { environment } from "../../environments/environment";
 import { v4 as uuid } from 'uuid';
 import { Feature } from 'ol';
-import { Layer as OlLayer } from 'ol/layer'
 import { Geometry, Polygon, Point } from "ol/geom";
 import { getCenter } from 'ol/extent';
 import { Icon, Style } from "ol/style";
@@ -226,17 +225,7 @@ export class MapControl {
             layer.showLabel = this.mapSettings[`layer-label-${layer.id}`] || true;
         })
         this.addGroup(group);
-/*        for (let layer of group.layers!.slice().reverse()) {
-          let visible = false;
-          // if (Boolean(this.mapSettings[`layer-checked-${layer.id}`])) {
-          //   this.checklistSelection.select(layer);
-          //   visible = true;
-          // }
-          // layer.opacity = parseFloat(this.mapSettings[`layer-opacity-${layer.id}`]) || 1;
-          this._addLayerToMap(layer, { visible: visible });
-        }*/
       })
-      // this.layerGroups.next(this.layerGroups.filter(g => g.global));
     })
   }
 
@@ -259,18 +248,17 @@ export class MapControl {
     return this.layerGroups.find(g => g.id === id);
   }
 
-  addLayer(layer: MapLayer, emit?: boolean): void {
+  addLayer(layer: MapLayer): void {
     // if (layer.map) throw `Layer ${layer.name} already set to another map`;
     if (layer.map !== this.map) layer.map = this.map;
     if (!layer.group) {
       let group = this.layerGroups.find(group => group.name === 'Sonstiges');
       if (!group){
         group = new MapLayerGroup('Sonstiges', { order: 0 });
-        this.addGroup(group, false);
+        this.addGroup(group);
       }
       group.addLayer(layer);
     }
-    // if (emit) this.layerGroups.next(this.layerGroups);
   }
 
   addMarker(geometry: Geometry): Feature<any> {
@@ -315,7 +303,7 @@ export class MapControl {
    * @param group
    * @param emit
    */
-  addGroup(group: MapLayerGroup, emit= true): void {
+  addGroup(group: MapLayerGroup): void {
     if (group.id == undefined)
       group.id = uuid();
     if (!group.map) {
@@ -323,7 +311,7 @@ export class MapControl {
       group.children.forEach(layer => layer.addToMap(this.map));
     }
     this.layerGroups.push(group);
-    // if (emit) this.layerGroups.next(this.layerGroups);
+    this.layerGroups = sortBy(this.layerGroups, 'order');
   }
 
   /**
@@ -333,12 +321,11 @@ export class MapControl {
    * @param id
    * @param emit
    */
-  removeGroup(group: MapLayerGroup, emit= true): void {
+  removeGroup(group: MapLayerGroup): void {
     const idx = this.layerGroups.findIndex(g => g === group);
     if (idx < 0) return;
     group.clear();
     this.layerGroups.splice(idx, 1);
-    // if (emit) this.layerGroups.next(this.layerGroups);
   }
 
   setBackground(id: number | string): void {

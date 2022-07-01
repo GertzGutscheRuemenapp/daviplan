@@ -58,7 +58,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
     this.layerGroup = new MapLayerGroup('Angebot', { order: -1 });
-    this.mapControl.addGroup(this.layerGroup, false);
+    this.mapControl.addGroup(this.layerGroup);
     if (this.planningService.isReady)
       this.initData();
     else {

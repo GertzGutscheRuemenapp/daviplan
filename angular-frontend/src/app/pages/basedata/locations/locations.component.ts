@@ -66,7 +66,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-locations-map');
     this.layerGroup = new MapLayerGroup('Standorte', { order: -1 });
-    this.mapControl.addGroup(this.layerGroup, false);
+    this.mapControl.addGroup(this.layerGroup);
     this.isLoading$.next(true);
     this.http.get<FieldType[]>(this.rest.URLS.fieldTypes).subscribe(fieldTypes => {
       this.fieldTypes = fieldTypes;

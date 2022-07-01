@@ -59,7 +59,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-areas-map');
     this.layerGroup = new MapLayerGroup('Auswahl', { order: -1 });
-    this.mapControl.addGroup(this.layerGroup, false);
+    this.mapControl.addGroup(this.layerGroup);
     this.isLoading$.next(true);
     this.fetchAreaLevels().subscribe(res => {
       this.selectAreaLevel(this.presetLevels[0]);
