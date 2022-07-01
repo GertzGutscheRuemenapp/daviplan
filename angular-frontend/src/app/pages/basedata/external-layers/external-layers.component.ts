@@ -63,7 +63,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.mapService.fetchExternalLayers().subscribe(groups => {
+    this.mapService.fetchExternalLayers({ reset: true }).subscribe(groups => {
       this.layerGroups = groups;
       this.layerTree.setItems(this.layerGroups);
       this.layerGroups.forEach(group => {

@@ -150,7 +150,7 @@ export class MapService {
               mGroup.addLayer(mLayer);
             }
           })
-          subscriber.next(mGroups);
+          subscriber.next(mGroups.filter(g => g.children.length > 0));
           subscriber.complete();
         })
       })
@@ -215,7 +215,7 @@ export class MapControl {
   }
 
   private getServiceLayerGroups(options?: { internal?: boolean, external?: boolean, reset?: boolean }): void {
-    this.mapService.getLayers({ reset: options?.reset, external: options?.external, internal: options?.internal }).subscribe(layerGroups => {
+    this.mapService.getLayers({ reset: options?.reset, external: options?.external, internal: options?.internal, active: true }).subscribe(layerGroups => {
       // ToDo: remember former checked layers on reset
       layerGroups.forEach(group => {
         if (!group.children) return;
