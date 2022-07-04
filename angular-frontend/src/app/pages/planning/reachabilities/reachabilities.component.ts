@@ -166,7 +166,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         this.placesLayerGroup?.addLayer(this.placesLayer);
         this.placesLayer.addFeatures(this.displayedPlaces,
           { properties: 'properties', geometry: 'geometry' });
-        // this.placesLayer?.setSelect(this.placesLayer!.id!, this.selectPlaceMode);
+        this.placesLayer?.setSelectable(this.selectPlaceMode);
         this.placesLayer?.featureSelected?.subscribe(evt => {
           if (evt.selected) {
             this.selectedPlaceId = evt.feature.get('id');
@@ -303,7 +303,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   setPlaceSelection(enable: boolean): void {
     this.selectPlaceMode = enable;
     this.mapControl?.map?.setCursor(enable? 'crosshair': '');
-    // this.mapControl?.setSelect(this.placesLayer?.id!, enable);
+    this.placesLayer?.setSelectable(enable);
   }
 
   setMarkerPlacement(enable: boolean): void {

@@ -130,7 +130,6 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         area.properties.value = value;
         area.properties.description = `<b>${area.properties.label}</b><br>${this.selectedIndicator!.title}: ${area.properties.value}`
       })
-      const colorFunc = d3.scaleSequential(d3.interpolatePurples).domain([min, max || 1]);
       this.indicatorLayer = new VectorLayer(`${this.selectedIndicator!.title} (${this.selectedAreaLevel!.name})`, {
         order: 0,
         description: this.selectedIndicator!.description,
@@ -151,24 +150,17 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           }
         },
         valueMapping: {
-            field: 'value',
-          // fillColor: colorFunc
-        }
+          field: 'value',
+          color: {
+            range: d3.interpolatePurples,
+            scale: 'sequential',
+            bins: 5
+          },
+          min: min,
+          max: max || 1
+        },
       });
-/*      let colors: string[] = [];
-      let labels: string[] = [];
-      if (max) {
-        const step = (max - min) / 5;
-        Array.from({ length: 5 + 1 }, (v, k) => k * step).forEach((value, i) => {
-          colors.push(colorFunc(value));
-          labels.push(Number(value.toFixed(1)).toString());
-        })
-        this.indicatorLayer!.legend = {
-          colors: colors,
-          labels: labels,
-          elapsed: true
-        }
-      }*/
+      this.layerGroup?.addLayer(this.indicatorLayer);
       this.indicatorLayer.addFeatures(this.areas,{ properties: 'properties' });
     })
   }
