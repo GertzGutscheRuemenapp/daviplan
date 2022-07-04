@@ -565,6 +565,7 @@ export class OlMap {
 
   clear(layername: string){
     const layer = this.layers[layername];
+    if (!layer) return;
     layer.getSource().clear();
   }
 

@@ -165,7 +165,7 @@ export class MapControl {
   map?: OlMap;
   mapDescription = '';
   layerGroups: MapLayerGroup[] = [];
-  private markerLayer?: MapLayer;
+  private markerLayer?: VectorLayer;
   mapExtents: any = {};
   editMode: boolean = true;
   background?: TileLayer;
@@ -206,11 +206,10 @@ export class MapControl {
       this.background = this.backgroundLayers.find(l => { return l.id === backgroundId });
       this.getServiceLayerGroups({ internal: true, external: true });
     })
-    this.markerLayer = new VectorLayer('marker-layer', {});
+    this.markerLayer = new VectorLayer('marker-layer', {
+      order: 100
+    });
     this.markerLayer.addToMap(this.map);
-      /*
-      this.map!.addVectorLayer('marker-layer',
-      {stroke: {width: 5, color: 'red'}, fill: {color: 'red'}, radius: 10, visible: true, zIndex: 100});*/
   }
 
   private getServiceLayerGroups(options?: { internal?: boolean, external?: boolean, reset?: boolean }): void {
@@ -279,7 +278,7 @@ export class MapControl {
     });
 
     marker.setStyle(iconStyle);
-    this.map?.addFeatures('marker-layer', [marker]);
+    this.markerLayer?.addFeatures( [marker]);
     return marker;
   }
 

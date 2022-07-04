@@ -279,6 +279,7 @@ type Interpolator = ((d: number) => string);
 
 interface VectorLayerOptions extends VectorTileLayerOptions {
   radius?: number,
+  unit?: string,
   valueMapping?: {
     field: string,
     radius?: {
@@ -289,6 +290,7 @@ interface VectorLayerOptions extends VectorTileLayerOptions {
       range?: Interpolator | string[],
       scale?: 'linear' | 'sequential',
       bins?: number,
+      reverse?: boolean,
       colorFunc?: ((d: number) => string)
     }
     min?: number,
@@ -304,6 +306,7 @@ export class VectorLayer extends VectorTileLayer {
   opacity?: number = 1;
   visible?: boolean = true;
   radius?: number;
+  unit?: string;
   valueMapping?: {
     field: string,
     radius?: {
@@ -315,6 +318,7 @@ export class VectorLayer extends VectorTileLayer {
       range?: Interpolator | string[],
       scale?: 'linear' | 'sequential',
       bins?: number,
+      reverse?: boolean,
       colorFunc?: ((d: number) => string)
     },
     min?: number,
@@ -326,6 +330,7 @@ export class VectorLayer extends VectorTileLayer {
     super(name, undefined, options);
     this.valueMapping = options?.valueMapping;
     this.radius = options?.radius;
+    this.unit = options?.unit;
   }
 
   addToMap(map?: OlMap): OlLayer<any> | undefined {
@@ -336,8 +341,8 @@ export class VectorLayer extends VectorTileLayer {
     this.initSelect();
     if (!this.valueMapping?.color?.colorFunc && this.valueMapping?.color?.range) {
       const seqFunc: any = (this.valueMapping.color.scale === 'linear')? d3.scaleLinear : d3.scaleSequential;
-      let max = this.valueMapping.max;
-      let min = this.valueMapping.min;
+      const max = !this.valueMapping.color.reverse? this.valueMapping.max: this.valueMapping.min;
+      const min = !this.valueMapping.color.reverse? this.valueMapping.min: this.valueMapping.max;
       this.valueMapping.color.colorFunc = seqFunc(this.valueMapping.color.range).domain([min, max]);
     }
     if (this.valueMapping?.radius?.range) {
@@ -388,7 +393,10 @@ export class VectorLayer extends VectorTileLayer {
     const colorFunc = this.valueMapping.color.colorFunc;
     Array.from({ length: steps + 1 },(v, k) => k * step).forEach((value, i) => {
       colors.push(colorFunc(value));
-      labels.push(Number(value.toFixed(2)).toString());
+      let label = Number(value.toFixed(2)).toString();
+      if (this.unit)
+        label += ` ${this.unit}`;
+      labels.push(label);
     })
     return {
       colors: colors,

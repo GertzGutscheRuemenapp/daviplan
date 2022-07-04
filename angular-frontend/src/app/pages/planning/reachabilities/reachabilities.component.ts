@@ -221,24 +221,18 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         showLabel: false,
         valueMapping: {
           field: 'value',
-          // fillColor: colorFunc
-        }
+          color: {
+            range: d3.interpolateRdYlGn,
+            scale: 'sequential',
+            bins: 5,
+            reverse: true
+          },
+          min: 0,
+          max: max
+        },
+        unit: 'Minute(n)'
       });
       this.reachLayerGroup?.addLayer(this.reachRasterLayer);
-/*      let colors: string[] = [];
-      let labels: string[] = [];
-      if (max) {
-        const step = max / 5;
-        Array.from({ length: 5 + 1 }, (v, k) => k * step).forEach((value, i) => {
-          colors.push(colorFunc(value));
-          labels.push(`${Number(value.toFixed(1))} Minuten`);
-        })
-      }
-      this.reachRasterLayer!.legend = {
-        colors: colors,
-        labels: labels,
-        elapsed: true
-      }*/
       this.reachRasterLayer.addFeatures(features,{
         properties: 'properties',
         geometry: 'geometry'
@@ -267,7 +261,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           place.properties.value = res?.value || 999999999;
         })
         const max = Math.max(...placeResults.map(c => c.value), 0);
-        const colorFunc = d3.scaleSequential(d3.interpolateRdYlGn).domain([max || 100, 0]);
         this.placeReachabilityLayer = new VectorLayer(this.selectedInfrastructure!.name, {
           order: 0,
           description: this.selectedInfrastructure!.name,
@@ -282,23 +275,18 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           tooltipField: 'value',
           valueMapping: {
             field: 'value',
-            // fillColor: colorFunc
-          }
+            color: {
+              range: d3.interpolateRdYlGn,
+              scale: 'sequential',
+              bins: 5,
+              reverse: true
+            },
+            min: 0,
+            max: max
+          },
+          unit: 'Minute(n)'
         });
-/*        let colors: string[] = [];
-        let labels: string[] = [];
-        if (max && max > 0) {
-          const step = max / 5;
-          Array.from({ length: 5 + 1 }, (v, k) => k * step).forEach((value, i) => {
-            colors.push(colorFunc(value));
-            labels.push(`${Number(value.toFixed(1))} Minuten`);
-          })
-        }
-        this.placeReachabilityLayer!.legend = {
-          colors: colors,
-          labels: labels,
-          elapsed: true
-        }*/
+        this.reachLayerGroup?.addLayer(this.placeReachabilityLayer);
         this.placeReachabilityLayer.addFeatures(this.displayedPlaces,{
           properties: 'properties',
           geometry: 'geometry'
