@@ -219,7 +219,6 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     if (ageGroups.length === 0 || !this.activeLevel) return;
     this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,
       { genders: genders, prognosis: prognosis, ageGroups: ageGroups.map(ag => ag.id!) }).subscribe(popData => {
-      const radiusFunc = d3.scaleLinear().domain([0, this.activeLevel?.maxValues!.population! || 1000]).range([5, 50]);
       this.populationLayer = new VectorLayer(this.activeLevel!.name,{
           order: 0,
           description: this.activeLevel!.name,
@@ -247,7 +246,12 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
           },
           valueMapping: {
             field: 'value',
-            radius: radiusFunc
+            radius: {
+              range: [5, 50],
+              scale: 'linear'
+            },
+            min: 0,
+            max: this.activeLevel?.maxValues!.population! || 1000
           }
       });
       this.layerGroup?.addLayer(this.populationLayer);

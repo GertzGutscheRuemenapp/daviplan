@@ -169,10 +169,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           place.properties.capacity = capacity;
           place.properties.label = this.getFormattedCapacityString([this.activeService!.id], capacity);
           displayedPlaces.push(place);
-        })
-        const radiusFunc = d3.scaleLinear().domain(
-          [this.activeService?.minCapacity || 0, this.activeService?.maxCapacity || 1000]
-        ).range([1, 20]);
+        });
         this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
           order: 0,
           description: this.activeInfrastructure!.name,
@@ -197,10 +194,16 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
             cursor: 'help'
           },
           valueMapping: {
-            radius: radiusFunc,
-            field: 'capacity'
+            radius: {
+              range: [1, 20],
+              scale: 'linear'
+            },
+            field: 'capacity',
+            min: this.activeService?.minCapacity || 0,
+            max: this.activeService?.maxCapacity || 1000
           }
         });
+        this.layerGroup?.addLayer(this.placesLayer);
         this.placesLayer.addFeatures(displayedPlaces,{
           properties: 'properties',
           geometry: 'geometry'

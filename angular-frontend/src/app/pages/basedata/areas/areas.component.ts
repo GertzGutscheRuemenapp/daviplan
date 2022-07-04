@@ -15,7 +15,7 @@ import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dia
 import { RestCacheService } from "../../../rest-cache.service";
 import { tap } from "rxjs/operators";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
-import { MapLayer, MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-areas',
@@ -37,7 +37,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   colorSelection: string = 'black';
   layerGroup?: MapLayerGroup;
   editLevelForm: FormGroup;
-  areaLayer?: MapLayer;
+  areaLayer?: VectorLayer;
   areas: Area[] = [];
   isLoading$ = new BehaviorSubject<boolean>(false);
   orderIsChanging$ = new BehaviorSubject<boolean>(false);

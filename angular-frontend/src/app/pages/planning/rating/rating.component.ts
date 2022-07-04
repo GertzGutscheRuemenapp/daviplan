@@ -152,10 +152,10 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         },
         valueMapping: {
             field: 'value',
-          fillColor: colorFunc
+          // fillColor: colorFunc
         }
       });
-      let colors: string[] = [];
+/*      let colors: string[] = [];
       let labels: string[] = [];
       if (max) {
         const step = (max - min) / 5;
@@ -168,7 +168,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           labels: labels,
           elapsed: true
         }
-      }
+      }*/
       this.indicatorLayer.addFeatures(this.areas,{ properties: 'properties' });
     })
   }

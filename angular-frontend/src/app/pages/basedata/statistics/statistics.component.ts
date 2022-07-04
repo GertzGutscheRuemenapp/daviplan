@@ -121,7 +121,6 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
       color = this.showImmigration? '#1a9850': '#d73027';
       max = (diffDisplay)? Math.max(mvs.migrationDiff!): this.showImmigration? mvs.immigration!: mvs.emigration!;
     }
-    const radiusFunc = d3.scaleLinear().domain([0, max || 1000]).range([5, 50]);
     const colorFunc = function(value: number) {
       return (value > 0)? '#1a9850': (value < 0)? '#d73027': 'grey';
     };
@@ -154,8 +153,15 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
       },
       valueMapping: {
         field: 'value',
-        fillColor: diffDisplay? colorFunc: undefined,
-        radius: radiusFunc
+        color: {
+          colorFunc: colorFunc
+        },
+        radius: {
+          range: [5, 50],
+          scale: 'linear'
+        },
+        min: 0,
+        max: max
       }
     });
     this.layerGroup?.addLayer(this.statisticsLayer);

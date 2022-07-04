@@ -221,11 +221,11 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         showLabel: false,
         valueMapping: {
           field: 'value',
-          fillColor: colorFunc
+          // fillColor: colorFunc
         }
       });
       this.reachLayerGroup?.addLayer(this.reachRasterLayer);
-      let colors: string[] = [];
+/*      let colors: string[] = [];
       let labels: string[] = [];
       if (max) {
         const step = max / 5;
@@ -238,7 +238,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         colors: colors,
         labels: labels,
         elapsed: true
-      }
+      }*/
       this.reachRasterLayer.addFeatures(features,{
         properties: 'properties',
         geometry: 'geometry'
@@ -282,10 +282,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           tooltipField: 'value',
           valueMapping: {
             field: 'value',
-            fillColor: colorFunc
+            // fillColor: colorFunc
           }
         });
-        let colors: string[] = [];
+/*        let colors: string[] = [];
         let labels: string[] = [];
         if (max && max > 0) {
           const step = max / 5;
@@ -298,7 +298,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           colors: colors,
           labels: labels,
           elapsed: true
-        }
+        }*/
         this.placeReachabilityLayer.addFeatures(this.displayedPlaces,{
           properties: 'properties',
           geometry: 'geometry'

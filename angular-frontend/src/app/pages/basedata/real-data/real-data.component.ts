@@ -217,7 +217,6 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         area.properties.description = `<b>${area.properties.label}</b><br>Bevölkerung: ${area.properties.value}`
         max = Math.max(max, value);
       })
-      const radiusFunc = d3.scaleLinear().domain([0, max]).range([5, 50]);
       this.previewLayer = new VectorLayer(this.popLevel!.name, {
         order: 0,
         description: this.popLevel!.name,
@@ -246,7 +245,13 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         },
         valueMapping: {
           field: 'value',
-          radius: radiusFunc
+          // fillColor: diffDisplay? colorFunc: undefined,
+          radius: {
+            range: [5, 50],
+            scale: 'linear'
+          },
+          min: 0,
+          max: max
         }
       });
       this.layerGroup?.addLayer(this.previewLayer);
