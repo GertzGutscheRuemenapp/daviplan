@@ -176,7 +176,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
     });
     this.placeDialogRef.afterClosed().subscribe(() => {
       this.selectedPlace = undefined;
-      this.placesLayer?.deselectAllFeatures();
+      this.placesLayer?.clearSelection();
     })
   }
 

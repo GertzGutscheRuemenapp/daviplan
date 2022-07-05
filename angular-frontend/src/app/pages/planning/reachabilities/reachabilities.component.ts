@@ -172,8 +172,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
             this.cookies.set('reachability-place', this.selectedPlaceId);
             this.showPlaceReachability();
           }
-          else
-            this.removePlaceReachability();
+/*          else
+            this.removePlaceReachability();*/
         })
 /*        if (this.selectedPlaceId)
           this.placesLayer.selectFeatures([this.selectedPlaceId], { silent: false });*/
@@ -238,10 +238,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     })
   }
 
-  removePlaceReachability(): void {
-
-  }
-
   showCellReachability(): void {
     if (!this.rasterCells || this.pickedCoords === undefined) return;
     const lat = this.pickedCoords[1];
@@ -296,6 +292,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   toggleIndicator(): void {
     this.setPlaceSelection(false);
     this.setMarkerPlacement(false);
+    if (this.placesLayer)
+      this.placesLayer?.clearSelection();
+    this.reachLayerGroup?.clear();
+
   }
 
   setPlaceSelection(enable: boolean): void {

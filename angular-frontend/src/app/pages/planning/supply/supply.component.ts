@@ -289,7 +289,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       });
     this.placeDialogRef.afterClosed().subscribe(() => {
       this.selectedPlaces = [];
-      this.placesLayer?.deselectAllFeatures();
+      this.placesLayer?.clearSelection();
     })
   }
 

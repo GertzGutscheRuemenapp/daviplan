@@ -256,7 +256,7 @@ export class VectorTileLayer extends MapLayer {
     this.map?.selectFeatures(this.mapId, ids, options);
   }
 
-  deselectAllFeatures(): void {
+  clearSelection(): void {
     if (!this.mapId) return;
     this.map?.deselectAllFeatures(this.mapId);
   }
