@@ -101,14 +101,6 @@ export abstract class MapLayer {
     if (options?.group) options?.group.addLayer(this);
   }
 
-  setRadi() {
-
-  }
-
-  setColors() {
-
-  }
-
   setOpacity(opacity: number) {
     this.opacity = opacity;
     this.map?.setOpacity(this.mapId!, opacity);
@@ -272,6 +264,14 @@ export class VectorTileLayer extends MapLayer {
   setShowLabel(show: boolean): void {
     this.showLabel = show;
     this.map?.setShowLabel(this.mapId!, show);
+  }
+
+  removeFromMap(): void {
+    this.setSelectable(false);
+    this.featureSelected.unsubscribe();
+    this.map?.removeLayer(this.mapId!);
+    this.mapId = undefined;
+    this.map = undefined;
   }
 }
 

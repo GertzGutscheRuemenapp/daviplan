@@ -572,7 +572,7 @@ export class OlMap {
   setSelectActive(layerName: string, active: boolean){
     const layer = this.getLayer(layerName),
           select = layer.get('select');
-    select.setActive(active);
+    if (select) select.setActive(active);
   }
 
   setShowLabel(layerName: string, show: boolean){
