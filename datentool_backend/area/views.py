@@ -448,6 +448,8 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
             AreaField.objects.filter(area_level=area_level).delete()
             geo_file = request.FILES['file']
             ext = '.'.join([''] + geo_file.name.split('.')[1:])
+            if ext == '.zip':
+                ext = '.shp.zip'
             mapping = {'geom': 'MULTIPOLYGON',}
             with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as fp:
                 with open(fp.name, 'wb') as f:
