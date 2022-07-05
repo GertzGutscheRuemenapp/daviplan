@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { AuthService } from '../../auth.service';
-import { User } from "./users";
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { Router } from "@angular/router";
 import { SettingsService, SiteSettings } from "../../settings.service";
 import { environment } from "../../../environments/environment";
+import { User } from "../../rest-interfaces";
 
 @Component({
   selector: 'app-login',

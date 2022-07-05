@@ -1,4 +1,3 @@
-import { EventEmitter } from "@angular/core";
 import { Geometry } from "ol/geom";
 
 export const DemandTypes = {
@@ -14,6 +13,30 @@ export interface BasedataSettings {
   defaultModeVariants: Record<number, number>,
   defaultPrognosis: number
 }
+
+export type Profile = {
+  adminAccess: boolean;
+  canCreateProcess: boolean;
+  canEditBasedata: boolean;
+}
+
+export type InfrastructureAccess = {
+  infrastructure: number,
+  allowSensitiveData: boolean
+}
+
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  isSuperuser: boolean;
+  password: string;
+  profile: Profile;
+  access: InfrastructureAccess[];
+}
+
 export interface PlanningProcess {
   id: number,
   name: string,

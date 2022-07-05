@@ -1,7 +1,6 @@
 import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
-import { InfrastructureAccess, User } from '../../login/users';
 import { ConfirmDialogComponent } from '../../../dialogs/confirm-dialog/confirm-dialog.component';
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { InputCardComponent } from '../../../dash/input-card.component'
@@ -9,7 +8,7 @@ import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms"
 import { RestAPI } from "../../../rest-api";
 import { Observable } from "rxjs";
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
-import { Infrastructure } from "../../../rest-interfaces";
+import { Infrastructure, InfrastructureAccess, User } from "../../../rest-interfaces";
 
 @Component({
   selector: 'app-users',

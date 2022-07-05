@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { User, mockUsers } from "../../login/users";
+import { User } from "../../../rest-interfaces";
 
 interface DataDomain {
   name: string,
@@ -8,6 +8,39 @@ interface DataDomain {
   status: { text: string, detail: string },
   marker?: number
 }
+
+export const mockUsers: User[] = [
+  {
+    id: 1,
+    username: 'bla',
+    email: 'bla@bla.com',
+    firstName: 'Sascha',
+    lastName: 'Schmidt',
+    isSuperuser: false,
+    password: '',
+    profile: {
+      adminAccess: true,
+      canCreateProcess: true,
+      canEditBasedata: true,
+    },
+    access: []
+  },
+  {
+    id: 2,
+    username: 'admin',
+    email: 'bla2@bla.com',
+    firstName: 'Hannah',
+    lastName: 'Hansen',
+    isSuperuser: true,
+    password: '',
+    profile: {
+      adminAccess: false,
+      canCreateProcess: false,
+      canEditBasedata: false,
+    },
+    access: []
+  },
+];
 
 const data: { [name: string]: DataDomain[] } = {
   'geodaten' : [
