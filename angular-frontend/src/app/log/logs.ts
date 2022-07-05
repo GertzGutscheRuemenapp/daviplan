@@ -1,4 +1,4 @@
-import { User } from "../pages/login/users";
+import { User } from "../rest-interfaces";
 
 export interface LogEntry {
   user?: User,

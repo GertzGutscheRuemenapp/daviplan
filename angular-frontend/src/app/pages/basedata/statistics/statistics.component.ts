@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@an
 import { environment } from "../../../../environments/environment";
 import { MapControl, MapService } from "../../../map/map.service";
 import { RestCacheService } from "../../../rest-cache.service";
-import { Area, AreaLevel, Layer, LayerGroup, Statistic, StatisticsData, Year } from "../../../rest-interfaces";
+import { Area, AreaLevel, ExtLayer, ExtLayerGroup, Statistic, StatisticsData, Year } from "../../../rest-interfaces";
 import { sortBy } from "../../../helpers/utils";
 import * as d3 from "d3";
 import { SettingsService } from "../../../settings.service";
@@ -13,6 +13,7 @@ import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
+import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-statistics',
@@ -29,8 +30,8 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
   year?: number;
   areaLevel?: AreaLevel;
   theme: 'nature' | 'migration' = 'nature';
-  legendGroup?: LayerGroup;
-  statisticsLayer?: Layer;
+  layerGroup?: MapLayerGroup;
+  statisticsLayer?: VectorLayer;
   areas: Area[] = [];
   showBirths: boolean = true;
   showDeaths: boolean = true;
@@ -46,10 +47,8 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-statistics-map');
-    this.legendGroup = this.mapControl.addGroup({
-      name: 'Bevölkerungssalden',
-      order: -1
-    }, false)
+    this.layerGroup = new MapLayerGroup('Bevölkerungssalden', { order: -1 });
+    this.mapControl.addGroup(this.layerGroup);
     this.isLoading$.next(true);
     this.settings.baseDataSettings$.subscribe(baseSettings => {
       const baseLevel = baseSettings.popStatisticsAreaLevel;
@@ -98,7 +97,7 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
   // ToDo: reusable statistics map view, atm mostly copy/paste from pop-statistics due to pressing time
   updateMap(): void {
     if (this.statisticsLayer) {
-      this.mapControl?.removeLayer(this.statisticsLayer.id!);
+      this.layerGroup?.removeLayer(this.statisticsLayer);
       this.statisticsLayer = undefined;
     }
     if (!this.statisticsData ||
@@ -122,41 +121,50 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
       color = this.showImmigration? '#1a9850': '#d73027';
       max = (diffDisplay)? Math.max(mvs.migrationDiff!): this.showImmigration? mvs.immigration!: mvs.emigration!;
     }
-    const radiusFunc = d3.scaleLinear().domain([0, max || 1000]).range([5, 50]);
     const colorFunc = function(value: number) {
       return (value > 0)? '#1a9850': (value < 0)? '#d73027': 'grey';
     };
 
-    this.statisticsLayer = this.mapControl?.addLayer({
-        order: 0,
-        type: 'vector',
-        group: this.legendGroup?.id,
-        name: descr,
-        description: 'ToDo',
-        opacity: 1,
-        symbol: {
-          strokeColor: 'white',
-          fillColor: color,
-          symbol: 'circle'
-        },
-        labelField: 'value',
-        showLabel: true
+    this.statisticsLayer = new VectorLayer(descr, {
+      order: 0,
+      description: 'ToDo',
+      opacity: 1,
+      style: {
+        strokeColor: 'white',
+        fillColor: color,
+        symbol: 'circle'
       },
-      {
-        visible: true,
-        tooltipField: 'description',
-        mouseOver: {
+      labelField: 'value',
+      showLabel: true,
+      tooltipField: 'description',
+      mouseOver: {
+        enabled: true,
+        style: {
           strokeColor: 'yellow',
-          fillColor: 'rgba(255, 255, 0, 0.7)',
-        },
-        selectable: false,
-        select: {
+          fillColor: 'rgba(255, 255, 0, 0.7)'
+        }
+      },
+      select: {
+        enabled: true,
+        style: {
           strokeColor: 'rgb(180, 180, 0)',
           fillColor: 'rgba(255, 255, 0, 0.9)'
+        }
+      },
+      valueMapping: {
+        field: 'value',
+        color: {
+          colorFunc: colorFunc
         },
-        colorFunc: diffDisplay? colorFunc: undefined,
-        radiusFunc: radiusFunc
-      });
+        radius: {
+          range: [5, 50],
+          scale: 'linear'
+        },
+        min: 0,
+        max: max
+      }
+    });
+    this.layerGroup?.addLayer(this.statisticsLayer);
     this.areas.forEach(area => {
       const data = this.statisticsData!.find(d => d.area == area.id);
       let value = 0;
@@ -170,8 +178,11 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
       area.properties.value = value;
       area.properties.description = `<b>${area.properties.label}</b><br>${descr}: ${area.properties.value}`
     })
-    this.mapControl?.addFeatures(this.statisticsLayer!.id!, this.areas,
-      { properties: 'properties', geometry: 'centroid', zIndex: 'value' });
+    this.statisticsLayer?.addFeatures(this.areas, {
+      properties: 'properties',
+      geometry: 'centroid',
+      zIndex: 'value'
+    });
     this.isLoading$.next(false);
   }
 

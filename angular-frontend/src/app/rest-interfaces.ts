@@ -1,4 +1,3 @@
-import { EventEmitter } from "@angular/core";
 import { Geometry } from "ol/geom";
 
 export const DemandTypes = {
@@ -14,6 +13,30 @@ export interface BasedataSettings {
   defaultModeVariants: Record<number, number>,
   defaultPrognosis: number
 }
+
+export type Profile = {
+  adminAccess: boolean;
+  canCreateProcess: boolean;
+  canEditBasedata: boolean;
+}
+
+export type InfrastructureAccess = {
+  infrastructure: number,
+  allowSensitiveData: boolean
+}
+
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  isSuperuser: boolean;
+  password: string;
+  profile: Profile;
+  access: InfrastructureAccess[];
+}
+
 export interface PlanningProcess {
   id: number,
   name: string,
@@ -33,42 +56,28 @@ export interface Scenario {
   demandratesets: Record<number, number>
 }
 
-export interface LayerGroup {
-  id?: number | string,
+export interface Symbol {
+  fillColor?: string,
+  strokeColor?: string,
+  symbol?: 'line' | 'circle' | 'square' | 'star'
+}
+
+export interface ExtLayerGroup {
+  id?: number,
   order: number,
   name: string,
-  children?: Layer[],
-  external?: boolean
+  external: boolean
 }
 
-export interface Symbol {
-  fillColor: string,
-  strokeColor: string,
-  symbol: 'line' | 'circle' | 'square' | 'star'
-}
-
-export interface Layer {
-  id?: number | string,
+export interface ExtLayer {
+  id: number,
   order: number,
-  url?: string,
+  url: string,
   name: string,
   description: string,
-  group?: number | string,
-  layerName?: string,
-  attribution?: string,
-  active?: boolean,
-  legendUrl?: string,
-  opacity?: number,
-  symbol?: Symbol,
-  type?: "wms" | "vector-tiles" | "tiles" | "vector",
-  labelField?: string,
-  showLabel?: boolean,
-  featureSelected?: EventEmitter<{ feature: any, selected: boolean }>
-  legend?: {
-    colors?: string[],
-    labels?: string[],
-    elapsed?: boolean
-  }
+  group: number | string,
+  layerName: string,
+  active: boolean
 }
 
 export interface Source {

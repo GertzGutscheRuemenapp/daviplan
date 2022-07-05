@@ -219,8 +219,8 @@
       <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
         <span class="subtitle1" style="color: grey;">Zugriff auf Planungsprozess</span>
         <div class="border-box" style="height: 250px;">
-          <mat-checkbox class="reverse" color="primary" *ngFor="let user of users">
-            {{user.firstName + ' ' + user.lastName}}
+          <mat-checkbox class="reverse" color="primary" *ngFor="let user of otherUsers" (change)="user.shared = $event.checked" [checked]="user.shared || false">
+            {{user.username + ((user.firstName.length > 0 || user.lastName.length > 0)? (' (' + user.firstName + ((user.firstName.length > 0 && user.lastName.length > 0)? ' ': '') + user.lastName + ')'): '')}}
           </mat-checkbox>
         </div>
         <mat-checkbox formControlName="allowSharedChange" style="margin-top: 10px;" color="primary">

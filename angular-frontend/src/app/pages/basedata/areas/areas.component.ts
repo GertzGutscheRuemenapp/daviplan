@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
-import { Area, AreaLevel, Layer, LayerGroup } from "../../../rest-interfaces";
+import { Area, AreaLevel } from "../../../rest-interfaces";
 import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { arrayMove, sortBy } from "../../../helpers/utils";
 import { HttpClient } from "@angular/common/http";
@@ -15,6 +15,7 @@ import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dia
 import { RestCacheService } from "../../../rest-cache.service";
 import { tap } from "rxjs/operators";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
+import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-areas',
@@ -34,9 +35,9 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   presetLevels: AreaLevel[] = [];
   customAreaLevels: AreaLevel[] = [];
   colorSelection: string = 'black';
-  legendGroup?: LayerGroup;
+  layerGroup?: MapLayerGroup;
   editLevelForm: FormGroup;
-  areaLayer?: Layer;
+  areaLayer?: VectorLayer;
   areas: Area[] = [];
   isLoading$ = new BehaviorSubject<boolean>(false);
   orderIsChanging$ = new BehaviorSubject<boolean>(false);
@@ -57,10 +58,8 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-areas-map');
-    this.legendGroup = this.mapControl.addGroup({
-      name: 'Auswahl',
-      order: -1
-    }, false)
+    this.layerGroup = new MapLayerGroup('Auswahl', { order: -1 });
+    this.mapControl.addGroup(this.layerGroup);
     this.isLoading$.next(true);
     this.fetchAreaLevels().subscribe(res => {
       this.selectAreaLevel(this.presetLevels[0]);
@@ -138,7 +137,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   selectAreaLevel(areaLevel: AreaLevel, reset: boolean = false): void {
     this.activeLevel = areaLevel;
     if (this.areaLayer) {
-      this.mapControl?.removeLayer(this.areaLayer.id!);
+      this.layerGroup?.removeLayer(this.areaLayer);
       this.areaLayer = undefined;
     }
     if (!areaLevel) return;
@@ -146,27 +145,25 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     this.restService.getAreas(this.activeLevel.id,
       {targetProjection: this.mapControl?.map?.mapProjection, reset: reset}).subscribe(areas => {
         this.areas = areas;
-        this.areaLayer = this.mapControl?.addLayer({
-          name: this.activeLevel!.name,
+        this.areaLayer = new VectorLayer(this.activeLevel!.name, {
           description: '',
-          group: this.legendGroup?.id,
           order: 0,
-          type: 'vector',
           opacity: 1,
-          symbol: {
+          style: {
             fillColor: 'yellow',
-            strokeColor: 'orange',
-            symbol: 'line'
-          }
-        }, {
-          visible: true,
+            strokeColor: 'orange'
+          },
           tooltipField: 'label',
           mouseOver: {
-            fillColor: 'lightblue',
-            strokeColor: 'blue'
+            enabled: true,
+            style: {
+              fillColor: 'lightblue',
+              strokeColor: 'blue'
+            }
           }
-        });
-        this.mapControl?.addFeatures(this.areaLayer!.id!, this.areas);
+        })
+        this.layerGroup?.addLayer(this.areaLayer);
+        this.areaLayer.addFeatures(this.areas);
         this.activeLevel!.areaCount = this.areas.length;
         this.isLoading$.next(false);
         this.dataColumns = this.activeLevel!.areaFields;

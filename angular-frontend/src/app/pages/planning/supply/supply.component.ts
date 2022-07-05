@@ -5,8 +5,8 @@ import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
 import {
   Infrastructure,
-  Layer,
-  LayerGroup,
+  ExtLayer,
+  ExtLayerGroup,
   Place,
   Service,
   Capacity,
@@ -19,6 +19,7 @@ import * as d3 from "d3";
 import { FilterColumn } from "../../../elements/filter-table/filter-table.component";
 import { forkJoin, Observable, Subscription } from "rxjs";
 import { map } from "rxjs/operators";
+import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-supply',
@@ -37,8 +38,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   infrastructures: Infrastructure[] = [];
   activeInfrastructure?: Infrastructure;
   mapControl?: MapControl;
-  legendGroup?: LayerGroup;
-  placesLayer?: Layer;
+  layerGroup?: MapLayerGroup;
+  placesLayer?: VectorLayer;
   places?: Place[];
   capacities?: Capacity[];
   selectedPlaces: Place[] = [];
@@ -56,12 +57,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
-
-    this.legendGroup = this.mapControl.addGroup({
-      name: 'Angebot',
-      order: -1
-    }, false);
-
+    this.layerGroup = new MapLayerGroup('Angebot', { order: -1 });
+    this.mapControl.addGroup(this.layerGroup);
     if (this.planningService.isReady)
       this.initData();
     else {
@@ -160,7 +157,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       let showLabel = true;
       if (this.placesLayer){
         showLabel = !!this.placesLayer.showLabel;
-        this.mapControl?.removeLayer(this.placesLayer.id!);
+        this.layerGroup?.removeLayer(this.placesLayer);
       }
       this.planningService.getCapacities({ year: this.year!, service: this.activeService!.id }).subscribe(capacities => {
         this.capacities = capacities;
@@ -172,42 +169,45 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           place.properties.capacity = capacity;
           place.properties.label = this.getFormattedCapacityString([this.activeService!.id], capacity);
           displayedPlaces.push(place);
-        })
-        const radiusFunc = d3.scaleLinear().domain(
-          [this.activeService?.minCapacity || 0, this.activeService?.maxCapacity || 1000]
-        ).range([1, 20]);
-        this.placesLayer = this.mapControl?.addLayer({
+        });
+        this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
           order: 0,
-          type: 'vector',
-          group: this.legendGroup?.id,
-          name: this.activeInfrastructure!.name,
           description: this.activeInfrastructure!.name,
           opacity: 1,
-          symbol: {
+          style: {
             fillColor: '#2171b5',
             strokeColor: 'black',
             symbol: 'circle'
           },
           labelField: 'label',
-          showLabel: showLabel
-        },
-        {
-          visible: true,
+          showLabel: showLabel,
           tooltipField: 'name',
-          selectable: true,
           select: {
-            fillColor: 'yellow',
+            enabled: true,
+            style: {
+              fillColor: 'yellow',
+            },
             multi: true
           },
           mouseOver: {
+            enabled: true,
             cursor: 'help'
           },
-          radiusFunc: radiusFunc,
-          valueField: 'capacity'
+          valueMapping: {
+            radius: {
+              range: [1, 20],
+              scale: 'linear'
+            },
+            field: 'capacity',
+            min: this.activeService?.minCapacity || 0,
+            max: this.activeService?.maxCapacity || 1000
+          }
         });
-        this.mapControl?.clearFeatures(this.placesLayer!.id!);
-        this.mapControl?.addFeatures(this.placesLayer!.id!, displayedPlaces,
-          { properties: 'properties', geometry: 'geometry' });
+        this.layerGroup?.addLayer(this.placesLayer);
+        this.placesLayer.addFeatures(displayedPlaces,{
+          properties: 'properties',
+          geometry: 'geometry'
+        });
         this.placesLayer?.featureSelected?.subscribe(evt => {
           if (evt.selected)
             this.selectPlace(evt.feature.get('id'));
@@ -289,7 +289,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       });
     this.placeDialogRef.afterClosed().subscribe(() => {
       this.selectedPlaces = [];
-      this.mapControl?.deselectAllFeatures(this.placesLayer!.id!);
+      this.placesLayer?.clearSelection();
     })
   }
 
@@ -300,8 +300,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.legendGroup) {
-      this.mapControl?.removeGroup(this.legendGroup.id!);
+    if (this.layerGroup) {
+      this.mapControl?.removeGroup(this.layerGroup);
     }
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }

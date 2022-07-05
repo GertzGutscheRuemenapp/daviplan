@@ -21,18 +21,19 @@
           <app-check-tree #layerTree
                           [items]="layerGroups"
                           addItemTitle="Layer zur Gruppe hinzufügen">
+<!--            *ngIf="layerGroups.length>0"-->
           </app-check-tree>
         </div>
         <div class="order-controls">
           <button mat-icon-button
                   title="In der Sortierung eins nach oben"
-                  [disabled] = "(!selectedGroup || selectedGroup === layerGroups[0]) && (!selectedLayer || getGroup(selectedLayer.group)!.children!.indexOf(selectedLayer) < 1)"
+                  [disabled] = "(!selectedGroup || selectedGroup === layerGroups[0]) && (!selectedLayer || (selectedLayer.group && selectedLayer.group.children!.indexOf(selectedLayer) < 1))"
                   (click)="moveSelected('up')">
             <mat-icon>expand_less</mat-icon>
           </button>
           <button mat-icon-button
                   title="In der Sortierung eins nach unten"
-                  [disabled] = "(!selectedGroup || selectedGroup === layerGroups[layerGroups.length - 1]) && (!selectedLayer || getGroup(selectedLayer.group)!.children!.indexOf(selectedLayer) >= getGroup(selectedLayer.group)!.children!.length - 1)"
+                  [disabled] = "(!selectedGroup || selectedGroup === layerGroups[layerGroups.length - 1]) && (!selectedLayer || (selectedLayer.group && selectedLayer.group.children.indexOf(selectedLayer) >= selectedLayer.group.children.length - 1))"
                   (click)="moveSelected('down')">
             <mat-icon>expand_more</mat-icon>
           </button>
@@ -56,7 +57,7 @@
     </app-input-card>
     <app-input-card [title]="'Eigenschaften des ausgewählten Layers'"
                     #layerCard
-                    [ngClass]="{'hidden': !selectedLayer}"
+                    [style.display]="!selectedLayer? 'none': ''"
                     [editTemplate]="editLayerTemplate"
                     infoText="<p>Klicken Sie auf „Editieren“, um die URL des WMS-Dienstes (und weitere ggf. relevante Informationen) einzutragen oder diese zu verändern.</p>
                     <p>Mit „Editieren“ können Sie auch den in den daviplan-Karten angezeigten Namen des ausgewählten externen Layers verändern.</p>">
@@ -67,7 +68,7 @@
         </tr>
         <tr>
           <td>Layer</td>
-          <td style="color: grey">{{selectedLayer?.layerName}}</td>
+          <td style="color: grey">{{$any(selectedLayer)?.layerName}}</td>
         </tr>
         <tr>
           <td>Name</td>
@@ -81,7 +82,7 @@
     </app-input-card>
     <app-input-card [title]="'Eigenschaften der ausgewählten Layergruppe'"
                     #layerGroupCard
-                    [ngClass]="{'hidden': !selectedGroup}"
+                    [style.display]="!selectedGroup? 'none': ''"
                     [editTemplate]="editLayerGroupTemplate"
                     infoText="<p>Klicken Sie auf „Editieren“, um den in den daviplan-Karten angezeigten Namen der ausgewählten Layergruppe zu verändern.</p>">
       <table>
@@ -151,7 +152,7 @@
                             placement="right"
                             container="body"
                             triggers="mouseenter:mouseleave">
-            {{ layer.layerName }}
+            {{ $any(layer).layerName }}
           </mat-radio-button>
         </ng-container>
       </mat-radio-group>

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Observable, ReplaySubject, Subject, of, BehaviorSubject, throwError, Subscription } from 'rxjs';
-import { User } from './pages/login/users';
+import { User } from "./rest-interfaces";
 import { catchError, filter, switchMap, take, tap, map, delay } from 'rxjs/operators';
 import { RestAPI } from "./rest-api";
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree, Router } from "@angular/router";
