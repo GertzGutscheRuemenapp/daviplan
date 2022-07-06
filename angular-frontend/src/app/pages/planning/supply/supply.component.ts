@@ -15,7 +15,6 @@ import {
 } from "../../../rest-interfaces";
 import { MapControl, MapService } from "../../../map/map.service";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
-import * as d3 from "d3";
 import { FilterColumn } from "../../../elements/filter-table/filter-table.component";
 import { forkJoin, Observable, Subscription } from "rxjs";
 import { map } from "rxjs/operators";

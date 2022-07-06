@@ -17,7 +17,7 @@ import { MapControl, MapService } from "../../../map/map.service";
 import { Subscription } from "rxjs";
 import * as d3 from "d3";
 import { Geometry } from "ol/geom";
-import { MapLayer, MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-reachabilities',

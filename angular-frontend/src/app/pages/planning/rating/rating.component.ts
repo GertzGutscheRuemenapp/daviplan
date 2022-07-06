@@ -8,8 +8,7 @@ import {
   Area,
   AreaLevel,
   Indicator,
-  Infrastructure, ExtLayer,
-  ExtLayerGroup,
+  Infrastructure,
   PlanningProcess,
   Service
 } from "../../../rest-interfaces";
