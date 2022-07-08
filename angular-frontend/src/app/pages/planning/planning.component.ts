@@ -29,7 +29,6 @@ interface SharedUser extends User {
   styleUrls: ['./planning.component.scss']
 })
 export class PlanningComponent implements AfterViewInit, OnDestroy {
-
   @ViewChild('processTemplate') processTemplate?: TemplateRef<any>;
   @ViewChild('processSelect') processSelect!: MatSelect;
   @ViewChild('planningLegend') legend?: LegendComponent;
