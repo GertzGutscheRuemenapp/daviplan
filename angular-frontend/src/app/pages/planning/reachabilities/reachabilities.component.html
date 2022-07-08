@@ -46,11 +46,15 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <button color="primary" mat-icon-button
-              class="filter-button small" title="Standortfilter"
-              (click)="onFilter()">
-        <mat-icon>filter_list</mat-icon>
-      </button>
+      <app-place-filter-button
+        #placeFilter
+        (onFilter)="onFilter()"
+        [infrastructure]="this.selectedInfrastructure"
+        [places]="places"
+        [scenario]="activeScenario"
+        [year]="year">
+        <!--        [service]="activeService"-->
+      </app-place-filter-button>
     </div>
 <!--    <div class="sub-select-wrapper" *ngIf="selectedInfrastructure">
       <mat-checkbox *ngFor="let service of selectedInfrastructure.services; let first = first;"

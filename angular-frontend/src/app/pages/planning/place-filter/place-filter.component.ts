@@ -1,8 +1,8 @@
-import { Component, EventEmitter, Input, Output, TemplateRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, Output, TemplateRef, ViewChild } from '@angular/core';
 import { Capacity, FieldType, Infrastructure, Place, Scenario, Service } from "../../../rest-interfaces";
 import { PlanningService } from "../planning.service";
 import { TimeSliderComponent } from "../../../elements/time-slider/time-slider.component";
-import { forkJoin, Observable } from "rxjs";
+import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { map } from "rxjs/operators";
 import { FilterTableComponent, FilterColumn } from "../../../elements/filter-table/filter-table.component";
 import { MatDialog } from "@angular/material/dialog";
@@ -13,7 +13,7 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
   templateUrl: './place-filter.component.html',
   styleUrls: ['./place-filter.component.scss']
 })
-export class PlaceFilterComponent {
+export class PlaceFilterComponent  implements AfterViewInit {
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
   @ViewChild('timeSlider') timeSlider?: TimeSliderComponent;
   @ViewChild('filterTable') filterTable?: FilterTableComponent;
@@ -33,7 +33,12 @@ export class PlaceFilterComponent {
   private capacitiesPerService: Record<number, Capacity[]> = {};
   rows: any[][] = [];
 
-  constructor(public dialog: MatDialog, public planningService: PlanningService) {}
+  constructor(public dialog: MatDialog, public planningService: PlanningService) {
+    this.filterColumns = this.planningService.placeFilterColumns;
+  }
+
+  ngAfterViewInit(): void {
+  };
 
   onClick() {
     if (!this.infrastructure) return;
@@ -86,6 +91,7 @@ export class PlaceFilterComponent {
     dialogRef.afterClosed().subscribe((ok: boolean) => {  });
     dialogRef.componentInstance.confirmed.subscribe(() => {
       this.filterColumns = this._filterColumnsTemp;
+      this.planningService.placeFilterColumns = this.filterColumns;
       this.onFilter.emit(this.filterColumns);
     });
   }

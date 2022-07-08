@@ -5,11 +5,9 @@ import { PlanningService } from "../planning.service";
 import {
   Capacity,
   Infrastructure,
-  ExtLayer,
-  ExtLayerGroup,
   Place,
   PlanningProcess,
-  RasterCell,
+  RasterCell, Scenario,
   Service,
   TransportMode
 } from "../../../rest-interfaces";
@@ -36,6 +34,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   displayedPlaces: Place[] = [];
   selectedInfrastructure?: Infrastructure;
   selectedService?: Service;
+  activeScenario?: Scenario;
   activeProcess?: PlanningProcess;
   mapControl?: MapControl;
   placesLayerGroup?: MapLayerGroup;
@@ -69,6 +68,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         // this.drawRaster();
       });
     });
+    this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
+      this.activeScenario = scenario;
+      this.updatePlaces();
+    }));
     this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
       this.activeProcess = process;
       this.updatePlaces();
@@ -182,7 +185,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   onFilter(): void {
-
+    this.updatePlaces();
   }
 
   updateMapDescription(): void {
