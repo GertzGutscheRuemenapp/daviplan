@@ -30,8 +30,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   selectPlaceMode = false;
   placeMarkerMode = false;
   infrastructures: Infrastructure[] = [];
-  places?: Place[];
-  displayedPlaces: Place[] = [];
+  places: Place[] = [];
   activeInfrastructure?: Infrastructure;
   activeService?: Service;
   activeScenario?: Scenario;
@@ -119,17 +118,11 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     if (!this.activeInfrastructure || !this.activeService || !this.activeProcess) return;
     this.updateMapDescription();
     this.planningService.getPlaces(this.activeInfrastructure.id,
-      { targetProjection: this.mapControl!.map!.mapProjection }).subscribe(places => {
+      {
+        targetProjection: this.mapControl!.map!.mapProjection, filter: { columnFilter: true, hasCapacity: true }
+      }).subscribe(places => {
       this.places = places;
       this.planningService.getCapacities({ year: this.year!, service: this.activeService!.id }).subscribe(capacities => {
-        this.capacities = capacities;
-        this.displayedPlaces = [];
-        this.places?.forEach(place => {
-          // if (!this.filter(place)) return;
-          const capacity = this.getCapacity(this.activeService!.id, place.id);
-          if (!capacity) return;
-          this.displayedPlaces.push(place);
-        })
         let showLabel = true;
         if (this.placesLayer) {
           this.placesLayerGroup?.removeLayer(this.placesLayer);
@@ -158,8 +151,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           }
         });
         this.placesLayerGroup?.addLayer(this.placesLayer);
-        this.placesLayer.addFeatures(this.displayedPlaces,
-          { properties: 'properties', geometry: 'geometry' });
+        this.placesLayer.addFeatures(places,{ properties: 'properties', geometry: 'geometry' });
         this.placesLayer?.setSelectable(this.selectPlaceMode);
         this.placesLayer?.featureSelected?.subscribe(evt => {
           if (evt.selected) {
@@ -245,7 +237,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           this.reachLayerGroup?.removeLayer(this.placeReachabilityLayer);
           this.placeReachabilityLayer = undefined;
         }
-        this.displayedPlaces.forEach(place => {
+        this.places.forEach(place => {
           const res = placeResults.find(p => p.placeId === place.id);
           place.properties.value = res?.value || 999999999;
         })
@@ -276,7 +268,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           unit: 'Minute(n)'
         });
         this.reachLayerGroup?.addLayer(this.placeReachabilityLayer);
-        this.placeReachabilityLayer.addFeatures(this.displayedPlaces,{
+        this.placeReachabilityLayer.addFeatures(this.places,{
           properties: 'properties',
           geometry: 'geometry'
         });

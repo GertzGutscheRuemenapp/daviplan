@@ -39,7 +39,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   layerGroup?: MapLayerGroup;
   placesLayer?: VectorLayer;
   places?: Place[];
-  capacities?: Capacity[];
   selectedPlaces: Place[] = [];
   placeDialogRef?: MatDialogRef<any>;
   Object = Object;
@@ -146,7 +145,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         },
         valueMapping: {
           radius: {
-            range: [5, 20],
+            range: [3, 20],
             scale: 'linear'
           },
           field: 'capacity',
