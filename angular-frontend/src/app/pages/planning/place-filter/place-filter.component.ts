@@ -30,7 +30,6 @@ export class PlaceFilterComponent  implements AfterViewInit {
   prognosisYears: number[] = [];
   private realYears: number[] = [];
   private fieldTypes: FieldType[] = [];
-  private capacitiesPerService: Record<number, Capacity[]> = {};
   rows: any[][] = [];
 
   constructor(public dialog: MatDialog, public planningService: PlanningService) {
@@ -52,7 +51,7 @@ export class PlaceFilterComponent  implements AfterViewInit {
           this.prognosisYears = years;
           this.years = this.realYears.concat(this.prognosisYears);
           if (!this.year) this.year = this.realYears![0];
-          this.updateCapacities().subscribe(() => {
+          this.planningService.updateCapacities({ infrastructureId: this.infrastructure?.id, year: this.year }).subscribe(() => {
             this.rows = this.placesToRows(this.places!);
             this.openDialog();
           });
@@ -62,7 +61,8 @@ export class PlaceFilterComponent  implements AfterViewInit {
   }
 
   updateTable(): void {
-    this.updateCapacities().subscribe(() => this.rows = this.placesToRows(this.places!));
+    this.planningService.updateCapacities({ infrastructureId: this.infrastructure?.id, year: this.year }
+    ).subscribe(() => this.rows = this.placesToRows(this.places!));
   }
 
   private openDialog(): void {
@@ -90,34 +90,12 @@ export class PlaceFilterComponent  implements AfterViewInit {
     });
     dialogRef.afterClosed().subscribe((ok: boolean) => {  });
     dialogRef.componentInstance.confirmed.subscribe(() => {
-      this.filterColumns = this._filterColumnsTemp;
-      this.planningService.placeFilterColumns = this.filterColumns;
+      this.planningService.placeFilterColumns = this._filterColumnsTemp;
       this.onFilter.emit(this.filterColumns);
     });
   }
 
-  private updateCapacities(): Observable<any> {
-    const observable = new Observable<any>(subscriber => {
-      let observables: Observable<any>[] = [];
-      this.infrastructure!.services?.forEach(service => {
-        observables.push(this.planningService.getCapacities({
-          year: this.year!,
-          service: service.id!
-        }).pipe(map(capacities => {
-          this.capacitiesPerService[service.id] = capacities;
-        })));
-      });
-
-      forkJoin(...observables).subscribe(() => {
-        subscriber.next();
-        subscriber.complete();
-      })
-
-    })
-    return observable;
-  }
-
-  getColumns(): FilterColumn[] {
+  private getColumns(): FilterColumn[] {
     let columns: FilterColumn[] = [{ name: 'Name', type: 'STR' }];
     this.infrastructure!.services!.forEach(service => {
       const column: FilterColumn = {
@@ -149,11 +127,11 @@ export class PlaceFilterComponent  implements AfterViewInit {
     return columns;
   }
 
-  placesToRows(places: Place[]): any[][]{
+  private placesToRows(places: Place[]): any[][]{
     const rows: any[][] = [];
     places.forEach(place => {
       const capValues = this.infrastructure!.services!.map(service => {
-        return this.getCapacity(service, place);
+        return this.planningService.getCapacity(place, service);
       })
       const values: any[] = this.infrastructure!.placeFields!.map(field => {
         return place.properties.attributes[field.name] || '';
@@ -178,36 +156,4 @@ export class PlaceFilterComponent  implements AfterViewInit {
     this._filterColumnsTemp = columns;
   }
 
-  filterPlaces(places: Place[]): Observable<Place[]> {
-    const observable = new Observable<Place[]>(subscriber => {
-      this.updateCapacities().subscribe(() =>  {
-        subscriber.next(places.filter(place => this._filterPlace(place)));
-        subscriber.complete();
-      });
-    });
-    return observable;
-  }
-
-  private _filterPlace(place: Place): boolean {
-    if (this.filterColumns.length === 0) return true;
-    let match = false;
-    this.filterColumns.forEach((filterColumn, i) => {
-      const filter = filterColumn.filter!;
-      if (filterColumn.service) {
-        const cap = this.getCapacity(filterColumn.service, place);
-        if (!filter.filter(cap)) return;
-      }
-      else if (filterColumn.attribute) {
-        const value = place.properties.attributes[filterColumn.attribute];
-        if (!filter.filter(value)) return;
-      }
-      if (i === this.filterColumns.length - 1) match = true;
-    })
-    return match;
-  }
-
-  getCapacity(service: Service, place: Place): number{
-    const cap = this.capacitiesPerService[service.id]?.find(c => c.place === place.id);
-    return cap?.capacity || 0;
-  }
 }

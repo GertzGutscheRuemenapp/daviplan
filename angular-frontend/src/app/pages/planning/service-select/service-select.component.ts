@@ -22,9 +22,7 @@ export class ServiceSelectComponent implements OnInit, OnDestroy {
       this.infrastructures?.forEach(i => this.services = this.services.concat(i.services));
       this.planningService.activeInfrastructure$.subscribe(
         infrastructure => this.selectedInfrastructure = this.infrastructures?.find(i => i.id === infrastructure?.id));
-      this.planningService.activeService$.subscribe(
-        service => this.selectedService = service
-      );
+      this.planningService.activeService$.subscribe(service => this.selectedService = service);
     })
   }
 

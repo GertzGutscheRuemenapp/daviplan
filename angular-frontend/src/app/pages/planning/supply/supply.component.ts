@@ -15,7 +15,6 @@ import {
 } from "../../../rest-interfaces";
 import { MapControl, MapService } from "../../../map/map.service";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
-import { FilterColumn } from "../../../elements/filter-table/filter-table.component";
 import { forkJoin, Observable, Subscription } from "rxjs";
 import { map } from "rxjs/operators";
 import { MapLayerGroup, VectorLayer } from "../../../map/layers";
@@ -36,7 +35,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   prognosisYears?: number[];
   compareSupply = true;
   compareStatus = 'option 1';
-  infrastructures: Infrastructure[] = [];
   mapControl?: MapControl;
   layerGroup?: MapLayerGroup;
   placesLayer?: VectorLayer;
@@ -95,9 +93,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     observables.push(this.planningService.getPrognosisYears().pipe(map(years => {
       this.prognosisYears = years;
     })));
-    observables.push(this.planningService.getInfrastructures().pipe(map(infrastructures => {
-      this.infrastructures = infrastructures;
-    })));
     forkJoin(...observables).subscribe(() => {
       this.updatePlaces();
     });
@@ -111,69 +106,64 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     if (!this.activeInfrastructure || !this.activeService || !this.activeProcess) return;
     this.updateMapDescription();
     this.planningService.getPlaces(this.activeInfrastructure.id,
-      { targetProjection: this.mapControl!.map!.mapProjection }).subscribe(places => {
+      {
+        targetProjection: this.mapControl!.map!.mapProjection,
+        addCapacities: true,
+        filter: { columnFilter: true, hasCapacity: true }
+      }).subscribe(places => {
       this.places = places;
       let showLabel = true;
       if (this.placesLayer){
         showLabel = !!this.placesLayer.showLabel;
         this.layerGroup?.removeLayer(this.placesLayer);
       }
-      this.planningService.getCapacities({ year: this.year!, service: this.activeService!.id }).subscribe(capacities => {
-        this.placeFilter?.filterPlaces(this.places!).subscribe(filteredPlaces => {
-          this.capacities = capacities;
-          let displayedPlaces: Place[] = [];
-          filteredPlaces?.forEach(place => {
-            const capacity = this.getCapacity(place.id);
-            if (!capacity) return;
-            place.properties.capacity = capacity;
-            place.properties.label = this.getFormattedCapacityString([this.activeService!.id], capacity);
-            displayedPlaces.push(place);
-          });
-          this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
-            order: 0,
-            description: this.activeInfrastructure!.name,
-            opacity: 1,
-            style: {
-              fillColor: '#2171b5',
-              strokeColor: 'black',
-              symbol: 'circle'
-            },
-            labelField: 'label',
-            showLabel: showLabel,
-            tooltipField: 'name',
-            select: {
-              enabled: true,
-              style: {
-                fillColor: 'yellow',
-              },
-              multi: true
-            },
-            mouseOver: {
-              enabled: true,
-              cursor: 'help'
-            },
-            valueMapping: {
-              radius: {
-                range: [5, 20],
-                scale: 'linear'
-              },
-              field: 'capacity',
-              min: this.activeService?.minCapacity || 0,
-              max: this.activeService?.maxCapacity || 1000
-            }
-          });
-          this.layerGroup?.addLayer(this.placesLayer);
-          this.placesLayer.addFeatures(displayedPlaces,{
-            properties: 'properties',
-            geometry: 'geometry'
-          });
-          this.placesLayer?.featureSelected?.subscribe(evt => {
-            if (evt.selected)
-              this.selectPlace(evt.feature.get('id'));
-            else
-              this.deselectPlace(evt.feature.get('id'));
-          })
-        })
+      places?.forEach(place => {
+        place.properties.label = this.getFormattedCapacityString(
+          [this.activeService!.id], place.properties?.capacity || 0);
+      });
+      this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
+        order: 0,
+        description: this.activeInfrastructure!.name,
+        opacity: 1,
+        style: {
+          fillColor: '#2171b5',
+          strokeColor: 'black',
+          symbol: 'circle'
+        },
+        labelField: 'label',
+        showLabel: showLabel,
+        tooltipField: 'name',
+        select: {
+          enabled: true,
+          style: {
+            fillColor: 'yellow',
+          },
+          multi: true
+        },
+        mouseOver: {
+          enabled: true,
+          cursor: 'help'
+        },
+        valueMapping: {
+          radius: {
+            range: [5, 20],
+            scale: 'linear'
+          },
+          field: 'capacity',
+          min: this.activeService?.minCapacity || 0,
+          max: this.activeService?.maxCapacity || 1000
+        }
+      });
+      this.layerGroup?.addLayer(this.placesLayer);
+      this.placesLayer.addFeatures(places,{
+        properties: 'properties',
+        geometry: 'geometry'
+      });
+      this.placesLayer?.featureSelected?.subscribe(evt => {
+        if (evt.selected)
+          this.selectPlace(evt.feature.get('id'));
+        else
+          this.deselectPlace(evt.feature.get('id'));
       })
     })
   }
@@ -188,11 +178,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       units.add((capacity === 1)? service.capacitySingularUnit: service.capacityPluralUnit);
     })
     return `${capacity} ${Array.from(units).join('/')}`
-  }
-
-  getCapacity(placeId: number): number{
-    const cap = this.capacities?.find(capacity => capacity.place === placeId);
-    return cap?.capacity || 0;
   }
 
   selectPlace(placeId: number) {

@@ -126,7 +126,7 @@
       </div>
     </ng-container>
     <div *ngIf="activeService">
-        Kapazität {{activeService.name}}: <i>{{getFormattedCapacityString([activeService.id], getCapacity(place.id))}}</i>
+        Kapazität {{activeService.name}}: <i>{{getFormattedCapacityString([activeService.id], place.properties.capacity || 0)}}</i>
     </div>
     <br>
   </div>
