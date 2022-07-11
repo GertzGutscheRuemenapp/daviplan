@@ -32,8 +32,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   infrastructures: Infrastructure[] = [];
   places?: Place[];
   displayedPlaces: Place[] = [];
-  selectedInfrastructure?: Infrastructure;
-  selectedService?: Service;
+  activeInfrastructure?: Infrastructure;
+  activeService?: Service;
   activeScenario?: Scenario;
   activeProcess?: PlanningProcess;
   mapControl?: MapControl;
@@ -64,10 +64,17 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       this.infrastructures = infrastructures;
       this.planningService.getRasterCells().subscribe(rasterCells => {
         this.rasterCells = rasterCells;
-        this.applyUserSettings();
         // this.drawRaster();
+        this.applyUserSettings();
       });
     });
+    this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
+      this.activeInfrastructure = infrastructure;
+    }))
+    this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
+      this.activeService = service;
+      this.updatePlaces();
+    }))
     this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
       this.activeScenario = scenario;
       this.updatePlaces();
@@ -83,9 +90,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   applyUserSettings(): void {
-    this.selectedInfrastructure = this.infrastructures.find(i => i.id === this.cookies.get('planning-infrastructure', 'number')) || ((this.infrastructures.length > 0)? this.infrastructures[0]: undefined);
-    this.selectedService = this.selectedInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number')) || ((this.selectedInfrastructure && this.selectedInfrastructure.services.length > 0)? this.selectedInfrastructure.services[0]: undefined);
-    // this.selectedPlaceId = this.cookies.get('reachability-place', 'number');
     this.mode = this.cookies.get('planning-mode', 'number') || TransportMode.WALK;
     this.updatePlaces();
   }
@@ -111,30 +115,18 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  onInfrastructureChange(): void {
-    this.cookies.set('planning-infrastructure', this.selectedInfrastructure?.id);
-    if (this.selectedInfrastructure!.services.length > 0)
-      this.selectedService = this.selectedInfrastructure!.services[0];
-    this.updatePlaces();
-  }
-
-  onServiceChange(): void {
-    this.cookies.set('planning-service', this.selectedService?.id);
-    this.updatePlaces();
-  }
-
   updatePlaces(): void {
-    if (!this.selectedInfrastructure || !this.selectedService || !this.activeProcess) return;
+    if (!this.activeInfrastructure || !this.activeService || !this.activeProcess) return;
     this.updateMapDescription();
-    this.planningService.getPlaces(this.selectedInfrastructure.id,
+    this.planningService.getPlaces(this.activeInfrastructure.id,
       { targetProjection: this.mapControl!.map!.mapProjection }).subscribe(places => {
       this.places = places;
-      this.planningService.getCapacities({ year: this.year!, service: this.selectedService!.id }).subscribe(capacities => {
+      this.planningService.getCapacities({ year: this.year!, service: this.activeService!.id }).subscribe(capacities => {
         this.capacities = capacities;
         this.displayedPlaces = [];
         this.places?.forEach(place => {
           // if (!this.filter(place)) return;
-          const capacity = this.getCapacity(this.selectedService!.id, place.id);
+          const capacity = this.getCapacity(this.activeService!.id, place.id);
           if (!capacity) return;
           this.displayedPlaces.push(place);
         })
@@ -143,9 +135,9 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           this.placesLayerGroup?.removeLayer(this.placesLayer);
           this.placesLayer = undefined;
         }
-        this.placesLayer = new VectorLayer(this.selectedInfrastructure!.name, {
+        this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
           order: 0,
-          description: this.selectedInfrastructure!.name,
+          description: this.activeInfrastructure!.name,
           opacity: 1,
           style: {
             fillColor: '#2171b5',
@@ -258,9 +250,9 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           place.properties.value = res?.value || 999999999;
         })
         const max = Math.max(...placeResults.map(c => c.value), 0);
-        this.placeReachabilityLayer = new VectorLayer(this.selectedInfrastructure!.name, {
+        this.placeReachabilityLayer = new VectorLayer(this.activeInfrastructure!.name, {
           order: 0,
-          description: this.selectedInfrastructure!.name,
+          description: this.activeInfrastructure!.name,
           opacity: 1,
           style: {
             fillColor: 'green',

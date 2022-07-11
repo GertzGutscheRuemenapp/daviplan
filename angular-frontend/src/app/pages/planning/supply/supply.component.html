@@ -27,52 +27,18 @@
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
-  <div style="padding-bottom: 10px;">
-    <div style="position: relative;">
-      <mat-form-field appearance="outline" class="small">
-        <mat-label>Infrastrukturbereich</mat-label>
-        <mat-select disableOptionCentering disableRipple
-                    [(ngModel)]="activeInfrastructure"
-                    (ngModelChange)="onInfrastructureChange()"
-                    [ngbPopover]="activeInfrastructure?.description"
-                    placement="right"
-                    container="body"
-                    triggers="mouseenter:mouseleave">
-          <mat-option [value]="infrastructure" *ngFor="let infrastructure of infrastructures"
-                      [ngbPopover]="infrastructure.description"
-                      placement="right"
-                      container="body"
-                      triggers="mouseenter:mouseleave">
-            {{infrastructure.name}}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-      <app-place-filter-button
-        #placeFilter
-        (onFilter)="onFilter()"
-        [infrastructure]="this.activeInfrastructure"
-        [places]="places"
-        [scenario]="activeScenario"
-        [year]="year">
+  <div style="padding-bottom: 10px; display: flex;">
+    <app-service-select></app-service-select>
+    <app-place-filter-button
+      #placeFilter
+      style="margin-top: 7px;"
+      (onFilter)="onFilter()"
+      [infrastructure]="this.activeInfrastructure"
+      [places]="places"
+      [scenario]="activeScenario"
+      [year]="year">
 <!--        [service]="activeService"-->
-      </app-place-filter-button>
-    </div>
-    <div class="sub-select-wrapper" *ngIf="activeInfrastructure">
-      <mat-radio-group [(ngModel)]="activeService"
-                       (ngModelChange)="onServiceChange();">
-        <mat-radio-button *ngFor="let service of activeInfrastructure.services; let first = first;"
-                          [value]="service"
-                          [checked]="first"
-                          style="margin-right: 100%;"
-                          color="primary"
-                          [ngbPopover]="service.description"
-                          placement="right"
-                          container="body"
-                          triggers="mouseenter:mouseleave">
-          {{service.name}}
-        </mat-radio-button>
-      </mat-radio-group>
-    </div>
+    </app-place-filter-button>
   </div>
   <mat-divider></mat-divider>
   <div>

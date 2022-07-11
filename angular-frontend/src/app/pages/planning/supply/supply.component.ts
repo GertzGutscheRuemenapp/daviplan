@@ -37,7 +37,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   compareSupply = true;
   compareStatus = 'option 1';
   infrastructures: Infrastructure[] = [];
-  activeInfrastructure?: Infrastructure;
   mapControl?: MapControl;
   layerGroup?: MapLayerGroup;
   placesLayer?: VectorLayer;
@@ -48,6 +47,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   Object = Object;
   activeService?: Service;
   activeProcess?: PlanningProcess;
+  activeInfrastructure?: Infrastructure;
   activeScenario?: Scenario;
   subscriptions: Subscription[] = [];
 
@@ -65,9 +65,17 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         this.initData();
       });
     }*/
+    this.initData();
   }
 
   initData(): void {
+    this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
+      this.activeInfrastructure = infrastructure;
+    }))
+    this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
+      this.activeService = service;
+      this.updatePlaces();
+    }))
     this.subscriptions.push(this.planningService.year$.subscribe(year => {
       this.year = year;
       this.updatePlaces();
@@ -91,29 +99,11 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       this.infrastructures = infrastructures;
     })));
     forkJoin(...observables).subscribe(() => {
-      this.applyUserSettings();
+      this.updatePlaces();
     });
   }
 
-  applyUserSettings(): void {
-    this.activeInfrastructure = this.infrastructures?.find(i => i.id === this.cookies.get('planning-infrastructure', 'number')) || ((this.infrastructures.length > 0)? this.infrastructures[0]: undefined);
-    this.activeService = this.activeInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number')) || ((this.activeInfrastructure && this.activeInfrastructure.services.length > 0)? this.activeInfrastructure.services[0]: undefined);
-    this.updatePlaces();
-  }
-
   onFilter(): void {
-    this.updatePlaces();
-  }
-
-  onInfrastructureChange(): void {
-    this.cookies.set('planning-infrastructure', this.activeInfrastructure?.id);
-    if (this.activeInfrastructure!.services.length > 0)
-      this.activeService = this.activeInfrastructure!.services[0];
-    this.updatePlaces();
-  }
-
-  onServiceChange(): void {
-    this.cookies.set('planning-service', this.activeService?.id);
     this.updatePlaces();
   }
 

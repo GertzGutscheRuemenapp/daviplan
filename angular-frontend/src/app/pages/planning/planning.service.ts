@@ -4,9 +4,10 @@ import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../rest-api";
 import { RestCacheService } from "../../rest-cache.service";
 import { BehaviorSubject, Observable } from "rxjs";
-import { Indicator, PlanningProcess, Scenario, User } from "../../rest-interfaces";
+import { Indicator, Infrastructure, PlanningProcess, Scenario, Service, User } from "../../rest-interfaces";
 import { SettingsService } from "../../settings.service";
 import { CookieService } from "../../helpers/cookies.service";
+import { FilterColumn } from "../../elements/filter-table/filter-table.component";
 
 @Injectable({
   providedIn: 'root'
@@ -14,10 +15,13 @@ import { CookieService } from "../../helpers/cookies.service";
 export class PlanningService extends RestCacheService {
   legend?: LegendComponent;
   isReady: boolean = false;
+  placeFilterColumns: FilterColumn[] = [];
   ready: EventEmitter<any> = new EventEmitter();
   year$ = new BehaviorSubject<number>(0);
   activeProcess$ = new BehaviorSubject<PlanningProcess | undefined>(undefined);
   activeScenario$ = new BehaviorSubject<Scenario | undefined>(undefined);
+  activeInfrastructure$ = new BehaviorSubject<Infrastructure | undefined>(undefined);
+  activeService$ = new BehaviorSubject<Service | undefined>(undefined);
   showScenarioMenu = false;
 
   constructor(protected http: HttpClient, protected rest: RestAPI, private settings: SettingsService,

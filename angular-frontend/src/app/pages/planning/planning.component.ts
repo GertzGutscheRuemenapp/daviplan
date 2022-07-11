@@ -85,6 +85,16 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     })
     this.planningService.getInfrastructures().subscribe( infrastructures => {
       this.infrastructures = infrastructures;
+      const activeInfrastructure = this.infrastructures?.find(i => i.id === this.cookies.get('planning-infrastructure', 'number')) || ((this.infrastructures.length > 0)? this.infrastructures[0]: undefined);
+      this.planningService.activeInfrastructure$.next(activeInfrastructure);
+      const activeService = activeInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number')) || ((activeInfrastructure && activeInfrastructure.services.length > 0)? activeInfrastructure.services[0]: undefined);
+      this.planningService.activeService$.next(activeService);
+    })
+    this.planningService.activeInfrastructure$.subscribe(infrastructure => {
+      this.cookies.set('planning-infrastructure', infrastructure?.id);
+    })
+    this.planningService.activeService$.subscribe(service => {
+      this.cookies.set('planning-service', service?.id);
     })
 
     this.planningService.getProcesses().subscribe(processes => {
