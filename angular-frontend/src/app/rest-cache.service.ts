@@ -39,7 +39,6 @@ export class RestCacheService {
   private demandAreaCache: Record<string, AreaIndicatorResult[]> = {};
   private popDataCache: Record<string, PopulationData[]> = {};
   private popAreaCache: Record<string, AreaIndicatorResult[]> = {};
-  private placesCache: Record<number, Place[]> = {};
   private capacitiesCache: Record<string, Capacity[]> = {};
   private statisticsCache: Record<string, StatisticsData[]> = {};
   isLoading$ = new BehaviorSubject<boolean>(false);
@@ -178,35 +177,6 @@ export class RestCacheService {
   getFieldTypes(): Observable<FieldType[]> {
     const url = this.rest.URLS.fieldTypes;
     return this.getCachedData<FieldType[]>(url);
-  }
-
-  getPlaces(infrastructureId: number, options?: { targetProjection?: string, reset?: boolean }): Observable<Place[]>{
-    const observable = new Observable<Place[]>(subscriber => {
-      const cached = this.placesCache[infrastructureId];
-      if (!cached || options?.reset) {
-        const targetProjection = (options?.targetProjection !== undefined)? options?.targetProjection: 'EPSG:4326';
-        this.setLoading(true);
-        const query = this.http.get<any>(`${this.rest.URLS.places}?infrastructure=${infrastructureId}`);
-        query.subscribe( places => {
-          places.features.forEach((place: Place )=> {
-            const geometry = wktToGeom(place.geometry as string,
-              {targetProjection: targetProjection, ewkt: true});
-            place.geometry = geometry;
-          })
-          this.placesCache[infrastructureId] = places.features;
-          this.setLoading(false);
-          subscriber.next(places.features);
-          subscriber.complete();
-        }, error => {
-          this.setLoading(false);
-        });
-      }
-      else {
-        subscriber.next(cached);
-        subscriber.complete();
-      }
-    });
-    return observable;
   }
 
   getCapacities(options?: { year?: number, service?: number, scenario?: number }): Observable<Capacity[]>{
@@ -453,7 +423,6 @@ export class RestCacheService {
     this.demandAreaCache = {};
     this.popDataCache = {};
     this.popAreaCache = {};
-    this.placesCache = {};
     this.capacitiesCache = {};
     this.statisticsCache = {};
   }

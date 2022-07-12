@@ -93,6 +93,7 @@ import { MatTabsModule } from "@angular/material/tabs";
 import { AgeTreeComponent } from './diagrams/age-tree/age-tree.component';
 import { DemandRateSetViewComponent } from './pages/basedata/demand-quotas/demand-rate-set-view/demand-rate-set-view.component';
 import { ClassificationsComponent } from './pages/basedata/locations/classifications/classifications.component';
+import { ServiceSelectComponent } from './pages/planning/service-select/service-select.component';
 
 @NgModule({
   declarations: [
@@ -154,7 +155,8 @@ import { ClassificationsComponent } from './pages/basedata/locations/classificat
     DataTableComponent,
     AgeTreeComponent,
     DemandRateSetViewComponent,
-    ClassificationsComponent
+    ClassificationsComponent,
+    ServiceSelectComponent
   ],
   imports: [
     BrowserModule,

@@ -23,6 +23,7 @@ import { InputCardComponent } from "../../../dash/input-card.component";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import { MapLayer, MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { PlanningService } from "../../planning/planning.service";
 
 interface PlaceEditField extends PlaceField {
   edited?: boolean;
@@ -61,7 +62,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   uploadErrors: any = {};
 
   constructor(private mapService: MapService, private rest: RestAPI, private http: HttpClient,
-              private dialog: MatDialog, private restService: RestCacheService) { }
+              private dialog: MatDialog, private restService: PlanningService) { }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-locations-map');

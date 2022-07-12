@@ -27,49 +27,18 @@
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
-  <div style="padding-bottom: 10px;">
-    <div style="position: relative;">
-      <mat-form-field appearance="outline" class="small">
-        <mat-label>Infrastrukturbereich</mat-label>
-        <mat-select disableOptionCentering disableRipple
-                    [(ngModel)]="activeInfrastructure"
-                    (ngModelChange)="onInfrastructureChange()"
-                    [ngbPopover]="activeInfrastructure?.description"
-                    placement="right"
-                    container="body"
-                    triggers="mouseenter:mouseleave">
-          <mat-option [value]="infrastructure" *ngFor="let infrastructure of infrastructures"
-                      [ngbPopover]="infrastructure.description"
-                      placement="right"
-                      container="body"
-                      triggers="mouseenter:mouseleave">
-            {{infrastructure.name}}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-      <button color="primary" mat-icon-button
-              class="filter-button small" title="Standortfilter"
-              [disabled]="!activeInfrastructure"
-              (click)="onFilter()">
-        <mat-icon>filter_list</mat-icon>
-      </button>
-    </div>
-    <div class="sub-select-wrapper" *ngIf="activeInfrastructure">
-      <mat-radio-group [(ngModel)]="activeService"
-                       (ngModelChange)="onServiceChange();">
-        <mat-radio-button *ngFor="let service of activeInfrastructure.services; let first = first;"
-                          [value]="service"
-                          [checked]="first"
-                          style="margin-right: 100%;"
-                          color="primary"
-                          [ngbPopover]="service.description"
-                          placement="right"
-                          container="body"
-                          triggers="mouseenter:mouseleave">
-          {{service.name}}
-        </mat-radio-button>
-      </mat-radio-group>
-    </div>
+  <div style="padding-bottom: 10px; display: flex;">
+    <app-service-select></app-service-select>
+    <app-place-filter-button
+      #placeFilter
+      style="margin-top: 7px;"
+      (onFilter)="onFilter()"
+      [infrastructure]="this.activeInfrastructure"
+      [places]="places"
+      [scenario]="activeScenario"
+      [year]="year">
+<!--        [service]="activeService"-->
+    </app-place-filter-button>
   </div>
   <mat-divider></mat-divider>
   <div>
@@ -148,14 +117,6 @@
 <!--workaround to cover visible scenario menu-->
 <div style="width: 100%; height:50px; background-color: white;"></div>
 
-<ng-template #filterTemplate let-services="services" let-places="places" let-scenario="scenario" let-year="year" let-infrastructure="infrastructure">
-  <app-place-filter (filtersChanged)="onFilterChange($event)"
-                    [services]="services" [places]="places"
-                    [scenario]="scenario" [year]="year"
-                    [infrastructure]="infrastructure"
-                    [filterColumns]="filterColumns"></app-place-filter>
-</ng-template>
-
 <ng-template #placePreviewTemplate>
   <div *ngFor="let place of selectedPlaces">
     <b>{{ place.properties.name }}</b>
@@ -165,7 +126,7 @@
       </div>
     </ng-container>
     <div *ngIf="activeService">
-        Kapazität {{activeService.name}}: <i>{{getFormattedCapacityString([activeService.id], getCapacity(activeService.id, place.id))}}</i>
+        Kapazität {{activeService.name}}: <i>{{getFormattedCapacityString([activeService.id], place.properties.capacity || 0)}}</i>
     </div>
     <br>
   </div>

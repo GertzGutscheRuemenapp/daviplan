@@ -8,8 +8,7 @@ import {
   Area,
   AreaLevel,
   Indicator,
-  Infrastructure, ExtLayer,
-  ExtLayerGroup,
+  Infrastructure,
   PlanningProcess,
   Service
 } from "../../../rest-interfaces";
@@ -34,13 +33,12 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   areaLevels: AreaLevel[] = [];
   areas: Area[] = [];
   infrastructures: Infrastructure[] = [];
-  selectedService?: Service;
+  activeService?: Service;
   selectedIndicator?: Indicator;
   selectedAreaLevel?: AreaLevel;
-  selectedInfrastructure?: Infrastructure;
+  activeInfrastructure?: Infrastructure;
   activeProcess?: PlanningProcess;
   mapControl?: MapControl;
-  serviceSelection = new SelectionModel<Service>(false);
   indicatorLayer?: VectorLayer;
   layerGroup?: MapLayerGroup;
   year?: number;
@@ -57,6 +55,17 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
       this.year = year;
       this.updateMap();
     }));
+    this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
+      this.activeInfrastructure = infrastructure;
+    }))
+    this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
+      this.activeService = service;
+      this.updateMap();
+    }));
+    this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
+      this.activeProcess = process;
+      this.updateMap();
+    }));
     this.planningService.getAreaLevels({ active: true }).subscribe(areaLevels => {
       this.areaLevels = areaLevels;
       this.planningService.getInfrastructures().subscribe(infrastructures => {
@@ -64,16 +73,10 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         this.applyUserSettings();
       });
     })
-    this.planningService.activeProcess$.subscribe(process => {
-      this.activeProcess = process;
-      this.updateMap();
-    })
   }
 
   applyUserSettings(): void {
     this.selectedAreaLevel = this.areaLevels.find(al => al.id === this.cookies.get('planning-area-level', 'number')) || ((this.areaLevels.length > 0)? this.areaLevels[this.areaLevels.length - 1]: undefined);
-    this.selectedInfrastructure = this.infrastructures.find(i => i.id === this.cookies.get('planning-infrastructure', 'number')) || ((this.infrastructures.length > 0)? this.infrastructures[0]: undefined);
-    this.selectedService = this.selectedInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number')) || ((this.selectedInfrastructure && this.selectedInfrastructure.services.length > 0)? this.selectedInfrastructure.services[0]: undefined);
     this.onServiceChange();
     this.onAreaLevelChange();
   }
@@ -87,23 +90,13 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     })
   }
 
-  onInfrastructureChange(): void {
-    if(!this.selectedInfrastructure) return;
-    this.serviceSelection.select();
-    this.cookies.set('planning-infrastructure', this.selectedInfrastructure.id);
-    const services = this.selectedInfrastructure!.services;
-    this.selectedService = (services.length > 0)? services[0]: undefined;
-    this.onServiceChange();
-  }
-
   onServiceChange(): void {
-    if (!this.selectedService) {
+    if (!this.activeService) {
       this.indicators = [];
       this.selectedIndicator = undefined;
       return;
     }
-    this.cookies.set('planning-service', this.selectedService?.id);
-    this.planningService.getIndicators(this.selectedService.id).subscribe(indicators => {
+    this.planningService.getIndicators(this.activeService.id).subscribe(indicators => {
       this.indicators = indicators;
       this.selectedIndicator = indicators?.find(i => i.name === this.cookies.get('planning-indicator', 'string'));
       this.updateMap();
@@ -115,10 +108,10 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
       this.layerGroup?.removeLayer(this.indicatorLayer);
       this.indicatorLayer = undefined;
     }
-    if (!this.year || !this.activeProcess || !this.selectedAreaLevel || !this.selectedIndicator || !this.selectedService || this.areas.length === 0) return;
+    if (!this.year || !this.activeProcess || !this.selectedAreaLevel || !this.selectedIndicator || !this.activeService || this.areas.length === 0) return;
     this.updateMapDescription();
 
-    this.planningService.computeIndicator(this.selectedIndicator.name, this.selectedAreaLevel.id, this.selectedService.id,
+    this.planningService.computeIndicator(this.selectedIndicator.name, this.selectedAreaLevel.id, this.activeService.id,
       { year: this.year!, prognosis: undefined }).subscribe(results => {
       let max = 0;
       let min = Number.MAX_VALUE;

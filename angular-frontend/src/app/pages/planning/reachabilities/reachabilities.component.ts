@@ -5,11 +5,9 @@ import { PlanningService } from "../planning.service";
 import {
   Capacity,
   Infrastructure,
-  ExtLayer,
-  ExtLayerGroup,
   Place,
   PlanningProcess,
-  RasterCell,
+  RasterCell, Scenario,
   Service,
   TransportMode
 } from "../../../rest-interfaces";
@@ -17,7 +15,7 @@ import { MapControl, MapService } from "../../../map/map.service";
 import { Subscription } from "rxjs";
 import * as d3 from "d3";
 import { Geometry } from "ol/geom";
-import { MapLayer, MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-reachabilities',
@@ -32,10 +30,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   selectPlaceMode = false;
   placeMarkerMode = false;
   infrastructures: Infrastructure[] = [];
-  places?: Place[];
-  displayedPlaces: Place[] = [];
-  selectedInfrastructure?: Infrastructure;
-  selectedService?: Service;
+  places: Place[] = [];
+  activeInfrastructure?: Infrastructure;
+  activeService?: Service;
+  activeScenario?: Scenario;
   activeProcess?: PlanningProcess;
   mapControl?: MapControl;
   placesLayerGroup?: MapLayerGroup;
@@ -65,10 +63,21 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       this.infrastructures = infrastructures;
       this.planningService.getRasterCells().subscribe(rasterCells => {
         this.rasterCells = rasterCells;
-        this.applyUserSettings();
         // this.drawRaster();
+        this.applyUserSettings();
       });
     });
+    this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
+      this.activeInfrastructure = infrastructure;
+    }))
+    this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
+      this.activeService = service;
+      this.updatePlaces();
+    }))
+    this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
+      this.activeScenario = scenario;
+      this.updatePlaces();
+    }));
     this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
       this.activeProcess = process;
       this.updatePlaces();
@@ -80,9 +89,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   applyUserSettings(): void {
-    this.selectedInfrastructure = this.infrastructures.find(i => i.id === this.cookies.get('planning-infrastructure', 'number')) || ((this.infrastructures.length > 0)? this.infrastructures[0]: undefined);
-    this.selectedService = this.selectedInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number')) || ((this.selectedInfrastructure && this.selectedInfrastructure.services.length > 0)? this.selectedInfrastructure.services[0]: undefined);
-    // this.selectedPlaceId = this.cookies.get('reachability-place', 'number');
     this.mode = this.cookies.get('planning-mode', 'number') || TransportMode.WALK;
     this.updatePlaces();
   }
@@ -108,41 +114,23 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  onInfrastructureChange(): void {
-    this.cookies.set('planning-infrastructure', this.selectedInfrastructure?.id);
-    if (this.selectedInfrastructure!.services.length > 0)
-      this.selectedService = this.selectedInfrastructure!.services[0];
-    this.updatePlaces();
-  }
-
-  onServiceChange(): void {
-    this.cookies.set('planning-service', this.selectedService?.id);
-    this.updatePlaces();
-  }
-
   updatePlaces(): void {
-    if (!this.selectedInfrastructure || !this.selectedService || !this.activeProcess) return;
+    if (!this.activeInfrastructure || !this.activeService || !this.activeProcess) return;
     this.updateMapDescription();
-    this.planningService.getPlaces(this.selectedInfrastructure.id,
-      { targetProjection: this.mapControl!.map!.mapProjection }).subscribe(places => {
+    this.planningService.getPlaces(this.activeInfrastructure.id,
+      {
+        targetProjection: this.mapControl!.map!.mapProjection, filter: { columnFilter: true, hasCapacity: true }
+      }).subscribe(places => {
       this.places = places;
-      this.planningService.getCapacities({ year: this.year!, service: this.selectedService!.id }).subscribe(capacities => {
-        this.capacities = capacities;
-        this.displayedPlaces = [];
-        this.places?.forEach(place => {
-          // if (!this.filter(place)) return;
-          const capacity = this.getCapacity(this.selectedService!.id, place.id);
-          if (!capacity) return;
-          this.displayedPlaces.push(place);
-        })
+      this.planningService.getCapacities({ year: this.year!, service: this.activeService!.id }).subscribe(capacities => {
         let showLabel = true;
         if (this.placesLayer) {
           this.placesLayerGroup?.removeLayer(this.placesLayer);
           this.placesLayer = undefined;
         }
-        this.placesLayer = new VectorLayer(this.selectedInfrastructure!.name, {
+        this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
           order: 0,
-          description: this.selectedInfrastructure!.name,
+          description: this.activeInfrastructure!.name,
           opacity: 1,
           style: {
             fillColor: '#2171b5',
@@ -163,8 +151,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           }
         });
         this.placesLayerGroup?.addLayer(this.placesLayer);
-        this.placesLayer.addFeatures(this.displayedPlaces,
-          { properties: 'properties', geometry: 'geometry' });
+        this.placesLayer.addFeatures(places,{ properties: 'properties', geometry: 'geometry' });
         this.placesLayer?.setSelectable(this.selectPlaceMode);
         this.placesLayer?.featureSelected?.subscribe(evt => {
           if (evt.selected) {
@@ -182,7 +169,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   onFilter(): void {
-
+    this.updatePlaces();
   }
 
   updateMapDescription(): void {
@@ -250,14 +237,14 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           this.reachLayerGroup?.removeLayer(this.placeReachabilityLayer);
           this.placeReachabilityLayer = undefined;
         }
-        this.displayedPlaces.forEach(place => {
+        this.places.forEach(place => {
           const res = placeResults.find(p => p.placeId === place.id);
           place.properties.value = res?.value || 999999999;
         })
         const max = Math.max(...placeResults.map(c => c.value), 0);
-        this.placeReachabilityLayer = new VectorLayer(this.selectedInfrastructure!.name, {
+        this.placeReachabilityLayer = new VectorLayer(this.activeInfrastructure!.name, {
           order: 0,
-          description: this.selectedInfrastructure!.name,
+          description: this.activeInfrastructure!.name,
           opacity: 1,
           style: {
             fillColor: 'green',
@@ -281,7 +268,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           unit: 'Minute(n)'
         });
         this.reachLayerGroup?.addLayer(this.placeReachabilityLayer);
-        this.placeReachabilityLayer.addFeatures(this.displayedPlaces,{
+        this.placeReachabilityLayer.addFeatures(this.places,{
           properties: 'properties',
           geometry: 'geometry'
         });
