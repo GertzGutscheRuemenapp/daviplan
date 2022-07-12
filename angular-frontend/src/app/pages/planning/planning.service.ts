@@ -35,9 +35,9 @@ export class PlanningService extends RestCacheService {
   activeScenario$ = new BehaviorSubject<Scenario | undefined>(undefined);
   activeInfrastructure$ = new BehaviorSubject<Infrastructure | undefined>(undefined);
   activeService$ = new BehaviorSubject<Service | undefined>(undefined);
-  private _activeInfrastructure?: Infrastructure;
-  private _activeYear?: number;
-  private _activeService?: Service;
+  activeInfrastructure?: Infrastructure;
+  activeYear?: number;
+  activeService?: Service;
   showScenarioMenu = false;
 
   constructor(protected http: HttpClient, protected rest: RestAPI, private settings: SettingsService,
@@ -57,9 +57,9 @@ export class PlanningService extends RestCacheService {
       this.cookies.set('planning-scenario', scenario?.id);
     })*/
     // could also be done later with [...].pipe(take(1)).subscribe(...), easier by remembering in separate variable
-    this.activeInfrastructure$.subscribe(infrastructure => this._activeInfrastructure = infrastructure);
-    this.activeService$.subscribe(service => this._activeService = service);
-    this.year$.subscribe(year => this._activeYear = year);
+    this.activeInfrastructure$.subscribe(infrastructure => this.activeInfrastructure = infrastructure);
+    this.activeService$.subscribe(service => this.activeService = service);
+    this.year$.subscribe(year => this.activeYear = year);
   }
 
   getIndicators(serviceId: number): Observable<Indicator[]>{
@@ -180,7 +180,7 @@ export class PlanningService extends RestCacheService {
   }
 
   updateCapacities(options?: { infrastructureId?: number, year?: number }): Observable<any> {
-    const year = (options?.year !== undefined)? options?.year: this._activeYear;
+    const year = (options?.year !== undefined)? options?.year: this.activeYear;
     const _this = this;
     const observable = new Observable<any>(subscriber => {
       function update(infrastructure: Infrastructure | undefined) {
@@ -204,13 +204,13 @@ export class PlanningService extends RestCacheService {
           update(infrastructure);
         })
       }
-      else update(this._activeInfrastructure);
+      else update(this.activeInfrastructure);
     })
     return observable;
   }
 
   getCapacity(place: Place, service?: Service): number{
-    service = service || this._activeService;
+    service = service || this.activeService;
     if (!service) return 0;
     const cap = this.capacitiesPerService[service.id]?.find(c => c.place === place.id);
     return cap?.capacity || 0;

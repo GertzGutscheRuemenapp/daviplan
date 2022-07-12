@@ -38,7 +38,6 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   mapControl?: MapControl;
   demandLayer?: VectorLayer;
   layerGroup?: MapLayerGroup;
-  serviceSelection = new SelectionModel<Service>(false);
   year?: number;
   subscriptions: Subscription[] = [];
 

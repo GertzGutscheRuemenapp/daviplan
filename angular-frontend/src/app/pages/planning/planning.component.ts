@@ -91,10 +91,10 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
       this.planningService.activeService$.next(activeService);
     })
     this.planningService.activeInfrastructure$.subscribe(infrastructure => {
-      this.cookies.set('planning-infrastructure', infrastructure?.id);
+      if (infrastructure) this.cookies.set('planning-infrastructure', infrastructure?.id);
     })
     this.planningService.activeService$.subscribe(service => {
-      this.cookies.set('planning-service', service?.id);
+      if (service) this.cookies.set('planning-service', service?.id);
     })
 
     this.planningService.getProcesses().subscribe(processes => {
