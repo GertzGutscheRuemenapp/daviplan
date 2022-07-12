@@ -4,14 +4,11 @@ import { MatDialog } from "@angular/material/dialog";
 import { environment } from "../../../../environments/environment";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { PlanningService } from "../planning.service";
-import { PlanningProcess, Scenario } from "../../../rest-interfaces";
+import { DemandRateSet, PlanningProcess, Prognosis, Scenario, Service } from "../../../rest-interfaces";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { CookieService } from "../../../helpers/cookies.service";
-
-export const mockPrognoses = ['Trendfortschreibung', 'mehr Zuwanderung', 'mehr Abwanderung'];
-export const mockQuotas = ['aktuelle Quoten', 'erhöhte Nachfrage ab 2030', 'Name mit langem Text, um Umbruch zu erzwingen']
 
 @Component({
   selector: 'app-scenario-menu',
@@ -19,7 +16,7 @@ export const mockQuotas = ['aktuelle Quoten', 'erhöhte Nachfrage ab 2030', 'Nam
   styleUrls: ['./scenario-menu.component.scss']
 })
 export class ScenarioMenuComponent implements OnInit {
-  @Input() domain: string = '';
+  @Input() domain!: 'demand' | 'reachabilities' | 'rating' | 'supply';
   @ViewChildren('scenario') scenarioCards?: QueryList<ElementRef>;
   @ViewChild('editScenario') editScenarioTemplate?: TemplateRef<any>;
   @ViewChild('supplyScenarioTable') supplyScenarioTableTemplate?: TemplateRef<any>;
@@ -28,13 +25,13 @@ export class ScenarioMenuComponent implements OnInit {
   baseScenario?: Scenario;
   scenarios: Scenario[] = [];
   activeScenario?: Scenario;
-  quotas = mockQuotas;
-  prognoses = mockPrognoses;
   backend: string = environment.backend;
   editScenarioForm: FormGroup;
   process?: PlanningProcess;
+  demandRateSets: DemandRateSet[] = [];
+  prognoses: Prognosis[] = [];
 
-  constructor(private dialog: MatDialog, private planningService: PlanningService, private cookies: CookieService,
+  constructor(private dialog: MatDialog, public planningService: PlanningService, private cookies: CookieService,
               private formBuilder: FormBuilder, private http: HttpClient, private rest: RestAPI) {
     this.planningService.activeProcess$.subscribe(process => {
       this.planningService.getBaseScenario().subscribe(scenario => {
@@ -49,9 +46,33 @@ export class ScenarioMenuComponent implements OnInit {
     this.editScenarioForm = this.formBuilder.group({
       scenarioName: new FormControl('')
     });
+    this.planningService.activeService$.subscribe(service => this.onServiceChange(service));
+    this.planningService.getPrognoses().subscribe(pr => this.prognoses = pr)
   }
 
   ngOnInit(): void {
+    this.onServiceChange(this.planningService.activeService);
+  }
+
+  onServiceChange(service: Service | undefined): void {
+    if (!service) return;
+    switch (this.domain) {
+      case 'supply':
+        break;
+      case 'demand':
+        this.planningService.getDemandRateSets(service.id).subscribe(dr => this.demandRateSets = dr);
+        break;
+      case 'reachabilities':
+        // Anweisungen werden ausgeführt,
+        // falls expression mit valueN übereinstimmt
+        break;
+      case 'rating':
+        // Anweisungen werden ausgeführt,
+        // falls keine der case-Klauseln mit expression übereinstimmt
+        break;
+      default:
+        break;
+    }
   }
 
   setScenario(scenario: Scenario, options?: { silent?: boolean }): void {

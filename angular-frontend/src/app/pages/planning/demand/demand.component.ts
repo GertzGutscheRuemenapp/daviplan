@@ -1,21 +1,20 @@
-import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
 import {
   Area,
   AreaLevel,
   Infrastructure,
-  Layer,
-  LayerGroup,
   PlanningProcess,
   Scenario,
   Service
 } from "../../../rest-interfaces";
-import * as d3 from "d3";
 import { map } from "rxjs/operators";
 import { forkJoin, Observable, Subscription } from "rxjs";
 import { MapControl, MapService } from "../../../map/map.service";
 import { SelectionModel } from "@angular/cdk/collections";
+import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import * as d3 from "d3";
 
 @Component({
   selector: 'app-demand',
@@ -37,9 +36,8 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   realYears?: number[];
   prognosisYears?: number[];
   mapControl?: MapControl;
-  demandLayer?: Layer;
-  legendGroup?: LayerGroup;
-  serviceSelection = new SelectionModel<Service>(false);
+  demandLayer?: VectorLayer;
+  layerGroup?: MapLayerGroup;
   year?: number;
   subscriptions: Subscription[] = [];
 
@@ -48,10 +46,8 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
-    this.legendGroup = this.mapControl.addGroup({
-      name: 'Nachfrage',
-      order: -1
-    }, false)
+    this.layerGroup = new MapLayerGroup('Nachfrage', { order: -1 })
+    this.mapControl.addGroup(this.layerGroup);
     this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
       this.activeProcess = process;
       this.updateMap();
@@ -60,6 +56,13 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
       this.activeScenario = scenario;
       this.updateMap();
     }));
+    this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
+      this.activeInfrastructure = infrastructure;
+    }))
+    this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
+      this.activeService = service;
+      this.updateMap();
+    }))
     this.initData();
   }
 
@@ -88,10 +91,6 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
 
   applyUserSettings(): void {
     this.activeLevel = this.areaLevels.find(al => al.id === this.cookies.get('planning-area-level', 'number')) || ((this.areaLevels.length > 0)? this.areaLevels[this.areaLevels.length - 1]: undefined);
-    this.activeInfrastructure = this.infrastructures?.find(i => i.id === this.cookies.get('planning-infrastructure', 'number')) || ((this.infrastructures.length > 0)? this.infrastructures[0]: undefined);
-    this.activeService = this.activeInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number'))  || ((this.activeInfrastructure && this.activeInfrastructure.services.length > 0)? this.activeInfrastructure.services[0]: undefined);
-    if (this.activeService)
-      this.serviceSelection.select(this.activeService);
     this.onAreaLevelChange();
   }
 
@@ -104,21 +103,9 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
     })
   }
 
-  onInfrastructureChange(): void {
-    this.serviceSelection.select(this.activeInfrastructure!.services[0]);
-    this.cookies.set('planning-infrastructure', this.activeInfrastructure?.id);
-    this.onServiceChange();
-  }
-
-  onServiceChange(): void {
-    this.activeService = this.serviceSelection.selected[0]; // always an array, even if multiple is not allowed
-    this.cookies.set('planning-service', this.activeService?.id);
-    this.updateMap();
-  }
-
   updateMap(): void {
     if (this.demandLayer) {
-      this.mapControl?.removeLayer(this.demandLayer.id!);
+      this.layerGroup?.removeLayer(this.demandLayer);
       this.demandLayer = undefined;
     }
     if (!this.year || !this.activeLevel || !this.activeService || !this.activeProcess) return;
@@ -126,57 +113,50 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
 
     this.planningService.getDemand(this.activeLevel.id,
       { year: this.year!, service: this.activeService?.id }).subscribe(demandData => {
-        let max = 1;
-        let min = Number.MAX_VALUE;
-        this.areas.forEach(area => {
-          const data = demandData.find(d => d.areaId == area.id);
-          const value = (data)? Math.round(data.value): 0;
-          max = Math.max(max, value);
-          min = Math.min(min, value);
-          area.properties.value = value;
-          area.properties.description = `<b>${area.properties.label}</b><br>Nachfrage: ${area.properties.value}`
-        })
-        max = Math.max(max, 10);
+      let max = 1;
+      let min = Number.MAX_VALUE;
+      this.areas.forEach(area => {
+        const data = demandData.find(d => d.areaId == area.id);
+        const value = (data)? Math.round(data.value): 0;
+        max = Math.max(max, value);
+        min = Math.min(min, value);
+        area.properties.value = value;
+        area.properties.description = `<b>${area.properties.label}</b><br>Nachfrage: ${area.properties.value}`
+      })
+      max = Math.max(max, 10);
       const steps = (max < 1.2 * min)? 3: (max < 1.4 * min)? 5: (max < 1.6 * min)? 7: 9;
-      const colorFunc = d3.scaleSequential(d3.interpolateBlues).domain([min, max]);
-        this.demandLayer = this.mapControl?.addLayer({
-            order: 0,
-            type: 'vector',
-            group: this.legendGroup?.id,
-            name: this.activeLevel!.name,
-            description: this.activeLevel!.name,
-            opacity: 1,
-            symbol: {
-              strokeColor: 'white',
-              fillColor: 'rgba(165, 15, 21, 0.9)',
-              symbol: 'line'
-            },
-            labelField: 'value',
-            showLabel: true
+      this.demandLayer = new VectorLayer(this.activeLevel!.name,{
+          order: 0,
+          description: this.activeLevel!.name,
+          opacity: 1,
+          style: {
+            strokeColor: 'white',
+            fillColor: 'rgba(165, 15, 21, 0.9)',
+            symbol: 'line'
           },
-          {
-            visible: true,
-            tooltipField: 'description',
-            mouseOver: {
+          labelField: 'value',
+          showLabel: true,
+          tooltipField: 'description',
+          mouseOver: {
+            enabled: true,
+            style: {
               strokeColor: 'yellow',
               fillColor: 'rgba(255, 255, 0, 0.7)'
+            }
+          },
+          valueMapping: {
+            field: 'value',
+            color: {
+              range: d3.interpolateBlues,
+              scale: 'sequential',
+              bins: steps
             },
-            colorFunc: colorFunc
-          });
-        let colors: string[] = [];
-        let labels: string[] = [];
-        const step = (max - min) / steps;
-        Array.from({ length: steps + 1 },(v, k) => k * step).forEach((value, i) => {
-          colors.push(colorFunc(value));
-          labels.push(Number(value.toFixed(2)).toString());
-        })
-        this.demandLayer!.legend = {
-          colors: colors,
-          labels: labels,
-          elapsed: true
-        }
-        this.mapControl?.addFeatures(this.demandLayer!.id!, this.areas,
-          { properties: 'properties' });
+            min: min,
+            max: max
+          }
+        });
+      this.layerGroup?.addLayer(this.demandLayer);
+      this.demandLayer.addFeatures(this.areas, { properties: 'properties' });
     })
   }
 
@@ -187,8 +167,9 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.legendGroup) {
-      this.mapControl?.removeGroup(this.legendGroup.id!);
+    if (this.layerGroup) {
+      this.layerGroup.clear();
+      this.mapControl?.removeGroup(this.layerGroup);
     }
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }

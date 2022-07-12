@@ -17,7 +17,7 @@ import {
   Statistic,
   FieldType,
   RasterCell,
-  TransportMode, CellResult, PlaceResult
+  TransportMode, CellResult, PlaceResult, ExtLayerGroup, ExtLayer
 } from "./rest-interfaces";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
@@ -39,7 +39,6 @@ export class RestCacheService {
   private demandAreaCache: Record<string, AreaIndicatorResult[]> = {};
   private popDataCache: Record<string, PopulationData[]> = {};
   private popAreaCache: Record<string, AreaIndicatorResult[]> = {};
-  private placesCache: Record<number, Place[]> = {};
   private capacitiesCache: Record<string, Capacity[]> = {};
   private statisticsCache: Record<string, StatisticsData[]> = {};
   isLoading$ = new BehaviorSubject<boolean>(false);
@@ -95,6 +94,20 @@ export class RestCacheService {
   getPrognoses(): Observable<Prognosis[]> {
     const url = this.rest.URLS.prognoses;
     return this.getCachedData<Prognosis[]>(url);
+  }
+
+  getLayerGroups(options?: { reset?: boolean, external?: true }): Observable<ExtLayerGroup[]> {
+    let url = this.rest.URLS.layerGroups;
+    if (options?.external)
+      url += '?external=true';
+    return this.getCachedData<ExtLayerGroup[]>(url, options);
+  }
+
+  getLayers(options?: { active?: boolean, reset?: boolean }): Observable<ExtLayer[]> {
+    let url = this.rest.URLS.layers;
+    if (options?.active)
+      url += '?active=true';
+    return this.getCachedData<ExtLayer[]>(url, options);
   }
 
   getYears(options?: { params?: string, reset?: boolean }): Observable<number[]> {
@@ -164,35 +177,6 @@ export class RestCacheService {
   getFieldTypes(): Observable<FieldType[]> {
     const url = this.rest.URLS.fieldTypes;
     return this.getCachedData<FieldType[]>(url);
-  }
-
-  getPlaces(infrastructureId: number, options?: { targetProjection?: string, reset?: boolean }): Observable<Place[]>{
-    const observable = new Observable<Place[]>(subscriber => {
-      const cached = this.placesCache[infrastructureId];
-      if (!cached || options?.reset) {
-        const targetProjection = (options?.targetProjection !== undefined)? options?.targetProjection: 'EPSG:4326';
-        this.setLoading(true);
-        const query = this.http.get<any>(`${this.rest.URLS.places}?infrastructure=${infrastructureId}`);
-        query.subscribe( places => {
-          places.features.forEach((place: Place )=> {
-            const geometry = wktToGeom(place.geometry as string,
-              {targetProjection: targetProjection, ewkt: true});
-            place.geometry = geometry;
-          })
-          this.placesCache[infrastructureId] = places.features;
-          this.setLoading(false);
-          subscriber.next(places.features);
-          subscriber.complete();
-        }, error => {
-          this.setLoading(false);
-        });
-      }
-      else {
-        subscriber.next(cached);
-        subscriber.complete();
-      }
-    });
-    return observable;
   }
 
   getCapacities(options?: { year?: number, service?: number, scenario?: number }): Observable<Capacity[]>{
@@ -439,7 +423,6 @@ export class RestCacheService {
     this.demandAreaCache = {};
     this.popDataCache = {};
     this.popAreaCache = {};
-    this.placesCache = {};
     this.capacitiesCache = {};
     this.statisticsCache = {};
   }

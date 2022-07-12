@@ -25,41 +25,7 @@
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
-  <mat-form-field appearance="outline" class="small">
-    <mat-label>Infrastrukturbereich</mat-label>
-    <mat-select disableOptionCentering disableRipple
-                [(value)]="selectedInfrastructure"
-                [ngbPopover]="selectedInfrastructure?.description"
-                (selectionChange)="onInfrastructureChange()"
-                placement="right"
-                container="body"
-                triggers="mouseenter:mouseleave">
-      <mat-option *ngFor="let infrastructure of infrastructures"
-                  [value]="infrastructure"
-                  [ngbPopover]="infrastructure.description"
-                  placement="right"
-                  container="body"
-                  triggers="mouseenter:mouseleave">
-        {{infrastructure.name}}
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
-  <div class="sub-select-wrapper" *ngIf="selectedInfrastructure">
-    <mat-radio-group>
-      <mat-radio-button *ngFor="let service of selectedInfrastructure.services; let first = first;"
-                        [value]="service"
-                        [checked]="service === selectedService"
-                        (change)="selectedService = service; onServiceChange();"
-                        style="margin-right: 100%;"
-                        color="primary"
-                        [ngbPopover]="service.description"
-                        placement="right"
-                        container="body"
-                        triggers="mouseenter:mouseleave">
-        {{service.name}}
-      </mat-radio-button>
-    </mat-radio-group>
-  </div>
+  <app-service-select></app-service-select>
   <mat-form-field appearance="outline" class="small" style="margin-top: 12px;">
     <mat-label>Indikator</mat-label>
     <mat-select disableOptionCentering panelClass="custom-option-panel"

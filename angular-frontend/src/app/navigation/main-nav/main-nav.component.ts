@@ -2,11 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { Observable } from 'rxjs';
 import { share } from 'rxjs/operators';
-import { User } from "../../pages/login/users";
 import { AuthService } from "../../auth.service";
 import {Router} from "@angular/router";
 import { environment } from "../../../environments/environment";
 import { SettingsService, SiteSettings } from "../../settings.service";
+import { User } from "../../rest-interfaces";
 
 @Component({
   selector: 'app-main-nav',

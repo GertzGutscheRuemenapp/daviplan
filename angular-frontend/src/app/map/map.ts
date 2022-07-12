@@ -157,14 +157,14 @@ export class OlMap {
   }
 
   addVectorTileLayer(name: string, url: string, options: {
-      params?: any,
       visible?: boolean, opacity?: number,
-      stroke?: { color?: string, width?: number, dash?: number[], selectedColor?: string, selectedDash?: number[], mouseOverColor?: string },
-      fill?: { color?: string, selectedColor?: string, mouseOverColor?: string },
+      stroke?: { color?: string, width?: number, dash?: number[], mouseOverColor?: string },
+      fill?: { color?: string, mouseOverColor?: string },
       tooltipField?: string,
       featureClass?: 'feature' | 'renderFeature',
       labelField?: string,
-      showLabel?: boolean
+      showLabel?: boolean,
+      mouseOverCursor?: string,
     } = {}): Layer<any> {
     const source = new VectorTileSource({
       format: new MVT({
@@ -263,7 +263,8 @@ export class OlMap {
     }
 
     this.setMouseOverLayer(layer, {
-      tooltipField: options?.tooltipField
+      tooltipField: options?.tooltipField,
+      cursor: (options?.mouseOverCursor != undefined)? options?.mouseOverCursor: 'pointer'
     });
     this.map.addLayer(layer);
     this.layers[name] = layer;
@@ -321,7 +322,7 @@ export class OlMap {
   }
 
   addVectorLayer(name: string, options: {
-      url?: any, params?: any,
+      url?: any,
       visible?: boolean, opacity?: number,
       selectable?: boolean, tooltipField?: string,
       multiSelect?: boolean,
@@ -564,13 +565,14 @@ export class OlMap {
 
   clear(layername: string){
     const layer = this.layers[layername];
+    if (!layer) return;
     layer.getSource().clear();
   }
 
   setSelectActive(layerName: string, active: boolean){
     const layer = this.getLayer(layerName),
           select = layer.get('select');
-    select.setActive(active);
+    if (select) select.setActive(active);
   }
 
   setShowLabel(layerName: string, show: boolean){

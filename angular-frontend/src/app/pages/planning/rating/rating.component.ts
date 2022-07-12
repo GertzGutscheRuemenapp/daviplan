@@ -8,8 +8,7 @@ import {
   Area,
   AreaLevel,
   Indicator,
-  Infrastructure, Layer,
-  LayerGroup,
+  Infrastructure,
   PlanningProcess,
   Service
 } from "../../../rest-interfaces";
@@ -17,6 +16,7 @@ import { SelectionModel } from "@angular/cdk/collections";
 import { MapControl, MapService } from "../../../map/map.service";
 import * as d3 from "d3";
 import { Subscription } from "rxjs";
+import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-rating',
@@ -33,15 +33,14 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   areaLevels: AreaLevel[] = [];
   areas: Area[] = [];
   infrastructures: Infrastructure[] = [];
-  selectedService?: Service;
+  activeService?: Service;
   selectedIndicator?: Indicator;
   selectedAreaLevel?: AreaLevel;
-  selectedInfrastructure?: Infrastructure;
+  activeInfrastructure?: Infrastructure;
   activeProcess?: PlanningProcess;
   mapControl?: MapControl;
-  serviceSelection = new SelectionModel<Service>(false);
-  indicatorLayer?: Layer;
-  legendGroup?: LayerGroup;
+  indicatorLayer?: VectorLayer;
+  layerGroup?: MapLayerGroup;
   year?: number;
   subscriptions: Subscription[] = [];
 
@@ -50,12 +49,21 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
-    this.legendGroup = this.mapControl.addGroup({
-      name: 'Bewertung',
-      order: -1
-    }, false)
+    this.layerGroup = new MapLayerGroup('Bewertung', { order: -1 })
+    this.mapControl.addGroup(this.layerGroup);
     this.subscriptions.push(this.planningService.year$.subscribe(year => {
       this.year = year;
+      this.updateMap();
+    }));
+    this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
+      this.activeInfrastructure = infrastructure;
+    }))
+    this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
+      this.activeService = service;
+      this.updateMap();
+    }));
+    this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
+      this.activeProcess = process;
       this.updateMap();
     }));
     this.planningService.getAreaLevels({ active: true }).subscribe(areaLevels => {
@@ -65,16 +73,10 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         this.applyUserSettings();
       });
     })
-    this.planningService.activeProcess$.subscribe(process => {
-      this.activeProcess = process;
-      this.updateMap();
-    })
   }
 
   applyUserSettings(): void {
     this.selectedAreaLevel = this.areaLevels.find(al => al.id === this.cookies.get('planning-area-level', 'number')) || ((this.areaLevels.length > 0)? this.areaLevels[this.areaLevels.length - 1]: undefined);
-    this.selectedInfrastructure = this.infrastructures.find(i => i.id === this.cookies.get('planning-infrastructure', 'number')) || ((this.infrastructures.length > 0)? this.infrastructures[0]: undefined);
-    this.selectedService = this.selectedInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number')) || ((this.selectedInfrastructure && this.selectedInfrastructure.services.length > 0)? this.selectedInfrastructure.services[0]: undefined);
     this.onServiceChange();
     this.onAreaLevelChange();
   }
@@ -88,23 +90,13 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     })
   }
 
-  onInfrastructureChange(): void {
-    if(!this.selectedInfrastructure) return;
-    this.serviceSelection.select();
-    this.cookies.set('planning-infrastructure', this.selectedInfrastructure.id);
-    const services = this.selectedInfrastructure!.services;
-    this.selectedService = (services.length > 0)? services[0]: undefined;
-    this.onServiceChange();
-  }
-
   onServiceChange(): void {
-    if (!this.selectedService) {
+    if (!this.activeService) {
       this.indicators = [];
       this.selectedIndicator = undefined;
       return;
     }
-    this.cookies.set('planning-service', this.selectedService?.id);
-    this.planningService.getIndicators(this.selectedService.id).subscribe(indicators => {
+    this.planningService.getIndicators(this.activeService.id).subscribe(indicators => {
       this.indicators = indicators;
       this.selectedIndicator = indicators?.find(i => i.name === this.cookies.get('planning-indicator', 'string'));
       this.updateMap();
@@ -113,13 +105,13 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
 
   updateMap(): void {
     if (this.indicatorLayer) {
-      this.mapControl?.removeLayer(this.indicatorLayer.id!);
+      this.layerGroup?.removeLayer(this.indicatorLayer);
       this.indicatorLayer = undefined;
     }
-    if (!this.year || !this.activeProcess || !this.selectedAreaLevel || !this.selectedIndicator || !this.selectedService || this.areas.length === 0) return;
+    if (!this.year || !this.activeProcess || !this.selectedAreaLevel || !this.selectedIndicator || !this.activeService || this.areas.length === 0) return;
     this.updateMapDescription();
 
-    this.planningService.computeIndicator(this.selectedIndicator.name, this.selectedAreaLevel.id, this.selectedService.id,
+    this.planningService.computeIndicator(this.selectedIndicator.name, this.selectedAreaLevel.id, this.activeService.id,
       { year: this.year!, prognosis: undefined }).subscribe(results => {
       let max = 0;
       let min = Number.MAX_VALUE;
@@ -131,47 +123,38 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         area.properties.value = value;
         area.properties.description = `<b>${area.properties.label}</b><br>${this.selectedIndicator!.title}: ${area.properties.value}`
       })
-      const colorFunc = d3.scaleSequential(d3.interpolatePurples).domain([min, max || 1]);
-      this.indicatorLayer = this.mapControl?.addLayer({
-          order: 0,
-          type: 'vector',
-          group: this.legendGroup?.id,
-          name: `${this.selectedIndicator!.title} (${this.selectedAreaLevel!.name})`,
-          description: this.selectedIndicator!.description,
-          opacity: 1,
-          symbol: {
-            strokeColor: 'white',
-            fillColor: 'rgba(165, 15, 21, 0.9)',
-            symbol: 'line'
-          },
-          labelField: 'value',
-          showLabel: true
+      this.indicatorLayer = new VectorLayer(`${this.selectedIndicator!.title} (${this.selectedAreaLevel!.name})`, {
+        order: 0,
+        description: this.selectedIndicator!.description,
+        opacity: 1,
+        style: {
+          strokeColor: 'white',
+          fillColor: 'rgba(165, 15, 21, 0.9)',
+          symbol: 'line'
         },
-        {
-          visible: true,
-          tooltipField: 'description',
-          mouseOver: {
+        labelField: 'value',
+        showLabel: true,
+        tooltipField: 'description',
+        mouseOver: {
+          enabled: true,
+          style: {
             strokeColor: 'yellow',
             fillColor: 'rgba(255, 255, 0, 0.7)'
+          }
+        },
+        valueMapping: {
+          field: 'value',
+          color: {
+            range: d3.interpolatePurples,
+            scale: 'sequential',
+            bins: 5
           },
-          colorFunc: colorFunc
-        });
-      let colors: string[] = [];
-      let labels: string[] = [];
-      if (max) {
-        const step = (max - min) / 5;
-        Array.from({ length: 5 + 1 }, (v, k) => k * step).forEach((value, i) => {
-          colors.push(colorFunc(value));
-          labels.push(Number(value.toFixed(1)).toString());
-        })
-        this.indicatorLayer!.legend = {
-          colors: colors,
-          labels: labels,
-          elapsed: true
-        }
-      }
-      this.mapControl?.addFeatures(this.indicatorLayer!.id!, this.areas,
-        { properties: 'properties' });
+          min: min,
+          max: max || 1
+        },
+      });
+      this.layerGroup?.addLayer(this.indicatorLayer);
+      this.indicatorLayer.addFeatures(this.areas,{ properties: 'properties' });
     })
   }
 
@@ -194,8 +177,8 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.legendGroup) {
-      this.mapControl?.removeGroup(this.legendGroup.id!);
+    if (this.layerGroup) {
+      this.mapControl?.removeGroup(this.layerGroup);
     }
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
