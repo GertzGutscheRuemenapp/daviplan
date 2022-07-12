@@ -73,8 +73,9 @@
     <mat-form-field appearance="standard" class="small" style="width: 145px;">
       <mat-label>Nachfragequoten-Set</mat-label>
       <mat-select disableOptionCentering disableRipple
-                  [value]="scenario.demandratesets[planningService.activeService.id]">
-<!--        [disabled]="scenario === baseScenario"-->
+                  [disabled]="scenario.isBase"
+                  [value]="getDemandRateSet(scenario)"
+                  (selectionChange)="onDemandRateChange(scenario, $event.value)">
         <mat-option *ngFor="let set of demandRateSets" [value]="set.id">
           {{set.name}}
         </mat-option>
@@ -90,8 +91,9 @@
     <mat-form-field appearance="standard" class="small" style="width: 145px;">
       <mat-label>Einwohnerentwicklung</mat-label>
       <mat-select disableOptionCentering disableRipple
-                  [value]="scenario.prognosis">
-        <!--        [disabled]="scenario === baseScenario"-->
+                  [value]="scenario.prognosis"
+                  [disabled]="scenario.isBase"
+                  (selectionChange)="onPrognosisChange(scenario, $event.value)">
         <mat-option *ngFor="let prognosis of prognoses" [value]="prognosis.id">
           {{prognosis.name}}
         </mat-option>

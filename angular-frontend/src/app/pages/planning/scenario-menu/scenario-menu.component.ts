@@ -4,11 +4,12 @@ import { MatDialog } from "@angular/material/dialog";
 import { environment } from "../../../../environments/environment";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { PlanningService } from "../planning.service";
-import { DemandRateSet, PlanningProcess, Prognosis, Scenario, Service } from "../../../rest-interfaces";
+import { DemandRateSet, PlanningProcess, Prognosis, Scenario, Service, TransportMode } from "../../../rest-interfaces";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { CookieService } from "../../../helpers/cookies.service";
+import { Observable } from "rxjs";
 
 @Component({
   selector: 'app-scenario-menu',
@@ -29,7 +30,9 @@ export class ScenarioMenuComponent implements OnInit {
   editScenarioForm: FormGroup;
   process?: PlanningProcess;
   demandRateSets: DemandRateSet[] = [];
+  selectedDemandRateSetId?: number;
   prognoses: Prognosis[] = [];
+  TransportMode = TransportMode;
 
   constructor(private dialog: MatDialog, public planningService: PlanningService, private cookies: CookieService,
               private formBuilder: FormBuilder, private http: HttpClient, private rest: RestAPI) {
@@ -60,7 +63,9 @@ export class ScenarioMenuComponent implements OnInit {
       case 'supply':
         break;
       case 'demand':
-        this.planningService.getDemandRateSets(service.id).subscribe(dr => this.demandRateSets = dr);
+        this.planningService.getDemandRateSets(service.id).subscribe(dr => {
+          this.demandRateSets = dr;
+        });
         break;
       case 'reachabilities':
         // Anweisungen werden ausgeführt,
@@ -73,6 +78,11 @@ export class ScenarioMenuComponent implements OnInit {
       default:
         break;
     }
+  }
+
+  getDemandRateSet(scenario: Scenario): number | undefined {
+    const id = scenario.demandrateSets.find(dr => dr.service === this.planningService.activeService?.id)?.demandrateset;
+    return id;
   }
 
   setScenario(scenario: Scenario, options?: { silent?: boolean }): void {
@@ -220,5 +230,23 @@ export class ScenarioMenuComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
     });
+  }
+
+  onDemandRateChange(scenario: Scenario, setId: number): void {
+    if (!this.planningService.activeService) return;
+    const serviceId = this.planningService.activeService.id;
+    const body: any = { demandrateSets: [{ service: serviceId, demandrateset: setId }] };
+    this.patchScenarioSetting(scenario, body);
+  }
+
+  onPrognosisChange(scenario: Scenario, prognosisId: number): void {
+    const body: any = { prognosis: prognosisId };
+    this.patchScenarioSetting(scenario, body);
+  }
+
+  private patchScenarioSetting(scenario: Scenario, body: any): void { //: Observable<Scenario> {
+    const url = `${this.rest.URLS.scenarios}${scenario.id}/`;
+    this.http.patch<Scenario>(url, body).subscribe(scen =>
+      this.planningService.activeScenario = scenario = Object.assign({}, scen));
   }
 }

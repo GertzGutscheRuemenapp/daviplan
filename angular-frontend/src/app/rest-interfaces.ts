@@ -9,8 +9,8 @@ export const DemandTypes = {
 export interface BasedataSettings {
   popAreaLevel: number,
   popStatisticsAreaLevel: number,
-  defaultDemandRateSets: Record<number, number>,
-  defaultModeVariants: Record<number, number>,
+  defaultModeVariants: { mode: number, variant: number }[],
+  defaultDemandRateSets: { service: number, demandrateset: number }[]
   defaultPrognosis: number
 }
 
@@ -49,11 +49,12 @@ export interface PlanningProcess {
 
 export interface Scenario {
   id: number,
+  isBase?: boolean,
   name: string,
   planningProcess: number,
   prognosis?: number,
-  modevariants: Record<number, number>,
-  demandratesets: Record<number, number>
+  modeVariants: { mode: number, variant: number }[],
+  demandrateSets: { service: number, demandrateset: number }[]
 }
 
 export interface Symbol {

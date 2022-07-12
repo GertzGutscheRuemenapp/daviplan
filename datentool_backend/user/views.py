@@ -88,4 +88,4 @@ class ScenarioViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         condition_user_in_user = Q(planning_process__users__in=[self.request.user.profile])
         condition_owner_in_user = Q(planning_process__owner=self.request.user.profile)
 
-        return qs.filter(condition_user_in_user | condition_owner_in_user)
+        return qs.filter(condition_user_in_user | condition_owner_in_user).order_by('id')

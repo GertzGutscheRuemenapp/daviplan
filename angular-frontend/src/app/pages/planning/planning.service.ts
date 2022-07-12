@@ -38,6 +38,7 @@ export class PlanningService extends RestCacheService {
   activeInfrastructure?: Infrastructure;
   activeYear?: number;
   activeService?: Service;
+  activeScenario?: Scenario;
   showScenarioMenu = false;
 
   constructor(protected http: HttpClient, protected rest: RestAPI, private settings: SettingsService,
@@ -60,6 +61,7 @@ export class PlanningService extends RestCacheService {
     this.activeInfrastructure$.subscribe(infrastructure => this.activeInfrastructure = infrastructure);
     this.activeService$.subscribe(service => this.activeService = service);
     this.year$.subscribe(year => this.activeYear = year);
+    this.activeScenario$.subscribe(scenario => this.activeScenario = scenario);
   }
 
   getIndicators(serviceId: number): Observable<Indicator[]>{
@@ -99,10 +101,11 @@ export class PlanningService extends RestCacheService {
         const baseScenario: Scenario = {
           id: -1,
           planningProcess: -1,
+          isBase: true,
           name: 'Status Quo Fortschreibung',
           prognosis: baseSettings.defaultPrognosis,
-          modevariants: baseSettings.defaultModeVariants,
-          demandratesets: baseSettings.defaultDemandRateSets
+          modeVariants: baseSettings.defaultModeVariants,
+          demandrateSets: baseSettings.defaultDemandRateSets
         }
         subscriber.next(baseScenario);
         subscriber.complete();
