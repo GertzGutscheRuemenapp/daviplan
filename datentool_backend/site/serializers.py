@@ -94,11 +94,13 @@ class BaseDataSettingSerializer(serializers.Serializer):
     def get_default_demand_rate_sets(self, obj) -> Dict[int, int]:
         sets = DemandRateSet.objects.filter(
             is_default=True).order_by('service_id')
-        return dict(sets.values_list('service_id', 'id'))
+        ret = [{'service': s.service.id, 'demandrateset': s.id} for s in sets]
+        return ret
 
     def get_default_mode_variants(self, obj) -> Dict[int, int]:
         sets = ModeVariant.objects.filter(network__is_default=True).order_by('mode')
-        return dict(sets.values_list('mode', 'id'))
+        ret = [{'mode': s.mode, 'variant': s.id} for s in sets]
+        return ret
 
     def get_default_prognosis(self, obj) -> int:
         try:
