@@ -115,7 +115,6 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
         }
       })
     })
-    this.planningService.setReady(true);
   }
 
   ngOnDestroy(): void {

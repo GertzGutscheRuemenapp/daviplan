@@ -1,15 +1,11 @@
 import { Component, AfterViewInit, TemplateRef, ViewChild, OnDestroy } from '@angular/core';
-import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
 import {
   Infrastructure,
-  ExtLayer,
-  ExtLayerGroup,
   Place,
   Service,
-  Capacity,
   PlanningProcess,
   Scenario
 } from "../../../rest-interfaces";
@@ -55,13 +51,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     this.mapControl = this.mapService.get('planning-map');
     this.layerGroup = new MapLayerGroup('Angebot', { order: -1 });
     this.mapControl.addGroup(this.layerGroup);
-/*    if (this.planningService.isReady)
-      this.initData();
-    else {
-      this.planningService.ready.subscribe(() => {
-        this.initData();
-      });
-    }*/
     this.initData();
   }
 

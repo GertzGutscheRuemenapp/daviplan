@@ -29,7 +29,6 @@ export class PlanningService extends RestCacheService {
   placeFilterColumns: FilterColumn[] = [];
   private placesCache: Record<number, Place[]> = {};
   private capacitiesPerService: Record<number, Capacity[]> = {};
-  ready: EventEmitter<any> = new EventEmitter();
   year$ = new BehaviorSubject<number>(0);
   activeProcess$ = new BehaviorSubject<PlanningProcess | undefined>(undefined);
   activeScenario$ = new BehaviorSubject<Scenario | undefined>(undefined);
@@ -112,11 +111,6 @@ export class PlanningService extends RestCacheService {
       })
     })
     return observable
-  }
-
-  setReady(ready: boolean): void {
-    this.isReady = ready;
-    this.ready.emit(ready);
   }
 
   getPlaces(infrastructureId: number, options?: {

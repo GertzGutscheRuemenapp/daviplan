@@ -110,9 +110,9 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
     }
     if (!this.year || !this.activeLevel || !this.activeService || !this.activeProcess) return;
     this.updateMapDescription();
-
+    const scenarioId = this.planningService.activeScenario?.isBase? undefined: this.planningService.activeScenario?.id;
     this.planningService.getDemand(this.activeLevel.id,
-      { year: this.year!, service: this.activeService?.id, prognosis: this.planningService.activeScenario?.prognosis
+      { year: this.year!, service: this.activeService?.id, scenario: scenarioId
       }).subscribe(demandData => {
       let max = 1;
       let min = Number.MAX_VALUE;

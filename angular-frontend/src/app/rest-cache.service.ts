@@ -34,7 +34,7 @@ import { map, tap } from "rxjs/operators";
 export class RestCacheService {
   // ToDo: get functions with cached values instead of BehaviorSubjects
 
-  private genericCache: Record<string, any> = {};
+  private genericCache: Record<string, Record<string, any>> = {};
   private areaCache: Record<number, Area[]> = {};
   private demandAreaCache: Record<string, AreaIndicatorResult[]> = {};
   private popDataCache: Record<string, PopulationData[]> = {};
@@ -46,7 +46,13 @@ export class RestCacheService {
 
   constructor(protected http: HttpClient, protected rest: RestAPI) { }
 
-  protected getCachedData<Type>(url: string, options?: { params?: Record<string, any>, reset?: boolean, method?: 'GET' | 'POST' }): Observable<Type> {
+  // options.key: special key to cache data for, can be cleared separately
+  protected getCachedData<Type>(url: string, options?: {
+    params?: Record<string, any>,
+    reset?: boolean,
+    method?: 'GET' | 'POST',
+    key?: string
+  }): Observable<Type> {
     const method = options?.method || 'GET';
     if (options?.params) {
       if (method === 'GET') {
@@ -59,13 +65,16 @@ export class RestCacheService {
           url += `?${queryParams}`;
       }
     }
-    const key = (method === 'GET' || !options?.params)? url: url + JSON.stringify(options.params);
+    const cacheKey = options?.key || 'generic';
+    if (!this.genericCache[cacheKey]) this.genericCache[cacheKey] = {};
+    const cache = this.genericCache[cacheKey];
+    const requestKey = (method === 'GET' || !options?.params)? url: url + JSON.stringify(options.params);
     const _this = this;
     const observable = new Observable<Type>(subscriber => {
-      if (options?.reset || !this.genericCache[key]){
+      if (options?.reset || !cache[requestKey]){
         this.setLoading(true);
         function done(data: any) {
-          _this.genericCache[key] = data;
+          cache[requestKey] = data;
           subscriber.next(data);
           subscriber.complete();
           _this.setLoading(false);
@@ -84,7 +93,7 @@ export class RestCacheService {
           });
       }
       else {
-        subscriber.next(this.genericCache[key]);
+        subscriber.next(cache[requestKey]);
         subscriber.complete();
       }
     })
@@ -313,7 +322,7 @@ export class RestCacheService {
     return observable;
   }
 
-  computeIndicator(indicatorName: string, areaLevelId: number, serviceId: number, options?: { year?: number, prognosis?: number }): Observable<AreaIndicatorResult[]> {
+  computeIndicator(indicatorName: string, areaLevelId: number, serviceId: number, options?: { year?: number, prognosis?: number, scenario?: number }): Observable<AreaIndicatorResult[]> {
     const url = `${this.rest.URLS.services}${serviceId}/compute_indicator/`;
     let params: any = {
       area_level: areaLevelId,
@@ -323,10 +332,12 @@ export class RestCacheService {
       params.year = options?.year;
     if (options?.prognosis != undefined)
       params.prognosis = options?.prognosis;
-    return this.getCachedData<AreaIndicatorResult[]>(url, { params: params, method: 'POST' });
+    if (options?.scenario != undefined)
+      params.scenario = options?.scenario;
+    return this.getCachedData<AreaIndicatorResult[]>(url, { params: params, method: 'POST', key: options?.scenario?.toString() });
   }
 
-  getDemand(areaLevelId: number, options?: { year?: number, prognosis?: number, service?: number }): Observable<AreaIndicatorResult[]> {
+  getDemand(areaLevelId: number, options?: { year?: number, prognosis?: number, service?: number, scenario?: number }): Observable<AreaIndicatorResult[]> {
     let data: any = { area_level: areaLevelId };
     if (options?.year != undefined)
       data.year = options?.year;
@@ -334,8 +345,10 @@ export class RestCacheService {
       data.prognosis = options?.prognosis;
     if (options?.service != undefined)
       data.service = options?.service;
+    if (options?.scenario != undefined)
+      data.scenario = options?.scenario;
     const url = this.rest.URLS.areaDemand;
-    return this.getCachedData(url, {method: 'POST', params: data});
+    return this.getCachedData(url, {method: 'POST', params: data, key: options?.scenario?.toString()});
   }
 
   getDemandRateSets(service: number, options?: { reset: boolean }): Observable<DemandRateSet[]> {
@@ -397,6 +410,13 @@ export class RestCacheService {
   getCellReachability(cellCode: string, mode: TransportMode): Observable<PlaceResult[]>{
     return this.getCachedData<PlaceResult[]>(this.rest.URLS.reachabilityCell,
       { params: { cell_code: cellCode, mode: mode }, method: 'POST' });
+  }
+
+  clearCache(key?: string) {
+    if (key)
+      this.genericCache[key] = {};
+    else
+      this.reset()
   }
 
   reset(): void {

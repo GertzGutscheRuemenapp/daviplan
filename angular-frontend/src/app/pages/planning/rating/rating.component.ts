@@ -110,9 +110,10 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     }
     if (!this.year || !this.activeProcess || !this.selectedAreaLevel || !this.selectedIndicator || !this.activeService || this.areas.length === 0) return;
     this.updateMapDescription();
+    const scenarioId = this.planningService.activeScenario?.isBase? undefined: this.planningService.activeScenario?.id;
 
     this.planningService.computeIndicator(this.selectedIndicator.name, this.selectedAreaLevel.id, this.activeService.id,
-      { year: this.year!, prognosis: undefined }).subscribe(results => {
+      { year: this.year!, scenario: scenarioId }).subscribe(results => {
       let max = 0;
       let min = Number.MAX_VALUE;
       this.areas.forEach(area => {

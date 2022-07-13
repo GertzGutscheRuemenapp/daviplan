@@ -248,6 +248,7 @@ export class ScenarioMenuComponent implements OnInit {
     const url = `${this.rest.URLS.scenarios}${scenario.id}/`;
     this.http.patch<Scenario>(url, body).subscribe(scen => {
       Object.assign(scenario, scen);
+      this.planningService.clearCache(scenario.id.toString());
       this.planningService.activeScenario$.next(scenario);
     });
   }
