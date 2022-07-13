@@ -43,24 +43,6 @@ class ScenarioSerializer(serializers.ModelSerializer):
                   'mode_variants', 'demandrate_sets')
         extra_kwargs = {'prognosis': {'required': False}}
 
-    #def get_demandratesets(self, obj) -> Dict[int, int]:
-        #sets = obj.scenarioservice_set
-        #return dict(sets.values_list('demandrateset__service', 'demandrateset'))
-
-    #def validate(self, data):
-        #foo = data.pop('demandrate_sets', None)
-        ## Do what you want with your value
-        #return super().validate(data)
-
-    #def to_representation(self, obj):
-        #data = super().to_representation(obj)
-        #sets = obj.scenarioservice_set
-
-        #data['demandrate_sets'] = [
-            #{'service': drs.demandrateset.service.id,
-             #'set': drs.demandrateset.id} for drs in sets.all()]
-        #return data
-
     def update(self, instance, validated_data):
         mode_set = validated_data.pop('scenariomode_set', [])
         service_set = validated_data.pop('scenarioservice_set', [])
