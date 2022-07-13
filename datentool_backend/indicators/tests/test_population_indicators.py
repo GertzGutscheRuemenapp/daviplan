@@ -226,7 +226,8 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         response = self.post(self.url_key + '-aggregate-population', data=query_params)
         self.response_400(response)
 
-        query_params = {'area_level': self.area_level2.pk, }
+        query_params = {'area_level': self.area_level2.pk,
+                        'year': self.years.first().year,}
 
         response = self.post(self.url_key + '-aggregate-population',
                              data=query_params)
@@ -253,6 +254,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         query_params = {'area_level': self.obj.pk,
                         'gender': self.genders[0].pk,
+                        'year': self.years.first().year
                         }
 
         response = self.post(self.url_key + '-aggregate-population',
