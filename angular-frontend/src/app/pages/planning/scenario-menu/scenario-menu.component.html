@@ -10,11 +10,12 @@
         </div>
         <div class="scenario-card-body">
           <ng-container *ngIf="domain==='demand'">
-            <ng-container [ngTemplateOutlet]="demandScenarioTemplate"
+            <ng-container [ngTemplateOutlet]="demandTemplate"
                           [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
           </ng-container>
           <ng-container *ngIf="domain==='reachabilities'">
-            <ng-container *ngTemplateOutlet="reachabilitiesScenario"></ng-container>
+            <ng-container [ngTemplateOutlet]="reachabilitiesTemplate"
+                          [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
           </ng-container>
           <ng-container *ngIf="domain==='rating'">
             <ng-container *ngTemplateOutlet="ratingScenario"></ng-container>
@@ -63,7 +64,7 @@
   </form>
 </ng-template>
 
-<ng-template #demandScenarioTemplate let-scenario="scenario">
+<ng-template #demandTemplate let-scenario="scenario">
   <div class="scenario-row" *ngIf="planningService.activeService">
     <mat-icon class="material-icons-outlined" color="primary"
               title="aktuell eingestellte Nachfragequoten anzeigen"
@@ -109,43 +110,48 @@
   </div>
 </ng-template>
 
-<ng-template #reachabilitiesScenario>
+<ng-template #reachabilitiesTemplate let-scenario="scenario">
   <div class="scenario-row">
-   <!-- <mat-icon class="material-icons-outlined" color="primary"
-              title="aktuell eingestellte Verkehrsmittelvarianten anzeigen">
-      info
-    </mat-icon>-->
-    <mat-form-field appearance="standard" class="small">
-      <mat-label>Wegenetz Auto</mat-label>
-      <mat-select disableOptionCentering disableRipple value="Ausbau der B232">
-        <mat-option value="Dtl 2021">
-          Dtl 2021
-        </mat-option>
-        <mat-option value="Ausbau der B232">
-          Ausbau der B232
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-  </div>
-  <div class="scenario-row">
-    <mat-form-field appearance="standard" class="small">
+    <mat-form-field appearance="standard" class="small"
+                    floatLabel="always">
       <mat-label>Wegenetz zu Fuß</mat-label>
-      <mat-select disableOptionCentering disableRipple value="Dtl 2021">
-        <mat-option value="Dtl 2021">
-          Dtl 2021
+      <mat-select disableOptionCentering disableRipple
+                  [value]="getNetwork(scenario, TransportMode.WALK)"
+                  (selectionChange)="onNetworkChange(scenario, TransportMode.WALK, $event.value)"
+                  [placeholder]="(networks.length > 0)? 'keine Auswahl': 'keine Netze vorhanden'"
+                  [disabled]="scenario.isBase">
+        <mat-option *ngFor="let network of networks" [value]="network">
+          {{network.name}}
         </mat-option>
       </mat-select>
     </mat-form-field>
   </div>
   <div class="scenario-row">
-    <mat-form-field appearance="standard" class="small">
+    <mat-form-field appearance="standard" class="small"
+                    floatLabel="always">
       <mat-label>Wegenetz Fahrrad</mat-label>
-      <mat-select disableOptionCentering disableRipple value="mit Schnellradweg 2021">
-        <mat-option value="Dtl 2021">
-          Dtl 2021
+      <mat-select disableOptionCentering disableRipple
+                  [value]="getNetwork(scenario, TransportMode.BIKE)"
+                  (selectionChange)="onNetworkChange(scenario, TransportMode.BIKE, $event.value)"
+                  [placeholder]="(networks.length > 0)? 'keine Auswahl': 'keine Netze vorhanden'"
+                  [disabled]="scenario.isBase">
+        <mat-option *ngFor="let network of networks" [value]="network">
+          {{network.name}}
         </mat-option>
-        <mat-option value="mit Schnellradweg 2021">
-          mit Schnellradweg 2021
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="scenario-row">
+    <mat-form-field appearance="standard" class="small"
+                    floatLabel="always">
+      <mat-label>Wegenetz Auto</mat-label>
+      <mat-select disableOptionCentering disableRipple
+                  [value]="getNetwork(scenario, TransportMode.CAR)"
+                  (selectionChange)="onNetworkChange(scenario, TransportMode.CAR, $event.value)"
+                  [placeholder]="(networks.length > 0)? 'keine Auswahl': 'keine Netze vorhanden'"
+                  [disabled]="scenario.isBase">
+        <mat-option *ngFor="let network of networks" [value]="network">
+          {{network.name}}
         </mat-option>
       </mat-select>
     </mat-form-field>

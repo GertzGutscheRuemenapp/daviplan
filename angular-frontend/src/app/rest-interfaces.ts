@@ -326,3 +326,16 @@ export interface PlaceResult {
   placeId: number,
   value: number
 }
+
+export interface Network {
+  id: number,
+  name: string,
+  isDefault: boolean
+}
+
+export interface ModeVariant {
+  id: number,
+  mode: number,
+  network: number
+  // cutoffTime: number
+}

@@ -17,7 +17,7 @@ import {
   Statistic,
   FieldType,
   RasterCell,
-  TransportMode, CellResult, PlaceResult, ExtLayerGroup, ExtLayer
+  TransportMode, CellResult, PlaceResult, ExtLayerGroup, ExtLayer, ModeVariant, Network
 } from "./rest-interfaces";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
@@ -354,6 +354,16 @@ export class RestCacheService {
   getDemandRateSets(service: number, options?: { reset: boolean }): Observable<DemandRateSet[]> {
     const url = `${this.rest.URLS.demandRateSets}?service=${service}`;
     return this.getCachedData<DemandRateSet[]>(url, options);
+  }
+
+  getModeVariants(options?: { reset: boolean }): Observable<ModeVariant[]> {
+    const url = this.rest.URLS.modevariants;
+    return this.getCachedData<ModeVariant[]>(url, options);
+  }
+
+  getNetworks(options?: { reset: boolean }): Observable<Network[]> {
+    const url = this.rest.URLS.networks;
+    return this.getCachedData<Network[]>(url, options);
   }
 
   getStatistics(options?: { reset?: boolean }): Observable<Statistic[]>{

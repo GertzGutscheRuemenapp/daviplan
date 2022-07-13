@@ -60,7 +60,7 @@ router.register(r'demandratesets', DemandRateSetViewSet,
 
 # indicator
 router.register(r'networks', NetworkViewSet, basename='networks')
-router.register(r'modevariants', ModeVariantViewSet, basename='networks')
+router.register(r'modevariants', ModeVariantViewSet, basename='modevariants')
 router.register(r'stops', StopViewSet, basename='stops')
 router.register(r'matrixstopstops', MatrixStopStopViewSet, basename='matrixstopstops')
 router.register(r'matrixcellplaces', MatrixCellPlaceViewSet, basename='matrixcellplaces')
