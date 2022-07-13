@@ -70,13 +70,17 @@
               (click)="onShowDemandQuotaSet()">
       info
     </mat-icon>
-    <mat-form-field appearance="standard" class="small" style="width: 145px;">
-      <mat-label>Nachfragequoten-Set</mat-label>
+    <mat-form-field appearance="standard" class="small"
+                    style="width: 145px;"
+                    floatLabel="always"
+                    title="Nachfragequoten-Set ({{planningService.activeService.name}})">
+      <mat-label>Nachfragequoten-Set ({{planningService.activeService.name}})</mat-label>
       <mat-select disableOptionCentering disableRipple
                   [disabled]="scenario.isBase"
+                  [placeholder]="(demandRateSets.length > 0)? 'keine Auswahl': 'keine Sets definiert'"
                   [value]="getDemandRateSet(scenario)"
                   (selectionChange)="onDemandRateChange(scenario, $event.value)">
-        <mat-option *ngFor="let set of demandRateSets" [value]="set.id">
+        <mat-option *ngFor="let set of demandRateSets" [value]="set">
           {{set.name}}
         </mat-option>
       </mat-select>
@@ -88,11 +92,14 @@
               (click)="onShowDemandPlaceholder()">
       info
     </mat-icon>
-    <mat-form-field appearance="standard" class="small" style="width: 145px;">
+    <mat-form-field appearance="standard" class="small"
+                    style="width: 145px;"
+                    floatLabel="always">
       <mat-label>Einwohnerentwicklung</mat-label>
       <mat-select disableOptionCentering disableRipple
                   [value]="scenario.prognosis"
                   [disabled]="scenario.isBase"
+                  [placeholder]="(prognoses.length > 0)? 'keine Auswahl': 'keine Prognosen definiert'"
                   (selectionChange)="onPrognosisChange(scenario, $event.value)">
         <mat-option *ngFor="let prognosis of prognoses" [value]="prognosis.id">
           {{prognosis.name}}

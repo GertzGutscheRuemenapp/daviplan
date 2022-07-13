@@ -80,9 +80,9 @@ export class ScenarioMenuComponent implements OnInit {
     }
   }
 
-  getDemandRateSet(scenario: Scenario): number | undefined {
+  getDemandRateSet(scenario: Scenario): DemandRateSet | undefined {
     const id = scenario.demandrateSets.find(dr => dr.service === this.planningService.activeService?.id)?.demandrateset;
-    return id;
+    return this.demandRateSets.find(dr => dr.id === id);
   }
 
   setScenario(scenario: Scenario, options?: { silent?: boolean }): void {
@@ -232,10 +232,10 @@ export class ScenarioMenuComponent implements OnInit {
     });
   }
 
-  onDemandRateChange(scenario: Scenario, setId: number): void {
+  onDemandRateChange(scenario: Scenario, demandRateSet: DemandRateSet): void {
     if (!this.planningService.activeService) return;
     const serviceId = this.planningService.activeService.id;
-    const body: any = { demandrateSets: [{ service: serviceId, demandrateset: setId }] };
+    const body: any = { demandrateSets: [{ service: serviceId, demandrateset: demandRateSet.id }] };
     this.patchScenarioSetting(scenario, body);
   }
 
@@ -246,7 +246,9 @@ export class ScenarioMenuComponent implements OnInit {
 
   private patchScenarioSetting(scenario: Scenario, body: any): void { //: Observable<Scenario> {
     const url = `${this.rest.URLS.scenarios}${scenario.id}/`;
-    this.http.patch<Scenario>(url, body).subscribe(scen =>
-      this.planningService.activeScenario = scenario = Object.assign({}, scen));
+    this.http.patch<Scenario>(url, body).subscribe(scen => {
+      Object.assign(scenario, scen);
+      this.planningService.activeScenario$.next(scenario);
+    });
   }
 }
