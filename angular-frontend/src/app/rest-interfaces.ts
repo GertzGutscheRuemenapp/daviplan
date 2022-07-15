@@ -99,12 +99,10 @@ export interface Indicator {
 
 export interface RasterCell {
   id: number,
-  geometry: string | Geometry,
-  properties: {
-    cellcode?: string,
-    population?: number,
-    value?: number
-  }
+  geom: any,
+  cellcode: string,
+  population: number,
+  value?: number
 }
 
 export interface AreaLevel {

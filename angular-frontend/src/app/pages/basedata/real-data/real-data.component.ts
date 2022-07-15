@@ -243,7 +243,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
             fillColor: 'rgba(255, 255, 0, 0.9)'
           }
         },
-        valueMapping: {
+        valueStyles: {
           field: 'value',
           // fillColor: diffDisplay? colorFunc: undefined,
           radius: {

@@ -159,12 +159,17 @@ export class OlMap {
   addVectorTileLayer(name: string, url: string, options: {
       visible?: boolean, opacity?: number,
       stroke?: { color?: string, width?: number, dash?: number[], mouseOverColor?: string },
-      fill?: { color?: string, mouseOverColor?: string },
+      fill?: { color?: string | ((d: number) => string), mouseOverColor?: string },
       tooltipField?: string,
       featureClass?: 'feature' | 'renderFeature',
       labelField?: string,
       showLabel?: boolean,
       mouseOverCursor?: string,
+      valueField?: string,
+      valueMap?: {
+        field: string,
+        values: Record<string, number>
+      }
     } = {}): Layer<any> {
     const source = new VectorTileSource({
       format: new MVT({
@@ -174,6 +179,7 @@ export class OlMap {
       url: url
     });
 
+    const fillColor: string = (typeof(options?.fill?.color) === 'string')? options?.fill?.color: 'rgba(0, 0, 0, 0)';
     const style = new Style({
       stroke: new Stroke({
         color:  options?.stroke?.color || 'rgba(0, 0, 0, 1.0)',
@@ -181,7 +187,7 @@ export class OlMap {
         lineDash: options?.stroke?.dash
       }),
       fill: new Fill({
-        color: options?.fill?.color || 'rgba(0, 0, 0, 0)'
+        color: fillColor
       }),
       text: new OlText({
         font: '14px Calibri,sans-serif',
@@ -203,6 +209,12 @@ export class OlMap {
       visible: options?.visible === true,
       opacity: (options?.opacity != undefined) ? options?.opacity: 1,
       style: function(feature) {
+        if (typeof options?.fill?.color === 'function') {
+          const valueField = options?.valueField || 'value';
+          let value = options.valueMap? options.valueMap.values[feature.get(options?.valueMap.field)]: feature.get(valueField);
+          const color = (value !== undefined)? options.fill.color(Number(value)): 'grey';
+          style.getFill().setColor(color);
+        }
         if (options?.labelField && layer.get('showLabel')) {
           const label = feature.get(options?.labelField);
           const text = (_this.view.getZoom()! > 10 )? String( (label != undefined)? label: 0) : ''

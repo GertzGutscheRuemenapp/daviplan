@@ -132,7 +132,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           enabled: true,
           cursor: 'help'
         },
-        valueMapping: {
+        valueStyles: {
           radius: {
             range: [3, 20],
             scale: 'linear'

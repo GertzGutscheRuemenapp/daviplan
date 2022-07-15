@@ -209,7 +209,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
           }
         },
         showLabel: true,
-        valueMapping: {
+        valueStyles: {
           field: 'value',
           radius: {
             range: [5, 50],

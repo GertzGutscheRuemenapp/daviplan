@@ -2,6 +2,7 @@ import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@an
 import { MatDialog } from "@angular/material/dialog";
 import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
+import { environment } from "../../../../environments/environment";
 import {
   Capacity,
   Infrastructure,
@@ -15,7 +16,7 @@ import { MapControl, MapService } from "../../../map/map.service";
 import { Subscription } from "rxjs";
 import * as d3 from "d3";
 import { Geometry } from "ol/geom";
-import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { MapLayerGroup, VectorLayer, VectorTileLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-reachabilities',
@@ -38,8 +39,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   mapControl?: MapControl;
   placesLayerGroup?: MapLayerGroup;
   reachLayerGroup?: MapLayerGroup;
-  baseRasterLayer?: VectorLayer;
-  reachRasterLayer?: VectorLayer;
+  baseRasterLayer?: VectorTileLayer;
+  reachRasterLayer?: VectorTileLayer;
   private subscriptions: Subscription[] = [];
   private mapClickSub?: Subscription;
   placesLayer?: VectorLayer;
@@ -61,11 +62,11 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.mapControl.addGroup(this.reachLayerGroup);
     this.planningService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures;
-      this.planningService.getRasterCells().subscribe(rasterCells => {
+      // this.drawRaster();
+      this.applyUserSettings();
+/*      this.planningService.getRasterCells({targetProjection: this.mapControl?.map?.mapProjection }).subscribe(rasterCells => {
         this.rasterCells = rasterCells;
-        // this.drawRaster();
-        this.applyUserSettings();
-      });
+      });*/
     });
     this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
       this.activeInfrastructure = infrastructure;
@@ -94,24 +95,22 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   drawRaster(): void {
-    this.baseRasterLayer = new VectorLayer( 'Rasterzellen', {
-        order: 0,
-        description: 'Zensus-Raster (LAEA)',
-        opacity: 1,
-        style: {
-          fillColor: 'rgba(0, 0, 0, 0)',
-          strokeWidth: 1,
-          strokeColor: 'black',
-          symbol: 'line'
-        },
-        labelField: 'label',
-        showLabel: false
-      });
-    this.baseRasterLayer?.clearFeatures(this.baseRasterLayer!.id!);
-    this.baseRasterLayer?.addFeatures( this.rasterCells, {
-      properties: 'properties',
-      geometry: 'geometry'
+    const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
+    this.baseRasterLayer = new VectorTileLayer( 'Rasterzellen', url,{
+      order: 0,
+      description: 'Zensus-Raster (LAEA)',
+      opacity: 1,
+      style: {
+        fillColor: 'rgba(0, 0, 0, 0)',
+        strokeWidth: 1,
+        strokeColor: 'black',
+        symbol: 'line'
+      },
+      labelField: 'label',
+      showLabel: false
     });
+    this.placesLayerGroup?.addLayer(this.baseRasterLayer);
+    this.baseRasterLayer?.clearFeatures(this.baseRasterLayer!.id!);
   }
 
   updatePlaces(): void {
@@ -182,30 +181,25 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       if (this.reachRasterLayer) {
         this.reachLayerGroup?.removeLayer(this.reachRasterLayer);
       }
-      let features: RasterCell[] = [];
+      let values: Record<string, number> = {};
       cellResults.forEach(cellResult => {
-        const cell = this.rasterCells.find(c => c.properties.cellcode === cellResult.cellCode);
-        if (cell) {
-          cell.properties.value = Math.round(cellResult.value * 100) / 100;
-          features.push(cell);
-        }
+        values[cellResult.cellCode] = Math.round(cellResult.value * 100) / 100;
       })
       const max = Math.max(...cellResults.map(c => c.value));
 
-      this.reachRasterLayer = new VectorLayer('gewählter Standort', {
+      const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
+      this.reachRasterLayer = new VectorTileLayer( 'gewählter Standort', url,{
         order: 0,
         description: 'Erreichbarkeit des gewählten Standorts',
         opacity: 1,
         style: {
-          fillColor: 'rgba(0, 0, 0, 0)',
+          fillColor: 'grey',
           strokeColor: 'rgba(0, 0, 0, 0)',
-          strokeWidth: 1,
-          symbol: 'square'
+          symbol: 'line'
         },
-        labelField: 'value',
+        labelField: 'label',
         showLabel: false,
-        valueMapping: {
-          field: 'value',
+        valueStyles: {
           color: {
             range: d3.interpolateRdYlGn,
             scale: 'sequential',
@@ -215,13 +209,13 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           min: 0,
           max: max
         },
+        valueMap: {
+          field: 'cellcode',
+          values: values
+        },
         unit: 'Minute(n)'
       });
       this.reachLayerGroup?.addLayer(this.reachRasterLayer);
-      this.reachRasterLayer.addFeatures(features,{
-        properties: 'properties',
-        geometry: 'geometry'
-      });
     })
   }
 
@@ -230,8 +224,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     const lat = this.pickedCoords[1];
     const lon = this.pickedCoords[0];
     this.planningService.getClosestCell(lat, lon, {targetProjection: this.mapControl?.map?.mapProjection }).subscribe(cell => {
-      const marker = this.mapControl?.addMarker(cell.geometry as Geometry);
-      this.planningService.getCellReachability(cell.properties.cellcode!, this.mode).subscribe(placeResults => {
+      const marker = this.mapControl?.addMarker(cell.geom as Geometry);
+      this.planningService.getCellReachability(cell.cellcode, this.mode).subscribe(placeResults => {
         let showLabel = false;
         if (this.placeReachabilityLayer) {
           this.reachLayerGroup?.removeLayer(this.placeReachabilityLayer);
@@ -254,7 +248,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           labelField: 'value',
           showLabel: showLabel,
           tooltipField: 'value',
-          valueMapping: {
+          valueStyles: {
             field: 'value',
             color: {
               range: d3.interpolateRdYlGn,
@@ -282,7 +276,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     if (this.placesLayer)
       this.placesLayer?.clearSelection();
     this.reachLayerGroup?.clear();
-
   }
 
   setPlaceSelection(enable: boolean): void {

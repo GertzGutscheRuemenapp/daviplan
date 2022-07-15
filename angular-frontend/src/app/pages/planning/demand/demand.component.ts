@@ -145,7 +145,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
               fillColor: 'rgba(255, 255, 0, 0.7)'
             }
           },
-          valueMapping: {
+          valueStyles: {
             field: 'value',
             color: {
               range: d3.interpolateBlues,

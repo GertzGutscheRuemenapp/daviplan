@@ -19,12 +19,12 @@ import {
   RasterCell,
   TransportMode, CellResult, PlaceResult, ExtLayerGroup, ExtLayer, ModeVariant, Network
 } from "./rest-interfaces";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
 import { sortBy, wktToGeom } from "./helpers/utils";
 import * as turf from "@turf/helpers";
 import centroid from '@turf/centroid';
-import { Geometry, MultiPolygon } from "ol/geom";
+import { Geometry, MultiPolygon, Polygon } from "ol/geom";
 import { GeoJSON } from "ol/format";
 import { map, tap } from "rxjs/operators";
 
@@ -72,6 +72,7 @@ export class RestCacheService {
     const _this = this;
     const observable = new Observable<Type>(subscriber => {
       if (options?.reset || !cache[requestKey]){
+        const headers = new HttpHeaders().set('Content-Type', 'application/json; charset=utf-8');
         this.setLoading(true);
         function done(data: any) {
           cache[requestKey] = data;
@@ -80,13 +81,13 @@ export class RestCacheService {
           _this.setLoading(false);
         }
         if (method === 'GET')
-          this.http.get<Type>(url).subscribe(data => {
+          this.http.get<Type>(url, {headers: headers}).subscribe(data => {
             done(data);
           }, error => {
             this.setLoading(false);
           });
         else
-          this.http.post<Type>(url, options?.params).subscribe(data => {
+          this.http.post<Type>(url, options?.params, {headers: headers}).subscribe(data => {
             done(data);
           }, error => {
             this.setLoading(false);
@@ -245,19 +246,35 @@ export class RestCacheService {
   getRasterCells(options?: { targetProjection?: string, reset?: boolean }): Observable<RasterCell[]>{
     const targetProjection = (options?.targetProjection !== undefined)? options?.targetProjection: 'EPSG:4326';
     const observable = new Observable<RasterCell[]>(subscriber => {
-      this.getCachedData<any>(this.rest.URLS.rasterCells, { reset: options?.reset }).subscribe(res => {
-        res.features.forEach((rasterCell: RasterCell) => {
-          if (!(rasterCell.geometry instanceof Geometry))
-            rasterCell.geometry = wktToGeom(rasterCell.geometry as string,
-              { targetProjection: targetProjection, ewkt: true});
+      this.getCachedData<RasterCell[]>(this.rest.URLS.rasterCells, { reset: options?.reset }).subscribe(res => {
+        res.forEach((rasterCell: RasterCell) => {
+          if (!(rasterCell.geom instanceof Geometry)){
+            const g = JSON.parse(rasterCell.geom);
+            // ToDo: transform
+            rasterCell.geom = new Polygon(g.coordinates);
+          }
         })
-        subscriber.next(res.features);
+        subscriber.next(res);
         subscriber.complete();
       }, error => {
         this.setLoading(false);
       });
     })
     return observable;
+  }
+
+  getClosestCell(lat: number, lon: number, options?: { targetProjection?: string }): Observable<RasterCell> {
+    const query = this.getCachedData<RasterCell> (this.rest.URLS.closestCell,
+      { params: { lat: lat, lon: lon }, method: 'GET' });
+    const targetProjection = (options?.targetProjection !== undefined)? options?.targetProjection: 'EPSG:4326';
+    return query.pipe(map(cell => {
+      if (!(cell.geom instanceof Geometry)){
+        const g = JSON.parse(cell.geom);
+        // ToDo: transform
+        cell.geom = new Polygon(g.coordinates);
+      }
+      return cell;
+    }))
   }
 
   getAreaLevelPopulation(areaLevelId: number, year: number, options?: { genders?: number[], prognosis?: number, ageGroups?: number[] }): Observable<AreaIndicatorResult[]> {
@@ -402,19 +419,6 @@ export class RestCacheService {
   getPlaceReachability(placeId: number, mode: TransportMode): Observable<CellResult[]>{
     return this.getCachedData<CellResult[]>(this.rest.URLS.reachabilityPlace,
       { params: { mode: mode, place: placeId }, method: 'POST' });
-  }
-
-  getClosestCell(lat: number, lon: number, options?: { targetProjection?: string }): Observable<RasterCell> {
-    const query = this.getCachedData<RasterCell> (this.rest.URLS.closestCell,
-      { params: { lat: lat, lon: lon }, method: 'GET' });
-    const targetProjection = (options?.targetProjection !== undefined)? options?.targetProjection: 'EPSG:4326';
-    return query.pipe(map(cell => {
-      if (typeof cell.geometry === 'string') {
-        cell.geometry = wktToGeom(cell.geometry as string,
-          {targetProjection: targetProjection, ewkt: true});
-      }
-      return cell;
-    }))
   }
 
   getCellReachability(cellCode: string, mode: TransportMode): Observable<PlaceResult[]>{
