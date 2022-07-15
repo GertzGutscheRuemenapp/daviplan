@@ -1,5 +1,6 @@
 from .area.views import *
 from .user.views import *
+from .population.views import *
 from .modes.views import *
 from .demand.views import *
 from .infrastructure.views import *
