@@ -11,17 +11,46 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
 
+  router-car:
+    image: osrm/osrm-backend
+    command: osrm/osrm-backend osrm-routed --algorithm mld /data/datentool.osrm
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    volumes:
+      - ./public/routers/car:/data
+
+  router-bicycle:
+    image: osrm/osrm-backend
+    command: osrm/osrm-backend osrm-routed --algorithm mld /data/datentool.osrm
+    ports:
+      - "5001:5000"
+    restart: unless-stopped
+    volumes:
+      - ./public/routers/bicycle:/data
+
+  router-foot:
+    image: osrm/osrm-backend
+    command: osrm/osrm-backend osrm-routed --algorithm mld /data/datentool.osrm
+    ports:
+      - "5002:5000"
+    restart: unless-stopped
+    volumes:
+      - ./public/routers/foot:/data
+
   web:
     env_file: .env
     image: gertzgutscheruemenapp/daviplan:testing
     links:
       - postgis:db
+      - router-car:router-car
     command: bash -c "cd /root/datentool && git pull && pip install -r requirements.txt && cd angular-frontend && npm ci && ng build --stats_json --build-optimizer && cd /root/datentool && python manage.py migrate --run-syncdb && python manage.py runserver 0.0.0.0:8000"
     ports:
       - "${EXT_PORT}:8000"
     restart: unless-stopped
     volumes:
       - ./public:/root/datentool/public
+
 
 volumes:
   postgres_data:

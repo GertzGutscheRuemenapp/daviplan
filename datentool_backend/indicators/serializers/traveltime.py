@@ -8,13 +8,18 @@ from openpyxl.worksheet.datavalidation import DataValidation
 
 from django.conf import settings
 from django.db import connection
+from django.contrib.gis.db.models.functions import Transform, Func
 
 from rest_framework import serializers
 from rest_framework.fields import FileField, IntegerField, BooleanField
 
 from matrixconverters.read_ptv import ReadPTVMatrix
 
-from datentool_backend.modes.models import (MODE_MAX_DISTANCE, MODE_SPEED,
+from routingpy import OSRM
+
+from datentool_backend.modes.models import (MODE_MAX_DISTANCE,
+                                            MODE_SPEED,
+                                            MODE_OSRM_PORTS,
                                             ModeVariant)
 from datentool_backend.indicators.models import (Stop,
                                                  MatrixStopStop,
@@ -136,6 +141,38 @@ class MatrixAirDistanceMixin(serializers.Serializer):
 
         df['variant_id'] = variant.id
 
+        return df
+
+
+class MatrixRoutedDistanceMixin(serializers.Serializer):
+    drop_constraints = BooleanField(default=True)
+
+    def calculate_traveltimes(self, request) -> pd.DataFrame:
+        """calculate traveltimes"""
+
+        variant = ModeVariant.objects.get(id=request.data.get('variant'))
+        port = MODE_OSRM_PORTS[variant.mode]
+        max_distance = MODE_MAX_DISTANCE[variant.mode]
+
+        client = OSRM(base_url=f'http://localhost:{port}')
+        sources = Place.objects.all()\
+            .annotate(wgs=Transform('geom', 4326))\
+            .annotate(lon=Func('wgs',function='ST_Y'),
+                      lat=Func('wgs',function='ST_X'))\
+            .values('id', 'lon', 'lat')
+        destinations = RasterCellPopulation.cell.objects.all()\
+            .annotate(wgs=Transform('pnt', 4326))\
+            .annotate(lon=Func('wgs',function='ST_Y'),
+                      lat=Func('wgs',function='ST_X'))\
+            .values('id', 'lon', 'lat')
+        # as lists
+        coords = [sources]+[destinations]
+        matrix = client.matrix(locations=coords,
+                               sources=range(len(sources)),
+                               destinations = range(len(sources), len(coords)),
+                               profile='driving')
+        # matrix as dataframe
+        df = pd.DataFrame(matrix)
         return df
 
 

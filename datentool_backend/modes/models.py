@@ -15,7 +15,13 @@ class Mode(models.IntegerChoices):
 MODE_SPEED = {
     Mode.WALK: 3.5,
     Mode.BIKE: 10.5,
-    Mode.CAR: 25
+    Mode.CAR: 25,
+}
+
+MODE_OSRM_PORTS = {
+    Mode.WALK: 5002,
+    Mode.BIKE: 5001,
+    Mode.CAR: 5000,
 }
 
 MODE_MAX_DISTANCE = {
