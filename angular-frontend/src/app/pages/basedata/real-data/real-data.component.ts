@@ -7,8 +7,8 @@ import {
   AgeGroup,
   Area,
   AreaLevel, Gender,
-  Layer,
-  LayerGroup,
+  ExtLayer,
+  ExtLayerGroup,
   PopEntry,
   Population,
   Year
@@ -27,6 +27,7 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { Router } from "@angular/router";
 import { BehaviorSubject } from "rxjs";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
+import { MapLayer, MapLayerGroup, VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-real-data',
@@ -51,8 +52,8 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   realYears: number[] = [];
   previewYear?: Year;
   previewArea?: Area;
-  previewLayer?: Layer;
-  legendGroup?: LayerGroup;
+  previewLayer?: VectorLayer;
+  layerGroup?: MapLayerGroup;
   popEntries: Record<number, PopEntry[]> = {};
   populations: Population[] = [];
   genders: Gender[] = [];
@@ -73,10 +74,8 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-real-data-map');
-    this.legendGroup = this.mapControl.addGroup({
-      name: 'Bevölkerungsentwicklung',
-      order: -1
-    }, false)
+    this.layerGroup = new MapLayerGroup('Bevölkerungsentwicklung', { order: -1 })
+    this.mapControl.addGroup(this.layerGroup);
     this.popService.getAreaLevels({ reset: true }).subscribe(areaLevels => {
       this.defaultPopLevel = areaLevels.find(al => al.isDefaultPopLevel);
       this.popLevel = areaLevels.find(al => al.isPopLevel);
@@ -196,7 +195,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
 
   updatePreview(): void {
     if (this.previewLayer) {
-      this.mapControl?.removeLayer(this.previewLayer.id!);
+      this.layerGroup?.removeLayer(this.previewLayer);
       this.previewLayer = undefined;
     }
     if (!this.previewYear) return;
@@ -218,38 +217,49 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         area.properties.description = `<b>${area.properties.label}</b><br>Bevölkerung: ${area.properties.value}`
         max = Math.max(max, value);
       })
-      const radiusFunc = d3.scaleLinear().domain([0, max]).range([5, 50]);
-      this.previewLayer = this.mapControl?.addLayer({
-          order: 0,
-          type: 'vector',
-          group: this.legendGroup?.id,
-          name: this.popLevel!.name,
-          description: this.popLevel!.name,
-          opacity: 1,
-          symbol: {
-            strokeColor: 'white',
-            fillColor: 'rgba(165, 15, 21, 0.9)',
-            symbol: 'circle'
-          },
-          labelField: 'value',
-          showLabel: true
+      this.previewLayer = new VectorLayer(this.popLevel!.name, {
+        order: 0,
+        description: this.popLevel!.name,
+        opacity: 1,
+        style: {
+          strokeColor: 'white',
+          fillColor: 'rgba(165, 15, 21, 0.9)',
+          symbol: 'circle'
         },
-        {
-          visible: true,
-          tooltipField: 'description',
-          mouseOver: {
+        labelField: 'value',
+        showLabel: true,
+        tooltipField: 'description',
+        mouseOver: {
+          enabled: true,
+          style: {
             strokeColor: 'yellow',
             fillColor: 'rgba(255, 255, 0, 0.7)'
-          },
-          selectable: true,
-          select: {
+          }
+        },
+        select: {
+          enabled: true,
+          style: {
             strokeColor: 'rgb(180, 180, 0)',
             fillColor: 'rgba(255, 255, 0, 0.9)'
+          }
+        },
+        valueMapping: {
+          field: 'value',
+          // fillColor: diffDisplay? colorFunc: undefined,
+          radius: {
+            range: [5, 50],
+            scale: 'linear'
           },
-          radiusFunc: radiusFunc
-        });
-      this.mapControl?.addFeatures(this.previewLayer!.id!, this.areas,
-        { properties: 'properties', geometry: 'centroid', zIndex: 'value' });
+          min: 0,
+          max: max
+        }
+      });
+      this.layerGroup?.addLayer(this.previewLayer);
+      this.previewLayer?.addFeatures(this.areas, {
+        properties: 'properties',
+        geometry: 'centroid',
+        zIndex: 'value'
+      });
       this.updateAgeTree();
       this.previewLayer!.featureSelected?.subscribe(evt => {
         if (evt.selected) {
@@ -265,7 +275,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
 
   onAreaChange(): void {
     if (!this.previewLayer) return;
-    this.mapControl?.selectFeatures([this.previewArea!.id], this.previewLayer!.id!, { silent: true, clear: true });
+    this.previewLayer?.selectFeatures([this.previewArea!.id], { silent: true, clear: true });
     this.updateAgeTree();
   }
 
@@ -328,10 +338,6 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         dialogRef2.close();
       })
     })
-  }
-
-  ngOnDestroy(): void {
-    this.mapControl?.destroy();
   }
 
   showDataTable(): void {
@@ -414,5 +420,9 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
     const element = event.currentTarget as HTMLInputElement;
     const files: FileList | null = element.files;
     this.file =  (files && files.length > 0)? files[0]: undefined;
+  }
+
+  ngOnDestroy(): void {
+    this.mapControl?.destroy();
   }
 }

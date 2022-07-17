@@ -64,7 +64,7 @@
 </ng-template>
 
 <ng-template #demandScenarioTemplate let-scenario="scenario">
-  <div class="scenario-row">
+  <div class="scenario-row" *ngIf="planningService.activeService">
     <mat-icon class="material-icons-outlined" color="primary"
               title="aktuell eingestellte Nachfragequoten anzeigen"
               (click)="onShowDemandQuotaSet()">
@@ -73,10 +73,10 @@
     <mat-form-field appearance="standard" class="small" style="width: 145px;">
       <mat-label>Nachfragequoten-Set</mat-label>
       <mat-select disableOptionCentering disableRipple
-                  [value]="quotas[0]">
+                  [value]="scenario.demandratesets[planningService.activeService.id]">
 <!--        [disabled]="scenario === baseScenario"-->
-        <mat-option *ngFor="let quota of quotas" [value]="quota">
-          {{quota}}
+        <mat-option *ngFor="let set of demandRateSets" [value]="set.id">
+          {{set.name}}
         </mat-option>
       </mat-select>
     </mat-form-field>
@@ -90,10 +90,10 @@
     <mat-form-field appearance="standard" class="small" style="width: 145px;">
       <mat-label>Einwohnerentwicklung</mat-label>
       <mat-select disableOptionCentering disableRipple
-                  [value]="prognoses[1]">
+                  [value]="scenario.prognosis">
         <!--        [disabled]="scenario === baseScenario"-->
-        <mat-option *ngFor="let prognosis of prognoses" [value]="prognosis">
-          {{prognosis}}
+        <mat-option *ngFor="let prognosis of prognoses" [value]="prognosis.id">
+          {{prognosis.name}}
         </mat-option>
       </mat-select>
     </mat-form-field>

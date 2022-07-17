@@ -25,40 +25,7 @@
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
-  <mat-form-field appearance="outline" class="small">
-    <mat-label>Infrastrukturbereich</mat-label>
-    <mat-select disableOptionCentering disableRipple
-                [(ngModel)]="activeInfrastructure"
-                [ngbPopover]="activeInfrastructure?.description"
-                (selectionChange)="onInfrastructureChange()"
-                placement="right"
-                container="body"
-                triggers="mouseenter:mouseleave">
-      <mat-option [value]="infrastructure" *ngFor="let infrastructure of infrastructures"
-                  [ngbPopover]="infrastructure.description"
-                  placement="right"
-                  container="body"
-                  triggers="mouseenter:mouseleave">
-        {{infrastructure.name}}
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
-  <div class="sub-select-wrapper" *ngIf="activeInfrastructure">
-    <mat-radio-group>
-      <mat-radio-button *ngFor="let service of activeInfrastructure.services;"
-                        [value]="service"
-                        [checked]="serviceSelection.isSelected(service)"
-                        (change)="serviceSelection.toggle(service); onServiceChange();"
-                        style="margin-right: 100%;"
-                        color="primary"
-                        [ngbPopover]="service.description"
-                        placement="right"
-                        container="body"
-                        triggers="mouseenter:mouseleave">
-        {{service.name}}
-      </mat-radio-button>
-    </mat-radio-group>
-  </div>
+  <app-service-select></app-service-select>
 </mat-expansion-panel>
 <mat-expansion-panel cookieExpansion="exp-demand-areas">
   <mat-expansion-panel-header>

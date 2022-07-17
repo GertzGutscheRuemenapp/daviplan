@@ -7,18 +7,21 @@ import { map, shareReplay } from "rxjs/operators";
 import { BreakpointObserver } from "@angular/cdk/layout";
 import { ConfirmDialogComponent } from "../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
-import { mockUsers } from "../login/users";
 import { MatSelect } from "@angular/material/select";
 import { RemoveDialogComponent } from "../../dialogs/remove-dialog/remove-dialog.component";
 import { PlanningService } from "./planning.service";
 import { LegendComponent } from "../../map/legend/legend.component";
 import { TimeSliderComponent } from "../../elements/time-slider/time-slider.component";
-import { Infrastructure, PlanningProcess } from "../../rest-interfaces";
+import { Infrastructure, PlanningProcess, User } from "../../rest-interfaces";
 import { SettingsService } from "../../settings.service";
 import { AuthService } from "../../auth.service";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../rest-api";
 import { CookieService } from "../../helpers/cookies.service";
+
+interface SharedUser extends User {
+  shared?: boolean;
+}
 
 @Component({
   selector: 'app-planning',
@@ -26,7 +29,6 @@ import { CookieService } from "../../helpers/cookies.service";
   styleUrls: ['./planning.component.scss']
 })
 export class PlanningComponent implements AfterViewInit, OnDestroy {
-
   @ViewChild('processTemplate') processTemplate?: TemplateRef<any>;
   @ViewChild('processSelect') processSelect!: MatSelect;
   @ViewChild('planningLegend') legend?: LegendComponent;
@@ -35,7 +37,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   myProcesses: PlanningProcess[] = [];
   sharedProcesses: PlanningProcess[] = [];
   activeProcess?: PlanningProcess;
-  users = mockUsers;
+  otherUsers: SharedUser[] = [];
   mapControl?: MapControl;
   realYears?: number[];
   prognosisYears?: number[];
@@ -83,11 +85,24 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     })
     this.planningService.getInfrastructures().subscribe( infrastructures => {
       this.infrastructures = infrastructures;
+      const activeInfrastructure = this.infrastructures?.find(i => i.id === this.cookies.get('planning-infrastructure', 'number')) || ((this.infrastructures.length > 0)? this.infrastructures[0]: undefined);
+      this.planningService.activeInfrastructure$.next(activeInfrastructure);
+      const activeService = activeInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number')) || ((activeInfrastructure && activeInfrastructure.services.length > 0)? activeInfrastructure.services[0]: undefined);
+      this.planningService.activeService$.next(activeService);
+    })
+    this.planningService.activeInfrastructure$.subscribe(infrastructure => {
+      if (infrastructure) this.cookies.set('planning-infrastructure', infrastructure?.id);
+    })
+    this.planningService.activeService$.subscribe(service => {
+      if (service) this.cookies.set('planning-service', service?.id);
     })
 
     this.planningService.getProcesses().subscribe(processes => {
       this.auth.getCurrentUser().subscribe(user => {
         if (!user) return;
+        this.planningService.getUsers().subscribe(users => {
+          this.otherUsers = users.filter(u => u.id != user.id);
+        })
         processes.forEach(process => {
           if (process.owner === user.id)
             this.myProcesses.push(process);
@@ -193,6 +208,9 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
         description: process.description,
         allowSharedChange: process.allowSharedChange
       });
+      this.otherUsers.forEach(user => {
+        user.shared = (process.users.indexOf(user.id) > -1);
+      })
     })
     dialogRef.componentInstance.confirmed.subscribe(() => {
       this.editProcessForm.setErrors(null);
@@ -200,16 +218,16 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
       this.editProcessForm.markAllAsTouched();
       if (this.editProcessForm.invalid) return;
       dialogRef.componentInstance.isLoading$.next(true);
+      const sharedUsers = this.otherUsers.filter(user => user.shared).map(user => user.id);
       let attributes = {
         name: this.editProcessForm.value.name,
         description: this.editProcessForm.value.description,
-        allowSharedChange: this.editProcessForm.value.allowSharedChange
+        allowSharedChange: this.editProcessForm.value.allowSharedChange,
+        users: sharedUsers
       };
       this.http.patch<PlanningProcess>(`${this.rest.URLS.processes}${process.id}/`, attributes
       ).subscribe(resProcess => {
-        process.name = resProcess.name;
-        process.description = resProcess.description;
-        process.allowSharedChange = resProcess.allowSharedChange;
+        Object.assign(process, resProcess);
         dialogRef.close();
       },(error) => {
         this.editProcessForm.setErrors(error.error);

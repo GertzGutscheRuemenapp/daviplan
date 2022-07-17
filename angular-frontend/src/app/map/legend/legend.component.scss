@@ -31,6 +31,7 @@
 
 .legend {
   width: 250px;
+  cursor: default;
   user-select: none;
   transition: width 0.3s ease-out, height 0.3s ease-out;
 }

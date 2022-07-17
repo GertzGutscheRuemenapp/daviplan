@@ -5,8 +5,8 @@ import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
 import {
   Infrastructure,
-  Layer,
-  LayerGroup,
+  ExtLayer,
+  ExtLayerGroup,
   Place,
   Service,
   Capacity,
@@ -15,10 +15,10 @@ import {
 } from "../../../rest-interfaces";
 import { MapControl, MapService } from "../../../map/map.service";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
-import * as d3 from "d3";
-import { FilterColumn } from "../../../elements/filter-table/filter-table.component";
 import { forkJoin, Observable, Subscription } from "rxjs";
 import { map } from "rxjs/operators";
+import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { PlaceFilterComponent } from "../place-filter/place-filter.component";
 
 @Component({
   selector: 'app-supply',
@@ -26,6 +26,7 @@ import { map } from "rxjs/operators";
   styleUrls: ['./supply.component.scss']
 })
 export class SupplyComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('placeFilter') placeFilter?: PlaceFilterComponent;
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
   @ViewChild('placePreviewTemplate') placePreviewTemplate!: TemplateRef<any>;
   addPlaceMode = false;
@@ -34,21 +35,17 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   prognosisYears?: number[];
   compareSupply = true;
   compareStatus = 'option 1';
-  infrastructures: Infrastructure[] = [];
-  activeInfrastructure?: Infrastructure;
   mapControl?: MapControl;
-  legendGroup?: LayerGroup;
-  placesLayer?: Layer;
+  layerGroup?: MapLayerGroup;
+  placesLayer?: VectorLayer;
   places?: Place[];
-  capacities?: Capacity[];
   selectedPlaces: Place[] = [];
   placeDialogRef?: MatDialogRef<any>;
   Object = Object;
   activeService?: Service;
   activeProcess?: PlanningProcess;
+  activeInfrastructure?: Infrastructure;
   activeScenario?: Scenario;
-  _filterColumnsTemp: FilterColumn[] = [];
-  filterColumns: FilterColumn[] = [];
   subscriptions: Subscription[] = [];
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
@@ -56,22 +53,26 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
-
-    this.legendGroup = this.mapControl.addGroup({
-      name: 'Angebot',
-      order: -1
-    }, false);
-
-    if (this.planningService.isReady)
+    this.layerGroup = new MapLayerGroup('Angebot', { order: -1 });
+    this.mapControl.addGroup(this.layerGroup);
+/*    if (this.planningService.isReady)
       this.initData();
     else {
       this.planningService.ready.subscribe(() => {
         this.initData();
       });
-    }
+    }*/
+    this.initData();
   }
 
   initData(): void {
+    this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
+      this.activeInfrastructure = infrastructure;
+    }))
+    this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
+      this.activeService = service;
+      this.updatePlaces();
+    }))
     this.subscriptions.push(this.planningService.year$.subscribe(year => {
       this.year = year;
       this.updatePlaces();
@@ -91,63 +92,12 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     observables.push(this.planningService.getPrognosisYears().pipe(map(years => {
       this.prognosisYears = years;
     })));
-    observables.push(this.planningService.getInfrastructures().pipe(map(infrastructures => {
-      this.infrastructures = infrastructures;
-    })));
     forkJoin(...observables).subscribe(() => {
-      this.applyUserSettings();
-    });
-  }
-
-  applyUserSettings(): void {
-    this.activeInfrastructure = this.infrastructures?.find(i => i.id === this.cookies.get('planning-infrastructure', 'number'))  || (this.infrastructures.length > 0)? this.infrastructures[0]: undefined;
-    this.activeService = this.activeInfrastructure?.services.find(i => i.id === this.cookies.get('planning-service', 'number'))  || (this.activeInfrastructure && this.activeInfrastructure.services.length > 0)? this.activeInfrastructure.services[0]: undefined;
-    this.updatePlaces();
-  }
-
-  onFilter(): void {
-    if (!this.activeInfrastructure) return;
-    let dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      panelClass: 'absolute',
-      // width: '100%',
-      maxWidth: '90vw',
-      disableClose: false,
-      data: {
-        template: this.filterTemplate,
-        closeOnConfirm: true,
-        infoText: '<p>Mit dem Schieberegler rechts oben können Sie das Jahr wählen für das die Standortstruktur in der Tabelle angezeigt werden soll. Die Einstellung wird für die Default-Kartendarstellung übernommen.</p>' +
-          '<p>Mit einem Klick auf das Filtersymbol in der Tabelle können Sie Filter auf die in der jeweiligen Spalte Indikatoren definieren. Die Filter werden grundsätzlich auf alle Jahre angewendet. In der Karte werden nur die gefilterten Standorte angezeigt.</p>'+
-          '<p>Sie können einmal gesetzte Filter bei Bedarf im Feld „Aktuell verwendete Filter“ unter der Tabelle wieder löschen.</p>',
-        context: {
-          // services: [this.activeService],
-          places: this.places,
-          scenario: this.activeScenario,
-          year: this.year,
-          infrastructure: this.activeInfrastructure
-        }
-      }
-    });
-    dialogRef.afterClosed().subscribe((ok: boolean) => {  });
-    dialogRef.componentInstance.confirmed.subscribe(() => {
-      this.filterColumns = this._filterColumnsTemp;
       this.updatePlaces();
     });
   }
 
-  onFilterChange(columns: FilterColumn[]): void {
-    this._filterColumnsTemp = columns;
-  }
-
-  onInfrastructureChange(): void {
-    this.cookies.set('planning-infrastructure', this.activeInfrastructure?.id);
-    this.filterColumns = [];
-    if (this.activeInfrastructure!.services.length > 0)
-      this.activeService = this.activeInfrastructure!.services[0];
-    this.updatePlaces();
-  }
-
-  onServiceChange(): void {
-    this.cookies.set('planning-service', this.activeService?.id);
+  onFilter(): void {
     this.updatePlaces();
   }
 
@@ -155,85 +105,66 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     if (!this.activeInfrastructure || !this.activeService || !this.activeProcess) return;
     this.updateMapDescription();
     this.planningService.getPlaces(this.activeInfrastructure.id,
-      { targetProjection: this.mapControl!.map!.mapProjection }).subscribe(places => {
+      {
+        targetProjection: this.mapControl!.map!.mapProjection,
+        addCapacities: true,
+        filter: { columnFilter: true, hasCapacity: true }
+      }).subscribe(places => {
       this.places = places;
       let showLabel = true;
       if (this.placesLayer){
         showLabel = !!this.placesLayer.showLabel;
-        this.mapControl?.removeLayer(this.placesLayer.id!);
+        this.layerGroup?.removeLayer(this.placesLayer);
       }
-      this.planningService.getCapacities({ year: this.year!, service: this.activeService!.id }).subscribe(capacities => {
-        this.capacities = capacities;
-        let displayedPlaces: Place[] = [];
-        this.places?.forEach(place => {
-          if (!this.filter(place)) return;
-          const capacity = this.getCapacity(this.activeService!.id, place.id);
-          if (!capacity) return;
-          place.properties.capacity = capacity;
-          place.properties.label = this.getFormattedCapacityString([this.activeService!.id], capacity);
-          displayedPlaces.push(place);
-        })
-        const radiusFunc = d3.scaleLinear().domain(
-          [this.activeService?.minCapacity || 0, this.activeService?.maxCapacity || 1000]
-        ).range([1, 20]);
-        this.placesLayer = this.mapControl?.addLayer({
-          order: 0,
-          type: 'vector',
-          group: this.legendGroup?.id,
-          name: this.activeInfrastructure!.name,
-          description: this.activeInfrastructure!.name,
-          opacity: 1,
-          symbol: {
-            fillColor: '#2171b5',
-            strokeColor: 'black',
-            symbol: 'circle'
-          },
-          labelField: 'label',
-          showLabel: showLabel
+      places?.forEach(place => {
+        place.properties.label = this.getFormattedCapacityString(
+          [this.activeService!.id], place.properties?.capacity || 0);
+      });
+      this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
+        order: 0,
+        description: this.activeInfrastructure!.name,
+        opacity: 1,
+        style: {
+          fillColor: '#2171b5',
+          strokeColor: 'black',
+          symbol: 'circle'
         },
-        {
-          visible: true,
-          tooltipField: 'name',
-          selectable: true,
-          select: {
+        labelField: 'label',
+        showLabel: showLabel,
+        tooltipField: 'name',
+        select: {
+          enabled: true,
+          style: {
             fillColor: 'yellow',
-            multi: true
           },
-          mouseOver: {
-            cursor: 'help'
+          multi: true
+        },
+        mouseOver: {
+          enabled: true,
+          cursor: 'help'
+        },
+        valueMapping: {
+          radius: {
+            range: [3, 20],
+            scale: 'linear'
           },
-          radiusFunc: radiusFunc,
-          valueField: 'capacity'
-        });
-        this.mapControl?.clearFeatures(this.placesLayer!.id!);
-        this.mapControl?.addFeatures(this.placesLayer!.id!, displayedPlaces,
-          { properties: 'properties', geometry: 'geometry' });
-        this.placesLayer?.featureSelected?.subscribe(evt => {
-          if (evt.selected)
-            this.selectPlace(evt.feature.get('id'));
-          else
-            this.deselectPlace(evt.feature.get('id'));
-        })
+          field: 'capacity',
+          min: this.activeService?.minCapacity || 0,
+          max: this.activeService?.maxCapacity || 1000
+        }
+      });
+      this.layerGroup?.addLayer(this.placesLayer);
+      this.placesLayer.addFeatures(places,{
+        properties: 'properties',
+        geometry: 'geometry'
+      });
+      this.placesLayer?.featureSelected?.subscribe(evt => {
+        if (evt.selected)
+          this.selectPlace(evt.feature.get('id'));
+        else
+          this.deselectPlace(evt.feature.get('id'));
       })
     })
-  }
-
-  private filter(place: Place): boolean {
-    if (this.filterColumns.length === 0) return true;
-    let match = false;
-    this.filterColumns.forEach((filterColumn, i) => {
-      const filter = filterColumn.filter!;
-      if (filterColumn.service) {
-        const cap = this.getCapacity(filterColumn.service.id, place.id);
-        if (!filter.filter(cap)) return;
-      }
-      else if (filterColumn.attribute) {
-        const value = place.properties.attributes[filterColumn.attribute];
-        if (!filter.filter(value)) return;
-      }
-      if (i === this.filterColumns.length - 1) match = true;
-    })
-    return match;
   }
 
   updateCapacities(): void {
@@ -246,11 +177,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       units.add((capacity === 1)? service.capacitySingularUnit: service.capacityPluralUnit);
     })
     return `${capacity} ${Array.from(units).join('/')}`
-  }
-
-  getCapacity(serviceId: number, placeId: number): number{
-    const cap = this.capacities?.find(capacity => capacity.place === placeId);
-    return cap?.capacity || 0;
   }
 
   selectPlace(placeId: number) {
@@ -289,7 +215,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       });
     this.placeDialogRef.afterClosed().subscribe(() => {
       this.selectedPlaces = [];
-      this.mapControl?.deselectAllFeatures(this.placesLayer!.id!);
+      this.placesLayer?.clearSelection();
     })
   }
 
@@ -300,8 +226,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.legendGroup) {
-      this.mapControl?.removeGroup(this.legendGroup.id!);
+    if (this.layerGroup) {
+      this.mapControl?.removeGroup(this.layerGroup);
     }
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
