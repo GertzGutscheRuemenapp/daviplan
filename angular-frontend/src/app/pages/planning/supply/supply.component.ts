@@ -16,7 +16,6 @@ import { map } from "rxjs/operators";
 import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 import { PlaceFilterComponent } from "../place-filter/place-filter.component";
 import { Point } from "ol/geom";
-import { getCenter } from "ol/extent";
 import { transform } from "ol/proj";
 
 @Component({
@@ -28,6 +27,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   @ViewChild('placeFilter') placeFilter?: PlaceFilterComponent;
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
   @ViewChild('placePreviewTemplate') placePreviewTemplate!: TemplateRef<any>;
+  @ViewChild('placeEditTemplate') placeEditTemplate!: TemplateRef<any>;
   addPlaceMode: boolean;
   year?: number;
   realYears?: number[];
@@ -38,9 +38,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   layerGroup?: MapLayerGroup;
   placesLayer?: VectorLayer;
   places?: Place[];
-  selectedPlaces: Place[] = [];
   placeDialogRef?: MatDialogRef<any>;
-  Object = Object;
   activeService?: Service;
   activeProcess?: PlanningProcess;
   activeInfrastructure?: Infrastructure;
@@ -132,7 +130,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           style: {
             fillColor: 'yellow',
           },
-          multi: true
+          multi: false
         },
         mouseOver: {
           enabled: true,
@@ -157,7 +155,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         if (evt.selected)
           this.selectPlace(evt.feature.get('id'));
         else
-          this.deselectPlace(evt.feature.get('id'));
+          this.placeDialogRef?.close();
       })
     })
   }
@@ -176,40 +174,25 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   selectPlace(placeId: number) {
     const place = this.places?.find(p => p.id === placeId);
-    if (place) {
-      this.selectedPlaces = [place, ...this.selectedPlaces];
-      this.togglePlaceDialog(true);
-    }
+    if (place) this.openPlacePreview(place);
   }
 
-  deselectPlace(placeId: number) {
-    this.selectedPlaces = this.selectedPlaces.filter(p => p.id !== placeId);
-    if (this.selectedPlaces.length === 0)
-      this.togglePlaceDialog(false);
-  }
-
-  togglePlaceDialog(open: boolean): void {
-    if (!open){
-      this.placeDialogRef?.close();
-      return;
-    }
-    if (this.placeDialogRef && this.placeDialogRef.getState() === 0)
-      return;
-    else
-      this.placeDialogRef = this.dialog.open(FloatingDialog, {
-        panelClass: 'help-container',
-        hasBackdrop: false,
-        autoFocus: false,
-        data: {
-          title: 'Ausgewählte Einrichtungen',
-          template: this.placePreviewTemplate,
-          resizable: true,
-          dragArea: 'header',
-          minWidth: '400px'
-        }
-      });
+  openPlacePreview(place: Place): void {
+    this.placeDialogRef?.close();
+    this.placeDialogRef = this.dialog.open(FloatingDialog, {
+      panelClass: 'help-container',
+      hasBackdrop: false,
+      autoFocus: false,
+      data: {
+        title: 'Ausgewählte Einrichtungen',
+        template: this.placePreviewTemplate,
+        context: { place: place },
+        resizable: true,
+        dragArea: 'header',
+        minWidth: '400px'
+      }
+    });
     this.placeDialogRef.afterClosed().subscribe(() => {
-      this.selectedPlaces = [];
       this.placesLayer?.clearSelection();
     })
   }
@@ -241,14 +224,13 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     const place: Place = {
       id: -1,
       properties: {
-        name: 'Neuer Standort',
+        name: 'Neuen Standort hinzufügen',
         infrastructure: this.activeService.infrastructure,
         attributes: {}
       },
       geometry: geometry
     };
     this.placesLayer?.setSelectable(false);
-    this.selectedPlaces = [place];
     const features = this.placesLayer?.addFeatures([place]);
     if (!features) return;
     this.placeDialogRef = this.dialog.open(FloatingDialog, {
@@ -257,16 +239,19 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       autoFocus: false,
       data: {
         title: 'Einrichtung hinzufügen',
-        template: this.placePreviewTemplate,
+        template: this.placeEditTemplate,
+        context: { place: place },
         resizable: true,
         dragArea: 'header',
         minWidth: '400px'
       }
     });
-    this.placeDialogRef.afterClosed().subscribe(() => {
+    this.placeDialogRef.afterClosed().subscribe(ok => {
       this.placesLayer?.setSelectable(true);
-      this.selectedPlaces = [];
       this.placesLayer?.removeFeature(features[0]);
+      if (ok) {
+        // ToDo: post place
+      }
     })
   }
 
