@@ -322,13 +322,14 @@ export class VectorLayer extends MapLayer {
     })
     return {
       colors: colors,
-      labels: labels
+      labels: labels,
+      elapsed: true
     }
   }
 
   addFeatures(features: any[], options?: {
     properties?: string, geometry?: string, zIndex?: string
-  }): void {
+  }): Feature<any>[] | undefined {
     if (!this.map) return;
     let olFeatures: Feature<any>[] = [];
     const properties = (options?.properties !== undefined) ? options?.properties : 'properties';
@@ -336,7 +337,7 @@ export class VectorLayer extends MapLayer {
     features.forEach(feature => {
       if (!(feature instanceof Feature)) {
         const olFeature = new Feature(feature[geometry]);
-        if (feature.id) {
+        if (feature.id != undefined && feature.id > 0) {
           olFeature.set('id', feature.id);
           olFeature.setId(feature.id);
         }
@@ -354,6 +355,7 @@ export class VectorLayer extends MapLayer {
     this.map.addFeatures(this.mapId!, olFeatures);
     if (this.valueStyles?.color)
       this.colorLegend = this._getColorLegend();
+    return olFeatures;
   }
 
   protected initSelect() {
@@ -383,6 +385,10 @@ export class VectorLayer extends MapLayer {
   setShowLabel(show: boolean): void {
     this.showLabel = show;
     this.map?.setShowLabel(this.mapId!, show);
+  }
+
+  removeFeature(feature: Feature<any> | number): void {
+    this.map?.removeFeature(this.mapId!, feature);
   }
 
   removeFromMap(): void {

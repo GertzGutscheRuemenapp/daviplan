@@ -15,6 +15,9 @@ import { forkJoin, Observable, Subscription } from "rxjs";
 import { map } from "rxjs/operators";
 import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 import { PlaceFilterComponent } from "../place-filter/place-filter.component";
+import { Point } from "ol/geom";
+import { getCenter } from "ol/extent";
+import { transform } from "ol/proj";
 
 @Component({
   selector: 'app-supply',
@@ -25,7 +28,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   @ViewChild('placeFilter') placeFilter?: PlaceFilterComponent;
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
   @ViewChild('placePreviewTemplate') placePreviewTemplate!: TemplateRef<any>;
-  addPlaceMode = false;
+  addPlaceMode: boolean;
   year?: number;
   realYears?: number[];
   prognosisYears?: number[];
@@ -43,9 +46,12 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   activeInfrastructure?: Infrastructure;
   activeScenario?: Scenario;
   subscriptions: Subscription[] = [];
+  private mapClickSub?: Subscription;
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
-              public planningService: PlanningService) { }
+              public planningService: PlanningService) {
+    this.addPlaceMode = false;
+  }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
@@ -214,10 +220,62 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     this.mapControl!.mapDescription = desc;
   }
 
+  togglePlaceMode(): void {
+    this.addPlaceMode = !this.addPlaceMode;
+    this.mapControl?.map?.setCursor(this.addPlaceMode? 'crosshair': '');
+    if (this.mapClickSub) {
+      this.mapClickSub.unsubscribe();
+      this.mapClickSub = undefined;
+    }
+    if (this.addPlaceMode) {
+      this.mapClickSub = this.mapControl?.map?.mapClicked.subscribe(coords => {
+        this.addPlace(coords);
+      })
+    }
+  }
+
+  private addPlace(coords: number[]): void {
+    if (!this.activeService) return;
+    this.placeDialogRef?.close();
+    const geometry = new Point(transform(coords, 'EPSG:4326', this.mapControl?.map?.mapProjection));
+    const place: Place = {
+      id: -1,
+      properties: {
+        name: 'Neuer Standort',
+        infrastructure: this.activeService.infrastructure,
+        attributes: {}
+      },
+      geometry: geometry
+    };
+    this.placesLayer?.setSelectable(false);
+    this.selectedPlaces = [place];
+    const features = this.placesLayer?.addFeatures([place]);
+    if (!features) return;
+    this.placeDialogRef = this.dialog.open(FloatingDialog, {
+      panelClass: 'help-container',
+      hasBackdrop: false,
+      autoFocus: false,
+      data: {
+        title: 'Einrichtung hinzufügen',
+        template: this.placePreviewTemplate,
+        resizable: true,
+        dragArea: 'header',
+        minWidth: '400px'
+      }
+    });
+    this.placeDialogRef.afterClosed().subscribe(() => {
+      this.placesLayer?.setSelectable(true);
+      this.selectedPlaces = [];
+      this.placesLayer?.removeFeature(features[0]);
+    })
+  }
+
   ngOnDestroy(): void {
     if (this.layerGroup) {
       this.mapControl?.removeGroup(this.layerGroup);
     }
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
+    this.mapControl?.map?.setCursor('');
+    this.mapClickSub?.unsubscribe();
   }
 }

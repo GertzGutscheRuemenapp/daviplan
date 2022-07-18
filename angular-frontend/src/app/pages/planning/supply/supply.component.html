@@ -57,7 +57,7 @@
     </ul>
   </div>
   <mat-divider></mat-divider>
-  <div class="row-button" [ngClass]="{'active': addPlaceMode}" (click)="addPlaceMode = !addPlaceMode" style="padding-left: 10px;">
+  <div class="row-button" [ngClass]="{'active': addPlaceMode}" (click)="togglePlaceMode()" style="padding-left: 10px;">
     <label i18n>Neuen Standort hinzufügen</label>
     <div class="fill-space"></div>
     <button color="primary" [ngClass]="{inverted: addPlaceMode}" mat-icon-button class="small">

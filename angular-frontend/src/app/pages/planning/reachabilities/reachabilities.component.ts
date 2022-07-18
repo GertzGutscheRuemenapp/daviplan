@@ -314,7 +314,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.mapClickSub) this.mapClickSub.unsubscribe();
+    this.mapClickSub?.unsubscribe();
     if (this.reachLayerGroup) this.mapControl?.removeGroup(this.reachLayerGroup);
     if (this.placesLayerGroup) this.mapControl?.removeGroup(this.placesLayerGroup);
     this.mapControl?.map?.setCursor('');

@@ -671,6 +671,15 @@ export class OlMap {
     layer?.setOpacity(opacity);
   }
 
+  removeFeature(layerName: string, feature: Feature<any> | number): void {
+    let layer = this.layers[layerName];
+    const source = layer.getSource();
+    if (feature instanceof Feature)
+      source.removeFeature(feature);
+    else
+      source.removeFeature(source.getFeatureById(feature));
+  }
+
   exportCanvas(): HTMLCanvasElement {
     const mapCanvas = document.createElement('canvas');
     const size = this.map.getSize()!;
