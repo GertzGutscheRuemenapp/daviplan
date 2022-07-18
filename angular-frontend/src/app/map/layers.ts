@@ -334,13 +334,16 @@ export class VectorLayer extends MapLayer {
     const properties = (options?.properties !== undefined) ? options?.properties : 'properties';
     const geometry = (options?.geometry !== undefined) ? options?.geometry : 'geometry';
     features.forEach(feature => {
-      const olFeature = new Feature(feature[geometry!]);
-      if (feature.id) {
-        olFeature.set('id', feature.id);
-        olFeature.setId(feature.id);
+      if (!(feature instanceof Feature)) {
+        const olFeature = new Feature(feature[geometry]);
+        if (feature.id) {
+          olFeature.set('id', feature.id);
+          olFeature.setId(feature.id);
+        }
+        olFeature.setProperties(feature[properties]);
+        olFeatures.push(olFeature);
       }
-      olFeature.setProperties(feature[properties]);
-      olFeatures.push(olFeature);
+      else olFeatures.push(feature);
     })
     if (options?.zIndex) {
       const attr = options?.zIndex;

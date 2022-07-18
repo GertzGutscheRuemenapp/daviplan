@@ -224,7 +224,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     const lat = this.pickedCoords[1];
     const lon = this.pickedCoords[0];
     this.planningService.getClosestCell(lat, lon, {targetProjection: this.mapControl?.map?.mapProjection }).subscribe(cell => {
-      const marker = this.mapControl?.addMarker(cell.geom as Geometry);
+      this.mapControl?.removeMarker();
+      this.mapControl?.addMarker(cell.geom as Geometry);
       this.planningService.getCellReachability(cell.cellcode, this.mode).subscribe(placeResults => {
         let showLabel = false;
         if (this.placeReachabilityLayer) {
@@ -273,6 +274,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   toggleIndicator(): void {
     this.setPlaceSelection(false);
     this.setMarkerPlacement(false);
+    this.mapControl?.removeMarker();
     if (this.placesLayer)
       this.placesLayer?.clearSelection();
     this.reachLayerGroup?.clear();
