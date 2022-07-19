@@ -134,9 +134,9 @@ export class PlaceFilterComponent  implements AfterViewInit {
         return this.planningService.getCapacity(place, service);
       })
       const values: any[] = this.infrastructure!.placeFields!.map(field => {
-        return place.properties.attributes[field.name] || '';
+        return place.attributes[field.name] || '';
       })
-      rows.push([place.properties.name as any].concat(capValues).concat(values));
+      rows.push([place.name as any].concat(capValues).concat(values));
     })
     return rows;
   }

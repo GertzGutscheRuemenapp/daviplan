@@ -19,6 +19,7 @@ import { CookieService } from "../../helpers/cookies.service";
 import { FilterColumn } from "../../elements/filter-table/filter-table.component";
 import { map } from "rxjs/operators";
 import { wktToGeom } from "../../helpers/utils";
+import { Geometry } from "ol/geom";
 
 @Injectable({
   providedIn: 'root'
@@ -114,6 +115,7 @@ export class PlanningService extends RestCacheService {
   }
 
   getPlaces(infrastructureId: number, options?: {
+    scenario?: number,
     targetProjection?: string,
     reset?: boolean,
     addCapacities?: boolean,
@@ -141,7 +143,7 @@ export class PlanningService extends RestCacheService {
               // ToDo: pass year
               if (options.filter?.columnFilter && !_this._filterPlace(place)) return;
               if (options?.addCapacities)
-                place.properties.capacity = cap;
+                place.capacity = cap;
               placesTmp.push(place);
             });
             places = placesTmp;
@@ -151,27 +153,19 @@ export class PlanningService extends RestCacheService {
         else
           next(places);
       }
-      const cached = this.placesCache[infrastructureId];
-      if (!cached || options?.reset) {
+      let params: any = {infrastructure: infrastructureId};
+      if (options?.scenario) params.scenario = options.scenario;
+      this.getCachedData<Place[]>(this.rest.URLS.places, { reset: options?.reset, params: params }).subscribe(places => {
         const targetProjection = (options?.targetProjection !== undefined)? options?.targetProjection: 'EPSG:4326';
-        this.setLoading(true);
-        const query = this.http.get<any>(`${this.rest.URLS.places}?infrastructure=${infrastructureId}`);
-        query.subscribe( places => {
-          places.features.forEach((place: Place )=> {
-            const geometry = wktToGeom(place.geometry as string,
-              {targetProjection: targetProjection, ewkt: true});
-            place.geometry = geometry;
-          })
-          this.placesCache[infrastructureId] = places.features;
-          this.setLoading(false);
-          filter(places.features);
-        }, error => {
-          this.setLoading(false);
-        });
-      }
-      else {
-        filter(cached);
-      }
+        places.forEach((place: Place )=> {
+          if (!(place.geom instanceof Geometry)) {
+            const geometry = wktToGeom(place.geom as string,
+              { targetProjection: targetProjection, ewkt: true });
+            place.geom = geometry;
+          }
+        })
+        filter(places);
+      })
     });
     return observable;
   }
@@ -223,7 +217,7 @@ export class PlanningService extends RestCacheService {
         if (!filter.filter(cap)) return;
       }
       else if (filterColumn.attribute) {
-        const value = place.properties.attributes[filterColumn.attribute];
+        const value = place.attributes[filterColumn.attribute];
         if (!filter.filter(value)) return;
       }
       if (i === this.placeFilterColumns.length - 1) match = true;

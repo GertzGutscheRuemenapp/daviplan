@@ -53,6 +53,7 @@ import { StackedBarchartComponent } from './diagrams/stacked-barchart/stacked-ba
 import { MultilineChartComponent } from './diagrams/multiline-chart/multiline-chart.component';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { DragDirective } from './helpers/dragndrop.directive'
+import { VarDirective } from "./helpers/var.directive";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MapControlsComponent } from './map/map-controls/map-controls.component';
 import { EcoFabSpeedDialModule } from "@ecodev/fab-speed-dial";
@@ -125,6 +126,7 @@ import { ServiceSelectComponent } from './pages/planning/service-select/service-
     StackedBarchartComponent,
     MultilineChartComponent,
     DragDirective,
+    VarDirective,
     MapControlsComponent,
     ScenarioMenuComponent,
     SideToggleComponent,

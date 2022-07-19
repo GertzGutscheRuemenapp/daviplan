@@ -287,15 +287,13 @@ export interface Infrastructure {
 
 export interface Place {
   id: number,
-  geometry: string | Geometry,
-  properties: {
-    name: string,
-    infrastructure: number,
-    attributes: any,
-    label?: string,
-    capacity?: number,
-    value?: number
-  },
+  geom: string | Geometry,
+  name: string,
+  infrastructure: number,
+  attributes: any,
+  label?: string,
+  capacity?: number,
+  value?: number,
   capacities?: Capacity[]
 }
 

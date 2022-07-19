@@ -145,9 +145,9 @@
 
 <ng-template #placePreviewTemplate>
   <div *ngIf="selectedPlace">
-    <b>{{ selectedPlace.properties?.name }}</b>
-    <ng-container *ngIf="selectedPlace.properties?.attributes">
-      <div *ngFor="let item of selectedPlace.properties.attributes | keyvalue">
+    <b>{{ selectedPlace.name }}</b>
+    <ng-container *ngIf="selectedPlace.attributes">
+      <div *ngFor="let item of selectedPlace.attributes | keyvalue">
         {{item.key}}: <i>{{item.value}}</i>
       </div>
     </ng-container>

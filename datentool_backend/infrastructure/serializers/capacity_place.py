@@ -97,14 +97,13 @@ class PlaceAttributeValidator:
                 raise ValidationError(msg)
 
 
-class PlaceSerializer(GeoFeatureModelSerializer):
+class PlaceSerializer(serializers.ModelSerializer):
     geom = GeometrySRIDField(srid=3857)
     attributes = PlaceAttributeField(validators=[PlaceAttributeValidator()])
 
     class Meta:
         model = Place
-        geo_field = 'geom'
-        fields = ('id', 'name', 'infrastructure', 'attributes', 'scenario')
+        fields = ('id', 'name', 'geom', 'infrastructure', 'attributes', 'scenario')
 
 
 class PlaceFieldSerializer(serializers.ModelSerializer):

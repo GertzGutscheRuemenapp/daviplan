@@ -234,7 +234,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         }
         this.places.forEach(place => {
           const res = placeResults.find(p => p.placeId === place.id);
-          place.properties.value = res?.value || 999999999;
+          place.value = res?.value || 999999999;
         })
         const max = Math.max(...placeResults.map(c => c.value), 0);
         this.placeReachabilityLayer = new VectorLayer(this.activeInfrastructure!.name, {

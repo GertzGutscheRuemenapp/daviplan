@@ -117,26 +117,70 @@
 <!--workaround to cover visible scenario menu-->
 <div style="width: 100%; height:50px; background-color: white;"></div>
 
-<ng-template #placePreviewTemplate let-place="place">
-  <b>{{ place.properties.name }}</b>
-  <ng-container *ngIf="place.properties.attributes">
-    <div *ngFor="let item of place.properties.attributes | keyvalue">
-      {{item.key}}: <i>{{item.value}}</i>
+<ng-template #placePreviewTemplate><!-- let-place="place">-->
+  <ng-container *ngIf="selectedPlace">
+    <b>{{ selectedPlace.name }}</b>
+    <ng-container *ngIf="selectedPlace.attributes">
+      <div *ngFor="let item of selectedPlace.attributes | keyvalue">
+        {{item.key}}: <i>{{item.value}}</i>
+      </div>
+    </ng-container>
+    <div *ngIf="activeService">
+        Kapazität {{activeService.name}}: <i>{{getFormattedCapacityString([activeService.id], selectedPlace.capacity || 0)}}</i>
     </div>
   </ng-container>
-  <div *ngIf="activeService">
-      Kapazität {{activeService.name}}: <i>{{getFormattedCapacityString([activeService.id], place.properties.capacity || 0)}}</i>
-  </div>
 </ng-template>
 
-<ng-template #placeEditTemplate let-place="place">
-  <b>{{ place.properties.name }}</b>
-  <div *ngFor="let field of activeInfrastructure?.placeFields">
-    {{field.name}}  {{place.properties[field.name]}}
-  </div>
-  <button mat-button class="mat-button-dv"
-          (click)="placeDialogRef?.close(true)"
-          color="primary">
-    Speichern
-  </button>
+<ng-template #placeCapEditTemplate><!-- let-place="place">-->
+  <ng-container *ngIf="selectedPlace">
+    <b>{{ selectedPlace.name }}</b>
+    <ng-container *ngIf="selectedPlace.attributes">
+      <div *ngFor="let item of selectedPlace.attributes | keyvalue">
+        {{item.key}}: <i>{{item.value}}</i>
+      </div>
+    </ng-container>
+    <div *ngIf="activeService">
+      Kapazität {{activeService.name}}: <i>{{getFormattedCapacityString([activeService.id], selectedPlace.capacity || 0)}}</i>
+    </div>
+  </ng-container>
+</ng-template>
+
+<ng-template #placeFullEditTemplate> <!-- let-place="place">-->
+  <form *ngIf="selectedPlace && placeForm" [formGroup]="placeForm">
+    <mat-form-field appearance="outline" class="full">
+      <mat-label i18n>Name</mat-label>
+      <input matInput formControlName="name">
+    </mat-form-field>
+    <!--<div *ngFor="let item of placeForm?.value | keyvalue">
+      {{item.key}} {{item.value}}-->
+    <div *ngFor="let field of activeInfrastructure?.placeFields">
+      <ng-container *ngVar="getFieldType(field) as fieldType">
+        <!--      <input *ngIf="getFieldType(field)?.ftype === 'NUM'" type="number" >
+              <input *ngIf="getFieldType(field)?.ftype === 'STR'">&ndash;&gt;-->
+        <mat-form-field appearance="outline" class="full">
+          <mat-label i18n>{{field.name}}</mat-label>
+          <input matInput *ngIf="fieldType.ftype === 'STR'" [formControlName]="field.name">
+          <input matInput *ngIf="fieldType.ftype === 'NUM'" [formControlName]="field.name" type="number">
+          <mat-select *ngIf="fieldType.ftype === 'CLA'" [formControlName]="field.name">
+            <mat-option *ngFor="let class of fieldType.classification">{{class.value}}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </ng-container>
+    </div>
+    <div *ngIf="activeService">
+      Kapazität {{activeService.name}}: <i>{{getFormattedCapacityString([activeService.id], selectedPlace.capacity || 0)}}</i>
+    </div>
+    <div style="float: right">
+      <button mat-button class="mat-button-dv" style="margin-right: 10px;"
+              (click)="placeDialogRef?.close(false)"
+              color="primary">
+        Abbrechen
+      </button>
+      <button mat-button class="mat-button-dv"
+              (click)="placeDialogRef?.close(true)"
+              color="primary">
+        Speichern
+      </button>
+    </div>
+  </form>
 </ng-template>

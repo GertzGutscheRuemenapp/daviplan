@@ -7,7 +7,7 @@ import {
   Place,
   Service,
   PlanningProcess,
-  Scenario
+  Scenario, FieldType, PlaceField
 } from "../../../rest-interfaces";
 import { MapControl, MapService } from "../../../map/map.service";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
@@ -17,6 +17,7 @@ import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 import { PlaceFilterComponent } from "../place-filter/place-filter.component";
 import { Point } from "ol/geom";
 import { transform } from "ol/proj";
+import { FormBuilder, FormGroup } from "@angular/forms";
 
 @Component({
   selector: 'app-supply',
@@ -26,8 +27,8 @@ import { transform } from "ol/proj";
 export class SupplyComponent implements AfterViewInit, OnDestroy {
   @ViewChild('placeFilter') placeFilter?: PlaceFilterComponent;
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
-  @ViewChild('placePreviewTemplate') placePreviewTemplate!: TemplateRef<any>;
-  @ViewChild('placeEditTemplate') placeEditTemplate!: TemplateRef<any>;
+  @ViewChild('placeCapEditTemplate') placeCapEditTemplate!: TemplateRef<any>;
+  @ViewChild('placeFullEditTemplate') placeFullEditTemplate!: TemplateRef<any>;
   addPlaceMode: boolean;
   year?: number;
   realYears?: number[];
@@ -37,17 +38,21 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   mapControl?: MapControl;
   layerGroup?: MapLayerGroup;
   placesLayer?: VectorLayer;
-  places?: Place[];
+  places: Place[] = [];
+  scenarioPlaces: Place[] = [];
+  selectedPlace?: Place;
   placeDialogRef?: MatDialogRef<any>;
   activeService?: Service;
   activeProcess?: PlanningProcess;
   activeInfrastructure?: Infrastructure;
   activeScenario?: Scenario;
   subscriptions: Subscription[] = [];
+  fieldTypes: FieldType[] = [];
+  placeForm?: FormGroup;
   private mapClickSub?: Subscription;
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
-              public planningService: PlanningService) {
+              public planningService: PlanningService, private formBuilder: FormBuilder) {
     this.addPlaceMode = false;
   }
 
@@ -85,6 +90,9 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     observables.push(this.planningService.getPrognosisYears().pipe(map(years => {
       this.prognosisYears = years;
     })));
+    observables.push(this.planningService.getFieldTypes().pipe(map(fieldTypes => {
+      this.fieldTypes = fieldTypes;
+    })))
     forkJoin(...observables).subscribe(() => {
       this.updatePlaces();
     });
@@ -110,8 +118,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         this.layerGroup?.removeLayer(this.placesLayer);
       }
       places?.forEach(place => {
-        place.properties.label = this.getFormattedCapacityString(
-          [this.activeService!.id], place.properties?.capacity || 0);
+        place.label = this.getFormattedCapacityString(
+          [this.activeService!.id], place.capacity || 0);
       });
       this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
         order: 0,
@@ -147,15 +155,16 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         }
       });
       this.layerGroup?.addLayer(this.placesLayer);
-      this.placesLayer.addFeatures(places,{
-        properties: 'properties',
-        geometry: 'geometry'
-      });
+      this.placesLayer.addFeatures(places.map(place => {
+        return { id: place.id, geometry: place.geom, properties: { name: place.name, label: place.label, capacity: place.capacity } }
+      }));
       this.placesLayer?.featureSelected?.subscribe(evt => {
         if (evt.selected)
           this.selectPlace(evt.feature.get('id'));
-        else
+        else {
+          this.selectedPlace = undefined;
           this.placeDialogRef?.close();
+        }
       })
     })
   }
@@ -173,20 +182,28 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   selectPlace(placeId: number) {
-    const place = this.places?.find(p => p.id === placeId);
-    if (place) this.openPlacePreview(place);
+    this.selectedPlace = this.places?.find(p => p.id === placeId);
+    this.openPlacePreview(true);
   }
 
-  openPlacePreview(place: Place): void {
-    this.placeDialogRef?.close();
+  openPlacePreview(editable?: boolean): void {
+    if (this.placeDialogRef && this.placeDialogRef.getState() === 0)
+      return;
+    if (editable) {
+      let attributes: any = { name: this.selectedPlace?.name };
+      this.activeInfrastructure?.placeFields?.forEach(field => {
+        attributes[field.name] = this.selectedPlace?.attributes[field.name];
+      })
+      this.placeForm = this.formBuilder.group(attributes);
+    }
+    const template = editable? this.placeFullEditTemplate: this.placeCapEditTemplate;
     this.placeDialogRef = this.dialog.open(FloatingDialog, {
       panelClass: 'help-container',
       hasBackdrop: false,
       autoFocus: false,
       data: {
         title: 'Ausgewählte Einrichtungen',
-        template: this.placePreviewTemplate,
-        context: { place: place },
+        template: template,
         resizable: true,
         dragArea: 'header',
         minWidth: '400px'
@@ -223,13 +240,12 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     const geometry = new Point(transform(coords, 'EPSG:4326', this.mapControl?.map?.mapProjection));
     const place: Place = {
       id: -1,
-      properties: {
-        name: 'Neuen Standort hinzufügen',
-        infrastructure: this.activeService.infrastructure,
-        attributes: {}
-      },
-      geometry: geometry
+      name: 'Neue Einrichtung',
+      infrastructure: this.activeService.infrastructure,
+      attributes: {},
+      geom: geometry
     };
+    this.selectedPlace = place;
     this.placesLayer?.setSelectable(false);
     const features = this.placesLayer?.addFeatures([place]);
     if (!features) return;
@@ -239,8 +255,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       autoFocus: false,
       data: {
         title: 'Einrichtung hinzufügen',
-        template: this.placeEditTemplate,
-        context: { place: place },
+        template: this.placeFullEditTemplate,
         resizable: true,
         dragArea: 'header',
         minWidth: '400px'
@@ -253,6 +268,10 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         // ToDo: post place
       }
     })
+  }
+
+  getFieldType(field: PlaceField): FieldType | undefined {
+    return this.fieldTypes.find(ft => ft.id === field.fieldType);
   }
 
   ngOnDestroy(): void {
