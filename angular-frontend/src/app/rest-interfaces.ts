@@ -293,6 +293,7 @@ export interface Place {
   attributes: any,
   label?: string,
   capacity?: number,
+  scenario?: number,
   value?: number,
   capacities?: Capacity[]
 }

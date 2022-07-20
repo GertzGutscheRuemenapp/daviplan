@@ -65,14 +65,14 @@ class PlaceAttributeValidator:
             if properties:
                 infrastructure_id = properties.get('infrastructure')
             else:
-                infrastructure_id = field.parent.initial_data.get('infrastructure')
+                infrastructure_id = field.parent.context['request'].data.get(
+                    'infrastructure')
             if infrastructure_id is None:
                 raise ValidationError('No infrastructure_id provided')
             infrastructure = Infrastructure.objects.get(pk=infrastructure_id)
         infr_name = infrastructure.name
 
         for field_name, field_value in value.items():
-            pass
             # check if the fields exist as a PlaceField
             try:
                 place_field = PlaceField.objects.get(

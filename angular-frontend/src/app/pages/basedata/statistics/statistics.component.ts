@@ -153,7 +153,7 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
       },
       valueStyles: {
         field: 'value',
-        color: {
+        fillColor: {
           colorFunc: colorFunc
         },
         radius: {

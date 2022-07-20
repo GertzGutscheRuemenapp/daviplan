@@ -56,14 +56,16 @@
       </li>
     </ul>
   </div>
-  <mat-divider></mat-divider>
-  <div class="row-button" [ngClass]="{'active': addPlaceMode}" (click)="togglePlaceMode()" style="padding-left: 10px;">
-    <label i18n>Neuen Standort hinzufügen</label>
-    <div class="fill-space"></div>
-    <button color="primary" [ngClass]="{inverted: addPlaceMode}" mat-icon-button class="small">
-      <mat-icon class="material-icons-outlined">add_location_alt</mat-icon>
-    </button>
-  </div>
+  <ng-container *ngIf="activeScenario && !activeScenario.isBase">
+    <mat-divider></mat-divider>
+    <div class="row-button" [ngClass]="{'active': addPlaceMode}" (click)="togglePlaceMode()" style="padding-left: 10px;">
+      <label i18n>Neuen Standort hinzufügen</label>
+      <div class="fill-space"></div>
+      <button color="primary" [ngClass]="{inverted: addPlaceMode}" mat-icon-button class="small">
+        <mat-icon class="material-icons-outlined">add_location_alt</mat-icon>
+      </button>
+    </div>
+  </ng-container>
 </mat-expansion-panel>
 <mat-expansion-panel cookieExpansion="exp-supply-compare" class="disabled">
   <mat-expansion-panel-header>

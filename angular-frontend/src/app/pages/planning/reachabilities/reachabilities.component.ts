@@ -150,7 +150,9 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           }
         });
         this.placesLayerGroup?.addLayer(this.placesLayer);
-        this.placesLayer.addFeatures(places,{ properties: 'properties', geometry: 'geometry' });
+        this.placesLayer.addFeatures(places.map(place => {
+          return { id: place.id, geometry: place.geom, properties: { name: place.name } }
+        }));
         this.placesLayer?.setSelectable(this.selectPlaceMode);
         this.placesLayer?.featureSelected?.subscribe(evt => {
           if (evt.selected) {
@@ -200,7 +202,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         labelField: 'label',
         showLabel: false,
         valueStyles: {
-          color: {
+          fillColor: {
             range: d3.interpolateRdYlGn,
             scale: 'sequential',
             bins: 5,
@@ -251,7 +253,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           tooltipField: 'value',
           valueStyles: {
             field: 'value',
-            color: {
+            fillColor: {
               range: d3.interpolateRdYlGn,
               scale: 'sequential',
               bins: 5,

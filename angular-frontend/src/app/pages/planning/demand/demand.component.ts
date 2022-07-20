@@ -147,7 +147,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
           },
           valueStyles: {
             field: 'value',
-            color: {
+            fillColor: {
               range: d3.interpolateBlues,
               scale: 'sequential',
               bins: steps

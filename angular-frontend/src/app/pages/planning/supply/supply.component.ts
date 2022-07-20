@@ -15,9 +15,12 @@ import { forkJoin, Observable, Subscription } from "rxjs";
 import { map } from "rxjs/operators";
 import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 import { PlaceFilterComponent } from "../place-filter/place-filter.component";
-import { Point } from "ol/geom";
+import { Geometry, Point } from "ol/geom";
 import { transform } from "ol/proj";
 import { FormBuilder, FormGroup } from "@angular/forms";
+import { HttpClient } from "@angular/common/http";
+import { RestAPI } from "../../../rest-api";
+import { WKT } from "ol/format";
 
 @Component({
   selector: 'app-supply',
@@ -52,7 +55,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   private mapClickSub?: Subscription;
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
-              public planningService: PlanningService, private formBuilder: FormBuilder) {
+              public planningService: PlanningService, private formBuilder: FormBuilder,
+              private http: HttpClient, private rest: RestAPI) {
     this.addPlaceMode = false;
   }
 
@@ -102,69 +106,79 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     this.updatePlaces();
   }
 
-  updatePlaces(): void {
+  updatePlaces(resetScenario?: boolean): void {
     if (!this.activeInfrastructure || !this.activeService || !this.activeProcess) return;
     this.updateMapDescription();
-    this.planningService.getPlaces(this.activeInfrastructure.id,
-      {
+    let options: any = {
         targetProjection: this.mapControl!.map!.mapProjection,
         addCapacities: true,
         filter: { columnFilter: true, hasCapacity: true }
-      }).subscribe(places => {
-      this.places = places;
-      let showLabel = true;
-      if (this.placesLayer){
-        showLabel = !!this.placesLayer.showLabel;
-        this.layerGroup?.removeLayer(this.placesLayer);
-      }
-      places?.forEach(place => {
-        place.label = this.getFormattedCapacityString(
-          [this.activeService!.id], place.capacity || 0);
-      });
-      this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
-        order: 0,
-        description: this.activeInfrastructure!.name,
-        opacity: 1,
-        style: {
-          fillColor: '#2171b5',
-          strokeColor: 'black',
-          symbol: 'circle'
-        },
-        labelField: 'label',
-        showLabel: showLabel,
-        tooltipField: 'name',
-        select: {
-          enabled: true,
+    };
+    this.planningService.getPlaces(this.activeInfrastructure.id, options).subscribe(places => {
+      // always reload scenario places, should also be shown if cap is 0
+      options.reset = resetScenario;
+      options.scenario = this.activeScenario?.id;
+      options.filter.hasCapacity = false;
+      this.planningService.getPlaces(this.activeInfrastructure!.id, options).subscribe(scenarioPlaces => {
+        this.places = places.concat(scenarioPlaces);
+        let showLabel = true;
+        if (this.placesLayer){
+          showLabel = !!this.placesLayer.showLabel;
+          this.layerGroup?.removeLayer(this.placesLayer);
+        }
+        places?.forEach(place => {
+          place.label = this.getFormattedCapacityString(
+            [this.activeService!.id], place.capacity || 0);
+        });
+        this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
+          order: 0,
+          description: this.activeInfrastructure!.name,
+          opacity: 1,
           style: {
-            fillColor: 'yellow',
+            fillColor: '#2171b5',
+            strokeWidth: 3,
+            strokeColor: 'black',
+            symbol: 'circle'
           },
-          multi: false
-        },
-        mouseOver: {
-          enabled: true,
-          cursor: 'help'
-        },
-        valueStyles: {
-          radius: {
-            range: [3, 20],
-            scale: 'linear'
+          labelField: 'label',
+          showLabel: showLabel,
+          tooltipField: 'name',
+          select: {
+            enabled: true,
+            style: {
+              fillColor: 'yellow',
+            },
+            multi: false
           },
-          field: 'capacity',
-          min: this.activeService?.minCapacity || 0,
-          max: this.activeService?.maxCapacity || 1000
-        }
-      });
-      this.layerGroup?.addLayer(this.placesLayer);
-      this.placesLayer.addFeatures(places.map(place => {
-        return { id: place.id, geometry: place.geom, properties: { name: place.name, label: place.label, capacity: place.capacity } }
-      }));
-      this.placesLayer?.featureSelected?.subscribe(evt => {
-        if (evt.selected)
-          this.selectPlace(evt.feature.get('id'));
-        else {
-          this.selectedPlace = undefined;
-          this.placeDialogRef?.close();
-        }
+          mouseOver: {
+            enabled: true,
+            cursor: 'help'
+          },
+          valueStyles: {
+            radius: {
+              range: [5, 20],
+              scale: 'linear'
+            },
+            strokeColor: {
+              colorFunc: (feat => feat.get('scenario')? '#fc450c': '#174a79')
+            },
+            field: 'capacity',
+            min: this.activeService?.minCapacity || 0,
+            max: this.activeService?.maxCapacity || 1000
+          }
+        });
+        this.layerGroup?.addLayer(this.placesLayer);
+        this.placesLayer.addFeatures(this.places.map(place => {
+          return { id: place.id, geometry: place.geom, properties: { name: place.name, label: place.label, capacity: place.capacity, scenario: place.scenario } }
+        }));
+        this.placesLayer?.featureSelected?.subscribe(evt => {
+          if (evt.selected)
+            this.selectPlace(evt.feature.get('id'));
+          else {
+            this.selectedPlace = undefined;
+            this.placeDialogRef?.close();
+          }
+        })
       })
     })
   }
@@ -235,7 +249,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   private addPlace(coords: number[]): void {
-    if (!this.activeService) return;
+    if (!this.activeService || !this.activeScenario) return;
     this.placeDialogRef?.close();
     const geometry = new Point(transform(coords, 'EPSG:4326', this.mapControl?.map?.mapProjection));
     const place: Place = {
@@ -247,8 +261,14 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     };
     this.selectedPlace = place;
     this.placesLayer?.setSelectable(false);
-    const features = this.placesLayer?.addFeatures([place]);
+    const features = this.placesLayer?.addFeatures([{ geometry: place.geom, scenario: this.activeScenario.id }]);
     if (!features) return;
+    let fields: any = { name: place.name };
+    const fieldNames = this.activeInfrastructure?.placeFields?.map(f => f.name) || [];
+    fieldNames.forEach(field => {
+      fields[field] = undefined;
+    })
+    this.placeForm = this.formBuilder.group(fields);
     this.placeDialogRef = this.dialog.open(FloatingDialog, {
       panelClass: 'help-container',
       hasBackdrop: false,
@@ -265,6 +285,27 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       this.placesLayer?.setSelectable(true);
       this.placesLayer?.removeFeature(features[0]);
       if (ok) {
+        const attributes: any = { };
+        fieldNames.forEach(field => {
+          const value = this.placeForm!.value[field];
+          if (value !== null) attributes[field] = value;
+        });
+        const format = new WKT();
+        let wkt = `SRID=${this.mapControl?.map?.mapProjection.replace('EPSG:', '')};${format.writeGeometry(place.geom as Geometry)}`;
+        this.http.post<Place>(this.rest.URLS.places, {
+          name: this.placeForm!.value.name,
+          infrastructure: this.activeService?.infrastructure,
+          scenario: this.activeScenario!.id,
+          geom: wkt,
+          attributes: attributes
+        }).subscribe(place => {
+  /*        // ToDo: filter?
+          this.places.push(place);
+          const features = this.placesLayer?.addFeatures([{ geometry: place.geom }]);*/
+          this.updatePlaces(true);
+        }, error => {
+          console.log(error)
+        })
         // ToDo: post place
       }
     })

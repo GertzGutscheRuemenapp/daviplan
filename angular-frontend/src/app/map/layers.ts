@@ -8,7 +8,7 @@ import { sortBy } from "../helpers/utils";
 import * as d3 from "d3";
 
 export interface LayerStyle extends Symbol {
-  strokeWidth?: number;
+  strokeWidth?: number
 }
 
 interface ColorLegend {
@@ -181,7 +181,10 @@ interface ValueStyle {
     scale?: 'linear' | 'sequential',
     radiusFunc?: ((d: number) => number)
   },
-  color?: {
+  strokeColor?: {
+    colorFunc?: ((f: Feature<any>) => string)
+  },
+  fillColor?: {
     range?: Interpolator | string[],
     scale?: 'linear' | 'sequential',
     bins?: number,
@@ -252,11 +255,11 @@ export class VectorLayer extends MapLayer {
   }
 
   protected initColor(): void {
-    if (!this.valueStyles?.color?.colorFunc && this.valueStyles?.color?.range) {
-      const seqFunc: any = (this.valueStyles.color.scale === 'linear')? d3.scaleLinear : d3.scaleSequential;
-      const max = !this.valueStyles.color.reverse? this.valueStyles.max: this.valueStyles.min;
-      const min = !this.valueStyles.color.reverse? this.valueStyles.min: this.valueStyles.max;
-      this.valueStyles.color.colorFunc = seqFunc(this.valueStyles.color.range).domain([min, max]);
+    if (!this.valueStyles?.fillColor?.colorFunc && this.valueStyles?.fillColor?.range) {
+      const seqFunc: any = (this.valueStyles.fillColor.scale === 'linear')? d3.scaleLinear : d3.scaleSequential;
+      const max = !this.valueStyles.fillColor.reverse? this.valueStyles.max: this.valueStyles.min;
+      const min = !this.valueStyles.fillColor.reverse? this.valueStyles.min: this.valueStyles.max;
+      this.valueStyles.fillColor.colorFunc = seqFunc(this.valueStyles.fillColor.range).domain([min, max]);
     }
     if (this.valueStyles?.radius?.range) {
       const seqFunc: any = (this.valueStyles.radius.scale === 'linear')? d3.scaleLinear : d3.scaleSequential;
@@ -280,12 +283,13 @@ export class VectorLayer extends MapLayer {
       mouseOverCursor: this.mouseOverCursor,
       multiSelect: this.multiSelect,
       stroke: {
-        color: this.style?.strokeColor, width: this.style?.strokeWidth || 2,
+        color: this.valueStyles?.strokeColor?.colorFunc || this.style?.strokeColor,
+        width: this.style?.strokeWidth || 2,
         mouseOverColor: this.mouseOverStyle?.strokeColor,
         selectedColor: this.selectStyle?.strokeColor
       },
       fill: {
-        color: this.valueStyles?.color?.colorFunc || this.style?.fillColor,
+        color: this.valueStyles?.fillColor?.colorFunc || this.style?.fillColor,
         mouseOverColor: this.mouseOverStyle?.fillColor,
         selectedColor: this.selectStyle?.fillColor
       },
@@ -299,7 +303,7 @@ export class VectorLayer extends MapLayer {
   }
 
   private _getColorLegend(): ColorLegend | undefined {
-    if (!this.valueStyles?.color?.colorFunc || !this.map) return;
+    if (!this.valueStyles?.fillColor?.colorFunc || !this.map) return;
     let colors: string[] = [];
     let labels: string[] = [];
     const steps = (this.valueStyles.steps != undefined)? this.valueStyles.steps: 5;
@@ -312,7 +316,7 @@ export class VectorLayer extends MapLayer {
       if (min === undefined) min = Math.min(...values);
     }
     const step = (max - min) / steps;
-    const colorFunc = this.valueStyles.color.colorFunc;
+    const colorFunc = this.valueStyles.fillColor.colorFunc;
     Array.from({ length: steps + 1 },(v, k) => k * step).forEach((value, i) => {
       colors.push(colorFunc(value));
       let label = Number(value.toFixed(2)).toString();
@@ -337,7 +341,7 @@ export class VectorLayer extends MapLayer {
     features.forEach(feature => {
       if (!(feature instanceof Feature)) {
         const olFeature = new Feature(feature[geometry]);
-        if (feature.id != undefined && feature.id > 0) {
+        if (feature.id != undefined) {
           olFeature.set('id', feature.id);
           olFeature.setId(feature.id);
         }
@@ -353,7 +357,7 @@ export class VectorLayer extends MapLayer {
       olFeatures.forEach((feat, i) => feat.set('zIndex', olFeatures.length - i));
     }
     this.map.addFeatures(this.mapId!, olFeatures);
-    if (this.valueStyles?.color)
+    if (this.valueStyles?.fillColor)
       this.colorLegend = this._getColorLegend();
     return olFeatures;
   }
@@ -434,7 +438,7 @@ export class VectorTileLayer extends VectorLayer {
         mouseOverColor: this.mouseOverStyle?.strokeColor
       },
       fill: {
-        color: this.valueStyles?.color?.colorFunc || this.style?.fillColor,
+        color: this.valueStyles?.fillColor?.colorFunc || this.style?.fillColor,
         mouseOverColor: this.mouseOverStyle?.fillColor
       },
       tooltipField: this.tooltipField,

@@ -341,7 +341,8 @@ export class OlMap {
       shape?: 'circle' | 'square' | 'star' | 'x',
       mouseOverCursor?: string,
       stroke?: {
-        color?: string, width?: number, dash?: number[],
+        color?: string | ((f: Feature<any>) => string),
+        width?: number, dash?: number[],
         selectedColor?: string, mouseOverColor?: string, selectedDash?: number[],
         mouseOverWidth?: number
       },
@@ -356,7 +357,7 @@ export class OlMap {
     } = {}): Layer<any> {
     // @ts-ignore
     const fillColor: string = (typeof(options?.fill?.color) === 'string')? options?.fill?.color: 'rgba(0, 0, 0, 0)';
-    const strokeColor = options?.stroke?.color || 'rgba(0, 0, 0, 1.0)';
+    const strokeColor = (typeof(options?.stroke?.color) === 'string')? options?.stroke?.color: 'rgba(0, 0, 0, 1.0)';
     const text = new OlText({
       font: '14px Calibri,sans-serif',
       overflow: true,
@@ -410,10 +411,12 @@ export class OlMap {
       let value = feature.get(valueField);
       if (typeof value === 'string') value = Number(value);
       const fc = (typeof options?.fill?.color === 'function' && value !== undefined)? options.fill.color(value): fillColor;
+      const sc = (typeof options?.stroke?.color === 'function' && value !== undefined)? options.stroke.color(feature): strokeColor;
       style.getFill().setColor(fc);
+      style.getStroke().setColor(sc);
       if (options?.shape) {
         const radius = (typeof options?.radius === 'function')? Math.abs(options.radius(value)): options?.radius;
-        const shape = _this.getShape(options?.shape, { fillColor: fc, strokeColor: strokeColor, radius: radius });
+        const shape = _this.getShape(options?.shape, { fillColor: fc, strokeColor: sc, strokeWidth: options?.stroke?.width, radius: radius });
         style.setImage(shape);
       }
       return style;

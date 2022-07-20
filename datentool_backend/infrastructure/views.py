@@ -25,6 +25,7 @@ from datentool_backend.indicators.compute.base import (
     ServiceIndicator, ResultSerializer)
 from datentool_backend.indicators.serializers import IndicatorSerializer
 from datentool_backend.utils.processes import ProtectedProcessManager
+from djangorestframework_camel_case.util import camelize
 
 
 @extend_schema_view(list=extend_schema(description='List Places',
@@ -41,11 +42,14 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
 
     def create(self, request, *args, **kwargs):
         """use the annotated version"""
+        attributes = request.data.get('attributes')
+        request.data['attributes'] = camelize(attributes)
         serializer = self.get_serializer(data=request.data)
+        # ToDo: return error response
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         #replace the created instance with an annotated instance
-        serializer.instance = self.get_queryset().get(pk=serializer.instance.pk)
+        serializer.instance = Place.objects.get(pk=serializer.instance.pk)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -57,13 +61,6 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
             return Place.objects.none()
         accessible_infrastructure = InfrastructureAccess.objects.filter(profile=profile)
 
-        scenario = self.request.query_params.get('scenario')
-        queryset = Place.objects.all()
-        if scenario is not None:
-            queryset = queryset.filter(scenario=scenario)
-        else:
-            queryset = queryset.filter(scenario__isnull=True)
-
         queryset = Place.objects.select_related('infrastructure')\
             .prefetch_related(
                 Prefetch('infrastructure__infrastructureaccess_set',
@@ -72,6 +69,12 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
                 Prefetch('placeattribute_set',
                          queryset=PlaceAttribute.objects.select_related('field__field_type'))
                 )
+
+        scenario = self.request.query_params.get('scenario')
+        if scenario is not None:
+            queryset = queryset.filter(scenario=scenario)
+        else:
+            queryset = queryset.filter(scenario__isnull=True)
         return queryset
 
     @extend_schema(description='Create Excel-Template to download',
