@@ -21,6 +21,7 @@ import { FormBuilder, FormGroup } from "@angular/forms";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { WKT } from "ol/format";
+import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 
 @Component({
   selector: 'app-supply',
@@ -30,8 +31,8 @@ import { WKT } from "ol/format";
 export class SupplyComponent implements AfterViewInit, OnDestroy {
   @ViewChild('placeFilter') placeFilter?: PlaceFilterComponent;
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
-  @ViewChild('placeCapEditTemplate') placeCapEditTemplate!: TemplateRef<any>;
-  @ViewChild('placeFullEditTemplate') placeFullEditTemplate!: TemplateRef<any>;
+  @ViewChild('placePreviewTemplate') placePreviewTemplate!: TemplateRef<any>;
+  @ViewChild('placeEditTemplate') placeEditTemplate!: TemplateRef<any>;
   addPlaceMode: boolean;
   year?: number;
   realYears?: number[];
@@ -41,10 +42,11 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   mapControl?: MapControl;
   layerGroup?: MapLayerGroup;
   placesLayer?: VectorLayer;
+  // displayedPlaces: Place[] = [];
   places: Place[] = [];
-  scenarioPlaces: Place[] = [];
+  // scenarioPlaces: Place[] = [];
   selectedPlace?: Place;
-  placeDialogRef?: MatDialogRef<any>;
+  placePreviewDialogRef?: MatDialogRef<any>;
   activeService?: Service;
   activeProcess?: PlanningProcess;
   activeInfrastructure?: Infrastructure;
@@ -109,76 +111,85 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   updatePlaces(resetScenario?: boolean): void {
     if (!this.activeInfrastructure || !this.activeService || !this.activeProcess) return;
     this.updateMapDescription();
-    let options: any = {
+    const options: any = {
         targetProjection: this.mapControl!.map!.mapProjection,
         addCapacities: true,
-        filter: { columnFilter: true, hasCapacity: true }
+        filter: { columnFilter: true }
     };
-    this.planningService.getPlaces(this.activeInfrastructure.id, options).subscribe(places => {
-      // always reload scenario places, should also be shown if cap is 0
-      options.reset = resetScenario;
-      options.scenario = this.activeScenario?.id;
-      options.filter.hasCapacity = false;
-      this.planningService.getPlaces(this.activeInfrastructure!.id, options).subscribe(scenarioPlaces => {
-        this.places = places.concat(scenarioPlaces);
-        let showLabel = true;
-        if (this.placesLayer){
-          showLabel = !!this.placesLayer.showLabel;
-          this.layerGroup?.removeLayer(this.placesLayer);
-        }
-        places?.forEach(place => {
-          place.label = this.getFormattedCapacityString(
-            [this.activeService!.id], place.capacity || 0);
-        });
-        this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
-          order: 0,
-          description: this.activeInfrastructure!.name,
-          opacity: 1,
+    this.places = [];
+    let observables: Observable<any>[] = [];
+    observables.push(this.planningService.getPlaces(this.activeInfrastructure.id, options).pipe(map(places => {
+      this.places = this.places.concat(places);
+    })));
+    if (this.activeScenario && !this.activeScenario.isBase) {
+      // always reload scenario places
+      const scenOptions = {...options, reset: resetScenario, scenario: this.activeScenario.id};
+      observables.push(this.planningService.getPlaces(this.activeInfrastructure.id, scenOptions).pipe(map(places => {
+        this.places = this.places.concat(places);
+      })));
+    }
+    forkJoin(...observables).subscribe(() => {
+      let showLabel = true;
+      if (this.placesLayer){
+        showLabel = !!this.placesLayer.showLabel;
+        this.layerGroup?.removeLayer(this.placesLayer);
+      }
+      this.places?.forEach(place => {
+        place.label = this.getFormattedCapacityString(
+          [this.activeService!.id], place.capacity || 0);
+      });
+      this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
+        order: 0,
+        description: this.activeInfrastructure!.name,
+        opacity: 1,
+        style: {
+          fillColor: '#2171b5',
+          strokeWidth: 2,
+          strokeColor: 'black',
+          symbol: 'circle'
+        },
+        labelField: 'label',
+        showLabel: showLabel,
+        tooltipField: 'name',
+        select: {
+          enabled: true,
           style: {
-            fillColor: '#2171b5',
-            strokeWidth: 3,
-            strokeColor: 'black',
-            symbol: 'circle'
+            strokeWidth: 2,
+            fillColor: 'yellow',
           },
-          labelField: 'label',
-          showLabel: showLabel,
-          tooltipField: 'name',
-          select: {
-            enabled: true,
-            style: {
-              fillColor: 'yellow',
-            },
-            multi: false
+          multi: false
+        },
+        mouseOver: {
+          enabled: true,
+          cursor: 'help'
+        },
+        valueStyles: {
+          radius: {
+            range: [5, 20],
+            scale: 'linear'
           },
-          mouseOver: {
-            enabled: true,
-            cursor: 'help'
+          strokeColor: {
+            colorFunc: (feat => (feat.get('scenario') !== null)? '#fc450c': '#174a79')
           },
-          valueStyles: {
-            radius: {
-              range: [5, 20],
-              scale: 'linear'
-            },
-            strokeColor: {
-              colorFunc: (feat => feat.get('scenario')? '#fc450c': '#174a79')
-            },
-            field: 'capacity',
-            min: this.activeService?.minCapacity || 0,
-            max: this.activeService?.maxCapacity || 1000
-          }
-        });
-        this.layerGroup?.addLayer(this.placesLayer);
-        this.placesLayer.addFeatures(this.places.map(place => {
-          return { id: place.id, geometry: place.geom, properties: { name: place.name, label: place.label, capacity: place.capacity, scenario: place.scenario } }
-        }));
-        this.placesLayer?.featureSelected?.subscribe(evt => {
-          if (evt.selected)
-            this.selectPlace(evt.feature.get('id'));
-          else {
-            this.selectedPlace = undefined;
-            this.placeDialogRef?.close();
-          }
-        })
+          field: 'capacity',
+          min: this.activeService?.minCapacity || 0,
+          max: this.activeService?.maxCapacity || 1000
+        }
+      });
+      this.layerGroup?.addLayer(this.placesLayer);
+      this.placesLayer.addFeatures(this.places.map(place => {
+        return { id: place.id, geometry: place.geom, properties: { name: place.name, label: place.label, capacity: place.capacity, scenario: place.scenario } }
+      }));
+      if (this.selectedPlace) {
+        this.placesLayer?.selectFeatures([this.selectedPlace.id], { silent: true });
+      }
+      this.placesLayer?.featureSelected?.subscribe(evt => {
+        if (evt.selected)
+          this.selectPlace(evt.feature.get('id'));
+        else {
+          this.selectedPlace = undefined;
+          this.placePreviewDialogRef?.close();
+        }
       })
     })
   }
@@ -197,33 +208,29 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   selectPlace(placeId: number) {
     this.selectedPlace = this.places?.find(p => p.id === placeId);
-    this.openPlacePreview(true);
+/*    if (this.selectedPlace?.scenario)
+      this.openFullEdit*/
+    this.openPlacePreview();
   }
 
-  openPlacePreview(editable?: boolean): void {
-    if (this.placeDialogRef && this.placeDialogRef.getState() === 0)
+  openPlacePreview(): void {
+    if (this.placePreviewDialogRef && this.placePreviewDialogRef.getState() === 0)
       return;
-    if (editable) {
-      let attributes: any = { name: this.selectedPlace?.name };
-      this.activeInfrastructure?.placeFields?.forEach(field => {
-        attributes[field.name] = this.selectedPlace?.attributes[field.name];
-      })
-      this.placeForm = this.formBuilder.group(attributes);
-    }
-    const template = editable? this.placeFullEditTemplate: this.placeCapEditTemplate;
-    this.placeDialogRef = this.dialog.open(FloatingDialog, {
+    const template = this.placePreviewTemplate;
+    this.placePreviewDialogRef = this.dialog.open(FloatingDialog, {
       panelClass: 'help-container',
       hasBackdrop: false,
       autoFocus: false,
       data: {
         title: 'Ausgewählte Einrichtungen',
         template: template,
+        context: { edit: true },
         resizable: true,
         dragArea: 'header',
         minWidth: '400px'
       }
     });
-    this.placeDialogRef.afterClosed().subscribe(() => {
+    this.placePreviewDialogRef.afterClosed().subscribe(() => {
       this.placesLayer?.clearSelection();
     })
   }
@@ -250,7 +257,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   private addPlace(coords: number[]): void {
     if (!this.activeService || !this.activeScenario) return;
-    this.placeDialogRef?.close();
     const geometry = new Point(transform(coords, 'EPSG:4326', this.mapControl?.map?.mapProjection));
     const place: Place = {
       id: -1,
@@ -269,19 +275,17 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       fields[field] = undefined;
     })
     this.placeForm = this.formBuilder.group(fields);
-    this.placeDialogRef = this.dialog.open(FloatingDialog, {
-      panelClass: 'help-container',
-      hasBackdrop: false,
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '400px',
+      disableClose: true,
       autoFocus: false,
       data: {
-        title: 'Einrichtung hinzufügen',
-        template: this.placeFullEditTemplate,
-        resizable: true,
-        dragArea: 'header',
-        minWidth: '400px'
+        title: 'Standort hinzufügen',
+        template: this.placeEditTemplate,
       }
     });
-    this.placeDialogRef.afterClosed().subscribe(ok => {
+    dialogRef.afterClosed().subscribe(ok => {
       this.placesLayer?.setSelectable(true);
       this.placesLayer?.removeFeature(features[0]);
       if (ok) {
@@ -299,17 +303,55 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           geom: wkt,
           attributes: attributes
         }).subscribe(place => {
-  /*        // ToDo: filter?
-          this.places.push(place);
-          const features = this.placesLayer?.addFeatures([{ geometry: place.geom }]);*/
+          dialogRef.close();
           this.updatePlaces(true);
         }, error => {
+          // ToDo: show error
           console.log(error)
         })
-        // ToDo: post place
       }
     })
   }
+
+  showEditPlace(): void {
+    if (!this.selectedPlace) return;
+    let fields: any = { name: this.selectedPlace.name };
+    const fieldNames = this.activeInfrastructure?.placeFields?.map(f => f.name) || [];
+    fieldNames.forEach(field => {
+      fields[field] = this.selectedPlace?.attributes[field];
+    })
+    this.placeForm = this.formBuilder.group(fields);
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '400px',
+      disableClose: true,
+      autoFocus: false,
+      data: {
+        title: 'Standort bearbeiten',
+        template: this.placeEditTemplate,
+      }
+    });
+    dialogRef.componentInstance.confirmed.subscribe(ok => {
+      const attributes: any = { };
+      fieldNames.forEach(field => {
+        const value = this.placeForm!.value[field];
+        if (value !== null) attributes[field] = value;
+      });
+      this.http.patch<Place>(`${this.rest.URLS.places}${this.selectedPlace!.id}/`, {
+        name: this.placeForm!.value.name,
+        attributes: attributes
+      }).subscribe(place => {
+        dialogRef.close();
+        this.selectedPlace = place;
+        this.updatePlaces(true);
+      }, error => {
+        // ToDo: show error
+        console.log(error)
+      })
+    })
+  }
+
+  showEditCapacities(): void {}
 
   getFieldType(field: PlaceField): FieldType | undefined {
     return this.fieldTypes.find(ft => ft.id === field.fieldType);

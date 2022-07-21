@@ -70,12 +70,24 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
                          queryset=PlaceAttribute.objects.select_related('field__field_type'))
                 )
 
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
         scenario = self.request.query_params.get('scenario')
         if scenario is not None:
             queryset = queryset.filter(scenario=scenario)
         else:
             queryset = queryset.filter(scenario__isnull=True)
-        return queryset
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     @extend_schema(description='Create Excel-Template to download',
                    request=inline_serializer(

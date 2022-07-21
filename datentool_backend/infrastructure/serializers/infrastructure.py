@@ -101,7 +101,7 @@ class InfrastructureSerializer(serializers.ModelSerializer):
         names = [f['name'] for f in data]
         if (len(set(names)) != len(names)):
             raise NotAcceptable('Die Namen der Attribute müssen einzigartig sein!')
-        # '_' is not allowed because of serializer which is auto camel casing it
+        # '_' is not allowed because of serializer which is auto camel-casing it
         for name in names:
             if '_' in name:
                 raise NotAcceptable('Die Namen der Attribute dürfen kein "_" enthalten!')
