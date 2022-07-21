@@ -169,3 +169,14 @@
     </div>
   </form>
 </ng-template>
+
+<ng-template #placeCapacitiesEditTemplate> <!-- let-place="place">-->
+  <form *ngIf="selectedPlace">
+    {{ selectedPlace.name }}
+    <ng-container *ngVar="getCapacities(selectedPlace) as capacities">
+      <div *ngFor="let capacity of capacities">
+        {{ capacity.fromYear }}  {{ capacity.capacity }}
+      </div>
+    </ng-container>
+  </form>
+</ng-template>

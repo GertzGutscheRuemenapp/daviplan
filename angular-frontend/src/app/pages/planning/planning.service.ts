@@ -177,17 +177,26 @@ export class PlanningService extends RestCacheService {
       function update(infrastructure: Infrastructure | undefined) {
         let observables: Observable<any>[] = [];
         infrastructure?.services?.forEach(service => {
-          observables.push(_this.getCapacities({
-            year: year,
-            service: service.id!
-          }).pipe(map(capacities => {
-            _this.capacitiesPerService[service.id] = capacities;
-          })));
+          if (!_this.capacitiesPerService[service.id]) {
+            observables.push(_this.getCapacities({
+              year: year,
+              service: service.id!,
+              reset: true
+            }).pipe(map(capacities => {
+              _this.capacitiesPerService[service.id] = capacities;
+            })));
+          }
         });
-        forkJoin(...observables).subscribe(() => {
+        if (observables.length > 0) {
+          forkJoin(...observables).subscribe(() => {
+            subscriber.next();
+            subscriber.complete();
+          })
+        }
+        else {
           subscriber.next();
           subscriber.complete();
-        })
+        }
       }
       if (options?.infrastructureId !== undefined) {
         this.getInfrastructures().subscribe(infrastructures => {
@@ -198,6 +207,10 @@ export class PlanningService extends RestCacheService {
       else update(this.activeInfrastructure);
     })
     return observable;
+  }
+
+  resetCapacities(serviceId: number){
+    delete this.capacitiesPerService[serviceId];
   }
 
   getCapacity(place: Place, service?: Service): number{

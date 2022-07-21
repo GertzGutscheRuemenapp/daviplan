@@ -189,7 +189,7 @@ export class RestCacheService {
     return this.getCachedData<FieldType[]>(url);
   }
 
-  getCapacities(options?: { year?: number, service?: number, scenario?: number }): Observable<Capacity[]>{
+  getCapacities(options?: { year?: number, service?: number, scenario?: number, reset?: boolean }): Observable<Capacity[]>{
     let url = this.rest.URLS.capacities;
     let params: any = {};
     if (options?.year !== undefined)
@@ -198,7 +198,7 @@ export class RestCacheService {
       params['service'] = options.service;
     if (options?.scenario !== undefined)
       params['scenario'] = options.scenario;
-    return this.getCachedData<Capacity[]>(url, { params: params })
+    return this.getCachedData<Capacity[]>(url, { params: params, reset: options?.reset })
   }
 
   getAreas(areaLevelId: number, options?: { targetProjection?: string, reset?: boolean }): Observable<Area[]>{

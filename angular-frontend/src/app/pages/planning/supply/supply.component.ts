@@ -7,7 +7,7 @@ import {
   Place,
   Service,
   PlanningProcess,
-  Scenario, FieldType, PlaceField
+  Scenario, FieldType, PlaceField, Capacity
 } from "../../../rest-interfaces";
 import { MapControl, MapService } from "../../../map/map.service";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
@@ -22,6 +22,7 @@ import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { WKT } from "ol/format";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
+import { sortBy } from "../../../helpers/utils";
 
 @Component({
   selector: 'app-supply',
@@ -33,6 +34,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
   @ViewChild('placePreviewTemplate') placePreviewTemplate!: TemplateRef<any>;
   @ViewChild('placeEditTemplate') placeEditTemplate!: TemplateRef<any>;
+  @ViewChild('placeCapacitiesEditTemplate') placeCapacitiesEditTemplate!: TemplateRef<any>;
   addPlaceMode: boolean;
   year?: number;
   realYears?: number[];
@@ -55,6 +57,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   fieldTypes: FieldType[] = [];
   placeForm?: FormGroup;
   private mapClickSub?: Subscription;
+  capacities: Capacity[] = [];
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
               public planningService: PlanningService, private formBuilder: FormBuilder,
@@ -118,6 +121,9 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     };
     this.places = [];
     let observables: Observable<any>[] = [];
+    observables.push(this.planningService.getCapacities({ service: this.activeService.id }).pipe(map(capacities => {
+      this.capacities = capacities;
+    })))
     observables.push(this.planningService.getPlaces(this.activeInfrastructure.id, options).pipe(map(places => {
       this.places = this.places.concat(places);
     })));
@@ -192,9 +198,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         }
       })
     })
-  }
-
-  updateCapacities(): void {
   }
 
   getFormattedCapacityString(services: number[], capacity: number): string {
@@ -351,10 +354,28 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     })
   }
 
-  showEditCapacities(): void {}
+  showEditCapacities(): void {
+    if (!this.activeService) return;
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      panelClass: 'absolute',
+      width: '600px',
+      disableClose: true,
+      autoFocus: false,
+      data: {
+        title: 'Kapazitäten editieren',
+        template: this.placeCapacitiesEditTemplate,
+      }
+    });
+    // ToDo: reset scenario
+    // this.planningService.resetCapacities(this.activeService.id);
+  }
 
   getFieldType(field: PlaceField): FieldType | undefined {
     return this.fieldTypes.find(ft => ft.id === field.fieldType);
+  }
+
+  getCapacities(place: Place): Capacity[] {
+    return sortBy(this.capacities.filter(c => c.place === place.id), 'fromYear')
   }
 
   ngOnDestroy(): void {
