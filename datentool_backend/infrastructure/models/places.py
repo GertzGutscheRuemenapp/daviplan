@@ -123,31 +123,50 @@ class Capacity(DatentoolModelMixin, models.Model):
     class Meta:
         unique_together = ['place', 'service', 'from_year', 'scenario']
 
+    def _get_prev_row(self):
+        return Capacity.objects.filter(place=self.place,
+                                       service=self.service,
+                                       from_year__lt=self.from_year,
+                                       scenario=self.scenario)\
+               .order_by('from_year')\
+               .last()
+
+    def _get_next_row(self):
+        return Capacity.objects.filter(place=self.place,
+                                service=self.service,
+                                from_year__gt=self.from_year,
+                                scenario=self.scenario)\
+               .order_by('from_year')\
+               .first()
+
     def save(self, *args, **kwargs):
         """
         Update to_year in the last row and
         from_year in the current row before saving
         """
-        last_row = Capacity.objects.filter(place=self.place,
-                                     service=self.service,
-                                     from_year__lt=self.from_year,
-                                     scenario=self.scenario)\
-            .order_by('from_year')\
-            .last()
-        if last_row:
-            last_row.to_year = self.from_year - 1
-            super(Capacity, last_row).save()
+        prev_row = self._get_prev_row()
+        next_row = self._get_next_row()
 
-        next_row = Capacity.objects.filter(place=self.place,
-                                           service=self.service,
-                                           from_year__gt=self.from_year,
-                                           scenario=self.scenario)\
-            .order_by('from_year')\
-            .first()
+        if prev_row:
+            prev_row.to_year = self.from_year - 1
+            super(Capacity, prev_row).save()
+
         if next_row:
             self.to_year = next_row.from_year - 1
+        else:
+            self.to_year = 99999999
 
         super().save(*args, **kwargs)
+
+    def delete(self, **kwargs):
+        # ToDo: prohibit deletion of first row?
+        prev_row = self._get_prev_row()
+        next_row = self._get_next_row()
+
+        if prev_row:
+            prev_row.to_year = next_row.from_year - 1 if next_row else 99999999
+
+        super().delete(**kwargs)
 
     @staticmethod
     def filter_queryset(queryset,
