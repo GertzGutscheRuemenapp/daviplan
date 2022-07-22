@@ -58,6 +58,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   placeForm?: FormGroup;
   private mapClickSub?: Subscription;
   capacities: Capacity[] = [];
+  _editCapacities: Capacity[] = [];
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
               public planningService: PlanningService, private formBuilder: FormBuilder,
@@ -355,10 +356,21 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   showEditCapacities(): void {
-    if (!this.activeService) return;
+    if (!this.activeService || !this.selectedPlace) return;
+    this._editCapacities = sortBy(this.capacities.filter(c => c.place === this.selectedPlace!.id), 'fromYear');
+    if (this._editCapacities.length === 0 || this._editCapacities[0].fromYear !== 0) {
+      const startCap: Capacity = {
+        id: -1,
+        place: this.selectedPlace.id,
+        service: this.activeService.id,
+        fromYear: 0,
+        capacity: 0,
+      };
+      this._editCapacities.splice(0, 0, startCap);
+    }
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
-      width: '600px',
+      width: '650px',
       disableClose: true,
       autoFocus: false,
       data: {
@@ -370,12 +382,23 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     // this.planningService.resetCapacities(this.activeService.id);
   }
 
-  getFieldType(field: PlaceField): FieldType | undefined {
-    return this.fieldTypes.find(ft => ft.id === field.fieldType);
+  removeEditCap(i: number): void {
+    this._editCapacities.splice(i, 1);
   }
 
-  getCapacities(place: Place): Capacity[] {
-    return sortBy(this.capacities.filter(c => c.place === place.id), 'fromYear')
+  insertEditCap(i: number): void {
+    const capacity: Capacity = {
+      id: -1,
+      place: this.selectedPlace!.id,
+      service: this.activeService!.id,
+      fromYear: (i === 1)? ((this._editCapacities.length === 1)? 2000: this._editCapacities[i].fromYear - 1): this._editCapacities[i-1].fromYear + 1,
+      capacity: 0,
+    }
+    this._editCapacities.splice(i, 0, capacity);
+  }
+
+  getFieldType(field: PlaceField): FieldType | undefined {
+    return this.fieldTypes.find(ft => ft.id === field.fieldType);
   }
 
   ngOnDestroy(): void {
