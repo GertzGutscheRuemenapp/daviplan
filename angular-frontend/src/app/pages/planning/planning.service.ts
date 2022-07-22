@@ -135,7 +135,7 @@ export class PlanningService extends RestCacheService {
       };
       function filter(places: Place[]){
         if (options?.filter?.columnFilter || options?.addCapacities || options?.filter?.hasCapacity) {
-          _this.updateCapacities({ infrastructureId: infrastructureId, year: options?.filter?.year }).subscribe(() => {
+          _this.updateCapacities({ infrastructureId: infrastructureId, year: options?.filter?.year, scenarioId: options?.scenario }).subscribe(() => {
             let placesTmp: Place[] = [];
             places.forEach(place => {
               const cap = _this.getCapacity(place);
@@ -170,7 +170,7 @@ export class PlanningService extends RestCacheService {
     return observable;
   }
 
-  updateCapacities(options?: { infrastructureId?: number, year?: number }): Observable<any> {
+  updateCapacities(options?: { infrastructureId?: number, year?: number, scenarioId?: number }): Observable<any> {
     const year = (options?.year !== undefined)? options?.year: this.activeYear;
     const _this = this;
     const observable = new Observable<any>(subscriber => {
@@ -181,6 +181,7 @@ export class PlanningService extends RestCacheService {
             observables.push(_this.getCapacities({
               year: year,
               service: service.id!,
+              scenario: options?.scenarioId,
               reset: true
             }).pipe(map(capacities => {
               _this.capacitiesPerService[service.id] = capacities;

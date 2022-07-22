@@ -26,7 +26,7 @@
 }
 
 #capacityTable {
-  margin: 20px 0 40px;
+  margin: 20px 0 30px;
   td:first-child {
     //text-align: right;
     //min-width: 200px;
@@ -34,7 +34,7 @@
 }
 
 ::ng-deep #capacityTable .yearInput {
-  margin-right: 3px;
+  margin-right: 7px;
   .mat-form-field-infix {
     max-width: max-content !important;
   }

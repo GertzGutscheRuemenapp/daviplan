@@ -1,4 +1,4 @@
-from django.db.models import Prefetch, Max
+from django.db.models import Prefetch, Max, Q
 from django.http.request import QueryDict
 from rest_framework import viewsets, status, serializers
 from rest_framework.response import Response
@@ -78,7 +78,7 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
 
         scenario = self.request.query_params.get('scenario')
         if scenario is not None:
-            queryset = queryset.filter(scenario=scenario)
+            queryset = queryset.filter(Q(scenario=scenario) | Q(scenario__isnull=True))
         else:
             queryset = queryset.filter(scenario__isnull=True)
 

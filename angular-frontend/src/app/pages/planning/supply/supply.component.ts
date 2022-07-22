@@ -59,6 +59,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   private mapClickSub?: Subscription;
   capacities: Capacity[] = [];
   _editCapacities: Capacity[] = [];
+  _deleteCapacities: Capacity[] = [];
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
               public planningService: PlanningService, private formBuilder: FormBuilder,
@@ -115,14 +116,15 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   updatePlaces(resetScenario?: boolean): void {
     if (!this.activeInfrastructure || !this.activeService || !this.activeProcess) return;
     this.updateMapDescription();
+    const scenarioId = this.activeScenario?.isBase? undefined: this.activeScenario?.id
     const options: any = {
-        targetProjection: this.mapControl!.map!.mapProjection,
-        addCapacities: true,
-        filter: { columnFilter: true }
+      targetProjection: this.mapControl!.map!.mapProjection,
+      addCapacities: true,
+      filter: { columnFilter: true }
     };
     this.places = [];
     let observables: Observable<any>[] = [];
-    observables.push(this.planningService.getCapacities({ service: this.activeService.id }).pipe(map(capacities => {
+    observables.push(this.planningService.getCapacities({ service: this.activeService.id, scenario: scenarioId }).pipe(map(capacities => {
       this.capacities = capacities;
     })))
     observables.push(this.planningService.getPlaces(this.activeInfrastructure.id, options).pipe(map(places => {
@@ -357,12 +359,14 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   showEditCapacities(): void {
     if (!this.activeService || !this.selectedPlace) return;
+    this._deleteCapacities = [];
     this._editCapacities = sortBy(this.capacities.filter(c => c.place === this.selectedPlace!.id), 'fromYear');
     if (this._editCapacities.length === 0 || this._editCapacities[0].fromYear !== 0) {
       const startCap: Capacity = {
         id: -1,
         place: this.selectedPlace.id,
         service: this.activeService.id,
+        scenario: (this.activeScenario?.isBase)? undefined: this.activeScenario!.id,
         fromYear: 0,
         capacity: 0,
       };
@@ -378,12 +382,40 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         template: this.placeCapacitiesEditTemplate,
       }
     });
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      let observables: Observable<any>[] = [];
+      this._deleteCapacities.forEach(capacity => observables.push(
+        this.http.delete(`${this.rest.URLS.capacities}${capacity.id}/`)))
+      this._editCapacities.forEach(capacity => {
+        if (capacity.id >= 0 && capacity.scenario === this.activeScenario?.id)
+          observables.push(this.http.patch<Capacity>(`${this.rest.URLS.capacities}${capacity.id}/`, capacity));
+        else
+          observables.push(this.http.post<Capacity>(this.rest.URLS.capacities, capacity))
+      })
+      const _this = this;
+      dialogRef.componentInstance.isLoading$.next(true);
+      function done() {
+        _this.planningService.resetCapacities(_this.activeService!.id);
+        _this.updatePlaces();
+        dialogRef.componentInstance.isLoading$.next(false);
+        dialogRef.close();
+      }
+      forkJoin(...observables).subscribe(() => {
+        done();
+      }, error => {
+        // ToDo: error on chained requests possible?
+        done();
+      });
+    })
     // ToDo: reset scenario
     // this.planningService.resetCapacities(this.activeService.id);
   }
 
   removeEditCap(i: number): void {
+    const cap = this._editCapacities[i];
     this._editCapacities.splice(i, 1);
+    if (cap.id >= 0 && cap.scenario === this.activeScenario?.id)
+      this._deleteCapacities.push(cap);
   }
 
   insertEditCap(i: number): void {
@@ -391,6 +423,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       id: -1,
       place: this.selectedPlace!.id,
       service: this.activeService!.id,
+      scenario: this.activeScenario?.id,
       fromYear: (i === 1)? ((this._editCapacities.length === 1)? 2000: this._editCapacities[i].fromYear - 1): this._editCapacities[i-1].fromYear + 1,
       capacity: 0,
     }
