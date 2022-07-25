@@ -199,7 +199,10 @@
                        [min]="(i>0)? _editCapacities[i-1].fromYear + 1: 0">
               </mat-form-field>
             </ng-template>
-            <div *ngIf="i !== _editCapacities.length - 1"> bis {{ _editCapacities[i+1].fromYear-1 }} </div>
+            <div *ngIf="i !== _editCapacities.length - 1"
+                 style="margin-left: auto;">
+              bis {{ _editCapacities[i+1].fromYear-1 }}
+            </div>
           </td>
           <td>
             <mat-form-field appearance="outline" class="small" style="margin: 0 5px 0 20px;">

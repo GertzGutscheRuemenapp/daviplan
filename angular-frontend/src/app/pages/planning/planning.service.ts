@@ -111,7 +111,7 @@ export class PlanningService extends RestCacheService {
         subscriber.complete();
       })
     })
-    return observable
+    return observable;
   }
 
   getPlaces(infrastructureId: number, options?: {

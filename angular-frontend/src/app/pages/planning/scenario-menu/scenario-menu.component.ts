@@ -106,9 +106,6 @@ export class ScenarioMenuComponent implements OnInit {
   onProcessChange(process: PlanningProcess | undefined): void {
     this.process = process;
     this.scenarios = (process)? [this.baseScenario!].concat(process.scenarios || []): [];
-    const scenarioId = this.cookies.get(`planning-scenario-${process?.id}`, 'number');
-    const scenario = this.scenarios?.find(s => s.id === scenarioId) || this.baseScenario;
-    this.planningService.activeScenario$.next(scenario);
   }
 
   onDeleteScenario(): void {
