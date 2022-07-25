@@ -360,7 +360,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   showEditCapacities(): void {
     if (!this.activeService || !this.selectedPlace) return;
     this._deleteCapacities = [];
-    this._editCapacities = sortBy(this.capacities.filter(c => c.place === this.selectedPlace!.id), 'fromYear');
+    this._editCapacities = this.getCapacities(this.selectedPlace);
     if (this._editCapacities.length === 0 || this._editCapacities[0].fromYear !== 0) {
       const startCap: Capacity = {
         id: -1,
@@ -432,6 +432,10 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   getFieldType(field: PlaceField): FieldType | undefined {
     return this.fieldTypes.find(ft => ft.id === field.fieldType);
+  }
+
+  getCapacities(place: Place): Capacity[] {
+    return sortBy(this.capacities.filter(c => c.place === place.id), 'fromYear')
   }
 
   ngOnDestroy(): void {
