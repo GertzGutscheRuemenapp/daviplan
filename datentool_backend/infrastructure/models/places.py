@@ -207,7 +207,7 @@ class Capacity(DatentoolModelMixin, models.Model):
         # get the capacities defined for the scenario,
         # and for the places wihout scenario, the capacities from the base scenario
         res_queryset = queryset\
-            .filter((Q(scenario__in=scenario_id) & Q(place__in=places_with_scenario)) |
+            .filter((Q(scenario=scenario_id) & Q(place__in=places_with_scenario)) |
                     (Q(scenario=None) & Q(place__in=places_without_scenario))
                     )
         return res_queryset
