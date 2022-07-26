@@ -110,7 +110,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       showLabel: false
     });
     this.placesLayerGroup?.addLayer(this.baseRasterLayer);
-    this.baseRasterLayer?.clearFeatures(this.baseRasterLayer!.id!);
+    this.baseRasterLayer?.clearFeatures();
   }
 
   updatePlaces(): void {
@@ -265,10 +265,9 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           unit: 'Minute(n)'
         });
         this.reachLayerGroup?.addLayer(this.placeReachabilityLayer);
-        this.placeReachabilityLayer.addFeatures(this.places,{
-          properties: 'properties',
-          geometry: 'geometry'
-        });
+        this.placeReachabilityLayer.addFeatures(this.places.map(place => {
+          return { id: place.id, geometry: place.geom, properties: { name: place.name, value: place.value } }
+        }));
       })
     });
   }

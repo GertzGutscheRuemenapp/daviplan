@@ -111,7 +111,7 @@ export abstract class MapLayer {
     this.map?.setVisible(this.mapId!, visible);
   }
 
-  clearFeatures(id: number | string): void {
+  clearFeatures(): void {
     this.map?.clear(this.mapId!);
   }
 

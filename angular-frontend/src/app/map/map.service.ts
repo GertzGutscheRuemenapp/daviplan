@@ -261,7 +261,7 @@ export class MapControl {
   }
 
   addMarker(geometry: Geometry): Feature<any> {
-    this.removeMarker();
+    // this.removeMarker();
     if (geometry instanceof Polygon) {
       geometry = new Point(getCenter(geometry.getExtent()));
     }
@@ -283,7 +283,7 @@ export class MapControl {
   }
 
   removeMarker(): void {
-    this.map?.clear('marker-layer');
+    this.markerLayer?.clearFeatures();
   }
 
   refresh(options?: { internal?: boolean, external?: boolean }): void {
