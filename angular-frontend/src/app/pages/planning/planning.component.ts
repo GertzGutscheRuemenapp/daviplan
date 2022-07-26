@@ -97,6 +97,9 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.planningService.activeService$.subscribe(service => {
       if (service) this.cookies.set('planning-service', service?.id);
     })
+    this.planningService.activeScenario$.subscribe(scenario => {
+      if (scenario) this.cookies.set(`planning-scenario-${scenario.planningProcess}`, scenario.id);
+    })
 
     this.planningService.getProcesses().subscribe(processes => {
       this.planningService.getBaseScenario().subscribe(scenario => {

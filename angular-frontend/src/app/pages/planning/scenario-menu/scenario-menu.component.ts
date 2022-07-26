@@ -98,7 +98,6 @@ export class ScenarioMenuComponent implements OnInit {
   setScenario(scenario: Scenario, options?: { silent?: boolean }): void {
     if (this.activeScenario === scenario) return;
     this.activeScenario = scenario;
-    this.cookies.set(`planning-scenario-${this.process?.id}`, scenario?.id);
     if (!options?.silent)
       this.planningService.activeScenario$.next(scenario);
   }
