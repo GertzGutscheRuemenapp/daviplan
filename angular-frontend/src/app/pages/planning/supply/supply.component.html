@@ -141,7 +141,7 @@
       <mat-divider style="margin: 10px 0;"></mat-divider>
       Kapazität {{activeService.name}} ({{year}}): <b>{{getFormattedCapacityString([activeService.id], selectedPlace.capacity || 0)}}</b>
     </div>
-    <table *ngVar="getCapacities(selectedPlace) as capacities">
+    <table *ngVar="getCapacities(selectedPlace) as capacities" style="margin-top: 10px;">
       <tr *ngFor="let capacity of capacities;">
         <td style="padding-right: 10px;">
           ab {{(capacity.fromYear === 0)? 'Startjahr': capacity.fromYear}}

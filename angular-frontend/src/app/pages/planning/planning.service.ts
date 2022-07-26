@@ -18,7 +18,7 @@ import { SettingsService } from "../../settings.service";
 import { CookieService } from "../../helpers/cookies.service";
 import { FilterColumn } from "../../elements/filter-table/filter-table.component";
 import { map } from "rxjs/operators";
-import { wktToGeom } from "../../helpers/utils";
+import { sortBy, wktToGeom } from "../../helpers/utils";
 import { Geometry } from "ol/geom";
 
 @Injectable({
@@ -138,7 +138,7 @@ export class PlanningService extends RestCacheService {
           _this.updateCapacities({ infrastructureId: infrastructureId, year: options?.filter?.year, scenarioId: options?.scenario }).subscribe(() => {
             let placesTmp: Place[] = [];
             places.forEach(place => {
-              const cap = _this.getCapacity(place);
+              const cap = _this.getPlaceCapacity(place);
               if (options.filter?.hasCapacity && cap === 0) return;
               // ToDo: pass year
               if (options.filter?.columnFilter && !_this._filterPlace(place)) return;
@@ -220,7 +220,7 @@ export class PlanningService extends RestCacheService {
       delete capacities[serviceId];
   }
 
-  getCapacity(place: Place, service?: Service, scenario?: Scenario): number{
+  getPlaceCapacity(place: Place, service?: Service, scenario?: Scenario): number{
     service = service || this.activeService;
     scenario = scenario || this.activeScenario;
     if (!service || !scenario) return 0;
@@ -229,13 +229,21 @@ export class PlanningService extends RestCacheService {
     return cap?.capacity || 0;
   }
 
+/*  getPlaceCapacities(place: Place, service?: Service, scenario?: Scenario): Capacity[] {
+    service = service || this.activeService;
+    scenario = scenario || this.activeScenario;
+    if (!service || !scenario) return [];
+    const capacities = this.capacitiesPerScenarioService[scenario.id] || {};
+    return sortBy((capacities[service.id] || []).filter(c => c.place === place.id), 'fromYear')
+  }*/
+
   private _filterPlace(place: Place): boolean {
     if (this.placeFilterColumns.length === 0) return true;
     let match = false;
     this.placeFilterColumns.forEach((filterColumn, i) => {
       const filter = filterColumn.filter!;
       if (filterColumn.service) {
-        const cap = this.getCapacity(place, filterColumn.service);
+        const cap = this.getPlaceCapacity(place, filterColumn.service);
         if (!filter.filter(cap)) return;
       }
       else if (filterColumn.attribute) {

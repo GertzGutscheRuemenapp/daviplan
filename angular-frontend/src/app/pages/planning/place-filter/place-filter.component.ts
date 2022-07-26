@@ -131,7 +131,7 @@ export class PlaceFilterComponent  implements AfterViewInit {
     const rows: any[][] = [];
     places.forEach(place => {
       const capValues = this.infrastructure!.services!.map(service => {
-        return this.planningService.getCapacity(place, service);
+        return this.planningService.getPlaceCapacity(place, service);
       })
       const values: any[] = this.infrastructure!.placeFields!.map(field => {
         return place.attributes[field.name] || '';

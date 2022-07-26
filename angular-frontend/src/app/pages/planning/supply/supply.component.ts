@@ -59,7 +59,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   private mapClickSub?: Subscription;
   capacities: Capacity[] = [];
   _editCapacities: Capacity[] = [];
-  _deleteCapacities: Capacity[] = [];
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
               public planningService: PlanningService, private formBuilder: FormBuilder,
@@ -117,27 +116,24 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     if (!this.activeInfrastructure || !this.activeService || !this.activeProcess) return;
     this.updateMapDescription();
     const scenarioId = this.activeScenario?.isBase? undefined: this.activeScenario?.id
-    const options: any = {
+    this.places = [];
+    let options: any = {
       targetProjection: this.mapControl!.map!.mapProjection,
       addCapacities: true,
       filter: { columnFilter: true }
     };
-    this.places = [];
-    let observables: Observable<any>[] = [];
-    observables.push(this.planningService.getCapacities({ service: this.activeService.id, scenario: scenarioId }).pipe(map(capacities => {
-      this.capacities = capacities;
-    })))
-    observables.push(this.planningService.getPlaces(this.activeInfrastructure.id, options).pipe(map(places => {
-      this.places = this.places.concat(places);
-    })));
-    if (this.activeScenario && !this.activeScenario.isBase) {
+    if (scenarioId !== undefined) {
       // always reload scenario places
-      const scenOptions = {...options, reset: resetScenario, scenario: this.activeScenario.id};
-      observables.push(this.planningService.getPlaces(this.activeInfrastructure.id, scenOptions).pipe(map(places => {
-        this.places = this.places.concat(places);
-      })));
+      options = {...options, reset: resetScenario, scenario: scenarioId};
     }
-    forkJoin(...observables).subscribe(() => {
+    this.planningService.getCapacities({
+      service: this.activeService.id,
+      scenario: scenarioId,
+      reset: (scenarioId !== undefined ) && resetScenario
+    }).subscribe(capacities => {
+      this.capacities = capacities;
+      this.planningService.getPlaces(this.activeInfrastructure!.id, options).subscribe(places => {
+      this.places = this.places.concat(places);
       let showLabel = true;
       if (this.placesLayer){
         showLabel = !!this.placesLayer.showLabel;
@@ -159,7 +155,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         },
         labelField: 'label',
         showLabel: showLabel,
-        tooltipField: 'id',
+        tooltipField: 'name',
         select: {
           enabled: true,
           style: {
@@ -200,7 +196,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           this.placePreviewDialogRef?.close();
         }
       })
-    })
+    })});
   }
 
   getFormattedCapacityString(services: number[], capacity: number): string {
@@ -217,6 +213,10 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 /*    if (this.selectedPlace?.scenario)
       this.openFullEdit*/
     this.openPlacePreview();
+  }
+
+  getCapacities(place: Place): Capacity[] {
+    return sortBy(this.capacities.filter(c => c.place === place.id), 'fromYear')
   }
 
   openPlacePreview(): void {
@@ -359,8 +359,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   showEditCapacities(): void {
     if (!this.activeService || !this.selectedPlace) return;
-    this._deleteCapacities = [];
-    this._editCapacities = this.getCapacities(this.selectedPlace);
+    this._editCapacities = this.getCapacities(this.selectedPlace).map(cap => Object.assign({}, cap));
     if (this._editCapacities.length === 0 || this._editCapacities[0].fromYear !== 0) {
       const startCap: Capacity = {
         id: -1,
@@ -385,27 +384,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     dialogRef.componentInstance.confirmed.subscribe(() => {
       let observables: Observable<any>[] = [];
       const _this = this;
-/*      this._deleteCapacities.forEach(capacity => observables.push(
-        this.http.delete(`${this.rest.URLS.capacities}${capacity.id}/`)))
-      this._editCapacities.forEach(capacity => {
-        if (capacity.id >= 0 && capacity.scenario === this.activeScenario?.id)
-          observables.push(this.http.patch<Capacity>(`${this.rest.URLS.capacities}${capacity.id}/`, capacity));
-        else
-          observables.push(this.http.post<Capacity>(this.rest.URLS.capacities, capacity))
-      })
-      function done() {
-        _this.planningService.resetCapacities(_this.activeService!.id);
-        _this.updatePlaces();
-        dialogRef.componentInstance.isLoading$.next(false);
-        dialogRef.close();
-      }
-      dialogRef.componentInstance.isLoading$.next(true);
-      forkJoin(...observables).subscribe(() => {
-        done();
-      }, error => {
-        // ToDo: error on chained requests possible?
-        done();
-      });*/
       dialogRef.componentInstance.isLoading$.next(true);
       this.http.post<Capacity[]>(`${this.rest.URLS.capacities}replace/`, {
         scenario: this.activeScenario!.id,
@@ -414,7 +392,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         capacities: this._editCapacities
       }).subscribe(capacities => {
         this.planningService.resetCapacities(_this.activeService!.id, this.activeScenario!.id);
-        this.updatePlaces();
+        this.updatePlaces(true);
         dialogRef.componentInstance.isLoading$.next(false);
         dialogRef.close();
       }, error => {
@@ -429,8 +407,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   removeEditCap(i: number): void {
     const cap = this._editCapacities[i];
     this._editCapacities.splice(i, 1);
-    if (cap.id >= 0 && cap.scenario === this.activeScenario?.id)
-      this._deleteCapacities.push(cap);
   }
 
   insertEditCap(i: number): void {
@@ -447,10 +423,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   getFieldType(field: PlaceField): FieldType | undefined {
     return this.fieldTypes.find(ft => ft.id === field.fieldType);
-  }
-
-  getCapacities(place: Place): Capacity[] {
-    return sortBy(this.capacities.filter(c => c.place === place.id), 'fromYear')
   }
 
   ngOnDestroy(): void {
