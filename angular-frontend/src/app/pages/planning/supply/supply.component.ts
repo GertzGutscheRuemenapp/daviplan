@@ -44,9 +44,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   mapControl?: MapControl;
   layerGroup?: MapLayerGroup;
   placesLayer?: VectorLayer;
-  // displayedPlaces: Place[] = [];
   places: Place[] = [];
-  // scenarioPlaces: Place[] = [];
   selectedPlace?: Place;
   placePreviewDialogRef?: MatDialogRef<any>;
   activeService?: Service;
@@ -126,6 +124,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       // always reload scenario places
       options = {...options, reset: resetScenario, scenario: scenarioId};
     }
+    this.placePreviewDialogRef?.componentInstance?.setLoading(true);
     this.planningService.getCapacities({
       service: this.activeService.id,
       scenario: scenarioId,
@@ -133,70 +132,78 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     }).subscribe(capacities => {
       this.capacities = capacities;
       this.planningService.getPlaces(this.activeInfrastructure!.id, options).subscribe(places => {
-      this.places = this.places.concat(places);
-      let showLabel = true;
-      if (this.placesLayer){
-        showLabel = !!this.placesLayer.showLabel;
-        this.layerGroup?.removeLayer(this.placesLayer);
-      }
-      this.places?.forEach(place => {
-        place.label = this.getFormattedCapacityString(
-          [this.activeService!.id], place.capacity || 0);
-      });
-      this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
-        order: 0,
-        description: this.activeInfrastructure!.name,
-        opacity: 1,
-        style: {
-          fillColor: '#2171b5',
-          strokeWidth: 2,
-          strokeColor: 'black',
-          symbol: 'circle'
-        },
-        labelField: 'label',
-        showLabel: showLabel,
-        tooltipField: 'name',
-        select: {
-          enabled: true,
+        this.places = this.places.concat(places);
+        let showLabel = true;
+        if (this.placesLayer) {
+          showLabel = !!this.placesLayer.showLabel;
+          this.layerGroup?.removeLayer(this.placesLayer);
+        }
+        this.places?.forEach(place => {
+          place.label = this.getFormattedCapacityString(
+            [this.activeService!.id], place.capacity || 0);
+        });
+        this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
+          order: 0,
+          description: this.activeInfrastructure!.name,
+          opacity: 1,
           style: {
+            fillColor: '#2171b5',
             strokeWidth: 2,
-            fillColor: 'yellow',
+            strokeColor: 'black',
+            symbol: 'circle'
           },
-          multi: false
-        },
-        mouseOver: {
-          enabled: true,
-          cursor: 'help'
-        },
-        valueStyles: {
-          radius: {
-            range: [5, 20],
-            scale: 'linear'
+          labelField: 'label',
+          showLabel: showLabel,
+          tooltipField: 'name',
+          select: {
+            enabled: true,
+            style: {
+              strokeWidth: 2,
+              fillColor: 'yellow',
+            },
+            multi: false
           },
-          strokeColor: {
-            colorFunc: (feat => (feat.get('scenario') !== null)? '#fc450c': '#174a79')
+          mouseOver: {
+            enabled: true,
+            cursor: 'help'
           },
-          field: 'capacity',
-          min: this.activeService?.minCapacity || 0,
-          max: this.activeService?.maxCapacity || 1000
+          valueStyles: {
+            radius: {
+              range: [5, 20],
+              scale: 'linear'
+            },
+            strokeColor: {
+              colorFunc: (feat => (feat.get('scenario') !== null) ? '#fc450c' : '#174a79')
+            },
+            field: 'capacity',
+            min: this.activeService?.minCapacity || 0,
+            max: this.activeService?.maxCapacity || 1000
+          }
+        });
+        this.layerGroup?.addLayer(this.placesLayer);
+        this.placesLayer.addFeatures(this.places.map(place => {
+          return {
+            id: place.id,
+            geometry: place.geom,
+            properties: { name: place.name, label: place.label, capacity: place.capacity, scenario: place.scenario }
+          }
+        }));
+        if (this.selectedPlace) {
+          // after change, place might only be copy with old attributes
+          this.selectedPlace = this.places.find(p => p.id === this.selectedPlace!.id)
+          this.placesLayer?.selectFeatures([this.selectedPlace!.id], { silent: true });
         }
+        this.placesLayer?.featureSelected?.subscribe(evt => {
+          if (evt.selected)
+            this.selectPlace(evt.feature.get('id'));
+          else {
+            this.selectedPlace = undefined;
+            this.placePreviewDialogRef?.close();
+          }
+        })
+        this.placePreviewDialogRef?.componentInstance?.setLoading(false);
       });
-      this.layerGroup?.addLayer(this.placesLayer);
-      this.placesLayer.addFeatures(this.places.map(place => {
-        return { id: place.id, geometry: place.geom, properties: { name: place.name, label: place.label, capacity: place.capacity, scenario: place.scenario } }
-      }));
-      if (this.selectedPlace) {
-        this.placesLayer?.selectFeatures([this.selectedPlace.id], { silent: true });
-      }
-      this.placesLayer?.featureSelected?.subscribe(evt => {
-        if (evt.selected)
-          this.selectPlace(evt.feature.get('id'));
-        else {
-          this.selectedPlace = undefined;
-          this.placePreviewDialogRef?.close();
-        }
-      })
-    })});
+    });
   }
 
   getFormattedCapacityString(services: number[], capacity: number): string {
@@ -384,7 +391,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     dialogRef.componentInstance.confirmed.subscribe(() => {
       let observables: Observable<any>[] = [];
       const _this = this;
-      dialogRef.componentInstance.isLoading$.next(true);
+      dialogRef.componentInstance.setLoading(true);
       this.http.post<Capacity[]>(`${this.rest.URLS.capacities}replace/`, {
         scenario: this.activeScenario!.id,
         service: this.activeService!.id,
@@ -393,10 +400,10 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       }).subscribe(capacities => {
         this.planningService.resetCapacities(_this.activeService!.id, this.activeScenario!.id);
         this.updatePlaces(true);
-        dialogRef.componentInstance.isLoading$.next(false);
+        dialogRef.componentInstance.setLoading(false);
         dialogRef.close();
       }, error => {
-        dialogRef.componentInstance.isLoading$.next(false);
+        dialogRef.componentInstance.setLoading(false);
         // ToDo: error
       })
     })

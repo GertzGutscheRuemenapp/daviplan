@@ -34,6 +34,10 @@ export class ConfirmDialogComponent implements AfterViewInit  {
     data.context = data.context || {};
   }
 
+  setLoading(loading: boolean) {
+    this.isLoading$.next(loading);
+  }
+
   onConfirmClick() {
     // remove focus from inputs
     document.body.focus()
