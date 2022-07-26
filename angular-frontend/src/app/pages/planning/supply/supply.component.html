@@ -119,7 +119,7 @@
 <!--workaround to cover visible scenario menu-->
 <div style="width: 100%; height:50px; background-color: white;"></div>
 
-<ng-template #placePreviewTemplate let-edit="edit"><!-- let-place="place">-->
+<ng-template #placePreviewTemplate><!-- let-place="place">-->
   <ng-container *ngIf="selectedPlace">
     <b>{{ selectedPlace.name }}</b>
     <table *ngIf="selectedPlace.attributes">
@@ -151,7 +151,7 @@
         </td>
       </tr>
     </table>
-    <button *ngIf="edit" mat-button class="mat-button-dv"
+    <button *ngIf="!activeScenario?.isBase" mat-button class="mat-button-dv"
             (click)="showEditCapacities()"
             color="primary">
       Kapazitäten editieren

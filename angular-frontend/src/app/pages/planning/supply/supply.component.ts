@@ -118,7 +118,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     let options: any = {
       targetProjection: this.mapControl!.map!.mapProjection,
       addCapacities: true,
-      filter: { columnFilter: true }
+      filter: { columnFilter: true, year: this.year }
     };
     if (scenarioId !== undefined) {
       // always reload scenario places
@@ -190,8 +190,9 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         }));
         if (this.selectedPlace) {
           // after change, place might only be copy with old attributes
-          this.selectedPlace = this.places.find(p => p.id === this.selectedPlace!.id)
-          this.placesLayer?.selectFeatures([this.selectedPlace!.id], { silent: true });
+          this.selectedPlace = this.places.find(p => p.id === this.selectedPlace!.id);
+          if (this.selectedPlace)
+            this.placesLayer?.selectFeatures([this.selectedPlace.id], { silent: true });
         }
         this.placesLayer?.featureSelected?.subscribe(evt => {
           if (evt.selected)
