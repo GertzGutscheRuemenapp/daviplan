@@ -159,7 +159,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         },
         labelField: 'label',
         showLabel: showLabel,
-        tooltipField: 'name',
+        tooltipField: 'id',
         select: {
           enabled: true,
           style: {
@@ -384,7 +384,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
       let observables: Observable<any>[] = [];
-      this._deleteCapacities.forEach(capacity => observables.push(
+      const _this = this;
+/*      this._deleteCapacities.forEach(capacity => observables.push(
         this.http.delete(`${this.rest.URLS.capacities}${capacity.id}/`)))
       this._editCapacities.forEach(capacity => {
         if (capacity.id >= 0 && capacity.scenario === this.activeScenario?.id)
@@ -392,20 +393,34 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         else
           observables.push(this.http.post<Capacity>(this.rest.URLS.capacities, capacity))
       })
-      const _this = this;
-      dialogRef.componentInstance.isLoading$.next(true);
       function done() {
         _this.planningService.resetCapacities(_this.activeService!.id);
         _this.updatePlaces();
         dialogRef.componentInstance.isLoading$.next(false);
         dialogRef.close();
       }
+      dialogRef.componentInstance.isLoading$.next(true);
       forkJoin(...observables).subscribe(() => {
         done();
       }, error => {
         // ToDo: error on chained requests possible?
         done();
-      });
+      });*/
+      dialogRef.componentInstance.isLoading$.next(true);
+      this.http.post<Capacity[]>(`${this.rest.URLS.capacities}replace/`, {
+        scenario: this.activeScenario!.id,
+        service: this.activeService!.id,
+        place: this.selectedPlace!.id,
+        capacities: this._editCapacities
+      }).subscribe(capacities => {
+        this.planningService.resetCapacities(_this.activeService!.id, this.activeScenario!.id);
+        this.updatePlaces();
+        dialogRef.componentInstance.isLoading$.next(false);
+        dialogRef.close();
+      }, error => {
+        dialogRef.componentInstance.isLoading$.next(false);
+        // ToDo: error
+      })
     })
     // ToDo: reset scenario
     // this.planningService.resetCapacities(this.activeService.id);

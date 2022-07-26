@@ -29,7 +29,7 @@ export class PlanningService extends RestCacheService {
   isReady: boolean = false;
   placeFilterColumns: FilterColumn[] = [];
   private placesCache: Record<number, Place[]> = {};
-  private capacitiesPerService: Record<number, Capacity[]> = {};
+  private capacitiesPerScenarioService: Record<number, Record<number, Capacity[]>> = {};
   year$ = new BehaviorSubject<number>(0);
   activeProcess$ = new BehaviorSubject<PlanningProcess | undefined>(undefined);
   activeScenario$ = new BehaviorSubject<Scenario | undefined>(undefined);
@@ -173,18 +173,22 @@ export class PlanningService extends RestCacheService {
   updateCapacities(options?: { infrastructureId?: number, year?: number, scenarioId?: number }): Observable<any> {
     const year = (options?.year !== undefined)? options?.year: this.activeYear;
     const _this = this;
+    const scenarioId = options?.scenarioId || -1;
     const observable = new Observable<any>(subscriber => {
+      let scenarioCapacities = this.capacitiesPerScenarioService[scenarioId];
+      if (!scenarioCapacities)
+        scenarioCapacities = this.capacitiesPerScenarioService[scenarioId] = {};
       function update(infrastructure: Infrastructure | undefined) {
         let observables: Observable<any>[] = [];
         infrastructure?.services?.forEach(service => {
-          if (!_this.capacitiesPerService[service.id]) {
+          if (!scenarioCapacities[service.id]) {
             observables.push(_this.getCapacities({
               year: year,
               service: service.id!,
               scenario: options?.scenarioId,
               reset: true
             }).pipe(map(capacities => {
-              _this.capacitiesPerService[service.id] = capacities;
+              scenarioCapacities[service.id] = capacities;
             })));
           }
         });
@@ -210,14 +214,18 @@ export class PlanningService extends RestCacheService {
     return observable;
   }
 
-  resetCapacities(serviceId: number){
-    delete this.capacitiesPerService[serviceId];
+  resetCapacities(serviceId: number, scenarioId: number){
+    const capacities = this.capacitiesPerScenarioService[scenarioId];
+    if (capacities)
+      delete capacities[serviceId];
   }
 
-  getCapacity(place: Place, service?: Service): number{
+  getCapacity(place: Place, service?: Service, scenario?: Scenario): number{
     service = service || this.activeService;
-    if (!service) return 0;
-    const cap = this.capacitiesPerService[service.id]?.find(c => c.place === place.id);
+    scenario = scenario || this.activeScenario;
+    if (!service || !scenario) return 0;
+    const capacities = this.capacitiesPerScenarioService[scenario.id] || {};
+    const cap = capacities[service.id]?.find(c => c.place === place.id);
     return cap?.capacity || 0;
   }
 

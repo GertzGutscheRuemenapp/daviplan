@@ -15,7 +15,7 @@ from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
                                                  CanEditBasedata,)
 from datentool_backend.models import (
     InfrastructureAccess, Infrastructure, Place, Capacity, PlaceField,
-    PlaceAttribute, Service)
+    PlaceAttribute, Service, Scenario)
 from .permissions import CanPatchSymbol
 from datentool_backend.infrastructure.serializers import (
     PlaceSerializer, CapacitySerializer, PlaceFieldSerializer,
@@ -169,6 +169,46 @@ class CapacityViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                                             service_ids=service_ids,
                                             scenario_id=scenario,
                                             year=year)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(methods=['POST'], detail=False)
+    def replace(self, request, **kwargs):
+        scenario = request.data.get('scenario')
+        service = request.data.get('service')
+        place = request.data.get('place')
+        capacities = request.data.get('capacities', [])
+        if scenario is None or service is None or place is None:
+            raise BadRequest('service, place and scenario required')
+        service = Service.objects.get(id=service)
+        scenario = Scenario.objects.get(id=scenario)
+        place = Place.objects.get(id=place)
+        # ToDo: check permission to edit scenario
+
+        existing = Capacity.objects.filter(
+            scenario=scenario, service=service, place=place)
+        keep = []
+        for capacity in capacities:
+            # look if there is already a capacity for this year defined in
+            # scenario
+            try:
+                # keep and update it
+                ex_cap = existing.get(from_year=capacity['from_year'])
+                ex_cap.capacity = capacity['capacity']
+                ex_cap.save()
+                keep.append(ex_cap.id)
+            except Capacity.DoesNotExist:
+                # create new one
+                cap = Capacity.objects.create(
+                    service=service, scenario=scenario, place=place,
+                    capacity=capacity['capacity'],
+                    from_year=capacity['from_year'])
+                keep.append(cap.id)
+        existing.exclude(id__in=keep).delete()
+        queryset = Capacity.filter_queryset(
+            Capacity.objects.filter(place=place),
+            service_ids=[service],
+            scenario_id=scenario)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 

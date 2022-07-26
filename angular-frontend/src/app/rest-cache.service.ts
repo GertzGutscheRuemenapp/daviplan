@@ -196,7 +196,7 @@ export class RestCacheService {
       params['year'] = options.year;
     if (options?.service !== undefined)
       params['service'] = options.service;
-    if (options?.scenario !== undefined)
+    if (options?.scenario !== undefined && options?.scenario !== -1)
       params['scenario'] = options.scenario;
     return this.getCachedData<Capacity[]>(url, { params: params, reset: options?.reset })
   }

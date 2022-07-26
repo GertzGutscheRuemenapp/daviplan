@@ -241,8 +241,6 @@
           <td>
             <button mat-button color="primary"
                     class="mat-button-dv"
-                    style="position: absolute;"
-                    [style.margin-top]="(i !== _editCapacities.length - 1)? '-18px': '-8px'"
                     *ngIf="(i === _editCapacities.length-1) || (_editCapacities[i+1].fromYear - capacity.fromYear > 1) "
                     (click)="insertEditCap(i+1)"
                     title="Jahr einfügen" i18n>
