@@ -269,18 +269,17 @@ class PlacesTemplateSerializer(serializers.Serializer):
 
         # Check the classification
 
-        #df_klassifizierungen = pd.read_excel(excel_file.file,
-                           #sheet_name='Klassifizierungen').set_index('order')
+        df_klassifizierungen = pd.read_excel(
+            excel_file.file, sheet_name='Klassifizierungen').set_index('order')
 
-        #for field_name, series in df_klassifizierungen.items():
-            #ft, created = FieldType.objects.get_or_create(
-                #name=field_name, ftype=FieldTypes.CLASSIFICATION)
-            #series = series.loc[~pd.isna(series)]
-            ## add/change entries of the classification values
-            #for order, value in series.iteritems():
-                #fc, created = FClass.objects.get_or_create(ftype=ft, order=order)
-                #fc.value = value
-                #fc.save()
+        for field_name, series in df_klassifizierungen.items():
+            ft, created = FieldType.objects.get_or_create(
+                name=field_name, ftype=FieldTypes.CLASSIFICATION)
+            series = series.loc[~pd.isna(series)]
+            # add/change entries of the classification values
+            for order, value in series.iteritems():
+                fc, created = FClass.objects.get_or_create(
+                    ftype=ft, value=value, order=order)
 
         # get the services and the place fields of the infrastructure
         services = infra.service_set.all().values('id', 'has_capacity', 'name')
