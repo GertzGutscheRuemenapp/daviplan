@@ -17,6 +17,7 @@ from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.worksheet.dimensions import ColumnDimension, RowDimension
 from openpyxl.worksheet.datavalidation import DataValidation
 
+from datentool_backend.site.models import SiteSetting
 from datentool_backend.area.models import FClass, FieldType, FieldTypes
 from datentool_backend.infrastructure.models.places import (PlaceAttribute,
                                                             Place,
@@ -24,6 +25,8 @@ from datentool_backend.infrastructure.models.places import (PlaceAttribute,
                                                             Capacity)
 from datentool_backend.infrastructure.models.infrastructures import (
     Infrastructure)
+from datentool_backend.utils.crypto import decrypt
+from datentool_backend.utils.bkg_geocoder import BKGGeocoder
 
 infrastructure_id_serializer = serializers.PrimaryKeyRelatedField(
     queryset=Infrastructure.objects.all(),
@@ -56,12 +59,12 @@ class PlacesTemplateSerializer(serializers.Serializer):
 
         columns = {'Name': 'So werden die Einrichtungen auf den Karten beschriftet. '\
                    'Jeder Standort muss einen Namen haben, den kein anderer Standort trägt.',
-                  'Straße': 'Postalisch korrekte Schreibweise',
-                  'Hausnummer': 'Zahl, ggf. mit Buchstaben (7b) oder 11-15',
-                  'PLZ': 'fünfstellig',
-                  'Ort': 'Postalisch korrekte Schreibweise',
-                  'Lon': 'Längengrad, in WGS84',
-                  'Lat': 'Breitengrad, in WGS84',}
+                   'Straße': 'Postalisch korrekte Schreibweise',
+                   'Hausnummer': 'Zahl, ggf. mit Buchstaben (7b) oder 11-15',
+                   'PLZ': 'fünfstellig',
+                   'Ort': 'Postalisch korrekte Schreibweise',
+                   'Lon': 'Längengrad, in WGS84',
+                   'Lat': 'Breitengrad, in WGS84',}
 
         dv_01 = DataValidation(type="whole",
                         operator="between",
@@ -266,18 +269,18 @@ class PlacesTemplateSerializer(serializers.Serializer):
 
         # Check the classification
 
-        df_klassifizierungen = pd.read_excel(excel_file.file,
-                           sheet_name='Klassifizierungen').set_index('order')
+        #df_klassifizierungen = pd.read_excel(excel_file.file,
+                           #sheet_name='Klassifizierungen').set_index('order')
 
-        for field_name, series in df_klassifizierungen.items():
-            ft, created = FieldType.objects.get_or_create(
-                name=field_name, ftype=FieldTypes.CLASSIFICATION)
-            series = series.loc[~pd.isna(series)]
-            # add/change entries of the classification values
-            for order, value in series.iteritems():
-                fc, created = FClass.objects.get_or_create(ftype=ft, order=order)
-                fc.value = value
-                fc.save()
+        #for field_name, series in df_klassifizierungen.items():
+            #ft, created = FieldType.objects.get_or_create(
+                #name=field_name, ftype=FieldTypes.CLASSIFICATION)
+            #series = series.loc[~pd.isna(series)]
+            ## add/change entries of the classification values
+            #for order, value in series.iteritems():
+                #fc, created = FClass.objects.get_or_create(ftype=ft, order=order)
+                #fc.value = value
+                #fc.save()
 
         # get the services and the place fields of the infrastructure
         services = infra.service_set.all().values('id', 'has_capacity', 'name')
@@ -311,6 +314,11 @@ class PlacesTemplateSerializer(serializers.Serializer):
                            skiprows=[1, 2]).set_index('Unnamed: 0')
         df_places.index.name = 'place_id'
 
+        site_settings = SiteSetting.load()
+        UUID = site_settings.bkg_password or None
+        geocoder = BKGGeocoder(
+            decrypt(UUID), crs='EPSG:3857') if UUID else None
+
         # iterate over all places
         for place_id, place_row in df_places.iterrows():
             if pd.isna(place_id):
@@ -329,11 +337,20 @@ class PlacesTemplateSerializer(serializers.Serializer):
             lon = place_row['Lon']
             lat = place_row['Lat']
             if pd.isna(lon) or pd.isna(lat):
-                lon, lat = self.geocode(place_row)
-
-            # create the geometry and transform to WebMercator
-            geom = Point(lon, lat, srid=4326)
-            geom.transform(3857)
+                if geocoder:
+                    # ToDo: raise error if no UUID is given
+                    # ToDo: handle auth errors ...
+                    res = self.geocode(geocoder, place_row)
+                    if res:
+                        lon, lat = res
+                        geom = Point(lon, lat, srid=3857)
+                    else:
+                        # ToDo: ????
+                        pass
+            else:
+                # create the geometry and transform to WebMercator
+                geom = Point(lon, lat, srid=4326)
+                geom.transform(3857)
 
             # set the place columns
             place.infrastructure = infra
@@ -410,7 +427,17 @@ class PlacesTemplateSerializer(serializers.Serializer):
         df = pd.DataFrame()
         return df
 
-    def geocode(self, place_row: dict) -> Tuple[float, float]:
-        """do the geocoding, if no coordinates are provided"""
-        raise NotImplementedError('Geocoding is not implemented yet. '
-                                  'Please provide Lon/Lat-coordinates')
+    def geocode(self, geocoder: BKGGeocoder, place_row: dict) -> Tuple[float, float]:
+        kwargs = {
+            'ort': place_row.Ort,
+            'plz': place_row.PLZ,
+            'strasse': place_row.Straße,
+            'haus': place_row.Hausnummer,
+        }
+        res = geocoder.query(max_retries=2, **kwargs)
+        if res.status_code != 200:
+            return
+        features = res.json()['features']
+        if not features:
+            return
+        return features[0]['geometry']['coordinates']
