@@ -7,8 +7,10 @@ from drf_spectacular.utils import (extend_schema,
                                    OpenApiParameter,
                                    extend_schema_view,
                                    inline_serializer,
+                                   OpenApiResponse
                                    )
 from django.core.exceptions import BadRequest
+from djangorestframework_camel_case.util import camelize
 
 from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
 from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
@@ -25,7 +27,7 @@ from datentool_backend.indicators.compute.base import (
     ServiceIndicator, ResultSerializer)
 from datentool_backend.indicators.serializers import IndicatorSerializer
 from datentool_backend.utils.processes import ProtectedProcessManager
-from djangorestframework_camel_case.util import camelize
+from datentool_backend.utils.serializers import MessageSerializer
 
 
 @extend_schema_view(list=extend_schema(description='List Places',
@@ -131,7 +133,6 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
                         status=status.HTTP_200_OK)
 
 
-
 capacity_params = [
     OpenApiParameter(name='service',
                      type={'type': 'array', 'items': {'type': 'integer'}},
@@ -172,6 +173,21 @@ class CapacityViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+
+    @extend_schema(description=('replace all occurences of capacities for '
+                                'service/place/scenario-combination'),
+                   request=inline_serializer(
+                       name='ReplaceCapacitiesSerializer',
+                       fields={'scenario': serializers.IntegerField(),
+                               'service': serializers.IntegerField(),
+                               'place': serializers.IntegerField(),
+                               'capacities': CapacitySerializer(
+                                   many=True, required=False),
+                               }
+                   ),
+                   responses={202: CapacitySerializer(many=True),
+                              400: OpenApiResponse(MessageSerializer,
+                                                   'Bad Request')})
     @action(methods=['POST'], detail=False)
     def replace(self, request, **kwargs):
         scenario = request.data.get('scenario')
