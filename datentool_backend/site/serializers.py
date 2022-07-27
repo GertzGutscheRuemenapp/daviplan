@@ -4,6 +4,7 @@ from .models import SiteSetting, ProjectSetting
 from django.db.models import Max, Min
 
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
+from datentool_backend.utils.crypto import encrypt
 from datentool_backend.utils.pop_aggregation import intersect_areas_with_raster
 from datentool_backend.area.views import AreaLevelViewSet
 from datentool_backend.population.views.raster import PopulationRasterViewSet
@@ -125,3 +126,20 @@ class SiteSettingSerializer(serializers.ModelSerializer):
             'bkg_password': {'write_only': True},
             'regionalstatistik_password': {'write_only': True}
         }
+
+    def update(self, instance, validated_data):
+        bkg_pass = validated_data.pop('bkg_password', None)
+        regstat_pass = validated_data.pop('regionalstatistik_password', None)
+        instance = super().update(instance, validated_data)
+        try:
+            if bkg_pass is not None:
+                instance.bkg_password = encrypt(bkg_pass)
+            if regstat_pass is not None:
+                instance.regionalstatistik_password = encrypt(regstat_pass)
+            instance.save()
+        except ValueError as e:
+            raise serializers.ValidationError({
+                'detail': f'Der voreingestellte Schlüssel zum Verschlüsseln der '
+                f'Passwörter in der Datenbank (ENCRYPT_KEY) ist nicht valide. '
+                f'Bitte wenden Sie sich an den Systemadministrator. {e}'})
+        return instance

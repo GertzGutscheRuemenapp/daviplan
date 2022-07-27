@@ -22,12 +22,15 @@ export class SettingsComponent implements AfterViewInit {
   @ViewChild('welcomeTextEdit') welcomeTextEdit!: InputCardComponent;
   @ViewChild('logoEdit') logoEdit!: InputCardComponent;
   @ViewChild('regstatEdit') regstatEdit!: InputCardComponent;
+  @ViewChild('BKGEdit') BKGEdit!: InputCardComponent;
   faEye = faEye;
   faEyeSlash = faEyeSlash;
   settings?: SiteSettings;
   titleForm!: FormGroup;
   contactForm!: FormGroup;
   regstatForm!: FormGroup;
+  BKGForm!: FormGroup;
+  showBKGPassword: boolean = false;
   showRegstatPassword: boolean = false;
   welcomeTextInput: string = '';
   welcomeTextErrors: any = {};
@@ -59,6 +62,7 @@ export class SettingsComponent implements AfterViewInit {
     this.setupWelcomeTextDialog();
     this.setupLogoDialog();
     // this.setupRegstatDialog();
+    this.setupBKGDialog();
   }
 
   setupTitleDialog(): void {
@@ -214,7 +218,6 @@ export class SettingsComponent implements AfterViewInit {
       this.regstatForm.setErrors(null);
       this.regstatForm.markAllAsTouched();
       if (this.regstatForm.invalid) return;
-      this.regstatEdit.setLoading(true);
       let attributes: any = {
         regionalstatistikUser: this.regstatForm.value.regstatUser,
         regionalstatistikPassword: this.regstatForm.value.regstatPassword
@@ -234,6 +237,35 @@ export class SettingsComponent implements AfterViewInit {
         this.contactForm.reset({
           regstatUser: this.settings!.regionalstatistikUser,
           regstatPassword: ''
+        });
+      }
+    })
+  }
+
+  setupBKGDialog(): void {
+    this.BKGForm = this.formBuilder.group({
+      bkgPassword: ''
+    });
+    this.BKGEdit.dialogConfirmed.subscribe(()=>{
+      this.BKGForm.setErrors(null);
+      this.BKGForm.markAllAsTouched();
+      if (this.BKGForm.invalid) return;
+      let attributes: any = {
+        bkgPassword: this.BKGForm.value.bkgPassword,
+      }
+      this.BKGEdit.setLoading(true);
+      this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, attributes
+      ).subscribe(data => {
+        this.BKGEdit.closeDialog(true);
+      },(error) => {
+        this.BKGForm.setErrors(error.error);
+        this.BKGEdit.setLoading(false);
+      });
+    })
+    this.BKGEdit.dialogClosed.subscribe((ok)=>{
+      if (!ok){
+        this.contactForm.reset({
+          bkgPassword: ''
         });
       }
     })

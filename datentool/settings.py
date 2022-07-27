@@ -28,6 +28,7 @@ DB_PASS = os.environ.get('DB_PASS', '')
 DB_PORT = os.environ.get('DB_PORT', 5432)
 DB_HOST = os.environ.get('DB_HOST', 'localhost')
 SECRET_KEY = os.environ.get('SECRET_KEY')
+ENCRYPT_KEY = os.environ.get('ENCRYPT_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False

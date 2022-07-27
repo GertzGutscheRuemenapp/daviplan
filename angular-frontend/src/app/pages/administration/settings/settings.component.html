@@ -41,6 +41,21 @@
         </div>
       </div>
     </app-input-card>
+    <app-input-card #BKGEdit
+                    [title]="'BKG Geokodierung (optional)'"
+                    subtitle="Zugangsdaten ändern"
+                    [dialogTitle]="'Zugangsdaten für den BKG-Geocoder'"
+                    dialogWidth="600px"
+                    infoText="Für die Geokodierung von Standortdaten wird die Geocoding-Schnittstelle des BKG verwendet. Um diesen nutzen zu können, wird ein eindeutiger Nutzeridentifikator (UUID) benötigt, der vom BKG bezogen werden kann"
+                    [editTemplate]="BKGTemplate"
+                    [editButton]="BKGEditButton">
+      <div #BKGEditButton class="row-button" style="width: 90%">
+        <div class="fill-space"></div>
+        <button mat-icon-button color="primary">
+          <mat-icon>edit</mat-icon>
+        </button>
+      </div>
+    </app-input-card>
 <!--    <app-input-card #regstatEdit
                     [title]="'Regionalstatistik (optional)'"
                     subtitle="Zugangsdaten ändern"
@@ -179,6 +194,23 @@
              [type]="showRegstatPassword ? 'text' : 'password'"
              placeholder="·········" required>
       <fa-icon matSuffix [icon]="showRegstatPassword? faEyeSlash: faEye" (click)="showRegstatPassword = !showRegstatPassword"></fa-icon>
+    </mat-form-field>
+  </form>
+</ng-template>
+
+<ng-template #BKGTemplate>
+  <form [formGroup]="BKGForm">
+    <div *ngIf="BKGForm.errors">
+      <mat-error *ngFor="let error of BKGForm.errors | keyvalue">
+        {{error.key}}: <i>{{error.value}}</i>
+      </mat-error>
+    </div>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label i18n>Nutzeridentifikator (UUID)</mat-label>
+      <input matInput formControlName="bkgPassword" autocomplete="bkg-uuid"
+             [type]="showBKGPassword ? 'text' : 'password'"
+             placeholder="·········" required>
+      <fa-icon matSuffix [icon]="showBKGPassword? faEyeSlash: faEye" (click)="showBKGPassword = !showBKGPassword"></fa-icon>
     </mat-form-field>
   </form>
 </ng-template>
