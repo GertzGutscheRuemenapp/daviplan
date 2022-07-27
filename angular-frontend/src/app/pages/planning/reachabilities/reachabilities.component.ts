@@ -116,56 +116,55 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   updatePlaces(): void {
     if (!this.activeInfrastructure || !this.activeService || !this.activeProcess) return;
     this.updateMapDescription();
+    const scenarioId = this.activeScenario?.isBase? undefined: this.activeScenario?.id
     this.planningService.getPlaces(this.activeInfrastructure.id,
       {
-        targetProjection: this.mapControl!.map!.mapProjection, filter: { columnFilter: true, hasCapacity: true }
+        targetProjection: this.mapControl!.map!.mapProjection, filter: { columnFilter: true, hasCapacity: true }, scenario: scenarioId
       }).subscribe(places => {
       this.places = places;
-      this.planningService.getCapacities({ year: this.year!, service: this.activeService!.id }).subscribe(capacities => {
-        let showLabel = true;
-        if (this.placesLayer) {
-          this.placesLayerGroup?.removeLayer(this.placesLayer);
-          this.placesLayer = undefined;
+      let showLabel = true;
+      if (this.placesLayer) {
+        this.placesLayerGroup?.removeLayer(this.placesLayer);
+        this.placesLayer = undefined;
+      }
+      this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
+        order: 0,
+        description: this.activeInfrastructure!.name,
+        opacity: 1,
+        style: {
+          fillColor: '#2171b5',
+          strokeColor: 'black',
+          symbol: 'circle'
+        },
+        labelField: 'name',
+        showLabel: showLabel,
+        tooltipField: 'name',
+        mouseOver: {
+          enabled: true,
+          cursor: ''
+        },
+        select: {
+          enabled: true,
+          style: { fillColor: 'yellow' },
+          multi: false
         }
-        this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
-          order: 0,
-          description: this.activeInfrastructure!.name,
-          opacity: 1,
-          style: {
-            fillColor: '#2171b5',
-            strokeColor: 'black',
-            symbol: 'circle'
-          },
-          labelField: 'name',
-          showLabel: showLabel,
-          tooltipField: 'name',
-          mouseOver: {
-            enabled: true,
-            cursor: ''
-          },
-          select: {
-            enabled: true,
-            style: { fillColor: 'yellow' },
-            multi: false
-          }
-        });
-        this.placesLayerGroup?.addLayer(this.placesLayer);
-        this.placesLayer.addFeatures(places.map(place => {
-          return { id: place.id, geometry: place.geom, properties: { name: place.name } }
-        }));
-        this.placesLayer?.setSelectable(this.selectPlaceMode);
-        this.placesLayer?.featureSelected?.subscribe(evt => {
-          if (evt.selected) {
-            this.selectedPlaceId = evt.feature.get('id');
-            this.cookies.set('reachability-place', this.selectedPlaceId);
-            this.showPlaceReachability();
-          }
+      });
+      this.placesLayerGroup?.addLayer(this.placesLayer);
+      this.placesLayer.addFeatures(places.map(place => {
+        return { id: place.id, geometry: place.geom, properties: { name: place.name } }
+      }));
+      this.placesLayer?.setSelectable(this.selectPlaceMode);
+      this.placesLayer?.featureSelected?.subscribe(evt => {
+        if (evt.selected) {
+          this.selectedPlaceId = evt.feature.get('id');
+          this.cookies.set('reachability-place', this.selectedPlaceId);
+          this.showPlaceReachability();
+        }
 /*          else
-            this.removePlaceReachability();*/
-        })
-/*        if (this.selectedPlaceId)
-          this.placesLayer.selectFeatures([this.selectedPlaceId], { silent: false });*/
+          this.removePlaceReachability();*/
       })
+/*        if (this.selectedPlaceId)
+        this.placesLayer.selectFeatures([this.selectedPlaceId], { silent: false });*/
     })
   }
 
@@ -190,7 +189,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       const max = Math.max(...cellResults.map(c => c.value));
 
       const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
-      this.reachRasterLayer = new VectorTileLayer( 'gewählter Standort', url,{
+      this.reachRasterLayer = new VectorTileLayer( 'Gewählter Standort', url,{
         order: 0,
         description: 'Erreichbarkeit des gewählten Standorts',
         opacity: 1,

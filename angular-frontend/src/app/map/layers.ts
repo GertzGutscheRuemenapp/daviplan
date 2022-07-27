@@ -302,7 +302,7 @@ export class VectorLayer extends MapLayer {
     })
   }
 
-  private _getColorLegend(): ColorLegend | undefined {
+  protected _getColorLegend(): ColorLegend | undefined {
     if (!this.valueStyles?.fillColor?.colorFunc || !this.map) return;
     let colors: string[] = [];
     let labels: string[] = [];
@@ -429,6 +429,8 @@ export class VectorTileLayer extends VectorLayer {
     this.mapId = uuid();
     this.initColor();
     this.initSelect();
+    if (this.valueStyles?.fillColor)
+      this.colorLegend = this._getColorLegend();
     return this.map.addVectorTileLayer(this.mapId, this.url!,{
       visible: this.visible,
       opacity: this.opacity,
