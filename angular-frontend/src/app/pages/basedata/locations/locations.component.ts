@@ -215,9 +215,9 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
     if (!(this.places && this.selectedInfrastructure)) return;
     this.isLoading$.next(true);
     this.places.forEach(place => {
-      let row: any = [place.properties.name];
+      let row: any = [place.name];
       this.selectedInfrastructure!.placeFields?.forEach(field => {
-        row.push(place.properties.attributes[field.name]);
+        row.push(place.attributes[field.name]);
       })
       this.selectedInfrastructure!.services?.forEach(service => {
         row.push(place.capacities?.find(capacity => capacity.service === service.id && capacity.fromYear === 0)?.capacity || '');

@@ -1,4 +1,4 @@
-from django.db.models import Prefetch, Max
+from django.db.models import Prefetch, Max, Q
 from django.http.request import QueryDict
 from rest_framework import viewsets, status, serializers
 from rest_framework.response import Response
@@ -15,7 +15,7 @@ from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
                                                  CanEditBasedata,)
 from datentool_backend.models import (
     InfrastructureAccess, Infrastructure, Place, Capacity, PlaceField,
-    PlaceAttribute, Service)
+    PlaceAttribute, Service, Scenario)
 from .permissions import CanPatchSymbol
 from datentool_backend.infrastructure.serializers import (
     PlaceSerializer, CapacitySerializer, PlaceFieldSerializer,
@@ -25,6 +25,7 @@ from datentool_backend.indicators.compute.base import (
     ServiceIndicator, ResultSerializer)
 from datentool_backend.indicators.serializers import IndicatorSerializer
 from datentool_backend.utils.processes import ProtectedProcessManager
+from djangorestframework_camel_case.util import camelize
 
 
 @extend_schema_view(list=extend_schema(description='List Places',
@@ -41,11 +42,14 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
 
     def create(self, request, *args, **kwargs):
         """use the annotated version"""
+        attributes = request.data.get('attributes')
+        request.data['attributes'] = camelize(attributes)
         serializer = self.get_serializer(data=request.data)
+        # ToDo: return error response
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         #replace the created instance with an annotated instance
-        serializer.instance = self.get_queryset().get(pk=serializer.instance.pk)
+        serializer.instance = Place.objects.get(pk=serializer.instance.pk)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -57,13 +61,6 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
             return Place.objects.none()
         accessible_infrastructure = InfrastructureAccess.objects.filter(profile=profile)
 
-        scenario = self.request.query_params.get('scenario')
-        queryset = Place.objects.all()
-        if scenario is not None:
-            queryset = queryset.filter(scenario=scenario)
-        else:
-            queryset = queryset.filter(scenario__isnull=True)
-
         queryset = Place.objects.select_related('infrastructure')\
             .prefetch_related(
                 Prefetch('infrastructure__infrastructureaccess_set',
@@ -72,7 +69,21 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
                 Prefetch('placeattribute_set',
                          queryset=PlaceAttribute.objects.select_related('field__field_type'))
                 )
+
         return queryset
+
+    # only filtering for list view
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        scenario = self.request.query_params.get('scenario')
+        if scenario is not None:
+            queryset = queryset.filter(Q(scenario=scenario) | Q(scenario__isnull=True))
+        else:
+            queryset = queryset.filter(scenario__isnull=True)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     @extend_schema(description='Create Excel-Template to download',
                    request=inline_serializer(
@@ -158,6 +169,46 @@ class CapacityViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                                             service_ids=service_ids,
                                             scenario_id=scenario,
                                             year=year)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(methods=['POST'], detail=False)
+    def replace(self, request, **kwargs):
+        scenario = request.data.get('scenario')
+        service = request.data.get('service')
+        place = request.data.get('place')
+        capacities = request.data.get('capacities', [])
+        if scenario is None or service is None or place is None:
+            raise BadRequest('service, place and scenario required')
+        service = Service.objects.get(id=service)
+        scenario = Scenario.objects.get(id=scenario)
+        place = Place.objects.get(id=place)
+        # ToDo: check permission to edit scenario
+
+        existing = Capacity.objects.filter(
+            scenario=scenario, service=service, place=place)
+        keep = []
+        for capacity in capacities:
+            # look if there is already a capacity for this year defined in
+            # scenario
+            try:
+                # keep and update it
+                ex_cap = existing.get(from_year=capacity['from_year'])
+                ex_cap.capacity = capacity['capacity']
+                ex_cap.save()
+                keep.append(ex_cap.id)
+            except Capacity.DoesNotExist:
+                # create new one
+                cap = Capacity.objects.create(
+                    service=service, scenario=scenario, place=place,
+                    capacity=capacity['capacity'],
+                    from_year=capacity['from_year'])
+                keep.append(cap.id)
+        existing.exclude(id__in=keep).delete()
+        queryset = Capacity.filter_queryset(
+            Capacity.objects.filter(place=place),
+            service_ids=[service],
+            scenario_id=scenario)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 

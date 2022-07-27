@@ -28,8 +28,7 @@ from drf_spectacular.views import (SpectacularAPIView,
                                    SpectacularRedocView,
                                    SpectacularSwaggerView)
 
-
-from datentool_backend.views import AreaLevelTileView
+from datentool_backend.views import AreaLevelTileView, RasterCellTileView
 
 from .views import HomePageView
 
@@ -48,8 +47,10 @@ urlpatterns = [
     path('api/schema/redoc-ui/', SpectacularRedocView.as_view(url_name='schema'),
          name='redoc-ui'),
 
+    path('tiles/raster/<int:z>/<int:x>/<int:y>/', RasterCellTileView.as_view(),
+         name="raster-tile"),
     path('tiles/arealevels/<int:pk>/tile/<int:z>/<int:x>/<int:y>/',
-         AreaLevelTileView.as_view(), name="layer-tile"),
+         AreaLevelTileView.as_view(), name="areas-tile"),
     # match all routes to the home page (entry point to angular) to let angular
     # handle the routing, /api and /static routes are still handled by django
     # automatically, for some reason /media is not, so it is excluded here

@@ -12,7 +12,7 @@ import { RemoveDialogComponent } from "../../dialogs/remove-dialog/remove-dialog
 import { PlanningService } from "./planning.service";
 import { LegendComponent } from "../../map/legend/legend.component";
 import { TimeSliderComponent } from "../../elements/time-slider/time-slider.component";
-import { Infrastructure, PlanningProcess, User } from "../../rest-interfaces";
+import { Infrastructure, PlanningProcess, Scenario, User } from "../../rest-interfaces";
 import { SettingsService } from "../../settings.service";
 import { AuthService } from "../../auth.service";
 import { HttpClient } from "@angular/common/http";
@@ -42,6 +42,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   realYears?: number[];
   prognosisYears?: number[];
   infrastructures: Infrastructure[] = [];
+  baseScenario?: Scenario;
   editProcessForm: FormGroup;
   Object = Object;
 
@@ -96,26 +97,31 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.planningService.activeService$.subscribe(service => {
       if (service) this.cookies.set('planning-service', service?.id);
     })
+    this.planningService.activeScenario$.subscribe(scenario => {
+      if (scenario) this.cookies.set(`planning-scenario-${scenario.planningProcess}`, scenario.id);
+    })
 
     this.planningService.getProcesses().subscribe(processes => {
-      this.auth.getCurrentUser().subscribe(user => {
-        if (!user) return;
-        this.planningService.getUsers().subscribe(users => {
-          this.otherUsers = users.filter(u => u.id != user.id);
+      this.planningService.getBaseScenario().subscribe(scenario => {
+        this.baseScenario = scenario;
+        this.auth.getCurrentUser().subscribe(user => {
+          if (!user) return;
+          this.planningService.getUsers().subscribe(users => {
+            this.otherUsers = users.filter(u => u.id != user.id);
+          })
+          processes.forEach(process => {
+            if (process.owner === user.id)
+              this.myProcesses.push(process);
+            else
+              this.sharedProcesses.push(process);
+          })
+          const processId = this.cookies.get('planning-process', 'number');
+          if (processId) {
+            this.setProcess(Number(processId));
+          }
         })
-        processes.forEach(process => {
-          if (process.owner === user.id)
-            this.myProcesses.push(process);
-          else
-            this.sharedProcesses.push(process);
-        })
-        const processId = this.cookies.get('planning-process', 'number');
-        if (processId) {
-          this.setProcess(Number(processId));
-        }
       })
     })
-    this.planningService.setReady(true);
   }
 
   ngOnDestroy(): void {
@@ -127,9 +133,12 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   setProcess(id: number | undefined, options?: { persist: boolean }): void {
     let process = this.getProcess(id);
     this.activeProcess = process;
+    const scenarioId = this.cookies.get(`planning-scenario-${process?.id}`, 'number');
+    const scenario = process?.scenarios?.find(s => s.id === scenarioId) || this.baseScenario;
     if (options?.persist)
       this.cookies.set('planning-process', process?.id);
     this.planningService.activeProcess$.next(process);
+    this.planningService.activeScenario$.next(scenario);
   }
 
   setSlider(): void {

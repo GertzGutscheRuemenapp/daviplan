@@ -9,8 +9,8 @@ export const DemandTypes = {
 export interface BasedataSettings {
   popAreaLevel: number,
   popStatisticsAreaLevel: number,
-  defaultDemandRateSets: Record<number, number>,
-  defaultModeVariants: Record<number, number>,
+  defaultModeVariants: { mode: number, variant: number }[],
+  defaultDemandRateSets: { service: number, demandrateset: number }[]
   defaultPrognosis: number
 }
 
@@ -49,11 +49,12 @@ export interface PlanningProcess {
 
 export interface Scenario {
   id: number,
+  isBase?: boolean,
   name: string,
   planningProcess: number,
   prognosis?: number,
-  modevariants: Record<number, number>,
-  demandratesets: Record<number, number>
+  modeVariants: { mode: number, variant: number }[],
+  demandrateSets: { service: number, demandrateset: number }[]
 }
 
 export interface Symbol {
@@ -98,12 +99,10 @@ export interface Indicator {
 
 export interface RasterCell {
   id: number,
-  geometry: string | Geometry,
-  properties: {
-    cellcode?: string,
-    population?: number,
-    value?: number
-  }
+  geom: any,
+  cellcode: string,
+  population: number,
+  value?: number
 }
 
 export interface AreaLevel {
@@ -288,15 +287,14 @@ export interface Infrastructure {
 
 export interface Place {
   id: number,
-  geometry: string | Geometry,
-  properties: {
-    name: string,
-    infrastructure: number,
-    attributes: any,
-    label?: string,
-    capacity?: number,
-    value?: number
-  },
+  geom: string | Geometry,
+  name: string,
+  infrastructure: number,
+  attributes: any,
+  label?: string,
+  capacity?: number,
+  scenario?: number,
+  value?: number,
   capacities?: Capacity[]
 }
 
@@ -324,4 +322,17 @@ export interface CellResult {
 export interface PlaceResult {
   placeId: number,
   value: number
+}
+
+export interface Network {
+  id: number,
+  name: string,
+  isDefault: boolean
+}
+
+export interface ModeVariant {
+  id: number,
+  mode: number,
+  network: number
+  // cutoffTime: number
 }

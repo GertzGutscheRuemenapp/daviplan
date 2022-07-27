@@ -86,16 +86,13 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         place.save()
 
         geom = place.geom.ewkt
+        attributes={'age': faker.pyint(), 'surname': faker.name()}
 
-        properties = OrderedDict(
-            name=faker.word(),
-            infrastructure=infrastructure,
-            attributes={'age': faker.pyint(), 'surname': faker.name()},
-        )
         geojson = {
-            'type': 'Feature',
-            'geometry': geom,
-            'properties': properties,
+            'geom': geom,
+            'name': faker.word(),
+            'infrastructure': infrastructure,
+            'attributes': attributes,
         }
 
         cls.post_data = geojson
@@ -105,9 +102,9 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
 
         geojson_patch = geojson_put.copy()
         pnt = Point(x=10, y=50, srid=4326)
-        geojson_patch['geometry'] = pnt.ewkt
+        geojson_patch['geom'] = pnt.ewkt
 
-        expected_patched = {'geometry': pnt.transform(3857, clone=True).ewkt}
+        expected_patched = {'geom': pnt.transform(3857, clone=True).ewkt}
 
         cls.patch_data = geojson_patch
         cls.expected_patch_data = expected_patched
@@ -151,13 +148,13 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         self.client.logout()
         self.client.force_login(pr1.user)
         response = self.get(self.url_key + '-detail', **self.kwargs)
-        attrs = response.data['properties']['attributes']
+        attrs = response.data['attributes']
         self.assertDictEqual(attrs, {'harmless': 123})
 
         self.client.logout()
         self.client.force_login(pr2.user)
         response = self.get(self.url_key + '-detail', **self.kwargs)
-        attrs = response.data['properties']['attributes']
+        attrs = response.data['attributes']
         self.assertDictEqual(attrs, attributes)
 
         self.client.logout()
@@ -220,12 +217,12 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         self.response_200(msg=response.content)
 
         # check the results returned by the view
-        attrs = response.data['properties']['attributes']
+        attrs = response.data['attributes']
         self.compare_data(attrs, patch_data)
 
         # check if the changed data is really in the database
         response = self.get_check_200(self.url_key + '-detail', pk=place.pk)
-        attrs = response.data['properties']['attributes']
+        attrs = response.data['attributes']
         self.compare_data(attrs, patch_data)
 
         # patch only one value
@@ -239,12 +236,12 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
                                    'class_field': 'Category_2', }
                     }
         # check the results returned by the view
-        attrs = response.data['properties']['attributes']
+        attrs = response.data['attributes']
         self.compare_data(attrs, expected)
 
         # check if the changed data is really in the database
         response = self.get_check_200(self.url_key + '-detail', pk=place.pk)
-        attrs = response.data['properties']['attributes']
+        attrs = response.data['attributes']
         self.compare_data(attrs, expected)
 
         # check if invalid attributes return a BadRequest
@@ -279,7 +276,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
                                    'class_field': 'Category_1', }
                     }
 
-        attrs = response.data['properties']['attributes']
+        attrs = response.data['attributes']
         self.compare_data(attrs, patch_data)
 
     def test_delete_placefield(self):

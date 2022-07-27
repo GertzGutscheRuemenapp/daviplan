@@ -165,9 +165,9 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
             fillColor: 'rgba(255, 255, 0, 0.9)'
           }
         },
-        valueMapping: {
+        valueStyles: {
           field: 'value',
-          color: {
+          fillColor: {
             colorFunc: colorFunc
           },
           // fillColor: diffDisplay? colorFunc: undefined,

@@ -44,6 +44,8 @@ export class RestAPI {
     matrixCellPlaces: `${ this.API_ENDPOINT }/matrixcellplaces/`,
     rasterCells: `${ this.API_ENDPOINT }/rastercells/`,
     closestCell: `${ this.API_ENDPOINT }/rastercells/closest_cell/`,
+    modevariants: `${ this.API_ENDPOINT }/modevariants/`,
+    networks: `${ this.API_ENDPOINT }/networks/`,
   }
   // ToDo: functions with generalized HTTP calls in here
 }

@@ -127,7 +127,6 @@ class AreaLevelTileView(AnnotatedAreasMixin, MVTView, DetailView):
         # annotate the areas
         return self.annotate_areas_with_label_and_attributes(areas)
 
-
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         return BaseVectorTileView.get(self, request=request, z=kwargs.get('z'),
