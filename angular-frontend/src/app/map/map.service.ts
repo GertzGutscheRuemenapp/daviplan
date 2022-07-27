@@ -110,7 +110,8 @@ export class MapService {
             id: `area-layer-level-${level.id}`,
             description: `Gebiete der Gebietseinheit ${level.name}`,
             style: level.symbol,
-            labelField: '_label'
+            labelField: '_label',
+            zIndex: 20000
           })
           layers.push(mLayer);
         });

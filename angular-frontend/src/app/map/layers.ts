@@ -66,6 +66,7 @@ interface LayerOptions {
   url?: string,
   description?: string,
   order?: number,
+  zIndex?: number,
   attribution?: string,
   opacity?: number,
   visible?: boolean,
@@ -80,6 +81,7 @@ export abstract class MapLayer {
   group?: MapLayerGroup;
   description?: string = '';
   order?: number = 1;
+  zIndex?: number;
   attribution?: string;
   opacity?: number = 1;
   visible?: boolean = true;
@@ -98,7 +100,16 @@ export abstract class MapLayer {
     this.visible = options?.visible;
     this.order = options?.order;
     this.active = options?.active;
+    this.zIndex = options?.zIndex;
     if (options?.group) options?.group.addLayer(this);
+  }
+
+  getZIndex(): number {
+    if (this.zIndex) return this.zIndex;
+    let zIndex = 90 - (this.order || 0);
+    if (this.group?.order)
+      zIndex += 10000 - (this.group.order * 100);
+    return zIndex;
   }
 
   setOpacity(opacity: number) {
@@ -148,6 +159,7 @@ export class TileLayer extends MapLayer {
     this.mapId = uuid();
     return this.map.addTileServer(
       this.mapId, this.url!, {
+        zIndex: this.getZIndex(),
         params: { layers: this.layerName },
         visible: this.visible,
         opacity: this.opacity,
@@ -277,6 +289,7 @@ export class VectorLayer extends MapLayer {
     this.initColor();
     this.initSelect();
     return this.map!.addVectorLayer(this.mapId, {
+      zIndex: this.getZIndex(),
       visible: this.visible,
       opacity: this.opacity,
       valueField: this.valueStyles?.field || 'value',
@@ -302,7 +315,7 @@ export class VectorLayer extends MapLayer {
     })
   }
 
-  private _getColorLegend(): ColorLegend | undefined {
+  protected _getColorLegend(): ColorLegend | undefined {
     if (!this.valueStyles?.fillColor?.colorFunc || !this.map) return;
     let colors: string[] = [];
     let labels: string[] = [];
@@ -429,7 +442,10 @@ export class VectorTileLayer extends VectorLayer {
     this.mapId = uuid();
     this.initColor();
     this.initSelect();
+    if (this.valueStyles?.fillColor)
+      this.colorLegend = this._getColorLegend();
     return this.map.addVectorTileLayer(this.mapId, this.url!,{
+      zIndex: this.getZIndex(),
       visible: this.visible,
       opacity: this.opacity,
       stroke: {

@@ -143,7 +143,8 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         showLabel: true
       });
     this.layerGroup?.addLayer(this.placesLayer);
-    this.placesLayer.addFeatures(this.places);
+    this.placesLayer.addFeatures(this.places.map(place => { return {
+      id: place.id, geometry: place.geom, properties: { name: place.name } }}));
     this.placesLayer?.featureSelected?.subscribe(evt => {
       const placeId = evt.feature.get('id');
       if (evt.selected){

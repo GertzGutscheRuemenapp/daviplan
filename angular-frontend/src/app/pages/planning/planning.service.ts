@@ -39,6 +39,7 @@ export class PlanningService extends RestCacheService {
   activeYear?: number;
   activeService?: Service;
   activeScenario?: Scenario;
+  activeProcess?: PlanningProcess;
   showScenarioMenu = false;
 
   constructor(protected http: HttpClient, protected rest: RestAPI, private settings: SettingsService,
@@ -61,6 +62,7 @@ export class PlanningService extends RestCacheService {
     this.activeInfrastructure$.subscribe(infrastructure => this.activeInfrastructure = infrastructure);
     this.activeService$.subscribe(service => this.activeService = service);
     this.year$.subscribe(year => this.activeYear = year);
+    this.activeProcess$.subscribe(process => this.activeProcess = process);
     this.activeScenario$.subscribe(scenario => this.activeScenario = scenario);
   }
 
