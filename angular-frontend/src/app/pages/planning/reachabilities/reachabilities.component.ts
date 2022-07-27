@@ -56,7 +56,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
-    this.placesLayerGroup = new MapLayerGroup('Standorte', { order: -1 })
+    this.placesLayerGroup = new MapLayerGroup('Standorte', { order: -2 })
     this.reachLayerGroup = new MapLayerGroup('Erreichbarkeiten', { order: -1 })
     this.mapControl.addGroup(this.placesLayerGroup);
     this.mapControl.addGroup(this.reachLayerGroup);
@@ -70,6 +70,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     });
     this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
       this.activeInfrastructure = infrastructure;
+      this.resetIndicator();
     }))
     this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
       this.activeService = service;
@@ -271,7 +272,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  toggleIndicator(): void {
+  resetIndicator(): void {
     this.setPlaceSelection(false);
     this.setMarkerPlacement(false);
     this.mapControl?.removeMarker();

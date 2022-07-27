@@ -101,6 +101,13 @@ export abstract class MapLayer {
     if (options?.group) options?.group.addLayer(this);
   }
 
+  getZindex(): number {
+    let zIndex = 90 - (this.order || 0);
+    if (this.group?.order)
+      zIndex += 10000 - (this.group.order * 100);
+    return zIndex;
+  }
+
   setOpacity(opacity: number) {
     this.opacity = opacity;
     this.map?.setOpacity(this.mapId!, opacity);
@@ -148,6 +155,7 @@ export class TileLayer extends MapLayer {
     this.mapId = uuid();
     return this.map.addTileServer(
       this.mapId, this.url!, {
+        zIndex: this.getZindex(),
         params: { layers: this.layerName },
         visible: this.visible,
         opacity: this.opacity,
@@ -277,6 +285,7 @@ export class VectorLayer extends MapLayer {
     this.initColor();
     this.initSelect();
     return this.map!.addVectorLayer(this.mapId, {
+      zIndex: this.getZindex(),
       visible: this.visible,
       opacity: this.opacity,
       valueField: this.valueStyles?.field || 'value',
@@ -432,6 +441,7 @@ export class VectorTileLayer extends VectorLayer {
     if (this.valueStyles?.fillColor)
       this.colorLegend = this._getColorLegend();
     return this.map.addVectorTileLayer(this.mapId, this.url!,{
+      zIndex: this.getZindex(),
       visible: this.visible,
       opacity: this.opacity,
       stroke: {
