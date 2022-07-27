@@ -27,3 +27,4 @@ django-postgres-copy
 openpyxl
 matrixconverters
 packaging
+cryptography
