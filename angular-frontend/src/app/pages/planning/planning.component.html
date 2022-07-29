@@ -1,4 +1,4 @@
-<div class="loadOverlay" *ngIf="planningService.isLoading$ | async">
+<div class="loadOverlay" *ngIf="isLoading">
   <mat-spinner [diameter]="50"></mat-spinner>
 </div>
 <mat-toolbar class="sub-nav">
@@ -124,7 +124,7 @@
       </div>
       <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-planning-description"
                        [initiallyExpanded]="true">
-        <div style="padding: 10px; min-height: 70px;" [innerHTML]="this.mapControl?.mapDescription$ | async"></div>
+        <div style="padding: 10px; min-height: 70px;" [innerHTML]="mapDescription"></div>
       </app-side-toggle>
     </div>
     <div id="time-slider" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">

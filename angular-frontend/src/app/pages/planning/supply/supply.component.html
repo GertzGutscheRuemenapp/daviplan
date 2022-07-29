@@ -68,7 +68,7 @@
     </div>
   </ng-container>
 </mat-expansion-panel>
-<mat-expansion-panel cookieExpansion="exp-supply-compare" class="disabled">
+<!--<mat-expansion-panel cookieExpansion="exp-supply-compare" class="disabled">
   <mat-expansion-panel-header>
     <mat-panel-title>
       <div class="mini-fab-icon">
@@ -80,7 +80,7 @@
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
-  <mat-checkbox style="padding-left: 12px;" color="primary" [(ngModel)]="compareSupply" i18n> <!--style="margin-left: -12px"-->
+  <mat-checkbox style="padding-left: 12px;" color="primary" [(ngModel)]="compareSupply" i18n> &lt;!&ndash;style="margin-left: -12px"&ndash;&gt;
     Angebotsstrukturen vergleichen
   </mat-checkbox>
   <div class="sub-select-wrapper compare-radio-list">
@@ -116,9 +116,9 @@
       </mat-form-field>
     </mat-radio-group>
   </div>
-</mat-expansion-panel>
+</mat-expansion-panel>-->
 <!--workaround to cover visible scenario menu-->
-<div style="width: 100%; height:50px; background-color: white;"></div>
+<div style="width: 100%; height:200px; background-color: white;"></div>
 
 <ng-template #placePreviewTemplate><!-- let-place="place">-->
   <ng-container *ngIf="selectedPlace">
