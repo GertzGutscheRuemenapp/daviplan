@@ -124,7 +124,7 @@
       </div>
       <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-planning-description"
                        [initiallyExpanded]="true">
-        <div style="padding: 10px; min-height: 70px;" [innerHTML]="this.mapControl?.mapDescription"></div>
+        <div style="padding: 10px; min-height: 70px;" [innerHTML]="this.mapControl?.mapDescription$ | async"></div>
       </app-side-toggle>
     </div>
     <div id="time-slider" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">

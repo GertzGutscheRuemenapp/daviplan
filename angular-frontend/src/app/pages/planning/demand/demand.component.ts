@@ -164,7 +164,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   updateMapDescription(): void {
     const desc = `Planungsprozess: ${this.activeProcess?.name} > ${this.activeScenario?.name} | ${this.year} <br>
                   Nachfrage nach ${this.activeService?.name} auf Ebene ${this.activeLevel?.name}`
-    this.mapControl!.mapDescription = desc;
+    this.mapControl?.setDescription(desc);
   }
 
   ngOnDestroy(): void {

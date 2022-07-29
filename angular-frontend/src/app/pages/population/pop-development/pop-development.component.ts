@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ViewChild, TemplateRef, OnDestroy } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, TemplateRef, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
 import { StackedBarchartComponent, StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
@@ -8,7 +8,7 @@ import { map } from "rxjs/operators";
 import { MatDialog } from "@angular/material/dialog";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { PopulationService } from "../population.service";
-import { Area, AreaLevel, Gender, ExtLayer, ExtLayerGroup, AgeGroup, Prognosis } from "../../../rest-interfaces";
+import { Area, AreaLevel, Gender, AgeGroup, Prognosis } from "../../../rest-interfaces";
 import * as d3 from "d3";
 import { SelectionModel } from "@angular/cdk/collections";
 import { sortBy } from "../../../helpers/utils";
@@ -62,13 +62,13 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
   constructor(private mapService: MapService, private dialog: MatDialog,
               private populationService: PopulationService, private settings: SettingsService,
-              private cookies: CookieService) { }
+              private cookies: CookieService, private cdref: ChangeDetectorRef) { }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
     this.layerGroup = new MapLayerGroup('Nachfrage', { order: -1 });
     this.mapControl.addGroup(this.layerGroup);
-    this.mapControl.mapDescription = '';
+    this.mapControl.setDescription('');
     if (this.populationService.isReady)
       this.initData();
     else {
@@ -98,6 +98,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     })))
     observables.push(this.populationService.getAreaLevels({ active: true }).pipe(map(areaLevels => {
       this.areaLevels = areaLevels;
+      this.cdref.detectChanges();
     })))
     observables.push(this.populationService.getAgeGroups().pipe(map(ageGroups => {
       this.ageGroupSelection.clear();
@@ -377,6 +378,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     const _prev = this.selectedTab;
     this.selectedTab = -1;
     setTimeout(() => {  this.selectedTab = _prev; }, 1);
+    this.cdref.detectChanges();
   }
 
   someAgeGroupsChecked(): boolean {
@@ -420,7 +422,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       description = `Bevölkerungsentwicklung für Gebietseinheit ${this.activeLevel.name} | ${progDesc}${this.year} <br>` +
                     `${genderDesc} | ${ageGroupDesc}`;
     }
-    this.mapControl!.mapDescription = description;
+    this.mapControl?.setDescription(description);
   }
 
   ngOnDestroy(): void {

@@ -1,6 +1,6 @@
 import { Injectable, EventEmitter } from '@angular/core';
 import { OlMap } from './map'
-import { forkJoin, Observable } from "rxjs";
+import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { sortBy } from "../helpers/utils";
 import { WKT } from "ol/format";
@@ -13,6 +13,7 @@ import { getCenter } from 'ol/extent';
 import { Icon, Style } from "ol/style";
 import { RestCacheService } from "../rest-cache.service";
 import { MapLayerGroup, MapLayer, VectorTileLayer, WMSLayer, TileLayer, VectorLayer } from "./layers";
+import { Service } from "../rest-interfaces";
 
 interface BackgroundLayerDef {
   id: string | number,
@@ -164,7 +165,7 @@ export class MapControl {
   target = '';
   destroyed = new EventEmitter<string>();
   map?: OlMap;
-  mapDescription = '';
+  mapDescription$ = new BehaviorSubject<string>('');
   layerGroups: MapLayerGroup[] = [];
   private markerLayer?: VectorLayer;
   mapExtents: any = {};
@@ -391,6 +392,10 @@ export class MapControl {
     this.mapSettings['legend-edit-mode'] = this.editMode;
     this.settings.user?.set(this.target, this.mapSettings, { patch: true });
     this.settings.user?.set('extents', this.mapExtents, { patch: true });
+  }
+
+  setDescription(text: string) {
+    this.mapDescription$.next(text);
   }
 
   destroy(): void {

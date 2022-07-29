@@ -71,7 +71,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.renderer.setStyle(wrapper, 'overflow-y', 'hidden');
     this.mapControl = this.mapService.get('planning-map');
     this.planningService.legend = this.legend;
-    this.mapControl.mapDescription = 'Planungsprozess: xyz > Status Quo Fortschreibung <br> usw.';
+    this.mapControl?.setDescription('Planungsprozess: xyz > Status Quo Fortschreibung <br> usw.');
     this.timeSlider?.onChange.subscribe(value => {
       this.planningService.year$.next(value);
       this.cookies.set('planning-year', value);

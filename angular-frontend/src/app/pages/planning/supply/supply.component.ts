@@ -255,8 +255,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   updateMapDescription(): void {
     const desc = `Planungsprozess: ${this.activeProcess?.name} > ${this.activeScenario?.name} | ${this.year} <br>
-                  Angebot an ${this.activeService?.name}`
-    this.mapControl!.mapDescription = desc;
+                  Angebot an ${this.activeService?.name}`;
+    this.mapControl?.setDescription(desc);
   }
 
   togglePlaceMode(): void {

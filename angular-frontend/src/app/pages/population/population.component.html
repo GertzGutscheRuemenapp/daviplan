@@ -1,4 +1,4 @@
-<div class="loadOverlay" *ngIf="populationService.isLoading$ | async">
+<div class="loadOverlay" *ngIf="isLoading">
   <mat-spinner [diameter]="50"></mat-spinner>
 </div>
 <mat-toolbar class="sub-nav" [style.visibility]="">
@@ -20,7 +20,7 @@
         <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
       </div>
       <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-pop-description" [initiallyExpanded]="true">
-        <div id="pop-description" [innerHTML]="this.mapControl?.mapDescription"></div>
+        <div id="pop-description" [innerHTML]="mapDescription"></div>
       </app-side-toggle>
     </div>
     <div id="time-slider" class="map-drag-element" cdkDrag cdkDragBoundary="#population-map">
