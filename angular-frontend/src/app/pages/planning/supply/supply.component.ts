@@ -138,9 +138,12 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           showLabel = !!this.placesLayer.showLabel;
           this.layerGroup?.removeLayer(this.placesLayer);
         }
+        let displayedPlaces: Place[] = [];
         this.places?.forEach(place => {
+          if (place.scenario === null && place.capacity === 0) return;
           place.label = this.getFormattedCapacityString(
             [this.activeService!.id], place.capacity || 0);
+          displayedPlaces.push(place);
         });
         this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
           order: 0,
@@ -181,7 +184,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           }
         });
         this.layerGroup?.addLayer(this.placesLayer);
-        this.placesLayer.addFeatures(this.places.map(place => {
+        this.placesLayer.addFeatures(displayedPlaces.map(place => {
           return {
             id: place.id,
             geometry: place.geom,
@@ -302,28 +305,28 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     dialogRef.afterClosed().subscribe(ok => {
       this.placesLayer?.setSelectable(true);
       this.placesLayer?.removeFeature(features[0]);
-      if (ok) {
-        const attributes: any = { };
-        fieldNames.forEach(field => {
-          const value = this.placeForm!.value[field];
-          if (value !== null) attributes[field] = value;
-        });
-        const format = new WKT();
-        let wkt = `SRID=${this.mapControl?.map?.mapProjection.replace('EPSG:', '')};${format.writeGeometry(place.geom as Geometry)}`;
-        this.http.post<Place>(this.rest.URLS.places, {
-          name: this.placeForm!.value.name,
-          infrastructure: this.activeService?.infrastructure,
-          scenario: this.activeScenario!.id,
-          geom: wkt,
-          attributes: attributes
-        }).subscribe(place => {
-          dialogRef.close();
-          this.updatePlaces(true);
-        }, error => {
-          // ToDo: show error
-          console.log(error)
-        })
-      }
+    })
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      const attributes: any = { };
+      fieldNames.forEach(field => {
+        const value = this.placeForm!.value[field];
+        if (value !== null) attributes[field] = value;
+      });
+      const format = new WKT();
+      let wkt = `SRID=${this.mapControl?.map?.mapProjection.replace('EPSG:', '')};${format.writeGeometry(place.geom as Geometry)}`;
+      this.http.post<Place>(this.rest.URLS.places, {
+        name: this.placeForm!.value.name,
+        infrastructure: this.activeService?.infrastructure,
+        scenario: this.activeScenario!.id,
+        geom: wkt,
+        attributes: attributes
+      }).subscribe(place => {
+        dialogRef.close();
+        this.updatePlaces(true);
+      }, error => {
+        // ToDo: show error
+        console.log(error)
+      })
     })
   }
 

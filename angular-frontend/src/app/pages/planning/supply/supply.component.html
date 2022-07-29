@@ -172,7 +172,10 @@
           <input matInput *ngIf="fieldType.ftype === 'STR'" [formControlName]="field.name">
           <input matInput *ngIf="fieldType.ftype === 'NUM'" [formControlName]="field.name" type="number">
           <mat-select *ngIf="fieldType.ftype === 'CLA'" [formControlName]="field.name">
-            <mat-option *ngFor="let class of fieldType.classification">{{class.value}}</mat-option>
+            <mat-option *ngFor="let class of fieldType.classification"
+                        [value]="class.value">
+              {{class.value}}
+            </mat-option>
           </mat-select>
         </mat-form-field>
       </ng-container>
