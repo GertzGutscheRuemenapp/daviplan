@@ -220,39 +220,40 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,
       { genders: genders, prognosis: prognosis, ageGroups: ageGroups.map(ag => ag.id!) }).subscribe(popData => {
       this.populationLayer = new VectorLayer(this.activeLevel!.name,{
-          order: 0,
-          description: this.activeLevel!.name,
-          opacity: 1,
+        order: 0,
+        description: this.activeLevel!.name,
+        opacity: 1,
+        style: {
+          strokeColor: 'white',
+          fillColor: 'rgba(165, 15, 21, 0.9)',
+          symbol: 'circle'
+        },
+        labelField: 'value',
+        tooltipField: 'description',
+        mouseOver: {
+          enabled: true,
           style: {
-            strokeColor: 'white',
-            fillColor: 'rgba(165, 15, 21, 0.9)',
-            symbol: 'circle'
-          },
-          labelField: 'value',
-          tooltipField: 'description',
-          mouseOver: {
-            enabled: true,
-            style: {
-              strokeColor: 'yellow',
-              fillColor: 'rgba(255, 255, 0, 0.7)'
-            }
-          },
-          select: {
-            enabled: true,
-            style: {
-              strokeColor: 'rgb(180, 180, 0)',
-              fillColor: 'rgba(255, 255, 0, 0.9)'
-            },
-          },
-          valueStyles: {
-            field: 'value',
-            radius: {
-              range: [5, 50],
-              scale: 'linear'
-            },
-            min: 0,
-            max: this.activeLevel?.maxValues!.population! || 1000
+            strokeColor: 'yellow',
+            fillColor: 'rgba(255, 255, 0, 0.7)'
           }
+        },
+        select: {
+          enabled: true,
+          style: {
+            strokeColor: 'rgb(180, 180, 0)',
+            fillColor: 'rgba(255, 255, 0, 0.9)'
+          },
+        },
+        valueStyles: {
+          field: 'value',
+          radius: {
+            range: [5, 50],
+            scale: 'linear'
+          },
+          min: 0,
+          max: this.activeLevel?.maxValues!.population! || 1000
+        },
+        labelOffset: { y: 15 }
       });
       this.layerGroup?.addLayer(this.populationLayer);
       this.areas.forEach(area => {

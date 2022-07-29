@@ -181,7 +181,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
             field: 'capacity',
             min: this.activeService?.minCapacity || 0,
             max: this.activeService?.maxCapacity || 1000
-          }
+          },
+          labelOffset: { y: 15 }
         });
         this.layerGroup?.addLayer(this.placesLayer);
         this.placesLayer.addFeatures(displayedPlaces.map(place => {

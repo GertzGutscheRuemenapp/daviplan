@@ -177,7 +177,8 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
           },
           min: 0,
           max: max || 1000
-        }
+        },
+        labelOffset: { y: 15 }
       });
       this.layerGroup?.addLayer(this.statisticsLayer);
       this.areas.forEach(area => {

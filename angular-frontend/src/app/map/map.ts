@@ -356,6 +356,7 @@ export class OlMap {
       selectedColor?: string, mouseOverColor?: string },
     radius?: number | ((d: number) => number),
     labelField?: string,
+    labelOffset?: { x?: number, y?: number },
     valueField?: string,
     showLabel?: boolean,
     zIndex?: number,
@@ -367,8 +368,9 @@ export class OlMap {
       font: '14px Calibri,sans-serif',
       overflow: true,
       placement: 'point',
-      offsetX: 10,
-      offsetY: 15,
+      textAlign: 'center',
+      offsetX: options?.labelOffset?.x || 0,
+      offsetY: options?.labelOffset?.y || 0,
       fill: new Fill({
         color: 'black'
       }),
