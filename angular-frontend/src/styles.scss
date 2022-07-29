@@ -305,6 +305,15 @@ button mat-icon {
   //margin-right: 2px;
 }
 
+button.outlined {
+  border: 2px solid;
+}
+
+mat-icon.outlined {
+  border-radius: 50px;
+  outline: 2px solid;
+}
+
 app-data-card table, app-dash-card table {
   border-collapse: separate;
   border-spacing: 15px 0;
@@ -465,6 +474,10 @@ button.mat-icon-button {
   width: 30px;
   height: 30px;
   line-height: 30px;
+}
+
+.mat-icon-button.small.outlined {
+  line-height: 26px;
 }
 
 /*.mat-mini-fab.small {

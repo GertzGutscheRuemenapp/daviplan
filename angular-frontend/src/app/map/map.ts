@@ -94,7 +94,7 @@ export class OlMap {
     return fromExtent(extent);
   }
 
-  centerOnLayer(name: string): void{
+  zoomToExtent(name: string): void{
     const layer = this.layers[name],
           source = layer.getSource();
     this.map.getView().fit(source.getExtent());
@@ -368,13 +368,13 @@ export class OlMap {
       overflow: true,
       placement: 'point',
       offsetX: 10,
-      offsetY: 10,
+      offsetY: 15,
       fill: new Fill({
         color: 'black'
       }),
       stroke: new Stroke({
         color: 'white',
-        width: 2
+        width: 4
       })
     });
     const style = new Style({

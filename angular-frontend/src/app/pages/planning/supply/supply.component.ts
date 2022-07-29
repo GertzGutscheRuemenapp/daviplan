@@ -436,6 +436,10 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     return this.fieldTypes.find(ft => ft.id === field.fieldType);
   }
 
+  zoomToPlaceExtent(): void {
+    this.placesLayer?.zoomTo();
+  }
+
   ngOnDestroy(): void {
     if (this.layerGroup) {
       this.mapControl?.removeGroup(this.layerGroup);

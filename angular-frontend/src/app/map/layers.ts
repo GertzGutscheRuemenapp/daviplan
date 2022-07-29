@@ -132,6 +132,10 @@ export abstract class MapLayer {
     this.map = undefined;
   }
 
+  zoomTo(): void {
+    this.map?.zoomToExtent(this.mapId!);
+  }
+
   abstract addToMap(map?: OlMap): OlLayer<any> | undefined;
 }
 

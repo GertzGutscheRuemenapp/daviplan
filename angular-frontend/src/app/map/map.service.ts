@@ -338,7 +338,7 @@ export class MapControl {
     const mapLayer = this.map?.getLayer(layer.mapId),
           _this = this;
     mapLayer!.getSource().once('featuresloadend', (evt: any) => {
-      this.map?.centerOnLayer(layer.mapId!);
+      this.map?.zoomToExtent(layer.mapId!);
     })
   }
 
