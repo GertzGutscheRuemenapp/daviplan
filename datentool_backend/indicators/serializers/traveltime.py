@@ -176,7 +176,7 @@ class MatrixRoutedDistanceMixin(serializers.Serializer):
         return df
 
 
-class MatrixCellStopSerializer(MatrixAirDistanceMixin):
+class MatrixCellStopSerializerMixin:
 
     class Meta:
         model = MatrixCellStop
@@ -185,6 +185,9 @@ class MatrixCellStopSerializer(MatrixAirDistanceMixin):
     def get_queryset(self, request):
         variant = ModeVariant.objects.get(id=request.data.get('variant'))
         return MatrixCellStop.objects.filter(variant_id=variant)
+
+
+class MatrixCellStopSerializer(MatrixCellStopSerializerMixin, MatrixAirDistanceMixin):
 
     def get_query(self) -> str:
 
@@ -215,7 +218,12 @@ class MatrixCellStopSerializer(MatrixAirDistanceMixin):
         return query
 
 
-class MatrixCellPlaceSerializer(MatrixAirDistanceMixin):
+class MatrixRoutedCellStopSerializer(MatrixCellStopSerializerMixin,
+                                      MatrixRoutedDistanceMixin):
+    """Routed traveltimes from Cell to Stop"""
+
+
+class MatrixCellPlaceSerializerMixin:
 
     class Meta:
         model = MatrixCellPlace
@@ -224,6 +232,8 @@ class MatrixCellPlaceSerializer(MatrixAirDistanceMixin):
     def get_queryset(self, request):
         variant = ModeVariant.objects.get(id=request.data.get('variant'))
         return MatrixCellPlace.objects.filter(variant_id=variant)
+
+class MatrixCellPlaceSerializer(MatrixCellPlaceSerializerMixin, MatrixAirDistanceMixin):
 
     def get_query(self) -> str:
 
@@ -254,7 +264,12 @@ class MatrixCellPlaceSerializer(MatrixAirDistanceMixin):
         return query
 
 
-class MatrixPlaceStopSerializer(MatrixAirDistanceMixin):
+class MatrixRoutedCellPlaceSerializer(MatrixCellPlaceSerializerMixin,
+                                      MatrixRoutedDistanceMixin):
+    """Routed traveltimes from cell to place"""
+
+
+class MatrixPlaceStopSerializerMixin:
 
     class Meta:
         model = MatrixPlaceStop
@@ -263,6 +278,9 @@ class MatrixPlaceStopSerializer(MatrixAirDistanceMixin):
     def get_queryset(self, request):
         variant = ModeVariant.objects.get(id=request.data.get('variant'))
         return MatrixPlaceStop.objects.filter(variant_id=variant)
+
+
+class MatrixPlaceStopSerializer(MatrixPlaceStopSerializerMixin, MatrixAirDistanceMixin):
 
     def get_query(self) -> str:
 
@@ -287,3 +305,10 @@ class MatrixPlaceStopSerializer(MatrixAirDistanceMixin):
         WHERE st_dwithin(s."geom", p."geom", %s * p.kf)
         '''
         return query
+
+
+class MatrixRoutedPlaceStopSerializer(MatrixPlaceStopSerializerMixin,
+                                      MatrixRoutedDistanceMixin):
+    """Routed traveltimes from place to Stop"""
+
+

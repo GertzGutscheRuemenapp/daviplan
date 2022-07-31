@@ -30,8 +30,17 @@ from datentool_backend.indicators.serializers import (StopSerializer,
                                                       MatrixCellPlaceSerializer,
                                                       MatrixCellStopSerializer,
                                                       MatrixPlaceStopSerializer,
+                                                      MatrixRoutedCellPlaceSerializer,
+                                                      MatrixRoutedCellStopSerializer,
+                                                      MatrixRoutedPlaceStopSerializer,
                           )
 from datentool_backend.utils.processes import ProtectedProcessManager
+
+
+air_distance_routing = serializers.BooleanField(
+        default=True,
+        label='use air distance for routing',
+        help_text='Set to False for network-based routing')
 
 
 class StopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSet):
@@ -81,12 +90,21 @@ class RouterViewSet(viewsets.ModelViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class AirDistanceRouterMixin:
+class TravelTimeRouterMixin:
+    serializer_classes = {}
 
-    @extend_schema(description='Create Traveltime Matrix on AirDistance',
+    def get_serializer_class(self):
+        air_distance_routing = bool(strtobool(
+            self.request.data.get('air_distance_routing', 'True')))
+        if air_distance_routing:
+            return self.serializer_classes['air_distance']
+        return self.serializer_classes['routed']
+
+    @extend_schema(description='Create Traveltime Matrix',
                    request=inline_serializer(
-                       name='AirDistanceSerializer',
+                       name='TravelTimeSerializer',
                        fields={'drop_constraints': drop_constraints,
+                               'air_distance_routing': air_distance_routing,
                                'variant': serializers.PrimaryKeyRelatedField(
                            queryset=ModeVariant.objects.all(),
                            help_text='mode_variant_id',),
@@ -141,9 +159,13 @@ class AirDistanceRouterMixin:
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
 
-class MatrixCellPlaceViewSet(AirDistanceRouterMixin, ProtectCascadeMixin, viewsets.GenericViewSet):
-    serializer_class = MatrixCellPlaceSerializer
+class MatrixCellPlaceViewSet(TravelTimeRouterMixin,
+                             ProtectCascadeMixin,
+                             viewsets.GenericViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    serializer_classes = {'routed': MatrixRoutedCellPlaceSerializer,
+                          'air_distance': MatrixCellPlaceSerializer,
+                          }
 
     def get_queryset(self):
         variant = self.request.data.get('variant')
@@ -168,18 +190,26 @@ class MatrixCellPlaceViewSet(AirDistanceRouterMixin, ProtectCascadeMixin, viewse
                         status=status.HTTP_202_ACCEPTED)
 
 
-class MatrixCellStopViewSet(AirDistanceRouterMixin, ProtectCascadeMixin, viewsets.GenericViewSet):
-    serializer_class = MatrixCellStopSerializer
+class MatrixCellStopViewSet(TravelTimeRouterMixin,
+                            ProtectCascadeMixin,
+                            viewsets.GenericViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    serializer_classes = {'routed': MatrixRoutedCellStopSerializer,
+                          'air_distance': MatrixCellStopSerializer,
+                          }
 
     def get_queryset(self):
         variant = self.request.data.get('variant')
         return MatrixCellStop.objects.filter(variant=variant)
 
 
-class MatrixPlaceStopViewSet(AirDistanceRouterMixin, ProtectCascadeMixin, viewsets.GenericViewSet):
-    serializer_class = MatrixPlaceStopSerializer
+class MatrixPlaceStopViewSet(TravelTimeRouterMixin,
+                             ProtectCascadeMixin,
+                             viewsets.GenericViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    serializer_classes = {'routed': MatrixRoutedPlaceStopSerializer,
+                          'air_distance': MatrixPlaceStopSerializer,
+                          }
 
     def get_queryset(self):
         variant = self.request.data.get('variant')
