@@ -8,6 +8,7 @@ from openpyxl.worksheet.datavalidation import DataValidation
 
 from django.conf import settings
 from django.db import connection
+from django.db.models import FloatField
 from django.contrib.gis.db.models.functions import Transform, Func
 
 from rest_framework import serializers
@@ -155,24 +156,26 @@ class MatrixRoutedDistanceMixin(serializers.Serializer):
         max_distance = MODE_MAX_DISTANCE[variant.mode]
 
         client = OSRM(base_url=f'http://localhost:{port}')
-        sources = Place.objects.all()\
-            .annotate(wgs=Transform('geom', 4326))\
-            .annotate(lon=Func('wgs',function='ST_Y'),
-                      lat=Func('wgs',function='ST_X'))\
-            .values('id', 'lon', 'lat')
-        destinations = RasterCellPopulation.cell.objects.all()\
-            .annotate(wgs=Transform('pnt', 4326))\
-            .annotate(lon=Func('wgs',function='ST_Y'),
-                      lat=Func('wgs',function='ST_X'))\
-            .values('id', 'lon', 'lat')
+        sources = self.get_sources()
+        destinations = self.get_destinations()
         # as lists
-        coords = [sources]+[destinations]
+        coords = list(sources.values_list('lon', 'lat', named=False))\
+            +list(destinations.values_list('lon', 'lat', named=False))
         matrix = client.matrix(locations=coords,
                                sources=range(len(sources)),
                                destinations = range(len(sources), len(coords)),
                                profile='driving')
-        # matrix as dataframe
-        df = pd.DataFrame(matrix)
+        # convert matrix to dataframe
+        arr = pd.DataFrame(matrix.durations,
+                          index = list(sources.values_list('id', flat=True)),
+                          columns= list(destinations.values_list('id', flat=True)))
+
+        seconds = arr.T.unstack()
+        seconds.index.names = self.col_ids
+        minutes = seconds / 60
+        df = minutes.to_frame(name='minutes')
+        df['variant_id'] = variant.id
+        df.reset_index(inplace=True)
         return df
 
 
@@ -221,6 +224,23 @@ class MatrixCellStopSerializer(MatrixCellStopSerializerMixin, MatrixAirDistanceM
 class MatrixRoutedCellStopSerializer(MatrixCellStopSerializerMixin,
                                       MatrixRoutedDistanceMixin):
     """Routed traveltimes from Cell to Stop"""
+    col_ids = ('cell_id', 'stop_id')
+
+    def get_destinations(self):
+        destinations = Stop.objects.all()\
+            .annotate(wgs=Transform('pnt', 4326))\
+            .annotate(lat=Func('wgs',function='ST_Y', output_field=FloatField()),
+                      lon=Func('wgs',function='ST_X', output_field=FloatField()))\
+            .values('id', 'lon', 'lat')
+        return destinations
+
+    def get_sources(self):
+        sources =  RasterCell.objects.filter(rastercellpopulation__isnull=False)\
+            .annotate(wgs=Transform('pnt', 4326))\
+            .annotate(lat=Func('wgs',function='ST_Y', output_field=FloatField()),
+                      lon=Func('wgs',function='ST_X', output_field=FloatField()))\
+            .values('id', 'lon', 'lat')
+        return sources
 
 
 class MatrixCellPlaceSerializerMixin:
@@ -267,6 +287,23 @@ class MatrixCellPlaceSerializer(MatrixCellPlaceSerializerMixin, MatrixAirDistanc
 class MatrixRoutedCellPlaceSerializer(MatrixCellPlaceSerializerMixin,
                                       MatrixRoutedDistanceMixin):
     """Routed traveltimes from cell to place"""
+    col_ids = ('place_id', 'cell_id')
+
+    def get_destinations(self):
+        destinations = RasterCell.objects.filter(rastercellpopulation__isnull=False)\
+            .annotate(wgs=Transform('pnt', 4326))\
+            .annotate(lat=Func('wgs',function='ST_Y', output_field=FloatField()),
+                      lon=Func('wgs',function='ST_X', output_field=FloatField()))\
+            .values('id', 'lon', 'lat')
+        return destinations
+
+    def get_sources(self):
+        sources = Place.objects.all()\
+            .annotate(wgs=Transform('geom', 4326))\
+            .annotate(lat=Func('wgs',function='ST_Y', output_field=FloatField()),
+                      lon=Func('wgs',function='ST_X', output_field=FloatField()))\
+            .values('id', 'lon', 'lat')
+        return sources
 
 
 class MatrixPlaceStopSerializerMixin:
@@ -310,5 +347,21 @@ class MatrixPlaceStopSerializer(MatrixPlaceStopSerializerMixin, MatrixAirDistanc
 class MatrixRoutedPlaceStopSerializer(MatrixPlaceStopSerializerMixin,
                                       MatrixRoutedDistanceMixin):
     """Routed traveltimes from place to Stop"""
+    col_ids = ('place_id', 'stop_id')
 
+    def get_destinations(self):
+        destinations = Stop.objects.all()\
+            .annotate(wgs=Transform('pnt', 4326))\
+            .annotate(lat=Func('wgs',function='ST_Y', output_field=FloatField()),
+                      lon=Func('wgs',function='ST_X', output_field=FloatField()))\
+            .values('id', 'lon', 'lat')
+        return destinations
+
+    def get_sources(self):
+        sources = Place.objects.all()\
+            .annotate(wgs=Transform('geom', 4326))\
+            .annotate(lat=Func('wgs',function='ST_Y', output_field=FloatField()),
+                      lon=Func('wgs',function='ST_X', output_field=FloatField()))\
+            .values('id', 'lon', 'lat')
+        return sources
 

@@ -3,6 +3,7 @@ import xarray as xr
 
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 
+from datentool_backend.site.models import ProjectSetting
 from datentool_backend.area.factories import (AreaLevelFactory,
                                               AreaFactory,
                                               AreaFieldFactory,
@@ -45,6 +46,17 @@ class CreateTestdataMixin:
     def tearDownClass(cls):
         PlanningProcess.objects.all().delete()
         super().tearDownClass()
+
+    @classmethod
+    def create_project_settings(cls):
+        ewkt = 'SRID=4326;MULTIPOLYGON (((9.8 52.2, 9.8 52.3, 9.9 52.3, 9.9 52.2, 9.8 52.2)))'
+
+        geom = MultiPolygon.from_ewkt(ewkt)
+        geom.transform(3857)
+        projectsettings, created = ProjectSetting.objects.get_or_create(pk=1)
+        projectsettings.project_area = geom
+        projectsettings.save()
+        return projectsettings
 
     @classmethod
     def create_scenario(cls):
