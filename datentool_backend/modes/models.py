@@ -34,7 +34,13 @@ class Network(DatentoolModelMixin, NamedModel, models.Model):
         # only one network can be a default
         if self.is_default:
             Network.objects.filter(is_default=True).update(is_default=False)
-        return super().save(*args, **kwargs)
+
+        variants = []
+        if self.pk is None:
+            for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
+                variants.append(ModeVariant(network=self, mode=mode))
+        super().save(*args, **kwargs)
+        ModeVariant.objects.bulk_create(variants)
 
 
 class ModeVariant(DatentoolModelMixin, models.Model):

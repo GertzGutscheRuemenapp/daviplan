@@ -1,6 +1,4 @@
 import os
-import sys
-import traceback
 import pyproj
 import tempfile
 import numpy as np
@@ -16,6 +14,8 @@ from django.db.models import F
 from django.contrib.gis.db.models.functions import Distance
 from django.conf import settings
 from django.contrib.gis.geos import Point
+from django.contrib.gis.db.models.functions import AsGeoJSON
+from django.views.generic import ListView
 
 from drf_spectacular.utils import (extend_schema,
                                    inline_serializer,
@@ -27,6 +27,7 @@ from rest_framework.response import Response
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
+from vectortiles.postgis.views import MVTView, BaseVectorTileView
 
 from datentool_backend.indicators.models import (MatrixCellPlace,
                                                  MatrixCellStop)
@@ -73,8 +74,9 @@ class RasterCellViewSet(viewsets.ModelViewSet):
         raster_cells = pop_raster.raster.rastercell_set
 
         raster_cells_with_inhabitants = raster_cells\
-            .filter(rastercellpopulation__isnull=False)\
-            .annotate(population=F('rastercellpopulation__value'))
+            .annotate(population=F('rastercellpopulation__value'))\
+            .filter(population__gt=0)\
+            .annotate(geom=AsGeoJSON('poly'))
         return raster_cells_with_inhabitants
 
     @extend_schema(
@@ -100,6 +102,26 @@ class RasterCellViewSet(viewsets.ModelViewSet):
             ).order_by('distance').first()
         return Response(RasterCellSerializer(closest).data,
                         status=status.HTTP_200_OK)
+
+
+class RasterCellTileView(MVTView, ListView):
+    model = RasterCell
+    vector_tile_layer_name = 'raster'
+    vector_tile_geom_name = 'poly'
+    vector_tile_fields = ('id', 'cellcode', 'population', 'geom')
+
+    def get_queryset(self):
+        pop_raster = PopulationRaster.objects.first()
+        if not pop_raster:
+            return RasterCell.objects.none()
+
+        raster_cells = pop_raster.raster.rastercell_set
+
+        raster_cells_with_inhabitants = raster_cells\
+            .annotate(population=F('rastercellpopulation__value'))\
+            .filter(population__gt=0)\
+            .annotate(geom=AsGeoJSON('poly'))
+        return raster_cells_with_inhabitants
 
 
 class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

@@ -17,13 +17,14 @@ class RasterSerializer(serializers.ModelSerializer):
         fields = ('id', 'name')
 
 
-class RasterCellSerializer(GeoFeatureModelSerializer):
-    poly = MultiPolygonGeometrySRIDField(srid=3857)
+class RasterCellSerializer(serializers.ModelSerializer):
+    geom = serializers.JSONField()
+    #poly = MultiPolygonGeometrySRIDField(srid=3857)
     population = serializers.FloatField()
     class Meta:
         model = RasterCell
-        geo_field = 'poly'
-        fields = ('id', 'cellcode', 'poly', 'population')
+        #geo_field = 'poly'
+        fields = ('id', 'cellcode', 'population', 'geom')
 
 
 class PopulationRasterSerializer(serializers.ModelSerializer):

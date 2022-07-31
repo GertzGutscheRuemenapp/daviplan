@@ -115,7 +115,7 @@ class AreaLevelSerializer(serializers.ModelSerializer):
 
     def get_tile_url(self, obj) -> str:
         # x,y,z have to be passed to reverse
-        url = reverse('layer-tile', kwargs={'pk': obj.id, 'z': 0,
+        url = reverse('areas-tile', kwargs={'pk': obj.id, 'z': 0,
                                             'x': 0, 'y': 0})
         # split off trailing x,y,z
         url = url.split('/0/0/0')[0]

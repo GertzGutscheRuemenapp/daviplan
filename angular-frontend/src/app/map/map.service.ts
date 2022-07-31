@@ -110,7 +110,8 @@ export class MapService {
             id: `area-layer-level-${level.id}`,
             description: `Gebiete der Gebietseinheit ${level.name}`,
             style: level.symbol,
-            labelField: '_label'
+            labelField: '_label',
+            zIndex: 20000
           })
           layers.push(mLayer);
         });
@@ -261,7 +262,7 @@ export class MapControl {
   }
 
   addMarker(geometry: Geometry): Feature<any> {
-    this.removeMarker();
+    // this.removeMarker();
     if (geometry instanceof Polygon) {
       geometry = new Point(getCenter(geometry.getExtent()));
     }
@@ -283,7 +284,7 @@ export class MapControl {
   }
 
   removeMarker(): void {
-    this.map?.clear('marker-layer');
+    this.markerLayer?.clearFeatures();
   }
 
   refresh(options?: { internal?: boolean, external?: boolean }): void {

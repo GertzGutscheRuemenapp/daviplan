@@ -143,7 +143,8 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         showLabel: true
       });
     this.layerGroup?.addLayer(this.placesLayer);
-    this.placesLayer.addFeatures(this.places);
+    this.placesLayer.addFeatures(this.places.map(place => { return {
+      id: place.id, geometry: place.geom, properties: { name: place.name } }}));
     this.placesLayer?.featureSelected?.subscribe(evt => {
       const placeId = evt.feature.get('id');
       if (evt.selected){
@@ -215,9 +216,9 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
     if (!(this.places && this.selectedInfrastructure)) return;
     this.isLoading$.next(true);
     this.places.forEach(place => {
-      let row: any = [place.properties.name];
+      let row: any = [place.name];
       this.selectedInfrastructure!.placeFields?.forEach(field => {
-        row.push(place.properties.attributes[field.name]);
+        row.push(place.attributes[field.name]);
       })
       this.selectedInfrastructure!.services?.forEach(service => {
         row.push(place.capacities?.find(capacity => capacity.service === service.id && capacity.fromYear === 0)?.capacity || '');

@@ -15,6 +15,7 @@ from datentool_backend.population.models import (RasterCellPopulationAgeGender,
                                                  AreaPopulationAgeGender,
                                                  PopulationAreaLevel,
                                                  Population,
+                                                 Prognosis
                                                  )
 from datentool_backend.user.models.process import Scenario
 
@@ -46,10 +47,15 @@ class PopulationIndicatorMixin:
     def get_filter_params(self) -> Dict[str, int]:
         """get the filter params for """
         scenario = self.data.get('scenario')
-        if scenario:
-            prognosis = Scenario.objects.get(pk=scenario).prognosis_id
-        else:
-            prognosis = self.data.get('prognosis') or None
+        prognosis = self.data.get('prognosis')
+        if not prognosis:
+            if scenario:
+                prognosis = Scenario.objects.get(pk=scenario).prognosis_id
+            else:
+                try:
+                    prognosis = Prognosis.objects.get(is_default=True)
+                except Prognosis.DoesNotExist:
+                    prognosis = None
         filter_params = {'population__prognosis': prognosis, }
         year = self.data.get('year')
         if year:
@@ -74,10 +80,15 @@ class PopulationIndicatorMixin:
 
     def get_population_filter_params(self) -> Dict[str, int]:
         scenario = self.data.get('scenario')
-        if scenario:
-            prognosis = Scenario.objects.get(pk=scenario).prognosis_id
-        else:
-            prognosis = self.data.get('prognosis') or None
+        prognosis = self.data.get('prognosis')
+        if not prognosis:
+            if scenario:
+                prognosis = Scenario.objects.get(pk=scenario).prognosis_id
+            else:
+                try:
+                    prognosis = Prognosis.objects.get(is_default=True)
+                except Prognosis.DoesNotExist:
+                    prognosis = None
         filter_params = {'prognosis': prognosis, }
         year = self.data.get('year')
         if year:
