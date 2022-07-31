@@ -1,0 +1,30 @@
+version: '3.1'
+
+services:
+
+  router-car:
+    image: osrm/osrm-backend
+    command: osrm-routed --algorithm mld /data/projectarea.osrm
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    volumes:
+      - ./pa-car:/data
+
+  router-bicycle:
+    image: osrm/osrm-backend
+    command: osrm-routed --algorithm mld /data/projectarea.osrm
+    ports:
+      - "5001:5000"
+    restart: unless-stopped
+    volumes:
+      - ./pa-bicycle:/data
+
+  router-foot:
+    image: osrm/osrm-backend
+    command: osrm-routed --algorithm mld /data/projectarea.osrm
+    ports:
+      - "5002:5000"
+    restart: unless-stopped
+    volumes:
+      - ./pa-foot:/data
