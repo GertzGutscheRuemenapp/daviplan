@@ -8,7 +8,7 @@ import { sortBy } from "../helpers/utils";
 import * as d3 from "d3";
 
 export interface LayerStyle extends Symbol {
-  strokeWidth?: number;
+  strokeWidth?: number
 }
 
 interface ColorLegend {
@@ -66,6 +66,7 @@ interface LayerOptions {
   url?: string,
   description?: string,
   order?: number,
+  zIndex?: number,
   attribution?: string,
   opacity?: number,
   visible?: boolean,
@@ -80,6 +81,7 @@ export abstract class MapLayer {
   group?: MapLayerGroup;
   description?: string = '';
   order?: number = 1;
+  zIndex?: number;
   attribution?: string;
   opacity?: number = 1;
   visible?: boolean = true;
@@ -98,7 +100,16 @@ export abstract class MapLayer {
     this.visible = options?.visible;
     this.order = options?.order;
     this.active = options?.active;
+    this.zIndex = options?.zIndex;
     if (options?.group) options?.group.addLayer(this);
+  }
+
+  getZIndex(): number {
+    if (this.zIndex) return this.zIndex;
+    let zIndex = 90 - (this.order || 0);
+    if (this.group?.order)
+      zIndex += 10000 - (this.group.order * 100);
+    return zIndex;
   }
 
   setOpacity(opacity: number) {
@@ -111,7 +122,7 @@ export abstract class MapLayer {
     this.map?.setVisible(this.mapId!, visible);
   }
 
-  clearFeatures(id: number | string): void {
+  clearFeatures(): void {
     this.map?.clear(this.mapId!);
   }
 
@@ -148,6 +159,7 @@ export class TileLayer extends MapLayer {
     this.mapId = uuid();
     return this.map.addTileServer(
       this.mapId, this.url!, {
+        zIndex: this.getZIndex(),
         params: { layers: this.layerName },
         visible: this.visible,
         opacity: this.opacity,
@@ -172,7 +184,31 @@ export class WMSLayer extends TileLayer {
   }
 }
 
-interface VectorTileLayerOptions extends LayerOptions {
+type Interpolator = ((d: number) => string);
+
+interface ValueStyle {
+  field?: string,
+  radius?: {
+    range: number[],
+    scale?: 'linear' | 'sequential',
+    radiusFunc?: ((d: number) => number)
+  },
+  strokeColor?: {
+    colorFunc?: ((f: Feature<any>) => string)
+  },
+  fillColor?: {
+    range?: Interpolator | string[],
+    scale?: 'linear' | 'sequential',
+    bins?: number,
+    reverse?: boolean,
+    colorFunc?: ((d: number) => string)
+  },
+  min?: number,
+  max?: number,
+  steps?: number
+}
+
+interface VectorLayerOptions extends LayerOptions {
   showLabel?: boolean,
   tooltipField?: string,
   labelField?: string,
@@ -186,10 +222,13 @@ interface VectorTileLayerOptions extends LayerOptions {
     enabled: boolean,
     multi?: boolean,
     style?: LayerStyle
-  }
+  },
+  radius?: number,
+  unit?: string,
+  valueStyles?: ValueStyle
 }
 
-export class VectorTileLayer extends MapLayer {
+export class VectorLayer extends MapLayer {
   featureSelected: EventEmitter<{ feature: any, selected: boolean }>
   showLabel?: boolean;
   tooltipField?: string;
@@ -201,10 +240,15 @@ export class VectorTileLayer extends MapLayer {
   style?: LayerStyle;
   mouseOverStyle?: LayerStyle;
   selectStyle?: LayerStyle;
+  attribution?: string;
+  opacity?: number = 1;
+  visible?: boolean = true;
+  radius?: number;
+  unit?: string;
+  valueStyles?: ValueStyle;
 
-  constructor(name: string, url: string | undefined, options?: VectorTileLayerOptions) {
+  constructor(name: string, options?: VectorLayerOptions) {
     super(name, options);
-    this.url = url;
     this.showLabel = options?.showLabel;
     this.tooltipField = options?.tooltipField;
     this.labelField = options?.labelField;
@@ -217,6 +261,24 @@ export class VectorTileLayer extends MapLayer {
     this.multiSelect = options?.select?.multi;
     this.mouseOverCursor = options?.mouseOver?.cursor;
     this.featureSelected = new EventEmitter<any>();
+    this.valueStyles = options?.valueStyles;
+    this.radius = options?.radius;
+    this.unit = options?.unit;
+  }
+
+  protected initColor(): void {
+    if (!this.valueStyles?.fillColor?.colorFunc && this.valueStyles?.fillColor?.range) {
+      const seqFunc: any = (this.valueStyles.fillColor.scale === 'linear')? d3.scaleLinear : d3.scaleSequential;
+      const max = !this.valueStyles.fillColor.reverse? this.valueStyles.max: this.valueStyles.min;
+      const min = !this.valueStyles.fillColor.reverse? this.valueStyles.min: this.valueStyles.max;
+      this.valueStyles.fillColor.colorFunc = seqFunc(this.valueStyles.fillColor.range).domain([min, max]);
+    }
+    if (this.valueStyles?.radius?.range) {
+      const seqFunc: any = (this.valueStyles.radius.scale === 'linear')? d3.scaleLinear : d3.scaleSequential;
+      let max = this.valueStyles.max;
+      let min = this.valueStyles.min;
+      this.valueStyles.radius.radiusFunc = seqFunc().domain([min, max]).range(this.valueStyles.radius.range);
+    }
   }
 
   addToMap(map?: OlMap): OlLayer<any> | undefined {
@@ -224,17 +286,93 @@ export class VectorTileLayer extends MapLayer {
     if (map) this.map = map;
     if (!this.map) return;
     this.mapId = uuid();
+    this.initColor();
     this.initSelect();
-    return this.map.addVectorTileLayer(this.mapId, this.url!,{
+    return this.map!.addVectorLayer(this.mapId, {
+      zIndex: this.getZIndex(),
       visible: this.visible,
       opacity: this.opacity,
-      stroke: { color: this.style?.strokeColor, width: this.style?.strokeWidth || 2, mouseOverColor: this.mouseOverStyle?.strokeColor },
-      fill: { color: this.style?.fillColor, mouseOverColor: this.mouseOverStyle?.fillColor },
-      tooltipField: this.tooltipField,
-      featureClass: this.mouseOver? 'feature': 'renderFeature',
+      valueField: this.valueStyles?.field || 'value',
+      mouseOverCursor: this.mouseOverCursor,
+      multiSelect: this.multiSelect,
+      stroke: {
+        color: this.valueStyles?.strokeColor?.colorFunc || this.style?.strokeColor,
+        width: this.style?.strokeWidth || 2,
+        mouseOverColor: this.mouseOverStyle?.strokeColor,
+        selectedColor: this.selectStyle?.strokeColor
+      },
+      fill: {
+        color: this.valueStyles?.fillColor?.colorFunc || this.style?.fillColor,
+        mouseOverColor: this.mouseOverStyle?.fillColor,
+        selectedColor: this.selectStyle?.fillColor
+      },
+      radius: this.valueStyles?.radius?.radiusFunc || this.radius || 5,
       labelField: this.labelField,
+      tooltipField: this.tooltipField,
+      shape: (this.style?.symbol !== 'line')? this.style?.symbol: undefined,
+      selectable: this.selectable,
       showLabel: this.showLabel
-    });
+    })
+  }
+
+  protected _getColorLegend(): ColorLegend | undefined {
+    if (!this.valueStyles?.fillColor?.colorFunc || !this.map) return;
+    let colors: string[] = [];
+    let labels: string[] = [];
+    const steps = (this.valueStyles.steps != undefined)? this.valueStyles.steps: 5;
+    let max = this.valueStyles.max;
+    let min = this.valueStyles.min;
+    if (max === undefined || min === undefined){
+      const features = this.map?.getLayer(this.mapId!).getSource().getFeatures();
+      const values = features.map((f: Feature<any>) => f.get(this.valueStyles?.field!));
+      if (max === undefined) max = Math.max(...values);
+      if (min === undefined) min = Math.min(...values);
+    }
+    const step = (max - min) / steps;
+    const colorFunc = this.valueStyles.fillColor.colorFunc;
+    Array.from({ length: steps + 1 },(v, k) => k * step).forEach((value, i) => {
+      colors.push(colorFunc(value));
+      let label = Number(value.toFixed(2)).toString();
+      if (this.unit)
+        label += ` ${this.unit}`;
+      labels.push(label);
+    })
+    return {
+      colors: colors,
+      labels: labels,
+      elapsed: true
+    }
+  }
+
+  addFeatures(features: any[], options?: {
+    properties?: string, geometry?: string, zIndex?: string
+  }): Feature<any>[] | undefined {
+    if (!this.map) return;
+    let olFeatures: Feature<any>[] = [];
+    const properties = (options?.properties !== undefined) ? options?.properties : 'properties';
+    const geometry = (options?.geometry !== undefined) ? options?.geometry : 'geometry';
+    features.forEach(feature => {
+      if (!(feature instanceof Feature)) {
+        const olFeature = new Feature(feature[geometry]);
+        if (feature.id != undefined) {
+          olFeature.set('id', feature.id);
+          olFeature.setId(feature.id);
+        }
+        olFeature.setProperties(feature[properties]);
+        olFeatures.push(olFeature);
+      }
+      else olFeatures.push(feature);
+    })
+    if (options?.zIndex) {
+      const attr = options?.zIndex;
+      olFeatures = olFeatures.sort((a, b) =>
+        (a.get(attr) > b.get(attr)) ? 1 : (a.get(attr) < b.get(attr)) ? -1 : 0);
+      olFeatures.forEach((feat, i) => feat.set('zIndex', olFeatures.length - i));
+    }
+    this.map.addFeatures(this.mapId!, olFeatures);
+    if (this.valueStyles?.fillColor)
+      this.colorLegend = this._getColorLegend();
+    return olFeatures;
   }
 
   protected initSelect() {
@@ -266,6 +404,10 @@ export class VectorTileLayer extends MapLayer {
     this.map?.setShowLabel(this.mapId!, show);
   }
 
+  removeFeature(feature: Feature<any> | number): void {
+    this.map?.removeFeature(this.mapId!, feature);
+  }
+
   removeFromMap(): void {
     this.setSelectable(false);
     this.featureSelected.unsubscribe();
@@ -275,62 +417,22 @@ export class VectorTileLayer extends MapLayer {
   }
 }
 
-type Interpolator = ((d: number) => string);
-
-interface VectorLayerOptions extends VectorTileLayerOptions {
-  radius?: number,
-  unit?: string,
-  valueMapping?: {
-    field: string,
-    radius?: {
-      range: number[],
-      scale?: 'linear' | 'sequential'
-    },
-    color?: {
-      range?: Interpolator | string[],
-      scale?: 'linear' | 'sequential',
-      bins?: number,
-      reverse?: boolean,
-      colorFunc?: ((d: number) => string)
-    }
-    min?: number,
-    max?: number,
-    steps?: number
-  }
+interface ValueMap {
+  field: string,
+  values: Record<string, number>
 }
 
-export class VectorLayer extends VectorTileLayer {
-  selectable?: boolean;
-  labelField?: string;
-  attribution?: string;
-  opacity?: number = 1;
-  visible?: boolean = true;
-  radius?: number;
-  unit?: string;
-  valueMapping?: {
-    field: string,
-    radius?: {
-      range: number[],
-      scale?: 'linear' | 'sequential',
-      radiusFunc?: ((d: number) => number)
-    },
-    color?: {
-      range?: Interpolator | string[],
-      scale?: 'linear' | 'sequential',
-      bins?: number,
-      reverse?: boolean,
-      colorFunc?: ((d: number) => string)
-    },
-    min?: number,
-    max?: number,
-    steps?: number
-  };
+interface VectorTileLayerOptions extends VectorLayerOptions {
+  valueMap?: ValueMap
+}
 
-  constructor(name: string, options?: VectorLayerOptions) {
-    super(name, undefined, options);
-    this.valueMapping = options?.valueMapping;
-    this.radius = options?.radius;
-    this.unit = options?.unit;
+export class VectorTileLayer extends VectorLayer {
+  valueMap?: ValueMap;
+
+  constructor(name: string, url: string | undefined, options?: VectorTileLayerOptions) {
+    super(name, options);
+    this.url = url;
+    this.valueMap = options?.valueMap;
   }
 
   addToMap(map?: OlMap): OlLayer<any> | undefined {
@@ -338,96 +440,28 @@ export class VectorLayer extends VectorTileLayer {
     if (map) this.map = map;
     if (!this.map) return;
     this.mapId = uuid();
+    this.initColor();
     this.initSelect();
-    if (!this.valueMapping?.color?.colorFunc && this.valueMapping?.color?.range) {
-      const seqFunc: any = (this.valueMapping.color.scale === 'linear')? d3.scaleLinear : d3.scaleSequential;
-      const max = !this.valueMapping.color.reverse? this.valueMapping.max: this.valueMapping.min;
-      const min = !this.valueMapping.color.reverse? this.valueMapping.min: this.valueMapping.max;
-      this.valueMapping.color.colorFunc = seqFunc(this.valueMapping.color.range).domain([min, max]);
-    }
-    if (this.valueMapping?.radius?.range) {
-      const seqFunc: any = (this.valueMapping.radius.scale === 'linear')? d3.scaleLinear : d3.scaleSequential;
-      let max = this.valueMapping.max;
-      let min = this.valueMapping.min;
-      this.valueMapping.radius.radiusFunc = seqFunc().domain([min, max]).range(this.valueMapping.radius.range);
-    }
-    return this.map!.addVectorLayer(this.mapId, {
+    if (this.valueStyles?.fillColor)
+      this.colorLegend = this._getColorLegend();
+    return this.map.addVectorTileLayer(this.mapId, this.url!,{
+      zIndex: this.getZIndex(),
       visible: this.visible,
       opacity: this.opacity,
-      valueField: this.valueMapping?.field,
-      mouseOverCursor: this.mouseOverCursor,
-      multiSelect: this.multiSelect,
       stroke: {
-        color: this.style?.strokeColor, width: this.style?.strokeWidth || 2,
-        mouseOverColor: this.mouseOverStyle?.strokeColor,
-        selectedColor: this.selectStyle?.strokeColor
+        color: this.style?.strokeColor,
+        width: this.style?.strokeWidth || 2,
+        mouseOverColor: this.mouseOverStyle?.strokeColor
       },
       fill: {
-        color: (this.valueMapping?.color?.colorFunc)? this.valueMapping?.color?.colorFunc: this.style?.fillColor,
-        mouseOverColor: this.mouseOverStyle?.fillColor,
-        selectedColor: this.selectStyle?.fillColor
+        color: this.valueStyles?.fillColor?.colorFunc || this.style?.fillColor,
+        mouseOverColor: this.mouseOverStyle?.fillColor
       },
-      radius: this.valueMapping?.radius?.radiusFunc || this.radius || 5,
-      labelField: this.labelField,
       tooltipField: this.tooltipField,
-      shape: (this.style?.symbol !== 'line')? this.style?.symbol: undefined,
-      selectable: this.selectable,
-      showLabel: this.showLabel
-    })
-  }
-
-  private _getColorLegend(): ColorLegend | undefined {
-    if (!this.valueMapping?.color?.colorFunc || !this.map) return;
-    let colors: string[] = [];
-    let labels: string[] = [];
-    const steps = (this.valueMapping.steps != undefined)? this.valueMapping.steps: 5;
-    let max = this.valueMapping.max;
-    let min = this.valueMapping.min;
-    if (max === undefined || min === undefined){
-      const features = this.map?.getLayer(this.mapId!).getSource().getFeatures();
-      const values = features.map((f: Feature<any>) => f.get(this.valueMapping?.field!));
-      if (max === undefined) max = Math.max(...values);
-      if (min === undefined) min = Math.min(...values);
-    }
-    const step = (max - min) / steps;
-    const colorFunc = this.valueMapping.color.colorFunc;
-    Array.from({ length: steps + 1 },(v, k) => k * step).forEach((value, i) => {
-      colors.push(colorFunc(value));
-      let label = Number(value.toFixed(2)).toString();
-      if (this.unit)
-        label += ` ${this.unit}`;
-      labels.push(label);
-    })
-    return {
-      colors: colors,
-      labels: labels
-    }
-  }
-
-  addFeatures(features: any[], options?: {
-    properties?: string, geometry?: string, zIndex?: string
-  }): void {
-    if (!this.map) return;
-    let olFeatures: Feature<any>[] = [];
-    const properties = (options?.properties !== undefined) ? options?.properties : 'properties';
-    const geometry = (options?.geometry !== undefined) ? options?.geometry : 'geometry';
-    features.forEach(feature => {
-      const olFeature = new Feature(feature[geometry!]);
-      if (feature.id) {
-        olFeature.set('id', feature.id);
-        olFeature.setId(feature.id);
-      }
-      olFeature.setProperties(feature[properties]);
-      olFeatures.push(olFeature);
-    })
-    if (options?.zIndex) {
-      const attr = options?.zIndex;
-      olFeatures = olFeatures.sort((a, b) =>
-        (a.get(attr) > b.get(attr)) ? 1 : (a.get(attr) < b.get(attr)) ? -1 : 0);
-      olFeatures.forEach((feat, i) => feat.set('zIndex', olFeatures.length - i));
-    }
-    this.map.addFeatures(this.mapId!, olFeatures);
-    if (this.valueMapping?.color)
-      this.colorLegend = this._getColorLegend();
+      featureClass: this.mouseOver? 'feature': 'renderFeature',
+      labelField: this.labelField,
+      showLabel: this.showLabel,
+      valueMap: this.valueMap
+    });
   }
 }

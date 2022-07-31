@@ -226,7 +226,8 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         response = self.post(self.url_key + '-aggregate-population', data=query_params)
         self.response_400(response)
 
-        query_params = {'area_level': self.area_level2.pk, }
+        query_params = {'area_level': self.area_level2.pk,
+                        'year': self.years.first().year,}
 
         response = self.post(self.url_key + '-aggregate-population',
                              data=query_params)
@@ -239,7 +240,8 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         # Test if sum of large area equals all input areas
 
         # area_level1
-        query_params = {'area_level': self.obj.pk, }
+        query_params = {'area_level': self.obj.pk,
+                        'year': self.years.first().year,}
 
         response = self.post(self.url_key+'-aggregate-population',
                              data=query_params)
@@ -253,6 +255,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         query_params = {'area_level': self.obj.pk,
                         'gender': self.genders[0].pk,
+                        'year': self.years.first().year
                         }
 
         response = self.post(self.url_key + '-aggregate-population',
@@ -266,6 +269,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         query_params = {'area_level': self.obj.pk,
                         'age_group': self.age_groups.values_list('id', flat=True)[:2],
+                        'year': self.years.first().year,
                         }
 
         response = self.post(self.url_key + '-aggregate-population',
@@ -279,6 +283,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         query_params = {'area_level': self.obj.pk,
                         'area': [self.area1.pk, self.area3.pk],
+                        'year': self.years.first().year,
                         }
 
         response = self.post(self.url_key + '-aggregate-population',

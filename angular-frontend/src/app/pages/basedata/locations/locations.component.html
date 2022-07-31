@@ -54,8 +54,9 @@
                     <p>Tragen Sie in diese Vorlage bitte alle für den Infrastrukturbereich relevanten Standorte ein, unabhängig davon, welche Leistungen des Infrastrukturbereichs in welchem dieser Standorte angeboten wird. (Dies ist erst Gegenstand des nachfolgenden Menüpunkts „Kapazitäten“.)</p>
                     <p>Beim Ausfüllen der Vorlage entspricht jede Zeile einem Infrastrukturstandort, z.B. einer Schule. Neben der postalisch korrekten Adresse (auf deren Basis die Verortung in der Karte erfolgt) werden Sie in der Vorlage um Angaben zu allen Standorteigenschaften gebeten, die Sie in der Box „Standorteigenschaften“ definiert haben.</p>
                     <p>Laden Sie die ausgefüllte Vorlagedatei anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Das System wird die Standorte anhand der Adresse georeferenzieren und in der Karte anzeigen. Kontrollieren Sie die Lage der Standorte in der Karte und korrigieren  Sie diese gegeben Falls.</p>
-                    <p>Einzelne Standorte können Sie auch über die Funktion „Neuen Standort hinzufügen“ in der Karte eintragen (Icon oben links).</p>
+
                     <p>Eine Liste aller Standorte des Infrastrukturbereichs wird Ihnen angezeigt, wenn Sie auf „Datentabelle ansehen“ klicken.</p>">
+<!--      <p>Einzelne Standorte können Sie auch über die Funktion „Neuen Standort hinzufügen“ in der Karte eintragen (Icon oben links).</p>-->
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
           <span class="subtitle1 sub">
@@ -121,7 +122,7 @@
                          direction="left">
           <app-legend target="base-locations-map"></app-legend>
         </app-side-toggle>
-        <app-side-toggle id="add-overlay" icon="add_location_alt"
+       <!-- <app-side-toggle id="add-overlay" icon="add_location_alt"
                          name="Funktion zum Hinzufügen von Standorten">
           <div class="row-button" [class.active]="addPlaceMode" (click)="addPlaceMode = !addPlaceMode" style="padding-left: 10px;">
             <label i18n>Neuen Standort hinzufügen</label>
@@ -133,7 +134,7 @@
               <mat-icon class="material-icons-outlined">add_location_alt</mat-icon>
             </button>
           </div>
-        </app-side-toggle>
+        </app-side-toggle>-->
       </div>
     </app-input-card>
   </div>
@@ -145,9 +146,9 @@
 
 <ng-template #placePreviewTemplate>
   <div *ngIf="selectedPlace">
-    <b>{{ selectedPlace.properties?.name }}</b>
-    <ng-container *ngIf="selectedPlace.properties?.attributes">
-      <div *ngFor="let item of selectedPlace.properties.attributes | keyvalue">
+    <b>{{ selectedPlace.name }}</b>
+    <ng-container *ngIf="selectedPlace.attributes">
+      <div *ngFor="let item of selectedPlace.attributes | keyvalue">
         {{item.key}}: <i>{{item.value}}</i>
       </div>
     </ng-container>

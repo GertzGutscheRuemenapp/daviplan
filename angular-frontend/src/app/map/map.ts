@@ -122,7 +122,7 @@ export class OlMap {
     }
   }
 
-  addTileServer(name: string, url: string, options: { params?: any,
+  addTileServer(name: string, url: string, options: { params?: any, zIndex?: number,
     visible?: boolean, opacity?: number, xyz?: boolean, attribution?: string } = {}): Layer<any>{
 
     if (this.layers[name] != null) this.removeLayer(name)
@@ -149,6 +149,8 @@ export class OlMap {
       source: source,
       visible: options.visible === true
     });
+    if (options?.zIndex)
+      layer.setZIndex(options?.zIndex);
     layer.set('name', name);
     this.map.addLayer(layer);
     this.layers[name] = layer;
@@ -157,15 +159,21 @@ export class OlMap {
   }
 
   addVectorTileLayer(name: string, url: string, options: {
-      visible?: boolean, opacity?: number,
-      stroke?: { color?: string, width?: number, dash?: number[], mouseOverColor?: string },
-      fill?: { color?: string, mouseOverColor?: string },
-      tooltipField?: string,
-      featureClass?: 'feature' | 'renderFeature',
-      labelField?: string,
-      showLabel?: boolean,
-      mouseOverCursor?: string,
-    } = {}): Layer<any> {
+    zIndex?: number,
+    visible?: boolean, opacity?: number,
+    stroke?: { color?: string, width?: number, dash?: number[], mouseOverColor?: string },
+    fill?: { color?: string | ((d: number) => string), mouseOverColor?: string },
+    tooltipField?: string,
+    featureClass?: 'feature' | 'renderFeature',
+    labelField?: string,
+    showLabel?: boolean,
+    mouseOverCursor?: string,
+    valueField?: string,
+    valueMap?: {
+      field: string,
+      values: Record<string, number>
+    }
+  } = {}): Layer<any> {
     const source = new VectorTileSource({
       format: new MVT({
         featureClass: (options.featureClass === 'feature')? Feature: RenderFeature,
@@ -174,6 +182,7 @@ export class OlMap {
       url: url
     });
 
+    const fillColor: string = (options?.fill?.color && typeof(options?.fill?.color) === 'string')? options?.fill?.color: 'rgba(0, 0, 0, 0)';
     const style = new Style({
       stroke: new Stroke({
         color:  options?.stroke?.color || 'rgba(0, 0, 0, 1.0)',
@@ -181,7 +190,7 @@ export class OlMap {
         lineDash: options?.stroke?.dash
       }),
       fill: new Fill({
-        color: options?.fill?.color || 'rgba(0, 0, 0, 0)'
+        color: fillColor
       }),
       text: new OlText({
         font: '14px Calibri,sans-serif',
@@ -203,6 +212,12 @@ export class OlMap {
       visible: options?.visible === true,
       opacity: (options?.opacity != undefined) ? options?.opacity: 1,
       style: function(feature) {
+        if (typeof options?.fill?.color === 'function') {
+          const valueField = options?.valueField || 'value';
+          let value = options.valueMap? options.valueMap.values[feature.get(options?.valueMap.field)]: feature.get(valueField);
+          const color = (value !== undefined)? options.fill.color(Number(value)): 'grey';
+          style.getFill().setColor(color);
+        }
         if (options?.labelField && layer.get('showLabel')) {
           const label = feature.get(options?.labelField);
           const text = (_this.view.getZoom()! > 10 )? String( (label != undefined)? label: 0) : ''
@@ -214,6 +229,8 @@ export class OlMap {
         return style;
       }
     })
+    if (options?.zIndex)
+      layer.setZIndex(options?.zIndex);
     layer.set('name', name);
     layer.set('showLabel', options?.showLabel || false);
 
@@ -322,29 +339,30 @@ export class OlMap {
   }
 
   addVectorLayer(name: string, options: {
-      url?: any,
-      visible?: boolean, opacity?: number,
-      selectable?: boolean, tooltipField?: string,
-      multiSelect?: boolean,
-      shape?: 'circle' | 'square' | 'star' | 'x',
-      mouseOverCursor?: string,
-      stroke?: {
-        color?: string, width?: number, dash?: number[],
-        selectedColor?: string, mouseOverColor?: string, selectedDash?: number[],
-        mouseOverWidth?: number
-      },
-      fill?: {
-        color?: string | ((d: number) => string),
-        selectedColor?: string, mouseOverColor?: string },
-      radius?: number | ((d: number) => number),
-      labelField?: string,
-      valueField?: string,
-      showLabel?: boolean,
-      zIndex?: number,
-    } = {}): Layer<any> {
+    url?: any,
+    visible?: boolean, opacity?: number,
+    selectable?: boolean, tooltipField?: string,
+    multiSelect?: boolean,
+    shape?: 'circle' | 'square' | 'star' | 'x',
+    mouseOverCursor?: string,
+    stroke?: {
+      color?: string | ((f: Feature<any>) => string),
+      width?: number, dash?: number[],
+      selectedColor?: string, mouseOverColor?: string, selectedDash?: number[],
+      mouseOverWidth?: number
+    },
+    fill?: {
+      color?: string | ((d: number) => string),
+      selectedColor?: string, mouseOverColor?: string },
+    radius?: number | ((d: number) => number),
+    labelField?: string,
+    valueField?: string,
+    showLabel?: boolean,
+    zIndex?: number,
+  } = {}): Layer<any> {
     // @ts-ignore
     const fillColor: string = (typeof(options?.fill?.color) === 'string')? options?.fill?.color: 'rgba(0, 0, 0, 0)';
-    const strokeColor = options?.stroke?.color || 'rgba(0, 0, 0, 1.0)';
+    const strokeColor = (typeof(options?.stroke?.color) === 'string')? options?.stroke?.color: 'rgba(0, 0, 0, 1.0)';
     const text = new OlText({
       font: '14px Calibri,sans-serif',
       overflow: true,
@@ -398,10 +416,12 @@ export class OlMap {
       let value = feature.get(valueField);
       if (typeof value === 'string') value = Number(value);
       const fc = (typeof options?.fill?.color === 'function' && value !== undefined)? options.fill.color(value): fillColor;
+      const sc = (typeof options?.stroke?.color === 'function' && value !== undefined)? options.stroke.color(feature): strokeColor;
       style.getFill().setColor(fc);
+      style.getStroke().setColor(sc);
       if (options?.shape) {
         const radius = (typeof options?.radius === 'function')? Math.abs(options.radius(value)): options?.radius;
-        const shape = _this.getShape(options?.shape, { fillColor: fc, strokeColor: strokeColor, radius: radius });
+        const shape = _this.getShape(options?.shape, { fillColor: fc, strokeColor: sc, strokeWidth: options?.stroke?.width, radius: radius });
         style.setImage(shape);
       }
       return style;
@@ -413,7 +433,7 @@ export class OlMap {
       style: styleFunc
     });
 
-    if (options.zIndex)
+    if (options?.zIndex)
       layer.setZIndex(options.zIndex);
 
     layer.set('showLabel', options?.showLabel || false);
@@ -657,6 +677,15 @@ export class OlMap {
   setOpacity(name: string, opacity: number): void{
     let layer = this.layers[name];
     layer?.setOpacity(opacity);
+  }
+
+  removeFeature(layerName: string, feature: Feature<any> | number): void {
+    let layer = this.layers[layerName];
+    const source = layer.getSource();
+    if (feature instanceof Feature)
+      source.removeFeature(feature);
+    else
+      source.removeFeature(source.getFeatureById(feature));
   }
 
   exportCanvas(): HTMLCanvasElement {

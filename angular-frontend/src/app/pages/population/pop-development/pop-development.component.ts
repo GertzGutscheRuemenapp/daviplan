@@ -244,7 +244,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
               fillColor: 'rgba(255, 255, 0, 0.9)'
             },
           },
-          valueMapping: {
+          valueStyles: {
             field: 'value',
             radius: {
               range: [5, 50],

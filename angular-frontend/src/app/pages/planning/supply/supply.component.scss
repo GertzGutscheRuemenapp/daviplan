@@ -24,3 +24,18 @@
 #time-slider-wrapper {
   border: 1px solid lightgrey;
 }
+
+#capacityTable {
+  margin: 20px 0 30px;
+  td:first-child {
+    //text-align: right;
+    //min-width: 200px;
+  }
+}
+
+::ng-deep #capacityTable .yearInput {
+  margin-right: 7px;
+  .mat-form-field-infix {
+    max-width: max-content !important;
+  }
+}

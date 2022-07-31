@@ -130,7 +130,7 @@ export class DemandQuotasComponent implements AfterViewInit {
 
   setupDemandRateSetCard(): void {
     this.demandRateSetCard?.dialogConfirmed.subscribe((ok)=>{
-      const attributes = { demandRates: this.editDemandRateSet?.demandRates }
+      const attributes = { demandRates: this.editDemandRateSet?.demandRates.filter(dr => dr.value) }
       this.demandRateSetCard?.setLoading(true);
       this.http.patch<DemandRateSet>(`${this.rest.URLS.demandRateSets}${this.activeDemandRateSet?.id}/`, attributes
       ).subscribe(set => {
