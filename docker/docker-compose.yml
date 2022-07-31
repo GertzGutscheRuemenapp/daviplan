@@ -13,7 +13,7 @@ services:
 
   router-car:
     image: osrm/osrm-backend
-    command: osrm/osrm-backend osrm-routed --algorithm mld /data/datentool.osrm
+    command: osrm-routed --algorithm mld /data/datentool.osrm
     ports:
       - "5000:5000"
     restart: unless-stopped
@@ -22,7 +22,7 @@ services:
 
   router-bicycle:
     image: osrm/osrm-backend
-    command: osrm/osrm-backend osrm-routed --algorithm mld /data/datentool.osrm
+    command: osrm-routed --algorithm mld /data/datentool.osrm
     ports:
       - "5001:5000"
     restart: unless-stopped
@@ -31,7 +31,7 @@ services:
 
   router-foot:
     image: osrm/osrm-backend
-    command: osrm/osrm-backend osrm-routed --algorithm mld /data/datentool.osrm
+    command: osrm-routed --algorithm mld /data/datentool.osrm
     ports:
       - "5002:5000"
     restart: unless-stopped
