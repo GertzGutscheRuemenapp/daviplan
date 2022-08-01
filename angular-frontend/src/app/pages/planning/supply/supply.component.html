@@ -1,4 +1,7 @@
-<app-scenario-menu domain="supply"></app-scenario-menu>
+<app-scenario-menu domain="supply" helpText="
+    <p>Wählen Sie hier das Szenario aus, dessen Angebotsstruktur Sie in der Karte anzeigen möchten. Eine Angebotsstruktur beschreibt, an welchen Standorten die ausgewählte Leistung in welchem Jahr (und ggf. mit welcher Kapazität) angeboten wird.</p>
+    <p>Sie können die Angebotsstruktur editieren. Zudem können Sie ein neues Szenario hinzufügen oder ein bestehendes löschen.</p>">
+</app-scenario-menu>
 <mat-expansion-panel cookieExpansion="exp-supply-services">
   <mat-expansion-panel-header>
     <mat-panel-title>
@@ -7,9 +10,15 @@
       </div>
       Standorte / Leistungen
       <app-help-button title="Standorte / Leistungen" position="right">
-        <p>Wählen Sie hier im Dropdown-Menü den Infrastrukturbereich und per Checkbox die Leistungen aus dem jeweiligen Infrastrukturbereich aus. Mit dem Klick auf das Filtersymbol können Sie Filter auf Standorte setzen und bearbeiten.</p>
-        <p>Cluster, Verdrängung und Zoom auf alle stellen Darstellungsoptionen für die Karte dar.</p>
-        <p>Klick auf das Symbol „Neuen Standort hinzufügen“ öffnet einen Dialog um Hinzufügen eines zusätzlichen Standortes.</p>
+        <p>Wählen Sie hier die Leistung aus, dessen Angebotsstruktur Sie in der Karten anzeigen möchten. Wählen Sie
+          hierzu zunächst im Dropdown-Menü den entsprechenden Infrastrukturbereich und dann per Checkbox die gewünschte
+          Leistung.</p>
+        <p>Sie können zusätzlich Standorte nach eigenen Kriterien filtern. Klicken Sie hierzu auf das Filtersymbol
+          neben dem Dropdown-Menü.</p>
+        <p>Um die Wirkung zusätzlicher Standorte zu prüfen, können Sie mit der Schaltfläche „Neuen Standort hinzufügen“
+          Einrichtungsstandorte in der Karte platzieren, die nicht in den Bestandsdaten enthalten sind.</p>
+        <p>Über die beiden Schalter „Cluster“ und „Verdrängung“ steuern sie, wie Standorte in der Karte dargestellt
+          werden sollen, die nahe beieinander liegen oder sogar die gleiche Adresse haben.</p>
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
@@ -62,7 +71,10 @@
       </div>
       Vergleichsdarstellung
       <app-help-button title="Vergleichsdarstellung" position="right">
-        <p>Sie können die Angebotsstrukturen das mit dem Zeitslider ausgewählte Jahr vergleichen: Entweder mit den Angebotsstrukturen für ein anderes Jahr oder aber mit der Angebotsstruktur für ein anderes Szenario im selben Jahr. Die Darstellung erfolgt in der Karte.</p>
+      <p>Sie können die Karte für eine Vergleichsdarstellung nutzen, um zwei Angebotsstrukturen zu vergleichen. </p>
+      <p>Sie können entweder das Angebot in zwei unterschiedlichen Jahren des gleichen Szenarios vergleichen </p>
+      <p>Oder Sie vergleichen die Angebot in zwei unterschiedlichen Szenarien für das gleiche Jahr. </p>
+
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>

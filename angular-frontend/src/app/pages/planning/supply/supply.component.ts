@@ -138,16 +138,25 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           showLabel = !!this.placesLayer.showLabel;
           this.layerGroup?.removeLayer(this.placesLayer);
         }
+        let max = 1;
+        let min = Number.MAX_VALUE;
         let displayedPlaces: Place[] = [];
         this.places?.forEach(place => {
           if (place.scenario === null && place.capacity === 0) return;
-          place.label = this.getFormattedCapacityString(
-            [this.activeService!.id], place.capacity || 0);
+          const capacity = place.capacity || 0;
+          place.label = this.getFormattedCapacityString([this.activeService!.id], capacity);
           displayedPlaces.push(place);
+          max = Math.max(max, capacity);
+          min = Math.min(min, capacity);
         });
+        const desc = `<b>${this.activeService?.facilityPluralUnit} ${this.year}</b><br>
+                    mit Anzahl ${this.activeService?.capacityPluralUnit}<br>
+                    Minimum: ${min.toLocaleString()}<br>
+                    Maximum: ${max.toLocaleString()}`;
+        // ToDo description with filter
         this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
           order: 0,
-          description: this.activeInfrastructure!.name,
+          description: desc,
           opacity: 1,
           style: {
             fillColor: '#2171b5',
@@ -253,8 +262,9 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   updateMapDescription(): void {
-    const desc = `Planungsprozess: ${this.activeProcess?.name} > ${this.activeScenario?.name} | ${this.year} <br>
-                  Angebot an ${this.activeService?.name}`;
+    const desc = `${this.activeScenario?.name}<br>
+                  Angebot für Leistung "${this.activeService?.name}"<br>
+                  <b>${this.activeService?.facilityPluralUnit} ${this.year} mit Anzahl ${this.activeService?.capacityPluralUnit}</b>`
     this.mapControl?.setDescription(desc);
   }
 
