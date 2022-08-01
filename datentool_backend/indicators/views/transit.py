@@ -106,9 +106,12 @@ class TravelTimeRouterMixin:
                        fields={'drop_constraints': drop_constraints,
                                'air_distance_routing': air_distance_routing,
                                'variant': serializers.PrimaryKeyRelatedField(
-                           queryset=ModeVariant.objects.all(),
-                           help_text='mode_variant_id',),
-                               'speed': serializers.FloatField(),
+                                   queryset=ModeVariant.objects.all(),
+                                   help_text='mode_variant_id',),
+                           'access_variant': serializers.PrimaryKeyRelatedField(
+                                   queryset=ModeVariant.objects.exclude(mode=Mode.TRANSIT),
+                                   help_text='access_mode_variant_id',),
+                           'speed': serializers.FloatField(),
                                'max_distance': serializers.FloatField(),
                                }
                    ),

@@ -21,7 +21,8 @@ from routingpy import OSRM
 from datentool_backend.modes.models import (MODE_MAX_DISTANCE,
                                             MODE_SPEED,
                                             MODE_OSRM_PORTS,
-                                            ModeVariant)
+                                            ModeVariant,
+                                            Mode)
 from datentool_backend.indicators.models import (Stop,
                                                  MatrixStopStop,
                                                  MatrixCellPlace,
@@ -148,20 +149,32 @@ class MatrixAirDistanceMixin(serializers.Serializer):
 class MatrixRoutedDistanceMixin(serializers.Serializer):
     drop_constraints = BooleanField(default=True)
 
+    def calculate_transit_traveltime(self) -> pd.DataFrame:
+        raise NotImplementedError()
+
     def calculate_traveltimes(self, request) -> pd.DataFrame:
         """calculate traveltimes"""
 
         variant = ModeVariant.objects.get(id=request.data.get('variant'))
+        if variant.mode == Mode.TRANSIT:
+            access_variant = ModeVariant.objects.get(
+                id=request.data.get('access_variant'))
+            return self.calculate_transit_traveltime(
+                access_variant=access_variant,
+                transit_variant=variant,
+            )
+
         port = MODE_OSRM_PORTS[variant.mode]
         max_distance = int(request.data.get('max_distance',
                                             MODE_MAX_DISTANCE[variant.mode]))
 
-        client = OSRM(base_url=f'http://localhost:{port}')
         sources = self.get_sources()
         destinations = self.get_destinations()
+
+        client = OSRM(base_url=f'http://localhost:{port}')
         # as lists
         coords = list(sources.values_list('lon', 'lat', named=False))\
-            +list(destinations.values_list('lon', 'lat', named=False))
+            + list(destinations.values_list('lon', 'lat', named=False))
         #radiuses = [30000 for i in range(len(coords))]
         matrix = client.matrix(locations=coords,
                                #radiuses=radiuses,
@@ -202,7 +215,8 @@ class MatrixCellStopSerializerMixin:
         return MatrixCellStop.objects.filter(variant_id=variant)
 
 
-class MatrixCellStopSerializer(MatrixCellStopSerializerMixin, MatrixAirDistanceMixin):
+class MatrixCellStopSerializer(MatrixCellStopSerializerMixin,
+                               MatrixAirDistanceMixin):
 
     def get_query(self) -> str:
 
@@ -265,7 +279,8 @@ class MatrixCellPlaceSerializerMixin:
         variant = ModeVariant.objects.get(id=request.data.get('variant'))
         return MatrixCellPlace.objects.filter(variant_id=variant)
 
-class MatrixCellPlaceSerializer(MatrixCellPlaceSerializerMixin, MatrixAirDistanceMixin):
+class MatrixCellPlaceSerializer(MatrixCellPlaceSerializerMixin,
+                                MatrixAirDistanceMixin):
 
     def get_query(self) -> str:
 
@@ -317,6 +332,62 @@ class MatrixRoutedCellPlaceSerializer(MatrixCellPlaceSerializerMixin,
             .values('id', 'lon', 'lat')
         return sources
 
+    def calculate_transit_traveltime(self,
+                                     access_variant: ModeVariant,
+                                     transit_variant: ModeVariant) -> pd.DataFrame:
+
+        q_placestop, p_placestop = MatrixPlaceStop.objects.filter(
+            variant=access_variant).query.sql_with_params()
+        q_cellstop, p_cellstop = MatrixCellStop.objects.filter(
+            variant=access_variant).query.sql_with_params()
+        q_stopstop, p_stopstop = MatrixStopStop.objects.filter(
+            variant=transit_variant).query.sql_with_params()
+        q_cellplace, p_cellplace = MatrixCellPlace.objects.filter(
+            variant=access_variant).query.sql_with_params()
+
+        query = f'''
+        SELECT
+          COALESCE(t.cell_id, a.cell_id) AS cell_id,
+          COALESCE(t.place_id, a.place_id) AS place_id,
+          least(t.minutes, a.minutes) AS minutes
+        FROM
+        (SELECT
+          cs.cell_id,
+          sp.place_id,
+          min(sp.minutes + cs.minutes) AS minutes
+        FROM
+        (SELECT
+          ss.from_stop_id,
+          ps.place_id,
+          min(ps.minutes + ss.minutes) AS minutes
+        FROM
+          ({q_placestop}) ps,
+          ({q_stopstop}) ss
+        WHERE ps.stop_id = ss.to_stop_id
+        GROUP BY
+          ss.from_stop_id,
+          ps.place_id
+        ) sp,
+        ({q_cellstop}) cs
+        WHERE cs.stop_id = sp.from_stop_id
+        GROUP BY
+          cs.cell_id,
+          sp.place_id) AS t
+        FULL OUTER JOIN ({q_cellplace}) a
+        ON (t.cell_id = a.cell_id
+        AND t.place_id = a.place_id)
+        '''
+        params = p_placestop + p_stopstop + p_cellstop + p_cellplace
+
+
+        with connection.cursor() as cursor:
+            cursor.execute(query, params)
+            df = pd.DataFrame(cursor.fetchall(),
+                              columns=self.Meta.fields)
+
+        df['variant_id'] = transit_variant.id
+
+        return df
 
 class MatrixPlaceStopSerializerMixin:
 
