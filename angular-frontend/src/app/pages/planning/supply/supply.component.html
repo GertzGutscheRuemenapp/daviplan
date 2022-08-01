@@ -1,18 +1,4 @@
-<app-scenario-menu domain="supply" [ngClass]="{'expanded': planningService.showScenarioMenu}"></app-scenario-menu>
-<mat-expansion-panel class="side-toggle" id="scenario-toggle"
-                     [expanded]="planningService.showScenarioMenu">
-  <mat-expansion-panel-header (click)="planningService.showScenarioMenu=!planningService.showScenarioMenu;">
-    <mat-panel-title>
-      <div class="mini-fab-icon" [ngClass]="{'primary': planningService.showScenarioMenu}">
-        <div class="davicon icon-GGR-davicons-Font-Simple-2-Szenario"></div>
-      </div>
-      Szenario
-      <app-help-button title="Szenario" position="right">
-        <p>Sie können sich hier Ihre Angebotsszenarien anzeigen lassen, diese editieren, neue hinzufügen und bestehende löschen.</p>
-      </app-help-button>
-    </mat-panel-title>
-  </mat-expansion-panel-header>
-</mat-expansion-panel>
+<app-scenario-menu domain="supply"></app-scenario-menu>
 <mat-expansion-panel cookieExpansion="exp-supply-services">
   <mat-expansion-panel-header>
     <mat-panel-title>

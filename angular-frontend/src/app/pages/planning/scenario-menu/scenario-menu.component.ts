@@ -25,6 +25,7 @@ import { CookieService } from "../../../helpers/cookies.service";
 })
 export class ScenarioMenuComponent implements OnInit {
   @Input() domain!: 'demand' | 'reachabilities' | 'rating' | 'supply';
+  @Input() helpText = '';
   @ViewChildren('scenario') scenarioCards?: QueryList<ElementRef>;
   @ViewChild('editScenario') editScenarioTemplate?: TemplateRef<any>;
   @ViewChild('supplyScenarioTable') supplyScenarioTableTemplate?: TemplateRef<any>;

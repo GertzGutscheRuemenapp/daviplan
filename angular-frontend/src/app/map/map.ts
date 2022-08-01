@@ -218,10 +218,11 @@ export class OlMap {
           const color = (value !== undefined)? options.fill.color(Number(value)): 'grey';
           style.getFill().setColor(color);
         }
-        if (options?.labelField && layer.get('showLabel')) {
-          const label = feature.get(options?.labelField);
-          const text = (_this.view.getZoom()! > 10 )? String( (label != undefined)? label: 0) : ''
-          style.getText().setText(text);
+        if (options?.labelField && layer.get('showLabel') && _this.view.getZoom()! > 10) {
+          let label = feature.get(options?.labelField);
+          if (typeof label === 'number')
+            label = label.toLocaleString();
+          style.getText().setText(label || '');
         }
         else {
           style.getText().setText('');
@@ -400,10 +401,11 @@ export class OlMap {
       }: {};
     let source = new VectorSource(sourceOpt);
     const styleFunc = function(feature: any) {
-      if (options?.labelField && layer.get('showLabel')) {
-        const label = feature.get(options?.labelField);
-        const text = (_this.view.getZoom()! > 10 )? String( (label != undefined)? label: 0) : ''
-        style.getText().setText(text);
+      if (options?.labelField && layer.get('showLabel') && _this.view.getZoom()! > 10) {
+        let label = feature.get(options?.labelField);
+        if (typeof label === 'number')
+          label = label.toLocaleString();
+        style.getText().setText(label || '');
       }
       else {
         style.getText().setText('');
