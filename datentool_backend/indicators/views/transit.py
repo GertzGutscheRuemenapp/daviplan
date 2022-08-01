@@ -118,7 +118,7 @@ class TravelTimeRouterMixin:
                                                    'Calculation failed')})
     @action(methods=['POST'], detail=False)
     def precalculate_traveltime(self, request):
-        """Calculate traveltime with a air distance router"""
+        """Calculate traveltime with a air distance or network router"""
         serializer = self.get_serializer()
         queryset = serializer.get_queryset(request) \
             if hasattr(serializer, 'get_queryset') else self.get_queryset()

@@ -153,7 +153,8 @@ class MatrixRoutedDistanceMixin(serializers.Serializer):
 
         variant = ModeVariant.objects.get(id=request.data.get('variant'))
         port = MODE_OSRM_PORTS[variant.mode]
-        max_distance = MODE_MAX_DISTANCE[variant.mode]
+        max_distance = int(request.data.get('max_distance',
+                                            MODE_MAX_DISTANCE[variant.mode]))
 
         client = OSRM(base_url=f'http://localhost:{port}')
         sources = self.get_sources()
@@ -161,17 +162,28 @@ class MatrixRoutedDistanceMixin(serializers.Serializer):
         # as lists
         coords = list(sources.values_list('lon', 'lat', named=False))\
             +list(destinations.values_list('lon', 'lat', named=False))
+        #radiuses = [30000 for i in range(len(coords))]
         matrix = client.matrix(locations=coords,
+                               #radiuses=radiuses,
                                sources=range(len(sources)),
-                               destinations = range(len(sources), len(coords)),
+                               destinations=range(len(sources), len(coords)),
                                profile='driving')
         # convert matrix to dataframe
-        arr = pd.DataFrame(matrix.durations,
-                          index = list(sources.values_list('id', flat=True)),
-                          columns= list(destinations.values_list('id', flat=True)))
+        arr_seconds = pd.DataFrame(
+            matrix.durations,
+            index=list(sources.values_list('id', flat=True)),
+            columns=list(destinations.values_list('id', flat=True)))
+        arr_meters = pd.DataFrame(
+            matrix.distances,
+            index=list(sources.values_list('id', flat=True)),
+            columns=list(destinations.values_list('id', flat=True)))
 
-        seconds = arr.T.unstack()
+        meters = arr_meters.T.unstack()
+        meters.index.names = self.col_ids
+
+        seconds = arr_seconds.T.unstack()
         seconds.index.names = self.col_ids
+        seconds = seconds.loc[meters<max_distance]
         minutes = seconds / 60
         df = minutes.to_frame(name='minutes')
         df['variant_id'] = variant.id
@@ -228,9 +240,9 @@ class MatrixRoutedCellStopSerializer(MatrixCellStopSerializerMixin,
 
     def get_destinations(self):
         destinations = Stop.objects.all()\
-            .annotate(wgs=Transform('pnt', 4326))\
-            .annotate(lat=Func('wgs',function='ST_Y', output_field=FloatField()),
-                      lon=Func('wgs',function='ST_X', output_field=FloatField()))\
+            .annotate(wgs=Transform('geom', 4326))\
+            .annotate(lat=Func('wgs', function='ST_Y', output_field=FloatField()),
+                      lon=Func('wgs', function='ST_X', output_field=FloatField()))\
             .values('id', 'lon', 'lat')
         return destinations
 
@@ -351,9 +363,9 @@ class MatrixRoutedPlaceStopSerializer(MatrixPlaceStopSerializerMixin,
 
     def get_destinations(self):
         destinations = Stop.objects.all()\
-            .annotate(wgs=Transform('pnt', 4326))\
-            .annotate(lat=Func('wgs',function='ST_Y', output_field=FloatField()),
-                      lon=Func('wgs',function='ST_X', output_field=FloatField()))\
+            .annotate(wgs=Transform('geom', 4326))\
+            .annotate(lat=Func('wgs', function='ST_Y', output_field=FloatField()),
+                      lon=Func('wgs', function='ST_X', output_field=FloatField()))\
             .values('id', 'lon', 'lat')
         return destinations
 

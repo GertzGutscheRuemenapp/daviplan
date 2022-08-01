@@ -1,7 +1,9 @@
+import os
 from unittest import skipIf
 import urllib
 
 from test_plus import APITestCase
+from django.urls import reverse
 
 from datentool_backend.api_test import LoginTestCase
 from datentool_backend.indicators.tests.setup_testdata import CreateTestdataMixin
@@ -43,11 +45,11 @@ class TestMatrixCreation(CreateTestdataMixin,
         cls.create_raster_population()
         infrastructure = cls.create_infrastructure_services()
         cls.create_places(infrastructure=infrastructure)
-        cls.create_stops()
+        cls.create_network()
 
     def test_create_airdistance_matrix(self):
         """Test to create an air distance matrix"""
-        network = NetworkFactory()
+        network = self.network
         walk = ModeVariantFactory(mode=Mode.WALK, network=network)
         car = ModeVariantFactory(mode=Mode.CAR, network=network)
 
@@ -94,7 +96,7 @@ class TestMatrixCreation(CreateTestdataMixin,
     @skipIf(no_connection(port=5002), 'no router for walking running')
     def test_create_routed_walk_matrix(self):
         """Test to create an walk matrix from routing"""
-        network = NetworkFactory()
+        network = self.network
         walk = ModeVariantFactory(mode=Mode.WALK, network=network)
 
         data = {'variant': walk.pk,
@@ -108,11 +110,10 @@ class TestMatrixCreation(CreateTestdataMixin,
         print(res.content)
         print(MatrixCellPlace.objects.filter(variant=walk.pk).count())
 
-
     @skipIf(no_connection(port=5001), 'no router for bicycle running')
     def test_create_routed_bike_matrix(self):
         """Test to create an bicycle matrix from routing"""
-        network = NetworkFactory()
+        network = self.network
         bike = ModeVariantFactory(mode=Mode.BIKE, network=network)
 
         data = {'variant': bike.pk,
@@ -129,7 +130,7 @@ class TestMatrixCreation(CreateTestdataMixin,
     @skipIf(no_connection(port=5000), 'no router for car running')
     def test_create_routed_car_matrix(self):
         """Test to create an car matrix from routing"""
-        network = NetworkFactory()
+        network = self.network
         car = ModeVariantFactory(mode=Mode.CAR, network=network)
 
         data = {'variant': car.pk,
@@ -142,3 +143,83 @@ class TestMatrixCreation(CreateTestdataMixin,
         self.assert_http_202_accepted(res)
         print(res.content)
         print(MatrixCellPlace.objects.filter(variant=car.pk).count())
+
+    def get_file_path_stops(self, filename_stops: str = None) -> str:
+        return file_path_stops
+
+    @classmethod
+    def create_network(cls):
+        """create network"""
+        cls.network = NetworkFactory()
+
+    def create_stops(self):
+        """upload stops from excel-template"""
+
+        self.transit = ModeVariantFactory(mode=Mode.TRANSIT, network=self.network)
+
+       # upload stops
+        file_path_transit = os.path.join(os.path.dirname(__file__),
+                                    'testdata',
+                                    'transit')
+        file_path_stops = os.path.join(file_path_transit,
+                                    'Haltestellen_Stockheim.xlsx')
+        file_content = open(file_path_stops, 'rb')
+        data = {
+            'excel_file': file_content,
+        }
+
+        url = reverse('stops-upload-template')
+        res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
+        self.assert_http_202_accepted(res, msg=res.content)
+
+        #  upload traveltime-matrix from stop to stop
+        file_path_matrix = os.path.join(file_path_transit,
+                                 'Beförderungszeit.mtx')
+        file_content = open(file_path_matrix, 'rb')
+        data = {
+            'excel_or_visum_file': file_content,
+            'variant': self.transit.pk,
+            'drop_constraints': False,
+        }
+
+        url = reverse('matrixstopstops-upload-template')
+        res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
+        self.assert_http_202_accepted(res, msg=res.content)
+
+    @skipIf(no_connection(port=5002), 'no router for walking running')
+    def test_create_routed_cell_stop_walk_matrix(self):
+        """Test to create an walk matrix from cell to stop"""
+        network = self.network
+        self.create_stops()
+        walk = ModeVariantFactory(mode=Mode.WALK, network=network)
+
+        data = {'variant': walk.pk,
+                'drop_constraints': False,
+                'air_distance_routing': False,
+                'max_distance': 3000,
+                }
+
+        res = self.post('matrixcellstops-precalculate-traveltime', data=data)
+        self.assert_http_202_accepted(res)
+        print(res.content)
+        print(MatrixCellStop.objects.filter(variant=walk.pk).count())
+
+    @skipIf(no_connection(port=5002), 'no router for walking running')
+    def test_create_routed_place_stop_walk_matrix(self):
+        """Test to create an walk matrix from place to stop"""
+        network = self.network
+        self.create_stops()
+        walk = ModeVariantFactory(mode=Mode.WALK, network=network)
+
+        data = {'variant': walk.pk,
+                'drop_constraints': False,
+                'air_distance_routing': False,
+                'max_distance': 3000,
+                }
+
+        res = self.post('matrixplacestops-precalculate-traveltime', data=data)
+        self.assert_http_202_accepted(res)
+        print(res.content)
+        print(MatrixPlaceStop.objects.filter(variant=walk.pk).count())
+
+
