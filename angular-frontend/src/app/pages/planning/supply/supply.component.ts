@@ -45,7 +45,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   layerGroup?: MapLayerGroup;
   placesLayer?: VectorLayer;
   places: Place[] = [];
-  selectedPlace?: Place;
+  selectedPlaces: Place[] = [];
   placePreviewDialogRef?: MatDialogRef<any>;
   activeService?: Service;
   activeProcess?: PlanningProcess;
@@ -192,17 +192,17 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
             properties: { name: place.name, label: place.label, capacity: place.capacity, scenario: place.scenario }
           }
         }));
-        if (this.selectedPlace) {
-          // after change, place might only be copy with old attributes
-          this.selectedPlace = this.places.find(p => p.id === this.selectedPlace!.id);
-          if (this.selectedPlace)
-            this.placesLayer?.selectFeatures([this.selectedPlace.id], { silent: true });
+        if (this.selectedPlaces.length > 0) {
+          const ids = this.selectedPlaces.map(p => p.id);
+          // after change, places might only be copies with old attributes
+          this.selectedPlaces = this.places.filter(p => ids.indexOf(p.id) > -1);
+          this.placesLayer?.selectFeatures(ids, { silent: true });
         }
         this.placesLayer?.featureSelected?.subscribe(evt => {
           if (evt.selected)
             this.selectPlace(evt.feature.get('id'));
           else {
-            this.selectedPlace = undefined;
+            this.selectedPlaces = [];
             this.placePreviewDialogRef?.close();
           }
         })
@@ -221,10 +221,9 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   selectPlace(placeId: number) {
-    this.selectedPlace = this.places?.find(p => p.id === placeId);
-/*    if (this.selectedPlace?.scenario)
-      this.openFullEdit*/
-    this.openPlacePreview();
+    const place = this.places?.find(p => p.id === placeId);
+    this.selectedPlaces = place? [place]: [];
+    if (place) this.openPlacePreview();
   }
 
   getCapacities(place: Place): Capacity[] {
@@ -283,7 +282,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       attributes: {},
       geom: geometry
     };
-    this.selectedPlace = place;
+    this.selectedPlaces = [place];
     this.placesLayer?.setSelectable(false);
     const features = this.placesLayer?.addFeatures([{ geometry: place.geom, scenario: this.activeScenario.id }]);
     if (!features) return;
@@ -301,6 +300,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       data: {
         title: 'Standort hinzufügen',
         template: this.placeEditTemplate,
+        context: { place: place }
       }
     });
     dialogRef.afterClosed().subscribe(ok => {
@@ -331,12 +331,11 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     })
   }
 
-  showEditPlace(): void {
-    if (!this.selectedPlace) return;
-    let fields: any = { name: this.selectedPlace.name };
+  showEditPlace(place: Place): void {
+    let fields: any = { name: place.name };
     const fieldNames = this.activeInfrastructure?.placeFields?.map(f => f.name) || [];
     fieldNames.forEach(field => {
-      fields[field] = this.selectedPlace?.attributes[field];
+      fields[field] = place.attributes[field];
     })
     this.placeForm = this.formBuilder.group(fields);
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
@@ -347,6 +346,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       data: {
         title: 'Standort bearbeiten',
         template: this.placeEditTemplate,
+        context: { place: place }
       }
     });
     dialogRef.componentInstance.confirmed.subscribe(ok => {
@@ -355,12 +355,12 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         const value = this.placeForm!.value[field];
         if (value !== null) attributes[field] = value;
       });
-      this.http.patch<Place>(`${this.rest.URLS.places}${this.selectedPlace!.id}/`, {
+      this.http.patch<Place>(`${this.rest.URLS.places}${place.id}/`, {
         name: this.placeForm!.value.name,
         attributes: attributes
-      }).subscribe(place => {
+      }).subscribe(p => {
         dialogRef.close();
-        this.selectedPlace = place;
+        this.selectedPlaces = [p];
         this.updatePlaces(true);
       }, error => {
         // ToDo: show error
@@ -369,13 +369,13 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     })
   }
 
-  showEditCapacities(): void {
-    if (!this.activeService || !this.selectedPlace) return;
-    this._editCapacities = this.getCapacities(this.selectedPlace).map(cap => Object.assign({}, cap));
+  showEditCapacities(place: Place): void {
+    if (!this.activeService) return;
+    this._editCapacities = this.getCapacities(place).map(cap => Object.assign({}, cap));
     if (this._editCapacities.length === 0 || this._editCapacities[0].fromYear !== 0) {
       const startCap: Capacity = {
         id: -1,
-        place: this.selectedPlace.id,
+        place: place.id,
         service: this.activeService.id,
         scenario: (this.activeScenario?.isBase)? undefined: this.activeScenario!.id,
         fromYear: 0,
@@ -391,6 +391,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       data: {
         title: 'Kapazitäten editieren',
         template: this.placeCapacitiesEditTemplate,
+        context: { place: place }
       }
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
@@ -400,10 +401,10 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       this.http.post<Capacity[]>(`${this.rest.URLS.capacities}replace/`, {
         scenario: this.activeScenario!.id,
         service: this.activeService!.id,
-        place: this.selectedPlace!.id,
+        place: place.id,
         capacities: this._editCapacities
       }).subscribe(capacities => {
-        this.planningService.resetCapacities(_this.activeService!.id, this.activeScenario!.id);
+        this.planningService.resetCapacities(this.activeScenario!.id, this.activeService!.id);
         this.updatePlaces(true);
         dialogRef.componentInstance.setLoading(false);
         dialogRef.close();
@@ -421,10 +422,10 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     this._editCapacities.splice(i, 1);
   }
 
-  insertEditCap(i: number): void {
+  insertEditCap(i: number, place: Place): void {
     const capacity: Capacity = {
       id: -1,
-      place: this.selectedPlace!.id,
+      place: place.id,
       service: this.activeService!.id,
       scenario: this.activeScenario?.id,
       fromYear: (i === 1)? ((this._editCapacities.length === 1)? 2000: this._editCapacities[i].fromYear - 1): this._editCapacities[i-1].fromYear + 1,

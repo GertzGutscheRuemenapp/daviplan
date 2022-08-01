@@ -121,10 +121,10 @@
 <div style="width: 100%; height:200px; background-color: white;"></div>
 
 <ng-template #placePreviewTemplate><!-- let-place="place">-->
-  <ng-container *ngIf="selectedPlace">
-    <b>{{ selectedPlace.name }}</b>
-    <table *ngIf="selectedPlace.attributes">
-      <tr *ngFor="let item of selectedPlace.attributes | keyvalue">
+  <ng-container *ngFor="let place of selectedPlaces">
+    <b>{{ place.name }}</b>
+    <table *ngIf="place.attributes">
+      <tr *ngFor="let item of place.attributes | keyvalue">
         <td style="padding-right: 10px;">{{item.key}}</td>
         <td><i>{{item.value}}</i></td>
       </tr>
@@ -133,16 +133,16 @@
         <td><i>{{getFormattedCapacityString([activeService.id], selectedPlace.capacity || 0)}}</i></td>
       </tr>-->
     </table>
-    <button *ngIf="selectedPlace.scenario !== null" mat-button class="mat-button-dv"
-            (click)="showEditPlace()"
+    <button *ngIf="place.scenario !== null" mat-button class="mat-button-dv"
+            (click)="showEditPlace(place)"
             color="primary">
       Standort editieren
     </button>
     <div *ngIf="activeService">
       <mat-divider style="margin: 10px 0;"></mat-divider>
-      Kapazität {{activeService.name}} ({{year}}): <b>{{getFormattedCapacityString([activeService.id], selectedPlace.capacity || 0)}}</b>
+      Kapazität {{activeService.name}} ({{year}}): <b>{{getFormattedCapacityString([activeService.id], place.capacity || 0)}}</b>
     </div>
-    <table *ngVar="getCapacities(selectedPlace) as capacities" style="margin-top: 10px;">
+    <table *ngVar="getCapacities(place) as capacities" style="margin-top: 10px;">
       <tr *ngFor="let capacity of capacities;">
         <td style="padding-right: 10px;">
           ab {{(capacity.fromYear === 0)? 'Startjahr': capacity.fromYear}}
@@ -153,15 +153,15 @@
       </tr>
     </table>
     <button *ngIf="!activeScenario?.isBase" mat-button class="mat-button-dv"
-            (click)="showEditCapacities()"
+            (click)="showEditCapacities(place)"
             color="primary">
       Kapazitäten editieren
     </button>
   </ng-container>
 </ng-template>
 
-<ng-template #placeEditTemplate> <!-- let-place="place">-->
-  <form *ngIf="selectedPlace && placeForm" [formGroup]="placeForm">
+<ng-template #placeEditTemplate let-place="place">-->
+  <form *ngIf="placeForm" [formGroup]="placeForm">
     <mat-form-field appearance="outline" class="full">
       <mat-label i18n>Name</mat-label>
       <input matInput formControlName="name">
@@ -184,78 +184,76 @@
   </form>
 </ng-template>
 
-<ng-template #placeCapacitiesEditTemplate> <!-- let-place="place">-->
-  <ng-container *ngIf="selectedPlace">
-    <div><b>Standort "{{ selectedPlace.name }}"</b></div>
-    <div>Leistung "{{ activeService?.name }}"</div>
-    <mat-divider style="margin: 10px 0;"></mat-divider>
-    <table id="capacityTable">
-      <ng-container *ngFor="let capacity of _editCapacities; let i = index;">
-        <tr>
-          <td style="display: flex; align-items: baseline;">
-            <div *ngIf="i === 0 else notStart" style="margin-top: 10px;;">&nbsp;Startjahr&nbsp;</div>
-            <ng-template #notStart>
-              <mat-form-field appearance="outline" class="small yearInput">
-                <mat-label i18n>ab</mat-label>
-                <input matInput type="number" required
-                       [(ngModel)]="capacity.fromYear"
-                       [max]="(i === _editCapacities.length-1)? 9999: _editCapacities[i+1].fromYear-1"
-                       [min]="(i>0)? _editCapacities[i-1].fromYear + 1: 0">
-              </mat-form-field>
-            </ng-template>
-            <div *ngIf="i !== _editCapacities.length - 1"
-                 style="margin-left: auto;">
-              bis {{ _editCapacities[i+1].fromYear-1 }}
+<ng-template #placeCapacitiesEditTemplate let-place="place">
+  <div><b>Standort "{{ place.name }}"</b></div>
+  <div>Leistung "{{ activeService?.name }}"</div>
+  <mat-divider style="margin: 10px 0;"></mat-divider>
+  <table id="capacityTable">
+    <ng-container *ngFor="let capacity of _editCapacities; let i = index;">
+      <tr>
+        <td style="display: flex; align-items: baseline;">
+          <div *ngIf="i === 0 else notStart" style="margin-top: 10px;;">&nbsp;Startjahr&nbsp;</div>
+          <ng-template #notStart>
+            <mat-form-field appearance="outline" class="small yearInput">
+              <mat-label i18n>ab</mat-label>
+              <input matInput type="number" required
+                     [(ngModel)]="capacity.fromYear"
+                     [max]="(i === _editCapacities.length-1)? 9999: _editCapacities[i+1].fromYear-1"
+                     [min]="(i>0)? _editCapacities[i-1].fromYear + 1: 0">
+            </mat-form-field>
+          </ng-template>
+          <div *ngIf="i !== _editCapacities.length - 1"
+               style="margin-left: auto;">
+            bis {{ _editCapacities[i+1].fromYear-1 }}
+          </div>
+        </td>
+        <td>
+          <mat-form-field appearance="outline" class="small" style="margin: 0 5px 0 20px;">
+            <mat-label i18n>Kapazität</mat-label>
+            <input matInput type="number" required
+                   [(ngModel)]="capacity.capacity"
+                   style="text-align:right;"
+                   [min]="0">
+          </mat-form-field>
+          {{activeService?.capacityPluralUnit}}
+        </td>
+        <td *ngIf="i > 0">
+          <button mat-button color="warn"
+                  class="mat-button-dv"
+                  (click)="removeEditCap(i)"
+                  title="Jahr entfernen">
+            <mat-icon>close</mat-icon>
+<!--              Jahr entfernen-->
+          </button>
+        </td>
+      </tr>
+      <tr style="height: 20px;">
+<!--          <ng-container *ngIf="i !== _editCapacities.length - 1">
+          <td>
+            <mat-divider></mat-divider>
+            <div style="position: absolute; margin-top: -15px; background-color: white; padding-right: 10px;">
+              bis
             </div>
           </td>
-          <td>
-            <mat-form-field appearance="outline" class="small" style="margin: 0 5px 0 20px;">
-              <mat-label i18n>Kapazität</mat-label>
-              <input matInput type="number" required
-                     [(ngModel)]="capacity.capacity"
-                     style="text-align:right;"
-                     [min]="0">
-            </mat-form-field>
-            {{activeService?.capacityPluralUnit}}
-          </td>
-          <td *ngIf="i > 0">
-            <button mat-button color="warn"
-                    class="mat-button-dv"
-                    (click)="removeEditCap(i)"
-                    title="Jahr entfernen">
-              <mat-icon>close</mat-icon>
-<!--              Jahr entfernen-->
-            </button>
-          </td>
-        </tr>
-        <tr style="height: 20px;">
-<!--          <ng-container *ngIf="i !== _editCapacities.length - 1">
-            <td>
-              <mat-divider></mat-divider>
-              <div style="position: absolute; margin-top: -15px; background-color: white; padding-right: 10px;">
-                bis
-              </div>
-            </td>
-            <td><mat-divider></mat-divider></td>
-          </ng-container>-->
-          <ng-container *ngIf="i !== _editCapacities.length - 1">
-            <td><mat-divider></mat-divider></td>
-            <td><mat-divider></mat-divider></td>
-          </ng-container>
-          <td>
-            <button mat-button color="primary"
-                    class="mat-button-dv"
-                    *ngIf="(i === _editCapacities.length-1) || (_editCapacities[i+1].fromYear - capacity.fromYear > 1) "
-                    (click)="insertEditCap(i+1)"
-                    title="Jahr einfügen" i18n>
-              <mat-icon>add</mat-icon>
+          <td><mat-divider></mat-divider></td>
+        </ng-container>-->
+        <ng-container *ngIf="i !== _editCapacities.length - 1">
+          <td><mat-divider></mat-divider></td>
+          <td><mat-divider></mat-divider></td>
+        </ng-container>
+        <td>
+          <button mat-button color="primary"
+                  class="mat-button-dv"
+                  *ngIf="(i === _editCapacities.length-1) || (_editCapacities[i+1].fromYear - capacity.fromYear > 1) "
+                  (click)="insertEditCap(i+1, place)"
+                  title="Jahr einfügen" i18n>
+            <mat-icon>add</mat-icon>
 <!--              Jahr <ng-container *ngIf="i !== _editCapacities.length - 1">einfügen</ng-container>-->
-              <ng-container *ngIf="i === _editCapacities.length - 1">Jahr</ng-container>
-            </button>
-          </td>
-        </tr>
-      </ng-container>
-    </table>
-    <mat-divider></mat-divider>
-  </ng-container>
+            <ng-container *ngIf="i === _editCapacities.length - 1">Jahr</ng-container>
+          </button>
+        </td>
+      </tr>
+    </ng-container>
+  </table>
+  <mat-divider></mat-divider>
 </ng-template>

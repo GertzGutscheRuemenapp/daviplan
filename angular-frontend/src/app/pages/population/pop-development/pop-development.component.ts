@@ -144,7 +144,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     const year = this.cookies.get('pop-year','number');
     this.year = year || this.realYears![this.realYears!.length - 1];
     const areaLevelId = this.cookies.get('pop-area-level','number');
-    this.activeLevel = this.areaLevels.find(al => al.id === areaLevelId) || (this.areaLevels.length > 0)? this.areaLevels[this.areaLevels.length - 1]: undefined;
+    this.activeLevel = this.areaLevels.find(al => al.id === areaLevelId) || ((this.areaLevels.length > 0)? this.areaLevels[this.areaLevels.length - 1]: undefined);
 
     this.setSlider();
     this.onLevelChange();
