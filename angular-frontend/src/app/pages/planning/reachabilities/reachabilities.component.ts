@@ -316,6 +316,14 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     return cap?.capacity || 0;
   }
 
+/*  updateMapDescription(): void {
+    const desc = `${this.activeScenario?.name}<br>
+                  Nachfrage nach "${this.activeService?.name}"<br>
+                  <b>${this.activeService?.demandPluralUnit} ${this.year} nach ${this.activeLevel?.name}</b>`
+    this.mapControl?.setDescription(desc);
+  }*/
+
+
   ngOnDestroy(): void {
     this.mapClickSub?.unsubscribe();
     if (this.reachLayerGroup) this.mapControl?.removeGroup(this.reachLayerGroup);

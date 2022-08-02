@@ -340,7 +340,7 @@ export class VectorLayer extends MapLayer {
     const colorFunc = this.valueStyles.fillColor.colorFunc;
     Array.from({ length: steps + 1 },(v, k) => k * step).forEach((value, i) => {
       colors.push(colorFunc(value));
-      let label = Number(value.toFixed(2)).toString();
+      let label = Number(value.toFixed(2)).toLocaleString();
       if (this.unit)
         label += ` ${this.unit}`;
       labels.push(label);

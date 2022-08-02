@@ -1,4 +1,7 @@
-<app-scenario-menu domain="reachabilities"></app-scenario-menu>
+<app-scenario-menu domain="reachabilities" helpText="
+    <p>Wählen Sie hier das Szenario aus, dessen Erreichbarkeitsverhältnisse Sie in der Karte anzeigen möchten. Erreichbarkeiten beschreiben, wie lange der Nachfragenden mit unterschiedlichen Verkehrsmitteln zu den Einrichtungen brauchen (oder umgekehrt, z.B. bei der Feuerwehr).</p>
+    <p>Sie können die Erreichbarkeitsverhältnisse des Szenarien verändern, indem Sie – sofern vorhanden – ein anderes Wegenetz auswählen. Zudem können Sie ein neues Szenario hinzufügen oder ein bestehendes löschen.</p>">
+</app-scenario-menu>
 <mat-expansion-panel cookieExpansion="exp-reach-services">
   <mat-expansion-panel-header>
     <mat-panel-title>
@@ -7,8 +10,9 @@
       </div>
       Leistung/en
       <app-help-button title="Leistung/en" position="right">
-        <p>Wählen Sie hier im Dropdown-Menü den Infrastrukturbereich und per Checkbox die Leistungen aus dem jeweiligen Infrastrukturbereich aus. Mit dem Klick auf das Filtersymbol können Sie Filter auf Standorte setzen und bearbeiten.</p>
-        <p>Cluster, Verdrängung und Zoom auf alle stellen Darstellungsoptionen für die Karte dar. </p>
+        <p>Wählen Sie hier die Leistung aus, für die Sie die Erreichbarkeitsverhältnisse in der Karten anzeigen möchten. Wählen Sie hierzu zunächst im Dropdown-Menü den entsprechenden Infrastrukturbereich und dann per Checkbox die gewünschte Leistung.</p>
+        <p>Sie können zusätzlich Standorte nach eigenen Kriterien filtern. Klicken Sie hierzu auf das Filtersymbol neben dem Dropdown-Menü. Die in der Karte gezeigten Erreichbarkeitsverhältnisse berücksichtigen nur die Standorte Ihrer Filtereinstellung.</p>
+        <p>Über die beiden Schalter „Cluster“ und „Verdrängung“ steuern sie, wie Standorte in der Karte dargestellt werden sollen, die nahe beieinander liegen oder sogar die gleiche Adresse haben. Die in der Karte gezeigten Erreichbarkeitsverhältnisse berücksichtigen immer den realen Standort der Einrichtungen.</p>
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
@@ -49,20 +53,22 @@
         <div class="davicon icon-GGR-davicons-Font-Simple-5-Fortbewegung-Wegezeit"></div>
       </div>
       Indikator
-      <app-help-button title="Gebietseinheit" position="right">
-        Wählen Sie hier den Erreichbarkeitsindikator für die Darstellung in der Karte aus. Dargestelt stellt wird die Erreichbarkeit mit dem unten ausgewählten Verkehrsmittel. Sie haben dabei drei Optionen:
-        <ul>
-          <li>Erreichbarkeit eines Standortes mit ausgewählter Leistung von allen Wohnstandorten anzeigen (>gewünschten Standort mit Klick in die Karte auswählen)</li>
-          <li>Erreichbarkeit aller Standorte mit ausgewählter Leistung von einem Wohnstandort aus anzeigen (>gewünschten Wohnstandort mit Klick in die Karte auswählen)</li>
-          <li>Erreichbarkeit des jeweils nächsten Standortes mit ausgewählter Leistung für alle Wohnstandorte. </li>
-        </ul>
+      <app-help-button title="Erreichbarkeitsindikatoren" position="right" [width]="500">
+        <p>Sie können zwischen drei Erreichbarkeitsindikatoren wählen.</p>
+        <p>Die Ergebnisse beziehen Sie jeweils auf das unten links ausgewählte Verkehrsmittel. Berücksichtigt werden nur Einrichtungen, in denen im ausgewählten Jahr und Szenario die von Ihnen ausgewählte Leistung angeboten wird. Zudem werden Ihre Filtereinstellungen berücksichtigt.</p>
+        <b>Option „Von allen Wohnstandorten zu einem Angebot“</b>
+        <p>Klicken Sie auf „Einrichtung auswählen“ und wählen Sie anschließend in der Karte eine Einrichtung aus. In der Karten werden daraufhin alle Wohnstandorte in Abhängigkeit der Zeit eingefärbt, mit der von hier aus die gewählte Einrichtung mit dem ausgewählten Verkehrsmittel erreicht wird. Wohnstandorte, deren Wegzeit eine Maximalzeit übersteigt, werden nicht eingefärbt.</p>
+        <b>Option „Von einem Wohnstandort zu allen Angeboten“</b>
+        <p>Klicken Sie auf „Wohnstandort auswählen“ und wählen Sie anschließen in der Karte einen Wohnstandort aus. In der Karten werden daraufhin alle Einrichtungen in Abhängigkeit der Zeit eingefärbt, mit diese von dem gewählten Wohnstandort aus mit dem ausgewählten Verkehrsmittel erreicht werden.</p>
+        <b>Option „Von allen Wohnstandorten zum jeweils nächsten Angebot“</b>
+        <p>Wenn Sie diese Option wählen, werden in der Karte alle Wohnstandorte in Abhängigkeit der Zeit eingefärbt, mit der die jeweils am schnellsten erreichbare Einrichtung mit dem ausgewählten Verkehrsmittel erreicht wird.</p>
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
   <div id="indicator-select"><!--  <div style="padding-left: 8px;">-->
     <mat-radio-group [(ngModel)]="indicator" (change)="resetIndicator()">
       <mat-radio-button value="option 1" color="primary" i18n>
-        von allen Wohnstandorten <br> zum Angebot
+        Von allen Wohnstandorten <br> zu einem Angebot
       </mat-radio-button>
       <div class="row-button"
            [ngClass]="{'active': selectPlaceMode, 'disabled': indicator!=='option 1'}"
@@ -75,7 +81,7 @@
         </button>
       </div>
       <mat-radio-button value="option 2" color="primary" i18n>
-        von einem Wohnstandort <br> zu allen Angeboten
+        Von einem Wohnstandort <br> zu allen Angeboten
       </mat-radio-button>
       <div class="row-button"
            [ngClass]="{'active': placeMarkerMode, 'disabled': indicator!=='option 2'}"
@@ -90,7 +96,7 @@
         </button>
       </div>
       <mat-radio-button value="option 3" color="primary" i18n>
-        von allen Wohnstandorten <br> zum jeweils nächsten Angebot
+        Von allen Wohnstandorten <br> zum jeweils nächsten Angebot
       </mat-radio-button>
     </mat-radio-group>
   </div>
@@ -102,7 +108,7 @@
         <mat-icon class="material-icons-outlined">directions_bus_filled</mat-icon>
       </div>
       Verkehrsmittel
-      <app-help-button title="Gebietseinheit" position="right">
+      <app-help-button title="Verkehrsmittel" position="right">
         <p>Wählen Sie hier das Verkehrsmittel für die Erreichbarkeitsdarstellung.</p>
       </app-help-button>
     </mat-panel-title>
