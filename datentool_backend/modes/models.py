@@ -1,4 +1,6 @@
 from django.db import models, transaction
+import os
+
 from datentool_backend.base import (NamedModel,
                                     JsonAttributes,
                                     DatentoolModelMixin, )
@@ -18,16 +20,18 @@ MODE_SPEED = {
     Mode.CAR: 25,
 }
 
-MODE_OSRM_PORTS = {
-    Mode.WALK: 5002,
-    Mode.BIKE: 5001,
-    Mode.CAR: 5000,
-}
-
 MODE_MAX_DISTANCE = {
     Mode.WALK: 4000,
     Mode.BIKE: 10000,
     Mode.CAR: 25000
+}
+
+# ports for OSRM routing
+# ToDo: put in settings (but with number instead of modes because of imports)?
+MODE_OSRM_PORTS = {
+    Mode.WALK: os.environ.get('MODE_FOOT_PORT', 5003),
+    Mode.BIKE: os.environ.get('MODE_BIKE_PORT', 5002),
+    Mode.CAR: os.environ.get('MODE_CAR_PORT', 5001),
 }
 
 

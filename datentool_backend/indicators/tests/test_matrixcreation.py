@@ -1,9 +1,11 @@
 import os
 from unittest import skipIf
 import urllib
+import requests
 
 from test_plus import APITestCase
 from django.urls import reverse
+from django.conf import settings
 
 from datentool_backend.api_test import LoginTestCase
 from datentool_backend.indicators.tests.setup_testdata import CreateTestdataMixin
@@ -48,6 +50,8 @@ class TestMatrixCreation(CreateTestdataMixin,
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
+        if not no_connection(port=8001):
+            cls.build_osrm()
         cls.profile.can_edit_basedata = True
         cls.profile.save()
         cls.create_project_settings()
@@ -56,6 +60,7 @@ class TestMatrixCreation(CreateTestdataMixin,
         infrastructure = cls.create_infrastructure_services()
         cls.create_places(infrastructure=infrastructure)
         cls.create_network()
+
 
     def test_create_airdistance_matrix(self):
         """Test to create an air distance matrix"""
@@ -119,7 +124,7 @@ class TestMatrixCreation(CreateTestdataMixin,
         content = res.content
         return content
 
-    @skipIf(no_connection(port=5002), 'no router for walking running')
+    @skipIf(no_connection(port=8001), 'osrm docker not running')
     def test_create_routed_walk_matrix(self):
         """Test to create an walk matrix from routing"""
         network = self.network
@@ -128,7 +133,7 @@ class TestMatrixCreation(CreateTestdataMixin,
         print(content)
         print(MatrixCellPlace.objects.filter(variant=walk.pk).count())
 
-    @skipIf(no_connection(port=5001), 'no router for bicycle running')
+    @skipIf(no_connection(port=8001), 'osrm docker not running')
     def test_create_routed_bike_matrix(self):
         """Test to create an bicycle matrix from routing"""
         network = self.network
@@ -137,7 +142,7 @@ class TestMatrixCreation(CreateTestdataMixin,
         print(content)
         print(MatrixCellPlace.objects.filter(variant=bike.pk).count())
 
-    @skipIf(no_connection(port=5000), 'no router for car running')
+    @skipIf(no_connection(port=8001), 'osrm docker not running')
     def test_create_routed_car_matrix(self):
         """Test to create an car matrix from routing"""
         network = self.network
@@ -148,6 +153,17 @@ class TestMatrixCreation(CreateTestdataMixin,
 
     def get_file_path_stops(self, filename_stops: str = None) -> str:
         return file_path_stops
+
+    @classmethod
+    def build_osrm(cls):
+        pbf = os.path.join(os.path.dirname(__file__),
+                           'testdata', 'projectarea.pbf')
+        baseurl = f'http://localhost:{settings.ROUTING_PORT}'
+        # ToDo: use own route to run and build to test
+        for mode in ['car', 'bicycle', 'foot']:
+            files = {'file': open(pbf, 'rb')}
+            requests.post(f'{baseurl}/build/{mode}', files=files)
+            requests.post(f'{baseurl}/run/{mode}')
 
     @classmethod
     def create_network(cls):

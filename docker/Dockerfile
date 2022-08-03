@@ -8,7 +8,8 @@ RUN apt-get -y update \
     && apt-get -y install python3-pip \
     && apt-get -y install libpq-dev \
     && apt-get -y install binutils libproj-dev libgeos-dev \
-    && apt-get -y install libsqlite3-mod-spatialite
+    && apt-get -y install libsqlite3-mod-spatialite \
+    && apt-get -y osmium-tool
 
 RUN npm i npm@latest -g
 RUN npm i -g @angular/cli@latest

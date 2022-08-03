@@ -28,6 +28,7 @@ DB_PASS = os.environ.get('DB_PASS', '')
 DB_PORT = os.environ.get('DB_PORT', 5432)
 DB_HOST = os.environ.get('DB_HOST', 'localhost')
 SECRET_KEY = os.environ.get('SECRET_KEY')
+ROUTING_PORT = os.environ.get('ROUTING_PORT', 8001)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -35,7 +36,6 @@ DEBUG = False
 ALLOWED_HOSTS = [
     'datentool.ggr-planung.de'
 ]
-
 
 # Application definition
 
