@@ -106,7 +106,7 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                  'Project area from base network'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        baseurl = f'http://localhost:{settings.ROUTING_PORT}'
+        baseurl = f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}'
         # ToDo: use own route to run and build to test
         for mode in ['car', 'bicycle', 'foot']:
             files = {'file': open(fp_target_pbf, 'rb')}
@@ -131,7 +131,7 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     )
     @action(methods=['POST'], detail=False)
     def run_router(self, request, **kwargs):
-        baseurl = f'http://localhost:{settings.ROUTING_PORT}'
+        baseurl = f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}'
         for mode in ['car', 'bicycle', 'foot']:
             res = requests.post(f'{baseurl}/run/{mode}')
             if res.status_code != 200:

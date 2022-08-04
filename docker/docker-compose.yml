@@ -14,15 +14,16 @@ services:
   router:
     image: gertzgutscheruemenapp/osrm-flask
     restart: unless-stopped
-    volumes:
-      - ./data:/app/data
 
   web:
+    environment:
+      - ROUTING_HOST=router
+      - ROUTING_HOST=8001
     env_file: .env
     image: gertzgutscheruemenapp/daviplan:testing-p3.8
     links:
       - postgis:db
-      - router-car:router-car
+      - router:router
     command: bash -c "cd /root/datentool && git pull && pip install -r requirements.txt && cd angular-frontend && npm ci && ng build --stats_json --build-optimizer && cd /root/datentool && python manage.py migrate --run-syncdb && python manage.py runserver 0.0.0.0:8000"
     ports:
       - "${EXT_PORT}:8000"
