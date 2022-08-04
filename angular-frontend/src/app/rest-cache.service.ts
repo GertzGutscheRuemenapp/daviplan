@@ -42,6 +42,7 @@ export class RestCacheService {
   private capacitiesCache: Record<string, Capacity[]> = {};
   private statisticsCache: Record<string, StatisticsData[]> = {};
   isLoading$ = new BehaviorSubject<boolean>(false);
+  private _isLoading = false;
   private loadCount = 0;
 
   constructor(protected http: HttpClient, protected rest: RestAPI) { }
@@ -445,6 +446,10 @@ export class RestCacheService {
 
   setLoading(isLoading: boolean) {
     this.loadCount += isLoading? 1: -1;
-    this.isLoading$.next(this.loadCount > 0);
+    const iL = this.loadCount > 0;
+    if (iL != this._isLoading){
+      this._isLoading = iL;
+      this.isLoading$.next(this._isLoading);
+    }
   }
 }

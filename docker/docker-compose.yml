@@ -13,7 +13,7 @@ services:
 
   web:
     env_file: .env
-    image: gertzgutscheruemenapp/daviplan:testing
+    image: gertzgutscheruemenapp/daviplan:testing-p3.8
     links:
       - postgis:db
     command: bash -c "cd /root/datentool && git pull && pip install -r requirements.txt && cd angular-frontend && npm ci && ng build --stats_json --build-optimizer && cd /root/datentool && python manage.py migrate --run-syncdb && python manage.py runserver 0.0.0.0:8000"

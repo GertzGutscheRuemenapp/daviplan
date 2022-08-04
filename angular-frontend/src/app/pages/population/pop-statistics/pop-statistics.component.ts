@@ -5,12 +5,11 @@ import { Subscription } from "rxjs";
 import { MultilineChartComponent, MultilineData } from "../../../diagrams/multiline-chart/multiline-chart.component";
 import { BalanceChartComponent, BalanceChartData } from "../../../diagrams/balance-chart/balance-chart.component";
 import { PopulationService } from "../population.service";
-import { Area, AreaLevel, ExtLayer, ExtLayerGroup } from "../../../rest-interfaces";
+import { Area, AreaLevel } from "../../../rest-interfaces";
 import { SettingsService } from "../../../settings.service";
-import * as d3 from "d3";
 import { sortBy } from "../../../helpers/utils";
 import { CookieService } from "../../../helpers/cookies.service";
-import { MapLayer, MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-pop-statistics',
@@ -53,7 +52,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
     this.mapControl = this.mapService.get('population-map');
     this.layerGroup = new MapLayerGroup('Bevölkerungssalden', { order: -1 })
     this.mapControl.addGroup(this.layerGroup);
-    this.mapControl.mapDescription = '';
+    this.mapControl?.setDescription('');
     if (this.populationService.isReady)
       this.initData();
     else {
@@ -177,7 +176,8 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
           },
           min: 0,
           max: max || 1000
-        }
+        },
+        labelOffset: { y: 15 }
       });
       this.layerGroup?.addLayer(this.statisticsLayer);
       this.areas.forEach(area => {
@@ -290,7 +290,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
     else
       theme = (this.showImmigration && this.showEmigration)? 'Wanderung': (this.showImmigration)? 'Zuzüge': (this.showEmigration)? 'Fortzüge': 'keine Auswahl';
     let description = `${theme} für Gebietseinheit ${this.areaLevel.name} | ${this.year}`;
-    this.mapControl!.mapDescription = description;
+    this.mapControl?.setDescription(description);
   }
 
   ngOnDestroy(): void {

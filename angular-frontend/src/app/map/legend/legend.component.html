@@ -41,13 +41,12 @@
                  [ngClass]="{'checked': layer.visible}"
                  *ngIf="mapControl.editMode || layer.visible">
               <div class="entry-header"
-                   [ngbPopover]="popover"
+                   [ngbPopover]="layer.description? popover: undefined"
                    placement="left"
                    container="body"
                    triggers="mouseenter:mouseleave">
                 <ng-template #popover>
-                  <b>{{ layer.name }}</b>
-                  <p *ngIf="layer.description">{{ layer.description }}</p>
+                  <div *ngIf="layer.description" [innerHTML]="layer.description"></div>
                 </ng-template>
                 <div class="entry-prefix">
                   <mat-checkbox *ngIf="mapControl.editMode"
@@ -95,7 +94,7 @@
                             title="Transparenz">
                 </mat-slider>
                 <div class="label-toggle" *ngIf="$any(layer).labelField"
-                     (click)="toggleLabel($any(layer))" [title]="($any(layer).showLabel)? 'Labelanzeige ausschalten': 'Labelanzeige einschalten'">
+                     (click)="toggleLabel($any(layer))" [title]="($any(layer).showLabel)? 'Beschriftung ausschalten': 'Beschriftung einschalten'">
                   <mat-icon class="material-icons-outlined">
                     {{($any(layer).showLabel)? 'label': 'label_off'}}
                   </mat-icon>
@@ -157,7 +156,7 @@
                   <ng-container *ngFor="let layer of mapControl.backgroundLayers">
                     <ng-template #popover>
                       <b>{{ layer.name }}</b>
-                      <p *ngIf="layer.description">{{ layer.description }}</p>
+                      <p *ngIf="layer.description" [innerHTML]="layer.description"></p>
                     </ng-template>
                     <mat-option [ngbPopover]="popover"
                                 placement="left"

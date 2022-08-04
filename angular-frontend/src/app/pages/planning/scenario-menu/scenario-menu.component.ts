@@ -25,6 +25,7 @@ import { CookieService } from "../../../helpers/cookies.service";
 })
 export class ScenarioMenuComponent implements OnInit {
   @Input() domain!: 'demand' | 'reachabilities' | 'rating' | 'supply';
+  @Input() helpText = '';
   @ViewChildren('scenario') scenarioCards?: QueryList<ElementRef>;
   @ViewChild('editScenario') editScenarioTemplate?: TemplateRef<any>;
   @ViewChild('supplyScenarioTable') supplyScenarioTableTemplate?: TemplateRef<any>;
@@ -225,17 +226,37 @@ export class ScenarioMenuComponent implements OnInit {
   }
 
   onShowDemandQuotaSet(): void {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '900px',
-      data: {
-        title: $localize`Nachfragequoten-Set: [Name]`,
-        // confirmButtonText: $localize`umbenennen`,
-        template: this.demandQuotaTemplate,
-        hideConfirmButton: true
-      }
-    });
-    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
-    });
+    this.planningService.getRealYears().subscribe(realYears => {
+      this.planningService.getPrognosisYears().subscribe(prognosisYears => {
+        this.planningService.getGenders().subscribe(genders => {
+          this.planningService.getAgeGroups().subscribe(ageGroups => {
+            const scenario = this.planningService.activeScenario;
+            const service = this.planningService.activeService;
+            const demandRateSet = this.getDemandRateSet(scenario!);
+            const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+              width: '900px',
+              data: {
+                title: 'Nachfragequoten',
+                subtitle: `Leistung "${service?.name}" / Set "${demandRateSet?.name}"`,
+                // confirmButtonText: $localize`umbenennen`,
+                template: this.demandQuotaTemplate,
+                context: {
+                  years: realYears.concat(prognosisYears),
+                  scenario: scenario,
+                  demandRateSet: demandRateSet,
+                  genders: genders,
+                  ageGroups: ageGroups,
+                  service: service
+                },
+                hideConfirmButton: true
+              }
+            });
+            dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+            });
+          })
+        })
+      })
+    })
   }
 
   onDemandRateChange(scenario: Scenario, demandRateSet: DemandRateSet): void {

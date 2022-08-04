@@ -132,6 +132,10 @@ export abstract class MapLayer {
     this.map = undefined;
   }
 
+  zoomTo(): void {
+    this.map?.zoomToExtent(this.mapId!);
+  }
+
   abstract addToMap(map?: OlMap): OlLayer<any> | undefined;
 }
 
@@ -225,7 +229,8 @@ interface VectorLayerOptions extends LayerOptions {
   },
   radius?: number,
   unit?: string,
-  valueStyles?: ValueStyle
+  valueStyles?: ValueStyle,
+  labelOffset?: { x?: number, y?: number }
 }
 
 export class VectorLayer extends MapLayer {
@@ -246,6 +251,7 @@ export class VectorLayer extends MapLayer {
   radius?: number;
   unit?: string;
   valueStyles?: ValueStyle;
+  labelOffset?: { x?: number, y?: number }
 
   constructor(name: string, options?: VectorLayerOptions) {
     super(name, options);
@@ -264,6 +270,7 @@ export class VectorLayer extends MapLayer {
     this.valueStyles = options?.valueStyles;
     this.radius = options?.radius;
     this.unit = options?.unit;
+    this.labelOffset = options?.labelOffset;
   }
 
   protected initColor(): void {
@@ -311,7 +318,8 @@ export class VectorLayer extends MapLayer {
       tooltipField: this.tooltipField,
       shape: (this.style?.symbol !== 'line')? this.style?.symbol: undefined,
       selectable: this.selectable,
-      showLabel: this.showLabel
+      showLabel: this.showLabel,
+      labelOffset: this.labelOffset
     })
   }
 
@@ -332,7 +340,7 @@ export class VectorLayer extends MapLayer {
     const colorFunc = this.valueStyles.fillColor.colorFunc;
     Array.from({ length: steps + 1 },(v, k) => k * step).forEach((value, i) => {
       colors.push(colorFunc(value));
-      let label = Number(value.toFixed(2)).toString();
+      let label = Number(value.toFixed(2)).toLocaleString();
       if (this.unit)
         label += ` ${this.unit}`;
       labels.push(label);
