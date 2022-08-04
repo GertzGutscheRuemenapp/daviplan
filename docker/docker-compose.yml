@@ -19,7 +19,7 @@ services:
 
   web:
     env_file: .env
-    image: gertzgutscheruemenapp/daviplan:testing
+    image: gertzgutscheruemenapp/daviplan:testing-p3.8
     links:
       - postgis:db
       - router-car:router-car

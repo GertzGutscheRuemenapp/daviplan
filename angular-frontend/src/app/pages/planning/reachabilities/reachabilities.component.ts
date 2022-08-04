@@ -148,7 +148,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           enabled: true,
           style: { fillColor: 'yellow' },
           multi: false
-        }
+        },
+        labelOffset: { y: 15 }
       });
       this.placesLayerGroup?.addLayer(this.placesLayer);
       this.placesLayer.addFeatures(places.map(place => {
@@ -262,7 +263,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
             min: 0,
             max: max
           },
-          unit: 'Minute(n)'
+          unit: 'Minute(n)',
+          labelOffset: { y: 10 }
         });
         this.reachLayerGroup?.addLayer(this.placeReachabilityLayer);
         this.placeReachabilityLayer.addFeatures(this.places.map(place => {
@@ -313,6 +315,14 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     const cap = this.capacities?.find(capacity => capacity.place === placeId);
     return cap?.capacity || 0;
   }
+
+/*  updateMapDescription(): void {
+    const desc = `${this.activeScenario?.name}<br>
+                  Nachfrage nach "${this.activeService?.name}"<br>
+                  <b>${this.activeService?.demandPluralUnit} ${this.year} nach ${this.activeLevel?.name}</b>`
+    this.mapControl?.setDescription(desc);
+  }*/
+
 
   ngOnDestroy(): void {
     this.mapClickSub?.unsubscribe();

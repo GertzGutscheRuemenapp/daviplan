@@ -94,7 +94,7 @@ export class OlMap {
     return fromExtent(extent);
   }
 
-  centerOnLayer(name: string): void{
+  zoomToExtent(name: string): void{
     const layer = this.layers[name],
           source = layer.getSource();
     this.map.getView().fit(source.getExtent());
@@ -218,10 +218,11 @@ export class OlMap {
           const color = (value !== undefined)? options.fill.color(Number(value)): 'grey';
           style.getFill().setColor(color);
         }
-        if (options?.labelField && layer.get('showLabel')) {
-          const label = feature.get(options?.labelField);
-          const text = (_this.view.getZoom()! > 10 )? String( (label != undefined)? label: 0) : ''
-          style.getText().setText(text);
+        if (options?.labelField && layer.get('showLabel') && _this.view.getZoom()! > 10) {
+          let label = feature.get(options?.labelField);
+          if (typeof label === 'number')
+            label = label.toLocaleString();
+          style.getText().setText(label || '');
         }
         else {
           style.getText().setText('');
@@ -356,6 +357,7 @@ export class OlMap {
       selectedColor?: string, mouseOverColor?: string },
     radius?: number | ((d: number) => number),
     labelField?: string,
+    labelOffset?: { x?: number, y?: number },
     valueField?: string,
     showLabel?: boolean,
     zIndex?: number,
@@ -367,14 +369,15 @@ export class OlMap {
       font: '14px Calibri,sans-serif',
       overflow: true,
       placement: 'point',
-      offsetX: 10,
-      offsetY: 10,
+      textAlign: 'center',
+      offsetX: options?.labelOffset?.x || 0,
+      offsetY: options?.labelOffset?.y || 0,
       fill: new Fill({
         color: 'black'
       }),
       stroke: new Stroke({
         color: 'white',
-        width: 2
+        width: 4
       })
     });
     const style = new Style({
@@ -398,10 +401,11 @@ export class OlMap {
       }: {};
     let source = new VectorSource(sourceOpt);
     const styleFunc = function(feature: any) {
-      if (options?.labelField && layer.get('showLabel')) {
-        const label = feature.get(options?.labelField);
-        const text = (_this.view.getZoom()! > 10 )? String( (label != undefined)? label: 0) : ''
-        style.getText().setText(text);
+      if (options?.labelField && layer.get('showLabel') && _this.view.getZoom()! > 10) {
+        let label = feature.get(options?.labelField);
+        if (typeof label === 'number')
+          label = label.toLocaleString();
+        style.getText().setText(label || '');
       }
       else {
         style.getText().setText('');

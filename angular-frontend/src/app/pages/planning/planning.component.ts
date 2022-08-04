@@ -1,4 +1,13 @@
-import { Component, ElementRef, AfterViewInit, Renderer2, OnDestroy, ViewChild, TemplateRef } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  AfterViewInit,
+  Renderer2,
+  OnDestroy,
+  ViewChild,
+  TemplateRef,
+  ChangeDetectorRef
+} from '@angular/core';
 import { MapControl, MapService } from "../../map/map.service";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { faArrowsAlt } from '@fortawesome/free-solid-svg-icons';
@@ -45,6 +54,8 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   baseScenario?: Scenario;
   editProcessForm: FormGroup;
   Object = Object;
+  isLoading = true;
+  mapDescription = '';
 
   isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 39.9375em)')
     .pipe(
@@ -55,7 +66,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   constructor(private breakpointObserver: BreakpointObserver, private renderer: Renderer2,
               private elRef: ElementRef, private mapService: MapService, private dialog: MatDialog,
               public planningService: PlanningService, private settings: SettingsService,
-              private auth: AuthService, private formBuilder: FormBuilder,
+              private auth: AuthService, private formBuilder: FormBuilder, private cdref: ChangeDetectorRef,
               private http: HttpClient, private rest: RestAPI, private cookies: CookieService) {
     this.editProcessForm = this.formBuilder.group({
       name: new FormControl(''),
@@ -71,7 +82,17 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.renderer.setStyle(wrapper, 'overflow-y', 'hidden');
     this.mapControl = this.mapService.get('planning-map');
     this.planningService.legend = this.legend;
-    this.mapControl.mapDescription = 'Planungsprozess: xyz > Status Quo Fortschreibung <br> usw.';
+    // using "isLoading$ | async" in template causes NG0100, because service doesn't know about life cycle of this page
+    // workaround: force change detection
+    this.planningService.isLoading$.subscribe(isLoading => {
+      this.isLoading = isLoading;
+      this.cdref.detectChanges();
+    });
+    // same as above
+    this.mapControl.mapDescription$.subscribe(desc => {
+      this.mapDescription = desc;
+      this.cdref.detectChanges();
+    });
     this.timeSlider?.onChange.subscribe(value => {
       this.planningService.year$.next(value);
       this.cookies.set('planning-year', value);

@@ -28,8 +28,7 @@ export class PlanningService extends RestCacheService {
   legend?: LegendComponent;
   isReady: boolean = false;
   placeFilterColumns: FilterColumn[] = [];
-  private placesCache: Record<number, Place[]> = {};
-  private capacitiesPerScenarioService: Record<number, Record<string, Capacity[]>> = {};
+  private capacitiesPerScenarioService: Record<number, Record<string, Record<number, Capacity[]>>> = {};
   year$ = new BehaviorSubject<number>(0);
   activeProcess$ = new BehaviorSubject<PlanningProcess | undefined>(undefined);
   activeScenario$ = new BehaviorSubject<Scenario | undefined>(undefined);
@@ -183,15 +182,17 @@ export class PlanningService extends RestCacheService {
       function update(infrastructure: Infrastructure | undefined) {
         let observables: Observable<any>[] = [];
         infrastructure?.services?.forEach(service => {
-          let key = `${service.id}-${year}`;
-          if (!scenarioCapacities[key]) {
+          let serviceCapacities = scenarioCapacities[service.id];
+          if (!serviceCapacities)
+            serviceCapacities = scenarioCapacities[service.id] = {};
+          if (!serviceCapacities[year!]) {
             observables.push(_this.getCapacities({
               year: year,
               service: service.id!,
               scenario: options?.scenarioId,
               reset: true
             }).pipe(map(capacities => {
-              scenarioCapacities[key] = capacities;
+              serviceCapacities[year!] = capacities;
             })));
           }
         });
@@ -217,20 +218,26 @@ export class PlanningService extends RestCacheService {
     return observable;
   }
 
-  resetCapacities(serviceId: number, scenarioId: number){
-    const capacities = this.capacitiesPerScenarioService[scenarioId];
-    if (capacities)
-      delete capacities[serviceId];
+  resetCapacities(scenarioId: number, serviceId?: number, year?: number){
+    const scenarioCapacities = this.capacitiesPerScenarioService[scenarioId];
+    if (scenarioCapacities && serviceId !== undefined) {
+      if (scenarioCapacities[serviceId] && year !== undefined)
+        delete scenarioCapacities[serviceId][year];
+      else
+        delete scenarioCapacities[serviceId];
+    }
+    else
+      delete this.capacitiesPerScenarioService[scenarioId];
   }
 
   getPlaceCapacity(place: Place, options?: { service?: Service, scenario?: Scenario, year?: number}): number{
     const service = options?.service || this.activeService;
     const scenario = options?.scenario || this.activeScenario;
     const year = (options?.year !== undefined)? options?.year: this.activeYear;
-    if (!service || !scenario) return 0;
-    let key = `${service.id}-${year}`;
+    if (!service || !scenario || !year) return 0;
     const scenarioCapacities = this.capacitiesPerScenarioService[scenario.id] || {};
-    const cap = scenarioCapacities[key]?.find(c => c.place === place.id);
+    const serviceCapacities = scenarioCapacities[service.id] || {};
+    const cap = serviceCapacities[year]?.find(c => c.place === place.id);
     return cap?.capacity || 0;
   }
 

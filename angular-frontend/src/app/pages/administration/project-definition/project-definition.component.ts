@@ -288,7 +288,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
         source.clear();
         source.addFeature(feature);
         if (this.projectGeom?.getArea())
-          this.previewMapControl?.map?.centerOnLayer('project-area');
+          this.previewMapControl?.map?.zoomToExtent('project-area');
       }
     }
   }
@@ -308,7 +308,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       const hasProjectArea = this.projectGeom?.getArea();
       if (hasProjectArea) {
         projectLayer?.getSource().addFeature(new Feature(this.projectGeom));
-        this.areaSelectMapControl.map?.centerOnLayer('project-area');
+        this.areaSelectMapControl.map?.zoomToExtent('project-area');
       }
       projectLayer?.getSource().clear();
       this.areaSelectMapControl.map?.selected.subscribe(event => {

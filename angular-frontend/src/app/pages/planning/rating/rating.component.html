@@ -1,18 +1,4 @@
-<app-scenario-menu domain="rating" [ngClass]="{'expanded': planningService.showScenarioMenu}"></app-scenario-menu>
-<mat-expansion-panel class="side-toggle" id="scenario-toggle"
-                     [expanded]="planningService.showScenarioMenu">
-  <mat-expansion-panel-header (click)="planningService.showScenarioMenu=!planningService.showScenarioMenu;">
-    <mat-panel-title>
-      <div class="mini-fab-icon" [ngClass]="{'primary': planningService.showScenarioMenu}">
-        <div class="davicon icon-GGR-davicons-Font-Simple-2-Szenario"></div>
-      </div>
-      Szenario
-      <app-help-button title="Szenario" position="right">
-        <p>Sie können sich hier Ihre Szenarien anzeigen lassen, diese editieren, neue hinzufügen und bestehende löschen.</p>
-      </app-help-button>
-    </mat-panel-title>
-  </mat-expansion-panel-header>
-</mat-expansion-panel>
+<app-scenario-menu domain="rating"></app-scenario-menu>
 <mat-expansion-panel cookieExpansion="exp-rating-indicators">
   <mat-expansion-panel-header>
     <mat-panel-title>
@@ -69,7 +55,7 @@
     </mat-select>
   </mat-form-field>
 </mat-expansion-panel>
-<mat-expansion-panel cookieExpansion="exp-rating-compare" class="disabled">
+<!--<mat-expansion-panel cookieExpansion="exp-rating-compare" class="disabled">
   <mat-expansion-panel-header>
     <mat-panel-title>
       <div class="mini-fab-icon">
@@ -81,7 +67,7 @@
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
-  <mat-checkbox style="padding-left: 12px;" color="primary" [(ngModel)]="compareSupply" i18n> <!--style="margin-left: -12px"-->
+  <mat-checkbox style="padding-left: 12px;" color="primary" [(ngModel)]="compareSupply" i18n> &lt;!&ndash;style="margin-left: -12px"&ndash;&gt;
     Nachfrage vergleichen
   </mat-checkbox>
   <div class="sub-select-wrapper compare-radio-list">
@@ -115,9 +101,9 @@
       </mat-form-field>
     </mat-radio-group>
   </div>
-</mat-expansion-panel>
+</mat-expansion-panel>-->
 <!--this div is only there to cover glitched shadow of chart toggle-->
-<div style="width: 100%; height: 20px; background-color: white;"></div>
+<div style="width: 100%; height: 200px; background-color: white;"></div>
 <app-side-toggle id="chart-toggle" icon="bar_chart" name="Diagramm"
                  cookieExpansion="exp-rating-diagram">
   <div class="diagram-wrapper">
