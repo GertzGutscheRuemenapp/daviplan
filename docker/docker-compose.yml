@@ -11,32 +11,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
 
-  router-car:
-    image: osrm/osrm-backend
-    command: osrm-routed --algorithm mld /data/datentool.osrm
-    ports:
-      - "5000:5000"
+  router:
+    image: gertzgutscheruemenapp/osrm-flask
     restart: unless-stopped
     volumes:
-      - ./public/routers/car:/data
-
-  router-bicycle:
-    image: osrm/osrm-backend
-    command: osrm-routed --algorithm mld /data/datentool.osrm
-    ports:
-      - "5001:5000"
-    restart: unless-stopped
-    volumes:
-      - ./public/routers/bicycle:/data
-
-  router-foot:
-    image: osrm/osrm-backend
-    command: osrm-routed --algorithm mld /data/datentool.osrm
-    ports:
-      - "5002:5000"
-    restart: unless-stopped
-    volumes:
-      - ./public/routers/foot:/data
+      - ./data:/app/data
 
   web:
     env_file: .env
@@ -50,6 +29,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./public:/root/datentool/public
+      - ./data:/root/datentool_backend/data
 
 
 volumes:
