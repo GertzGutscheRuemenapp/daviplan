@@ -171,7 +171,7 @@ class MatrixRoutedDistanceMixin(serializers.Serializer):
         sources = self.get_sources()
         destinations = self.get_destinations()
 
-        client = OSRM(base_url=f'http://localhost:{port}')
+        client = OSRM(base_url=f'http://{settings.ROUTING_HOST}:{port}')
         # as lists
         coords = list(sources.values_list('lon', 'lat', named=False))\
             + list(destinations.values_list('lon', 'lat', named=False))

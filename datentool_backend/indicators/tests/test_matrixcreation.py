@@ -21,7 +21,7 @@ from datentool_backend.modes.factories import (Mode,
                                                Network)
 
 
-def no_connection(host: str = 'http://localhost',
+def no_connection(host: str = 'localhost',
                   port: int = 5000,
                   timeout: float = 1) -> bool:
     """
@@ -30,7 +30,7 @@ def no_connection(host: str = 'http://localhost',
     return False, if it is a BadRequest (400)
     """
     try:
-        urllib.request.urlopen(f'{host}:{port}', timeout=timeout)
+        urllib.request.urlopen(f'http://{host}:{port}', timeout=timeout)
         return False
     except urllib.error.HTTPError as err:
         if err.code == 404:
@@ -50,7 +50,8 @@ class TestMatrixCreation(CreateTestdataMixin,
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        if not no_connection(port=8001):
+        if not no_connection(host=settings.ROUTING_HOST,
+                             port=settings.ROUTING_PORT):
             cls.build_osrm()
         cls.profile.can_edit_basedata = True
         cls.profile.save()
@@ -124,7 +125,8 @@ class TestMatrixCreation(CreateTestdataMixin,
         content = res.content
         return content
 
-    @skipIf(no_connection(port=8001), 'osrm docker not running')
+    @skipIf(no_connection(host=settings.ROUTING_HOST, port=settings.ROUTING_PORT),
+            'osrm docker not running')
     def test_create_routed_walk_matrix(self):
         """Test to create an walk matrix from routing"""
         network = self.network
@@ -133,7 +135,8 @@ class TestMatrixCreation(CreateTestdataMixin,
         print(content)
         print(MatrixCellPlace.objects.filter(variant=walk.pk).count())
 
-    @skipIf(no_connection(port=8001), 'osrm docker not running')
+    @skipIf(no_connection(host=settings.ROUTING_HOST, port=settings.ROUTING_PORT),
+            'osrm docker not running')
     def test_create_routed_bike_matrix(self):
         """Test to create an bicycle matrix from routing"""
         network = self.network
@@ -142,7 +145,8 @@ class TestMatrixCreation(CreateTestdataMixin,
         print(content)
         print(MatrixCellPlace.objects.filter(variant=bike.pk).count())
 
-    @skipIf(no_connection(port=8001), 'osrm docker not running')
+    @skipIf(no_connection(host=settings.ROUTING_HOST, port=settings.ROUTING_PORT),
+            'osrm docker not running')
     def test_create_routed_car_matrix(self):
         """Test to create an car matrix from routing"""
         network = self.network
@@ -158,7 +162,7 @@ class TestMatrixCreation(CreateTestdataMixin,
     def build_osrm(cls):
         pbf = os.path.join(os.path.dirname(__file__),
                            'testdata', 'projectarea.pbf')
-        baseurl = f'http://localhost:{settings.ROUTING_PORT}'
+        baseurl = f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}'
         # ToDo: use own route to run and build to test
         for mode in ['car', 'bicycle', 'foot']:
             files = {'file': open(pbf, 'rb')}
@@ -205,7 +209,8 @@ class TestMatrixCreation(CreateTestdataMixin,
         res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
         self.assert_http_202_accepted(res, msg=res.content)
 
-    @skipIf(no_connection(port=8001), 'no router for walking running')
+    @skipIf(no_connection(host=settings.ROUTING_HOST, port=settings.ROUTING_PORT),
+            'osrm docker not running')
     def test_create_routed_cell_stop_walk_matrix(self):
         """Test to create an walk matrix from cell to stop"""
         network = self.network
@@ -232,7 +237,8 @@ class TestMatrixCreation(CreateTestdataMixin,
         self.assert_http_202_accepted(res)
         return res.content
 
-    @skipIf(no_connection(port=8001), 'no router for walking running')
+    @skipIf(no_connection(host=settings.ROUTING_HOST, port=settings.ROUTING_PORT),
+            'osrm docker not running')
     def test_create_routed_place_stop_walk_matrix(self):
         """Test to create an walk matrix from place to stop"""
         self.create_stops()
@@ -258,7 +264,8 @@ class TestMatrixCreation(CreateTestdataMixin,
         self.assert_http_202_accepted(res)
         return res.content
 
-    @skipIf(no_connection(port=8001), 'no router for walking running')
+    @skipIf(no_connection(host=settings.ROUTING_HOST, port=settings.ROUTING_PORT),
+            'osrm docker not running')
     def test_create_place_cell_transit_matrix(self):
         """Test to create an transit matrix from place to stop"""
         self.create_stops()
