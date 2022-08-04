@@ -205,7 +205,7 @@ class TestMatrixCreation(CreateTestdataMixin,
         res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
         self.assert_http_202_accepted(res, msg=res.content)
 
-    @skipIf(no_connection(port=5002), 'no router for walking running')
+    @skipIf(no_connection(port=8001), 'no router for walking running')
     def test_create_routed_cell_stop_walk_matrix(self):
         """Test to create an walk matrix from cell to stop"""
         network = self.network
@@ -232,7 +232,7 @@ class TestMatrixCreation(CreateTestdataMixin,
         self.assert_http_202_accepted(res)
         return res.content
 
-    @skipIf(no_connection(port=5002), 'no router for walking running')
+    @skipIf(no_connection(port=8001), 'no router for walking running')
     def test_create_routed_place_stop_walk_matrix(self):
         """Test to create an walk matrix from place to stop"""
         self.create_stops()
@@ -258,7 +258,7 @@ class TestMatrixCreation(CreateTestdataMixin,
         self.assert_http_202_accepted(res)
         return res.content
 
-    @skipIf(no_connection(port=5002), 'no router for walking running')
+    @skipIf(no_connection(port=8001), 'no router for walking running')
     def test_create_place_cell_transit_matrix(self):
         """Test to create an transit matrix from place to stop"""
         self.create_stops()
