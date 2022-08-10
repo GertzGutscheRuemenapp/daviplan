@@ -68,6 +68,7 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         fp_project_json = os.path.join(settings.MEDIA_ROOT, 'projectarea.geojson')
         fp_base_pbf = os.path.join(settings.MEDIA_ROOT, 'germany-latest.osm.pbf')
         fp_target_pbf = os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf')
+        # ToDo: set "network_file" of default Network?
         for fp in fp_target_pbf, fp_project_json:
             if os.path.exists(fp):
                 os.remove(fp)
@@ -77,16 +78,19 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                 {'message': f'Project Area is undefined'},
                 status=status.HTTP_400_BAD_REQUEST)
 
-        #geojson = json.dumps({
-            #'type': 'Feature',
-            #'name': 'project_area',
-            #'crs': { 'type': 'name',
-                     #'properties': { 'name': 'urn:ogc:def:crs:EPSG::3857' } },
-            #'geometry': json.loads(project_area.geojson),
-        #})
+        buffered = project_area.buffer(10000)
+        buffered.transform('EPSG: 4326')
 
-        geojson = serialize('geojson', ProjectSetting.objects.all(),
-                            geometry_field='project_area', fields=('id',))
+        geojson = json.dumps({
+            'type': 'Feature',
+            'name': 'project_area',
+            'crs': { 'type': 'name',
+                     'properties': { 'name': 'EPSG:4326' } },
+            'geometry': json.loads(buffered.geojson),
+        })
+
+        #geojson = serialize('geojson', ProjectSetting.objects.all(),
+                            #geometry_field='project_area', fields=('id',))
 
         with open(fp_project_json, "w") as json_file:
             json_file.write(geojson)

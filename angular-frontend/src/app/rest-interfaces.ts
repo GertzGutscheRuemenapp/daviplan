@@ -337,6 +337,7 @@ export interface Network {
 
 export interface ModeVariant {
   id: number,
+  label: string,
   mode: number,
   network: number
   // cutoffTime: number
