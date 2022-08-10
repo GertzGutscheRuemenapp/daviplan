@@ -65,8 +65,13 @@ class ProjectSettingSerializer(serializers.ModelSerializer):
                     pass
             # remove existing routers:
             fp_target_pbf = os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf')
+            # ToDo: default network?
             if os.path.exists(fp_target_pbf):
-                os.remove(fp_target_pbf)
+                try:
+                    os.remove(fp_target_pbf)
+                except:
+                    pass
+            baseurl = f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}'
             for mode in ['car', 'bicycle', 'foot']:
                 requests.post(f'{baseurl}/remove/{mode}')
         return instance

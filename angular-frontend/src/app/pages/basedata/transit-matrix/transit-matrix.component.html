@@ -61,37 +61,35 @@
           <div style="display: flex; margin-top: 15px;">
             <table>
               <tr>
-                <td i18n>Wegenetz</td>
-                <td>Deutschland 2020</td>
+                <td i18n>Haltestellen</td>
+                <td></td>
               </tr>
               <tr>
-                <td i18n>Buffer um Siedlungszellen</td>
-                <td>700m</td>
-              </tr>
-              <tr>
-                <td i18n>berechnet am</td>
-                <td>31.05.2022</td>
-              </tr>
-              <tr>
-                <td i18n>durch</td>
-                <td>Sascha Schmidt</td>
+                <td i18n>Reisezeitmatrix</td>
+                <td>nicht vorhanden</td>
               </tr>
             </table>
           </div>
-          <button style="margin: 20px 0;" mat-flat-button color="primary">
-            <mat-icon>build</mat-icon> Berechnen
-          </button>
-          <div>
+          <div style="display: flex; margin-top: 15px;">
             <button mat-stroked-button color="primary" style="margin-right: 10px;">
-              <mat-icon>download</mat-icon> Vorlage herunterladen
+              <mat-icon>download</mat-icon> Vorlage Haltestellen
             </button>
             <button mat-flat-button color="primary">
-              <mat-icon>upload</mat-icon> Daten hochladen
+              <mat-icon>upload</mat-icon> Haltestellen hochladen
             </button>
-            <button mat-mini-fab color="primary"
-                    aria-label="Daten herunterladen" title="Daten herunterladen"
-                    style="float: right; margin-right: 15px; box-shadow: none;">
-              <mat-icon>download</mat-icon>
+          </div>
+          <br>
+          <div style="display: flex">
+            <button mat-stroked-button color="primary" style="margin-right: 10px;">
+              <mat-icon>download</mat-icon> Vorlage Reisezeitmatrix
+            </button>
+            <button mat-flat-button color="primary">
+              <mat-icon>upload</mat-icon> Reisezeitmatrix hochladen
+            </button>
+          </div>
+          <div style="margin-top: 20px;">
+            <button mat-flat-button color="primary">
+              <mat-icon>build</mat-icon> Erreichbarkeitsmatrix erzeugen
             </button>
           </div>
         </div>
