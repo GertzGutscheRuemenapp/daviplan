@@ -17,6 +17,90 @@
   <p>Wenn sich in Zukunft maßgebliche Dinge an ihren Straßen- und ÖPNV-Netzen ändert, z.B. eine erhebliche Ausweitung oder Reduzierung des ÖPNV-Angebots absehbar ist oder eine maßgebliche neue Straßenverbindung (Ortsumgehung, Autobahnanschluss, …) diskutiert wird, kann es sinnvoll sein, ein oder mehrere weitere Verkehrsnetze zu definieren, in deren Eingangsdaten diese Änderungen berücksichtigt sind. Auf dieser Basis können Sie im nachfolgenden Menüpunkt „Erreichbarkeit“ dann alternative Erreichbarkeitsmatrizen für das gleiche Verkehrsmittel (z.B. „Pkw-Erreichbarkeit mit dem aktuellen Straßennetz“ und „Pkw-Erreichbarkeit nach Umsetzung aller Ausbauplanungen“), die von den Nutzer*innen im Hauptmenübereich „Infrastrukturplanung“ dann alternativ zur Bewertung der Erreichbarkeit von Infrastrukturen verwendet werden können.</p>
   <p>Um ein Verkehrsnetz zu definieren, klicken Sie in der Box „Verkehrsnetze“ auf Hinzufügen und folgen den weiteren Anweisungen im dortigen Hilfetext.</p>
 </app-header-card>
+
+<div fxLayout="row wrap">
+  <div fxLayout="column" fxFlex="350px">
+    <app-input-card [title]="'Straßennetz'"
+                    infoText="<p>Platzhalter</p>">
+      <div>
+        Status: {{baseDataSettings?.routing?.baseNet? 'Basisnetz vorhanden': 'Basisnetz nicht vorhanden'}}
+        <mat-icon *ngIf="baseDataSettings?.routing?.baseNet" color="primary">done</mat-icon>
+      </div>
+      <button mat-flat-button color="primary" (click)="createBaseNetwork()">
+        <!--        <mat-icon>build</mat-icon> -->
+        Basisnetz herunterladen
+      </button>
+      <mat-divider style="margin: 10px 0;"></mat-divider>
+      <div>
+        Status: {{baseDataSettings?.routing?.projectAreaNet? 'Basisnetz mit Projektgebiet verschnitten': 'Basisnetz nicht verschnitten'}}
+        <mat-icon *ngIf="baseDataSettings?.routing?.projectAreaNet" color="primary">done</mat-icon>
+      </div>
+      <button mat-flat-button color="primary" [disabled]="!baseDataSettings?.routing?.baseNet">
+        <!--        <mat-icon>build</mat-icon> -->
+        Straßennetz verschneiden
+      </button>
+      <mat-divider style="margin: 10px 0;"></mat-divider>
+      <div>
+        Status: {{baseDataSettings?.routing?.running? 'Router läuft': 'Router gestoppt'}}
+        <mat-icon *ngIf="baseDataSettings?.routing?.running" color="primary">done</mat-icon>
+      </div>
+      <button mat-flat-button color="primary" [disabled]="!baseDataSettings?.routing?.projectAreaNet">
+        <!--        <mat-icon>build</mat-icon> -->
+        Router starten
+      </button>
+    </app-input-card>
+  </div>
+  <div fxLayout="column" fxFlex="900px">
+    <app-input-card [title]="'???'"
+                    [disabled]="true"
+                    infoText="<p>Platzhalter</p>">
+      <div style="width: 100%; display: flex;">
+        <div style="width: 40%;">
+          <!--          <span class="subtitle1 sub">
+                      Verkehrsnetz „{{selectedRouter}}“
+                    </span>-->
+          <!--<table>
+            <tr>
+              <td style="min-width: 130px;; white-space: normal;">Buffer um das Projektgebiet</td>
+              <td>10km</td>
+            </tr>
+            <tr>
+              <td>erzeugt am</td>
+              <td>31.05.2022</td>
+            </tr>
+            <tr>
+              <td>von</td>
+              <td>Sascha Schmidt</td>
+            </tr>
+          </table>-->
+          <div style="margin-top: 50px;">
+            <button mat-flat-button color="primary">
+              <mat-icon>build</mat-icon> Reisezeitmatrizen erzeugen
+            </button>
+          </div>
+        </div>
+        <div style="width: 60%">
+          <span class="subtitle1">Historie</span>
+          <app-log height="calc(100% - 25px)"></app-log>
+        </div>
+      </div>
+    </app-input-card>
+  </div>
+</div>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
     <app-input-card [title]="'Basisnetz'"

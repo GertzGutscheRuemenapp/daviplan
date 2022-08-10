@@ -1,7 +1,10 @@
 from typing import Dict
+import os
+import urllib
 from rest_framework import serializers
 from .models import SiteSetting, ProjectSetting
 from django.db.models import Max, Min
+from django.conf import settings
 
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
 from datentool_backend.utils.pop_aggregation import intersect_areas_with_raster
@@ -68,6 +71,7 @@ class BaseDataSettingSerializer(serializers.Serializer):
     default_demand_rate_sets = serializers.SerializerMethodField(read_only=True)
     default_mode_variants = serializers.SerializerMethodField(read_only=True)
     default_prognosis = serializers.SerializerMethodField(read_only=True)
+    routing = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         fields = ('default_pop_area_level', 'pop_statistics_area_level',
@@ -108,6 +112,24 @@ class BaseDataSettingSerializer(serializers.Serializer):
             return prog.id
         except Prognosis.DoesNotExist:
             return
+
+    def get_routing(self, obj):
+        base_net_existing = os.path.exists(
+            os.path.join(settings.DATA_ROOT, settings.BASE_PBF))
+        project_area_net_existing = os.path.exists(
+            os.path.join(settings.DATA_ROOT, 'projectarea.pbf'))
+        try:
+            urllib.request.urlopen(
+                f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}',
+                timeout=1)
+            router_running = True
+        except:
+            router_running = False
+        return {
+            'base_net': base_net_existing,
+            'project_area_net': project_area_net_existing,
+            'running': router_running,
+        }
 
 
 class SiteSettingSerializer(serializers.ModelSerializer):

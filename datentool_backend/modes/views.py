@@ -43,7 +43,7 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     )
     @action(methods=['POST'], detail=False)
     def pull_base_network(self, request, **kwargs):
-        fp = os.path.join(settings.DATA_ROOT, 'germany-latest.osm.pbf')
+        fp = os.path.join(settings.DATA_ROOT, settings.BASE_PBF)
         if os.path.exists(fp):
             os.remove(fp)
         # ToDo: download in chunks to show progress (in logs)

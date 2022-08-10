@@ -31,6 +31,9 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 ROUTING_HOST = os.environ.get('ROUTING_HOST', 'localhost')
 ROUTING_PORT = os.environ.get('ROUTING_PORT', 8001)
 
+BASE_PBF = 'germany-latest.osm.pbf'
+PBF_URL = f'http://download.geofabrik.de/europe/{BASE_PBF}'
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
@@ -259,8 +262,6 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(PUBLIC_DIR, 'media')
 
 DATA_ROOT = os.path.join(BASE_DIR, 'datentool_backend', 'data')
-
-PBF_URL = 'http://download.geofabrik.de/europe/germany-latest.osm.pbf'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
