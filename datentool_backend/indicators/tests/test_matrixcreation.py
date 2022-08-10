@@ -189,6 +189,7 @@ class TestMatrixCreation(CreateTestdataMixin,
         file_content = open(file_path_stops, 'rb')
         data = {
             'excel_file': file_content,
+            'variant': self.transit.pk,
         }
 
         url = reverse('stops-upload-template')

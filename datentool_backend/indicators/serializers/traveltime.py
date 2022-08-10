@@ -87,7 +87,7 @@ class MatrixStopStopTemplateSerializer(serializers.Serializer):
     def read_excel_file(self, request) -> pd.DataFrame:
         """read excelfile and return a dataframe"""
         excel_or_visum_file = request.FILES['excel_or_visum_file']
-        variant = request.data.get('variant')
+        variant = int(request.data.get('variant'))
 
         try:
             df = pd.read_excel(excel_or_visum_file.file,
@@ -109,17 +109,23 @@ class MatrixStopStopTemplateSerializer(serializers.Serializer):
             df.reset_index(inplace=True)
 
         # assert the stopnumbers are in stops
-        cols = ['id', 'name']
+        cols = ['id', 'name', 'hstnr']
         df_stops = pd.DataFrame(Stop.objects.filter(variant=variant).values(*cols),
-                                columns=cols)
-        assert df['from_stop'].isin(df_stops['id']).all(), 'Von-Haltestelle nicht in Haltestellennummern'
-        assert df['to_stop'].isin(df_stops['id']).all(), 'Nach-Haltestelle nicht in Haltestellennummern'
+                                columns=cols)\
+            .set_index('hstnr')
+        assert df['from_stop'].isin(df_stops.index).all(), 'Von-Haltestelle nicht in Haltestellennummern'
+        assert df['to_stop'].isin(df_stops.index).all(), 'Nach-Haltestelle nicht in Haltestellennummern'
 
-        df.rename(columns={'from_stop': 'from_stop_id',
-                           'to_stop': 'to_stop_id',}, inplace=True)
+        df = df\
+            .merge(df_stops['id'].rename('from_stop_id'),
+                      left_on='from_stop', right_index=True)\
+            .merge(df_stops['id'].rename('to_stop_id'),
+                      left_on='to_stop', right_index=True)
 
         variant = request.data.get('variant')
         df['variant_id'] = int(variant)
+
+        df = df[['variant_id', 'from_stop_id', 'to_stop_id', 'minutes']]
         return df
 
 

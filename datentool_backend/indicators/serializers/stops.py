@@ -76,6 +76,7 @@ class StopTemplateSerializer(serializers.Serializer):
     def read_excel_file(self, request) -> pd.DataFrame:
         """read excelfile and return a dataframe"""
         excel_file = request.FILES['excel_file']
+        variant = request.data.get('variant')
 
         df = pd.read_excel(excel_file.file,
                            sheet_name='Haltestellen',
@@ -90,5 +91,7 @@ class StopTemplateSerializer(serializers.Serializer):
 
         df2 = pd.DataFrame({'hstnr': df['HstNr'],
                             'name': df['HstName'],
-                            'geom': points,})
+                            'geom': points,
+                            'variant_id': variant,
+                            })
         return df2
