@@ -52,7 +52,7 @@ class StopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSet
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
     def get_queryset(self):
-        variant = self.request.data.get('variant')
+        variant = int(self.request.data.get('variant'))
         return Stop.objects.filter(variant=variant)
 
 
