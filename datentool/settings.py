@@ -31,6 +31,13 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 ROUTING_HOST = os.environ.get('ROUTING_HOST', 'localhost')
 ROUTING_PORT = os.environ.get('ROUTING_PORT', 8001)
 
+# ports for OSRM routing
+MODE_OSRM_PORTS = {
+    'CAR': os.environ.get('MODE_CAR_PORT', 5001),
+    'BIKE': os.environ.get('MODE_BIKE_PORT', 5002),
+    'WALK': os.environ.get('MODE_FOOT_PORT', 5003),
+}
+
 BASE_PBF = 'germany-latest.osm.pbf'
 PBF_URL = f'http://download.geofabrik.de/europe/{BASE_PBF}'
 

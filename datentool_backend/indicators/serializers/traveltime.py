@@ -9,6 +9,7 @@ from openpyxl.worksheet.datavalidation import DataValidation
 from django.conf import settings
 from django.db import connection
 from django.db.models import FloatField
+from django.db.models.query import QuerySet
 from django.contrib.gis.db.models.functions import Transform, Func
 
 from rest_framework import serializers
@@ -20,7 +21,6 @@ from routingpy import OSRM
 
 from datentool_backend.modes.models import (MODE_MAX_DISTANCE,
                                             MODE_SPEED,
-                                            MODE_OSRM_PORTS,
                                             ModeVariant,
                                             Mode)
 from datentool_backend.indicators.models import (Stop,
@@ -152,6 +152,12 @@ class MatrixRoutedDistanceMixin(serializers.Serializer):
     def calculate_transit_traveltime(self) -> pd.DataFrame:
         raise NotImplementedError()
 
+    def get_sources(self) -> QuerySet:
+        raise NotImplementedError()
+
+    def get_destinations(self) -> QuerySet:
+        raise NotImplementedError('Has to be implemented in the subclass')
+
     def calculate_traveltimes(self, request) -> pd.DataFrame:
         """calculate traveltimes"""
 
@@ -163,8 +169,7 @@ class MatrixRoutedDistanceMixin(serializers.Serializer):
                 access_variant=access_variant,
                 transit_variant=variant,
             )
-
-        port = MODE_OSRM_PORTS[variant.mode]
+        port = settings.MODE_OSRM_PORTS[Mode(variant.mode).name]
         max_distance = int(request.data.get('max_distance',
                                             MODE_MAX_DISTANCE[variant.mode]))
 

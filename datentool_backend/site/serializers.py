@@ -118,6 +118,7 @@ class BaseDataSettingSerializer(serializers.Serializer):
             os.path.join(settings.DATA_ROOT, settings.BASE_PBF))
         project_area_net_existing = os.path.exists(
             os.path.join(settings.DATA_ROOT, 'projectarea.pbf'))
+        # ToDo port per mode
         try:
             urllib.request.urlopen(
                 f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}',

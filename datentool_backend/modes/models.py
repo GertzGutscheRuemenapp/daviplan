@@ -26,14 +26,6 @@ MODE_MAX_DISTANCE = {
     Mode.CAR: 25000
 }
 
-# ports for OSRM routing
-# ToDo: put in settings (but with number instead of modes because of imports)?
-MODE_OSRM_PORTS = {
-    Mode.WALK: os.environ.get('MODE_FOOT_PORT', 5003),
-    Mode.BIKE: os.environ.get('MODE_BIKE_PORT', 5002),
-    Mode.CAR: os.environ.get('MODE_CAR_PORT', 5001),
-}
-
 
 class Network(DatentoolModelMixin, NamedModel, models.Model):
     name = models.TextField()
