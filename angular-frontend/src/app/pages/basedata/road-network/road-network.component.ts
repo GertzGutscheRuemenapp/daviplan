@@ -9,11 +9,11 @@ import { BasedataSettings } from "../../../rest-interfaces";
 export const mockRouters = ['Deutschland 2020', 'SHK mit ÖPNV 2021', 'Dtl 2020 mit A13 Ausbau'];
 
 @Component({
-  selector: 'app-router-settings',
-  templateUrl: './router-settings.component.html',
-  styleUrls: ['./router-settings.component.scss']
+  selector: 'app-road-network',
+  templateUrl: './road-network.component.html',
+  styleUrls: ['./road-network.component.scss']
 })
-export class RouterSettingsComponent implements OnInit {
+export class RoadNetworkComponent implements OnInit {
   routers = mockRouters;
   selectedRouter = this.routers[0];
   baseDataSettings?: BasedataSettings;
@@ -25,12 +25,22 @@ export class RouterSettingsComponent implements OnInit {
     this.settings.baseDataSettings$.subscribe(baseSettings => this.baseDataSettings = baseSettings);
   }
 
-  createBaseNetwork(): void {
+  downloadBaseNetwork(): void {
     const dialogRef = SimpleDialogComponent.show(
-      'Das Basisnetz wird erstellt mit den Luftlinien zwischen Orten und Rasterzellen ' +
-      '(wird später in der Entwicklung durch echtes Routing ersetzt). Bitte warten',
+      'Das Basisnetz wird heruntergeladen. Bitte warten',
       this.dialog, { showAnimatedDots: true, width: '400px' });
-    this.http.post<any>(`${this.rest.URLS.matrixCellPlaces}calculate_beelines/`, {}).subscribe(() => {
+    this.http.post<any>(`${this.rest.URLS.networks}pull_base_network/`, {}).subscribe(() => {
+      dialogRef.close();
+    },(error) => {
+      dialogRef.close();
+    })
+  }
+
+  createProjectNetwork(): void {
+    const dialogRef = SimpleDialogComponent.show(
+      'Das Basisnetz wird mit dem Projektgebiet verschnitten. Bitte warten',
+      this.dialog, { showAnimatedDots: true, width: '400px' });
+    this.http.post<any>(`${this.rest.URLS.networks}build_project_network/`, {}).subscribe(() => {
       dialogRef.close();
     },(error) => {
       dialogRef.close();

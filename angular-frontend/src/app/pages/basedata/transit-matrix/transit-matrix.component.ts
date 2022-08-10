@@ -2,11 +2,11 @@ import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
 
 @Component({
-  selector: 'app-reachability-matrix',
-  templateUrl: './reachability-matrix.component.html',
-  styleUrls: ['./reachability-matrix.component.scss']
+  selector: 'app-transit-matrix',
+  templateUrl: './transit-matrix.component.html',
+  styleUrls: ['./transit-matrix.component.scss']
 })
-export class ReachabilityMatrixComponent implements AfterViewInit, OnDestroy {
+export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
   mapControl?: MapControl;
   modes: any = [
     {name: 'Auto', davicon: 'icon-GGR-davicons-Font-Simple-17-PKW', routers: [{id: 1, name: 'Dtl 2020', mode: 'Auto' }, {id: 2, name:'Ausbau der B232', mode: 'Auto'}]},
