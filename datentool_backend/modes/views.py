@@ -43,7 +43,7 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     )
     @action(methods=['POST'], detail=False)
     def pull_base_network(self, request, **kwargs):
-        fp = os.path.join(settings.DATA_ROOT, settings.BASE_PBF)
+        fp = os.path.join(settings.MEDIA_ROOT, settings.BASE_PBF)
         if os.path.exists(fp):
             os.remove(fp)
         # ToDo: download in chunks to show progress (in logs)
@@ -65,9 +65,9 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     )
     @action(methods=['POST'], detail=False)
     def build_project_network(self, request, **kwargs):
-        fp_project_json = os.path.join(settings.DATA_ROOT, 'projectarea.geojson')
-        fp_base_pbf = os.path.join(settings.DATA_ROOT, 'germany-latest.osm.pbf')
-        fp_target_pbf = os.path.join(settings.DATA_ROOT, 'projectarea.pbf')
+        fp_project_json = os.path.join(settings.MEDIA_ROOT, 'projectarea.geojson')
+        fp_base_pbf = os.path.join(settings.MEDIA_ROOT, 'germany-latest.osm.pbf')
+        fp_target_pbf = os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf')
         for fp in fp_target_pbf, fp_project_json:
             if os.path.exists(fp):
                 os.remove(fp)
@@ -116,7 +116,6 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                                  f'router network {mode}'},
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             requests.post(f'{baseurl}/run/{mode}')
-
 
         return Response({'message': f'Networks successfully built and running'},
                         status=status.HTTP_201_CREATED)

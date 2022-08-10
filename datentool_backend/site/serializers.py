@@ -1,6 +1,7 @@
 from typing import Dict
 import os
 import urllib
+import requests
 from rest_framework import serializers
 from .models import SiteSetting, ProjectSetting
 from django.db.models import Max, Min
@@ -62,6 +63,12 @@ class ProjectSettingSerializer(serializers.ModelSerializer):
                     intersect_areas_with_raster(areas, drop_constraints=True)
                 except:
                     pass
+            # remove existing routers:
+            fp_target_pbf = os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf')
+            if os.path.exists(fp_target_pbf):
+                os.remove(fp_target_pbf)
+            for mode in ['car', 'bicycle', 'foot']:
+                requests.post(f'{baseurl}/remove/{mode}')
         return instance
 
 
@@ -115,21 +122,22 @@ class BaseDataSettingSerializer(serializers.Serializer):
 
     def get_routing(self, obj):
         base_net_existing = os.path.exists(
-            os.path.join(settings.DATA_ROOT, settings.BASE_PBF))
+            os.path.join(settings.MEDIA_ROOT, settings.BASE_PBF))
         project_area_net_existing = os.path.exists(
-            os.path.join(settings.DATA_ROOT, 'projectarea.pbf'))
-        # ToDo port per mode
-        try:
-            urllib.request.urlopen(
-                f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}',
-                timeout=1)
-            router_running = True
-        except:
-            router_running = False
+            os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf'))
+        running = {}
+        for mode, port in settings.MODE_OSRM_PORTS.items():
+            try:
+                urllib.request.urlopen(
+                    f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}',
+                    timeout=1)
+                running[mode] = True
+            except:
+                running[mode] = False
         return {
             'base_net': base_net_existing,
             'project_area_net': project_area_net_existing,
-            'running': router_running,
+            'running': running,
         }
 
 
