@@ -62,61 +62,31 @@ class TestMatrixCreation(CreateTestdataMixin,
         cls.create_places(infrastructure=infrastructure)
         cls.create_network()
 
-
     def test_create_airdistance_matrix(self):
         """Test to create an air distance matrix"""
         network = self.network
         walk = ModeVariantFactory(mode=Mode.WALK, network=network)
         car = ModeVariantFactory(mode=Mode.CAR, network=network)
+        bike = ModeVariantFactory(mode=Mode.BIKE, network=network)
 
-        data = {'variant': walk.pk,
+        data = {'variants': [walk.pk, car.pk, bike.pk],
                 'drop_constraints': False,
-                'speed': 4,
-                'max_distance': 500,}
+                'air_distance_routing': True, }
 
-        res = self.post('matrixcellplaces-precalculate-traveltime', data=data)
+        res= self.post('matrixcellplaces-precalculate-traveltime', data=data)
         self.assert_http_202_accepted(res)
         print(res.content)
         print(MatrixCellPlace.objects.filter(variant=walk.pk).count())
-
-        data = {'variant': car.pk,
-                'drop_constraints': False,
-                'speed': 20,
-                'max_distance': 5000,}
-
-        res = self.post('matrixcellplaces-precalculate-traveltime', data=data)
-        self.assert_http_202_accepted(res)
-        print(res.content)
         print(MatrixCellPlace.objects.filter(variant=car.pk).count())
-
-        data = {'variant': car.pk,
-                'drop_constraints': False,
-                'speed': 4,
-                'max_distance': 5000,}
-
-        res = self.post('matrixcellstops-precalculate-traveltime', data=data)
-        self.assert_http_202_accepted(res)
-        print(res.content)
-        print(MatrixCellStop.objects.filter(variant=car.pk).count())
-
-        data = {'variant': car.pk,
-                'drop_constraints': False,
-                'speed': 4,
-                'max_distance': 5000,}
-
-        res = self.post('matrixplacestops-precalculate-traveltime', data=data)
-        self.assert_http_202_accepted(res)
-        print(res.content)
-        print(MatrixPlaceStop.objects.filter(variant=car.pk).count())
+        print(MatrixCellPlace.objects.filter(variant=bike.pk).count())
 
     def calc_cell_place_matrix(self, mode: ModeVariant, meter: int) -> str:
         """
         calculate the matrix between cells and places
         and return the content of the response
         """
-        data = {'variant': mode.pk,
+        data = {'variants': mode.pk,
                 'drop_constraints': False,
-                'air_distance_routing': False,
                 'max_distance': meter,
                 }
 
@@ -228,10 +198,8 @@ class TestMatrixCreation(CreateTestdataMixin,
         and return the content of the response
         """
 
-        data = {'variant': mode.pk,
+        data = {'variants': mode.pk,
                 'drop_constraints': False,
-                'air_distance_routing': False,
-                'max_distance': 3000,
                 }
 
         res = self.post('matrixcellstops-precalculate-traveltime', data=data)
@@ -255,10 +223,8 @@ class TestMatrixCreation(CreateTestdataMixin,
         calculate the matrix between cells and stops
         and return the content of the response
         """
-        data = {'variant': mode.pk,
+        data = {'variants': mode.pk,
                 'drop_constraints': False,
-                'air_distance_routing': False,
-                'max_distance': 3000,
                 }
 
         res = self.post('matrixplacestops-precalculate-traveltime', data=data)
@@ -279,10 +245,8 @@ class TestMatrixCreation(CreateTestdataMixin,
         content = self.calc_cell_place_matrix(mode=walk, meter=600)
 
         self.transit
-        data = {'variant': self.transit.pk,
+        data = {'variants': self.transit.pk,
                 'drop_constraints': False,
-                'air_distance_routing': False,
-                'max_distance': 10000,
                 'access_variant': walk.pk,
                 }
 
