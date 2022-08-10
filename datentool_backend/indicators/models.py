@@ -12,11 +12,16 @@ from datentool_backend.population.models import RasterCell
 
 class Stop(DatentoolModelMixin, NamedModel, models.Model):
     """location of a public transport stop"""
+    hstnr = models.IntegerField()
     name = models.TextField()
     geom = gis_models.PointField(srid=3857)
+    variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
 
     objects = models.Manager()
     copymanager = DirectCopyManager()
+
+    class Meta:
+        unique_together = [['variant', 'hstnr']]
 
 
 class MatrixCellPlace(DatentoolModelMixin, models.Model):

@@ -43,7 +43,6 @@ class MatrixStopStopTemplateSerializer(serializers.Serializer):
         model = MatrixStopStop
         fields = ('from_stop', 'to_stop', 'minutes')
 
-
     def create_template(self) -> bytes:
         columns = {'von': 'Von Haltestelle (Nr)',
                   'nach': 'Nach Haltestelle (Nr)',
@@ -88,6 +87,7 @@ class MatrixStopStopTemplateSerializer(serializers.Serializer):
     def read_excel_file(self, request) -> pd.DataFrame:
         """read excelfile and return a dataframe"""
         excel_or_visum_file = request.FILES['excel_or_visum_file']
+        variant = request.data.get('variant')
 
         try:
             df = pd.read_excel(excel_or_visum_file.file,
@@ -110,7 +110,7 @@ class MatrixStopStopTemplateSerializer(serializers.Serializer):
 
         # assert the stopnumbers are in stops
         cols = ['id', 'name']
-        df_stops = pd.DataFrame(Stop.objects.values(*cols),
+        df_stops = pd.DataFrame(Stop.objects.filter(variant=variant).values(*cols),
                                 columns=cols)
         assert df['from_stop'].isin(df_stops['id']).all(), 'Von-Haltestelle nicht in Haltestellennummern'
         assert df['to_stop'].isin(df_stops['id']).all(), 'Nach-Haltestelle nicht in Haltestellennummern'

@@ -88,7 +88,7 @@ class StopTemplateSerializer(serializers.Serializer):
         points = [Point(stop['Lon'], stop['Lat'], srid=4326).transform(3857, clone=True)
                   for i, stop in df.iterrows()]
 
-        df2 = pd.DataFrame({'id': df['HstNr'],
+        df2 = pd.DataFrame({'hstnr': df['HstNr'],
                             'name': df['HstName'],
                             'geom': points,})
         return df2

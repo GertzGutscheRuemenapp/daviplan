@@ -14,11 +14,9 @@
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
-    <app-input-card [title]="'Erreichbarkeitsmatrizen'"
-                    subtitle="Erreichbarkeitsmatrix hinzufügen oder auswählen"
-                    infoText="<p>Um eine neue Erreichbarkeitsmatrix hinzuzufügen, wählen Sie in der Liste das passende Verkehrsmittel aus und klicken Sie auf „Hinzufügen“. Gehen Sie anschließend zur Box „Ausgewählte Erreichbarkeitsmatrix“. Hier können Sie die Daten dieser Matrix (aus einer externen Vorberechnung) hochladen oder mit Hilfe eines im Menüpunkt „Verkehrsnetz“ erzeugten Routensuchers berechnen. Detail hierzu finden Sie im Hilfetext der Box.</p>
-                    <p>Um eine Erreichbarkeitsmatrix wieder zu löschen, wählen Sie diese in der Liste aus und klicken auf „Entfernen“.</p>
-                    <p>Wenn Sie für ein Verkehrsmittel mehr als eine Erreichbarkeitsmatrix definiert haben, müssen Sie festlegen, welche davon für das im Hauptmenüabschnitt „Infrastrukturplanung“ immer automatisch erzeugte Planungsszenario „Trendfortschreibung“ verwendet werden soll. Wählen Sie hierzu die betreffende Erreichbarkeitsmatrix in der Liste aus und klicken Sie auf „Als Annahme für Trendfortschreibung festlegen“.</p>">
+    <app-input-card [title]="'ÖPNV-Netz'"
+                    subtitle="ÖPNV-Netz hinzufügen oder auswählen"
+                    infoText="">
       <mat-selection-list [multiple]="false"
                           class="categorized"
                           id="mode-select">
@@ -29,10 +27,10 @@
             {{mode.name}}
           </div>
           <mat-list-option *ngFor="let router of mode.routers"
-                           (click)="selectedRouter = router"
+                           (click)="selectedVariant = router"
                            [selected]="(router.id === selectedRouter.id)">
             <div class="option-text">{{router.name}}</div>
-            <mat-icon *ngIf="router.id===statusQuoRouters[router.mode]" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
+            <mat-icon *ngIf="router.id===statusQuoVariant[router.mode]" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
           </mat-list-option>
           <mat-divider></mat-divider>
         </ng-container>

@@ -28,7 +28,7 @@ MODE_MAX_DISTANCE = {
 
 
 class Network(DatentoolModelMixin, NamedModel, models.Model):
-    name = models.TextField()
+    name = models.TextField(default='', blank=True)
     is_default = models.BooleanField(default=False)
     network_file = models.FileField(null=True)
 
@@ -49,6 +49,7 @@ class ModeVariant(DatentoolModelMixin, models.Model):
     '''
     modes
     '''
+    label = models.TextField(default='', blank=True)
     network = models.ForeignKey(Network, on_delete=models.CASCADE, null=True)
     mode = models.IntegerField(choices=Mode.choices)
     cutoff_time = models.ManyToManyField(Infrastructure, through='CutOffTime')
