@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import List
+from typing import List, Tuple
 from io import StringIO
 from distutils.util import strtobool
 
@@ -118,14 +118,14 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                                'air_distance_routing': air_distance_routing,
                                'variants': serializers.ListField(
                                    child=serializers.PrimaryKeyRelatedField(
-                                   queryset=ModeVariant.objects.all()
+                                       queryset=ModeVariant.objects.all()
                                    ),
-                                   help_text='mode_variant_id',),
+                                   help_text='mode_variant_ids',),
                                'places': serializers.ListField(
                                    child=serializers.PrimaryKeyRelatedField(
-                                   queryset=Place.objects.all()
+                                       queryset=Place.objects.all()
                                    ),
-                                   help_text='mode_variant_id',),
+                                   help_text='place_ids',),
                            'access_variant': serializers.PrimaryKeyRelatedField(
                                    queryset=ModeVariant.objects.exclude(mode=Mode.TRANSIT),
                                    help_text='access_mode_variant_id',),
@@ -144,6 +144,7 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         variants = request.data.getlist('variants')
         air_distance_routing = bool(strtobool(
             request.data.get('air_distance_routing', 'False')))
+        places = request.data.getlist('places')
 
         dataframes = []
         for variant_id in variants:
@@ -153,12 +154,18 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                     id=request.data.get('access_variant'))
                 df = self.calculate_transit_traveltime(
                     access_variant=access_variant,
-                    transit_variant=variant,)
+                    transit_variant=variant,
+                    places=places,
+                )
             else:
                 if air_distance_routing:
-                    df = self.calculate_airdistance_traveltimes(variant)
+                    df = self.calculate_airdistance_traveltimes(variant,
+                                                                places=places,
+                                                                )
                 else:
-                    df = self.calc_routed_traveltimes(variant)
+                    df = self.calc_routed_traveltimes(variant,
+                                                      places=places,
+                                                      )
             dataframes.append(df)
         if not dataframes:
             msg = 'No routes found'
@@ -207,19 +214,21 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
             msg = f'Traveltime Calculation successful, added {len(df)} rows'
             return (True, msg)
 
-    def get_sources(self) -> QuerySet:
+    def get_sources(self, **kwargs) -> QuerySet:
         raise NotImplementedError()
 
-    def get_destinations(self) -> QuerySet:
+    def get_destinations(self, **kwargs) -> QuerySet:
         raise NotImplementedError('Has to be implemented in the subclass')
 
-    def calc_routed_traveltimes(self, variant: ModeVariant) -> pd.DataFrame:
+    def calc_routed_traveltimes(self,
+                                variant: ModeVariant,
+                                **kwargs) -> pd.DataFrame:
         """calculate traveltimes"""
         max_distance = MODE_MAX_DISTANCE[variant.mode]
         port = settings.MODE_OSRM_PORTS[Mode(variant.mode).name]
 
-        sources = self.get_sources()
-        destinations = self.get_destinations()
+        sources = self.get_sources(**kwargs)
+        destinations = self.get_destinations(**kwargs)
 
         client = OSRM(base_url=f'http://{settings.ROUTING_HOST}:{port}')
         # as lists
@@ -253,14 +262,17 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         df.reset_index(inplace=True)
         return df
 
-    def calculate_airdistance_traveltimes(self, variant: ModeVariant) -> pd.DataFrame:
+    def calculate_airdistance_traveltimes(self,
+                                          variant: ModeVariant,
+                                          **kwargs) -> pd.DataFrame:
         """calculate traveltimes"""
 
         max_distance = MODE_MAX_DISTANCE[variant.mode]
         speed = MODE_SPEED[variant.mode]
 
-        query = self.get_airdistance_query()
-        params = (speed, max_distance)
+        query, params = self.get_airdistance_query(speed=speed,
+                                                   max_distance=max_distance,
+                                                   **kwargs)
 
         with connection.cursor() as cursor:
             cursor.execute(query, params)
@@ -274,10 +286,15 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
 
     def calculate_transit_traveltime(self,
                                      access_variant: ModeVariant,
-                                     transit_variant: ModeVariant) -> pd.DataFrame:
+                                     transit_variant: ModeVariant,
+                                     **kwargs) -> pd.DataFrame:
         raise NotImplementedError()
 
-    def get_airdistance_query(self) -> str:
+    def get_airdistance_query(self,
+                              variant: ModeVariant,
+                              speed: float,
+                              max_distance: float,
+                              **kwargs) -> str:
         raise NotImplementedError()
 
 
@@ -288,15 +305,18 @@ class MatrixCellPlaceViewSet(TravelTimeRouterMixin):
         variant = self.request.data.get('variant')
         return MatrixCellPlace.objects.filter(variant=variant)
 
-    def get_sources(self):
-        sources = Place.objects.all()\
+    def get_sources(self, places, **kwargs):
+        sources = Place.objects.all()
+        if places:
+            sources = sources.filter(id__in=places)
+        sources = sources\
             .annotate(wgs=Transform('geom', 4326))\
-            .annotate(lat=Func('wgs',function='ST_Y', output_field=FloatField()),
-                      lon=Func('wgs',function='ST_X', output_field=FloatField()))\
+            .annotate(lat=Func('wgs', function='ST_Y', output_field=FloatField()),
+                  lon=Func('wgs', function='ST_X', output_field=FloatField()))\
             .values('id', 'lon', 'lat')
         return sources
 
-    def get_destinations(self):
+    def get_destinations(self, **kwargs):
         destinations = RasterCell.objects.filter(rastercellpopulation__isnull=False)\
             .annotate(wgs=Transform('pnt', 4326))\
             .annotate(lat=Func('wgs',function='ST_Y', output_field=FloatField()),
@@ -306,7 +326,8 @@ class MatrixCellPlaceViewSet(TravelTimeRouterMixin):
 
     def calculate_transit_traveltime(self,
                                      access_variant: ModeVariant,
-                                     transit_variant: ModeVariant) -> pd.DataFrame:
+                                     transit_variant: ModeVariant,
+                                     **kwargs) -> pd.DataFrame:
 
         q_placestop, p_placestop = MatrixPlaceStop.objects.filter(
             variant=access_variant).query.sql_with_params()
@@ -362,11 +383,31 @@ class MatrixCellPlaceViewSet(TravelTimeRouterMixin):
 
         return df
 
-    def get_airdistance_query(self) -> str:
+    def get_airdistance_query(self,
+                              speed: float,
+                              max_distance: float,
+                              places: List[int] = [],
+                              **kwargs) -> str:
+        """
+        returns a query and its parameters to calculate the air distance
+        Parameters
+        ----------
+        speed: float
+        max_distance: float
+        places: List[int], optional
+
+        Returns
+        -------
+        query: sql
+        params: tuple
+        """
 
         cell_tbl = RasterCell._meta.db_table
         rcp_tbl = RasterCellPopulation._meta.db_table
         place_tbl = Place._meta.db_table
+
+        places = self.get_sources(places=places)
+        p_places = list(places.values_list('id', flat=True))
 
         query = f'''SELECT
         p.id AS place_id,
@@ -384,11 +425,15 @@ class MatrixCellPlaceViewSet(TravelTimeRouterMixin):
         p.geom,
         st_transform(p.geom, 25832) AS pnt_25832,
         cosd(st_y(st_transform(p.geom, 4326))) AS kf
-        FROM "{place_tbl}" AS p) AS p
+        FROM "{place_tbl}" AS p
+        WHERE p.id = ANY(%s)) AS p
         WHERE c.id = r.cell_id
         AND st_dwithin(c."pnt", p."geom", %s * p.kf)
         '''
-        return query
+
+        params = (speed, p_places, max_distance)
+
+        return query, params
 
 class MatrixCellStopViewSet(TravelTimeRouterMixin):
     columns = ['cell_id', 'stop_id']
@@ -397,14 +442,14 @@ class MatrixCellStopViewSet(TravelTimeRouterMixin):
         variant = self.request.data.get('variant')
         return MatrixCellStop.objects.filter(variant=variant)
 
-    def get_sources(self):
+    def get_sources(self, **kwargs):
         sources =  RasterCell.objects.filter(rastercellpopulation__isnull=False)\
             .annotate(wgs=Transform('pnt', 4326))\
             .annotate(lat=Func('wgs',function='ST_Y', output_field=FloatField()),
                       lon=Func('wgs',function='ST_X', output_field=FloatField()))\
             .values('id', 'lon', 'lat')
         return sources
-    def get_destinations(self):
+    def get_destinations(self, **kwargs):
         destinations = Stop.objects.all()\
             .annotate(wgs=Transform('geom', 4326))\
             .annotate(lat=Func('wgs', function='ST_Y', output_field=FloatField()),
@@ -412,7 +457,22 @@ class MatrixCellStopViewSet(TravelTimeRouterMixin):
             .values('id', 'lon', 'lat')
         return destinations
 
-    def get_airdistance_query(self) -> str:
+    def get_airdistance_query(self,
+                              speed: float,
+                              max_distance: float,
+                              **kwargs) -> str:
+        """
+        returns a query and its parameters to calculate the air distance
+        Parameters
+        ----------
+        speed: float
+        max_distance: float
+
+        Returns
+        -------
+        query: sql
+        params: tuple
+        """
 
         cell_tbl = RasterCell._meta.db_table
         rcp_tbl = RasterCellPopulation._meta.db_table
@@ -438,7 +498,8 @@ class MatrixCellStopViewSet(TravelTimeRouterMixin):
         WHERE c.id = r.cell_id
         AND st_dwithin(c."pnt", s."geom", %s * s.kf)
         '''
-        return query
+        params = (speed, max_distance)
+        return query, params
 
 
 class MatrixPlaceStopViewSet(TravelTimeRouterMixin):
@@ -448,15 +509,18 @@ class MatrixPlaceStopViewSet(TravelTimeRouterMixin):
         variant = self.request.data.get('variant')
         return MatrixPlaceStop.objects.filter(variant=variant)
 
-    def get_sources(self):
-        sources = Place.objects.all()\
+    def get_sources(self, places, **kwargs) -> Place:
+        sources = Place.objects.all()
+        if places:
+            sources = sources.filter(id__in=places)
+        sources = sources\
             .annotate(wgs=Transform('geom', 4326))\
             .annotate(lat=Func('wgs',function='ST_Y', output_field=FloatField()),
                       lon=Func('wgs',function='ST_X', output_field=FloatField()))\
             .values('id', 'lon', 'lat')
         return sources
 
-    def get_destinations(self):
+    def get_destinations(self, **kwargs) -> Stop:
         destinations = Stop.objects.all()\
             .annotate(wgs=Transform('geom', 4326))\
             .annotate(lat=Func('wgs', function='ST_Y', output_field=FloatField()),
@@ -464,10 +528,31 @@ class MatrixPlaceStopViewSet(TravelTimeRouterMixin):
             .values('id', 'lon', 'lat')
         return destinations
 
-    def get_airdistance_query(self) -> str:
+    def get_airdistance_query(self,
+                              speed: float,
+                              max_distance: float,
+                              places: List[int] = [],
+                              **kwargs,
+                              ) -> Tuple[str, tuple]:
+        """
+        returns a query and its parameters to calculate the air distance
+        Parameters
+        ----------
+        speed: float
+        max_distance: float
+        places: List[int], optional
+
+        Returns
+        -------
+        query: sql
+        params: tuple
+        """
 
         place_tbl = Place._meta.db_table
         stop_tbl = Stop._meta.db_table
+
+        places = self.get_sources(places=places)
+        p_places = list(places.values_list('id', flat=True))
 
         query = f'''SELECT
         p.id AS place_id,
@@ -483,7 +568,9 @@ class MatrixPlaceStopViewSet(TravelTimeRouterMixin):
         p.geom,
         st_transform(p.geom, 25832) AS pnt_25832,
         cosd(st_y(st_transform(p.geom, 4326))) AS kf
-        FROM "{place_tbl}" AS p) AS p
+        FROM "{place_tbl}" AS p
+        WHERE p.id = ANY(%s)) AS p
         WHERE st_dwithin(s."geom", p."geom", %s * p.kf)
         '''
-        return query
+        params = (speed, p_places, max_distance)
+        return query, params

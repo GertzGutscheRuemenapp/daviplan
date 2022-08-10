@@ -2,16 +2,19 @@ import os
 from unittest import skipIf
 import urllib
 import requests
+from typing import List
 
 from test_plus import APITestCase
 from django.urls import reverse
 from django.conf import settings
+from django.contrib.gis.geos import Point
 
 from datentool_backend.api_test import LoginTestCase
 from datentool_backend.indicators.tests.setup_testdata import CreateTestdataMixin
 from datentool_backend.indicators.models import (MatrixCellPlace,
                                                  MatrixCellStop,
                                                  MatrixPlaceStop,
+                                                 Place,
                                                  )
 
 from datentool_backend.modes.factories import (Mode,
@@ -80,14 +83,18 @@ class TestMatrixCreation(CreateTestdataMixin,
         print(MatrixCellPlace.objects.filter(variant=car.pk).count())
         print(MatrixCellPlace.objects.filter(variant=bike.pk).count())
 
-    def calc_cell_place_matrix(self, mode: ModeVariant, meter: int) -> str:
+    def calc_cell_place_matrix(self,
+                               variants: List[int],
+                               places: List[int]=[],
+                               air_distance_routing: bool=False) -> str:
         """
         calculate the matrix between cells and places
         and return the content of the response
         """
-        data = {'variants': mode.pk,
+        data = {'variants': variants,
                 'drop_constraints': False,
-                'max_distance': meter,
+                'places': places,
+                'air_distance_routing': air_distance_routing,
                 }
 
         res = self.post('matrixcellplaces-precalculate-traveltime', data=data)
@@ -101,7 +108,7 @@ class TestMatrixCreation(CreateTestdataMixin,
         """Test to create an walk matrix from routing"""
         network = self.network
         walk = ModeVariantFactory(mode=Mode.WALK, network=network)
-        content = self.calc_cell_place_matrix(mode=walk, meter=3000)
+        content = self.calc_cell_place_matrix(variants=[walk.pk])
         print(content)
         print(MatrixCellPlace.objects.filter(variant=walk.pk).count())
 
@@ -111,7 +118,7 @@ class TestMatrixCreation(CreateTestdataMixin,
         """Test to create an bicycle matrix from routing"""
         network = self.network
         bike = ModeVariantFactory(mode=Mode.BIKE, network=network)
-        content = self.calc_cell_place_matrix(mode=bike, meter=10000)
+        content = self.calc_cell_place_matrix(variants=[bike.pk])
         print(content)
         print(MatrixCellPlace.objects.filter(variant=bike.pk).count())
 
@@ -121,9 +128,46 @@ class TestMatrixCreation(CreateTestdataMixin,
         """Test to create an car matrix from routing"""
         network = self.network
         car = ModeVariantFactory(mode=Mode.CAR, network=network)
-        content = self.calc_cell_place_matrix(mode=car, meter=20000)
+        content = self.calc_cell_place_matrix(variants=[car.pk])
         print(content)
         print(MatrixCellPlace.objects.filter(variant=car.pk).count())
+
+    @skipIf(no_connection(host=settings.ROUTING_HOST, port=settings.ROUTING_PORT),
+            'osrm docker not running')
+    def test_create_routed_matrix_for_new_places(self):
+        """Test to create an walk matrix from routing"""
+        network = self.network
+        walk = ModeVariantFactory(mode=Mode.WALK, network=network)
+        car = ModeVariantFactory(mode=Mode.CAR, network=network)
+        bike = ModeVariantFactory(mode=Mode.BIKE, network=network)
+        variants = [walk.pk, bike.pk, car.pk]
+        content = self.calc_cell_place_matrix(variants=variants)
+        print(content)
+        walk_rows_before = MatrixCellPlace.objects.filter(variant=walk.pk).count()
+        print(walk_rows_before)
+
+        infrastructure = self.place1.infrastructure
+        new_place = Place.objects.create(name='NewPlace',
+                                         infrastructure=infrastructure,
+                                         geom=Point(x=1000010, y=6500026))
+
+        # recalculate one place, add one new
+        places = [self.place2.pk, new_place.pk]
+        content = self.calc_cell_place_matrix(variants=variants,
+                                              places=places)
+        walk_rows_after = MatrixCellPlace.objects.filter(variant=walk.pk).count()
+        print(walk_rows_after)
+        bike_to_new_place = MatrixCellPlace.objects.filter(variant=bike.pk,
+                                                           place=new_place).count()
+        print(bike_to_new_place)
+
+        content = self.calc_cell_place_matrix(variants=variants,
+                                              places=places,
+                                              air_distance_routing=True)
+
+        car_to_new_place = MatrixCellPlace.objects.filter(variant=car.pk,
+                                                           place=new_place).count()
+        print(car_to_new_place)
 
     def get_file_path_stops(self, filename_stops: str = None) -> str:
         return file_path_stops
@@ -242,7 +286,8 @@ class TestMatrixCreation(CreateTestdataMixin,
         content = self.calc_cell_stop_matrix(mode=walk)
         content = self.calc_place_stop_matrix(mode=walk)
         # until 800 m walk the way, if it's faster, over 600 m always take transit
-        content = self.calc_cell_place_matrix(mode=walk, meter=600)
+        # ToDo: add max_distance
+        content = self.calc_cell_place_matrix(variants=[walk.pk])
 
         self.transit
         data = {'variants': self.transit.pk,
