@@ -305,8 +305,14 @@ class TestMatrixCreation(CreateTestdataMixin,
                 'access_variant': walk.pk,
                 }
 
+        #  use default access distance to stops
         res = self.post('matrixcellplaces-precalculate-traveltime', data=data)
         self.assert_http_202_accepted(res)
         print(res.content)
         print(MatrixCellPlace.objects.filter(variant=self.transit.pk).count())
-
+        #  try longer access distance to stops
+        data['max_access_distance'] = 1500
+        res = self.post('matrixcellplaces-precalculate-traveltime', data=data)
+        self.assert_http_202_accepted(res)
+        print(res.content)
+        print(MatrixCellPlace.objects.filter(variant=self.transit.pk).count())

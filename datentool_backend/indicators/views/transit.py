@@ -43,6 +43,7 @@ from datentool_backend.indicators.models import (Stop,
 from datentool_backend.modes.models import (ModeVariant,
                                             Mode,
                                             MODE_MAX_DISTANCE,
+                                            DEFAULT_MAX_DIRECT_WALKTIME,
                                             MODE_SPEED,
                                             )
 
@@ -137,6 +138,8 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                                    queryset=ModeVariant.objects.exclude(mode=Mode.TRANSIT),
                                    help_text='access_mode_variant_id',),
                            'max_distance': serializers.FloatField(),
+                           'max_access_distance': serializers.FloatField(),
+                           'max_direct_walktime': serializers.FloatField(),
 
                                }
                    ),
@@ -168,18 +171,28 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                     access_variant = ModeVariant.objects.get(
                         id=request.data.get('access_variant',
                                             Mode.WALK))
-                    df = self.prepare_and_calc_transit_traveltimes(access_variant,
-                                                                   places,
-                                                                   max_distance,
-                                                                   drop_constraints,
-                                                                   variant)
+                    max_access_distance = float(
+                        request.data.get('max_access_distance',
+                                         MODE_MAX_DISTANCE[variant.mode]))
+                    max_direct_walktime = float(
+                        request.data.get('max_direct_walktime',
+                                         DEFAULT_MAX_DIRECT_WALKTIME))
+                    df = self.prepare_and_calc_transit_traveltimes(
+                        access_variant,
+                        places,
+                        max_access_distance,
+                        drop_constraints,
+                        variant,
+                        max_direct_walktime,
+                    )
                 else:
 
                     if air_distance_routing:
-                        df = self.calculate_airdistance_traveltimes(variant,
-                                                                    places=places,
-                                                                    max_distance=max_distance,
-                                                                    )
+                        df = self.calculate_airdistance_traveltimes(
+                            variant,
+                            places=places,
+                            max_distance=max_distance,
+                            )
                     else:
                         df = self.calc_routed_traveltimes(variant,
                                                           places=places,
@@ -200,7 +213,7 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
             msg = str(err)
         else:
             ret_status = status.HTTP_202_ACCEPTED
-        logger.debug(msg)
+        logger.info(msg)
         return Response({'message': msg, }, status=ret_status)
 
     def prepare_and_calc_transit_traveltimes(self,
@@ -209,6 +222,7 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                                              max_distance: float,
                                              drop_constraints: bool,
                                              variant: ModeVariant,
+                                             max_direct_walktime: float,
                                              ) -> pd.DataFrame:
         # calculate time from place to stop
         matrix_place_stop = MatrixPlaceStopViewSet()
@@ -236,11 +250,12 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         if not success:
             raise RoutingError(msg)
 
-        logger.debug(msg)
+        logger.info(msg)
         df = self.calculate_transit_traveltime(
             access_variant=access_variant,
             transit_variant=variant,
             places=places,
+            max_direct_walktime=max_direct_walktime,
         )
         return df
 
@@ -355,6 +370,7 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
     def calculate_transit_traveltime(self,
                                      access_variant: ModeVariant,
                                      transit_variant: ModeVariant,
+                                     max_direct_walktime: float,
                                      **kwargs) -> pd.DataFrame:
         raise NotImplementedError()
 
@@ -400,16 +416,23 @@ class MatrixCellPlaceViewSet(TravelTimeRouterMixin):
     def calculate_transit_traveltime(self,
                                      access_variant: ModeVariant,
                                      transit_variant: ModeVariant,
+                                     max_direct_walktime: float,
                                      **kwargs) -> pd.DataFrame:
 
+        # travel time place to stop
         q_placestop, p_placestop = MatrixPlaceStop.objects.filter(
             variant=access_variant).query.sql_with_params()
+        # travel time cell to stop
         q_cellstop, p_cellstop = MatrixCellStop.objects.filter(
             variant=access_variant).query.sql_with_params()
+        # travel time between stops
         q_stopstop, p_stopstop = MatrixStopStop.objects.filter(
             variant=transit_variant).query.sql_with_params()
+        # direct traveltime by foot (or other access mode), if it is shorter than max_direct_walktime
         q_cellplace, p_cellplace = MatrixCellPlace.objects.filter(
-            variant=access_variant).query.sql_with_params()
+            variant=access_variant,
+            minutes__lt=max_direct_walktime,
+        ).query.sql_with_params()
 
         query = f'''
         SELECT

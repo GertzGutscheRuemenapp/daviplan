@@ -28,6 +28,9 @@ MODE_MAX_DISTANCE = {
 }
 
 
+# default maximum walk time, insdead of transit use
+DEFAULT_MAX_DIRECT_WALKTIME = 15
+
 
 class Network(DatentoolModelMixin, NamedModel, models.Model):
     name = models.TextField(default='', blank=True)
