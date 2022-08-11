@@ -62,7 +62,8 @@ class RoutingError(Exception):
 air_distance_routing = serializers.BooleanField(
     default=False,
     label='use air distance for routing',
-    help_text='Set to True for air-distance routing')
+    help_text='Set to True for air-distance routing',
+    required=False)
 
 
 class StopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSet):
@@ -122,24 +123,37 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
     @extend_schema(description='Create Traveltime Matrix',
                    request=inline_serializer(
                        name='TravelTimeSerializer',
-                       fields={'drop_constraints': drop_constraints,
+                       fields={
+                           'drop_constraints': drop_constraints,
                                'air_distance_routing': air_distance_routing,
                                'variants': serializers.ListField(
                                    child=serializers.PrimaryKeyRelatedField(
                                        queryset=ModeVariant.objects.all()
                                    ),
                                    help_text='mode_variant_ids',),
-                               'places': serializers.ListField(
-                                   child=serializers.PrimaryKeyRelatedField(
-                                       queryset=Place.objects.all()
-                                   ),
-                                   help_text='place_ids',),
-                           'access_variant': serializers.PrimaryKeyRelatedField(
-                                   queryset=ModeVariant.objects.exclude(mode=Mode.TRANSIT),
-                                   help_text='access_mode_variant_id',),
-                           'max_distance': serializers.FloatField(),
-                           'max_access_distance': serializers.FloatField(),
-                           'max_direct_walktime': serializers.FloatField(),
+                            'places': serializers.ListField(
+                                child=serializers.PrimaryKeyRelatedField(
+                                    queryset=Place.objects.all()
+                                ),
+                                help_text='place_ids',
+                                required=False),
+                            'access_variant': serializers.PrimaryKeyRelatedField(
+                                    queryset=ModeVariant.objects.exclude(mode=Mode.TRANSIT),
+                                    help_text='access_mode_variant_id',
+                                    required=False),
+                            'max_distance': serializers.FloatField(
+                                help_text='Maximum distance in meters between source and destination',
+                                required=False),
+                            'max_access_distance': serializers.FloatField(
+                                help_text='maximum distance in meters to next transit stops',
+                                required=False
+                            ),
+                            'max_direct_walktime': serializers.FloatField(
+                                help_text='direct walking time is taken instead '
+                                'of transit time, if it is shorter '
+                                'than the parameter `max_direct_walktime` in minutes',
+                                required=False
+                            ),
 
                                }
                    ),
