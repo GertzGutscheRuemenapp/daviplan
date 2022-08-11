@@ -150,8 +150,10 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         for variant_id in variants:
             variant = ModeVariant.objects.get(pk=variant_id)
             if variant.mode == Mode.TRANSIT:
+                #  access variant is WALK, if no other mode is requested
                 access_variant = ModeVariant.objects.get(
-                    id=request.data.get('access_variant'))
+                    id=request.data.get('access_variant',
+                                        Mode.WALK))
                 df = self.calculate_transit_traveltime(
                     access_variant=access_variant,
                     transit_variant=variant,
