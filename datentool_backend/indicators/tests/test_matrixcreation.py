@@ -21,7 +21,7 @@ from datentool_backend.modes.factories import (Mode,
                                                ModeVariant,
                                                ModeVariantFactory,
                                                NetworkFactory,
-                                               Network)
+                                               )
 
 
 def no_connection(host: str = 'localhost',
@@ -86,7 +86,8 @@ class TestMatrixCreation(CreateTestdataMixin,
     def calc_cell_place_matrix(self,
                                variants: List[int],
                                places: List[int]=[],
-                               air_distance_routing: bool=False) -> str:
+                               air_distance_routing: bool=False,
+                               max_distance: float = None) -> str:
         """
         calculate the matrix between cells and places
         and return the content of the response
@@ -96,6 +97,8 @@ class TestMatrixCreation(CreateTestdataMixin,
                 'places': places,
                 'air_distance_routing': air_distance_routing,
                 }
+        if max_distance:
+            data['max_distance'] = max_distance
 
         res = self.post('matrixcellplaces-precalculate-traveltime', data=data)
         self.assert_http_202_accepted(res)
@@ -169,9 +172,6 @@ class TestMatrixCreation(CreateTestdataMixin,
                                                            place=new_place).count()
         print(car_to_new_place)
 
-    def get_file_path_stops(self, filename_stops: str = None) -> str:
-        return file_path_stops
-
     @classmethod
     def build_osrm(cls):
         pbf = os.path.join(os.path.dirname(__file__),
@@ -228,15 +228,19 @@ class TestMatrixCreation(CreateTestdataMixin,
             'osrm docker not running')
     def test_create_routed_cell_stop_walk_matrix(self):
         """Test to create an walk matrix from cell to stop"""
-        network = self.network
         self.create_stops()
         walk, created = ModeVariant.objects.get_or_create(mode=Mode.WALK,
                                                           network=self.network)
-        content = self.calc_cell_stop_matrix(mode=walk)
+        content = self.calc_cell_stop_matrix(mode=walk, max_distance=1000)
         print(content)
         print(MatrixCellStop.objects.filter(variant=walk.pk).count())
 
-    def calc_cell_stop_matrix(self, mode: ModeVariant) -> str:
+        content = self.calc_cell_stop_matrix(mode=walk, max_distance=2000)
+        print(content)
+        print(MatrixCellStop.objects.filter(variant=walk.pk).count())
+
+    def calc_cell_stop_matrix(self, mode: ModeVariant,
+                              max_distance: float=None) -> str:
         """
         calculate the matrix between cells and stops
         and return the content of the response
@@ -245,6 +249,8 @@ class TestMatrixCreation(CreateTestdataMixin,
         data = {'variants': mode.pk,
                 'drop_constraints': False,
                 }
+        if max_distance:
+            data['max_distance'] = max_distance
 
         res = self.post('matrixcellstops-precalculate-traveltime', data=data)
         self.assert_http_202_accepted(res)
@@ -262,7 +268,8 @@ class TestMatrixCreation(CreateTestdataMixin,
         print(content)
         print(MatrixPlaceStop.objects.filter(variant=walk.pk).count())
 
-    def calc_place_stop_matrix(self, mode: ModeVariant) -> str:
+    def calc_place_stop_matrix(self, mode: ModeVariant,
+                               max_distance: float = None) -> str:
         """
         calculate the matrix between cells and stops
         and return the content of the response
@@ -270,6 +277,8 @@ class TestMatrixCreation(CreateTestdataMixin,
         data = {'variants': mode.pk,
                 'drop_constraints': False,
                 }
+        if max_distance:
+            data['max_distance'] = max_distance
 
         res = self.post('matrixplacestops-precalculate-traveltime', data=data)
         self.assert_http_202_accepted(res)
@@ -283,11 +292,12 @@ class TestMatrixCreation(CreateTestdataMixin,
         walk, created = ModeVariant.objects.get_or_create(mode=Mode.WALK,
                                                           network=self.network)
         # precalculate the walk time from places and rastercells to stops
-        content = self.calc_cell_stop_matrix(mode=walk)
-        content = self.calc_place_stop_matrix(mode=walk)
-        # until 800 m walk the way, if it's faster, over 600 m always take transit
+        content = self.calc_cell_stop_matrix(mode=walk, max_distance=1000)
+        content = self.calc_place_stop_matrix(mode=walk, max_distance=1500)
+        # until 800 m walk the way, if it's faster, over 800 m always take transit
         # ToDo: add max_distance
-        content = self.calc_cell_place_matrix(variants=[walk.pk])
+        content = self.calc_cell_place_matrix(variants=[walk.pk],
+                                              max_distance=800)
 
         self.transit
         data = {'variants': self.transit.pk,

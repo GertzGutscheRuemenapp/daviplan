@@ -23,8 +23,10 @@ MODE_SPEED = {
 MODE_MAX_DISTANCE = {
     Mode.WALK: 4000,
     Mode.BIKE: 10000,
-    Mode.CAR: 25000
+    Mode.CAR: 25000,
+    Mode.TRANSIT: 1000,
 }
+
 
 
 class Network(DatentoolModelMixin, NamedModel, models.Model):
