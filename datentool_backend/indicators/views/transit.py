@@ -173,13 +173,10 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         places = request.data.getlist('places')
 
         dataframes = []
-        querysets = []
         try:
+            queryset = self.get_filtered_queryset(variants=variants,
+                                                  places=places)
             for variant_id in variants:
-
-                queryset = self.get_filtered_queryset(variant_id=variant_id,
-                                                      places=places)
-                querysets.append(queryset)
                 variant = ModeVariant.objects.get(pk=variant_id)
                 max_distance = float(request.data.get('max_distance',
                                                 MODE_MAX_DISTANCE[variant.mode]))
@@ -225,11 +222,7 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                 raise RoutingError(msg)
             else:
                 df = pd.concat(dataframes)
-                if len(querysets) == 1:
-                    query_union = queryset
-                else:
-                    query_union = querysets[0].union(*querysets[1:])
-                success, msg = self.save_df(df, query_union, drop_constraints)
+                success, msg = self.save_df(df, queryset, drop_constraints)
                 if not success:
                     raise RoutingError(msg)
 
@@ -257,7 +250,7 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
             max_distance=max_distance,
         )
         qs = matrix_place_stop.get_filtered_queryset(
-            variant_id=access_variant.pk,
+            variants=[access_variant.pk],
             places=places)
         success, msg = matrix_place_stop.save_df(df_ps, qs, drop_constraints)
         if not success:
@@ -270,7 +263,7 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
             max_distance=max_distance,
         )
         qs = matrix_cell_stop.get_filtered_queryset(
-            variant_id=access_variant.pk)
+            variants=[access_variant.pk])
         success, msg = matrix_cell_stop.save_df(df_cs, qs, drop_constraints)
         if not success:
             raise RoutingError(msg)
@@ -320,7 +313,7 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                    f'rows and added {len(df)} rows to {model._meta.object_name}')
             return (True, msg)
 
-    def get_filtered_queryset(variant_id: int, **kwargs) -> QuerySet:
+    def get_filtered_queryset(variants: List[int], **kwargs) -> QuerySet:
         raise NotImplementedError()
 
     def get_sources(self, **kwargs) -> QuerySet:
@@ -415,10 +408,10 @@ class MatrixCellPlaceViewSet(TravelTimeRouterMixin):
     model = MatrixCellPlace
 
     def get_filtered_queryset(self,
-                              variant_id: int,
+                              variants: List[int],
                               places: List[int] = None,
                               **kwargs) -> QuerySet:
-        qs = MatrixCellPlace.objects.filter(variant_id=variant_id)
+        qs = MatrixCellPlace.objects.filter(variant_id__in=variants)
         if places:
             qs = qs.filter(place_id__in=places)
         return qs
@@ -564,8 +557,8 @@ class MatrixCellStopViewSet(TravelTimeRouterMixin):
     columns = ['cell_id', 'stop_id']
     model = MatrixCellStop
 
-    def get_filtered_queryset(self, variant_id: int, **kwargs) -> QuerySet:
-        return MatrixCellStop.objects.filter(variant_id=variant_id)
+    def get_filtered_queryset(self, variants: List[int], **kwargs) -> QuerySet:
+        return MatrixCellStop.objects.filter(variant_id__in=variants)
 
     def get_sources(self, **kwargs):
         sources =  RasterCell.objects.filter(rastercellpopulation__isnull=False)\
@@ -632,10 +625,10 @@ class MatrixPlaceStopViewSet(TravelTimeRouterMixin):
     model = MatrixPlaceStop
 
     def get_filtered_queryset(self,
-                              variant_id: int,
+                              variants: List[int],
                               places: List[int] = None,
                               **kwargs) -> QuerySet:
-        qs = MatrixPlaceStop.objects.filter(variant_id=variant_id)
+        qs = MatrixPlaceStop.objects.filter(variant_id__in=variants)
         if places:
             qs = qs.filter(place_id__in=places)
         return qs
