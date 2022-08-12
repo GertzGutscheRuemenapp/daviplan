@@ -131,8 +131,8 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
     @staticmethod
     def _intersect_census(popraster, drop_constraints=False):
-        fp = os.path.join(settings.POPRASTER_ROOT, popraster.filename)
-        fp_clip = os.path.join(settings.POPRASTER_ROOT, 'clipped.tif')
+        fp = os.path.join(settings.DATA_ROOT, popraster.filename)
+        fp_clip = os.path.join(settings.DATA_ROOT, 'clipped.tif')
 
         raster = gdal.Open(fp)
         srs = raster.GetSpatialRef()

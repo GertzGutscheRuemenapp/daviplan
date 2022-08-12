@@ -4,6 +4,7 @@ two options under Windows
 https://docs.djangoproject.com/en/3.2/ref/contrib/gis/install/#windows
 - with conda installation (settings_dev.py):
 conda install -c conda-forge gdal=3.1 (global)
+conda install -c conda-forge osmium-tool
 
 ### Rest API is protected
 - in development (settings_dev.py) access with an active session is allowed

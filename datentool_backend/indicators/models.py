@@ -12,11 +12,16 @@ from datentool_backend.population.models import RasterCell
 
 class Stop(DatentoolModelMixin, NamedModel, models.Model):
     """location of a public transport stop"""
+    hstnr = models.IntegerField()
     name = models.TextField()
     geom = gis_models.PointField(srid=3857)
+    variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
 
     objects = models.Manager()
     copymanager = DirectCopyManager()
+
+    class Meta:
+        unique_together = [['variant', 'hstnr']]
 
 
 class MatrixCellPlace(DatentoolModelMixin, models.Model):
@@ -27,6 +32,9 @@ class MatrixCellPlace(DatentoolModelMixin, models.Model):
                               related_name='place_cell')
     variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
     minutes = models.FloatField()
+
+    class Meta:
+        unique_together = ['variant', 'cell', 'place']
 
     objects = models.Manager()
     copymanager = DirectCopyManager()
@@ -41,6 +49,9 @@ class MatrixCellStop(DatentoolModelMixin, models.Model):
     variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
     minutes = models.FloatField()
 
+    class Meta:
+        unique_together = ['variant', 'cell', 'stop']
+
     objects = models.Manager()
     copymanager = DirectCopyManager()
 
@@ -54,6 +65,9 @@ class MatrixPlaceStop(models.Model):
     variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
     minutes = models.FloatField()
 
+    class Meta:
+        unique_together = ['variant', 'place', 'stop']
+
     objects = models.Manager()
     copymanager = DirectCopyManager()
 
@@ -66,6 +80,9 @@ class MatrixStopStop(models.Model):
                                 related_name='to_stop')
     variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
     minutes = models.FloatField()
+
+    class Meta:
+        unique_together = ['variant', 'from_stop', 'to_stop']
 
     objects = models.Manager()
     copymanager = DirectCopyManager()

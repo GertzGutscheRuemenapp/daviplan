@@ -10,8 +10,13 @@ export interface BasedataSettings {
   popAreaLevel: number,
   popStatisticsAreaLevel: number,
   defaultModeVariants: { mode: number, variant: number }[],
-  defaultDemandRateSets: { service: number, demandrateset: number }[]
-  defaultPrognosis: number
+  defaultDemandRateSets: { service: number, demandrateset: number }[],
+  defaultPrognosis: number,
+  routing?: {
+    baseNet: boolean,
+    projectAreaNet: boolean,
+    running: boolean
+  }
 }
 
 export type Profile = {
@@ -332,6 +337,7 @@ export interface Network {
 
 export interface ModeVariant {
   id: number,
+  label: string,
   mode: number,
   network: number
   // cutoffTime: number
