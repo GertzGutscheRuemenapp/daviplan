@@ -4,15 +4,15 @@ from django.db.models import Sum
 
 from datentool_backend.api_test import (LoginTestCase
                                         )
-from datentool_backend.site.models import ProjectSetting
 from datentool_backend.population.models import (RasterCell, RasterCellPopulation)
 from datentool_backend.population.factories import (PopulationRaster,
                                                     RasterFactory,
                                                     YearFactory)
 
+from datentool_backend.indicators.tests.setup_testdata import CreateTestdataMixin
 
-
-class TestIntersectZensus(LoginTestCase,
+class TestIntersectZensus(CreateTestdataMixin,
+                          LoginTestCase,
                           APITestCase):
     """test the intersection with Zensus Data"""
     url_key = "fixedindicators"
@@ -22,14 +22,7 @@ class TestIntersectZensus(LoginTestCase,
         super().setUpTestData()
         cls.profile.can_edit_basedata = True
         cls.profile.save()
-        ewkt = 'SRID=4326;MULTIPOLYGON (((9.8 52.2, 9.8 52.3, 9.9 52.3, 9.9 52.2, 9.8 52.2)))'
-
-        geom = MultiPolygon.from_ewkt(ewkt)
-        geom.transform(3857)
-        projectsettings, created = ProjectSetting.objects.get_or_create(pk=1)
-        projectsettings.project_area = geom
-        projectsettings.save()
-        cls.projectsettings = projectsettings
+        cls.projectsettings = cls.create_project_settings()
         year = YearFactory(year=2011)
         raster = RasterFactory(name='LAEA-Raster')
         cls.popraster100 = PopulationRaster.objects.create(

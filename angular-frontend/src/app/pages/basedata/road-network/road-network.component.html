@@ -17,61 +17,29 @@
   <p>Wenn sich in Zukunft maßgebliche Dinge an ihren Straßen- und ÖPNV-Netzen ändert, z.B. eine erhebliche Ausweitung oder Reduzierung des ÖPNV-Angebots absehbar ist oder eine maßgebliche neue Straßenverbindung (Ortsumgehung, Autobahnanschluss, …) diskutiert wird, kann es sinnvoll sein, ein oder mehrere weitere Verkehrsnetze zu definieren, in deren Eingangsdaten diese Änderungen berücksichtigt sind. Auf dieser Basis können Sie im nachfolgenden Menüpunkt „Erreichbarkeit“ dann alternative Erreichbarkeitsmatrizen für das gleiche Verkehrsmittel (z.B. „Pkw-Erreichbarkeit mit dem aktuellen Straßennetz“ und „Pkw-Erreichbarkeit nach Umsetzung aller Ausbauplanungen“), die von den Nutzer*innen im Hauptmenübereich „Infrastrukturplanung“ dann alternativ zur Bewertung der Erreichbarkeit von Infrastrukturen verwendet werden können.</p>
   <p>Um ein Verkehrsnetz zu definieren, klicken Sie in der Box „Verkehrsnetze“ auf Hinzufügen und folgen den weiteren Anweisungen im dortigen Hilfetext.</p>
 </app-header-card>
+
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
-    <app-input-card [title]="'Basisnetz'"
+    <app-input-card [title]="'Straßennetz'"
                     infoText="<p>Platzhalter</p>">
-      Status: noch nicht erzeugt
-      <button mat-flat-button color="primary" (click)="createBaseNetwork()">
-<!--        <mat-icon>build</mat-icon> -->
-        Basisnetz erzeugen
-      </button>
-    </app-input-card>
-    <app-input-card [title]="'Eigene Netzvarianten'"
-                    [disabled]="true"
-                    infoText="<p>Klicken Sie auf „Hinzufügen“, um ein Verkehrsnetz hinzufügen und anschließend mit Hilfe der anderen Boxen genauer zu definieren.</p>
-                    <p>Um die Eigenschaften eines Verkehrsnetzes zu betrachten und ggf. zu verändern, wählen Sie dieses in der Liste aus und kontrollieren Sie seine Eigenschaften in den anderen Boxen.</p>
-                    <p>Um ein Verkehrsnetz zu löschen, wählen Sie dieses in der Liste aus und klicken Sie „Entfernen“.</p>
-                    <p>Ein Verkehrsnetz kann für die Berechnung der Erreichbarkeitsmatrizen unterschiedlicher Verkehrsmittel verwendet werden. Dabei gilt: </p>
-                    <ul>
-                      <li>In jedem Fall muss Ihr Verkehrsnetz Daten für das Straßennetz beinhalten. Ihm wird automatisch beim Anlegen ein OpenStreetMap-Datensatz (Stand 2021) hinzugefügt, den Sie optional austauschen können. Weitere Informationen hierzu finden Sie in der Box „OpenStreetMap-Daten des ausgewählten Verkehrsnetzes“.</li>
-                      <li>Wenn Sie mit dem Verkehrsnetz eine ÖPNV-Erreichbarkeitsmatrix berechnen wollen müssen Sie ihm in der Box „ÖPNV-Daten (GTFS) des ausgewählten Verkehrsnetzes“ regionale Fahrplandaten hinzufügen. Es können bisher leider keine Standarddaten zur Verfügung gestellt werden. Weitere Informationen hierzu finden Sie dort.</li>
-                      <li>Optional können Höhendaten in das Verkehrsnetz integriert werden um die Topografie zu berücksichtigen. Einem neu angelegten Verkehrsnetz wird automatisch ein Höhendatensatz hinzugefügt, den Sie optional austauschen können. Weitere Informationen hierzu finden Sie in der Box „Höhendaten des ausgewählten Verkehrsnetzes“.</li>
-                    </ul>
-                    <p>Wenn Sie alle für Ihre Zwecke notwendigen Daten in den entsprechenden Eingabeboxen hinzufügt haben, klicken Sie bitte in der Box „Routensucher für das ausgewählte Verkehrsnetz“ auf „Routensucher erzeugen“.</p>">
-      <mat-selection-list [multiple]="false"
-                          id="router-select">
-        <mat-list-option *ngFor="let router of routers"
-                         (click)="selectedRouter = router"
-                         [selected]="router === selectedRouter">
-          <div class="option-text">{{router}}</div>
-        </mat-list-option>
-      </mat-selection-list>
-      <div style="margin-top: 10px;">
-        <button mat-button color="primary"
-                class="mat-button-dv">
-          <mat-icon>add</mat-icon>hinzufügen
-        </button>
-        <button mat-button color="primary"
-                style="margin-left: 40px;"
-                class="mat-button-dv">
-          <mat-icon>close</mat-icon>entfernen
-        </button>
+      <div>
+        Status: {{baseDataSettings?.routing?.baseNet? 'Basisnetz vorhanden': 'Basisnetz nicht vorhanden'}}
+        <mat-icon *ngIf="baseDataSettings?.routing?.baseNet" color="primary">done</mat-icon>
       </div>
-      <br>
-      <button mat-flat-button color="primary">
-<!--        <mat-icon>build</mat-icon> -->
-        Basisnetz exportieren
+      <button mat-flat-button color="primary"
+              (click)="downloadBaseNetwork()">
+        <!--        <mat-icon>build</mat-icon> -->
+        Basisnetz herunterladen
       </button>
-      <br>
-      <button mat-flat-button color="primary">
-<!--        <mat-icon>build</mat-icon>-->
-        Eigene Netzvariante hochladen
-      </button>
-      <br>
-      <button mat-flat-button color="primary">
-<!--        <mat-icon>build</mat-icon> -->
-        Ausgewählte Variante löschen
+      <mat-divider style="margin: 10px 0;"></mat-divider>
+      <div>
+        Status: {{baseDataSettings?.routing?.projectAreaNet? 'Basisnetz mit Projektgebiet verschnitten': 'Basisnetz nicht verschnitten'}}
+        <mat-icon *ngIf="baseDataSettings?.routing?.projectAreaNet" color="primary">done</mat-icon>
+      </div>
+      <button mat-flat-button color="primary"
+              [disabled]="!baseDataSettings?.routing?.baseNet"
+              (click)="createProjectNetwork()">
+        Straßennetz verschneiden
       </button>
     </app-input-card>
   </div>
@@ -81,9 +49,9 @@
                     infoText="<p>Platzhalter</p>">
       <div style="width: 100%; display: flex;">
         <div style="width: 40%;">
-<!--          <span class="subtitle1 sub">
-            Verkehrsnetz „{{selectedRouter}}“
-          </span>-->
+          <!--          <span class="subtitle1 sub">
+                      Verkehrsnetz „{{selectedRouter}}“
+                    </span>-->
           <!--<table>
             <tr>
               <td style="min-width: 130px;; white-space: normal;">Buffer um das Projektgebiet</td>
@@ -104,7 +72,7 @@
             </button>
           </div>
         </div>
-        <div id="log-window" style="width: 60%">
+        <div style="width: 60%">
           <span class="subtitle1">Historie</span>
           <app-log height="calc(100% - 25px)"></app-log>
         </div>
@@ -112,3 +80,4 @@
     </app-input-card>
   </div>
 </div>
+

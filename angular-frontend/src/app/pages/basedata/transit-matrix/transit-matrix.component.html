@@ -14,32 +14,22 @@
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
-    <app-input-card [title]="'Erreichbarkeitsmatrizen'"
-                    subtitle="Erreichbarkeitsmatrix hinzufügen oder auswählen"
-                    infoText="<p>Um eine neue Erreichbarkeitsmatrix hinzuzufügen, wählen Sie in der Liste das passende Verkehrsmittel aus und klicken Sie auf „Hinzufügen“. Gehen Sie anschließend zur Box „Ausgewählte Erreichbarkeitsmatrix“. Hier können Sie die Daten dieser Matrix (aus einer externen Vorberechnung) hochladen oder mit Hilfe eines im Menüpunkt „Verkehrsnetz“ erzeugten Routensuchers berechnen. Detail hierzu finden Sie im Hilfetext der Box.</p>
-                    <p>Um eine Erreichbarkeitsmatrix wieder zu löschen, wählen Sie diese in der Liste aus und klicken auf „Entfernen“.</p>
-                    <p>Wenn Sie für ein Verkehrsmittel mehr als eine Erreichbarkeitsmatrix definiert haben, müssen Sie festlegen, welche davon für das im Hauptmenüabschnitt „Infrastrukturplanung“ immer automatisch erzeugte Planungsszenario „Trendfortschreibung“ verwendet werden soll. Wählen Sie hierzu die betreffende Erreichbarkeitsmatrix in der Liste aus und klicken Sie auf „Als Annahme für Trendfortschreibung festlegen“.</p>">
+    <app-input-card [title]="'ÖPNV-Netz'"
+                    subtitle="ÖPNV-Netz hinzufügen oder auswählen"
+                    infoText="">
       <mat-selection-list [multiple]="false"
                           class="categorized"
                           id="mode-select">
-        <ng-container *ngFor="let mode of modes">
-          <div mat-subheader>
-            <mat-icon *ngIf="mode.icon" class="material-icons-outlined" style="font-size: 20px; margin-left: -7px; margin-right: 2px;">{{mode.icon}}</mat-icon>
-            <div *ngIf="mode.davicon" class="davicon {{mode.davicon}}" style="font-size: 28px; margin-left: -11px; margin-right: 1px;"></div>
-            {{mode.name}}
-          </div>
-          <mat-list-option *ngFor="let router of mode.routers"
-                           (click)="selectedRouter = router"
-                           [selected]="(router.id === selectedRouter.id)">
-            <div class="option-text">{{router.name}}</div>
-            <mat-icon *ngIf="router.id===statusQuoRouters[router.mode]" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
-          </mat-list-option>
-          <mat-divider></mat-divider>
-        </ng-container>
+        <mat-list-option *ngFor="let variant of variants"
+                         (click)="selectedVariant = variant"
+                         [selected]="(selectedVariant?.id === variant.id)">
+          <div class="option-text">{{variant.label}}</div>
+          <mat-icon *ngIf="variant.id===selectedVariant?.id" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
+        </mat-list-option>
       </mat-selection-list>
       <button mat-button color="primary"
               class="multiline-button"
-              (click)="statusQuoRouters[selectedRouter.mode] = selectedRouter.id">
+              (click)="statusQuoVariant = selectedVariant">
 <!--              (click)="statusQuoRouters[selectedRouter.mode] = (statusQuoRouters[selectedRouter.mode]===selectedRouter.id)? undefined : selectedRouter.id">-->
         <mat-icon class="material-icons-outlined">verified</mat-icon>
         Als Annahme für Trendfortschreibung festlegen
@@ -66,42 +56,40 @@
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; align-self: start;">
           <span class="subtitle1 sub">
-            Verkehrsmittel {{selectedRouter.mode}} / Erreichbarkeitsmatrix „{{selectedRouter.name}}“
+            Verkehrsmittel {{selectedVariant?.mode}} / Erreichbarkeitsmatrix „{{selectedVariant?.label}}“
           </span>
           <div style="display: flex; margin-top: 15px;">
             <table>
               <tr>
-                <td i18n>Wegenetz</td>
-                <td>Deutschland 2020</td>
+                <td i18n>Haltestellen</td>
+                <td></td>
               </tr>
               <tr>
-                <td i18n>Buffer um Siedlungszellen</td>
-                <td>700m</td>
-              </tr>
-              <tr>
-                <td i18n>berechnet am</td>
-                <td>31.05.2022</td>
-              </tr>
-              <tr>
-                <td i18n>durch</td>
-                <td>Sascha Schmidt</td>
+                <td i18n>Reisezeitmatrix</td>
+                <td>nicht vorhanden</td>
               </tr>
             </table>
           </div>
-          <button style="margin: 20px 0;" mat-flat-button color="primary">
-            <mat-icon>build</mat-icon> Berechnen
-          </button>
-          <div>
+          <div style="display: flex; margin-top: 15px;">
             <button mat-stroked-button color="primary" style="margin-right: 10px;">
-              <mat-icon>download</mat-icon> Vorlage herunterladen
+              <mat-icon>download</mat-icon> Vorlage Haltestellen
             </button>
             <button mat-flat-button color="primary">
-              <mat-icon>upload</mat-icon> Daten hochladen
+              <mat-icon>upload</mat-icon> Haltestellen hochladen
             </button>
-            <button mat-mini-fab color="primary"
-                    aria-label="Daten herunterladen" title="Daten herunterladen"
-                    style="float: right; margin-right: 15px; box-shadow: none;">
-              <mat-icon>download</mat-icon>
+          </div>
+          <br>
+          <div style="display: flex">
+            <button mat-stroked-button color="primary" style="margin-right: 10px;">
+              <mat-icon>download</mat-icon> Vorlage Reisezeitmatrix
+            </button>
+            <button mat-flat-button color="primary">
+              <mat-icon>upload</mat-icon> Reisezeitmatrix hochladen
+            </button>
+          </div>
+          <div style="margin-top: 20px;">
+            <button mat-flat-button color="primary">
+              <mat-icon>build</mat-icon> Erreichbarkeitsmatrix erzeugen
             </button>
           </div>
         </div>

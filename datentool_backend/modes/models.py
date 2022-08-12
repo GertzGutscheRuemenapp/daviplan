@@ -1,4 +1,6 @@
 from django.db import models, transaction
+import os
+
 from datentool_backend.base import (NamedModel,
                                     JsonAttributes,
                                     DatentoolModelMixin, )
@@ -15,18 +17,23 @@ class Mode(models.IntegerChoices):
 MODE_SPEED = {
     Mode.WALK: 3.5,
     Mode.BIKE: 10.5,
-    Mode.CAR: 25
+    Mode.CAR: 25,
 }
 
 MODE_MAX_DISTANCE = {
     Mode.WALK: 4000,
     Mode.BIKE: 10000,
-    Mode.CAR: 25000
+    Mode.CAR: 25000,
+    Mode.TRANSIT: 1000,
 }
 
 
+# default maximum walk time, insdead of transit use
+DEFAULT_MAX_DIRECT_WALKTIME = 15
+
+
 class Network(DatentoolModelMixin, NamedModel, models.Model):
-    name = models.TextField()
+    name = models.TextField(default='', blank=True)
     is_default = models.BooleanField(default=False)
     network_file = models.FileField(null=True)
 
@@ -47,10 +54,13 @@ class ModeVariant(DatentoolModelMixin, models.Model):
     '''
     modes
     '''
+    label = models.TextField(default='', blank=True)
     network = models.ForeignKey(Network, on_delete=models.CASCADE, null=True)
     mode = models.IntegerField(choices=Mode.choices)
     cutoff_time = models.ManyToManyField(Infrastructure, through='CutOffTime')
 
+    def __repr__(self) -> str:
+        return f'{Mode._value2label_map_[self.mode]} - {self.label}'
 
 class CutOffTime(models.Model):
     mode_variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)

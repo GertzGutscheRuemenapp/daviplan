@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ReachabilityMatrixComponent } from './reachability-matrix.component';
+import { TransitMatrixComponent } from './transit-matrix.component';
 
 describe('ReachabilityMatrixComponent', () => {
-  let component: ReachabilityMatrixComponent;
-  let fixture: ComponentFixture<ReachabilityMatrixComponent>;
+  let component: TransitMatrixComponent;
+  let fixture: ComponentFixture<TransitMatrixComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ReachabilityMatrixComponent ]
+      declarations: [ TransitMatrixComponent ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ReachabilityMatrixComponent);
+    fixture = TestBed.createComponent(TransitMatrixComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
