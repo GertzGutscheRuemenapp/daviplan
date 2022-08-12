@@ -45,7 +45,6 @@
   </div>
   <div fxLayout="column" fxFlex="900px">
     <app-input-card [title]="'???'"
-                    [disabled]="true"
                     infoText="<p>Platzhalter</p>">
       <div style="width: 100%; display: flex;">
         <div style="width: 40%;">
@@ -67,7 +66,9 @@
             </tr>
           </table>-->
           <div style="margin-top: 50px;">
-            <button mat-flat-button color="primary">
+            <button mat-flat-button color="primary"
+                    [disabled]="!baseDataSettings?.routing?.projectAreaNet"
+                    (click)="createMatrices()">
               <mat-icon>build</mat-icon> Reisezeitmatrizen erzeugen
             </button>
           </div>
