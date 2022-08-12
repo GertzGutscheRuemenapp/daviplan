@@ -173,10 +173,13 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         places = request.data.getlist('places')
 
         dataframes = []
+        querysets = []
         try:
             for variant_id in variants:
 
-                queryset = self.get_filtered_queryset(variant_id=variant_id, places=places)
+                queryset = self.get_filtered_queryset(variant_id=variant_id,
+                                                      places=places)
+                querysets.append(queryset)
                 variant = ModeVariant.objects.get(pk=variant_id)
                 max_distance = float(request.data.get('max_distance',
                                                 MODE_MAX_DISTANCE[variant.mode]))
@@ -200,26 +203,33 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                         variant,
                         max_direct_walktime,
                     )
+                    dataframes.append(df)
                 else:
-
                     if air_distance_routing:
                         df = self.calculate_airdistance_traveltimes(
-                            variant,
-                            places=places,
-                            max_distance=max_distance,
-                            )
+                            variant, max_distance=max_distance, places=places)
+                        dataframes.append(df)
                     else:
-                        df = self.calc_routed_traveltimes(variant,
-                                                          places=places,
-                                                          max_distance=max_distance,
-                                                          )
-                dataframes.append(df)
+                        if not places:
+                            places = Place.objects.values_list('id', flat=True)
+                        chunk_size = 200
+                        for i in range(0,  len(places),  chunk_size):
+                            place_part = places[i:i+chunk_size]
+                            df = self.calc_routed_traveltimes(
+                                variant, max_distance=max_distance,
+                                places=place_part)
+                            dataframes.append(df)
+
             if not dataframes:
                 msg = 'No routes found'
                 raise RoutingError(msg)
             else:
                 df = pd.concat(dataframes)
-                success, msg = self.save_df(df, queryset, drop_constraints)
+                if len(querysets) == 1:
+                    query_union = queryset
+                else:
+                    query_union = querysets[0].union(*querysets[1:])
+                success, msg = self.save_df(df, query_union, drop_constraints)
                 if not success:
                     raise RoutingError(msg)
 
@@ -306,7 +316,8 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                 if drop_constraints:
                     manager.restore_constraints()
                     manager.restore_indexes()
-            msg = f'Traveltime Calculation successful, deleted {n_deleted} rows and added {len(df)} rows to {model._meta.object_name}'
+            msg = (f'Traveltime Calculation successful, deleted {n_deleted} '
+                   f'rows and added {len(df)} rows to {model._meta.object_name}')
             return (True, msg)
 
     def get_filtered_queryset(variant_id: int, **kwargs) -> QuerySet:
@@ -325,8 +336,8 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         """calculate traveltimes"""
         port = settings.MODE_OSRM_PORTS[Mode(variant.mode).name]
 
-        sources = self.get_sources(**kwargs)
-        destinations = self.get_destinations(**kwargs)
+        sources = self.get_sources(**kwargs).order_by('id')
+        destinations = self.get_destinations(**kwargs).order_by('id')
 
         client = OSRM(base_url=f'http://{settings.ROUTING_HOST}:{port}')
         coords = list(sources.values_list('lon', 'lat', named=False))\
@@ -401,6 +412,7 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
 
 class MatrixCellPlaceViewSet(TravelTimeRouterMixin):
     columns = ['place_id', 'cell_id']
+    model = MatrixCellPlace
 
     def get_filtered_queryset(self,
                               variant_id: int,
@@ -550,6 +562,7 @@ class MatrixCellPlaceViewSet(TravelTimeRouterMixin):
 
 class MatrixCellStopViewSet(TravelTimeRouterMixin):
     columns = ['cell_id', 'stop_id']
+    model = MatrixCellStop
 
     def get_filtered_queryset(self, variant_id: int, **kwargs) -> QuerySet:
         return MatrixCellStop.objects.filter(variant_id=variant_id)
@@ -616,6 +629,7 @@ class MatrixCellStopViewSet(TravelTimeRouterMixin):
 
 class MatrixPlaceStopViewSet(TravelTimeRouterMixin):
     columns = ['place_id', 'stop_id']
+    model = MatrixPlaceStop
 
     def get_filtered_queryset(self,
                               variant_id: int,
