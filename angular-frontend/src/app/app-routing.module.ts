@@ -105,7 +105,7 @@ const routes: Routes = [
         component: SupplyComponent
       },
       {
-        path: 'oepnvnetz',
+        path: 'erreichbarkeiten',
         component: ReachabilitiesComponent
       },
       {

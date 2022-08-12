@@ -2,6 +2,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import pandas as pd
+import numpy as np
 from typing import List, Tuple
 from io import StringIO
 from distutils.util import strtobool
@@ -328,9 +329,9 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         destinations = self.get_destinations(**kwargs)
 
         client = OSRM(base_url=f'http://{settings.ROUTING_HOST}:{port}')
-        # as lists
         coords = list(sources.values_list('lon', 'lat', named=False))\
             + list(destinations.values_list('lon', 'lat', named=False))
+        # as lists
         #radiuses = [30000 for i in range(len(coords))]
         matrix = client.matrix(locations=coords,
                                #radiuses=radiuses,
@@ -338,12 +339,14 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                                destinations=range(len(sources), len(coords)),
                                profile='driving')
         # convert matrix to dataframe
+        arr = np.array(matrix.durations)
         arr_seconds = pd.DataFrame(
-            matrix.durations,
+            arr,
             index=list(sources.values_list('id', flat=True)),
             columns=list(destinations.values_list('id', flat=True)))
+        arr = np.array(matrix.distances)
         arr_meters = pd.DataFrame(
-            matrix.distances,
+            arr,
             index=list(sources.values_list('id', flat=True)),
             columns=list(destinations.values_list('id', flat=True)))
 
