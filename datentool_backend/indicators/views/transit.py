@@ -1,6 +1,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
+import os
 import pandas as pd
 import numpy as np
 from typing import List, Tuple
@@ -169,10 +170,14 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         """Calculate traveltime with a air distance or network router"""
         drop_constraints = bool(strtobool(
             request.data.get('drop_constraints', 'False')))
-        variants = [int(v) for v in request.data.get('variants').split(',')]
+        variants = [int(v)
+                    for v in request.data.get('variants', '').split(',')
+                    if v != '']
         air_distance_routing = bool(strtobool(
             request.data.get('air_distance_routing', 'False')))
-        places = [int(v) for v in request.data.get('places').split(',') if v != '']
+        places = [int(v)
+                  for v in request.data.get('places', '').split(',')
+                  if v != '']
 
         dataframes = []
         try:
@@ -364,6 +369,17 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                 baseurl = f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}'
                 router_name = MODE_ROUTERS[variant.mode]
                 res = requests.post(f'{baseurl}/run/{router_name}')
+                if res.status_code == 400:
+                    if 'not built yet' in res.content:
+                        fp_target_pbf = os.path.join(settings.MEDIA_ROOT,
+                                                     'projectarea.pbf')
+                        files = {'file': open(fp_target_pbf, 'rb')}
+                        res_build = requests.post(
+                            f'{baseurl}/build/{router_name}',
+                            files=files)
+                        print(res_build)
+                        res = requests.post(f'{baseurl}/run/{router_name}')
+
                 if res.status_code != 200:
                     tries_left = 0
                     raise err
