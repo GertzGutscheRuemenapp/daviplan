@@ -27,15 +27,19 @@ OSRM_MODES = {
     Mode.WALK: 'foot'
 }
 
+def exec_router_cmd(mode, cmd):
+    mode_settings = settings.OSRM_ROUTING[mode.name]
+    host = mode_settings['host']
+    port = mode_settings['service_port']
+    alias = mode_settings['alias']
+    baseurl = f'http://{host}:{port}'
+    return requests.post(f'{baseurl}/{cmd}/{alias}')
+
 def run_router(mode):
-    baseurl = f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}'
-    res = requests.post(f'{baseurl}/run/{OSRM_MODES[mode]}')
-    return res
+    return exec_router_cmd(mode, 'run')
 
 def stop_router(mode):
-    baseurl = f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}'
-    res = requests.post(f'{baseurl}/stop/{OSRM_MODES[mode]}')
-    return res
+    return exec_router_cmd(mode, 'stop')
 
 
 class ModeVariantViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

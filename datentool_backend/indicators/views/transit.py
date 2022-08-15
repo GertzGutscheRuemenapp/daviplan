@@ -2,12 +2,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 import requests
+import os
 import pandas as pd
 import numpy as np
 from typing import List, Tuple
 from io import StringIO
 from distutils.util import strtobool
 from urllib.parse import urlencode
+import requests
 
 from django.db import transaction, connection
 from django.http.request import QueryDict, MultiValueDict, HttpRequest
@@ -45,6 +47,7 @@ from datentool_backend.indicators.models import (Stop,
 from datentool_backend.modes.models import (ModeVariant,
                                             Mode,
                                             MODE_MAX_DISTANCE,
+                                            MODE_ROUTERS,
                                             DEFAULT_MAX_DIRECT_WALKTIME,
                                             MODE_SPEED,
                                             )
@@ -214,7 +217,7 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                     else:
                         if not places:
                             places = Place.objects.values_list('id', flat=True)
-                        chunk_size = 200
+                        chunk_size = 100
                         for i in range(0,  len(places),  chunk_size):
                             place_part = places[i:i+chunk_size]
                             df = self.calc_routed_traveltimes(
@@ -261,12 +264,21 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         if not success:
             raise RoutingError(msg)
 
-        # calculate time from cell to stop
+        # calculate time from stop to cell
         matrix_cell_stop = MatrixCellStopViewSet()
-        df_cs = matrix_cell_stop.calc_routed_traveltimes(
-            variant=access_variant,
-            max_distance=max_distance,
-        )
+        stops = Stop.objects.values_list('id', flat=True)
+        chunk_size = 100
+        dataframes_cs = []
+
+        for i in range(0,  len(stops),  chunk_size):
+            stops_part = stops[i:i + chunk_size]
+            df_cs = matrix_cell_stop.calc_routed_traveltimes(
+                variant=access_variant,
+                max_distance=max_distance,
+                stops=stops_part)
+            dataframes_cs.append(df_cs)
+        df_cs = pd.concat(dataframes_cs)
+
         qs = matrix_cell_stop.get_filtered_queryset(
             variants=[access_variant.pk])
         success, msg = matrix_cell_stop.save_df(df_cs, qs, drop_constraints)
@@ -333,29 +345,27 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                                 **kwargs) -> pd.DataFrame:
         """calculate traveltimes"""
         mode = Mode(variant.mode)
-        port = settings.MODE_OSRM_PORTS[mode.name]
-        baseurl = f'http://{settings.ROUTING_HOST}:{port}'
-        for m in [Mode.WALK, Mode.BIKE, Mode.CAR]:
-            stop_router(m)
-        run_router(mode)
+        mode_settings = settings.OSRM_ROUTING[mode.name]
+        host = mode_settings['host']
+        port = mode_settings['routing_port']
+        baseurl = f'http://{host}:{port}'
 
-        ## check port and run if router is not up
-        #try:
-            #requests.get(baseurl)
-        #except requests.exceptions.ConnectionError:
-            #run_router(mode)
+        # check port and run if router is not up
+        try:
+            requests.get(baseurl)
+        except requests.exceptions.ConnectionError:
+            run_router(mode)
 
         sources = self.get_sources(**kwargs).order_by('id')
         destinations = self.get_destinations(**kwargs).order_by('id')
 
-        client = OSRM(base_url=baseurl)
-
+        client = OSRM(base_url=baseurl, timeout=3600)
         coords = list(sources.values_list('lon', 'lat', named=False))\
             + list(destinations.values_list('lon', 'lat', named=False))
         # as lists
         #radiuses = [30000 for i in range(len(coords))]
         matrix = client.matrix(locations=coords,
-                               #radiuses=radiuses,
+                               # radiuses=radiuses,
                                sources=range(len(sources)),
                                destinations=range(len(sources), len(coords)),
                                profile='driving')
@@ -381,6 +391,7 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         df = minutes.to_frame(name='minutes')
         df['variant_id'] = variant.id
         df.reset_index(inplace=True)
+        logger.info(df)
         return df
 
     def calculate_airdistance_traveltimes(self,
@@ -571,24 +582,30 @@ class MatrixCellPlaceViewSet(TravelTimeRouterMixin):
         return query, params
 
 class MatrixCellStopViewSet(TravelTimeRouterMixin):
-    columns = ['cell_id', 'stop_id']
+    columns = ['stop_id', 'cell_id']
     model = MatrixCellStop
 
     def get_filtered_queryset(self, variants: List[int], **kwargs) -> QuerySet:
         return MatrixCellStop.objects.filter(variant_id__in=variants)
 
-    def get_sources(self, **kwargs):
-        sources =  RasterCell.objects.filter(rastercellpopulation__isnull=False)\
-            .annotate(wgs=Transform('pnt', 4326))\
-            .annotate(lat=Func('wgs',function='ST_Y', output_field=FloatField()),
-                      lon=Func('wgs',function='ST_X', output_field=FloatField()))\
-            .values('id', 'lon', 'lat')
-        return sources
-    def get_destinations(self, **kwargs):
-        destinations = Stop.objects.all()\
+    def get_sources(self,
+                    stops: List[int] = [],
+                    **kwargs):
+        sources = Stop.objects.all()
+        if stops:
+            sources = sources.filter(id__in=stops)
+        sources = sources\
             .annotate(wgs=Transform('geom', 4326))\
             .annotate(lat=Func('wgs', function='ST_Y', output_field=FloatField()),
                       lon=Func('wgs', function='ST_X', output_field=FloatField()))\
+            .values('id', 'lon', 'lat')
+        return sources
+
+    def get_destinations(self, **kwargs):
+        destinations = RasterCell.objects.filter(rastercellpopulation__isnull=False)\
+            .annotate(wgs=Transform('pnt', 4326))\
+            .annotate(lat=Func('wgs',function='ST_Y', output_field=FloatField()),
+                      lon=Func('wgs',function='ST_X', output_field=FloatField()))\
             .values('id', 'lon', 'lat')
         return destinations
 

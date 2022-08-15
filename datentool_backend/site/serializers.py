@@ -131,7 +131,7 @@ class BaseDataSettingSerializer(serializers.Serializer):
         project_area_net_existing = os.path.exists(
             os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf'))
         running = {}
-        for mode, port in settings.MODE_OSRM_PORTS.items():
+        for mode, port in settings.ROUTING_PORTS.items():
             try:
                 urllib.request.urlopen(
                     f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}',
