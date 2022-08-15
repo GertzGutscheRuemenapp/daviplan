@@ -74,7 +74,9 @@ class ProjectSettingSerializer(serializers.ModelSerializer):
                 except:
                     pass
             for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
-                OSRMRouter(mode).remove()
+                router = OSRMRouter(mode)
+                if router.service_is_up:
+                    router.remove()
         return instance
 
 
