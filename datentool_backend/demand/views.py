@@ -2,6 +2,7 @@ from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import ParseError
+from django.db.models import Prefetch
 
 from rest_framework import status
 
@@ -12,7 +13,7 @@ from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 
 from .constants import RegStatAgeGroups, RegStatAgeGroup
-from .models import (AgeGroup, Gender, DemandRateSet)
+from .models import (AgeGroup, Gender, DemandRateSet, DemandRate)
 from .serializers import (GenderSerializer,
                           AgeGroupSerializer,
                           DemandRateSetSerializer,
@@ -77,7 +78,13 @@ class AgeGroupViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
 
 class DemandRateSetViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
-    queryset = DemandRateSet.objects.all()
+
+    def get_queryset(self):
+        demandrate_qs = DemandRate.objects.select_related('year').all()
+        demandrate_set = Prefetch('demandrate_set', queryset=demandrate_qs)
+        qs = DemandRateSet.objects.prefetch_related(demandrate_set).all()
+        return qs
+
     serializer_class = DemandRateSetSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
     filter_fields = ['service']
