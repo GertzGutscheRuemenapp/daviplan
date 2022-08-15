@@ -47,6 +47,10 @@ class OSRMRouter():
         res = self._post_service_cmd('stop')
         return res.status_code == 200
 
+    def remove(self):
+        res = self._post_service_cmd('remove')
+        return res.status_code == 200
+
     def build(self, pbf_path):
         files = {'file': open(pbf_path, 'rb')}
         res = self._post_service_cmd('build', files=files)
