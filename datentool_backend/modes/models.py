@@ -27,6 +27,11 @@ MODE_MAX_DISTANCE = {
     Mode.TRANSIT: 1000,
 }
 
+MODE_ROUTERS = {
+    Mode.WALK: 'foot',
+    Mode.BIKE: 'bicycle',
+    Mode.CAR: 'car',
+}
 
 # default maximum walk time, insdead of transit use
 DEFAULT_MAX_DIRECT_WALKTIME = 15
