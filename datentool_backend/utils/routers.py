@@ -20,6 +20,14 @@ class OSRMRouter():
         return f'http://{self.settings["host"]}:{self.settings["routing_port"]}'
 
     @property
+    def service_is_up(self):
+        try:
+            requests.get(self.service_url)
+        except requests.exceptions.ConnectionError:
+            return False
+        return True
+
+    @property
     def is_running(self):
         try:
             requests.get(self.routing_url)
