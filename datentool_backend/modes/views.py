@@ -17,8 +17,25 @@ from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 from datentool_backend.site.models import ProjectSetting
 
-from .models import Network, ModeVariant
+from .models import Network, ModeVariant, Mode
 from .serializers import NetworkSerializer, ModeVariantSerializer
+
+# mode names used in OSRM-router
+OSRM_MODES = {
+    Mode.CAR: 'car',
+    Mode.BIKE: 'bicycle',
+    Mode.WALK: 'foot'
+}
+
+def run_router(mode):
+    baseurl = f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}'
+    res = requests.post(f'{baseurl}/run/{OSRM_MODES[mode]}')
+    return res
+
+def stop_router(mode):
+    baseurl = f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}'
+    res = requests.post(f'{baseurl}/stop/{OSRM_MODES[mode]}')
+    return res
 
 
 class ModeVariantViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
@@ -134,9 +151,8 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     )
     @action(methods=['POST'], detail=False)
     def run_router(self, request, **kwargs):
-        baseurl = f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}'
-        for mode in ['car', 'bicycle', 'foot']:
-            res = requests.post(f'{baseurl}/run/{mode}')
+        for mode in [Mode.CAR, Mode.BIKE, Mode.WALK]:
+            res = run_router(mode)
             if res.status_code != 200:
                 return Response(
                     {'message': f'Failed to run router for mode {mode}'},

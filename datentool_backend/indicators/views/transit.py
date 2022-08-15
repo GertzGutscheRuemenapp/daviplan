@@ -1,6 +1,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
+import requests
 import pandas as pd
 import numpy as np
 from typing import List, Tuple
@@ -24,7 +25,7 @@ from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiRespo
 
 from routingpy import OSRM
 
-
+from datentool_backend.modes.views import run_router, stop_router
 from datentool_backend.utils.excel_template import ExcelTemplateMixin
 from datentool_backend.utils.serializers import MessageSerializer, drop_constraints
 from datentool_backend.utils.views import ProtectCascadeMixin
@@ -331,12 +332,24 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                                 max_distance: float,
                                 **kwargs) -> pd.DataFrame:
         """calculate traveltimes"""
-        port = settings.MODE_OSRM_PORTS[Mode(variant.mode).name]
+        mode = Mode(variant.mode)
+        port = settings.MODE_OSRM_PORTS[mode.name]
+        baseurl = f'http://{settings.ROUTING_HOST}:{port}'
+        for m in [Mode.WALK, Mode.BIKE, Mode.CAR]:
+            stop_router(m)
+        run_router(mode)
+
+        ## check port and run if router is not up
+        #try:
+            #requests.get(baseurl)
+        #except requests.exceptions.ConnectionError:
+            #run_router(mode)
 
         sources = self.get_sources(**kwargs).order_by('id')
         destinations = self.get_destinations(**kwargs).order_by('id')
 
-        client = OSRM(base_url=f'http://{settings.ROUTING_HOST}:{port}')
+        client = OSRM(base_url=baseurl)
+
         coords = list(sources.values_list('lon', 'lat', named=False))\
             + list(destinations.values_list('lon', 'lat', named=False))
         # as lists
