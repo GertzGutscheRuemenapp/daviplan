@@ -1,20 +1,14 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import requests
-import os
 import pandas as pd
 import numpy as np
 from typing import List, Tuple
 from io import StringIO
 from distutils.util import strtobool
-from urllib.parse import urlencode
-import requests
 
 from django.db import transaction, connection
-from django.http.request import QueryDict, MultiValueDict, HttpRequest
 from django.db.models.query import QuerySet
-from django.conf import settings
 from django.db.models import FloatField
 from django.contrib.gis.db.models.functions import Transform, Func
 
@@ -25,9 +19,7 @@ from rest_framework import serializers
 
 from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
 
-from routingpy import OSRM
-
-from datentool_backend.modes.views import run_router, stop_router
+from datentool_backend.utils.routers import OSRMRouter
 from datentool_backend.utils.excel_template import ExcelTemplateMixin
 from datentool_backend.utils.serializers import MessageSerializer, drop_constraints
 from datentool_backend.utils.views import ProtectCascadeMixin
@@ -47,7 +39,6 @@ from datentool_backend.indicators.models import (Stop,
 from datentool_backend.modes.models import (ModeVariant,
                                             Mode,
                                             MODE_MAX_DISTANCE,
-                                            MODE_ROUTERS,
                                             DEFAULT_MAX_DIRECT_WALKTIME,
                                             MODE_SPEED,
                                             )
@@ -92,7 +83,6 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
     def get_queryset(self):
         variant = self.request.data.get('variant')
         return MatrixStopStop.objects.filter(variant=variant)
-
 
     @extend_schema(description='Upload Excel-File or PTV-Visum-Matrix with Traveltimes from Stop to Stop',
                    request=inline_serializer(
@@ -345,30 +335,19 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                                 **kwargs) -> pd.DataFrame:
         """calculate traveltimes"""
         mode = Mode(variant.mode)
-        mode_settings = settings.OSRM_ROUTING[mode.name]
-        host = mode_settings['host']
-        port = mode_settings['routing_port']
-        baseurl = f'http://{host}:{port}'
+        router = OSRMRouter(mode)
 
-        # check port and run if router is not up
-        try:
-            requests.get(baseurl)
-        except requests.exceptions.ConnectionError:
-            run_router(mode)
+        if not router.is_running:
+            router.run()
 
         sources = self.get_sources(**kwargs).order_by('id')
         destinations = self.get_destinations(**kwargs).order_by('id')
 
-        client = OSRM(base_url=baseurl, timeout=3600)
-        coords = list(sources.values_list('lon', 'lat', named=False))\
-            + list(destinations.values_list('lon', 'lat', named=False))
-        # as lists
-        #radiuses = [30000 for i in range(len(coords))]
-        matrix = client.matrix(locations=coords,
-                               # radiuses=radiuses,
-                               sources=range(len(sources)),
-                               destinations=range(len(sources), len(coords)),
-                               profile='driving')
+        source_coords = list(sources.values_list('lon', 'lat', named=False))
+        dest_coords = list(destinations.values_list('lon', 'lat', named=False))
+
+        matrix = router.matrix_calculation(source_coords, dest_coords)
+
         # convert matrix to dataframe
         arr = np.array(matrix.durations)
         arr_seconds = pd.DataFrame(
