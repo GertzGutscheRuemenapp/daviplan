@@ -348,9 +348,6 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
 
         matrix = router.matrix_calculation(source_coords, dest_coords)
 
-        print(matrix)
-        logger.info(matrix)
-
         # convert matrix to dataframe
         arr = np.array(matrix.durations)
         arr_seconds = pd.DataFrame(
