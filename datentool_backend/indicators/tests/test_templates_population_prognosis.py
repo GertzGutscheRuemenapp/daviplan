@@ -53,7 +53,8 @@ class PopulationTemplateTest(LoginTestCase, APITestCase, CreateTestdataMixin):
         for year in cls.prognosis_years:
             PopulationFactory(popraster=cls.popraster, year=year, prognosis=cls.prognosis)
 
-        cls.area_level = AreaLevelFactory(id=1, name='Gemeinden')
+        cls.area_level = AreaLevelFactory(id=1, name='Gemeinden',
+                                          is_default_pop_level=True)
 
         str_field = FieldTypeFactory(ftype=FieldTypes.STRING)
 
