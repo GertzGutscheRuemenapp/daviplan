@@ -9,6 +9,7 @@ jobs:
       - image: gertzgutscheruemenapp/osrm-flask
       - image: circleci/postgres:13-postgis-ram
     environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
       POSTGRES_USER: postgres
       POSTGRES_DB: circle_test
       POSTGRES_PASSWORD: postgres
