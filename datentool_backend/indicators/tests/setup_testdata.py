@@ -308,9 +308,9 @@ class CreateTestdataMixin:
     @classmethod
     def create_years_gender_agegroups(cls):
         """Create years, genders and agegroups"""
-        Year.objects.create(year=2022, is_default=True)
+        Year.objects.create(year=2022, is_default=True, is_real=True)
         for year in range(2023, 2030):
-            Year.objects.create(year=year)
+            Year.objects.create(year=year, is_prognosis=True)
 
         cls.years = Year.objects.all()
         Gender.objects.create(name='Male')
@@ -354,7 +354,7 @@ class CreateTestdataMixin:
                                       pop_values_by_age_gender,
                                       cls.population)
 
-        for i, year in enumerate(cls.years):
+        for i, year in enumerate(cls.years[1:]):
             population = PopulationFactory(prognosis=cls.prognosis,
                                            year=year,
                                            popraster=cls.popraster,
