@@ -90,7 +90,7 @@
     </div>
   </div>
 </mat-expansion-panel>
-<mat-expansion-panel cookieExpansion="exp-pop-compare" class="disabled">
+<!--<mat-expansion-panel cookieExpansion="exp-pop-compare" class="disabled">
   <mat-expansion-panel-header>
     <mat-panel-title>
       <div class="mini-fab-icon">
@@ -104,8 +104,8 @@
   </mat-expansion-panel-header>
   <mat-checkbox color="primary" [(ngModel)]="compareYears" style="width: 230px; margin-bottom: 10px;"
                 i18n>Ausgewählte Bevölkerungs- daten vergleichen mit denen aus dem Jahr
-  </mat-checkbox> <!--style="margin: 0 0 10px -12px;"-->
-<!--    Bevölkerungsstruktur vergleichen-->
+  </mat-checkbox> &lt;!&ndash;style="margin: 0 0 10px -12px;"&ndash;&gt;
+&lt;!&ndash;    Bevölkerungsstruktur vergleichen&ndash;&gt;
   <mat-form-field *ngIf="realYears && prognosisYears" appearance="outline" class="small">
     <mat-label>Jahr</mat-label>
     <mat-select disableOptionCentering disableRipple [value]="realYears[0]" [disabled]="!compareYears">
@@ -114,7 +114,7 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
-</mat-expansion-panel>
+</mat-expansion-panel>-->
 
 <!--this div is only there to cover glitched shadow of chart toggle-->
 <div style="width: 100%; height: 20px; background-color: white;"></div>

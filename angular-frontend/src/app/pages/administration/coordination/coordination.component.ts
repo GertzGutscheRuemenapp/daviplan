@@ -55,10 +55,10 @@ const data: { [name: string]: DataDomain[] } = {
   ],
   'erreichbarkeit' : [
     { name: 'Straßennetz', url: '/grundlagendaten/strassennetz/', users: [mockUsers[0]], status: { text: '-', detail:'' }},
-    { name: 'Zu Fuß', url: '/grundlagendaten/erreichbarkeiten/', users: [mockUsers[0]], status: { text: '-', detail:'' }},
-    { name: 'Rad', url: '/grundlagendaten/erreichbarkeiten/', users: [mockUsers[0]], status: { text: '-', detail:'' }},
-    { name: 'Auto', url: '/grundlagendaten/erreichbarkeiten/', users: [mockUsers[0]], status: { text: '-', detail:'' }},
-    { name: 'ÖPNV', url: '/grundlagendaten/erreichbarkeiten/', users: [mockUsers[1]], status: { text: '-', detail:'' }},
+    { name: 'Zu Fuß', url: '/grundlagendaten/straßennetz/', users: [mockUsers[0]], status: { text: '-', detail:'' }},
+    { name: 'Rad', url: '/grundlagendaten/straßennetz/', users: [mockUsers[0]], status: { text: '-', detail:'' }},
+    { name: 'Auto', url: '/grundlagendaten/straßennetz/', users: [mockUsers[0]], status: { text: '-', detail:'' }},
+    { name: 'ÖPNV', url: '/grundlagendaten/oepnvnetz/', users: [mockUsers[1]], status: { text: '-', detail:'' }},
   ],
   'Infrastruktur' : [
     { name: 'Schulen', url: '/grundlagendaten/standorte/', users: [mockUsers[1]], status: { text: '25 Standorte, 2 Leistungen definiert', detail:'' }, marker: 2},

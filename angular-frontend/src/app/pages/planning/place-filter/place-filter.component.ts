@@ -131,12 +131,12 @@ export class PlaceFilterComponent  implements AfterViewInit {
     const rows: any[][] = [];
     places.forEach(place => {
       const capValues = this.infrastructure!.services!.map(service => {
-        return this.planningService.getCapacity(place, service);
+        return this.planningService.getPlaceCapacity(place, { service: service });
       })
       const values: any[] = this.infrastructure!.placeFields!.map(field => {
-        return place.properties.attributes[field.name] || '';
+        return place.attributes[field.name] || '';
       })
-      rows.push([place.properties.name as any].concat(capValues).concat(values));
+      rows.push([place.name as any].concat(capValues).concat(values));
     })
     return rows;
   }

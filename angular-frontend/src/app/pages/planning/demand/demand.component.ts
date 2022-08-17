@@ -110,9 +110,10 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
     }
     if (!this.year || !this.activeLevel || !this.activeService || !this.activeProcess) return;
     this.updateMapDescription();
-
+    const scenarioId = this.planningService.activeScenario?.isBase? undefined: this.planningService.activeScenario?.id;
     this.planningService.getDemand(this.activeLevel.id,
-      { year: this.year!, service: this.activeService?.id }).subscribe(demandData => {
+      { year: this.year!, service: this.activeService?.id, scenario: scenarioId
+      }).subscribe(demandData => {
       let max = 1;
       let min = Number.MAX_VALUE;
       this.areas.forEach(area => {
@@ -121,13 +122,20 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
         max = Math.max(max, value);
         min = Math.min(min, value);
         area.properties.value = value;
-        area.properties.description = `<b>${area.properties.label}</b><br>Nachfrage: ${area.properties.value}`
+        const formattedValue = value? value.toLocaleString(): value;
+        area.properties.description = `<b>${area.properties.label}</b>
+                <br>Nachfrage nach Leistung "${this.activeService?.name}"
+                <br>${formattedValue} ${this.activeService?.demandPluralUnit} im Jahr ${this.year}
+                <br>im Szenario "${this.activeScenario?.name}"`
       })
       max = Math.max(max, 10);
       const steps = (max < 1.2 * min)? 3: (max < 1.4 * min)? 5: (max < 1.6 * min)? 7: 9;
-      this.demandLayer = new VectorLayer(this.activeLevel!.name,{
+      const desc = `<b>${this.activeService?.demandPluralUnit} ${this.year} nach ${this.activeLevel?.name}</b><br>
+                    Minimum: ${min.toLocaleString()}<br>
+                    Maximum: ${max.toLocaleString()}`;
+      this.demandLayer = new VectorLayer(this.activeService?.demandPluralUnit || 'Nachfragende',{
           order: 0,
-          description: this.activeLevel!.name,
+          description: desc,
           opacity: 1,
           style: {
             strokeColor: 'white',
@@ -144,9 +152,9 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
               fillColor: 'rgba(255, 255, 0, 0.7)'
             }
           },
-          valueMapping: {
+          valueStyles: {
             field: 'value',
-            color: {
+            fillColor: {
               range: d3.interpolateBlues,
               scale: 'sequential',
               bins: steps
@@ -161,9 +169,10 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   }
 
   updateMapDescription(): void {
-    const desc = `Planungsprozess: ${this.activeProcess?.name} > ${this.activeScenario?.name} | ${this.year} <br>
-                  Nachfrage nach ${this.activeService?.name} auf Ebene ${this.activeLevel?.name}`
-    this.mapControl!.mapDescription = desc;
+    const desc = `${this.activeScenario?.name}<br>
+                  Nachfrage nach "${this.activeService?.name}"<br>
+                  <b>${this.activeService?.demandPluralUnit} ${this.year} nach ${this.activeLevel?.name}</b>`
+    this.mapControl?.setDescription(desc);
   }
 
   ngOnDestroy(): void {

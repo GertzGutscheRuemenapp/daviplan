@@ -1,4 +1,13 @@
-import { Component, ElementRef, AfterViewInit, Renderer2, OnDestroy, ViewChild, TemplateRef } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  AfterViewInit,
+  Renderer2,
+  OnDestroy,
+  ViewChild,
+  TemplateRef,
+  ChangeDetectorRef
+} from '@angular/core';
 import { MapControl, MapService } from "../../map/map.service";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { faArrowsAlt } from '@fortawesome/free-solid-svg-icons';
@@ -12,7 +21,7 @@ import { RemoveDialogComponent } from "../../dialogs/remove-dialog/remove-dialog
 import { PlanningService } from "./planning.service";
 import { LegendComponent } from "../../map/legend/legend.component";
 import { TimeSliderComponent } from "../../elements/time-slider/time-slider.component";
-import { Infrastructure, PlanningProcess, User } from "../../rest-interfaces";
+import { Infrastructure, PlanningProcess, Scenario, User } from "../../rest-interfaces";
 import { SettingsService } from "../../settings.service";
 import { AuthService } from "../../auth.service";
 import { HttpClient } from "@angular/common/http";
@@ -42,8 +51,11 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   realYears?: number[];
   prognosisYears?: number[];
   infrastructures: Infrastructure[] = [];
+  baseScenario?: Scenario;
   editProcessForm: FormGroup;
   Object = Object;
+  isLoading = true;
+  mapDescription = '';
 
   isSM$: Observable<boolean> = this.breakpointObserver.observe('(max-width: 39.9375em)')
     .pipe(
@@ -54,7 +66,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   constructor(private breakpointObserver: BreakpointObserver, private renderer: Renderer2,
               private elRef: ElementRef, private mapService: MapService, private dialog: MatDialog,
               public planningService: PlanningService, private settings: SettingsService,
-              private auth: AuthService, private formBuilder: FormBuilder,
+              private auth: AuthService, private formBuilder: FormBuilder, private cdref: ChangeDetectorRef,
               private http: HttpClient, private rest: RestAPI, private cookies: CookieService) {
     this.editProcessForm = this.formBuilder.group({
       name: new FormControl(''),
@@ -70,7 +82,17 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.renderer.setStyle(wrapper, 'overflow-y', 'hidden');
     this.mapControl = this.mapService.get('planning-map');
     this.planningService.legend = this.legend;
-    this.mapControl.mapDescription = 'Planungsprozess: xyz > Status Quo Fortschreibung <br> usw.';
+    // using "isLoading$ | async" in template causes NG0100, because service doesn't know about life cycle of this page
+    // workaround: force change detection
+    this.planningService.isLoading$.subscribe(isLoading => {
+      this.isLoading = isLoading;
+      this.cdref.detectChanges();
+    });
+    // same as above
+    this.mapControl.mapDescription$.subscribe(desc => {
+      this.mapDescription = desc;
+      this.cdref.detectChanges();
+    });
     this.timeSlider?.onChange.subscribe(value => {
       this.planningService.year$.next(value);
       this.cookies.set('planning-year', value);
@@ -96,26 +118,32 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.planningService.activeService$.subscribe(service => {
       if (service) this.cookies.set('planning-service', service?.id);
     })
+    this.planningService.activeScenario$.subscribe(scenario => {
+      if (scenario && this.planningService.activeProcess)
+        this.cookies.set(`planning-scenario-${this.planningService.activeProcess.id}`, scenario.id);
+    })
 
     this.planningService.getProcesses().subscribe(processes => {
-      this.auth.getCurrentUser().subscribe(user => {
-        if (!user) return;
-        this.planningService.getUsers().subscribe(users => {
-          this.otherUsers = users.filter(u => u.id != user.id);
+      this.planningService.getBaseScenario().subscribe(scenario => {
+        this.baseScenario = scenario;
+        this.auth.getCurrentUser().subscribe(user => {
+          if (!user) return;
+          this.planningService.getUsers().subscribe(users => {
+            this.otherUsers = users.filter(u => u.id != user.id);
+          })
+          processes.forEach(process => {
+            if (process.owner === user.id)
+              this.myProcesses.push(process);
+            else
+              this.sharedProcesses.push(process);
+          })
+          const processId = this.cookies.get('planning-process', 'number');
+          if (processId) {
+            this.setProcess(Number(processId));
+          }
         })
-        processes.forEach(process => {
-          if (process.owner === user.id)
-            this.myProcesses.push(process);
-          else
-            this.sharedProcesses.push(process);
-        })
-        const processId = this.cookies.get('planning-process', 'number');
-        if (processId) {
-          this.setProcess(Number(processId));
-        }
       })
     })
-    this.planningService.setReady(true);
   }
 
   ngOnDestroy(): void {
@@ -127,9 +155,12 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   setProcess(id: number | undefined, options?: { persist: boolean }): void {
     let process = this.getProcess(id);
     this.activeProcess = process;
+    const scenarioId = this.cookies.get(`planning-scenario-${process?.id}`, 'number');
+    const scenario = process?.scenarios?.find(s => s.id === scenarioId) || this.baseScenario;
     if (options?.persist)
       this.cookies.set('planning-process', process?.id);
     this.planningService.activeProcess$.next(process);
+    this.planningService.activeScenario$.next(scenario);
   }
 
   setSlider(): void {

@@ -28,6 +28,18 @@ DB_PASS = os.environ.get('DB_PASS', '')
 DB_PORT = os.environ.get('DB_PORT', 5432)
 DB_HOST = os.environ.get('DB_HOST', 'localhost')
 SECRET_KEY = os.environ.get('SECRET_KEY')
+ROUTING_HOST = os.environ.get('ROUTING_HOST', 'localhost')
+ROUTING_PORT = os.environ.get('ROUTING_PORT', 8001)
+
+# ports for OSRM routing
+MODE_OSRM_PORTS = {
+    'CAR': os.environ.get('MODE_CAR_PORT', 5001),
+    'BIKE': os.environ.get('MODE_BIKE_PORT', 5002),
+    'WALK': os.environ.get('MODE_FOOT_PORT', 5003),
+}
+
+BASE_PBF = 'germany-latest.osm.pbf'
+PBF_URL = f'http://download.geofabrik.de/europe/{BASE_PBF}'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -35,7 +47,6 @@ DEBUG = False
 ALLOWED_HOSTS = [
     'datentool.ggr-planung.de'
 ]
-
 
 # Application definition
 
@@ -257,7 +268,7 @@ STATIC_ROOT = os.path.join(PUBLIC_DIR, 'static')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(PUBLIC_DIR, 'media')
 
-POPRASTER_ROOT = os.path.join(BASE_DIR, 'datentool_backend', 'data')
+DATA_ROOT = os.path.join(BASE_DIR, 'datentool_backend', 'data')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

@@ -178,7 +178,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       this.areas.forEach(area => {
         const entries = this.popEntries[area.id];
         // map data
-        const value = entries.reduce((p: number, e: PopEntry) => p + e.value, 0);
+        const value = entries? entries.reduce((p: number, e: PopEntry) => p + e.value, 0): 0;
         area.properties.value = value;
         area.properties.description = `<b>${area.properties.label}</b><br>Bevölkerung: ${area.properties.value}`
         max = Math.max(max, value);
@@ -209,7 +209,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
           }
         },
         showLabel: true,
-        valueMapping: {
+        valueStyles: {
           field: 'value',
           radius: {
             range: [5, 50],

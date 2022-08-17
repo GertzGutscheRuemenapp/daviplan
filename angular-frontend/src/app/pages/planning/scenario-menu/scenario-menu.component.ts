@@ -4,7 +4,15 @@ import { MatDialog } from "@angular/material/dialog";
 import { environment } from "../../../../environments/environment";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { PlanningService } from "../planning.service";
-import { DemandRateSet, PlanningProcess, Prognosis, Scenario, Service } from "../../../rest-interfaces";
+import {
+  DemandRateSet, ModeVariant,
+  Network,
+  PlanningProcess,
+  Prognosis,
+  Scenario,
+  Service,
+  TransportMode
+} from "../../../rest-interfaces";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
@@ -17,6 +25,7 @@ import { CookieService } from "../../../helpers/cookies.service";
 })
 export class ScenarioMenuComponent implements OnInit {
   @Input() domain!: 'demand' | 'reachabilities' | 'rating' | 'supply';
+  @Input() helpText = '';
   @ViewChildren('scenario') scenarioCards?: QueryList<ElementRef>;
   @ViewChild('editScenario') editScenarioTemplate?: TemplateRef<any>;
   @ViewChild('supplyScenarioTable') supplyScenarioTableTemplate?: TemplateRef<any>;
@@ -29,7 +38,10 @@ export class ScenarioMenuComponent implements OnInit {
   editScenarioForm: FormGroup;
   process?: PlanningProcess;
   demandRateSets: DemandRateSet[] = [];
+  networks: Network[] = [];
+  modeVariants: ModeVariant[] = [];
   prognoses: Prognosis[] = [];
+  TransportMode = TransportMode;
 
   constructor(private dialog: MatDialog, public planningService: PlanningService, private cookies: CookieService,
               private formBuilder: FormBuilder, private http: HttpClient, private rest: RestAPI) {
@@ -60,25 +72,33 @@ export class ScenarioMenuComponent implements OnInit {
       case 'supply':
         break;
       case 'demand':
-        this.planningService.getDemandRateSets(service.id).subscribe(dr => this.demandRateSets = dr);
+        this.planningService.getDemandRateSets(service.id).subscribe(dr => { this.demandRateSets = dr; });
         break;
       case 'reachabilities':
-        // Anweisungen werden ausgeführt,
-        // falls expression mit valueN übereinstimmt
+        this.planningService.getNetworks().subscribe(networks => this.networks = networks);
+        this.planningService.getModeVariants().subscribe(modeVariants => this.modeVariants = modeVariants);
         break;
       case 'rating':
-        // Anweisungen werden ausgeführt,
-        // falls keine der case-Klauseln mit expression übereinstimmt
         break;
       default:
         break;
     }
   }
 
+  getDemandRateSet(scenario: Scenario): DemandRateSet | undefined {
+    const id = scenario.demandrateSets.find(dr => dr.service === this.planningService.activeService?.id)?.demandrateset;
+    return this.demandRateSets.find(dr => dr.id === id);
+  }
+
+  getNetwork(scenario: Scenario, mode: TransportMode): Network | undefined {
+    const modeVariantId = scenario.modeVariants.find(mv => mv.mode === mode)?.variant;
+    const modeVariant = this.modeVariants.find(mv => mv.id === modeVariantId);
+    return this.networks.find(n => n.id === modeVariant?.network);
+  }
+
   setScenario(scenario: Scenario, options?: { silent?: boolean }): void {
     if (this.activeScenario === scenario) return;
     this.activeScenario = scenario;
-    this.cookies.set(`planning-scenario-${this.process?.id}`, scenario?.id);
     if (!options?.silent)
       this.planningService.activeScenario$.next(scenario);
   }
@@ -86,9 +106,6 @@ export class ScenarioMenuComponent implements OnInit {
   onProcessChange(process: PlanningProcess | undefined): void {
     this.process = process;
     this.scenarios = (process)? [this.baseScenario!].concat(process.scenarios || []): [];
-    const scenarioId = this.cookies.get(`planning-scenario-${process?.id}`, 'number');
-    const scenario = this.scenarios?.find(s => s.id === scenarioId) || this.baseScenario;
-    this.planningService.activeScenario$.next(scenario);
   }
 
   onDeleteScenario(): void {
@@ -209,16 +226,64 @@ export class ScenarioMenuComponent implements OnInit {
   }
 
   onShowDemandQuotaSet(): void {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '900px',
-      data: {
-        title: $localize`Nachfragequoten-Set: [Name]`,
-        // confirmButtonText: $localize`umbenennen`,
-        template: this.demandQuotaTemplate,
-        hideConfirmButton: true
-      }
-    });
-    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+    this.planningService.getRealYears().subscribe(realYears => {
+      this.planningService.getPrognosisYears().subscribe(prognosisYears => {
+        this.planningService.getGenders().subscribe(genders => {
+          this.planningService.getAgeGroups().subscribe(ageGroups => {
+            const scenario = this.planningService.activeScenario;
+            const service = this.planningService.activeService;
+            const demandRateSet = this.getDemandRateSet(scenario!);
+            const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+              width: '900px',
+              data: {
+                title: 'Nachfragequoten',
+                subtitle: `Leistung "${service?.name}" / Set "${demandRateSet?.name}"`,
+                // confirmButtonText: $localize`umbenennen`,
+                template: this.demandQuotaTemplate,
+                context: {
+                  years: realYears.concat(prognosisYears),
+                  scenario: scenario,
+                  demandRateSet: demandRateSet,
+                  genders: genders,
+                  ageGroups: ageGroups,
+                  service: service
+                },
+                hideConfirmButton: true
+              }
+            });
+            dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+            });
+          })
+        })
+      })
+    })
+  }
+
+  onDemandRateChange(scenario: Scenario, demandRateSet: DemandRateSet): void {
+    if (!this.planningService.activeService) return;
+    const serviceId = this.planningService.activeService.id;
+    const body: any = { demandrateSets: [{ service: serviceId, demandrateset: demandRateSet.id }] };
+    this.patchScenarioSetting(scenario, body);
+  }
+
+  onPrognosisChange(scenario: Scenario, prognosisId: number): void {
+    const body: any = { prognosis: prognosisId };
+    this.patchScenarioSetting(scenario, body);
+  }
+
+  onNetworkChange(scenario: Scenario, mode: number, network: Network): void {
+    const modeVariant = this.modeVariants.find(mv => mv.mode === mode && mv.network === network.id);
+    if (!modeVariant) return;
+    const body: any = { modeVariants: [{ mode: mode, variant: modeVariant.id }] };
+    this.patchScenarioSetting(scenario, body);
+  }
+
+  private patchScenarioSetting(scenario: Scenario, body: any): void { //: Observable<Scenario> {
+    const url = `${this.rest.URLS.scenarios}${scenario.id}/`;
+    this.http.patch<Scenario>(url, body).subscribe(scen => {
+      Object.assign(scenario, scen);
+      this.planningService.clearCache(scenario.id.toString());
+      this.planningService.activeScenario$.next(scenario);
     });
   }
 }

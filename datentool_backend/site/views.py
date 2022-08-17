@@ -34,7 +34,7 @@ class YearFilter(filters.FilterSet):
 class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     serializer_class = YearSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-    filter_class = YearFilter
+    filterset_class = YearFilter
 
     def get_queryset(self):
         """ get the years. Request-parameters with_prognosis/with_population """

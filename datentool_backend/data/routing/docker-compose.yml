@@ -1,0 +1,12 @@
+version: '3.1'
+
+services:
+
+  router:
+    image: gertzgutscheruemenapp/osrm-flask
+    ports:
+      - "8001:8001"
+      - "5000-5010:5000-5010"
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data

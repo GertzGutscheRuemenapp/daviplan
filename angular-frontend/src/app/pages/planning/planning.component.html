@@ -1,4 +1,4 @@
-<div class="loadOverlay" *ngIf="planningService.isLoading$ | async">
+<div class="loadOverlay" *ngIf="isLoading">
   <mat-spinner [diameter]="50"></mat-spinner>
 </div>
 <mat-toolbar class="sub-nav">
@@ -108,8 +108,24 @@
     <a routerLink="/planung/erreichbarkeiten" routerLinkActive="active-link" i18n> Erreichbarkeiten </a>
     <a routerLink="/planung/bewertung" routerLinkActive="active-link" i18n> Bewertung </a>
   </span>
-  <app-help-button title="Infrastrukturplanung" position="center" style="margin-left: 8px;" [top]="50">
-    <p>allgemeiner erklärender Text zu Abschnitten/Bereichen der Planungsseite</p>
+  <app-help-button title="Infrastrukturplanung" position="center" style="margin-left: 8px;" [top]="50" [width]="600">
+    <p>Im gerade angezeigten Hauptmenübereich „Infrastrukturplanung“ können Sie auf Basis von Szenarien eine
+    Infrastrukturplanung für die zuvor definierten Infrastrukturbereiche vornehmen.</p>
+    <p>Wenn Sie auf „Nachfrage“ klicken, können Sie sich für jede einzelne Leistung eine Nachfrageschätzung ansehen und
+      die editieren. Die Nachfrage errechnet sich für jede Gebietseinheit aus der Zahl der Einwohner:innen in einem
+      bestimmten Alter und einer Nachfragequote.</p>
+    <p>Im Abschnitt „Angebot“ können Sie sich das Angebot aktuelle Angebot ansehen, d.h. die räumliche Verteilung
+      und ggf. die Kapazitäten der Einrichtungen, die die von Ihnen betrachtete Leistung anbieten. Dieses Angebot
+      können Sie über Szenarien für die Zukunft variieren.</p>
+    <p>Der Abschnitt „Erreichbarkeiten“ ermöglicht Ihnen eine Analyse der Wegzeiten zwischen den Wohnstandorten der
+      Nachfragenden und den Einrichtungen. Auch hier können Sie in Szenarien unterschiedliche Erreichbarkeitsverhältnisse
+      definieren.</p>
+    <p>Im Abschnitt „Bewertung“ überprüfen Sie, in welchen Szenario Ihre Annahmen zur Nachfrage-, Angebots- und
+      Erreichbarkeitsentwicklung zur besten Versorgungssituation führen. Bei Bedarf kehren Sie zu einem der anderen
+      Abschnitte zurück, um Ihre Annahmen anzupassen oder weitere Szenarien zu definieren.</p>
+    <p>Bevor Sie mit der Szenarienarbeit beginnen, legen Sie oben links einen Planungsprozess an. Mit diesem
+      definieren Sie, welche Infrastrukturbereiche betrachtet werden sollen und wer an der Szenarienentwicklung
+      mitwirken darf.</p>
   </app-help-button>
 </mat-toolbar>
 <div class="map-wrapper">
@@ -118,13 +134,13 @@
   </div>
   <div id="planning-map" class="map-container">
     <div id="info" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">
-      <div class="handle" title="Anzeigeinformationen" cdkDragHandle>
-        <mat-icon color="primary">info</mat-icon>
+      <div class="handle" title="Kartentitel" cdkDragHandle>
+        <mat-icon class="material-icons-outlined" color="primary">map</mat-icon>
         <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
       </div>
       <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-planning-description"
                        [initiallyExpanded]="true">
-        <div style="padding: 10px; min-height: 70px;" [innerHTML]="this.mapControl?.mapDescription"></div>
+        <div style="padding: 5px 15px; min-height: 70px; line-height: normal;" [innerHTML]="mapDescription"></div>
       </app-side-toggle>
     </div>
     <div id="time-slider" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">

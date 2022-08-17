@@ -53,6 +53,9 @@ class ExcelTemplateMixin:
                        name='FileDropConstraintSerializer',
                        fields={'drop_constraints': drop_constraints,
                                'excel_file': serializers.FileField(),
+                               'variant': serializers.IntegerField(
+                                   required=False,
+                                   help_text='mode-variant id'),
                                }
                    ),
                    responses={202: OpenApiResponse(MessageSerializer,

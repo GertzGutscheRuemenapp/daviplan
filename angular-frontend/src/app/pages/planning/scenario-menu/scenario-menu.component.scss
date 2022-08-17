@@ -9,7 +9,7 @@
   float: left;
 }
 
-#scenario-menu {
+#scenario-cards-wrapper {
   background-color: white;
   //border: 1px solid #cbe6f8;
   border-left: 2px solid $primary;
@@ -107,9 +107,14 @@
 }
 
 ::ng-deep app-scenario-menu {
-  .scenario-card:not(.active):not(:hover) {
+  .scenario-card:not(.active):not(:hover), .mat-select-disabled {
     .mat-select-min-line, .mat-select-trigger span, .mat-select-arrow, mat-icon {
       color: grey !important;
+    }
+  }
+  .mat-select-disabled {
+    .mat-select-arrow {
+      opacity: 0;
     }
   }
   .mat-form-field-wrapper{

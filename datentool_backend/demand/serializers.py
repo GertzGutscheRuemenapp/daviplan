@@ -37,6 +37,10 @@ class DemandRateSetSerializer(serializers.ModelSerializer):
         new_demand_rates = []
         for dr in demand_rate_data:
             value = dr.pop('value', 0)
+            # rates with value == 0 can be ignored resp. deleted,
+            # non existing ones will be interpreted as zeros
+            if not value:
+                continue
             dr['year'] = Year.objects.get(year=dr.pop('year')['year'])
             dr['demand_rate_set'] = instance
             demand_rate, created = DemandRate.objects.get_or_create(**dr)

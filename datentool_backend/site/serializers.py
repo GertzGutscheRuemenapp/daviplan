@@ -1,7 +1,11 @@
 from typing import Dict
+import os
+import urllib
+import requests
 from rest_framework import serializers
 from .models import SiteSetting, ProjectSetting
 from django.db.models import Max, Min
+from django.conf import settings
 
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
 from datentool_backend.utils.pop_aggregation import intersect_areas_with_raster
@@ -59,6 +63,17 @@ class ProjectSettingSerializer(serializers.ModelSerializer):
                     intersect_areas_with_raster(areas, drop_constraints=True)
                 except:
                     pass
+            # remove existing routers:
+            fp_target_pbf = os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf')
+            # ToDo: default network?
+            if os.path.exists(fp_target_pbf):
+                try:
+                    os.remove(fp_target_pbf)
+                except:
+                    pass
+            baseurl = f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}'
+            for mode in ['car', 'bicycle', 'foot']:
+                requests.post(f'{baseurl}/remove/{mode}')
         return instance
 
 
@@ -68,6 +83,7 @@ class BaseDataSettingSerializer(serializers.Serializer):
     default_demand_rate_sets = serializers.SerializerMethodField(read_only=True)
     default_mode_variants = serializers.SerializerMethodField(read_only=True)
     default_prognosis = serializers.SerializerMethodField(read_only=True)
+    routing = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         fields = ('default_pop_area_level', 'pop_statistics_area_level',
@@ -94,11 +110,13 @@ class BaseDataSettingSerializer(serializers.Serializer):
     def get_default_demand_rate_sets(self, obj) -> Dict[int, int]:
         sets = DemandRateSet.objects.filter(
             is_default=True).order_by('service_id')
-        return dict(sets.values_list('service_id', 'id'))
+        ret = [{'service': s.service.id, 'demandrateset': s.id} for s in sets]
+        return ret
 
     def get_default_mode_variants(self, obj) -> Dict[int, int]:
         sets = ModeVariant.objects.filter(network__is_default=True).order_by('mode')
-        return dict(sets.values_list('mode', 'id'))
+        ret = [{'mode': s.mode, 'variant': s.id} for s in sets]
+        return ret
 
     def get_default_prognosis(self, obj) -> int:
         try:
@@ -106,6 +124,26 @@ class BaseDataSettingSerializer(serializers.Serializer):
             return prog.id
         except Prognosis.DoesNotExist:
             return
+
+    def get_routing(self, obj):
+        base_net_existing = os.path.exists(
+            os.path.join(settings.MEDIA_ROOT, settings.BASE_PBF))
+        project_area_net_existing = os.path.exists(
+            os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf'))
+        running = {}
+        for mode, port in settings.MODE_OSRM_PORTS.items():
+            try:
+                urllib.request.urlopen(
+                    f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}',
+                    timeout=1)
+                running[mode] = True
+            except:
+                running[mode] = False
+        return {
+            'base_net': base_net_existing,
+            'project_area_net': project_area_net_existing,
+            'running': running,
+        }
 
 
 class SiteSettingSerializer(serializers.ModelSerializer):
