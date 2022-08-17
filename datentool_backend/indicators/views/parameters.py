@@ -18,7 +18,7 @@ arealevel_year_service_scenario_serializer = inline_serializer(
                                          help_text='Jahr (z.B. 2010)'),
         'service': serializers.PrimaryKeyRelatedField(
             queryset=Service.objects.all(),
-            required=True, help_text='service_id'),
+            required=True, help_text='service id'),
         'scenario':  serializers.PrimaryKeyRelatedField(
             queryset=Scenario.objects.all(),
             required=False, help_text='scenario_id'),

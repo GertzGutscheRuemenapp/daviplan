@@ -187,10 +187,10 @@ class TestPlanningProcessProtectCascade(TestAPIMixin, LoginTestCase, APITestCase
         url = self.url_key + '-detail'
         response = self.get_check_200(url, **kwargs)
 
-        response = self.delete(url, **kwargs)
+        response = self.delete(url, **kwargs, extra={'format': 'json'})
         self.response_403(msg=response.content)
         scenario.delete()
-        response = self.delete(url, **kwargs)
+        response = self.delete(url, **kwargs, extra={'format': 'json'})
         self.response_204(msg=response.content)
 
     def test_without_protection_of_referenced_objects(self):
@@ -207,11 +207,13 @@ class TestPlanningProcessProtectCascade(TestAPIMixin, LoginTestCase, APITestCase
         response = self.get_check_200(url, **kwargs)
 
         #  with force=False it should fail
-        response = self.delete(url, data=dict(force=False), **kwargs)
+        response = self.delete(url, data=dict(force=False),
+                               extra={'format': 'json'}, **kwargs)
         self.response_403(msg=response.content)
 
         #  with force=True it should work
-        response = self.delete(url, data=dict(force=True), **kwargs)
+        response = self.delete(url, data=dict(force=True),
+                               extra={'format': 'json'}, **kwargs)
         self.response_204(msg=response.content)
         #  assert that the referenced scenario is deleted
         self.assertEqual(Scenario.objects.count(), 0)

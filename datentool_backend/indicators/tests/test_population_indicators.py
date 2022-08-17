@@ -47,7 +47,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
             'drop_constraints': False
         }
         self.post('arealevels-intersect-areas', pk=self.area_level2.pk,
-                  data=data)
+                  data=data, extra={'format': 'json'})
 
         area_level3 = AreaLevelFactory()
         # disaggregate the population, but no areas in arealevel
@@ -66,21 +66,24 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
                 continue
             response = self.post('arealevels-intersect-areas',
                                  pk=area_level_id,
-                                 data={'drop_constraints': False,})
+                                 data={'drop_constraints': False,},
+                                 extra={'format': 'json'})
             self.assert_http_202_accepted(response)
             print(response.data.get('message'))
 
         # disaggregate the population and use precalculated rastercells
         response = self.post('populations-disaggregate', pk=population.pk,
                              data={'use_intersected_data': True,
-                                   'drop_constraints': False, })
+                                   'drop_constraints': False, },
+                             extra={'format': 'json'})
         self.assert_http_202_accepted(response)
         print(response.data.get('message'))
 
         unknown_level = max(AreaLevel.objects.all().values_list('id', flat=True)) + 1
         response = self.post('arealevels-intersect-areas',
                              pk=unknown_level,
-                             data={'drop_constraints': False,})
+                             data={'drop_constraints': False,},
+                             extra={'format': 'json'})
         self.assert_http_406_not_acceptable(response)
 
     def test_disaggregate_population(self):
@@ -89,17 +92,20 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         # disaggregate the population
         response = self.post('populations-disaggregate', pk=-1,
-                             data={'drop_constraints': False, })
+                             data={'drop_constraints': False, },
+                             extra={'format': 'json'})
         self.assert_http_406_not_acceptable(response)
 
         # disaggregate the population
         response = self.post('populations-disaggregate', pk=population.pk,
-                             data={'drop_constraints': False, })
+                             data={'drop_constraints': False, },
+                             extra={'format': 'json'})
         self.assert_http_202_accepted(response)
         print(response.data.get('message'))
         # do again to check updates
         response = self.post('populations-disaggregate', pk=population.pk,
-                             data={'drop_constraints': False, })
+                             data={'drop_constraints': False, },
+                             extra={'format': 'json'})
         self.assert_http_202_accepted(response)
 
         # get disaggregated population
@@ -127,7 +133,8 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         # disaggregate the population
         response = self.post('populations-disaggregateall',
-                             data={'drop_constraints': False, })
+                             data={'drop_constraints': False, },
+                             extra={'format': 'json'})
         self.assert_http_202_accepted(response)
         print(response.data.get('message'))
 
@@ -161,7 +168,8 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         # Disaggregate the population
         response = self.post('populations-disaggregate', pk=self.population.pk,
-                             data={'drop_constraints': False,})
+                             data={'drop_constraints': False,},
+                             extra={'format': 'json'})
         self.assert_http_202_accepted(response)
         # there should be a message about the not distributed inhabitants
         self.assertIn('999.0 Inhabitants not located to rastercells',
@@ -194,7 +202,8 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         # Disaggregate the population
         response = self.post('populations-disaggregate', pk=self.population.pk,
-                             data={'drop_constraints': False,})
+                             data={'drop_constraints': False,},
+                             extra={'format': 'json'})
         self.assert_http_202_accepted(response)
 
         # get disaggregated population
@@ -216,21 +225,22 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         """aggregate populations to all arealevels"""
         self.post('populations-aggregateall-from-cell-to-area',
                   data={'use_intersected_data': True,
-                       'drop_constraints': False, })
+                       'drop_constraints': False, }, extra={'format': 'json'})
 
     def test_aggregate_population_to_area(self):
         """Test the aggregation of population to areas of an area level"""
         self.prepare_population()
         #  without area_level it should return a 400 (BadRequest)
         query_params = {}
-        response = self.post(self.url_key + '-aggregate-population', data=query_params)
+        response = self.post(self.url_key + '-aggregate-population',
+                             data=query_params, extra={'format': 'json'})
         self.response_400(response)
 
         query_params = {'area_level': self.area_level2.pk,
                         'year': self.years.first().year,}
 
         response = self.post(self.url_key + '-aggregate-population',
-                             data=query_params)
+                             data=query_params, extra={'format': 'json'})
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
         expected = pd.Series([357.213304, 867.698150],
@@ -244,7 +254,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
                         'year': self.years.first().year,}
 
         response = self.post(self.url_key+'-aggregate-population',
-                             data=query_params)
+                             data=query_params, extra={'format': 'json'})
         # Test if input data matches
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
@@ -259,7 +269,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
                         }
 
         response = self.post(self.url_key + '-aggregate-population',
-                             data=query_params)
+                             data=query_params, extra={'format': 'json'})
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
         expected = pd.Series([327.502507, 692.497493, np.nan],
@@ -273,7 +283,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
                         }
 
         response = self.post(self.url_key + '-aggregate-population',
-                             data=query_params)
+                             data=query_params, extra={'format': 'json'})
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
         expected = pd.Series([499.771245, 970.228755, np.nan],
@@ -287,7 +297,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
                         }
 
         response = self.post(self.url_key + '-aggregate-population',
-                             data=query_params)
+                             data=query_params, extra={'format': 'json'})
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
         expected = pd.Series([715.617852, np.nan],
@@ -298,7 +308,8 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         #  do the pre-aggregation of the population to areas
         self.aggregate_population()
         #  the results should stay the same
-        response = self.post(self.url_key + '-aggregate-population', data=query_params)
+        response = self.post(self.url_key + '-aggregate-population',
+                             data=query_params, extra={'format': 'json'})
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
         expected = pd.Series([715.617852, np.nan],
@@ -312,7 +323,8 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         query_params = {'area': self.area1.pk, }
 
-        response = self.post(self.url_key + '-population-details', data=query_params)
+        response = self.post(self.url_key + '-population-details',
+                             data=query_params, extra={'format': 'json'})
         df_calculated_from_rastercells = pd.DataFrame(response.data)
         print(df_calculated_from_rastercells)
         # Test if sum of large area equals all input areas
@@ -320,7 +332,8 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         # area_level2
         query_params = {'area': self.district1.pk, }
 
-        response = self.post(self.url_key + '-population-details', data=query_params)
+        response = self.post(self.url_key + '-population-details',
+                             data=query_params, extra={'format': 'json'})
         # Test if input data matches
         df_calculated_from_rastercells = pd.DataFrame(response.data)
         print(df_calculated_from_rastercells)
@@ -342,7 +355,8 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         query_params = {'area': self.district1.pk,
                         'prognosis': self.prognosis.pk,}
 
-        response = self.post(self.url_key + '-population-details', data=query_params)
+        response = self.post(self.url_key + '-population-details',
+                             data=query_params, extra={'format': 'json'})
         df_calculated_from_areas = pd.DataFrame(response.data)
 
         pd.testing.assert_frame_equal(df_calculated_from_areas,
@@ -357,7 +371,8 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
                         'year': 2022,
                         }
 
-        response = self.post(self.url_key + '-demand', data=query_params)
+        response = self.post(self.url_key + '-demand', data=query_params,
+                             extra={'format': 'json'})
         default_values = pd.DataFrame(response.data)
         print(default_values)
 
@@ -367,7 +382,8 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
                         'year': 2022,
                         }
 
-        response = self.post(self.url_key + '-demand', data=query_params)
+        response = self.post(self.url_key + '-demand', data=query_params,
+                             extra={'format': 'json'})
         scenario_values = pd.DataFrame(response.data)
         print(scenario_values)
         diff = scenario_values.value / default_values.value
@@ -380,7 +396,8 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
                         'year': 2024,
                         }
 
-        response = self.post(self.url_key + '-demand', data=query_params)
+        response = self.post(self.url_key + '-demand', data=query_params,
+                             extra={'format': 'json'})
         values_2024 = pd.DataFrame(response.data)
         print(values_2024)
         diff = values_2024.value / scenario_values.value
@@ -392,7 +409,8 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
                         'year': 2022,
                         }
 
-        response = self.post(self.url_key + '-demand', data=query_params)
+        response = self.post(self.url_key + '-demand', data=query_params,
+                             extra={'format': 'json'})
         values_service2 = pd.DataFrame(response.data)
         print(values_service2)
 
@@ -401,7 +419,8 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
                         'year': 2022,
                         }
 
-        response = self.post(self.url_key + '-demand', data=query_params)
+        response = self.post(self.url_key + '-demand', data=query_params,
+                             extra={'format': 'json'})
         values_service2_arealevel1 = pd.DataFrame(response.data)
         print(values_service2_arealevel1)
 
@@ -410,7 +429,8 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
                         'year': 2022,
                         }
 
-        response = self.post(self.url_key + '-demand', data=query_params)
+        response = self.post(self.url_key + '-demand', data=query_params,
+                             extra={'format': 'json'})
         values_service2_country = pd.DataFrame(response.data)
         print(values_service2_country)
 
@@ -419,7 +439,8 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
                         'year': 2022,
                         }
 
-        response = self.post(self.url_key + '-demand', data=query_params)
+        response = self.post(self.url_key + '-demand', data=query_params,
+                             extra={'format': 'json'})
         values_service2_quadrants = pd.DataFrame(response.data)
         print(values_service2_quadrants)
         # the demand of the whole country should be the sum of the quadrants

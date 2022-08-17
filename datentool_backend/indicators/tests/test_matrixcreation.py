@@ -76,7 +76,8 @@ class TestMatrixCreation(CreateTestdataMixin,
                 'drop_constraints': False,
                 'air_distance_routing': True, }
 
-        res= self.post('matrixcellplaces-precalculate-traveltime', data=data)
+        res= self.post('matrixcellplaces-precalculate-traveltime', data=data,
+                       extra={'format': 'json'})
         self.assert_http_202_accepted(res)
         print(res.content)
         print(MatrixCellPlace.objects.filter(variant=walk.pk).count())
@@ -100,7 +101,8 @@ class TestMatrixCreation(CreateTestdataMixin,
         if max_distance:
             data['max_distance'] = max_distance
 
-        res = self.post('matrixcellplaces-precalculate-traveltime', data=data)
+        res = self.post('matrixcellplaces-precalculate-traveltime', data=data,
+                        extra={'format': 'json'})
         self.assert_http_202_accepted(res)
         content = res.content
         return content
@@ -252,7 +254,8 @@ class TestMatrixCreation(CreateTestdataMixin,
         if max_distance:
             data['max_distance'] = max_distance
 
-        res = self.post('matrixcellstops-precalculate-traveltime', data=data)
+        res = self.post('matrixcellstops-precalculate-traveltime', data=data,
+                        extra={'format': 'json'})
         self.assert_http_202_accepted(res)
         return res.content
 
@@ -280,7 +283,8 @@ class TestMatrixCreation(CreateTestdataMixin,
         if max_distance:
             data['max_distance'] = max_distance
 
-        res = self.post('matrixplacestops-precalculate-traveltime', data=data)
+        res = self.post('matrixplacestops-precalculate-traveltime', data=data,
+                        extra={'format': 'json'})
         self.assert_http_202_accepted(res)
         return res.content
 
@@ -306,13 +310,15 @@ class TestMatrixCreation(CreateTestdataMixin,
                 }
 
         #  use default access distance to stops
-        res = self.post('matrixcellplaces-precalculate-traveltime', data=data)
+        res = self.post('matrixcellplaces-precalculate-traveltime', data=data,
+                        extra={'format': 'json'})
         self.assert_http_202_accepted(res)
         print(res.content)
         print(MatrixCellPlace.objects.filter(variant=self.transit.pk).count())
         #  try longer access distance to stops
         data['max_access_distance'] = 1500
-        res = self.post('matrixcellplaces-precalculate-traveltime', data=data)
+        res = self.post('matrixcellplaces-precalculate-traveltime', data=data,
+                        extra={'format': 'json'})
         self.assert_http_202_accepted(res)
         print(res.content)
         print(MatrixCellPlace.objects.filter(variant=self.transit.pk).count())

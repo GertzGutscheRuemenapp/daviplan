@@ -449,14 +449,15 @@ class CreateTestdataMixin:
         for population in populations:
             self.post('populations-disaggregate', pk=population.pk,
                       data={'use_intersected_data': True,
-                            'drop_constraints': False, })
+                            'drop_constraints': False, },
+                      extra={'format': 'json'})
             data = {
                 'pop_raster': self.popraster.pk,
                 'drop_constraints': False
             }
             self.post('arealevels-intersect-areas', pk=self.area_level2.pk,
-                      data=data)
+                      data=data, extra={'format': 'json'})
             self.post('arealevels-intersect-areas', pk=self.area_level3.pk,
-                      data=data)
+                      data=data, extra={'format': 'json'})
             self.post('arealevels-intersect-areas', pk=self.area_level4.pk,
-                      data=data)
+                      data=data, extra={'format': 'json'})
