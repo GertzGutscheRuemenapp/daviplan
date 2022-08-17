@@ -248,7 +248,7 @@ class TestMatrixCreation(CreateTestdataMixin,
         and return the content of the response
         """
 
-        data = {'variants': mode.pk,
+        data = {'variants': [mode.pk],
                 'drop_constraints': False,
                 }
         if max_distance:
@@ -277,7 +277,7 @@ class TestMatrixCreation(CreateTestdataMixin,
         calculate the matrix between cells and stops
         and return the content of the response
         """
-        data = {'variants': mode.pk,
+        data = {'variants': [mode.pk],
                 'drop_constraints': False,
                 }
         if max_distance:
@@ -304,7 +304,7 @@ class TestMatrixCreation(CreateTestdataMixin,
                                               max_distance=800)
 
         self.transit
-        data = {'variants': self.transit.pk,
+        data = {'variants': [self.transit.pk],
                 'drop_constraints': False,
                 'access_variant': walk.pk,
                 }
