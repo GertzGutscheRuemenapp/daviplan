@@ -61,16 +61,8 @@ class PopulationIndicatorMixin:
         if year:
             filter_params['population__year__year'] = year
 
-        if isinstance(self.data, QueryDict):
-            genders = self.data.getlist('gender')
-            age_groups = self.data.getlist('age_group')
-        else:
-            genders = self.data.get('gender')
-            age_groups = self.data.get('age_group')
-            if isinstance(genders, str):
-                genders = genders.split(',')
-            if isinstance(age_groups, str):
-                age_groups = age_groups.split(',')
+        genders = self.data.get('genders')
+        age_groups = self.data.get('age_groups')
 
         if genders and genders != ['']:
             filter_params['gender__in'] = genders
@@ -99,11 +91,8 @@ class PopulationIndicatorMixin:
         """get the relevant areas"""
         # filter areas
         area_filter = {}
-        if isinstance(self.data, QueryDict):
-            areas = self.data.getlist('area')
-        else:
-            areas = self.data.get('area')
-        if areas and areas != ['']:
+        areas = self.data.get('areas')
+        if areas:
             area_filter['id__in'] = areas
 
         if area_level_id is None:

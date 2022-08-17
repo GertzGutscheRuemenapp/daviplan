@@ -1,7 +1,6 @@
 import requests
 import tempfile
 from requests.exceptions import (MissingSchema, ConnectionError, HTTPError)
-from distutils.util import strtobool
 import datetime
 import json
 
@@ -17,6 +16,7 @@ from django.contrib.gis.gdal import field as gdal_field
 from django.contrib.gis.gdal.error import GDALException
 from django_filters import rest_framework as filters
 
+from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
 from rest_framework.response import Response
 from rest_framework import viewsets, permissions, status, serializers
 from rest_framework.exceptions import (ParseError, NotFound, APIException)
@@ -285,8 +285,7 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
         raster = PopulationRaster.objects.get(id=raster_id) \
             if raster_id is not None else None
 
-        drop_constraints = bool(strtobool(
-            request.data.get('drop_constraints', 'False')))
+        drop_constraints = request.data.get('drop_constraints', False)
 
         intersect_areas_with_raster(areas, pop_raster=raster,
                                     drop_constraints=drop_constraints)
@@ -427,8 +426,8 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
                        fields={'file': serializers.FileField()}
                    ))
     @action(methods=['POST'], detail=True,
-            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
-
+            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata],
+            parser_classes=[CamelCaseMultiPartParser])
     def upload_shapefile(self, request, **kwargs):
         with ProtectedProcessManager(request.user):
             try:

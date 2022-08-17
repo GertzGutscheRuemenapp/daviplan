@@ -71,9 +71,9 @@ class ProjectSettingSerializer(serializers.ModelSerializer):
                     os.remove(fp_target_pbf)
                 except:
                     pass
-            baseurl = f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}'
-            for mode in ['car', 'bicycle', 'foot']:
-                requests.post(f'{baseurl}/remove/{mode}')
+            #baseurl = f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}'
+            #for mode in ['car', 'bicycle', 'foot']:
+                #requests.post(f'{baseurl}/remove/{mode}')
         return instance
 
 

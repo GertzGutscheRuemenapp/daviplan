@@ -15,10 +15,7 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
     def compute(self):
         """"""
         area_level_id = self.data.get('area_level')
-        if isinstance(self.data, QueryDict):
-            service_ids = self.data.getlist('service')
-        else:
-            service_ids = self.data.get('service')
+        service_ids = self.data.get('services')
         year = self.data.get('year', 0)
         scenario_id = self.data.get('scenario')
 
