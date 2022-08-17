@@ -32,10 +32,13 @@ services:
   web:
     environment:
       - MODE_CAR_HOST=router-car
-      - MODE_CAR_SERVICE_PORT=8001
-      - MODE_CAR_ROUTING_PORT=router-car
+      - MODE_BIKE_HOST=router-bike
+      - MODE_WALK_HOST=router-walk
+      - MODE_CAR_PORT=8001
+      - MODE_BIKE_PORT=8001
+      - MODE_WALK_PORT=8001
     env_file: .env
-    image: gertzgutscheruemenapp/daviplan:testing-p3.8
+    image: gertzgutscheruemenapp/daviplan:testing
     links:
       - postgis:db
       - router-car:router-car
@@ -47,7 +50,6 @@ services:
     restart: unless-stopped
     volumes:
       - ./public:/root/datentool/public
-
 
 volumes:
   postgres_data:
