@@ -16,9 +16,9 @@ arealevel_year_service_scenario_serializer = inline_serializer(
             required=True, help_text='area_level_id'),
         'year': serializers.IntegerField(required=False,
                                          help_text='Jahr (z.B. 2010)'),
-        'service': serializers.PrimaryKeyRelatedField(
-            queryset=Service.objects.all(),
-            required=True, help_text='service id'),
+        'services': serializers.ListField(child=serializers.PrimaryKeyRelatedField(
+            queryset=Service.objects.all()),
+            required=True, help_text='service ids'),
         'scenario':  serializers.PrimaryKeyRelatedField(
             queryset=Scenario.objects.all(),
             required=False, help_text='scenario_id'),
@@ -30,7 +30,7 @@ area_agegroup_gender_prognosis_year_fields={
         queryset=Area.objects.all()),
                                   required=False,
                                   help_text='area_ids'),
-    'age_group': serializers.ListField(child=serializers.PrimaryKeyRelatedField(
+    'age_groups': serializers.ListField(child=serializers.PrimaryKeyRelatedField(
         queryset=AgeGroup.objects.all()
     ),
                                        required=False,

@@ -62,7 +62,7 @@ class PopulationIndicatorMixin:
             filter_params['population__year__year'] = year
 
         genders = self.data.get('gender')
-        age_groups = self.data.get('age_group')
+        age_groups = self.data.get('age_groups')
 
         if genders and genders != ['']:
             filter_params['gender__in'] = genders

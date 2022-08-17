@@ -94,9 +94,9 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         query_params = {'area_level': self.area1.area_level.pk, }
         if service is not None:
             if isinstance(service, list):
-                query_params['service'] = [s.id for s in service]
+                query_params['services'] = [s.id for s in service]
             else:
-                query_params['service'] = [service.id]
+                query_params['services'] = [service.id]
         if year is not None:
             query_params['year'] = year
         if scenario is not None:
