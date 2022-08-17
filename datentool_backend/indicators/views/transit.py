@@ -1,18 +1,13 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import os
 import pandas as pd
 import numpy as np
 from typing import List, Tuple
 from io import StringIO
-from urllib.parse import urlencode
-import requests
 
 from django.db import transaction, connection
-from django.http.request import QueryDict, MultiValueDict, HttpRequest
 from django.db.models.query import QuerySet
-from django.conf import settings
 from django.db.models import FloatField
 from django.contrib.gis.db.models.functions import Transform, Func
 
@@ -24,9 +19,7 @@ from rest_framework import serializers
 
 from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
 
-from routingpy import OSRM
-
-
+from datentool_backend.utils.routers import OSRMRouter
 from datentool_backend.utils.excel_template import ExcelTemplateMixin
 from datentool_backend.utils.serializers import MessageSerializer, drop_constraints
 from datentool_backend.utils.views import ProtectCascadeMixin
@@ -46,7 +39,6 @@ from datentool_backend.indicators.models import (Stop,
 from datentool_backend.modes.models import (ModeVariant,
                                             Mode,
                                             MODE_MAX_DISTANCE,
-                                            MODE_ROUTERS,
                                             DEFAULT_MAX_DIRECT_WALKTIME,
                                             MODE_SPEED,
                                             )
@@ -91,7 +83,6 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
     def get_queryset(self):
         variant = self.request.data.get('variant')
         return MatrixStopStop.objects.filter(variant=variant)
-
 
     @extend_schema(description='Upload Excel-File or PTV-Visum-Matrix with Traveltimes from Stop to Stop',
                    request=inline_serializer(
@@ -337,46 +328,20 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                                 max_distance: float,
                                 **kwargs) -> pd.DataFrame:
         """calculate traveltimes"""
-        port = settings.MODE_OSRM_PORTS[Mode(variant.mode).name]
+        mode = Mode(variant.mode)
+        router = OSRMRouter(mode)
+
+        if not router.is_running:
+            router.run()
 
         sources = self.get_sources(**kwargs).order_by('id')
         destinations = self.get_destinations(**kwargs).order_by('id')
 
-        client = OSRM(base_url=f'http://{settings.ROUTING_HOST}:{port}',
-                      timeout=3600,)
-        coords = list(sources.values_list('lon', 'lat', named=False))\
-            + list(destinations.values_list('lon', 'lat', named=False))
-        # as lists
-        #radiuses = [30000 for i in range(len(coords))]
-        success = False
-        tries_left = 3
-        while tries_left and not success:
-            try:
-                matrix = client.matrix(locations=coords,
-                                       # radiuses=radiuses,
-                                       sources=range(len(sources)),
-                                       destinations=range(len(sources), len(coords)),
-                                       profile='driving')
-                success = True
-            except Exception as err:
-                tries_left -= 1
-                baseurl = f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}'
-                router_name = MODE_ROUTERS[variant.mode]
-                res = requests.post(f'{baseurl}/run/{router_name}')
-                if res.status_code == 400:
-                    if 'not built yet' in res.content:
-                        fp_target_pbf = os.path.join(settings.MEDIA_ROOT,
-                                                     'projectarea.pbf')
-                        files = {'file': open(fp_target_pbf, 'rb')}
-                        res_build = requests.post(
-                            f'{baseurl}/build/{router_name}',
-                            files=files)
-                        print(res_build)
-                        res = requests.post(f'{baseurl}/run/{router_name}')
+        source_coords = list(sources.values_list('lon', 'lat', named=False))
+        dest_coords = list(destinations.values_list('lon', 'lat', named=False))
 
-                if res.status_code != 200:
-                    tries_left = 0
-                    raise err
+        matrix = router.matrix_calculation(source_coords, dest_coords)
+
         # convert matrix to dataframe
         arr = np.array(matrix.durations)
         arr_seconds = pd.DataFrame(

@@ -2,11 +2,29 @@ version: '3.1'
 
 services:
 
-  router:
+  router-car:
     image: gertzgutscheruemenapp/osrm-flask
     ports:
       - "8001:8001"
-      - "5000-5010:5000-5010"
+      - "5001:5001"
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+
+  router-bike:
+    image: gertzgutscheruemenapp/osrm-flask
+    ports:
+      - "8002:8001"
+      - "5002:5002"
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+
+  router-walk:
+    image: gertzgutscheruemenapp/osrm-flask
+    ports:
+      - "8003:8001"
+      - "5003:5003"
     restart: unless-stopped
     volumes:
       - ./data:/app/data

@@ -7,8 +7,10 @@ from .models import SiteSetting, ProjectSetting
 from django.db.models import Max, Min
 from django.conf import settings
 
+from datentool_backend.utils.routers import OSRMRouter
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
 from datentool_backend.utils.pop_aggregation import intersect_areas_with_raster
+from datentool_backend.modes.models import Mode
 from datentool_backend.area.views import AreaLevelViewSet
 from datentool_backend.population.views.raster import PopulationRasterViewSet
 from datentool_backend.models import (DemandRateSet, Prognosis, ModeVariant,
@@ -71,9 +73,10 @@ class ProjectSettingSerializer(serializers.ModelSerializer):
                     os.remove(fp_target_pbf)
                 except:
                     pass
-            #baseurl = f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}'
-            #for mode in ['car', 'bicycle', 'foot']:
-                #requests.post(f'{baseurl}/remove/{mode}')
+            for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
+                router = OSRMRouter(mode)
+                if router.service_is_up:
+                    router.remove()
         return instance
 
 
@@ -131,14 +134,8 @@ class BaseDataSettingSerializer(serializers.Serializer):
         project_area_net_existing = os.path.exists(
             os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf'))
         running = {}
-        for mode, port in settings.MODE_OSRM_PORTS.items():
-            try:
-                urllib.request.urlopen(
-                    f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}',
-                    timeout=1)
-                running[mode] = True
-            except:
-                running[mode] = False
+        for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
+            running[mode.name] = OSRMRouter(mode).is_running
         return {
             'base_net': base_net_existing,
             'project_area_net': project_area_net_existing,

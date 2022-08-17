@@ -89,7 +89,7 @@ export class SettingsService {
     this.user = new UserSettings(this.rest, this.http);
   }
 
-  private fetchSiteSettings(): void {
+  public fetchSiteSettings(): void {
     this.http.get<SiteSettings>(this.rest.URLS.siteSettings)
       .subscribe(siteSettings => {
         if (environment.production) {
@@ -99,12 +99,12 @@ export class SettingsService {
       });
   }
 
-  private fetchProjectSettings(): void {
+  public fetchProjectSettings(): void {
     this.http.get<ProjectSettings>(this.rest.URLS.projectSettings)
       .subscribe(projectSettings => this.projectSettings$.next(projectSettings));
   }
 
-  private fetchBaseDataSettings(): void {
+  public fetchBaseDataSettings(): void {
     this.http.get<BasedataSettings>(this.rest.URLS.basedataSettings)
       .subscribe((basedataSettings) => this.baseDataSettings$.next(basedataSettings));
   }

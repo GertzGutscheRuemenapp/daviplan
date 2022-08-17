@@ -17,6 +17,8 @@ def disaggregate_population(population, use_intersected_data=False,
                             drop_constraints=False):
     areas = population.populationentry_set.distinct('area_id')\
         .values_list('area_id', flat=True)
+    if not areas:
+        return 'skipped'
 
     popraster = population.popraster or PopulationRaster.objects.first()
 
