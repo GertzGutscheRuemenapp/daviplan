@@ -8,6 +8,8 @@ from drf_spectacular.utils import (extend_schema, inline_serializer,
                                    OpenApiResponse)
 from rest_framework import viewsets, status, serializers
 from rest_framework.decorators import action
+from djangorestframework_camel_case.parser import (CamelCaseMultiPartParser,
+                                                   CamelCaseJSONParser)
 
 from datentool_backend.utils.serializers import MessageSerializer
 from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
@@ -109,8 +111,6 @@ class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     @action(methods=['POST'], detail=False)
     def set_real_years(self, request):
         years = request.data.get('years', [])
-        if isinstance(years, str):
-            years = years.split(',')
         Year.objects.update(is_real=False)
         update_years = Year.objects.filter(year__in=years)
         update_years.update(is_real=True)
@@ -133,8 +133,6 @@ class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     @action(methods=['POST'], detail=False)
     def set_prognosis_years(self, request):
         years = request.data.get('years', [])
-        if isinstance(years, str):
-            years = years.split(',')
         Year.objects.update(is_prognosis=False)
         update_years = Year.objects.filter(year__in=years)
         update_years.update(is_prognosis=True)
@@ -160,5 +158,6 @@ class SiteSettingViewSet(SingletonViewSet):
     queryset = SiteSetting.objects.all()
     model_class = SiteSetting
     serializer_class = SiteSettingSerializer
+    parser_classes = [CamelCaseMultiPartParser, CamelCaseJSONParser]
     permission_classes = [HasAdminAccessOrReadOnlyAny]
 

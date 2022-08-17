@@ -1,13 +1,13 @@
 import pandas as pd
+import math
 from io import StringIO
-from distutils.util import strtobool
 from django.http.request import QueryDict
 from django_filters import rest_framework as filters
 from django.db.models import Max, Min
 from drf_spectacular.utils import (extend_schema,
                                    OpenApiResponse,
                                    inline_serializer)
-import math
+from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -98,8 +98,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def disaggregateall(self, request, **kwargs):
         manager = RasterCellPopulationAgeGender.copymanager
-        drop_constraints = bool(strtobool(
-            request.data.get('drop_constraints', 'False')))
+        drop_constraints = request.data.get('drop_constraints', False)
 
         with transaction.atomic():
             if drop_constraints:
@@ -110,11 +109,10 @@ class PopulationViewSet(viewsets.ModelViewSet):
             old_data = self.request.data
             data = QueryDict(mutable=True)
             data.update(self.request.data)
-            data['drop_constraints'] = 'False'
+            data['drop_constraints'] = False
             request._full_data = data
 
-            use_intersected_data = bool(strtobool(
-                request.data.get('use_intersected_data', 'False')))
+            use_intersected_data = request.data.get('use_intersected_data', False)
             pop_rasters = PopulationRaster.objects.all()
             for pop_raster in pop_rasters:
                 for area_level in AreaLevel.objects.all():
@@ -163,10 +161,8 @@ class PopulationViewSet(viewsets.ModelViewSet):
             msg = f'Population for {kwargs} not found'
             return Response({'message': msg,}, status.HTTP_406_NOT_ACCEPTABLE)
 
-        use_intersected_data = bool(strtobool(
-            request.data.get('use_intersected_data', 'False')))
-        drop_constraints = bool(strtobool(
-            request.data.get('drop_constraints', 'False')))
+        use_intersected_data = request.data.get('use_intersected_data', False)
+        drop_constraints = request.data.get('drop_constraints', 'False')
         msg = disaggregate_population(
             population, use_intersected_data=use_intersected_data,
             drop_constraints=drop_constraints)
@@ -194,8 +190,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
             msg = f'Population for {kwargs} not found'
             return Response({'message': msg, }, status.HTTP_406_NOT_ACCEPTABLE)
 
-        drop_constraints = bool(strtobool(
-            request.data.get('drop_constraints', 'False')))
+        drop_constraints = request.data.get('drop_constraints', False)
         area_level = AreaLevel.objects.get(id=request.data.get('area_level'))
         aggregate_population(area_level, population,
                              drop_constraints=drop_constraints)
@@ -218,8 +213,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
     @action(methods=['POST'], detail=False,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def aggregateall_from_cell_to_area(self, request, **kwargs):
-        drop_constraints = bool(strtobool(
-            request.data.get('drop_constraints', 'False')))
+        drop_constraints = request.data.get('drop_constraints', False)
 
         aggregate_many(AreaLevel.objects.all(), Population.objects.all(),
                        drop_constraints=drop_constraints)
@@ -327,8 +321,6 @@ class PopulationViewSet(viewsets.ModelViewSet):
                 .loc[:, ['population_id', 'area_id', 'gender_id', 'age_group_id', 'value']]
 
             drop_constraints = request.data.get('drop_constraints', True)
-            if not isinstance(drop_constraints, bool):
-                drop_constraints = strtobool(drop_constraints)
 
             with StringIO() as file:
                 df_population.to_csv(file, index=False)
@@ -377,7 +369,8 @@ class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
                                        prognosis_id=prognosis_id,
                                        )
 
-    @action(methods=['POST'], detail=False)
+    @action(methods=['POST'], detail=False,
+            parser_classes=[CamelCaseMultiPartParser])
     def upload_template(self, request):
         """Upload the filled out Stops-Template"""
         with ProtectedProcessManager(request.user):

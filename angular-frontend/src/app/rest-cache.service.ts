@@ -284,7 +284,7 @@ export class RestCacheService {
     if (options?.prognosis != undefined)
       data.prognosis = options.prognosis;
     if (options?.genders)
-      data.gender = options.genders;
+      data.genders = options.genders;
     if (options?.ageGroups)
       data.age_group = options.ageGroups;
     const observable = new Observable<AreaIndicatorResult[]>(subscriber => {
@@ -321,7 +321,7 @@ export class RestCacheService {
         if (options?.genders)
           data.gender = options.genders;
         if (options?.ageGroups)
-          data.age_group = options.ageGroups;
+          data.age_groups = options.ageGroups;
         this.setLoading(true);
         const query = this.http.post<PopulationData[]>(this.rest.URLS.populationData, data);
         query.subscribe(data => {

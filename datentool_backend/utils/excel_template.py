@@ -6,6 +6,7 @@ import traceback
 from django.http import HttpResponse
 from django.db import transaction
 
+from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
 from rest_framework import status, serializers
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -63,7 +64,8 @@ class ExcelTemplateMixin:
                               406: OpenApiResponse(MessageSerializer,
                                                    'Upload failed')})
 
-    @action(methods=['POST'], detail=False)
+    @action(methods=['POST'], detail=False,
+            parser_classes=[CamelCaseMultiPartParser])
     def upload_template(self, request, queryset=None, **kwargs):
         """Upload the filled out Template"""
         serializer = self.get_serializer()

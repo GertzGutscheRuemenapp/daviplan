@@ -5,13 +5,13 @@ import pandas as pd
 import numpy as np
 from typing import List, Tuple
 from io import StringIO
-from distutils.util import strtobool
 
 from django.db import transaction, connection
 from django.db.models.query import QuerySet
 from django.db.models import FloatField
 from django.contrib.gis.db.models.functions import Transform, Func
 
+from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -98,7 +98,8 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
                                                    'Upload successful'),
                               406: OpenApiResponse(MessageSerializer,
                                                    'Upload failed')})
-    @action(methods=['POST'], detail=False)
+    @action(methods=['POST'], detail=False,
+            parser_classes=[CamelCaseMultiPartParser])
     def upload_template(self, request):
         """Upload the filled out Stops-Template"""
         with ProtectedProcessManager(request.user):
@@ -149,8 +150,7 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                                 'than the parameter `max_direct_walktime` in minutes',
                                 required=False
                             ),
-
-                               }
+                       }
                    ),
                    responses={202: OpenApiResponse(MessageSerializer,
                                                    'Calculation successful'),
@@ -159,16 +159,10 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
     @action(methods=['POST'], detail=False)
     def precalculate_traveltime(self, request):
         """Calculate traveltime with a air distance or network router"""
-        drop_constraints = bool(strtobool(
-            request.data.get('drop_constraints', 'False')))
-        variants = request.data.get('variants')
-        if isinstance(variants, str):
-            variants = variants.split(',')
-        air_distance_routing = bool(strtobool(
-            request.data.get('air_distance_routing', 'False')))
+        drop_constraints = request.data.get('drop_constraints', False)
+        variants = request.data.get('variants', [])
+        air_distance_routing = request.data.get('air_distance_routing', False)
         places = request.data.get('places')
-        if isinstance(variants, str):
-            places = places.split(',')
 
         dataframes = []
         try:

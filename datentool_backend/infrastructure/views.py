@@ -12,6 +12,7 @@ from drf_spectacular.utils import (extend_schema,
 from django.core.exceptions import BadRequest
 from djangorestframework_camel_case.util import camelize
 
+from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
 from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
 from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
                                                  CanEditBasedata,)
@@ -105,7 +106,8 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
                        fields={'excel_file': serializers.FileField(),}
                    ))
     @action(methods=['POST'], detail=False,
-            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata],
+            parser_classes=[CamelCaseMultiPartParser])
     def upload_template(self, request):
         """Download the Template"""
         with ProtectedProcessManager(request.user):
