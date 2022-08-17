@@ -231,16 +231,16 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         """Test the aggregation of population to areas of an area level"""
         self.prepare_population()
         #  without area_level it should return a 400 (BadRequest)
-        query_params = {}
+        data = {}
         response = self.post(self.url_key + '-aggregate-population',
-                             data=query_params, extra={'format': 'json'})
+                             data=data, extra={'format': 'json'})
         self.response_400(response)
 
-        query_params = {'area_level': self.area_level2.pk,
-                        'year': self.years.first().year,}
+        data = {'area_level': self.area_level2.pk,
+                'year': self.years.first().year,}
 
         response = self.post(self.url_key + '-aggregate-population',
-                             data=query_params, extra={'format': 'json'})
+                             data=data, extra={'format': 'json'})
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
         expected = pd.Series([357.213304, 867.698150],
@@ -250,11 +250,11 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         # Test if sum of large area equals all input areas
 
         # area_level1
-        query_params = {'area_level': self.obj.pk,
-                        'year': self.years.first().year,}
+        data = {'area_level': self.obj.pk,
+                'year': self.years.first().year,}
 
         response = self.post(self.url_key+'-aggregate-population',
-                             data=query_params, extra={'format': 'json'})
+                             data=data, extra={'format': 'json'})
         # Test if input data matches
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
@@ -263,13 +263,13 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         pd.testing.assert_series_equal(df.value, expected, check_names=False)
 
-        query_params = {'area_level': self.obj.pk,
-                        'gender': self.genders[0].pk,
-                        'year': self.years.first().year
-                        }
+        data = {'area_level': self.obj.pk,
+                'genders': [self.genders[0].pk],
+                'year': self.years.first().year
+                }
 
         response = self.post(self.url_key + '-aggregate-population',
-                             data=query_params, extra={'format': 'json'})
+                             data=data, extra={'format': 'json'})
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
         expected = pd.Series([327.502507, 692.497493, np.nan],
@@ -277,13 +277,13 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         pd.testing.assert_series_equal(df.value, expected, check_names=False)
 
-        query_params = {'area_level': self.obj.pk,
-                        'age_group': self.age_groups.values_list('id', flat=True)[:2],
-                        'year': self.years.first().year,
-                        }
+        data = {'area_level': self.obj.pk,
+                'age_groups': self.age_groups.values_list('id', flat=True)[:2],
+                'year': self.years.first().year,
+                }
 
         response = self.post(self.url_key + '-aggregate-population',
-                             data=query_params, extra={'format': 'json'})
+                             data=data, extra={'format': 'json'})
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
         expected = pd.Series([499.771245, 970.228755, np.nan],
@@ -291,13 +291,13 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         pd.testing.assert_series_equal(df.value, expected, check_names=False)
 
-        query_params = {'area_level': self.obj.pk,
-                        'area': [self.area1.pk, self.area3.pk],
-                        'year': self.years.first().year,
-                        }
+        data = {'area_level': self.obj.pk,
+                    'areas': [self.area1.pk, self.area3.pk],
+                    'year': self.years.first().year,
+                    }
 
         response = self.post(self.url_key + '-aggregate-population',
-                             data=query_params, extra={'format': 'json'})
+                             data=data, extra={'format': 'json'})
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
         expected = pd.Series([715.617852, np.nan],
@@ -309,7 +309,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         self.aggregate_population()
         #  the results should stay the same
         response = self.post(self.url_key + '-aggregate-population',
-                             data=query_params, extra={'format': 'json'})
+                             data=data, extra={'format': 'json'})
         df = pd.DataFrame(response.data).set_index('label')
         print(df)
         expected = pd.Series([715.617852, np.nan],
@@ -321,28 +321,29 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         """Test to get the population by year, agegroup, and gender"""
         self.prepare_population()
 
-        query_params = {'area': self.area1.pk, }
+        data = {'areas': [self.area1.pk], }
 
         response = self.post(self.url_key + '-population-details',
-                             data=query_params, extra={'format': 'json'})
+                             data=data, extra={'format': 'json'})
         df_calculated_from_rastercells = pd.DataFrame(response.data)
         print(df_calculated_from_rastercells)
         # Test if sum of large area equals all input areas
 
         # area_level2
-        query_params = {'area': self.district1.pk, }
+        data = {'areas': [self.district1.pk], }
 
         response = self.post(self.url_key + '-population-details',
-                             data=query_params, extra={'format': 'json'})
+                             data=data, extra={'format': 'json'})
         # Test if input data matches
         df_calculated_from_rastercells = pd.DataFrame(response.data)
         print(df_calculated_from_rastercells)
 
         # area_level2 and prognosis
-        query_params = {'area': self.district1.pk,
-                        'prognosis': self.prognosis.pk, }
+        data = {'areas': [self.district1.pk],
+                'prognosis': self.prognosis.pk, }
 
-        response = self.post(self.url_key + '-population-details', data=query_params)
+        response = self.post(self.url_key + '-population-details', data=data,
+                             extra={'format': 'json'})
 
         # Test if input data matches
         df_calculated_from_rastercells = pd.DataFrame(response.data)
@@ -352,11 +353,11 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         self.aggregate_population()
 
         #  the results should stay the same
-        query_params = {'area': self.district1.pk,
-                        'prognosis': self.prognosis.pk,}
+        data = {'areas': [self.district1.pk],
+                'prognosis': self.prognosis.pk,}
 
         response = self.post(self.url_key + '-population-details',
-                             data=query_params, extra={'format': 'json'})
+                             data=data, extra={'format': 'json'})
         df_calculated_from_areas = pd.DataFrame(response.data)
 
         pd.testing.assert_frame_equal(df_calculated_from_areas,

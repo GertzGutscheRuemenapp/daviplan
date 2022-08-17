@@ -300,7 +300,8 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         for place_field in place_fields:
             # deleting the place field should fail,
             # if there are attributes of this place_field
-            response = self.delete('placefields-detail', pk=place_field.pk)
+            response = self.delete('placefields-detail', pk=place_field.pk,
+                                   extra={'format': 'json'})
             self.response_403(msg=response.content)
 
         field_name = 'int_field'

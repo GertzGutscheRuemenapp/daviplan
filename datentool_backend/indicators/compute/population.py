@@ -61,7 +61,7 @@ class PopulationIndicatorMixin:
         if year:
             filter_params['population__year__year'] = year
 
-        genders = self.data.get('gender')
+        genders = self.data.get('genders')
         age_groups = self.data.get('age_groups')
 
         if genders and genders != ['']:
@@ -91,8 +91,8 @@ class PopulationIndicatorMixin:
         """get the relevant areas"""
         # filter areas
         area_filter = {}
-        areas = self.data.get('area')
-        if areas and areas != ['']:
+        areas = self.data.get('areas')
+        if areas:
             area_filter['id__in'] = areas
 
         if area_level_id is None:

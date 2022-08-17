@@ -55,7 +55,7 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
             'year': 2022,
         }
         url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
-        response = self.post(url, data=query_params)
+        response = self.post(url, data=query_params, extra={'format': 'json'})
         self.assert_http_200_ok(response)
         result = pd.DataFrame(response.data).set_index('area_id')
 

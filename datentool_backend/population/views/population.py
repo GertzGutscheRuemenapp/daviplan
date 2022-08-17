@@ -109,7 +109,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
             old_data = self.request.data
             data = QueryDict(mutable=True)
             data.update(self.request.data)
-            data['drop_constraints'] = 'False'
+            data['drop_constraints'] = False
             request._full_data = data
 
             use_intersected_data = request.data.get('use_intersected_data', False)

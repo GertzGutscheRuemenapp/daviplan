@@ -169,13 +169,9 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
     def precalculate_traveltime(self, request):
         """Calculate traveltime with a air distance or network router"""
         drop_constraints = request.data.get('drop_constraints', False)
-        variants = [int(v)
-                    for v in request.data.get('variants', '').split(',')
-                    if v != '']
+        variants = request.data.get('variants', [])
         air_distance_routing = request.data.get('air_distance_routing', False)
-        places = [int(v)
-                  for v in request.data.get('places', '').split(',')
-                  if v != '']
+        places = request.data.get('places')
 
         dataframes = []
         try:

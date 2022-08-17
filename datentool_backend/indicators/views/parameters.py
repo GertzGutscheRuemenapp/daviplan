@@ -26,7 +26,7 @@ arealevel_year_service_scenario_serializer = inline_serializer(
 )
 
 area_agegroup_gender_prognosis_year_fields={
-    'area': serializers.ListField(child=serializers.PrimaryKeyRelatedField(
+    'areas': serializers.ListField(child=serializers.PrimaryKeyRelatedField(
         queryset=Area.objects.all()),
                                   required=False,
                                   help_text='area_ids'),
