@@ -205,6 +205,7 @@ class PlacesTemplateSerializer(serializers.Serializer):
             meta = writer.book.create_sheet('meta')
             meta['A1'] = 'infrastructure'
             meta['B1'] = infrastructure.name
+            meta.sheet_state = 'hidden'
 
             df_classification.reset_index().to_excel(writer,
                                                      sheet_name=sn_classifications,
