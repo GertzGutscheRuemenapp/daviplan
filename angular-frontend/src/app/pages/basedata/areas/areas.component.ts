@@ -239,7 +239,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   }
 
   pullWfsAreas(): void {
-    if (!this.activeLevel || this.activeLevel.source?.sourceType !== 'WFS')
+    if (!this.activeLevel || !(this.activeLevel.source?.sourceType === 'WFS' || this.activeLevel.isPreset))
       return;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',

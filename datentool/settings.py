@@ -60,9 +60,6 @@ ALLOWED_HOSTS = [
     'datentool.ggr-planung.de'
 ]
 
-REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
-REDIS_PORT = os.environ.get('REDIS_PORT', 6379)
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -151,6 +148,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'datentool.wsgi.application'
 ASGI_APPLICATION = 'datentool.routing.application'
+
+REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
+REDIS_PORT = os.environ.get('REDIS_PORT', 6379)
 
 CHANNEL_LAYERS = {
     'default': {
@@ -298,6 +298,28 @@ DATA_ROOT = os.path.join(BASE_DIR, 'datentool_backend', 'data')
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': 'INFO',
+        },
+        'web_socket': {
+            'level': 'DEBUG',
+            'class': 'datentool.loggers.WebSocketHandler',
+        },
+    },
+    'loggers': {
+        'areas': {
+            'handlers': ['web_socket', 'console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}
 
 def load_stats_json():
     fn = os.path.join(FRONTEND_APP_DIR,

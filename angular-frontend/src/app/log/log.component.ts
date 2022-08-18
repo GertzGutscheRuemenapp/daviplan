@@ -26,7 +26,11 @@ export class LogComponent implements AfterViewInit {
     this.chatSocket = new WebSocket(`${ this.wsURL }${ this.room }/`);
     this.chatSocket.onmessage = function (e) {
       console.log(e);
+      return false;
     }
+    this.chatSocket.onclose = function(e) {
+      console.error('Chat socket closed unexpectedly');
+    };
   }
 
   addLogEntry(entry: LogEntry): void {

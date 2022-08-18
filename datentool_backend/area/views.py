@@ -3,6 +3,7 @@ import tempfile
 from requests.exceptions import (MissingSchema, ConnectionError, HTTPError)
 import datetime
 import json
+import logging
 
 from django.core.exceptions import BadRequest
 from django.contrib.gis.geos import (Polygon, MultiPolygon, GEOSGeometry,
@@ -70,6 +71,8 @@ from .serializers import (MapSymbolSerializer,
                           AreaFieldSerializer,
                           )
 from datentool_backend.site.models import ProjectSetting
+
+logger = logging.getLogger('areas')
 
 
 class JsonObject(Func):
@@ -393,6 +396,10 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
     @action(methods=['POST'], detail=True,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def pull_areas(self, request, **kwargs):
+        import time
+        for i in range(10):
+            logger.info(i)
+            time.sleep(1)
         try:
             area_level: AreaLevel = self.queryset.get(**kwargs)
         except AreaLevel.DoesNotExist:
