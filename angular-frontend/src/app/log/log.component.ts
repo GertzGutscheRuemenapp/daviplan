@@ -11,22 +11,22 @@ export class LogComponent implements AfterViewInit {
   @ViewChild('log') logEl!: ElementRef;
   @Input() height: string = '100%';
   @Input() room: string = '';
-  private wsURL = `${ environment.apiPath }/ws/log/`;
-  private chatSocket: WebSocket;
+  private wsURL = `${ environment.backend }/ws/log/`;
+  private chatSocket?: WebSocket;
 
   entries: LogEntry[] = [];
 
   constructor() {
-    this.wsURL = this.wsURL.replace('http:', environment.production? 'wss:': 'ws');
-    this.chatSocket = new WebSocket(`${ this.wsURL }${ this.room }`);
-    this.chatSocket.onmessage = function (e) {
-      console.log(e);
-    }
+    this.wsURL = this.wsURL.replace('http:', environment.production? 'wss:': 'ws:');
   }
 
   ngAfterViewInit(): void {
     this.entries = mockLogs;
     this.entries.map(entry => this.addLogEntry(entry));
+    this.chatSocket = new WebSocket(`${ this.wsURL }${ this.room }/`);
+    this.chatSocket.onmessage = function (e) {
+      console.log(e);
+    }
   }
 
   addLogEntry(entry: LogEntry): void {

@@ -60,12 +60,9 @@ ALLOWED_HOSTS = [
     'datentool.ggr-planung.de'
 ]
 
-<<<<<<< HEAD
-REDIS_HOST = os.environ.get('REDIS_HOST', '127.0.0.1')
+REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
 REDIS_PORT = os.environ.get('REDIS_PORT', 6379)
 
-=======
->>>>>>> main
 # Application definition
 
 INSTALLED_APPS = [

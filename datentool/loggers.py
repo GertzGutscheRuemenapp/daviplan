@@ -19,11 +19,15 @@ class LogConsumer(WebsocketConsumer):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = f'log_{self.room_name}'
         # Join room group
-        async_to_sync(self.channel_layer.group_add)(
-            self.room_group_name,
-            self.channel_name
-        )
-        self.accept()
+        try:
+            async_to_sync(self.channel_layer.group_add)(
+                self.room_group_name,
+                self.channel_name
+            )
+            self.accept()
+        # redis is not up, what to do?
+        except OSError as e:
+            print(e)
 
     def disconnect(self, close_code):
         # Leave room group
