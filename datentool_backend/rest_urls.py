@@ -42,7 +42,22 @@ from .population.views import (RasterViewSet,
                                PopStatisticViewSet,
                                PopStatEntryViewSet)
 from .user.views import PlanningProcessViewSet, ScenarioViewSet
-from datentool_backend.utils.routers import SingletonRouter
+
+
+class SingletonRouter(routers.SimpleRouter):
+    routes = [
+       routers.Route(
+           url=r'^{prefix}/$',
+           mapping={
+               'get': 'retrieve',
+               'put': 'update',
+               'patch': 'partial_update'
+               },
+           name='{basename}-detail',
+           initkwargs={'suffix': 'Detail'},
+           detail=True
+           )
+    ]
 
 router = routers.SimpleRouter()
 router.register(r'users', UserViewSet, basename='users')

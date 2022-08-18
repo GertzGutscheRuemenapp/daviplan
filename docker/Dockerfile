@@ -9,13 +9,13 @@ RUN apt-get -y update \
     && apt-get -y install libpq-dev \
     && apt-get -y install binutils libproj-dev libgeos-dev \
     && apt-get -y install libsqlite3-mod-spatialite \
-    && apt-get -y osmium-tool
+    && apt-get -y install osmium-tool
 
 RUN npm i npm@latest -g
-RUN npm i -g @angular/cli@latest
+RUN npm i -g @angular/cli@13
 
 RUN git clone https://github.com/GertzGutscheRuemenapp/bule_datentool.git $HOME/datentool
 RUN python -m pip install --upgrade pip \
     && pip install -r $HOME/datentool/requirements.txt
 WORKDIR root/datentool/angular-frontend
-RUN npm ci
+RUN npm install --force

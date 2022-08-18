@@ -12,12 +12,13 @@ from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiRespo
 from rest_framework.response import Response
 
 from datentool_backend.utils.serializers import MessageSerializer
+from datentool_backend.utils.routers import OSRMRouter
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 from datentool_backend.site.models import ProjectSetting
 
-from .models import Network, ModeVariant
+from .models import Network, ModeVariant, Mode
 from .serializers import NetworkSerializer, ModeVariantSerializer
 
 
@@ -69,6 +70,7 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         fp_base_pbf = os.path.join(settings.MEDIA_ROOT, 'germany-latest.osm.pbf')
         fp_target_pbf = os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf')
         # ToDo: set "network_file" of default Network?
+
         for fp in fp_target_pbf, fp_project_json:
             if os.path.exists(fp):
                 os.remove(fp)
@@ -78,7 +80,7 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                 {'message': f'Project Area is undefined'},
                 status=status.HTTP_400_BAD_REQUEST)
 
-        buffered = project_area.buffer(10000)
+        buffered = project_area.buffer(30000)
         buffered.transform('EPSG: 4326')
 
         geojson = json.dumps({
@@ -110,16 +112,15 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                  'Project area from base network'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        baseurl = f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}'
         # ToDo: use own route to run and build to test
-        for mode in ['car', 'bicycle', 'foot']:
-            files = {'file': open(fp_target_pbf, 'rb')}
-            res = requests.post(f'{baseurl}/build/{mode}', files=files)
-            if res.status_code != 200:
+        for mode in [Mode.CAR, Mode.BIKE, Mode.WALK]:
+            router = OSRMRouter(mode)
+            success = router.build(fp_target_pbf)
+            if not success:
                 return Response({'message': f'Build failed. Could not build '
                                  f'router network {mode}'},
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            requests.post(f'{baseurl}/run/{mode}')
+            router.run()
 
         return Response({'message': f'Networks successfully built and running'},
                         status=status.HTTP_201_CREATED)
@@ -133,11 +134,10 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                                         'Run failed')}
     )
     @action(methods=['POST'], detail=False)
-    def run_router(self, request, **kwargs):
-        baseurl = f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}'
-        for mode in ['car', 'bicycle', 'foot']:
-            res = requests.post(f'{baseurl}/run/{mode}')
-            if res.status_code != 200:
+    def run_routers(self, request, **kwargs):
+        for mode in [Mode.CAR, Mode.BIKE, Mode.WALK]:
+            success = OSRMRouter(mode).run()
+            if not success:
                 return Response(
                     {'message': f'Failed to run router for mode {mode}'},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR)

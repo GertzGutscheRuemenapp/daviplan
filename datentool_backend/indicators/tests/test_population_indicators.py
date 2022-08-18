@@ -402,8 +402,8 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         values_2024 = pd.DataFrame(response.data)
         print(values_2024)
         diff = values_2024.value / scenario_values.value
-        # in 2024, the demand rate increased by 20%, and the population also by 20%
-        nptest.assert_allclose(diff, 1.2*1.2)
+        # in 2024, the demand rate increased by 20%, and the population by 10%
+        nptest.assert_allclose(diff, 1.2*1.1)
 
         query_params = {'area_level': self.area_level2.pk,
                         'service': self.service2.pk,

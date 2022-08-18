@@ -38,7 +38,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   activeProcess?: PlanningProcess;
   mapControl?: MapControl;
   placesLayerGroup?: MapLayerGroup;
-  reachLayerGroup?: MapLayerGroup;
+  reachPlaceLayerGroup?: MapLayerGroup;
+  reachCellLayerGroup?: MapLayerGroup;
   baseRasterLayer?: VectorTileLayer;
   reachRasterLayer?: VectorTileLayer;
   private subscriptions: Subscription[] = [];
@@ -57,9 +58,11 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
     this.placesLayerGroup = new MapLayerGroup('Standorte', { order: -2 })
-    this.reachLayerGroup = new MapLayerGroup('Erreichbarkeiten', { order: -1 })
+    this.reachPlaceLayerGroup = new MapLayerGroup('Erreichbarkeiten', { order: -1 })
+    this.reachCellLayerGroup = new MapLayerGroup('Erreichbarkeiten', { order: -3 })
     this.mapControl.addGroup(this.placesLayerGroup);
-    this.mapControl.addGroup(this.reachLayerGroup);
+    this.mapControl.addGroup(this.reachPlaceLayerGroup);
+    this.mapControl.addGroup(this.reachCellLayerGroup);
     this.planningService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures;
       // this.drawRaster();
@@ -129,7 +132,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         this.placesLayer = undefined;
       }
       this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
-        order: 0,
+        order: 1,
         description: this.activeInfrastructure!.name,
         opacity: 1,
         style: {
@@ -182,7 +185,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     if (!this.rasterCells || this.selectedPlaceId === undefined) return;
     this.planningService.getPlaceReachability(this.selectedPlaceId, this.mode).subscribe(cellResults => {
       if (this.reachRasterLayer) {
-        this.reachLayerGroup?.removeLayer(this.reachRasterLayer);
+        this.reachPlaceLayerGroup?.removeLayer(this.reachRasterLayer);
       }
       let values: Record<string, number> = {};
       cellResults.forEach(cellResult => {
@@ -218,7 +221,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         },
         unit: 'Minute(n)'
       });
-      this.reachLayerGroup?.addLayer(this.reachRasterLayer);
+      this.reachPlaceLayerGroup?.addLayer(this.reachRasterLayer);
     })
   }
 
@@ -232,7 +235,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       this.planningService.getCellReachability(cell.cellcode, this.mode).subscribe(placeResults => {
         let showLabel = false;
         if (this.placeReachabilityLayer) {
-          this.reachLayerGroup?.removeLayer(this.placeReachabilityLayer);
+          this.reachCellLayerGroup?.removeLayer(this.placeReachabilityLayer);
           this.placeReachabilityLayer = undefined;
         }
         this.places.forEach(place => {
@@ -266,7 +269,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           unit: 'Minute(n)',
           labelOffset: { y: 10 }
         });
-        this.reachLayerGroup?.addLayer(this.placeReachabilityLayer);
+        this.reachCellLayerGroup?.addLayer(this.placeReachabilityLayer);
         this.placeReachabilityLayer.addFeatures(this.places.map(place => {
           return { id: place.id, geometry: place.geom, properties: { name: place.name, value: place.value } }
         }));
@@ -280,7 +283,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.mapControl?.removeMarker();
     if (this.placesLayer)
       this.placesLayer?.clearSelection();
-    this.reachLayerGroup?.clear();
+    this.reachCellLayerGroup?.clear();
+    this.reachPlaceLayerGroup?.clear();
   }
 
   setPlaceSelection(enable: boolean): void {
@@ -326,7 +330,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.mapClickSub?.unsubscribe();
-    if (this.reachLayerGroup) this.mapControl?.removeGroup(this.reachLayerGroup);
+    if (this.reachPlaceLayerGroup) this.mapControl?.removeGroup(this.reachPlaceLayerGroup);
+    if (this.reachCellLayerGroup) this.mapControl?.removeGroup(this.reachCellLayerGroup);
     if (this.placesLayerGroup) this.mapControl?.removeGroup(this.placesLayerGroup);
     this.mapControl?.map?.setCursor('');
     this.mapControl?.removeMarker();
