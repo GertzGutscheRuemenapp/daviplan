@@ -135,7 +135,7 @@ class PopStatEntryFilter(filters.FilterSet):
 
 
 class PopStatEntryViewSet(viewsets.ModelViewSet):
-    queryset = PopStatEntry.objects.all()
+    queryset = PopStatEntry.objects.select_related('year').all()
     serializer_class = PopStatEntrySerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
     filterset_class = PopStatEntryFilter
