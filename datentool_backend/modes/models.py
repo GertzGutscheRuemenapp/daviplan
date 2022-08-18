@@ -1,4 +1,6 @@
 from django.db import models, transaction
+import os
+
 from datentool_backend.base import (NamedModel,
                                     JsonAttributes,
                                     DatentoolModelMixin, )
@@ -12,25 +14,58 @@ class Mode(models.IntegerChoices):
     CAR = 3, 'Auto'
     TRANSIT = 4, 'ÖPNV'
 
+MODE_SPEED = {
+    Mode.WALK: 3.5,
+    Mode.BIKE: 10.5,
+    Mode.CAR: 25,
+}
 
-class ModeVariant(DatentoolModelMixin, JsonAttributes, NamedModel, models.Model):
+MODE_MAX_DISTANCE = {
+    Mode.WALK: 4000,
+    Mode.BIKE: 10000,
+    Mode.CAR: 25000,
+    Mode.TRANSIT: 1000,
+}
+
+MODE_ROUTERS = {
+    Mode.WALK: 'foot',
+    Mode.BIKE: 'bicycle',
+    Mode.CAR: 'car',
+}
+
+# default maximum walk time, insdead of transit use
+DEFAULT_MAX_DIRECT_WALKTIME = 15
+
+
+class Network(DatentoolModelMixin, NamedModel, models.Model):
+    name = models.TextField(default='', blank=True)
+    is_default = models.BooleanField(default=False)
+    network_file = models.FileField(null=True)
+
+    def save(self, *args, **kwargs):
+        # only one network can be a default
+        if self.is_default:
+            Network.objects.filter(is_default=True).update(is_default=False)
+
+        variants = []
+        if self.pk is None:
+            for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
+                variants.append(ModeVariant(network=self, mode=mode))
+        super().save(*args, **kwargs)
+        ModeVariant.objects.bulk_create(variants)
+
+
+class ModeVariant(DatentoolModelMixin, models.Model):
     '''
     modes
     '''
+    label = models.TextField(default='', blank=True)
+    network = models.ForeignKey(Network, on_delete=models.CASCADE, null=True)
     mode = models.IntegerField(choices=Mode.choices)
-    name = models.TextField()
-    meta = models.JSONField()
-    is_default = models.BooleanField(default=False)
     cutoff_time = models.ManyToManyField(Infrastructure, through='CutOffTime')
 
-    def save(self, *args, **kwargs):
-        # only one variant per mode can be a default
-        if self.is_default:
-            with transaction.atomic():
-                ModeVariant.objects.filter(
-                    is_default=True, mode=self.mode).update(is_default=False)
-        return super().save(*args, **kwargs)
-
+    def __repr__(self) -> str:
+        return f'{Mode._value2label_map_[self.mode]} - {self.label}'
 
 class CutOffTime(models.Model):
     mode_variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)

@@ -22,10 +22,11 @@ owslib
 django-sql-utils
 mapbox_vector_tile
 xarray
-drf-spectacular
+drf-spectacular<=0.22
 django-postgres-copy
 openpyxl
 matrixconverters
 packaging
 channels
 channels_redis
+routingpy

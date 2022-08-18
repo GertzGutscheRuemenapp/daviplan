@@ -305,6 +305,15 @@ button mat-icon {
   //margin-right: 2px;
 }
 
+button.outlined {
+  border: 2px solid;
+}
+
+mat-icon.outlined {
+  border-radius: 50px;
+  outline: 2px solid;
+}
+
 app-data-card table, app-dash-card table {
   border-collapse: separate;
   border-spacing: 15px 0;
@@ -465,6 +474,10 @@ button.mat-icon-button {
   width: 30px;
   height: 30px;
   line-height: 30px;
+}
+
+.mat-icon-button.small.outlined {
+  line-height: 26px;
 }
 
 /*.mat-mini-fab.small {
@@ -775,7 +788,7 @@ confirm-dialog, .context-bar, .border-box {
 }
 
 app-legend, .context-bar, .tree-select {
-  mat-expansion-panel.mat-expanded:not(.text-panel) {
+  mat-expansion-panel.mat-expanded:not(.text-panel):not(.disabled) {
     > mat-expansion-panel-header, > mat-expansion-panel-header:focus {
       background-color: $primary-light !important;
     }
@@ -783,6 +796,16 @@ app-legend, .context-bar, .tree-select {
     mat-panel-title {
       color: black;
     }
+  }
+  mat-expansion-panel.disabled > mat-expansion-panel-header {
+    background-color: #0000000B !important;
+  }
+}
+
+mat-expansion-panel.disabled {
+  .mat-expansion-panel-body {
+    background-color: #f2f2f2;
+    pointer-events: none;
   }
 }
 

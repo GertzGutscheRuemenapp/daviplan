@@ -11,11 +11,39 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
 
+  router-car:
+    image: gertzgutscheruemenapp/osrm-flask
+    restart: unless-stopped
+    volumes:
+      - ./routing_data:/app/data
+
+  router-bike:
+    image: gertzgutscheruemenapp/osrm-flask
+    restart: unless-stopped
+    volumes:
+      - ./routing_data:/app/data
+
+  router-walk:
+    image: gertzgutscheruemenapp/osrm-flask
+    restart: unless-stopped
+    volumes:
+      - ./routing_data:/app/data
+
   web:
+    environment:
+      - MODE_CAR_HOST=router-car
+      - MODE_BIKE_HOST=router-bike
+      - MODE_WALK_HOST=router-walk
+      - MODE_CAR_SERVICE_PORT=8001
+      - MODE_BIKE_SERVICE_PORT=8001
+      - MODE_WALK_SERVICE_PORT=8001
     env_file: .env
     image: gertzgutscheruemenapp/daviplan:testing
     links:
       - postgis:db
+      - router-car:router-car
+      - router-bike:router-bike
+      - router-walk:router-walk
     command: bash -c "cd /root/datentool && git pull && pip install -r requirements.txt && cd angular-frontend && npm ci && ng build --stats_json --build-optimizer && cd /root/datentool && python manage.py migrate --run-syncdb && python manage.py runserver 0.0.0.0:8000"
     ports:
       - "${EXT_PORT}:8000"

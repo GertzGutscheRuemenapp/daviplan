@@ -18,6 +18,8 @@ class StopFactory(DjangoModelFactory):
     class Meta:
         model = Stop
 
+    hstnr = factory.Sequence(lambda n: faker.unique.pyint(max_value=2**31-1))
+    variant = factory.SubFactory(ModeVariantFactory)
     geom = get_point_from_latlon(faker.latlng(), 3857)
     name = faker.word()
 

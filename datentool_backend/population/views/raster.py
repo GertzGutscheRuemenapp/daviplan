@@ -1,23 +1,24 @@
 import os
-import sys
-import traceback
 import pyproj
 import tempfile
 import numpy as np
 import pandas as pd
 
 from io import StringIO
-from distutils.util import strtobool
 
 from osgeo import gdal, ogr, osr
 from django.contrib.gis.geos import Point, Polygon
 from django.db import transaction
-
+from django.db.models import F
+from django.contrib.gis.db.models.functions import Distance
 from django.conf import settings
+from django.contrib.gis.geos import Point
+from django.contrib.gis.db.models.functions import AsGeoJSON
+from django.views.generic import ListView
 
 from drf_spectacular.utils import (extend_schema,
                                    inline_serializer,
-                                   OpenApiResponse,)
+                                   OpenApiResponse, OpenApiParameter)
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -25,6 +26,10 @@ from rest_framework.response import Response
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
+from vectortiles.postgis.views import MVTView, BaseVectorTileView
+
+from datentool_backend.indicators.models import (MatrixCellPlace,
+                                                 MatrixCellStop)
 from datentool_backend.population.models import (
     Raster,
     PopulationRaster,
@@ -32,6 +37,7 @@ from datentool_backend.population.models import (
     RasterCellPopulation,
     RasterCellPopulationAgeGender,
     AreaCell,
+    RasterCell
     )
 from rest_framework.response import Response
 
@@ -39,9 +45,8 @@ from datentool_backend.utils.serializers import (MessageSerializer,
                                                  drop_constraints,
                                                  )
 
-from datentool_backend.population.serializers import (RasterSerializer,
-                                                      PopulationRasterSerializer,
-                          )
+from datentool_backend.population.serializers import (
+    RasterSerializer, PopulationRasterSerializer, RasterCellSerializer)
 from datentool_backend.site.models import ProjectSetting
 
 
@@ -51,6 +56,73 @@ class RasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
+class RasterCellViewSet(viewsets.ModelViewSet):
+    queryset = RasterCell.objects.all()
+    serializer_class = RasterCellSerializer
+    permission_classes = [HasAdminAccessOrReadOnly]
+
+    def get_queryset(self):
+        pop_raster_id = self.request.query_params.get('raster')
+        if pop_raster_id is not None:
+            pop_raster = PopulationRaster.objects.get(id=pop_raster_id)
+        else:
+            pop_raster = PopulationRaster.objects.first()
+        if not pop_raster:
+            return RasterCell.objects.none()
+
+        raster_cells = pop_raster.raster.rastercell_set
+
+        raster_cells_with_inhabitants = raster_cells\
+            .annotate(population=F('rastercellpopulation__value'))\
+            .filter(population__gt=0)\
+            .annotate(geom=AsGeoJSON('poly'))
+        return raster_cells_with_inhabitants
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='lon', required=True, type=str,
+                description=('WGS84-Longitude')),
+            OpenApiParameter(
+                name='lat', required=True, type=str,
+                description=('WGS84-Latitude')),
+        ],
+        responses=RasterCellSerializer,
+        methods=['GET']
+    )
+    @action(methods=['GET'], detail=False)
+    def closest_cell(self, request, **kwargs):
+        lat = request.query_params.get('lat')
+        lon = request.query_params.get('lon')
+        pnt = Point(x=float(lon), y=float(lat), srid=4326)
+        pnt.transform(3857)
+        closest = self.get_queryset().annotate(
+            distance=Distance('pnt', pnt)
+            ).order_by('distance').first()
+        return Response(RasterCellSerializer(closest).data,
+                        status=status.HTTP_200_OK)
+
+
+class RasterCellTileView(MVTView, ListView):
+    model = RasterCell
+    vector_tile_layer_name = 'raster'
+    vector_tile_geom_name = 'poly'
+    vector_tile_fields = ('id', 'cellcode', 'population', 'geom')
+
+    def get_queryset(self):
+        pop_raster = PopulationRaster.objects.first()
+        if not pop_raster:
+            return RasterCell.objects.none()
+
+        raster_cells = pop_raster.raster.rastercell_set
+
+        raster_cells_with_inhabitants = raster_cells\
+            .annotate(population=F('rastercellpopulation__value'))\
+            .filter(population__gt=0)\
+            .annotate(geom=AsGeoJSON('poly'))
+        return raster_cells_with_inhabitants
+
+
 class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = PopulationRaster.objects.all()
     serializer_class = PopulationRasterSerializer
@@ -58,8 +130,8 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
     @staticmethod
     def _intersect_census(popraster, drop_constraints=False):
-        fp = os.path.join(settings.POPRASTER_ROOT, popraster.filename)
-        fp_clip = os.path.join(settings.POPRASTER_ROOT, 'clipped.tif')
+        fp = os.path.join(settings.DATA_ROOT, popraster.filename)
+        fp_clip = os.path.join(settings.DATA_ROOT, 'clipped.tif')
 
         raster = gdal.Open(fp)
         srs = raster.GetSpatialRef()
@@ -182,9 +254,6 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             # delete casade can take forever, so use truncate to all depending
             #qs_rc = RasterCell.objects.filter(raster=raster_id)
             #qs_rc.delete()
-
-            from datentool_backend.indicators.models import (MatrixCellPlace,
-                                                             MatrixCellStop)
             MatrixCellPlace.truncate()
             MatrixCellStop.truncate()
             AreaCell.truncate()
@@ -243,8 +312,7 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                 )
     @action(methods=['POST'], detail=True)
     def intersect_census(self, request, pk):
-        drop_constraints = bool(strtobool(
-            request.data.get('drop_constraints', 'False')))
+        drop_constraints = request.data.get('drop_constraints', False)
         try:
             df_rcpopulation = self._intersect_census(
                 PopulationRaster.objects.get(pk=pk),

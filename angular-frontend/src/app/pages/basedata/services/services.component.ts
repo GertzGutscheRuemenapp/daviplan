@@ -7,7 +7,6 @@ import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { InputCardComponent } from "../../../dash/input-card.component";
-import { User } from "../../login/users";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 
 @Component({

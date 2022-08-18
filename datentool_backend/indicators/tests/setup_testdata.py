@@ -3,6 +3,7 @@ import xarray as xr
 
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 
+from datentool_backend.site.models import ProjectSetting
 from datentool_backend.area.factories import (AreaLevelFactory,
                                               AreaFactory,
                                               AreaFieldFactory,
@@ -45,6 +46,17 @@ class CreateTestdataMixin:
     def tearDownClass(cls):
         PlanningProcess.objects.all().delete()
         super().tearDownClass()
+
+    @classmethod
+    def create_project_settings(cls):
+        ewkt = 'SRID=4326;MULTIPOLYGON (((9.8 52.2, 9.8 52.3, 9.9 52.3, 9.9 52.2, 9.8 52.2)))'
+
+        geom = MultiPolygon.from_ewkt(ewkt)
+        geom.transform(3857)
+        projectsettings, created = ProjectSetting.objects.get_or_create(pk=1)
+        projectsettings.project_area = geom
+        projectsettings.save()
+        return projectsettings
 
     @classmethod
     def create_scenario(cls):
@@ -296,9 +308,9 @@ class CreateTestdataMixin:
     @classmethod
     def create_years_gender_agegroups(cls):
         """Create years, genders and agegroups"""
-        Year.objects.create(year=2022, is_default=True)
+        Year.objects.create(year=2022, is_default=True, is_real=True)
         for year in range(2023, 2030):
-            Year.objects.create(year=year)
+            Year.objects.create(year=year, is_prognosis=True)
 
         cls.years = Year.objects.all()
         Gender.objects.create(name='Male')
@@ -342,7 +354,7 @@ class CreateTestdataMixin:
                                       pop_values_by_age_gender,
                                       cls.population)
 
-        for i, year in enumerate(cls.years):
+        for i, year in enumerate(cls.years[1:]):
             population = PopulationFactory(prognosis=cls.prognosis,
                                            year=year,
                                            popraster=cls.popraster,
@@ -437,14 +449,15 @@ class CreateTestdataMixin:
         for population in populations:
             self.post('populations-disaggregate', pk=population.pk,
                       data={'use_intersected_data': True,
-                            'drop_constraints': False, })
+                            'drop_constraints': False, },
+                      extra={'format': 'json'})
             data = {
                 'pop_raster': self.popraster.pk,
                 'drop_constraints': False
             }
             self.post('arealevels-intersect-areas', pk=self.area_level2.pk,
-                      data=data)
+                      data=data, extra={'format': 'json'})
             self.post('arealevels-intersect-areas', pk=self.area_level3.pk,
-                      data=data)
+                      data=data, extra={'format': 'json'})
             self.post('arealevels-intersect-areas', pk=self.area_level4.pk,
-                      data=data)
+                      data=data, extra={'format': 'json'})

@@ -19,13 +19,14 @@ export class CookieService {
   // }
 
   public get(name: string, type: 'string'): string;
-  public get(name: string, type: 'boolean'): boolean;
+  public get(name: string, type: 'boolean'): boolean | undefined;
   public get(name: string, type: 'number'): number | undefined;
   public get(name: string, type: 'array'): string[];
   public get(name: string, type: string = 'string'): unknown {
     let val = this.ngxCookies.get(name);
     if (type === 'boolean') {
-      if (!val || val.toLocaleLowerCase() === 'false')
+      if (val === undefined || val === '') return;
+      if (val.toLocaleLowerCase() === 'false')
         return false;
       return true;
     }

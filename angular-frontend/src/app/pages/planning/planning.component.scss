@@ -79,11 +79,6 @@
       padding: 0;
     }
   }
-  .filter-button {
-    position: absolute;
-    right: 7px;
-    top: 8px;
-  }
 }
 
 mat-toolbar mat-form-field {
@@ -130,7 +125,7 @@ mat-toolbar mat-form-field {
 
 ::ng-deep app-planning {
 
-  app-scenario-menu {
+  #scenario-menu {
     position: fixed;
     top: 155px;
     //left: calc(#{$context-bar-width} - 100% - 100px);
@@ -139,7 +134,7 @@ mat-toolbar mat-form-field {
     z-index: -1;
   }
 
-  app-scenario-menu.expanded {
+  #scenario-menu.expanded {
     left: $context-bar-width;
   }
   #process-select .mat-form-field-appearance-standard.mat-form-field-has-label .mat-select:not(.mat-select-empty) .mat-select-arrow-wrapper {

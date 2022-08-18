@@ -14,7 +14,7 @@ from .demand.views import (GenderViewSet,
                            AgeGroupViewSet,
                            DemandRateSetViewSet)
 
-from .modes.views import ModeVariantViewSet
+from .modes.views import NetworkViewSet, ModeVariantViewSet
 from .indicators.views import (RouterViewSet,
                                FixedIndicatorViewSet,
                                StopViewSet,
@@ -34,6 +34,7 @@ from .logging.views import (CapacityUploadLogViewSet,
                             PlaceUploadLogViewSet,
                             AreaUploadLogViewSet)
 from .population.views import (RasterViewSet,
+                               RasterCellViewSet,
                                PopulationRasterViewSet,
                                PrognosisViewSet,
                                PopulationViewSet,
@@ -41,7 +42,22 @@ from .population.views import (RasterViewSet,
                                PopStatisticViewSet,
                                PopStatEntryViewSet)
 from .user.views import PlanningProcessViewSet, ScenarioViewSet
-from datentool_backend.utils.routers import SingletonRouter
+
+
+class SingletonRouter(routers.SimpleRouter):
+    routes = [
+       routers.Route(
+           url=r'^{prefix}/$',
+           mapping={
+               'get': 'retrieve',
+               'put': 'update',
+               'patch': 'partial_update'
+               },
+           name='{basename}-detail',
+           initkwargs={'suffix': 'Detail'},
+           detail=True
+           )
+    ]
 
 router = routers.SimpleRouter()
 router.register(r'users', UserViewSet, basename='users')
@@ -58,6 +74,7 @@ router.register(r'demandratesets', DemandRateSetViewSet,
                 basename='demandratesets')
 
 # indicator
+router.register(r'networks', NetworkViewSet, basename='networks')
 router.register(r'modevariants', ModeVariantViewSet, basename='modevariants')
 router.register(r'stops', StopViewSet, basename='stops')
 router.register(r'matrixstopstops', MatrixStopStopViewSet, basename='matrixstopstops')
@@ -85,6 +102,7 @@ router.register(r'areauploadlogs', AreaUploadLogViewSet,
 # population
 router.register(r'years', YearViewSet, basename='years')
 router.register(r'rasters', RasterViewSet, basename='rasters')
+router.register(r'rastercells', RasterCellViewSet, basename='rastercells')
 router.register(r'populationrasters', PopulationRasterViewSet,
                 basename='populationrasters')
 router.register(r'genders', GenderViewSet, basename='gender')

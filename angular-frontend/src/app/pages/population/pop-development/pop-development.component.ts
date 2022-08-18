@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ViewChild, TemplateRef, OnDestroy } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, TemplateRef, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
 import { StackedBarchartComponent, StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
@@ -8,12 +8,13 @@ import { map } from "rxjs/operators";
 import { MatDialog } from "@angular/material/dialog";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { PopulationService } from "../population.service";
-import { Area, AreaLevel, Gender, Layer, LayerGroup, AgeGroup, Prognosis } from "../../../rest-interfaces";
+import { Area, AreaLevel, Gender, AgeGroup, Prognosis } from "../../../rest-interfaces";
 import * as d3 from "d3";
 import { SelectionModel } from "@angular/cdk/collections";
 import { sortBy } from "../../../helpers/utils";
 import { SettingsService } from "../../../settings.service";
 import { CookieService } from "../../../helpers/cookies.service";
+import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-pop-development',
@@ -38,8 +39,8 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   lineChartProps: any = {};
   ageTreeProps: any = {};
   subscriptions: Subscription[] = [];
-  populationLayer?: Layer;
-  legendGroup?: LayerGroup;
+  populationLayer?: VectorLayer;
+  layerGroup?: MapLayerGroup;
   compareYears = false;
   areaLevels: AreaLevel[] = [];
   areas: Area[] = [];
@@ -61,15 +62,13 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
   constructor(private mapService: MapService, private dialog: MatDialog,
               private populationService: PopulationService, private settings: SettingsService,
-              private cookies: CookieService) { }
+              private cookies: CookieService, private cdref: ChangeDetectorRef) { }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
-    this.legendGroup = this.mapControl.addGroup({
-      name: 'Bevölkerungsentwicklung',
-      order: -1
-    }, false)
-    this.mapControl.mapDescription = '';
+    this.layerGroup = new MapLayerGroup('Nachfrage', { order: -1 });
+    this.mapControl.addGroup(this.layerGroup);
+    this.mapControl.setDescription('');
     if (this.populationService.isReady)
       this.initData();
     else {
@@ -99,6 +98,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     })))
     observables.push(this.populationService.getAreaLevels({ active: true }).pipe(map(areaLevels => {
       this.areaLevels = areaLevels;
+      this.cdref.detectChanges();
     })))
     observables.push(this.populationService.getAgeGroups().pipe(map(ageGroups => {
       this.ageGroupSelection.clear();
@@ -128,13 +128,13 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
   applyUserSettings(): void {
     const ageGroupIds = this.cookies.get('pop-ageGroups', 'array');
-    if (ageGroupIds) {
-      this.ageGroups.forEach(ag => {
-        const select = ageGroupIds? ageGroupIds.indexOf(ag.id!.toString()) >= 0 : true;
-        if (select)
-          this.ageGroupSelection.select(ag);
-      })
-    }
+    this.ageGroups.forEach(ag => {
+      const select = ageGroupIds? ageGroupIds.indexOf(ag.id!.toString()) >= 0 : true;
+      // if cookies were not set yet, length of agegroups is 0
+      // but also means all are selected even if none were selected before intentionally. not ideal
+      if (select || ageGroupIds.length === 0)
+        this.ageGroupSelection.select(ag);
+    })
     this.allAgeGroupsChecked = this.ageGroupSelection.selected.length === this.ageGroups.length;
     const genderId = this.cookies.get('pop-gender','number');
     this.selectedGender = this.genders.find(g => g.id === genderId) || this.genders[0];
@@ -144,7 +144,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     const year = this.cookies.get('pop-year','number');
     this.year = year || this.realYears![this.realYears!.length - 1];
     const areaLevelId = this.cookies.get('pop-area-level','number');
-    this.activeLevel = this.areaLevels.find(al => al.id === areaLevelId);
+    this.activeLevel = this.areaLevels.find(al => al.id === areaLevelId) || ((this.areaLevels.length > 0)? this.areaLevels[this.areaLevels.length - 1]: undefined);
 
     this.setSlider();
     this.onLevelChange();
@@ -202,7 +202,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   }
 
   onAreaChange(): void {
-    this.mapControl?.selectFeatures([this.activeArea!.id], this.populationLayer!.id!, { silent: true, clear: true });
+    this.populationLayer?.selectFeatures([this.activeArea!.id], { silent: true, clear: true });
     this.cookies.set(`pop-area-${this.activeLevel!.id}`, this.activeArea?.id);
     this.updateDiagrams();
   }
@@ -213,53 +213,63 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     const genders = (this.selectedGender?.id !== -1)? [this.selectedGender!.id]: undefined;
     const ageGroups = this.ageGroupSelection.selected;
     if (this.populationLayer) {
-      this.mapControl?.removeLayer(this.populationLayer.id!);
+      this.layerGroup?.removeLayer(this.populationLayer);
       this.populationLayer = undefined;
     }
     this.updateMapDescription();
     if (ageGroups.length === 0 || !this.activeLevel) return;
     this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,
       { genders: genders, prognosis: prognosis, ageGroups: ageGroups.map(ag => ag.id!) }).subscribe(popData => {
-      const radiusFunc = d3.scaleLinear().domain([0, this.activeLevel?.maxValues!.population! || 1000]).range([5, 50]);
-      this.populationLayer = this.mapControl?.addLayer({
-          order: 0,
-          type: 'vector',
-          group: this.legendGroup?.id,
-          name: this.activeLevel!.name,
-          description: this.activeLevel!.name,
-          opacity: 1,
-          symbol: {
-            strokeColor: 'white',
-            fillColor: 'rgba(165, 15, 21, 0.9)',
-            symbol: 'circle'
-          },
-          labelField: 'value',
-          showLabel: true
+      this.populationLayer = new VectorLayer(this.activeLevel!.name,{
+        order: 0,
+        description: this.activeLevel!.name,
+        opacity: 1,
+        style: {
+          strokeColor: 'white',
+          fillColor: 'rgba(165, 15, 21, 0.9)',
+          symbol: 'circle'
         },
-        {
-          visible: true,
-          tooltipField: 'description',
-          mouseOver: {
+        labelField: 'value',
+        tooltipField: 'description',
+        mouseOver: {
+          enabled: true,
+          style: {
             strokeColor: 'yellow',
             fillColor: 'rgba(255, 255, 0, 0.7)'
-          },
-          selectable: true,
-          select: {
+          }
+        },
+        select: {
+          enabled: true,
+          style: {
             strokeColor: 'rgb(180, 180, 0)',
             fillColor: 'rgba(255, 255, 0, 0.9)'
           },
-          radiusFunc: radiusFunc
-        });
+        },
+        valueStyles: {
+          field: 'value',
+          radius: {
+            range: [5, 50],
+            scale: 'linear'
+          },
+          min: 0,
+          max: this.activeLevel?.maxValues!.population! || 1000
+        },
+        labelOffset: { y: 15 }
+      });
+      this.layerGroup?.addLayer(this.populationLayer);
       this.areas.forEach(area => {
         const data = popData.find(d => d.areaId == area.id);
         area.properties.value = (data)? Math.round(data.value): 0;
         area.properties.description = `<b>${area.properties.label}</b><br>Bevölkerung: ${area.properties.value}`
       })
-      this.mapControl?.addFeatures(this.populationLayer!.id!, this.areas,
-        { properties: 'properties', geometry: 'centroid', zIndex: 'value' });
+      this.populationLayer.addFeatures(this.areas,{
+        properties: 'properties',
+        geometry: 'centroid',
+        zIndex: 'value'
+      });
       if (this.activeArea)
-        this.mapControl?.selectFeatures([this.activeArea.id], this.populationLayer!.id!, { silent: true });
-      this.populationLayer!.featureSelected?.subscribe(evt => {
+        this.populationLayer.selectFeatures([this.activeArea.id], { silent: true });
+      this.populationLayer!.featureSelected.subscribe(evt => {
         if (evt.selected) {
           this.activeArea = this.areas.find(area => area.id === evt.feature.get('id'));
         }
@@ -368,6 +378,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     const _prev = this.selectedTab;
     this.selectedTab = -1;
     setTimeout(() => {  this.selectedTab = _prev; }, 1);
+    this.cdref.detectChanges();
   }
 
   someAgeGroupsChecked(): boolean {
@@ -411,14 +422,11 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       description = `Bevölkerungsentwicklung für Gebietseinheit ${this.activeLevel.name} | ${progDesc}${this.year} <br>` +
                     `${genderDesc} | ${ageGroupDesc}`;
     }
-    this.mapControl!.mapDescription = description;
+    this.mapControl?.setDescription(description);
   }
 
   ngOnDestroy(): void {
-    if (this.populationLayer)
-      this.mapControl?.removeLayer(this.populationLayer.id!);
-    if (this.legendGroup)
-      this.mapControl?.removeGroup(this.legendGroup.id!)
+    if (this.layerGroup)  this.mapControl?.removeGroup(this.layerGroup);
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }

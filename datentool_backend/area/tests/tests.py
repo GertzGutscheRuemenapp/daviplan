@@ -79,10 +79,12 @@ class TestWfs(LoginTestCase, APITestCase):
 
     def test_pull_areas(self):
         response = self.post('arealevels-pull-areas',
-                             pk=self.area_level_no_wfs.id)
+                             pk=self.area_level_no_wfs.id,
+                             extra={'format': 'json'})
         self.assert_http_406_not_acceptable(response)
 
-        response = self.post('arealevels-pull-areas', pk=self.area_level.id)
+        response = self.post('arealevels-pull-areas', pk=self.area_level.id,
+                             extra={'format': 'json'})
         self.assert_http_202_accepted(response)
         areas = Area.objects.filter(area_level=self.area_level)
         # ToDo: test intersection with project area?
@@ -326,7 +328,7 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
         self.obj.is_preset = True
         self.obj.save()
 
-        response = self.delete(url, **self.kwargs)
+        response = self.delete(url, **self.kwargs, extra={'format': 'json'})
         self.assert_http_403_forbidden(response)
 
         patch_data = {'name': 'test'}
@@ -438,7 +440,7 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
 
         self.obj = area_level1
         # url1 has content, low zoom level (world)
-        url1 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 1,
+        url1 = reverse('areas-tile', kwargs={'pk': self.obj.pk, 'z': 1,
                                              'x': 0, 'y': 1})
         response = self.get(url1)
         self.assert_http_200_ok(response)
@@ -454,7 +456,7 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
         features = result[area_level1.name]['features']
         assert(features[0]['properties']['_label'] == 'Area One')
 
-        url2 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 10,
+        url2 = reverse('areas-tile', kwargs={'pk': self.obj.pk, 'z': 10,
                                              'x': 550, 'y': 336})
         response = self.get(url2)
         self.assert_http_200_ok(response)
@@ -467,7 +469,7 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
         self.assertEqual(area_level1.id, actual['area_level_id'])
 
         # url3 has no content, tile doesn't match with polygon
-        url3 = reverse('layer-tile', kwargs={'pk': self.obj.pk, 'z': 12,
+        url3 = reverse('areas-tile', kwargs={'pk': self.obj.pk, 'z': 12,
                                              'x': 2903, 'y': 1345}) # 2198
         response = self.get(url3)
         self.assert_http_204_no_content(response)

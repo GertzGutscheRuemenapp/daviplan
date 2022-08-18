@@ -5,11 +5,11 @@ import { Subscription } from "rxjs";
 import { MultilineChartComponent, MultilineData } from "../../../diagrams/multiline-chart/multiline-chart.component";
 import { BalanceChartComponent, BalanceChartData } from "../../../diagrams/balance-chart/balance-chart.component";
 import { PopulationService } from "../population.service";
-import { Area, AreaLevel, Layer, LayerGroup } from "../../../rest-interfaces";
+import { Area, AreaLevel } from "../../../rest-interfaces";
 import { SettingsService } from "../../../settings.service";
-import * as d3 from "d3";
 import { sortBy } from "../../../helpers/utils";
 import { CookieService } from "../../../helpers/cookies.service";
+import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-pop-statistics',
@@ -35,9 +35,9 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   years: number[] = [];
   year?: number;
   theme: 'nature' | 'migration' = 'nature';
-  statisticsLayer?: Layer;
+  statisticsLayer?: VectorLayer;
   subscriptions: Subscription[] = [];
-  legendGroup?: LayerGroup;
+  layerGroup?: MapLayerGroup;
   activeArea?: Area;
   showBirths: boolean = true;
   showDeaths: boolean = true;
@@ -50,11 +50,9 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
-    this.legendGroup = this.mapControl.addGroup({
-      name: 'Bevölkerungssalden',
-      order: -1
-    }, false)
-    this.mapControl.mapDescription = '';
+    this.layerGroup = new MapLayerGroup('Bevölkerungssalden', { order: -1 })
+    this.mapControl.addGroup(this.layerGroup);
+    this.mapControl?.setDescription('');
     if (this.populationService.isReady)
       this.initData();
     else {
@@ -94,11 +92,15 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
     this.activeArea = this.areas?.find(a => a.id === areaId);
     const theme = this.cookies.get('pop-stat-theme', 'string');
     this.theme = theme as any || 'nature';
-    this.showBirths = this.cookies.get('pop-stat-births', 'boolean');
-    this.showDeaths = this.cookies.get('pop-stat-deaths', 'boolean');
-    this.showImmigration = this.cookies.get('pop-stat-immigration', 'boolean');
-    this.showEmigration = this.cookies.get('pop-stat-emigration', 'boolean');
-    this.showEmigration = this.cookies.get('pop-stat-emigration', 'boolean');
+    // all true by default
+    const showBirths = this.cookies.get('pop-stat-births', 'boolean');
+    this.showBirths = (showBirths !== undefined)? showBirths: true;
+    const showDeaths = this.cookies.get('pop-stat-deaths', 'boolean');
+    this.showDeaths = (showDeaths !== undefined)? showDeaths: true;
+    const showImmigration = this.cookies.get('pop-stat-immigration', 'boolean');
+    this.showImmigration = (showImmigration !== undefined)? showImmigration: true;
+    const showEmigration = this.cookies.get('pop-stat-emigration', 'boolean');
+    this.showEmigration = (showEmigration !== undefined)? showEmigration: true;
     const year = this.cookies.get('pop-year','number');
     this.year = (year && this.years!.indexOf(year) > -1)? year: (this.years.length > 0)? this.years[0]: undefined;
     this.setSlider();
@@ -108,7 +110,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
 
   updateMap(): void {
     if (this.statisticsLayer) {
-      this.mapControl?.removeLayer(this.statisticsLayer.id!);
+      this.layerGroup?.removeLayer(this.statisticsLayer);
       this.statisticsLayer = undefined;
     }
     this.updateMapDescription();
@@ -132,41 +134,52 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         color = this.showImmigration? '#1a9850': '#d73027';
         max = (diffDisplay)? Math.max(mvs.migrationDiff!): this.showImmigration? mvs.immigration!: mvs.emigration!;
       }
-      const radiusFunc = d3.scaleLinear().domain([0, max || 1000]).range([5, 50]);
       const colorFunc = function(value: number) {
         return (value > 0)? '#1a9850': (value < 0)? '#d73027': 'grey';
       };
 
-      this.statisticsLayer = this.mapControl?.addLayer({
+      this.statisticsLayer = new VectorLayer(descr, {
         order: 0,
-        type: 'vector',
-        group: this.legendGroup?.id,
-        name: descr,
         description: 'ToDo',
         opacity: 1,
-        symbol: {
+        style: {
           strokeColor: 'white',
           fillColor: color,
           symbol: 'circle'
         },
         labelField: 'value',
-        showLabel: true
-      },
-      {
-        visible: true,
+        showLabel: true,
         tooltipField: 'description',
         mouseOver: {
-          strokeColor: 'yellow',
-          fillColor: 'rgba(255, 255, 0, 0.7)',
+          enabled: true,
+          style: {
+            strokeColor: 'yellow',
+            fillColor: 'rgba(255, 255, 0, 0.7)'
+          }
         },
-        selectable: true,
         select: {
-          strokeColor: 'rgb(180, 180, 0)',
-          fillColor: 'rgba(255, 255, 0, 0.9)'
+          enabled: true,
+          style: {
+            strokeColor: 'rgb(180, 180, 0)',
+            fillColor: 'rgba(255, 255, 0, 0.9)'
+          }
         },
-        colorFunc: diffDisplay? colorFunc: undefined,
-        radiusFunc: radiusFunc
+        valueStyles: {
+          field: 'value',
+          fillColor: {
+            colorFunc: colorFunc
+          },
+          // fillColor: diffDisplay? colorFunc: undefined,
+          radius: {
+            range: [5, 50],
+            scale: 'linear'
+          },
+          min: 0,
+          max: max || 1000
+        },
+        labelOffset: { y: 15 }
       });
+      this.layerGroup?.addLayer(this.statisticsLayer);
       this.areas.forEach(area => {
         const data = statistics.find(d => d.area == area.id);
         let value = 0;
@@ -180,10 +193,13 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         area.properties.value = value;
         area.properties.description = `<b>${area.properties.label}</b><br>${descr}: ${area.properties.value}`
       })
-      this.mapControl?.addFeatures(this.statisticsLayer!.id!, this.areas,
-        { properties: 'properties', geometry: 'centroid', zIndex: 'value' });
+      this.statisticsLayer.addFeatures(this.areas,{
+        properties: 'properties',
+        geometry: 'centroid',
+        zIndex: 'value'
+      });
       if (this.activeArea)
-        this.mapControl?.selectFeatures([this.activeArea.id], this.statisticsLayer!.id!, { silent: true });
+        this.statisticsLayer.selectFeatures([this.activeArea.id], { silent: true });
       this.statisticsLayer!.featureSelected?.subscribe(evt => {
         if (evt.selected) {
           this.activeArea = this.areas.find(area => area.id === evt.feature.get('id'));
@@ -243,7 +259,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
 
   onAreaChange(): void {
     this.cookies.set(`pop-area-${this.areaLevel!.id}`, this.activeArea!.id);
-    this.mapControl?.selectFeatures([this.activeArea!.id], this.statisticsLayer!.id!, { silent: true, clear: true });
+    this.statisticsLayer?.selectFeatures([this.activeArea!.id], { silent: true, clear: true });
     this.updateDiagrams();
   }
 
@@ -274,14 +290,11 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
     else
       theme = (this.showImmigration && this.showEmigration)? 'Wanderung': (this.showImmigration)? 'Zuzüge': (this.showEmigration)? 'Fortzüge': 'keine Auswahl';
     let description = `${theme} für Gebietseinheit ${this.areaLevel.name} | ${this.year}`;
-    this.mapControl!.mapDescription = description;
+    this.mapControl?.setDescription(description);
   }
 
   ngOnDestroy(): void {
-    if (this.statisticsLayer)
-      this.mapControl?.removeLayer(this.statisticsLayer.id!);
-    if (this.legendGroup)
-      this.mapControl?.removeGroup(this.legendGroup.id!)
+    if (this.layerGroup) this.mapControl?.removeGroup(this.layerGroup)
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 

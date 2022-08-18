@@ -15,10 +15,10 @@ export function sortBy(array: any[], attr: string, options: { reverse: boolean }
   return sorted;
 }
 
-export function wktToGeom(wkt: string, options?: { targetProjection?: string, ewkt?: boolean }): Geometry {
+export function wktToGeom(wkt: string, options?: { targetProjection?: string, dataProjection?: string, ewkt?: boolean }): Geometry {
   const targetProjection = (options?.targetProjection !== undefined)? options?.targetProjection: 'EPSG:4326';
   const format = new WKT()
-  let dataProjection = 'EPSG:4326';
+  let dataProjection = options?.dataProjection || 'EPSG:4326';
   if (options?.ewkt){
     const split = wkt.split(';');
     wkt = split[1];

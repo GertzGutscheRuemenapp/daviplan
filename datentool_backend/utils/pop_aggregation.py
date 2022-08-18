@@ -3,9 +3,8 @@ from io import StringIO
 from django.db import connection
 from django.db.utils import ProgrammingError
 from typing import List
-from django.db.models import F
 from django.db import transaction
-from django.db.models import Max, Sum
+from django.db.models import Max, Sum, F
 
 from datentool_backend.models import (Area, PopulationRaster, AreaCell,
                                       AreaLevel, Population,
@@ -18,6 +17,8 @@ def disaggregate_population(population, use_intersected_data=False,
                             drop_constraints=False):
     areas = population.populationentry_set.distinct('area_id')\
         .values_list('area_id', flat=True)
+    if not areas:
+        return 'skipped'
 
     popraster = population.popraster or PopulationRaster.objects.first()
 

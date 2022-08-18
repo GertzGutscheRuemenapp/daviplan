@@ -1,6 +1,7 @@
 import { Component, ElementRef, Inject, Input, TemplateRef, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { faArrowsAlt, faQuestion } from '@fortawesome/free-solid-svg-icons';
+import { BehaviorSubject } from "rxjs";
 
 export interface DialogData {
   title: string;
@@ -20,9 +21,14 @@ export interface DialogData {
 })
 export class FloatingDialog {
   faArrows = faArrowsAlt;
+  isLoading$ = new BehaviorSubject<boolean>(false);
   constructor(public dialogRef: MatDialogRef<FloatingDialog>, @Inject(MAT_DIALOG_DATA) public data: DialogData) {
     data.context = data.context || {};
     data.dragArea = data.dragArea || 'all';
+  }
+
+  setLoading(loading: boolean) {
+    this.isLoading$.next(loading);
   }
 }
 

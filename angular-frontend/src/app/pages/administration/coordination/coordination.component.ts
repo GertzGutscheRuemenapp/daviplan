@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { User, mockUsers } from "../../login/users";
+import { User } from "../../../rest-interfaces";
 
 interface DataDomain {
   name: string,
@@ -8,6 +8,39 @@ interface DataDomain {
   status: { text: string, detail: string },
   marker?: number
 }
+
+export const mockUsers: User[] = [
+  {
+    id: 1,
+    username: 'bla',
+    email: 'bla@bla.com',
+    firstName: 'Sascha',
+    lastName: 'Schmidt',
+    isSuperuser: false,
+    password: '',
+    profile: {
+      adminAccess: true,
+      canCreateProcess: true,
+      canEditBasedata: true,
+    },
+    access: []
+  },
+  {
+    id: 2,
+    username: 'admin',
+    email: 'bla2@bla.com',
+    firstName: 'Hannah',
+    lastName: 'Hansen',
+    isSuperuser: true,
+    password: '',
+    profile: {
+      adminAccess: false,
+      canCreateProcess: false,
+      canEditBasedata: false,
+    },
+    access: []
+  },
+];
 
 const data: { [name: string]: DataDomain[] } = {
   'geodaten' : [
@@ -21,11 +54,11 @@ const data: { [name: string]: DataDomain[] } = {
     { name: 'Prognosedaten', url: '/grundlagendaten/prognosedaten/', users: [mockUsers[1]], status: { text: '-', detail:'' }, marker: 3}
   ],
   'erreichbarkeit' : [
-    { name: 'Verkehrsnetz', url: '/grundlagendaten/verkehrsnetz/', users: [mockUsers[0]], status: { text: '-', detail:'' }},
-    { name: 'Zu Fuß', url: '/grundlagendaten/erreichbarkeiten/', users: [mockUsers[0]], status: { text: '-', detail:'' }},
-    { name: 'Rad', url: '/grundlagendaten/erreichbarkeiten/', users: [mockUsers[0]], status: { text: '-', detail:'' }},
-    { name: 'Auto', url: '/grundlagendaten/erreichbarkeiten/', users: [mockUsers[0]], status: { text: '-', detail:'' }},
-    { name: 'ÖPNV', url: '/grundlagendaten/erreichbarkeiten/', users: [mockUsers[1]], status: { text: '-', detail:'' }},
+    { name: 'Straßennetz', url: '/grundlagendaten/strassennetz/', users: [mockUsers[0]], status: { text: '-', detail:'' }},
+    { name: 'Zu Fuß', url: '/grundlagendaten/straßennetz/', users: [mockUsers[0]], status: { text: '-', detail:'' }},
+    { name: 'Rad', url: '/grundlagendaten/straßennetz/', users: [mockUsers[0]], status: { text: '-', detail:'' }},
+    { name: 'Auto', url: '/grundlagendaten/straßennetz/', users: [mockUsers[0]], status: { text: '-', detail:'' }},
+    { name: 'ÖPNV', url: '/grundlagendaten/oepnvnetz/', users: [mockUsers[1]], status: { text: '-', detail:'' }},
   ],
   'Infrastruktur' : [
     { name: 'Schulen', url: '/grundlagendaten/standorte/', users: [mockUsers[1]], status: { text: '25 Standorte, 2 Leistungen definiert', detail:'' }, marker: 2},

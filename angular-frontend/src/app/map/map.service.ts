@@ -1,58 +1,66 @@
 import { Injectable, EventEmitter } from '@angular/core';
-import { AreaLevel, Layer, LayerGroup } from '../rest-interfaces';
 import { OlMap } from './map'
 import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { HttpClient } from "@angular/common/http";
-import { RestAPI } from "../rest-api";
 import { sortBy } from "../helpers/utils";
 import { WKT } from "ol/format";
 import { SettingsService } from "../settings.service";
 import { environment } from "../../environments/environment";
 import { v4 as uuid } from 'uuid';
-import { SelectionModel } from "@angular/cdk/collections";
 import { Feature } from 'ol';
-import { Layer as OlLayer } from 'ol/layer'
+import { Geometry, Polygon, Point } from "ol/geom";
+import { getCenter } from 'ol/extent';
+import { Icon, Style } from "ol/style";
+import { RestCacheService } from "../rest-cache.service";
+import { MapLayerGroup, MapLayer, VectorTileLayer, WMSLayer, TileLayer, VectorLayer } from "./layers";
+import { Service } from "../rest-interfaces";
 
-const backgroundLayers: Layer[] = [
+interface BackgroundLayerDef {
+  id: string | number,
+  name: string,
+  url: string,
+  description: string,
+  attribution?: string,
+  layerName?: string,
+  type: 'tiles' | 'wms'
+}
+
+const backgroundLayerDefs: BackgroundLayerDef[] = [
   {
-    id: -1,
+    id: 'osm-back',
     name: 'OSM',
     url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     description: 'Offizielle Weltkarte von OpenStreetMap',
     attribution: '©<a target="_blank" href="https://www.openstreetmap.org/copyright">OpenStreetMap-Mitwirkende<a>',
     type: 'tiles',
-    order: 1,
-
   },
   {
-    id: -2,
+    id: 'tpo-back',
     name: 'TopPlusOpen',
     url: 'https://sgx.geodatenzentrum.de/wms_topplus_open',
     description: 'Weltweite einheitliche Webkarte vom BKG. Normalausgabe',
     type: 'wms',
-    order: 2,
     layerName: 'web'
   },
   {
-    id: -3,
+    id: 'tpo-grey-back',
     name: 'TopPlusOpen grau',
     url: 'https://sgx.geodatenzentrum.de/wms_topplus_open',
     description: 'Weltweite einheitliche Webkarte vom BKG. Graustufendarstellung',
     type: 'wms',
-    order: 3,
     layerName: 'web_grau'
   }
 ]
+
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class MapService {
   private controls: Record<string, MapControl> = {};
-  backgroundLayers: Layer[] = backgroundLayers;
-  layerGroups$?: BehaviorSubject<Array<LayerGroup>>;
 
-  constructor(private http: HttpClient, private rest: RestAPI, private settings: SettingsService) { }
+  constructor(private http: HttpClient, private restService: RestCacheService, private settings: SettingsService) { }
 
   get(target: string): MapControl {
     let control = this.controls[target];
@@ -65,35 +73,31 @@ export class MapService {
     return control;
   }
 
-  getLayers(): BehaviorSubject<Array<LayerGroup>>{
-    if (!this.layerGroups$) {
-      this.layerGroups$ = new BehaviorSubject<LayerGroup[]>([]);
-      this.fetchLayers({ internal: true, external: true });
-    }
-    return this.layerGroups$;
+  getLayers( options?: { internal?: boolean, external?: boolean, reset?: boolean, active?: boolean } ): Observable<MapLayerGroup[]>{
+    const observable = new Observable<MapLayerGroup[]>(subscriber => {
+      const observables: Observable<MapLayerGroup[]>[] = [];
+      if (options?.internal)
+        observables.push(this.fetchInternalLayers(options?.reset));
+      if (options?.external)
+        observables.push(this.fetchExternalLayers({ reset: options?.reset, active: options?.active }));
+      forkJoin(...observables).subscribe((merged: MapLayerGroup[]) => {
+        // @ts-ignore
+        const flatGroups: MapLayerGroup[] = [].concat.apply([], merged);
+        subscriber.next(flatGroups);
+        subscriber.complete();
+      })
+    });
+    return observable;
   }
 
-  fetchLayers( options: { internal?: boolean, external?: boolean } = {}): void {
-    const observables: Observable<LayerGroup[]>[] = [];
-    if (options.internal)
-      observables.push(this.fetchInternalLayers());
-    if (options.external)
-      observables.push(this.fetchExternalLayers());
-    forkJoin(...observables).subscribe((merged: Array<LayerGroup[]>) => {
-      // @ts-ignore
-      const flatGroups = [].concat.apply([], merged);
-      this.layerGroups$!.next(flatGroups);
-    })
-  }
-
-  private fetchInternalLayers(): Observable<LayerGroup[]> {
-    const observable = new Observable<LayerGroup[]>(subscriber => {
-      this.http.get<AreaLevel[]>(`${this.rest.URLS.arealevels}?active=true`).subscribe(levels => {
+  private fetchInternalLayers(reset: boolean = false): Observable<MapLayerGroup[]> {
+    const observable = new Observable<MapLayerGroup[]>(subscriber => {
+      this.restService.getAreaLevels({ active: true, reset: reset }).subscribe(levels => {
         levels = sortBy(levels, 'order');//.reverse();
         let groups = [];
-        const group: LayerGroup = { id: -1, name: 'Gebiete', order: 2 };
-        let layers: Layer[] = [];
-        levels.forEach(level => {
+        const group = new MapLayerGroup('Gebiete', { order: 2, external: false });
+        let layers: MapLayer[] = [];
+        sortBy(levels, 'order').forEach(level => {
           // skip levels with no symbol (aka should not be displayed)
           if (!level.symbol) return;
           // areas have no fill
@@ -103,21 +107,17 @@ export class MapService {
           if (environment.production) {
             tileUrl = tileUrl.replace('http:', 'https:');
           }
-          const id = -100 - level.id;
-          const layer: Layer = {
-            id: id,
-            type: "vector-tiles",
-            order: level.order,
-            url: tileUrl,
-            name: level.name,
+          const mLayer = new VectorTileLayer(level.name, tileUrl, {
+            id: `area-layer-level-${level.id}`,
             description: `Gebiete der Gebietseinheit ${level.name}`,
-            symbol: level.symbol,
-            labelField: level.labelField
-          }
-          layers.push(layer);
+            style: level.symbol,
+            labelField: '_label',
+            zIndex: 20000
+          })
+          layers.push(mLayer);
         });
         if (layers) {
-          group.children = layers;
+          layers.forEach(mlayer => group.addLayer(mlayer));
           groups.push(group);
         }
         subscriber.next(groups);
@@ -127,21 +127,31 @@ export class MapService {
     return observable;
   }
 
-  private fetchExternalLayers(): Observable<LayerGroup[]> {
-    const observable = new Observable<LayerGroup[]>(subscriber => {
-      this.http.get<LayerGroup[]>(this.rest.URLS.layerGroups).subscribe( groups => {
+  fetchExternalLayers(options?: { reset?: boolean, active?: boolean }): Observable<MapLayerGroup[]> {
+    const observable = new Observable<MapLayerGroup[]>(subscriber => {
+      this.restService.getLayerGroups({ reset: options?.reset }).subscribe(groups => {
         groups = sortBy(groups, 'order');
-        this.http.get<Layer[]>(`${this.rest.URLS.layers}?active=true`).subscribe( layers => {
+        const mGroups: MapLayerGroup[] = groups.map(group =>
+          new MapLayerGroup(group.name, { id: group.id, external: group.external, order: group.order }));
+        let layerOptions: any = { reset: options?.reset };
+        if (options?.active !== undefined)
+          layerOptions.active = options?.active;
+        this.restService.getLayers(layerOptions).subscribe(layers => {
           layers = sortBy(layers, 'order');
           layers.forEach(layer => {
-            const group = groups.find(group => { return group.id === layer.group });
-            if (group) {
-              layer.type = 'wms';
-              if (!group.children) group.children = [];
-              group.children.push(layer);
+            const mGroup = mGroups.find(mGroup => { return mGroup.id === layer.group });
+            if (mGroup) {
+              const mLayer = new WMSLayer(layer.name, layer.url!,{
+                id: layer.id,
+                layerName: layer.layerName,
+                description: layer.description,
+                order: layer.order,
+                active: layer.active
+              })
+              mGroup.addLayer(mLayer);
             }
           })
-          subscriber.next(groups);
+          subscriber.next(mGroups.filter(g => g.children.length > 0));
           subscriber.complete();
         })
       })
@@ -155,20 +165,15 @@ export class MapControl {
   target = '';
   destroyed = new EventEmitter<string>();
   map?: OlMap;
-  mapDescription = '';
-  layerGroups: BehaviorSubject<Array<LayerGroup>> = new BehaviorSubject<Array<LayerGroup>>([]);
-  private layerMap: Record<string | number, Layer> = {};
-  private olLayerIds: Record<string, string | number> = {};
-  private _localLayerGroups: LayerGroup[] = [];
-  private _serviceLayerGroups: LayerGroup[] = [];
-  private checklistSelection = new SelectionModel<Layer>(true );
-  mapSettings: any = {};
+  mapDescription$ = new BehaviorSubject<string>('');
+  layerGroups: MapLayerGroup[] = [];
+  private markerLayer?: VectorLayer;
   mapExtents: any = {};
   editMode: boolean = true;
-  background?: Layer;
-  backgroundOpacity = 1;
-
-  isSelected = (layer: Layer) => this.checklistSelection.isSelected(layer);
+  background?: TileLayer;
+  mapSettings: any = {};
+  backgroundLayers: TileLayer[] = [];
+  markerImg = `${environment.backend}/static/img/map-marker-red.svg`;
 
   constructor(target: string, private mapService: MapService, private settings: SettingsService) {
     this.target = target;
@@ -181,63 +186,115 @@ export class MapControl {
 
   init(): void {
     this.map = new OlMap(this.target, { projection: `EPSG:${this.srid}` });
-    this.map.selected.subscribe(evt => {
-      if (evt.selected && evt.selected.length > 0)
-        this.onFeatureSelected(evt.layer, evt.selected);
-      if (evt.deselected && evt.deselected.length > 0)
-        this.onFeatureDeselected(evt.layer, evt.deselected);
-    })
     this.settings.user?.get(this.target).subscribe(mapSettings => {
-      mapSettings = mapSettings || {};
-      this.mapSettings = mapSettings;
-      const editMode = mapSettings['legend-edit-mode'];
+      this.mapSettings = mapSettings || {};
+      const editMode = this.mapSettings['legend-edit-mode'];
       this.editMode = (editMode != undefined)? editMode : true;
-      const backgroundId = parseInt(mapSettings[`background-layer`]);
-      this.background = (backgroundId)? this.mapService.backgroundLayers.find(
-        l => { return l.id === backgroundId }) : this.mapService.backgroundLayers[1];
-      if (this.background)
-        this.backgroundOpacity = this.mapSettings[`layer-opacity-${this.background.id}`] || 1;
-      for (let layer of this.mapService.backgroundLayers) {
-        layer.opacity = parseFloat(this.mapSettings[`layer-opacity-${layer.id}`]) || 1;
-        this._addLayerToMap(layer, {
-          visible: layer === this.background
+      const backgroundId = this.mapSettings['background-layer'] || backgroundLayerDefs[1].id;
+      backgroundLayerDefs.forEach(layerDef => {
+        const opacity = parseFloat(this.mapSettings[`layer-opacity-${layerDef.id}`]) || 1;
+        const LayerCls = (layerDef.type === 'wms')? WMSLayer: TileLayer;
+        const bg = new LayerCls(layerDef.name, layerDef.url, {
+          id: layerDef.id,
+          description: layerDef.description,
+          visible: layerDef.id === backgroundId,
+          layerName: layerDef.layerName,
+          opacity: opacity,
+          attribution: layerDef.attribution
         });
-      }
+        this.backgroundLayers.push(bg);
+        bg.addToMap(this.map);
+      });
+      this.background = this.backgroundLayers.find(l => { return l.id === backgroundId });
+      this.getServiceLayerGroups({ internal: true, external: true });
     })
-    this.mapService.getLayers().subscribe(layerGroups => {
-      this.checklistSelection.clear();
-      this._serviceLayerGroups = layerGroups;
+    this.markerLayer = new VectorLayer('marker-layer', {
+      zIndex: 100000
+    });
+    this.markerLayer.addToMap(this.map);
+  }
+
+  private getServiceLayerGroups(options?: { internal?: boolean, external?: boolean, reset?: boolean }): void {
+    this.mapService.getLayers({ reset: options?.reset, external: options?.external, internal: options?.internal, active: true }).subscribe(layerGroups => {
+      // ToDo: remember former checked layers on reset
       layerGroups.forEach(group => {
         if (!group.children) return;
-        for (let layer of group.children!.slice().reverse()) {
-          let visible = false;
-          if (Boolean(this.mapSettings[`layer-checked-${layer.id}`])) {
-            this.checklistSelection.select(layer);
-            visible = true;
-          }
+        group.children.forEach(layer => {
           layer.opacity = parseFloat(this.mapSettings[`layer-opacity-${layer.id}`]) || 1;
-          this._addLayerToMap(layer, { visible: visible });
-        }
+          layer.visible = this.mapSettings[`layer-visibility-${layer.id}`];
+          if (layer instanceof VectorTileLayer)
+            layer.showLabel = this.mapSettings[`layer-label-${layer.id}`] || true;
+        })
+        this.addGroup(group);
       })
-      this.layerGroups.next(this._serviceLayerGroups);
     })
   }
 
-  getBackgroundLayers(): Layer[]{
-    return this.mapService.backgroundLayers;
+  getLayers(options?: { internal?: boolean, external?: boolean }): MapLayer[] {
+    let layers: MapLayer[] = [];
+    let groups = this.layerGroups;
+    if (options?.internal || options?.external) groups = groups.filter(g => (options?.external && g.external === true) || (options?.internal && g.external === false));
+    groups.forEach(g => layers = layers.concat(g.children));
+    // if (this.background) layers.push(this.background);
+    return layers;
   }
 
-  clear(clearForegroundOnly= false) {
-    Object.values(this.layerMap).forEach(layer => {
-      if (clearForegroundOnly && this.mapService.backgroundLayers.indexOf(layer) >= 0)
-        return;
-      this.map?.removeLayer(this.mapId(layer));
-    })
+  getLayer(id: number | string): MapLayer | undefined {
+    // ToDo: background as well?
+    return this.getLayers().find(l => l.id === id);
   }
 
-  refresh(options: { internal?: boolean, external?: boolean } = {}): void {
-    this.clear(true);
-    this.mapService.fetchLayers(options);
+  getGroup(id: number | string): MapLayerGroup | undefined {
+    // ToDo: background as well?
+    return this.layerGroups.find(g => g.id === id);
+  }
+
+  addLayer(layer: MapLayer): void {
+    // if (layer.map) throw `Layer ${layer.name} already set to another map`;
+    if (layer.map !== this.map) layer.map = this.map;
+    if (!layer.group) {
+      let group = this.layerGroups.find(group => group.name === 'Sonstiges');
+      if (!group){
+        group = new MapLayerGroup('Sonstiges', { order: 0 });
+        this.addGroup(group);
+      }
+      group.addLayer(layer);
+    }
+  }
+
+  addMarker(geometry: Geometry): Feature<any> {
+    // this.removeMarker();
+    if (geometry instanceof Polygon) {
+      geometry = new Point(getCenter(geometry.getExtent()));
+    }
+    const marker = new Feature(geometry);
+
+    const iconStyle = new Style({
+      image: new Icon({
+        anchor: [0.5, 0.8],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'fraction',
+        src: this.markerImg,
+        scale: 0.05
+      }),
+    });
+
+    marker.setStyle(iconStyle);
+    this.markerLayer?.addFeatures( [marker]);
+    return marker;
+  }
+
+  removeMarker(): void {
+    this.markerLayer?.clearFeatures();
+  }
+
+  refresh(options?: { internal?: boolean, external?: boolean }): void {
+    if (options?.internal === false && !options?.external === false) return;
+    this.saveSettings();
+    this.getLayers(options).forEach(l => l.removeFromMap());
+    if (options?.internal) this.layerGroups = sortBy(this.layerGroups.filter(g => g.external !== false), 'order');
+    if (options?.external) this.layerGroups = sortBy(this.layerGroups.filter(g => g.external !== true), 'order');
+    this.getServiceLayerGroups({ reset: true, internal: options?.internal, external: options?.external });
   }
 
   /**
@@ -247,12 +304,15 @@ export class MapControl {
    * @param group
    * @param emit
    */
-  addGroup(group: LayerGroup, emit= true): LayerGroup {
+  addGroup(group: MapLayerGroup): void {
     if (group.id == undefined)
       group.id = uuid();
-    this._localLayerGroups.push(group);
-    if (emit) this.layerGroups.next(this._localLayerGroups.concat(this._serviceLayerGroups));
-    return group;
+    if (!group.map) {
+      group.map = this.map;
+      group.children.forEach(layer => layer.addToMap(this.map));
+    }
+    this.layerGroups.push(group);
+    this.layerGroups = sortBy(this.layerGroups, 'order');
   }
 
   /**
@@ -262,273 +322,24 @@ export class MapControl {
    * @param id
    * @param emit
    */
-  removeGroup(id: number | string, emit= true): void {
-    const idx = this._localLayerGroups.findIndex(group => group.id === id);
+  removeGroup(group: MapLayerGroup): void {
+    const idx = this.layerGroups.findIndex(g => g === group);
     if (idx < 0) return;
-    this.clearGroup(id, false);
-    this._localLayerGroups.splice(idx, 1);
-    if (emit) this.layerGroups.next(this._localLayerGroups.concat(this._serviceLayerGroups));
+    group.clear();
+    this.layerGroups.splice(idx, 1);
   }
 
-  clearGroup(id: number | string, emit= true): void {
-    const group = this._localLayerGroups.find(group => group.id === id);
-    if (!(group && group.children)) return;
-    group.children.forEach(layer => {
-      if (layer.id != undefined) {
-        delete this.layerMap[layer.id];
-        this._removeLayerFromMap(layer);
-      }
-    });
-    group.children = [];
-    if (emit) this.layerGroups.next(this._localLayerGroups.concat(this._serviceLayerGroups));
+  setBackground(id: number | string): void {
+    this.background = this.backgroundLayers.find(l => l.id === id);
+    this.backgroundLayers.forEach(l => l.setVisible(l.id === id));
   }
 
-  setShowLabel(id: number | string, show: boolean): void {
-    const layer = this.layerMap[id];
-    this.map?.setShowLabel(this.mapId(layer), show);
-  }
-
-  removeLayer(id: number | string, emit= true): void {
-    const layer = this.layerMap[id];
-    if (!layer) return;
-    const layerGroups = this._localLayerGroups.concat(this._serviceLayerGroups);
-    const group = layerGroups.find(group => layer.group === group.id)!;
-    if (!group) return;
-    const idx = group.children!.indexOf(layer);
-    this._removeLayerFromMap(layer);
-    if (idx >= 0)
-      group.children!.splice(idx, 1);
-    delete this.layerMap[id];
-    if (emit) this.layerGroups.next(this._localLayerGroups.concat(this._serviceLayerGroups));
-  }
-
-  private _removeLayerFromMap(layer: Layer){
-    this.map?.removeLayer(this.mapId(layer));
-  }
-
-  private onFeatureSelected(ollayer: OlLayer<any>, selected: Feature<any>[]): void {
-    const layer = this.layerMap[this.olLayerIds[ollayer.get('name')]];
-    if (layer && layer.featureSelected)
-      selected.forEach(feature => layer.featureSelected!.emit({ feature: feature, selected: true }));
-  }
-
-  private onFeatureDeselected(ollayer: OlLayer<any>, deselected: Feature<any>[]): void {
-    const layer = this.layerMap[this.olLayerIds[ollayer.get('name')]];
-    if (layer && layer.featureSelected)
-      deselected.forEach(feature => layer.featureSelected!.emit({ feature: feature, selected: false }));
-  }
-
-  /**
-   * add a layer to this map only
-   * sets unique id if id is undefined
-   * if layer has no assigned group adds to group 'Sonstiges' (created if not existing)
-   *
-   * @param layer
-   * @param options
-   * @param emit
-   */
-  addLayer(layer: Layer, options?: {
-    visible?: boolean,
-    selectable?: boolean,
-    tooltipField?: string,
-    colorFunc?: ((d: number) => string),
-    radiusFunc?: ((d: number) => number),
-    valueField?: string,
-    zIndexField?: string,
-    mouseOver?: {
-      fillColor?: string,
-      strokeColor?: string,
-      cursor?: string
-    },
-    select?: {
-      multi?: boolean,
-      fillColor?: string,
-      strokeColor?: string
-    }
-  }, emit= true): Layer {
-    if (layer.id == undefined)
-      layer.id = uuid();
-    const layerGroups = this._localLayerGroups.concat(this._serviceLayerGroups);
-    let group;
-    if (!layer.group) {
-      group = layerGroups.find(group => group.name === 'Sonstiges') || this.addGroup({
-        order: 0,
-        name: 'Sonstiges'
-      }, false)
-    }
-    else
-      group = layerGroups.find(group => layer.group === group.id)!;
-    if (!group.children) group.children = [];
-    group.children?.push(layer);
-    this._addLayerToMap(layer, {
-      visible: options?.visible,
-      tooltipField: options?.tooltipField,
-      colorFunc: options?.colorFunc,
-      radiusFunc: options?.radiusFunc,
-      valueField: options?.valueField,
-      mouseOver: options?.mouseOver,
-      select: options?.select,
-      selectable: options?.selectable
-    });
-    if (options?.selectable){
-      layer.featureSelected = new EventEmitter<any>();
-    }
-    if (options?.visible)
-      this.checklistSelection.select(layer);
-    else
-      this.checklistSelection.deselect(layer);
-    if (emit) this.layerGroups.next(this._localLayerGroups.concat(this._serviceLayerGroups));
-    return layer;
-  }
-
-  private _addLayerToMap(layer: Layer, options?: {
-    visible?: boolean,
-    tooltipField?: string,
-    colorFunc?: ((d: number) => string),
-    radiusFunc?: ((d: number) => number),
-    valueField?: string,
-    mouseOver?: {
-      fillColor?: string,
-      strokeColor?: string
-      cursor?: string
-    },
-    select?: {
-      multi?: boolean,
-      fillColor?: string,
-      strokeColor?: string
-    },
-    selectable?: boolean
-  }) {
-    const opacity = (layer.opacity !== undefined)? layer.opacity : 1;
-    if (layer.type === 'vector') {
-      this.map!.addVectorLayer(this.mapId(layer), {
-        visible: options?.visible,
-        opacity: opacity,
-        valueField: options?.valueField,
-        mouseOverCursor: options?.mouseOver?.cursor,
-        multiSelect: options?.select?.multi,
-        stroke: {
-          color: layer.symbol?.strokeColor, width: 2,
-          mouseOverColor: options?.mouseOver?.strokeColor,
-          selectedColor: options?.select?.strokeColor
-        },
-        fill: {
-          color: (options?.colorFunc)? options?.colorFunc: layer.symbol?.fillColor,
-          mouseOverColor: options?.mouseOver?.fillColor,
-          selectedColor: options?.select?.fillColor
-        },
-        radius: options?.radiusFunc,
-        labelField: layer.labelField,
-        tooltipField: options?.tooltipField,
-        shape: (layer.symbol?.symbol !== 'line')? layer.symbol?.symbol: undefined,
-        selectable: options?.selectable,
-        showLabel: layer.showLabel
-      })
-    }
-    else if (layer.type === 'vector-tiles') {
-       this.map!.addVectorTileLayer(this.mapId(layer), layer.url!,{
-         visible: options?.visible,
-         opacity: opacity,
-         stroke: { color: layer.symbol?.strokeColor, width: 2, mouseOverColor: options?.mouseOver?.strokeColor },
-         fill: { color: layer.symbol?.fillColor, mouseOverColor: options?.mouseOver?.fillColor },
-         tooltipField: options?.tooltipField,
-         featureClass: (options?.mouseOver)? 'feature': 'renderFeature',
-         labelField: 'label',
-         showLabel: layer.showLabel
-       });
-    }
-    else {
-      const mapLayer = this.map!.addTileServer(
-        this.mapId(layer),  layer.url!, {
-          params: { layers: layer.layerName },
-          visible: options?.visible,
-          opacity: opacity,
-          xyz: layer.type == 'tiles',
-          attribution: layer.attribution
-        });
-      if (layer.type === 'wms' && !layer.legendUrl) {
-          let url = mapLayer.getSource().getLegendUrl(1, { layer: layer.layerName });
-          if (url) url += '&SLD_VERSION=1.1.0';
-          layer.legendUrl = url;
-        }
-    }
-    this.layerMap[layer.id!] = layer;
-    this.olLayerIds[this.mapId(layer)] = layer.id!;
-  }
-
-  addFeatures(layerId: number | string, features: any[],
-              options?: { properties?: string, geometry?: string, zIndex?: string }): void {
-    const layer = this.layerMap[layerId];
-    if (!layer) return;
-    let olFeatures: Feature<any>[] = [];
-    const properties = (options?.properties !== undefined)? options?.properties: 'properties';
-    const geometry = (options?.geometry !== undefined)? options?.geometry: 'geometry';
-    features.forEach( feature => {
-      const olFeature = new Feature(feature[geometry!]);
-      if (feature.id) {
-        olFeature.set('id', feature.id);
-        olFeature.setId(feature.id);
-      }
-      olFeature.setProperties(feature[properties]);
-      olFeatures.push(olFeature);
-    })
-    if (options?.zIndex) {
-      const attr = options?.zIndex;
-      olFeatures = olFeatures.sort((a, b) =>
-        (a.get(attr) > b.get(attr)) ? 1 : (a.get(attr) < b.get(attr)) ? -1 : 0);
-      olFeatures.forEach((feat, i) => feat.set('zIndex', olFeatures.length - i));
-    }
-    this.map?.addFeatures(this.mapId(layer), olFeatures);
-  }
-
-  clearFeatures(id: number | string): void {
-    const layer = this.layerMap[id];
-    this.map?.clear(this.mapId(layer));
-  }
-
-  setBackground(id: number | string | undefined): void {
-    if (id === undefined) return;
-    this.background = this.mapService.backgroundLayers.find(l => { return l.id === id });
-    this.mapSettings['background-layer'] = id;
-    const layer = this.layerMap[id];
-    if (layer){
-      const mapLayer = this.map?.getLayer(this.mapId(layer));
-      this.backgroundOpacity = mapLayer?.getOpacity() || 1;
-    }
-    this.mapService.backgroundLayers.forEach(layer => this.map?.setVisible(
-      this.mapId(layer), layer.id === id));
-  }
-
-  private mapId(layer: Layer): string {
-    return `${layer.name}-${layer.id}`;
-  }
-
-  setLayerAttr(id: number | string | undefined, options: { opacity?: number, visible?: boolean }): void {
-    if (id === undefined) return;
-    const layer = this.layerMap[id];
-    if (!layer) return;
-    if (options.opacity != undefined) {
-      this.map?.setOpacity(this.mapId(layer), options.opacity);
-      this.mapSettings[`layer-opacity-${layer.id}`] = options.opacity;
-    };
-    if (options.visible != undefined) this.map?.setVisible(this.mapId(layer), options.visible);
-  }
-
-  toggleLayer(id: number | string | undefined): void {
-    if (id === undefined) return;
-    const layer = this.layerMap[id];
-    if (!layer) return;
-    this.checklistSelection.toggle(layer);
-    const isSelected = this.checklistSelection.isSelected(layer);
-    this.mapSettings[`layer-checked-${layer.id}`] = isSelected;
-    this.map?.setVisible(this.mapId(layer), isSelected);
-  }
-
-  zoomTo(layer: Layer): void {
-    const mapLayer = this.map?.getLayer(this.mapId(layer)),
+  zoomTo(layer: MapLayer): void {
+    if (!layer.mapId) return;
+    const mapLayer = this.map?.getLayer(layer.mapId),
           _this = this;
     mapLayer!.getSource().once('featuresloadend', (evt: any) => {
-      this.map?.centerOnLayer(this.mapId(layer));
+      this.map?.zoomToExtent(layer.mapId!);
     })
   }
 
@@ -546,19 +357,8 @@ export class MapControl {
     })
   }
 
-  selectFeatures(ids: number[], layerId: number | string, options?: { silent?: boolean, clear?: boolean } ): void {
-    const layer = this.layerMap[layerId];
-    this.map?.selectFeatures(this.mapId(layer), ids, options);
-  }
-
-  deselectAllFeatures(layerId: number | string): void {
-    const layer = this.layerMap[layerId];
-    this.map?.deselectAllFeatures(this.mapId(layer));
-  }
-
   toggleEditMode(): void {
     this.editMode = !this.editMode;
-    this.mapSettings['legend-edit-mode'] = this.editMode;
   }
 
   saveCurrentExtent(name: string): void {
@@ -576,9 +376,26 @@ export class MapControl {
   }
 
   saveSettings(): void {
-    if (this.mapSettings)
-      this.settings.user?.set(this.target, this.mapSettings, { patch: true });
+    const layers = this.getLayers();
+    layers.forEach(layer => {
+      if (layer.id != undefined) {
+        this.mapSettings[`layer-opacity-${layer.id}`] = layer.opacity;
+        this.mapSettings[`layer-visibility-${layer.id}`] = layer.visible;
+        if (layer instanceof VectorTileLayer)
+          this.mapSettings[`layer-label-${layer.id}`] = layer.showLabel;
+      }
+    });
+    this.backgroundLayers.forEach(layer => {
+      this.mapSettings[`layer-opacity-${layer.id}`] = layer.opacity;
+    })
+    this.mapSettings['background-layer'] = this.background?.id;
+    this.mapSettings['legend-edit-mode'] = this.editMode;
+    this.settings.user?.set(this.target, this.mapSettings, { patch: true });
     this.settings.user?.set('extents', this.mapExtents, { patch: true });
+  }
+
+  setDescription(text: string) {
+    this.mapDescription$.next(text);
   }
 
   destroy(): void {

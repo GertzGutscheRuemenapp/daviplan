@@ -6,6 +6,7 @@ import traceback
 from django.http import HttpResponse
 from django.db import transaction
 
+from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
 from rest_framework import status, serializers
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -53,28 +54,35 @@ class ExcelTemplateMixin:
                        name='FileDropConstraintSerializer',
                        fields={'drop_constraints': drop_constraints,
                                'excel_file': serializers.FileField(),
+                               'variant': serializers.IntegerField(
+                                   required=False,
+                                   help_text='mode-variant id'),
                                }
                    ),
                    responses={202: OpenApiResponse(MessageSerializer,
                                                    'Upload successful'),
                               406: OpenApiResponse(MessageSerializer,
                                                    'Upload failed')})
-    @action(methods=['POST'], detail=False)
+
+    @action(methods=['POST'], detail=False,
+            parser_classes=[CamelCaseMultiPartParser])
     def upload_template(self, request, queryset=None, **kwargs):
         """Upload the filled out Template"""
-        qs = queryset if queryset is not None else self.get_queryset()
-        model = qs.model
+        serializer = self.get_serializer()
+        if queryset is None:
+            queryset = serializer.get_queryset(request) \
+                if hasattr(serializer, 'get_queryset') else self.get_queryset()
+        model = queryset.model
         manager = model.copymanager
         drop_constraints = bool(strtobool(
             request.data.get('drop_constraints', 'False')))
 
-        serializer = self.get_serializer()
         with transaction.atomic():
             if drop_constraints:
                 manager.drop_constraints()
                 manager.drop_indexes()
 
-            qs.delete()
+            queryset.delete()
 
             try:
                 df = serializer.read_excel_file(request, **kwargs)

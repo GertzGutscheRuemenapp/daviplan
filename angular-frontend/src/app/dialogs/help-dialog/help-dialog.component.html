@@ -1,4 +1,7 @@
 <div style="position: relative;">
+  <div class="loadOverlay" *ngIf="isLoading$ | async">
+    <mat-spinner [diameter]="50"></mat-spinner>
+  </div>
   <div cdkDragHandle cdkDrag
        cdkDragRootElement=".cdk-overlay-pane"
        style="cursor: move;">

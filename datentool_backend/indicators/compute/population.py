@@ -15,6 +15,8 @@ from datentool_backend.population.models import (RasterCellPopulationAgeGender,
                                                  AreaPopulationAgeGender,
                                                  PopulationAreaLevel,
                                                  Population,
+                                                 Prognosis,
+                                                 Year,
                                                  )
 from datentool_backend.user.models.process import Scenario
 
@@ -45,26 +47,30 @@ class PopulationIndicatorMixin:
 
     def get_filter_params(self) -> Dict[str, int]:
         """get the filter params for """
-        scenario = self.data.get('scenario')
-        if scenario:
-            prognosis = Scenario.objects.get(pk=scenario).prognosis_id
+        filter_params = {}
+        year_int = self.data.get('year')
+        if year_int:
+            filter_params['population__year__year'] = year_int
+            year = Year.objects.get(year=year_int)
+            has_prognosis_year = year.is_prognosis
         else:
-            prognosis = self.data.get('prognosis') or None
-        filter_params = {'population__prognosis': prognosis, }
-        year = self.data.get('year')
-        if year:
-            filter_params['population__year__year'] = year
+            has_prognosis_year = True
 
-        if isinstance(self.data, QueryDict):
-            genders = self.data.getlist('gender')
-            age_groups = self.data.getlist('age_group')
-        else:
-            genders = self.data.get('gender')
-            age_groups = self.data.get('age_group')
-            if isinstance(genders, str):
-                genders = genders.split(',')
-            if isinstance(age_groups, str):
-                age_groups = age_groups.split(',')
+        scenario = self.data.get('scenario')
+        prognosis = self.data.get('prognosis')
+        if not prognosis:
+            if scenario:
+                prognosis = Scenario.objects.get(pk=scenario).prognosis_id
+            else:
+                try:
+                    prognosis = Prognosis.objects.get(is_default=True)
+                except Prognosis.DoesNotExist:
+                    prognosis = None
+        if has_prognosis_year:
+            filter_params['population__prognosis'] = prognosis
+
+        genders = self.data.get('genders')
+        age_groups = self.data.get('age_groups')
 
         if genders and genders != ['']:
             filter_params['gender__in'] = genders
@@ -73,26 +79,35 @@ class PopulationIndicatorMixin:
         return filter_params
 
     def get_population_filter_params(self) -> Dict[str, int]:
-        scenario = self.data.get('scenario')
-        if scenario:
-            prognosis = Scenario.objects.get(pk=scenario).prognosis_id
+        filter_params = {}
+        year_int = self.data.get('year')
+        if year_int:
+            filter_params['year__year'] = year_int
+            year = Year.objects.get(year=year_int)
+            has_prognosis_year = year.is_prognosis
         else:
-            prognosis = self.data.get('prognosis') or None
-        filter_params = {'prognosis': prognosis, }
-        year = self.data.get('year')
-        if year:
-            filter_params['year__year'] = year
+            has_prognosis_year = True
+
+        scenario = self.data.get('scenario')
+        prognosis = self.data.get('prognosis')
+        if not prognosis:
+            if scenario:
+                prognosis = Scenario.objects.get(pk=scenario).prognosis_id
+            else:
+                try:
+                    prognosis = Prognosis.objects.get(is_default=True)
+                except Prognosis.DoesNotExist:
+                    prognosis = None
+        if has_prognosis_year:
+            filter_params['prognosis'] = prognosis
         return filter_params
 
     def get_areas(self, area_level_id: int = None) -> Area:
         """get the relevant areas"""
         # filter areas
         area_filter = {}
-        if isinstance(self.data, QueryDict):
-            areas = self.data.getlist('area')
-        else:
-            areas = self.data.get('area')
-        if areas and areas != ['']:
+        areas = self.data.get('areas')
+        if areas:
             area_filter['id__in'] = areas
 
         if area_level_id is None:

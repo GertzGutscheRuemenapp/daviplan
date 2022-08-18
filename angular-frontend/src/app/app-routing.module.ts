@@ -29,8 +29,8 @@ import { LocationsComponent } from "./pages/basedata/locations/locations.compone
 import { ServicesComponent } from "./pages/basedata/services/services.component";
 import { DemandQuotasComponent } from "./pages/basedata/demand-quotas/demand-quotas.component";
 import { ExternalLayersComponent } from "./pages/basedata/external-layers/external-layers.component";
-import { RouterSettingsComponent } from "./pages/basedata/router-settings/router-settings.component";
-import { ReachabilityMatrixComponent } from "./pages/basedata/reachability-matrix/reachability-matrix.component";
+import { RoadNetworkComponent } from "./pages/basedata/road-network/road-network.component";
+import { TransitMatrixComponent } from "./pages/basedata/transit-matrix/transit-matrix.component";
 
 const routes: Routes = [
   {
@@ -159,12 +159,12 @@ const routes: Routes = [
         component: DemandQuotasComponent
       },
       {
-        path: 'verkehrsnetz',
-        component: RouterSettingsComponent
+        path: 'strassennetz',
+        component: RoadNetworkComponent
       },
       {
-        path: 'erreichbarkeiten',
-        component: ReachabilityMatrixComponent
+        path: 'oepnvnetz',
+        component: TransitMatrixComponent
       },
       {
         path: 'layer',

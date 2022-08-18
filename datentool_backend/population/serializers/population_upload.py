@@ -109,6 +109,7 @@ class PopulationTemplateSerializer(serializers.Serializer):
             meta['A4'] = 'prognosis'
             if prognosis_id:
                 meta['B4'] = prognosis.name
+            meta.sheet_state = 'hidden'
 
             for year in years:
                 columns = ['area_id', 'gender_id', 'age_group_id', 'value']
@@ -177,6 +178,10 @@ class PopulationTemplateSerializer(serializers.Serializer):
         content = open(fn, 'rb').read()
         return content
 
+    def get_queryset(self, request):
+        prognosis_id = request.data.get('prognosis', None)
+        return PopulationEntry.objects.filter(population__prognosis_id=prognosis_id)
+
     def read_excel_file(self, request) -> pd.DataFrame:
         """read excelfile and return a dataframe"""
         excel_file = request.FILES['excel_file']
@@ -188,8 +193,7 @@ class PopulationTemplateSerializer(serializers.Serializer):
 
         wb = load_workbook(excel_file.file)
         meta = wb['meta']
-        area_level_name = meta['C1'].value
-        area_level = AreaLevel.objects.get(name=area_level_name)
+        area_level = AreaLevel.objects.get(is_default_pop_level=True)
 
         areas = Area.annotated_qs(area_level)
         key_attr = AreaField.objects.get(area_level=area_level, is_key=True).name

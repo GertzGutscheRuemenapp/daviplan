@@ -1,4 +1,3 @@
-import { EventEmitter } from "@angular/core";
 import { Geometry } from "ol/geom";
 
 export const DemandTypes = {
@@ -10,10 +9,39 @@ export const DemandTypes = {
 export interface BasedataSettings {
   popAreaLevel: number,
   popStatisticsAreaLevel: number,
-  defaultDemandRateSets: Record<number, number>,
-  defaultModeVariants: Record<number, number>,
-  defaultPrognosis: number
+  defaultModeVariants: { mode: number, variant: number }[],
+  defaultDemandRateSets: { service: number, demandrateset: number }[],
+  defaultPrognosis: number,
+  routing?: {
+    baseNet: boolean,
+    projectAreaNet: boolean,
+    running: boolean
+  }
 }
+
+export type Profile = {
+  adminAccess: boolean;
+  canCreateProcess: boolean;
+  canEditBasedata: boolean;
+}
+
+export type InfrastructureAccess = {
+  infrastructure: number,
+  allowSensitiveData: boolean
+}
+
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  isSuperuser: boolean;
+  password: string;
+  profile: Profile;
+  access: InfrastructureAccess[];
+}
+
 export interface PlanningProcess {
   id: number,
   name: string,
@@ -26,44 +54,36 @@ export interface PlanningProcess {
 
 export interface Scenario {
   id: number,
+  isBase?: boolean,
   name: string,
   planningProcess: number,
   prognosis?: number,
-  modevariants: Record<number, number>,
-  demandratesets: Record<number, number>
-}
-
-export interface LayerGroup {
-  id?: number | string,
-  order: number,
-  name: string,
-  children?: Layer[],
-  external?: boolean
+  modeVariants: { mode: number, variant: number }[],
+  demandrateSets: { service: number, demandrateset: number }[]
 }
 
 export interface Symbol {
-  fillColor: string,
-  strokeColor: string,
-  symbol: 'line' | 'circle' | 'square' | 'star'
+  fillColor?: string,
+  strokeColor?: string,
+  symbol?: 'line' | 'circle' | 'square' | 'star'
 }
 
-export interface Layer {
-  id?: number | string,
+export interface ExtLayerGroup {
+  id?: number,
   order: number,
-  url?: string,
+  name: string,
+  external: boolean
+}
+
+export interface ExtLayer {
+  id: number,
+  order: number,
+  url: string,
   name: string,
   description: string,
-  group?: number | string,
-  layerName?: string,
-  attribution?: string,
-  active?: boolean,
-  legendUrl?: string,
-  opacity?: number,
-  symbol?: Symbol,
-  type?: "wms" | "vector-tiles" | "tiles" | "vector",
-  labelField?: string,
-  showLabel?: boolean,
-  featureSelected?: EventEmitter<{ feature: any, selected: boolean }>
+  group: number | string,
+  layerName: string,
+  active: boolean
 }
 
 export interface Source {
@@ -75,10 +95,19 @@ export interface Source {
 }
 
 export interface Indicator {
-  id: number;
   service: number;
   name: string;
+  title: string;
   description: string;
+  resultType: 'place' | 'area' | 'raster' | 'pop';
+}
+
+export interface RasterCell {
+  id: number,
+  geom: any,
+  cellcode: string,
+  population: number,
+  value?: number
 }
 
 export interface AreaLevel {
@@ -139,7 +168,7 @@ export interface Prognosis {
   years: number[]
 }
 
-export interface AreaIndicatorData {
+export interface AreaIndicatorResult {
   areaId: number,
   label?: string,
   value: number
@@ -263,14 +292,14 @@ export interface Infrastructure {
 
 export interface Place {
   id: number,
-  geometry: string | Geometry,
-  properties: {
-    name: string,
-    infrastructure: number,
-    attributes: any,
-    label?: string,
-    capacity?: number
-  },
+  geom: string | Geometry,
+  name: string,
+  infrastructure: number,
+  attributes: any,
+  label?: string,
+  capacity?: number,
+  scenario?: number,
+  value?: number,
   capacities?: Capacity[]
 }
 
@@ -281,4 +310,35 @@ export interface Capacity {
   capacity: number,
   fromYear: number,
   scenario?: number
+}
+
+export enum TransportMode {
+  WALK = 1,
+  BIKE = 2,
+  CAR = 3,
+  TRANSIT = 4
+}
+
+export interface CellResult {
+  cellCode: string,
+  value: number
+}
+
+export interface PlaceResult {
+  placeId: number,
+  value: number
+}
+
+export interface Network {
+  id: number,
+  name: string,
+  isDefault: boolean
+}
+
+export interface ModeVariant {
+  id: number,
+  label: string,
+  mode: number,
+  network: number
+  // cutoffTime: number
 }

@@ -3,10 +3,23 @@ import { LegendComponent } from "../../map/legend/legend.component";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../rest-api";
 import { RestCacheService } from "../../rest-cache.service";
-import { BehaviorSubject, Observable } from "rxjs";
-import { PlanningProcess, Scenario } from "../../rest-interfaces";
+import { BehaviorSubject, forkJoin, Observable } from "rxjs";
+import {
+  Capacity,
+  Indicator,
+  Infrastructure,
+  Place,
+  PlanningProcess,
+  Scenario,
+  Service,
+  User
+} from "../../rest-interfaces";
 import { SettingsService } from "../../settings.service";
 import { CookieService } from "../../helpers/cookies.service";
+import { FilterColumn } from "../../elements/filter-table/filter-table.component";
+import { map } from "rxjs/operators";
+import { sortBy, wktToGeom } from "../../helpers/utils";
+import { Geometry } from "ol/geom";
 
 @Injectable({
   providedIn: 'root'
@@ -14,10 +27,18 @@ import { CookieService } from "../../helpers/cookies.service";
 export class PlanningService extends RestCacheService {
   legend?: LegendComponent;
   isReady: boolean = false;
-  ready: EventEmitter<any> = new EventEmitter();
+  placeFilterColumns: FilterColumn[] = [];
+  private capacitiesPerScenarioService: Record<number, Record<string, Record<number, Capacity[]>>> = {};
   year$ = new BehaviorSubject<number>(0);
   activeProcess$ = new BehaviorSubject<PlanningProcess | undefined>(undefined);
   activeScenario$ = new BehaviorSubject<Scenario | undefined>(undefined);
+  activeInfrastructure$ = new BehaviorSubject<Infrastructure | undefined>(undefined);
+  activeService$ = new BehaviorSubject<Service | undefined>(undefined);
+  activeInfrastructure?: Infrastructure;
+  activeYear?: number;
+  activeService?: Service;
+  activeScenario?: Scenario;
+  activeProcess?: PlanningProcess;
   showScenarioMenu = false;
 
   constructor(protected http: HttpClient, protected rest: RestAPI, private settings: SettingsService,
@@ -36,6 +57,22 @@ export class PlanningService extends RestCacheService {
     this.activeScenario$.subscribe(scenario => {
       this.cookies.set('planning-scenario', scenario?.id);
     })*/
+    // could also be done later with [...].pipe(take(1)).subscribe(...), easier by remembering in separate variable
+    this.activeInfrastructure$.subscribe(infrastructure => this.activeInfrastructure = infrastructure);
+    this.activeService$.subscribe(service => this.activeService = service);
+    this.year$.subscribe(year => this.activeYear = year);
+    this.activeProcess$.subscribe(process => this.activeProcess = process);
+    this.activeScenario$.subscribe(scenario => this.activeScenario = scenario);
+  }
+
+  getIndicators(serviceId: number): Observable<Indicator[]>{
+    const url = `${this.rest.URLS.services}${serviceId}/get_indicators/`;
+    return this.getCachedData<Indicator[]>(url);
+  }
+
+  getUsers(): Observable<User[]>{
+    const url = this.rest.URLS.users;
+    return this.getCachedData<User[]>(url);
   }
 
   getProcesses(): Observable<PlanningProcess[]>{
@@ -65,20 +102,168 @@ export class PlanningService extends RestCacheService {
         const baseScenario: Scenario = {
           id: -1,
           planningProcess: -1,
+          isBase: true,
           name: 'Status Quo Fortschreibung',
           prognosis: baseSettings.defaultPrognosis,
-          modevariants: baseSettings.defaultModeVariants,
-          demandratesets: baseSettings.defaultDemandRateSets
+          modeVariants: baseSettings.defaultModeVariants,
+          demandrateSets: baseSettings.defaultDemandRateSets
         }
         subscriber.next(baseScenario);
         subscriber.complete();
       })
     })
-    return observable
+    return observable;
   }
 
-  setReady(ready: boolean): void {
-    this.isReady = ready;
-    this.ready.emit(ready);
+  getPlaces(infrastructureId: number, options?: {
+    scenario?: number,
+    targetProjection?: string,
+    reset?: boolean,
+    addCapacities?: boolean,
+    filter?: {
+      columnFilter?: boolean,
+      year?: number,
+      hasCapacity?: boolean
+    }
+  }): Observable<Place[]>{
+    /*this.getCachedData<Place[]>('this.rest.URLS.places', {
+      params: { infrastructure: infrastructureId }, reset: options?.reset })*/
+    const _this = this;
+    const observable = new Observable<Place[]>(subscriber => {
+      function next(places: Place[]){
+        subscriber.next(places);
+        subscriber.complete();
+      };
+      function filter(places: Place[]){
+        if (options?.filter?.columnFilter || options?.addCapacities || options?.filter?.hasCapacity) {
+          _this.updateCapacities({ infrastructureId: infrastructureId, year: options?.filter?.year, scenarioId: options?.scenario }).subscribe(() => {
+            let placesTmp: Place[] = [];
+            places.forEach(place => {
+              const cap = _this.getPlaceCapacity(place);
+              if (options.filter?.hasCapacity && cap === 0) return;
+              // ToDo: pass year
+              if (options.filter?.columnFilter && !_this._filterPlace(place)) return;
+              if (options?.addCapacities)
+                place.capacity = cap;
+              placesTmp.push(place);
+            });
+            places = placesTmp;
+            next(places);
+          })
+        }
+        else
+          next(places);
+      }
+      let params: any = {infrastructure: infrastructureId};
+      if (options?.scenario) params.scenario = options.scenario;
+      this.getCachedData<Place[]>(this.rest.URLS.places, { reset: options?.reset, params: params }).subscribe(places => {
+        const targetProjection = (options?.targetProjection !== undefined)? options?.targetProjection: 'EPSG:4326';
+        places.forEach((place: Place )=> {
+          if (!(place.geom instanceof Geometry)) {
+            const geometry = wktToGeom(place.geom as string,
+              { targetProjection: targetProjection, ewkt: true });
+            place.geom = geometry;
+          }
+        })
+        filter(places);
+      })
+    });
+    return observable;
+  }
+
+  updateCapacities(options?: { infrastructureId?: number, year?: number, scenarioId?: number }): Observable<any> {
+    const year = (options?.year !== undefined)? options?.year: this.activeYear;
+    const _this = this;
+    const scenarioId = options?.scenarioId || -1;
+    const observable = new Observable<any>(subscriber => {
+      let scenarioCapacities = this.capacitiesPerScenarioService[scenarioId];
+      if (!scenarioCapacities)
+        scenarioCapacities = this.capacitiesPerScenarioService[scenarioId] = {};
+      function update(infrastructure: Infrastructure | undefined) {
+        let observables: Observable<any>[] = [];
+        infrastructure?.services?.forEach(service => {
+          let serviceCapacities = scenarioCapacities[service.id];
+          if (!serviceCapacities)
+            serviceCapacities = scenarioCapacities[service.id] = {};
+          if (!serviceCapacities[year!]) {
+            observables.push(_this.getCapacities({
+              year: year,
+              service: service.id!,
+              scenario: options?.scenarioId,
+              reset: true
+            }).pipe(map(capacities => {
+              serviceCapacities[year!] = capacities;
+            })));
+          }
+        });
+        if (observables.length > 0) {
+          forkJoin(...observables).subscribe(() => {
+            subscriber.next();
+            subscriber.complete();
+          })
+        }
+        else {
+          subscriber.next();
+          subscriber.complete();
+        }
+      }
+      if (options?.infrastructureId !== undefined) {
+        this.getInfrastructures().subscribe(infrastructures => {
+          let infrastructure = infrastructures.find(i => i.id === options.infrastructureId);
+          update(infrastructure);
+        })
+      }
+      else update(this.activeInfrastructure);
+    })
+    return observable;
+  }
+
+  resetCapacities(scenarioId: number, serviceId?: number, year?: number){
+    const scenarioCapacities = this.capacitiesPerScenarioService[scenarioId];
+    if (scenarioCapacities && serviceId !== undefined) {
+      if (scenarioCapacities[serviceId] && year !== undefined)
+        delete scenarioCapacities[serviceId][year];
+      else
+        delete scenarioCapacities[serviceId];
+    }
+    else
+      delete this.capacitiesPerScenarioService[scenarioId];
+  }
+
+  getPlaceCapacity(place: Place, options?: { service?: Service, scenario?: Scenario, year?: number}): number{
+    const service = options?.service || this.activeService;
+    const scenario = options?.scenario || this.activeScenario;
+    const year = (options?.year !== undefined)? options?.year: this.activeYear;
+    if (!service || !scenario || !year) return 0;
+    const scenarioCapacities = this.capacitiesPerScenarioService[scenario.id] || {};
+    const serviceCapacities = scenarioCapacities[service.id] || {};
+    const cap = serviceCapacities[year]?.find(c => c.place === place.id);
+    return cap?.capacity || 0;
+  }
+
+/*  getPlaceCapacities(place: Place, service?: Service, scenario?: Scenario): Capacity[] {
+    service = service || this.activeService;
+    scenario = scenario || this.activeScenario;
+    if (!service || !scenario) return [];
+    const capacities = this.capacitiesPerScenarioService[scenario.id] || {};
+    return sortBy((capacities[service.id] || []).filter(c => c.place === place.id), 'fromYear')
+  }*/
+
+  private _filterPlace(place: Place): boolean {
+    if (this.placeFilterColumns.length === 0) return true;
+    let match = false;
+    this.placeFilterColumns.forEach((filterColumn, i) => {
+      const filter = filterColumn.filter!;
+      if (filterColumn.service) {
+        const cap = this.getPlaceCapacity(place, { service: filterColumn.service });
+        if (!filter.filter(cap)) return;
+      }
+      else if (filterColumn.attribute) {
+        const value = place.attributes[filterColumn.attribute];
+        if (!filter.filter(value)) return;
+      }
+      if (i === this.placeFilterColumns.length - 1) match = true;
+    })
+    return match;
   }
 }

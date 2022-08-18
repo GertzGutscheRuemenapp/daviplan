@@ -53,6 +53,7 @@ import { StackedBarchartComponent } from './diagrams/stacked-barchart/stacked-ba
 import { MultilineChartComponent } from './diagrams/multiline-chart/multiline-chart.component';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { DragDirective } from './helpers/dragndrop.directive'
+import { VarDirective } from "./helpers/var.directive";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MapControlsComponent } from './map/map-controls/map-controls.component';
 import { EcoFabSpeedDialModule } from "@ecodev/fab-speed-dial";
@@ -74,8 +75,8 @@ import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
 import { LocationsComponent } from './pages/basedata/locations/locations.component';
 import { ServicesComponent } from './pages/basedata/services/services.component';
 import { DemandQuotasComponent } from './pages/basedata/demand-quotas/demand-quotas.component';
-import { RouterSettingsComponent } from './pages/basedata/router-settings/router-settings.component';
-import { ReachabilityMatrixComponent } from './pages/basedata/reachability-matrix/reachability-matrix.component';
+import { RoadNetworkComponent } from './pages/basedata/road-network/road-network.component';
+import { TransitMatrixComponent } from './pages/basedata/transit-matrix/transit-matrix.component';
 import { ExternalLayersComponent } from './pages/basedata/external-layers/external-layers.component';
 import { CheckTreeComponent } from './elements/check-tree/check-tree.component';
 import { MatTreeModule } from "@angular/material/tree";
@@ -93,6 +94,7 @@ import { MatTabsModule } from "@angular/material/tabs";
 import { AgeTreeComponent } from './diagrams/age-tree/age-tree.component';
 import { DemandRateSetViewComponent } from './pages/basedata/demand-quotas/demand-rate-set-view/demand-rate-set-view.component';
 import { ClassificationsComponent } from './pages/basedata/locations/classifications/classifications.component';
+import { ServiceSelectComponent } from './pages/planning/service-select/service-select.component';
 
 @NgModule({
   declarations: [
@@ -124,6 +126,7 @@ import { ClassificationsComponent } from './pages/basedata/locations/classificat
     StackedBarchartComponent,
     MultilineChartComponent,
     DragDirective,
+    VarDirective,
     MapControlsComponent,
     ScenarioMenuComponent,
     SideToggleComponent,
@@ -139,8 +142,8 @@ import { ClassificationsComponent } from './pages/basedata/locations/classificat
     LocationsComponent,
     ServicesComponent,
     DemandQuotasComponent,
-    RouterSettingsComponent,
-    ReachabilityMatrixComponent,
+    RoadNetworkComponent,
+    TransitMatrixComponent,
     ExternalLayersComponent,
     CheckTreeComponent,
     FilterTableComponent,
@@ -154,7 +157,8 @@ import { ClassificationsComponent } from './pages/basedata/locations/classificat
     DataTableComponent,
     AgeTreeComponent,
     DemandRateSetViewComponent,
-    ClassificationsComponent
+    ClassificationsComponent,
+    ServiceSelectComponent
   ],
   imports: [
     BrowserModule,

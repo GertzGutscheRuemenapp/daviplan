@@ -11,11 +11,12 @@ faker = Faker('de-DE')
 
 from .factories import (ModeVariantFactory,
                         CutOffTimeFactory,
+                        NetworkFactory
                         )
-from .models import ModeVariant, Mode
+from .models import ModeVariant, Mode, Network
 
 
-class TestModeModels(TestCase):
+class TestNetworkModels(TestCase):
 
     def test_mode_variant(self):
         mode_variant = ModeVariantFactory()
@@ -24,53 +25,36 @@ class TestModeModels(TestCase):
         cut_off_time = CutOffTimeFactory()
 
     def test_mode_default_unique(self):
-        walk_variant_1 = ModeVariantFactory(mode=Mode.WALK.value)
-        walk_variant_2 = ModeVariantFactory(mode=Mode.WALK.value)
-        walk_variant_3 = ModeVariantFactory(mode=Mode.WALK.value)
-        car_variant_1 = ModeVariantFactory(mode=Mode.CAR.value)
-        car_variant_2 = ModeVariantFactory(mode=Mode.CAR.value)
-        car_variant_3 = ModeVariantFactory(mode=Mode.CAR.value)
+        network_1 = NetworkFactory()
+        network_2 = NetworkFactory()
+        network_3 = NetworkFactory()
 
-        walk_variant_3.is_default = True
-        walk_variant_3.save()
-        walk_variant_2.is_default = True
-        walk_variant_2.save()
+        network_3.is_default = True
+        network_3.save()
+        network_2.is_default = True
+        network_2.save()
 
-        car_variant_2.is_default = True
-        car_variant_2.save()
-        car_variant_3.is_default = True
-        car_variant_3.save()
-        car_variant_1.is_default = False
-        car_variant_1.save()
+        self.assertEqual(Network.objects.get(is_default=True), network_2)
 
-        self.assertEqual(ModeVariant.objects.get(
-            is_default=True, mode=Mode.WALK.value), walk_variant_2)
-        self.assertEqual(ModeVariant.objects.get(
-            is_default=True, mode=Mode.CAR.value), car_variant_3)
-
-        walk_variant_2.is_default = False
-        walk_variant_2.save()
-        self.assertEqual(len(ModeVariant.objects.filter(
-            is_default=True, mode=Mode.WALK.value)), 0)
+        network_2.is_default = False
+        network_2.save()
+        self.assertEqual(len(Network.objects.filter(is_default=True)), 0)
 
 
-class TestModeVariantAPI(WriteOnlyWithCanEditBaseDataTest,
-                         TestPermissionsMixin,
-                         TestAPIMixin,
-                         BasicModelTest,
-                         APITestCase):
+class TestNetworkAPI(WriteOnlyWithCanEditBaseDataTest,
+                     TestPermissionsMixin,
+                     TestAPIMixin,
+                     BasicModelTest,
+                     APITestCase):
     """Test to post, put and patch data"""
-    url_key = "modevariants"
-    factory = ModeVariantFactory
+    url_key = "networks"
+    factory = NetworkFactory
 
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        modevariant: ModeVariant = cls.obj
-        mode = modevariant.mode
 
-        data = dict(mode=mode, name=faker.word(),
-                    meta=faker.json(),
+        data = dict(name=faker.word(),
                     is_default=faker.pybool())
         cls.post_data = data
         cls.put_data = data

@@ -1,5 +1,5 @@
 <div style="overflow-y: auto">
-  <table id="filter-table" style="min-height: 100px;">
+  <table id="filter-table" style="min-height: 100px;" [style.max-height]="maxTableHeight">
     <tr class="header">
       <th *ngFor="let th of _columns; let i = index;">
         <div>

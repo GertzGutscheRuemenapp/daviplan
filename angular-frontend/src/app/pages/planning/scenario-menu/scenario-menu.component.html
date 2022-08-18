@@ -1,7 +1,25 @@
-<div>
-  <div id="scenario-menu">
+<mat-expansion-panel class="side-toggle" id="scenario-toggle"
+                     [expanded]="planningService.showScenarioMenu">
+  <mat-expansion-panel-header (click)="planningService.showScenarioMenu=!planningService.showScenarioMenu;">
+    <mat-panel-title>
+      <div class="mini-fab-icon" [ngClass]="{'primary': planningService.showScenarioMenu}">
+        <div class="davicon icon-GGR-davicons-Font-Simple-2-Szenario"></div>
+      </div>
+      Szenario
+      <app-help-button title="Szenario" position="right" style="pointer-events: all;">
+        <div [innerHTML]="helpText"></div>
+      </app-help-button>
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+</mat-expansion-panel>
+
+<div id="scenario-menu" [ngClass]="{expanded: planningService.showScenarioMenu}">
+  <div id="scenario-arrow">
+    &#9664;
+  </div>
+  <div id="scenario-cards-wrapper">
     <div id="scenario-cards">
-      <div #scenario [ngClass]="{active: scenario === activeScenario}"
+      <div #scenario [ngClass]="{active: scenario.id === activeScenario?.id}"
            *ngFor="let scenario of scenarios"
            class="scenario-card">
         <div class="scenario-card-header"
@@ -10,11 +28,12 @@
         </div>
         <div class="scenario-card-body">
           <ng-container *ngIf="domain==='demand'">
-            <ng-container [ngTemplateOutlet]="demandScenarioTemplate"
+            <ng-container [ngTemplateOutlet]="demandTemplate"
                           [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
           </ng-container>
           <ng-container *ngIf="domain==='reachabilities'">
-            <ng-container *ngTemplateOutlet="reachabilitiesScenario"></ng-container>
+            <ng-container [ngTemplateOutlet]="reachabilitiesTemplate"
+                          [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
           </ng-container>
           <ng-container *ngIf="domain==='rating'">
             <ng-container *ngTemplateOutlet="ratingScenario"></ng-container>
@@ -28,7 +47,7 @@
     <div id="scenario-controls">
       <div>
         <button mat-icon-button color="primary" class="small"
-                [disabled]="activeScenario === undefined || activeScenario === baseScenario"
+                [disabled]="activeScenario === undefined || activeScenario.id === baseScenario?.id"
                 (click)="onEditScenario()"
                 title="ausgewähltes Szenario editieren">
           <mat-icon>edit</mat-icon>
@@ -39,16 +58,13 @@
           <mat-icon>add</mat-icon>
         </button>
         <button mat-icon-button color="primary" class="small"
-                [disabled]="activeScenario === undefined || activeScenario === baseScenario"
+                [disabled]="activeScenario === undefined || activeScenario.id === baseScenario?.id"
                 (click)="onDeleteScenario()"
                 title="ausgewähltes Szenario entfernen">
           <mat-icon>close</mat-icon>
         </button>
       </div>
     </div>
-  </div>
-  <div id="scenario-arrow">
-    &#9664;
   </div>
 </div>
 
@@ -63,117 +79,94 @@
   </form>
 </ng-template>
 
-<ng-template #demandScenarioTemplate let-scenario="scenario">
-  <div class="scenario-row">
+<ng-template #demandTemplate let-scenario="scenario">
+  <div class="scenario-row" *ngIf="planningService.activeService">
+    <mat-form-field appearance="standard" class="small"
+                    style="width: 145px;"
+                    floatLabel="always"
+                    title="Nachfragequoten-Set ({{planningService.activeService.name}})">
+      <mat-label>Nachfragequoten-Set ({{planningService.activeService.name}})</mat-label>
+      <mat-select disableOptionCentering disableRipple
+                  [disabled]="scenario.isBase"
+                  [placeholder]="(demandRateSets.length > 0)? 'keine Auswahl': 'keine Sets definiert'"
+                  [value]="getDemandRateSet(scenario)"
+                  (selectionChange)="onDemandRateChange(scenario, $event.value)">
+        <mat-option *ngFor="let set of demandRateSets" [value]="set">
+          {{set.name}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
     <mat-icon class="material-icons-outlined" color="primary"
               title="aktuell eingestellte Nachfragequoten anzeigen"
               (click)="onShowDemandQuotaSet()">
       info
     </mat-icon>
-    <mat-form-field appearance="standard" class="small" style="width: 145px;">
-      <mat-label>Nachfragequoten-Set</mat-label>
-      <mat-select disableOptionCentering disableRipple
-                  [value]="quotas[0]">
-<!--        [disabled]="scenario === baseScenario"-->
-        <mat-option *ngFor="let quota of quotas" [value]="quota">
-          {{quota}}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
   </div>
   <div class="scenario-row">
-    <mat-icon class="material-icons-outlined" color="primary"
+<!--    <mat-icon class="material-icons-outlined" color="primary"
               title="aktuell eingestellte Einwohnerentwicklung anzeigen"
               (click)="onShowDemandPlaceholder()">
       info
-    </mat-icon>
-    <mat-form-field appearance="standard" class="small" style="width: 145px;">
+    </mat-icon>-->
+    <mat-form-field appearance="standard" class="small"
+                    style="width: 145px;"
+                    floatLabel="always">
       <mat-label>Einwohnerentwicklung</mat-label>
       <mat-select disableOptionCentering disableRipple
-                  [value]="prognoses[1]">
-        <!--        [disabled]="scenario === baseScenario"-->
-        <mat-option *ngFor="let prognosis of prognoses" [value]="prognosis">
-          {{prognosis}}
+                  [value]="scenario.prognosis"
+                  [disabled]="scenario.isBase"
+                  [placeholder]="(prognoses.length > 0)? 'keine Auswahl': 'keine Prognosen definiert'"
+                  (selectionChange)="onPrognosisChange(scenario, $event.value)">
+        <mat-option *ngFor="let prognosis of prognoses" [value]="prognosis.id">
+          {{prognosis.name}}
         </mat-option>
       </mat-select>
     </mat-form-field>
   </div>
 </ng-template>
 
-<ng-template #reachabilitiesScenario>
+<ng-template #reachabilitiesTemplate let-scenario="scenario">
   <div class="scenario-row">
-   <!-- <mat-icon class="material-icons-outlined" color="primary"
-              title="aktuell eingestellte Verkehrsmittelvarianten anzeigen">
-      info
-    </mat-icon>-->
-    <mat-form-field appearance="standard" class="small">
+    <mat-form-field appearance="standard" class="small"
+                    floatLabel="always">
+      <mat-label>Wegenetz zu Fuß</mat-label>
+      <mat-select disableOptionCentering disableRipple
+                  [value]="getNetwork(scenario, TransportMode.WALK)"
+                  (selectionChange)="onNetworkChange(scenario, TransportMode.WALK, $event.value)"
+                  [placeholder]="(networks.length > 0)? 'keine Auswahl': 'keine Netze vorhanden'"
+                  [disabled]="scenario.isBase">
+        <mat-option *ngFor="let network of networks" [value]="network">
+          {{network.name}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="scenario-row">
+    <mat-form-field appearance="standard" class="small"
+                    floatLabel="always">
+      <mat-label>Wegenetz Fahrrad</mat-label>
+      <mat-select disableOptionCentering disableRipple
+                  [value]="getNetwork(scenario, TransportMode.BIKE)"
+                  (selectionChange)="onNetworkChange(scenario, TransportMode.BIKE, $event.value)"
+                  [placeholder]="(networks.length > 0)? 'keine Auswahl': 'keine Netze vorhanden'"
+                  [disabled]="scenario.isBase">
+        <mat-option *ngFor="let network of networks" [value]="network">
+          {{network.name}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="scenario-row">
+    <mat-form-field appearance="standard" class="small"
+                    floatLabel="always">
       <mat-label>Wegenetz Auto</mat-label>
-      <mat-select disableOptionCentering disableRipple value="Ausbau der B232">
-        <mat-option value="Dtl 2021">
-          Dtl 2021
-        </mat-option>
-        <mat-option value="Ausbau der B232">
-          Ausbau der B232
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-  </div>
-  <div class="scenario-row">
-    <mat-form-field appearance="standard" class="small">
-      <mat-label>Wegenetz zu Fuß</mat-label>
-      <mat-select disableOptionCentering disableRipple value="Dtl 2021">
-        <mat-option value="Dtl 2021">
-          Dtl 2021
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-  </div>
-  <div class="scenario-row">
-    <mat-form-field appearance="standard" class="small">
-      <mat-label>Wegenetz Fahrrad</mat-label>
-      <mat-select disableOptionCentering disableRipple value="mit Schnellradweg 2021">
-        <mat-option value="Dtl 2021">
-          Dtl 2021
-        </mat-option>
-        <mat-option value="mit Schnellradweg 2021">
-          mit Schnellradweg 2021
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-  </div>
-</ng-template>
-
-<ng-template #reachabilitiesStatusQuo>
-  <div class="scenario-row">
-<!--    <mat-icon class="material-icons-outlined" color="primary"
-              title="aktuell eingestellte Verkehrsmittelvarianten anzeigen">
-      info
-    </mat-icon>-->
-    <mat-form-field appearance="standard" class="small">
-      <mat-label>Verkehrsmittelvariante</mat-label>
-      <mat-select disableRipple value="Dtl 2021">
-        <mat-option value="Dtl 2021">
-          Dtl 2021
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-  </div>
-  <div class="scenario-row">
-    <mat-form-field appearance="standard" class="small">
-      <mat-label>Wegenetz zu Fuß</mat-label>
-      <mat-select disableOptionCentering disableRipple value="Dtl 2021">
-        <mat-option value="Dtl 2021">
-          Dtl 2021
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-  </div>
-  <div class="scenario-row">
-    <mat-form-field appearance="standard" class="small">
-      <mat-label>Wegenetz Fahrrad</mat-label>
-      <mat-select disableOptionCentering disableRipple value="Dtl 2021">
-        <mat-option value="Dtl 2021">
-          Dtl 2021
+      <mat-select disableOptionCentering disableRipple
+                  [value]="getNetwork(scenario, TransportMode.CAR)"
+                  (selectionChange)="onNetworkChange(scenario, TransportMode.CAR, $event.value)"
+                  [placeholder]="(networks.length > 0)? 'keine Auswahl': 'keine Netze vorhanden'"
+                  [disabled]="scenario.isBase">
+        <mat-option *ngFor="let network of networks" [value]="network">
+          {{network.name}}
         </mat-option>
       </mat-select>
     </mat-form-field>
@@ -183,17 +176,14 @@
 <ng-template #ratingScenario>
 </ng-template>
 
-<ng-template #ratingStatusQuo>
-</ng-template>
-
 <ng-template #supplyScenario>
   <div title="Kennwerte anzeigen"
        style="cursor: pointer; display: flex;"
        (click)="onShowSupplyTable()">
     <div style="align-self: center; margin-right: 10px;">
-      <mat-icon class="material-icons-outlined" color="primary">
+<!--      <mat-icon class="material-icons-outlined" color="primary">
         info
-      </mat-icon>
+      </mat-icon>-->
     </div>
     <div>
       ausgewählte Leistungen: <br>
@@ -201,10 +191,6 @@
       Plätze +30
     </div>
   </div>
-</ng-template>
-
-<ng-template #supplyStatusQuo>
-  Platzhalter allgemeine Kennwerte
 </ng-template>
 
 <ng-template #supplyScenarioTable>
@@ -216,51 +202,16 @@
   <i>Funktionalität für den Prototyp noch nicht hinterlegt.</i>
 </ng-template>
 
-<ng-template #demandQuotaDialog>
-  <div style="display: flex;">
-    <mat-slider #timeSlider color="primary"
-                thumbLabel min="2000" max="2100" step="1" value="2010" tickInterval="1"
-                style="width: 420px; margin-top: 15px;"></mat-slider>
-    <label style="padding-top: 20px;">{{timeSlider.value}}</label>
-  </div>
-  <div style="width: 100%; display: flex; align-items: stretch;">
-    <div style="width: 40%; border: solid #0000001F; padding: 8px;">
-      <table style="width: 100%; text-align: center;">
-        <tr>
-          <th style="text-align: left;">{{timeSlider.value}}</th>
-          <th colspan="2" style="text-align: center">Quote (in Prozent)</th>
-        </tr>
-        <tr>
-          <th style="min-width: 20%;"></th>
-          <th>weiblich</th>
-          <th>männlich</th>
-        </tr>
-        <tr>
-          <td>9 bis unter 12 Jahre</td>
-          <td>20</td>
-          <td>19</td>
-        </tr>
-        <tr>
-          <td>12 bis unter 15 Jahre</td>
-          <td>30</td>
-          <td>24</td>
-        </tr>
-        <tr>
-          <td>15 bis unter 20 Jahre</td>
-          <td>18</td>
-          <td>15</td>
-        </tr>
-      </table>
-    </div>
-    <div style="display: flex; width: 55%; margin-left: 10px; flex-flow: row wrap;">
-      <span class="subtitle1" style="color: grey;">Nachfragequote nach Altersgruppe im ausgewählten Jahr {{timeSlider.value}}</span>
-      <div class="diagram-wrapper" style="width: 100%;">
-        <img src="{{backend}}/static/img/Nachfragequoten alle Altersklassen screenshot.png" width="100%">
-      </div>
-      <span class="subtitle1" style="color: grey;">Nachfragequote der ausgewählten Altersgruppe [xxx] nach Jahr</span>
-      <div class="diagram-wrapper" style="width: 100%;">
-        <img src="{{backend}}/static/img/Nachfrage Altersklasse screenshot.png" width="100%">
-      </div>
-    </div>
-  </div>
+<ng-template #demandQuotaDialog
+             let-scenario="scenario" let-years="years"
+             let-ageGroups="ageGroups" let-genders="genders"
+             let-service="service" let-demandRateSet="demandRateSet">
+  <app-demand-rate-set-view #demandRateSetPreview
+                            [years]="years"
+                            [demandRateSet]="demandRateSet"
+                            [service]="service"
+                            [genders]="genders"
+                            [ageGroups]="ageGroups"
+                            [chartHeight]="250">
+  </app-demand-rate-set-view>
 </ng-template>

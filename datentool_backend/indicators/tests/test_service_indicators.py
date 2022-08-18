@@ -55,15 +55,17 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
             'year': 2022,
         }
         url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
-        response = self.post(url, data=query_params)
+        response = self.post(url, data=query_params, extra={'format': 'json'})
         self.assert_http_200_ok(response)
         result = pd.DataFrame(response.data).set_index('area_id')
 
         query_params['service'] = self.service1.pk
 
-        response = self.post('fixedindicators-demand', data=query_params)
+        response = self.post('fixedindicators-demand', data=query_params,
+                             extra={'format': 'json'})
         pop = pd.DataFrame(response.data).set_index('area_id')
-        response = self.post('fixedindicators-number-of-locations', data=query_params)
+        response = self.post('fixedindicators-number-of-locations',
+                             data=query_params, extra={'format': 'json'})
         num_locs = pd.DataFrame(response.data).set_index('area_id')
         expected = pop['value'] / num_locs['value']
         pd.testing.assert_series_equal(result['value'], expected, check_dtype=False)
@@ -79,15 +81,17 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
             'year': 2022,
         }
         url = reverse(self.url_key, kwargs={'pk': self.service2.pk})
-        response = self.post(url, data=query_params)
+        response = self.post(url, data=query_params, extra={'format': 'json'})
         self.assert_http_200_ok(response)
         result = pd.DataFrame(response.data).set_index('area_id')
 
         query_params['service'] = self.service2.pk
 
-        response = self.post('fixedindicators-demand', data=query_params)
+        response = self.post('fixedindicators-demand', data=query_params,
+                             extra={'format': 'json'})
         pop = pd.DataFrame(response.data).set_index('area_id')
-        response = self.post('fixedindicators-capacity', data=query_params)
+        response = self.post('fixedindicators-capacity', data=query_params,
+                             extra={'format': 'json'})
         capacity = pd.DataFrame(response.data).set_index('area_id')
         expected = pop['value'] / capacity['value']
         pd.testing.assert_series_equal(result['value'], expected, check_dtype=False)

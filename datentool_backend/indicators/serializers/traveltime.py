@@ -8,12 +8,21 @@ from openpyxl.worksheet.datavalidation import DataValidation
 
 from django.conf import settings
 from django.db import connection
+from django.db.models import FloatField
+from django.db.models.query import QuerySet
+from django.contrib.gis.db.models.functions import Transform, Func
 
 from rest_framework import serializers
 from rest_framework.fields import FileField, IntegerField, BooleanField
 
 from matrixconverters.read_ptv import ReadPTVMatrix
 
+from routingpy import OSRM
+
+from datentool_backend.modes.models import (MODE_MAX_DISTANCE,
+                                            MODE_SPEED,
+                                            ModeVariant,
+                                            Mode)
 from datentool_backend.indicators.models import (Stop,
                                                  MatrixStopStop,
                                                  MatrixCellPlace,
@@ -33,7 +42,6 @@ class MatrixStopStopTemplateSerializer(serializers.Serializer):
     class Meta:
         model = MatrixStopStop
         fields = ('from_stop', 'to_stop', 'minutes')
-
 
     def create_template(self) -> bytes:
         columns = {'von': 'Von Haltestelle (Nr)',
@@ -79,6 +87,7 @@ class MatrixStopStopTemplateSerializer(serializers.Serializer):
     def read_excel_file(self, request) -> pd.DataFrame:
         """read excelfile and return a dataframe"""
         excel_or_visum_file = request.FILES['excel_or_visum_file']
+        variant = int(request.data.get('variant'))
 
         try:
             df = pd.read_excel(excel_or_visum_file.file,
@@ -100,139 +109,21 @@ class MatrixStopStopTemplateSerializer(serializers.Serializer):
             df.reset_index(inplace=True)
 
         # assert the stopnumbers are in stops
-        cols = ['id', 'name']
-        df_stops = pd.DataFrame(Stop.objects.values(*cols),
-                                columns=cols)
-        assert df['from_stop'].isin(df_stops['id']).all(), 'Von-Haltestelle nicht in Haltestellennummern'
-        assert df['to_stop'].isin(df_stops['id']).all(), 'Nach-Haltestelle nicht in Haltestellennummern'
+        cols = ['id', 'name', 'hstnr']
+        df_stops = pd.DataFrame(Stop.objects.filter(variant=variant).values(*cols),
+                                columns=cols)\
+            .set_index('hstnr')
+        assert df['from_stop'].isin(df_stops.index).all(), 'Von-Haltestelle nicht in Haltestellennummern'
+        assert df['to_stop'].isin(df_stops.index).all(), 'Nach-Haltestelle nicht in Haltestellennummern'
 
-        df.rename(columns={'from_stop': 'from_stop_id',
-                           'to_stop': 'to_stop_id',}, inplace=True)
+        df = df\
+            .merge(df_stops['id'].rename('from_stop_id'),
+                      left_on='from_stop', right_index=True)\
+            .merge(df_stops['id'].rename('to_stop_id'),
+                      left_on='to_stop', right_index=True)
 
         variant = request.data.get('variant')
         df['variant_id'] = int(variant)
+
+        df = df[['variant_id', 'from_stop_id', 'to_stop_id', 'minutes']]
         return df
-
-
-class MatrixAirDistanceMixin(serializers.Serializer):
-    drop_constraints = BooleanField(default=True)
-
-    def calculate_traveltimes(self, request) -> pd.DataFrame:
-        """calculate traveltimes"""
-
-        max_distance = float(request.data.get('max_distance'))
-        speed = float(request.data.get('speed'))
-        variant = int(request.data.get('variant'))
-
-        query = self.get_query()
-        params = (speed, max_distance)
-
-        with connection.cursor() as cursor:
-            cursor.execute(query, params)
-            df = pd.DataFrame(cursor.fetchall(),
-                              columns=self.Meta.fields)
-
-        df['variant_id'] = variant
-
-        return df
-
-
-class MatrixCellStopSerializer(MatrixAirDistanceMixin):
-
-    class Meta:
-        model = MatrixCellStop
-        fields = ('cell_id', 'stop_id', 'minutes')
-
-    def get_query(self) -> str:
-
-        cell_tbl = RasterCell._meta.db_table
-        rcp_tbl = RasterCellPopulation._meta.db_table
-        stop_tbl = Stop._meta.db_table
-
-        query = f'''SELECT
-        c.id AS cell_id,
-        s.id AS stop_id,
-        st_distance(c."pnt_25832", s."pnt_25832") / %s * (6.0/1000) AS minutes
-        FROM
-        (SELECT
-        c.id,
-        c.pnt,
-        st_transform(c.pnt, 25832) AS pnt_25832
-        FROM "{cell_tbl}" AS c) AS c,
-        (SELECT DISTINCT cell_id
-        FROM "{rcp_tbl}") AS r,
-        (SELECT s.id,
-        s.geom,
-        st_transform(s.geom, 25832) AS pnt_25832,
-        cosd(st_y(st_transform(s.geom, 4326))) AS kf
-        FROM "{stop_tbl}" AS s) AS s
-        WHERE c.id = r.cell_id
-        AND st_dwithin(c."pnt", s."geom", %s * s.kf)
-        '''
-        return query
-
-
-class MatrixCellPlaceSerializer(MatrixAirDistanceMixin):
-
-    class Meta:
-        model = MatrixCellPlace
-        fields = ('cell_id', 'place_id', 'minutes')
-
-    def get_query(self) -> str:
-
-        cell_tbl = RasterCell._meta.db_table
-        rcp_tbl = RasterCellPopulation._meta.db_table
-        place_tbl = Place._meta.db_table
-
-        query = f'''SELECT
-        c.id AS cell_id,
-        p.id AS place_id,
-        st_distance(c."pnt_25832", p."pnt_25832") / %s * (6.0/1000) AS minutes
-        FROM
-        (SELECT
-        c.id,
-        c.pnt,
-        st_transform(c.pnt, 25832) AS pnt_25832
-        FROM "{cell_tbl}" AS c) AS c,
-        (SELECT DISTINCT cell_id
-        FROM "{rcp_tbl}") AS r,
-        (SELECT p.id,
-        p.geom,
-        st_transform(p.geom, 25832) AS pnt_25832,
-        cosd(st_y(st_transform(p.geom, 4326))) AS kf
-        FROM "{place_tbl}" AS p) AS p
-        WHERE c.id = r.cell_id
-        AND st_dwithin(c."pnt", p."geom", %s * p.kf)
-        '''
-        return query
-
-
-class MatrixPlaceStopSerializer(MatrixAirDistanceMixin):
-
-    class Meta:
-        model = MatrixPlaceStop
-        fields = ('place_id', 'stop_id', 'minutes')
-
-    def get_query(self) -> str:
-
-        place_tbl = Place._meta.db_table
-        stop_tbl = Stop._meta.db_table
-
-        query = f'''SELECT
-        p.id AS place_id,
-        s.id AS stop_id,
-        st_distance(p."pnt_25832", p."pnt_25832") / %s * (6.0/1000) AS minutes
-        FROM
-        (SELECT
-        s.id,
-        s.geom,
-        st_transform(s.geom, 25832) AS pnt_25832
-        FROM "{stop_tbl}" AS s) AS s,
-        (SELECT p.id,
-        p.geom,
-        st_transform(p.geom, 25832) AS pnt_25832,
-        cosd(st_y(st_transform(p.geom, 4326))) AS kf
-        FROM "{place_tbl}" AS p) AS p
-        WHERE st_dwithin(s."geom", p."geom", %s * p.kf)
-        '''
-        return query

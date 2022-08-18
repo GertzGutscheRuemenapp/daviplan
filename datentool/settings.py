@@ -29,6 +29,30 @@ DB_PORT = os.environ.get('DB_PORT', 5432)
 DB_HOST = os.environ.get('DB_HOST', 'localhost')
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
+OSRM_ROUTING = {
+    'CAR': {
+        'alias': 'car',
+        'host': os.environ.get('MODE_CAR_HOST', 'localhost'),
+        'service_port': os.environ.get('MODE_CAR_SERVICE_PORT', 8001),
+        'routing_port': os.environ.get('MODE_CAR_ROUTING_PORT', 5001),
+    },
+    'BIKE': {
+        'alias': 'bicycle',
+        'host': os.environ.get('MODE_BIKE_HOST', 'localhost'),
+        'service_port': os.environ.get('MODE_BIKE_SERVICE_PORT', 8002),
+        'routing_port': os.environ.get('MODE_BIKE_ROUTING_PORT', 5002),
+    },
+    'WALK': {
+        'alias': 'foot',
+        'host': os.environ.get('MODE_WALK_HOST', 'localhost'),
+        'service_port': os.environ.get('MODE_WALK_SERVICE_PORT', 8003),
+        'routing_port': os.environ.get('MODE_WALK_ROUTING_PORT', 5003),
+    },
+}
+
+BASE_PBF = 'germany-latest.osm.pbf'
+PBF_URL = f'http://download.geofabrik.de/europe/{BASE_PBF}'
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
@@ -36,9 +60,12 @@ ALLOWED_HOSTS = [
     'datentool.ggr-planung.de'
 ]
 
+<<<<<<< HEAD
 REDIS_HOST = os.environ.get('REDIS_HOST', '127.0.0.1')
 REDIS_PORT = os.environ.get('REDIS_PORT', 6379)
 
+=======
+>>>>>>> main
 # Application definition
 
 INSTALLED_APPS = [
@@ -83,8 +110,6 @@ REST_FRAMEWORK = {
         'djangorestframework_camel_case.render.CamelCaseBrowsableAPIRenderer',
     ),
     'DEFAULT_PARSER_CLASSES': (
-        'djangorestframework_camel_case.parser.CamelCaseFormParser',
-        'djangorestframework_camel_case.parser.CamelCaseMultiPartParser',
         'djangorestframework_camel_case.parser.CamelCaseJSONParser',
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
@@ -270,7 +295,7 @@ STATIC_ROOT = os.path.join(PUBLIC_DIR, 'static')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(PUBLIC_DIR, 'media')
 
-POPRASTER_ROOT = os.path.join(BASE_DIR, 'datentool_backend', 'data')
+DATA_ROOT = os.path.join(BASE_DIR, 'datentool_backend', 'data')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

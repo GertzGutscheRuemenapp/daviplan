@@ -136,5 +136,8 @@ class DemandAreaIndicator(PopulationIndicatorMixin,
         else:
             year = Year.objects.get(is_default=True)
 
-        demand_rates = drs.demandrate_set.filter(year=year)
+        demand_rates = DemandRate.objects\
+            .select_related('year')\
+            .filter(demand_rate_set=drs,
+                    year=year)
         return demand_rates
