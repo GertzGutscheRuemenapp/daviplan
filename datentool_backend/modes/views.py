@@ -80,7 +80,7 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                 {'message': f'Project Area is undefined'},
                 status=status.HTTP_400_BAD_REQUEST)
 
-        buffered = project_area.buffer(10000)
+        buffered = project_area.buffer(30000)
         buffered.transform('EPSG: 4326')
 
         geojson = json.dumps({
