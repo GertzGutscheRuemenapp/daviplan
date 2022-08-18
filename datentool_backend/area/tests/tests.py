@@ -79,10 +79,12 @@ class TestWfs(LoginTestCase, APITestCase):
 
     def test_pull_areas(self):
         response = self.post('arealevels-pull-areas',
-                             pk=self.area_level_no_wfs.id)
+                             pk=self.area_level_no_wfs.id,
+                             extra={'format': 'json'})
         self.assert_http_406_not_acceptable(response)
 
-        response = self.post('arealevels-pull-areas', pk=self.area_level.id)
+        response = self.post('arealevels-pull-areas', pk=self.area_level.id,
+                             extra={'format': 'json'})
         self.assert_http_202_accepted(response)
         areas = Area.objects.filter(area_level=self.area_level)
         # ToDo: test intersection with project area?
@@ -326,7 +328,7 @@ class TestAreaLevelAPI(WriteOnlyWithCanEditBaseDataTest,
         self.obj.is_preset = True
         self.obj.save()
 
-        response = self.delete(url, **self.kwargs)
+        response = self.delete(url, **self.kwargs, extra={'format': 'json'})
         self.assert_http_403_forbidden(response)
 
         patch_data = {'name': 'test'}

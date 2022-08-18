@@ -28,14 +28,26 @@ DB_PASS = os.environ.get('DB_PASS', '')
 DB_PORT = os.environ.get('DB_PORT', 5432)
 DB_HOST = os.environ.get('DB_HOST', 'localhost')
 SECRET_KEY = os.environ.get('SECRET_KEY')
-ROUTING_HOST = os.environ.get('ROUTING_HOST', 'localhost')
-ROUTING_PORT = os.environ.get('ROUTING_PORT', 8001)
 
-# ports for OSRM routing
-MODE_OSRM_PORTS = {
-    'CAR': os.environ.get('MODE_CAR_PORT', 5001),
-    'BIKE': os.environ.get('MODE_BIKE_PORT', 5002),
-    'WALK': os.environ.get('MODE_FOOT_PORT', 5003),
+OSRM_ROUTING = {
+    'CAR': {
+        'alias': 'car',
+        'host': os.environ.get('MODE_CAR_HOST', 'localhost'),
+        'service_port': os.environ.get('MODE_CAR_SERVICE_PORT', 8001),
+        'routing_port': os.environ.get('MODE_CAR_ROUTING_PORT', 5001),
+    },
+    'BIKE': {
+        'alias': 'bicycle',
+        'host': os.environ.get('MODE_BIKE_HOST', 'localhost'),
+        'service_port': os.environ.get('MODE_BIKE_SERVICE_PORT', 8002),
+        'routing_port': os.environ.get('MODE_BIKE_ROUTING_PORT', 5002),
+    },
+    'WALK': {
+        'alias': 'foot',
+        'host': os.environ.get('MODE_WALK_HOST', 'localhost'),
+        'service_port': os.environ.get('MODE_WALK_SERVICE_PORT', 8003),
+        'routing_port': os.environ.get('MODE_WALK_ROUTING_PORT', 5003),
+    },
 }
 
 BASE_PBF = 'germany-latest.osm.pbf'
@@ -91,8 +103,6 @@ REST_FRAMEWORK = {
         'djangorestframework_camel_case.render.CamelCaseBrowsableAPIRenderer',
     ),
     'DEFAULT_PARSER_CLASSES': (
-        'djangorestframework_camel_case.parser.CamelCaseFormParser',
-        'djangorestframework_camel_case.parser.CamelCaseMultiPartParser',
         'djangorestframework_camel_case.parser.CamelCaseJSONParser',
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',

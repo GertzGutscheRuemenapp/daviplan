@@ -37,7 +37,7 @@ class StopTemplateTest(LoginTestCase, APITestCase):
 
     def test_request_stop_template(self):
         url = reverse('stops-create-template')
-        res = self.post(url)
+        res = self.post(url, extra={'format': 'json'})
         self.assert_http_200_ok(res)
         wb = load_workbook(BytesIO(res.content))
         self.assertListEqual(wb.sheetnames, ['Haltestellen'])
@@ -109,7 +109,7 @@ class StopTemplateTest(LoginTestCase, APITestCase):
             'variant': self.mode_variant.id,
         }
         url = reverse('matrixstopstops-create-template')
-        res = self.post(url, data=data)
+        res = self.post(url, data=data, extra={'format': 'json'})
         self.assert_http_200_ok(res)
         wb = load_workbook(BytesIO(res.content))
         self.assertListEqual(wb.sheetnames, ['Reisezeit'])

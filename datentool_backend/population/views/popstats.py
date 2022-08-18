@@ -1,6 +1,5 @@
 import pandas as pd
 from io import StringIO
-from distutils.util import strtobool
 from django_filters import rest_framework as filters
 from django.db.models import Max, Min
 from drf_spectacular.utils import (extend_schema,
@@ -115,9 +114,6 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
                          'immigration', 'emigration']]
 
             drop_constraints = request.data.get('drop_constraints', True)
-            if not isinstance(drop_constraints, bool):
-                drop_constraints = strtobool(drop_constraints)
-
 
             with StringIO() as file:
                 df_popstat.to_csv(file, index=False)

@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.conf import settings
 from django.contrib.gis.geos import Point
 
+from datentool_backend.utils.routers import OSRMRouter
 from datentool_backend.api_test import LoginTestCase
 from datentool_backend.indicators.tests.setup_testdata import CreateTestdataMixin
 from datentool_backend.indicators.models import (MatrixCellPlace,
@@ -53,9 +54,7 @@ class TestMatrixCreation(CreateTestdataMixin,
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        if not no_connection(host=settings.ROUTING_HOST,
-                             port=settings.ROUTING_PORT):
-            cls.build_osrm()
+        cls.build_osrm()
         cls.profile.can_edit_basedata = True
         cls.profile.save()
         cls.create_project_settings()
@@ -76,7 +75,8 @@ class TestMatrixCreation(CreateTestdataMixin,
                 'drop_constraints': False,
                 'air_distance_routing': True, }
 
-        res= self.post('matrixcellplaces-precalculate-traveltime', data=data)
+        res= self.post('matrixcellplaces-precalculate-traveltime', data=data,
+                       extra={'format': 'json'})
         self.assert_http_202_accepted(res)
         print(res.content)
         print(MatrixCellPlace.objects.filter(variant=walk.pk).count())
@@ -100,13 +100,13 @@ class TestMatrixCreation(CreateTestdataMixin,
         if max_distance:
             data['max_distance'] = max_distance
 
-        res = self.post('matrixcellplaces-precalculate-traveltime', data=data)
+        res = self.post('matrixcellplaces-precalculate-traveltime', data=data,
+                        extra={'format': 'json'})
         self.assert_http_202_accepted(res)
         content = res.content
         return content
 
-    @skipIf(no_connection(host=settings.ROUTING_HOST, port=settings.ROUTING_PORT),
-            'osrm docker not running')
+    @skipIf(not OSRMRouter(Mode.WALK).service_is_up, 'osrm docker not running')
     def test_create_routed_walk_matrix(self):
         """Test to create an walk matrix from routing"""
         network = self.network
@@ -115,8 +115,7 @@ class TestMatrixCreation(CreateTestdataMixin,
         print(content)
         print(MatrixCellPlace.objects.filter(variant=walk.pk).count())
 
-    @skipIf(no_connection(host=settings.ROUTING_HOST, port=settings.ROUTING_PORT),
-            'osrm docker not running')
+    @skipIf(not OSRMRouter(Mode.BIKE).service_is_up, 'osrm docker not running')
     def test_create_routed_bike_matrix(self):
         """Test to create an bicycle matrix from routing"""
         network = self.network
@@ -125,8 +124,7 @@ class TestMatrixCreation(CreateTestdataMixin,
         print(content)
         print(MatrixCellPlace.objects.filter(variant=bike.pk).count())
 
-    @skipIf(no_connection(host=settings.ROUTING_HOST, port=settings.ROUTING_PORT),
-            'osrm docker not running')
+    @skipIf(not OSRMRouter(Mode.CAR).service_is_up, 'osrm docker not running')
     def test_create_routed_car_matrix(self):
         """Test to create an car matrix from routing"""
         network = self.network
@@ -135,7 +133,9 @@ class TestMatrixCreation(CreateTestdataMixin,
         print(content)
         print(MatrixCellPlace.objects.filter(variant=car.pk).count())
 
-    @skipIf(no_connection(host=settings.ROUTING_HOST, port=settings.ROUTING_PORT),
+    @skipIf(not OSRMRouter(Mode.WALK).service_is_up or
+            not OSRMRouter(Mode.BIKE).service_is_up or
+            not OSRMRouter(Mode.CAR).service_is_up,
             'osrm docker not running')
     def test_create_routed_matrix_for_new_places(self):
         """Test to create an walk matrix from routing"""
@@ -169,19 +169,20 @@ class TestMatrixCreation(CreateTestdataMixin,
                                               air_distance_routing=True)
 
         car_to_new_place = MatrixCellPlace.objects.filter(variant=car.pk,
-                                                           place=new_place).count()
+                                                          place=new_place).count()
         print(car_to_new_place)
 
     @classmethod
     def build_osrm(cls):
         pbf = os.path.join(os.path.dirname(__file__),
                            'testdata', 'projectarea.pbf')
-        baseurl = f'http://{settings.ROUTING_HOST}:{settings.ROUTING_PORT}'
         # ToDo: use own route to run and build to test
-        for mode in ['car', 'bicycle', 'foot']:
-            files = {'file': open(pbf, 'rb')}
-            requests.post(f'{baseurl}/build/{mode}', files=files)
-            requests.post(f'{baseurl}/run/{mode}')
+        for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
+            router = OSRMRouter(mode)
+            if not router.service_is_up:
+                return
+            router.build(pbf)
+            router.run()
 
     @classmethod
     def create_network(cls):
@@ -224,8 +225,7 @@ class TestMatrixCreation(CreateTestdataMixin,
         res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
         self.assert_http_202_accepted(res, msg=res.content)
 
-    @skipIf(no_connection(host=settings.ROUTING_HOST, port=settings.ROUTING_PORT),
-            'osrm docker not running')
+    @skipIf(not OSRMRouter(Mode.WALK).service_is_up, 'osrm docker not running')
     def test_create_routed_cell_stop_walk_matrix(self):
         """Test to create an walk matrix from cell to stop"""
         self.create_stops()
@@ -246,18 +246,18 @@ class TestMatrixCreation(CreateTestdataMixin,
         and return the content of the response
         """
 
-        data = {'variants': mode.pk,
+        data = {'variants': [mode.pk],
                 'drop_constraints': False,
                 }
         if max_distance:
             data['max_distance'] = max_distance
 
-        res = self.post('matrixcellstops-precalculate-traveltime', data=data)
+        res = self.post('matrixcellstops-precalculate-traveltime', data=data,
+                        extra={'format': 'json'})
         self.assert_http_202_accepted(res)
         return res.content
 
-    @skipIf(no_connection(host=settings.ROUTING_HOST, port=settings.ROUTING_PORT),
-            'osrm docker not running')
+    @skipIf(not OSRMRouter(Mode.WALK).service_is_up, 'osrm docker not running')
     def test_create_routed_place_stop_walk_matrix(self):
         """Test to create an walk matrix from place to stop"""
         self.create_stops()
@@ -274,18 +274,18 @@ class TestMatrixCreation(CreateTestdataMixin,
         calculate the matrix between cells and stops
         and return the content of the response
         """
-        data = {'variants': mode.pk,
+        data = {'variants': [mode.pk],
                 'drop_constraints': False,
                 }
         if max_distance:
             data['max_distance'] = max_distance
 
-        res = self.post('matrixplacestops-precalculate-traveltime', data=data)
+        res = self.post('matrixplacestops-precalculate-traveltime', data=data,
+                        extra={'format': 'json'})
         self.assert_http_202_accepted(res)
         return res.content
 
-    @skipIf(no_connection(host=settings.ROUTING_HOST, port=settings.ROUTING_PORT),
-            'osrm docker not running')
+    @skipIf(not OSRMRouter(Mode.WALK).service_is_up, 'osrm docker not running')
     def test_create_place_cell_transit_matrix(self):
         """Test to create an transit matrix from place to stop"""
         self.create_stops()
@@ -300,19 +300,21 @@ class TestMatrixCreation(CreateTestdataMixin,
                                               max_distance=800)
 
         self.transit
-        data = {'variants': self.transit.pk,
+        data = {'variants': [self.transit.pk],
                 'drop_constraints': False,
                 'access_variant': walk.pk,
                 }
 
         #  use default access distance to stops
-        res = self.post('matrixcellplaces-precalculate-traveltime', data=data)
+        res = self.post('matrixcellplaces-precalculate-traveltime', data=data,
+                        extra={'format': 'json'})
         self.assert_http_202_accepted(res)
         print(res.content)
         print(MatrixCellPlace.objects.filter(variant=self.transit.pk).count())
         #  try longer access distance to stops
         data['max_access_distance'] = 1500
-        res = self.post('matrixcellplaces-precalculate-traveltime', data=data)
+        res = self.post('matrixcellplaces-precalculate-traveltime', data=data,
+                        extra={'format': 'json'})
         self.assert_http_202_accepted(res)
         print(res.content)
         print(MatrixCellPlace.objects.filter(variant=self.transit.pk).count())

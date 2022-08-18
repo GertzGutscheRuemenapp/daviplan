@@ -300,7 +300,8 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         for place_field in place_fields:
             # deleting the place field should fail,
             # if there are attributes of this place_field
-            response = self.delete('placefields-detail', pk=place_field.pk)
+            response = self.delete('placefields-detail', pk=place_field.pk,
+                                   extra={'format': 'json'})
             self.response_403(msg=response.content)
 
         field_name = 'int_field'
@@ -311,7 +312,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         # from the place attributes
         response = self.delete('placefields-detail',
                                pk=int_field.pk,
-                               data=dict(force=True))
+                               data=dict(force=True), extra={'format': 'json'})
         self.response_204(msg=response.content)
 
         place_attributes = PlaceAttribute.objects.filter(
@@ -331,7 +332,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         # because it is not referenced any more
         response = self.delete('placefields-detail',
                                pk=text_field.pk,
-                               data=dict(force=False))
+                               data=dict(force=False), extra={'format': 'json'})
         self.response_204(msg=response.content)
 
     def test_get_capacity_for_service(self):

@@ -92,7 +92,8 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
 
     def test_create_infrastructure_template(self):
         url = reverse('places-create-template')
-        res = self.post(url, data={'infrastructure': self.infra.pk,})
+        res = self.post(url, data={'infrastructure': self.infra.pk,},
+                        extra={'format': 'json'})
         self.assert_http_200_ok(res)
         wb = load_workbook(BytesIO(res.content))
         self.assertSetEqual(set(wb.sheetnames),

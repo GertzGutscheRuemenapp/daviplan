@@ -40,7 +40,7 @@ class TestIntersectZensus(CreateTestdataMixin,
     def test_intersect_population(self):
         """test intersection with population"""
         response = self.post('populationrasters-intersect-census',
-                             pk=self.popraster100.pk,)
+                             pk=self.popraster100.pk, extra={'format': 'json'})
         self.assert_http_202_accepted(response, response.data)
 
         expected_population = 37710
@@ -58,7 +58,8 @@ class TestIntersectZensus(CreateTestdataMixin,
         self.assertAlmostEqual(value_sum['value__sum'], expected_population)
 
         response = self.post('populationrasters-intersect-census',
-                             pk=self.popraster500.pk,)
+                             pk=self.popraster500.pk,
+                             extra={'format': 'json'})
         self.assert_http_202_accepted(response, response.data)
 
         expected_population = 36141

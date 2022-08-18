@@ -94,15 +94,16 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         query_params = {'area_level': self.area1.area_level.pk, }
         if service is not None:
             if isinstance(service, list):
-                query_params['service'] = [s.id for s in service]
+                query_params['services'] = [s.id for s in service]
             else:
-                query_params['service'] = service.id
+                query_params['services'] = [service.id]
         if year is not None:
             query_params['year'] = year
         if scenario is not None:
             query_params['scenario'] = scenario.id
 
-        response = self.post(self.url_key+self.suffix, data=query_params)
+        response = self.post(self.url_key+self.suffix, data=query_params,
+                             extra={'format': 'json'})
         # assert that the result is ordered by label
         actual = sorted(response.data, key=lambda f: f['label'])
         expected = [{'label': 'area1', 'value': expected_values[0], },

@@ -14,3 +14,25 @@ DATABASES = {
         'PORT': '5432'
     }
 }
+
+
+OSRM_ROUTING = {
+    'CAR': {
+        'alias': 'car',
+        'host': 'localhost',
+        'service_port': 8001,
+        'routing_port': 5001,
+    },
+    'BIKE': {
+        'alias': 'bicycle',
+        'host': 'localhost',
+        'service_port': 8001,
+        'routing_port': 5002,
+    },
+    'WALK': {
+        'alias': 'foot',
+        'host': 'localhost',
+        'service_port': 8001,
+        'routing_port': 5003,
+    },
+}

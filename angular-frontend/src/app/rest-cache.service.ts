@@ -134,11 +134,11 @@ export class RestCacheService {
   }
 
   getRealYears(): Observable<number[]> {
-    return this.getYears({ params: 'has_real_data=true&isReal=true' });
+    return this.getYears({ params: 'has_real_data=true&is_real=true' });
   }
 
   getPrognosisYears(): Observable<number[]> {
-    return this.getYears({ params: 'has_prognosis_data=true&isPrognosis=true' });
+    return this.getYears({ params: 'has_prognosis_data=true&is_prognosis=true' });
   }
 
   getGenders(): Observable<Gender[]> {
@@ -284,7 +284,7 @@ export class RestCacheService {
     if (options?.prognosis != undefined)
       data.prognosis = options.prognosis;
     if (options?.genders)
-      data.gender = options.genders;
+      data.genders = options.genders;
     if (options?.ageGroups)
       data.age_group = options.ageGroups;
     const observable = new Observable<AreaIndicatorResult[]>(subscriber => {
@@ -313,15 +313,15 @@ export class RestCacheService {
     const observable = new Observable<PopulationData[]>(subscriber => {
       const cached = this.popDataCache[key];
       if (!cached) {
-        let data: any = { area: [areaId] };
+        let data: any = { areas: [areaId] };
         if (options?.year != undefined)
           data.year = options?.year;
         if (options?.prognosis != undefined)
           data.prognosis = options?.prognosis;
         if (options?.genders)
-          data.gender = options.genders;
+          data.genders = options.genders;
         if (options?.ageGroups)
-          data.age_group = options.ageGroups;
+          data.age_groups = options.ageGroups;
         this.setLoading(true);
         const query = this.http.post<PopulationData[]>(this.rest.URLS.populationData, data);
         query.subscribe(data => {

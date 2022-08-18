@@ -209,7 +209,7 @@ export class MapControl {
       this.getServiceLayerGroups({ internal: true, external: true });
     })
     this.markerLayer = new VectorLayer('marker-layer', {
-      order: 100
+      zIndex: 100000
     });
     this.markerLayer.addToMap(this.map);
   }
@@ -292,8 +292,8 @@ export class MapControl {
     if (options?.internal === false && !options?.external === false) return;
     this.saveSettings();
     this.getLayers(options).forEach(l => l.removeFromMap());
-    if (options?.internal) this.layerGroups = this.layerGroups.filter(g => g.external !== false);
-    if (options?.external) this.layerGroups = this.layerGroups.filter(g => g.external !== true);
+    if (options?.internal) this.layerGroups = sortBy(this.layerGroups.filter(g => g.external !== false), 'order');
+    if (options?.external) this.layerGroups = sortBy(this.layerGroups.filter(g => g.external !== true), 'order');
     this.getServiceLayerGroups({ reset: true, internal: options?.internal, external: options?.external });
   }
 
