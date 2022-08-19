@@ -174,7 +174,7 @@
               </td>
             </tr>
           </table>
-          <button *ngIf="activeLevel?.source?.sourceType === 'WFS'"
+          <button *ngIf="activeLevel?.source?.sourceType === 'WFS' || activeLevel?.isPreset"
                   class="mat-button-dv"
                   mat-button color="primary"
                   style="margin-top: 20px;"
@@ -213,7 +213,7 @@
         </div>
         <div id="log-window" style="width: 50%">
           <span class="subtitle1">Aktualisierungshistorie</span>
-          <app-log></app-log>
+          <app-log room="areas" height="200px"></app-log>
         </div>
       </div>
     </app-input-card>
@@ -324,11 +324,6 @@
 </ng-template>
 
 <ng-template #pullWfsTemplate>
-  <div *ngIf="uploadErrors">
-    <mat-error *ngFor="let error of Object.values(uploadErrors)" class="alert">
-      {{ error }}
-    </mat-error>
-  </div>
   <p>
     Sollen die Gebiete der Gebietseinheit "{{this.activeLevel?.name}}" jetzt aus dem angegebenen WFS-Dienst abgerufen und eingespielt werden?
   </p>
