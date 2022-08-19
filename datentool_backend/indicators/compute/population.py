@@ -1,9 +1,8 @@
-from typing import Dict
+from typing import Dict, List
 
 from django.db import connection
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.core.exceptions import BadRequest
-from django.http.request import QueryDict
 
 from datentool_backend.utils.dict_cursor import dictfetchall
 
@@ -16,7 +15,6 @@ from datentool_backend.population.models import (RasterCellPopulationAgeGender,
                                                  PopulationAreaLevel,
                                                  Population,
                                                  Prognosis,
-                                                 Year,
                                                  )
 from datentool_backend.user.models.process import Scenario
 
@@ -41,33 +39,16 @@ class PopulationIndicatorMixin:
 
     def get_populations(self) -> Population:
         """get the population"""
-        filter_params = self.get_population_filter_params()
-        population = Population.objects.filter(**filter_params)
+        population_ids = self.get_population_ids()
+        population = Population.objects.filter(id__in=population_ids)
         return population
 
     def get_filter_params(self) -> Dict[str, int]:
-        """get the filter params for """
+        """get the filter params for area or rasterpopulation"""
         filter_params = {}
-        year_int = self.data.get('year')
-        if year_int:
-            filter_params['population__year__year'] = year_int
-            year = Year.objects.get(year=year_int)
-            has_prognosis_year = year.is_prognosis
-        else:
-            has_prognosis_year = True
 
-        scenario = self.data.get('scenario')
-        prognosis = self.data.get('prognosis')
-        if not prognosis:
-            if scenario:
-                prognosis = Scenario.objects.get(pk=scenario).prognosis_id
-            else:
-                try:
-                    prognosis = Prognosis.objects.get(is_default=True)
-                except Prognosis.DoesNotExist:
-                    prognosis = None
-        if has_prognosis_year:
-            filter_params['population__prognosis'] = prognosis
+        population_ids = self.get_populations()
+        filter_params['population_id__in'] = population_ids
 
         genders = self.data.get('genders')
         age_groups = self.data.get('age_groups')
@@ -78,19 +59,10 @@ class PopulationIndicatorMixin:
             filter_params['age_group__in'] = age_groups
         return filter_params
 
-    def get_population_filter_params(self) -> Dict[str, int]:
-        filter_params = {}
-        year_int = self.data.get('year')
-        if year_int:
-            filter_params['year__year'] = year_int
-            year = Year.objects.get(year=year_int)
-            has_prognosis_year = year.is_prognosis
-        else:
-            has_prognosis_year = True
-
-        scenario = self.data.get('scenario')
+    def get_population_ids(self) -> List[int]:
         prognosis = self.data.get('prognosis')
         if not prognosis:
+            scenario = self.data.get('scenario')
             if scenario:
                 prognosis = Scenario.objects.get(pk=scenario).prognosis_id
             else:
@@ -98,9 +70,18 @@ class PopulationIndicatorMixin:
                     prognosis = Prognosis.objects.get(is_default=True)
                 except Prognosis.DoesNotExist:
                     prognosis = None
-        if has_prognosis_year:
-            filter_params['prognosis'] = prognosis
-        return filter_params
+
+        year_int = self.data.get('year')
+        if year_int:
+            popfilter = (Q(year__year=year_int) &
+                         (Q(year__is_real=True) | Q(prognosis=prognosis)))
+        else:
+            popfilter = (Q(year__is_real=True) |
+                           (Q(year__is_prognosis=True) & Q(prognosis=prognosis)))
+
+        populations = Population.objects.filter(popfilter)
+        population_ids =  list(populations.values_list('id', flat=True))
+        return population_ids
 
     def get_areas(self, area_level_id: int = None) -> Area:
         """get the relevant areas"""

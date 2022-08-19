@@ -15,7 +15,7 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
     def compute(self):
         """"""
         area_level_id = self.data.get('area_level')
-        service_ids = self.data.get('services')
+        service_id = self.data.get('service')
         year = self.data.get('year', 0)
         scenario_id = self.data.get('scenario')
 
@@ -24,7 +24,7 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
 
         capacities = Capacity.objects.all()
         capacities = Capacity.filter_queryset(capacities,
-                                              service_ids=service_ids,
+                                              service_ids=[service_id],
                                               scenario_id=scenario_id,
                                               year=year,
                                               )
