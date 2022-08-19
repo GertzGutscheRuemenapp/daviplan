@@ -146,14 +146,14 @@ class LayerGroupViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = LayerGroup.objects.all()
     serializer_class = LayerGroupSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-    filter_fields = ['external']
+    filterset_fields = ['external']
 
 
 class WMSLayerViewSet(viewsets.ModelViewSet):
     queryset = WMSLayer.objects.all()
     serializer_class = WMSLayerSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-    filter_fields = ['active']
+    filterset_fields = ['active']
 
     @extend_schema(
         description='Get capabilites of WMS-Service',
