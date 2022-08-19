@@ -11,6 +11,10 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
 
+  redis:
+    image: redis:7.0.4
+    restart: unless-stopped
+
   router-car:
     image: gertzgutscheruemenapp/osrm-flask
     restart: unless-stopped
@@ -37,6 +41,7 @@ services:
       - MODE_CAR_SERVICE_PORT=8001
       - MODE_BIKE_SERVICE_PORT=8001
       - MODE_WALK_SERVICE_PORT=8001
+      - REDIS_HOST=redis
     env_file: .env
     image: gertzgutscheruemenapp/daviplan:testing
     links:
@@ -44,6 +49,7 @@ services:
       - router-car:router-car
       - router-bike:router-bike
       - router-walk:router-walk
+      - redis:redis
     command: bash -c "cd /root/datentool && git pull && pip install -r requirements.txt && cd angular-frontend && npm ci && ng build --stats_json --build-optimizer && cd /root/datentool && python manage.py migrate --run-syncdb && python manage.py runserver 0.0.0.0:8000"
     ports:
       - "${EXT_PORT}:8000"
