@@ -1,5 +1,6 @@
 import logging
 import json
+import time
 import channels.layers
 from aioredis import errors
 from asgiref.sync import async_to_sync
@@ -10,7 +11,8 @@ channel_layer = channels.layers.get_channel_layer()
 def send(channel: str, message: str, log_type: str='log_message', **kwargs):
     rec = {
         'message': message,
-        'type': log_type
+        'type': log_type,
+        'timestamp': time.strftime('%d.%m.%Y %H:%M:%S'),
     }
     rec.update(kwargs)
     async_to_sync(channel_layer.group_send)(channel, rec)
@@ -19,14 +21,14 @@ def send(channel: str, message: str, log_type: str='log_message', **kwargs):
 class WebSocketHandler(logging.StreamHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
+        #self.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
 
     def emit(self, record):
         room = record.name
         try:
-            send(room, self.format(record), log_type='log_message',
+            send(room, record.getMessage(), log_type='log_message',
                  level=record.levelname)
-        except errors.RedisError as e:
+        except (errors.RedisError, OSError) as e:
             print(e)
 
 
@@ -42,7 +44,7 @@ class LogConsumer(AsyncWebsocketConsumer):
 
             await self.accept()
         # redis is not up, what to do?
-        except OSError as e:
+        except (errors.RedisError, OSError) as e:
             print(e)
 
     async def disconnect(self, close_code):

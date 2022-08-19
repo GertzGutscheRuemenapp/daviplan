@@ -299,7 +299,8 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
     @staticmethod
     def _pull_areas(area_level: AreaLevel, project_area,
                    truncate=False, simplify=False):
-
+        msg = f'Rufe Gebiete der Ebene "{area_level.name}" ab'
+        logger.info(msg)
         url = area_level.source.url
         layer = area_level.source.layer
         if not url or not layer:
@@ -308,6 +309,7 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
         bbox = list(project_area.extent)
         bbox.append('EPSG:3857')
 
+        msg = f'"URL: {url}"'
         wfs = WebFeatureService(url=url, version='1.1.0')
         typename = None
         # find layer in available item
@@ -317,16 +319,21 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
                 typename = key
                 break
         if not key:
-            msg = 'Layer not found in capabilities of service'
+            msg = (f'Layer "{key}" nicht in den Capabilities des WFS-Services '
+                   'gefunden')
+            logger.error(msg)
             return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
         response = wfs.getfeature(typename=typename, bbox=bbox,
                                   srsname='EPSG:3857',
                                   outputFormat='application/json')
         res_json = json.loads(response.read())
         if truncate:
+            logger.info('Lösche eventuell vorhandene Gebiete der Ebene')
             Area.objects.filter(area_level=area_level).delete()
         level_areas = Area.annotated_qs(area_level)
         key_field = area_level.key_field
+        logger.info(f'Verarbeite {len(res_json["features"])} Gebiete')
+        count = 0
         for feature in res_json['features']:
             properties = feature.get('properties', {})
             # ToDo: this only temporary, in case of presets (=bkg wfs)
@@ -367,6 +374,8 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
                 area = Area.objects.create(area_level=area_level, is_cut=is_cut,
                                            geom=intersection)
             area.attributes = properties
+            count += 1
+        logger.info(f'{count} Gebiete im Projektgebiet')
         now = datetime.datetime.now()
         area_level.source.date = datetime.date(now.year, now.month, now.day)
         area_level.source.save()
@@ -396,11 +405,6 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
     @action(methods=['POST'], detail=True,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def pull_areas(self, request, **kwargs):
-        import time
-        for i in range(10):
-            logger.error(i)
-            time.sleep(1)
-        return Response({'message': ''}, status.HTTP_200_OK)
         try:
             area_level: AreaLevel = self.queryset.get(**kwargs)
         except AreaLevel.DoesNotExist:
@@ -410,22 +414,34 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
         if (not area_level.source or
             area_level.source.source_type != SourceTypes.WFS):
             msg = 'Source of Area Level has to be a Feature-Service to pull from'
+            logger.error(msg)
             return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
         if not area_level.source.url or not area_level.source.layer:
             msg = 'Source of Area Level is not completely defined'
+            logger.error(msg)
             return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
         project_area = ProjectSetting.load().project_area
         if not project_area:
             msg = 'Project area is not defined'
+            logger.error(msg)
             return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
 
-        truncate = str(request.data.get('truncate', 'false')).lower() == 'true'
-        simplify = str(request.data.get('simplify', 'false')).lower() == 'true'
+        truncate = request.data.get('truncate', False)
+        simplify = request.data.get('simplify', False)
         areas = self._pull_areas(area_level, project_area,
                                  truncate=truncate, simplify=simplify)
+        logger.info('Verschneide Gebiete mit dem Bevölkerungsraster')
         intersect_areas_with_raster(areas, drop_constraints=True)
-        for population in Population.objects.all():
-            aggregate_population(area_level, population, drop_constraints=True)
+        logger.info('Aggregiere Bevölkerungsdaten auf neue Gebiete hoch')
+        n_pop = Population.objects.count()
+        for i, population in enumerate(Population.objects.all()):
+            logger.info(f'{i + 1}/{n_pop}')
+            try:
+                aggregate_population(area_level, population, drop_constraints=True)
+            except Exception as e:
+                logger.error(str(e))
+                return Response({'message': str(e)}, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.info(f'Fertig. {areas.count()} Gebiete gespeichert und verarbeitet')
         return Response({'message': f'{areas.count()} Areas pulled into database'},
                         status.HTTP_202_ACCEPTED)
 
