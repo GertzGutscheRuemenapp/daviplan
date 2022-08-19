@@ -398,12 +398,14 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
     def pull_areas(self, request, **kwargs):
         import time
         for i in range(10):
-            logger.info(i)
+            logger.error(i)
             time.sleep(1)
+        return Response({'message': ''}, status.HTTP_200_OK)
         try:
             area_level: AreaLevel = self.queryset.get(**kwargs)
         except AreaLevel.DoesNotExist:
             msg = f'Area level for {kwargs} not found'
+            logger.error(msg)
             return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
         if (not area_level.source or
             area_level.source.source_type != SourceTypes.WFS):

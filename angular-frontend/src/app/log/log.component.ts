@@ -12,6 +12,7 @@ export class LogComponent implements AfterViewInit {
   @Input() height: string = '100%';
   @Input() room: string = '';
   private wsURL = `${ environment.backend }/ws/log/`;
+  private retries = 0;
   private chatSocket?: WebSocket;
 
   entries: LogEntry[] = [];
@@ -23,13 +24,21 @@ export class LogComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.entries = mockLogs;
     this.entries.map(entry => this.addLogEntry(entry));
+
+    this.connect();
+  }
+
+  connect(): void {
+    if (this.retries > 10) return;
     this.chatSocket = new WebSocket(`${ this.wsURL }${ this.room }/`);
-    this.chatSocket.onmessage = function (e) {
+    this.chatSocket.onopen = e => this.retries = 0;
+    this.chatSocket.onmessage = e => {
       console.log(e);
       return false;
     }
-    this.chatSocket.onclose = function(e) {
-      console.error('Chat socket closed unexpectedly');
+    this.chatSocket.onclose = e => {
+      this.retries += 1;
+      this.connect();
     };
   }
 
