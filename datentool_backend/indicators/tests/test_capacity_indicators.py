@@ -63,8 +63,8 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         self.count_capacities([2, 1, 0], service=self.service1, year=2030)
         self.count_capacities([2, 1, 0], service=self.service1, year=2035)
 
-        # both services
-        self.count_capacities([2, 1, 0], service=[self.service1, self.service2])
+        ## both services
+        #self.count_capacities([2, 1, 0], service=[self.service1, self.service2])
 
 
     def test_total_capacity(self):
@@ -76,8 +76,8 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         # in the base scenario there should be 2 places in area1
         # and 1 with capacity in area2 for service1
         self.count_capacities([5, 44, 0], service=self.service1)
-        # both services
-        self.count_capacities([7, 44, 0], service=[self.service1, self.service2])
+        ## both services
+        #self.count_capacities([7, 44, 0], service=[self.service1, self.service2])
 
         # only 1 in scenario, because capacity of place2 is set to 0
         self.count_capacities([1, 44, 0], service=self.service1,
@@ -93,10 +93,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
                        scenario: int = None):
         query_params = {'area_level': self.area1.area_level.pk, }
         if service is not None:
-            if isinstance(service, list):
-                query_params['services'] = [s.id for s in service]
-            else:
-                query_params['services'] = [service.id]
+            query_params['service'] = service.id
         if year is not None:
             query_params['year'] = year
         if scenario is not None:

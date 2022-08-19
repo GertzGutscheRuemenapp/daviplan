@@ -1,18 +1,11 @@
-from typing import List
-
 from django.db import models
-from django.db.models import Q
-from django.contrib.gis.db import models as gis_models
-from sql_util.utils import Exists
 
 from datentool_backend.base import (NamedModel,
                                     DatentoolModelMixin,
                                     )
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
-from datentool_backend.utils.copy_postgres import DirectCopyManager
 
-from datentool_backend.area.models import (FieldType, FieldTypes,
-                                           MapSymbol)
+from datentool_backend.area.models import (FieldType, MapSymbol)
 from datentool_backend.user.models.profile import Profile
 
 
