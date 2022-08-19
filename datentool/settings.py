@@ -75,7 +75,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'drf_spectacular',
     'django_cleanup.apps.CleanupConfig',
-    'django_filters'
+    'django_filters',
+    'channels'
 ]
 
 MIDDLEWARE = [
@@ -146,6 +147,19 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'datentool.wsgi.application'
+ASGI_APPLICATION = 'datentool.routing.application'
+
+REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
+REDIS_PORT = os.environ.get('REDIS_PORT', 6379)
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [(REDIS_HOST, REDIS_PORT)],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
@@ -284,6 +298,28 @@ DATA_ROOT = os.path.join(BASE_DIR, 'datentool_backend', 'data')
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': 'INFO',
+        },
+        'web_socket': {
+            'level': 'DEBUG',
+            'class': 'datentool.loggers.WebSocketHandler',
+        },
+    },
+    'loggers': {
+        'areas': {
+            'handlers': ['web_socket', 'console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}
 
 def load_stats_json():
     fn = os.path.join(FRONTEND_APP_DIR,

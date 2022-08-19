@@ -1,10 +1,12 @@
 from typing import Tuple, List
 from django.core.exceptions import BadRequest
+from django.db.models import F
 
 from datentool_backend.population.models import AreaCell, RasterCellPopulation
 from datentool_backend.indicators.compute.base import ComputeIndicator, ResultSerializer
 from datentool_backend.indicators.compute.population import PopulationIndicatorMixin
 from datentool_backend.demand.models import DemandRateSet, DemandRate
+from datentool_backend.infrastructure.models.infrastructures import Service
 from datentool_backend.user.models.process import ScenarioService
 from datentool_backend.population.models import Year
 from datentool_backend.area.models import Area
@@ -40,7 +42,7 @@ class DemandAreaIndicator(PopulationIndicatorMixin,
         if not demand_rates:
             return None, None
 
-        q_drs, p_drs = demand_rates.values('age_group_id', 'gender_id', 'value')\
+        q_drs, p_drs = demand_rates.values('age_group_id', 'gender_id', 'factor')\
             .query.sql_with_params()
 
         #  check if the area-population is precalculated
@@ -52,14 +54,13 @@ class DemandAreaIndicator(PopulationIndicatorMixin,
                                                   'gender_id', 'value')\
                 .query.sql_with_params()
 
-
             query = f'''SELECT
             a."id", a."_label", val."value"
             FROM ({q_areas}) AS a
             LEFT JOIN (
               SELECT
                 ap."area_id",
-                SUM(ap."value" * COALESCE(dr."value", 0)) AS "value"
+                SUM(ap."value" * COALESCE(dr."factor", 0)) AS "value"
               FROM
                 ({q_areapop}) AS ap
                 LEFT JOIN ({q_drs}) AS dr
@@ -91,7 +92,7 @@ class DemandAreaIndicator(PopulationIndicatorMixin,
             LEFT JOIN (
               SELECT
                 ac."area_id",
-                SUM(p."value" * dr."value" * ac."share_area_of_cell") AS "value"
+                SUM(p."value" * dr."factor" * ac."share_area_of_cell") AS "value"
               FROM
                 ({q_acells}) AS ac,
                 ({q_pop}) AS p,
@@ -118,11 +119,12 @@ class DemandAreaIndicator(PopulationIndicatorMixin,
 
     def get_demand_rates(self) -> DemandRate:
         """get the demand rates for a scenario, year and service"""
-        scenario = self.data.get('scenario') or None
-        service = self.data.get('service') or None
+        scenario_id = self.data.get('scenario')
+        service_id = self.data.get('service')
+        service = Service.objects.get(id=service_id)
         try:
-            scenario_service = ScenarioService.objects.get(scenario=scenario,
-                                                           service_id=service)
+            scenario_service = ScenarioService.objects.get(scenario=scenario_id,
+                                                           service_id=service_id)
             drs = scenario_service.demandrateset
         except ScenarioService.DoesNotExist:
             try:
@@ -136,5 +138,13 @@ class DemandAreaIndicator(PopulationIndicatorMixin,
         else:
             year = Year.objects.get(is_default=True)
 
-        demand_rates = drs.demandrate_set.filter(year=year)
+        demand_rates = DemandRate.objects\
+            .select_related('year')\
+            .filter(demand_rate_set=drs,
+                    year=year)
+
+        if service.demand_type == Service.DemandType.QUOTA:
+            demand_rates = demand_rates.annotate(factor=F('value') / 100)
+        else:
+            demand_rates = demand_rates.annotate(factor=F('value'))
         return demand_rates
