@@ -11,14 +11,15 @@ export class LogComponent implements AfterViewInit, AfterViewChecked {
   @Input() height: string = '100%';
   @Input() room: string = '';
   @ViewChild('log') logEl!: ElementRef;
-  private wsURL = `${ environment.backend }/ws/log/`;
+  private wsURL: string;
   private retries = 0;
   private chatSocket?: WebSocket;
 
   entries: LogEntry[] = [];
 
   constructor() {
-    this.wsURL = this.wsURL.replace('http:', environment.production? 'wss:': 'ws:');
+    const host = environment.production? window.location.hostname: environment.backend.replace('http://', '');
+    this.wsURL = `${environment.production? 'wss:': 'ws:'}//${host}/ws/log/`
     console.log(this.wsURL);
   }
 
