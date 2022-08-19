@@ -1,17 +1,17 @@
-import { Component, AfterViewInit, ElementRef, ViewChild, Input } from '@angular/core';
-import { mockLogs, LogEntry } from "./logs";
+import { Component, AfterViewInit, ElementRef, ViewChild, Input, AfterViewChecked } from '@angular/core';
 import { environment } from "../../environments/environment";
+import { LogEntry } from "../rest-interfaces";
 
 @Component({
   selector: 'app-log',
   templateUrl: './log.component.html',
   styleUrls: ['./log.component.scss']
 })
-export class LogComponent implements AfterViewInit {
-  @ViewChild('log') logEl!: ElementRef;
+export class LogComponent implements AfterViewInit, AfterViewChecked {
   @Input() height: string = '100%';
   @Input() room: string = '';
-  private wsURL = `${ environment.backend }/ws/log/`;
+  @ViewChild('log') logEl!: ElementRef;
+  readonly wsURL = `${ environment.backend }/ws/log/`;
   private retries = 0;
   private chatSocket?: WebSocket;
 
@@ -22,10 +22,12 @@ export class LogComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.entries = mockLogs;
     this.entries.map(entry => this.addLogEntry(entry));
-
     this.connect();
+  }
+
+  ngAfterViewChecked() {
+    this.scrollToBottom();
   }
 
   connect(): void {
@@ -33,8 +35,7 @@ export class LogComponent implements AfterViewInit {
     this.chatSocket = new WebSocket(`${ this.wsURL }${ this.room }/`);
     this.chatSocket.onopen = e => this.retries = 0;
     this.chatSocket.onmessage = e => {
-      console.log(e);
-      return false;
+      this.addLogEntry(JSON.parse(e.data));
     }
     this.chatSocket.onclose = e => {
       this.retries += 1;
@@ -43,9 +44,14 @@ export class LogComponent implements AfterViewInit {
   }
 
   addLogEntry(entry: LogEntry): void {
-    let textArea = this.logEl.nativeElement;
-    let row = `${entry.date.toLocaleDateString()} ${entry.date.toLocaleTimeString()} - ${entry.text}\r\n`;
-    textArea.value += row;
+    if (entry.timestamp)
+      // cut off milliseconds
+      entry.timestamp = entry.timestamp.split(',')[0];
+    this.entries.push(entry);
+    this.scrollToBottom();
   }
 
+  private scrollToBottom(): void {
+      this.logEl.nativeElement.scrollTop = this.logEl.nativeElement.scrollHeight;
+  }
 }

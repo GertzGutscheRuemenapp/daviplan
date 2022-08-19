@@ -246,23 +246,16 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       data: {
         title: `WFS Daten abrufen`, //für Gebietseinheit "${this.activeLevel.name}"`,
         confirmButtonText: 'Daten abrufen',
-        closeOnConfirm: false,
+        closeOnConfirm: true,
         template: this.pullWfsTemplate
       }
     });
     dialogRef.componentInstance.confirmed.subscribe((confirmed: boolean) => {
-      const dialogRef2 = SimpleDialogComponent.show(
-        'Die Gebiete werden abgerufen und mit eventuell vorhandenen Bevölkerungsdaten verschnitten. Bitte warten',
-        this.dialog, { showAnimatedDots: true, width: '350px' });
       this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/pull_areas/`,
         { truncate: true, simplify: false }).subscribe(res => {
-        dialogRef2.close();
-        dialogRef.close();
         this.selectAreaLevel(this.activeLevel!, true);
       }, error => {
-        dialogRef2.close();
         this.uploadErrors = error.error;
-        dialogRef.componentInstance.isLoading$.next(false);
       });
     });
     dialogRef.afterClosed().subscribe(ok => {
