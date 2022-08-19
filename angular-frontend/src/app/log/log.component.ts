@@ -11,7 +11,7 @@ export class LogComponent implements AfterViewInit, AfterViewChecked {
   @Input() height: string = '100%';
   @Input() room: string = '';
   @ViewChild('log') logEl!: ElementRef;
-  readonly wsURL = `${ environment.backend }/ws/log/`;
+  private wsURL = `${ environment.backend }/ws/log/`;
   private retries = 0;
   private chatSocket?: WebSocket;
 
@@ -19,6 +19,7 @@ export class LogComponent implements AfterViewInit, AfterViewChecked {
 
   constructor() {
     this.wsURL = this.wsURL.replace('http:', environment.production? 'wss:': 'ws:');
+    console.log(this.wsURL);
   }
 
   ngAfterViewInit(): void {
