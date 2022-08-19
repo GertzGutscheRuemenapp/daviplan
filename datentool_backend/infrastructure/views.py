@@ -41,7 +41,7 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
         'create_template': PlacesTemplateSerializer,
         'upload_template': PlacesTemplateSerializer}
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-    filter_fields = ['infrastructure']
+    filterset_fields = ['infrastructure']
 
     def create(self, request, *args, **kwargs):
         """use the annotated version"""
