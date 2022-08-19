@@ -87,5 +87,5 @@ class DemandRateSetViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
     serializer_class = DemandRateSetSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-    filter_fields = ['service']
+    filterset_fields = ['service']
 
