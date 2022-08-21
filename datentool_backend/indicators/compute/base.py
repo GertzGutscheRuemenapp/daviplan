@@ -3,6 +3,9 @@ from typing import Callable, Dict, List, Tuple
 from enum import Enum
 
 from django.http.request import QueryDict
+from django.db.models import OuterRef, Min, F
+from sql_util.utils import Exists
+from datentool_backend.infrastructure.models.places import Place, Capacity
 
 from datentool_backend.modes.models import Mode
 from datentool_backend.infrastructure.models.infrastructures import Service
@@ -119,6 +122,27 @@ class ServiceIndicator(ComputeIndicator):
         """computed title"""
         return ''
 
+    def get_places_with_capacities(self,
+                                   service_id: int,
+                                   year: int,
+                                   scenario_id: int) -> Place:
+        """get places with capacities """
+
+        capacities = Capacity.objects.all()
+        capacities = Capacity.filter_queryset(capacities,
+                                              service_ids=[service_id],
+                                              scenario_id=scenario_id,
+                                              year=year,
+                                              )
+        # only those with capacity - value > 0
+        capacities = capacities.filter(capacity__gt=0)
+
+        # filter places with capacity
+        places = Place.objects.all()
+        places_with_capacity = places.annotate(
+            has_capacity=Exists(capacities.filter(place=OuterRef('pk'))))\
+            .filter(has_capacity=True)
+        return places_with_capacity
 
 def register_indicator() -> Callable:
     """register the indicator with the ComputeIndicators"""

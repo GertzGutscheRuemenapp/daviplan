@@ -1,22 +1,11 @@
 import pandas as pd
-import numpy as np
-import numpy.testing as nptest
-import unittest
 
 from django.urls import reverse
 from test_plus import APITestCase
 
 from datentool_backend.api_test import LoginTestCase
 
-from datentool_backend.area.factories import AreaLevelFactory
-
-from .setup_testdata import CreateTestdataMixin
-from datentool_backend.demand.models import AgeGroup, Gender
-from datentool_backend.area.models import Area, AreaAttribute, AreaLevel
-from datentool_backend.population.models import (Population,
-                                                 RasterCellPopulation,
-                                                 PopulationEntry,
-                                                 PopulationAreaLevel, )
+from datentool_backend.indicators.tests.setup_testdata import CreateTestdataMixin
 
 
 class TestServiceIndicatorAPI(CreateTestdataMixin,

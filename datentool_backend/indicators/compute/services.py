@@ -2,7 +2,6 @@ from abc import ABCMeta, abstractmethod
 from django.db.models import OuterRef, Subquery, Count, IntegerField, Sum
 from django.db.models.functions import Coalesce
 from sql_util.utils import Exists
-from django.http.request import QueryDict
 
 from datentool_backend.indicators.compute.base import ComputeIndicator, ResultSerializer
 from datentool_backend.area.models import Area, AreaLevel
