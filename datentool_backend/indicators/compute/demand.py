@@ -1,14 +1,9 @@
 from typing import Tuple, List
 from django.core.exceptions import BadRequest
-from django.db.models import F
 
 from datentool_backend.population.models import AreaCell, RasterCellPopulation
 from datentool_backend.indicators.compute.base import ComputeIndicator, ResultSerializer
 from datentool_backend.indicators.compute.population import PopulationIndicatorMixin
-from datentool_backend.demand.models import DemandRateSet, DemandRate
-from datentool_backend.infrastructure.models.infrastructures import Service
-from datentool_backend.user.models.process import ScenarioService
-from datentool_backend.population.models import Year
 from datentool_backend.area.models import Area
 from datentool_backend.population.models import PopulationAreaLevel
 
@@ -21,6 +16,9 @@ class DemandAreaIndicator(PopulationIndicatorMixin,
 
     def get_query_and_params(self) -> Tuple[str, List[str]]:
         """get the query and the params for the indicator"""
+
+        scenario_id = self.data.get('scenario')
+        service_id = self.data.get('service')
 
         area_level_id = self.data.get('area_level')
         if area_level_id is None:
@@ -38,7 +36,7 @@ class DemandAreaIndicator(PopulationIndicatorMixin,
             population=population,
             area_level_id=area_level_id)
 
-        demand_rates = self.get_demand_rates()
+        demand_rates = self.get_demand_rates(scenario_id, service_id)
         if not demand_rates:
             return None, None
 
@@ -116,35 +114,3 @@ class DemandAreaIndicator(PopulationIndicatorMixin,
             return []
         areas_with_demand = Area.objects.raw(query, params)
         return areas_with_demand
-
-    def get_demand_rates(self) -> DemandRate:
-        """get the demand rates for a scenario, year and service"""
-        scenario_id = self.data.get('scenario')
-        service_id = self.data.get('service')
-        service = Service.objects.get(id=service_id)
-        try:
-            scenario_service = ScenarioService.objects.get(scenario=scenario_id,
-                                                           service_id=service_id)
-            drs = scenario_service.demandrateset
-        except ScenarioService.DoesNotExist:
-            try:
-                drs = DemandRateSet.objects.get(service=service, is_default=True)
-            except DemandRateSet.DoesNotExist:
-                return
-
-        year = self.data.get('year')
-        if year:
-            year = Year.objects.get(year=year)
-        else:
-            year = Year.objects.get(is_default=True)
-
-        demand_rates = DemandRate.objects\
-            .select_related('year')\
-            .filter(demand_rate_set=drs,
-                    year=year)
-
-        if service.demand_type == Service.DemandType.QUOTA:
-            demand_rates = demand_rates.annotate(factor=F('value') / 100)
-        else:
-            demand_rates = demand_rates.annotate(factor=F('value'))
-        return demand_rates

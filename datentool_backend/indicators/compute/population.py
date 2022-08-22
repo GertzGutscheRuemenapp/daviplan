@@ -1,7 +1,7 @@
 from typing import Dict, List
 
 from django.db import connection
-from django.db.models import Count, Q
+from django.db.models import Count, Q, F
 from django.core.exceptions import BadRequest
 
 from datentool_backend.utils.dict_cursor import dictfetchall
@@ -15,8 +15,11 @@ from datentool_backend.population.models import (RasterCellPopulationAgeGender,
                                                  PopulationAreaLevel,
                                                  Population,
                                                  Prognosis,
+                                                 Year,
                                                  )
-from datentool_backend.user.models.process import Scenario
+from datentool_backend.user.models.process import Scenario, ScenarioService
+from datentool_backend.demand.models import DemandRateSet, DemandRate
+from datentool_backend.infrastructure.models.infrastructures import Service
 
 
 class PopulationIndicatorMixin:
@@ -101,6 +104,36 @@ class PopulationIndicatorMixin:
         areas = Area.label_annotated_qs(area_level=area_level_id)\
             .filter(**area_filter)
         return areas
+
+    def get_demand_rates(self, scenario_id: int, service_id: int) -> DemandRate:
+        """get the demand rates for a scenario, year and service"""
+        service = Service.objects.get(id=service_id)
+        try:
+            scenario_service = ScenarioService.objects.get(scenario=scenario_id,
+                                                           service_id=service_id)
+            drs = scenario_service.demandrateset
+        except ScenarioService.DoesNotExist:
+            try:
+                drs = DemandRateSet.objects.get(service=service, is_default=True)
+            except DemandRateSet.DoesNotExist:
+                return
+
+        year = self.data.get('year')
+        if year:
+            year = Year.objects.get(year=year)
+        else:
+            year = Year.objects.get(is_default=True)
+
+        demand_rates = DemandRate.objects\
+            .select_related('year')\
+            .filter(demand_rate_set=drs,
+                    year=year)
+
+        if service.demand_type == Service.DemandType.QUOTA:
+            demand_rates = demand_rates.annotate(factor=F('value') / 100)
+        else:
+            demand_rates = demand_rates.annotate(factor=F('value'))
+        return demand_rates
 
 
 class ComputePopulationAreaIndicator(PopulationIndicatorMixin,
