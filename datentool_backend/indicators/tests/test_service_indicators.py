@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 from django.urls import reverse
 from test_plus import APITestCase
@@ -59,9 +60,52 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
         expected = pop['value'] / num_locs['value']
         pd.testing.assert_series_equal(result['value'], expected, check_dtype=False)
 
+    def test_facility_per_demand_per(self):
+        """Test Facility per Demand"""
+
+        self.prepare_population()
+        self.client.force_login(self.profile.user)
+
+        query_params = {
+            'indicator': 'facilitiesperdemandinarea',
+            'area_level': self.area_level2.pk,
+            'year': 2022,
+        }
+        url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        result = pd.DataFrame(response.data).set_index('area_id')
+
+        query_params['service'] = self.service1.pk
+
+        response = self.post('fixedindicators-demand', data=query_params,
+                             extra={'format': 'json'})
+        pop = pd.DataFrame(response.data).set_index('area_id')
+        response = self.post('fixedindicators-number-of-locations',
+                             data=query_params, extra={'format': 'json'})
+        num_locs = pd.DataFrame(response.data).set_index('area_id')
+        expected = num_locs['value'] / pop['value']
+        pd.testing.assert_series_equal(result['value'], expected, check_dtype=False)
+
+        # test the the inverse indicators multiply to 1
+        query_params = {
+            'indicator': 'demandperfacility',
+            'area_level': self.area_level2.pk,
+            'year': 2022,
+        }
+        url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        result_inv = pd.DataFrame(response.data).set_index('area_id')
+        res_both = result.merge(result_inv, right_index=True, left_index=True, suffixes=('_fd', '_df'))
+        res_both['mult'] = res_both['value_fd'] * res_both['value_df']
+        mult = res_both['mult'].values
+        np.testing.assert_allclose(mult[np.isfinite(mult)], 1)
+
     def test_demand_per_capacity(self):
         """Test demand per capacity"""
 
+        self.prepare_population()
         self.client.force_login(self.profile.user)
 
         query_params = {
@@ -88,6 +132,7 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
     def test_capacity_per_demand(self):
         """Test capacity per demand"""
 
+        self.prepare_population()
         self.client.force_login(self.profile.user)
 
         query_params = {
@@ -110,3 +155,18 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
         capacity = pd.DataFrame(response.data).set_index('area_id')
         expected = capacity['value'] / pop['value']
         pd.testing.assert_series_equal(result['value'], expected, check_dtype=False)
+
+        # test the the inverse indicators multiply to 1
+        query_params = {
+            'indicator': 'demandpercapacity',
+            'area_level': self.area_level2.pk,
+            'year': 2022,
+        }
+        url = reverse(self.url_key, kwargs={'pk': self.service2.pk})
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        result_inv = pd.DataFrame(response.data).set_index('area_id')
+        res_both = result.merge(result_inv, right_index=True, left_index=True, suffixes=('_fd', '_df'))
+        res_both['mult'] = res_both['value_fd'] * res_both['value_df']
+        mult = res_both['mult'].values
+        np.testing.assert_allclose(mult[np.isfinite(mult)], 1)
