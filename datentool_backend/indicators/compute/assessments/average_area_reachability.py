@@ -6,7 +6,7 @@ from datentool_backend.indicators.compute.base import (register_indicator,
                                                        ResultSerializer)
 
 from datentool_backend.indicators.compute.population import PopulationIndicatorMixin
-from datentool_backend.population.models import RasterCellPopulation, AreaCell
+from datentool_backend.population.models import AreaCell
 
 from datentool_backend.indicators.models import MatrixCellPlace
 from datentool_backend.area.models import Area

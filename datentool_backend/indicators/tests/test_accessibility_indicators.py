@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from django.urls import reverse
 from test_plus import APITestCase
 
@@ -170,3 +171,37 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
 
         result2 = result2.join(result['value'], lsuffix='_new', rsuffix='_old')
         self.assertTrue((result2['value_new'] > result2['value_old']).all())
+
+    def test_cutoff_area_reachability(self):
+        """Test cutoff area reachability"""
+
+        self.client.force_login(self.profile.user)
+
+        query_params = {
+            'indicator': 'cutoffareareachability',
+            'year': 2022,
+            'variant': self.variant_id,
+            'service': self.service2.pk,
+            'area_level': self.area_level2.pk,
+            'cutoff': 2,
+        }
+
+        query_params['cutoff'] = 2
+        url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        result_2 = pd.DataFrame(response.data).set_index('area_id')
+        np.testing.assert_array_almost_equal(result_2['value'], [100, 100])
+
+        query_params['cutoff'] = 0.4
+        url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        result_04 = pd.DataFrame(response.data).set_index('area_id')
+        np.testing.assert_array_almost_equal(result_04['value'], [22.341524, 100])
+
+
+
+
+
+
