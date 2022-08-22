@@ -38,5 +38,6 @@ class ReachabilityCell(ComputeIndicator):
         cell_code = self.data.get('cell_code')
         places = MatrixCellPlace.objects.filter(variant=variant,
                                                 cell__cellcode=cell_code)
-        places = places.annotate(value=F('minutes'))
+        places = places.values('place_id', 'minutes')\
+            .annotate(id=F('place_id'), value=F('minutes'))
         return places
