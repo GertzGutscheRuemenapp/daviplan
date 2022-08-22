@@ -4,6 +4,7 @@ from datentool_backend.indicators.compute.base import (register_indicator,
                                                        ResultSerializer)
 from django.db.models import Min, F
 from datentool_backend.indicators.models import MatrixCellPlace
+from datentool_backend.infrastructure.models.infrastructures import Service
 
 
 @register_indicator()
@@ -16,7 +17,7 @@ class MaxRasterReachability(ServiceIndicator):
 
     @property
     def description(self):
-        if self.service.direction_way_relationship == 1:
+        if self.service.direction_way_relationship == Service.WayRelationship.TO:
             zu = ('zum' if self.service.facility_singular_unit in ['der', 'das']
                   else 'zur')
             return (f'Wegezeit von allen Wohnstandorten {zu} nächsten '

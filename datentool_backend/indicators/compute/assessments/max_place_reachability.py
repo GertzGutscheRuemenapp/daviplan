@@ -4,7 +4,7 @@ from datentool_backend.indicators.compute.base import (register_indicator,
                                                        ResultSerializer)
 
 from datentool_backend.indicators.models import MatrixCellPlace
-from datentool_backend.infrastructure.models.places import Place
+from datentool_backend.infrastructure.models.places import Place, Service
 
 
 @register_indicator()
@@ -21,7 +21,7 @@ class MaxPlaceReachability(ServiceIndicator):
         pre = ('Maximale Wegezeit, mit der '
                f'{self.service.facility_article or "die"} angezeigte '
                f'{self.service.facility_singular_unit or "Einrichtung"} ')
-        if self.service.direction_way_relationship == 1:
+        if self.service.direction_way_relationship == Service.WayRelationship.TO:
             ersiees = ('er' if self.service.facility_singular_unit == 'der'
                        else 'es' if self.service.facility_singular_unit == 'das'
                        else 'sie')

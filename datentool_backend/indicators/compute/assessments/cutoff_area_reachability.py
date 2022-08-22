@@ -8,6 +8,7 @@ from datentool_backend.indicators.compute.base import (register_indicator,
 from datentool_backend.indicators.compute.population import PopulationIndicatorMixin
 from datentool_backend.population.models import AreaCell
 
+from datentool_backend.infrastructure.models.infrastructures import Service
 from datentool_backend.indicators.models import MatrixCellPlace
 from datentool_backend.area.models import Area
 
@@ -30,7 +31,7 @@ class CutoffAreaReachability(PopulationIndicatorMixin, ServiceIndicator):
     def description(self):
         pre = (f'Anteil der {self.service.demand_plural_unit or "Nachfragenden"}'
                ', die innerhalb von [...] Minuten ')
-        if self.service.direction_way_relationship == 1:
+        if self.service.direction_way_relationship == Service.WayRelationship.TO:
             ein = ('einen' if self.service.facility_singular_unit
                    in ['der', 'das'] else 'eine')
             return pre + (
