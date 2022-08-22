@@ -37,6 +37,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         cls.create_population()
         cls.create_infrastructure_services()
         cls.create_demandrates()
+        cls.prepare_population()
 
 
     def test_intersect_areas_and_disaggregate(self):
@@ -230,7 +231,6 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
     def test_aggregate_population_to_area(self):
         """Test the aggregation of population to areas of an area level"""
-        self.prepare_population()
         #  without area_level it should return a 400 (BadRequest)
         data = {}
         response = self.post(self.url_key + '-aggregate-population',
@@ -320,7 +320,6 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
     def test_get_population_by_year_agegroup_gender(self):
         """Test to get the population by year, agegroup, and gender"""
-        self.prepare_population()
 
         data = {'areas': [self.area1.pk], }
 
@@ -366,7 +365,6 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
     def test_demand_per_area(self):
         """Test the demand for services of an area level"""
-        self.prepare_population()
 
         query_params = {'area_level': self.area_level2.pk,
                         'service': self.service1.pk,
@@ -454,7 +452,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         area_level: AreaLevel = self.obj
         self.assertTrue(area_level.population_cache_dirty)
         self.assertTrue(self.area_level2.population_cache_dirty)
-        self.prepare_population()
+
         self.assertTrue(area_level.population_cache_dirty)
         self.assertTrue(self.area_level2.population_cache_dirty)
 
@@ -482,7 +480,6 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
     @unittest.skip('Not Implemented yet')
     def test_invalidation_of_precalculated_area_population(self):
         """test, if the precalculated area population is invalidated correctly"""
-        self.prepare_population()
         self.aggregate_population()
         area_level4 = AreaLevel.objects.get(pk=self.area_level4.pk)
 

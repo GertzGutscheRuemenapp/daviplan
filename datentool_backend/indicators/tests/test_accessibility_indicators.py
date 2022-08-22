@@ -33,7 +33,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         cls.create_places(infrastructure=cls.service1.infrastructure)
         cls.create_capacities()
         cls.create_traveltime_matrix()
-        cls.prepare_population_cls()
+        cls.prepare_population()
 
         pd.set_option('mode.use_inf_as_na', True)
 
@@ -83,7 +83,6 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
     def test_max_place_reachability(self):
         """Test max place reachability"""
 
-        #self.prepare_population()
         self.client.force_login(self.profile.user)
 
         query_params = {
@@ -112,7 +111,6 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
     def test_average_place_reachability(self):
         """Test average place reachability"""
 
-        #self.prepare_population()
         self.client.force_login(self.profile.user)
 
         query_params = {
@@ -142,7 +140,6 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
     def test_average_area_reachability(self):
         """Test average area reachability"""
 
-        #self.prepare_population()
         self.client.force_login(self.profile.user)
 
         query_params = {

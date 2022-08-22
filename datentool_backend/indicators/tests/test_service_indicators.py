@@ -30,13 +30,13 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
         cls.create_demandrates()
         cls.create_places(infrastructure=cls.service1.infrastructure)
         cls.create_capacities()
+        cls.prepare_population()
 
         pd.set_option('mode.use_inf_as_na', True)
 
     def test_demand_per_facility(self):
         """Test demand per Facility"""
 
-        self.prepare_population()
         self.client.force_login(self.profile.user)
 
         query_params = {
@@ -63,7 +63,6 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
     def test_facility_per_demand_per(self):
         """Test Facility per Demand"""
 
-        self.prepare_population()
         self.client.force_login(self.profile.user)
 
         query_params = {
@@ -105,7 +104,6 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
     def test_demand_per_capacity(self):
         """Test demand per capacity"""
 
-        self.prepare_population()
         self.client.force_login(self.profile.user)
 
         query_params = {
@@ -132,7 +130,6 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
     def test_capacity_per_demand(self):
         """Test capacity per demand"""
 
-        self.prepare_population()
         self.client.force_login(self.profile.user)
 
         query_params = {
