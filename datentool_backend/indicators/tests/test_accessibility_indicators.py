@@ -109,3 +109,32 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         response = self.post(url, data=query_params, extra={'format': 'json'})
         result2 = pd.DataFrame(response.data).set_index('place_id')
         self.assertEquals(len(result2), 1)
+
+    def test_average_place_reachability(self):
+        """Test average place reachability"""
+
+        self.prepare_population()
+        self.client.force_login(self.profile.user)
+
+        query_params = {
+            'indicator': 'averageplacereachability',
+            'year': 2022,
+            'variant': self.variant_id,
+            'service': self.service2.pk,
+            #'scenario': self.scenario.pk,
+        }
+        url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        result = pd.DataFrame(response.data).set_index('place_id')
+        self.assertEquals(len(result), 3)
+
+        # set capacities to 0 for all places except place 5
+        capacities_places1_4 = Capacity.objects.exclude(place=self.place5)
+        for capacity in capacities_places1_4:
+            capacity.capacity = 0
+        Capacity.objects.bulk_update(capacities_places1_4, ['capacity'])
+
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        result2 = pd.DataFrame(response.data).set_index('place_id')
+        self.assertEquals(len(result2), 1)
