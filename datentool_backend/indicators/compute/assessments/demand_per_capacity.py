@@ -34,6 +34,7 @@ class DemandPerCapacity(ServiceIndicator):
 
         query = f'''SELECT
         l."id",
+        d."_label",
         CASE WHEN COALESCE(l."value", 0) = 0 THEN NULL
         ELSE d."value" / l."value"
         END AS "value"
