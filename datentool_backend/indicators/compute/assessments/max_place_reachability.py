@@ -3,6 +3,9 @@ from datentool_backend.indicators.compute.base import (register_indicator,
                                                        ModeParameter,
                                                        ResultSerializer)
 
+from datentool_backend.indicators.models import MatrixCellPlace
+from datentool_backend.infrastructure.models.places import Place
+
 
 @register_indicator()
 class MaxPlaceReachability(ServiceIndicator):
@@ -33,4 +36,37 @@ class MaxPlaceReachability(ServiceIndicator):
             f'erreicht, die von {ihrihm} aus am besten erreichbar sind')
 
     def compute(self):
-        return []
+        variant = self.data.get('variant')
+        service_id = self.data.get('service')
+        year = self.data.get('year', 0)
+        scenario_id = self.data.get('scenario')
+
+        places = self.get_places_with_capacities(service_id, year, scenario_id)
+        cells_places = MatrixCellPlace.objects.filter(variant=variant, place__in=places)
+
+        q_cp, p_cp = cells_places.query.sql_with_params()
+
+        query = f'''SELECT
+        p."place_id" AS id,
+        p."minutes" AS value
+        FROM (
+        SELECT
+        c."place_id",
+        c."minutes",
+        row_number() OVER(PARTITION BY c."place_id" ORDER BY c."minutes" DESC) AS rn
+        FROM(
+        SELECT
+        cp."cell_id",
+        cp."place_id",
+        cp."minutes",
+        row_number() OVER(PARTITION BY cp."cell_id" ORDER BY cp."minutes" ASC) AS rn
+        FROM
+        ({q_cp}) cp
+        ) c
+        WHERE c.rn = 1
+        ) p
+        WHERE p.rn = 1
+        '''
+        params = p_cp
+        places_with_maximum_minutes = Place.objects.raw(query, params)
+        return places_with_maximum_minutes
