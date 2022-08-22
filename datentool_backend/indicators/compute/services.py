@@ -18,8 +18,8 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
         year = self.data.get('year', 0)
         scenario_id = self.data.get('scenario')
 
-        area_level = AreaLevel.objects.get(pk=area_level_id)
-        areas = area_level.area_set.all()
+        area_level = AreaLevel.objects.get(id=area_level_id)
+        areas = Area.label_annotated_qs(area_level=area_level)
 
         capacities = Capacity.objects.all()
         capacities = Capacity.filter_queryset(capacities,
