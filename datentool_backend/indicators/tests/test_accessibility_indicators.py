@@ -1,6 +1,4 @@
 import pandas as pd
-import numpy as np
-import numpy.testing as nptest
 from django.urls import reverse
 from test_plus import APITestCase
 
@@ -34,6 +32,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         cls.create_places(infrastructure=cls.service1.infrastructure)
         cls.create_capacities()
         cls.create_traveltime_matrix()
+        cls.prepare_population_cls()
 
         pd.set_option('mode.use_inf_as_na', True)
 
@@ -50,7 +49,6 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
     def test_max_raster_reachability(self):
         """Test max raster reachability"""
 
-        self.prepare_population()
         self.client.force_login(self.profile.user)
 
         query_params = {
@@ -84,7 +82,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
     def test_max_place_reachability(self):
         """Test max place reachability"""
 
-        self.prepare_population()
+        #self.prepare_population()
         self.client.force_login(self.profile.user)
 
         query_params = {
@@ -113,7 +111,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
     def test_average_place_reachability(self):
         """Test average place reachability"""
 
-        self.prepare_population()
+        #self.prepare_population()
         self.client.force_login(self.profile.user)
 
         query_params = {
@@ -136,5 +134,39 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         Capacity.objects.bulk_update(capacities_places1_4, ['capacity'])
 
         response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
         result2 = pd.DataFrame(response.data).set_index('place_id')
         self.assertEquals(len(result2), 1)
+
+    def test_average_area_reachability(self):
+        """Test average area reachability"""
+
+        #self.prepare_population()
+        self.client.force_login(self.profile.user)
+
+        query_params = {
+            'indicator': 'averageareareachability',
+            'year': 2022,
+            'variant': self.variant_id,
+            'service': self.service2.pk,
+            'area_level': self.area_level2.pk,
+            #'scenario': self.scenario.pk,
+        }
+        url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        result = pd.DataFrame(response.data).set_index('area_id')
+        self.assertEquals(len(result), 2)
+
+        # set capacities to 0 for all places except place 5
+        capacities_places1_4 = Capacity.objects.exclude(place=self.place5)
+        for capacity in capacities_places1_4:
+            capacity.capacity = 0
+        Capacity.objects.bulk_update(capacities_places1_4, ['capacity'])
+
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        result2 = pd.DataFrame(response.data).set_index('area_id')
+        self.assertEquals(len(result2), 2)
+
+        result2 = result2.join(result['value'], lsuffix='_new', rsuffix='_old')
+        self.assertTrue((result2['value_new'] > result2['value_old']).all())

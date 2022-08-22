@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from django.db import connection
 from django.db.models import Count, Q, F
@@ -135,6 +135,141 @@ class PopulationIndicatorMixin:
             demand_rates = demand_rates.annotate(factor=F('value'))
         return demand_rates
 
+    def get_area_demand(self,
+                        scenario_id: int,
+                        service_id: int,
+                        area_level_id: int) -> Tuple[str, List[float]]:
+        """
+        get the query for the service-demand in the area of given area_level
+        with given scenario
+        """
+
+        if area_level_id is None:
+            raise BadRequest('No AreaLevel provided')
+        areas = self.get_areas(area_level_id=area_level_id)
+
+        q_areas, p_areas = areas.values('id', '_label').query.sql_with_params()
+
+        populations = self.get_populations()
+        if not populations:
+            return None, None
+        population = populations[0]
+
+        pop_arealevel, created = PopulationAreaLevel.objects.get_or_create(
+            population=population,
+            area_level_id=area_level_id)
+
+        demand_rates = self.get_demand_rates(scenario_id, service_id)
+        if not demand_rates:
+            return None, None
+
+        q_drs, p_drs = demand_rates.values('age_group_id', 'gender_id', 'factor')\
+            .query.sql_with_params()
+
+        #  check if the area-population is precalculated
+        if pop_arealevel.up_to_date:
+            areapop = self.get_areapop(
+                filter_params={'area__area_level_id': area_level_id, })
+
+            q_areapop, p_areapop = areapop.values('area_id', 'age_group_id',
+                                                  'gender_id', 'value')\
+                .query.sql_with_params()
+
+            query = f'''SELECT
+            a."id", a."_label", val."value"
+            FROM ({q_areas}) AS a
+            LEFT JOIN (
+              SELECT
+                ap."area_id",
+                SUM(ap."value" * COALESCE(dr."factor", 0)) AS "value"
+              FROM
+                ({q_areapop}) AS ap
+                LEFT JOIN ({q_drs}) AS dr
+              ON (ap.age_group_id = dr.age_group_id
+              AND ap.gender_id = dr.gender_id)
+              GROUP BY ap."area_id"
+            ) val ON (val."area_id" = a."id")
+            '''
+
+            params = p_areas + p_areapop + p_drs
+
+        else:
+            # calculate it from the raster cells
+            rcp = RasterCellPopulation.objects.all()
+            acells = AreaCell.objects.filter(area__area_level_id=area_level_id)
+            rasterpop = self.get_rasterpop()
+
+            # sum up the rastercell-population to areas
+            # taking the share_area_of_cell into account
+            q_acells, p_acells = acells.values(
+                'area_id', 'rastercellpop_id', 'share_area_of_cell').query.sql_with_params()
+            q_pop, p_pop = rasterpop.values('cell_id', 'age_group_id',
+                                            'gender_id', 'value').query.sql_with_params()
+            q_rcp, p_rcp = rcp.values('id', 'cell_id').query.sql_with_params()
+
+            query = f'''SELECT
+            a."id", a."_label", val."value"
+            FROM ({q_areas}) AS a
+            LEFT JOIN (
+              SELECT
+                ac."area_id",
+                SUM(p."value" * dr."factor" * ac."share_area_of_cell") AS "value"
+              FROM
+                ({q_acells}) AS ac,
+                ({q_pop}) AS p,
+                ({q_rcp}) AS rcp,
+                ({q_drs}) AS dr
+              WHERE p."age_group_id" = dr."age_group_id"
+                AND p."gender_id" = dr."gender_id"
+                AND ac."rastercellpop_id" = rcp."id"
+                AND p."cell_id" = rcp."cell_id"
+              GROUP BY ac."area_id"
+            ) val ON (val."area_id" = a."id")
+            '''
+
+            params = p_areas + p_acells + p_pop + p_rcp + p_drs
+        return query, params
+
+    def get_cell_demand(self,
+                        scenario_id: int,
+                        service_id: int) -> Tuple[str, Tuple[float]]:
+
+        """get the demand per rastercell for service in scenario"""
+        # calculate it from the raster cells
+        rcp = RasterCellPopulation.objects.all()
+        rasterpop = self.get_rasterpop()
+
+        demand_rates = self.get_demand_rates(scenario_id, service_id)
+        if not demand_rates:
+            return None, None
+
+        q_drs, p_drs = demand_rates.values('age_group_id', 'gender_id', 'factor')\
+            .query.sql_with_params()
+
+
+        q_pop, p_pop = rasterpop.values('id', 'cell_id', 'age_group_id',
+                                        'gender_id', 'value').query.sql_with_params()
+        q_rcp, p_rcp = rcp.values('id', 'cell_id').query.sql_with_params()
+
+        q_demand = f'''SELECT
+            rcp."id" AS "rastercellpop_id",
+            rcp."cell_id",
+            SUM(p."value" * dr."factor") AS "value"
+          FROM
+            ({q_pop}) AS p,
+            ({q_rcp}) AS rcp,
+            ({q_drs}) AS dr
+          WHERE p."age_group_id" = dr."age_group_id"
+            AND p."gender_id" = dr."gender_id"
+            AND p."cell_id" = rcp."cell_id"
+          GROUP BY rcp."id",
+            rcp."cell_id"
+        '''
+
+        p_demand = p_pop + p_rcp + p_drs
+
+        return q_demand, p_demand
+
 
 class ComputePopulationAreaIndicator(PopulationIndicatorMixin,
                                      ComputeIndicator):
@@ -192,7 +327,7 @@ class ComputePopulationAreaIndicator(PopulationIndicatorMixin,
             # sum up the rastercell-population to areas
             # taking the share_area_of_cell into account
             q_acells, p_acells = acells.values(
-                'area_id', 'cell_id', 'share_area_of_cell').query.sql_with_params()
+                'area_id', 'rastercellpop_id', 'share_area_of_cell').query.sql_with_params()
             q_pop, p_pop = rasterpop.values('cell_id', 'value').query.sql_with_params()
             q_rcp, p_rcp = rcp.values('id', 'cell_id').query.sql_with_params()
 
@@ -207,7 +342,7 @@ class ComputePopulationAreaIndicator(PopulationIndicatorMixin,
                 ({q_acells}) AS ac,
                 ({q_pop}) AS p,
                 ({q_rcp}) AS rcp
-              WHERE ac."cell_id" = rcp."id"
+              WHERE ac."rastercellpop_id" = rcp."id"
                 AND p."cell_id" = rcp."cell_id"
               GROUP BY ac."area_id"
             ) val ON (val."area_id" = a."id")
@@ -274,7 +409,7 @@ class ComputePopulationDetailIndicator(PopulationIndicatorMixin,
             # sum up the rastercell-population by year, age_group, and gender
 
             q_acells, p_acells = acells.values(
-                'area_id', 'cell_id', 'share_area_of_cell').query.sql_with_params()
+                'area_id', 'rastercellpop_id', 'share_area_of_cell').query.sql_with_params()
             q_pop, p_pop = rasterpop.values(
                 'id', 'cell_id', 'value', 'age_group_id', 'gender_id',
                 'population__year__year')\
@@ -291,7 +426,7 @@ class ComputePopulationDetailIndicator(PopulationIndicatorMixin,
               ({q_acells}) AS ac,
               ({q_pop}) AS p,
               ({q_rcp}) AS rcp
-            WHERE ac."cell_id" = rcp."id"
+            WHERE ac."rastercellpop_id" = rcp."id"
             AND p."cell_id" = rcp."cell_id"
             GROUP BY p."year", p."age_group_id", p."gender_id"
             '''

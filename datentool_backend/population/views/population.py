@@ -122,14 +122,17 @@ class PopulationViewSet(viewsets.ModelViewSet):
                         continue
                     intersect_areas_with_raster(areas, pop_raster=pop_raster)
 
-            data['use_intersected_data'] = 'True'
-            request._full_data = data
+            #data['use_intersected_data'] = 'True'
+            #request._full_data = data
 
             for population in Population.objects.all():
-                self.disaggregate(request, **{'pk': population.id})
+                disaggregate_population(population=population,
+                                        use_intersected_data=True,
+                                       drop_constraints=drop_constraints)
+                #self.disaggregate(request, **{'pk': population.id})
 
             # restore the data
-            request._request.GET = old_data
+            #request._request.GET = old_data
 
             if drop_constraints:
                 manager.restore_constraints()

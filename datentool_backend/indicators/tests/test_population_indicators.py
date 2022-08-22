@@ -38,6 +38,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         cls.create_infrastructure_services()
         cls.create_demandrates()
 
+
     def test_intersect_areas_and_disaggregate(self):
         """Test intersect areas and disaggregate population"""
         population: Population = self.population
