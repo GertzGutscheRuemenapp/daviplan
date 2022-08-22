@@ -36,7 +36,7 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
     queryset = PopStatistic.objects.all()
     serializer_class = PopStatisticSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-    filter_fields = ['year']
+    filterset_fields = ['year']
 
     @extend_schema(description='Pull statistics (births, deaths, migration) '
                    'in default statistics level for all available years '

@@ -342,3 +342,10 @@ export interface ModeVariant {
   network: number
   // cutoffTime: number
 }
+
+export interface LogEntry {
+  user?: User,
+  level: 'ERROR' | 'INFO' | 'DEBUG',
+  timestamp: string,
+  message: string
+}

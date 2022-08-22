@@ -27,4 +27,6 @@ django-postgres-copy
 openpyxl
 matrixconverters
 packaging
+channels
+channels_redis
 routingpy
