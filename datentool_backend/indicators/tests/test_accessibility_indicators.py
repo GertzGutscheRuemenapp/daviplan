@@ -200,7 +200,40 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         result_04 = pd.DataFrame(response.data).set_index('area_id')
         np.testing.assert_array_almost_equal(result_04['value'], [22.341524, 100])
 
+    def test_accessible_demand(self):
+        """Test accisible demand at places"""
 
+        self.client.force_login(self.profile.user)
+
+        query_params = {
+            'indicator': 'accessibledemandperplace',
+            'year': 2022,
+            'variant': self.variant_id,
+            'service': self.service2.pk,
+            #'scenario': self.scenario.pk,
+        }
+        url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        result = pd.DataFrame(response.data).set_index('place_id')
+        self.assertEquals(len(result), 3)
+        np.testing.assert_array_almost_equal(result['value'],
+                                             [1.875370, 6.425346, 3.049284])
+
+        # set capacities to 0 for all places except place 5
+        capacities_places1_4 = Capacity.objects.exclude(place=self.place5)
+        for capacity in capacities_places1_4:
+            capacity.capacity = 0
+        Capacity.objects.bulk_update(capacities_places1_4, ['capacity'])
+
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        result2 = pd.DataFrame(response.data).set_index('place_id')
+        self.assertEquals(len(result2), 1)
+        # the whole demand now goes to the last remaining place,
+        # so it should be the sum of the demand, that was distributed to 3 places before
+        np.testing.assert_array_almost_equal(result2['value'],
+                                             [result['value'].sum()])
 
 
 
