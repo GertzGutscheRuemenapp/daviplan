@@ -251,7 +251,6 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
             response = self.post(url, data=query_params, extra={'format': 'json'})
             self.assert_http_200_ok(response)
             result = pd.DataFrame(response.data).set_index('cell_code')
-            print(result)
             self.assertEquals(len(result), 8)
 
     def test_reachability_cell(self):
