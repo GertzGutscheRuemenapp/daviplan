@@ -8,7 +8,8 @@ import {
   Infrastructure,
   Place,
   PlanningProcess,
-  RasterCell, Scenario,
+  RasterCell,
+  Scenario,
   Service,
   TransportMode
 } from "../../../rest-interfaces";
@@ -18,6 +19,13 @@ import * as d3 from "d3";
 import { Geometry } from "ol/geom";
 import { MapLayerGroup, VectorLayer, VectorTileLayer } from "../../../map/layers";
 
+const modes: Record<number, string> = {};
+modes[TransportMode.WALK] = 'zu Fuß';
+modes[TransportMode.BIKE] = 'Fahrrad';
+modes[TransportMode.CAR] = 'Auto';
+modes[TransportMode.TRANSIT] = 'ÖPNV';
+
+
 @Component({
   selector: 'app-reachabilities',
   templateUrl: './reachabilities.component.html',
@@ -26,7 +34,7 @@ import { MapLayerGroup, VectorLayer, VectorTileLayer } from "../../../map/layers
 export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
   rasterCells: RasterCell[] = [];
-  mode: TransportMode = TransportMode.WALK;
+  activeMode: TransportMode = TransportMode.WALK;
   indicator = 'option 1';
   selectPlaceMode = false;
   placeMarkerMode = false;
@@ -51,6 +59,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   TransportMode = TransportMode;
   selectedPlaceId?: number;
   pickedCoords?: number[];
+  modes = modes;
+  Number = Number;
 
   constructor(private mapService: MapService, private dialog: MatDialog, public cookies: CookieService,
               public planningService: PlanningService) { }
@@ -94,7 +104,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   applyUserSettings(): void {
-    this.mode = this.cookies.get('planning-mode', 'number') || TransportMode.WALK;
+    this.activeMode = this.cookies.get('planning-mode', 'number') || TransportMode.WALK;
     this.updatePlaces();
   }
 
@@ -177,13 +187,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.updatePlaces();
   }
 
-  updateMapDescription(): void {
-
-  }
-
   showPlaceReachability(): void {
     if (!this.rasterCells || this.selectedPlaceId === undefined) return;
-    this.planningService.getPlaceReachability(this.selectedPlaceId, this.mode).subscribe(cellResults => {
+    this.updateMapDescription('zur ausgewählten Einrichtung');
+    this.planningService.getPlaceReachability(this.selectedPlaceId, this.activeMode).subscribe(cellResults => {
       if (this.reachRasterLayer) {
         this.reachPlaceLayerGroup?.removeLayer(this.reachRasterLayer);
       }
@@ -227,12 +234,13 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
   showCellReachability(): void {
     if (!this.rasterCells || this.pickedCoords === undefined) return;
+    this.updateMapDescription('vom gewählten Wohnstandort zu allen Einrichtungen');
     const lat = this.pickedCoords[1];
     const lon = this.pickedCoords[0];
     this.planningService.getClosestCell(lat, lon, {targetProjection: this.mapControl?.map?.mapProjection }).subscribe(cell => {
       this.mapControl?.removeMarker();
       this.mapControl?.addMarker(cell.geom as Geometry);
-      this.planningService.getCellReachability(cell.cellcode, this.mode).subscribe(placeResults => {
+      this.planningService.getCellReachability(cell.cellcode, this.activeMode).subscribe(placeResults => {
         let showLabel = false;
         if (this.placeReachabilityLayer) {
           this.reachCellLayerGroup?.removeLayer(this.placeReachabilityLayer);
@@ -285,6 +293,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       this.placesLayer?.clearSelection();
     this.reachCellLayerGroup?.clear();
     this.reachPlaceLayerGroup?.clear();
+    this.updateMapDescription();
   }
 
   setPlaceSelection(enable: boolean): void {
@@ -309,7 +318,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   changeMode(mode: TransportMode): void {
-    this.mode = mode;
+    this.activeMode = mode;
     this.cookies.set('planning-mode', mode);
     this.showPlaceReachability();
     this.showCellReachability();
@@ -320,13 +329,12 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     return cap?.capacity || 0;
   }
 
-/*  updateMapDescription(): void {
-    const desc = `${this.activeScenario?.name}<br>
-                  Nachfrage nach "${this.activeService?.name}"<br>
-                  <b>${this.activeService?.demandPluralUnit} ${this.year} nach ${this.activeLevel?.name}</b>`
+  updateMapDescription(indicatorDesc?: string): void {
+    let desc = `${this.activeScenario?.name}<br>
+                  Erreichbarkeit "${this.activeService?.name}"<br>`;
+    if (indicatorDesc) desc += `<b>Wegzeit ${(this.activeMode !== TransportMode.WALK)? 'mit dem ': ''}${this.modes[this.activeMode]} ${indicatorDesc}</b>`
     this.mapControl?.setDescription(desc);
-  }*/
-
+  }
 
   ngOnDestroy(): void {
     this.mapClickSub?.unsubscribe();
