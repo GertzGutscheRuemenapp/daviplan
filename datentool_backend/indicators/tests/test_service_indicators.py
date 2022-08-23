@@ -60,7 +60,7 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
         expected = pop['value'] / num_locs['value']
         pd.testing.assert_series_equal(result['value'], expected, check_dtype=False)
 
-    def test_facility_per_demand_per(self):
+    def test_facility_per_demand(self):
         """Test Facility per Demand"""
 
         self.client.force_login(self.profile.user)

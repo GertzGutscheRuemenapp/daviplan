@@ -10,6 +10,8 @@ from datentool_backend.indicators.views.transit import MatrixCellPlaceViewSet
 from datentool_backend.modes.factories import ModeVariantFactory, Mode
 from datentool_backend.indicators.models import MatrixCellPlace
 from datentool_backend.infrastructure.models.places import Capacity
+from datentool_backend.population.models import RasterCell
+
 
 class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
                                     LoginTestCase,
@@ -180,22 +182,21 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
             'variant': self.variant_id,
             'service': self.service2.pk,
             'area_level': self.area_level2.pk,
-            'cutoff': 2,
         }
 
-        query_params['cutoff'] = 2
+        query_params['cutoff'] = 6
         url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
         response = self.post(url, data=query_params, extra={'format': 'json'})
         self.assert_http_200_ok(response)
-        result_2 = pd.DataFrame(response.data).set_index('area_id')
-        np.testing.assert_array_almost_equal(result_2['value'], [100, 100])
+        result_6 = pd.DataFrame(response.data).set_index('area_id')
+        np.testing.assert_array_almost_equal(result_6['value'], [100, 100])
 
-        query_params['cutoff'] = 0.4
+        query_params['cutoff'] = 5
         url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
         response = self.post(url, data=query_params, extra={'format': 'json'})
         self.assert_http_200_ok(response)
-        result_04 = pd.DataFrame(response.data).set_index('area_id')
-        np.testing.assert_array_almost_equal(result_04['value'], [22.341524, 100])
+        result_5 = pd.DataFrame(response.data).set_index('area_id')
+        np.testing.assert_array_almost_equal(result_5['value'], [22.341524, 100])
 
     def test_accessible_demand(self):
         """Test accisible demand at places"""
@@ -232,6 +233,69 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         np.testing.assert_array_almost_equal(result2['value'],
                                              [result['value'].sum()])
 
+    def test_reachability_place(self):
+        """Test reachability from given place"""
 
+        self.client.force_login(self.profile.user)
+
+        url_key = 'fixedindicators-reachability-place'
+
+        places = MatrixCellPlace.objects.values('place_id').distinct()
+
+        for place in places:
+            query_params = {
+                'variant': self.variant_id,
+                'place': place['place_id'],
+            }
+            url = reverse(url_key)
+            response = self.post(url, data=query_params, extra={'format': 'json'})
+            self.assert_http_200_ok(response)
+            result = pd.DataFrame(response.data).set_index('cell_code')
+            print(result)
+            self.assertEquals(len(result), 8)
+
+    def test_reachability_cell(self):
+        """Test reachability from given cell"""
+
+        self.client.force_login(self.profile.user)
+
+        url_key = 'fixedindicators-reachability-cell'
+
+        cells = MatrixCellPlace.objects.values('cell_id').distinct()
+
+        for cell in cells:
+            rastercell = RasterCell.objects.get(pk=cell['cell_id'])
+            query_params = {
+                'cell_code': rastercell.cellcode,
+                'variant': self.variant_id,
+            }
+            url = reverse(url_key)
+            response = self.post(url, data=query_params, extra={'format': 'json'})
+            self.assert_http_200_ok(response)
+            result = pd.DataFrame(response.data).set_index('place_id')
+            self.assertEquals(len(result), 5)
+
+
+    def test_reachability_next_place(self):
+        """Test reachability to next place from all cells"""
+
+        self.client.force_login(self.profile.user)
+
+        url_key = 'fixedindicators-reachability-next-place'
+
+        variants = MatrixCellPlace.objects.values('variant_id').distinct()
+
+        for variant in variants:
+            query_params = {
+                'year': 2022,
+                'variant': variant['variant_id'],
+                'service_ids': [self.service2.pk],
+                'scenario': self.scenario.pk,
+            }
+            url = reverse(url_key)
+            response = self.post(url, data=query_params, extra={'format': 'json'})
+            self.assert_http_200_ok(response)
+            result = pd.DataFrame(response.data).set_index('cell_code')
+            self.assertEquals(len(result), 8)
 
 

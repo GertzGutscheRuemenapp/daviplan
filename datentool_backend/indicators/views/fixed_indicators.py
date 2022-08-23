@@ -11,14 +11,17 @@ from datentool_backend.indicators.compute import (
     DemandAreaIndicator,
     ComputePopulationDetailIndicator,
     ReachabilityPlace,
-    ReachabilityCell
+    ReachabilityCell,
+    ReachabilityNextPlace,
 )
 
+from datentool_backend.modes.models import ModeVariant
 from datentool_backend.indicators.serializers import (IndicatorSerializer)
 
 from .parameters import (arealevel_year_service_scenario_serializer,
                          area_agegroup_gender_prognosis_year_fields,
-                         arealevel_area_agegroup_gender_prognosis_year_fields)
+                         arealevel_area_agegroup_gender_prognosis_year_fields,
+                         mode_year_service_scenario_serializer)
 
 
 class FixedIndicatorViewSet(viewsets.GenericViewSet):
@@ -161,16 +164,37 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
             name='CellIdSerializer',
             fields={
                 'cell_code': serializers.CharField(required=True),
-                'mode': serializers.CharField(required=False),
+                'mode': serializers.PrimaryKeyRelatedField(
+                    queryset=ModeVariant.objects.all()),
             }
         ),
         responses=ReachabilityCell.result_serializer.value(many=True),
         methods=['POST']
     )
     @action(methods=['GET', 'POST'], detail=False)
-    def reachibility_cell(self, request, **kwargs):
+    def reachability_cell(self, request, **kwargs):
         """get places with reachabilities to cell closest to given coordinate"""
         indicator = ReachabilityCell(self.request.data)
+        if request.method == 'GET':
+            return Response(IndicatorSerializer(indicator).data)
+        qs = indicator.compute()
+        return Response(indicator.serialize(qs))
+
+
+    @extend_schema(
+        description='Indicator description',
+        responses=IndicatorSerializer(many=False),
+        methods=['GET']
+    )
+    @extend_schema(
+        request=mode_year_service_scenario_serializer,
+        responses=ReachabilityNextPlace.result_serializer.value(many=True),
+        methods=['POST']
+    )
+    @action(methods=['GET', 'POST'], detail=False)
+    def reachability_next_place(self, request, **kwargs):
+        """get cells with reachabilities to the next place of given service"""
+        indicator = ReachabilityNextPlace(self.request.data)
         if request.method == 'GET':
             return Response(IndicatorSerializer(indicator).data)
         qs = indicator.compute()

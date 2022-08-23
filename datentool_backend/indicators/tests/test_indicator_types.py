@@ -129,7 +129,8 @@ class TestIndicatorDescription(LoginTestCase,
                       'aggregate-population',
                       'population-details',
                       'reachability-place',
-                      'reachibility-cell',
+                      'reachability-cell',
+                      'reachability-next-place',
                       ]
 
         for indicator in indicators:

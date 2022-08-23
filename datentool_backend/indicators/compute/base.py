@@ -3,7 +3,7 @@ from typing import Callable, Dict, List, Tuple
 from enum import Enum
 
 from django.http.request import QueryDict
-from django.db.models import OuterRef, Min, F
+from django.db.models import OuterRef, F
 from sql_util.utils import Exists
 from datentool_backend.infrastructure.models.places import Place, Capacity
 
