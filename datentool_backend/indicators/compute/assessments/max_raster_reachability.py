@@ -5,10 +5,11 @@ from datentool_backend.indicators.compute.base import (register_indicator,
 from django.db.models import Min, F
 from datentool_backend.indicators.models import MatrixCellPlace
 from datentool_backend.infrastructure.models.infrastructures import Service
+from datentool_backend.indicators.compute.reachabilities import ModeVariantMixin
 
 
 @register_indicator()
-class MaxRasterReachability(ServiceIndicator):
+class MaxRasterReachability(ModeVariantMixin, ServiceIndicator):
     '''Wegezeit mit Verkehrsmittel zur nächsten Einrichtung mit ….
     für alle Wohnstandorte'''
     title = 'Wegezeit nächste Einrichtung'
@@ -32,10 +33,11 @@ class MaxRasterReachability(ServiceIndicator):
                 f'die {ersiees} am schnellsten erreicht')
 
     def compute(self):
-        variant = self.data.get('variant')
         service_id = self.data.get('service')
         year = self.data.get('year', 0)
         scenario_id = self.data.get('scenario')
+        mode = self.data.get('mode')
+        variant = self.get_mode_variant(mode, scenario_id)
 
         places = self.get_places_with_capacities(service_id, year, scenario_id)
         cells_places = MatrixCellPlace.objects.filter(variant=variant, place__in=places)

@@ -3,13 +3,14 @@ from datentool_backend.indicators.compute.base import (register_indicator,
                                                        ModeParameter,
                                                        ResultSerializer)
 from datentool_backend.indicators.compute.population import PopulationIndicatorMixin
+from datentool_backend.indicators.compute.reachabilities import ModeVariantMixin
 
 from datentool_backend.indicators.models import MatrixCellPlace
 from datentool_backend.infrastructure.models.places import Place, Service
 
 
 @register_indicator()
-class AveragePlaceReachability(PopulationIndicatorMixin, ServiceIndicator):
+class AveragePlaceReachability(ModeVariantMixin, PopulationIndicatorMixin, ServiceIndicator):
     '''Mittlere Wegezeit der Nachfragenden aus allen Gebietseinheiten, für
     welche die betreffende Einrichtung mit einem bestimmten Verkehrsmittel die
     am schnellsten erreichbar ist'''
@@ -37,10 +38,11 @@ class AveragePlaceReachability(PopulationIndicatorMixin, ServiceIndicator):
             f'erreicht, die von {ihrihm} aus am besten erreichbar sind')
 
     def compute(self):
-        variant = self.data.get('variant')
         service_id = self.data.get('service')
         year = self.data.get('year', 0)
         scenario_id = self.data.get('scenario')
+        mode = self.data.get('mode')
+        variant = self.get_mode_variant(mode, scenario_id)
 
         places = self.get_places_with_capacities(service_id, year, scenario_id)
         cells_places = MatrixCellPlace.objects.filter(variant=variant, place__in=places)

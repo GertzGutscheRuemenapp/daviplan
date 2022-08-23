@@ -57,11 +57,12 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         """Test max raster reachability"""
 
         self.client.force_login(self.profile.user)
+        variant = ModeVariant.objects.get(id=self.variant_id)
 
         query_params = {
             'indicator': 'maxrasterreachability',
             'year': 2022,
-            'variant': self.variant_id,
+            'mode': variant.mode,
             'service': self.service2.pk,
             #'scenario': self.scenario.pk,
         }
@@ -90,13 +91,14 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         """Test max place reachability"""
 
         self.client.force_login(self.profile.user)
+        variant = ModeVariant.objects.get(id=self.variant_id)
 
         query_params = {
             'indicator': 'maxplacereachability',
             'year': 2022,
-            'variant': self.variant_id,
+            'mode': variant.mode,
             'service': self.service2.pk,
-            #'scenario': self.scenario.pk,
+            # 'scenario': self.scenario.pk,
         }
         url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
         response = self.post(url, data=query_params, extra={'format': 'json'})
@@ -118,13 +120,14 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         """Test average place reachability"""
 
         self.client.force_login(self.profile.user)
+        variant = ModeVariant.objects.get(id=self.variant_id)
 
         query_params = {
             'indicator': 'averageplacereachability',
             'year': 2022,
-            'variant': self.variant_id,
+            'mode': variant.mode,
             'service': self.service2.pk,
-            #'scenario': self.scenario.pk,
+            # 'scenario': self.scenario.pk,
         }
         url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
         response = self.post(url, data=query_params, extra={'format': 'json'})
@@ -147,14 +150,15 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         """Test average area reachability"""
 
         self.client.force_login(self.profile.user)
+        variant = ModeVariant.objects.get(id=self.variant_id)
 
         query_params = {
             'indicator': 'averageareareachability',
             'year': 2022,
-            'variant': self.variant_id,
+            'mode': variant.mode,
             'service': self.service2.pk,
             'area_level': self.area_level2.pk,
-            #'scenario': self.scenario.pk,
+            # 'scenario': self.scenario.pk,
         }
         url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
         response = self.post(url, data=query_params, extra={'format': 'json'})
@@ -179,11 +183,12 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         """Test cutoff area reachability"""
 
         self.client.force_login(self.profile.user)
+        variant = ModeVariant.objects.get(id=self.variant_id)
 
         query_params = {
             'indicator': 'cutoffareareachability',
             'year': 2022,
-            'variant': self.variant_id,
+            'mode': variant.mode,
             'service': self.service2.pk,
             'area_level': self.area_level2.pk,
         }
@@ -206,13 +211,14 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         """Test accisible demand at places"""
 
         self.client.force_login(self.profile.user)
+        variant = ModeVariant.objects.get(id=self.variant_id)
 
         query_params = {
             'indicator': 'accessibledemandperplace',
             'year': 2022,
-            'variant': self.variant_id,
+            'mode': variant.mode,
             'service': self.service2.pk,
-            #'scenario': self.scenario.pk,
+            # 'scenario': self.scenario.pk,
         }
         url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
         response = self.post(url, data=query_params, extra={'format': 'json'})

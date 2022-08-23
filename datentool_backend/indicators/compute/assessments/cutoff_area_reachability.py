@@ -6,6 +6,7 @@ from datentool_backend.indicators.compute.base import (register_indicator,
                                                        ResultSerializer)
 
 from datentool_backend.indicators.compute.population import PopulationIndicatorMixin
+from datentool_backend.indicators.compute.reachabilities import ModeVariantMixin
 from datentool_backend.population.models import AreaCell
 
 from datentool_backend.infrastructure.models.infrastructures import Service
@@ -14,7 +15,7 @@ from datentool_backend.area.models import Area
 
 
 @register_indicator()
-class CutoffAreaReachability(PopulationIndicatorMixin, ServiceIndicator):
+class CutoffAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, ServiceIndicator):
     '''Anteil der Nachfragenden aus einer Gebietseinheit, welche die nächste
     Einrichtung mit der betrachteten Leistung innerhalb oder außerhalb der
     Gebietseinheit in maximal … Minuten mit einem bestimmter Verkehrsmittel
@@ -44,11 +45,12 @@ class CutoffAreaReachability(PopulationIndicatorMixin, ServiceIndicator):
             'erreicht werden')
 
     def compute(self):
-        variant = self.data.get('variant')
         service_id = self.data.get('service')
         year = self.data.get('year', 0)
         scenario_id = self.data.get('scenario')
         area_level_id = self.data.get('area_level')
+        mode = self.data.get('mode')
+        variant = self.get_mode_variant(mode, scenario_id)
         cutoff = self.data.get('cutoff')
 
         if area_level_id is None:

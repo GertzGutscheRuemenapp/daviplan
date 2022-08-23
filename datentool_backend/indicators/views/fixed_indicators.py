@@ -15,7 +15,7 @@ from datentool_backend.indicators.compute import (
     ReachabilityNextPlace,
 )
 
-from datentool_backend.modes.models import ModeVariant
+from datentool_backend.user.models.process import Scenario
 from datentool_backend.indicators.serializers import (IndicatorSerializer)
 
 from .parameters import (arealevel_year_service_scenario_serializer,
@@ -140,6 +140,9 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
             fields={
                 'place': serializers.IntegerField(required=True),
                 'mode': serializers.IntegerField(),
+                'scenario': serializers.PrimaryKeyRelatedField(
+                    queryset=Scenario.objects.all(),
+                    required=False, help_text='scenario_id'),
             }
         ),
         responses=ReachabilityPlace.result_serializer.value(many=True),
@@ -165,6 +168,9 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
             fields={
                 'cell_code': serializers.CharField(required=True),
                 'mode': serializers.IntegerField(),
+                'scenario': serializers.PrimaryKeyRelatedField(
+                    queryset=Scenario.objects.all(),
+                    required=False, help_text='scenario_id'),
             }
         ),
         responses=ReachabilityCell.result_serializer.value(many=True),

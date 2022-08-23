@@ -6,6 +6,7 @@ from datentool_backend.indicators.compute.base import (register_indicator,
                                                        ResultSerializer)
 
 from datentool_backend.indicators.compute.population import PopulationIndicatorMixin
+from datentool_backend.indicators.compute.reachabilities import ModeVariantMixin
 from datentool_backend.population.models import AreaCell
 
 from datentool_backend.indicators.models import MatrixCellPlace
@@ -14,7 +15,7 @@ from datentool_backend.area.models import Area
 
 
 @register_indicator()
-class AverageAreaReachability(PopulationIndicatorMixin, ServiceIndicator):
+class AverageAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, ServiceIndicator):
     '''Mittlerer Zeitaufwand der Nachfragenden aus einer Gebietseinheit, um mit
     einem bestimmten Verkehrsmittel die nächste Einrichtung mit der betrachteten
     Leistung zu erreichen'''
@@ -30,11 +31,12 @@ class AverageAreaReachability(PopulationIndicatorMixin, ServiceIndicator):
                 f'{self.service.facility_singular_unit or "Einrichtung"}')
 
     def compute(self):
-        variant = self.data.get('variant')
         service_id = self.data.get('service')
         year = self.data.get('year', 0)
         scenario_id = self.data.get('scenario')
         area_level_id = self.data.get('area_level')
+        mode = self.data.get('mode')
+        variant = self.get_mode_variant(mode, scenario_id)
 
         if area_level_id is None:
             raise BadRequest('No AreaLevel provided')
