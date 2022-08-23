@@ -7,10 +7,11 @@ from datentool_backend.api_test import LoginTestCase
 
 from datentool_backend.indicators.tests.setup_testdata import CreateTestdataMixin
 from datentool_backend.indicators.views.transit import MatrixCellPlaceViewSet
-from datentool_backend.modes.factories import ModeVariantFactory, Mode
+from datentool_backend.modes.factories import ModeVariantFactory, Mode, ModeVariant
 from datentool_backend.indicators.models import MatrixCellPlace
 from datentool_backend.infrastructure.models.places import Capacity
 from datentool_backend.population.models import RasterCell
+from datentool_backend.user.models.process import ScenarioMode
 
 
 class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
@@ -48,6 +49,9 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         cellplaces = [MatrixCellPlace(**row.to_dict()) for i, row in df.iterrows()]
         MatrixCellPlace.objects.bulk_create(cellplaces)
         cls.variant_id = variant.pk
+        ScenarioMode.objects.create(scenario=cls.scenario,
+                                    variant=variant)
+
 
     def test_max_raster_reachability(self):
         """Test max raster reachability"""
@@ -241,10 +245,11 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         url_key = 'fixedindicators-reachability-place'
 
         places = MatrixCellPlace.objects.values('place_id').distinct()
+        variant = ModeVariant.objects.get(pk=self.variant_id)
 
         for place in places:
             query_params = {
-                'variant': self.variant_id,
+                'mode': variant.mode,
                 'place': place['place_id'],
             }
             url = reverse(url_key)
@@ -261,12 +266,13 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         url_key = 'fixedindicators-reachability-cell'
 
         cells = MatrixCellPlace.objects.values('cell_id').distinct()
+        variant = ModeVariant.objects.get(pk=self.variant_id)
 
         for cell in cells:
             rastercell = RasterCell.objects.get(pk=cell['cell_id'])
             query_params = {
                 'cell_code': rastercell.cellcode,
-                'variant': self.variant_id,
+                'mode': variant.mode,
             }
             url = reverse(url_key)
             response = self.post(url, data=query_params, extra={'format': 'json'})
@@ -282,12 +288,13 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
 
         url_key = 'fixedindicators-reachability-next-place'
 
-        variants = MatrixCellPlace.objects.values('variant_id').distinct()
+        variants = MatrixCellPlace.objects.values('variant_id', 'variant__mode')\
+            .distinct()
 
         for variant in variants:
             query_params = {
                 'year': 2022,
-                'variant': variant['variant_id'],
+                'mode': variant['variant__mode'],
                 'service_ids': [self.service2.pk],
                 'scenario': self.scenario.pk,
             }

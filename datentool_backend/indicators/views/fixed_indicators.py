@@ -139,7 +139,7 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
             name='PlaceIdSerializer',
             fields={
                 'place': serializers.IntegerField(required=True),
-                'mode': serializers.CharField(required=False),
+                'mode': serializers.IntegerField(),
             }
         ),
         responses=ReachabilityPlace.result_serializer.value(many=True),
@@ -164,8 +164,7 @@ class FixedIndicatorViewSet(viewsets.GenericViewSet):
             name='CellIdSerializer',
             fields={
                 'cell_code': serializers.CharField(required=True),
-                'mode': serializers.PrimaryKeyRelatedField(
-                    queryset=ModeVariant.objects.all()),
+                'mode': serializers.IntegerField(),
             }
         ),
         responses=ReachabilityCell.result_serializer.value(many=True),

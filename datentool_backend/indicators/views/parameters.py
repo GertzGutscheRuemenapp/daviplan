@@ -6,7 +6,7 @@ from datentool_backend.user.models.process import Scenario
 from datentool_backend.population.models import Prognosis
 from datentool_backend.infrastructure.models.infrastructures import Service
 from datentool_backend.demand.models import AgeGroup, Gender
-from datentool_backend.modes.models import ModeVariant
+from datentool_backend.modes.models import Mode
 
 
 arealevel_year_service_scenario_serializer = inline_serializer(
@@ -69,7 +69,6 @@ mode_year_service_scenario_serializer = inline_serializer(
         'scenario': serializers.PrimaryKeyRelatedField(
             queryset=Scenario.objects.all(),
             required=False, help_text='scenario_id'),
-        'variant': serializers.PrimaryKeyRelatedField(
-            queryset=ModeVariant.objects.all()),
+        'mode': serializers.IntegerField(),
     },
 )
