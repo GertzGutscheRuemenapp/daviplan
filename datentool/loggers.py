@@ -36,6 +36,7 @@ class LogConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         '''join room'''
         self.room_name = self.scope['url_route']['kwargs']['room_name']
+        print('log connection requested')
         try:
             await self.channel_layer.group_add(
                     self.room_name,
@@ -43,6 +44,7 @@ class LogConsumer(AsyncWebsocketConsumer):
                 )
 
             await self.accept()
+            print('connection accepted')
         # redis is not up, what to do?
         except (errors.RedisError, OSError) as e:
             print(e)

@@ -19,7 +19,7 @@ export class LogComponent implements AfterViewInit, AfterViewChecked {
 
   constructor() {
     const host = environment.production? window.location.hostname: environment.backend.replace('http://', '');
-    this.wsURL = `${environment.production? 'wss:': 'ws:'}//${host}/ws/log/`
+    this.wsURL = `${(environment.production && host.indexOf('localhost') === -1)? 'wss:': 'ws:'}//${host}/ws/log/`
     console.log(this.wsURL);
   }
 
