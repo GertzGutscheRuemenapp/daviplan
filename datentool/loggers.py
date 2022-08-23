@@ -39,7 +39,7 @@ class LogConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         '''join room'''
         self.room_name = self.scope['url_route']['kwargs']['room_name']
-        logger.log('log connection requested')
+        logger.info('log connection requested')
         try:
             await self.channel_layer.group_add(
                     self.room_name,
