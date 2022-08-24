@@ -20,8 +20,8 @@ class ModeVariantMixin:
         if scenario_modevariant:
             variant = scenario_modevariant.first().variant
         else:
-            variant = ModeVariant.objects.filter(mode=mode,
-                                                 is_default=True)
+            variant = ModeVariant.objects.get(mode=mode,
+                                              is_default=True)
         return variant
 
 
