@@ -59,8 +59,11 @@ class LogConsumer(AsyncWebsocketConsumer):
 
     async def log_message(self, event):
         '''send "log_message"'''
-        await self.send(text_data=json.dumps({
-            'message': event['message'],
-            'level': event.get('level'),
-            'timestamp': event.get('timestamp')
-        }))
+        try:
+            await self.send(text_data=json.dumps({
+                'message': event['message'],
+                'level': event.get('level'),
+                'timestamp': event.get('timestamp')
+            }))
+        except (errors.RedisError, OSError) as e:
+            logger.error(e)

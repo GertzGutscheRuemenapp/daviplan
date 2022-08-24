@@ -32,6 +32,7 @@ export class LogComponent implements AfterViewInit, AfterViewChecked {
   }
 
   connect(): void {
+    if (!this.room) return;
     if (this.retries > 10) return;
     this.chatSocket = new WebSocket(`${ this.wsURL }${ this.room }/`);
     this.chatSocket.onopen = e => this.retries = 0;
