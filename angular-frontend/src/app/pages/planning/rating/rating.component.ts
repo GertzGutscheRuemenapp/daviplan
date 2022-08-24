@@ -146,9 +146,11 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         valueStyles: {
           field: 'value',
           fillColor: {
-            range: d3.interpolatePurples,
-            scale: 'sequential',
-            bins: 5
+            interpolation: {
+              range: d3.interpolatePurples,
+              scale: 'sequential',
+              steps: 5
+            }
           },
           min: min,
           max: max || 1
