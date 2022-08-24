@@ -25,17 +25,14 @@ modes[TransportMode.BIKE] = 'Fahrrad';
 modes[TransportMode.CAR] = 'Auto';
 modes[TransportMode.TRANSIT] = 'ÖPNV';
 
-const modeColorRange: Record<number, {colors: number[][], labels: string []}> = {};
-const modeColors = [[0,104,55],[100,188,97],[215,238,142],[254,221,141],[241,110,67],[165,0,38],[0,0,0]]
-modeColorRange[TransportMode.WALK] = modeColorRange[TransportMode.BIKE] = {
-  colors: modeColors, labels: [
+const modeColors = [[0,104,55],[100,188,97],[215,238,142],[254,221,141],[241,110,67],[165,0,38],[0,0,0]];
 
-  ]
-}
-
-function getBinColor(i: number) {
-  const idx = Math.max(i, modeColors.length - 1);
-  return modeColors[idx].join(',');
+function getBinColor(max: number, bins?: number) {
+  return function(i: number) {
+    let idx = Math.floor(i * (bins || modeColors.length - 2) / max);
+    idx = Math.min(idx, modeColors.length - 1);
+    return `rgb(${modeColors[idx].join(',')})`;
+  }
 }
 
 const cutoffMode: Record<number, number> = {};
@@ -217,6 +214,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         values[cellResult.cellCode] = Math.round(cellResult.value * 100) / 100;
       })
       // const max = Math.max(...cellResults.map(c => c.value));
+      const max = cutoffMode[this.activeMode];
 
       const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
       this.reachRasterLayer = new VectorTileLayer( 'Gewählter Standort', url,{
@@ -228,17 +226,17 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           strokeColor: 'rgba(0, 0, 0, 0)',
           symbol: 'line'
         },
-        labelField: 'label',
+        labelField: 'value',
         showLabel: false,
         valueStyles: {
           fillColor: {
-            range: modeColors.map(c => `rgb(${c.join(',')})`),
-            scale: 'sequential',
-            bins: 7,
+            colorFunc: getBinColor(max, 6),
+            bins: 6,
             reverse: false
           },
           min: 0,
-          max: cutoffMode[this.activeMode]
+          max: max,
+          extendLegendRange: true
         },
         valueMap: {
           field: 'cellcode',
@@ -286,7 +284,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
             fillColor: {
               range: d3.interpolateRdYlGn,
               scale: 'sequential',
-              bins: 5,
+              bins: 6,
               reverse: true
             },
             min: 0,

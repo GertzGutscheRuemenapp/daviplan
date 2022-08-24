@@ -204,12 +204,13 @@ interface ValueStyle {
     range?: Interpolator | string[],
     scale?: 'linear' | 'sequential',
     bins?: number,
+    labels?: string[],
     reverse?: boolean,
     colorFunc?: ((d: number) => string)
   },
   min?: number,
   max?: number,
-  steps?: number
+  extendLegendRange?: boolean
 }
 
 interface VectorLayerOptions extends LayerOptions {
@@ -251,7 +252,7 @@ export class VectorLayer extends MapLayer {
   radius?: number;
   unit?: string;
   valueStyles?: ValueStyle;
-  labelOffset?: { x?: number, y?: number }
+  labelOffset?: { x?: number, y?: number };
 
   constructor(name: string, options?: VectorLayerOptions) {
     super(name, options);
@@ -327,7 +328,7 @@ export class VectorLayer extends MapLayer {
     if (!this.valueStyles?.fillColor?.colorFunc || !this.map) return;
     let colors: string[] = [];
     let labels: string[] = [];
-    const steps = (this.valueStyles.steps != undefined)? this.valueStyles.steps: 5;
+    const steps = (this.valueStyles.fillColor.bins != undefined)? this.valueStyles.fillColor.bins: 5;
     let max = this.valueStyles.max;
     let min = this.valueStyles.min;
     if (max === undefined || min === undefined){
@@ -336,7 +337,8 @@ export class VectorLayer extends MapLayer {
       if (max === undefined) max = Math.max(...values);
       if (min === undefined) min = Math.min(...values);
     }
-    const step = (max - min) / steps;
+    let step = (max - min) / steps;
+    // if (this.valueStyles.extendLegendRange) step += 1;
     const colorFunc = this.valueStyles.fillColor.colorFunc;
     Array.from({ length: steps + 1 },(v, k) => k * step).forEach((value, i) => {
       colors.push(colorFunc(value));

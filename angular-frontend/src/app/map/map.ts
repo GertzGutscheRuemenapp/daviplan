@@ -212,14 +212,14 @@ export class OlMap {
       visible: options?.visible === true,
       opacity: (options?.opacity != undefined) ? options?.opacity: 1,
       style: function(feature) {
+        const valueField = options?.valueField || 'value';
+        const value = options.valueMap? options.valueMap.values[feature.get(options?.valueMap.field)]: feature.get(valueField);
         if (typeof options?.fill?.color === 'function') {
-          const valueField = options?.valueField || 'value';
-          let value = options.valueMap? options.valueMap.values[feature.get(options?.valueMap.field)]: feature.get(valueField);
-          const color = (value !== undefined)? options.fill.color(Number(value)): 'grey';
+          const color = (value !== undefined)? options.fill.color(Number(value)): 'black';
           style.getFill().setColor(color);
         }
         if (options?.labelField && layer.get('showLabel') && _this.view.getZoom()! > 10) {
-          let label = feature.get(options?.labelField);
+          let label = (options.labelField === 'value' && options.valueMap)? value: feature.get(options.labelField);
           if (typeof label === 'number')
             label = label.toLocaleString();
           style.getText().setText(label || '');
