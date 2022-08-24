@@ -3,7 +3,7 @@ from django.db.models import F, Min
 from datentool_backend.indicators.compute.base import (ComputeIndicator,
                                                        ResultSerializer)
 from datentool_backend.modes.models import Mode, ModeVariant
-from datentool_backend.user.models.process import ScenarioMode
+from datentool_backend.user.models.process import ScenarioMode, Scenario
 from datentool_backend.indicators.models import MatrixCellPlace
 from datentool_backend.infrastructure.models.places import Place, Capacity
 
@@ -11,6 +11,7 @@ from datentool_backend.infrastructure.models.places import Place, Capacity
 class ModeVariantMixin:
     def get_mode_variant(self, mode: Mode, scenario_id: int = None) -> ModeVariant:
         """get the mode variant"""
+
         scenario_modevariant = ScenarioMode.objects.filter(scenario=scenario_id,
                                                            variant__mode=mode)
         if not scenario_modevariant:
@@ -19,7 +20,8 @@ class ModeVariantMixin:
         if scenario_modevariant:
             variant = scenario_modevariant.first().variant
         else:
-            variant = ModeVariant.objects.filter(mode=mode).first()
+            variant = ModeVariant.objects.filter(mode=mode,
+                                                 is_default=True)
         return variant
 
 
