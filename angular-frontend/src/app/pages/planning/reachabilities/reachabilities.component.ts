@@ -25,6 +25,24 @@ modes[TransportMode.BIKE] = 'Fahrrad';
 modes[TransportMode.CAR] = 'Auto';
 modes[TransportMode.TRANSIT] = 'ÖPNV';
 
+const modeColorRange: Record<number, {colors: number[][], labels: string []}> = {};
+const modeColors = [[0,104,55],[100,188,97],[215,238,142],[254,221,141],[241,110,67],[165,0,38],[0,0,0]]
+modeColorRange[TransportMode.WALK] = modeColorRange[TransportMode.BIKE] = {
+  colors: modeColors, labels: [
+
+  ]
+}
+
+function getBinColor(i: number) {
+  const idx = Math.max(i, modeColors.length - 1);
+  return modeColors[idx].join(',');
+}
+
+const cutoffMode: Record<number, number> = {};
+cutoffMode[TransportMode.WALK] = 45;
+cutoffMode[TransportMode.BIKE] = 45;
+cutoffMode[TransportMode.CAR] = 30;
+cutoffMode[TransportMode.TRANSIT] = 60;
 
 @Component({
   selector: 'app-reachabilities',
@@ -198,7 +216,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       cellResults.forEach(cellResult => {
         values[cellResult.cellCode] = Math.round(cellResult.value * 100) / 100;
       })
-      const max = Math.max(...cellResults.map(c => c.value));
+      // const max = Math.max(...cellResults.map(c => c.value));
 
       const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
       this.reachRasterLayer = new VectorTileLayer( 'Gewählter Standort', url,{
@@ -214,13 +232,13 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         showLabel: false,
         valueStyles: {
           fillColor: {
-            range: d3.interpolateRdYlGn,
+            range: modeColors.map(c => `rgb(${c.join(',')})`),
             scale: 'sequential',
-            bins: 5,
-            reverse: true
+            bins: 7,
+            reverse: false
           },
           min: 0,
-          max: max
+          max: cutoffMode[this.activeMode]
         },
         valueMap: {
           field: 'cellcode',
