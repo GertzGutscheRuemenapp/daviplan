@@ -50,7 +50,7 @@ class IndicatorRasterResultSerializer(serializers.ModelSerializer):
 
 
 class IndicatorPlaceResultSerializer(serializers.ModelSerializer):
-    place_id = serializers.IntegerField()
+    place_id = serializers.IntegerField(source='id')
     value = serializers.FloatField()
     class Meta:
         model = Place

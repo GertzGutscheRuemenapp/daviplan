@@ -28,7 +28,7 @@ export class RestAPI {
     areaPopulation: `${ this.API_ENDPOINT }/indicators/aggregate_population/`,
     populationData: `${ this.API_ENDPOINT }/indicators/population_details/`,
     reachabilityPlace: `${ this.API_ENDPOINT }/indicators/reachability_place/`,
-    reachabilityCell: `${ this.API_ENDPOINT }/indicators/reachibility_cell/`,
+    reachabilityCell: `${ this.API_ENDPOINT }/indicators/reachability_cell/`,
     areaDemand: `${ this.API_ENDPOINT }/indicators/demand/`,
     statistics: `${ this.API_ENDPOINT }/popstatistics/`,
     statisticsData: `${ this.API_ENDPOINT }/popstatentries/`,

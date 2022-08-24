@@ -146,7 +146,8 @@ class Area(DatentoolModelMixin, models.Model):
         attributes = AreaAttribute.value_annotated_qs()
         area_attributes = attributes.filter(area=OuterRef('pk'))
         area_fields = AreaField.objects.filter(area_level=area_level)
-        area_field_names = ','.join(area_fields.values_list('name', flat=True))
+        area_field_names =  ','.join(area_fields.values_list('name', flat=True))
+        area_field_names = f"'{area_field_names}'"
 
         annotations = {area_field.name: Subquery(area_attributes
                                                  .filter(field=area_field)
@@ -162,7 +163,7 @@ class Area(DatentoolModelMixin, models.Model):
 
         qs = cls.objects\
             .filter(area_level_id=area_level)\
-            .select_related('area_level')\
+            .prefetch_related('area_level')\
             .prefetch_related(
                 Prefetch('areaattribute_set', queryset=attributes))\
             .annotate(**annotations)
@@ -180,7 +181,7 @@ class Area(DatentoolModelMixin, models.Model):
                        for area_field in area_fields}
         qs=cls.objects\
             .filter(area_level=area_level)\
-            .select_related('area_level')\
+            .prefetch_related('area_level')\
             .prefetch_related(
                 Prefetch('areaattribute_set', queryset=attributes))\
             .annotate(**annotations)

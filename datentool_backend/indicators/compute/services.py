@@ -2,7 +2,6 @@ from abc import ABCMeta, abstractmethod
 from django.db.models import OuterRef, Subquery, Count, IntegerField, Sum
 from django.db.models.functions import Coalesce
 from sql_util.utils import Exists
-from django.http.request import QueryDict
 
 from datentool_backend.indicators.compute.base import ComputeIndicator, ResultSerializer
 from datentool_backend.area.models import Area, AreaLevel
@@ -19,8 +18,8 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
         year = self.data.get('year', 0)
         scenario_id = self.data.get('scenario')
 
-        area_level = AreaLevel.objects.get(pk=area_level_id)
-        areas = area_level.area_set.all()
+        area_level = AreaLevel.objects.get(id=area_level_id)
+        areas = Area.label_annotated_qs(area_level=area_level)
 
         capacities = Capacity.objects.all()
         capacities = Capacity.filter_queryset(capacities,

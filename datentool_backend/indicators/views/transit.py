@@ -531,7 +531,7 @@ class MatrixCellPlaceViewSet(TravelTimeRouterMixin):
         query = f'''SELECT
         p.id AS place_id,
         c.id AS cell_id,
-        st_distance(c."pnt_25832", p."pnt_25832") / %s * (6.0/1000) AS minutes
+        st_distance(c."pnt_25832", p."pnt_25832") / %s * (60.0/1000) AS minutes
         FROM
         (SELECT
         c.id,
@@ -547,7 +547,7 @@ class MatrixCellPlaceViewSet(TravelTimeRouterMixin):
         FROM "{place_tbl}" AS p
         WHERE p.id = ANY(%s)) AS p
         WHERE c.id = r.cell_id
-        AND st_dwithin(c."pnt", p."geom", %s * p.kf)
+        AND st_dwithin(c."pnt", p."geom", %s / p.kf)
         '''
 
         params = (speed, p_places, max_distance)

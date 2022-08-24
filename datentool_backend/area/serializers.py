@@ -277,7 +277,7 @@ class AreaAttributeField(serializers.JSONField):
 
     def to_representation(self, value):
         data = {}
-        for field_name in value.field_names.split(','):
+        for field_name in value.field_names.strip("'").split(','):
             try:
                 field_value = getattr(value, field_name)
             except AttributeError:

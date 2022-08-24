@@ -75,7 +75,7 @@ class AreaCell(DatentoolModelMixin, models.Model):
     stores the share of the cell on the whole area population
     and the share of the area on the cells area
     """
-    cell = models.ForeignKey(RasterCellPopulation, on_delete=models.CASCADE)
+    rastercellpop = models.ForeignKey(RasterCellPopulation, on_delete=models.CASCADE)
     area = models.ForeignKey(Area, on_delete=models.CASCADE)
     share_cell_of_area = models.FloatField()
     share_area_of_cell = models.FloatField()

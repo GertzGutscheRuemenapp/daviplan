@@ -80,7 +80,6 @@ class Service(DatentoolModelMixin, NamedModel, models.Model):
                                          blank=True)
     capacity_singular_unit = models.TextField(null=True, blank=True)
     capacity_plural_unit = models.TextField(null=True, blank=True)
-    has_capacity = models.BooleanField(null=True, blank=True)
     demand_singular_unit = models.TextField(null=True, blank=True)
     demand_plural_unit = models.TextField(null=True, blank=True)
     demand_name = models.TextField(null=True, blank=True)
