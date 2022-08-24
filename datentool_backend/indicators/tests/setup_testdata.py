@@ -9,7 +9,7 @@ from datentool_backend.area.factories import (AreaLevelFactory,
                                               AreaFieldFactory,
                                               FieldTypes,
                                               )
-from datentool_backend.area.models import AreaAttribute
+from datentool_backend.area.models import AreaAttribute, Area
 from datentool_backend.infrastructure.factories import (
     InfrastructureFactory, Infrastructure, ServiceFactory, PlaceFactory,
     ServiceFactory, CapacityFactory)
@@ -33,6 +33,9 @@ from datentool_backend.population.models import (Raster,
                                                  PopulationEntry,
                                                 )
 from datentool_backend.indicators.factories import StopFactory
+from datentool_backend.utils.pop_aggregation import (disaggregate_population,
+                                                     intersect_areas_with_raster,
+                                                     )
 
 
 class CreateTestdataMixin:
@@ -443,21 +446,17 @@ class CreateTestdataMixin:
                     demand_rates.append(dr)
         DemandRate.objects.bulk_create(demand_rates)
 
-    def prepare_population(self):
+    @classmethod
+    def prepare_population(cls):
         """prepare the population for the tests"""
         populations = Population.objects.all()
         for population in populations:
-            self.post('populations-disaggregate', pk=population.pk,
-                      data={'use_intersected_data': True,
-                            'drop_constraints': False, },
-                      extra={'format': 'json'})
-            data = {
-                'pop_raster': self.popraster.pk,
-                'drop_constraints': False
-            }
-            self.post('arealevels-intersect-areas', pk=self.area_level2.pk,
-                      data=data, extra={'format': 'json'})
-            self.post('arealevels-intersect-areas', pk=self.area_level3.pk,
-                      data=data, extra={'format': 'json'})
-            self.post('arealevels-intersect-areas', pk=self.area_level4.pk,
-                      data=data, extra={'format': 'json'})
+            disaggregate_population(population,
+                                    use_intersected_data=True,
+                                   drop_constraints=False)
+
+            for area_level in [cls.area_level2.pk,
+                               cls.area_level3.pk,
+                               cls.area_level4.pk]:
+                areas = Area.objects.filter(area_level=area_level)
+                intersect_areas_with_raster(areas=areas)

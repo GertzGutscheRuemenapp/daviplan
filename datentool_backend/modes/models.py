@@ -63,6 +63,7 @@ class ModeVariant(DatentoolModelMixin, models.Model):
     network = models.ForeignKey(Network, on_delete=models.CASCADE, null=True)
     mode = models.IntegerField(choices=Mode.choices)
     cutoff_time = models.ManyToManyField(Infrastructure, through='CutOffTime')
+    is_default = models.BooleanField(default=True)
 
     def __repr__(self) -> str:
         return f'{Mode._value2label_map_[self.mode]} - {self.label}'

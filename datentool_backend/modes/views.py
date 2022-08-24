@@ -69,7 +69,6 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         fp_project_json = os.path.join(settings.MEDIA_ROOT, 'projectarea.geojson')
         fp_base_pbf = os.path.join(settings.MEDIA_ROOT, 'germany-latest.osm.pbf')
         fp_target_pbf = os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf')
-        # ToDo: set "network_file" of default Network?
 
         for fp in fp_target_pbf, fp_project_json:
             if os.path.exists(fp):
@@ -112,13 +111,20 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                  'Project area from base network'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+        network, created = Network.objects.get_or_create(is_default=True)
+        network.network_file = fp_target_pbf
+        network.save()
+
         # ToDo: use own route to run and build to test
         for mode in [Mode.CAR, Mode.BIKE, Mode.WALK]:
             router = OSRMRouter(mode)
-            success = router.build(fp_target_pbf)
+            try:
+                success = router.build(fp_target_pbf)
+            except requests.exceptions.ConnectionError:
+                success = False
             if not success:
                 return Response({'message': f'Build failed. Could not build '
-                                 f'router network {mode}'},
+                                 f'router network {mode.name}'},
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             router.run()
 

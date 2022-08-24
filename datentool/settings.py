@@ -318,6 +318,21 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
+        'population': {
+            'handlers': ['web_socket', 'console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'infrastructure': {
+            'handlers': ['web_socket', 'console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'routing': {
+            'handlers': ['web_socket', 'console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
     },
 }
 
