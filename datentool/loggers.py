@@ -5,6 +5,9 @@ import channels.layers
 from aioredis import errors
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import AsyncWebsocketConsumer
+import logging
+
+logger = logging.getLogger(__name__)
 
 channel_layer = channels.layers.get_channel_layer()
 
@@ -29,7 +32,7 @@ class WebSocketHandler(logging.StreamHandler):
             send(room, record.getMessage(), log_type='log_message',
                  level=record.levelname)
         except (errors.RedisError, OSError) as e:
-            print(e)
+            logger.error(e)
 
 
 class LogConsumer(AsyncWebsocketConsumer):
@@ -45,7 +48,7 @@ class LogConsumer(AsyncWebsocketConsumer):
             await self.accept()
         # redis is not up, what to do?
         except (errors.RedisError, OSError) as e:
-            print(e)
+            logger.error(e)
 
     async def disconnect(self, close_code):
         '''leave room'''
@@ -56,8 +59,11 @@ class LogConsumer(AsyncWebsocketConsumer):
 
     async def log_message(self, event):
         '''send "log_message"'''
-        await self.send(text_data=json.dumps({
-            'message': event['message'],
-            'level': event.get('level'),
-            'timestamp': event.get('timestamp')
-        }))
+        try:
+            await self.send(text_data=json.dumps({
+                'message': event['message'],
+                'level': event.get('level'),
+                'timestamp': event.get('timestamp')
+            }))
+        except (errors.RedisError, OSError) as e:
+            logger.error(e)

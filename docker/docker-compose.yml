@@ -14,6 +14,10 @@ services:
   redis:
     image: redis:7.0.4
     restart: unless-stopped
+    expose:
+      - "6379"
+    volumes:
+      - ./redis_data:/data
 
   router-car:
     image: gertzgutscheruemenapp/osrm-flask
@@ -50,7 +54,7 @@ services:
       - router-bike:router-bike
       - router-walk:router-walk
       - redis:redis
-    command: bash -c "cd /root/datentool && git pull && pip install -r requirements.txt && cd angular-frontend && npm ci && ng build --stats_json --build-optimizer && cd /root/datentool && python manage.py migrate --run-syncdb && python manage.py runserver 0.0.0.0:8000"
+    command: bash -c "cd /root/datentool && git pull && pip install -r requirements.txt && cd angular-frontend && npm ci --force && ng build --stats_json --build-optimizer && cd /root/datentool && python manage.py migrate --run-syncdb && python manage.py runserver 0.0.0.0:8000"
     ports:
       - "${EXT_PORT}:8000"
     restart: unless-stopped

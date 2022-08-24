@@ -86,7 +86,7 @@ class BaseDataSettingSerializer(serializers.Serializer):
     default_demand_rate_sets = serializers.SerializerMethodField(read_only=True)
     default_mode_variants = serializers.SerializerMethodField(read_only=True)
     default_prognosis = serializers.SerializerMethodField(read_only=True)
-    routing = serializers.SerializerMethodField(read_only=True)
+    #routing = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         fields = ('default_pop_area_level', 'pop_statistics_area_level',
