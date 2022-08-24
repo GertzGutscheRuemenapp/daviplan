@@ -17,7 +17,7 @@ import { MapControl, MapService } from "../../../map/map.service";
 import { Subscription } from "rxjs";
 import * as d3 from "d3";
 import { Geometry } from "ol/geom";
-import { MapLayerGroup, VectorLayer, VectorTileLayer } from "../../../map/layers";
+import { ColorBin, MapLayerGroup, VectorLayer, VectorTileLayer } from "../../../map/layers";
 
 const modes: Record<number, string> = {};
 modes[TransportMode.WALK] = 'zu Fuß';
@@ -25,21 +25,12 @@ modes[TransportMode.BIKE] = 'Fahrrad';
 modes[TransportMode.CAR] = 'Auto';
 modes[TransportMode.TRANSIT] = 'ÖPNV';
 
-const modeColors = [[0,104,55],[100,188,97],[215,238,142],[254,221,141],[241,110,67],[165,0,38],[0,0,0]];
-
-function getBinColor(max: number, bins?: number) {
-  return function(i: number) {
-    let idx = Math.floor(i * (bins || modeColors.length - 2) / max);
-    idx = Math.min(idx, modeColors.length - 1);
-    return `rgb(${modeColors[idx].join(',')})`;
-  }
-}
-
-const cutoffMode: Record<number, number> = {};
-cutoffMode[TransportMode.WALK] = 45;
-cutoffMode[TransportMode.BIKE] = 45;
-cutoffMode[TransportMode.CAR] = 30;
-cutoffMode[TransportMode.TRANSIT] = 60;
+const modeColorValues = [[0,104,55],[100,188,97],[215,238,142],[254,221,141],[241,110,67],[165,0,38],[0,0,0]];
+const modeColors = modeColorValues.map(c => `rgb(${c.join(',')})`);
+const modeBins: Record<number, number[]> = {};
+modeBins[TransportMode.WALK] = modeBins[TransportMode.BIKE] = [5, 10, 15, 20, 30, 45];
+modeBins[TransportMode.CAR] = [5, 10, 15, 20, 25, 30];
+modeBins[TransportMode.TRANSIT] = [10, 15, 20, 30, 45, 60];
 
 @Component({
   selector: 'app-reachabilities',
@@ -213,8 +204,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       cellResults.forEach(cellResult => {
         values[cellResult.cellCode] = Math.round(cellResult.value * 100) / 100;
       })
-      // const max = Math.max(...cellResults.map(c => c.value));
-      const max = cutoffMode[this.activeMode];
 
       const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
       this.reachRasterLayer = new VectorTileLayer( 'Gewählter Standort', url,{
@@ -230,19 +219,17 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         showLabel: false,
         valueStyles: {
           fillColor: {
-            colorFunc: getBinColor(max, 6),
-            bins: 6,
-            reverse: false
-          },
-          min: 0,
-          max: max,
-          extendLegendRange: true
+            bins: {
+              colors: modeColors,
+              values: modeBins[this.activeMode]
+            }
+          }
         },
         valueMap: {
           field: 'cellcode',
           values: values
         },
-        unit: 'Minute(n)'
+        unit: 'Minuten'
       });
       this.reachPlaceLayerGroup?.addLayer(this.reachRasterLayer);
     })
@@ -264,9 +251,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         }
         this.places.forEach(place => {
           const res = placeResults.find(p => p.placeId === place.id);
-          place.value = res?.value || 999999999;
+          place.value = res?.value;
         })
-        const max = Math.max(...placeResults.map(c => c.value), 0);
         this.placeReachabilityLayer = new VectorLayer(this.activeInfrastructure!.name, {
           order: 0,
           description: this.activeInfrastructure!.name,
@@ -274,7 +260,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           style: {
             fillColor: 'green',
             strokeColor: 'black',
-            symbol: 'circle'
+            symbol: 'circle',
+            strokeWidth: 1
           },
           labelField: 'value',
           showLabel: showLabel,
@@ -282,15 +269,13 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           valueStyles: {
             field: 'value',
             fillColor: {
-              range: d3.interpolateRdYlGn,
-              scale: 'sequential',
-              bins: 6,
-              reverse: true
-            },
-            min: 0,
-            max: max
+              bins: {
+                colors: modeColors,
+                values: modeBins[this.activeMode]
+              }
+            }
           },
-          unit: 'Minute(n)',
+          unit: 'Minuten',
           labelOffset: { y: 10 }
         });
         this.reachCellLayerGroup?.addLayer(this.placeReachabilityLayer);

@@ -190,6 +190,12 @@ export class WMSLayer extends TileLayer {
 
 type Interpolator = ((d: number) => string);
 
+export interface ColorBin {
+  from?: number;
+  to?: number;
+  color: string;
+}
+
 interface ValueStyle {
   field?: string,
   radius?: {
@@ -201,16 +207,21 @@ interface ValueStyle {
     colorFunc?: ((f: Feature<any>) => string)
   },
   fillColor?: {
-    range?: Interpolator | string[],
-    scale?: 'linear' | 'sequential',
-    bins?: number,
-    labels?: string[],
-    reverse?: boolean,
+    interpolation?: {
+      range: Interpolator | string[],
+      scale?: 'linear' | 'sequential',
+      steps?: number,
+      reverse?: boolean,
+    }
+    bins?: {
+      colors: string[];
+      labels?: string[];
+      values: number[];
+    }
     colorFunc?: ((d: number) => string)
   },
   min?: number,
-  max?: number,
-  extendLegendRange?: boolean
+  max?: number
 }
 
 interface VectorLayerOptions extends LayerOptions {
@@ -232,6 +243,12 @@ interface VectorLayerOptions extends LayerOptions {
   unit?: string,
   valueStyles?: ValueStyle,
   labelOffset?: { x?: number, y?: number }
+}
+
+function findBin(arr: number[], value: number) {
+  let newArray = arr.concat(value)
+  newArray.sort((a, b) => a - b)
+  return newArray.indexOf(value);
 }
 
 export class VectorLayer extends MapLayer {
@@ -274,18 +291,24 @@ export class VectorLayer extends MapLayer {
     this.labelOffset = options?.labelOffset;
   }
 
-  protected initColor(): void {
-    if (!this.valueStyles?.fillColor?.colorFunc && this.valueStyles?.fillColor?.range) {
-      const seqFunc: any = (this.valueStyles.fillColor.scale === 'linear')? d3.scaleLinear : d3.scaleSequential;
-      const max = !this.valueStyles.fillColor.reverse? this.valueStyles.max: this.valueStyles.min;
-      const min = !this.valueStyles.fillColor.reverse? this.valueStyles.min: this.valueStyles.max;
-      this.valueStyles.fillColor.colorFunc = seqFunc(this.valueStyles.fillColor.range).domain([min, max]);
+  protected initFunctions(): void {
+    if (this.valueStyles?.fillColor?.interpolation) {
+      const seqFunc: any = (this.valueStyles.fillColor.interpolation.scale === 'linear')? d3.scaleLinear : d3.scaleSequential;
+      const max = !this.valueStyles.fillColor.interpolation.reverse? this.valueStyles.max: this.valueStyles.min;
+      const min = !this.valueStyles.fillColor.interpolation.reverse? this.valueStyles.min: this.valueStyles.max;
+      this.valueStyles.fillColor.colorFunc = seqFunc(this.valueStyles.fillColor.interpolation.range).domain([min, max]);
     }
     if (this.valueStyles?.radius?.range) {
       const seqFunc: any = (this.valueStyles.radius.scale === 'linear')? d3.scaleLinear : d3.scaleSequential;
       let max = this.valueStyles.max;
       let min = this.valueStyles.min;
       this.valueStyles.radius.radiusFunc = seqFunc().domain([min, max]).range(this.valueStyles.radius.range);
+    }
+    if (this.valueStyles?.fillColor?.bins) {
+      this.valueStyles.fillColor.colorFunc = (value: number) => {
+        const idx = findBin(this.valueStyles!.fillColor!.bins!.values!, value);
+        return this.valueStyles!.fillColor!.bins!.colors[idx];
+      }
     }
   }
 
@@ -294,7 +317,7 @@ export class VectorLayer extends MapLayer {
     if (map) this.map = map;
     if (!this.map) return;
     this.mapId = uuid();
-    this.initColor();
+    this.initFunctions();
     this.initSelect();
     return this.map!.addVectorLayer(this.mapId, {
       zIndex: this.getZIndex(),
@@ -328,30 +351,53 @@ export class VectorLayer extends MapLayer {
     if (!this.valueStyles?.fillColor?.colorFunc || !this.map) return;
     let colors: string[] = [];
     let labels: string[] = [];
-    const steps = (this.valueStyles.fillColor.bins != undefined)? this.valueStyles.fillColor.bins: 5;
-    let max = this.valueStyles.max;
-    let min = this.valueStyles.min;
-    if (max === undefined || min === undefined){
-      const features = this.map?.getLayer(this.mapId!).getSource().getFeatures();
-      const values = features.map((f: Feature<any>) => f.get(this.valueStyles?.field!));
-      if (max === undefined) max = Math.max(...values);
-      if (min === undefined) min = Math.min(...values);
-    }
-    let step = (max - min) / steps;
-    // if (this.valueStyles.extendLegendRange) step += 1;
     const colorFunc = this.valueStyles.fillColor.colorFunc;
-    Array.from({ length: steps + 1 },(v, k) => k * step).forEach((value, i) => {
-      colors.push(colorFunc(value));
-      let label = Number(value.toFixed(2)).toLocaleString();
-      if (this.unit)
-        label += ` ${this.unit}`;
-      labels.push(label);
-    })
-    return {
-      colors: colors,
-      labels: labels,
-      elapsed: true
+    if (this.valueStyles.fillColor.bins){
+      let values = this.valueStyles.fillColor.bins.values.map(x => x);
+      values.push(values[values.length-1]);
+      let preLabels = this.valueStyles.fillColor.bins.labels;
+      values.forEach((value, i) => {
+        let label = preLabels? preLabels[i]:
+          (i === 0)? `bis ${value}`:
+            (i < values.length - 1)? `${values[i-1]} bis ${value}`:
+              `ab ${value}`;
+        if (this.unit)
+          label += ` ${this.unit}`;
+        labels.push(label);
+        colors.push((i < values.length - 1)? colorFunc(value): colorFunc(value + 0.01));
+      })
+      return {
+        colors: colors,
+        labels: labels,
+        elapsed: true
+      }
     }
+    if (this.valueStyles.fillColor.interpolation) {
+      const steps = (this.valueStyles.fillColor.interpolation.steps != undefined) ? this.valueStyles.fillColor.interpolation.steps : 5;
+      let max = this.valueStyles.max;
+      let min = this.valueStyles.min;
+      if (max === undefined || min === undefined) {
+        const features = this.map?.getLayer(this.mapId!).getSource().getFeatures();
+        const values = features.map((f: Feature<any>) => f.get(this.valueStyles?.field!));
+        if (max === undefined) max = Math.max(...values);
+        if (min === undefined) min = Math.min(...values);
+      }
+      let step = (max - min) / steps;
+      // if (this.valueStyles.extendLegendRange) step += 1;
+      Array.from({ length: steps + 1 }, (v, k) => k * step).forEach((value, i) => {
+        colors.push(colorFunc(value));
+        let label = Number(value.toFixed(2)).toLocaleString();
+        if (this.unit)
+          label += ` ${this.unit}`;
+        labels.push(label);
+      })
+      return {
+        colors: colors,
+        labels: labels,
+        elapsed: true
+      }
+    }
+    return;
   }
 
   addFeatures(features: any[], options?: {
@@ -450,7 +496,7 @@ export class VectorTileLayer extends VectorLayer {
     if (map) this.map = map;
     if (!this.map) return;
     this.mapId = uuid();
-    this.initColor();
+    this.initFunctions();
     this.initSelect();
     if (this.valueStyles?.fillColor)
       this.colorLegend = this._getColorLegend();
