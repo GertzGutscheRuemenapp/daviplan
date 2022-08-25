@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
-import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { SettingsService } from "../../../settings.service";
 import { BasedataSettings, ModeVariant, TransportMode } from "../../../rest-interfaces";
 import { RestCacheService } from "../../../rest-cache.service";
+import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 
 export const mockRouters = ['Deutschland 2020', 'SHK mit ÖPNV 2021', 'Dtl 2020 mit A13 Ausbau'];
 
@@ -16,7 +16,6 @@ export const mockRouters = ['Deutschland 2020', 'SHK mit ÖPNV 2021', 'Dtl 2020 
 })
 export class RoadNetworkComponent implements OnInit {
   routers = mockRouters;
-  selectedRouter = this.routers[0];
   baseDataSettings?: BasedataSettings;
   modeVariants: ModeVariant[] = [];
 
@@ -31,37 +30,63 @@ export class RoadNetworkComponent implements OnInit {
   }
 
   downloadBaseNetwork(): void {
-    const dialogRef = SimpleDialogComponent.show(
-      'Das Basisnetz wird heruntergeladen. Bitte warten',
-      this.dialog, { showAnimatedDots: true, width: '400px' });
-    this.http.post<any>(`${this.rest.URLS.networks}pull_base_network/`, {}).subscribe(() => {
-      dialogRef.close();
-      this.settings.fetchBaseDataSettings();
-    },(error) => {
-      dialogRef.close();
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '450px',
+      data: {
+        title: `OpenStreetMap-Straßennetz herunterladen`,
+        confirmButtonText: 'Straßennetz herunterladen',
+        message: 'Das gesamtdeutsche Straßennetz wird von der Geofabrik heruntergeladen und auf dem Server für die weitere Verarbeitung gespeichert. Dies kann einige Minuten dauern.',
+        closeOnConfirm: true
+      }
+    });
+    dialogRef.afterClosed().subscribe(ok => {
+      if (ok) {
+        if (this.baseDataSettings?.routing) {
+          this.baseDataSettings.routing.projectAreaNet = false;
+          this.baseDataSettings.routing.baseNet = false;
+        }
+        this.http.post<any>(`${this.rest.URLS.networks}pull_base_network/`, {}).subscribe(() => {
+          this.settings.fetchBaseDataSettings();
+        }, (error) => {
+        })
+      }
     })
   }
 
   createProjectNetwork(): void {
-    const dialogRef = SimpleDialogComponent.show(
-      'Das Basisnetz wird mit dem Projektgebiet verschnitten. Bitte warten',
-      this.dialog, { showAnimatedDots: true, width: '400px' });
-    this.http.post<any>(`${this.rest.URLS.networks}build_project_network/`, {}).subscribe(() => {
-      dialogRef.close();
-      this.settings.fetchBaseDataSettings();
-    },(error) => {
-      dialogRef.close();
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '450px',
+      data: {
+        title: `Straßennetz mit Projektgebiet verschneiden`,
+        confirmButtonText: 'Straßennetz verschneiden',
+        message: 'Das gesamtdeutsche Straßennetz wird mit dem Projektgebiet (inkl. Buffer) verschnitten und die individuellen Router für die verschiedenen Modi werden gebaut. Dies kann einige Minuten dauern.',
+        closeOnConfirm: true
+      }
+    });
+    dialogRef.afterClosed().subscribe(ok => {
+      if (ok)
+        this.http.post<any>(`${this.rest.URLS.networks}build_project_network/`, {}).subscribe(() => {
+          this.settings.fetchBaseDataSettings();
+        },(error) => {
+        })
     })
   }
 
   createMatrices(): void {
-    const dialogRef = SimpleDialogComponent.show(
-      'Die Reisezeitmatrizen für die Modi "Auto", "Fahrrad" und "zu Fuß" werden erzeugt. Bitte warten',
-      this.dialog, { showAnimatedDots: true, width: '400px' });
-    this.http.post<any>(`${this.rest.URLS.matrixCellPlaces}precalculate_traveltime/`, {variants: this.modeVariants.map(m => m.id)}).subscribe(() => {
-      dialogRef.close();
-    },(error) => {
-      dialogRef.close();
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '450px',
+      data: {
+        title: `Reisezeitmatrizen erzeugen`,
+        confirmButtonText: 'Berechnung starten',
+        message: 'Die Reisezeiten zwischen allen vorhandenen Standorten und den Siedlungszellen mit den Modi Fuß, Rad und Auto werden berechnet. Dies kann einige Minuten dauern.',
+        closeOnConfirm: true
+      }
+    });
+    dialogRef.afterClosed().subscribe(ok => {
+      if (ok)
+        this.http.post<any>(`${this.rest.URLS.matrixCellPlaces}precalculate_traveltime/`, {variants: this.modeVariants.map(m => m.id)}).subscribe(() => {
+        },(error) => {
+        })
     })
   }
 }
