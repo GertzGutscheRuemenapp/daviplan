@@ -15,7 +15,7 @@ export interface BasedataSettings {
   routing?: {
     baseNet: boolean,
     projectAreaNet: boolean,
-    running: boolean
+    running?: Record<string, boolean>
   }
 }
 

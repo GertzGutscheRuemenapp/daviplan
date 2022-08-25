@@ -1,27 +1,20 @@
-<p class="under-construction">
-  <mat-icon class="material-icons-outlined">construction</mat-icon>
-  Diese Seite ist noch nicht fertig implementiert. Die gezeigten Daten sind zur Zeit nur Platzhalter. Das Layout wird noch überarbeitet.
-</p>
-<app-header-card [title]="'Verkehrsnetz (optional)'"
+<app-header-card [title]="'Straßennetz (optional)'"
                  cookieId="exp-router-header"
                  width="1230px">
-  <p>Die Erreichbarkeitsverhältnisse in Ihrem Projektgebiet werden anhand von Erreichbarkeitsmatrizen abgebildet. Erreichbarkeitsmatrizen sind (große) Tabellen, in denen für ein bestimmtes Verkehrsmittel verzeichnet ist, wie lange man mit diesem von Teilfläche A zu Teilfläche B braucht. Die Teilflächen entsprechend dabei dem europaweit standardisierten 100x100-Meter-LAEA-Raster, auf das bereits im Menüpunkt „Einwohnerraster“ Bezug genommen wurde.</p>
-  <p>Diese Erreichbarkeitsmatrizen werden im nachfolgenden Menüpunkt „Erreichbarkeiten“ für die vier Verkehrsmittel „zu Fuß“, „Fahrrad“, „Auto“ und „ÖPNV“ zusammengetragen. Dabei können entweder extern vorberechnete Erreichbarkeitsmatrizen hochgeladen oder Erreichbarkeitsmatrizen berechnet werden.</p>
-  <p>Wenn Sie ausschließlich extern vorberechnete Erreichbarkeitsmatrizen benutzen, können Sie den hier angezeigten Menüpunkt „Verkehrsnetze“ überspringen.</p>
-  <p>Wenn Sie hingegen einzelne oder alle Erreichbarkeitsmatrizen innerhalb von daviplan berechnen lassen wollen, müssen Sie hierfür auf dieser Bildschirmseite ein (oder mehrere) Verkehrsnetze definieren. Der oder die auf dieser Seite definierten Verkehrsnetze können Sie dann im nächsten Menüpunkt „Erreichbarkeiten“ verwenden, um dort einzelne oder alle Erreichbarkeitsmatrizen berechnen zu lassen.</p>
-  <p>Ein Verkehrsnetz kann für die Berechnung der Erreichbarkeitsmatrizen unterschiedlicher Verkehrsmittel verwendet werden, sofern die nachstehenden Datenanforderungen erfüllt sind.</p>
-  <p>Mindestanforderungen für alle Verkehrsmittel ist die Integration eines Straßennetzes auf Basis von OpenStreetMap-Daten in das Verkehrsnetz. Weitere Informationen hierzu finden Sie im Handbuch sowie im Hilfetext der Box „OpenStreetMap-Daten des ausgewählten Verkehrsnetzes“.</p>
-  <p>Für Verkehrsnetze, die zum Erzeugen einer ÖPNV-Erreichbarkeitsmatrix verwendet werden sollen, brauchen Sie zusätzlich die regionalen Fahrplandaten im Datenformat „GTFS“. Weitere Informationen hierzu finden Sie im Handbuch sowie im Hilfetext der Box „ÖPNV-Daten (GTFS) des ausgewählten Verkehrsnetzes“.</p>
-  <p>Optional können Sie noch Höhendaten in Ihr Verkehrsnetz integrieren. Dies ist vor allem dann sinnvoll, wenn Ihre Region sehr hügelig oder gar bergig ist.</p>
-  <p>Wenn Sie ein neues Verkehrsnetz definieren, wir diesem zunächst standardmäßig ein OpenStreetMap-Straßennetz sowie ein Höhendatensatz als Vorlage hinzufügt. Diese Daten haben einen Datenstand 2021 und können direkt verwendet werden. Wenn Sie stattdessen andere oder aktuellere Daten verwenden möchten, laden Sie Ihre Daten in den entsprechenden Boxen hoch. Ein vergleichbarer Standarddatensatz für die ÖPNV-Fahrplandaten kann bisher leider nicht bereitgestellt werden.</p>
-  <p>Wenn sich in Zukunft maßgebliche Dinge an ihren Straßen- und ÖPNV-Netzen ändert, z.B. eine erhebliche Ausweitung oder Reduzierung des ÖPNV-Angebots absehbar ist oder eine maßgebliche neue Straßenverbindung (Ortsumgehung, Autobahnanschluss, …) diskutiert wird, kann es sinnvoll sein, ein oder mehrere weitere Verkehrsnetze zu definieren, in deren Eingangsdaten diese Änderungen berücksichtigt sind. Auf dieser Basis können Sie im nachfolgenden Menüpunkt „Erreichbarkeit“ dann alternative Erreichbarkeitsmatrizen für das gleiche Verkehrsmittel (z.B. „Pkw-Erreichbarkeit mit dem aktuellen Straßennetz“ und „Pkw-Erreichbarkeit nach Umsetzung aller Ausbauplanungen“), die von den Nutzer*innen im Hauptmenübereich „Infrastrukturplanung“ dann alternativ zur Bewertung der Erreichbarkeit von Infrastrukturen verwendet werden können.</p>
-  <p>Um ein Verkehrsnetz zu definieren, klicken Sie in der Box „Verkehrsnetze“ auf Hinzufügen und folgen den weiteren Anweisungen im dortigen Hilfetext.</p>
+  <p>Die Erreichbarkeitsverhältnisse in Ihrem Projektgebiet werden anhand von Reisezeitmatrizen abgebildet. Reisezeitmatrizen sind (große) Tabellen, in denen für ein bestimmtes Verkehrsmittel verzeichnet ist, wie lange man von den einzelnen Startpunkten (z.B. den Wohnstandorten) zu den Zielen (z.B. den Einrichtungen) kommt.</p>
+  <p>Auf dieser Seite können Sie die Reisezeitmatrizen für die drei straßenbezogenen Verkehrsmittel</p>
+  <li>zu Fuß</li>
+  <li>mit dem Rad und</li>
+  <li>mit dem Auto</li>
+  <p>erzeugen. Reisezeitmatrizen für das ÖPNV-Netz erzeugen Sie über den nachfolgenden Menüpunkt „ÖPNV-Netz“.</p>
+  <p>Die Erzeugung der Reisezeitmatrizen erfolgt in drei Arbeitsschritten, denen jeweils einer der drei nachfolgenden Eingabeboxen entspricht.</p>
+
 </app-header-card>
 
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
-    <app-input-card [title]="'Straßennetz'"
-                    infoText="<p>Platzhalter</p>">
+    <app-input-card [title]="'Schritt 1: OpenStreetMap-Straßennetz herunterladen'"
+                    infoText="<p>Daviplan nutzt kostenfreie Straßendaten von OpenStreetMap (OSM). Wenn Sie die Schaltfläche „Basisnetz herunterladen“ anklicken, wird ein kostenfreies, aktuelles Straßennetz für Ihren Teilraum vom OSM-Anbieter Geofabrik heruntergeladen und auf Ihrem Server zwischengespeichert. Aufgrund der Datenmenge kann der Download etwas dauern. Ein Häkchen hinter der Statusanzeige zeigt Ihnen, wenn der Download erfolgreich war oder bereits zu einem früheren Zeitpunkt durchgeführt wurde.</p>">
       <div>
         Status: {{baseDataSettings?.routing?.baseNet? 'Basisnetz vorhanden': 'Basisnetz nicht vorhanden'}}
         <mat-icon *ngIf="baseDataSettings?.routing?.baseNet" color="primary">done</mat-icon>
@@ -29,11 +22,14 @@
       <button mat-flat-button color="primary"
               (click)="downloadBaseNetwork()">
         <!--        <mat-icon>build</mat-icon> -->
-        Basisnetz herunterladen
+        Straßennetz herunterladen
       </button>
-      <mat-divider style="margin: 10px 0;"></mat-divider>
+    </app-input-card>
+    <app-input-card [title]="'Schritt 2: Mit Projektgebiet verschneiden'"
+                    infoText="<p>Um die nachfolgenden Berechnungsschritte zu beschleunigen, wird das Straßennetz mit Ihrem Projektgebiet verschnitten. Dazu wird ein Ausschnitt aus dem Straßennetz herausgeschnitten, dass Ihr Projektgebiet plus einem Puffer von 30 km rund um ihr Projektgebiet umfasst. Der Puffer umfasst keine Flächen außerhalb Deutschlands.</p>
+                              <p>Um diese Verschneidung durchzuführen, klicken Sie bitte auf die Schaltfläche „Straßennetz verschneiden“. Ein Häkchen hinter der Statusanzeige zeigt Ihnen, wenn die Verschneidung erfolgreich war oder bereits zu einem früheren Zeitpunkt durchgeführt wurde.</p>">
       <div>
-        Status: {{baseDataSettings?.routing?.projectAreaNet? 'Basisnetz mit Projektgebiet verschnitten': 'Basisnetz nicht verschnitten'}}
+        Status: {{baseDataSettings?.routing?.projectAreaNet? 'Basisnetz verschnitten': 'Basisnetz nicht verschnitten'}}
         <mat-icon *ngIf="baseDataSettings?.routing?.projectAreaNet" color="primary">done</mat-icon>
       </div>
       <button mat-flat-button color="primary"
@@ -44,10 +40,13 @@
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="900px">
-    <app-input-card [title]="'???'"
-                    infoText="<p>Platzhalter</p>">
+    <app-input-card [title]="'Schritt 3: Reisezeitmatrizen Fuß, Rad und Auto erzeugen\n'"
+                    infoText="<p>Im letzten Schritt wird das zuvor heruntergeladene und verschnittene Straßennetz verwendet, um Reisezeitmatrizen für die drei Verkehrsmittel „Fuß“, „Rad“ und „Auto“ zu berechnen. Dabei wird die minimale Wegezeit zwischen allen Wohnstandorten und Errichtungen ermittelt.</p>
+                              <p><b>Diesen zeitintensiven Rechenschritt sollten Sie erst durchführen, wenn Sie im Menüpunkt „Infrastrukturdaten > Standorte und Kapazitäten“ bereits alle für Ihr Projekt relevanten Standorte hochgeladen haben. Zwar können Sie auch später noch – z.B. im Zuge der Szenarienentwicklung im Bereich „Infrastrukturplanung“ – einzelne Standorte nachdefinieren. Die Neuberechnung der Reisezeitmatrizen dauert jedoch mitunter länger.</b></p>
+                              <p>Um für Ihre zuvor eingelesenen Standorte Reisezeitmatrizen zu erstellen, klicken Sie auf „Reisezeitmatrizen erzeugen“. Je nach Größe und Netzdichte Ihres Projektgebiet dauert die damit angestoßene Berechnung länger, ggf. auch über eine Stunde.</p>
+                              <p>Ein Häkchen hinter der Statusanzeige zeigt Ihnen, wenn die Berechnung der Reisezeitmatrizen erfolgreich war oder bereits zu einem früheren Zeitpunkt durchgeführt wurde. </p>">
       <div style="width: 100%; display: flex;">
-        <div style="width: 40%;">
+        <div style="width: 40%; display: flex;">
           <!--          <span class="subtitle1 sub">
                       Verkehrsnetz „{{selectedRouter}}“
                     </span>-->
@@ -65,7 +64,7 @@
               <td>Sascha Schmidt</td>
             </tr>
           </table>-->
-          <div style="margin-top: 50px;">
+          <div style="align-self: end;">
             <button mat-flat-button color="primary"
                     [disabled]="!baseDataSettings?.routing?.projectAreaNet"
                     (click)="createMatrices()">
@@ -75,7 +74,7 @@
         </div>
         <div style="width: 60%">
           <span class="subtitle1">Historie</span>
-          <app-log height="calc(100% - 25px)"></app-log>
+          <app-log room="routing" height="200px"></app-log>
         </div>
       </div>
     </app-input-card>
