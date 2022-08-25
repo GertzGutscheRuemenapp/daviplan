@@ -315,22 +315,22 @@ LOGGING = {
     'loggers': {
         'areas': {
             'handlers': ['web_socket', 'console'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': False,
         },
         'population': {
             'handlers': ['web_socket', 'console'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': False,
         },
         'infrastructure': {
             'handlers': ['web_socket', 'console'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': False,
         },
         'routing': {
             'handlers': ['web_socket', 'console'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': False,
         },
     },

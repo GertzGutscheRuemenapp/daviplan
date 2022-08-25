@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { MatDialog } from "@angular/material/dialog";
@@ -14,7 +14,7 @@ export const mockRouters = ['Deutschland 2020', 'SHK mit ÖPNV 2021', 'Dtl 2020 
   templateUrl: './road-network.component.html',
   styleUrls: ['./road-network.component.scss']
 })
-export class RoadNetworkComponent implements OnInit {
+export class RoadNetworkComponent implements OnInit, OnDestroy {
   routers = mockRouters;
   baseDataSettings?: BasedataSettings;
   modeVariants: ModeVariant[] = [];
@@ -88,5 +88,8 @@ export class RoadNetworkComponent implements OnInit {
         },(error) => {
         })
     })
+  }
+
+  ngOnDestroy(): void {
   }
 }

@@ -1,5 +1,5 @@
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('routing')
 
 import pandas as pd
 import numpy as np
@@ -163,15 +163,17 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         variants = request.data.get('variants', [])
         air_distance_routing = request.data.get('air_distance_routing', False)
         places = request.data.get('places')
-
+        logger.info('Starte Berechnung der Reisezeitmatrizen')
         dataframes = []
         try:
             queryset = self.get_filtered_queryset(variants=variants,
                                                   places=places)
             for variant_id in variants:
                 variant = ModeVariant.objects.get(pk=variant_id)
-                max_distance = float(request.data.get('max_distance',
-                                                MODE_MAX_DISTANCE[variant.mode]))
+                logger.info('Berechne Reisezeiten für Modus '
+                            f'{Mode(variant.mode).name}')
+                max_distance = float(request.data.get(
+                    'max_distance', MODE_MAX_DISTANCE[variant.mode]))
 
                 if variant.mode == Mode.TRANSIT:
                     #  access variant is WALK, if no other mode is requested
@@ -202,15 +204,17 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                         if not places:
                             places = Place.objects.values_list('id', flat=True)
                         chunk_size = 100
-                        for i in range(0,  len(places),  chunk_size):
+                        for i in range(0, len(places), chunk_size):
                             place_part = places[i:i+chunk_size]
                             df = self.calc_routed_traveltimes(
                                 variant, max_distance=max_distance,
                                 places=place_part)
                             dataframes.append(df)
+                            logger.info(f'{min((i+chunk_size), len(places))}/'
+                                        f'{len(places)} Orte berechnet')
 
             if not dataframes:
-                msg = 'No routes found'
+                msg = 'Keine Routen gefunden'
                 raise RoutingError(msg)
             else:
                 df = pd.concat(dataframes)
@@ -221,9 +225,10 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         except RoutingError as err:
             ret_status = status.HTTP_406_NOT_ACCEPTABLE
             msg = str(err)
+            logger.error(msg)
         else:
             ret_status = status.HTTP_202_ACCEPTED
-        logger.info(msg)
+            logger.info(msg)
         return Response({'message': msg, }, status=ret_status)
 
     def prepare_and_calc_transit_traveltimes(self,
@@ -269,7 +274,7 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         if not success:
             raise RoutingError(msg)
 
-        logger.info(msg)
+        logger.debug(msg)
         df = self.calculate_transit_traveltime(
             access_variant=access_variant,
             transit_variant=variant,
@@ -310,8 +315,9 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                 if drop_constraints:
                     manager.restore_constraints()
                     manager.restore_indexes()
-            msg = (f'Traveltime Calculation successful, deleted {n_deleted} '
-                   f'rows and added {len(df)} rows to {model._meta.object_name}')
+            msg = (f'Berechnung der Reiszeiten erfolgreich, {n_deleted} Einträge '
+                   f'entfernt und {len(df)} Einträge hinzugefügt '
+                   f'({model._meta.object_name})')
             return (True, msg)
 
     def get_filtered_queryset(variants: List[int], **kwargs) -> QuerySet:
@@ -364,7 +370,7 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         df = minutes.to_frame(name='minutes')
         df['variant_id'] = variant.id
         df.reset_index(inplace=True)
-        logger.info(df)
+        logger.debug(df)
         return df
 
     def calculate_airdistance_traveltimes(self,
