@@ -1,4 +1,4 @@
-django==3.*
+django==4.*
 django-cors-headers==3.*
 psycopg2==2.*
 numpy

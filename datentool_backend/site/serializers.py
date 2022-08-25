@@ -86,7 +86,7 @@ class BaseDataSettingSerializer(serializers.Serializer):
     default_demand_rate_sets = serializers.SerializerMethodField(read_only=True)
     default_mode_variants = serializers.SerializerMethodField(read_only=True)
     default_prognosis = serializers.SerializerMethodField(read_only=True)
-    #routing = serializers.SerializerMethodField(read_only=True)
+    routing = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         fields = ('default_pop_area_level', 'pop_statistics_area_level',
@@ -133,13 +133,13 @@ class BaseDataSettingSerializer(serializers.Serializer):
             os.path.join(settings.MEDIA_ROOT, settings.BASE_PBF))
         project_area_net_existing = os.path.exists(
             os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf'))
-        running = {}
-        for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
-            running[mode.name] = OSRMRouter(mode).is_running
+        #running = {}
+        #for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
+            #running[mode.name] = OSRMRouter(mode).is_running
         return {
             'base_net': base_net_existing,
             'project_area_net': project_area_net_existing,
-            'running': running,
+            #'running': running,
         }
 
 

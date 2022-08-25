@@ -3,6 +3,7 @@ import urllib.request
 import requests
 import os
 import json
+import locale
 
 from django.conf import settings
 from django.core.serializers import serialize
@@ -20,6 +21,10 @@ from datentool_backend.site.models import ProjectSetting
 
 from .models import Network, ModeVariant, Mode
 from .serializers import NetworkSerializer, ModeVariantSerializer
+
+import logging
+
+logger = logging.getLogger('routing')
 
 
 class ModeVariantViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
@@ -48,8 +53,24 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         if os.path.exists(fp):
             os.remove(fp)
         # ToDo: download in chunks to show progress (in logs)
-        (f, res) = urllib.request.urlretrieve(settings.PBF_URL, fp)
+        logger.info(f'Lade {settings.PBF_URL} herunter')
+        self._d_i = 0
+        def progress_hook(count, blockSize, totalSize):
+            percent = int(count * blockSize * 100 / totalSize)
+            if percent >= self._d_i * 10:
+                logger.info(f'{percent}% ({count * blockSize // 1024}kB/'
+                            f'{totalSize // 1024}kB)')
+                self._d_i += 1
+
+        (f, res) = urllib.request.urlretrieve(settings.PBF_URL, fp,
+                                              reporthook=progress_hook)
         # ToDo: errors?
+
+        fp_project = os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf')
+        if os.path.exists(fp_project):
+            os.remove(fp_project)
+
+        logger.info(f'OSM-Straßennetz erfolgreich heruntergeladen')
         return Response({'message': f'Download of base network successful'},
                         status=status.HTTP_201_CREATED)
 
@@ -75,11 +96,15 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                 os.remove(fp)
         project_area = ProjectSetting.load().project_area
         if not project_area:
-            return Response(
-                {'message': f'Project Area is undefined'},
-                status=status.HTTP_400_BAD_REQUEST)
+            msg = 'Das Projektgebiet ist nicht definiert'
+            logger.error(msg)
+            return Response({'message': msg },
+                            status=status.HTTP_400_BAD_REQUEST)
 
-        buffered = project_area.buffer(30000)
+        buffer = 30000
+        logger.info('Verschneide das Straßennetz mit dem Projektgebiet und '
+                    f'einem Buffer von {buffer/1000} km')
+        buffered = project_area.buffer(buffer)
         buffered.transform('EPSG: 4326')
 
         geojson = json.dumps({
@@ -106,25 +131,29 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                fp_base_pbf, '-o', fp_target_pbf]
         process = subprocess.run(cmd)
         if process.returncode != 0:
+            msg = ('Verschneidung fehlgeschlagen. Das Projektgebiet konnte '
+                   'nicht aus dem Basisnetz extrahiert werden')
+            logger.error(msg)
             return Response(
-                {'message': f'Build failed. Could not extract '
-                 'Project area from base network'},
+                {'message': msg},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         network, created = Network.objects.get_or_create(is_default=True)
         network.network_file = fp_target_pbf
         network.save()
 
-        # ToDo: use own route to run and build to test
-        for mode in [Mode.CAR, Mode.BIKE, Mode.WALK]:
+        modes = [Mode.CAR, Mode.BIKE, Mode.WALK]
+        for mode in modes:
+            logger.info(f'Baue Router {mode.name}')
             router = OSRMRouter(mode)
             try:
                 success = router.build(fp_target_pbf)
             except requests.exceptions.ConnectionError:
                 success = False
             if not success:
-                return Response({'message': f'Build failed. Could not build '
-                                 f'router network {mode.name}'},
+                msg = (f'Berechnung fehlgeschlagen. Der Router {mode.name} '
+                       'konnte nicht gebaut werden.')
+                return Response({'message': msg},
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             router.run()
 
