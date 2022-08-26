@@ -67,8 +67,7 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
             api = Regionalstatistik(start_year=min_max_years['year__min'],
                                     end_year=min_max_years['year__max'],
                                     username=username,
-                                    password=password,
-                                    logger=logger)
+                                    password=password)
             try:
                 area_level = AreaLevel.objects.get(is_statistic_level=True)
             except AreaLevel.DoesNotExist:

@@ -70,7 +70,7 @@ class ExcelTemplateMixin:
     def upload_template(self, request, queryset=None, **kwargs):
         """Upload the filled out Template"""
         serializer = self.get_serializer()
-        logger = serializer.logger or logging.getLogger(__name__)
+        logger = getattr(serializer, 'logger', logging.getLogger(__name__))
         if queryset is None:
             queryset = serializer.get_queryset(request) \
                 if hasattr(serializer, 'get_queryset') else self.get_queryset()
