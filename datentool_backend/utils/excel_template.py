@@ -2,6 +2,7 @@ from io import StringIO
 from distutils.util import strtobool
 import sys
 import traceback
+import logging
 
 from django.http import HttpResponse
 from django.db import transaction
@@ -69,6 +70,7 @@ class ExcelTemplateMixin:
     def upload_template(self, request, queryset=None, **kwargs):
         """Upload the filled out Template"""
         serializer = self.get_serializer()
+        logger = getattr(serializer, 'logger', logging.getLogger(__name__))
         if queryset is None:
             queryset = serializer.get_queryset(request) \
                 if hasattr(serializer, 'get_queryset') else self.get_queryset()
@@ -85,7 +87,9 @@ class ExcelTemplateMixin:
             queryset.delete()
 
             try:
+                logger.info('Lese Excel-Datei')
                 df = serializer.read_excel_file(request, **kwargs)
+                logger.info('Schreibe Daten in Datenbank')
                 if len(df):
                     with StringIO() as file:
                         df.to_csv(file, index=False)
@@ -95,13 +99,15 @@ class ExcelTemplateMixin:
                             drop_constraints=False, drop_indexes=False,
                         )
             except ColumnError as e:
-                return Response({'Fehler': f'{e} '
-                                 'Bitte überprüfen Sie das Template.'},
+                msg = f'{e} Bitte überprüfen Sie das Template.'
+                logger.error(msg)
+                return Response({'Fehler': msg},
                                 status=status.HTTP_406_NOT_ACCEPTABLE)
 
             except Exception as e:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 msg = repr(traceback.format_tb(exc_traceback))
+                logger.error(msg)
                 return Response({'Fehler': msg},
                                 status=status.HTTP_406_NOT_ACCEPTABLE)
 
@@ -114,6 +120,7 @@ class ExcelTemplateMixin:
         if hasattr(serializer, 'post_processing'):
             serializer.post_processing(df, drop_constraints)
 
-        msg = f'Upload successful of {len(df)} rows'
+        msg = f'Upload von {len(df)} Einträgen erfolgreich'
+        logger.info(msg)
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 

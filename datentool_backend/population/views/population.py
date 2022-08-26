@@ -49,6 +49,10 @@ from datentool_backend.population.serializers import (PrognosisSerializer,
 from datentool_backend.site.models import SiteSetting
 from datentool_backend.area.models import Area, AreaLevel
 
+import logging
+
+logger = logging.getLogger('population')
+
 
 class PrognosisViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Prognosis.objects.all()
@@ -240,12 +244,15 @@ class PopulationViewSet(viewsets.ModelViewSet):
     @action(methods=['POST'], detail=False,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def pull_regionalstatistik(self, request, **kwargs):
-        with ProtectedProcessManager(request.user):
+        with ProtectedProcessManager(request.user, logger=logger):
+            logger.info('Frage Bevölkerungsdaten von der Regionalstatistik ab.')
             CHUNK_SIZE = 10
             age_groups = AgeGroup.objects.all()
             if not RegStatAgeGroups.check(age_groups):
-                return Response({'message': 'Die Altersklassen stimmen nicht mit '
-                                 'denen der Regionalstatistik überein'},
+                msg = ('Die Altersklassen stimmen nicht mit '
+                       'denen der Regionalstatistik überein')
+                logger.error(msg)
+                return Response({'message': msg},
                                 status=status.HTTP_406_NOT_ACCEPTABLE)
             # ToDo: there is also is_default_pop_level. set is_default_pop_level
             # automatically to the is_statistic_level level on completion
@@ -253,8 +260,9 @@ class PopulationViewSet(viewsets.ModelViewSet):
             try:
                 area_level = AreaLevel.objects.get(is_statistic_level=True)
             except AreaLevel.DoesNotExist:
-                msg = 'No AreaLevel for statistics defined'
-                return Response({'message': msg, },
+                msg = 'Keine Gebietseinheit für die Statistiken definiert'
+                logger.error(msg)
+                return Response({'message': msg},
                                 status=status.HTTP_406_NOT_ACCEPTABLE)
 
             areas = Area.annotated_qs(area_level).filter(area_level=area_level)
@@ -267,14 +275,18 @@ class PopulationViewSet(viewsets.ModelViewSet):
                                     end_year=min_max_years['year__max'],
                                     username=username,
                                     password=password)
+            logger.info(f'Jahre {min_max_years["year__min"]} bis '
+                        f'{min_max_years["year__max"]} angefragt')
             ags_list = areas.values_list('ags', flat=True)
             frames = []
             try:
                 chunks = math.ceil(len(ags_list) / CHUNK_SIZE)
                 for i in range(0, chunks):
                     j = i * CHUNK_SIZE
-                    ags = ags_list[j:min(j+CHUNK_SIZE, len(ags_list))]
+                    k = min(j+CHUNK_SIZE, len(ags_list))
+                    ags = ags_list[j:k]
                     frames.append(api.query_population(ags=ags))
+                    logger.info(f'{k}/{len(ags_list)} Gebiete abgefragt')
             except PermissionDenied as e:
                 msg = ('Die Datenmenge ist zu groß, um sie ohne Konto bei der '
                 'Regionalstatistik abrufen zu können. Bitte benachrichtigen Sie '
@@ -282,13 +294,20 @@ class PopulationViewSet(viewsets.ModelViewSet):
                 'Zugangsdaten in den Grundeinstellungen von daviplan eingetragen '
                 'werden müssen. Falls dort bereits ein Konto eingetragen ist, '
                 'überprüfen Sie bitte die Gültigkeit der Zugangsdaten.')
+                logger.error(msg)
                 return Response({'message': msg, },
                                 status=status.HTTP_403_FORBIDDEN)
             except Exception as e:
+                logger.error(str(e))
                 return Response({'message': str(e),},
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             df_population = pd.concat(frames)
+            years = df_population['year'].unique()
+            years.sort()
+            logger.info('Bevölkerungsdaten für die Jahre '
+                        f'{", ".join(years.astype("str"))} gefunden')
+            logger.info('Verarbeite Bevölkerungsdaten')
             regstatagegroups = RegStatAgeGroups.as_series()
             area_ids = pd.DataFrame(
                 areas.values('id', 'ags')).set_index('ags').loc[:, 'id']
@@ -325,6 +344,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
 
             drop_constraints = request.data.get('drop_constraints', True)
 
+            logger.info('Schreibe Bevölkerungsdaten in Datenbank')
             with StringIO() as file:
                 df_population.to_csv(file, index=False)
                 file.seek(0)
@@ -332,12 +352,17 @@ class PopulationViewSet(viewsets.ModelViewSet):
                     file,
                     drop_constraints=drop_constraints, drop_indexes=drop_constraints,
                 )
-            for population in populations:
+            logger.info('Disaggregiere Bevölkerungsdaten')
+            for i, population in enumerate(populations):
                 disaggregate_population(population, use_intersected_data=True,
                                         drop_constraints=drop_constraints)
+                logger.info(f'{i + 1}/{len(populations)}')
+            logger.info('Aggregiere Bevölkerungsdaten')
             aggregate_many(AreaLevel.objects.all(), populations,
                            drop_constraints=drop_constraints)
-            msg = 'Download of Population from Regionalstatistik successful'
+            msg = ('Abfrage der Bevölkerungsdaten von der Regionalstatistik '
+                   'erfolgreich')
+            logger.info(msg)
             return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
 
@@ -376,5 +401,5 @@ class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
             parser_classes=[CamelCaseMultiPartParser])
     def upload_template(self, request):
         """Upload the filled out Stops-Template"""
-        with ProtectedProcessManager(request.user):
+        with ProtectedProcessManager(request.user, logger=logger):
             return super().upload_template(request)

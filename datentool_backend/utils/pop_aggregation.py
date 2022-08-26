@@ -13,6 +13,10 @@ from datentool_backend.models import (Area, PopulationRaster, AreaCell,
                                       RasterCellPopulationAgeGender,
                                       RasterCellPopulation)
 
+import logging
+
+logger = logging.getLogger('population')
+
 def disaggregate_population(population: Population,
                             use_intersected_data: bool=False,
                             drop_constraints: bool=False):
@@ -200,7 +204,7 @@ def aggregate_many(area_levels, populations, drop_constraints=False):
             manager.drop_constraints()
             manager.drop_indexes()
 
-        for area_level in area_levels:
+        for i, area_level in enumerate(area_levels):
             for population in populations:
                 aggregate_population(area_level, population,
                                      drop_constraints=False)
@@ -214,6 +218,8 @@ def aggregate_many(area_levels, populations, drop_constraints=False):
             area_level.max_population = max_value
             area_level.population_cache_dirty = False
             area_level.save()
+            logger.info(f'Daten auf Gebietseinheit {area_level.name} aggregiert '
+                        f'{i + 1}/{len(area_levels)}')
 
         if drop_constraints:
             manager.restore_constraints()
