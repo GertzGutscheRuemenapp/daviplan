@@ -22,7 +22,6 @@ import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 })
 export class StatisticsComponent implements AfterViewInit, OnDestroy {
   @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
-  @ViewChild('pullServiceTemplate') pullServiceTemplate?: TemplateRef<any>;
   backend: string = environment.backend;
   mapControl?: MapControl;
   statistics?: Statistic[];
@@ -40,7 +39,6 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
   isLoading$ = new BehaviorSubject<boolean>(false);
   dataColumns: string[] = ['Gebiet', 'AGS', 'Geburten', 'Sterbefälle', 'Zuzüge', 'Fortzüge'];
   dataRows: any[][] = [];
-  pullErrors: any = {};
 
   constructor(private mapService: MapService, private restService: RestCacheService, private rest: RestAPI,
               private settings: SettingsService, private dialog: MatDialog, private http: HttpClient) { }
@@ -208,23 +206,17 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
       data: {
         title: 'Einwohnerdaten abrufen',
         confirmButtonText: 'Daten abrufen',
-        template: this.pullServiceTemplate,
-        closeOnConfirm: false
+        message: '<p> Sollen die Daten aus der Regionalstatistik jetzt abgerufen und in die Datenbank eingespielt werden? </p>' +
+                 '<p> Achtung: bereits eingespielte Statistiken werden überschrieben!</p>',
+        closeOnConfirm: true
       }
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
       const url = `${this.rest.URLS.statistics}pull_regionalstatistik/`;
-      const dialogRef2 = SimpleDialogComponent.show(
-        'Die Bevölkerungsstatistiken werden abgerufen. Bitte warten', this.dialog, { showAnimatedDots: true });
       this.http.post(url, {}).subscribe(() => {
         this.restService.reset();
         this.fetchData();
-        dialogRef.close();
-        dialogRef2.close();
       }, error => {
-        this.pullErrors = error.error;
-        dialogRef.componentInstance.isLoading$.next(false);
-        dialogRef2.close();
       })
     })
   }

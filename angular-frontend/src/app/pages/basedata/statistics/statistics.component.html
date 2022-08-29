@@ -54,26 +54,34 @@
   </div>
   <div fxLayout="column" fxFlex="800px">
     <app-input-card [title]="'Daten des ausgewählten Jahres'"
-                    subtitle="Natürliches Saldo (Geburten und Sterbefälle) und Wanderungssaldo (Zu- und Fortzüge) für ausgewähltes Jahr"
                     [topRightHelp]="true"
                     infoText="<p>Die Karte veranschaulicht Ihnen die Daten für das in der Box „Jahre“ ausgewählte Jahr.</p>
                     <p>Die Inhalte der Karte – also natürliche Bevölkerungsentwicklung (Geburten und Sterbefälle) oder Wanderungen (Zu- und Fortzüge) – steuern Sie über das Menü oben links in der Karte. Ist dieses eingeklappt, klicken Sie bitte auf das Icon mit der Familie.</p>
                     <p>Weitere Informationen wie zusätzliche Gebietsgrenzen können Sie über die Legendensteuerung (auf halber Höhe am rechten Rand der Karte) hinzufügen. Ist diese Steuerung eingeklappt, klicken Sie bitte auf das Icon mit den gestapelten Kartenblättern.</p>">
-      <span class="subtitle1 sub">
-        Jahr: {{year || '-'}}
-      </span>
-      <div>
-        <button class="mat-button-dv"
-                [disabled] = "!year"
-                (click)="showDataTable()"
-                mat-button color="primary">
-          <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
-        </button>
-<!--        <button mat-mini-fab color="primary"
-                aria-label="Daten herunterladen" title="Daten herunterladen"
-                style="float: right; margin: -10px 15px 0 0; box-shadow: none;">
-          <mat-icon>download</mat-icon>
-        </button>-->
+      <div style="width: 100%; display: flex;">
+        <div style="width: 50%; display: flex; flex-wrap: wrap;">
+          <span class="subtitle1 sub" style="width: 100%;">
+            Jahr:
+            <p style="font-size: 1.5em;">{{year || '-'}}</p>
+          </span>
+          <div style="align-self: end;">
+            <button class="mat-button-dv"
+                    [disabled] = "!year"
+                    (click)="showDataTable()"
+                    mat-button color="primary">
+              <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
+            </button>
+          </div>
+    <!--        <button mat-mini-fab color="primary"
+                    aria-label="Daten herunterladen" title="Daten herunterladen"
+                    style="float: right; margin: -10px 15px 0 0; box-shadow: none;">
+              <mat-icon>download</mat-icon>
+            </button>-->
+        </div>
+        <div id="log-window" style="width: 50%">
+          <span class="subtitle1">Daten-Historie</span>
+          <app-log room="population" height="200px"></app-log>
+        </div>
       </div>
       <div id="base-statistics-map" class="map-container">
         <app-map-controls target="base-statistics-map"></app-map-controls>
@@ -135,18 +143,4 @@
 
 <ng-template #dataTemplate>
   <app-data-table [columns]="dataColumns" [rows]="dataRows"></app-data-table>
-</ng-template>
-
-<ng-template #pullServiceTemplate>
-  <div *ngIf="pullErrors">
-    <mat-error *ngFor="let error of pullErrors | keyvalue" class="alert">
-      {{ error.key }}: {{ error.value }}
-    </mat-error>
-  </div>
-  <p>
-    Sollen die Daten aus der Regionalstatistik jetzt abgerufen und in die Datenbank eingespielt werden?
-  </p>
-  <p>
-    Achtung: bereits eingespielte Statistiken werden überschrieben!
-  </p>
 </ng-template>

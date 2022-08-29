@@ -59,7 +59,7 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
     def pull_regionalstatistik(self, request, **kwargs):
         with ProtectedProcessManager(request.user, logger=logger):
             logger.info('Frage Bevölkerungsstatistiken von der '
-                        'Regionalstatistik herunter')
+                        'Regionalstatistik ab')
             min_max_years = Year.objects.all().aggregate(Min('year'), Max('year'))
             settings = SiteSetting.load()
             username = settings.regionalstatistik_user or None
@@ -71,7 +71,7 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
             try:
                 area_level = AreaLevel.objects.get(is_statistic_level=True)
             except AreaLevel.DoesNotExist:
-                msg = 'No AreaLevel for statistics defined'
+                msg = 'Keine Gebietseinheit für Statistiken definiert'
                 logger.error(msg)
                 return Response({'message': msg, },
                                 status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -94,7 +94,13 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
                 return Response({'message': str(e), },
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+            years = df_births['year'].unique()
+            years.sort()
+            logger.info('Statistiken für die Jahre '
+                        f'{", ".join(years.astype("str"))} gefunden')
             logger.info('Verarbeite Statistiken')
+            # ToDo: relying on provision of same years in all API responses
+            # what if that is not the case
             year_grouped = df_births.groupby('year')
             year2popstatistic = {}
             for y, year_group in year_grouped:
@@ -128,6 +134,7 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
 
             drop_constraints = request.data.get('drop_constraints', True)
 
+            logger.info('Schreibe Statistiken in Datenbank')
             with StringIO() as file:
                 df_popstat.to_csv(file, index=False)
                 file.seek(0)
