@@ -415,7 +415,7 @@ class PlacesTemplateSerializer(serializers.Serializer):
                 )
 
         self.logger.info(f'{len(df_places)} Einträge bearbeitet')
-        if len(n_new):
+        if n_new > 0:
             self.logger.info(f'davon {n_new} als neue Orte hinzugefügt')
             self.logger.info('ACHTUNG: Für die neuen Orte muss die '
                              'Erreichbarkeit neu berechnet werden!')
