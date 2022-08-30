@@ -15,15 +15,9 @@ import {
 } from "../../../rest-interfaces";
 import { MapControl, MapService } from "../../../map/map.service";
 import { Subscription } from "rxjs";
-import * as d3 from "d3";
 import { Geometry } from "ol/geom";
-import { ColorBin, MapLayerGroup, VectorLayer, VectorTileLayer } from "../../../map/layers";
-
-const modes: Record<number, string> = {};
-modes[TransportMode.WALK] = 'zu Fuß';
-modes[TransportMode.BIKE] = 'Fahrrad';
-modes[TransportMode.CAR] = 'Auto';
-modes[TransportMode.TRANSIT] = 'ÖPNV';
+import {  MapLayerGroup, VectorLayer, VectorTileLayer } from "../../../map/layers";
+import { modes } from "../mode-select/mode-select.component";
 
 const modeColorValues = [[0,104,55],[100,188,97],[215,238,142],[254,221,141],[241,110,67],[165,0,38],[0,0,0]];
 const modeColors = modeColorValues.map(c => `rgb(${c.join(',')})`);
@@ -62,11 +56,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   capacities?: Capacity[];
   year?: number;
   placeReachabilityLayer?: VectorLayer;
-  TransportMode = TransportMode;
   selectedPlaceId?: number;
   pickedCoords?: number[];
-  modes = modes;
-  Number = Number;
 
   constructor(private mapService: MapService, private dialog: MatDialog, public cookies: CookieService,
               public planningService: PlanningService) { }
@@ -333,7 +324,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   updateMapDescription(indicatorDesc?: string): void {
     let desc = `${this.activeScenario?.name}<br>
                   Erreichbarkeit "${this.activeService?.name}"<br>`;
-    if (indicatorDesc) desc += `<b>Wegzeit ${(this.activeMode !== TransportMode.WALK)? 'mit dem ': ''}${this.modes[this.activeMode]} ${indicatorDesc}</b>`
+    if (indicatorDesc) desc += `<b>Wegzeit ${(this.activeMode !== TransportMode.WALK)? 'mit dem ': ''}${modes[this.activeMode]} ${indicatorDesc}</b>`
     this.mapControl?.setDescription(desc);
   }
 

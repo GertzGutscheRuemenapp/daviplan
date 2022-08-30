@@ -32,6 +32,7 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
+  <app-mode-select [mode]="activeMode" (modeChanged)="changeMode($event)"></app-mode-select>
 </mat-expansion-panel>
 <mat-expansion-panel cookieExpansion="exp-rating-areas">
   <mat-expansion-panel-header>
