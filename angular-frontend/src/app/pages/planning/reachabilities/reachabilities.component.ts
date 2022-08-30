@@ -197,9 +197,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       })
 
       const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
-      this.reachRasterLayer = new VectorTileLayer( 'Gewählter Standort', url,{
+      const place = this.places.find(p => p.id === this.selectedPlaceId);
+      this.reachRasterLayer = new VectorTileLayer( `Wegezeit ${modes[this.activeMode]}`, url,{
         order: 0,
-        description: 'Erreichbarkeit des gewählten Standorts',
+        description: `Erreichbarkeit des gewählten Standorts (${place?.name}) ${modes[this.activeMode]}`,
         opacity: 1,
         style: {
           fillColor: 'grey',
