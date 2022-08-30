@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
-import { ModeVariant } from "../../../rest-interfaces";
+import { ModeVariant, TransportMode } from "../../../rest-interfaces";
 
 @Component({
   selector: 'app-transit-matrix',
@@ -9,8 +9,8 @@ import { ModeVariant } from "../../../rest-interfaces";
 })
 export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
   mapControl?: MapControl;
-  variants: ModeVariant[] = [];
-  selectedVariant?: ModeVariant;
+  variants: ModeVariant[] = [{id: 1, mode: TransportMode.TRANSIT, label: 'Testnetz', network: 1}];
+  selectedVariant?: ModeVariant = this.variants[0];
   statusQuoVariant?: ModeVariant;
 
   constructor(private mapService: MapService) { }

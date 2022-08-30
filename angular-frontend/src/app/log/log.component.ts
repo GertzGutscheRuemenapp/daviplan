@@ -8,7 +8,7 @@ import { LogEntry } from "../rest-interfaces";
   styleUrls: ['./log.component.scss']
 })
 export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy {
-  @Input() height: string = '100%';
+  @Input() height: string = '200px';
   @Input() room: string | undefined = '';
   @ViewChild('log') logEl!: ElementRef;
   private wsURL: string;

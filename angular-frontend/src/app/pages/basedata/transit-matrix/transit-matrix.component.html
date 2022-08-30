@@ -49,28 +49,20 @@
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="1100px">
-    <app-input-card [title]="'Erreichbarkeitsmatrix'"
-                    [topRightHelp]="true"
-                    infoText="<p>Wenn Sie für diese Erreichbarkeitsmatrix Daten aus einer externen Vorberechnung nutzen möchten, können Sie sich mit der Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei herunterladen. Befüllen Sie diese mit Ihren Matrixdaten und laden Sie sie anschließend mit der Schaltfläche „Daten hochladen“ wieder hoch.</p>
-                    <p>Alternativ können Sie die Erreichbarkeitsmatrix auch über die Schaltfläche „Berechnen“ berechnen lassen. Voraussetzung ist, dass Sie im vorigen Menüpunkt „Verkehrsnetz“ ein passendes Verkehrsnetz mit Routensucher erzeugt haben. Dieses können Sie in dem Dialog auswählen, der sich nach dem Anklicken der Schaltfläche „Berechnen“ öffnet.</p>">
-      <div style="width: 100%; display: flex;">
-        <div style="width: 50%; align-self: start;">
+    <div fxLayout="row">
+      <div style="width: 500px;">
+        <app-input-card [title]="'Schritt 1: Haltestellen'"
+                        infoText="Platzhalter">
           <span class="subtitle1 sub">
-            Verkehrsmittel {{selectedVariant?.mode}} / Erreichbarkeitsmatrix „{{selectedVariant?.label}}“
+            Haltestellen für „{{selectedVariant?.label}}“
           </span>
-          <div style="display: flex; margin-top: 15px;">
-            <table>
-              <tr>
-                <td i18n>Haltestellen</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td i18n>Reisezeitmatrix</td>
-                <td>nicht vorhanden</td>
-              </tr>
-            </table>
-          </div>
-          <div style="display: flex; margin-top: 15px;">
+          <table>
+            <tr>
+              <td i18n>Status: </td>
+              <td>vorhanden</td>
+            </tr>
+          </table>
+          <div style="display: flex; margin-top: 10px;">
             <button mat-stroked-button color="primary" style="margin-right: 10px;">
               <mat-icon>download</mat-icon> Vorlage Haltestellen
             </button>
@@ -78,14 +70,67 @@
               <mat-icon>upload</mat-icon> Haltestellen hochladen
             </button>
           </div>
+        </app-input-card>
+      </div>
+      <div style="width: 600px;">
+        <app-input-card [title]="'Schritt 2: Reisezeitmatrizen Haltestellen'"
+                        infoText="Platzhalter">
+          <span class="subtitle1 sub">
+            Reisezeitmatrizen für „{{selectedVariant?.label}}“ zwischen Haltestellen
+          </span>
+          <table>
+            <tr>
+              <td i18n>Status: </td>
+              <td>vorhanden</td>
+            </tr>
+          </table>
+          <div style="display: flex; margin-top: 10px;">
+            <div style="width: 45%; display: flex; flex-wrap: wrap;">
+              <span class="subtitle1 sub" style="margin-top: 10px;">
+                Variante 1: Excel
+              </span>
+              <button mat-stroked-button color="primary" style="margin-top: 10px;">
+                <mat-icon>download</mat-icon> Vorlage Reisezeitmatrix
+              </button>
+              <button mat-flat-button color="primary" style="margin-top: 10px;">
+                <mat-icon>upload</mat-icon> Reisezeitmatrix hochladen
+              </button>
+            </div>
+            <mat-divider [vertical]="true" style="margin: 0 20px;"></mat-divider>
+            <div style="width: 45%; display: flex; flex-wrap: wrap;">
+              <span class="subtitle1 sub" style="width: 100%; margin-top: 10px;">
+                Variante 2: VISUM
+              </span>
+              <button mat-flat-button color="primary" style="align-self: end;">
+                <mat-icon>upload</mat-icon> Visumdatei hochladen
+              </button>
+            </div>
+          </div>
+        </app-input-card>
+      </div>
+    </div>
+    <app-input-card [title]="'Schritt 3: Reisezeitmatrizen Standorte'"
+                    [topRightHelp]="true"
+                    infoText="<p>Wenn Sie für diese Erreichbarkeitsmatrix Daten aus einer externen Vorberechnung nutzen möchten, können Sie sich mit der Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei herunterladen. Befüllen Sie diese mit Ihren Matrixdaten und laden Sie sie anschließend mit der Schaltfläche „Daten hochladen“ wieder hoch.</p>
+                    <p>Alternativ können Sie die Erreichbarkeitsmatrix auch über die Schaltfläche „Berechnen“ berechnen lassen. Voraussetzung ist, dass Sie im vorigen Menüpunkt „Verkehrsnetz“ ein passendes Verkehrsnetz mit Routensucher erzeugt haben. Dieses können Sie in dem Dialog auswählen, der sich nach dem Anklicken der Schaltfläche „Berechnen“ öffnet.</p>">
+      <div style="width: 100%; display: flex;">
+        <div style="width: 50%; align-self: start;">
+          <span class="subtitle1 sub">
+            Reisezeitmatrizen „{{selectedVariant?.label}}“ <br>
+            von Wohnstandorten zu Einrichtungen
+          </span>
+          <div style="display: flex; margin-top: 15px;">
+            <table>
+              <tr>
+                <td i18n>erzeugt am</td>
+                <td>01.01.0001</td>
+              </tr>
+            </table>
+          </div>
+          <div style="display: flex; margin-top: 15px;">
+          </div>
           <br>
           <div style="display: flex">
-            <button mat-stroked-button color="primary" style="margin-right: 10px;">
-              <mat-icon>download</mat-icon> Vorlage Reisezeitmatrix
-            </button>
-            <button mat-flat-button color="primary">
-              <mat-icon>upload</mat-icon> Reisezeitmatrix hochladen
-            </button>
           </div>
           <div style="margin-top: 20px;">
             <button mat-flat-button color="primary">
@@ -97,15 +142,6 @@
           <span class="subtitle1">Daten-Historie</span>
           <app-log height="200px"></app-log>
         </div>
-      </div>
-      <div id="base-reachabilities-map" style="margin-top: 15px;" class="map-container">
-        <app-map-controls target="base-reachabilities-map"></app-map-controls>
-        <app-side-toggle id="legend"
-                         icon="layers"
-                         name="Legenden- und Layersteuerung"
-                         direction="left">
-          <app-legend target="base-reachabilities-map"></app-legend>
-        </app-side-toggle>
       </div>
     </app-input-card>
   </div>

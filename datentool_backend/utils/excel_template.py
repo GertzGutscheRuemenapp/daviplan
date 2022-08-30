@@ -89,8 +89,8 @@ class ExcelTemplateMixin:
             try:
                 logger.info('Lese Excel-Datei')
                 df = serializer.read_excel_file(request, **kwargs)
-                logger.info('Schreibe Daten in Datenbank')
                 if len(df):
+                    logger.info('Schreibe Daten in Datenbank')
                     with StringIO() as file:
                         df.to_csv(file, index=False)
                         file.seek(0)
@@ -120,7 +120,10 @@ class ExcelTemplateMixin:
         if hasattr(serializer, 'post_processing'):
             serializer.post_processing(df, drop_constraints)
 
-        msg = f'Upload von {len(df)} Einträgen erfolgreich'
+        if len(df):
+            msg = f'Upload von {len(df)} Einträgen erfolgreich'
+        else:
+            msg = f'Upload erfolgreich'
         logger.info(msg)
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 

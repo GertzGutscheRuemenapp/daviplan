@@ -174,6 +174,12 @@ export interface AreaIndicatorResult {
   value: number
 }
 
+export interface PlaceIndicatorResult {
+  placeId: number,
+  label?: string,
+  value: number
+}
+
 export interface Population {
   id: number,
   year: number,

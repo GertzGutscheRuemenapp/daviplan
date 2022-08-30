@@ -340,19 +340,23 @@ export class RestCacheService {
     return observable;
   }
 
-  computeIndicator(indicatorName: string, areaLevelId: number, serviceId: number, options?: { year?: number, prognosis?: number, scenario?: number }): Observable<AreaIndicatorResult[]> {
+  computeIndicator<Type>(indicatorName: string, serviceId: number, options?: {
+    year?: number, prognosis?: number, scenario?: number, areaLevelId?: number, mode?: number  }): Observable<Type[]> {
     const url = `${this.rest.URLS.services}${serviceId}/compute_indicator/`;
     let params: any = {
-      area_level: areaLevelId,
       indicator: indicatorName
     };
     if (options?.year != undefined)
-      params.year = options?.year;
+      params.year = options.year;
     if (options?.prognosis != undefined)
-      params.prognosis = options?.prognosis;
+      params.prognosis = options.prognosis;
     if (options?.scenario != undefined)
-      params.scenario = options?.scenario;
-    return this.getCachedData<AreaIndicatorResult[]>(url, { params: params, method: 'POST', key: options?.scenario?.toString() });
+      params.scenario = options.scenario;
+    if (options?.areaLevelId != undefined)
+      params.area_level = options.areaLevelId;
+    if (options?.mode != undefined)
+      params.mode = options.mode;
+    return this.getCachedData<Type[]>(url, { params: params, method: 'POST', key: options?.scenario?.toString() });
   }
 
   getDemand(areaLevelId: number, options?: { year?: number, prognosis?: number, service?: number, scenario?: number }): Observable<AreaIndicatorResult[]> {
