@@ -32,9 +32,6 @@ class ModeVariantViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = ModeVariant.objects.all()
     serializer_class = ModeVariantSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-    # fun fact: you can't write the method names in upper case, they have
-    # to exactly match the ModelViewSet function names
-    http_method_names = ('get', 'patch', 'head', 'options')
 
 
 class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
