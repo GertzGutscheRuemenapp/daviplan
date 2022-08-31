@@ -345,7 +345,8 @@ export interface ModeVariant {
   id: number,
   label: string,
   mode: number,
-  network: number
+  network: number,
+  isDefault: boolean
   // cutoffTime: number
 }
 

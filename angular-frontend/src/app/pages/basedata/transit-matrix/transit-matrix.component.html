@@ -24,19 +24,20 @@
                          (click)="selectedVariant = variant"
                          [selected]="(selectedVariant?.id === variant.id)">
           <div class="option-text">{{variant.label}}</div>
-          <mat-icon *ngIf="variant.id===selectedVariant?.id" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
+          <mat-icon *ngIf="variant.isDefault" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
         </mat-list-option>
       </mat-selection-list>
       <button mat-button color="primary"
               class="multiline-button"
-              (click)="statusQuoVariant = selectedVariant">
+              (click)="onSetAsDefault()">
 <!--              (click)="statusQuoRouters[selectedRouter.mode] = (statusQuoRouters[selectedRouter.mode]===selectedRouter.id)? undefined : selectedRouter.id">-->
         <mat-icon class="material-icons-outlined">verified</mat-icon>
         Als Annahme für Trendfortschreibung festlegen
       </button>
       <div>
         <button mat-button color="primary"
-                class="mat-button-dv">
+                class="mat-button-dv"
+                (click)="onEditVariant(true)">
           <mat-icon>add</mat-icon>hinzufügen
         </button>
         <button mat-button color="primary"
@@ -44,6 +45,13 @@
                 class="mat-button-dv">
           <!--                [disabled]="selectedQuota==='aktuelle Quoten'"-->
           <mat-icon>close</mat-icon>entfernen
+        </button>
+      </div>
+      <div>
+        <button mat-button color="primary"
+                class="mat-button-dv"
+                (click)="onEditVariant()">
+          <mat-icon>edit</mat-icon>bearbeiten
         </button>
       </div>
     </app-input-card>
@@ -146,3 +154,19 @@
     </app-input-card>
   </div>
 </div>
+
+<ng-template #editVariant>
+  <form [formGroup]="variantForm">
+    <div *ngIf="variantForm.errors">
+      <mat-error *ngFor="let error of variantForm.errors | keyvalue" class="alert">
+        {{error.key}}: <i>{{error.value}}</i>
+      </mat-error>
+    </div>
+    <div fxLayout="column">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Name des Netzes</mat-label>
+        <input matInput formControlName="label" required>
+      </mat-form-field>
+    </div>
+  </form>
+</ng-template>
