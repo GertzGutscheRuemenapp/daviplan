@@ -76,6 +76,8 @@ export class ScenarioMenuComponent implements OnInit {
         this.planningService.getModeVariants().subscribe(modeVariants => this.transitVariants = modeVariants.filter(v => v.mode === TransportMode.TRANSIT));
         break;
       case 'rating':
+        this.planningService.getDemandRateSets(service.id).subscribe(dr => { this.demandRateSets = dr; });
+        this.planningService.getModeVariants().subscribe(modeVariants => this.transitVariants = modeVariants.filter(v => v.mode === TransportMode.TRANSIT));
         break;
       default:
         break;
@@ -264,7 +266,6 @@ export class ScenarioMenuComponent implements OnInit {
   }
 
   onTransitChange(scenario: Scenario, variant: ModeVariant): void {
-    console.log('häh?')
     const body: any = { modeVariants: [{ mode: TransportMode.TRANSIT, variant: variant.id }] };
     this.patchScenarioSetting(scenario, body);
   }

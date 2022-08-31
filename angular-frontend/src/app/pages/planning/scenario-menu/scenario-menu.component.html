@@ -36,7 +36,8 @@
                           [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
           </ng-container>
           <ng-container *ngIf="domain==='rating'">
-            <ng-container *ngTemplateOutlet="ratingScenario"></ng-container>
+            <ng-container [ngTemplateOutlet]="ratingScenario"
+                          [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
           </ng-container>
           <ng-container *ngIf="domain==='supply'">
             <ng-container *ngTemplateOutlet="supplyScenario"></ng-container>
@@ -129,6 +130,7 @@
 <ng-template #reachabilitiesTemplate let-scenario="scenario">
   <div class="scenario-row">
     <mat-form-field appearance="standard" class="small"
+                    style="width: 145px;"
                     floatLabel="always">
       <mat-label>ÖPNV-Netz</mat-label>
       <mat-select disableOptionCentering disableRipple
@@ -144,7 +146,11 @@
   </div>
 </ng-template>
 
-<ng-template #ratingScenario>
+<ng-template #ratingScenario let-scenario="scenario">
+  <ng-container [ngTemplateOutlet]="demandTemplate"
+                [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
+  <ng-container [ngTemplateOutlet]="reachabilitiesTemplate"
+                [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
 </ng-template>
 
 <ng-template #supplyScenario>
