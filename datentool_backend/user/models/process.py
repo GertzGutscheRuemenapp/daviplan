@@ -56,11 +56,11 @@ class Scenario(DatentoolModelMixin, NamedModel, models.Model):
 
 
 class ScenarioMode(models.Model):
-    scenario = models.ForeignKey(Scenario, on_delete=PROTECT_CASCADE)
+    scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE)
     variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
 
 
 class ScenarioService(models.Model):
-    scenario = models.ForeignKey(Scenario, on_delete=PROTECT_CASCADE)
-    service = models.ForeignKey(Service, on_delete=PROTECT_CASCADE)
+    scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
     demandrateset = models.ForeignKey(DemandRateSet, on_delete=PROTECT_CASCADE)
