@@ -4,6 +4,7 @@ import requests
 import os
 import json
 import locale
+import threading
 
 from django.conf import settings
 from django.core.serializers import serialize
@@ -142,8 +143,7 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         network.network_file = fp_target_pbf
         network.save()
 
-        modes = [Mode.CAR, Mode.BIKE, Mode.WALK]
-        for mode in modes:
+        def build(mode):
             logger.info(f'Baue Router {mode.name}')
             router = OSRMRouter(mode)
             try:
@@ -153,13 +153,18 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             if not success:
                 msg = (f'Berechnung fehlgeschlagen. Der Router {mode.name} '
                        'konnte nicht gebaut werden.')
-                return Response({'message': msg},
-                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                logger.error(msg)
+            msg = (f'Router {mode.name} erfolgreich gebaut. Starte Router')
+            logger.info(msg)
             router.run()
 
-        msg = 'Router erfolgreich gebaut und gestartet'
-        logger.info(msg)
-        return Response({'message': msg}, status=status.HTTP_201_CREATED)
+        modes = [Mode.CAR, Mode.BIKE, Mode.WALK]
+        for mode in modes:
+            t = threading.Thread(target=build, args=[mode], daemon=True)
+            t.start()
+
+        return Response({'message': 'Bau der Router gestartet'},
+                        status=status.HTTP_200_OK)
 
     @extend_schema(
         description=('start routers for modes bike, car and foot'),
