@@ -4,7 +4,7 @@ from datentool_backend.base import NamedModel, DatentoolModelMixin
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.population.models import Prognosis
 from datentool_backend.demand.models import DemandRateSet
-from datentool_backend.modes.models import ModeVariant
+from datentool_backend.modes.models import ModeVariant, Network
 from datentool_backend.infrastructure.models.infrastructures import Service
 from .profile import Profile
 
@@ -32,6 +32,27 @@ class Scenario(DatentoolModelMixin, NamedModel, models.Model):
                                             related_name='scenario_service',
                                             blank=True,
                                             through='ScenarioService')
+
+    def save(self, **kwargs):
+        is_created = self.pk == None
+        super().save(**kwargs)
+        if is_created:
+            try:
+                self.prognosis = Prognosis.objects.get(is_default=True)
+            except Prognosis.DoesNotExist:
+                pass
+            for default_set in DemandRateSet.objects.filter(is_default=True):
+                ScenarioService.objects.create(scenario=self,
+                                               service=default_set.service,
+                                               demandrateset=default_set)
+            try:
+                default_network = Network.objects.get(is_default=True)
+                for default_mode in ModeVariant.objects.filter(
+                    is_default=True, network=default_network):
+                    ScenarioMode.objects.create(scenario=self,
+                                                variant=default_mode)
+            except Network.DoesNotExist:
+                pass
 
 
 class ScenarioMode(models.Model):
