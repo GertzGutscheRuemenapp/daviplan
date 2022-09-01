@@ -62,9 +62,9 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
-    this.placesLayerGroup = new MapLayerGroup('Standorte', { order: -2 })
-    this.reachPlaceLayerGroup = new MapLayerGroup('Erreichbarkeiten', { order: -1 })
-    this.reachCellLayerGroup = new MapLayerGroup('Erreichbarkeiten', { order: -3 })
+    this.placesLayerGroup = new MapLayerGroup('Standorte', { order: -1 })
+    this.reachPlaceLayerGroup = new MapLayerGroup('Erreichbarkeiten', { order: -2 })
+    this.reachCellLayerGroup = new MapLayerGroup('Erreichbarkeiten', { order: -2 })
     this.mapControl.addGroup(this.placesLayerGroup);
     this.mapControl.addGroup(this.reachPlaceLayerGroup);
     this.mapControl.addGroup(this.reachCellLayerGroup);
@@ -140,8 +140,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       }
       this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
         order: 1,
+        zIndex: 99998,
         description: this.activeInfrastructure!.name,
         opacity: 1,
+        radius: 7,
         style: {
           fillColor: '#2171b5',
           strokeColor: 'black',
@@ -249,8 +251,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         })
         this.placeReachabilityLayer = new VectorLayer(this.activeInfrastructure!.name, {
           order: 0,
+          zIndex: 99999,
           description: this.activeInfrastructure!.name,
           opacity: 1,
+          radius: 7,
           style: {
             fillColor: 'green',
             strokeColor: 'black',
@@ -259,7 +263,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           },
           labelField: 'label',
           showLabel: showLabel,
-          tooltipField: 'value',
+          tooltipField: 'label',
           valueStyles: {
             field: 'value',
             fillColor: {
