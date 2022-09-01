@@ -301,7 +301,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
             query_params = {
                 'year': 2022,
                 'mode': variant['variant__mode'],
-                'service_ids': [self.service2.pk],
+                'services': [self.service2.pk],
                 'scenario': self.scenario.pk,
             }
             url = reverse(url_key)
