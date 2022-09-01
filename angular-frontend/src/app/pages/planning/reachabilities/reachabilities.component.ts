@@ -195,7 +195,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       }
       let values: Record<string, number> = {};
       cellResults.forEach(cellResult => {
-        values[cellResult.cellCode] = Math.round(cellResult.value * 100) / 100;
+        values[cellResult.cellCode] = Math.round(cellResult.value);
       })
 
       const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
@@ -245,7 +245,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         }
         this.places.forEach(place => {
           const res = placeResults.find(p => p.placeId === place.id);
-          place.value = res?.value;
+          place.value = (res?.value !== undefined)? Math.round(res?.value): undefined;
         })
         this.placeReachabilityLayer = new VectorLayer(this.activeInfrastructure!.name, {
           order: 0,
@@ -257,7 +257,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
             symbol: 'circle',
             strokeWidth: 1
           },
-          labelField: 'value',
+          labelField: 'label',
           showLabel: showLabel,
           tooltipField: 'value',
           valueStyles: {
@@ -274,7 +274,9 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         });
         this.reachCellLayerGroup?.addLayer(this.placeReachabilityLayer);
         this.placeReachabilityLayer.addFeatures(this.places.map(place => {
-          return { id: place.id, geometry: place.geom, properties: { name: place.name, value: place.value } }
+          return { id: place.id, geometry: place.geom, properties: {
+            name: place.name, value: place.value,
+            label: (place.value !== undefined)? `${place.value} Minuten`: 'nicht erreichbar' } }
         }));
       })
     });
