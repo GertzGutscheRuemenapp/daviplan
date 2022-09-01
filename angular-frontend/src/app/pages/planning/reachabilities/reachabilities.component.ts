@@ -35,9 +35,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
   rasterCells: RasterCell[] = [];
   activeMode: TransportMode = TransportMode.WALK;
-  indicator = 'option 1';
-  selectPlaceMode = false;
-  placeMarkerMode = false;
+  indicator: 'place' | 'cell' | 'all' = 'place';
   infrastructures: Infrastructure[] = [];
   places: Place[] = [];
   activeInfrastructure?: Infrastructure;
@@ -80,7 +78,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     });
     this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
       this.activeInfrastructure = infrastructure;
-      this.resetIndicator();
+      this.onIndicatorChange();
     }))
     this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
       this.activeService = service;
@@ -102,6 +100,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
   applyUserSettings(): void {
     this.activeMode = this.cookies.get('planning-mode', 'number') || TransportMode.WALK;
+    // indicator is set to "place" by default
+    this.setPlaceSelection(true);
     this.updatePlaces();
   }
 
@@ -165,7 +165,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       this.placesLayer.addFeatures(places.map(place => {
         return { id: place.id, geometry: place.geom, properties: { name: place.name } }
       }));
-      this.placesLayer?.setSelectable(this.selectPlaceMode);
+      this.placesLayer?.setSelectable(this.indicator === 'place');
+
       this.placesLayer?.featureSelected?.subscribe(evt => {
         if (evt.selected) {
           this.selectedPlaceId = evt.feature.get('id');
@@ -278,9 +279,12 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  resetIndicator(): void {
-    this.setPlaceSelection(false);
-    this.setMarkerPlacement(false);
+  onIndicatorChange(): void {
+    const placeSelectMode = this.indicator === 'place';
+    const cellSelectMode = this.indicator === 'cell';
+    this.setPlaceSelection(placeSelectMode);
+    this.setMarkerPlacement(cellSelectMode);
+    this.mapControl?.map?.setCursor((cellSelectMode || placeSelectMode)? 'crosshair': '');
     this.mapControl?.removeMarker();
     if (this.placesLayer)
       this.placesLayer?.clearSelection();
@@ -290,13 +294,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   setPlaceSelection(enable: boolean): void {
-    this.selectPlaceMode = enable;
-    this.mapControl?.map?.setCursor(enable? 'crosshair': '');
     this.placesLayer?.setSelectable(enable);
   }
 
   setMarkerPlacement(enable: boolean): void {
-    this.placeMarkerMode = enable;
     if (this.mapClickSub) {
       this.mapClickSub.unsubscribe();
       this.mapClickSub = undefined;
@@ -307,14 +308,21 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         this.showCellReachability();
       })
     }
-    this.mapControl?.map?.setCursor(enable? 'crosshair': '');
   }
 
   changeMode(mode: TransportMode): void {
     this.activeMode = mode;
     this.cookies.set('planning-mode', mode);
-    this.showPlaceReachability();
-    this.showCellReachability();
+    switch (this.indicator) {
+      case 'place':
+        this.showPlaceReachability();
+        break;
+      case 'cell':
+        this.showCellReachability();
+        break;
+      default:
+        break;
+    }
   }
 
   getCapacity(serviceId: number, placeId: number): number{
