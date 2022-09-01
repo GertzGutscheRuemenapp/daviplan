@@ -152,6 +152,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         tooltipField: 'name',
         mouseOver: {
           enabled: true,
+          // cursor: 'pointer'
           cursor: ''
         },
         select: {
@@ -284,7 +285,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     const cellSelectMode = this.indicator === 'cell';
     this.setPlaceSelection(placeSelectMode);
     this.setMarkerPlacement(cellSelectMode);
-    this.mapControl?.map?.setCursor((cellSelectMode || placeSelectMode)? 'crosshair': '');
+    this.mapControl?.setCursor(placeSelectMode? 'search': cellSelectMode? 'marker': 'pointer');
+    // this.mapControl?.setCursor(cellSelectMode? 'marker': 'default');
     this.mapControl?.removeMarker();
     if (this.placesLayer)
       this.placesLayer?.clearSelection();
@@ -342,7 +344,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     if (this.reachPlaceLayerGroup) this.mapControl?.removeGroup(this.reachPlaceLayerGroup);
     if (this.reachCellLayerGroup) this.mapControl?.removeGroup(this.reachCellLayerGroup);
     if (this.placesLayerGroup) this.mapControl?.removeGroup(this.placesLayerGroup);
-    this.mapControl?.map?.setCursor('');
+    this.mapControl?.setCursor();
     this.mapControl?.removeMarker();
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }

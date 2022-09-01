@@ -152,7 +152,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           },
           mouseOver: {
             enabled: true,
-            cursor: 'help'
+            cursor: 'pointer'
           },
           valueStyles: {
             radius: {
