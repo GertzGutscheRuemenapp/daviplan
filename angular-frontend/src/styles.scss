@@ -893,6 +893,11 @@ app-legend, .info-text, .tree-select {
   border-bottom: none;
 }
 
+.info-text h4 {
+  font-size: 18px !important;
+  line-height: 18px !important;
+}
+
 mat-sidenav {
   .mat-expansion-panel-body {
     padding: 16px 16px 16px 40px;
