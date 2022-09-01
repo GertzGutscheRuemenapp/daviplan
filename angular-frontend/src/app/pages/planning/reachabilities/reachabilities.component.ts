@@ -35,17 +35,15 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
   rasterCells: RasterCell[] = [];
   activeMode: TransportMode = TransportMode.WALK;
-  indicator: 'place' | 'cell' | 'all' = 'place';
+  indicator: 'place' | 'cell' | 'next' = 'place';
   infrastructures: Infrastructure[] = [];
   places: Place[] = [];
   activeInfrastructure?: Infrastructure;
   activeService?: Service;
   activeScenario?: Scenario;
-  activeProcess?: PlanningProcess;
   mapControl?: MapControl;
   placesLayerGroup?: MapLayerGroup;
-  reachPlaceLayerGroup?: MapLayerGroup;
-  reachCellLayerGroup?: MapLayerGroup;
+  reachLayerGroup?: MapLayerGroup;
   baseRasterLayer?: VectorTileLayer;
   reachRasterLayer?: VectorTileLayer;
   private subscriptions: Subscription[] = [];
@@ -54,6 +52,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   capacities?: Capacity[];
   year?: number;
   placeReachabilityLayer?: VectorLayer;
+  nextPlaceReachabilityLayer?: VectorTileLayer;
   selectedPlaceId?: number;
   pickedCoords?: number[];
 
@@ -63,11 +62,9 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
     this.placesLayerGroup = new MapLayerGroup('Standorte', { order: -1 })
-    this.reachPlaceLayerGroup = new MapLayerGroup('Erreichbarkeiten', { order: -2 })
-    this.reachCellLayerGroup = new MapLayerGroup('Erreichbarkeiten', { order: -2 })
+    this.reachLayerGroup = new MapLayerGroup('Erreichbarkeiten', { order: -2 })
     this.mapControl.addGroup(this.placesLayerGroup);
-    this.mapControl.addGroup(this.reachPlaceLayerGroup);
-    this.mapControl.addGroup(this.reachCellLayerGroup);
+    this.mapControl.addGroup(this.reachLayerGroup);
     this.planningService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures;
       // this.drawRaster();
@@ -78,23 +75,24 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     });
     this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
       this.activeInfrastructure = infrastructure;
+      this.updatePlaces();
       this.onIndicatorChange();
     }))
     this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
       this.activeService = service;
       this.updatePlaces();
+      this.onIndicatorChange();
     }))
     this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
       this.activeScenario = scenario;
       this.updatePlaces();
-    }));
-    this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
-      this.activeProcess = process;
-      this.updatePlaces();
+      this.onIndicatorChange();
     }));
     this.subscriptions.push(this.planningService.year$.subscribe(year => {
       this.year = year;
       this.updatePlaces();
+      // year is not relevant for the other indicators
+      this.showNextPlaceReachabilities();
     }));
   }
 
@@ -125,12 +123,12 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   updatePlaces(): void {
-    if (!this.activeInfrastructure || !this.activeService || !this.activeProcess) return;
+    if (!this.activeInfrastructure || !this.activeService || !this.year) return;
     this.updateMapDescription();
     const scenarioId = this.activeScenario?.isBase? undefined: this.activeScenario?.id
     this.planningService.getPlaces(this.activeInfrastructure.id,
       {
-        targetProjection: this.mapControl!.map!.mapProjection, filter: { columnFilter: true, hasCapacity: true }, scenario: scenarioId
+        targetProjection: this.mapControl!.map!.mapProjection, filter: { columnFilter: true, hasCapacity: true, year: this.year }, scenario: scenarioId
       }).subscribe(places => {
       this.places = places;
       let showLabel = true;
@@ -191,10 +189,9 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   showPlaceReachability(): void {
     if (!this.rasterCells || this.selectedPlaceId === undefined) return;
     this.updateMapDescription('zur ausgewählten Einrichtung');
-    this.planningService.getPlaceReachability(this.selectedPlaceId, this.activeMode).subscribe(cellResults => {
-      if (this.reachRasterLayer) {
-        this.reachPlaceLayerGroup?.removeLayer(this.reachRasterLayer);
-      }
+    this.planningService.getPlaceReachability(this.selectedPlaceId, this.activeMode, { scenario: this.activeScenario }).subscribe(cellResults => {
+      let showLabel = this.reachRasterLayer?.showLabel;
+      this.reachLayerGroup?.clear();
       let values: Record<string, number> = {};
       cellResults.forEach(cellResult => {
         values[cellResult.cellCode] = Math.round(cellResult.value);
@@ -212,7 +209,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           symbol: 'line'
         },
         labelField: 'value',
-        showLabel: false,
+        showLabel: showLabel,
         valueStyles: {
           fillColor: {
             bins: {
@@ -227,7 +224,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         },
         unit: 'Minuten'
       });
-      this.reachPlaceLayerGroup?.addLayer(this.reachRasterLayer);
+      this.reachLayerGroup?.addLayer(this.reachRasterLayer);
     })
   }
 
@@ -239,12 +236,9 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.planningService.getClosestCell(lat, lon, {targetProjection: this.mapControl?.map?.mapProjection }).subscribe(cell => {
       this.mapControl?.removeMarker();
       this.mapControl?.addMarker(cell.geom as Geometry);
-      this.planningService.getCellReachability(cell.cellcode, this.activeMode).subscribe(placeResults => {
-        let showLabel = false;
-        if (this.placeReachabilityLayer) {
-          this.reachCellLayerGroup?.removeLayer(this.placeReachabilityLayer);
-          this.placeReachabilityLayer = undefined;
-        }
+      this.planningService.getCellReachability(cell.cellcode, this.activeMode, { scenario: this.activeScenario }).subscribe(placeResults => {
+        let showLabel = this.placeReachabilityLayer?.showLabel;
+        this.reachLayerGroup?.clear();
         this.places.forEach(place => {
           const res = placeResults.find(p => p.placeId === place.id);
           place.value = (res?.value !== undefined)? Math.round(res?.value): undefined;
@@ -276,13 +270,53 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           unit: 'Minuten',
           labelOffset: { y: 10 }
         });
-        this.reachCellLayerGroup?.addLayer(this.placeReachabilityLayer);
+        this.reachLayerGroup?.addLayer(this.placeReachabilityLayer);
         this.placeReachabilityLayer.addFeatures(this.places.map(place => {
           return { id: place.id, geometry: place.geom, properties: {
             name: place.name, value: place.value,
             label: (place.value !== undefined)? `${place.value} Minuten`: 'nicht erreichbar' } }
         }));
       })
+    });
+  }
+
+  showNextPlaceReachabilities(): void {
+    if (!this.rasterCells || !this.year || !this.activeService) return;
+    this.updateMapDescription('von allen Wohnstandorten zum jeweils nächsten Angebot');
+    this.planningService.getNextPlaceReachability([this.activeService], this.activeMode, { scenario: this.activeScenario, year: this.year }).subscribe(cellResults => {
+      let showLabel = this.nextPlaceReachabilityLayer?.showLabel;
+      this.reachLayerGroup?.clear();
+      let values: Record<string, number> = {};
+      cellResults.forEach(cellResult => {
+        values[cellResult.cellCode] = Math.round(cellResult.value);
+      })
+      const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
+      this.nextPlaceReachabilityLayer = new VectorTileLayer( `Wegezeit ${modes[this.activeMode]}`, url,{
+        order: 0,
+        description: 'Wegezeit von allen Wohnstandorten zum jeweils nächsten Angebot',
+        opacity: 1,
+        style: {
+          fillColor: 'grey',
+          strokeColor: 'rgba(0, 0, 0, 0)',
+          symbol: 'line'
+        },
+        labelField: 'value',
+        showLabel: showLabel,
+        valueStyles: {
+          fillColor: {
+            bins: {
+              colors: modeColors,
+              values: modeBins[this.activeMode]
+            }
+          }
+        },
+        valueMap: {
+          field: 'cellcode',
+          values: values
+        },
+        unit: 'Minuten'
+      });
+      this.reachLayerGroup?.addLayer(this.nextPlaceReachabilityLayer);
     });
   }
 
@@ -296,9 +330,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.mapControl?.removeMarker();
     if (this.placesLayer)
       this.placesLayer?.clearSelection();
-    this.reachCellLayerGroup?.clear();
-    this.reachPlaceLayerGroup?.clear();
+    this.reachLayerGroup?.clear();
     this.updateMapDescription();
+    if (this.indicator === 'next')
+      this.showNextPlaceReachabilities();
   }
 
   setPlaceSelection(enable: boolean): void {
@@ -328,6 +363,9 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       case 'cell':
         this.showCellReachability();
         break;
+      case 'next':
+        this.showNextPlaceReachabilities();
+        break;
       default:
         break;
     }
@@ -347,8 +385,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.mapClickSub?.unsubscribe();
-    if (this.reachPlaceLayerGroup) this.mapControl?.removeGroup(this.reachPlaceLayerGroup);
-    if (this.reachCellLayerGroup) this.mapControl?.removeGroup(this.reachCellLayerGroup);
+    if (this.reachLayerGroup) this.mapControl?.removeGroup(this.reachLayerGroup);
     if (this.placesLayerGroup) this.mapControl?.removeGroup(this.placesLayerGroup);
     this.mapControl?.setCursor();
     this.mapControl?.removeMarker();

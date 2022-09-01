@@ -17,7 +17,7 @@ import {
   Statistic,
   FieldType,
   RasterCell,
-  TransportMode, CellResult, PlaceResult, ExtLayerGroup, ExtLayer, ModeVariant, Network
+  TransportMode, CellResult, PlaceResult, ExtLayerGroup, ExtLayer, ModeVariant, Network, Scenario
 } from "./rest-interfaces";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
@@ -421,14 +421,23 @@ export class RestCacheService {
     return observable;
   }
 
-  getPlaceReachability(placeId: number, mode: TransportMode): Observable<CellResult[]>{
-    return this.getCachedData<CellResult[]>(this.rest.URLS.reachabilityPlace,
-      { params: { mode: mode, place: placeId }, method: 'POST' });
+  getPlaceReachability(placeId: number, mode: TransportMode, options?: { scenario?: Scenario }): Observable<CellResult[]>{
+    let params: any = { mode: mode, place: placeId };
+    if (options?.scenario) params.scenario = options.scenario.id;
+    return this.getCachedData<CellResult[]>(this.rest.URLS.reachabilityPlace, { params: params, method: 'POST' });
   }
 
-  getCellReachability(cellCode: string, mode: TransportMode): Observable<PlaceResult[]>{
-    return this.getCachedData<PlaceResult[]>(this.rest.URLS.reachabilityCell,
-      { params: { cell_code: cellCode, mode: mode }, method: 'POST' });
+  getCellReachability(cellCode: string, mode: TransportMode, options?: { scenario?: Scenario }): Observable<PlaceResult[]>{
+    let params: any = { mode: mode, cell_code: cellCode };
+    if (options?.scenario) params.scenario = options.scenario.id;
+    return this.getCachedData<PlaceResult[]>(this.rest.URLS.reachabilityCell, { params: params, method: 'POST' });
+  }
+
+  getNextPlaceReachability(services: Service[], mode: TransportMode, options?: { year?: number, scenario?: Scenario }): Observable<CellResult[]> {
+    let params: any = { mode: mode, services: services.map(s => s.id) };
+    if (options?.year) params.year = options.year;
+    if (options?.scenario) params.scenario = options.scenario.id;
+    return this.getCachedData<CellResult[]>(this.rest.URLS.reachabilityNextPlace, { params: params, method: 'POST' });
   }
 
   clearCache(key?: string) {
