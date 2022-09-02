@@ -49,7 +49,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   private subscriptions: Subscription[] = [];
   private mapClickSub?: Subscription;
   placesLayer?: VectorLayer;
-  capacities?: Capacity[];
   year?: number;
   placeReachabilityLayer?: VectorLayer;
   nextPlaceReachabilityLayer?: VectorTileLayer;
@@ -183,6 +182,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
   onFilter(): void {
     this.updatePlaces();
+    if (this.indicator === 'next')
+      this.showNextPlaceReachabilities();
   }
 
   showPlaceReachability(): void {
@@ -282,7 +283,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   showNextPlaceReachabilities(): void {
     if (!this.rasterCells || !this.year || !this.activeService) return;
     this.updateMapDescription('von allen Wohnstandorten zum jeweils nächsten Angebot');
-    this.planningService.getNextPlaceReachability([this.activeService], this.activeMode, { scenario: this.activeScenario, year: this.year }).subscribe(cellResults => {
+    this.planningService.getNextPlaceReachability([this.activeService], this.activeMode, { scenario: this.activeScenario, year: this.year, places: this.places }).subscribe(cellResults => {
       let showLabel = this.nextPlaceReachabilityLayer?.showLabel;
       this.reachLayerGroup?.clear();
       let values: Record<string, number> = {};

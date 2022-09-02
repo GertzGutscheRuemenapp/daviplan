@@ -433,10 +433,11 @@ export class RestCacheService {
     return this.getCachedData<PlaceResult[]>(this.rest.URLS.reachabilityCell, { params: params, method: 'POST' });
   }
 
-  getNextPlaceReachability(services: Service[], mode: TransportMode, options?: { year?: number, scenario?: Scenario }): Observable<CellResult[]> {
+  getNextPlaceReachability(services: Service[], mode: TransportMode, options?: { year?: number, scenario?: Scenario, places?: Place[] }): Observable<CellResult[]> {
     let params: any = { mode: mode, services: services.map(s => s.id) };
     if (options?.year) params.year = options.year;
     if (options?.scenario) params.scenario = options.scenario.id;
+    if (options?.places) params.places = options.places.map(p => p.id);
     return this.getCachedData<CellResult[]>(this.rest.URLS.reachabilityNextPlace, { params: params, method: 'POST' });
   }
 
