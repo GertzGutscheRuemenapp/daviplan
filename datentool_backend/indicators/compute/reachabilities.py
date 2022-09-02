@@ -80,6 +80,7 @@ class ReachabilityNextPlace(ModeVariantMixin, ComputeIndicator):
         year = self.data.get('year')
         scenario_id = self.data.get('scenario')
         variant = self.get_mode_variant(mode, scenario_id)
+        place_id = self.data.get('places')
 
         capacities = Capacity.objects.all()
         capacities = Capacity.filter_queryset(capacities,
@@ -89,6 +90,9 @@ class ReachabilityNextPlace(ModeVariantMixin, ComputeIndicator):
                                               )
         # only those with capacity - value > 0
         capacities = capacities.filter(capacity__gt=0)
+
+        if place_id:
+            capacities = capacities.filter(place_id__in=place_id)
 
         place_ids = capacities.distinct('place_id').values_list('place_id', flat=True)
         mcp = MatrixCellPlace.objects.filter(variant=variant,
