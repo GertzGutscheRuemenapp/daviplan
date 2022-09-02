@@ -65,13 +65,14 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.reachLayerGroup = new MapLayerGroup('Erreichbarkeiten', { order: -2 })
     this.mapControl.addGroup(this.placesLayerGroup);
     this.mapControl.addGroup(this.reachLayerGroup);
+    this.applyUserSettings();
     this.planningService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures;
       // this.drawRaster();
-      this.applyUserSettings();
 /*      this.planningService.getRasterCells({targetProjection: this.mapControl?.map?.mapProjection }).subscribe(rasterCells => {
         this.rasterCells = rasterCells;
       });*/
+      this.updatePlaces();
     });
     this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
       this.activeInfrastructure = infrastructure;
@@ -98,9 +99,8 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
   applyUserSettings(): void {
     this.activeMode = this.cookies.get('planning-mode', 'number') || TransportMode.WALK;
-    // indicator is set to "place" by default
-    this.setPlaceSelection(true);
-    this.updatePlaces();
+    // @ts-ignore
+    this.indicator = this.cookies.get('planning-reach-indicator', 'string') || 'place';
   }
 
   drawRaster(): void {
@@ -125,10 +125,9 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   updatePlaces(): void {
     if (!this.activeInfrastructure || !this.activeService || !this.year) return;
     this.updateMapDescription();
-    const scenarioId = this.activeScenario?.isBase? undefined: this.activeScenario?.id
-    this.planningService.getPlaces(this.activeInfrastructure.id,
-      {
-        targetProjection: this.mapControl!.map!.mapProjection, filter: { columnFilter: true, hasCapacity: true, year: this.year }, scenario: scenarioId
+    const scenario = this.activeScenario?.isBase? undefined: this.activeScenario
+    this.planningService.getPlaces({
+        targetProjection: this.mapControl!.map!.mapProjection, filter: { columnFilter: true, hasCapacity: true, year: this.year }, scenario: scenario
       }).subscribe(places => {
       this.places = places;
       let showLabel = true;
@@ -321,6 +320,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   onIndicatorChange(): void {
+    this.cookies.set('planning-reach-indicator', this.indicator);
     const placeSelectMode = this.indicator === 'place';
     const cellSelectMode = this.indicator === 'cell';
     this.setPlaceSelection(placeSelectMode);
@@ -369,11 +369,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       default:
         break;
     }
-  }
-
-  getCapacity(serviceId: number, placeId: number): number{
-    const cap = this.capacities?.find(capacity => capacity.place === placeId);
-    return cap?.capacity || 0;
   }
 
   updateMapDescription(indicatorDesc?: string): void {

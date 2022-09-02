@@ -24,7 +24,7 @@
       style="margin-top: 7px;"
       (onFilter)="onFilter()"
       [infrastructure]="this.activeInfrastructure"
-      [places]="places"
+      [service]="this.activeService"
       [scenario]="activeScenario"
       [year]="year">
     </app-place-filter-button>
@@ -77,6 +77,9 @@
           <mat-icon class="material-icons-outlined">my_location</mat-icon>
         </button>
       </mat-radio-button>
+      <p *ngIf="indicator === 'place'" style="color: grey; text-align: end; margin-top: -10px; padding-right: 25px;">
+        Ort auf der Karte auswählen -->
+      </p>
       <mat-radio-button value="cell" color="primary"
                         style="width: 100%; margin-bottom: 10px;"
                         title="Wohnstandort mit Klick auf Karte auswählen">
@@ -87,6 +90,9 @@
           <mat-icon class="material-icons-outlined">location_on</mat-icon>
         </button>
       </mat-radio-button>
+      <p *ngIf="indicator === 'cell'" style="color: grey; text-align: end; margin-top: -10px; padding-right: 25px;">
+        Markierung auf der Karte setzen -->
+      </p>
       <mat-radio-button value="next" color="primary">
         Von allen Wohnstandorten <br> zum jeweils nächsten Angebot
       </mat-radio-button>

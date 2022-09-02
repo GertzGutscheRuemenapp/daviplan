@@ -190,15 +190,15 @@ export class RestCacheService {
     return this.getCachedData<FieldType[]>(url);
   }
 
-  getCapacities(options?: { year?: number, service?: number, scenario?: number, reset?: boolean }): Observable<Capacity[]>{
+  getCapacities(options?: { year?: number, service?: Service, scenario?: Scenario, reset?: boolean }): Observable<Capacity[]>{
     let url = this.rest.URLS.capacities;
     let params: any = {};
     if (options?.year !== undefined)
       params['year'] = options.year;
-    if (options?.service !== undefined)
-      params['service'] = options.service;
-    if (options?.scenario !== undefined && options?.scenario !== -1)
-      params['scenario'] = options.scenario;
+    if (options?.service)
+      params['service'] = options.service.id;
+    if (options?.scenario && !options.scenario.isBase)
+      params['scenario'] = options.scenario.id;
     return this.getCachedData<Capacity[]>(url, { params: params, reset: options?.reset })
   }
 

@@ -48,7 +48,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   selectedPlaces: Place[] = [];
   placePreviewDialogRef?: MatDialogRef<any>;
   activeService?: Service;
-  activeProcess?: PlanningProcess;
   activeInfrastructure?: Infrastructure;
   activeScenario?: Scenario;
   subscriptions: Subscription[] = [];
@@ -83,10 +82,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       this.year = year;
       this.updatePlaces();
     }));
-    this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
-      this.activeProcess = process;
-      this.updatePlaces();
-    }));
     this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
       this.activeScenario = scenario;
       this.updatePlaces();
@@ -111,27 +106,24 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   updatePlaces(resetScenario?: boolean): void {
-    if (!this.activeInfrastructure || !this.activeService || !this.activeProcess) return;
+    if (!this.activeInfrastructure || !this.activeService) return;
     this.updateMapDescription();
-    const scenarioId = this.activeScenario?.isBase? undefined: this.activeScenario?.id
     this.places = [];
-    let options: any = {
+    let placeOptions: any = {
       targetProjection: this.mapControl!.map!.mapProjection,
       addCapacities: true,
-      filter: { columnFilter: true, year: this.year }
+      filter: { columnFilter: true, year: this.year },
+      reset: !this.activeScenario?.isBase && resetScenario,
+      scenario: this.activeScenario
     };
-    if (scenarioId !== undefined) {
-      // always reload scenario places
-      options = {...options, reset: resetScenario, scenario: scenarioId};
-    }
     this.placePreviewDialogRef?.componentInstance?.setLoading(true);
     this.planningService.getCapacities({
-      service: this.activeService.id,
-      scenario: scenarioId,
-      reset: (scenarioId !== undefined ) && resetScenario
+      service: this.activeService,
+      scenario: this.activeScenario,
+      reset: (!this.activeScenario?.isBase) && resetScenario
     }).subscribe(capacities => {
       this.capacities = capacities;
-      this.planningService.getPlaces(this.activeInfrastructure!.id, options).subscribe(places => {
+      this.planningService.getPlaces(placeOptions).subscribe(places => {
         this.places = this.places.concat(places);
         let showLabel = true;
         if (this.placesLayer) {

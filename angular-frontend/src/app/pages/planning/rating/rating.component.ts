@@ -125,7 +125,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   renderPlaceIndicator(): void {
     if (!this.year || !this.selectedIndicator || !this.activeService) return;
     const scenarioId = this.planningService.activeScenario?.isBase ? undefined : this.planningService.activeScenario?.id;
-    this.planningService.getPlaces(this.activeInfrastructure!.id).subscribe(places => {
+    this.planningService.getPlaces().subscribe(places => {
       this.planningService.computeIndicator<AreaIndicatorResult>(this.selectedIndicator!.name, this.activeService!.id,
         { year: this.year!, scenario: scenarioId, mode: this.activeMode }).subscribe(results => {
         // ToDo description with filter
