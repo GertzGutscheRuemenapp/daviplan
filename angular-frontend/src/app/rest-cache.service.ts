@@ -17,7 +17,7 @@ import {
   Statistic,
   FieldType,
   RasterCell,
-  TransportMode, CellResult, PlaceResult, ExtLayerGroup, ExtLayer, ModeVariant, Network
+  TransportMode, CellResult, PlaceResult, ExtLayerGroup, ExtLayer, ModeVariant, Network, Scenario
 } from "./rest-interfaces";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
@@ -190,15 +190,15 @@ export class RestCacheService {
     return this.getCachedData<FieldType[]>(url);
   }
 
-  getCapacities(options?: { year?: number, service?: number, scenario?: number, reset?: boolean }): Observable<Capacity[]>{
+  getCapacities(options?: { year?: number, service?: Service, scenario?: Scenario, reset?: boolean }): Observable<Capacity[]>{
     let url = this.rest.URLS.capacities;
     let params: any = {};
     if (options?.year !== undefined)
       params['year'] = options.year;
-    if (options?.service !== undefined)
-      params['service'] = options.service;
-    if (options?.scenario !== undefined && options?.scenario !== -1)
-      params['scenario'] = options.scenario;
+    if (options?.service)
+      params['service'] = options.service.id;
+    if (options?.scenario && !options.scenario.isBase)
+      params['scenario'] = options.scenario.id;
     return this.getCachedData<Capacity[]>(url, { params: params, reset: options?.reset })
   }
 
@@ -421,14 +421,24 @@ export class RestCacheService {
     return observable;
   }
 
-  getPlaceReachability(placeId: number, mode: TransportMode): Observable<CellResult[]>{
-    return this.getCachedData<CellResult[]>(this.rest.URLS.reachabilityPlace,
-      { params: { mode: mode, place: placeId }, method: 'POST' });
+  getPlaceReachability(placeId: number, mode: TransportMode, options?: { scenario?: Scenario }): Observable<CellResult[]>{
+    let params: any = { mode: mode, place: placeId };
+    if (options?.scenario) params.scenario = options.scenario.id;
+    return this.getCachedData<CellResult[]>(this.rest.URLS.reachabilityPlace, { params: params, method: 'POST' });
   }
 
-  getCellReachability(cellCode: string, mode: TransportMode): Observable<PlaceResult[]>{
-    return this.getCachedData<PlaceResult[]>(this.rest.URLS.reachabilityCell,
-      { params: { cell_code: cellCode, mode: mode }, method: 'POST' });
+  getCellReachability(cellCode: string, mode: TransportMode, options?: { scenario?: Scenario }): Observable<PlaceResult[]>{
+    let params: any = { mode: mode, cell_code: cellCode };
+    if (options?.scenario) params.scenario = options.scenario.id;
+    return this.getCachedData<PlaceResult[]>(this.rest.URLS.reachabilityCell, { params: params, method: 'POST' });
+  }
+
+  getNextPlaceReachability(services: Service[], mode: TransportMode, options?: { year?: number, scenario?: Scenario, places?: Place[] }): Observable<CellResult[]> {
+    let params: any = { mode: mode, services: services.map(s => s.id) };
+    if (options?.year) params.year = options.year;
+    if (options?.scenario) params.scenario = options.scenario.id;
+    if (options?.places) params.places = options.places.map(p => p.id);
+    return this.getCachedData<CellResult[]>(this.rest.URLS.reachabilityNextPlace, { params: params, method: 'POST' });
   }
 
   clearCache(key?: string) {

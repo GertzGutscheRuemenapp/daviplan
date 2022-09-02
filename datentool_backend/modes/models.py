@@ -63,10 +63,22 @@ class ModeVariant(DatentoolModelMixin, models.Model):
     network = models.ForeignKey(Network, on_delete=models.CASCADE, null=True)
     mode = models.IntegerField(choices=Mode.choices)
     cutoff_time = models.ManyToManyField(Infrastructure, through='CutOffTime')
-    is_default = models.BooleanField(default=True)
+    is_default = models.BooleanField(default=False)
 
     def __repr__(self) -> str:
         return f'{Mode._value2label_map_[self.mode]} - {self.label}'
+
+    def save(self, **kwargs):
+        if self.pk is None and not self.network:
+            try:
+                self.network = Network.objects.get(is_default=True)
+            except Network.DoesNotExist:
+                pass
+        if self.is_default:
+            ModeVariant.objects.filter(
+                is_default=True, network=self.network).update(is_default=False)
+        super().save(**kwargs)
+
 
 class CutOffTime(models.Model):
     mode_variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)

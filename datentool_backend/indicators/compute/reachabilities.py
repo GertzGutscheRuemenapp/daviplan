@@ -76,7 +76,7 @@ class ReachabilityNextPlace(ModeVariantMixin, ComputeIndicator):
 
     def compute(self):
         mode = self.data.get('mode', Mode.WALK)
-        service_ids = self.data.get('service_ids')
+        service_ids = self.data.get('services')
         year = self.data.get('year')
         scenario_id = self.data.get('scenario')
         variant = self.get_mode_variant(mode, scenario_id)

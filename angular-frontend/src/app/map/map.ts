@@ -419,7 +419,7 @@ export class OlMap {
       const valueField = options?.valueField || 'value';
       let value = feature.get(valueField);
       if (typeof value === 'string') value = Number(value);
-      const fc = (typeof options?.fill?.color === 'function' && value !== undefined)? options.fill.color(value): fillColor;
+      const fc = (typeof options?.fill?.color === 'function')? (value !== undefined)? options.fill.color(value): 'black': fillColor;
       const sc = (typeof options?.stroke?.color === 'function' && value !== undefined)? options.stroke.color(feature): strokeColor;
       style.getFill().setColor(fc);
       style.getStroke().setColor(sc);

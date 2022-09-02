@@ -24,7 +24,7 @@
       style="margin-top: 7px;"
       (onFilter)="onFilter()"
       [infrastructure]="this.activeInfrastructure"
-      [places]="places"
+      [service]="this.activeService"
       [scenario]="activeScenario"
       [year]="year">
     </app-place-filter-button>
@@ -66,36 +66,34 @@
     </mat-panel-title>
   </mat-expansion-panel-header>
   <div id="indicator-select"><!--  <div style="padding-left: 8px;">-->
-    <mat-radio-group [(ngModel)]="indicator" (change)="resetIndicator()">
-      <mat-radio-button value="option 1" color="primary" i18n>
+    <mat-radio-group [(ngModel)]="indicator" (change)="onIndicatorChange()">
+      <mat-radio-button value="place" color="primary"
+                        style="width: 100%; margin-bottom: 10px;"
+                        title="Einrichtung mit Klick auf Einrichtung in Karte auswählen">
         Von allen Wohnstandorten <br> zu einem Angebot
-      </mat-radio-button>
-      <div class="row-button"
-           [ngClass]="{'active': selectPlaceMode, 'disabled': indicator!=='option 1'}"
-           (click)="setPlaceSelection(!selectPlaceMode)">
-        <label i18n>Einrichtung auswählen</label>
-        <div class="fill-space"></div>
         <button color="primary"
-                [ngClass]="{inverted: selectPlaceMode}" class="small" mat-icon-button>
-          <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
+                style="position: absolute; right: 10px; margin-top: -15px; pointer-events: none;"
+                [ngClass]="{inverted: indicator === 'place'}" class="small" mat-icon-button>
+          <mat-icon class="material-icons-outlined">my_location</mat-icon>
         </button>
-      </div>
-      <mat-radio-button value="option 2" color="primary" i18n>
-        Von einem Wohnstandort <br> zu allen Angeboten
       </mat-radio-button>
-      <div class="row-button"
-           [ngClass]="{'active': placeMarkerMode, 'disabled': indicator!=='option 2'}"
-           (click)="setMarkerPlacement(!placeMarkerMode)">
-        <label i18n>Wohnstandort auswählen</label>
-        <div class="fill-space"></div>
-        <button color="primary" *ngIf="!placeMarkerMode" class="small" mat-icon-button>
-          <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
+<!--      <p *ngIf="indicator === 'place'" style="color: grey; text-align: end; margin-top: -10px; padding-right: 25px;">
+        Ort auf der Karte auswählen &ndash;&gt;
+      </p>-->
+      <mat-radio-button value="cell" color="primary"
+                        style="width: 100%; margin-bottom: 10px;"
+                        title="Wohnstandort mit Klick auf Karte auswählen">
+        Von einem Wohnstandort <br> zu allen Angeboten
+        <button color="primary"
+                style="position: absolute; right: 10px; margin-top: -15px; pointer-events: none;"
+                [ngClass]="{inverted: indicator === 'cell'}" class="small" mat-icon-button>
+          <mat-icon class="material-icons-outlined">location_on</mat-icon>
         </button>
-        <button color="primary" *ngIf="placeMarkerMode" class="small no-shadow" mat-mini-fab>
-          <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
-        </button>
-      </div>
-      <mat-radio-button value="option 3" color="primary" i18n>
+      </mat-radio-button>
+<!--      <p *ngIf="indicator === 'cell'" style="color: grey; text-align: end; margin-top: -10px; padding-right: 25px;">
+        Markierung auf der Karte setzen &ndash;&gt;
+      </p>-->
+      <mat-radio-button value="next" color="primary">
         Von allen Wohnstandorten <br> zum jeweils nächsten Angebot
       </mat-radio-button>
     </mat-radio-group>

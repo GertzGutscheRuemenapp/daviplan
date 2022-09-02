@@ -218,6 +218,7 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                 raise RoutingError(msg)
             else:
                 df = pd.concat(dataframes)
+                logger.info('Schreibe Ergebnisse in die Datenbank')
                 success, msg = self.save_df(df, queryset, drop_constraints)
                 if not success:
                     raise RoutingError(msg)
@@ -229,6 +230,7 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         else:
             ret_status = status.HTTP_202_ACCEPTED
             logger.info(msg)
+            logger.info('Berechnung der Reisezeitmatrizen erfolgreich abgeschlossen')
         return Response({'message': msg, }, status=ret_status)
 
     def prepare_and_calc_transit_traveltimes(self,

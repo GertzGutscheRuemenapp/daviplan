@@ -52,8 +52,6 @@ const backgroundLayerDefs: BackgroundLayerDef[] = [
   }
 ]
 
-
-
 @Injectable({
   providedIn: 'root'
 })
@@ -173,7 +171,10 @@ export class MapControl {
   background?: TileLayer;
   mapSettings: any = {};
   backgroundLayers: TileLayer[] = [];
-  markerImg = `${environment.backend}/static/img/map-marker-red.svg`;
+  markerImg = `${environment.backend}/static/img/map-marker-blue.svg`;
+  markerCursorImg = `${environment.backend}/static/img/map-marker-cursor.png`;
+  searchCursorImg = `${environment.backend}/static/img/location-searching.png`;
+
 
   constructor(target: string, private mapService: MapService, private settings: SettingsService) {
     this.target = target;
@@ -394,8 +395,17 @@ export class MapControl {
     this.settings.user?.set('extents', this.mapExtents, { patch: true });
   }
 
-  setDescription(text: string) {
+  setDescription(text: string): void {
     this.mapDescription$.next(text);
+  }
+
+  setCursor(cursor?: 'crosshair' | 'pointer' | 'marker' | 'search' | 'auto' | 'default' ): void {
+    let cur: string = cursor || '';
+    if (cursor === 'marker')
+      cur = `url(${this.markerCursorImg}) 10 30, pointer`;
+    if (cursor === 'search')
+      cur = `url(${this.searchCursorImg}) 15 15, pointer`;
+    this.map?.setCursor(cur);
   }
 
   destroy(): void {

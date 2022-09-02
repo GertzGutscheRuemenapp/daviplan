@@ -10,6 +10,7 @@ import { SettingsService } from "../../../settings.service";
 import { sortBy } from "../../../helpers/utils";
 import { CookieService } from "../../../helpers/cookies.service";
 import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { SideToggleComponent } from "../../../elements/side-toggle/side-toggle.component";
 
 @Component({
   selector: 'app-pop-statistics',
@@ -19,6 +20,7 @@ import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   totalChart?: MultilineChartComponent;
   balanceChart?: BalanceChartComponent;
+  @ViewChild('chartToggle') chartToggle!: SideToggleComponent;
   @ViewChild('totalChart', { static: false }) set _totalChart(content: MultilineChartComponent) {
     if (content) this.totalChart = content;
   }
@@ -208,6 +210,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
           this.activeArea = undefined;
         }
         this.cookies.set(`pop-area-${this.areaLevel!.id}`, this.activeArea?.id);
+        this.chartToggle.expanded = true;
         this.updateDiagrams();
       })
     })

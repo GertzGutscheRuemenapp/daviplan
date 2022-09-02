@@ -38,10 +38,8 @@ export class ScenarioMenuComponent implements OnInit {
   editScenarioForm: FormGroup;
   process?: PlanningProcess;
   demandRateSets: DemandRateSet[] = [];
-  networks: Network[] = [];
-  modeVariants: ModeVariant[] = [];
+  transitVariants: ModeVariant[] = [];
   prognoses: Prognosis[] = [];
-  TransportMode = TransportMode;
 
   constructor(private dialog: MatDialog, public planningService: PlanningService, private cookies: CookieService,
               private formBuilder: FormBuilder, private http: HttpClient, private rest: RestAPI) {
@@ -75,10 +73,11 @@ export class ScenarioMenuComponent implements OnInit {
         this.planningService.getDemandRateSets(service.id).subscribe(dr => { this.demandRateSets = dr; });
         break;
       case 'reachabilities':
-        this.planningService.getNetworks().subscribe(networks => this.networks = networks);
-        this.planningService.getModeVariants().subscribe(modeVariants => this.modeVariants = modeVariants);
+        this.planningService.getModeVariants().subscribe(modeVariants => this.transitVariants = modeVariants.filter(v => v.mode === TransportMode.TRANSIT));
         break;
       case 'rating':
+        this.planningService.getDemandRateSets(service.id).subscribe(dr => { this.demandRateSets = dr; });
+        this.planningService.getModeVariants().subscribe(modeVariants => this.transitVariants = modeVariants.filter(v => v.mode === TransportMode.TRANSIT));
         break;
       default:
         break;
@@ -88,12 +87,6 @@ export class ScenarioMenuComponent implements OnInit {
   getDemandRateSet(scenario: Scenario): DemandRateSet | undefined {
     const id = scenario.demandrateSets.find(dr => dr.service === this.planningService.activeService?.id)?.demandrateset;
     return this.demandRateSets.find(dr => dr.id === id);
-  }
-
-  getNetwork(scenario: Scenario, mode: TransportMode): Network | undefined {
-    const modeVariantId = scenario.modeVariants.find(mv => mv.mode === mode)?.variant;
-    const modeVariant = this.modeVariants.find(mv => mv.id === modeVariantId);
-    return this.networks.find(n => n.id === modeVariant?.network);
   }
 
   setScenario(scenario: Scenario, options?: { silent?: boolean }): void {
@@ -118,7 +111,7 @@ export class ScenarioMenuComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.scenarios}${this.activeScenario!.id}/`
+        this.http.delete(`${this.rest.URLS.scenarios}${this.activeScenario!.id}/?force=true/`
         ).subscribe(res => {
           const idx = this.process!.scenarios!.indexOf(this.activeScenario!);
           if (idx >= 0) {
@@ -226,13 +219,14 @@ export class ScenarioMenuComponent implements OnInit {
   }
 
   onShowDemandQuotaSet(): void {
+    const scenario = this.planningService.activeScenario;
+    const demandRateSet = this.getDemandRateSet(scenario!);
+    if (!demandRateSet) return;
     this.planningService.getRealYears().subscribe(realYears => {
       this.planningService.getPrognosisYears().subscribe(prognosisYears => {
         this.planningService.getGenders().subscribe(genders => {
           this.planningService.getAgeGroups().subscribe(ageGroups => {
-            const scenario = this.planningService.activeScenario;
             const service = this.planningService.activeService;
-            const demandRateSet = this.getDemandRateSet(scenario!);
             const dialogRef = this.dialog.open(ConfirmDialogComponent, {
               width: '900px',
               data: {
@@ -271,11 +265,15 @@ export class ScenarioMenuComponent implements OnInit {
     this.patchScenarioSetting(scenario, body);
   }
 
-  onNetworkChange(scenario: Scenario, mode: number, network: Network): void {
-    const modeVariant = this.modeVariants.find(mv => mv.mode === mode && mv.network === network.id);
-    if (!modeVariant) return;
-    const body: any = { modeVariants: [{ mode: mode, variant: modeVariant.id }] };
+  onTransitChange(scenario: Scenario, variant: ModeVariant): void {
+    const body: any = { modeVariants: [{ mode: TransportMode.TRANSIT, variant: variant.id }] };
     this.patchScenarioSetting(scenario, body);
+  }
+
+  getTransitVariant(scenario: Scenario): ModeVariant | undefined{
+    const mv = scenario.modeVariants.find(v => v.mode === TransportMode.TRANSIT);
+    if (!mv) return;
+    return this.transitVariants.find(tv => tv.id === mv.variant);
   }
 
   private patchScenarioSetting(scenario: Scenario, body: any): void { //: Observable<Scenario> {
