@@ -58,7 +58,7 @@ class Place(DatentoolModelMixin, NamedModel, models.Model):
         for field_name, value in attr_dict.items():
             try:
                 field = PlaceField.objects.get(infrastructure=self.infrastructure,
-                                              name=field_name)
+                                              name__iexact=field_name)
             except PlaceField.DoesNotExist:
                 if isinstance(value, (int, float)):
                     ftype = FieldTypes.NUMBER

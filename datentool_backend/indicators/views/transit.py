@@ -160,16 +160,17 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
     def precalculate_traveltime(self, request):
         """Calculate traveltime with a air distance or network router"""
         drop_constraints = request.data.get('drop_constraints', False)
-        variants = request.data.get('variants', [])
+        variant_ids = request.data.get('variants', [])
         air_distance_routing = request.data.get('air_distance_routing', False)
         places = request.data.get('places')
         logger.info('Starte Berechnung der Reisezeitmatrizen')
         dataframes = []
+        variants = [ModeVariant.objects.get(pk=vid) for vid in variant_ids] \
+            or ModeVariant.objects.all()
         try:
             queryset = self.get_filtered_queryset(variants=variants,
                                                   places=places)
-            for variant_id in variants:
-                variant = ModeVariant.objects.get(pk=variant_id)
+            for variant in variants:
                 logger.info('Berechne Reisezeiten für Modus '
                             f'{Mode(variant.mode).name}')
                 max_distance = float(request.data.get(

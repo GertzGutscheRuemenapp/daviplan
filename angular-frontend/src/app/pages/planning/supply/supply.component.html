@@ -131,10 +131,11 @@
         <td><i>{{getFormattedCapacityString([activeService.id], selectedPlace.capacity || 0)}}</i></td>
       </tr>-->
     </table>
-    <button *ngIf="place.scenario !== null" mat-button class="mat-button-dv"
+    <button *ngIf="place.scenario !== null"
+            mat-button class="mat-button-dv"
             (click)="showEditPlace(place)"
             color="primary">
-      Standort editieren
+      <mat-icon>edit</mat-icon>Standortattribute editieren
     </button>
     <div *ngIf="activeService">
       <mat-divider style="margin: 10px 0;"></mat-divider>
@@ -150,16 +151,30 @@
         </td>
       </tr>
     </table>
-    <button *ngIf="!activeScenario?.isBase" mat-button class="mat-button-dv"
+    <button *ngIf="!activeScenario?.isBase"
+            mat-button class="mat-button-dv"
             (click)="showEditCapacities(place)"
             color="primary">
-      Kapazitäten editieren
+      <mat-icon>edit</mat-icon>Kapazitäten editieren
     </button>
+    <ng-container *ngIf="place.scenario !== null">
+      <mat-divider style="margin: 10px 0;"></mat-divider>
+      <button mat-button class="mat-button-dv"
+              (click)="removePlace(place)"
+              color="warn">
+        <mat-icon>close</mat-icon>Standort entfernen
+      </button>
+    </ng-container>
   </ng-container>
 </ng-template>
 
-<ng-template #placeEditTemplate let-place="place">-->
+<ng-template #placeEditTemplate let-place="place">
   <form *ngIf="placeForm" [formGroup]="placeForm">
+    <div *ngIf="placeForm.errors">
+      <mat-error *ngFor="let error of placeForm.errors | keyvalue" class="alert">
+        {{ error.key }}: {{ error.value }}
+      </mat-error>
+    </div>
     <mat-form-field appearance="outline" class="full">
       <mat-label i18n>Name</mat-label>
       <input matInput formControlName="name">

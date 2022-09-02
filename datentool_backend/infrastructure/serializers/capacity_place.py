@@ -76,7 +76,7 @@ class PlaceAttributeValidator:
             # check if the fields exist as a PlaceField
             try:
                 place_field = PlaceField.objects.get(
-                    name=field_name,
+                    name__iexact=field_name,
                     infrastructure=infrastructure)
             except PlaceField.DoesNotExist:
                 msg = f'Field {field_name} is no PlaceField for Infrastructure {infr_name}'
