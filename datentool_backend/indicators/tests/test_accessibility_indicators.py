@@ -286,7 +286,6 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
             result = pd.DataFrame(response.data).set_index('place_id')
             self.assertEquals(len(result), 5)
 
-
     def test_reachability_next_place(self):
         """Test reachability to next place from all cells"""
 
@@ -311,3 +310,9 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
             self.assertEquals(len(result), 8)
 
 
+        query_params['places'] = [self.place1.pk, self.place2.pk]
+        url = reverse(url_key)
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        result = pd.DataFrame(response.data).set_index('cell_code')
+        self.assertEquals(len(result), 8)
