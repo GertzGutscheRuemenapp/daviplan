@@ -10,6 +10,7 @@ from rest_framework import viewsets, status, serializers
 from rest_framework.decorators import action
 from djangorestframework_camel_case.parser import (CamelCaseMultiPartParser,
                                                    CamelCaseJSONParser)
+from django.db import connection
 
 from datentool_backend.utils.serializers import MessageSerializer
 from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
@@ -86,6 +87,12 @@ class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
         years_to_delete = Year.objects.exclude(year__range=(from_year, to_year))
         years_to_delete.delete()
+        #with connection.cursor() as cursor:
+            #cursor.execute(
+                #'DELETE FROM datentool_backend_year WHERE NOT '
+                #'("datentool_backend_year"."year" BETWEEN %s AND %s)',
+                #(2011, 2030)
+            #)
 
         for y in range(from_year, to_year+1):
             year = Year.objects.get_or_create(year=y)

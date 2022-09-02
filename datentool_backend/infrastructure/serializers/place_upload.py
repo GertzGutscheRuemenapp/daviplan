@@ -3,6 +3,7 @@ import os
 from collections import OrderedDict
 from typing import Tuple
 import pandas as pd
+import logging
 
 from django.conf import settings
 from django.db.models import Q
@@ -44,6 +45,7 @@ class PlacesTemplateSerializer(serializers.Serializer):
     """Serializer for uploading Places for an Infrastructure"""
     excel_file = serializers.FileField()
     drop_constraints = serializers.BooleanField(default=True)
+    logger = logging.getLogger('infrastructure')
 
     def create_template(self, infrastructure_id: int) -> bytes:
         """Create a template file for places of the give infrastructure"""
@@ -56,12 +58,12 @@ class PlacesTemplateSerializer(serializers.Serializer):
 
         columns = {'Name': 'So werden die Einrichtungen auf den Karten beschriftet. '\
                    'Jeder Standort muss einen Namen haben, den kein anderer Standort trägt.',
-                  'Straße': 'Postalisch korrekte Schreibweise',
-                  'Hausnummer': 'Zahl, ggf. mit Buchstaben (7b) oder 11-15',
-                  'PLZ': 'fünfstellig',
-                  'Ort': 'Postalisch korrekte Schreibweise',
-                  'Lon': 'Längengrad, in WGS84',
-                  'Lat': 'Breitengrad, in WGS84',}
+                   'Straße': 'Postalisch korrekte Schreibweise',
+                   'Hausnummer': 'Zahl, ggf. mit Buchstaben (7b) oder 11-15',
+                   'PLZ': 'fünfstellig',
+                   'Ort': 'Postalisch korrekte Schreibweise',
+                   'Lon': 'Längengrad, in WGS84',
+                   'Lat': 'Breitengrad, in WGS84',}
 
         dv_01 = DataValidation(type="whole",
                         operator="between",
@@ -312,6 +314,8 @@ class PlacesTemplateSerializer(serializers.Serializer):
                            skiprows=[1, 2]).set_index('Unnamed: 0')
         df_places.index.name = 'place_id'
 
+        n_new = 0
+
         # iterate over all places
         for place_id, place_row in df_places.iterrows():
             if pd.isna(place_id):
@@ -321,6 +325,7 @@ class PlacesTemplateSerializer(serializers.Serializer):
                 place = Place.objects.get(pk=place_id)
             except Place.DoesNotExist:
                 place = Place()
+                n_new += 1
 
             place_name = place_row['Name']
             if pd.isna(place_name):
@@ -330,6 +335,7 @@ class PlacesTemplateSerializer(serializers.Serializer):
             lon = place_row['Lon']
             lat = place_row['Lat']
             if pd.isna(lon) or pd.isna(lat):
+                self.logger.info('Geokodiere Adressen')
                 lon, lat = self.geocode(place_row)
 
             # create the geometry and transform to WebMercator
@@ -408,6 +414,11 @@ class PlacesTemplateSerializer(serializers.Serializer):
                     drop_constraints=False, drop_indexes=False,
                 )
 
+        self.logger.info(f'{len(df_places)} Einträge bearbeitet')
+        if n_new > 0:
+            self.logger.info(f'davon {n_new} als neue Orte hinzugefügt')
+            self.logger.info('ACHTUNG: Für die neuen Orte muss die '
+                             'Erreichbarkeit neu berechnet werden!')
         df = pd.DataFrame()
         return df
 

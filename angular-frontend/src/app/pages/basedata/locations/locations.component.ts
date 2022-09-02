@@ -59,7 +59,6 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   selectedPlace?: Place;
   placeDialogRef?: MatDialogRef<any>;
   file?: File;
-  uploadErrors: any = {};
 
   constructor(private mapService: MapService, private rest: RestAPI, private http: HttpClient,
               private dialog: MatDialog, private restService: PlanningService) { }
@@ -313,7 +312,8 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       data: {
         title: `Template hochladen`,
         confirmButtonText: 'Datei hochladen',
-        template: this.fileUploadTemplate
+        template: this.fileUploadTemplate,
+        closeOnConfirm: true
       }
     });
     dialogRef.componentInstance.confirmed.subscribe((confirmed: boolean) => {
@@ -322,21 +322,12 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       const formData = new FormData();
       formData.append('infrastructure', this.selectedInfrastructure!.id.toString());
       formData.append('excel_file', this.file);
-      const dialogRef2 = SimpleDialogComponent.show(
-        'Das Template wird hochgeladen. Bitte warten', this.dialog, { showAnimatedDots: true });
       const url = `${this.rest.URLS.places}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
         this.onInfrastructureChange(true);
-        dialogRef.close();
-        dialogRef2.close();
       }, error => {
-        this.uploadErrors = error.error;
-        dialogRef2.close();
       });
     });
-    dialogRef.afterClosed().subscribe(ok => {
-      this.uploadErrors = {};
-    })
   }
 
   setFiles(event: Event){

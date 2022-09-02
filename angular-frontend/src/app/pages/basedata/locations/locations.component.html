@@ -58,11 +58,11 @@
                     <p>Eine Liste aller Standorte des Infrastrukturbereichs wird Ihnen angezeigt, wenn Sie auf „Datentabelle ansehen“ klicken.</p>">
 <!--      <p>Einzelne Standorte können Sie auch über die Funktion „Neuen Standort hinzufügen“ in der Karte eintragen (Icon oben links).</p>-->
       <div style="width: 100%; display: flex;">
-        <div style="width: 50%; align-self: start;">
-          <span class="subtitle1 sub">
+        <div style="width: 50%; display: flex; flex-wrap: wrap;">
+          <span class="subtitle1 sub" style="width: 100%;">
             Infrastrukturbereich: <p style="font-size: 1.5em;">"{{selectedInfrastructure?.name || '-'}}"</p>
           </span>
-          <div style="display: flex; margin-top: 15px;">
+          <div style="display: flex; margin-top: 15px; width: 100%;">
             <table>
               <tr>
                 <td i18n>Standorte</td>
@@ -91,18 +91,22 @@
               <mat-icon>upload</mat-icon> Daten hochladen
             </button>
           </div>
-          <button class="mat-button-dv"
-                  mat-button color="primary"
-                  (click)="showDataTable()">
-            <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
-          </button>
-          <button class="mat-button-dv"
-                  mat-button color="warn"
-                  style="float: right; margin-right: 10px; box-shadow: none;"
-                  (click)="onDeletePlaces()">
-            <mat-icon>cancel</mat-icon>
-            Daten löschen
-          </button>
+          <div style="align-self: end;">
+            <button class="mat-button-dv"
+                    mat-button color="primary"
+                    title="Datentabelle der Orte der Infrastruktur anzeigen"
+                    (click)="showDataTable()">
+              <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
+            </button>
+            <button class="mat-button-dv"
+                    mat-button color="warn"
+                    title="Alle Orte der Infrastruktur entfernen"
+                    style="margin-left: 10px; box-shadow: none;"
+                    (click)="onDeletePlaces()">
+              <mat-icon>cancel</mat-icon>
+              Daten löschen
+            </button>
+          </div>
 <!--          <button mat-mini-fab color="primary"
                   aria-label="Daten herunterladen" title="Daten herunterladen"
                   style="float: right; margin: -10px 15px 0 0; box-shadow: none;">
@@ -111,7 +115,7 @@
         </div>
         <div id="log-window" style="width: 50%">
           <span class="subtitle1">Daten-Historie</span>
-          <app-log height="calc(100% - 25px)"></app-log>
+          <app-log room="infrastructure" height="200px"></app-log>
         </div>
       </div>
       <div id="base-locations-map" class="map-container">
@@ -271,11 +275,6 @@
 </ng-template>
 
 <ng-template #fileUploadTemplate>
-  <div *ngIf="uploadErrors">
-    <mat-error *ngFor="let error of uploadErrors | keyvalue" class="alert">
-      {{ error.key }}: {{ error.value }}
-    </mat-error>
-  </div>
   <p>
     Befülltes Excel-Template mit Standortdaten für den Infrastrukturbereich <b>"{{selectedInfrastructure?.name}}"</b> hochladen
   </p>

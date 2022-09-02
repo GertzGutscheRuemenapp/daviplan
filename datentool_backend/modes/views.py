@@ -157,8 +157,9 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             router.run()
 
-        return Response({'message': f'Networks successfully built and running'},
-                        status=status.HTTP_201_CREATED)
+        msg = 'Router erfolgreich gebaut und gestartet'
+        logger.info(msg)
+        return Response({'message': msg}, status=status.HTTP_201_CREATED)
 
     @extend_schema(
         description=('start routers for modes bike, car and foot'),

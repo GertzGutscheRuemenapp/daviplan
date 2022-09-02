@@ -130,10 +130,10 @@ const routes: Routes = [
         path: 'gebiete',
         component: AreasComponent
       },
-      {
+/*      {
         path: 'einwohnerraster',
         component: PopRasterComponent
-      },
+      },*/
       {
         path: 'realdaten',
         component: RealDataComponent

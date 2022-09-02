@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ElementRef, ViewChild, Input, AfterViewChecked } from '@angular/core';
+import { Component, AfterViewInit, ElementRef, ViewChild, Input, AfterViewChecked, OnDestroy } from '@angular/core';
 import { environment } from "../../environments/environment";
 import { LogEntry } from "../rest-interfaces";
 
@@ -7,9 +7,9 @@ import { LogEntry } from "../rest-interfaces";
   templateUrl: './log.component.html',
   styleUrls: ['./log.component.scss']
 })
-export class LogComponent implements AfterViewInit, AfterViewChecked {
-  @Input() height: string = '100%';
-  @Input() room: string = '';
+export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy {
+  @Input() height: string = '200px';
+  @Input() room: string | undefined = '';
   @ViewChild('log') logEl!: ElementRef;
   private wsURL: string;
   private retries = 0;
@@ -55,5 +55,10 @@ export class LogComponent implements AfterViewInit, AfterViewChecked {
 
   private scrollToBottom(): void {
       this.logEl.nativeElement.scrollTop = this.logEl.nativeElement.scrollHeight;
+  }
+
+  ngOnDestroy(): void {
+    this.room = undefined;
+    this.chatSocket?.close();
   }
 }

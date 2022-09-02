@@ -60,13 +60,11 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   ageGroups: AgeGroup[] = [];
   yearSelection = new SelectionModel<number>(true);
   maxYear = new Date().getFullYear() - 1;
-  pullErrors: any = {};
   Object = Object;
   dataColumns: string[] = [];
   dataRows: any[][] = [];
   dataYear?: Year;
   file?: File;
-  uploadErrors: any = {};
 
   constructor(private mapService: MapService, public popService: PopulationService,
               private dialog: MatDialog, private settings: SettingsService,
@@ -320,22 +318,15 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         title: 'Einwohnerdaten abrufen',
         confirmButtonText: 'Daten abrufen',
         template: this.pullServiceTemplate,
-        closeOnConfirm: false
+        closeOnConfirm: true
       }
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
       const url = `${this.rest.URLS.populations}pull_regionalstatistik/`;
-      const dialogRef2 = SimpleDialogComponent.show(
-        'Die Bevölkerungsdaten werden von der Regionalstatistik abgerufen. Sie werden auf das Raster disaggregiert und anschließend auf die vorhandenen Gebiete aggregiert.<br><br>' +
-        'Dies kann einige Minuten dauern. Bitte warten', this.dialog, { showAnimatedDots: true, width: '400px' });
       this.http.post(url, {}).subscribe(() => {
         this.popService.reset();
         this.fetchData();
-        dialogRef2.close();
-        dialogRef.close();
       }, error => {
-        this.pullErrors = error.error;
-        dialogRef2.close();
       })
     })
   }
@@ -389,31 +380,22 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
       data: {
         title: `Template hochladen`,
         confirmButtonText: 'Datei hochladen',
+        closeOnConfirm: true,
         template: this.fileUploadTemplate
       }
     });
-    dialogRef.componentInstance.confirmed.subscribe((confirmed: boolean) => {
+    dialogRef.componentInstance.confirmed.subscribe(() => {
       if (!this.file)
         return;
       const formData = new FormData();
       formData.append('excel_file', this.file);
-      const dialogRef2 = SimpleDialogComponent.show(
-        'Das Template wird hochgeladen. Die Bevölkerungsdaten werden auf das Raster disaggregiert und anschließend auf die vorhandenen Gebiete aggregiert.<br><br>' +
-        'Dies kann einige Minuten dauern. Bitte warten', this.dialog, { showAnimatedDots: true, width: '400px' });
       const url = `${this.rest.URLS.popEntries}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
         this.popService.reset();
         this.fetchData();
-        dialogRef.close();
-        dialogRef2.close();
       }, error => {
-        this.uploadErrors = error.error;
-        dialogRef2.close();
       });
     });
-    dialogRef.afterClosed().subscribe(ok => {
-      this.uploadErrors = {};
-    })
   }
 
   setFiles(event: Event){

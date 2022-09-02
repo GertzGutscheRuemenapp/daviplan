@@ -6,8 +6,6 @@ import {
   Population,
   Year,
   Prognosis,
-  ExtLayer,
-  ExtLayerGroup,
   Gender,
   AgeGroup, PopEntry, DemandRateSet
 } from "../../../rest-interfaces";
@@ -456,33 +454,23 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       data: {
         title: `Template hochladen`,
         confirmButtonText: 'Datei hochladen',
-        template: this.fileUploadTemplate
+        template: this.fileUploadTemplate,
+        closeOnConfirm: true,
       }
     });
-    dialogRef.componentInstance.confirmed.subscribe((confirmed: boolean) => {
+    dialogRef.componentInstance.confirmed.subscribe(() => {
       if (!this.file)
         return;
       const formData = new FormData();
       formData.append('excel_file', this.file);
       formData.append('prognosis', this.activePrognosis!.id.toString());
-      const dialogRef2 = SimpleDialogComponent.show(
-        'Das Template wird hochgeladen. Die Bevölkerungsdaten werden auf das Raster disaggregiert und anschließend auf die vorhandenen Gebiete aggregiert.<br><br>' +
-        'Dies kann einige Minuten dauern. Bitte warten', this.dialog, { showAnimatedDots: true, width: '400px' });
       const url = `${this.rest.URLS.popEntries}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
         this.popService.reset();
         this.fetchData();
-        dialogRef.close();
-        dialogRef2.close();
       }, error => {
-        this.uploadErrors = error.error;
-        dialogRef.componentInstance.isLoading$.next(false);
-        dialogRef2.close();
       });
     });
-    dialogRef.afterClosed().subscribe(ok => {
-      this.uploadErrors = {};
-    })
   }
 
   setFiles(event: Event){

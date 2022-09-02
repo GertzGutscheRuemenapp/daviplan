@@ -3,6 +3,7 @@ from typing import List
 import pandas as pd
 from openpyxl.reader.excel import load_workbook
 
+from django.core.exceptions import BadRequest
 from django.conf import settings
 from rest_framework import serializers
 
@@ -20,7 +21,7 @@ from datentool_backend.utils.pop_aggregation import (
         disaggregate_population, aggregate_many)
 from datentool_backend.utils.excel_template import ColumnError
 
-
+import logging
 
 area_level_id_serializer = serializers.PrimaryKeyRelatedField(
     queryset=AreaLevel.objects.all(),
@@ -39,6 +40,7 @@ class PopulationTemplateSerializer(serializers.Serializer):
     """Serializer for uploading Population and Prognosis"""
     excel_file = serializers.FileField()
     drop_constraints = serializers.BooleanField(default=True)
+    logger = logging.getLogger('population')
 
     def create_template(self,
                         area_level_id: int,
@@ -67,8 +69,8 @@ class PopulationTemplateSerializer(serializers.Serializer):
 
         # create Row-Multiindex for Areas with key and label
         areas = Area.annotated_qs(area_level)
-        key_attr = AreaField.objects.get(area_level=area_level, is_key=True).name
-        label_attr = AreaField.objects.get(area_level=area_level, is_label=True).name
+        key_attr = self.get_area_level_key(area_level)
+        label_attr = self.get_area_level_label(area_level)
 
         keys = ['id', key_attr, label_attr]
         idx_areas = pd.MultiIndex.from_frame(pd.DataFrame(areas.values(*keys), columns=keys))
@@ -116,7 +118,6 @@ class PopulationTemplateSerializer(serializers.Serializer):
                 try:
                     population = Population.objects.get(
                         prognosis_id=prognosis_id, year__year=year,
-                        #popraster=popraster,
                     )
                     rows = PopulationEntry.objects.filter(
                         population=population).values(*columns)
@@ -196,14 +197,14 @@ class PopulationTemplateSerializer(serializers.Serializer):
         area_level = AreaLevel.objects.get(is_default_pop_level=True)
 
         areas = Area.annotated_qs(area_level)
-        key_attr = AreaField.objects.get(area_level=area_level, is_key=True).name
+        key_attr = self.get_area_level_key(area_level)
         df_areas = pd.DataFrame(areas.values(key_attr, 'id'))\
             .set_index(key_attr)\
-            .rename(columns={'id': 'area_id',})
+            .rename(columns={'id': 'area_id', })
 
         df_genders = pd.DataFrame(Gender.objects.values('id', 'name'))\
             .set_index('name')\
-            .rename(columns={'id': 'gender_id',})
+            .rename(columns={'id': 'gender_id', })
         df_agegroups = pd.DataFrame([[ag.id, ag.name] for
                                      ag in AgeGroup.objects.all()],
                                     columns=['age_group_id', 'Altersgruppe'])\
@@ -247,11 +248,34 @@ class PopulationTemplateSerializer(serializers.Serializer):
 
         return df
 
+    def get_area_level_key(self, area_level: AreaLevel) -> str:
+        try:
+            key_attr = AreaField.objects.get(area_level=area_level,
+                                             is_key=True).name
+        except AreaField.DoesNotExist:
+            msg = f'kein Schlüsselfeld für Gebietseinheit {area_level.name} definiert'
+            self.logger.error(msg)
+            raise BadRequest(msg)
+        return key_attr
+
+    def get_area_level_label(self, area_level: AreaLevel) -> str:
+        try:
+            label_attr = AreaField.objects.get(area_level=area_level,
+                                               is_label=True).name
+        except AreaField.DoesNotExist:
+            msg = f'kein Label-Feld für Gebietseinheit {area_level.name} definiert'
+            self.logger.error(msg)
+            raise BadRequest(msg)
+        return label_attr
+
     def post_processing(self, dataframe, drop_constraints=False):
         populations = Population.objects.filter(
             id__in=dataframe['population_id'].unique())
-        for population in populations:
+        self.logger.info('Disaggregiere Bevölkerungsdaten')
+        for i, population in enumerate(populations):
             disaggregate_population(population, use_intersected_data=True,
                                     drop_constraints=drop_constraints)
+            self.logger.info(f'{i + 1}/{len(populations)}')
+        self.logger.info('Aggregiere Bevölkerungsdaten')
         aggregate_many(AreaLevel.objects.all(), populations,
                        drop_constraints=drop_constraints)
