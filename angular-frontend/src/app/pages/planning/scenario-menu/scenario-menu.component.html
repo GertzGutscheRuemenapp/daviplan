@@ -36,7 +36,8 @@
                           [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
           </ng-container>
           <ng-container *ngIf="domain==='rating'">
-            <ng-container *ngTemplateOutlet="ratingScenario"></ng-container>
+            <ng-container [ngTemplateOutlet]="ratingScenario"
+                          [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
           </ng-container>
           <ng-container *ngIf="domain==='supply'">
             <ng-container *ngTemplateOutlet="supplyScenario"></ng-container>
@@ -96,7 +97,8 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
-    <mat-icon class="material-icons-outlined" color="primary"
+    <mat-icon *ngIf="getDemandRateSet(scenario)"
+              class="material-icons-outlined" color="primary"
               title="aktuell eingestellte Nachfragequoten anzeigen"
               (click)="onShowDemandQuotaSet()">
       info
@@ -128,52 +130,27 @@
 <ng-template #reachabilitiesTemplate let-scenario="scenario">
   <div class="scenario-row">
     <mat-form-field appearance="standard" class="small"
+                    style="width: 145px;"
                     floatLabel="always">
-      <mat-label>Wegenetz zu Fuß</mat-label>
+      <mat-label>ÖPNV-Netz</mat-label>
       <mat-select disableOptionCentering disableRipple
-                  [value]="getNetwork(scenario, TransportMode.WALK)"
-                  (selectionChange)="onNetworkChange(scenario, TransportMode.WALK, $event.value)"
-                  [placeholder]="(networks.length > 0)? 'keine Auswahl': 'keine Netze vorhanden'"
+                  [value]="getTransitVariant(scenario)"
+                  (selectionChange)="onTransitChange(scenario, $event.value)"
+                  [placeholder]="(transitVariants.length > 0)? 'keine Auswahl': 'keine Netze vorhanden'"
                   [disabled]="scenario.isBase">
-        <mat-option *ngFor="let network of networks" [value]="network">
-          {{network.name}}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-  </div>
-  <div class="scenario-row">
-    <mat-form-field appearance="standard" class="small"
-                    floatLabel="always">
-      <mat-label>Wegenetz Fahrrad</mat-label>
-      <mat-select disableOptionCentering disableRipple
-                  [value]="getNetwork(scenario, TransportMode.BIKE)"
-                  (selectionChange)="onNetworkChange(scenario, TransportMode.BIKE, $event.value)"
-                  [placeholder]="(networks.length > 0)? 'keine Auswahl': 'keine Netze vorhanden'"
-                  [disabled]="scenario.isBase">
-        <mat-option *ngFor="let network of networks" [value]="network">
-          {{network.name}}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-  </div>
-  <div class="scenario-row">
-    <mat-form-field appearance="standard" class="small"
-                    floatLabel="always">
-      <mat-label>Wegenetz Auto</mat-label>
-      <mat-select disableOptionCentering disableRipple
-                  [value]="getNetwork(scenario, TransportMode.CAR)"
-                  (selectionChange)="onNetworkChange(scenario, TransportMode.CAR, $event.value)"
-                  [placeholder]="(networks.length > 0)? 'keine Auswahl': 'keine Netze vorhanden'"
-                  [disabled]="scenario.isBase">
-        <mat-option *ngFor="let network of networks" [value]="network">
-          {{network.name}}
+        <mat-option *ngFor="let variant of transitVariants" [value]="variant">
+          {{variant.label}}
         </mat-option>
       </mat-select>
     </mat-form-field>
   </div>
 </ng-template>
 
-<ng-template #ratingScenario>
+<ng-template #ratingScenario let-scenario="scenario">
+  <ng-container [ngTemplateOutlet]="demandTemplate"
+                [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
+  <ng-container [ngTemplateOutlet]="reachabilitiesTemplate"
+                [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
 </ng-template>
 
 <ng-template #supplyScenario>

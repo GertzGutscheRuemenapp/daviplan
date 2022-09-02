@@ -115,8 +115,10 @@ export class PlanningService extends RestCacheService {
     return observable;
   }
 
-  getPlaces(infrastructureId: number, options?: {
-    scenario?: number,
+  getPlaces(options?: {
+    infrastructure?: Infrastructure,
+    scenario?: Scenario,
+    service?: Service,
     targetProjection?: string,
     reset?: boolean,
     addCapacities?: boolean,
@@ -129,17 +131,22 @@ export class PlanningService extends RestCacheService {
     /*this.getCachedData<Place[]>('this.rest.URLS.places', {
       params: { infrastructure: infrastructureId }, reset: options?.reset })*/
     const _this = this;
+    const infrastructure = options?.infrastructure || this.activeInfrastructure;
     const observable = new Observable<Place[]>(subscriber => {
       function next(places: Place[]){
         subscriber.next(places);
         subscriber.complete();
       };
+      if (!infrastructure) {
+        next([]);
+        return;
+      };
       function filter(places: Place[]){
         if (options?.filter?.columnFilter || options?.addCapacities || options?.filter?.hasCapacity) {
-          _this.updateCapacities({ infrastructureId: infrastructureId, year: options?.filter?.year, scenarioId: options?.scenario }).subscribe(() => {
+          _this.updateCapacities({ infrastructure: infrastructure, year: options?.filter?.year, scenario: options?.scenario }).subscribe(() => {
             let placesTmp: Place[] = [];
             places.forEach(place => {
-              const cap = _this.getPlaceCapacity(place);
+              const cap = _this.getPlaceCapacity(place, { service: options?.service });
               if (options.filter?.hasCapacity && cap === 0) return;
               // ToDo: pass year
               if (options.filter?.columnFilter && !_this._filterPlace(place)) return;
@@ -154,8 +161,8 @@ export class PlanningService extends RestCacheService {
         else
           next(places);
       }
-      let params: any = {infrastructure: infrastructureId};
-      if (options?.scenario) params.scenario = options.scenario;
+      let params: any = {infrastructure: infrastructure.id};
+      if (options?.scenario && !options.scenario.isBase) params.scenario = options.scenario.id;
       this.getCachedData<Place[]>(this.rest.URLS.places, { reset: options?.reset, params: params }).subscribe(places => {
         const targetProjection = (options?.targetProjection !== undefined)? options?.targetProjection: 'EPSG:4326';
         places.forEach((place: Place )=> {
@@ -171,10 +178,10 @@ export class PlanningService extends RestCacheService {
     return observable;
   }
 
-  updateCapacities(options?: { infrastructureId?: number, year?: number, scenarioId?: number }): Observable<any> {
+  updateCapacities(options?: { infrastructure?: Infrastructure, year?: number, scenario?: Scenario }): Observable<any> {
     const year = (options?.year !== undefined)? options?.year: this.activeYear;
     const _this = this;
-    const scenarioId = options?.scenarioId || -1;
+    const scenarioId = (options?.scenario?.id !== undefined)? options.scenario.id: -1;
     const observable = new Observable<any>(subscriber => {
       let scenarioCapacities = this.capacitiesPerScenarioService[scenarioId];
       if (!scenarioCapacities)
@@ -188,8 +195,8 @@ export class PlanningService extends RestCacheService {
           if (!serviceCapacities[year!]) {
             observables.push(_this.getCapacities({
               year: year,
-              service: service.id!,
-              scenario: options?.scenarioId,
+              service: service,
+              scenario: options?.scenario,
               reset: true
             }).pipe(map(capacities => {
               serviceCapacities[year!] = capacities;
@@ -207,9 +214,9 @@ export class PlanningService extends RestCacheService {
           subscriber.complete();
         }
       }
-      if (options?.infrastructureId !== undefined) {
+      if (options?.infrastructure) {
         this.getInfrastructures().subscribe(infrastructures => {
-          let infrastructure = infrastructures.find(i => i.id === options.infrastructureId);
+          let infrastructure = infrastructures.find(i => i.id === options?.infrastructure?.id);
           update(infrastructure);
         })
       }
@@ -240,14 +247,6 @@ export class PlanningService extends RestCacheService {
     const cap = serviceCapacities[year]?.find(c => c.place === place.id);
     return cap?.capacity || 0;
   }
-
-/*  getPlaceCapacities(place: Place, service?: Service, scenario?: Scenario): Capacity[] {
-    service = service || this.activeService;
-    scenario = scenario || this.activeScenario;
-    if (!service || !scenario) return [];
-    const capacities = this.capacitiesPerScenarioService[scenario.id] || {};
-    return sortBy((capacities[service.id] || []).filter(c => c.place === place.id), 'fromYear')
-  }*/
 
   private _filterPlace(place: Place): boolean {
     if (this.placeFilterColumns.length === 0) return true;

@@ -87,7 +87,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
     if (!this.selectedInfrastructure) return;
     this.editFields = JSON.parse(JSON.stringify(this.selectedInfrastructure.placeFields));
     this.isLoading$.next(true);
-    this.restService.getPlaces(this.selectedInfrastructure.id, { reset: reset }).subscribe(places => {
+    this.restService.getPlaces( { infrastructure: this.selectedInfrastructure, reset: reset }).subscribe(places => {
       this.selectedInfrastructure!.placesCount = places.length;
       this.isLoading$.next(false);
       this.dataColumns = ['Standort'];
@@ -97,7 +97,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       this.selectedInfrastructure!.services.forEach(service => {
         this.dataColumns.push(`Kapazitäten ${service.name}`);
         this.isLoading$.next(true);
-        this.restService.getCapacities({ service: service.id! }).subscribe(serviceCapacities => {
+        this.restService.getCapacities({ service: service }).subscribe(serviceCapacities => {
           this.places?.forEach(place => {
             if (!place.capacities) place.capacities = [];
             const capacities = serviceCapacities.filter(c => c.place === place.id && c.service === service.id);

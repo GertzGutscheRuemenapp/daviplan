@@ -15,6 +15,7 @@ import { sortBy } from "../../../helpers/utils";
 import { SettingsService } from "../../../settings.service";
 import { CookieService } from "../../../helpers/cookies.service";
 import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { SideToggleComponent } from "../../../elements/side-toggle/side-toggle.component";
 
 @Component({
   selector: 'app-pop-development',
@@ -25,6 +26,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   lineChart?: MultilineChartComponent;
   barChart?: StackedBarchartComponent;
   ageTree?: AgeTreeComponent;
+  @ViewChild('chartToggle') chartToggle!: SideToggleComponent;
   @ViewChild('lineChart', { static: false }) set _lineChart(content: MultilineChartComponent) {
     if (content) this.lineChart = content;
   }
@@ -277,6 +279,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
           this.activeArea = undefined;
         }
         this.cookies.set(`pop-area-${this.activeLevel!.id}`, this.activeArea?.id);
+        this.chartToggle.expanded = true;
         this.updateDiagrams();
       })
     })
