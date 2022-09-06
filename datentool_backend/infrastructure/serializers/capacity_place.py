@@ -6,6 +6,7 @@ from rest_framework import serializers
 
 from datentool_backend.population.models import RasterCell
 from datentool_backend.modes.models import ModeVariant, Mode
+from datentool_backend.indicators.models import MatrixCellPlace
 from datentool_backend.indicators.views.transit import TravelTimeRouterMixin
 from datentool_backend.area.models import FClass, FieldTypes
 from datentool_backend.infrastructure.models.places import (Place,
@@ -126,7 +127,7 @@ class PlaceSerializer(serializers.ModelSerializer):
                     id_columns=['place_id', 'cell_id'])
                 dataframes.append(df)
             df = pd.concat(dataframes)
-            TravelTimeRouterMixin.save_df(df, Place.objects.none(), False)
+            TravelTimeRouterMixin.save_df(df, MatrixCellPlace.objects.none(), False)
         return instance
 
 

@@ -392,8 +392,8 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         sources = self.get_sources(**kwargs).order_by('id')
         destinations = self.get_destinations(**kwargs).order_by('id')
 
-        return route(self, variant, sources, destinations,
-                     max_distance=max_distance, columns=self.columns)
+        return self.route(self, variant, sources, destinations,
+                          max_distance=max_distance, columns=self.columns)
 
     def calculate_airdistance_traveltimes(self,
                                           variant: ModeVariant,

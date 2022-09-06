@@ -104,12 +104,12 @@ class Capacity(DatentoolModelMixin, models.Model):
     objects = models.Manager()
     copymanager = DirectCopyManager()
 
-    place = models.ForeignKey(Place, on_delete=PROTECT_CASCADE)
-    service = models.ForeignKey(Service, on_delete=PROTECT_CASCADE)
+    place = models.ForeignKey(Place, on_delete=models.CASCADE)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
     capacity = models.FloatField(default=1)
     from_year = models.IntegerField(default=0)
     to_year = models.IntegerField(default=99999999)
-    scenario = models.ForeignKey(Scenario, on_delete=PROTECT_CASCADE, null=True)
+    scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE, null=True)
 
     def __str__(self) -> str:
         place = getattr(self.place, 'pk', '_')

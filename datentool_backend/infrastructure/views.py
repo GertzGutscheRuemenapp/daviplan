@@ -14,13 +14,13 @@ from djangorestframework_camel_case.util import camelize
 
 from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
 from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
-from datentool_backend.user.permissions import CanEditScenarioPlacePermission
 from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
                                                  CanEditBasedata)
 from datentool_backend.models import (
     InfrastructureAccess, Infrastructure, Place, Capacity, PlaceField,
     PlaceAttribute, Service, Scenario)
-from .permissions import CanPatchSymbol, ScenarioCapacitiesPermission
+from .permissions import (CanPatchSymbol, ScenarioCapacitiesPermission,
+                          CanEditScenarioPlacePermission)
 from datentool_backend.infrastructure.serializers import (
     PlaceSerializer, CapacitySerializer, PlaceFieldSerializer,
     PlacesTemplateSerializer, infrastructure_id_serializer,
@@ -41,7 +41,7 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
     serializer_action_classes = {
         'create_template': PlacesTemplateSerializer,
         'upload_template': PlacesTemplateSerializer}
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata |
+    permission_classes = [#HasAdminAccessOrReadOnly | CanEditBasedata |
                           CanEditScenarioPlacePermission]
     filterset_fields = ['infrastructure']
 

@@ -38,25 +38,3 @@ class CanEditScenarioPermission(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return obj.has_read_permission(request.user)
         return obj.has_write_permission(request.user)
-
-
-class CanEditScenarioPlacePermission(permissions.BasePermission):
-    ''' object can only be requested in any way if it is owned by the user '''
-    def has_permission(self, request, view):
-        if request.method not in permissions.SAFE_METHODS:
-            scenario_id = request.data.get('scenario')
-            if scenario_id is None:
-                return False
-            try:
-                scenario = Scenario.objects.get(id=scenario_id)
-                return scenario.has_write_permission(request.user)
-            except Scenario.DoesNotExist:
-                return False
-        return True
-
-    def has_object_permission(self, request, view, obj):
-        if obj.scenario is None:
-            return False
-        if request.method in permissions.SAFE_METHODS:
-            return obj.scenario.has_read_permission(request.user)
-        return obj.scenario.has_write_permission(request.user)
