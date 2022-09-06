@@ -40,12 +40,6 @@ class CanEditBasedata(permissions.BasePermission):
         return (request.user.is_authenticated and
                 request.user.profile.can_edit_basedata)
 
-    def has_object_permission(self, request, view, obj):
-        if hasattr(obj, 'scenario'):
-            #check for ownership/edit dings
-            return
-        return request.user.id == obj.user.id
-
 
 class HasAdminAccess(permissions.BasePermission):
     def has_permission(self, request, view):

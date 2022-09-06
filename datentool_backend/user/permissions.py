@@ -57,7 +57,7 @@ class CanEditScenarioPlacePermission(permissions.BasePermission):
                     return owner_is_user or (allow_shared_change and user_in_users)
                 except Scenario.DoesNotExist:
                     return False
-        return True
+        return False
 
     def has_object_permission(self, request, view, obj):
         if obj.scenario is None:

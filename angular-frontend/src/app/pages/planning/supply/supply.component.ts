@@ -317,6 +317,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         if (value !== null) attributes[field] = value;
       });
       const format = new WKT();
+      dialogRef.componentInstance.isLoading$.next(true);
       let wkt = `SRID=${this.mapControl?.map?.mapProjection.replace('EPSG:', '')};${format.writeGeometry(place.geom as Geometry)}`;
       this.http.post<Place>(this.rest.URLS.places, {
         name: this.placeForm!.value.name,
@@ -326,19 +327,21 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         attributes: attributes
       }).subscribe(place => {
         dialogRef.close();
-        this.precalcTraveltime(place);
+        // this.precalcTraveltime(place);
         this.updatePlaces(true);
       }, error => {
         this.placeForm?.setErrors(error.error);
+        dialogRef.componentInstance.isLoading$.next(false);
       })
     })
   }
 
-  precalcTraveltime(place: Place): void {
-    this.http.post<any>(`${this.rest.URLS.matrixCellPlaces}precalculate_traveltime/`, {places: [place.id]}).subscribe(() => {
+/*  precalcTraveltime(place: Place): void {
+    this.http.post<any>(`${this.rest.URLS.matrixCellPlaces}precalculate_traveltime/`,
+      {places: [place.id], verbose: false}).subscribe(() => {
     },(error) => {
     })
-  }
+  }*/
 
   showEditPlace(place: Place): void {
     let fields: any = { name: place.name };
