@@ -20,7 +20,7 @@ from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
 from datentool_backend.models import (
     InfrastructureAccess, Infrastructure, Place, Capacity, PlaceField,
     PlaceAttribute, Service, Scenario)
-from .permissions import CanPatchSymbol
+from .permissions import CanPatchSymbol, ScenarioCapacitiesPermission
 from datentool_backend.infrastructure.serializers import (
     PlaceSerializer, CapacitySerializer, PlaceFieldSerializer,
     PlacesTemplateSerializer, infrastructure_id_serializer,
@@ -161,7 +161,8 @@ capacity_params = [
 class CapacityViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Capacity.objects.all()
     serializer_class = CapacitySerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata |
+                          ScenarioCapacitiesPermission]
 
     # only filtering for list view
     def list(self, request, *args, **kwargs):
