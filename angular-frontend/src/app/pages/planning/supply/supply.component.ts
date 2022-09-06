@@ -23,6 +23,7 @@ import { RestAPI } from "../../../rest-api";
 import { WKT } from "ol/format";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { sortBy } from "../../../helpers/utils";
+import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 
 @Component({
   selector: 'app-supply',
@@ -316,6 +317,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         if (value !== null) attributes[field] = value;
       });
       const format = new WKT();
+      dialogRef.componentInstance.isLoading$.next(true);
       let wkt = `SRID=${this.mapControl?.map?.mapProjection.replace('EPSG:', '')};${format.writeGeometry(place.geom as Geometry)}`;
       this.http.post<Place>(this.rest.URLS.places, {
         name: this.placeForm!.value.name,
@@ -325,13 +327,21 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         attributes: attributes
       }).subscribe(place => {
         dialogRef.close();
+        // this.precalcTraveltime(place);
         this.updatePlaces(true);
       }, error => {
-        // ToDo: show error
-        console.log(error)
+        this.placeForm?.setErrors(error.error);
+        dialogRef.componentInstance.isLoading$.next(false);
       })
     })
   }
+
+/*  precalcTraveltime(place: Place): void {
+    this.http.post<any>(`${this.rest.URLS.matrixCellPlaces}precalculate_traveltime/`,
+      {places: [place.id], verbose: false}).subscribe(() => {
+    },(error) => {
+    })
+  }*/
 
   showEditPlace(place: Place): void {
     let fields: any = { name: place.name };
@@ -371,6 +381,28 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     })
   }
 
+  removePlace(place: Place): void {
+    const dialogRef = this.dialog.open(RemoveDialogComponent, {
+      data: {
+        title: $localize`Den Standort wirklich aus dem Szenario entfernen?`,
+        confirmButtonText: $localize`Standort entfernen`,
+        value: place.name
+      }
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.http.delete<Place>(`${this.rest.URLS.places}${place.id}/`).subscribe(p => {
+          this.placePreviewDialogRef?.close();
+          this.selectedPlaces = [];
+          this.updatePlaces(true);
+        }, error => {
+          // ToDo: show error
+          console.log(error)
+        })
+      }
+    });
+  }
+
   showEditCapacities(place: Place): void {
     if (!this.activeService) return;
     this._editCapacities = this.getCapacities(place).map(cap => Object.assign({}, cap));
@@ -397,8 +429,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       }
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
-      let observables: Observable<any>[] = [];
-      const _this = this;
       dialogRef.componentInstance.setLoading(true);
       this.http.post<Capacity[]>(`${this.rest.URLS.capacities}replace/`, {
         scenario: this.activeScenario!.id,

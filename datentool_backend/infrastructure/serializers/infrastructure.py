@@ -1,6 +1,7 @@
 from rest_framework import serializers
-
+from django.db.utils import IntegrityError
 from rest_framework.exceptions import NotAcceptable
+
 from datentool_backend.infrastructure.models.infrastructures import (
     InfrastructureAccess, Infrastructure, PlaceField)
 from datentool_backend.area.models import MapSymbol
@@ -107,16 +108,22 @@ class InfrastructureSerializer(serializers.ModelSerializer):
                 raise NotAcceptable('Die Namen der Attribute dürfen kein "_" enthalten!')
         for pf_data in data:
             pf_id = pf_data.get('id', None)
+            field_name = pf_data['name']
             if pf_id is not None:
                 place_field = PlaceField.objects.get(id=pf_id)
                 place_field.field_type = pf_data['field_type']
-                place_field.name = pf_data['name']
+                place_field.name = field_name
             else:
-                place_field = PlaceField.objects.create(
-                    infrastructure=instance,
-                    name=pf_data['name'],
-                    field_type=pf_data['field_type']
-                )
+                try:
+                    place_field = PlaceField.objects.create(
+                        infrastructure=instance,
+                        name=field_name,
+                        field_type=pf_data['field_type']
+                    )
+                except IntegrityError:
+                    raise NotAcceptable(
+                        f'Der Name des Feldes "{field_name}" ist '
+                        'bereits so oder in anderer Schreibweise vorhanden')
             place_field.unit = pf_data.get('unit', '')
             place_field.sensitive = pf_data.get('sensitive', False)
             place_field.save()

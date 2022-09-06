@@ -15,11 +15,12 @@ from djangorestframework_camel_case.util import camelize
 from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
 from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
 from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
-                                                 CanEditBasedata,)
+                                                 CanEditBasedata)
 from datentool_backend.models import (
     InfrastructureAccess, Infrastructure, Place, Capacity, PlaceField,
     PlaceAttribute, Service, Scenario)
-from .permissions import CanPatchSymbol
+from .permissions import (CanPatchSymbol, ScenarioCapacitiesPermission,
+                          CanEditScenarioPlacePermission)
 from datentool_backend.infrastructure.serializers import (
     PlaceSerializer, CapacitySerializer, PlaceFieldSerializer,
     PlacesTemplateSerializer, infrastructure_id_serializer,
@@ -40,7 +41,8 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
     serializer_action_classes = {
         'create_template': PlacesTemplateSerializer,
         'upload_template': PlacesTemplateSerializer}
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    permission_classes = [#HasAdminAccessOrReadOnly | CanEditBasedata |
+                          CanEditScenarioPlacePermission]
     filterset_fields = ['infrastructure']
 
     def create(self, request, *args, **kwargs):
@@ -55,6 +57,11 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
         serializer.instance = Place.objects.get(pk=serializer.instance.pk)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        attributes = request.data.get('attributes')
+        request.data['attributes'] = camelize(attributes)
+        return super().update(request, *args, **kwargs)
 
     def get_queryset(self):
         try:
@@ -154,7 +161,8 @@ capacity_params = [
 class CapacityViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Capacity.objects.all()
     serializer_class = CapacitySerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata |
+                          ScenarioCapacitiesPermission]
 
     # only filtering for list view
     def list(self, request, *args, **kwargs):

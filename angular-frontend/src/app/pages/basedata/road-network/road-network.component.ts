@@ -7,15 +7,12 @@ import { BasedataSettings, ModeVariant, TransportMode } from "../../../rest-inte
 import { RestCacheService } from "../../../rest-cache.service";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 
-export const mockRouters = ['Deutschland 2020', 'SHK mit ÖPNV 2021', 'Dtl 2020 mit A13 Ausbau'];
-
 @Component({
   selector: 'app-road-network',
   templateUrl: './road-network.component.html',
   styleUrls: ['./road-network.component.scss']
 })
 export class RoadNetworkComponent implements OnInit, OnDestroy {
-  routers = mockRouters;
   baseDataSettings?: BasedataSettings;
   modeVariants: ModeVariant[] = [];
 

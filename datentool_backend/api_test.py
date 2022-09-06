@@ -421,12 +421,12 @@ class WriteOnlyWithCanEditBaseDataTest:
 
     def test_delete(self):
         """Test delete with and without can_edit_basedata permissions"""
-        self.profile.can_edit_basedata = True
-        self.profile.save()
-        self._test_delete()
         self.profile.can_edit_basedata = False
         self.profile.save()
         self._test_delete_forbidden()
+        self.profile.can_edit_basedata = True
+        self.profile.save()
+        self._test_delete()
 
     def test_post(self):
         """Test post with and without can_edit_basedata permissions"""

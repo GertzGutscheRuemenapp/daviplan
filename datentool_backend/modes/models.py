@@ -66,7 +66,7 @@ class ModeVariant(DatentoolModelMixin, models.Model):
     is_default = models.BooleanField(default=False)
 
     def __repr__(self) -> str:
-        return f'{Mode._value2label_map_[self.mode]} - {self.label}'
+        return f'{Mode[self.mode].name} - {self.label}'
 
     def save(self, **kwargs):
         if self.pk is None and not self.network:

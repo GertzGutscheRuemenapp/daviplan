@@ -17,7 +17,7 @@ export class ServiceSelectComponent implements OnInit, OnDestroy {
 
   constructor(public planningService: PlanningService) {
     this.planningService.getInfrastructures().subscribe( infrastructures => {
-      this.infrastructures = infrastructures;
+      this.infrastructures = infrastructures.filter(i => i.services.length > 0);
       this.services = [];
       this.infrastructures?.forEach(i => this.services = this.services.concat(i.services));
       this.planningService.activeInfrastructure$.subscribe(

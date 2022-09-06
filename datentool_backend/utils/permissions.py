@@ -1,5 +1,6 @@
 from rest_framework import permissions
 from django.contrib.auth.models import User
+from datentool_backend.models import Scenario
 
 
 class ReadOnlyPermission(permissions.BasePermission):

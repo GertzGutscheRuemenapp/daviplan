@@ -160,16 +160,17 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
     def precalculate_traveltime(self, request):
         """Calculate traveltime with a air distance or network router"""
         drop_constraints = request.data.get('drop_constraints', False)
-        variants = request.data.get('variants', [])
+        variant_ids = request.data.get('variants', [])
         air_distance_routing = request.data.get('air_distance_routing', False)
         places = request.data.get('places')
         logger.info('Starte Berechnung der Reisezeitmatrizen')
         dataframes = []
+        variants = [ModeVariant.objects.get(pk=vid) for vid in variant_ids] \
+            or ModeVariant.objects.all()
         try:
             queryset = self.get_filtered_queryset(variants=variants,
                                                   places=places)
-            for variant_id in variants:
-                variant = ModeVariant.objects.get(pk=variant_id)
+            for variant in variants:
                 logger.info('Berechne Reisezeiten für Modus '
                             f'{Mode(variant.mode).name}')
                 max_distance = float(request.data.get(
@@ -285,8 +286,60 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         )
         return df
 
-    def save_df(self,
-                df: pd.DataFrame,
+    @staticmethod
+    def annotate_coords(queryset: QuerySet, geom='geom'):
+        return queryset.annotate(wgs=Transform(geom, 4326))\
+            .annotate(lat=Func('wgs',function='ST_Y', output_field=FloatField()),
+                      lon=Func('wgs',function='ST_X', output_field=FloatField()))\
+            .values('id', 'lon', 'lat')
+
+    @staticmethod
+    def route(variant: ModeVariant, sources: QuerySet, destinations: QuerySet,
+              max_distance: float = None, id_columns=None) -> pd.DataFrame:
+        """calculate traveltimes"""
+        mode = Mode(variant.mode)
+
+        if max_distance is None:
+            max_distance = MODE_MAX_DISTANCE[variant.mode]
+
+        router = OSRMRouter(mode)
+
+        if not router.is_running:
+            router.run()
+
+        source_coords = list(sources.values_list('lon', 'lat', named=False))
+        dest_coords = list(destinations.values_list('lon', 'lat', named=False))
+
+        matrix = router.matrix_calculation(source_coords, dest_coords)
+
+        # convert matrix to dataframe
+        arr = np.array(matrix.durations)
+        arr_seconds = pd.DataFrame(
+            arr,
+            index=list(sources.values_list('id', flat=True)),
+            columns=list(destinations.values_list('id', flat=True)))
+        arr = np.array(matrix.distances)
+        arr_meters = pd.DataFrame(
+            arr,
+            index=list(sources.values_list('id', flat=True)),
+            columns=list(destinations.values_list('id', flat=True)))
+
+        meters = arr_meters.T.unstack()
+        if id_columns:
+            meters.index.names = id_columns
+        seconds = arr_seconds.T.unstack()
+        if id_columns:
+            seconds.index.names = id_columns
+        seconds = seconds.loc[meters<max_distance]
+        minutes = seconds / 60
+        df = minutes.to_frame(name='minutes')
+        df['variant_id'] = variant.id
+        df.reset_index(inplace=True)
+        logger.debug(df)
+        return df
+
+    @staticmethod
+    def save_df(df: pd.DataFrame,
                 queryset: QuerySet,
                 drop_constraints: bool) -> (bool, str):
         model = queryset.model
@@ -299,7 +352,6 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
             n_deleted, deleted_rows = queryset.delete()
 
             try:
-
                 with StringIO() as file:
                     df.to_csv(file, index=False)
                     file.seek(0)
@@ -336,44 +388,12 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                                 max_distance: float,
                                 **kwargs) -> pd.DataFrame:
         """calculate traveltimes"""
-        mode = Mode(variant.mode)
-        router = OSRMRouter(mode)
-
-        if not router.is_running:
-            router.run()
 
         sources = self.get_sources(**kwargs).order_by('id')
         destinations = self.get_destinations(**kwargs).order_by('id')
 
-        source_coords = list(sources.values_list('lon', 'lat', named=False))
-        dest_coords = list(destinations.values_list('lon', 'lat', named=False))
-
-        matrix = router.matrix_calculation(source_coords, dest_coords)
-
-        # convert matrix to dataframe
-        arr = np.array(matrix.durations)
-        arr_seconds = pd.DataFrame(
-            arr,
-            index=list(sources.values_list('id', flat=True)),
-            columns=list(destinations.values_list('id', flat=True)))
-        arr = np.array(matrix.distances)
-        arr_meters = pd.DataFrame(
-            arr,
-            index=list(sources.values_list('id', flat=True)),
-            columns=list(destinations.values_list('id', flat=True)))
-
-        meters = arr_meters.T.unstack()
-        meters.index.names = self.columns
-
-        seconds = arr_seconds.T.unstack()
-        seconds.index.names = self.columns
-        seconds = seconds.loc[meters<max_distance]
-        minutes = seconds / 60
-        df = minutes.to_frame(name='minutes')
-        df['variant_id'] = variant.id
-        df.reset_index(inplace=True)
-        logger.debug(df)
-        return df
+        return self.route(variant, sources, destinations,
+                          max_distance=max_distance, id_columns=self.columns)
 
     def calculate_airdistance_traveltimes(self,
                                           variant: ModeVariant,
