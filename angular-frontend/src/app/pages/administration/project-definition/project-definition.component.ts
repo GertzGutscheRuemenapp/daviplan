@@ -136,6 +136,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     this.previewMapControl.setBackground(this.previewMapControl.backgroundLayers[0].id!);
     this.previewMapControl.map?.addVectorLayer('project-area',{
       visible: true,
+      zIndex: 1000,
       stroke: { color: '#DA9A22', width: 3 },
       fill: { color: 'rgba(218, 154, 34, 0.7)' }
     });
@@ -300,6 +301,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       this.areaSelectMapControl.setBackground(this.areaSelectMapControl.backgroundLayers[0].id!);
 
       const projectLayer = this.areaSelectMapControl.map?.addVectorLayer('project-area', {
+        zIndex: 1000,
         stroke: { color: 'rgba(0, 0, 0, 0)' },
         fill: { color: 'rgba(218, 154, 34, 0.7)' },
         visible: true
@@ -330,6 +332,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
                 ',EPSG:3857'
               )},
             visible: al === this.baseAreaLayer,
+            zIndex: 1001,
             selectable: true,
             tooltipField: 'gen',
             stroke: { color: 'black', selectedColor: 'black',
