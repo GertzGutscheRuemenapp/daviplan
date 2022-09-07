@@ -218,7 +218,7 @@ export class OlMap {
           const color = (value !== undefined)? options.fill.color(Number(value)): 'black';
           style.getFill().setColor(color);
         }
-        if (options?.labelField && layer.get('showLabel') && _this.view.getZoom()! > 10) {
+        if (options?.labelField && layer.get('showLabel')) {//&& _this.view.getZoom()! > 10) {
           let label = (options.labelField === 'value' && options.valueMap)? value: feature.get(options.labelField);
           if (typeof label === 'number')
             label = label.toLocaleString();
@@ -401,7 +401,7 @@ export class OlMap {
       }: {};
     let source = new VectorSource(sourceOpt);
     const styleFunc = function(feature: any) {
-      if (options?.labelField && layer.get('showLabel') && _this.view.getZoom()! > 10) {
+      if (options?.labelField && layer.get('showLabel')){// && _this.view.getZoom()! > 10) {
         let label = feature.get(options?.labelField);
         if (typeof label === 'number')
           label = label.toLocaleString();
