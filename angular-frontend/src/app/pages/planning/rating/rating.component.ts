@@ -9,15 +9,16 @@ import {
   AreaIndicatorResult,
   AreaLevel,
   Indicator,
-  Infrastructure,
-  PlanningProcess,
+  Infrastructure, Place, PlaceIndicatorResult,
+  PlanningProcess, RasterCell, RasterIndicatorResult,
   Service,
   TransportMode
 } from "../../../rest-interfaces";
 import { MapControl, MapService } from "../../../map/map.service";
 import * as d3 from "d3";
 import { Subscription } from "rxjs";
-import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { MapLayerGroup, VectorLayer, VectorTileLayer } from "../../../map/layers";
+import { modes } from "../mode-select/mode-select.component";
 
 @Component({
   selector: 'app-rating',
@@ -38,8 +39,8 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   selectedIndicator?: Indicator;
   selectedAreaLevel?: AreaLevel;
   activeInfrastructure?: Infrastructure;
-  activeProcess?: PlanningProcess;
-  activeMode: TransportMode = TransportMode.WALK;
+  showLabel = true;
+  selectedMode: TransportMode = TransportMode.WALK;
   mapControl?: MapControl;
   indicatorLayer?: VectorLayer;
   layerGroup?: MapLayerGroup;
@@ -106,30 +107,92 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   }
 
   updateMap(): void {
-    if (this.indicatorLayer) {
-      this.layerGroup?.removeLayer(this.indicatorLayer);
-      this.indicatorLayer = undefined;
-    }
+    this.showLabel = (this.indicatorLayer?.showLabel !== undefined)? this.indicatorLayer.showLabel: true;
+    this.layerGroup?.clear();
     this.updateMapDescription();
+    let params = {};
     switch (this.selectedIndicator?.resultType) {
       case 'area':
-        this.renderAreaIndicator();
+        this.renderAreaIndicator(params);
         break;
       case 'place':
-        this.renderPlaceIndicator();
+        this.renderPlaceIndicator(params);
+        break;
+      case 'raster':
+        this.renderRasterIndicator(params);
         break;
       default:
     }
   }
 
-  renderPlaceIndicator(): void {
+  renderRasterIndicator(params?: any): void {
+    const scenarioId = this.planningService.activeScenario?.isBase ? undefined : this.planningService.activeScenario?.id;
+    let max = 0;
+    let min = Number.MAX_VALUE;
+    this.planningService.computeIndicator<RasterIndicatorResult>(this.selectedIndicator!.name, this.activeService!.id,
+      { year: this.year!, scenario: scenarioId, mode: this.selectedMode }).subscribe(cellResults => {
+      let values: Record<string, number> = {};
+      cellResults.forEach(cellResult => {
+        values[cellResult.cellCode] = Math.round(cellResult.value);
+        max = Math.max(max, cellResult.value);
+        min = Math.min(min, cellResult.value);
+      })
+
+      const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
+      this.indicatorLayer = new VectorTileLayer( this.selectedIndicator!.title, url,{
+        order: 0,
+        opacity: 1,
+        style: {
+          fillColor: 'grey',
+          strokeColor: 'rgba(0, 0, 0, 0)',
+          symbol: 'line'
+        },
+        labelField: 'value',
+        showLabel: this.showLabel,
+        valueStyles: {
+          field: 'value',
+          fillColor: {
+            interpolation: {
+              range: d3.interpolatePurples,
+              scale: 'sequential',
+              steps: 5
+            }
+          },
+          min: Math.max(min, 0),
+          max: max || 1
+        },
+        valueMap: {
+          field: 'cellcode',
+          values: values
+        },
+        unit: 'Minuten'
+      });
+      this.layerGroup?.addLayer(this.indicatorLayer);
+    })
+  }
+
+  renderPlaceIndicator(params?: any): void {
     if (!this.year || !this.selectedIndicator || !this.activeService) return;
     const scenarioId = this.planningService.activeScenario?.isBase ? undefined : this.planningService.activeScenario?.id;
     this.planningService.getPlaces().subscribe(places => {
-      this.planningService.computeIndicator<AreaIndicatorResult>(this.selectedIndicator!.name, this.activeService!.id,
-        { year: this.year!, scenario: scenarioId, mode: this.activeMode }).subscribe(results => {
+      this.planningService.computeIndicator<PlaceIndicatorResult>(this.selectedIndicator!.name, this.activeService!.id,
+        { year: this.year!, scenario: scenarioId, mode: this.selectedMode }).subscribe(results => {
         // ToDo description with filter
-        this.indicatorLayer = new VectorLayer(this.activeInfrastructure!.name, {
+        let max = 0;
+        let min = Number.MAX_VALUE;
+        let displayedPlaces: any[] = [];
+        results.forEach(result => {
+          const place = places.find(p => p.id == result.placeId);
+          if (!place) return;
+          displayedPlaces.push({
+            id: place.id,
+            geometry: place.geom,
+            properties: { name: place.name, label: place.label, value: result.value, scenario: place.scenario }
+          });
+          max = Math.max(max, result.value);
+          min = Math.min(min, result.value);
+        })
+        this.indicatorLayer = new VectorLayer(this.selectedIndicator!.title, {
           order: 0,
           // description: desc,
           opacity: 1,
@@ -139,9 +202,10 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
             strokeColor: 'black',
             symbol: 'circle'
           },
-          labelField: 'label',
-          showLabel: false,
-          tooltipField: 'name',
+          radius: 7,
+          labelField: 'value',
+          showLabel: this.showLabel,
+          tooltipField: 'value',
           select: {
             enabled: true,
             style: {
@@ -155,36 +219,31 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
             cursor: 'pointer'
           },
           valueStyles: {
-            radius: {
-              range: [5, 20],
-              scale: 'linear'
+            field: 'value',
+            fillColor: {
+              interpolation: {
+                range: d3.interpolatePurples,
+                scale: 'sequential',
+                steps: 5
+              }
             },
-            strokeColor: {
-              colorFunc: (feat => (feat.get('scenario') !== null) ? '#fc450c' : '#174a79')
-            },
-            field: 'capacity',
-            min: this.activeService?.minCapacity || 0,
-            max: this.activeService?.maxCapacity || 1000
+            min: Math.max(min, 0),
+            max: max || 1
           },
           labelOffset: { y: 15 }
         });
         this.layerGroup?.addLayer(this.indicatorLayer);
-        this.indicatorLayer.addFeatures(places.map(place => {
-          return {
-            id: place.id,
-            geometry: place.geom,
-            properties: { name: place.name, label: place.label, capacity: place.capacity, scenario: place.scenario }
-          }
-        }));
+        this.indicatorLayer.addFeatures(displayedPlaces);
       });
     });
   }
 
-  renderAreaIndicator(): void {
+  renderAreaIndicator(params?: any): void {
     if (!this.year || !this.selectedAreaLevel || !this.selectedIndicator || !this.activeService || this.areas.length === 0) return;
     const scenarioId = this.planningService.activeScenario?.isBase ? undefined : this.planningService.activeScenario?.id;
-    this.planningService.computeIndicator<AreaIndicatorResult>(this.selectedIndicator.name, this.activeService.id,
-      { year: this.year!, scenario: scenarioId, areaLevelId: this.selectedAreaLevel.id, mode: this.activeMode }).subscribe(results => {
+    let options = { year: this.year!, scenario: scenarioId, areaLevelId: this.selectedAreaLevel.id, mode: this.selectedMode };
+
+    this.planningService.computeIndicator<AreaIndicatorResult>(this.selectedIndicator.name, this.activeService.id, options).subscribe(results => {
       let max = 0;
       let min = Number.MAX_VALUE;
       this.areas.forEach(area => {
@@ -205,7 +264,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           symbol: 'line'
         },
         labelField: 'value',
-        showLabel: true,
+        showLabel: this.showLabel,
         tooltipField: 'description',
         mouseOver: {
           enabled: true,
@@ -233,7 +292,10 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   }
 
   updateMapDescription(): void {
-
+    const desc = `${this.planningService.activeScenario?.name}<br>
+                  ${this.selectedIndicator?.title} für Leistung "${this.activeService?.name}"<br>
+                  <b>${this.selectedIndicator?.description}</b>`
+    this.mapControl?.setDescription(desc);
   }
 
   onIndicatorChange(): void {
@@ -242,7 +304,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   }
 
   changeMode(mode: TransportMode): void {
-    this.activeMode = mode;
+    this.selectedMode = mode;
     this.updateMap();
   }
 

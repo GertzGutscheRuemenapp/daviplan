@@ -87,19 +87,27 @@ export interface ExtLayer {
 }
 
 export interface Source {
-  id: number;
-  sourceType: 'WFS' | 'FILE';
-  layer: string;
-  date: string;
-  url: string;
+  id: number,
+  sourceType: 'WFS' | 'FILE',
+  layer: string,
+  date: string,
+  url: string
+}
+
+interface IndicatorParameter {
+  name: string,
+  type : 'choice' | 'number' | 'string',
+  title: string,
+  choices?: string[];
 }
 
 export interface Indicator {
-  service: number;
-  name: string;
-  title: string;
-  description: string;
-  resultType: 'place' | 'area' | 'raster' | 'pop';
+  service: number,
+  name: string,
+  title: string,
+  description: string,
+  resultType: 'place' | 'area' | 'raster' | 'pop',
+  additionalParameters?: IndicatorParameter[]
 }
 
 export interface RasterCell {
@@ -170,6 +178,12 @@ export interface Prognosis {
 
 export interface AreaIndicatorResult {
   areaId: number,
+  label?: string,
+  value: number
+}
+
+export interface RasterIndicatorResult {
+  cellCode: string,
   label?: string,
   value: number
 }
