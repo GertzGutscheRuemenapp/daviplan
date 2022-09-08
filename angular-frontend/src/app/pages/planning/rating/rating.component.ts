@@ -40,12 +40,12 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   selectedAreaLevel?: AreaLevel;
   activeInfrastructure?: Infrastructure;
   showLabel = true;
-  selectedMode: TransportMode = TransportMode.WALK;
   mapControl?: MapControl;
   indicatorLayer?: VectorLayer;
   layerGroup?: MapLayerGroup;
   year?: number;
   subscriptions: Subscription[] = [];
+  indicatorParams: any = {mode: TransportMode.WALK};
 
   constructor(private dialog: MatDialog, public cookies: CookieService,
               public planningService: PlanningService, private mapService: MapService) {}
@@ -54,6 +54,9 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     this.mapControl = this.mapService.get('planning-map');
     this.layerGroup = new MapLayerGroup('Bewertung', { order: -1 })
     this.mapControl.addGroup(this.layerGroup);
+    try {
+      this.indicatorParams = Object.assign(this.indicatorParams, this.cookies.get('planning-rating-params', 'json'));
+    } catch {};
     this.planningService.getAreaLevels({ active: true }).subscribe(areaLevels => {
       this.areaLevels = areaLevels;
       this.planningService.getInfrastructures().subscribe(infrastructures => {
@@ -109,28 +112,27 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   updateMap(): void {
     this.showLabel = (this.indicatorLayer?.showLabel !== undefined)? this.indicatorLayer.showLabel: true;
     this.layerGroup?.clear();
-    this.updateMapDescription();
-    let params = {};
     switch (this.selectedIndicator?.resultType) {
       case 'area':
-        this.renderAreaIndicator(params);
+        this.renderAreaIndicator();
         break;
       case 'place':
-        this.renderPlaceIndicator(params);
+        this.renderPlaceIndicator();
         break;
       case 'raster':
-        this.renderRasterIndicator(params);
+        this.renderRasterIndicator();
         break;
       default:
     }
   }
 
-  renderRasterIndicator(params?: any): void {
+  renderRasterIndicator(): void {
     const scenarioId = this.planningService.activeScenario?.isBase ? undefined : this.planningService.activeScenario?.id;
     let max = 0;
     let min = Number.MAX_VALUE;
-    this.planningService.computeIndicator<RasterIndicatorResult>(this.selectedIndicator!.name, this.activeService!.id,
-      { year: this.year!, scenario: scenarioId, mode: this.selectedMode }).subscribe(cellResults => {
+    let params = { year: this.year!, scenario: scenarioId, additionalParams: this.getAdditionalParams() };
+    this.planningService.computeIndicator<RasterIndicatorResult>(this.selectedIndicator!.name, this.activeService!.id, params
+      ).subscribe(cellResults => {
       let values: Record<string, number> = {};
       cellResults.forEach(cellResult => {
         values[cellResult.cellCode] = Math.round(cellResult.value);
@@ -171,12 +173,12 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     })
   }
 
-  renderPlaceIndicator(params?: any): void {
+  renderPlaceIndicator(): void {
     if (!this.year || !this.selectedIndicator || !this.activeService) return;
     const scenarioId = this.planningService.activeScenario?.isBase ? undefined : this.planningService.activeScenario?.id;
+    let params = { year: this.year!, scenario: scenarioId, additionalParams: this.getAdditionalParams() };
     this.planningService.getPlaces().subscribe(places => {
-      this.planningService.computeIndicator<PlaceIndicatorResult>(this.selectedIndicator!.name, this.activeService!.id,
-        { year: this.year!, scenario: scenarioId, mode: this.selectedMode }).subscribe(results => {
+      this.planningService.computeIndicator<PlaceIndicatorResult>(this.selectedIndicator!.name, this.activeService!.id, params).subscribe(results => {
         // ToDo description with filter
         let max = 0;
         let min = Number.MAX_VALUE;
@@ -238,12 +240,11 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  renderAreaIndicator(params?: any): void {
+  renderAreaIndicator(): void {
     if (!this.year || !this.selectedAreaLevel || !this.selectedIndicator || !this.activeService || this.areas.length === 0) return;
     const scenarioId = this.planningService.activeScenario?.isBase ? undefined : this.planningService.activeScenario?.id;
-    let options = { year: this.year!, scenario: scenarioId, areaLevelId: this.selectedAreaLevel.id, mode: this.selectedMode };
-
-    this.planningService.computeIndicator<AreaIndicatorResult>(this.selectedIndicator.name, this.activeService.id, options).subscribe(results => {
+    let params = { year: this.year!, scenario: scenarioId, areaLevelId: this.selectedAreaLevel.id, additionalParams: this.getAdditionalParams() };
+    this.planningService.computeIndicator<AreaIndicatorResult>(this.selectedIndicator.name, this.activeService.id, params).subscribe(results => {
       let max = 0;
       let min = Number.MAX_VALUE;
       this.areas.forEach(area => {
@@ -291,6 +292,30 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     })
   }
 
+  getAdditionalParams(): Record<string, any> {
+    let params: Record<string, any> = {};
+    if (!this.selectedIndicator || !this.selectedIndicator.additionalParameters) return params;
+    this.selectedIndicator.additionalParameters.forEach(indicatorParam => {
+      params[indicatorParam.name] = this.indicatorParams[indicatorParam.name];
+    })
+    return params;
+  }
+
+  setParam(param: string, value: any): void {
+    this.indicatorParams[param] = value;
+    this.cookies.set('planning-rating-params', this.indicatorParams);
+    this.updateMap();
+  }
+
+  onIndicatorChange(): void {
+    this.cookies.set('planning-indicator', this.selectedIndicator?.name);
+/*    this.selectedIndicator?.additionalParameters?.forEach(indicatorParam => {
+      this.indicatorParams[indicatorParam.name] = ;
+    })*/
+    this.updateMapDescription();
+    this.updateMap();
+  }
+
   updateMapDescription(): void {
     const desc = `${this.planningService.activeScenario?.name}<br>
                   ${this.selectedIndicator?.title} für Leistung "${this.activeService?.name}"<br>
@@ -298,15 +323,6 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     this.mapControl?.setDescription(desc);
   }
 
-  onIndicatorChange(): void {
-    this.cookies.set('planning-indicator', this.selectedIndicator?.name);
-    this.updateMap();
-  }
-
-  changeMode(mode: TransportMode): void {
-    this.selectedMode = mode;
-    this.updateMap();
-  }
 
   onFullscreenDialog(): void {
     this.dialog.open(SimpleDialogComponent, {

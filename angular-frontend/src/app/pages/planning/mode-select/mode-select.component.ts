@@ -14,6 +14,7 @@ modes[TransportMode.TRANSIT] = 'ÖPNV';
 })
 export class ModeSelectComponent implements OnInit {
   @Input() mode: TransportMode = TransportMode.WALK;
+  @Input() label?: string;
   @Output() modeChanged = new EventEmitter<TransportMode>();
   TransportMode = TransportMode;
   modes = modes;

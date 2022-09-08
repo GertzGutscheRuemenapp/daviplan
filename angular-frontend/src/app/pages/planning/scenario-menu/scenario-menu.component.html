@@ -97,12 +97,14 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
-    <mat-icon *ngIf="getDemandRateSet(scenario)"
-              class="material-icons-outlined" color="primary"
-              title="aktuell eingestellte Nachfragequoten anzeigen"
-              (click)="onShowDemandQuotaSet()">
-      info
-    </mat-icon>
+    <button mat-icon-button *ngIf="getDemandRateSet(scenario)"
+            class="outlined small" color="primary"
+            style="margin-top: 10px;"
+            title="aktuell eingestellte Nachfragequoten anzeigen"
+            (click)="onShowDemandQuotaSet()">
+<!--      <mat-icon>show_chart</mat-icon>-->
+      <mat-icon>query_stats</mat-icon>
+    </button>
   </div>
   <div class="scenario-row">
 <!--    <mat-icon class="material-icons-outlined" color="primary"

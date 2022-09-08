@@ -33,15 +33,29 @@
     </mat-select>
   </mat-form-field>
   <ng-container *ngIf="selectedIndicator?.additionalParameters">
-    <ng-container *ngFor="let parameter of selectedIndicator?.additionalParameters">
-      <app-mode-select *ngIf="parameter.name === 'mode'"
-                       [mode]="selectedMode"
-                       (modeChanged)="changeMode($event)">
-      </app-mode-select>
-    </ng-container>
+    <div *ngFor="let parameter of selectedIndicator?.additionalParameters"
+         style="margin-top: 10px;">
+      <ng-container *ngIf="parameter.type === 'number' || parameter.type === 'string'">
+        <mat-form-field class="small" appearance="outline">
+          <mat-label>{{parameter.title}}</mat-label>
+          <input matInput *ngIf="parameter.type === 'number'" type="number"
+                 [value]="indicatorParams[parameter.name] || 0"
+                 (change)="setParam(parameter.name, $any($event.target).value)">
+          <input matInput *ngIf="parameter.type === 'string'"
+                 [value]="indicatorParams[parameter.name] || ''"
+                 (change)="setParam(parameter.name, $any($event.target).value!)">
+        </mat-form-field>
+      </ng-container>
+      <ng-container *ngIf="parameter.name === 'mode'">
+        <app-mode-select [mode]="indicatorParams['mode']"
+                         [label]="parameter.title"
+                         (modeChanged)="setParam('mode', $event);">
+        </app-mode-select>
+      </ng-container>
+    </div>
   </ng-container>
 </mat-expansion-panel>
-<mat-expansion-panel *ngIf="selectedIndicator?.resultType === 'area'"
+<mat-expansion-panel [class.disabled]="selectedIndicator?.resultType !== 'area'"
                      cookieExpansion="exp-rating-areas">
   <mat-expansion-panel-header>
     <mat-panel-title>
