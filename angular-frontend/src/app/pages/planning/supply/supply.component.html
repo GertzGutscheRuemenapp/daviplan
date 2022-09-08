@@ -139,23 +139,25 @@
     </button>
     <div *ngIf="activeService">
       <mat-divider style="margin: 10px 0;"></mat-divider>
-      Kapazität {{activeService.name}} ({{year}}): <b>{{getFormattedCapacityString([activeService.id], place.capacity || 0)}}</b>
+      {{(activeService?.hasCapacity)? 'Kapazität': 'Angebot'}} {{activeService.name}} ({{year}}):
+      <b *ngIf="activeService?.hasCapacity">{{getFormattedCapacityString([activeService.id], place.capacity || 0)}}</b>
+      <b *ngIf="!activeService?.hasCapacity">{{(place.capacity)? 'Ja': 'Nein'}}</b>
     </div>
     <table *ngVar="getCapacities(place) as capacities" style="margin-top: 10px;">
       <tr *ngFor="let capacity of capacities;">
         <td style="padding-right: 10px;">
           ab {{(capacity.fromYear === 0)? 'Startjahr': capacity.fromYear}}
         </td>
-        <td>
-          {{capacity.capacity}} {{(capacity.capacity === 1)? activeService?.capacitySingularUnit: activeService?.capacityPluralUnit}}
-        </td>
+        <td *ngIf="activeService?.hasCapacity">{{capacity.capacity}} {{(capacity.capacity === 1)? activeService?.capacitySingularUnit: activeService?.capacityPluralUnit}}</td>
+        <td *ngIf="!activeService?.hasCapacity">{{(capacity.capacity)? 'Ja': 'Nein'}}</td>
       </tr>
     </table>
     <button *ngIf="!activeScenario?.isBase"
             mat-button class="mat-button-dv"
             (click)="showEditCapacities(place)"
             color="primary">
-      <mat-icon>edit</mat-icon>Kapazitäten editieren
+      <mat-icon>edit</mat-icon>
+      {{(activeService?.hasCapacity)? 'Kapazitäten': 'Angebot'}} editieren
     </button>
     <ng-container *ngIf="place.scenario !== null">
       <mat-divider style="margin: 10px 0;"></mat-divider>
