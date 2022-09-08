@@ -40,7 +40,8 @@
                           [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
           </ng-container>
           <ng-container *ngIf="domain==='supply'">
-            <ng-container *ngTemplateOutlet="supplyScenario"></ng-container>
+            <ng-container [ngTemplateOutlet]="supplyScenario"
+                          [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
           </ng-container>
         </div>
       </div>
@@ -81,7 +82,7 @@
 </ng-template>
 
 <ng-template #demandTemplate let-scenario="scenario">
-  <div class="scenario-row" *ngIf="planningService.activeService">
+  <div class="scenario-row" *ngIf="planningService.activeService && planningService.activeService.demandType !== 3">
     <mat-form-field appearance="standard" class="small"
                     style="width: 145px;"
                     floatLabel="always"
@@ -155,8 +156,9 @@
                 [ngTemplateOutletContext]="{scenario: scenario}"></ng-container>
 </ng-template>
 
-<ng-template #supplyScenario>
-  <div title="Kennwerte anzeigen"
+<ng-template #supplyScenario let-scenario="scenario">
+  <div *ngIf="!scenario.isBase"
+       title="Kennwerte anzeigen"
        style="cursor: pointer; display: flex;"
        (click)="onShowSupplyTable()">
     <div style="align-self: center; margin-right: 10px;">
@@ -165,9 +167,10 @@
       </mat-icon>-->
     </div>
     <div>
-      ausgewählte Leistungen: <br>
-      Standorte +2<br>
-      Plätze +30
+      Platzhaltertext <br>
+      <i>ausgewählte Leistungen: <br>
+      Standorte +XX<br>
+      Plätze +XXX</i>
     </div>
   </div>
 </ng-template>

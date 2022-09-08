@@ -112,6 +112,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   updateMap(): void {
     this.showLabel = (this.indicatorLayer?.showLabel !== undefined)? this.indicatorLayer.showLabel: true;
     this.layerGroup?.clear();
+    this.updateMapDescription();
     switch (this.selectedIndicator?.resultType) {
       case 'area':
         this.renderAreaIndicator();
@@ -312,7 +313,6 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
 /*    this.selectedIndicator?.additionalParameters?.forEach(indicatorParam => {
       this.indicatorParams[indicatorParam.name] = ;
     })*/
-    this.updateMapDescription();
     this.updateMap();
   }
 
