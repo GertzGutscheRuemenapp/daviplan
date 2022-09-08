@@ -95,14 +95,15 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         this.dataColumns.push(field.name);
       })
       this.selectedInfrastructure!.services.forEach(service => {
-        this.dataColumns.push(`Kapazitäten ${service.name}`);
+        let columnTitle = (service.hasCapacity)? `Kapazitäten ${service.name}`: service.name;
+        this.dataColumns.push(columnTitle);
         this.isLoading$.next(true);
         this.restService.getCapacities({ service: service }).subscribe(serviceCapacities => {
           this.places?.forEach(place => {
             if (!place.capacities) place.capacities = [];
             const capacities = serviceCapacities.filter(c => c.place === place.id && c.service === service.id);
             const startCap = capacities.find(c => c.fromYear === 0);
-            if (!startCap)
+            if (startCap === undefined)
               place.capacities.push({
                 id: -1, place: place.id, service: service.id,
                 fromYear: 0, scenario: undefined, capacity: 0
@@ -118,6 +119,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   }
 
   updateMap(): void {
+    const showLabel = (this.placesLayer?.showLabel !== undefined)? this.placesLayer.showLabel: true;
     if (this.placesLayer) {
       this.layerGroup?.removeLayer(this.placesLayer);
       this.placesLayer = undefined;
@@ -139,7 +141,8 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
           enabled: true,
           multi: false
         },
-        showLabel: true
+        showLabel: showLabel,
+        labelOffset: { y: 15 },
       });
     this.layerGroup?.addLayer(this.placesLayer);
     this.placesLayer.addFeatures(this.places.map(place => { return {
@@ -220,7 +223,9 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         row.push(place.attributes[field.name]);
       })
       this.selectedInfrastructure!.services?.forEach(service => {
-        row.push(place.capacities?.find(capacity => capacity.service === service.id && capacity.fromYear === 0)?.capacity || '');
+        const capacity = place.capacities?.find(capacity => capacity.service === service.id && capacity.fromYear === 0)?.capacity;
+        const entry = (capacity === undefined)? '': (service.hasCapacity)? capacity: (capacity)? 'Ja': 'Nein';
+        row.push(entry);
       })
       rows.push(row);
     })

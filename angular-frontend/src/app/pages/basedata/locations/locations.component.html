@@ -158,12 +158,13 @@
     </ng-container>
     <br>
     <div *ngFor="let service of selectedInfrastructure?.services">
-      <b>Kapazitäten {{service.name}}</b>
+      <b><ng-container *ngIf="service.hasCapacity">Kapazitäten </ng-container>{{service.name}}</b>
       <table>
         <tr *ngFor="let capacity of getPlaceCapacities(selectedPlace, service); let i = index;">
           <td *ngIf="i===0" style="width: 80px;">Startjahr</td>
           <td *ngIf="i>0">ab {{capacity.fromYear}} </td>
-          <td>{{capacity.capacity}} {{(capacity.capacity === 1)? service.capacitySingularUnit: service.capacityPluralUnit}}</td>
+          <td *ngIf="service.hasCapacity">{{capacity.capacity}} {{(capacity.capacity === 1)? service.capacitySingularUnit: service.capacityPluralUnit}}</td>
+          <td *ngIf="!service.hasCapacity">{{(capacity.capacity)? 'Ja': 'Nein'}}</td>
         </tr>
       </table>
       <br>
