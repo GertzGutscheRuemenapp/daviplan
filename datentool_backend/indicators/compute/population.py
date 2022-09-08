@@ -1,7 +1,7 @@
 from typing import Dict, List, Tuple
 
 from django.db import connection
-from django.db.models import Count, Q, F
+from django.db.models import Count, Q, F, Value, FloatField
 from django.core.exceptions import BadRequest
 
 from datentool_backend.utils.dict_cursor import dictfetchall
@@ -131,6 +131,9 @@ class PopulationIndicatorMixin:
 
         if service.demand_type == Service.DemandType.QUOTA:
             demand_rates = demand_rates.annotate(factor=F('value') / 100)
+        elif service.demand_type == Service.DemandType.UNIFORM:
+            demand_rates = demand_rates.annotate(
+                factor=Value(1, output_field=FloatField()))
         else:
             demand_rates = demand_rates.annotate(factor=F('value'))
         return demand_rates
