@@ -3,17 +3,14 @@ import { MapControl, MapService } from "../../../map/map.service";
 import {
   Infrastructure,
   Place,
-  ExtLayerGroup,
-  ExtLayer,
   Capacity,
   Service,
   FieldType,
   PlaceField
 } from "../../../rest-interfaces";
-import { RestCacheService } from "../../../rest-cache.service";
 import * as fileSaver from "file-saver";
 import { RestAPI } from "../../../rest-api";
-import { BehaviorSubject, forkJoin, Observable } from "rxjs";
+import { BehaviorSubject } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
@@ -56,7 +53,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   places?: Place[];
   dataColumns: string[] = [];
   dataRows: any[][] = [];
-  selectedPlace?: Place;
+  selectedPlaces: Place[] = [];
   placeDialogRef?: MatDialogRef<any>;
   file?: File;
 
@@ -139,7 +136,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         select: {
           style: { fillColor: 'yellow' },
           enabled: true,
-          multi: false
+          multi: true
         },
         showLabel: showLabel,
         labelOffset: { y: 15 },
@@ -149,18 +146,24 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       id: place.id, geometry: place.geom, properties: { name: place.name } }}));
     this.placesLayer?.featureSelected?.subscribe(evt => {
       const placeId = evt.feature.get('id');
-      if (evt.selected){
-        const place = this.places?.find(p => p.id === placeId);
-        if (place) {
-          this.selectedPlace = place;
-          this.showPlaceDialog();
-        }
-      }
-      else if (this.selectedPlace?.id === placeId) {
-        this.selectedPlace = undefined;
-        if (this.placeDialogRef) this.placeDialogRef.close();
-      }
+      this.selectPlace(placeId, evt.selected);
     })
+  }
+
+  selectPlace(placeId: number, select: boolean) {
+    const place = this.places?.find(p => p.id === placeId);
+    if (!place) return;
+    if (select) {
+      this.selectedPlaces.push(place);
+      this.showPlaceDialog();
+    }
+    else {
+      const idx = this.selectedPlaces.indexOf(place);
+      if (idx > -1) {
+        this.selectedPlaces.splice(idx, 1);
+      }
+      if (this.selectedPlaces.length === 0) this.placeDialogRef?.close();
+    }
   }
 
   showPlaceDialog(): void {
@@ -179,7 +182,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       }
     });
     this.placeDialogRef.afterClosed().subscribe(() => {
-      this.selectedPlace = undefined;
+      this.selectedPlaces = [];
       this.placesLayer?.clearSelection();
     })
   }
