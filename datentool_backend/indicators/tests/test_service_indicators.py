@@ -105,6 +105,25 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
         mult = res_both['mult'].values
         np.testing.assert_allclose(mult[np.isfinite(mult)], 1)
 
+        # test uniform demand rate
+        query_params = {
+            'indicator': 'demandperfacility',
+            'area_level': self.area_level2.pk,
+            'year': 2022,
+        }
+        url = reverse(self.url_key, kwargs={'pk': self.service_uniform.pk})
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        result = pd.DataFrame(response.data).set_index('area_id')
+        np.testing.assert_array_almost_equal(result['value'], [np.NaN, 433.84907495778])
+
+        # test empty demand rate
+        url = reverse(self.url_key, kwargs={'pk': self.service_without_demand.pk})
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        result = pd.DataFrame(response.data).set_index('area_id')
+        np.testing.assert_array_almost_equal(result['value'], [np.NaN, 0])
+
     def test_demand_per_capacity(self):
         """Test demand per capacity"""
 
@@ -130,6 +149,25 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
         capacity = pd.DataFrame(response.data).set_index('area_id')
         expected = pop['value'] / capacity['value']
         pd.testing.assert_series_equal(result['value'], expected, check_dtype=False)
+
+        # test uniform demand rate
+        query_params = {
+            'indicator': 'demandpercapacity',
+            'area_level': self.area_level2.pk,
+            'year': 2022,
+        }
+        url = reverse(self.url_key, kwargs={'pk': self.service_uniform.pk})
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        result = pd.DataFrame(response.data).set_index('area_id')
+        np.testing.assert_array_almost_equal(result['value'], [np.NaN, 433.84907495778])
+
+        # test empty demand rate
+        url = reverse(self.url_key, kwargs={'pk': self.service_without_demand.pk})
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        result = pd.DataFrame(response.data).set_index('area_id')
+        np.testing.assert_array_almost_equal(result['value'], [np.NaN, 0])
 
     def test_capacity_per_demand(self):
         """Test capacity per demand"""
@@ -171,3 +209,22 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
         res_both['mult'] = res_both['value_fd'] * res_both['value_df']
         mult = res_both['mult'].values
         np.testing.assert_allclose(mult[np.isfinite(mult)], 1)
+
+        # test uniform demand rate
+        query_params = {
+            'indicator': 'capacityperdemandinarea',
+            'area_level': self.area_level2.pk,
+            'year': 2022,
+        }
+        url = reverse(self.url_key, kwargs={'pk': self.service_uniform.pk})
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        result = pd.DataFrame(response.data).set_index('area_id')
+        np.testing.assert_array_almost_equal(result['value'], [0, 0.00230494901965])
+
+        # test empty demand rate
+        url = reverse(self.url_key, kwargs={'pk': self.service_without_demand.pk})
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        result = pd.DataFrame(response.data).set_index('area_id')
+        np.testing.assert_array_equal(result['value'], None)
