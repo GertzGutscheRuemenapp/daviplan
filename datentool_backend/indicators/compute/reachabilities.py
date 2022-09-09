@@ -51,6 +51,7 @@ class ReachabilityCell(ModeVariantMixin, ComputeIndicator):
     description = ('Wegezeit zwischen ausgewähltem Wohnstandort (= Rasterzelle) '
                    'und allen Einrichtungen')
     result_serializer = ResultSerializer.PLACE
+    unit = 'Minuten'
 
     def compute(self):
         mode = self.data.get('mode', Mode.WALK)
@@ -73,6 +74,7 @@ class ReachabilityNextPlace(ModeVariantMixin, ComputeIndicator):
     description = ('Wegezeit zwischen allen Wohnstandorten (= Rasterzellen) '
                    'und der jeweils nächstgelegenen Einrichtung ')
     result_serializer = ResultSerializer.RASTER
+    unit = 'Minuten'
 
     def compute(self):
         mode = self.data.get('mode', Mode.WALK)
