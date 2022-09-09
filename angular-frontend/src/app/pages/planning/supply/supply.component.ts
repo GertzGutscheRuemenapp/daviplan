@@ -128,8 +128,10 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       this.planningService.getPlaces(placeOptions).subscribe(places => {
         this.places = this.places.concat(places);
         let showLabel = true;
+        let legendElapsed = true;
         if (this.placesLayer) {
           showLabel = !!this.placesLayer.showLabel;
+          legendElapsed = !!this.placesLayer.legend?.elapsed
           this.layerGroup?.removeLayer(this.placesLayer);
         }
         let max = 0;
@@ -185,11 +187,19 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
             min: 0,
             max: Math.max(this.activeService?.maxCapacity || 10, 10)
           },
-          labelOffset: { y: 15 }
+          labelOffset: { y: 15 },
+          legend: {
+            entries: [
+              { label: 'Standort mit Leistung', color: '#2171b5', strokeColor: 'black' },
+              { label: 'Standort ohne Leistung', color: 'lightgrey', strokeColor: 'black' },
+              { label: 'Szenariostandort', color: 'lightgrey', strokeColor: '#fc450c' },
+            ],
+            elapsed: legendElapsed
+          }
         });
         this.layerGroup?.addLayer(this.placesLayer);
         this.placesLayer.addFeatures(places.map(place => {
-          const tooltip = `${place.name}<br>
+          const tooltip = `<b>${place.name}</b><br>
                            ${this.activeService?.hasCapacity? this.getFormattedCapacityString([this.activeService!.id], place.capacity || 0): place.capacity? 'Leistung wird angeboten': 'Leistung wird nicht angeboten'}`
           return {
             id: place.id,

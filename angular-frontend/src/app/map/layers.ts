@@ -11,9 +11,14 @@ export interface LayerStyle extends Symbol {
   strokeWidth?: number
 }
 
+interface LegendEntry {
+  color: string,
+  label: string,
+  strokeColor?: string
+}
+
 interface ColorLegend {
-  colors: string[],
-  labels: string[],
+  entries: LegendEntry[],
   elapsed?: boolean
 }
 
@@ -70,7 +75,8 @@ interface LayerOptions {
   attribution?: string,
   opacity?: number,
   visible?: boolean,
-  active?: boolean
+  active?: boolean,
+  legend?: ColorLegend
 }
 
 export abstract class MapLayer {
@@ -87,7 +93,8 @@ export abstract class MapLayer {
   visible?: boolean = true;
   map?: OlMap;
   active?: boolean;
-  colorLegend?: ColorLegend;
+  legend?: ColorLegend;
+  protected _legend?: ColorLegend;
 
   protected constructor(name: string, options?: LayerOptions) {
     this.name = name;
@@ -101,6 +108,7 @@ export abstract class MapLayer {
     this.order = options?.order;
     this.active = options?.active;
     this.zIndex = options?.zIndex;
+    this._legend = options?.legend;
     if (options?.group) options?.group.addLayer(this);
   }
 
@@ -348,9 +356,12 @@ export class VectorLayer extends MapLayer {
   }
 
   protected _getColorLegend(): ColorLegend | undefined {
+    if (this._legend) return this._legend;
     if (!this.valueStyles?.fillColor?.colorFunc || !this.map) return;
-    let colors: string[] = [];
-    let labels: string[] = [];
+    let legend: ColorLegend = {
+      entries: [],
+      elapsed: true
+    }
     const colorFunc = this.valueStyles.fillColor.colorFunc;
     if (this.valueStyles.fillColor.bins){
       let values = this.valueStyles.fillColor.bins.values.map(x => x);
@@ -363,14 +374,12 @@ export class VectorLayer extends MapLayer {
               `ab ${value}`;
         if (this.unit)
           label += ` ${this.unit}`;
-        labels.push(label);
-        colors.push((i < values.length - 1)? colorFunc(value): colorFunc(value + 0.01));
+        legend.entries.push({
+          label: label,
+          color: (i < values.length - 1)? colorFunc(value): colorFunc(value + 0.01)
+        });
       })
-      return {
-        colors: colors,
-        labels: labels,
-        elapsed: true
-      }
+      return legend;
     }
     if (this.valueStyles.fillColor.interpolation) {
       const steps = (this.valueStyles.fillColor.interpolation.steps != undefined) ? this.valueStyles.fillColor.interpolation.steps : 5;
@@ -385,17 +394,15 @@ export class VectorLayer extends MapLayer {
       let step = (max - min) / steps;
       // if (this.valueStyles.extendLegendRange) step += 1;
       Array.from({ length: steps + 1 }, (v, k) => k * step).forEach((value, i) => {
-        colors.push(colorFunc(value));
         let label = Number(value.toFixed(2)).toLocaleString();
         if (this.unit)
           label += ` ${this.unit}`;
-        labels.push(label);
+        legend.entries.push({
+          label: label,
+          color: colorFunc(value)
+        })
       })
-      return {
-        colors: colors,
-        labels: labels,
-        elapsed: true
-      }
+      return legend
     }
     return;
   }
@@ -427,7 +434,7 @@ export class VectorLayer extends MapLayer {
     }
     this.map.addFeatures(this.mapId!, olFeatures);
     if (this.valueStyles?.fillColor)
-      this.colorLegend = this._getColorLegend();
+      this.legend = this._getColorLegend();
     return olFeatures;
   }
 
@@ -499,7 +506,7 @@ export class VectorTileLayer extends VectorLayer {
     this.initFunctions();
     this.initSelect();
     if (this.valueStyles?.fillColor)
-      this.colorLegend = this._getColorLegend();
+      this.legend = this._getColorLegend();
     return this.map.addVectorTileLayer(this.mapId, this.url!,{
       zIndex: this.getZIndex(),
       visible: this.visible,

@@ -56,13 +56,13 @@
                                 title="Layer anzeigen/verstecken">
                   </mat-checkbox>
                   <ng-container *ngIf="!mapControl.editMode">
-                    <ng-container *ngIf="layer.colorLegend">
+                    <ng-container *ngIf="layer.legend">
                       <div title="Farblegende des Layer ein-/ausklappen" (click)="toggleLayerLegend($any(layer))">
-                        <mat-icon color="primary" *ngIf="layer.colorLegend?.elapsed">expand_less</mat-icon>
-                        <mat-icon color="primary" *ngIf="!layer.colorLegend.elapsed">expand_more</mat-icon>
+                        <mat-icon color="primary" *ngIf="layer.legend?.elapsed">expand_less</mat-icon>
+                        <mat-icon color="primary" *ngIf="!layer.legend.elapsed">expand_more</mat-icon>
                       </div>
                     </ng-container>
-                    <ng-container *ngIf="!layer.colorLegend">
+                    <ng-container *ngIf="!layer.legend">
                       <div *ngIf="$any(layer).style" style="cursor: pointer;"
                            class="symbol"
                            [style.background]="$any(layer).style.fillColor || 'white'"
@@ -79,7 +79,7 @@
                   </ng-container>
                 </div>
                 <div class="entry-title"
-                     [style.cursor]="layer.colorLegend? 'pointer': ''"
+                     [style.cursor]="layer.legend? 'pointer': ''"
                      (click)="toggleLayerLegend($any(layer))">
                   {{ layer.name }}
                 </div>
@@ -101,19 +101,19 @@
                 </div>
               </div>
             </div>
-            <div *ngIf="layer.colorLegend && layer.colorLegend.elapsed">
-              <div class="legend-entry" *ngFor="let label of layer.colorLegend.labels; let i = index;">
+            <div *ngIf="layer.legend && layer.legend.elapsed">
+              <div class="legend-entry" *ngFor="let entry of layer.legend.entries;">
                 <div class="entry-header">
                   <div class="entry-prefix"></div>
                   <div class="row-title">
                     <div class="row-label" style="display: flex">
-                      <div *ngIf="layer.colorLegend.colors"
-                           [style.background]="layer.colorLegend.colors[i]"
+                      <div *ngIf="entry.color"
+                           [style.background]="entry.color"
                            class="symbol"
-                           style.border-color="black"
+                           [style.border-color]="entry.strokeColor || 'white'"
                            [class]="$any(layer).style?.symbol? ($any(layer).style?.symbol === 'line')? 'square': $any(layer).style?.symbol: 'circle'">
                       </div>
-                      {{label}}
+                      {{entry.label}}
                     </div>
                   </div>
                 </div>
