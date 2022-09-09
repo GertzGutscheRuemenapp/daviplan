@@ -1,6 +1,6 @@
 import pandas as pd
 from asgiref.sync import sync_to_async
-
+from requests.exceptions import ConnectionError
 from rest_framework.validators import ValidationError
 from rest_framework import serializers
 
@@ -122,9 +122,12 @@ class PlaceSerializer(serializers.ModelSerializer):
                 # ToDo: transit routing
                 if variant.mode == Mode.TRANSIT:
                     continue
-                df = TravelTimeRouterMixin.route(
-                    variant, sources, destinations,
-                    id_columns=['place_id', 'cell_id'])
+                try:
+                    df = TravelTimeRouterMixin.route(
+                        variant, sources, destinations,
+                        id_columns=['place_id', 'cell_id'])
+                except ConnectionError:
+                    return instance
                 dataframes.append(df)
             df = pd.concat(dataframes)
             TravelTimeRouterMixin.save_df(df, MatrixCellPlace.objects.none(), False)

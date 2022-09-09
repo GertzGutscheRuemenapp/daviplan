@@ -307,6 +307,9 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         if not router.is_running:
             router.run()
 
+        sources = sources.order_by('id')
+        destinations = destinations.order_by('id')
+
         source_coords = list(sources.values_list('lon', 'lat', named=False))
         dest_coords = list(destinations.values_list('lon', 'lat', named=False))
 

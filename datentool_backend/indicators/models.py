@@ -28,9 +28,9 @@ class MatrixCellPlace(DatentoolModelMixin, models.Model):
     """Reachabliliy Matrix between raster cell and place with a mode variante"""
     cell = models.ForeignKey(RasterCell, on_delete=PROTECT_CASCADE,
                              related_name='cell_place')
-    place = models.ForeignKey(Place, on_delete=PROTECT_CASCADE,
+    place = models.ForeignKey(Place, on_delete=models.CASCADE,
                               related_name='place_cell')
-    variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
+    variant = models.ForeignKey(ModeVariant, on_delete=models.CASCADE)
     minutes = models.FloatField()
 
     class Meta:

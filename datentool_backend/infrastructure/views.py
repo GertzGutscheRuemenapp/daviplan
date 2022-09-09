@@ -41,7 +41,7 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
     serializer_action_classes = {
         'create_template': PlacesTemplateSerializer,
         'upload_template': PlacesTemplateSerializer}
-    permission_classes = [#HasAdminAccessOrReadOnly | CanEditBasedata |
+    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata |
                           CanEditScenarioPlacePermission]
     filterset_fields = ['infrastructure']
 

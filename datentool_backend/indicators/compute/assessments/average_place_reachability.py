@@ -49,6 +49,8 @@ class AveragePlaceReachability(ModeVariantMixin, PopulationIndicatorMixin, Servi
         q_cp, p_cp = cells_places.query.sql_with_params()
 
         q_demand, p_demand = self.get_cell_demand(scenario_id, service_id)
+        if not p_demand:
+            return []
 
         query = f'''SELECT
         c."place_id" AS id,

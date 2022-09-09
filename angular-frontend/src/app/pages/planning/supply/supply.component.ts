@@ -24,6 +24,7 @@ import { WKT } from "ol/format";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { sortBy } from "../../../helpers/utils";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
+import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 
 @Component({
   selector: 'app-supply',
@@ -38,7 +39,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   @ViewChild('placeCapacitiesEditTemplate') placeCapacitiesEditTemplate!: TemplateRef<any>;
   addPlaceMode: boolean;
   year?: number;
-  realYears?: number[];
+  realYears: number[] = [0];
   prognosisYears?: number[];
   compareSupply = true;
   compareStatus = 'option 1';
@@ -106,7 +107,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     this.updatePlaces();
   }
 
-  updatePlaces(resetScenario?: boolean): void {
+  updatePlaces(options?: { resetScenario?: boolean, selectPlaceId?: number }): void {
     if (!this.activeInfrastructure || !this.activeService) return;
     this.updateMapDescription();
     this.places = [];
@@ -114,14 +115,14 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       targetProjection: this.mapControl!.map!.mapProjection,
       addCapacities: true,
       filter: { columnFilter: true, year: this.year },
-      reset: !this.activeScenario?.isBase && resetScenario,
+      reset: !this.activeScenario?.isBase && options?.resetScenario,
       scenario: this.activeScenario
     };
     this.placePreviewDialogRef?.componentInstance?.setLoading(true);
     this.planningService.getCapacities({
       service: this.activeService,
       scenario: this.activeScenario,
-      reset: (!this.activeScenario?.isBase) && resetScenario
+      reset: (!this.activeScenario?.isBase) && options?.resetScenario
     }).subscribe(capacities => {
       this.capacities = capacities;
       this.planningService.getPlaces(placeOptions).subscribe(places => {
@@ -131,16 +132,12 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           showLabel = !!this.placesLayer.showLabel;
           this.layerGroup?.removeLayer(this.placesLayer);
         }
-        let max = 1;
+        let max = 0;
         let min = Number.MAX_VALUE;
-        let displayedPlaces: Place[] = [];
         this.places?.forEach(place => {
-          if (place.scenario === null && place.capacity === 0) return;
           const capacity = place.capacity || 0;
-          place.label = this.getFormattedCapacityString([this.activeService!.id], capacity);
-          displayedPlaces.push(place);
           max = Math.max(max, capacity);
-          min = Math.min(min, capacity);
+          if (place.capacity) min = Math.min(min, capacity);
         });
         const desc = `<b>${this.activeService?.facilityPluralUnit} ${this.year}</b><br>
                     mit Anzahl ${this.activeService?.capacityPluralUnit}<br>
@@ -157,16 +154,16 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
             strokeColor: 'black',
             symbol: 'circle'
           },
-          labelField: 'label',
+          labelField: 'name',
           showLabel: showLabel,
-          tooltipField: 'name',
+          tooltipField: 'tooltip',
           select: {
             enabled: true,
             style: {
               strokeWidth: 2,
               fillColor: 'yellow',
             },
-            multi: false
+            multi: true
           },
           mouseOver: {
             enabled: true,
@@ -177,23 +174,36 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
               range: [5, 20],
               scale: 'linear'
             },
+            fillColor: {
+              colorFunc: (capacity => (capacity) ? '#2171b5' : 'lightgrey')
+            },
             strokeColor: {
               colorFunc: (feat => (feat.get('scenario') !== null) ? '#fc450c' : '#174a79')
             },
             field: 'capacity',
-            min: this.activeService?.minCapacity || 0,
-            max: this.activeService?.maxCapacity || 1000
+            // min: this.activeService?.minCapacity || 0,
+            min: 0,
+            max: Math.max(this.activeService?.maxCapacity || 10, 10)
           },
           labelOffset: { y: 15 }
         });
         this.layerGroup?.addLayer(this.placesLayer);
-        this.placesLayer.addFeatures(displayedPlaces.map(place => {
+        this.placesLayer.addFeatures(places.map(place => {
+          const tooltip = `${place.name}<br>
+                           ${this.activeService?.hasCapacity? this.getFormattedCapacityString([this.activeService!.id], place.capacity || 0): place.capacity? 'Leistung wird angeboten': 'Leistung wird nicht angeboten'}`
           return {
             id: place.id,
             geometry: place.geom,
-            properties: { name: place.name, label: place.label, capacity: place.capacity, scenario: place.scenario }
+            properties: { name: place.name, tooltip: tooltip, capacity: place.capacity, scenario: place.scenario }
           }
         }));
+        if (options?.selectPlaceId !== undefined) {
+          const place = this.places.find(p => p.id === options.selectPlaceId);
+          if (place) {
+            this.selectedPlaces = [place];
+            this.openPlacePreview();
+          }
+        }
         if (this.selectedPlaces.length > 0) {
           const ids = this.selectedPlaces.map(p => p.id);
           // after change, places might only be copies with old attributes
@@ -201,12 +211,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           this.placesLayer?.selectFeatures(ids, { silent: true });
         }
         this.placesLayer?.featureSelected?.subscribe(evt => {
-          if (evt.selected)
-            this.selectPlace(evt.feature.get('id'));
-          else {
-            this.selectedPlaces = [];
-            this.placePreviewDialogRef?.close();
-          }
+          this.selectPlace(evt.feature.get('id'), evt.selected);
         })
         this.placePreviewDialogRef?.componentInstance?.setLoading(false);
       });
@@ -222,10 +227,20 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     return `${capacity} ${Array.from(units).join('/')}`
   }
 
-  selectPlace(placeId: number) {
+  selectPlace(placeId: number, select: boolean) {
     const place = this.places?.find(p => p.id === placeId);
-    this.selectedPlaces = place? [place]: [];
-    if (place) this.openPlacePreview();
+    if (!place) return;
+    if (select) {
+      this.selectedPlaces.push(place);
+      this.openPlacePreview();
+    }
+    else {
+      const idx = this.selectedPlaces.indexOf(place);
+      if (idx > -1) {
+        this.selectedPlaces.splice(idx, 1);
+      }
+      if (this.selectedPlaces.length === 0) this.placePreviewDialogRef?.close();
+    }
   }
 
   getCapacities(place: Place): Capacity[] {
@@ -250,6 +265,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       }
     });
     this.placePreviewDialogRef.afterClosed().subscribe(() => {
+      this.selectedPlaces = [];
       this.placesLayer?.clearSelection();
     })
   }
@@ -263,7 +279,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   togglePlaceMode(): void {
     this.addPlaceMode = !this.addPlaceMode;
-    this.mapControl?.map?.setCursor(this.addPlaceMode? 'crosshair': '');
+    this.mapControl?.setCursor(this.addPlaceMode? 'marker': 'default');
+    this.placesLayer?.setSelectable(!this.addPlaceMode);
     if (this.mapClickSub) {
       this.mapClickSub.unsubscribe();
       this.mapClickSub = undefined;
@@ -317,8 +334,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         if (value !== null) attributes[field] = value;
       });
       const format = new WKT();
-      dialogRef.componentInstance.isLoading$.next(true);
       let wkt = `SRID=${this.mapControl?.map?.mapProjection.replace('EPSG:', '')};${format.writeGeometry(place.geom as Geometry)}`;
+      const dialogRefWait = SimpleDialogComponent.show('Füge Ort hinzu und berechne Erreichbarkeiten. Bitte warten', this.dialog, { showAnimatedDots: true });
       this.http.post<Place>(this.rest.URLS.places, {
         name: this.placeForm!.value.name,
         infrastructure: this.activeService?.infrastructure,
@@ -327,11 +344,13 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         attributes: attributes
       }).subscribe(place => {
         dialogRef.close();
+        dialogRefWait.close();
+        this.togglePlaceMode();
         // this.precalcTraveltime(place);
-        this.updatePlaces(true);
+        this.updatePlaces({ resetScenario: true, selectPlaceId: place.id });
       }, error => {
         this.placeForm?.setErrors(error.error);
-        dialogRef.componentInstance.isLoading$.next(false);
+        dialogRefWait.close();
       })
     })
   }
@@ -373,7 +392,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       }).subscribe(p => {
         dialogRef.close();
         this.selectedPlaces = [p];
-        this.updatePlaces(true);
+        this.updatePlaces({ resetScenario: true });
       }, error => {
         // ToDo: show error
         console.log(error)
@@ -394,7 +413,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         this.http.delete<Place>(`${this.rest.URLS.places}${place.id}/`).subscribe(p => {
           this.placePreviewDialogRef?.close();
           this.selectedPlaces = [];
-          this.updatePlaces(true);
+          this.updatePlaces({ resetScenario: true });
         }, error => {
           // ToDo: show error
           console.log(error)
@@ -437,7 +456,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         capacities: this._editCapacities
       }).subscribe(capacities => {
         this.planningService.resetCapacities(this.activeScenario!.id, this.activeService!.id);
-        this.updatePlaces(true);
+        this.updatePlaces({ resetScenario: true });
         dialogRef.componentInstance.setLoading(false);
         dialogRef.close();
       }, error => {
@@ -460,7 +479,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       place: place.id,
       service: this.activeService!.id,
       scenario: this.activeScenario?.id,
-      fromYear: (i === 1)? ((this._editCapacities.length === 1)? 2000: this._editCapacities[i].fromYear - 1): this._editCapacities[i-1].fromYear + 1,
+      fromYear: (i === 1)? ((this._editCapacities.length === 1)? this.realYears[0] + 1: this._editCapacities[i].fromYear - 1): this._editCapacities[i-1].fromYear + 1,
       capacity: 0,
     }
     this._editCapacities.splice(i, 0, capacity);

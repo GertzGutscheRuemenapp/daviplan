@@ -92,7 +92,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       this.year = year;
       this.updatePlaces();
       // year is not relevant for the other indicators
-      this.showNextPlaceReachabilities();
+      if (this.indicator === 'next') this.showNextPlaceReachabilities();
     }));
   }
 
@@ -187,7 +187,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   showPlaceReachability(): void {
-    if (!this.rasterCells || this.selectedPlaceId === undefined) return;
+    if (this.selectedPlaceId === undefined) return;
     this.updateMapDescription('zur ausgewählten Einrichtung');
     this.planningService.getPlaceReachability(this.selectedPlaceId, this.activeMode, { scenario: this.activeScenario }).subscribe(cellResults => {
       let showLabel = this.reachRasterLayer?.showLabel;
@@ -229,7 +229,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   showCellReachability(): void {
-    if (!this.rasterCells || this.pickedCoords === undefined) return;
+    if (this.pickedCoords === undefined) return;
     this.updateMapDescription('vom gewählten Wohnstandort zu allen Einrichtungen');
     const lat = this.pickedCoords[1];
     const lon = this.pickedCoords[0];
@@ -281,7 +281,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   showNextPlaceReachabilities(): void {
-    if (!this.rasterCells || !this.year || !this.activeService) return;
+    if (!this.year || !this.activeService) return;
     this.updateMapDescription('von allen Wohnstandorten zum jeweils nächsten Angebot');
     this.planningService.getNextPlaceReachability([this.activeService], this.activeMode, { scenario: this.activeScenario, year: this.year, places: this.places }).subscribe(cellResults => {
       let showLabel = this.nextPlaceReachabilityLayer?.showLabel;

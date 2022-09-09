@@ -58,12 +58,6 @@ class CanEditScenarioPlacePermission(permissions.BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return False
-        if (request.method in permissions.SAFE_METHODS):
-            return True
-        if (request.user.is_superuser or request.user.profile.admin_access or
-            request.user.profile.can_edit_basedata):
-            return True
-
         if request.method == 'POST':
             scenario_id = request.data.get('scenario')
             if scenario_id is None:
@@ -77,9 +71,6 @@ class CanEditScenarioPlacePermission(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
-            return True
-        if (request.user.is_superuser or request.user.profile.admin_access or
-            request.user.profile.can_edit_basedata):
             return True
         if obj.scenario is None:
             return False

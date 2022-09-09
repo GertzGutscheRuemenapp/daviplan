@@ -149,24 +149,25 @@
 </ng-template>
 
 <ng-template #placePreviewTemplate>
-  <div *ngIf="selectedPlace">
-    <b>{{ selectedPlace.name }}</b>
-    <ng-container *ngIf="selectedPlace.attributes">
-      <div *ngFor="let item of selectedPlace.attributes | keyvalue">
-        {{item.key}}: <i>{{item.value}}</i>
+  <div *ngFor="let place of selectedPlaces" style="margin-bottom: 15px;">
+    <b style="font-size: 1.3em">{{ place.name }}</b>
+    <div style="padding: 0 15px; margin-top: 10px;">
+      <ng-container *ngIf="place.attributes">
+        <div *ngFor="let item of place.attributes | keyvalue">
+          {{item.key}}: <i>{{item.value}}</i>
+        </div>
+      </ng-container>
+      <div *ngFor="let service of selectedInfrastructure?.services" style="margin-top: 10px;">
+        <b>{{service.name}}{{(service.hasCapacity)? ': Kapazität': ''}}</b>
+        <table>
+          <tr *ngFor="let capacity of getPlaceCapacities(place, service); let i = index;">
+            <td *ngIf="i===0" style="width: 80px;">Startjahr</td>
+            <td *ngIf="i>0">ab {{capacity.fromYear}} </td>
+            <td *ngIf="service.hasCapacity">{{capacity.capacity}} {{(capacity.capacity === 1)? service.capacitySingularUnit: service.capacityPluralUnit}}</td>
+            <td *ngIf="!service.hasCapacity">{{(capacity.capacity)? 'Ja': 'Nein'}}</td>
+          </tr>
+        </table>
       </div>
-    </ng-container>
-    <br>
-    <div *ngFor="let service of selectedInfrastructure?.services">
-      <b>Kapazitäten {{service.name}}</b>
-      <table>
-        <tr *ngFor="let capacity of getPlaceCapacities(selectedPlace, service); let i = index;">
-          <td *ngIf="i===0" style="width: 80px;">Startjahr</td>
-          <td *ngIf="i>0">ab {{capacity.fromYear}} </td>
-          <td>{{capacity.capacity}} {{(capacity.capacity === 1)? service.capacitySingularUnit: service.capacityPluralUnit}}</td>
-        </tr>
-      </table>
-      <br>
     </div>
   </div>
 </ng-template>

@@ -1,4 +1,5 @@
 <div id="mode-select" class="sub-select-wrapper" style="display: flex">
+  <label *ngIf="label">{{label}}</label>
   <div *ngFor="let modeItem of modes | keyvalue"
        (click)="changeMode(Number(modeItem.key))"
        [title]="modeItem.value"
