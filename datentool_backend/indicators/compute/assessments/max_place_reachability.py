@@ -16,6 +16,12 @@ class MaxPlaceReachability(ModeVariantMixin, ServiceIndicator):
     title = 'Maximale Wegedauer'
     params = (ModeParameter(), )
     result_serializer = ResultSerializer.PLACE
+    unit = 'Minuten'
+    classification = [0, 5, 10, 15, 20, 30, 45, None]
+    colorscheme = ['green', 'lightgreen', 'yellow', 'orange', 'lightred', 'red', 'darkred', 'black']
+    decimals = 0
+    interpolated = False
+    representation = 'colorramp'
 
     @property
     def description(self):

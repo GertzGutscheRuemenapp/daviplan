@@ -11,8 +11,13 @@ from datentool_backend.area.factories import (AreaLevelFactory,
                                               )
 from datentool_backend.area.models import AreaAttribute, Area
 from datentool_backend.infrastructure.factories import (
-    InfrastructureFactory, Infrastructure, ServiceFactory, PlaceFactory,
-    ServiceFactory, CapacityFactory)
+    InfrastructureFactory,
+    Infrastructure,
+    ServiceFactory,
+    PlaceFactory,
+    ServiceFactory,
+    Service,
+    CapacityFactory)
 from datentool_backend.user.factories import PlanningProcess, ScenarioFactory
 from datentool_backend.user.models.process import ScenarioService
 
@@ -75,6 +80,11 @@ class CreateTestdataMixin:
         infrastructure = InfrastructureFactory()
         cls.service1 = ServiceFactory(infrastructure=infrastructure)
         cls.service2 = ServiceFactory(infrastructure=infrastructure)
+        cls.service_uniform = ServiceFactory(infrastructure=infrastructure,
+                                             demand_type=Service.DemandType.UNIFORM,
+                                             has_capacity=False)
+        cls.service_without_demand = ServiceFactory(infrastructure=infrastructure,
+                                               demand_type=Service.DemandType.FREQUENCY)
         return infrastructure
 
     @classmethod
@@ -275,6 +285,11 @@ class CreateTestdataMixin:
         # place 5 has capacity defined, but is in no Area
         CapacityFactory(place=cls.place5, service=cls.service1, capacity=66)
         CapacityFactory(place=cls.place5, service=cls.service2, capacity=77)
+
+        # capacity=1 for service_uniformin two places
+        CapacityFactory(place=cls.place1, service=cls.service_uniform, capacity=1)
+        CapacityFactory(place=cls.place2, service=cls.service_uniform, capacity=1)
+
 
     @classmethod
     def create_raster_population(cls):
