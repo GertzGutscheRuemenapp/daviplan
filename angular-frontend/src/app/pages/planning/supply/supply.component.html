@@ -121,7 +121,7 @@
 <ng-template #placePreviewTemplate><!-- let-place="place">-->
   <div *ngFor="let place of selectedPlaces" style="margin-bottom: 15px">
     <div style="margin-bottom: 10px;">
-      <b style="font-size: 1.3em">{{ place.name }}&nbsp;</b> <i *ngIf="place.scenario !== null" style="color: darkorange;">(Szenariostandort)</i>
+      <b style="font-size: 1.3em">{{ place.name }}&nbsp;</b> <i *ngIf="place.scenario !== null" style="color: #fc450c;">(Szenariostandort)</i>
     </div>
     <div style="padding: 0 15px;">
       <table *ngIf="place.attributes && place.attributes.length > 0">
