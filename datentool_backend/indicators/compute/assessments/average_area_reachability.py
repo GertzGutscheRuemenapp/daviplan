@@ -51,6 +51,8 @@ class AverageAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, Servic
         q_cp, p_cp = cells_places.query.sql_with_params()
 
         q_demand, p_demand = self.get_cell_demand(scenario_id, service_id)
+        if not p_demand:
+            return []
 
         q_acells, p_acells = acells.values(
             'area_id', 'rastercellpop_id', 'share_area_of_cell').query.sql_with_params()

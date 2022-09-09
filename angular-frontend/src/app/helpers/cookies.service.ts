@@ -18,10 +18,12 @@ export class CookieService {
   //   return val;
   // }
 
+  public get(name: string): any;
   public get(name: string, type: 'string'): string;
   public get(name: string, type: 'boolean'): boolean | undefined;
   public get(name: string, type: 'number'): number | undefined;
   public get(name: string, type: 'array'): string[];
+  public get(name: string, type: 'json'): any;
   public get(name: string, type: string = 'string'): unknown {
     let val = this.ngxCookies.get(name);
     if (type === 'boolean') {
@@ -41,10 +43,14 @@ export class CookieService {
     if (type === 'string'){
       return val || '';
     }
+    if (type === 'json'){
+      return JSON.parse(val) || {};
+    }
     return val;
   }
 
   public set(name: string, val: any, path?: string | undefined) {
+    if (val instanceof Object) val = JSON.stringify(val);
     this.ngxCookies.set(name, String(val), { path: path, expires: 3650 });
   }
 

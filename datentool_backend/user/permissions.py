@@ -1,6 +1,6 @@
 from rest_framework import permissions
 
-from .models.process import PlanningProcess
+from .models.process import PlanningProcess, Scenario
 
 
 class CanUpdateProcessPermission(permissions.BasePermission):
@@ -36,9 +36,5 @@ class CanEditScenarioPermission(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
-            return True
-        else:
-            owner_is_user = request.user.profile == obj.planning_process.owner
-            user_in_users = request.user.profile in obj.planning_process.users.all()
-            allow_shared_change = obj.planning_process.allow_shared_change
-            return owner_is_user or (allow_shared_change and user_in_users)
+            return obj.has_read_permission(request.user)
+        return obj.has_write_permission(request.user)

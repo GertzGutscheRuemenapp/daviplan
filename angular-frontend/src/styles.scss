@@ -307,6 +307,9 @@ button mat-icon {
 
 button.outlined {
   border: 2px solid;
+  mat-icon {
+    transform: scale(0.8);
+  }
 }
 
 mat-icon.outlined {
@@ -894,10 +897,10 @@ app-legend, .info-text, .tree-select {
   border-bottom: none;
 }
 
-.info-text h4 {
+/*.info-text h4 {
   font-size: 18px !important;
   line-height: 18px !important;
-}
+}*/
 
 mat-sidenav {
   .mat-expansion-panel-body {

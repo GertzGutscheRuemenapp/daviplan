@@ -341,11 +341,9 @@ export class RestCacheService {
   }
 
   computeIndicator<Type>(indicatorName: string, serviceId: number, options?: {
-    year?: number, prognosis?: number, scenario?: number, areaLevelId?: number, mode?: number  }): Observable<Type[]> {
+    year?: number, prognosis?: number, scenario?: number, areaLevelId?: number, additionalParams?: any }): Observable<Type[]> {
     const url = `${this.rest.URLS.services}${serviceId}/compute_indicator/`;
-    let params: any = {
-      indicator: indicatorName
-    };
+    let params: any = Object.assign({indicator: indicatorName}, options?.additionalParams || {});
     if (options?.year != undefined)
       params.year = options.year;
     if (options?.prognosis != undefined)
@@ -354,8 +352,6 @@ export class RestCacheService {
       params.scenario = options.scenario;
     if (options?.areaLevelId != undefined)
       params.area_level = options.areaLevelId;
-    if (options?.mode != undefined)
-      params.mode = options.mode;
     return this.getCachedData<Type[]>(url, { params: params, method: 'POST', key: options?.scenario?.toString() });
   }
 

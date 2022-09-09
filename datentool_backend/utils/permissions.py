@@ -16,6 +16,9 @@ class ReadOnlyPermission(permissions.BasePermission):
             return True
         return False
 
+    def has_object_permission(self, request, view, obj):
+        return self.has_permission(request, view)
+
 
 class HasAdminAccessOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
@@ -23,6 +26,9 @@ class HasAdminAccessOrReadOnly(permissions.BasePermission):
             request.method in permissions.SAFE_METHODS or
                 request.user.is_superuser or
             request.user.profile.admin_access)
+
+    def has_object_permission(self, request, view, obj):
+        return self.has_permission(request, view)
 
 
 class HasAdminAccessOrReadOnlyAny(permissions.BasePermission):
@@ -33,17 +39,26 @@ class HasAdminAccessOrReadOnlyAny(permissions.BasePermission):
                     request.user.profile.admin_access
                 ))
 
+    def has_object_permission(self, request, view, obj):
+        return self.has_permission(request, view)
+
 
 class CanEditBasedata(permissions.BasePermission):
     def has_permission(self, request, view):
         return (request.user.is_authenticated and
                 request.user.profile.can_edit_basedata)
 
+    def has_object_permission(self, request, view, obj):
+        return self.has_permission(request, view)
+
 
 class HasAdminAccess(permissions.BasePermission):
     def has_permission(self, request, view):
         return (request.user.is_authenticated
                 and request.user.profile.admin_access)
+
+    def has_object_permission(self, request, view, obj):
+        return self.has_permission(request, view)
 
 
 class IsOwner(permissions.BasePermission):

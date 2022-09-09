@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 from datentool_backend.base import NamedModel, DatentoolModelMixin
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
@@ -53,6 +54,17 @@ class Scenario(DatentoolModelMixin, NamedModel, models.Model):
                                                 variant=default_mode)
             except Network.DoesNotExist:
                 pass
+
+    def has_write_permission(self, user: User):
+        owner_is_user = user.profile == self.planning_process.owner
+        user_in_users = user.profile in self.planning_process.users.all()
+        allow_shared_change = self.planning_process.allow_shared_change
+        return owner_is_user or (allow_shared_change and user_in_users)
+
+    def has_read_permission(self, user: User):
+        owner_is_user = user.profile == self.planning_process.owner
+        user_in_users = user.profile in self.planning_process.users.all()
+        return owner_is_user or user_in_users
 
 
 class ScenarioMode(models.Model):

@@ -39,6 +39,9 @@ class AccessibleDemandPerPlace(ModeVariantMixin, PopulationIndicatorMixin, Servi
 
         q_demand, p_demand = self.get_cell_demand(scenario_id, service_id)
 
+        if not p_demand:
+            return []
+
         query = f'''SELECT
         c."place_id" AS id,
         sum(d."value") AS "value"

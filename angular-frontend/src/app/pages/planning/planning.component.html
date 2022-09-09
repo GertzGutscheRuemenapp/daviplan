@@ -202,8 +202,8 @@
 <ng-template #processTemplate>
   <form [formGroup]="editProcessForm">
     <div *ngIf="editProcessForm.errors">
-      <mat-error *ngFor="let error of Object.values(editProcessForm.errors)" class="alert">
-        {{ error }}
+      <mat-error *ngFor="let error of editProcessForm.errors | keyvalue" class="alert">
+        {{ error.key }}: {{ error.value }}
       </mat-error>
     </div>
     <div fxLayout="row wrap">

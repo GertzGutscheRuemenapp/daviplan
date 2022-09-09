@@ -28,4 +28,12 @@
   div.selected {
     color: $primary;
   }
+
+  label {
+    transform: translateY(-1.59371em) translateX(-0.6em) scale(0.8);
+    color: grey;
+    background: white;
+    position: absolute;
+    padding: 0 6px;
+  }
 }
