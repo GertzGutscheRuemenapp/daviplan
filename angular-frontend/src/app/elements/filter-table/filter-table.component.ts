@@ -79,6 +79,15 @@ class NumFilter extends Filter {
   }
 }
 
+class BoolFilter extends Filter {
+  name = 'Booleanfilter';
+  value = false;
+
+  filter(value: number | boolean): boolean {
+    return !!value;
+  }
+}
+
 class ClassFilter extends Filter {
   name = 'Klassenfilter';
   classes: string[];
