@@ -24,6 +24,7 @@ import { WKT } from "ol/format";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { sortBy } from "../../../helpers/utils";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
+import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 
 @Component({
   selector: 'app-supply',
@@ -106,7 +107,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     this.updatePlaces();
   }
 
-  updatePlaces(resetScenario?: boolean): void {
+  updatePlaces(options?: { resetScenario?: boolean, selectPlaceId?: number }): void {
     if (!this.activeInfrastructure || !this.activeService) return;
     this.updateMapDescription();
     this.places = [];
@@ -114,14 +115,14 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       targetProjection: this.mapControl!.map!.mapProjection,
       addCapacities: true,
       filter: { columnFilter: true, year: this.year },
-      reset: !this.activeScenario?.isBase && resetScenario,
+      reset: !this.activeScenario?.isBase && options?.resetScenario,
       scenario: this.activeScenario
     };
     this.placePreviewDialogRef?.componentInstance?.setLoading(true);
     this.planningService.getCapacities({
       service: this.activeService,
       scenario: this.activeScenario,
-      reset: (!this.activeScenario?.isBase) && resetScenario
+      reset: (!this.activeScenario?.isBase) && options?.resetScenario
     }).subscribe(capacities => {
       this.capacities = capacities;
       this.planningService.getPlaces(placeOptions).subscribe(places => {
@@ -194,6 +195,13 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
             properties: { name: place.name, label: place.label, capacity: place.capacity, scenario: place.scenario }
           }
         }));
+        if (options?.selectPlaceId !== undefined) {
+          const place = this.places.find(p => p.id === options.selectPlaceId);
+          if (place) {
+            this.selectedPlaces = [place];
+            this.openPlacePreview();
+          }
+        }
         if (this.selectedPlaces.length > 0) {
           const ids = this.selectedPlaces.map(p => p.id);
           // after change, places might only be copies with old attributes
@@ -263,7 +271,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   togglePlaceMode(): void {
     this.addPlaceMode = !this.addPlaceMode;
-    this.mapControl?.map?.setCursor(this.addPlaceMode? 'crosshair': '');
+    this.mapControl?.setCursor(this.addPlaceMode? 'marker': 'default');
+    this.placesLayer?.setSelectable(!this.addPlaceMode);
     if (this.mapClickSub) {
       this.mapClickSub.unsubscribe();
       this.mapClickSub = undefined;
@@ -317,8 +326,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         if (value !== null) attributes[field] = value;
       });
       const format = new WKT();
-      dialogRef.componentInstance.isLoading$.next(true);
       let wkt = `SRID=${this.mapControl?.map?.mapProjection.replace('EPSG:', '')};${format.writeGeometry(place.geom as Geometry)}`;
+      const dialogRefWait = SimpleDialogComponent.show('Füge Ort hinzu und berechne Erreichbarkeiten. Bitte warten', this.dialog, { showAnimatedDots: true });
       this.http.post<Place>(this.rest.URLS.places, {
         name: this.placeForm!.value.name,
         infrastructure: this.activeService?.infrastructure,
@@ -327,11 +336,13 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         attributes: attributes
       }).subscribe(place => {
         dialogRef.close();
+        dialogRefWait.close();
+        this.togglePlaceMode();
         // this.precalcTraveltime(place);
-        this.updatePlaces(true);
+        this.updatePlaces({ resetScenario: true, selectPlaceId: place.id });
       }, error => {
         this.placeForm?.setErrors(error.error);
-        dialogRef.componentInstance.isLoading$.next(false);
+        dialogRefWait.close();
       })
     })
   }
@@ -373,7 +384,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       }).subscribe(p => {
         dialogRef.close();
         this.selectedPlaces = [p];
-        this.updatePlaces(true);
+        this.updatePlaces({ resetScenario: true });
       }, error => {
         // ToDo: show error
         console.log(error)
@@ -394,7 +405,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         this.http.delete<Place>(`${this.rest.URLS.places}${place.id}/`).subscribe(p => {
           this.placePreviewDialogRef?.close();
           this.selectedPlaces = [];
-          this.updatePlaces(true);
+          this.updatePlaces({ resetScenario: true });
         }, error => {
           // ToDo: show error
           console.log(error)
@@ -437,7 +448,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         capacities: this._editCapacities
       }).subscribe(capacities => {
         this.planningService.resetCapacities(this.activeScenario!.id, this.activeService!.id);
-        this.updatePlaces(true);
+        this.updatePlaces({ resetScenario: true });
         dialogRef.componentInstance.setLoading(false);
         dialogRef.close();
       }, error => {
