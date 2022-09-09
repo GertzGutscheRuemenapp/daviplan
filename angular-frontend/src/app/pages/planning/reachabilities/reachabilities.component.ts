@@ -92,7 +92,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       this.year = year;
       this.updatePlaces();
       // year is not relevant for the other indicators
-      this.showNextPlaceReachabilities();
+      if (this.indicator === 'next') this.showNextPlaceReachabilities();
     }));
   }
 

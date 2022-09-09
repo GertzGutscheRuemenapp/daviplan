@@ -222,8 +222,9 @@
             bis {{ _editCapacities[i+1].fromYear-1 }}
           </div>
         </td>
-        <td>
-          <mat-form-field appearance="outline" class="small" style="margin: 0 5px 0 20px;">
+        <td *ngIf="activeService?.hasCapacity">
+          <mat-form-field appearance="outline" class="small"
+                          style="margin: 0 5px 0 20px;">
             <mat-label i18n>Kapazität</mat-label>
             <input matInput type="number" required
                    [(ngModel)]="capacity.capacity"
@@ -231,6 +232,13 @@
                    [min]="0">
           </mat-form-field>
           {{activeService?.capacityPluralUnit}}
+        </td>
+        <td *ngIf="!activeService?.hasCapacity">
+          <mat-checkbox [checked]="!!capacity.capacity"
+                        color="primary" style="transform: translateY(10px); margin-left: 10px;"
+                        (change)="capacity.capacity = $event.checked? 1: 0;">
+            Angebot vorhanden
+          </mat-checkbox>
         </td>
         <td *ngIf="i > 0">
           <button mat-button color="warn"
