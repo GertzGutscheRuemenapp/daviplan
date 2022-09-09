@@ -27,7 +27,10 @@
       </th>
     </tr>
     <tr *ngFor="let row of processedRows">
-     <td *ngFor="let column of row">{{column}}</td>
+     <td *ngFor="let value of row; let i = index">
+       <ng-container *ngIf="_columns[i].type === 'BOOL'; else rawContent">{{value? 'Ja': 'Nein'}}</ng-container>
+       <ng-template #rawContent>{{value}}</ng-template>
+     </td>
     </tr>
   </table>
 </div>
@@ -109,5 +112,14 @@
       </mat-form-field>
       <span>{{unit}}</span>
     </div>
+  </form>
+</ng-template>
+
+<ng-template #boolFilter>
+  <form [formGroup]="filterForm" style="display: flex; padding: 10px;">
+    <mat-radio-group formControlName="value" required>
+      <mat-radio-button value="1" checked style="margin-right: 10px;" >Ja</mat-radio-button>
+      <mat-radio-button value="0">Nein</mat-radio-button>
+    </mat-radio-group>
   </form>
 </ng-template>
