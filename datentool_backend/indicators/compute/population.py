@@ -116,7 +116,8 @@ class PopulationIndicatorMixin:
             try:
                 drs = DemandRateSet.objects.get(service=service, is_default=True)
             except DemandRateSet.DoesNotExist:
-                return
+                return DemandRate.objects.none().annotate(
+                factor=Value(1, output_field=FloatField()))
 
         year = self.data.get('year')
         if year:
@@ -146,6 +147,8 @@ class PopulationIndicatorMixin:
         get the query for the service-demand in the area of given area_level
         with given scenario
         """
+        service = Service.objects.get(id=service_id)
+        demand_is_uniform = service.demand_type == Service.DemandType.UNIFORM
 
         if area_level_id is None:
             raise BadRequest('No AreaLevel provided')
@@ -155,7 +158,7 @@ class PopulationIndicatorMixin:
 
         populations = self.get_populations()
         if not populations:
-            return None, None
+            return None, ()
         population = populations[0]
 
         pop_arealevel, created = PopulationAreaLevel.objects.get_or_create(
@@ -163,14 +166,21 @@ class PopulationIndicatorMixin:
             area_level_id=area_level_id)
 
         demand_rates = self.get_demand_rates(scenario_id, service_id)
-        if not demand_rates:
-            return None, None
 
-        q_drs, p_drs = demand_rates.values('age_group_id', 'gender_id', 'factor')\
-            .query.sql_with_params()
+        if not demand_rates and not demand_is_uniform:
+            query = f'''SELECT
+            a."id", a."_label", 0::double precision AS "value"
+            FROM ({q_areas}) AS a'''
+            params = p_areas
 
         #  check if the area-population is precalculated
-        if pop_arealevel.up_to_date:
+        elif pop_arealevel.up_to_date:
+            if not demand_is_uniform:
+                q_drs, p_drs = demand_rates\
+                    .values('age_group_id', 'gender_id', 'factor')\
+                    .query.sql_with_params()
+
+
             areapop = self.get_areapop(
                 filter_params={'area__area_level_id': area_level_id, })
 
@@ -178,13 +188,15 @@ class PopulationIndicatorMixin:
                                                   'gender_id', 'value')\
                 .query.sql_with_params()
 
+            fallback_value = 1 if demand_is_uniform else 0
+
             query = f'''SELECT
             a."id", a."_label", val."value"
             FROM ({q_areas}) AS a
             LEFT JOIN (
               SELECT
                 ap."area_id",
-                SUM(ap."value" * COALESCE(dr."factor", 0)) AS "value"
+                SUM(ap."value" * COALESCE(dr."factor", %s)) AS "value"
               FROM
                 ({q_areapop}) AS ap
                 LEFT JOIN ({q_drs}) AS dr
@@ -194,7 +206,7 @@ class PopulationIndicatorMixin:
             ) val ON (val."area_id" = a."id")
             '''
 
-            params = p_areas + p_areapop + p_drs
+            params = p_areas + (fallback_value, ) + p_areapop + p_drs
 
         else:
             # calculate it from the raster cells
@@ -210,27 +222,53 @@ class PopulationIndicatorMixin:
                                             'gender_id', 'value').query.sql_with_params()
             q_rcp, p_rcp = rcp.values('id', 'cell_id').query.sql_with_params()
 
-            query = f'''SELECT
-            a."id", a."_label", val."value"
-            FROM ({q_areas}) AS a
-            LEFT JOIN (
-              SELECT
-                ac."area_id",
-                SUM(p."value" * dr."factor" * ac."share_area_of_cell") AS "value"
-              FROM
-                ({q_acells}) AS ac,
-                ({q_pop}) AS p,
-                ({q_rcp}) AS rcp,
-                ({q_drs}) AS dr
-              WHERE p."age_group_id" = dr."age_group_id"
-                AND p."gender_id" = dr."gender_id"
-                AND ac."rastercellpop_id" = rcp."id"
-                AND p."cell_id" = rcp."cell_id"
-              GROUP BY ac."area_id"
-            ) val ON (val."area_id" = a."id")
-            '''
+            if demand_is_uniform:
+                query = f'''SELECT
+                a."id", a."_label", val."value"
+                FROM ({q_areas}) AS a
+                LEFT JOIN (
+                  SELECT
+                    ac."area_id",
+                    SUM(p."value" * ac."share_area_of_cell") AS "value"
+                  FROM
+                    ({q_acells}) AS ac,
+                    ({q_pop}) AS p,
+                    ({q_rcp}) AS rcp
+                  WHERE ac."rastercellpop_id" = rcp."id"
+                    AND p."cell_id" = rcp."cell_id"
+                  GROUP BY ac."area_id"
+                ) val ON (val."area_id" = a."id")
+                '''
 
-            params = p_areas + p_acells + p_pop + p_rcp + p_drs
+                params = p_areas + p_acells + p_pop + p_rcp
+
+            else:
+                q_drs, p_drs = demand_rates\
+                    .values('age_group_id', 'gender_id', 'factor')\
+                    .query.sql_with_params()
+
+                query = f'''SELECT
+                a."id", a."_label", val."value"
+                FROM ({q_areas}) AS a
+                LEFT JOIN (
+                  SELECT
+                    ac."area_id",
+                    SUM(p."value" * dr."factor" * ac."share_area_of_cell") AS "value"
+                  FROM
+                    ({q_acells}) AS ac,
+                    ({q_pop}) AS p,
+                    ({q_rcp}) AS rcp,
+                    ({q_drs}) AS dr
+                  WHERE p."age_group_id" = dr."age_group_id"
+                    AND p."gender_id" = dr."gender_id"
+                    AND ac."rastercellpop_id" = rcp."id"
+                    AND p."cell_id" = rcp."cell_id"
+                  GROUP BY ac."area_id"
+                ) val ON (val."area_id" = a."id")
+                '''
+
+                params = p_areas + p_acells + p_pop + p_rcp + p_drs
+
         return query, params
 
     def get_cell_demand(self,
