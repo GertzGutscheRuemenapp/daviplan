@@ -95,7 +95,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         this.dataColumns.push(field.name);
       })
       this.selectedInfrastructure!.services.forEach(service => {
-        let columnTitle = (service.hasCapacity)? `Kapazitäten ${service.name}`: service.name;
+        let columnTitle = (service.hasCapacity)? `${service.name} (Kapazität)`: service.name;
         this.dataColumns.push(columnTitle);
         this.isLoading$.next(true);
         this.restService.getCapacities({ service: service }).subscribe(serviceCapacities => {

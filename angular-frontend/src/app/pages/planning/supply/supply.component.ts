@@ -39,7 +39,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   @ViewChild('placeCapacitiesEditTemplate') placeCapacitiesEditTemplate!: TemplateRef<any>;
   addPlaceMode: boolean;
   year?: number;
-  realYears?: number[];
+  realYears: number[] = [0];
   prognosisYears?: number[];
   compareSupply = true;
   compareStatus = 'option 1';
@@ -134,14 +134,10 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         }
         let max = 1;
         let min = Number.MAX_VALUE;
-        let displayedPlaces: Place[] = [];
         this.places?.forEach(place => {
-          if (place.scenario === null && place.capacity === 0) return;
           const capacity = place.capacity || 0;
-          place.label = this.getFormattedCapacityString([this.activeService!.id], capacity);
-          displayedPlaces.push(place);
           max = Math.max(max, capacity);
-          min = Math.min(min, capacity);
+          if (place.capacity) min = Math.min(min, capacity);
         });
         const desc = `<b>${this.activeService?.facilityPluralUnit} ${this.year}</b><br>
                     mit Anzahl ${this.activeService?.capacityPluralUnit}<br>
@@ -158,9 +154,9 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
             strokeColor: 'black',
             symbol: 'circle'
           },
-          labelField: 'label',
+          labelField: 'name',
           showLabel: showLabel,
-          tooltipField: 'name',
+          tooltipField: 'tooltip',
           select: {
             enabled: true,
             style: {
@@ -178,21 +174,27 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
               range: [5, 20],
               scale: 'linear'
             },
+            fillColor: {
+              colorFunc: (capacity => (capacity) ? '#2171b5' : 'lightgrey')
+            },
             strokeColor: {
               colorFunc: (feat => (feat.get('scenario') !== null) ? '#fc450c' : '#174a79')
             },
             field: 'capacity',
-            min: this.activeService?.minCapacity || 0,
+            // min: this.activeService?.minCapacity || 0,
+            min: 0,
             max: this.activeService?.maxCapacity || 1000
           },
           labelOffset: { y: 15 }
         });
         this.layerGroup?.addLayer(this.placesLayer);
-        this.placesLayer.addFeatures(displayedPlaces.map(place => {
+        this.placesLayer.addFeatures(places.map(place => {
+          const tooltip = `${place.name}<br>
+                           ${this.activeService?.hasCapacity? this.getFormattedCapacityString([this.activeService!.id], place.capacity || 0): place.capacity? 'Leistung wird angeboten': 'Leistung wird nicht angeboten'}`
           return {
             id: place.id,
             geometry: place.geom,
-            properties: { name: place.name, label: place.label, capacity: place.capacity, scenario: place.scenario }
+            properties: { name: place.name, tooltip: tooltip, capacity: place.capacity, scenario: place.scenario }
           }
         }));
         if (options?.selectPlaceId !== undefined) {
@@ -471,7 +473,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       place: place.id,
       service: this.activeService!.id,
       scenario: this.activeScenario?.id,
-      fromYear: (i === 1)? ((this._editCapacities.length === 1)? 2000: this._editCapacities[i].fromYear - 1): this._editCapacities[i-1].fromYear + 1,
+      fromYear: (i === 1)? ((this._editCapacities.length === 1)? this.realYears[0] + 1: this._editCapacities[i].fromYear - 1): this._editCapacities[i-1].fromYear + 1,
       capacity: 0,
     }
     this._editCapacities.splice(i, 0, capacity);

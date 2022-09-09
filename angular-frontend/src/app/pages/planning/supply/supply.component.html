@@ -139,14 +139,16 @@
     </button>
     <div *ngIf="activeService">
       <mat-divider style="margin: 10px 0;"></mat-divider>
-      {{(activeService?.hasCapacity)? 'Kapazität': 'Angebot'}} {{activeService.name}} ({{year}}):
+      {{activeService.name}} ({{(activeService?.hasCapacity)? 'Kapazität ': ''}}{{year}}):
       <b *ngIf="activeService?.hasCapacity">{{getFormattedCapacityString([activeService.id], place.capacity || 0)}}</b>
       <b *ngIf="!activeService?.hasCapacity">{{(place.capacity)? 'Ja': 'Nein'}}</b>
     </div>
+    <mat-divider style="margin: 10px 0;"></mat-divider>
+    {{activeService?.name}}<br>(gesamter Betrachtungszeitraum):
     <table *ngVar="getCapacities(place) as capacities" style="margin-top: 10px;">
       <tr *ngFor="let capacity of capacities;">
         <td style="padding-right: 10px;">
-          ab {{(capacity.fromYear === 0)? 'Startjahr': capacity.fromYear}}
+          {{(capacity.fromYear === 0)? realYears[0]: 'ab ' + capacity.fromYear}}
         </td>
         <td *ngIf="activeService?.hasCapacity">{{capacity.capacity}} {{(capacity.capacity === 1)? activeService?.capacitySingularUnit: activeService?.capacityPluralUnit}}</td>
         <td *ngIf="!activeService?.hasCapacity">{{(capacity.capacity)? 'Ja': 'Nein'}}</td>
@@ -207,14 +209,14 @@
     <ng-container *ngFor="let capacity of _editCapacities; let i = index;">
       <tr>
         <td style="display: flex; align-items: baseline;">
-          <div *ngIf="i === 0 else notStart" style="margin-top: 10px;;">&nbsp;Startjahr&nbsp;</div>
+          <div *ngIf="i === 0 else notStart" style="margin-top: 10px;">&nbsp;{{realYears[0]}}&nbsp;</div>
           <ng-template #notStart>
             <mat-form-field appearance="outline" class="small yearInput">
               <mat-label i18n>ab</mat-label>
               <input matInput type="number" required
                      [(ngModel)]="capacity.fromYear"
                      [max]="(i === _editCapacities.length-1)? 9999: _editCapacities[i+1].fromYear-1"
-                     [min]="(i>0)? _editCapacities[i-1].fromYear + 1: 0">
+                     [min]="(i>1)? _editCapacities[i-1].fromYear + 1: realYears[0] + 1">
             </mat-form-field>
           </ng-template>
           <div *ngIf="i !== _editCapacities.length - 1"
@@ -235,16 +237,17 @@
         </td>
         <td *ngIf="!activeService?.hasCapacity">
           <mat-checkbox [checked]="!!capacity.capacity"
-                        color="primary" style="transform: translateY(10px); margin-left: 10px;"
+                        color="primary" style="margin-left: 10px;"
+                        [style.transform]="(i===0)? 'translateY(10px)': 'translateY(5px)' "
                         (change)="capacity.capacity = $event.checked? 1: 0;">
-            Angebot vorhanden
+            Leistung wird angeboten
           </mat-checkbox>
         </td>
         <td *ngIf="i > 0">
           <button mat-button color="warn"
                   class="mat-button-dv"
                   (click)="removeEditCap(i)"
-                  title="Jahr entfernen">
+                  title="Zeitraum entfernen">
             <mat-icon>close</mat-icon>
 <!--              Jahr entfernen-->
           </button>
@@ -269,7 +272,7 @@
                   class="mat-button-dv"
                   *ngIf="(i === _editCapacities.length-1) || (_editCapacities[i+1].fromYear - capacity.fromYear > 1) "
                   (click)="insertEditCap(i+1, place)"
-                  title="Jahr einfügen" i18n>
+                  [title]="(i === _editCapacities.length-1)? 'Jahr hinzufügen': 'Zeitraum einfügen'" i18n>
             <mat-icon>add</mat-icon>
 <!--              Jahr <ng-container *ngIf="i !== _editCapacities.length - 1">einfügen</ng-container>-->
             <ng-container *ngIf="i === _editCapacities.length - 1">Jahr</ng-container>
