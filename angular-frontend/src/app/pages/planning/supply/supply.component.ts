@@ -132,7 +132,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           showLabel = !!this.placesLayer.showLabel;
           this.layerGroup?.removeLayer(this.placesLayer);
         }
-        let max = 1;
+        let max = 0;
         let min = Number.MAX_VALUE;
         this.places?.forEach(place => {
           const capacity = place.capacity || 0;
@@ -163,7 +163,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
               strokeWidth: 2,
               fillColor: 'yellow',
             },
-            multi: false
+            multi: true
           },
           mouseOver: {
             enabled: true,
@@ -183,7 +183,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
             field: 'capacity',
             // min: this.activeService?.minCapacity || 0,
             min: 0,
-            max: this.activeService?.maxCapacity || 1000
+            max: Math.max(this.activeService?.maxCapacity || 10, 10)
           },
           labelOffset: { y: 15 }
         });
@@ -211,12 +211,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           this.placesLayer?.selectFeatures(ids, { silent: true });
         }
         this.placesLayer?.featureSelected?.subscribe(evt => {
-          if (evt.selected)
-            this.selectPlace(evt.feature.get('id'));
-          else {
-            this.selectedPlaces = [];
-            this.placePreviewDialogRef?.close();
-          }
+          this.selectPlace(evt.feature.get('id'), evt.selected);
         })
         this.placePreviewDialogRef?.componentInstance?.setLoading(false);
       });
@@ -232,10 +227,20 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     return `${capacity} ${Array.from(units).join('/')}`
   }
 
-  selectPlace(placeId: number) {
+  selectPlace(placeId: number, select: boolean) {
     const place = this.places?.find(p => p.id === placeId);
-    this.selectedPlaces = place? [place]: [];
-    if (place) this.openPlacePreview();
+    if (!place) return;
+    if (select) {
+      this.selectedPlaces.push(place);
+      this.openPlacePreview();
+    }
+    else {
+      const idx = this.selectedPlaces.indexOf(place);
+      if (idx > -1) {
+        this.selectedPlaces.splice(idx, 1);
+      }
+      if (this.selectedPlaces.length === 0) this.placePreviewDialogRef?.close();
+    }
   }
 
   getCapacities(place: Place): Capacity[] {
@@ -260,6 +265,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       }
     });
     this.placePreviewDialogRef.afterClosed().subscribe(() => {
+      this.selectedPlaces = [];
       this.placesLayer?.clearSelection();
     })
   }

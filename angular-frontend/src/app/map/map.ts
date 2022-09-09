@@ -472,7 +472,8 @@ export class OlMap {
         condition: click,
         layers: [layer],
         style: selectStyleFunc,
-        toggleCondition: always
+        toggleCondition: always,
+        multi: options?.multiSelect
       })
       this.map.addInteraction(select);
       select.on('select', event => {
