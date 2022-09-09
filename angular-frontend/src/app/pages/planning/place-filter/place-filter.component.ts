@@ -103,10 +103,11 @@ export class PlaceFilterComponent  implements AfterViewInit {
     let columns: FilterColumn[] = [{ name: 'Name', type: 'STR' }];
     this.infrastructure!.services!.forEach(service => {
       const column: FilterColumn = {
-        name: `Kapazität ${service.name}`,
+        // name: service.hasCapacity? `${service.name} (Kapazität)`: service.name,
+        name: service.name,
         service: service,
-        type: 'NUM',
-        unit: service.capacityPluralUnit
+        type: service.hasCapacity? 'NUM' : 'BOOL',
+        unit: service.hasCapacity? service.capacityPluralUnit: ''
       };
       const filterInput = this.planningService.placeFilterColumns?.find(c => c.service === service);
       if (filterInput)
@@ -136,7 +137,8 @@ export class PlaceFilterComponent  implements AfterViewInit {
     places.forEach(place => {
       if (this.service && !this.planningService.getPlaceCapacity(place, { service: this.service, year: this.year, scenario: this.scenario })) return;
       const capValues = this.infrastructure!.services!.map(service => {
-        return this.planningService.getPlaceCapacity(place, { service: service, year: this.year, scenario: this.scenario });
+        const capacity = this.planningService.getPlaceCapacity(place, { service: service, year: this.year, scenario: this.scenario });
+        return service.hasCapacity? capacity: !!capacity;
       })
       const values: any[] = this.infrastructure!.placeFields!.map(field => {
         return place.attributes[field.name] || '';
