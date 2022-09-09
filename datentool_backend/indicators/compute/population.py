@@ -116,8 +116,7 @@ class PopulationIndicatorMixin:
             try:
                 drs = DemandRateSet.objects.get(service=service, is_default=True)
             except DemandRateSet.DoesNotExist:
-                return DemandRate.objects.none().annotate(
-                factor=Value(1, output_field=FloatField()))
+                return None
 
         year = self.data.get('year')
         if year:
@@ -175,11 +174,6 @@ class PopulationIndicatorMixin:
 
         #  check if the area-population is precalculated
         elif pop_arealevel.up_to_date:
-            if not demand_is_uniform:
-                q_drs, p_drs = demand_rates\
-                    .values('age_group_id', 'gender_id', 'factor')\
-                    .query.sql_with_params()
-
 
             areapop = self.get_areapop(
                 filter_params={'area__area_level_id': area_level_id, })
@@ -188,25 +182,45 @@ class PopulationIndicatorMixin:
                                                   'gender_id', 'value')\
                 .query.sql_with_params()
 
-            fallback_value = 1 if demand_is_uniform else 0
+            if demand_is_uniform:
 
-            query = f'''SELECT
-            a."id", a."_label", val."value"
-            FROM ({q_areas}) AS a
-            LEFT JOIN (
-              SELECT
-                ap."area_id",
-                SUM(ap."value" * COALESCE(dr."factor", %s)) AS "value"
-              FROM
-                ({q_areapop}) AS ap
-                LEFT JOIN ({q_drs}) AS dr
-              ON (ap.age_group_id = dr.age_group_id
-              AND ap.gender_id = dr.gender_id)
-              GROUP BY ap."area_id"
-            ) val ON (val."area_id" = a."id")
-            '''
+                query = f'''SELECT
+                a."id", a."_label", val."value"
+                FROM ({q_areas}) AS a
+                LEFT JOIN (
+                  SELECT
+                    ap."area_id",
+                    SUM(ap."value") AS "value"
+                  FROM
+                    ({q_areapop}) AS ap
+                  GROUP BY ap."area_id"
+                ) val ON (val."area_id" = a."id")
+                '''
 
-            params = p_areas + (fallback_value, ) + p_areapop + p_drs
+                params = p_areas + p_areapop
+
+            else:
+                q_drs, p_drs = demand_rates\
+                    .values('age_group_id', 'gender_id', 'factor')\
+                    .query.sql_with_params()
+
+                query = f'''SELECT
+                a."id", a."_label", val."value"
+                FROM ({q_areas}) AS a
+                LEFT JOIN (
+                  SELECT
+                    ap."area_id",
+                    SUM(ap."value" * COALESCE(dr."factor", 0)) AS "value"
+                  FROM
+                    ({q_areapop}) AS ap
+                    LEFT JOIN ({q_drs}) AS dr
+                  ON (ap.age_group_id = dr.age_group_id
+                  AND ap.gender_id = dr.gender_id)
+                  GROUP BY ap."area_id"
+                ) val ON (val."area_id" = a."id")
+                '''
+
+                params = p_areas + p_areapop + p_drs
 
         else:
             # calculate it from the raster cells
@@ -282,7 +296,7 @@ class PopulationIndicatorMixin:
 
         demand_rates = self.get_demand_rates(scenario_id, service_id)
         if not demand_rates:
-            return None, None
+            return None, ()
 
         q_drs, p_drs = demand_rates.values('age_group_id', 'gender_id', 'factor')\
             .query.sql_with_params()
