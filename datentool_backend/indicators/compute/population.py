@@ -155,6 +155,12 @@ class PopulationIndicatorMixin:
 
         q_areas, p_areas = areas.values('id', '_label').query.sql_with_params()
 
+        demand_rates = self.get_demand_rates(scenario_id, service_id)
+
+        if not demand_rates and not demand_is_uniform:
+            qs = self.get_areas_without_values(q_areas, p_areas)
+            return qs.raw_query, qs.params
+
         populations = self.get_populations()
         if not populations:
             return None, ()
@@ -164,16 +170,8 @@ class PopulationIndicatorMixin:
             population=population,
             area_level_id=area_level_id)
 
-        demand_rates = self.get_demand_rates(scenario_id, service_id)
-
-        if not demand_rates and not demand_is_uniform:
-            query = f'''SELECT
-            a."id", a."_label", 0::double precision AS "value"
-            FROM ({q_areas}) AS a'''
-            params = p_areas
-
         #  check if the area-population is precalculated
-        elif pop_arealevel.up_to_date:
+        if pop_arealevel.up_to_date:
 
             areapop = self.get_areapop(
                 filter_params={'area__area_level_id': area_level_id, })
@@ -285,43 +283,70 @@ class PopulationIndicatorMixin:
 
         return query, params
 
+    def get_areas_without_values(self,
+                                 q_areas: str,
+                                 p_areas: Tuple[float]) -> Area:
+        query = f'''SELECT
+            a."id", a."_label", 0::double precision AS "value"
+            FROM ({q_areas}) AS a'''
+        params = p_areas
+        return Area.objects.raw(query, params)
+
     def get_cell_demand(self,
                         scenario_id: int,
                         service_id: int) -> Tuple[str, Tuple[float]]:
 
         """get the demand per rastercell for service in scenario"""
         # calculate it from the raster cells
+        service = Service.objects.get(id=service_id)
+        demand_is_uniform = service.demand_type == Service.DemandType.UNIFORM
+
         rcp = RasterCellPopulation.objects.all()
         rasterpop = self.get_rasterpop()
 
         demand_rates = self.get_demand_rates(scenario_id, service_id)
-        if not demand_rates:
+        if not demand_rates and not demand_is_uniform:
             return None, ()
-
-        q_drs, p_drs = demand_rates.values('age_group_id', 'gender_id', 'factor')\
-            .query.sql_with_params()
-
 
         q_pop, p_pop = rasterpop.values('id', 'cell_id', 'age_group_id',
                                         'gender_id', 'value').query.sql_with_params()
         q_rcp, p_rcp = rcp.values('id', 'cell_id').query.sql_with_params()
 
-        q_demand = f'''SELECT
-            rcp."id" AS "rastercellpop_id",
-            rcp."cell_id",
-            SUM(p."value" * dr."factor") AS "value"
-          FROM
-            ({q_pop}) AS p,
-            ({q_rcp}) AS rcp,
-            ({q_drs}) AS dr
-          WHERE p."age_group_id" = dr."age_group_id"
-            AND p."gender_id" = dr."gender_id"
-            AND p."cell_id" = rcp."cell_id"
-          GROUP BY rcp."id",
-            rcp."cell_id"
-        '''
+        if demand_is_uniform:
+            q_demand = f'''SELECT
+                rcp."id" AS "rastercellpop_id",
+                rcp."cell_id",
+                SUM(p."value") AS "value"
+              FROM
+                ({q_pop}) AS p,
+                ({q_rcp}) AS rcp
+              WHERE p."cell_id" = rcp."cell_id"
+              GROUP BY rcp."id",
+                rcp."cell_id"
+            '''
 
-        p_demand = p_pop + p_rcp + p_drs
+            p_demand = p_pop + p_rcp
+
+        else:
+            q_drs, p_drs = demand_rates.values('age_group_id', 'gender_id', 'factor')\
+                .query.sql_with_params()
+
+            q_demand = f'''SELECT
+                rcp."id" AS "rastercellpop_id",
+                rcp."cell_id",
+                SUM(p."value" * dr."factor") AS "value"
+              FROM
+                ({q_pop}) AS p,
+                ({q_rcp}) AS rcp,
+                ({q_drs}) AS dr
+              WHERE p."age_group_id" = dr."age_group_id"
+                AND p."gender_id" = dr."gender_id"
+                AND p."cell_id" = rcp."cell_id"
+              GROUP BY rcp."id",
+                rcp."cell_id"
+            '''
+
+            p_demand = p_pop + p_rcp + p_drs
 
         return q_demand, p_demand
 

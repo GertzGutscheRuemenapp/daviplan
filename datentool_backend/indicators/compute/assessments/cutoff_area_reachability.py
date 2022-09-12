@@ -65,10 +65,13 @@ class CutoffAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, Service
         cells_places = MatrixCellPlace.objects.filter(variant=variant, place__in=places)
         q_cp, p_cp = cells_places.query.sql_with_params()
 
-        q_demand, p_demand = self.get_cell_demand(scenario_id, service_id)
-
         q_acells, p_acells = acells.values(
             'area_id', 'rastercellpop_id', 'share_area_of_cell').query.sql_with_params()
+
+        q_demand, p_demand = self.get_cell_demand(scenario_id, service_id)
+
+        if q_demand is None:
+            return self.get_areas_without_values(q_areas, p_areas)
 
         query = f'''SELECT
             a."id", a."_label", val."value"
@@ -99,5 +102,6 @@ class CutoffAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, Service
         ) val ON (val."area_id" = a."id")
         '''
         params = p_areas + (cutoff, ) + p_cp + p_demand + p_acells
+
         share_of_area_demand_below_cutoff = Area.objects.raw(query, params)
         return share_of_area_demand_below_cutoff

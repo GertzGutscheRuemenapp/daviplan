@@ -53,10 +53,12 @@ class PlaceField(DatentoolModelMixin, models.Model):
     unit = models.TextField(blank=True, default='')
 
     class Meta:
-        constraints = [UniqueConstraint('infrastructure', Lower('name'), name='unique_infra_field_name_lower_constraint'),
-                       UniqueConstraint('infrastructure', 'is_label', name='unique_infra_field_is_label_constraint')]
-        #unique_together = [['infrastructure', 'name'],
-                           #['infrastructure', 'is_label']]
+        constraints = [UniqueConstraint('infrastructure',
+                                        Lower('name'),
+                                        name='unique_infra_field_name_lower_constraint'),
+                       UniqueConstraint('infrastructure',
+                                        'is_label',
+                                        name='unique_infra_field_is_label_constraint')]
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__}: {self.name} ({self.infrastructure.name})'
