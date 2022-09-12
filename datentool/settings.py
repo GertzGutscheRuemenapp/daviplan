@@ -311,25 +311,29 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'datentool.loggers.WebSocketHandler',
         },
+        'persist': {
+            'level': 'DEBUG',
+            'class': 'datentool_backend.logging.loggers.PersistLogHandler',
+        },
     },
     'loggers': {
         'areas': {
-            'handlers': ['web_socket', 'console'],
+            'handlers': ['web_socket', 'console', 'persist'],
             'level': 'INFO',
             'propagate': False,
         },
         'population': {
-            'handlers': ['web_socket', 'console'],
+            'handlers': ['web_socket', 'console', 'persist'],
             'level': 'INFO',
             'propagate': False,
         },
         'infrastructure': {
-            'handlers': ['web_socket', 'console'],
+            'handlers': ['web_socket', 'console', 'persist'],
             'level': 'INFO',
             'propagate': False,
         },
         'routing': {
-            'handlers': ['web_socket', 'console'],
+            'handlers': ['web_socket', 'console', 'persist'],
             'level': 'INFO',
             'propagate': False,
         },

@@ -6,8 +6,4 @@ class BackendConfig(AppConfig):
     name = 'datentool_backend'
 
     def ready(self):
-        from datentool_backend.logging.loggers import PersistLogHandler
-        # handler to persist entries has to be added AFTER app is loaded
-        # because it accesses models
-        # ignoring user level by now (put it into login of user otherwise)
-        PersistLogHandler.register()
+        pass

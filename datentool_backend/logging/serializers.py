@@ -4,6 +4,11 @@ from .models import LogEntry
 
 
 class LogEntrySerializer(serializers.ModelSerializer):
+    timestamp = serializers.SerializerMethodField()
+    message = serializers.CharField(source='text')
     class Meta:
         model = LogEntry
-        fields = ('id', 'user', 'date', 'room', 'text')
+        fields = ('user', 'level', 'timestamp', 'message', 'room')
+
+    def get_timestamp(self, obj):
+        return obj.date.strftime('%d.%m.%Y %H:%M:%S')

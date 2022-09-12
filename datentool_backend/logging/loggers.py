@@ -1,25 +1,25 @@
 import logging
 import datetime
 
-from .models import LogEntry
-from datentool_backend.user.models.profile import Profile
-
 
 class PersistLogHandler(logging.StreamHandler):
     loggers = ['areas', 'population', 'infrastructure', 'routing']
 
     @classmethod
-    def register(cls, user: Profile=None):
+    def register(cls, user: 'Profile'=None):
         handler = PersistLogHandler(user=user)
         for room in cls.loggers:
             logging.getLogger(room).addHandler(handler)
 
-    def __init__(self, user: Profile=None, **kwargs):
+    def __init__(self, user: 'Profile'=None, **kwargs):
         super().__init__(**kwargs)
         self.user = user
         self.setLevel(logging.DEBUG)
 
     def emit(self, record):
+        # import has to be done inside the function. when importing logger
+        # in settings, app is not ready to import models
+        from .models import LogEntry
         room = record.name
         entry = LogEntry.objects.create(
             date=datetime.datetime.now(), room=room, text=record.getMessage(),
