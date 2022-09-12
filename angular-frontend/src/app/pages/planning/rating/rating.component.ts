@@ -61,6 +61,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
       this.areaLevels = areaLevels;
       this.planningService.getInfrastructures().subscribe(infrastructures => {
         this.infrastructures = infrastructures;
+        this.applyUserSettings();
         this.subscriptions.push(this.planningService.year$.subscribe(year => {
           this.year = year;
           this.updateMap();
@@ -76,15 +77,14 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           this.activeProcess = process;
           this.onServiceChange();
         }));*/
-        this.applyUserSettings();
       });
     })
   }
 
   applyUserSettings(): void {
     this.selectedAreaLevel = this.areaLevels.find(al => al.id === this.cookies.get('planning-area-level', 'number')) || ((this.areaLevels.length > 0)? this.areaLevels[this.areaLevels.length - 1]: undefined);
-    this.onServiceChange();
-    this.onAreaLevelChange();
+/*    this.onServiceChange();
+    this.onAreaLevelChange();*/
   }
 
   onAreaLevelChange(): void {

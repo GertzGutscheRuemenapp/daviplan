@@ -1,6 +1,7 @@
 import { Component, AfterViewInit, ElementRef, ViewChild, Input, AfterViewChecked, OnDestroy } from '@angular/core';
 import { environment } from "../../environments/environment";
 import { LogEntry } from "../rest-interfaces";
+import { RestCacheService } from "../rest-cache.service";
 
 @Component({
   selector: 'app-log',
@@ -10,21 +11,27 @@ import { LogEntry } from "../rest-interfaces";
 export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy {
   @Input() height: string = '200px';
   @Input() room: string | undefined = '';
+  @Input() fetchOldLogs: boolean = true;
   @ViewChild('log') logEl!: ElementRef;
-  private wsURL: string;
+  readonly wsURL: string;
   private retries = 0;
   private chatSocket?: WebSocket;
 
   entries: LogEntry[] = [];
 
-  constructor() {
+  constructor(private restService: RestCacheService) {
     const host = environment.production? window.location.hostname: environment.backend.replace('http://', '');
-    this.wsURL = `${(environment.production && host.indexOf('localhost') === -1)? 'wss:': 'ws:'}//${host}/ws/log/`
+    this.wsURL = `${(environment.production && host.indexOf('localhost') === -1)? 'wss:': 'ws:'}//${host}/ws/log/`;
   }
 
   ngAfterViewInit(): void {
-    this.entries.map(entry => this.addLogEntry(entry));
-    this.connect();
+    if (this.fetchOldLogs)
+      this.restService.getLogs({ room: this.room, reset: true }).subscribe(entries => {
+        entries.forEach(entry => this.addLogEntry(entry));
+        this.connect();
+      });
+    else
+      this.connect();
   }
 
   ngAfterViewChecked() {

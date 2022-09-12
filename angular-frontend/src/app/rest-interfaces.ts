@@ -365,7 +365,7 @@ export interface ModeVariant {
 }
 
 export interface LogEntry {
-  user?: User,
+  user?: number,
   level: 'ERROR' | 'INFO' | 'DEBUG',
   timestamp: string,
   message: string

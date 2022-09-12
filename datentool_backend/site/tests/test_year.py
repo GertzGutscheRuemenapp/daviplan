@@ -17,12 +17,11 @@ class TestYearAPI(WriteOnlyWithCanEditBaseDataTest,
                   TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):
     """"""
     url_key = "years"
-    factory = YearFactory
 
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-
+        cls.obj = YearFactory(year=3000)
         cls.post_data = dict(year=1990)
         cls.put_data = dict(year=1995)
         cls.patch_data = dict(year=2000, is_default=True)

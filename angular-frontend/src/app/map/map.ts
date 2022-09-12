@@ -282,6 +282,7 @@ export class OlMap {
 
     this.setMouseOverLayer(layer, {
       tooltipField: options?.tooltipField,
+      // valueMap: options?.valueMap,
       cursor: (options?.mouseOverCursor != undefined)? options?.mouseOverCursor: 'pointer'
     });
     this.map.addLayer(layer);
@@ -498,7 +499,11 @@ export class OlMap {
     fillColor?: string,
     strokeColor?: string,
     strokeWidth?: number,
-    styleFunc?: ((d: any) => any)
+    styleFunc?: ((d: any) => any),
+/*    valueMap?: {
+      field: string,
+      values: Record<string, number>
+    },*/
   }){
     // avoid setting map interactions if nothing is defined to set anyway
     if (!(options.cursor || options.tooltipField || options.fillColor || options.strokeColor)) return;
@@ -555,8 +560,10 @@ export class OlMap {
           let tooltip = this.tooltipOverlay.getElement();
           if (features.length > 0) {
             this.tooltipOverlay.setPosition(event.coordinate);
+            const feature = features[0];
             // let coords = this.map.getCoordinateFromPixel(pixel);
-            const text = features[0].get(options.tooltipField);
+            // const text = (options.valueMap && options.tooltipField === 'value')? options.valueMap.values[feature.get(options?.valueMap.field)]: feature.get(options.tooltipField);
+            const text = feature.get(options.tooltipField);
             tooltip!.innerHTML = text; // + `<br>${coords[0]}, ${coords[1]}`;
             tooltip!.style.display = text? '': 'none';
           } else

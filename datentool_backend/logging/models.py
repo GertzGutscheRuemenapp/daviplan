@@ -1,32 +1,13 @@
 from django.db import models
 from datentool_backend.base import NamedModel
 from datentool_backend.user.models.profile import Profile
-from datentool_backend.infrastructure.models.infrastructures import (
-    Infrastructure, Service)
-from datentool_backend.area.models import AreaLevel
-from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 
 
 class LogEntry(NamedModel, models.Model):
     """a generic log entry"""
-    user = models.ForeignKey(Profile, on_delete=PROTECT_CASCADE)
-    date = models.DateField()
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
+    date = models.DateTimeField()
     text = models.TextField()
+    room = models.CharField(max_length=100)
+    level = models.CharField(max_length=30)
 
-    class Meta:
-        abstract = True
-
-
-class CapacityUploadLog(LogEntry):
-    """log entry for capacity uploads"""
-    service = models.ForeignKey(Service, on_delete=PROTECT_CASCADE)
-
-
-class PlaceUploadLog(LogEntry):
-    """log entry for infrastructure uploads"""
-    infrastructure = models.ForeignKey(Infrastructure, on_delete=PROTECT_CASCADE)
-
-
-class AreaUploadLog(LogEntry):
-    """log entry for area uploads"""
-    level = models.ForeignKey(AreaLevel, on_delete=PROTECT_CASCADE)

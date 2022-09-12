@@ -17,7 +17,7 @@ import {
   Statistic,
   FieldType,
   RasterCell,
-  TransportMode, CellResult, PlaceResult, ExtLayerGroup, ExtLayer, ModeVariant, Network, Scenario
+  TransportMode, CellResult, PlaceResult, ExtLayerGroup, ExtLayer, ModeVariant, Network, Scenario, LogEntry
 } from "./rest-interfaces";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
@@ -100,6 +100,12 @@ export class RestCacheService {
       }
     })
     return observable;
+  }
+
+  getLogs(options?: { room?: string, reset?: boolean }): Observable<LogEntry[]> {
+    const url = this.rest.URLS.logs;
+    const params = options?.room? { room: options?.room }: {};
+    return this.getCachedData<LogEntry[]>(url, { params, reset: options?.reset});
   }
 
   getPrognoses(): Observable<Prognosis[]> {
