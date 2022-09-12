@@ -290,6 +290,7 @@ class CreateTestdataMixin:
         CapacityFactory(place=cls.place1, service=cls.service_uniform, capacity=1)
         CapacityFactory(place=cls.place2, service=cls.service_uniform, capacity=1)
 
+        CapacityFactory(place=cls.place2, service=cls.service_without_demand, capacity=2)
 
     @classmethod
     def create_raster_population(cls):

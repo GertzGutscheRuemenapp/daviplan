@@ -207,6 +207,20 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         result_5 = pd.DataFrame(response.data).set_index('area_id')
         np.testing.assert_array_almost_equal(result_5['value'], [22.341524, 100])
 
+        query_params['service'] = self.service_uniform.pk
+        url = reverse(self.url_key, kwargs={'pk': self.service_uniform.pk})
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        result_u = pd.DataFrame(response.data).set_index('area_id')
+        np.testing.assert_array_almost_equal(result_u['value'], [22.341524, 100])
+
+        query_params['service'] = self.service_without_demand.pk
+        url = reverse(self.url_key, kwargs={'pk': self.service_without_demand.pk})
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+        result_u = pd.DataFrame(response.data).set_index('area_id')
+        np.testing.assert_array_almost_equal(result_u['value'], [0, 0])
+
     def test_accessible_demand(self):
         """Test accisible demand at places"""
 
