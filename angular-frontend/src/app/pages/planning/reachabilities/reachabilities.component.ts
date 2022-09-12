@@ -243,6 +243,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           const res = placeResults.find(p => p.placeId === place.id);
           place.value = (res?.value !== undefined)? Math.round(res?.value): undefined;
         })
+        const valueBins = modeBins[this.activeMode];
         this.placeReachabilityLayer = new VectorLayer(this.activeInfrastructure!.name, {
           order: 0,
           zIndex: 99999,
@@ -257,13 +258,13 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           },
           labelField: 'label',
           showLabel: showLabel,
-          tooltipField: 'label',
+          tooltipField: 'tooltip',
           valueStyles: {
             field: 'value',
             fillColor: {
               bins: {
                 colors: modeColors,
-                values: modeBins[this.activeMode]
+                values: valueBins,
               }
             }
           },
@@ -272,9 +273,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         });
         this.reachLayerGroup?.addLayer(this.placeReachabilityLayer);
         this.placeReachabilityLayer.addFeatures(this.places.map(place => {
+          const label = (place.value !== undefined)? `${place.value} Minuten`: `nicht erreichbar innerhalb von ${valueBins[valueBins.length - 1]} Minuten`;
           return { id: place.id, geometry: place.geom, properties: {
             name: place.name, value: place.value,
-            label: (place.value !== undefined)? `${place.value} Minuten`: 'nicht erreichbar' } }
+              label: label, tooltip: `<b>${place.name}</b><br>${label}`} }
         }));
       })
     });
@@ -302,6 +304,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         },
         labelField: 'value',
         showLabel: showLabel,
+        // tooltipField: 'value',
         valueStyles: {
           fillColor: {
             bins: {
@@ -326,7 +329,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     const cellSelectMode = this.indicator === 'cell';
     this.setPlaceSelection(placeSelectMode);
     this.setMarkerPlacement(cellSelectMode);
-    this.mapControl?.setCursor(placeSelectMode? 'search': cellSelectMode? 'marker': 'pointer');
+    this.mapControl?.setCursor(placeSelectMode? 'search': cellSelectMode? 'marker': 'default');
     // this.mapControl?.setCursor(cellSelectMode? 'marker': 'default');
     this.mapControl?.removeMarker();
     if (this.placesLayer)
