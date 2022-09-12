@@ -30,9 +30,7 @@ from .infrastructure.views import (PlaceViewSet,
                                    InfrastructureViewSet,
                                    ServiceViewSet
                                    )
-from .logging.views import (CapacityUploadLogViewSet,
-                            PlaceUploadLogViewSet,
-                            AreaUploadLogViewSet)
+from .logging.views import LogViewSet
 from .population.views import (RasterViewSet,
                                RasterCellViewSet,
                                PopulationRasterViewSet,
@@ -92,12 +90,7 @@ router.register(r'fieldtypes', FieldTypeViewSet, basename='fieldtypes')
 router.register(r'placefields', PlaceFieldViewSet, basename='placefields')
 
 # logging
-router.register(r'capacityuploadlogs', CapacityUploadLogViewSet,
-                basename='capacityuploadlogs')
-router.register(r'placeuploadlogs', PlaceUploadLogViewSet,
-                basename='placeuploadlogs')
-router.register(r'areauploadlogs', AreaUploadLogViewSet,
-                basename='areauploadlogs')
+router.register(r'logs', LogViewSet, basename='logs')
 
 # population
 router.register(r'years', YearViewSet, basename='years')
