@@ -1,30 +1,12 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets
 
 from datentool_backend.utils.permissions import ReadOnlyPermission
-
-from .models import (CapacityUploadLog,
-                     PlaceUploadLog,
-                     AreaUploadLog,
-                     )
-from .serializers import (CapacityUploadLogSerializer,
-                          PlaceUploadLogSerializer,
-                          AreaUploadLogSerializer,
-                          )
+from .models import LogEntry
+from .serializers import LogEntrySerializer
 
 
-class CapacityUploadLogViewSet(viewsets.ReadOnlyModelViewSet):
-     queryset = CapacityUploadLog.objects.all()
-     serializer_class = CapacityUploadLogSerializer
+class LogViewSet(viewsets.ReadOnlyModelViewSet):
+     queryset = LogEntry.objects.all()
+     serializer_class = LogEntrySerializer
      permission_classes = [ReadOnlyPermission]
-
-
-class PlaceUploadLogViewSet(viewsets.ReadOnlyModelViewSet):
-     queryset = PlaceUploadLog.objects.all()
-     serializer_class = PlaceUploadLogSerializer
-     permission_classes = [ReadOnlyPermission]
-
-
-class AreaUploadLogViewSet(viewsets.ReadOnlyModelViewSet):
-     queryset = AreaUploadLog.objects.all()
-     serializer_class = AreaUploadLogSerializer
-     permission_classes = [ReadOnlyPermission]
+     filterset_fields = ['room']
