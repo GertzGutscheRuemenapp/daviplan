@@ -36,7 +36,7 @@ class FacilitiesPerDemandInArea(ServiceIndicator):
         l."id",
         d."_label",
         CASE WHEN COALESCE(d."value", 0) = 0 THEN NULL
-        ELSE COALESCE(l."value", 0) / d."value"
+        ELSE COALESCE(l."value", 0) * 100 / d."value"
         END AS "value"
         FROM
         ({q_l}) l
