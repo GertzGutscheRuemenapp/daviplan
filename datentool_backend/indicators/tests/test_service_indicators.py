@@ -87,7 +87,7 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
         response = self.post('fixedindicators-number-of-locations',
                              data=query_params, extra={'format': 'json'})
         num_locs = pd.DataFrame(response.data).set_index('area_id')
-        expected = num_locs['value'] / pop['value']
+        expected = num_locs['value'] / pop['value'] * 100
         pd.testing.assert_series_equal(result['value'], expected, check_dtype=False)
 
         # test the the inverse indicators multiply to 1
@@ -103,7 +103,7 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
         res_both = result.merge(result_inv, right_index=True, left_index=True, suffixes=('_fd', '_df'))
         res_both['mult'] = res_both['value_fd'] * res_both['value_df']
         mult = res_both['mult'].values
-        np.testing.assert_allclose(mult[np.isfinite(mult)], 1)
+        np.testing.assert_allclose(mult[np.isfinite(mult)], 100)
 
         # test uniform demand rate
         query_params = {
@@ -192,7 +192,7 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
         response = self.post('fixedindicators-capacity', data=query_params,
                              extra={'format': 'json'})
         capacity = pd.DataFrame(response.data).set_index('area_id')
-        expected = capacity['value'] / pop['value']
+        expected = capacity['value'] / pop['value'] * 100
         pd.testing.assert_series_equal(result['value'], expected, check_dtype=False)
 
         # test the the inverse indicators multiply to 1
@@ -208,7 +208,7 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
         res_both = result.merge(result_inv, right_index=True, left_index=True, suffixes=('_fd', '_df'))
         res_both['mult'] = res_both['value_fd'] * res_both['value_df']
         mult = res_both['mult'].values
-        np.testing.assert_allclose(mult[np.isfinite(mult)], 1)
+        np.testing.assert_allclose(mult[np.isfinite(mult)], 100)
 
         # test uniform demand rate
         query_params = {
@@ -220,7 +220,7 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
         response = self.post(url, data=query_params, extra={'format': 'json'})
         self.assert_http_200_ok(response)
         result = pd.DataFrame(response.data).set_index('area_id')
-        np.testing.assert_array_almost_equal(result['value'], [0, 0.00230494901965])
+        np.testing.assert_array_almost_equal(result['value'], [0, 0.230494901965])
 
         # test empty demand rate
         url = reverse(self.url_key, kwargs={'pk': self.service_without_demand.pk})
