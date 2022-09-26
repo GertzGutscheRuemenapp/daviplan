@@ -36,7 +36,7 @@ class CapacityPerDemandInArea(ServiceIndicator):
         c."id",
         d."_label",
         CASE WHEN COALESCE(d."value", 0) = 0 THEN NULL
-        ELSE COALESCE(c."value", 0) / d."value"
+        ELSE COALESCE(c."value", 0) * 100 / d."value"
         END AS "value"
         FROM
         ({q_c}) c
