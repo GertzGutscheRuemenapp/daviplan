@@ -17,8 +17,8 @@ class FacilitiesPerDemandInArea(ServiceIndicator):
 
     @property
     def description(self):
-        return (f'{self.service.facility_plural_unit or "Einrichtungen"} pro '
-                f'100 {self.service.demand_plural_unit or "Nachfragende"}')
+        return (f'{self.service.facility_plural_unit} pro '
+                f'100 {self.service.demand_plural_unit}')
 
     def compute(self):
         demand_area_indicator = DemandAreaIndicator(self.data)

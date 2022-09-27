@@ -17,8 +17,8 @@ class CapacityPerDemandInArea(ServiceIndicator):
 
     @property
     def description(self):
-        return (f'{self.service.capacity_plural_unit or "Kapazitätseinheiten"} '
-                f'pro 100 {self.service.demand_plural_unit or "Nachfragende"}')
+        return (f'{self.service.capacity_plural_unit} '
+                f'pro 100 {self.service.demand_plural_unit}')
 
     def compute(self):
         demand_area_indicator = DemandAreaIndicator(self.data)

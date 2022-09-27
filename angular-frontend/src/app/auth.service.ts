@@ -4,7 +4,14 @@ import { Observable, ReplaySubject, Subject, of, BehaviorSubject, throwError, Su
 import { User } from "./rest-interfaces";
 import { catchError, filter, switchMap, take, tap, map, delay } from 'rxjs/operators';
 import { RestAPI } from "./rest-api";
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree, Router } from "@angular/router";
+import {
+  CanActivate,
+  ActivatedRouteSnapshot,
+  RouterStateSnapshot,
+  UrlTree,
+  Router,
+  ActivatedRoute
+} from "@angular/router";
 
 interface Token {
   access: string;
@@ -16,7 +23,7 @@ export class AuthService {
   user$ = new BehaviorSubject<User | undefined>(undefined);
   private timer?: Subscription;
 
-  constructor(private rest: RestAPI, private http: HttpClient, private router: Router) { }
+  constructor(private rest: RestAPI, private http: HttpClient, private router: Router, private route: ActivatedRoute) { }
 
   setLocalStorage(token: Token) {
     localStorage.setItem('accessToken', token.access);
@@ -44,6 +51,14 @@ export class AuthService {
     this.clearLocalStorage();
     this.stopTokenTimer();
     this.user$.next(undefined);
+/*    this.route.queryParams
+      .subscribe(params => {
+          if(params.next) {
+            this.router.navigate(['/login'], {queryParams: {next: params.next}});
+          }
+          else this.router.navigateByUrl('/login');
+        }
+      );*/
     this.router.navigateByUrl('/login');
   }
 
@@ -211,7 +226,11 @@ export class AuthGuard implements CanActivate {
       }),
       tap(hasAccess => {
         if (!hasAccess) {
-          this.router.navigateByUrl('/login');
+          // @ts-ignore
+          const _next = next._routerState.url;
+          let params: any = {};
+          if (_next && _next !== '/') params['queryParams'] = {next: _next};
+          this.router.navigate(['/login'], params);
         }
       })
     );

@@ -108,9 +108,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   updatePlaces(options?: { resetScenario?: boolean, selectPlaceId?: number }): void {
-    if (!this.activeInfrastructure || !this.activeService) return;
+    if (!this.activeInfrastructure || !this.activeService || !this.activeScenario) return;
     this.updateMapDescription();
-    this.places = [];
     let placeOptions: any = {
       targetProjection: this.mapControl!.map!.mapProjection,
       addCapacities: true,
@@ -126,7 +125,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     }).subscribe(capacities => {
       this.capacities = capacities;
       this.planningService.getPlaces(placeOptions).subscribe(places => {
-        this.places = this.places.concat(places);
+        console.log(places);
+        this.places = places;
         let showLabel = true;
         let legendElapsed = true;
         if (this.placesLayer) {
@@ -387,7 +387,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       data: {
         title: 'Standort bearbeiten',
         template: this.placeEditTemplate,
-        context: { place: place }
+        context: { place: place },
+        showCloseButton: true
       }
     });
     dialogRef.componentInstance.confirmed.subscribe(ok => {
@@ -454,7 +455,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       data: {
         title: 'Kapazitäten editieren',
         template: this.placeCapacitiesEditTemplate,
-        context: { place: place }
+        context: { place: place },
+        showCloseButton: true
       }
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {

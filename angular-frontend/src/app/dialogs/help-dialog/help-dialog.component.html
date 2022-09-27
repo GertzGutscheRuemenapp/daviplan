@@ -10,7 +10,11 @@
       <mat-icon *ngIf="data.headerIcon" style="margin-right: 8px;">{{ data.headerIcon }}</mat-icon>
       {{ data.title }}
     </h5>
-    <button class="inverse small" mat-icon-button mat-dialog-close id="close-button">
+    <button class="inverse small"
+            mat-icon-button
+            mat-dialog-close
+            title="Dialog schließen"
+            id="close-button">
       <mat-icon>close</mat-icon>
     </button>
   </div>

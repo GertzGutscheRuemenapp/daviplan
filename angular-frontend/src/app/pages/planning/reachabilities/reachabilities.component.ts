@@ -122,7 +122,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   updatePlaces(): void {
-    if (!this.activeInfrastructure || !this.activeService || !this.year) return;
+    if (!this.activeInfrastructure || !this.activeService || !this.year || !this.activeScenario) return;
     this.updateMapDescription();
     const scenario = this.activeScenario?.isBase? undefined: this.activeScenario
     this.planningService.getPlaces({
@@ -187,7 +187,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   showPlaceReachability(): void {
-    if (this.selectedPlaceId === undefined) return;
+    if (this.selectedPlaceId === undefined || !this.activeScenario) return;
     this.updateMapDescription('zur ausgewählten Einrichtung');
     this.planningService.getPlaceReachability(this.selectedPlaceId, this.activeMode, { scenario: this.activeScenario }).subscribe(cellResults => {
       let showLabel = this.reachRasterLayer?.showLabel;
