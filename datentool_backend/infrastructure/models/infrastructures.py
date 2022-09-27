@@ -115,4 +115,4 @@ class Service(DatentoolModelMixin, NamedModel, models.Model):
             cur_text = getattr(self, attribute)
             if not cur_text:
                 setattr(self, attribute, text)
-        super().save(**kwargs)
+        super().save()

@@ -30,10 +30,7 @@ class CutoffAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, Service
 
     @property
     def description(self):
-        demand_plural_unit = self.service.demand_plural_unit
-        if demand_plural_unit and demand_plural_unit.endswith('e'):
-            demand_plural_unit += 'n'
-        pre = (f'Anteil der {demand_plural_unit}'
+        pre = (f'Anteil {self.service.demand_plural_unit}'
                ', die innerhalb von [...] Minuten ')
         if self.service.direction_way_relationship == Service.WayRelationship.TO:
             ein = ('einen' if self.service.facility_singular_unit

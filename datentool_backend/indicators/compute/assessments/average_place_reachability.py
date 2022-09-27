@@ -33,11 +33,8 @@ class AveragePlaceReachability(ModeVariantMixin, PopulationIndicatorMixin, Servi
                 'am besten erreichbare ist)')
         ihrihm = ('ihm' if self.service.facility_singular_unit
                    in ['der', 'das'] else 'ihr')
-        demand_plural_unit = self.service.demand_plural_unit
-        if demand_plural_unit and demand_plural_unit.endswith('e'):
-            demand_plural_unit += 'n'
         return pre + (
-            f'die {demand_plural_unit} '
+            f'die {self.service.demand_plural_unit} '
             f'erreicht, die von {ihrihm} aus am besten erreichbar sind')
 
     def compute(self):
