@@ -123,9 +123,11 @@
       </div>
     </app-input-card>
     <app-dash-card subtitle="Beispieltexte" *ngIf="(indicators.length > 0)">
-      <li *ngFor="let indicator of indicators" style="margin-top: 10px; color: grey;">
-        {{indicator.description}}
-      </li>
+      <ul>
+        <li *ngFor="let indicator of indicators" style="margin-top: 10px; color: grey;">
+          {{indicator.description}}
+        </li>
+      </ul>
     </app-dash-card>
   </div>
 </div>
