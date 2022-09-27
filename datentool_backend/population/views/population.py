@@ -37,15 +37,12 @@ from datentool_backend.utils.serializers import (MessageSerializer,
                                                  use_intersected_data,
                                                  drop_constraints,
                                                  area_level)
-from datentool_backend.utils.processes import ProtectedProcessManager
-from datentool_backend.population.serializers import (PrognosisSerializer,
-                                                      PopulationSerializer,
-                                                      PopulationDetailSerializer,
-                                                      PopulationEntrySerializer,
-                                                      PopulationTemplateSerializer,
-                                                      prognosis_id_serializer,
-                                                      area_level_id_serializer,
-                                                      years_serializer)
+from datentool_backend.utils.processes import (ProtectedProcessManager,
+                                               ProcessScope)
+from datentool_backend.population.serializers import (
+    PrognosisSerializer, PopulationSerializer, PopulationDetailSerializer,
+    PopulationEntrySerializer, PopulationTemplateSerializer,
+    prognosis_id_serializer, area_level_id_serializer, years_serializer)
 from datentool_backend.site.models import SiteSetting
 from datentool_backend.area.models import Area, AreaLevel
 
@@ -244,7 +241,8 @@ class PopulationViewSet(viewsets.ModelViewSet):
     @action(methods=['POST'], detail=False,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def pull_regionalstatistik(self, request, **kwargs):
-        with ProtectedProcessManager(request.user, logger=logger):
+        with ProtectedProcessManager(request.user,
+                                     scope=ProcessScope.POPULATION):
             logger.info('Frage Bevölkerungsdaten von der Regionalstatistik ab.')
             CHUNK_SIZE = 10
             age_groups = AgeGroup.objects.all()
