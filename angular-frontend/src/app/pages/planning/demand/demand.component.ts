@@ -104,10 +104,11 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   }
 
   updateMap(): void {
-    if (this.demandLayer) {
+/*    if (this.demandLayer) {
       this.layerGroup?.removeLayer(this.demandLayer);
       this.demandLayer = undefined;
-    }
+    }*/
+    this.layerGroup?.clear();
     if (!this.year || !this.activeLevel || !this.activeService || !this.activeProcess) return;
     this.updateMapDescription();
     const scenarioId = this.planningService.activeScenario?.isBase? undefined: this.planningService.activeScenario?.id;
