@@ -14,6 +14,7 @@ interface DialogData {
   subtitle?: string;
   infoText?: string;
   infoExpanded?: boolean;
+  showCloseButton?: boolean;
 }
 
 @Component({

@@ -387,7 +387,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       data: {
         title: 'Standort bearbeiten',
         template: this.placeEditTemplate,
-        context: { place: place }
+        context: { place: place },
+        showCloseButton: true
       }
     });
     dialogRef.componentInstance.confirmed.subscribe(ok => {
@@ -454,7 +455,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       data: {
         title: 'Kapazitäten editieren',
         template: this.placeCapacitiesEditTemplate,
-        context: { place: place }
+        context: { place: place },
+        showCloseButton: true
       }
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
