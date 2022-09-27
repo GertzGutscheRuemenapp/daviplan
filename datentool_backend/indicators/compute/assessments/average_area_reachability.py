@@ -28,7 +28,7 @@ class AverageAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, Servic
         zu = ('zum' if self.service.facility_singular_unit in ['der', 'das']
               else 'zur')
         return (f'Mittlere Wegezeit {zu} besterreichbaren '
-                f'{self.service.facility_singular_unit or "Einrichtung"}')
+                f'{self.service.facility_singular_unit}')
 
     def compute(self):
         service_id = self.data.get('service')

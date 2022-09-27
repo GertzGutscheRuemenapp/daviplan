@@ -21,20 +21,23 @@ class AveragePlaceReachability(ModeVariantMixin, PopulationIndicatorMixin, Servi
     @property
     def description(self):
         pre = ('Mittlere Wegezeit, mit der '
-               f'{self.service.facility_article or "die"} angezeigte '
-               f'{self.service.facility_singular_unit or "Einrichtung"} ')
+               f'{self.service.facility_article} angezeigte '
+               f'{self.service.facility_singular_unit} ')
         if self.service.direction_way_relationship == Service.WayRelationship.TO:
             ersiees = ('er' if self.service.facility_singular_unit == 'der'
                        else 'es' if self.service.facility_singular_unit == 'das'
                        else 'sie')
             return pre + (
                 f'erreicht wird (sofern {ersiees} '
-                f'{self.service.facility_article or "die"} '
+                f'{self.service.facility_article} '
                 'am besten erreichbare ist)')
         ihrihm = ('ihm' if self.service.facility_singular_unit
                    in ['der', 'das'] else 'ihr')
+        demand_plural_unit = self.service.demand_plural_unit
+        if demand_plural_unit and demand_plural_unit.endswith('e'):
+            demand_plural_unit += 'n'
         return pre + (
-            f'die {self.service.demand_plural_unit or "Nachfragenden"} '
+            f'die {demand_plural_unit} '
             f'erreicht, die von {ihrihm} aus am besten erreichbar sind')
 
     def compute(self):
