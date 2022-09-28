@@ -12,10 +12,37 @@ class ProcessScope(Enum):
 
 
 class ProtectedProcessManager:
+    '''
+    keeps track of running process in specific scopes and denies multiple
+    processes to be run in parallel to avoid side effects
+
+    Attributes
+    ----------
+    is_running : dict with scopes as keys and booleans as values
+               status if any process is running in a specific scope
+    user : dict with scopes as keys and Users as values
+         user that currently runs a process in a specific scope
+    '''
     is_running = {s: False for s in ProcessScope}
     user = {s: None for s in ProcessScope}
-    def __init__(self, user, scope: ProcessScope = ProcessScope.GENERAL,
+    def __init__(self, user: 'User', scope: ProcessScope = ProcessScope.GENERAL,
                  logger=None, blocked_by=[s for s in ProcessScope]):
+        '''
+        Parameters
+        ----------
+        user : User
+             user trying to run the process
+        scope : ProcessScope, optional
+              scope of backend tasks (especially basedata uploads),
+              defaults to GENERAL
+        logger : Logger, optional
+               logger to write errors to if blocked
+               defaults to logger with lower name of scope
+        blocked_by : list of scopes, optional
+                   scopes that block this process from running if any of them
+                   currently runs
+                   defaults to all scopes
+        '''
         self.me = user
         if not logger:
             logger = logging.getLogger(scope.name.lower())
@@ -41,3 +68,4 @@ class ProtectedProcessManager:
         ProtectedProcessManager.user[self.scope] = self.me
     def __exit__(self, exc_type, exc_value, exc_tb):
         ProtectedProcessManager.is_running[self.scope] = False
+        self.logger.info('finished', extra={'status': {'success': True}})

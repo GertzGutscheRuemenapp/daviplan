@@ -399,5 +399,6 @@ class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
             parser_classes=[CamelCaseMultiPartParser])
     def upload_template(self, request):
         """Upload the filled out Stops-Template"""
-        with ProtectedProcessManager(request.user, logger=logger):
+        with ProtectedProcessManager(request.user,
+                                     scope=ProcessScope.POPULATION):
             return super().upload_template(request)

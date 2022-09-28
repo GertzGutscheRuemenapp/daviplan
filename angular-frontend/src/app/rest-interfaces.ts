@@ -368,5 +368,6 @@ export interface LogEntry {
   user?: number,
   level: 'ERROR' | 'INFO' | 'DEBUG',
   timestamp: string,
-  message: string
+  message: string,
+  status?: {success?: boolean}
 }
