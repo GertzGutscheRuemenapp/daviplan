@@ -10,7 +10,7 @@ import {
   AreaLevel,
   Indicator,
   Infrastructure, Place, PlaceIndicatorResult,
-  PlanningProcess, RasterCell, RasterIndicatorResult,
+  PlanningProcess, RasterCell, RasterIndicatorResult, Scenario,
   Service,
   TransportMode
 } from "../../../rest-interfaces";
@@ -28,17 +28,15 @@ import { modes } from "../mode-select/mode-select.component";
 export class RatingComponent implements AfterViewInit, OnDestroy {
   @ViewChild('diagramDialog') diagramDialogTemplate!: TemplateRef<any>;
   backend: string = environment.backend;
-  years = [2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025];
   compareSupply = true;
   compareStatus = 'option 1';
   indicators: Indicator[] = [];
   areaLevels: AreaLevel[] = [];
-  areas: Area[] = [];
   infrastructures: Infrastructure[] = [];
   activeService?: Service;
   selectedIndicator?: Indicator;
   selectedAreaLevel?: AreaLevel;
-  activeInfrastructure?: Infrastructure;
+  activeScenario?: Scenario;
   showLabel = true;
   mapControl?: MapControl;
   indicatorLayer?: VectorLayer;
@@ -66,17 +64,14 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           this.year = year;
           this.updateMap();
         }));
-        this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
-          this.activeInfrastructure = infrastructure;
-        }))
         this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
           this.activeService = service;
           this.onServiceChange();
         }));
-/*        this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
-          this.activeProcess = process;
-          this.onServiceChange();
-        }));*/
+        this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
+          this.activeScenario = scenario;
+          this.updateMap();
+        }));
       });
     })
   }
@@ -89,11 +84,8 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
 
   onAreaLevelChange(): void {
     if(!this.selectedAreaLevel) return;
-    this.planningService.getAreas(this.selectedAreaLevel!.id).subscribe(areas => {
-      this.areas = areas;
-      this.cookies.set('planning-area-level', this.selectedAreaLevel?.id);
-      this.updateMap();
-    })
+    this.cookies.set('planning-area-level', this.selectedAreaLevel?.id);
+    this.updateMap();
   }
 
   onServiceChange(): void {
@@ -113,6 +105,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     this.showLabel = (this.indicatorLayer?.showLabel !== undefined)? this.indicatorLayer.showLabel: true;
     this.layerGroup?.clear();
     this.updateMapDescription();
+    if(!this.activeScenario || !this.activeService) return;
     switch (this.selectedIndicator?.resultType) {
       case 'area':
         this.renderAreaIndicator();
@@ -242,54 +235,56 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   }
 
   renderAreaIndicator(): void {
-    if (!this.year || !this.selectedAreaLevel || !this.selectedIndicator || !this.activeService || this.areas.length === 0) return;
+    if (!this.year || !this.selectedAreaLevel || !this.selectedIndicator || !this.activeService || !this.selectedAreaLevel) return;
     const scenarioId = this.planningService.activeScenario?.isBase ? undefined : this.planningService.activeScenario?.id;
     let params = { year: this.year!, scenario: scenarioId, areaLevelId: this.selectedAreaLevel.id, additionalParams: this.getAdditionalParams() };
-    this.planningService.computeIndicator<AreaIndicatorResult>(this.selectedIndicator.name, this.activeService.id, params).subscribe(results => {
-      let max = 0;
-      let min = Number.MAX_VALUE;
-      this.areas.forEach(area => {
-        const data = results.find(d => d.areaId == area.id);
-        const value = (data && data.value)? data.value: 0;
-        max = Math.max(max, value);
-        min = Math.min(min, value);
-        area.properties.value = value;
-        area.properties.description = `<b>${area.properties.label}</b><br>${this.selectedIndicator!.title}: ${area.properties.value}`
-      })
-      this.indicatorLayer = new VectorLayer(`${this.selectedIndicator!.title} (${this.selectedAreaLevel!.name})`, {
-        order: 0,
-        description: this.selectedIndicator!.description,
-        opacity: 1,
-        style: {
-          strokeColor: 'white',
-          fillColor: 'rgba(165, 15, 21, 0.9)',
-          symbol: 'line'
-        },
-        labelField: 'value',
-        showLabel: this.showLabel,
-        tooltipField: 'description',
-        mouseOver: {
-          enabled: true,
+    this.planningService.getAreas(this.selectedAreaLevel!.id).subscribe(areas => {
+      this.planningService.computeIndicator<AreaIndicatorResult>(this.selectedIndicator!.name, this.activeService!.id, params).subscribe(results => {
+        let max = 0;
+        let min = Number.MAX_VALUE;
+        areas.forEach(area => {
+          const data = results.find(d => d.areaId == area.id);
+          const value = (data && data.value)? data.value: 0;
+          max = Math.max(max, value);
+          min = Math.min(min, value);
+          area.properties.value = value;
+          area.properties.description = `<b>${area.properties.label}</b><br>${this.selectedIndicator!.title}: ${area.properties.value}`
+        })
+        this.indicatorLayer = new VectorLayer(`${this.selectedIndicator!.title} (${this.selectedAreaLevel!.name})`, {
+          order: 0,
+          description: this.selectedIndicator!.description,
+          opacity: 1,
           style: {
-            strokeColor: 'yellow',
-            fillColor: 'rgba(255, 255, 0, 0.7)'
-          }
-        },
-        valueStyles: {
-          field: 'value',
-          fillColor: {
-            interpolation: {
-              range: d3.interpolatePurples,
-              scale: 'sequential',
-              steps: 5
+            strokeColor: 'white',
+            fillColor: 'rgba(165, 15, 21, 0.9)',
+            symbol: 'line'
+          },
+          labelField: 'value',
+          showLabel: this.showLabel,
+          tooltipField: 'description',
+          mouseOver: {
+            enabled: true,
+            style: {
+              strokeColor: 'yellow',
+              fillColor: 'rgba(255, 255, 0, 0.7)'
             }
           },
-          min: min,
-          max: max || 1
-        },
-      });
-      this.layerGroup?.addLayer(this.indicatorLayer);
-      this.indicatorLayer.addFeatures(this.areas,{ properties: 'properties' });
+          valueStyles: {
+            field: 'value',
+            fillColor: {
+              interpolation: {
+                range: d3.interpolatePurples,
+                scale: 'sequential',
+                steps: 5
+              }
+            },
+            min: min,
+            max: max || 1
+          },
+        });
+        this.layerGroup?.addLayer(this.indicatorLayer);
+        this.indicatorLayer.addFeatures(areas,{ properties: 'properties' });
+      })
     })
   }
 

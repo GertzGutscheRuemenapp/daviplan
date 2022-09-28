@@ -5,6 +5,12 @@ button {
   font-weight: bold;
 }
 
+#close-button {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+}
+
 mat-dialog-content {
   font-size: 16px;
 }

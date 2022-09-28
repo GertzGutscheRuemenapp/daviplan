@@ -113,7 +113,7 @@
                            [style.border-color]="entry.strokeColor || 'white'"
                            [class]="$any(layer).style?.symbol? ($any(layer).style?.symbol === 'line')? 'square': $any(layer).style?.symbol: 'circle'">
                       </div>
-                      {{entry.label}}
+                      <div style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;" [title]="entry.label">{{entry.label}}</div>
                     </div>
                   </div>
                 </div>

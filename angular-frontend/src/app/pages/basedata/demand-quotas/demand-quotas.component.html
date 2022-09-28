@@ -40,7 +40,9 @@
                     [editTemplate]="demandTypeEdit"
                     [subtitle]="'Leistung ' + activeService?.name"
                     infoText="Platzhalter">
-      <li *ngIf="activeService">{{demandTypes[activeService.demandType][0]}}</li>
+      <ul>
+        <li *ngIf="activeService">{{demandTypes[activeService.demandType][0]}}</li>
+      </ul>
     </app-input-card>
   </div>
 </div>

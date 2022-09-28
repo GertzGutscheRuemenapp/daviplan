@@ -19,17 +19,17 @@ class MaxRasterReachability(ModeVariantMixin, ServiceIndicator):
     @property
     def description(self):
         if self.service.direction_way_relationship == Service.WayRelationship.TO:
-            zu = ('zum' if self.service.facility_singular_unit in ['der', 'das']
+            zu = ('zum' if self.service.facility_article in ['der', 'das']
                   else 'zur')
             return (f'Wegezeit von allen Wohnstandorten {zu} nächsten '
-                    f'{self.service.facility_singular_unit or "Einrichtung"}')
-        derdem = ('dem' if self.service.facility_singular_unit in ['der', 'das']
+                    f'{self.service.facility_singular_unit}')
+        derdem = ('dem' if self.service.facility_article in ['der', 'das']
                    else 'der')
-        ersiees = ('er' if self.service.facility_singular_unit == 'der'
-                   else 'es' if self.service.facility_singular_unit == 'das'
+        ersiees = ('er' if self.service.facility_article == 'der'
+                   else 'es' if self.service.facility_article == 'das'
                    else 'sie')
         return (f'Wegezeit zu allen Wohnstandorten ab {derdem} nächsten '
-                f'{self.service.facility_singular_unit or "Einrichtung"}, '
+                f'{self.service.facility_singular_unit}, '
                 f'die {ersiees} am schnellsten erreicht')
 
     def compute(self):

@@ -48,7 +48,8 @@ from datentool_backend.indicators.serializers import (StopSerializer,
                                                       MatrixStopStopTemplateSerializer,
                                                       RouterSerializer,
                                                       )
-from datentool_backend.utils.processes import ProtectedProcessManager
+from datentool_backend.utils.processes import (ProtectedProcessManager,
+                                               ProcessScope)
 
 
 class RoutingError(Exception):
@@ -102,7 +103,7 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
             parser_classes=[CamelCaseMultiPartParser])
     def upload_template(self, request):
         """Upload the filled out Stops-Template"""
-        with ProtectedProcessManager(request.user):
+        with ProtectedProcessManager(request.user, scope=ProcessScope.ROUTING):
             return super().upload_template(request)
 
 

@@ -20,10 +20,10 @@ class AccessibleDemandPerPlace(ModeVariantMixin, PopulationIndicatorMixin, Servi
 
     @property
     def description(self):
-        return (f'Anzahl {self.service.demand_plural_unit or "Nachfragende"}, '
-                f'für die {self.service.facility_article or "die"} angezeigte '
-                f'{self.service.facility_singular_unit or "Einrichtung"} '
-                f'{self.service.facility_article or "die"} am besten '
+        return (f'Anzahl {self.service.demand_plural_unit}, '
+                f'für die {self.service.facility_article} angezeigte '
+                f'{self.service.facility_singular_unit} '
+                f'{self.service.facility_article} am besten '
                 'erreichbare ist')
 
     def compute(self):

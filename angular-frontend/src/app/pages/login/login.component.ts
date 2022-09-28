@@ -1,11 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { AuthService } from '../../auth.service';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
-import { Router } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { SettingsService, SiteSettings } from "../../settings.service";
 import { environment } from "../../../environments/environment";
 import { User } from "../../rest-interfaces";
+import { Subscription } from "rxjs";
 
 @Component({
   selector: 'app-login',
@@ -13,7 +14,7 @@ import { User } from "../../rest-interfaces";
   styleUrls: ['./login.component.scss']
 })
 
-export class LoginComponent {
+export class LoginComponent implements OnInit, OnDestroy {
   settings?: SiteSettings;
   loginForm: FormGroup;
   user?: User;
@@ -21,9 +22,11 @@ export class LoginComponent {
   faEye = faEye;
   faEyeSlash = faEyeSlash;
   backend: string = environment.backend;
+  next: string = '';
+  private sub?: Subscription;
 
   constructor(private settingsService: SettingsService, private formBuilder: FormBuilder, public auth: AuthService,
-              private router: Router) {
+              private router: Router, private route: ActivatedRoute) {
     this.settingsService.siteSettings$.subscribe(settings => {
       this.settings = settings;
     });
@@ -31,7 +34,15 @@ export class LoginComponent {
       userName: '',
       password: ''
     });
-    auth.getCurrentUser().subscribe(user=>this.user=user)
+  }
+
+  ngOnInit(): void {
+    this.route.queryParams
+    .subscribe(params => {
+        this.next = params.next;
+        console.log(params)
+      }
+    );
   }
 
   onSubmit() {
@@ -44,10 +55,14 @@ export class LoginComponent {
           }).subscribe(token => {
             // fetch global settings after logged in
             this.settingsService.refresh();
-            this.router.navigate(['/']);
+            this.router.navigate([this.next || '/']);
           }, (error) => {
             const msg = (error.status === 0) ? 'Server antwortet nicht': $localize`Keine Übereinstimmung von Nutzer und Passwort`;
             this.loginForm.setErrors({ 'error': msg })
           });
+  }
+
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
   }
 }

@@ -1,4 +1,13 @@
-import { Component, AfterViewInit, ElementRef, ViewChild, Input, AfterViewChecked, OnDestroy } from '@angular/core';
+import {
+  Component,
+  AfterViewInit,
+  ElementRef,
+  ViewChild,
+  Input,
+  AfterViewChecked,
+  OnDestroy,
+  Output, EventEmitter
+} from '@angular/core';
 import { environment } from "../../environments/environment";
 import { LogEntry } from "../rest-interfaces";
 import { RestCacheService } from "../rest-cache.service";
@@ -13,6 +22,7 @@ export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy 
   @Input() room: string | undefined = '';
   @Input() fetchOldLogs: boolean = true;
   @ViewChild('log') logEl!: ElementRef;
+  @Output() onMessage = new EventEmitter<LogEntry>();
   readonly wsURL: string;
   private retries = 0;
   private chatSocket?: WebSocket;
@@ -44,7 +54,9 @@ export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy 
     this.chatSocket = new WebSocket(`${ this.wsURL }${ this.room }/`);
     this.chatSocket.onopen = e => this.retries = 0;
     this.chatSocket.onmessage = e => {
-      this.addLogEntry(JSON.parse(e.data));
+      const logEntry = JSON.parse(e.data)
+      this.addLogEntry(logEntry);
+      this.onMessage.emit(logEntry);
     }
     this.chatSocket.onclose = e => {
       this.retries += 1;

@@ -63,6 +63,16 @@ class PlaceField(DatentoolModelMixin, models.Model):
     def __str__(self) -> str:
         return f'{self.__class__.__name__}: {self.name} ({self.infrastructure.name})'
 
+DEFAULT_WORDING = {
+    'capacity_singular_unit': 'Kapazitätseinheit',
+    'capacity_plural_unit': 'Kapazitätseinheiten',
+    'demand_singular_unit': 'Nachfragende:r',
+    'demand_plural_unit': 'Nachfragende',
+    'facility_singular_unit': 'Einrichtung',
+    'facility_article': 'die',
+    'facility_plural_unit':  'Einrichtungen',
+}
+
 
 class Service(DatentoolModelMixin, NamedModel, models.Model):
     '''
@@ -98,3 +108,11 @@ class Service(DatentoolModelMixin, NamedModel, models.Model):
         choices=WayRelationship.choices, default=WayRelationship.TO)
     demand_type = models.IntegerField(
         choices=DemandType.choices, default=DemandType.QUOTA)
+
+    def save(self, **kwargs):
+        super().save(**kwargs)
+        for attribute, text in DEFAULT_WORDING.items():
+            cur_text = getattr(self, attribute)
+            if not cur_text:
+                setattr(self, attribute, text)
+        super().save()

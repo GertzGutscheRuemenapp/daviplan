@@ -296,9 +296,10 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       return;
     }
     ageGroups = sortBy(ageGroups, 'fromAge');
-    this.populationService.getPopulationData(this.activeArea.id, { genders: genders }).subscribe( popData => {
+    // this.populationService.getPopulationData(this.activeArea.id, { genders: genders }).subscribe( popData => {
       this.populationService.getPopulationData(this.activeArea!.id, { prognosis: this.activePrognosis?.id, genders: genders }).subscribe(progData => {
-        const data = popData.concat(progData);
+        // const data = popData.concat(progData);
+        const data = progData;
         if (data.length === 0) return;
         const years = [... new Set(data.map(d => d.year))].sort();
         let stackedData: StackedData[] = [];
@@ -373,7 +374,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
         this.forceDiagramReload();
       })
-    })
+    // })
   }
 
   forceDiagramReload(): void {

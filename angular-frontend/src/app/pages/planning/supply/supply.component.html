@@ -17,8 +17,8 @@
           neben dem Dropdown-Menü.</p>
         <p>Um die Wirkung zusätzlicher Standorte zu prüfen, können Sie mit der Schaltfläche „Neuen Standort hinzufügen“
           Einrichtungsstandorte in der Karte platzieren, die nicht in den Bestandsdaten enthalten sind.</p>
-        <p>Über die beiden Schalter „Cluster“ und „Verdrängung“ steuern sie, wie Standorte in der Karte dargestellt
-          werden sollen, die nahe beieinander liegen oder sogar die gleiche Adresse haben.</p>
+<!--        <p>Über die beiden Schalter „Cluster“ und „Verdrängung“ steuern sie, wie Standorte in der Karte dargestellt
+          werden sollen, die nahe beieinander liegen oder sogar die gleiche Adresse haben.</p>-->
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
@@ -39,7 +39,7 @@
   <div>
     <ul style="list-style-type: none; margin: 10px 0 10px -28px;">
       <li><mat-slide-toggle color="primary">Cluster</mat-slide-toggle></li>
-      <li><mat-slide-toggle color="primary">Verdrängung</mat-slide-toggle></li>
+      <!--<li><mat-slide-toggle color="primary">Verdrängung</mat-slide-toggle></li>-->
       <li>
         <div class="row-button"
              (click)="zoomToPlaceExtent()">
@@ -119,28 +119,26 @@
 <div style="width: 100%; height:200px; background-color: white;"></div>
 
 <ng-template #placePreviewTemplate><!-- let-place="place">-->
-  <div *ngFor="let place of selectedPlaces" style="margin-bottom: 15px">
+  <div *ngFor="let place of selectedPlaces" style="margin-bottom: 20px">
     <div style="margin-bottom: 10px;">
       <b style="font-size: 1.3em">{{ place.name }}&nbsp;</b> <i *ngIf="place.scenario !== null" style="color: #fc450c;">(Szenariostandort)</i>
     </div>
-    <div style="padding: 0 15px;">
-      <table *ngIf="place.attributes && place.attributes.length > 0">
-        <tr *ngFor="let item of place.attributes | keyvalue">
-          <td style="padding-right: 10px;">{{item.key}}</td>
-          <td><i>{{item.value}}</i></td>
-        </tr>
-        <!--      <tr *ngIf="activeService">
-                <td>Kapazität {{activeService.name}}</td>
-                <td><i>{{getFormattedCapacityString([activeService.id], selectedPlace.capacity || 0)}}</i></td>
-              </tr>-->
-      </table>
-      <button *ngIf="place.scenario !== null"
-              mat-button class="mat-button-dv"
-              (click)="showEditPlace(place)"
-              color="primary">
-        <mat-icon>edit</mat-icon>Attribute editieren
-      </button>
-      <mat-divider [inset]="true" *ngIf="(place.attributes && place.attributes.length > 0) || place.scenario !== null" style="margin: 10px 0; width: 90%;"></mat-divider>
+    <div style="padding: 5px 10px; margin: 0 5px; border: 1px dashed lightgrey;">
+      <ng-container *ngIf="activeInfrastructure?.placeFields && activeInfrastructure!.placeFields!.length > 0">
+        <table>
+          <tr *ngFor="let field of activeInfrastructure?.placeFields">
+            <td style="padding-right: 10px;">{{field.name}}</td>
+            <td><i>{{place.attributes[field.name] || '-'}}</i></td>
+          </tr>
+        </table>
+        <button *ngIf="place.scenario !== null"
+                mat-button class="mat-button-dv"
+                (click)="showEditPlace(place)"
+                color="primary">
+          <mat-icon>edit</mat-icon>Attribute editieren
+        </button>
+        <mat-divider [inset]="true" style="margin: 10px 0; width: 90%;"></mat-divider>
+      </ng-container>
       <div *ngIf="activeService">
         {{activeService.name}} ({{(activeService?.hasCapacity)? 'Kapazität ': ''}}{{year}}):<br>
         <b *ngIf="activeService?.hasCapacity">{{getFormattedCapacityString([activeService.id], place.capacity || 0)}}</b>

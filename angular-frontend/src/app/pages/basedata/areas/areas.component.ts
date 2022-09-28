@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
-import { Area, AreaLevel } from "../../../rest-interfaces";
-import { BehaviorSubject, forkJoin, Observable } from "rxjs";
+import { Area, AreaLevel, LogEntry } from "../../../rest-interfaces";
+import { BehaviorSubject, forkJoin, Observable, Subscription } from "rxjs";
 import { arrayMove, sortBy } from "../../../helpers/utils";
 import { HttpClient } from "@angular/common/http";
 import { MatDialog } from "@angular/material/dialog";
@@ -16,6 +16,7 @@ import { RestCacheService } from "../../../rest-cache.service";
 import { tap } from "rxjs/operators";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { SettingsService } from "../../../settings.service";
 
 @Component({
   selector: 'app-areas',
@@ -46,9 +47,12 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   dataRows: any[][] = [];
   file?: File;
   uploadErrors: any = {};
+  isProcessing = false;
+  subscriptions: Subscription[] = [];
 
   constructor(private mapService: MapService, private http: HttpClient, private dialog: MatDialog,
-              private rest: RestAPI, private formBuilder: FormBuilder, private restService: RestCacheService) {
+              private rest: RestAPI, private formBuilder: FormBuilder, private restService: RestCacheService,
+              private settings: SettingsService) {
     this.editLevelForm = this.formBuilder.group({
       name: new FormControl(''),
       labelField: new FormControl(''),
@@ -67,6 +71,8 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       this.isLoading$.next(false);
     })
     this.setupEditLevelCard();
+    this.subscriptions.push(this.settings.baseDataSettings$.subscribe(bs => this.isProcessing = bs.processes?.areas || false));
+    this.settings.fetchBaseDataSettings();
   }
 
   /**
@@ -251,6 +257,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       }
     });
     dialogRef.componentInstance.confirmed.subscribe((confirmed: boolean) => {
+      this.isProcessing = true;
       this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/pull_areas/`,
         { truncate: true, simplify: false }).subscribe(res => {
         this.selectAreaLevel(this.activeLevel!, true);
@@ -410,6 +417,11 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         cancelButtonText: 'OK'
       }
     });
+  }
+
+  onMessage(log: LogEntry): void {
+    if (log?.status?.success)
+      this.isProcessing = false;
   }
 
   ngOnDestroy(): void {
