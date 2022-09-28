@@ -136,6 +136,7 @@
     <app-input-card [title]="'Daten der ausgewählten Gebietseinteilung'"
                     [topRightHelp]="true"
                     [dialogTitle]="'Kontakt E-Mail ändern'"
+                    [disabled]="isProcessing"
                     [infoText]="(activeLevel?.source?.sourceType === 'WFS')?
                     '<p>Klicken Sie auf „Daten abrufen bzw. aktualisieren“, um die Daten erstmalig oder – zum Aktualisieren – erneut vom Bundesamt für Kartographie und Geodäsie (BKG) herunterzuladen. Den Zeitpunkt der letzten Aktualisierung können Sie der Daten-Historie entnehmen.</p>':
                     'Platzhalter'">
@@ -213,7 +214,7 @@
         </div>
         <div id="log-window" style="width: 50%">
           <span class="subtitle1">Daten-Historie</span>
-          <app-log room="areas" height="200px"></app-log>
+          <app-log room="areas" (onMessage)="onMessage($event)" height="200px"></app-log>
         </div>
       </div>
     </app-input-card>

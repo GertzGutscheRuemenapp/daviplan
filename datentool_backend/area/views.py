@@ -444,7 +444,7 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
                 except Exception as e:
                     logger.error(str(e))
                     return Response({'message': str(e)}, status.HTTP_500_INTERNAL_SERVER_ERROR)
-            logger.info(f'Fertig. {areas.count()} Gebiete gespeichert und verarbeitet')
+            logger.info(f'{areas.count()} Gebiete gespeichert und verarbeitet')
             return Response({'message': f'{areas.count()} Areas pulled into database'},
                             status.HTTP_202_ACCEPTED)
 

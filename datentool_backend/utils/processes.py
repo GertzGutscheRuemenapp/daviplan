@@ -68,4 +68,5 @@ class ProtectedProcessManager:
         ProtectedProcessManager.user[self.scope] = self.me
     def __exit__(self, exc_type, exc_value, exc_tb):
         ProtectedProcessManager.is_running[self.scope] = False
-        self.logger.info('finished', extra={'status': {'success': True}})
+        self.logger.info('Aufgabe erfolgreich abgeschlossen',
+                         extra={'status': {'success': True}})
