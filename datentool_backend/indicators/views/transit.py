@@ -104,8 +104,7 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
     def upload_template(self, request):
         """Upload the filled out Stops-Template"""
         with ProtectedProcessManager(request.user, scope=ProcessScope.ROUTING):
-            return super().upload_template(request,
-                                           scope=ProcessScope.ROUTING)
+            return super().upload_template(request)
 
 
 class RouterViewSet(viewsets.ModelViewSet):
