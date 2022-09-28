@@ -7,16 +7,17 @@ export const DemandTypes = {
 }
 
 export interface BasedataSettings {
-  popAreaLevel: number,
-  popStatisticsAreaLevel: number,
-  defaultModeVariants: { mode: number, variant: number }[],
-  defaultDemandRateSets: { service: number, demandrateset: number }[],
-  defaultPrognosis: number,
+  popAreaLevel: number;
+  popStatisticsAreaLevel: number;
+  defaultModeVariants: { mode: number, variant: number }[];
+  defaultDemandRateSets: { service: number, demandrateset: number }[];
+  defaultPrognosis: number;
   routing?: {
     baseNet: boolean,
     projectAreaNet: boolean,
     running?: Record<string, boolean>
-  }
+  };
+  processes?: Record<string, boolean>
 }
 
 export type Profile = {
@@ -368,5 +369,6 @@ export interface LogEntry {
   user?: number,
   level: 'ERROR' | 'INFO' | 'DEBUG',
   timestamp: string,
-  message: string
+  message: string,
+  status?: {success?: boolean}
 }

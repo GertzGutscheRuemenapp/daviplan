@@ -28,7 +28,8 @@ from datentool_backend.infrastructure.serializers import (
 from datentool_backend.indicators.compute.base import (
     ServiceIndicator, ResultSerializer)
 from datentool_backend.indicators.serializers import IndicatorSerializer
-from datentool_backend.utils.processes import ProtectedProcessManager
+from datentool_backend.utils.processes import (ProtectedProcessManager,
+                                               ProcessScope)
 from datentool_backend.utils.serializers import MessageSerializer
 
 
@@ -117,7 +118,8 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
             parser_classes=[CamelCaseMultiPartParser])
     def upload_template(self, request):
         """Download the Template"""
-        with ProtectedProcessManager(request.user):
+        with ProtectedProcessManager(request.user,
+                                     scope=ProcessScope.INFRASTRUCTURE):
             # no constraint dropping, because we use individual updates
             data = QueryDict(mutable=True)
             data.update(self.request.data)

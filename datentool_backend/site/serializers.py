@@ -1,7 +1,5 @@
 from typing import Dict
 import os
-import urllib
-import requests
 from rest_framework import serializers
 from .models import SiteSetting, ProjectSetting
 from django.db.models import Max, Min
@@ -15,6 +13,7 @@ from datentool_backend.area.views import AreaLevelViewSet
 from datentool_backend.population.views.raster import PopulationRasterViewSet
 from datentool_backend.models import (DemandRateSet, Prognosis, ModeVariant,
                                       Year, AreaLevel, PopulationRaster)
+from datentool_backend.utils.processes import (ProtectedProcessManager)
 
 
 class YearSerializer(serializers.ModelSerializer):
@@ -87,6 +86,7 @@ class BaseDataSettingSerializer(serializers.Serializer):
     default_mode_variants = serializers.SerializerMethodField(read_only=True)
     default_prognosis = serializers.SerializerMethodField(read_only=True)
     routing = serializers.SerializerMethodField(read_only=True)
+    processes = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         fields = ('default_pop_area_level', 'pop_statistics_area_level',
@@ -141,6 +141,11 @@ class BaseDataSettingSerializer(serializers.Serializer):
             'project_area_net': project_area_net_existing,
             #'running': running,
         }
+
+    def get_processes(self, obj):
+        return { scope.name.lower(): is_running
+                 for scope, is_running in
+                 ProtectedProcessManager.is_running.items() }
 
 
 class SiteSettingSerializer(serializers.ModelSerializer):

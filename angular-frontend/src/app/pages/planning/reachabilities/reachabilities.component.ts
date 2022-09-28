@@ -14,7 +14,7 @@ import {
   TransportMode
 } from "../../../rest-interfaces";
 import { MapControl, MapService } from "../../../map/map.service";
-import { Subscription } from "rxjs";
+import { Observable, Subscription } from "rxjs";
 import { Geometry } from "ol/geom";
 import {  MapLayerGroup, VectorLayer, VectorTileLayer } from "../../../map/layers";
 import { modes } from "../mode-select/mode-select.component";
@@ -71,28 +71,26 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 /*      this.planningService.getRasterCells({targetProjection: this.mapControl?.map?.mapProjection }).subscribe(rasterCells => {
         this.rasterCells = rasterCells;
       });*/
-      this.updatePlaces();
+      this.updatePlaces().subscribe();
     });
     this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
       this.activeInfrastructure = infrastructure;
-      this.updatePlaces();
-      this.onIndicatorChange();
+      this.updatePlaces().subscribe(() => this.onIndicatorChange());
     }))
     this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
       this.activeService = service;
-      this.updatePlaces();
-      this.onIndicatorChange();
+      this.updatePlaces().subscribe(() => this.onIndicatorChange());
     }))
     this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
       this.activeScenario = scenario;
-      this.updatePlaces();
-      this.onIndicatorChange();
+      this.updatePlaces().subscribe(() => this.onIndicatorChange());
     }));
     this.subscriptions.push(this.planningService.year$.subscribe(year => {
       this.year = year;
-      this.updatePlaces();
-      // year is not relevant for the other indicators
-      if (this.indicator === 'next') this.showNextPlaceReachabilities();
+      this.updatePlaces().subscribe(done => {
+        // year is not relevant for the other indicators
+        if (done && this.indicator === 'next') this.showNextPlaceReachabilities();
+      });
     }));
   }
 
@@ -121,69 +119,75 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.baseRasterLayer?.clearFeatures();
   }
 
-  updatePlaces(): void {
-    if (!this.activeInfrastructure || !this.activeService || !this.year || !this.activeScenario) return;
-    this.updateMapDescription();
-    const scenario = this.activeScenario?.isBase? undefined: this.activeScenario
-    this.planningService.getPlaces({
+  updatePlaces(): Observable<boolean> {
+    const observable = new Observable<any>(subscriber => {
+      if (!this.activeInfrastructure || !this.activeService || !this.year || !this.activeScenario) {
+        subscriber.next(false);
+        subscriber.complete();
+        return;
+      };
+      this.updateMapDescription();
+      const scenario = this.activeScenario?.isBase? undefined: this.activeScenario
+      this.planningService.getPlaces({
         targetProjection: this.mapControl!.map!.mapProjection, filter: { columnFilter: true, hasCapacity: true, year: this.year }, scenario: scenario
       }).subscribe(places => {
-      this.places = places;
-      let showLabel = true;
-      if (this.placesLayer) {
-        this.placesLayerGroup?.removeLayer(this.placesLayer);
-        this.placesLayer = undefined;
-      }
-      this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
-        order: 1,
-        zIndex: 99998,
-        description: this.activeInfrastructure!.name,
-        opacity: 1,
-        radius: 7,
-        style: {
-          fillColor: '#2171b5',
-          strokeColor: 'black',
-          symbol: 'circle'
-        },
-        labelField: 'name',
-        showLabel: showLabel,
-        tooltipField: 'name',
-        mouseOver: {
-          enabled: true,
-          // cursor: 'pointer'
-          cursor: ''
-        },
-        select: {
-          enabled: true,
-          style: { fillColor: 'yellow' },
-          multi: false
-        },
-        labelOffset: { y: 15 }
-      });
-      this.placesLayerGroup?.addLayer(this.placesLayer);
-      this.placesLayer.addFeatures(places.map(place => {
-        return { id: place.id, geometry: place.geom, properties: { name: place.name } }
-      }));
-      this.placesLayer?.setSelectable(this.indicator === 'place');
-
-      this.placesLayer?.featureSelected?.subscribe(evt => {
-        if (evt.selected) {
-          this.selectedPlaceId = evt.feature.get('id');
-          this.cookies.set('reachability-place', this.selectedPlaceId);
-          this.showPlaceReachability();
+        this.places = places;
+        let showLabel = true;
+        if (this.placesLayer) {
+          this.placesLayerGroup?.removeLayer(this.placesLayer);
+          this.placesLayer = undefined;
         }
-/*          else
-          this.removePlaceReachability();*/
+        this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
+          order: 1,
+          zIndex: 99998,
+          description: this.activeInfrastructure!.name,
+          opacity: 1,
+          radius: 7,
+          style: {
+            fillColor: '#2171b5',
+            strokeColor: 'black',
+            symbol: 'circle'
+          },
+          labelField: 'name',
+          showLabel: showLabel,
+          tooltipField: 'name',
+          mouseOver: {
+            enabled: true,
+            // cursor: 'pointer'
+            cursor: ''
+          },
+          select: {
+            enabled: true,
+            style: { fillColor: 'yellow' },
+            multi: false
+          },
+          labelOffset: { y: 15 }
+        });
+        this.placesLayerGroup?.addLayer(this.placesLayer);
+        this.placesLayer.addFeatures(places.map(place => {
+          return { id: place.id, geometry: place.geom, properties: { name: place.name } }
+        }));
+        this.placesLayer?.setSelectable(this.indicator === 'place');
+
+        this.placesLayer?.featureSelected?.subscribe(evt => {
+          if (evt.selected) {
+            this.selectedPlaceId = evt.feature.get('id');
+            this.cookies.set('reachability-place', this.selectedPlaceId);
+            this.showPlaceReachability();
+          }
+        })
+        subscriber.next(true);
+        subscriber.complete();
       })
-/*        if (this.selectedPlaceId)
-        this.placesLayer.selectFeatures([this.selectedPlaceId], { silent: false });*/
-    })
+    });
+    return observable;
   }
 
   onFilter(): void {
-    this.updatePlaces();
-    if (this.indicator === 'next')
-      this.showNextPlaceReachabilities();
+    this.updatePlaces().subscribe(done => {
+      if (done && this.indicator === 'next')
+        this.showNextPlaceReachabilities();
+    });
   }
 
   showPlaceReachability(): void {
@@ -229,7 +233,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   showCellReachability(): void {
-    if (this.pickedCoords === undefined) return;
+    if (this.pickedCoords === undefined || !this.activeScenario) return;
     this.updateMapDescription('vom gewählten Wohnstandort zu allen Einrichtungen');
     const lat = this.pickedCoords[1];
     const lon = this.pickedCoords[0];
@@ -283,7 +287,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   }
 
   showNextPlaceReachabilities(): void {
-    if (!this.year || !this.activeService) return;
+    if (!this.year || !this.activeService || !this.activeScenario) return;
     this.updateMapDescription('von allen Wohnstandorten zum jeweils nächsten Angebot');
     this.planningService.getNextPlaceReachability([this.activeService], this.activeMode, { scenario: this.activeScenario, year: this.year, places: this.places }).subscribe(cellResults => {
       let showLabel = this.nextPlaceReachabilityLayer?.showLabel;

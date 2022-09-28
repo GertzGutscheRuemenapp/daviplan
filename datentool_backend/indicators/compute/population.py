@@ -80,7 +80,7 @@ class PopulationIndicatorMixin:
                          (Q(year__is_real=True) | Q(prognosis=prognosis)))
         else:
             popfilter = (Q(year__is_real=True) |
-                           (Q(year__is_prognosis=True) & Q(prognosis=prognosis)))
+                         (Q(year__is_prognosis=True) & Q(prognosis=prognosis)))
 
         populations = Population.objects.filter(popfilter)
         population_ids =  list(populations.values_list('id', flat=True))

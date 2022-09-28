@@ -125,7 +125,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     }).subscribe(capacities => {
       this.capacities = capacities;
       this.planningService.getPlaces(placeOptions).subscribe(places => {
-        console.log(places);
         this.places = places;
         let showLabel = true;
         let legendElapsed = true;

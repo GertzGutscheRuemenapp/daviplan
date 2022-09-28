@@ -292,7 +292,7 @@ export class RestCacheService {
     if (options?.genders)
       data.genders = options.genders;
     if (options?.ageGroups)
-      data.age_group = options.ageGroups;
+      data.age_groups = options.ageGroups;
     const observable = new Observable<AreaIndicatorResult[]>(subscriber => {
       const cached = this.popAreaCache[key];
       if (!cached) {

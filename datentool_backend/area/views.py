@@ -41,7 +41,8 @@ from datentool_backend.population.views import aggregate_population
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
-from datentool_backend.utils.processes import ProtectedProcessManager
+from datentool_backend.utils.processes import (ProtectedProcessManager,
+                                               ProcessScope)
 from datentool_backend.utils.pop_aggregation import (
     intersect_areas_with_raster, aggregate_population)
 from datentool_backend.utils.layermapping import CustomLayerMapping
@@ -405,45 +406,47 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
     @action(methods=['POST'], detail=True,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
     def pull_areas(self, request, **kwargs):
-        try:
-            area_level: AreaLevel = self.queryset.get(**kwargs)
-        except AreaLevel.DoesNotExist:
-            msg = f'Area level for {kwargs} not found'
-            logger.error(msg)
-            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
-        if (not area_level.source or
-            area_level.source.source_type != SourceTypes.WFS):
-            msg = 'Source of Area Level has to be a Feature-Service to pull from'
-            logger.error(msg)
-            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
-        if not area_level.source.url or not area_level.source.layer:
-            msg = 'Source of Area Level is not completely defined'
-            logger.error(msg)
-            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
-        project_area = ProjectSetting.load().project_area
-        if not project_area:
-            msg = 'Project area is not defined'
-            logger.error(msg)
-            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
-
-        truncate = request.data.get('truncate', False)
-        simplify = request.data.get('simplify', False)
-        areas = self._pull_areas(area_level, project_area,
-                                 truncate=truncate, simplify=simplify)
-        logger.info('Verschneide Gebiete mit dem Bevölkerungsraster')
-        intersect_areas_with_raster(areas, drop_constraints=True)
-        logger.info('Aggregiere Bevölkerungsdaten auf neue Gebiete hoch')
-        n_pop = Population.objects.count()
-        for i, population in enumerate(Population.objects.all()):
-            logger.info(f'{i + 1}/{n_pop}')
+        with ProtectedProcessManager(request.user,
+                                     scope=ProcessScope.AREAS):
             try:
-                aggregate_population(area_level, population, drop_constraints=True)
-            except Exception as e:
-                logger.error(str(e))
-                return Response({'message': str(e)}, status.HTTP_500_INTERNAL_SERVER_ERROR)
-        logger.info(f'Fertig. {areas.count()} Gebiete gespeichert und verarbeitet')
-        return Response({'message': f'{areas.count()} Areas pulled into database'},
-                        status.HTTP_202_ACCEPTED)
+                area_level: AreaLevel = self.queryset.get(**kwargs)
+            except AreaLevel.DoesNotExist:
+                msg = f'Area level for {kwargs} not found'
+                logger.error(msg)
+                return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+            if (not area_level.source or
+                area_level.source.source_type != SourceTypes.WFS):
+                msg = 'Source of Area Level has to be a Feature-Service to pull from'
+                logger.error(msg)
+                return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+            if not area_level.source.url or not area_level.source.layer:
+                msg = 'Source of Area Level is not completely defined'
+                logger.error(msg)
+                return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+            project_area = ProjectSetting.load().project_area
+            if not project_area:
+                msg = 'Project area is not defined'
+                logger.error(msg)
+                return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+
+            truncate = request.data.get('truncate', False)
+            simplify = request.data.get('simplify', False)
+            areas = self._pull_areas(area_level, project_area,
+                                     truncate=truncate, simplify=simplify)
+            logger.info('Verschneide Gebiete mit dem Bevölkerungsraster')
+            intersect_areas_with_raster(areas, drop_constraints=True)
+            logger.info('Aggregiere Bevölkerungsdaten auf neue Gebiete hoch')
+            n_pop = Population.objects.count()
+            for i, population in enumerate(Population.objects.all()):
+                logger.info(f'{i + 1}/{n_pop}')
+                try:
+                    aggregate_population(area_level, population, drop_constraints=True)
+                except Exception as e:
+                    logger.error(str(e))
+                    return Response({'message': str(e)}, status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.info(f'{areas.count()} Gebiete gespeichert und verarbeitet')
+            return Response({'message': f'{areas.count()} Areas pulled into database'},
+                            status.HTTP_202_ACCEPTED)
 
     @extend_schema(description='Upload Geopackage/ZippedShapeFile with Areas',
                    request=inline_serializer(
@@ -454,7 +457,8 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata],
             parser_classes=[CamelCaseMultiPartParser])
     def upload_shapefile(self, request, **kwargs):
-        with ProtectedProcessManager(request.user):
+        with ProtectedProcessManager(request.user,
+                                     scope=ProcessScope.AREAS):
             try:
                 area_level: AreaLevel = self.queryset.get(**kwargs)
             except AreaLevel.DoesNotExist:
