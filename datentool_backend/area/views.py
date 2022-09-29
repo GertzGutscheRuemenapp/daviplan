@@ -5,6 +5,7 @@ import datetime
 import json
 import logging
 
+import asyncio
 from asgiref.sync import sync_to_async, async_to_sync
 from django.core.exceptions import BadRequest
 from django.contrib.gis.geos import (Polygon, MultiPolygon, GEOSGeometry,
@@ -79,18 +80,20 @@ logger = logging.getLogger(__name__)
 
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django_q.tasks import async_task, AsyncTask
 
-
-async def process_pull(area_level, project_area, user, body):
-    logger.info('los geht')
+def process_pull(area_level, project_area, user, body):
+    #logger.info('los geht')
+    print('los geht')
     with ProtectedProcessManager(user, scope=ProcessScope.AREAS):
         truncate = body.get('truncate', False)
         simplify = body.get('simplify', False)
-        areas = await sync_to_async(AreaLevelViewSet._pull_areas)(area_level, project_area,
-                                                                 truncate=truncate, simplify=simplify)
+        areas = AreaLevelViewSet._pull_areas(area_level, project_area,
+                                             truncate=truncate, simplify=simplify)
         logger.info('Verschneide Gebiete mit dem Bevölkerungsraster')
-        await sync_to_async(intersect_areas_with_raster)(areas, drop_constraints=True)
-        logger.info('Aggregiere Bevölkerungsdaten auf neue Gebiete hoch')
+        print('Verschneide Gebiete mit dem Bevölkerungsraster')
+        intersect_areas_with_raster(areas, drop_constraints=True)
+        #logger.info('Aggregiere Bevölkerungsdaten auf neue Gebiete hoch')
         #n_pop = Population.objects.count()
         #for i, population in enumerate(Population.objects.all()):
             #print(f'{i + 1}/{n_pop}')
@@ -99,11 +102,45 @@ async def process_pull(area_level, project_area, user, body):
             #except Exception as e:
                 #logger.error(str(e))
                 #return Response({'message': str(e)}, status.HTTP_500_INTERNAL_SERVER_ERROR)
-        #print(f'{areas.count()} Gebiete gespeichert und verarbeitet')
+        print(f'{areas.count()} Gebiete gespeichert und verarbeitet')
+
+#@csrf_exempt
+#@async_to_sync
+#async def pull_areas(request):
+    #if not request.body:
+        #return JsonResponse({'message': 'Parameter fehlen'}, status=406)
+    #body = json.loads(request.body)
+
+    #def get_input(body):
+        #try:
+            #area_level = AreaLevel.objects.get(id=body.get('area_level'))
+        #except AreaLevel.DoesNotExist:
+            #msg = f'Gebietseinteilung nicht gefunden'
+            #logger.error(msg)
+            #return JsonResponse({'message': msg}, status=406)
+        #source = area_level.source
+        #if (not source or source.source_type != SourceTypes.WFS):
+            #msg = 'Source of Area Level has to be a Feature-Service to pull from'
+            #logger.error(msg)
+            #return JsonResponse({'message': msg}, status=406)
+        #if not source.url or not source.layer:
+            #msg = 'Source of Area Level is not completely defined'
+            #logger.error(msg)
+            #return JsonResponse({'message': msg}, status=406)
+        #project_area = ProjectSetting.load().project_area
+        #if not project_area:
+            #msg = 'Project area is not defined'
+            #logger.error(msg)
+            #return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+        #return area_level, project_area
+    #area_level, project_area = await sync_to_async(get_input)(body)
+    ##asyncio.create_task(process_pull(area_level, project_area, request.user, body))
+    #task = AsyncTask(process_pull, area_level, project_area, request.user, body)
+    #task.run()
+    #return JsonResponse({'message': 'bla gestartet'})
 
 @csrf_exempt
-@async_to_sync
-async def pull_areas(request):
+def pull_areas(request):
     if not request.body:
         return JsonResponse({'message': 'Parameter fehlen'}, status=406)
     body = json.loads(request.body)
@@ -130,10 +167,11 @@ async def pull_areas(request):
             logger.error(msg)
             return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
         return area_level, project_area
-    area_level, project_area = await sync_to_async(get_input)(body)
-    await process_pull(area_level, project_area, request.user, body)
+    area_level, project_area = get_input(body)
+    #asyncio.create_task(process_pull(area_level, project_area, request.user, body))
+    task = AsyncTask(process_pull, area_level, project_area, request.user, body)
+    task.run()
     return JsonResponse({'message': 'bla gestartet'})
-
 
 class JsonObject(Func):
     function = 'json_object'

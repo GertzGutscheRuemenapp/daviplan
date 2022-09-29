@@ -20,7 +20,7 @@ def send(channel: str, message: str, log_type: str='log_message',
         'status': status,
     }
     rec.update(kwargs)
-    channel_layer.group_send(channel, rec)
+    async_to_sync(channel_layer.group_send)(channel, rec)
 
 
 class WebSocketHandler(logging.StreamHandler):
