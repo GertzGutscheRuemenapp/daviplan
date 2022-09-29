@@ -4,7 +4,7 @@ import time
 import channels.layers
 from aioredis import errors
 from asgiref.sync import async_to_sync
-from channels.generic.websocket import WebsocketConsumer
+from channels.generic.websocket import AsyncWebsocketConsumer
 
 import logging
 logger = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ def send(channel: str, message: str, log_type: str='log_message',
         'status': status,
     }
     rec.update(kwargs)
-    async_to_sync(channel_layer.group_send)(channel, rec)
+    channel_layer.group_send(channel, rec)
 
 
 class WebSocketHandler(logging.StreamHandler):
@@ -38,32 +38,32 @@ class WebSocketHandler(logging.StreamHandler):
             logger.error(e)
 
 
-class LogConsumer(WebsocketConsumer):
-    def connect(self):
+class LogConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
         '''join room'''
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         try:
-            async_to_sync(self.channel_layer.group_add)(
+            await self.channel_layer.group_add(
                     self.room_name,
                     self.channel_name
                 )
 
-            self.accept()
+            await self.accept()
         # redis is not up, what to do?
         except (errors.RedisError, OSError) as e:
             logger.error(e)
 
-    def disconnect(self, close_code):
+    async def disconnect(self, close_code):
         '''leave room'''
-        async_to_sync(self.channel_layer.group_discard)(
+        await self.channel_layer.group_discard(
             self.room_name,
             self.channel_name
         )
 
-    def log_message(self, event):
+    async def log_message(self, event):
         '''send "log_message"'''
         try:
-            self.send(text_data=json.dumps({
+            await self.send(text_data=json.dumps({
                 'message': event['message'],
                 'level': event.get('level'),
                 'timestamp': event.get('timestamp'),

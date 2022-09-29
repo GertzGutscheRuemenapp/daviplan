@@ -47,7 +47,8 @@ export class RestAPI {
     closestCell: `${ this.API_ENDPOINT }/rastercells/closest_cell/`,
     modevariants: `${ this.API_ENDPOINT }/modevariants/`,
     networks: `${ this.API_ENDPOINT }/networks/`,
-    logs: `${ this.API_ENDPOINT }/logs/`
+    logs: `${ this.API_ENDPOINT }/logs/`,
+    pullAreas: `${ this.API_ENDPOINT }/actions/pull_areas/`
   }
   // ToDo: functions with generalized HTTP calls in here
 }

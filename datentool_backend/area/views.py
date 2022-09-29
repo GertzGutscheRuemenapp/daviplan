@@ -5,23 +5,24 @@ import datetime
 import json
 import logging
 
+from asgiref.sync import sync_to_async, async_to_sync
 from django.core.exceptions import BadRequest
 from django.contrib.gis.geos import (Polygon, MultiPolygon, GEOSGeometry,
                                      GeometryCollection)
 from django.views.generic import DetailView
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse, Http404, HttpResponse
 from django.db.models import OuterRef, Subquery, CharField, Case, When, F, JSONField, Func
 from django.db.models.functions import Cast
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.gis.gdal import field as gdal_field
 from django.contrib.gis.gdal.error import GDALException
 from django_filters import rest_framework as filters
-
 from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
 from rest_framework.response import Response
 from rest_framework import viewsets, permissions, status, serializers
 from rest_framework.exceptions import (ParseError, NotFound, APIException)
 from rest_framework.decorators import action
+from rest_framework.decorators import api_view
 from drf_spectacular.utils import (extend_schema,
                                    OpenApiParameter,
                                    OpenApiResponse,
@@ -73,7 +74,65 @@ from .serializers import (MapSymbolSerializer,
                           )
 from datentool_backend.site.models import ProjectSetting
 
-logger = logging.getLogger('areas')
+#logger = logging.getLogger('areas')
+logger = logging.getLogger(__name__)
+
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+
+async def process_pull(area_level, project_area, user, body):
+    logger.info('los geht')
+    with ProtectedProcessManager(user, scope=ProcessScope.AREAS):
+        truncate = body.get('truncate', False)
+        simplify = body.get('simplify', False)
+        areas = await sync_to_async(AreaLevelViewSet._pull_areas)(area_level, project_area,
+                                                                 truncate=truncate, simplify=simplify)
+        logger.info('Verschneide Gebiete mit dem Bevölkerungsraster')
+        await sync_to_async(intersect_areas_with_raster)(areas, drop_constraints=True)
+        logger.info('Aggregiere Bevölkerungsdaten auf neue Gebiete hoch')
+        #n_pop = Population.objects.count()
+        #for i, population in enumerate(Population.objects.all()):
+            #print(f'{i + 1}/{n_pop}')
+            #try:
+                #aggregate_population(area_level, population, drop_constraints=True)
+            #except Exception as e:
+                #logger.error(str(e))
+                #return Response({'message': str(e)}, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        #print(f'{areas.count()} Gebiete gespeichert und verarbeitet')
+
+@csrf_exempt
+@async_to_sync
+async def pull_areas(request):
+    if not request.body:
+        return JsonResponse({'message': 'Parameter fehlen'}, status=406)
+    body = json.loads(request.body)
+
+    def get_input(body):
+        try:
+            area_level = AreaLevel.objects.get(id=body.get('area_level'))
+        except AreaLevel.DoesNotExist:
+            msg = f'Gebietseinteilung nicht gefunden'
+            logger.error(msg)
+            return JsonResponse({'message': msg}, status=406)
+        source = area_level.source
+        if (not source or source.source_type != SourceTypes.WFS):
+            msg = 'Source of Area Level has to be a Feature-Service to pull from'
+            logger.error(msg)
+            return JsonResponse({'message': msg}, status=406)
+        if not source.url or not source.layer:
+            msg = 'Source of Area Level is not completely defined'
+            logger.error(msg)
+            return JsonResponse({'message': msg}, status=406)
+        project_area = ProjectSetting.load().project_area
+        if not project_area:
+            msg = 'Project area is not defined'
+            logger.error(msg)
+            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+        return area_level, project_area
+    area_level, project_area = await sync_to_async(get_input)(body)
+    await process_pull(area_level, project_area, request.user, body)
+    return JsonResponse({'message': 'bla gestartet'})
 
 
 class JsonObject(Func):

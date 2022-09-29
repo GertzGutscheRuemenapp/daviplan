@@ -28,7 +28,8 @@ from drf_spectacular.views import (SpectacularAPIView,
                                    SpectacularSwaggerView)
 
 from .loggers import LogConsumer
-from datentool_backend.views import AreaLevelTileView, RasterCellTileView
+from datentool_backend.views import (AreaLevelTileView, RasterCellTileView,
+                                     pull_areas)
 
 from .views import HomePageView
 
@@ -46,6 +47,7 @@ urlpatterns = [
          name='swagger-ui'),
     path('api/schema/redoc-ui/', SpectacularRedocView.as_view(url_name='schema'),
          name='redoc-ui'),
+    path('api/actions/pull_areas/', pull_areas, name='pull_areas'),
 
     path('tiles/raster/<int:z>/<int:x>/<int:y>/', RasterCellTileView.as_view(),
          name="raster-tile"),
