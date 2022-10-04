@@ -66,6 +66,7 @@ class IndicatorListSerializer(serializers.ListSerializer):
         """
         List of object instances -> List of dicts of primitive datatypes.
         but calculate the median of the values first
+        and store them in the child-serializer-attribute `_digits_to_round`
         """
         # Dealing with nested relationships, data can be a Manager,
         # so, first get a queryset from the Manager if needed
@@ -78,7 +79,9 @@ class IndicatorListSerializer(serializers.ListSerializer):
         ]
 
     def get_digits(self, iterable) -> int:
-        """get the number of digits to round the values"""
+        """
+        get the number of digits to round the values
+        """
         try:
             first_item = iterable[0]
         except IndexError:
@@ -104,9 +107,14 @@ class IndicatorListSerializer(serializers.ListSerializer):
         return digits
 
 
-class IndicatorDetailSerializer:
+class IndicatorDetailSerializer(serializers.Serializer):
+    value = serializers.SerializerMethodField('get_value')
 
     def get_value(self, obj) -> float:
+        """
+        get the `value`-field as attribute or item
+        and round it to the given digits
+        """
         try:
             value = obj.value
         except AttributeError:
@@ -116,45 +124,37 @@ class IndicatorDetailSerializer:
         rounded = round(value, self._digits_to_round)
         return rounded
 
+    class Meta:
+        list_serializer_class = IndicatorListSerializer
+
 
 class IndicatorAreaResultSerializer(IndicatorDetailSerializer,
                                     serializers.ModelSerializer):
 
     label = serializers.CharField()
-    value = serializers.SerializerMethodField('get_value')
     area_id = serializers.IntegerField(source='id')
-    class Meta:
+    class Meta(IndicatorDetailSerializer.Meta):
         model = Area
-        list_serializer_class = IndicatorListSerializer
         fields = ('area_id', 'label', 'value')
 
 
 class IndicatorRasterResultSerializer(IndicatorDetailSerializer,
                                     serializers.ModelSerializer):
     cell_code = serializers.CharField()
-    value = serializers.SerializerMethodField('get_value')
-    class Meta:
+    class Meta(IndicatorDetailSerializer.Meta):
         model = RasterCell
-        list_serializer_class = IndicatorListSerializer
         fields = ('cell_code', 'value')
 
 
 class IndicatorPlaceResultSerializer(IndicatorDetailSerializer,
                                     serializers.ModelSerializer):
     place_id = serializers.IntegerField(source='id')
-    value = serializers.SerializerMethodField('get_value')
-    class Meta:
+    class Meta(IndicatorDetailSerializer.Meta):
         model = Place
-        list_serializer_class = IndicatorListSerializer
         fields = ('place_id', 'value')
 
 
-class IndicatorPopulationSerializer(IndicatorDetailSerializer,
-                                    serializers.Serializer):
+class IndicatorPopulationSerializer(IndicatorDetailSerializer):
     year = serializers.IntegerField()
     gender = serializers.IntegerField()
     agegroup = serializers.IntegerField()
-    value = serializers.SerializerMethodField('get_value')
-
-    class Meta:
-        list_serializer_class = IndicatorListSerializer
