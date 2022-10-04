@@ -205,14 +205,14 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         response = self.post(url, data=query_params, extra={'format': 'json'})
         self.assert_http_200_ok(response)
         result_5 = pd.DataFrame(response.data).set_index('area_id')
-        np.testing.assert_array_almost_equal(result_5['value'], [22.341524, 100])
+        np.testing.assert_array_almost_equal(result_5['value'], [22.3, 100])
 
         query_params['service'] = self.service_uniform.pk
         url = reverse(self.url_key, kwargs={'pk': self.service_uniform.pk})
         response = self.post(url, data=query_params, extra={'format': 'json'})
         self.assert_http_200_ok(response)
         result_u = pd.DataFrame(response.data).set_index('area_id')
-        np.testing.assert_array_almost_equal(result_u['value'], [22.341524, 100])
+        np.testing.assert_array_almost_equal(result_u['value'], [22.3, 100])
 
         query_params['service'] = self.service_without_demand.pk
         url = reverse(self.url_key, kwargs={'pk': self.service_without_demand.pk})
@@ -240,7 +240,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         result = pd.DataFrame(response.data).set_index('place_id')
         self.assertEquals(len(result), 3)
         np.testing.assert_array_almost_equal(result['value'],
-                                             [1.875370, 6.425346, 3.049284])
+                                             [1.88, 6.43, 3.05])
 
         # set capacities to 0 for all places except place 5
         capacities_places1_4 = Capacity.objects.exclude(place=self.place5)
@@ -255,7 +255,8 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         # the whole demand now goes to the last remaining place,
         # so it should be the sum of the demand, that was distributed to 3 places before
         np.testing.assert_array_almost_equal(result2['value'],
-                                             [result['value'].sum()])
+                                             [result['value'].sum()],
+                                             decimal=1)
 
     def test_reachability_place(self):
         """Test reachability from given place"""

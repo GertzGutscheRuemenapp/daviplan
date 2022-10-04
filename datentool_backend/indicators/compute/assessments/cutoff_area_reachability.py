@@ -21,6 +21,7 @@ class CutoffAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, Service
     Gebietseinheit in maximal … Minuten mit einem bestimmter Verkehrsmittel
     erreichen'''
     title = 'Erreichbarkeit bis […] Minuten'
+    unit = '%'
     params = (
         ModeParameter(),
         IndicatorNumberParameter('cutoff', 'maximale Wegezeit (in Minuten)',
