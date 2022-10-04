@@ -1,5 +1,5 @@
 import logging
-import datetime
+from django.utils import timezone
 
 
 class PersistLogHandler(logging.StreamHandler):
@@ -22,5 +22,5 @@ class PersistLogHandler(logging.StreamHandler):
         from .models import LogEntry
         room = record.name
         entry = LogEntry.objects.create(
-            date=datetime.datetime.now(), room=room, text=record.getMessage(),
+            date=timezone.now(), room=room, text=record.getMessage(),
             user=self.user, level=record.levelname)

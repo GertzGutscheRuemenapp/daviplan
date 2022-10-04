@@ -75,38 +75,34 @@ from .serializers import (MapSymbolSerializer,
                           )
 from datentool_backend.site.models import ProjectSetting
 
-#logger = logging.getLogger('areas')
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('areas')
 
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django_q.tasks import async_task, AsyncTask
 
-async def process_pull(area_level, project_area, user, body):
-    logger.info('los geht')
-    print('los geht')
-    #with ProtectedProcessManager(user, scope=ProcessScope.AREAS):
-    truncate = body.get('truncate', False)
-    simplify = body.get('simplify', False)
-    areas = await AreaLevelViewSet._pull_areas(area_level, project_area,
-                                               truncate=truncate, simplify=simplify)
-    await sync_to_async(logger.info('Verschneide Gebiete mit dem Bevölkerungsraster'))
-    print('Verschneide Gebiete mit dem Bevölkerungsraster')
-    await sync_to_async(intersect_areas_with_raster)(areas, drop_constraints=True)
-    #logger.info('Aggregiere Bevölkerungsdaten auf neue Gebiete hoch')
-    #n_pop = Population.objects.count()
-    #for i, population in enumerate(Population.objects.all()):
-        #print(f'{i + 1}/{n_pop}')
-        #try:
-            #aggregate_population(area_level, population, drop_constraints=True)
-        #except Exception as e:
-            #logger.error(str(e))
-            #return Response({'message': str(e)}, status.HTTP_500_INTERNAL_SERVER_ERROR)
-    print(f'{areas.count()} Gebiete gespeichert und verarbeitet')
+def process_pull(area_level, project_area, user, body):
+    with ProtectedProcessManager(user, scope=ProcessScope.AREAS):
+        truncate = body.get('truncate', False)
+        simplify = body.get('simplify', False)
+        areas = AreaLevelViewSet._pull_areas(area_level, project_area,
+                                             truncate=truncate, simplify=simplify)
+        logger.info('Verschneide Gebiete mit dem Bevölkerungsraster')
+        intersect_areas_with_raster(areas, drop_constraints=True)
+        logger.info('Aggregiere Bevölkerungsdaten auf neue Gebiete hoch')
+        n_pop = Population.objects.count()
+        for i, population in enumerate(Population.objects.all()):
+            logger.info(f'{i + 1}/{n_pop}')
+            try:
+                aggregate_population(area_level, population, drop_constraints=True)
+            except Exception as e:
+                logger.error(str(e))
+                return Response({'message': str(e)}, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.info(f'{areas.count()} Gebiete gespeichert und verarbeitet')
+
 
 @csrf_exempt
-@async_to_sync
-async def pull_areas(request):
+def pull_areas(request):
     if not request.body:
         return JsonResponse({'message': 'Parameter fehlen'}, status=406)
     body = json.loads(request.body)
@@ -133,43 +129,12 @@ async def pull_areas(request):
             logger.error(msg)
             return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
         return area_level, project_area
-    area_level, project_area = await sync_to_async(get_input)(body)
-    asyncio.create_task(process_pull(area_level, project_area, request.user, body))
+    area_level, project_area = get_input(body)
+    #asyncio.create_task(process_pull(area_level, project_area, request.user, body))
+    task = AsyncTask(process_pull, area_level, project_area, request.user, body)
+    task.run()
     return JsonResponse({'message': 'bla gestartet'})
 
-#@csrf_exempt
-#def pull_areas(request):
-    #if not request.body:
-        #return JsonResponse({'message': 'Parameter fehlen'}, status=406)
-    #body = json.loads(request.body)
-
-    #def get_input(body):
-        #try:
-            #area_level = AreaLevel.objects.get(id=body.get('area_level'))
-        #except AreaLevel.DoesNotExist:
-            #msg = f'Gebietseinteilung nicht gefunden'
-            #logger.error(msg)
-            #return JsonResponse({'message': msg}, status=406)
-        #source = area_level.source
-        #if (not source or source.source_type != SourceTypes.WFS):
-            #msg = 'Source of Area Level has to be a Feature-Service to pull from'
-            #logger.error(msg)
-            #return JsonResponse({'message': msg}, status=406)
-        #if not source.url or not source.layer:
-            #msg = 'Source of Area Level is not completely defined'
-            #logger.error(msg)
-            #return JsonResponse({'message': msg}, status=406)
-        #project_area = ProjectSetting.load().project_area
-        #if not project_area:
-            #msg = 'Project area is not defined'
-            #logger.error(msg)
-            #return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
-        #return area_level, project_area
-    #area_level, project_area = get_input(body)
-    ##asyncio.create_task(process_pull(area_level, project_area, request.user, body))
-    #task = AsyncTask(process_pull, area_level, project_area, request.user, body)
-    #task.run()
-    #return JsonResponse({'message': 'bla gestartet'})
 
 class JsonObject(Func):
     function = 'json_object'
@@ -393,10 +358,10 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
     @staticmethod
-    async def _pull_areas(area_level: AreaLevel, project_area,
+    def _pull_areas(area_level: AreaLevel, project_area,
                    truncate=False, simplify=False):
         msg = f'Rufe Gebiete der Ebene "{area_level.name}" ab'
-        sync_to_async(logger.info)(msg)
+        logger.info(msg)
         url = area_level.source.url
         layer = area_level.source.layer
         if not url or not layer:
@@ -417,18 +382,18 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
         if not key:
             msg = (f'Layer "{key}" nicht in den Capabilities des WFS-Services '
                    'gefunden')
-            sync_to_async(logger.error)(msg)
+            logger.error(msg)
             return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
         response = wfs.getfeature(typename=typename, bbox=bbox,
                                   srsname='EPSG:3857',
                                   outputFormat='application/json')
         res_json = json.loads(response.read())
         if truncate:
-            sync_to_async(logger.info)('Lösche eventuell vorhandene Gebiete der Ebene')
-            await sync_to_async(Area.objects.filter(area_level=area_level).delete)()
+            logger.info('Lösche eventuell vorhandene Gebiete der Ebene')
+            Area.objects.filter(area_level=area_level).delete()
         level_areas = Area.annotated_qs(area_level)
         key_field = area_level.key_field
-        sync_to_async(logger.info)(f'Verarbeite {len(res_json["features"])} Gebiete')
+        logger.info(f'Verarbeite {len(res_json["features"])} Gebiete')
         count = 0
         for feature in res_json['features']:
             properties = feature.get('properties', {})
@@ -471,7 +436,7 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
                                            geom=intersection)
             area.attributes = properties
             count += 1
-        sync_to_async(logger.info)(f'{count} Gebiete im Projektgebiet')
+        logger.info(f'{count} Gebiete im Projektgebiet')
         now = datetime.datetime.now()
         area_level.source.date = datetime.date(now.year, now.month, now.day)
         area_level.source.save()
