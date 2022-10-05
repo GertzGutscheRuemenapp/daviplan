@@ -46,6 +46,7 @@ from datentool_backend.modes.models import (ModeVariant,
 from datentool_backend.indicators.serializers import (StopSerializer,
                                                       StopTemplateSerializer,
                                                       MatrixStopStopTemplateSerializer,
+                                                      MatrixStopStopSerializer,
                                                       RouterSerializer,
                                                       )
 from datentool_backend.utils.processes import (ProtectedProcessManager,
@@ -89,8 +90,11 @@ class StopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSet
 
 
 class MatrixStopStopViewSet(ExcelTemplateMixin,
-                            viewsets.GenericViewSet):
-    serializer_class = MatrixStopStopTemplateSerializer
+                            viewsets.ModelViewSet):
+    serializer_class = MatrixStopStopSerializer
+    serializer_action_classes = {'upload_template': MatrixStopStopTemplateSerializer,
+                                 'create_template': MatrixStopStopTemplateSerializer,
+                                 }
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
     def get_queryset(self):
@@ -99,6 +103,15 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
         if variant is not None:
             return MatrixStopStop.objects.filter(variant=variant)
         return MatrixStopStop.objects.all()
+
+    @extend_schema(
+            parameters=[
+                OpenApiParameter(name='variant', description='mode_variant_id',
+                                 required=True, type=int),
+            ],
+        )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     @extend_schema(description='Upload Excel-File or PTV-Visum-Matrix with Traveltimes from Stop to Stop',
                    request=inline_serializer(
