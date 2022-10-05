@@ -118,21 +118,29 @@ class ComputeIndicator(metaclass=ABCMeta):
             return {}
 
         legend_entries = []
-        percentiles = [0, 10, 20, 40, 60, 80, 90, 100]
-        pct = get_percentiles(values, percentiles)
-        if len(pct) == 0:
+        bins = getattr(self, 'bins')
+        if not bins:
+            percentiles = [0, 10, 20, 40, 60, 80, 90, 100]
+            bins = get_percentiles(values, percentiles)
+            
+        if len(bins) == 0:
             return {}
-        elif len(pct) == 1:
-            value = pct[0]
+        elif len(bins) == 1:
+            value = bins[0]
             if np.isnan(value):
                 return {}
             min_values = [value]
             max_values = [value]
         else:
-            min_values = pct[:-1]
-            max_values = pct[1:]
+            min_values = bins[:-1]
+            max_values = bins[1:]
         n_segments = len(min_values)
-        colors = get_colors(colormap_name=self.colormap_name, n_segments=n_segments)
+        
+        colors = getattr(self, 'colors')
+        if not colors:
+            colors = get_colors(colormap_name=self.colormap_name,
+                                n_segments=n_segments)
+            
         for i, color in enumerate(colors):
             entry = dict(min_value=min_values[i],
                          max_value=max_values[i],

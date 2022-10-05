@@ -279,6 +279,8 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
             result = pd.DataFrame(response.data['values']).set_index('cell_code')
             self.assertEquals(len(result), 8)
 
+            legend = pd.DataFrame(response.data['legend'])
+
     def test_reachability_cell(self):
         """Test reachability from given cell"""
 
