@@ -14,6 +14,9 @@ class MaxRasterReachability(ModeVariantMixin, ServiceIndicator):
     für alle Wohnstandorte'''
     title = 'Wegezeit nächste Einrichtung'
     params = (ModeParameter(), )
+    representation = 'colorramp'
+    colormap_name = 'RdYlGn'
+    inverse = True
     result_serializer = ResultSerializer.RASTER
 
     @property

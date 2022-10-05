@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import Callable, Dict, List, Tuple
 from enum import Enum
+import numpy as np
 
 from django.http.request import QueryDict
 from django.db.models import OuterRef, F
@@ -14,6 +15,7 @@ from datentool_backend.indicators.serializers import (
     IndicatorRasterResultSerializer,
     IndicatorPlaceResultSerializer,
     IndicatorPopulationSerializer)
+from datentool_backend.indicators.legend import get_colors, get_percentiles
 
 
 class IndicatorParameter:
@@ -105,7 +107,39 @@ class ComputeIndicator(metaclass=ABCMeta):
         if not self.result_serializer:
             raise Exception('no serializer defined')
         serializer = self.result_serializer.value
-        return serializer(queryset, many=True).data
+        values = serializer(queryset, many=True).data
+        legend = self.get_legend(values)
+        return {'legend': legend,
+                'values': values, }
+
+    def get_legend(self, values):
+        """get the legend based on the values"""
+        if getattr(self, 'representation', None) != 'colorramp':
+            return {}
+
+        legend_entries = []
+        percentiles = [0, 10, 20, 40, 60, 80, 90, 100]
+        pct = get_percentiles(values, percentiles)
+        if len(pct) == 0:
+            return {}
+        elif len(pct) == 1:
+            value = pct[0]
+            if np.isnan(value):
+                return {}
+            min_values = [value]
+            max_values = [value]
+        else:
+            min_values = pct[:-1]
+            max_values = pct[1:]
+        n_segments = len(min_values)
+        colors = get_colors(colormap_name=self.colormap_name, n_segments=n_segments)
+        for i, color in enumerate(colors):
+            entry = dict(min_value=min_values[i],
+                         max_value=max_values[i],
+                         color=color)
+            legend_entries.append(entry)
+        return legend_entries
+
 
 
 class ServiceIndicator(ComputeIndicator):

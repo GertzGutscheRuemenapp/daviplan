@@ -27,6 +27,8 @@ class CutoffAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, Service
         IndicatorNumberParameter('cutoff', 'maximale Wegezeit (in Minuten)',
                                  min=0, max=240, integer_only=True)
     )
+    representation = 'colorramp'
+    colormap_name = 'Greens'
     result_serializer = ResultSerializer.AREA
 
     @property

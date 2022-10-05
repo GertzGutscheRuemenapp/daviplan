@@ -23,6 +23,7 @@ class IndicatorSerializer(serializers.Serializer):
     classification = serializers.SerializerMethodField('get_classification')
     colorscheme = serializers.SerializerMethodField('get_colorscheme')
 
+
     def get_result_type(self, obj) -> str:
         if obj.result_serializer:
             return obj.result_serializer.name.lower()
@@ -85,7 +86,7 @@ class IndicatorListSerializer(serializers.ListSerializer):
         try:
             first_item = iterable[0]
         except IndexError:
-            return 0
+            return None
 
         if isinstance(first_item, dict):
             values = np.array([row['value'] for row in iterable
@@ -95,7 +96,7 @@ class IndicatorListSerializer(serializers.ListSerializer):
                                if not row.value is None])
 
         if len(values) == 0:
-            return 0
+            return None
 
         median_value = np.nanmedian(values)
         if median_value < 10:
@@ -119,7 +120,7 @@ class IndicatorDetailSerializer(serializers.Serializer):
             value = obj.value
         except AttributeError:
             value = obj['value']
-        if value is None:
+        if value is None or self._digits_to_round is None:
             return value
         rounded = round(value, self._digits_to_round)
         return rounded

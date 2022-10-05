@@ -102,7 +102,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         response = self.post(self.url_key+self.suffix, data=query_params,
                              extra={'format': 'json'})
         # assert that the result is ordered by label
-        actual = sorted(response.data, key=lambda f: f['label'])
+        actual = sorted(response.data['values'], key=lambda f: f['label'])
         expected = [{'label': 'area1', 'value': expected_values[0], },
                     {'label': 'area2', 'value': expected_values[1], },
                     {'label': 'area3', 'value': expected_values[2], },

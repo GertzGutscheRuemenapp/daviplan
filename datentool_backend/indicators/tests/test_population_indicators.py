@@ -242,7 +242,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         response = self.post(self.url_key + '-aggregate-population',
                              data=data, extra={'format': 'json'})
-        df = pd.DataFrame(response.data).set_index('label')
+        df = pd.DataFrame(response.data['values']).set_index('label')
         print(df)
         expected = pd.Series([357.213304, 867.698150],
                              index=['district1', 'district2'])
@@ -258,7 +258,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         response = self.post(self.url_key+'-aggregate-population',
                              data=data, extra={'format': 'json'})
         # Test if input data matches
-        df = pd.DataFrame(response.data).set_index('label')
+        df = pd.DataFrame(response.data['values']).set_index('label')
         print(df)
         expected = pd.Series([715.617852, 1404.382148, np.nan],
                              index=['area1', 'area2', 'area3'])
@@ -273,7 +273,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         response = self.post(self.url_key + '-aggregate-population',
                              data=data, extra={'format': 'json'})
-        df = pd.DataFrame(response.data).set_index('label')
+        df = pd.DataFrame(response.data['values']).set_index('label')
         print(df)
         expected = pd.Series([327.502507, 692.497493, np.nan],
                              index=['area1', 'area2', 'area3'])
@@ -288,7 +288,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         response = self.post(self.url_key + '-aggregate-population',
                              data=data, extra={'format': 'json'})
-        df = pd.DataFrame(response.data).set_index('label')
+        df = pd.DataFrame(response.data['values']).set_index('label')
         print(df)
         expected = pd.Series([499.771245, 970.228755, np.nan],
                              index=['area1', 'area2', 'area3'])
@@ -303,7 +303,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         response = self.post(self.url_key + '-aggregate-population',
                              data=data, extra={'format': 'json'})
-        df = pd.DataFrame(response.data).set_index('label')
+        df = pd.DataFrame(response.data['values']).set_index('label')
         print(df)
         expected = pd.Series([715.617852, np.nan],
                              index=['area1', 'area3'])
@@ -316,7 +316,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         #  the results should stay the same
         response = self.post(self.url_key + '-aggregate-population',
                              data=data, extra={'format': 'json'})
-        df = pd.DataFrame(response.data).set_index('label')
+        df = pd.DataFrame(response.data['values']).set_index('label')
         print(df)
         expected = pd.Series([715.617852, np.nan],
                              index=['area1', 'area3'])
@@ -331,7 +331,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         response = self.post(self.url_key + '-population-details',
                              data=data, extra={'format': 'json'})
-        df_calculated_from_rastercells = pd.DataFrame(response.data)
+        df_calculated_from_rastercells = pd.DataFrame(response.data['values'])
         print(df_calculated_from_rastercells)
         # Test if sum of large area equals all input areas
 
@@ -341,7 +341,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
         response = self.post(self.url_key + '-population-details',
                              data=data, extra={'format': 'json'})
         # Test if input data matches
-        df_calculated_from_rastercells = pd.DataFrame(response.data)
+        df_calculated_from_rastercells = pd.DataFrame(response.data['values'])
         print(df_calculated_from_rastercells)
 
         # area_level2 and prognosis
@@ -352,7 +352,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
                              extra={'format': 'json'})
 
         # Test if input data matches
-        df_calculated_from_rastercells = pd.DataFrame(response.data)
+        df_calculated_from_rastercells = pd.DataFrame(response.data['values'])
         print(df_calculated_from_rastercells)
 
         #  do the pre-aggregation of the population to areas
@@ -364,7 +364,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         response = self.post(self.url_key + '-population-details',
                              data=data, extra={'format': 'json'})
-        df_calculated_from_areas = pd.DataFrame(response.data)
+        df_calculated_from_areas = pd.DataFrame(response.data['values'])
 
         pd.testing.assert_frame_equal(df_calculated_from_areas,
                                       df_calculated_from_rastercells)
@@ -379,7 +379,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         response = self.post(self.url_key + '-demand', data=query_params,
                              extra={'format': 'json'})
-        default_values = pd.DataFrame(response.data)
+        default_values = pd.DataFrame(response.data['values'])
         print(default_values)
 
         query_params = {'area_level': self.area_level2.pk,
@@ -390,7 +390,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         response = self.post(self.url_key + '-demand', data=query_params,
                              extra={'format': 'json'})
-        scenario_values = pd.DataFrame(response.data)
+        scenario_values = pd.DataFrame(response.data['values'])
         print(scenario_values)
         diff = scenario_values.value / default_values.value
         # in the scenario, the demand rate ist half as high as in the default scenario
@@ -404,7 +404,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         response = self.post(self.url_key + '-demand', data=query_params,
                              extra={'format': 'json'})
-        values_2024 = pd.DataFrame(response.data)
+        values_2024 = pd.DataFrame(response.data['values'])
         print(values_2024)
         diff = values_2024.value / scenario_values.value
         # in 2024, the demand rate increased by 20%, and the population by 10%
@@ -417,7 +417,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         response = self.post(self.url_key + '-demand', data=query_params,
                              extra={'format': 'json'})
-        values_service2 = pd.DataFrame(response.data)
+        values_service2 = pd.DataFrame(response.data['values'])
         print(values_service2)
 
         query_params = {'area_level': self.area1.area_level_id,
@@ -427,7 +427,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         response = self.post(self.url_key + '-demand', data=query_params,
                              extra={'format': 'json'})
-        values_service2_arealevel1 = pd.DataFrame(response.data)
+        values_service2_arealevel1 = pd.DataFrame(response.data['values'])
         print(values_service2_arealevel1)
 
         query_params = {'area_level': self.area_level3.pk,
@@ -437,7 +437,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         response = self.post(self.url_key + '-demand', data=query_params,
                              extra={'format': 'json'})
-        values_service2_country = pd.DataFrame(response.data)
+        values_service2_country = pd.DataFrame(response.data['values'])
         print(values_service2_country)
 
         query_params = {'area_level': self.area_level4.pk,
@@ -447,7 +447,7 @@ class TestAreaIndicatorAPI(CreateTestdataMixin,
 
         response = self.post(self.url_key + '-demand', data=query_params,
                              extra={'format': 'json'})
-        values_service2_quadrants = pd.DataFrame(response.data)
+        values_service2_quadrants = pd.DataFrame(response.data['values'])
         print(values_service2_quadrants)
         # the demand of the whole country should be the sum of the quadrants
         nptest.assert_almost_equal(values_service2_country.value.sum(),

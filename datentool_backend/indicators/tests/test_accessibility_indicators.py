@@ -69,7 +69,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
         response = self.post(url, data=query_params, extra={'format': 'json'})
         self.assert_http_200_ok(response)
-        result = pd.DataFrame(response.data).set_index('cell_code')
+        result = pd.DataFrame(response.data['values']).set_index('cell_code')
         self.assertEquals(len(result), 8)
 
         # set capacities to 0 for all places except place 5
@@ -79,7 +79,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         Capacity.objects.bulk_update(capacities_places1_4, ['capacity'])
 
         response = self.post(url, data=query_params, extra={'format': 'json'})
-        result2 = pd.DataFrame(response.data).set_index('cell_code')
+        result2 = pd.DataFrame(response.data['values']).set_index('cell_code')
         self.assertEquals(len(result2), 8)
 
         # for 7 out of 8 rastercells, the traveltime should have increased
@@ -103,7 +103,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
         response = self.post(url, data=query_params, extra={'format': 'json'})
         self.assert_http_200_ok(response)
-        result = pd.DataFrame(response.data).set_index('place_id')
+        result = pd.DataFrame(response.data['values']).set_index('place_id')
         self.assertEquals(len(result), 3)
 
         # set capacities to 0 for all places except place 5
@@ -113,7 +113,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         Capacity.objects.bulk_update(capacities_places1_4, ['capacity'])
 
         response = self.post(url, data=query_params, extra={'format': 'json'})
-        result2 = pd.DataFrame(response.data).set_index('place_id')
+        result2 = pd.DataFrame(response.data['values']).set_index('place_id')
         self.assertEquals(len(result2), 1)
 
     def test_average_place_reachability(self):
@@ -132,7 +132,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
         response = self.post(url, data=query_params, extra={'format': 'json'})
         self.assert_http_200_ok(response)
-        result = pd.DataFrame(response.data).set_index('place_id')
+        result = pd.DataFrame(response.data['values']).set_index('place_id')
         self.assertEquals(len(result), 3)
 
         # set capacities to 0 for all places except place 5
@@ -143,7 +143,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
 
         response = self.post(url, data=query_params, extra={'format': 'json'})
         self.assert_http_200_ok(response)
-        result2 = pd.DataFrame(response.data).set_index('place_id')
+        result2 = pd.DataFrame(response.data['values']).set_index('place_id')
         self.assertEquals(len(result2), 1)
 
     def test_average_area_reachability(self):
@@ -163,7 +163,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
         response = self.post(url, data=query_params, extra={'format': 'json'})
         self.assert_http_200_ok(response)
-        result = pd.DataFrame(response.data).set_index('area_id')
+        result = pd.DataFrame(response.data['values']).set_index('area_id')
         self.assertEquals(len(result), 2)
 
         # set capacities to 0 for all places except place 5
@@ -173,7 +173,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         Capacity.objects.bulk_update(capacities_places1_4, ['capacity'])
 
         response = self.post(url, data=query_params, extra={'format': 'json'})
-        result2 = pd.DataFrame(response.data).set_index('area_id')
+        result2 = pd.DataFrame(response.data['values']).set_index('area_id')
         self.assertEquals(len(result2), 2)
 
         result2 = result2.join(result['value'], lsuffix='_new', rsuffix='_old')
@@ -197,28 +197,28 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
         response = self.post(url, data=query_params, extra={'format': 'json'})
         self.assert_http_200_ok(response)
-        result_6 = pd.DataFrame(response.data).set_index('area_id')
+        result_6 = pd.DataFrame(response.data['values']).set_index('area_id')
         np.testing.assert_array_almost_equal(result_6['value'], [100, 100])
 
         query_params['cutoff'] = 5
         url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
         response = self.post(url, data=query_params, extra={'format': 'json'})
         self.assert_http_200_ok(response)
-        result_5 = pd.DataFrame(response.data).set_index('area_id')
+        result_5 = pd.DataFrame(response.data['values']).set_index('area_id')
         np.testing.assert_array_almost_equal(result_5['value'], [22.3, 100])
 
         query_params['service'] = self.service_uniform.pk
         url = reverse(self.url_key, kwargs={'pk': self.service_uniform.pk})
         response = self.post(url, data=query_params, extra={'format': 'json'})
         self.assert_http_200_ok(response)
-        result_u = pd.DataFrame(response.data).set_index('area_id')
+        result_u = pd.DataFrame(response.data['values']).set_index('area_id')
         np.testing.assert_array_almost_equal(result_u['value'], [22.3, 100])
 
         query_params['service'] = self.service_without_demand.pk
         url = reverse(self.url_key, kwargs={'pk': self.service_without_demand.pk})
         response = self.post(url, data=query_params, extra={'format': 'json'})
         self.assert_http_200_ok(response)
-        result_u = pd.DataFrame(response.data).set_index('area_id')
+        result_u = pd.DataFrame(response.data['values']).set_index('area_id')
         np.testing.assert_array_almost_equal(result_u['value'], [0, 0])
 
     def test_accessible_demand(self):
@@ -237,7 +237,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
         response = self.post(url, data=query_params, extra={'format': 'json'})
         self.assert_http_200_ok(response)
-        result = pd.DataFrame(response.data).set_index('place_id')
+        result = pd.DataFrame(response.data['values']).set_index('place_id')
         self.assertEquals(len(result), 3)
         np.testing.assert_array_almost_equal(result['value'],
                                              [1.88, 6.43, 3.05])
@@ -250,7 +250,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
 
         response = self.post(url, data=query_params, extra={'format': 'json'})
         self.assert_http_200_ok(response)
-        result2 = pd.DataFrame(response.data).set_index('place_id')
+        result2 = pd.DataFrame(response.data['values']).set_index('place_id')
         self.assertEquals(len(result2), 1)
         # the whole demand now goes to the last remaining place,
         # so it should be the sum of the demand, that was distributed to 3 places before
@@ -276,7 +276,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
             url = reverse(url_key)
             response = self.post(url, data=query_params, extra={'format': 'json'})
             self.assert_http_200_ok(response)
-            result = pd.DataFrame(response.data).set_index('cell_code')
+            result = pd.DataFrame(response.data['values']).set_index('cell_code')
             self.assertEquals(len(result), 8)
 
     def test_reachability_cell(self):
@@ -298,7 +298,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
             url = reverse(url_key)
             response = self.post(url, data=query_params, extra={'format': 'json'})
             self.assert_http_200_ok(response)
-            result = pd.DataFrame(response.data).set_index('place_id')
+            result = pd.DataFrame(response.data['values']).set_index('place_id')
             self.assertEquals(len(result), 5)
 
     def test_reachability_next_place(self):
@@ -321,7 +321,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
             url = reverse(url_key)
             response = self.post(url, data=query_params, extra={'format': 'json'})
             self.assert_http_200_ok(response)
-            result = pd.DataFrame(response.data).set_index('cell_code')
+            result = pd.DataFrame(response.data['values']).set_index('cell_code')
             self.assertEquals(len(result), 8)
 
 
@@ -329,5 +329,5 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         url = reverse(url_key)
         response = self.post(url, data=query_params, extra={'format': 'json'})
         self.assert_http_200_ok(response)
-        result = pd.DataFrame(response.data).set_index('cell_code')
+        result = pd.DataFrame(response.data['values']).set_index('cell_code')
         self.assertEquals(len(result), 8)

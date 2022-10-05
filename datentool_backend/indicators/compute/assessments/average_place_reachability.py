@@ -16,6 +16,8 @@ class AveragePlaceReachability(ModeVariantMixin, PopulationIndicatorMixin, Servi
     am schnellsten erreichbar ist'''
     title = 'Mittlere Erreichbarkeit'
     params = (ModeParameter(), )
+    representation = 'colorramp'
+    colormap_name = 'OrRd'
     result_serializer = ResultSerializer.PLACE
 
     @property
