@@ -324,6 +324,18 @@ export interface Place {
   capacities?: Capacity[]
 }
 
+export interface TransitStop {
+  id: number,
+  geom: string | Geometry,
+  name: string
+}
+
+export interface TransitMatrixEntry {
+  fromStop: number,
+  toStop: number,
+  minutes: number
+}
+
 export interface Capacity {
   id: number,
   place: number,
