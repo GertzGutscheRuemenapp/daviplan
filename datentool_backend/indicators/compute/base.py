@@ -118,12 +118,12 @@ class ComputeIndicator(metaclass=ABCMeta):
             return {}
 
         legend_entries = []
-        bins = getattr(self, 'bins')
+        bins = getattr(self, 'bins', None)
         if not bins:
             percentiles = [0, 10, 20, 40, 60, 80, 90, 100]
             bins = get_percentiles(values, percentiles)
-            
-        if len(bins) == 0:
+
+        if bins is None or len(bins) == 0:
             return {}
         elif len(bins) == 1:
             value = bins[0]
@@ -135,12 +135,12 @@ class ComputeIndicator(metaclass=ABCMeta):
             min_values = bins[:-1]
             max_values = bins[1:]
         n_segments = len(min_values)
-        
-        colors = getattr(self, 'colors')
+
+        colors = getattr(self, 'colors', None)
         if not colors:
             colors = get_colors(colormap_name=self.colormap_name,
                                 n_segments=n_segments)
-            
+
         for i, color in enumerate(colors):
             entry = dict(min_value=min_values[i],
                          max_value=max_values[i],
