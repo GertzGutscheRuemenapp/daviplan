@@ -33,6 +33,12 @@ from datentool_backend.infrastructure.models.places import Place
 from datentool_backend.population.models import RasterCell, RasterCellPopulation
 
 
+class MatrixStopStopSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MatrixStopStop
+        fields = ('from_stop', 'to_stop', 'minutes')
+
+
 class MatrixStopStopTemplateSerializer(serializers.Serializer):
     """Serializer for uploading MatrixStopStopTemplate"""
     excel_or_visum_file = FileField()
