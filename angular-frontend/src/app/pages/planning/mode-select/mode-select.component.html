@@ -19,8 +19,7 @@
     </div>
     <div *ngIf="Number(modeItem.key) === TransportMode.CAR || Number(modeItem.key) === TransportMode.TRANSIT"
          class="mini-fab-icon primary"
-         [style.pointer-events]="(Number(modeItem.key) === TransportMode.TRANSIT)? 'none': ''"
-         [ngClass]="{'inverted': Number(modeItem.key) === mode, 'disabled': Number(modeItem.key) === TransportMode.TRANSIT}"
+         [ngClass]="{'inverted': Number(modeItem.key) === mode}"
          style="cursor: pointer;">
       <div *ngIf="Number(modeItem.key) === TransportMode.CAR" class="davicon icon-GGR-davicons-Font-Simple-17-PKW"></div>
       <div *ngIf="Number(modeItem.key) === TransportMode.TRANSIT" class="davicon icon-GGR-davicons-Font-Simple-18-OEPNV"></div>

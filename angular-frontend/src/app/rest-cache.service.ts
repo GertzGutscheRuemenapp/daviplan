@@ -17,7 +17,17 @@ import {
   Statistic,
   FieldType,
   RasterCell,
-  TransportMode, CellResult, PlaceResult, ExtLayerGroup, ExtLayer, ModeVariant, Network, Scenario, LogEntry
+  TransportMode,
+  CellResult,
+  PlaceResult,
+  ExtLayerGroup,
+  ExtLayer,
+  ModeVariant,
+  Network,
+  Scenario,
+  LogEntry,
+  TransitStop,
+  TransitMatrixEntry
 } from "./rest-interfaces";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
@@ -383,6 +393,22 @@ export class RestCacheService {
   getModeVariants(options?: { reset: boolean }): Observable<ModeVariant[]> {
     const url = this.rest.URLS.modevariants;
     return this.getCachedData<ModeVariant[]>(url, options);
+  }
+
+  getTransitStops(options?: { reset?: boolean, variant?: number }): Observable<TransitStop[]> {
+    const url = this.rest.URLS.transitStops;
+    let params: any = {};
+    if (options?.variant !== undefined)
+      params.variant = options.variant;
+    return this.getCachedData<TransitStop[]>(url, { reset: options?.reset, params: params });
+  }
+
+  getTransitMatrix(options?: { reset?: boolean, variant?: number }): Observable<TransitMatrixEntry[]> {
+    const url = this.rest.URLS.transitMatrix;
+    let params: any = {};
+    if (options?.variant !== undefined)
+      params.variant = options.variant;
+    return this.getCachedData<TransitMatrixEntry[]>(url, { reset: options?.reset, params: params });
   }
 
   getNetworks(options?: { reset: boolean }): Observable<Network[]> {
