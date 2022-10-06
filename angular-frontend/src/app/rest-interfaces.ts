@@ -111,6 +111,12 @@ export interface Indicator {
   additionalParameters?: IndicatorParameter[]
 }
 
+export interface IndicatorLegendClass {
+  color: string,
+  minValue: number,
+  maxValue: number
+}
+
 export interface RasterCell {
   id: number,
   geom: any,

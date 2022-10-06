@@ -260,7 +260,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       });
       this.layerGroup?.addLayer(this.populationLayer);
       this.areas.forEach(area => {
-        const data = popData.find(d => d.areaId == area.id);
+        const data = popData.values.find(d => d.areaId == area.id);
         area.properties.value = (data)? Math.round(data.value): 0;
         area.properties.description = `<b>${area.properties.label}</b><br>Bevölkerung: ${area.properties.value}`
       })
@@ -299,7 +299,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     // this.populationService.getPopulationData(this.activeArea.id, { genders: genders }).subscribe( popData => {
       this.populationService.getPopulationData(this.activeArea!.id, { prognosis: this.activePrognosis?.id, genders: genders }).subscribe(progData => {
         // const data = popData.concat(progData);
-        const data = progData;
+        const data = progData.values;
         if (data.length === 0) return;
         const years = [... new Set(data.map(d => d.year))].sort();
         let stackedData: StackedData[] = [];
