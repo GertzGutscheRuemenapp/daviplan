@@ -114,7 +114,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
       data: {
         title: `Reisezeitmatrizen erzeugen`,
         confirmButtonText: 'Berechnung starten',
-        message: 'Die Reisezeiten zwischen allen vorhandenen Standorten und den Siedlungszellen mit den Modi Fuß, Rad und Auto werden berechnet. Dies kann einige Minuten dauern.',
+        message: 'Die Reisezeiten zwischen allen vorhandenen Standorten und den Siedlungszellen über die Haltestellen im ÖPNV-Netz werden berechnet. Dies kann einige Minuten dauern.',
         closeOnConfirm: true
       }
     });
