@@ -283,6 +283,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
             result = pd.DataFrame(response.data['values']).set_index('cell_code')
             self.assertEquals(len(result), 8)
 
+            # test the legend values and colors
             legend = pd.DataFrame(response.data['legend'])
             last_legend_entry = legend.iloc[-1]
             target_bin = reachability_bins_by_mode[variant.mode][-2]
