@@ -258,7 +258,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     });
     dialogRef.componentInstance.confirmed.subscribe((confirmed: boolean) => {
       this.isProcessing = true;
-      this.http.post(this.rest.URLS.pullAreas, { area_level: this.activeLevel!.id, truncate: true, simplify: false }).subscribe(res => {
+      this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/pull_areas/`, { area_level: this.activeLevel!.id, truncate: true, simplify: false }).subscribe(res => {
         this.selectAreaLevel(this.activeLevel!, true);
       }, error => {
         this.uploadErrors = error.error;

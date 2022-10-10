@@ -5,13 +5,11 @@ import datetime
 import json
 import logging
 
-import asyncio
-from asgiref.sync import sync_to_async, async_to_sync
 from django.core.exceptions import BadRequest
 from django.contrib.gis.geos import (Polygon, MultiPolygon, GEOSGeometry,
                                      GeometryCollection)
 from django.views.generic import DetailView
-from django.http import JsonResponse, Http404, HttpResponse
+from django.http import JsonResponse, Http404
 from django.db.models import OuterRef, Subquery, CharField, Case, When, F, JSONField, Func
 from django.db.models.functions import Cast
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -23,7 +21,6 @@ from rest_framework.response import Response
 from rest_framework import viewsets, permissions, status, serializers
 from rest_framework.exceptions import (ParseError, NotFound, APIException)
 from rest_framework.decorators import action
-from rest_framework.decorators import api_view
 from drf_spectacular.utils import (extend_schema,
                                    OpenApiParameter,
                                    OpenApiResponse,
@@ -77,63 +74,7 @@ from datentool_backend.site.models import ProjectSetting
 
 logger = logging.getLogger('areas')
 
-from django.views.decorators.csrf import csrf_exempt
 import json
-from django_q.tasks import async_task, AsyncTask
-
-def process_pull(area_level, project_area, user, body):
-    with ProtectedProcessManager(user, scope=ProcessScope.AREAS):
-        truncate = body.get('truncate', False)
-        simplify = body.get('simplify', False)
-        areas = AreaLevelViewSet._pull_areas(area_level, project_area,
-                                             truncate=truncate, simplify=simplify)
-        logger.info('Verschneide Gebiete mit dem Bevölkerungsraster')
-        intersect_areas_with_raster(areas, drop_constraints=True)
-        logger.info('Aggregiere Bevölkerungsdaten auf neue Gebiete hoch')
-        n_pop = Population.objects.count()
-        for i, population in enumerate(Population.objects.all()):
-            logger.info(f'{i + 1}/{n_pop}')
-            try:
-                aggregate_population(area_level, population, drop_constraints=True)
-            except Exception as e:
-                logger.error(str(e))
-                return Response({'message': str(e)}, status.HTTP_500_INTERNAL_SERVER_ERROR)
-        logger.info(f'{areas.count()} Gebiete gespeichert und verarbeitet')
-
-
-@csrf_exempt
-def pull_areas(request):
-    if not request.body:
-        return JsonResponse({'message': 'Parameter fehlen'}, status=406)
-    body = json.loads(request.body)
-
-    def get_input(body):
-        try:
-            area_level = AreaLevel.objects.get(id=body.get('area_level'))
-        except AreaLevel.DoesNotExist:
-            msg = f'Gebietseinteilung nicht gefunden'
-            logger.error(msg)
-            return JsonResponse({'message': msg}, status=406)
-        source = area_level.source
-        if (not source or source.source_type != SourceTypes.WFS):
-            msg = 'Source of Area Level has to be a Feature-Service to pull from'
-            logger.error(msg)
-            return JsonResponse({'message': msg}, status=406)
-        if not source.url or not source.layer:
-            msg = 'Source of Area Level is not completely defined'
-            logger.error(msg)
-            return JsonResponse({'message': msg}, status=406)
-        project_area = ProjectSetting.load().project_area
-        if not project_area:
-            msg = 'Project area is not defined'
-            logger.error(msg)
-            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
-        return area_level, project_area
-    area_level, project_area = get_input(body)
-    #asyncio.create_task(process_pull(area_level, project_area, request.user, body))
-    task = AsyncTask(process_pull, area_level, project_area, request.user, body)
-    task.run()
-    return JsonResponse({'message': 'bla gestartet'})
 
 
 class JsonObject(Func):
@@ -357,15 +298,69 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
         msg = f'{len(areas)} Areas were successfully intersected with Rastercells.\n'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
+    @extend_schema(description='Pull areas of area level incl. geometries '
+                   'from assigned WFS-service ("source")',
+                   request=inline_serializer(
+                       name='PullAreaSerializer',
+                       fields={
+                           'simplify': serializers.BooleanField(
+                               required=False,
+                               help_text='simplify the fetched geometries'),
+                           'truncate': serializers.BooleanField(
+                               required=False,
+                               help_text='''drop all existing areas if true.
+                               Otherwise update existing areas with same key field
+                               values resp. add new ones.'''),
+                       }
+                   ),
+                   responses={
+                       202: OpenApiResponse(MessageSerializer, 'Pull successful'),
+                       406: OpenApiResponse(MessageSerializer, 'Pull failed'),
+                       500: OpenApiResponse(MessageSerializer, 'Pull failed')
+                   })
+    @action(methods=['POST'], detail=True,
+            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+    def pull_areas(self, request, **kwargs):
+        try:
+            area_level: AreaLevel = self.queryset.get(**kwargs)
+        except AreaLevel.DoesNotExist:
+            msg = f'Gebietseinheit {kwargs} nicht gefunden'
+            logger.error(msg)
+            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+        if (not area_level.source or
+            area_level.source.source_type != SourceTypes.WFS):
+            msg = 'Quelle der Gebietseinteilung ist kein Feature-Service'
+            logger.error(msg)
+            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+        if not area_level.source.url or not area_level.source.layer:
+            msg = 'URL oder Layer fehlen in der Definition der Gebietseinteilung'
+            logger.error(msg)
+            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+        project_area = ProjectSetting.load().project_area
+        if not project_area:
+            msg = 'Das Projektgebiet ist nicht definiert'
+            logger.error(msg)
+            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+        truncate = request.data.get('truncate', False)
+        simplify = request.data.get('simplify', False)
+
+        with ProtectedProcessManager(request.user, scope=ProcessScope.AREAS) as ppm:
+            ppm.run_async(self._pull_areas, area_level, project_area,
+                          truncate=truncate, simplify=simplify)
+        return Response({'message': f'Abruf der Gebiete erfolgreich gestartet'},
+                        status.HTTP_202_ACCEPTED)
+
     @staticmethod
     def _pull_areas(area_level: AreaLevel, project_area,
-                   truncate=False, simplify=False):
+                    truncate=False, simplify=False):
         msg = f'Rufe Gebiete der Ebene "{area_level.name}" ab'
         logger.info(msg)
         url = area_level.source.url
         layer = area_level.source.layer
         if not url or not layer:
-            return []
+            msg = 'URL oder Layer fehlen in der Definition der Gebietseinteilung'
+            logger.error(msg)
+            raise Exception(msg)
         # project bbox with srs
         bbox = list(project_area.extent)
         bbox.append('EPSG:3857')
@@ -383,7 +378,7 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
             msg = (f'Layer "{key}" nicht in den Capabilities des WFS-Services '
                    'gefunden')
             logger.error(msg)
-            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+            raise Exception(msg)
         response = wfs.getfeature(typename=typename, bbox=bbox,
                                   srsname='EPSG:3857',
                                   outputFormat='application/json')
@@ -441,72 +436,18 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
         area_level.source.date = datetime.date(now.year, now.month, now.day)
         area_level.source.save()
         areas = Area.objects.filter(area_level=area_level)
-        return areas
-
-    @extend_schema(description='Pull areas of area level incl. geometries '
-                   'from assigned WFS-service ("source")',
-                   request=inline_serializer(
-                       name='PullAreaSerializer',
-                       fields={
-                           'simplify': serializers.BooleanField(
-                               required=False,
-                               help_text='simplify the fetched geometries'),
-                           'truncate': serializers.BooleanField(
-                               required=False,
-                               help_text='''drop all existing areas if true.
-                               Otherwise update existing areas with same key field
-                               values resp. add new ones.'''),
-                       }
-                   ),
-                   responses={
-                       202: OpenApiResponse(MessageSerializer, 'Pull successful'),
-                       406: OpenApiResponse(MessageSerializer, 'Pull failed'),
-                       500: OpenApiResponse(MessageSerializer, 'Pull failed')
-                   })
-    @action(methods=['POST'], detail=True,
-            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
-    def pull_areas(self, request, **kwargs):
-        with ProtectedProcessManager(request.user,
-                                     scope=ProcessScope.AREAS):
-            try:
-                area_level: AreaLevel = self.queryset.get(**kwargs)
-            except AreaLevel.DoesNotExist:
-                msg = f'Area level for {kwargs} not found'
-                logger.error(msg)
-                return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
-            if (not area_level.source or
-                area_level.source.source_type != SourceTypes.WFS):
-                msg = 'Source of Area Level has to be a Feature-Service to pull from'
-                logger.error(msg)
-                return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
-            if not area_level.source.url or not area_level.source.layer:
-                msg = 'Source of Area Level is not completely defined'
-                logger.error(msg)
-                return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
-            project_area = ProjectSetting.load().project_area
-            if not project_area:
-                msg = 'Project area is not defined'
-                logger.error(msg)
-                return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
-
-            truncate = request.data.get('truncate', False)
-            simplify = request.data.get('simplify', False)
-            areas = self._pull_areas(area_level, project_area,
-                                     truncate=truncate, simplify=simplify)
-            logger.info('Verschneide Gebiete mit dem Bevölkerungsraster')
-            intersect_areas_with_raster(areas, drop_constraints=True)
-            logger.info('Aggregiere Bevölkerungsdaten auf neue Gebiete hoch')
-            n_pop = Population.objects.count()
-            for i, population in enumerate(Population.objects.all()):
-                logger.info(f'{i + 1}/{n_pop}')
-                try:
-                    aggregate_population(area_level, population, drop_constraints=True)
-                except Exception as e:
-                    logger.error(str(e))
-                    return Response({'message': str(e)}, status.HTTP_500_INTERNAL_SERVER_ERROR)
-            logger.info(f'{areas.count()} Gebiete gespeichert und verarbeitet')
-            return Response({'message': f'{areas.count()} Areas pulled into database'},
-                            status.HTTP_202_ACCEPTED)
+        #logger.info('Verschneide Gebiete mit dem Bevölkerungsraster')
+        #intersect_areas_with_raster(areas, drop_constraints=True)
+        #logger.info('Aggregiere Bevölkerungsdaten auf neue Gebiete hoch')
+        #n_pop = Population.objects.count()
+        #for i, population in enumerate(Population.objects.all()):
+            #logger.info(f'{i + 1}/{n_pop}')
+            #try:
+                #aggregate_population(area_level, population, drop_constraints=True)
+            #except Exception as e:
+                #logger.error(str(e))
+                #raise Exception(str(e))
+        logger.info(f'{areas.count()} Gebiete gespeichert und verarbeitet')
 
     @extend_schema(description='Upload Geopackage/ZippedShapeFile with Areas',
                    request=inline_serializer(
