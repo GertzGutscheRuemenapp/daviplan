@@ -436,17 +436,17 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
         area_level.source.date = datetime.date(now.year, now.month, now.day)
         area_level.source.save()
         areas = Area.objects.filter(area_level=area_level)
-        #logger.info('Verschneide Gebiete mit dem Bevölkerungsraster')
-        #intersect_areas_with_raster(areas, drop_constraints=True)
-        #logger.info('Aggregiere Bevölkerungsdaten auf neue Gebiete hoch')
-        #n_pop = Population.objects.count()
-        #for i, population in enumerate(Population.objects.all()):
-            #logger.info(f'{i + 1}/{n_pop}')
-            #try:
-                #aggregate_population(area_level, population, drop_constraints=True)
-            #except Exception as e:
-                #logger.error(str(e))
-                #raise Exception(str(e))
+        logger.info('Verschneide Gebiete mit dem Bevölkerungsraster')
+        intersect_areas_with_raster(areas, drop_constraints=True)
+        logger.info('Aggregiere Bevölkerungsdaten auf neue Gebiete hoch')
+        n_pop = Population.objects.count()
+        for i, population in enumerate(Population.objects.all()):
+            logger.info(f'{i + 1}/{n_pop}')
+            try:
+                aggregate_population(area_level, population, drop_constraints=True)
+            except Exception as e:
+                logger.error(str(e))
+                raise Exception(str(e))
         logger.info(f'{areas.count()} Gebiete gespeichert und verarbeitet')
 
     @extend_schema(description='Upload Geopackage/ZippedShapeFile with Areas',

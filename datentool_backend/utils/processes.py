@@ -1,22 +1,12 @@
 from rest_framework.exceptions import PermissionDenied
-from enum import Enum
+from datentool_backend.site.models import ProcessScope, ProcessState
 from django_q.tasks import async_task
 from datentool.loggers import send
-from channels.generic.websocket import WebsocketConsumer
-from aioredis import errors
 
 import logging
 import channels.layers
 
 channel_layer = channels.layers.get_channel_layer()
-
-
-class ProcessScope(Enum):
-    GENERAL = 'Allgemein'
-    POPULATION = 'Bevölkerung'
-    INFRASTRUCTURE = 'Infrastruktur'
-    ROUTING = 'Routing'
-    AREAS = 'Gebiete'
 
 
 class ProtectedProcessManager:
@@ -33,8 +23,6 @@ class ProtectedProcessManager:
     '''
     # for some undocumented reason django_q needs this attribute
     __name__ = 'ProtectedProcessManager'
-    is_running = {s: False for s in ProcessScope}
-    user = {s: None for s in ProcessScope}
     def __init__(self, user: 'User', scope: ProcessScope = ProcessScope.GENERAL,
                  logger=None, blocked_by=[s for s in ProcessScope]):
         '''
@@ -60,77 +48,72 @@ class ProtectedProcessManager:
         self.logger = logger
         self.blocked_by = blocked_by
         self._async_running = False
-        a = ProcessConsumer()
-        a.connect()
+
+    @classmethod
+    def is_running(cls, scope):
+        state = cls.get_state(scope)
+        if state:
+            return state.is_running
+        return False
+
+    @classmethod
+    def user(cls, scope):
+        state = cls.get_state(scope)
+        if state:
+            return state.user
+        return False
+
+    @staticmethod
+    def get_state(scope, create=False):
+        try:
+            state = ProcessState.objects.get(scope=scope.value)
+            return state
+        except ProcessState.DoesNotExist:
+            if create:
+                return ProcessState.objects.create(scope=scope.value)
+        return
 
     def __enter__(self):
         blocking_scope = None
         for scope in self.blocked_by:
-            if self.is_running[scope]:
+            if self.is_running(scope):
                 blocking_scope = scope
                 break
         if blocking_scope:
-            user = self.user[blocking_scope]
+            user = self.user(blocking_scope)
             user_name = user.username if user else 'unbekannt'
             msg = (f'User "{user_name}" lädt momentan Daten im Bereich '
-                   f'"{blocking_scope.value}" hoch. Andere Uploads '
+                   f'"{ProcessScope(blocking_scope).label}" hoch. Andere Uploads '
                    'sind währenddessen gesperrt. Bitte warten Sie bis '
                    'der Vorgang abgeschlossen ist und versuchen Sie es erneut.')
             self.logger.error(msg)
             raise PermissionDenied(msg)
-        ProtectedProcessManager.is_running[self.scope] = True
-        ProtectedProcessManager.user[self.scope] = self.me
+
+        state = self.get_state(self.scope, create=True)
+        state.is_running = True
+        state.user = self.me
+        state.save()
         return self
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         if not self._async_running:
             self.finish()
 
-    def finish(self):
-        ProtectedProcessManager.is_running[self.scope] = False
+    def finish(self, *args):
+        state = self.get_state(self.scope, create=True)
+        state.is_running = False
+        state.save()
         self._async_running = False
         self.logger.info('', extra={'status': {'success': True}})
 
-    def emit_done(self, *args):
-        send('cluster', 'done', log_type='cluster_message',
-             status={'done': True, 'scope': self.scope.value})
-
     def run_async(self, func, *args, **kwargs):
+        state = self.get_state(self.scope, create=True)
+        state.is_running = True
+        state.user = self.me
+        state.save()
         self._async_func = func
         self._async_running = True
-        async_task(self._async_func_wrapper, *args, kwargs, hook=self.emit_done)
+        async_task(self._async_func_wrapper, *args, kwargs, hook=self.finish)
 
     def _async_func_wrapper(self, *args):
         self._async_func(*args[:-1], **args[-1])
-
-
-class ProcessConsumer(WebsocketConsumer):
-    def __init__(self, *args, **kwargs):
-        self.channel_layer = channel_layer
-        super().__init__(*args, **kwargs)
-
-    def connect(self):
-        '''join room'''
-        self.room_name = 'cluster'
-        print('hallo')
-        try:
-            self.channel_layer.group_add(
-                    self.room_name,
-                    'cluster123456'
-                )
-        except Exception as e:
-            print(str(e))
-
-    def disconnect(self, close_code):
-        '''leave room'''
-        self.channel_layer.group_discard(
-            self.room_name,
-            self.channel_name
-        )
-
-    def cluster_message(self, event):
-        '''send "log_message"'''
-        print(f'cluster_message: {event} ')
-
-    def receive(self, event):
-        print(f'received: {event}')

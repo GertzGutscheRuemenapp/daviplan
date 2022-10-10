@@ -13,7 +13,8 @@ from datentool_backend.area.views import AreaLevelViewSet
 from datentool_backend.population.views.raster import PopulationRasterViewSet
 from datentool_backend.models import (DemandRateSet, Prognosis, ModeVariant,
                                       Year, AreaLevel, PopulationRaster)
-from datentool_backend.utils.processes import (ProtectedProcessManager)
+from datentool_backend.utils.processes import (ProtectedProcessManager,
+                                               ProcessScope)
 
 
 class YearSerializer(serializers.ModelSerializer):
@@ -143,9 +144,9 @@ class BaseDataSettingSerializer(serializers.Serializer):
         }
 
     def get_processes(self, obj):
-        return { scope.name.lower(): is_running
-                 for scope, is_running in
-                 ProtectedProcessManager.is_running.items() }
+        return { ProcessScope(scope).name.lower():
+                 ProtectedProcessManager.is_running(ProcessScope(scope))
+                 for scope in ProcessScope }
 
 
 class SiteSettingSerializer(serializers.ModelSerializer):

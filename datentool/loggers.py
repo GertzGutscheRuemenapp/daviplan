@@ -65,7 +65,6 @@ class LogConsumer(AsyncWebsocketConsumer):
 
     async def log_message(self, event):
         '''send "log_message"'''
-        print(f'received: {event}')
         try:
             await self.send(text_data=json.dumps({
                 'message': event['message'],
@@ -75,9 +74,3 @@ class LogConsumer(AsyncWebsocketConsumer):
             }))
         except (errors.RedisError, OSError) as e:
             logger.error(e)
-
-    async def receive(self, event):
-        print(f'received: {event}')
-
-    async def cluster_message(self, event):
-        print(f'received: {event}')
