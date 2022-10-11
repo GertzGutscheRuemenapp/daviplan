@@ -7,6 +7,8 @@ class DemandAreaIndicator(PopulationIndicatorMixin,
                           ComputeIndicator):
     label = 'Demand for Service By Area'
     description = 'Total Demand for Service per Area'
+    representation = 'colorramp'
+    colormap_name = 'Blues'
     result_serializer = ResultSerializer.AREA
 
     def compute(self):

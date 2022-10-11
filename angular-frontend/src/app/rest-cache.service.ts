@@ -26,6 +26,7 @@ import {
   Network,
   Scenario,
   LogEntry,
+  IndicatorLegendClass,
   TransitStop,
   TransitMatrixEntry
 } from "./rest-interfaces";
@@ -46,9 +47,6 @@ export class RestCacheService {
 
   private genericCache: Record<string, Record<string, any>> = {};
   private areaCache: Record<number, Area[]> = {};
-  private demandAreaCache: Record<string, AreaIndicatorResult[]> = {};
-  private popDataCache: Record<string, PopulationData[]> = {};
-  private popAreaCache: Record<string, AreaIndicatorResult[]> = {};
   private capacitiesCache: Record<string, Capacity[]> = {};
   private statisticsCache: Record<string, StatisticsData[]> = {};
   isLoading$ = new BehaviorSubject<boolean>(false);
@@ -294,70 +292,35 @@ export class RestCacheService {
     }))
   }
 
-  getAreaLevelPopulation(areaLevelId: number, year: number, options?: { genders?: number[], prognosis?: number, ageGroups?: number[] }): Observable<AreaIndicatorResult[]> {
+  getAreaLevelPopulation(areaLevelId: number, year: number, options?: { genders?: number[], prognosis?: number, ageGroups?: number[] }): Observable<{ values: AreaIndicatorResult[], legend: IndicatorLegendClass[] }> {
     const key = `${areaLevelId}-${year}-${options?.prognosis}-${options?.genders}-${options?.ageGroups}`;
-    const data: any = { area_level: areaLevelId, year: year };
+    const params: any = { area_level: areaLevelId, year: year };
     if (options?.prognosis != undefined)
-      data.prognosis = options.prognosis;
+      params.prognosis = options.prognosis;
     if (options?.genders)
-      data.genders = options.genders;
+      params.genders = options.genders;
     if (options?.ageGroups)
-      data.age_groups = options.ageGroups;
-    const observable = new Observable<AreaIndicatorResult[]>(subscriber => {
-      const cached = this.popAreaCache[key];
-      if (!cached) {
-        this.setLoading(true);
-        const query = this.http.post<AreaIndicatorResult[]>(this.rest.URLS.areaPopulation, data);
-        query.subscribe(data => {
-          this.popAreaCache[key] = data;
-          this.setLoading(false);
-          subscriber.next(data);
-          subscriber.complete();
-        },error => {
-          this.setLoading(false);
-        });
-      } else {
-        subscriber.next(cached);
-        subscriber.complete();
-      }
-    });
-    return observable;
+      params.age_groups = options.ageGroups;
+    return this.getCachedData<{ values: AreaIndicatorResult[], legend: IndicatorLegendClass[] }>(
+      this.rest.URLS.areaPopulation, { params: params, method: "POST" });
   }
 
-  getPopulationData(areaId: number, options?: { year?: number, prognosis?: number, genders?: number[], ageGroups?: number[]}): Observable<PopulationData[]> {
-    const key = `${areaId}-${options?.year}-${options?.prognosis}-${options?.genders}-${options?.ageGroups}`;
-    const observable = new Observable<PopulationData[]>(subscriber => {
-      const cached = this.popDataCache[key];
-      if (!cached) {
-        let data: any = { areas: [areaId] };
-        if (options?.year != undefined)
-          data.year = options?.year;
-        if (options?.prognosis != undefined)
-          data.prognosis = options?.prognosis;
-        if (options?.genders)
-          data.genders = options.genders;
-        if (options?.ageGroups)
-          data.age_groups = options.ageGroups;
-        this.setLoading(true);
-        const query = this.http.post<PopulationData[]>(this.rest.URLS.populationData, data);
-        query.subscribe(data => {
-          this.popDataCache[key] = data;
-          this.setLoading(false);
-          subscriber.next(data);
-          subscriber.complete();
-        },error => {
-          this.setLoading(false);
-        });
-      } else {
-        subscriber.next(cached);
-        subscriber.complete();
-      }
-    });
-    return observable;
+  getPopulationData(areaId: number, options?: { year?: number, prognosis?: number, genders?: number[], ageGroups?: number[]}): Observable<{ values: PopulationData[], legend: IndicatorLegendClass[] }> {
+    let params: any = { areas: [areaId] };
+    if (options?.year != undefined)
+      params.year = options?.year;
+    if (options?.prognosis != undefined)
+      params.prognosis = options?.prognosis;
+    if (options?.genders)
+      params.genders = options.genders;
+    if (options?.ageGroups)
+      params.age_groups = options.ageGroups;
+    return this.getCachedData<{ values: PopulationData[], legend: IndicatorLegendClass[] }>(
+      this.rest.URLS.populationData, { params: params, method: "POST" });
   }
 
   computeIndicator<Type>(indicatorName: string, serviceId: number, options?: {
-    year?: number, prognosis?: number, scenario?: number, areaLevelId?: number, additionalParams?: any }): Observable<Type[]> {
+    year?: number, prognosis?: number, scenario?: number, areaLevelId?: number, additionalParams?: any }): Observable<{ values: Type[], legend: IndicatorLegendClass[] }> {
     const url = `${this.rest.URLS.services}${serviceId}/compute_indicator/`;
     let params: any = Object.assign({indicator: indicatorName}, options?.additionalParams || {});
     if (options?.year != undefined)
@@ -368,10 +331,10 @@ export class RestCacheService {
       params.scenario = options.scenario;
     if (options?.areaLevelId != undefined)
       params.area_level = options.areaLevelId;
-    return this.getCachedData<Type[]>(url, { params: params, method: 'POST', key: options?.scenario?.toString() });
+    return this.getCachedData<{ values: Type[], legend: IndicatorLegendClass[] }>(url, { params: params, method: 'POST', key: options?.scenario?.toString() });
   }
 
-  getDemand(areaLevelId: number, options?: { year?: number, prognosis?: number, service?: number, scenario?: number }): Observable<AreaIndicatorResult[]> {
+  getDemand(areaLevelId: number, options?: { year?: number, prognosis?: number, service?: number, scenario?: number }): Observable<{ values: AreaIndicatorResult[], legend: IndicatorLegendClass[] }> {
     let data: any = { area_level: areaLevelId };
     if (options?.year != undefined)
       data.year = options?.year;
@@ -382,7 +345,7 @@ export class RestCacheService {
     if (options?.scenario != undefined)
       data.scenario = options?.scenario;
     const url = this.rest.URLS.areaDemand;
-    return this.getCachedData(url, {method: 'POST', params: data, key: options?.scenario?.toString()});
+    return this.getCachedData<{ values: AreaIndicatorResult[], legend: IndicatorLegendClass[] }>(url, {method: 'POST', params: data, key: options?.scenario?.toString()});
   }
 
   getDemandRateSets(service: number, options?: { reset: boolean }): Observable<DemandRateSet[]> {
@@ -449,24 +412,24 @@ export class RestCacheService {
     return observable;
   }
 
-  getPlaceReachability(placeId: number, mode: TransportMode, options?: { scenario?: Scenario }): Observable<CellResult[]>{
+  getPlaceReachability(placeId: number, mode: TransportMode, options?: { scenario?: Scenario }): Observable<{ values: CellResult[], legend: IndicatorLegendClass[] }>{
     let params: any = { mode: mode, place: placeId };
     if (options?.scenario) params.scenario = options.scenario.id;
-    return this.getCachedData<CellResult[]>(this.rest.URLS.reachabilityPlace, { params: params, method: 'POST' });
+    return this.getCachedData<{ values: CellResult[], legend: IndicatorLegendClass[] }>(this.rest.URLS.reachabilityPlace, { params: params, method: 'POST' });
   }
 
-  getCellReachability(cellCode: string, mode: TransportMode, options?: { scenario?: Scenario }): Observable<PlaceResult[]>{
+  getCellReachability(cellCode: string, mode: TransportMode, options?: { scenario?: Scenario }): Observable<{ values: PlaceResult[], legend: IndicatorLegendClass[] }>{
     let params: any = { mode: mode, cell_code: cellCode };
     if (options?.scenario) params.scenario = options.scenario.id;
-    return this.getCachedData<PlaceResult[]>(this.rest.URLS.reachabilityCell, { params: params, method: 'POST' });
+    return this.getCachedData<{ values: PlaceResult[], legend: IndicatorLegendClass[] }>(this.rest.URLS.reachabilityCell, { params: params, method: 'POST' });
   }
 
-  getNextPlaceReachability(services: Service[], mode: TransportMode, options?: { year?: number, scenario?: Scenario, places?: Place[] }): Observable<CellResult[]> {
+  getNextPlaceReachability(services: Service[], mode: TransportMode, options?: { year?: number, scenario?: Scenario, places?: Place[] }): Observable<{ values: CellResult[], legend: IndicatorLegendClass[] }> {
     let params: any = { mode: mode, services: services.map(s => s.id) };
     if (options?.year) params.year = options.year;
     if (options?.scenario) params.scenario = options.scenario.id;
     if (options?.places) params.places = options.places.map(p => p.id);
-    return this.getCachedData<CellResult[]>(this.rest.URLS.reachabilityNextPlace, { params: params, method: 'POST' });
+    return this.getCachedData<{ values: CellResult[], legend: IndicatorLegendClass[] }>(this.rest.URLS.reachabilityNextPlace, { params: params, method: 'POST' });
   }
 
   clearCache(key?: string) {
@@ -479,9 +442,6 @@ export class RestCacheService {
   reset(): void {
     this.genericCache = {};
     this.areaCache = {};
-    this.demandAreaCache = {};
-    this.popDataCache = {};
-    this.popAreaCache = {};
     this.capacitiesCache = {};
     this.statisticsCache = {};
   }

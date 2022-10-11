@@ -31,6 +31,9 @@ class ReachabilityPlace(ModeVariantMixin, ComputeIndicator):
     title = 'Erreichbarkeit Einrichtung'
     description = ('Wegezeit zwischen ausgewählter Einrichtung und allen '
                    'Wohnstandorten (= Rasterzellen) ')
+    representation = 'colorramp'
+    colors = ['#006837', '#64bc61', '#d7ee8e', '#fedd8d', '#f16e43', '#a50027', '#000000']
+    bins = [None, 5, 10, 15, 20, 30, 45, None]
     result_serializer = ResultSerializer.RASTER
 
     def compute(self):
@@ -50,6 +53,9 @@ class ReachabilityCell(ModeVariantMixin, ComputeIndicator):
     title = 'Erreichbarkeit Wohnstandort'
     description = ('Wegezeit zwischen ausgewähltem Wohnstandort (= Rasterzelle) '
                    'und allen Einrichtungen')
+    representation = 'colorramp'
+    colors = ['#006837', '#64bc61', '#d7ee8e', '#fedd8d', '#f16e43', '#a50027', '#000000']
+    bins = [None, 5, 10, 15, 20, 30, 45, None]
     result_serializer = ResultSerializer.PLACE
     unit = 'Minuten'
 
@@ -73,6 +79,9 @@ class ReachabilityNextPlace(ModeVariantMixin, ComputeIndicator):
     title = 'Erreichbarkeit nächste Einrichtung'
     description = ('Wegezeit zwischen allen Wohnstandorten (= Rasterzellen) '
                    'und der jeweils nächstgelegenen Einrichtung ')
+    representation = 'colorramp'
+    colors = ['#006837', '#64bc61', '#d7ee8e', '#fedd8d', '#f16e43', '#a50027', '#000000']
+    bins = [None, 5, 10, 15, 20, 30, 45, None]
     result_serializer = ResultSerializer.RASTER
     unit = 'Minuten'
 

@@ -128,7 +128,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     this.planningService.computeIndicator<RasterIndicatorResult>(this.selectedIndicator!.name, this.activeService!.id, params
       ).subscribe(cellResults => {
       let values: Record<string, number> = {};
-      cellResults.forEach(cellResult => {
+      cellResults.values.forEach(cellResult => {
         values[cellResult.cellCode] = Math.round(cellResult.value);
         max = Math.max(max, cellResult.value);
         min = Math.min(min, cellResult.value);
@@ -177,7 +177,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         let max = 0;
         let min = Number.MAX_VALUE;
         let displayedPlaces: any[] = [];
-        results.forEach(result => {
+        results.values.forEach(result => {
           const place = places.find(p => p.id == result.placeId);
           if (!place) return;
           displayedPlaces.push({
@@ -243,7 +243,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         let max = 0;
         let min = Number.MAX_VALUE;
         areas.forEach(area => {
-          const data = results.find(d => d.areaId == area.id);
+          const data = results.values.find(d => d.areaId == area.id);
           const value = (data && data.value)? data.value: 0;
           max = Math.max(max, value);
           min = Math.min(min, value);

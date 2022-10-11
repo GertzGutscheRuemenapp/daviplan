@@ -21,11 +21,14 @@ class CutoffAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, Service
     Gebietseinheit in maximal … Minuten mit einem bestimmter Verkehrsmittel
     erreichen'''
     title = 'Erreichbarkeit bis […] Minuten'
+    unit = '%'
     params = (
         ModeParameter(),
         IndicatorNumberParameter('cutoff', 'maximale Wegezeit (in Minuten)',
                                  min=0, max=240, integer_only=True)
     )
+    representation = 'colorramp'
+    colormap_name = 'Greens'
     result_serializer = ResultSerializer.AREA
 
     @property

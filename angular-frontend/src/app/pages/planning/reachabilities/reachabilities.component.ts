@@ -197,7 +197,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       let showLabel = this.reachRasterLayer?.showLabel;
       this.reachLayerGroup?.clear();
       let values: Record<string, number> = {};
-      cellResults.forEach(cellResult => {
+      cellResults.values.forEach(cellResult => {
         values[cellResult.cellCode] = Math.round(cellResult.value);
       })
 
@@ -244,7 +244,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         let showLabel = this.placeReachabilityLayer?.showLabel;
         this.reachLayerGroup?.clear();
         this.places.forEach(place => {
-          const res = placeResults.find(p => p.placeId === place.id);
+          const res = placeResults.values.find(p => p.placeId === place.id);
           place.value = (res?.value !== undefined)? Math.round(res?.value): undefined;
         })
         const valueBins = modeBins[this.activeMode];
@@ -293,7 +293,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       let showLabel = this.nextPlaceReachabilityLayer?.showLabel;
       this.reachLayerGroup?.clear();
       let values: Record<string, number> = {};
-      cellResults.forEach(cellResult => {
+      cellResults.values.forEach(cellResult => {
         values[cellResult.cellCode] = Math.round(cellResult.value);
       })
       const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
