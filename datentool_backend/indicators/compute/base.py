@@ -100,6 +100,7 @@ class ComputeIndicator(metaclass=ABCMeta):
         if not self.result_serializer:
             raise Exception('no serializer defined')
         serializer = self.result_serializer.value
+        serializer._digits_to_round = getattr(self, 'digits', None)
         values = serializer(queryset, many=True).data
         legend = self.get_legend(values)
         return {'legend': legend,
@@ -137,8 +138,10 @@ class ComputeIndicator(metaclass=ABCMeta):
         n_segments = len(min_values)
 
         colors = getattr(self, 'colors', None)
+        inverse = getattr(self, 'inverse', False)
         if not colors:
             colors = get_colors(colormap_name=self.colormap_name,
+                                inverse=inverse,
                                 n_segments=n_segments)
 
         for i, color in enumerate(colors):

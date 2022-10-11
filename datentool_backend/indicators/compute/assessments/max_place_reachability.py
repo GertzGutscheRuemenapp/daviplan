@@ -18,6 +18,7 @@ class MaxPlaceReachability(ModeVariantMixin, ServiceIndicator):
     unit = 'Minuten'
     representation = 'colorramp'
     colormap_name = 'YlOrRd'
+    digits = 0
     result_serializer = ResultSerializer.PLACE
 
     @property

@@ -17,6 +17,7 @@ class MaxRasterReachability(ModeVariantMixin, ServiceIndicator):
     representation = 'colorramp'
     colormap_name = 'RdYlGn'
     inverse = True
+    digits = 0
     result_serializer = ResultSerializer.RASTER
 
     @property
