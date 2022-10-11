@@ -165,15 +165,23 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         variant_ids = request.data.get('variants', [])
         air_distance_routing = request.data.get('air_distance_routing', False)
         place_ids = request.data.get('places')
-        with ProtectedProcessManager(request.user, scope=ProcessScope.ROUTING):
-            async_task(self._precalculate_traveltimes, area_level, project_area, body, hook=ppm.finish)
-        ret_status = status.HTTP_202_ACCEPTED
-        return Response({'message': msg, }, status=ret_status)
+        access_mode = request.data.get('access_variant')
+        with ProtectedProcessManager(
+            request.user, scope=ProcessScope.ROUTING) as ppm:
+            async_task(self._precalculate_traveltimes, variant_ids, place_ids,
+                       drop_constraints=drop_constraints,
+                       air_distance_routing=air_distance_routing,
+                       access_variant_id=access_mode,
+                       hook=ppm.finish)
+        return Response({
+            'message': f'Berechnung der Reisezeitmatrizen gestartet'
+            }, status=status.HTTP_202_ACCEPTED)
 
+    @staticmethod
     def _precalculate_traveltimes(
         self, variant_ids, place_ids, drop_constraints=False,
-        air_distance_routing=False, max_distance=Mode.WALK,
-        max_direct_walktime=DEFAULT_MAX_DIRECT_WALKTIME,
+        air_distance_routing=False, max_distance=MODE_MAX_DISTANCE[Mode.WALK],
+        max_direct_walktime=DEFAULT_MAX_DIRECT_WALKTIME, access_mode=Mode.WALK,
         max_access_distance=None):
 
         logger.info('Starte Berechnung der Reisezeitmatrizen')
@@ -186,23 +194,14 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
             for variant in variants:
                 logger.info('Berechne Reisezeiten für Modus '
                             f'{Mode(variant.mode).name}')
-                max_distance = float(request.data.get(
-                    'max_distance', MODE_MAX_DISTANCE[variant.mode]))
 
                 if variant.mode == Mode.TRANSIT:
-                    #  access variant is WALK, if no other mode is requested
-                    access_variant = ModeVariant.objects.get(
-                        id=request.data.get('access_variant',
-                                            Mode.WALK))
-                    if max_access_distance is None:
-                        max_access_distance = MODE_MAX_DISTANCE[variant.mode]
-                    max_direct_walktime = float(
-                        request.data.get('max_direct_walktime',
-                                         DEFAULT_MAX_DIRECT_WALKTIME))
+                    # access variant is WALK, if no other mode is requested
+                    access_variant = ModeVariant.objects.get(mode=access_mode)
                     df = self.prepare_and_calc_transit_traveltimes(
                         access_variant,
                         place_ids,
-                        max_access_distance,
+                        max_access_distance or MODE_MAX_DISTANCE[variant.mode],
                         drop_constraints,
                         variant,
                         max_direct_walktime,
@@ -211,7 +210,8 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                 else:
                     if air_distance_routing:
                         df = self.calculate_airdistance_traveltimes(
-                            variant, max_distance=max_distance, places=place_ids)
+                            variant, max_distance=max_distance or
+                            MODE_MAX_DISTANCE[variant.mode], places=place_ids)
                         dataframes.append(df)
                     else:
                         if not place_ids:
@@ -478,8 +478,7 @@ class MatrixCellPlaceViewSet(TravelTimeRouterMixin):
             .values('id', 'lon', 'lat')
         return destinations
 
-    def calculate_transit_traveltime(self,
-                                     access_variant: ModeVariant,
+    def calculate_transit_traveltime(access_variant: ModeVariant,
                                      transit_variant: ModeVariant,
                                      max_direct_walktime: float,
                                      **kwargs) -> pd.DataFrame:
