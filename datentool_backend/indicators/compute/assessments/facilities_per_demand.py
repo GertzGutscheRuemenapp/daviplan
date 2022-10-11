@@ -13,6 +13,8 @@ class FacilitiesPerDemandInArea(ServiceIndicator):
     '''Einrichtungen mit der betrachteten Leistung in einer Gebietseinheit pro
     Nachfragen­de in der gleichen Gebietseinheit'''
     title = 'Einrichtungen pro Nachfrage'
+    representation = 'colorramp'
+    colormap_name = 'Purples'
     result_serializer = ResultSerializer.AREA
 
     @property

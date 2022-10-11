@@ -111,6 +111,12 @@ export interface Indicator {
   additionalParameters?: IndicatorParameter[]
 }
 
+export interface IndicatorLegendClass {
+  color: string,
+  minValue: number,
+  maxValue: number
+}
+
 export interface RasterCell {
   id: number,
   geom: any,
@@ -322,6 +328,18 @@ export interface Place {
   scenario?: number,
   value?: number,
   capacities?: Capacity[]
+}
+
+export interface TransitStop {
+  id: number,
+  geom: string | Geometry,
+  name: string
+}
+
+export interface TransitMatrixEntry {
+  fromStop: number,
+  toStop: number,
+  minutes: number
 }
 
 export interface Capacity {

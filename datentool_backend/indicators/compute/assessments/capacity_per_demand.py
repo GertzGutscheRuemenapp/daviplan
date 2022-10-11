@@ -13,6 +13,8 @@ class CapacityPerDemandInArea(ServiceIndicator):
     pro 100 Nachfragen­den in der gleichen Gebietseinheit'''
     capacity_required = True
     title = 'Plätze pro Nachfrage'
+    representation = 'colorramp'
+    colormap_name = 'Greys'
     result_serializer = ResultSerializer.AREA
 
     @property

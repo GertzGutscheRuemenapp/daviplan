@@ -13,6 +13,8 @@ class DemandPerCapacity(ServiceIndicator):
     Kapazitätseinheit für diese Leistung in der gleichen Gebietseinheit'''
     capacity_required = True
     title = 'Nachfrage pro Platz'
+    representation = 'colorramp'
+    colormap_name = 'Blues'
     result_serializer = ResultSerializer.AREA
 
     @property

@@ -1,36 +1,13 @@
-h2{
-    font-size: 14pt;
-    font-style: italic;
-    color: #41454a;    
-}
 h3{
-    font-size: 12pt;
-    font-style: italic;
-    color: #41454a;
+  font-size: 12pt;
+  font-weight: 550;
 }
-.impressum {
-    font-family: albany,sans-serif;
-    font-size: 10pt;
-    color: #41454a;
-    text-align: left;
-    float: left;
-    width: 180px;
-    margin-left: 80px;
-    padding-top: 1em;
-    line-height: 1.5em;
+
+#LegalNotice {
+    min-width: 30%;
 }
-.Haftungsausschluss{   
-    font-family: albany,sans-serif;
-    font-size: 10pt;
-    color: #41454a;   
-    text-align: left;
-    padding-top: 1em;
-    margin: 0 10em 0 400px;
-    width: 800px;
-    line-height: 1.5em;
+.disclaimer{
+    margin: 0 10em 0 60px;
+    min-width: 85%;
 }
-i {
-    color: #41454a;
-    text-decoration: underline;
-    font-weight: 800;
-}
+

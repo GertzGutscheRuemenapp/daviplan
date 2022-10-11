@@ -16,13 +16,12 @@ from datentool_backend.utils.geometry_fields import GeometrySRIDField
 from datentool_backend.indicators.models import Stop
 
 
-class StopSerializer(GeoFeatureModelSerializer):
+class StopSerializer(serializers.ModelSerializer):
     geom = GeometrySRIDField(srid=3857)
 
     class Meta:
         model = Stop
-        geo_field = 'geom'
-        fields = ('id', 'name')
+        fields = ('id', 'name', 'geom')
 
 
 class StopTemplateSerializer(serializers.Serializer):

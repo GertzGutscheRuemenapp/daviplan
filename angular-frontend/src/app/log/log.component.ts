@@ -65,6 +65,7 @@ export class LogComponent implements AfterViewInit, AfterViewChecked, OnDestroy 
   }
 
   addLogEntry(entry: LogEntry): void {
+    if (!entry.message) return;
     if (entry.timestamp)
       // cut off milliseconds
       entry.timestamp = entry.timestamp.split(',')[0];

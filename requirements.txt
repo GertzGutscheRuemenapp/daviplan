@@ -31,3 +31,4 @@ channels
 channels_redis
 routingpy
 django_q
+matplotlib

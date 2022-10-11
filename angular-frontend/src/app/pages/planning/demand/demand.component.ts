@@ -118,7 +118,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
       let max = 1;
       let min = Number.MAX_VALUE;
       this.areas.forEach(area => {
-        const data = demandData.find(d => d.areaId == area.id);
+        const data = demandData.values.find(d => d.areaId == area.id);
         const value = (data)? Math.round(data.value): 0;
         max = Math.max(max, value);
         min = Math.min(min, value);

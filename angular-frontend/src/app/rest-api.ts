@@ -43,6 +43,8 @@ export class RestAPI {
     processes: `${ this.API_ENDPOINT }/planningprocesses/`,
     scenarios: `${ this.API_ENDPOINT }/scenarios/`,
     matrixCellPlaces: `${ this.API_ENDPOINT }/matrixcellplaces/`,
+    transitMatrix: `${ this.API_ENDPOINT }/matrixstopstops/`,
+    transitStops: `${ this.API_ENDPOINT }/stops/`,
     rasterCells: `${ this.API_ENDPOINT }/rastercells/`,
     closestCell: `${ this.API_ENDPOINT }/rastercells/closest_cell/`,
     modevariants: `${ this.API_ENDPOINT }/modevariants/`,

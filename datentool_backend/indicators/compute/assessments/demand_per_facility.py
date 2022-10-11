@@ -12,6 +12,8 @@ class DemandPerFacility(ServiceIndicator):
     '''Nachfragende nach betrachteter Leistung in einer Gebietseinheit pro
     Einrichtung mit dieser Leistung in der gleichen Gebietseinheit'''
     title = 'Nachfrage pro Einrichtung'
+    representation = 'colorramp'
+    colormap_name = 'Oranges'
     result_serializer = ResultSerializer.AREA
 
     @property

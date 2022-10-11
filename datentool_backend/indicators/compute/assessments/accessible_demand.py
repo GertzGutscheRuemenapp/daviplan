@@ -16,6 +16,8 @@ class AccessibleDemandPerPlace(ModeVariantMixin, PopulationIndicatorMixin, Servi
     am besten mit einem bestimmten Verkehrsmittel erreichbar ist.'''
     title = 'Nachfrage im Einzugsbereich'
     params = (ModeParameter(), )
+    representation = 'colorramp'
+    colormap_name = 'PuBu'
     result_serializer = ResultSerializer.PLACE
 
     @property
