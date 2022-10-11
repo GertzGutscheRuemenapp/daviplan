@@ -201,6 +201,31 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           max = Math.max(max, result.value);
           min = Math.min(min, result.value);
         })
+
+        let style: ValueStyle = {
+          field: 'value',
+          min: Math.max(min, 0),
+          max: max || 1
+        };
+
+        if (results.legend) {
+          style.fillColor = {
+            bins: {
+              colors: results.legend.map(entry => entry.color),
+              values: results.legend.map(entry => entry.maxValue)
+            }
+          }
+        }
+        else {
+          style.fillColor = {
+            interpolation: {
+              range: d3.interpolatePurples,
+              scale: 'sequential',
+              steps: 5
+            }
+          }
+        }
+
         this.indicatorLayer = new VectorLayer(this.selectedIndicator!.title, {
           order: 0,
           // description: desc,
@@ -223,21 +248,10 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
             },
             multi: false
           },
+          valueStyles: style,
           mouseOver: {
             enabled: true,
             cursor: 'pointer'
-          },
-          valueStyles: {
-            field: 'value',
-            fillColor: {
-              interpolation: {
-                range: d3.interpolatePurples,
-                scale: 'sequential',
-                steps: 5
-              }
-            },
-            min: Math.max(min, 0),
-            max: max || 1
           },
           labelOffset: { y: 15 }
         });
@@ -263,6 +277,29 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           area.properties.value = value;
           area.properties.description = `<b>${area.properties.label}</b><br>${this.selectedIndicator!.title}: ${area.properties.value}`
         })
+        let style: ValueStyle = {
+          field: 'value',
+          min: Math.max(min, 0),
+          max: max || 1
+        };
+
+        if (results.legend) {
+          style.fillColor = {
+            bins: {
+              colors: results.legend.map(entry => entry.color),
+              values: results.legend.map(entry => entry.maxValue)
+            }
+          }
+        }
+        else {
+          style.fillColor = {
+            interpolation: {
+              range: d3.interpolatePurples,
+              scale: 'sequential',
+              steps: 5
+            }
+          }
+        }
         this.indicatorLayer = new VectorLayer(`${this.selectedIndicator!.title} (${this.selectedAreaLevel!.name})`, {
           order: 0,
           description: this.selectedIndicator!.description,
@@ -282,18 +319,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
               fillColor: 'rgba(255, 255, 0, 0.7)'
             }
           },
-          valueStyles: {
-            field: 'value',
-            fillColor: {
-              interpolation: {
-                range: d3.interpolatePurples,
-                scale: 'sequential',
-                steps: 5
-              }
-            },
-            min: min,
-            max: max || 1
-          },
+          valueStyles: style,
         });
         this.layerGroup?.addLayer(this.indicatorLayer);
         this.indicatorLayer.addFeatures(areas,{ properties: 'properties' });

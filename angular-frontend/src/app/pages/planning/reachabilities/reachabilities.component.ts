@@ -16,8 +16,9 @@ import {
 import { MapControl, MapService } from "../../../map/map.service";
 import { Observable, Subscription } from "rxjs";
 import { Geometry } from "ol/geom";
-import {  MapLayerGroup, VectorLayer, VectorTileLayer } from "../../../map/layers";
+import { MapLayerGroup, ValueStyle, VectorLayer, VectorTileLayer } from "../../../map/layers";
 import { modes } from "../mode-select/mode-select.component";
+import * as d3 from "d3";
 
 const modeColorValues = [[0,104,55],[100,188,97],[215,238,142],[254,221,141],[241,110,67],[165,0,38],[0,0,0]];
 const modeColors = modeColorValues.map(c => `rgb(${c.join(',')})`);
@@ -200,6 +201,24 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       cellResults.values.forEach(cellResult => {
         values[cellResult.cellCode] = Math.round(cellResult.value);
       })
+      let style: ValueStyle = {};
+
+      if (cellResults.legend) {
+        style.fillColor = {
+          bins: {
+            colors: cellResults.legend.map(entry => entry.color),
+            values: cellResults.legend.map(entry => entry.maxValue)
+          }
+        }
+      }
+      else {
+        style.fillColor = {
+          bins: {
+            colors: modeColors,
+            values: modeBins[this.activeMode]
+          }
+        }
+      }
 
       const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
       const place = this.places.find(p => p.id === this.selectedPlaceId);
@@ -248,6 +267,24 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           place.value = (res?.value !== undefined)? Math.round(res?.value): undefined;
         })
         const valueBins = modeBins[this.activeMode];
+        let style: ValueStyle = {};
+
+        if (placeResults.legend) {
+          style.fillColor = {
+            bins: {
+              colors: placeResults.legend.map(entry => entry.color),
+              values: placeResults.legend.map(entry => entry.maxValue)
+            }
+          }
+        }
+        else {
+          style.fillColor = {
+            bins: {
+              colors: modeColors,
+              values: modeBins[this.activeMode]
+            }
+          }
+        }
         this.placeReachabilityLayer = new VectorLayer(this.activeInfrastructure!.name, {
           order: 0,
           zIndex: 99999,
@@ -263,15 +300,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
           labelField: 'label',
           showLabel: showLabel,
           tooltipField: 'tooltip',
-          valueStyles: {
-            field: 'value',
-            fillColor: {
-              bins: {
-                colors: modeColors,
-                values: valueBins,
-              }
-            }
-          },
+          valueStyles: style,
           unit: 'Minuten',
           labelOffset: { y: 10 }
         });
@@ -297,6 +326,23 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         values[cellResult.cellCode] = Math.round(cellResult.value);
       })
       const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
+      let style: ValueStyle = {};
+      if (cellResults.legend) {
+        style.fillColor = {
+          bins: {
+            colors: cellResults.legend.map(entry => entry.color),
+            values: cellResults.legend.map(entry => entry.maxValue)
+          }
+        }
+      }
+      else {
+        style.fillColor = {
+          bins: {
+            colors: modeColors,
+            values: modeBins[this.activeMode]
+          }
+        }
+      }
       this.nextPlaceReachabilityLayer = new VectorTileLayer( `Wegezeit ${modes[this.activeMode]}`, url,{
         order: 0,
         description: 'Wegezeit von allen Wohnstandorten zum jeweils nächsten Angebot',
@@ -309,18 +355,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         labelField: 'value',
         showLabel: showLabel,
         // tooltipField: 'value',
-        valueStyles: {
-          fillColor: {
-            bins: {
-              colors: modeColors,
-              values: modeBins[this.activeMode]
-            }
-          }
-        },
-        valueMap: {
-          field: 'cellcode',
-          values: values
-        },
+        valueStyles: style,
         unit: 'Minuten'
       });
       this.reachLayerGroup?.addLayer(this.nextPlaceReachabilityLayer);
