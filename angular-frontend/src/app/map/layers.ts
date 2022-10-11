@@ -204,7 +204,7 @@ export interface ColorBin {
   color: string;
 }
 
-interface ValueStyle {
+export interface ValueStyle {
   field?: string,
   radius?: {
     range: number[],
