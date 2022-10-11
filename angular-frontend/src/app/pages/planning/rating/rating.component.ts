@@ -17,7 +17,7 @@ import {
 import { MapControl, MapService } from "../../../map/map.service";
 import * as d3 from "d3";
 import { Subscription } from "rxjs";
-import { MapLayerGroup, VectorLayer, VectorTileLayer } from "../../../map/layers";
+import { MapLayerGroup, ValueStyle, VectorLayer, VectorTileLayer } from "../../../map/layers";
 import { modes } from "../mode-select/mode-select.component";
 
 @Component({
@@ -129,10 +129,34 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
       ).subscribe(cellResults => {
       let values: Record<string, number> = {};
       cellResults.values.forEach(cellResult => {
-        values[cellResult.cellCode] = Math.round(cellResult.value);
+        values[cellResult.cellCode] = cellResult.value;// Math.round(cellResult.value);
         max = Math.max(max, cellResult.value);
         min = Math.min(min, cellResult.value);
       })
+
+      let style: ValueStyle = {
+        field: 'value',
+        min: Math.max(min, 0),
+        max: max || 1
+      };
+
+      if (cellResults.legend) {
+        style.fillColor = {
+          bins: {
+            colors: cellResults.legend.map(entry => entry.color),
+            values: cellResults.legend.map(entry => entry.maxValue)
+          }
+        }
+      }
+      else {
+        style.fillColor = {
+          interpolation: {
+            range: d3.interpolatePurples,
+            scale: 'sequential',
+            steps: 5
+          }
+        }
+      }
 
       const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
       this.indicatorLayer = new VectorTileLayer( this.selectedIndicator!.title, url,{
@@ -145,18 +169,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         },
         labelField: 'value',
         showLabel: this.showLabel,
-        valueStyles: {
-          field: 'value',
-          fillColor: {
-            interpolation: {
-              range: d3.interpolatePurples,
-              scale: 'sequential',
-              steps: 5
-            }
-          },
-          min: Math.max(min, 0),
-          max: max || 1
-        },
+        valueStyles: style,
         valueMap: {
           field: 'cellcode',
           values: values
