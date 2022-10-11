@@ -12,6 +12,10 @@ from datentool_backend.indicators.models import MatrixCellPlace
 from datentool_backend.infrastructure.models.places import Capacity
 from datentool_backend.population.models import RasterCell
 from datentool_backend.user.models.process import ScenarioMode
+from datentool_backend.indicators.compute.reachabilities import (
+    reachability_bins_by_mode,
+    reachability_colors,
+)
 
 
 class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
@@ -279,7 +283,13 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
             result = pd.DataFrame(response.data['values']).set_index('cell_code')
             self.assertEquals(len(result), 8)
 
+            # test the legend values and colors
             legend = pd.DataFrame(response.data['legend'])
+            last_legend_entry = legend.iloc[-1]
+            target_bin = reachability_bins_by_mode[variant.mode][-2]
+            target_color = reachability_colors[-1]
+            self.assertEqual(last_legend_entry['min_value'], target_bin)
+            self.assertEqual(last_legend_entry['color'], target_color)
 
     def test_reachability_cell(self):
         """Test reachability from given cell"""
