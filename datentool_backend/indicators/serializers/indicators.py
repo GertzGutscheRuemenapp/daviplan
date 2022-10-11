@@ -17,12 +17,7 @@ class IndicatorSerializer(serializers.Serializer):
     result_type = serializers.SerializerMethodField('get_result_type')
     additional_parameters = serializers.SerializerMethodField('get_parameters')
     unit = serializers.SerializerMethodField('get_unit')
-    decimals = serializers.SerializerMethodField('get_decimals')
-    interpolated = serializers.SerializerMethodField('get_interpolated')
     representation = serializers.SerializerMethodField('get_representation')
-    classification = serializers.SerializerMethodField('get_classification')
-    colorscheme = serializers.SerializerMethodField('get_colorscheme')
-
 
     def get_result_type(self, obj) -> str:
         if obj.result_serializer:
@@ -37,20 +32,8 @@ class IndicatorSerializer(serializers.Serializer):
     def get_unit(self, obj) -> str:
         return getattr(obj, 'unit', '')
 
-    def get_decimals(self, obj) -> int:
-        return getattr(obj, 'decimals', '')
-
-    def get_interpolated(self, obj) -> bool:
-        return getattr(obj, 'interpolated', '')
-
     def get_representation(self, obj) -> str:
         return getattr(obj, 'representation', '')
-
-    def get_classification(self, obj) -> List[int]:
-        return getattr(obj, 'classification', [])
-
-    def get_colorscheme(self, obj) -> List[str]:
-        return getattr(obj, 'colorscheme', [])
 
 
 class RouterSerializer(serializers.ModelSerializer):
