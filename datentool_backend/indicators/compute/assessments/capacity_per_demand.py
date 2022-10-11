@@ -12,7 +12,7 @@ class CapacityPerDemandInArea(ServiceIndicator):
     '''Kapazitätseinheiten für die betrachtete Leistung in einer Gebietseinheit
     pro 100 Nachfragen­den in der gleichen Gebietseinheit'''
     capacity_required = True
-    title = 'Plätze pro Nachfrage'
+    title = 'Plätze pro Nachfrage im Gebiet'
     representation = 'colorramp'
     colormap_name = 'Greys'
     result_serializer = ResultSerializer.AREA

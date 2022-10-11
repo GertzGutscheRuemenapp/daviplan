@@ -13,7 +13,7 @@ class MaxPlaceReachability(ModeVariantMixin, ServiceIndicator):
     '''Maximale Wegezeit der Nachfragenden aus allen Gebietseinheiten, für
     welche die betreffende Einrichtung mit einem bestimmten Verkehrsmittel
     die am schnellsten erreichbar ist'''
-    title = 'Maximale Wegedauer'
+    title = 'Maximale Wegedauer zur Einrichtung'
     params = (ModeParameter(), )
     unit = 'Minuten'
     representation = 'colorramp'

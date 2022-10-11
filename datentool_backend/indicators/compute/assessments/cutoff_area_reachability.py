@@ -20,7 +20,7 @@ class CutoffAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, Service
     Einrichtung mit der betrachteten Leistung innerhalb oder außerhalb der
     Gebietseinheit in maximal … Minuten mit einem bestimmter Verkehrsmittel
     erreichen'''
-    title = 'Erreichbarkeit bis […] Minuten'
+    title = 'Anteil im Gebiet mit Erreichbarkeit bis […] Minuten'
     unit = '%'
     params = (
         ModeParameter(),
