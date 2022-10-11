@@ -50,7 +50,7 @@ class ProcessScope(models.IntegerChoices):
     AREAS = 5, 'Gebiete'
 
 
-class ProcessState(SingletonModel):
+class ProcessState(models.Model):
     scope = models.IntegerField(choices=ProcessScope.choices)
     is_running = models.BooleanField(default=False)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)

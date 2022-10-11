@@ -107,10 +107,6 @@ class ProtectedProcessManager:
         self.logger.info('', extra={'status': {'success': True}})
 
     def run_async(self, func, *args, **kwargs):
-        state = self.get_state(self.scope, create=True)
-        state.is_running = True
-        state.user = self.me
-        state.save()
         self._async_func = func
         self._async_running = True
         async_task(self._async_func_wrapper, *args, kwargs, hook=self.finish)
