@@ -4,7 +4,7 @@ import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
 import { environment } from "../../../../environments/environment";
 import {
-  Capacity,
+  Capacity, IndicatorLegendClass,
   Infrastructure,
   Place,
   PlanningProcess,
@@ -26,6 +26,13 @@ const modeBins: Record<number, number[]> = {};
 modeBins[TransportMode.WALK] = modeBins[TransportMode.BIKE] = [5, 10, 15, 20, 30, 45];
 modeBins[TransportMode.CAR] = [5, 10, 15, 20, 25, 30];
 modeBins[TransportMode.TRANSIT] = [10, 15, 20, 30, 45, 60];
+
+function getIndicatorLegendClasses(mode: TransportMode): IndicatorLegendClass[]{
+  const mBins = modeBins[mode];
+  return modeColors.map((c, i) => {
+      return { color: c, minValue: (i > 0)? mBins[i-1]: undefined, maxValue: (i < mBins.length)? mBins[i]: undefined }
+  });
+}
 
 @Component({
   selector: 'app-reachabilities',
@@ -205,19 +212,13 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
       if (cellResults.legend) {
         style.fillColor = {
-          bins: {
-            colors: cellResults.legend.map(entry => entry.color),
-            values: cellResults.legend.map(entry => entry.maxValue)
-          }
+          bins: cellResults.legend
         }
       }
       else {
         style.fillColor = {
-          bins: {
-            colors: modeColors,
-            values: modeBins[this.activeMode]
-          }
-        }
+          bins: getIndicatorLegendClasses(this.activeMode)
+        };
       }
 
       const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
@@ -233,14 +234,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         },
         labelField: 'value',
         showLabel: showLabel,
-        valueStyles: {
-          fillColor: {
-            bins: {
-              colors: modeColors,
-              values: modeBins[this.activeMode]
-            }
-          }
-        },
+        valueStyles: style,
         valueMap: {
           field: 'cellcode',
           values: values
@@ -271,20 +265,15 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
         if (placeResults.legend) {
           style.fillColor = {
-            bins: {
-              colors: placeResults.legend.map(entry => entry.color),
-              values: placeResults.legend.map(entry => entry.maxValue)
-            }
+            bins: placeResults.legend
           }
         }
         else {
           style.fillColor = {
-            bins: {
-              colors: modeColors,
-              values: modeBins[this.activeMode]
-            }
-          }
+            bins: getIndicatorLegendClasses(this.activeMode)
+          };
         }
+
         this.placeReachabilityLayer = new VectorLayer(this.activeInfrastructure!.name, {
           order: 0,
           zIndex: 99999,
@@ -329,20 +318,15 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       let style: ValueStyle = {};
       if (cellResults.legend) {
         style.fillColor = {
-          bins: {
-            colors: cellResults.legend.map(entry => entry.color),
-            values: cellResults.legend.map(entry => entry.maxValue)
-          }
+          bins: cellResults.legend
         }
       }
       else {
         style.fillColor = {
-          bins: {
-            colors: modeColors,
-            values: modeBins[this.activeMode]
-          }
-        }
+          bins: getIndicatorLegendClasses(this.activeMode)
+        };
       }
+
       this.nextPlaceReachabilityLayer = new VectorTileLayer( `Wegezeit ${modes[this.activeMode]}`, url,{
         order: 0,
         description: 'Wegezeit von allen Wohnstandorten zum jeweils nächsten Angebot',
@@ -356,6 +340,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         showLabel: showLabel,
         // tooltipField: 'value',
         valueStyles: style,
+        valueMap: {
+          field: 'cellcode',
+          values: values
+        },
         unit: 'Minuten'
       });
       this.reachLayerGroup?.addLayer(this.nextPlaceReachabilityLayer);

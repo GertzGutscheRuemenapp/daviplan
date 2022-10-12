@@ -142,10 +142,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
 
       if (demandData.legend) {
         style.fillColor = {
-          bins: {
-            colors: demandData.legend.map(entry => entry.color),
-            values: demandData.legend.map(entry => entry.maxValue)
-          }
+          bins: demandData.legend
         }
       }
       else {

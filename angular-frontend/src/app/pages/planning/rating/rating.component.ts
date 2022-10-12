@@ -142,10 +142,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
 
       if (cellResults.legend) {
         style.fillColor = {
-          bins: {
-            colors: cellResults.legend.map(entry => entry.color),
-            values: cellResults.legend.map(entry => entry.maxValue)
-          }
+          bins: cellResults.legend
         }
       }
       else {
@@ -174,7 +171,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           field: 'cellcode',
           values: values
         },
-        unit: 'Minuten'
+        unit: this.selectedIndicator?.unit
       });
       this.layerGroup?.addLayer(this.indicatorLayer);
     })
@@ -193,10 +190,16 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         results.values.forEach(result => {
           const place = places.find(p => p.id == result.placeId);
           if (!place) return;
+          const formattedValue = `${result.value} ${this.selectedIndicator?.unit}`;
           displayedPlaces.push({
             id: place.id,
             geometry: place.geom,
-            properties: { name: place.name, label: place.label, value: result.value, scenario: place.scenario }
+            properties: {
+              name: place.name,
+              label: formattedValue,
+              description: `<b>${place.name}</b><br>${this.selectedIndicator!.title}: ${formattedValue}`,
+              value: result.value
+            }
           });
           max = Math.max(max, result.value);
           min = Math.min(min, result.value);
@@ -210,10 +213,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
 
         if (results.legend) {
           style.fillColor = {
-            bins: {
-              colors: results.legend.map(entry => entry.color),
-              values: results.legend.map(entry => entry.maxValue)
-            }
+            bins: results.legend
           }
         }
         else {
@@ -237,9 +237,9 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
             symbol: 'circle'
           },
           radius: 7,
-          labelField: 'value',
+          labelField: 'label',
           showLabel: this.showLabel,
-          tooltipField: 'value',
+          tooltipField: 'description',
           select: {
             enabled: true,
             style: {
@@ -253,7 +253,8 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
             enabled: true,
             cursor: 'pointer'
           },
-          labelOffset: { y: 15 }
+          labelOffset: { y: 15 },
+          unit: this.selectedIndicator?.unit
         });
         this.layerGroup?.addLayer(this.indicatorLayer);
         this.indicatorLayer.addFeatures(displayedPlaces);
@@ -274,8 +275,10 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           const value = (data && data.value)? data.value: 0;
           max = Math.max(max, value);
           min = Math.min(min, value);
+          const formattedValue = `${value} ${this.selectedIndicator?.unit}`;
           area.properties.value = value;
-          area.properties.description = `<b>${area.properties.label}</b><br>${this.selectedIndicator!.title}: ${area.properties.value}`
+          area.properties.description = `<b>${area.properties.label}</b><br>${this.selectedIndicator!.title}: ${formattedValue}`;
+          area.properties.label = formattedValue;
         })
         let style: ValueStyle = {
           field: 'value',
@@ -285,10 +288,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
 
         if (results.legend) {
           style.fillColor = {
-            bins: {
-              colors: results.legend.map(entry => entry.color),
-              values: results.legend.map(entry => entry.maxValue)
-            }
+            bins: results.legend
           }
         }
         else {
@@ -309,7 +309,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
             fillColor: 'rgba(165, 15, 21, 0.9)',
             symbol: 'line'
           },
-          labelField: 'value',
+          labelField: 'label',
           showLabel: this.showLabel,
           tooltipField: 'description',
           mouseOver: {
@@ -320,6 +320,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
             }
           },
           valueStyles: style,
+          unit: this.selectedIndicator?.unit
         });
         this.layerGroup?.addLayer(this.indicatorLayer);
         this.indicatorLayer.addFeatures(areas,{ properties: 'properties' });
