@@ -106,6 +106,7 @@ export interface Indicator {
   service: number,
   name: string,
   title: string,
+  unit?: string,
   description: string,
   resultType: 'place' | 'area' | 'raster' | 'pop',
   additionalParameters?: IndicatorParameter[]
@@ -113,8 +114,8 @@ export interface Indicator {
 
 export interface IndicatorLegendClass {
   color: string,
-  minValue: number,
-  maxValue: number
+  minValue?: number,
+  maxValue?: number
 }
 
 export interface RasterCell {
