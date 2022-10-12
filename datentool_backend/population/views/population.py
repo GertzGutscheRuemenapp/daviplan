@@ -37,8 +37,6 @@ from datentool_backend.utils.serializers import (MessageSerializer,
                                                  use_intersected_data,
                                                  drop_constraints,
                                                  area_level)
-from datentool_backend.utils.processes import (ProtectedProcessManager,
-                                               ProcessScope)
 from datentool_backend.population.serializers import (
     PrognosisSerializer, PopulationSerializer, PopulationDetailSerializer,
     PopulationEntrySerializer, PopulationTemplateSerializer,
@@ -404,6 +402,6 @@ class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
             parser_classes=[CamelCaseMultiPartParser])
     def upload_template(self, request):
         """Upload the filled out Stops-Template"""
-        with ProtectedProcessManager(request.user,
-                                     scope=ProcessScope.POPULATION):
-            return super().upload_template(request)
+        #with ProtectedProcessManager(request.user,
+                                     #scope=ProcessScope.POPULATION):
+        return super().upload_template(request)
