@@ -58,8 +58,8 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
             legend = pd.DataFrame(response.data['legend']).set_index('color')
             self.assertEqual(legend.to_records().tolist(),
                              [('#fd8c3b',
-                               round_legend(np.nanmin(result.value)),
-                               round_legend(np.nanmax(result.value)))])
+                               round_legend(np.nanmin(result.value), down=True),
+                               round_legend(np.nanmax(result.value), down=False))])
 
 
             query_params['service']=service_id
@@ -67,13 +67,17 @@ class TestServiceIndicatorAPI(CreateTestdataMixin,
             response=self.post('fixedindicators-demand', data=query_params,
                                  extra={'format': 'json'})
             pop=pd.DataFrame(response.data['values']).set_index('area_id')
-            #  check legend
+            #  check legend for population
             legend=pd.DataFrame(response.data['legend']).set_index('color')
-            self.assertEqual(legend.to_records().tolist(),
-                             [('#6aaed6',
-                               round_legend(np.nanmin(pop.value)),
-                               round_legend(np.nanmax(pop.value)))])
-
+            self.assertEqual(legend.iloc[0, 0],
+                             round_legend(np.nanmin(pop.value), down=True))
+            self.assertEqual(legend.iloc[-1, 1],
+                             round_legend(np.nanmax(pop.value), down=False))
+            if len(legend) == 1:
+                self.assertEqual(legend.index[0], '#6aaed6')
+            else:
+                self.assertEqual(legend.index[0], '#abd0e6')
+                self.assertEqual(legend.index[1], '#3787c0')
 
             response=self.post('fixedindicators-number-of-locations',
                                  data=query_params, extra={'format': 'json'})

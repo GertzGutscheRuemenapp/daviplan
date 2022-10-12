@@ -1,4 +1,5 @@
 from typing import List
+import math
 import numpy as np
 import matplotlib as mpl
 from collections import OrderedDict
@@ -19,7 +20,7 @@ def get_colors(colormap_name: str,
     return colors
 
 
-def round_legend(value):
+def round_legend(value: float, down: bool = True) -> float:
     rules = OrderedDict({1: 2,
                          10: 1,
                          100: 0,
@@ -30,10 +31,14 @@ def round_legend(value):
     for limit, ndigits in rules.items():
         if value < limit:
             break
-    return round(value, ndigits)
-
-
-round_legend_values = np.vectorize(round_legend)
+    multiplier = 10 ** ndigits
+    if down:
+        # round down the first value
+        rounded = math.floor(value * multiplier) / multiplier
+    else:
+        # round up all other values
+        rounded = math.ceil(value * multiplier) / multiplier
+    return rounded
 
 
 def get_percentiles(iterable,
@@ -51,7 +56,10 @@ def get_percentiles(iterable,
         values = np.array([row.value for row in iterable
                            if not row.value is None])
 
+    if not len(values):
+        return values
     result = np.nanpercentile(values, percentiles, method='closest_observation')
-    rounded_results = round_legend_values(result)
+    rounded_results = np.array([round_legend(value, down=i==0)
+                                for i, value in enumerate(result)])
     unique_results = np.unique(rounded_results)
     return unique_results
