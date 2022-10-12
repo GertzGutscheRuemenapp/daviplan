@@ -7,7 +7,7 @@ import {
   Year,
   Prognosis,
   Gender,
-  AgeGroup, PopEntry, DemandRateSet
+  AgeGroup, PopEntry, DemandRateSet, LogEntry
 } from "../../../rest-interfaces";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { SelectionModel } from "@angular/cdk/collections";
@@ -22,7 +22,7 @@ import { AgeTreeComponent, AgeTreeData } from "../../../diagrams/age-tree/age-tr
 import * as d3 from "d3";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, Subscription } from "rxjs";
 import * as fileSaver from "file-saver";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import { MapLayer, MapLayerGroup, VectorLayer } from "../../../map/layers";
@@ -64,6 +64,8 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   propertiesForm: FormGroup;
   file?: File;
   uploadErrors: any = {};
+  isProcessing = false;
+  subscriptions: Subscription[] = [];
 
   constructor(private mapService: MapService, private settings: SettingsService, private dialog: MatDialog,
               private rest: RestAPI, private http: HttpClient, public popService: PopulationService, private formBuilder: FormBuilder) {
@@ -87,6 +89,10 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       else
         this.popLevelMissing = true;
     })
+    this.subscriptions.push(this.settings.baseDataSettings$.subscribe(baseSettings => {
+      this.isProcessing = baseSettings.processes?.population || false;
+    }));
+    this.settings.fetchBaseDataSettings();
     this.fetchData();
     this.setupYearCard();
     this.setupPropertiesCard();
@@ -466,11 +472,18 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       formData.append('prognosis', this.activePrognosis!.id.toString());
       const url = `${this.rest.URLS.popEntries}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
-        this.popService.reset();
-        this.fetchData();
+        this.isProcessing = true;
       }, error => {
       });
     });
+  }
+
+  onMessage(log: LogEntry): void {
+    if (log?.status?.success) {
+      this.isProcessing = false;
+      this.popService.reset();
+      this.fetchData();
+    }
   }
 
   setFiles(event: Event){
@@ -481,5 +494,6 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.mapControl?.destroy();
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }

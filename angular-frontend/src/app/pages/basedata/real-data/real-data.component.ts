@@ -11,7 +11,7 @@ import {
   ExtLayerGroup,
   PopEntry,
   Population,
-  Year
+  Year, LogEntry
 } from "../../../rest-interfaces";
 import { SettingsService } from "../../../settings.service";
 import { SelectionModel } from "@angular/cdk/collections";
@@ -25,7 +25,7 @@ import { AgeTreeComponent, AgeTreeData } from "../../../diagrams/age-tree/age-tr
 import { sortBy } from "../../../helpers/utils";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { Router } from "@angular/router";
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, Subscription } from "rxjs";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import { MapLayer, MapLayerGroup, VectorLayer } from "../../../map/layers";
 
@@ -65,6 +65,8 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   dataRows: any[][] = [];
   dataYear?: Year;
   file?: File;
+  isProcessing = false;
+  subscriptions: Subscription[] = [];
 
   constructor(private mapService: MapService, public popService: PopulationService,
               private dialog: MatDialog, private settings: SettingsService,
@@ -83,6 +85,10 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
       else
         this.popLevelMissing = true;
     })
+    this.subscriptions.push(this.settings.baseDataSettings$.subscribe(baseSettings => {
+      this.isProcessing = baseSettings.processes?.population || false;
+    }));
+    this.settings.fetchBaseDataSettings();
     this.fetchData();
     this.setupYearCard();
   }
@@ -324,8 +330,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
     dialogRef.componentInstance.confirmed.subscribe(() => {
       const url = `${this.rest.URLS.populations}pull_regionalstatistik/`;
       this.http.post(url, {}).subscribe(() => {
-        this.popService.reset();
-        this.fetchData();
+        this.isProcessing = true;
       }, error => {
       })
     })
@@ -391,11 +396,18 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
       formData.append('excel_file', this.file);
       const url = `${this.rest.URLS.popEntries}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
-        this.popService.reset();
-        this.fetchData();
+        this.isProcessing = true;
       }, error => {
       });
     });
+  }
+
+  onMessage(log: LogEntry): void {
+    if (log?.status?.success) {
+      this.isProcessing = false;
+      this.popService.reset();
+      this.fetchData();
+    }
   }
 
   setFiles(event: Event){
@@ -406,5 +418,6 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.mapControl?.destroy();
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }

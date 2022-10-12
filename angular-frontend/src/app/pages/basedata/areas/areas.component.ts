@@ -257,9 +257,8 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       }
     });
     dialogRef.componentInstance.confirmed.subscribe((confirmed: boolean) => {
-      this.isProcessing = true;
       this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/pull_areas/`, { area_level: this.activeLevel!.id, truncate: true, simplify: false }).subscribe(res => {
-        this.selectAreaLevel(this.activeLevel!, true);
+        this.isProcessing = true;
       }, error => {
         this.uploadErrors = error.error;
       });
@@ -404,7 +403,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
 
   showDataTable(): void {
     if (!this.activeLevel) return;
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+    this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
       width: '400',
       disableClose: false,
@@ -419,12 +418,14 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   }
 
   onMessage(log: LogEntry): void {
-    if (log?.status?.success)
+    if (log?.status?.success) {
       this.isProcessing = false;
+      this.selectAreaLevel(this.activeLevel!, true);
+    }
   }
 
   ngOnDestroy(): void {
     this.mapControl?.destroy();
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
-
 }

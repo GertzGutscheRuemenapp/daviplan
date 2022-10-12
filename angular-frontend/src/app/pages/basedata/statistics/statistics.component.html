@@ -12,6 +12,7 @@
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
     <app-input-card [title]="'Online-Datenabruf '"
+                    [disabled]="isProcessing"
                     infoText="<p>Klicken Sie auf „Abrufen“, um die Daten der natürlichen Bevölkerungsentwicklung (Geburten und Sterbefälle) sowie zu den Wanderungen (Zu- und Fortzüge) aus dem Online-Angebot der Regionalstatistik herunterzuladen.</p>
                     <p>Nach dem erfolgreichen Abruf werden Ihnen in der Box „Jahre“ die Jahre angezeigt, für die nun Daten zur Verfügung stehen. Wenn Sie eines dieser Jahre auswählen, werden Ihnen die zugehörigen Salden in der Karte angezeigt.</p>
                     <p>Die Inhalte der Karte steuern Sie über die Menü oben links in der Karte. Ist dieses eingeklappt, klicken Sie bitte auf das Icon mit der Familie.</p>"
@@ -30,6 +31,7 @@
       </div>
     </app-input-card>
     <app-input-card [title]="'Jahre'"
+                    [disabled]="isProcessing"
                     subtitle="Verfügbare Jahre"
                     infoText="<p>Die Liste in dieser Box enthält die Jahre, für die Daten aus dem Online-Angebot der Regionalstatistik heruntergeladen werden konnten.</p>
                     <p>Wenn Sie den Nutzer*innen im Hauptmenüabschnitt „Bevölkerung“ ein Jahr davon nicht zur Verfügung stellen möchten, wählen Sie dieses in der Liste aus und klicken Sie auf „Entfernen“. Um es wieder hinzuzufügen, müssen Sie alle Daten erneut von der Regionalstatistik abrufen.</p>
@@ -54,6 +56,7 @@
   </div>
   <div fxLayout="column" fxFlex="800px">
     <app-input-card [title]="'Daten des ausgewählten Jahres'"
+                    [disabled]="isProcessing"
                     [topRightHelp]="true"
                     infoText="<p>Die Karte veranschaulicht Ihnen die Daten für das in der Box „Jahre“ ausgewählte Jahr.</p>
                     <p>Die Inhalte der Karte – also natürliche Bevölkerungsentwicklung (Geburten und Sterbefälle) oder Wanderungen (Zu- und Fortzüge) – steuern Sie über das Menü oben links in der Karte. Ist dieses eingeklappt, klicken Sie bitte auf das Icon mit der Familie.</p>
@@ -80,7 +83,7 @@
         </div>
         <div id="log-window" style="width: 50%">
           <span class="subtitle1">Daten-Historie</span>
-          <app-log room="population" height="200px"></app-log>
+          <app-log room="population" (onMessage)="onMessage($event)" height="200px"></app-log>
         </div>
       </div>
       <div id="base-statistics-map" class="map-container">

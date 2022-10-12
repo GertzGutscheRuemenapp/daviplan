@@ -19,7 +19,7 @@
     <app-input-card [title]="'Einwohnerdaten online abrufen'"
                     infoText="<p>ToDo: nur verfügbar wenn: Gemeinden, Altersgruppen gemäß Regionalstatistik</p>"
                     [subtitle]="'Abruf der Regionalstatistik'"
-                    [disabled]="!popLevel || !popLevel.isDefaultPopLevel">
+                    [disabled]="!popLevel || !popLevel.isDefaultPopLevel || isProcessing">
       <ng-container *ngIf="popLevel && popLevel.isDefaultPopLevel && ageGroupsRegStatValid; else notAvailable">
 <!--        <table>
           <tr>
@@ -41,7 +41,7 @@
                     [editTemplate]="yearsEdit"
                     infoText="<p></p>"
                     dialogWidth="500px"
-                    [disabled]="!popLevel">
+                    [disabled]="!popLevel || isProcessing">
       <table>
         <tr>
           <td i18n>Jahre</td>
@@ -58,7 +58,7 @@
   <div fxLayout="column" fxFlex="1100px">
     <app-input-card [title]="'Ergänzende Einwohnerdaten hochladen'"
                     [topRightHelp]="true"
-                    [disabled]="!popLevel"
+                    [disabled]="!popLevel || isProcessing"
                     infoText="<p>Wenn Sie für dieses Jahr noch keine Einwohnerdaten hochgeladen haben (oder die bereits hochgeladenen Daten ersetzen möchten), können Sie sich mit der Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excelformat  herunterladen. Befüllen Sie diese mit Ihren Daten für das angezeigte Jahr und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Zur Kontrolle können Sie sich die hochgeladenen Daten anschließend in der Box „Alterspyramide“ für einzelne Gebiete anschauen. Alternativ können Sie sich die Gesamttabelle des Jahres über die Schaltfläche „Datentabelle ansehen“ anzeigen lassen.</p>
                     <p>Um die Daten weiterer Jahre hochzuladen, fügen Sie bitte in der Box „Jahre“ weitere Jahre hinzu und wiederholen das Vorgehen entsprechend. Für jedes Jahr benötigen Sie eine eigene Vorlagedatei.</p>">
       <div style="width: 100%; display: flex;">
@@ -100,13 +100,13 @@
         </div>
         <div id="log-window" style="width: 50%">
           <span class="subtitle1">Daten-Historie</span>
-          <app-log room="population" height="200px"></app-log>
+          <app-log room="population" (onMessage)="onMessage($event)"  height="200px"></app-log>
         </div>
       </div>
     </app-input-card>
     <app-input-card [title]="'Alterspyramide für ausgewähltes Jahr und ein ausgewähltes Gebiet'"
                     [topRightHelp]="true"
-                    [disabled]="!popLevel"
+                    [disabled]="!popLevel || isProcessing"
                     subtitle="Auswahl eines Gebiets über die Karte bzw. die Auswahlbox"
                     infoText="<p>Wählen Sie in der Auswahlliste „Gebiet“ ein Gebiet aus, um dessen Einwohnerdaten in der Alterspyramide anzuzeigen. Alternativ können Sie das Gebiet auch durch Anklicken in der Karte auswählen. Die Daten der Alterspyramide beziehen sich auf das in der Box „Jahre“ ausgewählte Jahr. Um für das gleiche Gebiet zwischen den Jahren zu springen, klicken Sie in der Box „Jahre“ ein anderes Jahr an.</p>
                     <p>Voraussetzung für die Anzeige ist, dass Sie bereits Einwohnerdaten für mindestens ein Jahr hochgeladen haben.</p>">

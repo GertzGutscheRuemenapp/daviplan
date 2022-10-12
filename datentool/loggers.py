@@ -21,10 +21,10 @@ def send(channel: str, message: str, log_type: str='log_message',
         'status': status,
     }
     rec.update(kwargs)
-    try:
-        async_to_sync(channel_layer.group_send)(channel, rec)
-    except RuntimeError:
-        channel_layer.group_send(channel, rec)
+    #try:
+    async_to_sync(channel_layer.group_send)(channel, rec)
+    #except RuntimeError:
+        #channel_layer.group_send(channel, rec)
 
 
 class WebSocketHandler(logging.StreamHandler):
@@ -39,7 +39,7 @@ class WebSocketHandler(logging.StreamHandler):
             send(room, record.getMessage(), log_type='log_message',
                  level=record.levelname, status=status)
         except (RedisError, RedisConnectionError, OSError) as e:
-            logger.error(e)
+            logger.debug(e)
 
 
 class LogConsumer(AsyncWebsocketConsumer):
@@ -55,7 +55,7 @@ class LogConsumer(AsyncWebsocketConsumer):
             await self.accept()
         # redis is not up, what to do?
         except (RedisError, RedisConnectionError, OSError) as e:
-            logger.error(e)
+            logger.debug(e)
 
     async def disconnect(self, close_code):
         '''leave room'''
@@ -74,4 +74,4 @@ class LogConsumer(AsyncWebsocketConsumer):
                 'status': event.get('status')
             }))
         except (RedisError, OSError, RedisConnectionError) as e:
-            logger.error(e)
+            logger.debug(e)
