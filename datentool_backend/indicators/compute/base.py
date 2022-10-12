@@ -8,7 +8,7 @@ from django.db.models import OuterRef, F
 from sql_util.utils import Exists
 from datentool_backend.infrastructure.models.places import Place, Capacity
 
-from datentool_backend.modes.models import Mode
+from datentool_backend.modes.models import Mode, ModeVariant
 from datentool_backend.infrastructure.models.infrastructures import Service
 from datentool_backend.indicators.serializers import (
     IndicatorAreaResultSerializer,
@@ -76,13 +76,6 @@ class ResultSerializer(Enum):
     POP = IndicatorPopulationSerializer
 
 
-#class ColorScheme():
-    #def __init__(self, scheme: Union[str, List[str]], n_bins: int = 0):
-        #self.scheme = scheme
-        #self.n_bins = n_bins
-        #self.mid_value
-
-
 class ComputeIndicator(metaclass=ABCMeta):
     title: List[Tuple] = None
     result_serializer: ResultSerializer = None
@@ -118,10 +111,17 @@ class ComputeIndicator(metaclass=ABCMeta):
             return {}
 
         legend_entries = []
-        bins = getattr(self, 'bins', None)
-        if not bins:
-            percentiles = [0, 10, 20, 40, 60, 80, 90, 100]
-            bins = get_percentiles(values, percentiles)
+        try:
+            bins = self.bins
+        except AttributeError:
+            try:
+                bins_my_mode = self.bins_by_mode
+                mode_variant_id = self.data['mode']
+                mode_variant = ModeVariant.objects.get(id=mode_variant_id)
+                bins = bins_my_mode[mode_variant.mode]
+            except AttributeError:
+                percentiles = [0, 10, 20, 40, 60, 80, 90, 100]
+                bins = get_percentiles(values, percentiles)
 
         if bins is None or len(bins) == 0:
             return {}

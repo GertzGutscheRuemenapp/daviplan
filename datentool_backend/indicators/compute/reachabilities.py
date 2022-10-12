@@ -24,6 +24,15 @@ class ModeVariantMixin:
                                               is_default=True)
         return variant
 
+reachability_bins_by_mode = {
+    Mode.WALK: [None, 5, 10, 15, 20, 30, 45, None],
+    Mode.BIKE: [None, 5, 10, 15, 20, 30, 45, None],
+    Mode.CAR: [None, 5, 10, 15, 20, 25, 30, None],
+    Mode.TRANSIT: [None, 10, 15, 20, 30, 45, 60, None],
+}
+
+reachability_colors = ['#006837', '#64bc61', '#d7ee8e',
+                       '#fedd8d', '#f16e43', '#a50027', '#000000']
 
 class ReachabilityPlace(ModeVariantMixin, ComputeIndicator):
     '''Wegezeit zwischen ausgewählter Einrichtung und allen Wohnstandorten
@@ -32,8 +41,8 @@ class ReachabilityPlace(ModeVariantMixin, ComputeIndicator):
     description = ('Wegezeit zwischen ausgewählter Einrichtung und allen '
                    'Wohnstandorten (= Rasterzellen) ')
     representation = 'colorramp'
-    colors = ['#006837', '#64bc61', '#d7ee8e', '#fedd8d', '#f16e43', '#a50027', '#000000']
-    bins = [None, 5, 10, 15, 20, 30, 45, None]
+    colors = reachability_colors
+    bins_by_mode = reachability_bins_by_mode
     result_serializer = ResultSerializer.RASTER
 
     def compute(self):
@@ -54,8 +63,8 @@ class ReachabilityCell(ModeVariantMixin, ComputeIndicator):
     description = ('Wegezeit zwischen ausgewähltem Wohnstandort (= Rasterzelle) '
                    'und allen Einrichtungen')
     representation = 'colorramp'
-    colors = ['#006837', '#64bc61', '#d7ee8e', '#fedd8d', '#f16e43', '#a50027', '#000000']
-    bins = [None, 5, 10, 15, 20, 30, 45, None]
+    colors = reachability_colors
+    bins_by_mode = reachability_bins_by_mode
     result_serializer = ResultSerializer.PLACE
     unit = 'Minuten'
 
@@ -80,8 +89,8 @@ class ReachabilityNextPlace(ModeVariantMixin, ComputeIndicator):
     description = ('Wegezeit zwischen allen Wohnstandorten (= Rasterzellen) '
                    'und der jeweils nächstgelegenen Einrichtung ')
     representation = 'colorramp'
-    colors = ['#006837', '#64bc61', '#d7ee8e', '#fedd8d', '#f16e43', '#a50027', '#000000']
-    bins = [None, 5, 10, 15, 20, 30, 45, None]
+    colors = reachability_colors
+    bins_by_mode = reachability_bins_by_mode
     result_serializer = ResultSerializer.RASTER
     unit = 'Minuten'
 
