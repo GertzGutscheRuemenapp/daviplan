@@ -5,7 +5,6 @@ import pandas as pd
 import numpy as np
 from typing import List, Tuple
 from io import StringIO
-from django_q.tasks import async_task
 
 from django.db import transaction, connection
 from django.db.models.query import QuerySet
@@ -18,7 +17,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import serializers
 
-from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
+from drf_spectacular.utils import (extend_schema, inline_serializer,
+                                   OpenApiResponse, OpenApiParameter)
 
 from datentool_backend.utils.routers import OSRMRouter
 from datentool_backend.utils.excel_template import ExcelTemplateMixin
@@ -48,9 +48,8 @@ from datentool_backend.indicators.serializers import (StopSerializer,
                                                       StopTemplateSerializer,
                                                       MatrixStopStopTemplateSerializer,
                                                       RouterSerializer,
+                                                      MatrixStopStopSerializer
                                                       )
-from datentool_backend.utils.processes import (ProtectedProcessManager,
-                                               ProcessScope)
 
 
 class RoutingError(Exception):
@@ -73,19 +72,45 @@ class StopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSet
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
     def get_queryset(self):
-        variant = int(self.request.data.get('variant'))
-        return Stop.objects.filter(variant=variant)
+        variant = self.request.data.get(
+            'variant', self.request.query_params.get('variant'))
+        if variant is not None:
+            return Stop.objects.filter(variant=variant)
+        return Stop.objects.all()
+
+    @extend_schema(
+            parameters=[
+                OpenApiParameter(name='variant', description='mode_variant_id',
+                                 required=True, type=int),
+            ],
+        )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class MatrixStopStopViewSet(ExcelTemplateMixin,
-                            viewsets.GenericViewSet):
-    serializer_class = MatrixStopStopTemplateSerializer
+                            viewsets.ModelViewSet):
+    serializer_class = MatrixStopStopSerializer
+    serializer_action_classes = {'upload_template': MatrixStopStopTemplateSerializer,
+                                 'create_template': MatrixStopStopTemplateSerializer,
+                                 }
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
     def get_queryset(self):
-        variant = self.request.data.get('variant')
-        return MatrixStopStop.objects.filter(variant=variant)
+        variant = self.request.data.get(
+            'variant', self.request.query_params.get('variant'))
+        if variant is not None:
+            return MatrixStopStop.objects.filter(variant=variant)
+        return MatrixStopStop.objects.all()
 
+    @extend_schema(
+            parameters=[
+                OpenApiParameter(name='variant', description='mode_variant_id',
+                                 required=True, type=int),
+            ],
+        )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
     @extend_schema(description='Upload Excel-File or PTV-Visum-Matrix with Traveltimes from Stop to Stop',
                    request=inline_serializer(
                        name='FileDropConstraintModeVariantSerializer',
@@ -104,8 +129,7 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
             parser_classes=[CamelCaseMultiPartParser])
     def upload_template(self, request):
         """Upload the filled out Stops-Template"""
-        with ProtectedProcessManager(request.user, scope=ProcessScope.ROUTING):
-            return super().upload_template(request)
+        return super().upload_template(request)
 
 
 class RouterViewSet(viewsets.ModelViewSet):
@@ -164,25 +188,14 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         drop_constraints = request.data.get('drop_constraints', False)
         variant_ids = request.data.get('variants', [])
         air_distance_routing = request.data.get('air_distance_routing', False)
-        place_ids = request.data.get('places')
-        with ProtectedProcessManager(request.user, scope=ProcessScope.ROUTING):
-            async_task(self._precalculate_traveltimes, area_level, project_area, body, hook=ppm.finish)
-        ret_status = status.HTTP_202_ACCEPTED
-        return Response({'message': msg, }, status=ret_status)
-
-    def _precalculate_traveltimes(
-        self, variant_ids, place_ids, drop_constraints=False,
-        air_distance_routing=False, max_distance=Mode.WALK,
-        max_direct_walktime=DEFAULT_MAX_DIRECT_WALKTIME,
-        max_access_distance=None):
-
+        places = request.data.get('places')
         logger.info('Starte Berechnung der Reisezeitmatrizen')
         dataframes = []
         variants = [ModeVariant.objects.get(pk=vid) for vid in variant_ids] \
             or ModeVariant.objects.all()
         try:
             queryset = self.get_filtered_queryset(variants=variants,
-                                                  places=place_ids)
+                                                  places=places)
             for variant in variants:
                 logger.info('Berechne Reisezeiten für Modus '
                             f'{Mode(variant.mode).name}')
@@ -194,14 +207,15 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                     access_variant = ModeVariant.objects.get(
                         id=request.data.get('access_variant',
                                             Mode.WALK))
-                    if max_access_distance is None:
-                        max_access_distance = MODE_MAX_DISTANCE[variant.mode]
+                    max_access_distance = float(
+                        request.data.get('max_access_distance',
+                                         MODE_MAX_DISTANCE[variant.mode]))
                     max_direct_walktime = float(
                         request.data.get('max_direct_walktime',
                                          DEFAULT_MAX_DIRECT_WALKTIME))
                     df = self.prepare_and_calc_transit_traveltimes(
                         access_variant,
-                        place_ids,
+                        places,
                         max_access_distance,
                         drop_constraints,
                         variant,
@@ -211,39 +225,40 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                 else:
                     if air_distance_routing:
                         df = self.calculate_airdistance_traveltimes(
-                            variant, max_distance=max_distance, places=place_ids)
+                            variant, max_distance=max_distance, places=places)
                         dataframes.append(df)
                     else:
-                        if not place_ids:
-                            place_ids = Place.objects.values_list('id', flat=True)
+                        if not places:
+                            places = Place.objects.values_list('id', flat=True)
                         chunk_size = 100
-                        for i in range(0, len(place_ids), chunk_size):
-                            place_part = place_ids[i:i+chunk_size]
+                        for i in range(0, len(places), chunk_size):
+                            place_part = places[i:i+chunk_size]
                             df = self.calc_routed_traveltimes(
                                 variant, max_distance=max_distance,
                                 places=place_part)
                             dataframes.append(df)
-                            logger.info(f'{min((i+chunk_size), len(place_ids))}/'
-                                        f'{len(place_ids)} Orte berechnet')
+                            logger.info(f'{min((i+chunk_size), len(places))}/'
+                                        f'{len(places)} Orte berechnet')
 
             if not dataframes:
                 msg = 'Keine Routen gefunden'
-                logger.error(msg)
                 raise RoutingError(msg)
             else:
                 df = pd.concat(dataframes)
                 logger.info('Schreibe Ergebnisse in die Datenbank')
                 success, msg = self.save_df(df, queryset, drop_constraints)
                 if not success:
-                    logger.error(msg)
                     raise RoutingError(msg)
 
         except RoutingError as err:
+            ret_status = status.HTTP_406_NOT_ACCEPTABLE
             msg = str(err)
             logger.error(msg)
         else:
+            ret_status = status.HTTP_202_ACCEPTED
             logger.info(msg)
             logger.info('Berechnung der Reisezeitmatrizen erfolgreich abgeschlossen')
+        return Response({'message': msg, }, status=ret_status)
 
     def prepare_and_calc_transit_traveltimes(self,
                                              access_variant: ModeVariant,

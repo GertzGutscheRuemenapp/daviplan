@@ -43,6 +43,8 @@ from datentool_backend.population.serializers import (
     prognosis_id_serializer, area_level_id_serializer, years_serializer)
 from datentool_backend.site.models import SiteSetting
 from datentool_backend.area.models import Area, AreaLevel
+from datentool_backend.utils.processes import (ProcessScope,
+                                               ProtectedProcessManager)
 
 import logging
 
@@ -259,11 +261,16 @@ class PopulationViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
         drop_constraints = request.data.get('drop_constraints', True)
+        run_sync = request.data.get('sync', False)
 
         with ProtectedProcessManager(
             request.user, scope=ProcessScope.POPULATION) as ppm:
-            ppm.run_async(self._pull_regionalstatistik, area_level,
-                          drop_constraints=drop_constraints)
+            if not run_sync:
+                ppm.run_async(self._pull_regionalstatistik, area_level,
+                              drop_constraints=drop_constraints)
+            else:
+                self._pull_regionalstatistik(area_level,
+                                             drop_constraints=drop_constraints)
 
         return Response({
             'message': f'Abruf der Bevölkerungsdaten gestartet'

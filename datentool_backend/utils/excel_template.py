@@ -53,6 +53,23 @@ class ExcelTemplateMixin:
         response.write(content)
         return response
 
+    @extend_schema(description='Upload Excel-File with Stops',
+                   request=inline_serializer(
+                       name='FileDropConstraintSerializer',
+                       fields={'drop_constraints': drop_constraints,
+                               'excel_file': serializers.FileField(),
+                               'variant': serializers.IntegerField(
+                                   required=False,
+                                   help_text='mode-variant id'),
+                               }
+                   ),
+                   responses={202: OpenApiResponse(MessageSerializer,
+                                                   'Upload successful'),
+                              406: OpenApiResponse(MessageSerializer,
+                                                   'Upload failed')})
+
+    @action(methods=['POST'], detail=False,
+            parser_classes=[CamelCaseMultiPartParser])
     def upload_template(self, request, queryset=None, **kwargs):
         """Upload the filled out Template"""
         serializer = self.get_serializer()
@@ -62,11 +79,12 @@ class ExcelTemplateMixin:
                 if hasattr(serializer, 'get_queryset') else self.get_queryset()
         drop_constraints = bool(strtobool(
             request.data.get('drop_constraints', 'False')))
+        run_sync = bool(strtobool(request.data.get('sync', 'False')))
 
         try:
             logger.info('Lese Excel-Datei')
             df = serializer.read_excel_file(request, **kwargs)
-        except ColumnError as e:
+        except (ColumnError, AssertionError) as e:
             msg = f'{e} Bitte überprüfen Sie das Template.'
             logger.error(msg)
             return Response({'Fehler': msg},
@@ -75,17 +93,27 @@ class ExcelTemplateMixin:
         with ProtectedProcessManager(
             request.user,
             scope=getattr(serializer, 'scope', ProcessScope.GENERAL)) as ppm:
+
             # workaround: if post requesting is required, do all the writing
             # of data before synchronously
             # did not manage to pass both into async
             if hasattr(serializer, 'post_processing'):
                 self.write_template_df(df, queryset, logger,
                                        drop_constraints=drop_constraints)
-                ppm.run_async(serializer.post_processing, df,
-                              drop_constraints=drop_constraints)
+                if not run_sync:
+                    ppm.run_async(serializer.post_processing, df,
+                                  drop_constraints=drop_constraints)
+                else:
+                    serializer.post_processing(
+                        df, drop_constraints=drop_constraints)
             else:
-                ppm.run_async(self.write_template_df, df, queryset, logger,
-                              drop_constraints=drop_constraints)
+                if not run_sync:
+                    ppm.run_async(self.write_template_df, df, queryset, logger,
+                                  drop_constraints=drop_constraints)
+                else:
+                    self.write_template_df(df, queryset, logger,
+                                           drop_constraints=drop_constraints)
+
         return Response({'message': 'Upload gestartet'},
                         status=status.HTTP_202_ACCEPTED)
 

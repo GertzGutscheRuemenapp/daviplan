@@ -343,10 +343,15 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
             return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
         truncate = request.data.get('truncate', False)
         simplify = request.data.get('simplify', False)
+        run_sync = request.data.get('sync', False)
 
         with ProtectedProcessManager(request.user, scope=ProcessScope.AREAS) as ppm:
-            ppm.run_async(self._pull_areas, area_level, project_area,
-                          truncate=truncate, simplify=simplify)
+            if not run_sync:
+                ppm.run_async(self._pull_areas, area_level, project_area,
+                              truncate=truncate, simplify=simplify)
+            else:
+                self._pull_areas(area_level, project_area,
+                                 truncate=truncate, simplify=simplify)
         return Response({'message': f'Abruf der Gebiete erfolgreich gestartet'},
                         status.HTTP_202_ACCEPTED)
 
