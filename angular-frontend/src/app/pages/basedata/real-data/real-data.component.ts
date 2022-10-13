@@ -67,6 +67,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   file?: File;
   isProcessing = false;
   subscriptions: Subscription[] = [];
+  uploadErrors: any = {};
 
   constructor(private mapService: MapService, public popService: PopulationService,
               private dialog: MatDialog, private settings: SettingsService,
@@ -385,21 +386,28 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
       data: {
         title: `Template hochladen`,
         confirmButtonText: 'Datei hochladen',
-        closeOnConfirm: true,
+        closeOnConfirm: false,
         template: this.fileUploadTemplate
       }
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
       if (!this.file)
         return;
+      dialogRef.componentInstance.isLoading$.next(true);
       const formData = new FormData();
       formData.append('excel_file', this.file);
       const url = `${this.rest.URLS.popEntries}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
         this.isProcessing = true;
+        dialogRef.close();
       }, error => {
+        this.uploadErrors = error.error;
+        dialogRef.componentInstance.isLoading$.next(false);
       });
     });
+    dialogRef.afterClosed().subscribe(ok => {
+      this.uploadErrors = {};
+    })
   }
 
   onMessage(log: LogEntry): void {

@@ -461,21 +461,28 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
         title: `Template hochladen`,
         confirmButtonText: 'Datei hochladen',
         template: this.fileUploadTemplate,
-        closeOnConfirm: true,
+        closeOnConfirm: false,
       }
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
       if (!this.file)
         return;
       const formData = new FormData();
+      dialogRef.componentInstance.isLoading$.next(true);
       formData.append('excel_file', this.file);
       formData.append('prognosis', this.activePrognosis!.id.toString());
       const url = `${this.rest.URLS.popEntries}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
         this.isProcessing = true;
+        dialogRef.close();
       }, error => {
+        this.uploadErrors = error.error;
+        dialogRef.componentInstance.isLoading$.next(false);
       });
     });
+    dialogRef.afterClosed().subscribe(ok => {
+      this.uploadErrors = {};
+    })
   }
 
   onMessage(log: LogEntry): void {

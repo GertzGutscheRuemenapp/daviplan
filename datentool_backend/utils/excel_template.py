@@ -71,11 +71,23 @@ class ExcelTemplateMixin:
             logger.error(msg)
             return Response({'Fehler': msg},
                             status=status.HTTP_406_NOT_ACCEPTABLE)
-        #queryset.delete()
+
         with ProtectedProcessManager(
-            request.user, scope=getattr(self, 'scope', ProcessScope.GENERAL)) as ppm:
-            ppm.run_async(self.write_template_df, df, queryset, logger, drop_constraints=drop_constraints)
-        return Response({'message': msg}, status=status.HTTP_202_ACCEPTED)
+            request.user,
+            scope=getattr(serializer, 'scope', ProcessScope.GENERAL)) as ppm:
+            # workaround: if post requesting is required, do all the writing
+            # of data before synchronously
+            # did not manage to pass both into async
+            if hasattr(serializer, 'post_processing'):
+                self.write_template_df(df, queryset, logger,
+                                       drop_constraints=drop_constraints)
+                ppm.run_async(serializer.post_processing, df,
+                              drop_constraints=drop_constraints)
+            else:
+                ppm.run_async(self.write_template_df, df, queryset, logger,
+                              drop_constraints=drop_constraints)
+        return Response({'message': 'Upload gestartet'},
+                        status=status.HTTP_202_ACCEPTED)
 
     @staticmethod
     def write_template_df(df: pd.DataFrame, queryset, logger, drop_constraints=False):
@@ -109,13 +121,5 @@ class ExcelTemplateMixin:
                     manager.restore_constraints()
                     manager.restore_indexes()
 
-        #if hasattr(serializer, 'post_processing'):
-            #serializer.post_processing(df, drop_constraints)
-
-        if len(df):
-            msg = f'Upload von {len(df)} Einträgen erfolgreich'
-        else:
-            msg = f'Upload erfolgreich'
+        msg = f'{len(df)} Einträge geschrieben'
         logger.info(msg)
-        return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
-

@@ -25,6 +25,7 @@ from datentool_backend.infrastructure.models.places import (PlaceAttribute,
                                                             Capacity)
 from datentool_backend.infrastructure.models.infrastructures import (
     Infrastructure)
+from datentool_backend.utils.processes import ProcessScope
 
 infrastructure_id_serializer = serializers.PrimaryKeyRelatedField(
     queryset=Infrastructure.objects.all(),
@@ -46,6 +47,7 @@ class PlacesTemplateSerializer(serializers.Serializer):
     excel_file = serializers.FileField()
     drop_constraints = serializers.BooleanField(default=True)
     logger = logging.getLogger('infrastructure')
+    scope = ProcessScope.INFRASTRUCTURE
 
     def create_template(self, infrastructure_id: int) -> bytes:
         """Create a template file for places of the give infrastructure"""
