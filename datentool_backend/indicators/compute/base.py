@@ -116,8 +116,8 @@ class ComputeIndicator(metaclass=ABCMeta):
         except AttributeError:
             try:
                 bins_my_mode = self.bins_by_mode
-                mode_variant_id = self.data['mode']
-                mode_variant = ModeVariant.objects.get(id=mode_variant_id)
+                mode = self.data['mode']
+                mode_variant = ModeVariant.objects.filter(mode=mode).first()
                 bins = bins_my_mode[mode_variant.mode]
             except AttributeError:
                 percentiles = [0, 10, 20, 40, 60, 80, 90, 100]
