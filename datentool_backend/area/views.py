@@ -4,6 +4,7 @@ from requests.exceptions import (MissingSchema, ConnectionError, HTTPError)
 import datetime
 import json
 import logging
+from distutils.util import strtobool
 
 from django.core.exceptions import BadRequest
 from django.contrib.gis.geos import (Polygon, MultiPolygon, GEOSGeometry,
@@ -481,11 +482,17 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
         with open(fp.name, 'wb') as f:
             f.write(geo_file.file.read())
         fp.close()
+        run_sync = bool(strtobool(request.data.get('sync', 'False')))
+        # ToDo: check file before calling _upload_shapefile() and return 406
+        # if broken
 
         with ProtectedProcessManager(request.user,
                                      scope=ProcessScope.AREAS) as ppm:
-            ppm.run_async(self._upload_shapefile, area_level, fp.name,
-                          project_area)
+            if not run_sync:
+                ppm.run_async(self._upload_shapefile, area_level, fp.name,
+                              project_area)
+            else:
+                self._upload_shapefile(area_level, fp.name, project_area)
         return Response({'message': 'Hochladen der Gebiete gestartet'},
                         status=status.HTTP_202_ACCEPTED)
 
@@ -535,7 +542,8 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
             'Sie, ob es sich um eine korrektes Shapefile bzw. Geopackage '
             'handelt.'
             logger.error(msg)
-            raise e
+            return
+            #raise e
         areas = Area.objects.filter(area_level=area_level)
         for i, area in enumerate(areas):
             area_attrs = {field_name: attrs[i]
