@@ -48,6 +48,7 @@
   </div>
   <div fxLayout="column" fxFlex="1100px">
     <app-input-card [title]="'Standortdaten und Kapazitäten'"
+                    [disabled]="isProcessing"
                     [class.hidden]="!selectedInfrastructure"
                     [topRightHelp]="true"
                     infoText="<p>Nachdem Sie in der Box „Standorteigenschaften“ die Datenstruktur zur Beschreibung der Standorte des gewählten Infrastrukturbereichs definiert haben, können Sie sich über die Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excel-Format  herunterladen.</p>
@@ -115,7 +116,7 @@
         </div>
         <div id="log-window" style="width: 50%">
           <span class="subtitle1">Daten-Historie Infrastruktur</span>
-          <app-log room="infrastructure" height="200px"></app-log>
+          <app-log room="infrastructure" (onMessage)="onMessage($event)" height="200px"></app-log>
         </div>
       </div>
       <div id="base-locations-map" class="map-container">

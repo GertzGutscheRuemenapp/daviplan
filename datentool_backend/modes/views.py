@@ -19,7 +19,8 @@ from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
 from datentool_backend.site.models import ProjectSetting
-
+from datentool_backend.utils.processes import (ProtectedProcessManager,
+                                               ProcessScope)
 from .models import Network, ModeVariant, Mode
 from .serializers import NetworkSerializer, ModeVariantSerializer
 
@@ -27,6 +28,7 @@ import logging
 
 logger = logging.getLogger('routing')
 
+_l_i = 0
 
 class ModeVariantViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = ModeVariant.objects.all()
@@ -47,18 +49,27 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     )
     @action(methods=['POST'], detail=False)
     def pull_base_network(self, request, **kwargs):
+
+        with ProtectedProcessManager(request.user,
+                                     scope=ProcessScope.ROUTING) as ppm:
+            ppm.run_async(self._pull_base_network)
+        return Response({'message': f'Download of base network successful'},
+                        status=status.HTTP_201_CREATED)
+
+    @staticmethod
+    def _pull_base_network():
         fp = os.path.join(settings.MEDIA_ROOT, settings.BASE_PBF)
         if os.path.exists(fp):
             os.remove(fp)
         # ToDo: download in chunks to show progress (in logs)
         logger.info(f'Lade {settings.PBF_URL} herunter')
-        self._d_i = 0
         def progress_hook(count, blockSize, totalSize):
+            global _l_i
             percent = int(count * blockSize * 100 / totalSize)
-            if percent >= self._d_i * 10:
+            if percent > 0 and _l_i != percent and percent % 10 == 0:
                 logger.info(f'{percent}% ({count * blockSize // 1024}kB/'
                             f'{totalSize // 1024}kB)')
-                self._d_i += 1
+                _l_i = percent
 
         (f, res) = urllib.request.urlretrieve(settings.PBF_URL, fp,
                                               reporthook=progress_hook)
@@ -69,8 +80,6 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             os.remove(fp_project)
 
         logger.info(f'OSM-Straßennetz erfolgreich heruntergeladen')
-        return Response({'message': f'Download of base network successful'},
-                        status=status.HTTP_201_CREATED)
 
     @extend_schema(
         description=('extract project area pbf, build routers for each mode '
@@ -85,13 +94,6 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     )
     @action(methods=['POST'], detail=False)
     def build_project_network(self, request, **kwargs):
-        fp_project_json = os.path.join(settings.MEDIA_ROOT, 'projectarea.geojson')
-        fp_base_pbf = os.path.join(settings.MEDIA_ROOT, 'germany-latest.osm.pbf')
-        fp_target_pbf = os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf')
-
-        for fp in fp_target_pbf, fp_project_json:
-            if os.path.exists(fp):
-                os.remove(fp)
         project_area = ProjectSetting.load().project_area
         if not project_area:
             msg = 'Das Projektgebiet ist nicht definiert'
@@ -99,9 +101,27 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             return Response({'message': msg },
                             status=status.HTTP_400_BAD_REQUEST)
 
+        with ProtectedProcessManager(request.user,
+                                     scope=ProcessScope.ROUTING) as ppm:
+            ppm.run_async(self._build_project_network)
+
+        return Response({'message': 'Bau der Router gestartet'},
+                        status=status.HTTP_200_OK)
+
+    @staticmethod
+    def _build_project_network():
+        fp_project_json = os.path.join(settings.MEDIA_ROOT, 'projectarea.geojson')
+        fp_base_pbf = os.path.join(settings.MEDIA_ROOT, 'germany-latest.osm.pbf')
+        fp_target_pbf = os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf')
+
+        for fp in fp_target_pbf, fp_project_json:
+            if os.path.exists(fp):
+                os.remove(fp)
+
         buffer = 30000
         logger.info('Verschneide das Straßennetz mit dem Projektgebiet und '
                     f'einem Buffer von {buffer/1000} km')
+        project_area = ProjectSetting.load().project_area
         buffered = project_area.buffer(buffer)
         buffered.transform('EPSG: 4326')
 
@@ -132,9 +152,7 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             msg = ('Verschneidung fehlgeschlagen. Das Projektgebiet konnte '
                    'nicht aus dem Basisnetz extrahiert werden')
             logger.error(msg)
-            return Response(
-                {'message': msg},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise Exception(msg)
 
         network, created = Network.objects.get_or_create(is_default=True)
         network.network_file = fp_target_pbf
@@ -157,11 +175,7 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
         modes = [Mode.CAR, Mode.BIKE, Mode.WALK]
         for mode in modes:
-            t = threading.Thread(target=build, args=[mode], daemon=True)
-            t.start()
-
-        return Response({'message': 'Bau der Router gestartet'},
-                        status=status.HTTP_200_OK)
+            build(mode)
 
     @extend_schema(
         description=('start routers for modes bike, car and foot'),
