@@ -95,6 +95,8 @@ export class SettingsService {
         if (environment.production) {
           siteSettings.logo = siteSettings.logo.replace('http:', 'https:');
         }
+        console.log('fetch:')
+        console.log(siteSettings)
         this.siteSettings$.next(siteSettings)
       });
   }
