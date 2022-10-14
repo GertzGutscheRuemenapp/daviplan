@@ -51,8 +51,6 @@ export class SettingsComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     this.settingsService.siteSettings$.pipe(take(1)).subscribe(settings => {
-      console.log('settings page:')
-      console.log(settings)
       this.settings = Object.assign({}, settings);
       this.cdRef.detectChanges();
       this.welcomeTextInput = settings.welcomeText;
