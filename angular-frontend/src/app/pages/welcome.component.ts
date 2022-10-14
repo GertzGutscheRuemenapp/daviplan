@@ -11,12 +11,12 @@ export class WelcomeComponent implements OnInit {
   settings?: SiteSettings;
   backend: string = environment.backend;
 
-  constructor(private settingsService: SettingsService) {
+  constructor(private settingsService: SettingsService) { }
+
+  ngOnInit(): void {
     this.settingsService.siteSettings$.subscribe(settings => {
       this.settings = settings;
     });
   }
-
-  ngOnInit(): void { }
 
 }
