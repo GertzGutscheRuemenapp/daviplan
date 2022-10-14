@@ -31,4 +31,5 @@ channels
 channels_redis
 aioredis
 routingpy
+django_q
 matplotlib

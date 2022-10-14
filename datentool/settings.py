@@ -76,7 +76,8 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'django_cleanup.apps.CleanupConfig',
     'django_filters',
-    'channels'
+    'channels',
+    'django_q'
 ]
 
 MIDDLEWARE = [
@@ -338,6 +339,23 @@ LOGGING = {
             'propagate': False,
         },
     },
+}
+
+Q_CLUSTER = {
+    'name': 'datentool',
+    'workers': 8,
+    'recycle': 500,
+    'timeout': 848000,
+    'retry': 848001,
+    'compress': True,
+    'save_limit': 250,
+    'queue_limit': 500,
+    'cpu_affinity': 1,
+    'label': 'Django Q',
+    'redis': {
+        'host': REDIS_HOST,
+        'port': REDIS_PORT,
+        'db': 0, }
 }
 
 def load_stats_json():

@@ -13,7 +13,7 @@ import { map } from "rxjs/operators";
 import { forkJoin, Observable, Subscription } from "rxjs";
 import { MapControl, MapService } from "../../../map/map.service";
 import { SelectionModel } from "@angular/cdk/collections";
-import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { MapLayerGroup, ValueStyle, VectorLayer } from "../../../map/layers";
 import * as d3 from "d3";
 
 @Component({
@@ -134,6 +134,26 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
       const desc = `<b>${this.activeService?.demandPluralUnit} ${this.year} nach ${this.activeLevel?.name}</b><br>
                     Minimum: ${min.toLocaleString()}<br>
                     Maximum: ${max.toLocaleString()}`;
+      let style: ValueStyle = {
+        field: 'value',
+        min: Math.max(min, 0),
+        max: max || 1
+      };
+
+      if (demandData.legend) {
+        style.fillColor = {
+          bins: demandData.legend
+        }
+      }
+      else {
+        style.fillColor = {
+          interpolation: {
+            range: d3.interpolatePurples,
+            scale: 'sequential',
+            steps: 5
+          }
+        }
+      }
       this.demandLayer = new VectorLayer(this.activeService?.demandPluralUnit || 'Nachfragende',{
           order: 0,
           description: desc,
@@ -153,18 +173,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
               fillColor: 'rgba(255, 255, 0, 0.7)'
             }
           },
-          valueStyles: {
-            field: 'value',
-            fillColor: {
-              interpolation: {
-                range: d3.interpolateBlues,
-                scale: 'sequential',
-                steps: steps
-              }
-            },
-            min: min,
-            max: max
-          }
+          valueStyles: style
         });
       this.layerGroup?.addLayer(this.demandLayer);
       this.demandLayer.addFeatures(this.areas, { properties: 'properties' });

@@ -12,7 +12,7 @@
   <p>Die Erzeugung der Reisezeitmatrizen erfolgt in drei Arbeitsschritten, denen jeweils einer der drei nachfolgenden Eingabeboxen entspricht.</p>
   <b>Schritt 1: OpenStreetMap-Straßennetz herunterladen</b>
   <p>Daviplan nutzt kostenfreie Straßendaten von OpenStreetMap (OSM). Wenn Sie die Schaltfläche „Basisnetz herunterladen“ anklicken, wird ein kostenfreies, aktuelles deutschlandweites Straßennetz vom OSM-Anbieter Geofabrik heruntergeladen und auf Ihrem Server zwischengespeichert. Aufgrund der Datenmenge kann der Download etwas dauern. Ein Häkchen hinter der Statusanzeige zeigt Ihnen, wenn der Download erfolgreich war oder bereits zu einem früheren Zeitpunkt durchgeführt wurde.</p>
-  <b>Schritt 2: Mit Projektgebiet verschneiden</b>
+  <b>Schritt 2: FMit Projektgebiet verschneiden</b>
   <p>Um die nachfolgenden Berechnungsschritte zu beschleunigen, wird das Straßennetz mit Ihrem Projektgebiet verschnitten. Dazu wird ein Ausschnitt aus dem Straßennetz herausgeschnitten, dass Ihr Projektgebiet plus einem Puffer von 30 km rund um ihr Projektgebiet umfasst. Der Puffer umfasst keine Flächen außerhalb Deutschlands.</p>
   <p>Um diese Verschneidung durchzuführen, klicken Sie bitte auf die Schaltfläche „Straßennetz verschneiden“. Ein Häkchen hinter der Statusanzeige zeigt Ihnen, wenn die Verschneidung erfolgreich war oder bereits zu einem früheren Zeitpunkt durchgeführt wurde.</p>
   <b>Schritt 3: Reisezeitmatrizen Fuß, Rad und Auto erzeugen</b>
@@ -29,6 +29,7 @@
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
     <app-input-card [title]="'Schritt 1: OpenStreetMap-Straßennetz herunterladen'"
+                    [disabled]="isProcessing"
                     infoText="<p>Über die Schaltfläche „Basisnetz herunterladen“ wird das aktuelle Straßennetz auf den Server heruntergeladen. Das OSM-Netz wird für die Ausführung von Schritt 2 benötigt.</p>">
       <div>
         Status: {{baseDataSettings?.routing?.baseNet? 'Basisnetz vorhanden': 'Basisnetz nicht vorhanden'}}
@@ -41,6 +42,7 @@
       </button>
     </app-input-card>
     <app-input-card [title]="'Schritt 2: Mit Projektgebiet verschneiden'"
+                    [disabled]="isProcessing"
                     infoText="<p>Das OSM-Straßennetz wird in diesem Schritt mit dem Projektgebiet inklusive einem Puffer von 30 km verschnitten und anschließend für die Verkehrsmittel „Fuß“, „Rad“ und „Auto“ mit der Erzeugung separater Router optimiert.</p>
                               <p>Mit einem Klick auf die Schaltfläche „Straßennetz verschneiden“ wird der Vorgang gestartet.</p>
                               <p>Das verschnittene Netz wird für die Berechnung der Reisezeiten in Schritt 3 benötigt.">
@@ -57,6 +59,7 @@
   </div>
   <div fxLayout="column" fxFlex="900px">
     <app-input-card [title]="'Schritt 3: Reisezeitmatrizen Fuß, Rad und Auto erzeugen\n'"
+                    [disabled]="isProcessing"
                     [topRightHelp]="true"
                     infoText="<p>In diesem Schritt werden die Reisezeitmatrizen für die Verkehrsmittel „Fuß“, „Rad“ und „Auto“ berechnet. </p>
                               <p>Die berechneten Matrizen werden für die Erreichbarkeitsanalyse in der Infrastrukturplanung benötigt.</p>">
@@ -89,7 +92,7 @@
         </div>
         <div style="width: 60%">
           <span class="subtitle1">Historie</span>
-          <app-log room="routing" height="200px"></app-log>
+          <app-log room="routing" (onMessage)="onMessage($event)" height="200px"></app-log>
         </div>
       </div>
     </app-input-card>

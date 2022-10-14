@@ -3,9 +3,10 @@ import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { MatDialog } from "@angular/material/dialog";
 import { SettingsService } from "../../../settings.service";
-import { BasedataSettings, ModeVariant, TransportMode } from "../../../rest-interfaces";
+import { BasedataSettings, LogEntry, ModeVariant, TransportMode } from "../../../rest-interfaces";
 import { RestCacheService } from "../../../rest-cache.service";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
+import { Subscription } from "rxjs";
 
 @Component({
   selector: 'app-road-network',
@@ -15,12 +16,19 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 export class RoadNetworkComponent implements OnInit, OnDestroy {
   baseDataSettings?: BasedataSettings;
   modeVariants: ModeVariant[] = [];
+  isProcessing = false;
+  subscriptions: Subscription[] = [];
 
   constructor(private http: HttpClient, private rest: RestAPI, private dialog: MatDialog,
               private settings: SettingsService, private restCache: RestCacheService) { }
 
   ngOnInit(): void {
     this.settings.baseDataSettings$.subscribe(baseSettings => this.baseDataSettings = baseSettings);
+    this.subscriptions.push(this.settings.baseDataSettings$.subscribe(bs => {
+      this.baseDataSettings = bs;
+      this.isProcessing = bs.processes?.routing || false;
+    }));
+    this.settings.fetchBaseDataSettings();
     this.restCache.getModeVariants().subscribe(modeVariants => {
       this.modeVariants = modeVariants.filter(m => m.mode !== TransportMode.TRANSIT);
     })
@@ -43,7 +51,7 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
           this.baseDataSettings.routing.baseNet = false;
         }
         this.http.post<any>(`${this.rest.URLS.networks}pull_base_network/`, {}).subscribe(() => {
-          this.settings.fetchBaseDataSettings();
+          this.isProcessing = true;
         }, (error) => {
         })
       }
@@ -63,7 +71,7 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(ok => {
       if (ok)
         this.http.post<any>(`${this.rest.URLS.networks}build_project_network/`, {}).subscribe(() => {
-          this.settings.fetchBaseDataSettings();
+          this.isProcessing = true;
         },(error) => {
         })
     })
@@ -82,11 +90,20 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(ok => {
       if (ok)
         this.http.post<any>(`${this.rest.URLS.matrixCellPlaces}precalculate_traveltime/`, {variants: this.modeVariants.map(m => m.id)}).subscribe(() => {
+          // this.isProcessing = true;
         },(error) => {
         })
     })
   }
 
+  onMessage(log: LogEntry): void {
+    if (log?.status?.success) {
+      this.isProcessing = false;
+      this.settings.fetchBaseDataSettings();
+    }
+  }
+
   ngOnDestroy(): void {
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }

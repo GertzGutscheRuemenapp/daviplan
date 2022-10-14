@@ -28,7 +28,7 @@ from drf_spectacular.views import (SpectacularAPIView,
                                    SpectacularSwaggerView)
 
 from .loggers import LogConsumer
-from datentool_backend.views import AreaLevelTileView, RasterCellTileView
+from datentool_backend.views import (AreaLevelTileView, RasterCellTileView)
 
 from .views import HomePageView
 

@@ -19,6 +19,7 @@ from rest_framework import serializers
 
 from drf_spectacular.utils import (extend_schema, inline_serializer,
                                    OpenApiResponse, OpenApiParameter)
+
 from datentool_backend.utils.routers import OSRMRouter
 from datentool_backend.utils.excel_template import ExcelTemplateMixin
 from datentool_backend.utils.serializers import MessageSerializer, drop_constraints
@@ -46,11 +47,9 @@ from datentool_backend.modes.models import (ModeVariant,
 from datentool_backend.indicators.serializers import (StopSerializer,
                                                       StopTemplateSerializer,
                                                       MatrixStopStopTemplateSerializer,
-                                                      MatrixStopStopSerializer,
                                                       RouterSerializer,
+                                                      MatrixStopStopSerializer
                                                       )
-from datentool_backend.utils.processes import (ProtectedProcessManager,
-                                               ProcessScope)
 
 
 class RoutingError(Exception):
@@ -112,7 +111,6 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
         )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
-
     @extend_schema(description='Upload Excel-File or PTV-Visum-Matrix with Traveltimes from Stop to Stop',
                    request=inline_serializer(
                        name='FileDropConstraintModeVariantSerializer',
@@ -131,8 +129,7 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
             parser_classes=[CamelCaseMultiPartParser])
     def upload_template(self, request):
         """Upload the filled out Stops-Template"""
-        with ProtectedProcessManager(request.user, scope=ProcessScope.ROUTING):
-            return super().upload_template(request)
+        return super().upload_template(request)
 
 
 class RouterViewSet(viewsets.ModelViewSet):
@@ -206,13 +203,10 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                     'max_distance', MODE_MAX_DISTANCE[variant.mode]))
 
                 if variant.mode == Mode.TRANSIT:
-                    access_id = request.data.get('access_variant')
-                    if access_id is not None:
-                        access_variant = ModeVariant.objects.get(id=access_id)
-                    # access variant is WALK, if no other mode is requested
-                    else:
-                        access_variant = ModeVariant.objects.filter(
-                            mode=Mode.WALK.value).first()
+                    #  access variant is WALK, if no other mode is requested
+                    access_variant = ModeVariant.objects.get(
+                        id=request.data.get('access_variant',
+                                            Mode.WALK))
                     max_access_distance = float(
                         request.data.get('max_access_distance',
                                          MODE_MAX_DISTANCE[variant.mode]))
@@ -275,7 +269,6 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                                              max_direct_walktime: float,
                                              ) -> pd.DataFrame:
         # calculate time from place to stop
-        logger.info('Berechne Reisezeiten von den Standorten zu den Haltestellen')
         matrix_place_stop = MatrixPlaceStopViewSet()
         df_ps = matrix_place_stop.calc_routed_traveltimes(
             variant=access_variant,
@@ -287,11 +280,9 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
             places=places)
         success, msg = matrix_place_stop.save_df(df_ps, qs, drop_constraints)
         if not success:
-            logger.error(msg)
             raise RoutingError(msg)
 
         # calculate time from stop to cell
-        logger.info('Berechne Reisezeiten von den Haltestellen zu den Siedlungszellen')
         matrix_cell_stop = MatrixCellStopViewSet()
         stops = Stop.objects.values_list('id', flat=True)
         chunk_size = 100
@@ -304,8 +295,6 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                 max_distance=max_distance,
                 stops=stops_part)
             dataframes_cs.append(df_cs)
-            logger.info(f'{min((i+chunk_size), len(stops))}/'
-                        f'{len(stops)} Haltestellen berechnet')
         df_cs = pd.concat(dataframes_cs)
 
         qs = matrix_cell_stop.get_filtered_queryset(
@@ -409,7 +398,7 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                 if drop_constraints:
                     manager.restore_constraints()
                     manager.restore_indexes()
-            msg = (f'Berechnung der Reisezeiten erfolgreich, {n_deleted} Einträge '
+            msg = (f'Berechnung der Reiszeiten erfolgreich, {n_deleted} Einträge '
                    f'entfernt und {len(df)} Einträge hinzugefügt '
                    f'({model._meta.object_name})')
             return (True, msg)
