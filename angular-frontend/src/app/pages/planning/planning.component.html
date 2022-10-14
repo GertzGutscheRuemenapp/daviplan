@@ -182,6 +182,7 @@
   <div *ngIf="!activeProcess" i18n>Wählen Sie hier einen Planungsprozess aus</div>
 </ng-template>
 <mat-sidenav #drawer class="context-bar"
+             [disableClose]="true"
              [opened]="(isSM$ | async) === false">
   <div class="deactivateOverlay" title="Bitte wählen bzw. erstellen Sie einen Planungsprozess!"
        *ngIf="!activeProcess">

@@ -43,7 +43,9 @@
   </mat-menu>
 </mat-toolbar>
 <mat-sidenav-container fxFlexFill>
-  <mat-sidenav class="main-collapse" color="primary" #sidenav fxLayout="column" mode="over" opened="false">
+  <mat-sidenav class="main-collapse" color="primary"
+               #sidenav fxLayout="column" mode="over"
+               opened="false">
     <div fxLayout="column">
       <a *ngFor="let item of menuItems"
          mat-button
