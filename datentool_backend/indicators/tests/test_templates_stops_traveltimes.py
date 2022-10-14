@@ -52,6 +52,7 @@ class StopTemplateTest(LoginTestCase, APITestCase):
         data = {
             'excel_file': file_content,
             'variant': self.mode_variant.id,
+            'sync': True,
         }
 
         url = reverse('stops-upload-template')
@@ -84,6 +85,7 @@ class StopTemplateTest(LoginTestCase, APITestCase):
             'excel_file': open(file_path, 'rb'),
             'drop_constraints': False,
             'variant': self.mode_variant.id,
+            'sync': True
         }
         res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
         self.assertContains(res,
@@ -100,6 +102,7 @@ class StopTemplateTest(LoginTestCase, APITestCase):
             'excel_file': open(self.get_file_path_stops(filename_stops), 'rb'),
             'drop_constraints': False,
             'variant': self.mode_variant.id,
+            'sync':  True
         }
         res = self.client.post(url, data, extra=dict(format='multipart/form-data'))
         self.assert_http_202_accepted(res, msg=res.content)
@@ -133,6 +136,7 @@ class StopTemplateTest(LoginTestCase, APITestCase):
                 'excel_or_visum_file': file_content,
                 'variant': mode_variant_id,
                 'drop_constraints': False,
+                'sync': True,
             }
 
             url = reverse('matrixstopstops-upload-template')
@@ -181,6 +185,7 @@ class StopTemplateTest(LoginTestCase, APITestCase):
             'excel_or_visum_file' : open(file_path, 'rb'),
             'variant': mode_variant_id,
             'drop_constraints': False,
+            'sync': True,
         }
         res = self.client.post(url, data, extra=dict(format='multipart/form-data'), varant=33)
         self.assertContains(res,

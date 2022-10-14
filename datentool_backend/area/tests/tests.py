@@ -78,13 +78,15 @@ class TestWfs(LoginTestCase, APITestCase):
         ProjectSettingFactory(project_area=geom)
 
     def test_pull_areas(self):
-        response = self.post('arealevels-pull-areas',
-                             pk=self.area_level_no_wfs.id,
+        url = reverse('arealevels-pull-areas',
+                      kwargs={'pk': self.area_level_no_wfs.id})
+        response = self.post(url, {'sync': True},
                              extra={'format': 'json'})
         self.assert_http_406_not_acceptable(response)
 
-        response = self.post('arealevels-pull-areas', pk=self.area_level.id,
-                             extra={'format': 'json'})
+        url = reverse('arealevels-pull-areas',
+                      kwargs={'pk': self.area_level.id})
+        response = self.post(url, data={'sync': True}, extra={'format': 'json'})
         self.assert_http_202_accepted(response)
         areas = Area.objects.filter(area_level=self.area_level)
         # ToDo: test intersection with project area?
