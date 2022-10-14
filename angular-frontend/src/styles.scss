@@ -849,7 +849,7 @@ mat-expansion-panel {
 
 mat-expansion-panel.side-toggle {
   .mat-expansion-indicator:after {
-    transform: rotate(135deg);
+    transform: rotate(-45deg);
   }
   .mat-expansion-panel-content {
     display: none;

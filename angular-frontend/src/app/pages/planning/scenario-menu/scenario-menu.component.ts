@@ -21,7 +21,7 @@ import { CookieService } from "../../../helpers/cookies.service";
 @Component({
   selector: 'app-scenario-menu',
   templateUrl: './scenario-menu.component.html',
-  styleUrls: ['./scenario-menu.component.scss']
+  styleUrls: ['./scenario-menu.component.scss']//, '../../../elements/side-toggle/side-toggle.component.scss']
 })
 export class ScenarioMenuComponent implements OnInit {
   @Input() domain!: 'demand' | 'reachabilities' | 'rating' | 'supply';
