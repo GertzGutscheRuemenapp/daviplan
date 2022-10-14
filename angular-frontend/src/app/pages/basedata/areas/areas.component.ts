@@ -132,7 +132,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         Object.assign(this.activeLevel!, arealevel);
         this.editArealevelCard.closeDialog(true);
         this.mapControl?.refresh({ internal: true });
-        this.selectAreaLevel(arealevel, true);
+        this.selectAreaLevel(arealevel);
       },(error) => {
         this.editLevelForm.setErrors(error.error);
         this.editArealevelCard.setLoading(false);
@@ -140,7 +140,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     })
   }
 
-  selectAreaLevel(areaLevel: AreaLevel, reset: boolean = false): void {
+  selectAreaLevel(areaLevel: AreaLevel): void {
     this.activeLevel = areaLevel;
     if (this.areaLayer) {
       this.layerGroup?.removeLayer(this.areaLayer);
@@ -149,7 +149,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     if (!areaLevel) return;
     this.isLoading$.next(true);
     this.restService.getAreas(this.activeLevel.id,
-      {targetProjection: this.mapControl?.map?.mapProjection, reset: reset}).subscribe(areas => {
+      {targetProjection: this.mapControl?.map?.mapProjection, reset: true}).subscribe(areas => {
         this.areas = areas;
         this.areaLayer = new VectorLayer(this.activeLevel!.name, {
           description: '',
@@ -282,6 +282,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       data: {
         title: `Daten hochladen`, //für Gebietseinheit "${this.activeLevel.name}"`,
         confirmButtonText: 'Datei hochladen',
+        closeOnConfirm: true,
         template: this.fileUploadTemplate
       }
     });
@@ -290,19 +291,10 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         return;
       const formData = new FormData();
       formData.append('file', this.file);
-      const dialogRef2 = SimpleDialogComponent.show(
-        'Die Gebiete werden hochgeladen und mit eventuell vorhandenen Bevölkerungsdaten verschnitten. Bitte warten',
-        this.dialog, { showAnimatedDots: true, width: '350px' });
       this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/upload_shapefile/`, formData).subscribe(res => {
-        dialogRef.close();
-        dialogRef2.close();
-        this.http.get<AreaLevel>(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/`).subscribe(al => {
-          Object.assign(this.activeLevel, al);
-          this.selectAreaLevel(this.activeLevel!, true);
-        })
+        this.isProcessing = true;
       }, error => {
         this.uploadErrors = error.error;
-        dialogRef2.close();
       });
     });
     dialogRef.afterClosed().subscribe(ok => {
@@ -325,7 +317,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       if (confirmed) {
         this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/clear/`, {}
         ).subscribe(res => {
-          this.selectAreaLevel(this.activeLevel!, true);
+          this.selectAreaLevel(this.activeLevel!);
         }, error => {
           console.log('there was an error sending the query', error);
         });
@@ -420,7 +412,9 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   onMessage(log: LogEntry): void {
     if (log?.status?.success) {
       this.isProcessing = false;
-      this.selectAreaLevel(this.activeLevel!, true);
+      this.fetchAreaLevels().subscribe(res => {
+        if (this.activeLevel)  this.selectAreaLevel(this.activeLevel);
+      });
     }
   }
 

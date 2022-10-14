@@ -463,96 +463,112 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata],
             parser_classes=[CamelCaseMultiPartParser])
     def upload_shapefile(self, request, **kwargs):
+        try:
+            area_level: AreaLevel = self.queryset.get(**kwargs)
+        except AreaLevel.DoesNotExist:
+            msg = f'Area level for {kwargs} not found'
+            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+        project_area = ProjectSetting.load().project_area
+        if not project_area:
+            msg = 'Project area is not defined'
+            return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
+        geo_file = request.FILES['file']
+        ext = '.'.join([''] + geo_file.name.split('.')[1:])
+        if ext == '.zip':
+            ext = '.shp.zip'
+        logger.info('Lese Eingangsdatei')
+        fp = tempfile.NamedTemporaryFile(suffix=ext, delete=False)
+        with open(fp.name, 'wb') as f:
+            f.write(geo_file.file.read())
+        fp.close()
+
         with ProtectedProcessManager(request.user,
-                                     scope=ProcessScope.AREAS):
-            try:
-                area_level: AreaLevel = self.queryset.get(**kwargs)
-            except AreaLevel.DoesNotExist:
-                msg = f'Area level for {kwargs} not found'
-                return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
-            project_area = ProjectSetting.load().project_area
-            if not project_area:
-                msg = 'Project area is not defined'
-                return Response({'message': msg}, status.HTTP_406_NOT_ACCEPTABLE)
-            # ToDo: option to truncate or to update existing entries
-            # when keys match
-            # delete existing data
-            Area.objects.filter(area_level=area_level).delete()
-            AreaField.objects.filter(area_level=area_level).delete()
-            geo_file = request.FILES['file']
-            ext = '.'.join([''] + geo_file.name.split('.')[1:])
-            if ext == '.zip':
-                ext = '.shp.zip'
+                                     scope=ProcessScope.AREAS) as ppm:
+            ppm.run_async(self._upload_shapefile, area_level, fp.name,
+                          project_area)
+        return Response({'message': 'Hochladen der Gebiete gestartet'},
+                        status=status.HTTP_202_ACCEPTED)
+
+    @staticmethod
+    def _upload_shapefile(area_level, filename, project_area):
+        # ToDo: option to truncate or to update existing entries
+        # when keys match
+        # delete existing data
+        Area.objects.filter(area_level=area_level).delete()
+        AreaField.objects.filter(area_level=area_level).delete()
+        logger.info('Schreibe Gebiete')
+        try:
             mapping = {'geom': 'MULTIPOLYGON',}
-            with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as fp:
-                with open(fp.name, 'wb') as f:
-                    f.write(geo_file.file.read())
-                fp.close()
+            lm = CustomLayerMapping(Area,
+                                    filename,
+                                    mapping,
+                                    custom={'area_level': area_level, })
+
+            layer = lm.layer
+            attributes = {}
+            for i, field_name in enumerate(layer.fields):
+                field_type = layer.field_types[i]
+                if issubclass(field_type, (gdal_field.OFTInteger,
+                                           gdal_field.OFTInteger64,
+                                           gdal_field.OFTReal)):
+                    ft = FieldTypes.NUMBER
+                else:
+                    ft = FieldTypes.STRING
                 try:
-                    lm = CustomLayerMapping(Area,
-                                            fp.name,
-                                            mapping,
-                                            custom={'area_level': area_level, })
+                    af = AreaField.objects.get(area_level=area_level,
+                                               name=field_name)
+                except AreaField.DoesNotExist:
+                    try:
+                        field_type = FieldType.objects.get(ftype=ft)
+                    except FieldType.DoesNotExist:
+                        field_type = FieldType.objects.create(ftype=ft,
+                                                              name=ft.value)
+                    af = AreaField.objects.create(area_level=area_level,
+                                                  name=field_name,
+                                                  field_type=field_type)
+                attributes[field_name] = layer.get_fields(field_name)
 
-                    layer = lm.layer
-                    attributes = {}
-                    for i, field_name in enumerate(layer.fields):
-                        field_type = layer.field_types[i]
-                        if issubclass(field_type, (gdal_field.OFTInteger,
-                                                   gdal_field.OFTInteger64,
-                                                   gdal_field.OFTReal)):
-                            ft = FieldTypes.NUMBER
-                        else:
-                            ft = FieldTypes.STRING
-                        try:
-                            af = AreaField.objects.get(area_level=area_level,
-                                                       name=field_name)
-                        except AreaField.DoesNotExist:
-                            try:
-                                field_type = FieldType.objects.get(ftype=ft)
-                            except FieldType.DoesNotExist:
-                                field_type = FieldType.objects.create(ftype=ft,
-                                                                      name=ft.value)
-                            af = AreaField.objects.create(area_level=area_level,
-                                                          name=field_name,
-                                                          field_type=field_type)
-                        attributes[field_name] = layer.get_fields(field_name)
+            lm.save(verbose=True, strict=True)
+        except GDALException as e:
+            #msg = f'Upload failed: {e}'
+            msg = 'Die Datei konnte nicht gelesen werden. Bitte überprüfen '
+            'Sie, ob es sich um eine korrektes Shapefile bzw. Geopackage '
+            'handelt.'
+            logger.error(msg)
+            raise e
+        areas = Area.objects.filter(area_level=area_level)
+        for i, area in enumerate(areas):
+            area_attrs = {field_name: attrs[i]
+                          for field_name, attrs
+                          in attributes.items()}
+            area.attributes = area_attrs
 
-                    lm.save(verbose=True, strict=True)
-                except GDALException as e:
-                    #msg = f'Upload failed: {e}'
-                    msg = 'Die Datei konnte nicht gelesen werden. Bitte überprüfen '
-                    'Sie, ob es sich um eine korrektes Shapefile bzw. Geopackage '
-                    'handelt.'
-                    return Response({'message': msg, },
-                                    status=status.HTTP_406_NOT_ACCEPTABLE)
-
-            areas = Area.objects.filter(area_level=area_level)
-            for i, area in enumerate(areas):
-                area_attrs = {field_name: attrs[i]
-                              for field_name, attrs
-                              in attributes.items()}
-                area.attributes = area_attrs
-
-                intersection = project_area.intersection(area.geom)
-                if (intersection.area < MIN_AREA):
-                    area.delete()
-                    continue
-                if intersection.area / area.geom.area < INTERSECT_THRESHOLD:
-                    if isinstance(intersection, Polygon):
-                        intersection = MultiPolygon(intersection)
-                    area.geom = intersection
-                    area.is_cut = True
-                area.save()
-            now = datetime.datetime.now()
-            area_level.source.date = datetime.date(now.year, now.month, now.day)
-            area_level.source.save()
-            if areas:
-                intersect_areas_with_raster(areas, drop_constraints=True)
-                for population in Population.objects.all():
+            intersection = project_area.intersection(area.geom)
+            if (intersection.area < MIN_AREA):
+                area.delete()
+                continue
+            if intersection.area / area.geom.area < INTERSECT_THRESHOLD:
+                if isinstance(intersection, Polygon):
+                    intersection = MultiPolygon(intersection)
+                area.geom = intersection
+                area.is_cut = True
+            area.save()
+        now = datetime.datetime.now()
+        area_level.source.date = datetime.date(now.year, now.month, now.day)
+        area_level.source.save()
+        if areas:
+            logger.info('Verschneide Gebiete mit dem Bevölkerungsraster')
+            intersect_areas_with_raster(areas, drop_constraints=True)
+            logger.info('Aggregiere Bevölkerungsdaten auf neue Gebiete hoch')
+            n_pop = Population.objects.count()
+            for i, population in enumerate(Population.objects.all()):
+                logger.info(f'{i + 1}/{n_pop}')
+                try:
                     aggregate_population(area_level, population, drop_constraints=True)
-            msg = f'Upload successful of {layer.num_feat} areas'
-            return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
+                except Exception as e:
+                    logger.error(str(e))
+                    raise Exception(str(e))
+        logger.info(f'{areas.count()} Gebiete gespeichert und verarbeitet')
 
     @action(methods=['POST'], detail=True,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
