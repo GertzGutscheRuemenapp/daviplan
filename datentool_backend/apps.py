@@ -1,4 +1,5 @@
 from django.apps import AppConfig
+from django.db.utils import DatabaseError
 
 
 class BackendConfig(AppConfig):
@@ -6,4 +7,10 @@ class BackendConfig(AppConfig):
     name = 'datentool_backend'
 
     def ready(self):
-        pass
+        from datentool_backend.models import ProcessState
+        # reset all process states on start
+        try:
+            ProcessState.objects.all().update(is_running=False)
+        # thrown at migration, ProcessState does not exist yet
+        except DatabaseError:
+            pass

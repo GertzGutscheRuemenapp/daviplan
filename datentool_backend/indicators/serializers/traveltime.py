@@ -1,36 +1,21 @@
 import os
 import pandas as pd
 from tempfile import mktemp
+import logging
 
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.worksheet.dimensions import ColumnDimension
 from openpyxl.worksheet.datavalidation import DataValidation
 
 from django.conf import settings
-from django.db import connection
-from django.db.models import FloatField
-from django.db.models.query import QuerySet
-from django.contrib.gis.db.models.functions import Transform, Func
 
 from rest_framework import serializers
 from rest_framework.fields import FileField, IntegerField, BooleanField
 
 from matrixconverters.read_ptv import ReadPTVMatrix
 
-from routingpy import OSRM
-
-from datentool_backend.modes.models import (MODE_MAX_DISTANCE,
-                                            MODE_SPEED,
-                                            ModeVariant,
-                                            Mode)
-from datentool_backend.indicators.models import (Stop,
-                                                 MatrixStopStop,
-                                                 MatrixCellPlace,
-                                                 MatrixCellStop,
-                                                 MatrixPlaceStop,
-                                                 )
-from datentool_backend.infrastructure.models.places import Place
-from datentool_backend.population.models import RasterCell, RasterCellPopulation
+from datentool_backend.indicators.models import (Stop, MatrixStopStop)
+from datentool_backend.utils.processes import ProcessScope
 
 
 class MatrixStopStopSerializer(serializers.ModelSerializer):
@@ -44,6 +29,8 @@ class MatrixStopStopTemplateSerializer(serializers.Serializer):
     excel_or_visum_file = FileField()
     variant = IntegerField()
     drop_constraints = BooleanField(default=True)
+    scope = ProcessScope.ROUTING
+    logger = logging.getLogger('routing')
 
     class Meta:
         model = MatrixStopStop
