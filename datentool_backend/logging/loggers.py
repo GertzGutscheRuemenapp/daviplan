@@ -26,17 +26,12 @@ class PersistLogHandler(logging.StreamHandler):
         # in settings, app is not ready to import models
         from .models import LogEntry
         room = record.name
-<<<<<<< HEAD
-        try:
-            entry = LogEntry.objects.create(
-                date=datetime.datetime.now(), room=room, text=record.getMessage(),
-                user=self.user, level=record.levelname)
-        except InternalError:
-            pass
-=======
+
         message = record.getMessage()
         if message:
-        	entry = LogEntry.objects.create(
-            	date=timezone.now(), room=room, text=message,
-            	user=self.user, level=record.levelname)
->>>>>>> main
+            try:
+                entry = LogEntry.objects.create(
+                    date=timezone.now(), room=room, text=message,
+                    user=self.user, level=record.levelname)
+            except InternalError:
+                pass
