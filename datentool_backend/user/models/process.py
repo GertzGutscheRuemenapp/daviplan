@@ -6,7 +6,8 @@ from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.population.models import Prognosis
 from datentool_backend.demand.models import DemandRateSet
 from datentool_backend.modes.models import ModeVariant, Network
-from datentool_backend.infrastructure.models.infrastructures import Service
+from datentool_backend.infrastructure.models.infrastructures import (
+    Service, Infrastructure)
 from .profile import Profile
 
 
@@ -19,6 +20,8 @@ class PlanningProcess(DatentoolModelMixin, NamedModel, models.Model):
     owner = models.ForeignKey(Profile, on_delete=models.RESTRICT)
     users = models.ManyToManyField(Profile, related_name='shared_with_users',
                                    blank=True)
+    infrastructures = models.ManyToManyField(
+        Infrastructure, related_name='processes', blank=True)
     allow_shared_change = models.BooleanField()
 
 

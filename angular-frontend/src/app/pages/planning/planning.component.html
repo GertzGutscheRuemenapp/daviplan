@@ -226,9 +226,12 @@
       <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
         <span class="subtitle1" style="color: grey;">Infrastrukturbereiche</span>
         <div class="border-box" style="height: 250px;">
-          <mat-checkbox class="reverse" color="primary">alle</mat-checkbox>
-          <mat-divider style="margin-bottom: 10px;"></mat-divider>
-          <mat-checkbox class="reverse" color="primary" *ngFor="let infrastructure of infrastructures">
+<!--          <mat-checkbox class="reverse" color="primary">alle</mat-checkbox>
+          <mat-divider style="margin-bottom: 10px;"></mat-divider>-->
+          <mat-checkbox class="reverse" color="primary"
+                        *ngFor="let infrastructure of infrastructures"
+                        (change)="infrastructure.included = $event.checked"
+                        [checked]="infrastructure.included || false">
             {{infrastructure.name}}
           </mat-checkbox>
         </div>
@@ -236,7 +239,10 @@
       <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
         <span class="subtitle1" style="color: grey;">Zugriff auf Planungsprozess</span>
         <div class="border-box" style="height: 250px;">
-          <mat-checkbox class="reverse" color="primary" *ngFor="let user of otherUsers" (change)="user.shared = $event.checked" [checked]="user.shared || false">
+          <mat-checkbox class="reverse" color="primary"
+                        *ngFor="let user of otherUsers"
+                        (change)="user.shared = $event.checked"
+                        [checked]="user.shared || false">
             {{user.username + ((user.firstName.length > 0 || user.lastName.length > 0)? (' (' + user.firstName + ((user.firstName.length > 0 && user.lastName.length > 0)? ' ': '') + user.lastName + ')'): '')}}
           </mat-checkbox>
         </div>
