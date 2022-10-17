@@ -355,6 +355,8 @@ class ComputePopulationAreaIndicator(PopulationIndicatorMixin,
                                      ComputeIndicator):
     title = 'Population By Area'
     description = 'Total Population per Area'
+    representation = 'colorramp'
+    colormap_name = 'Oranges'
     result_serializer = ResultSerializer.AREA
 
     def compute(self):

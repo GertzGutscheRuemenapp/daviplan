@@ -27,9 +27,6 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   constructor(private settingsService: SettingsService, private formBuilder: FormBuilder, public auth: AuthService,
               private router: Router, private route: ActivatedRoute) {
-    this.settingsService.siteSettings$.subscribe(settings => {
-      this.settings = settings;
-    });
     this.loginForm = this.formBuilder.group({
       userName: '',
       password: ''
@@ -37,10 +34,11 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.route.queryParams
-    .subscribe(params => {
+    this.settingsService.siteSettings$.subscribe(settings => {
+      this.settings = settings;
+    });
+    this.route.queryParams.subscribe(params => {
         this.next = params.next;
-        console.log(params)
       }
     );
   }

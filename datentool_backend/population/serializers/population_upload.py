@@ -20,6 +20,7 @@ from datentool_backend.population.models import (Population, Prognosis,
 from datentool_backend.utils.pop_aggregation import (
         disaggregate_population, aggregate_many)
 from datentool_backend.utils.excel_template import ColumnError
+from datentool_backend.utils.processes import ProcessScope
 
 import logging
 
@@ -41,6 +42,7 @@ class PopulationTemplateSerializer(serializers.Serializer):
     excel_file = serializers.FileField()
     drop_constraints = serializers.BooleanField(default=True)
     logger = logging.getLogger('population')
+    scope = ProcessScope.POPULATION
 
     def create_template(self,
                         area_level_id: int,
@@ -268,14 +270,16 @@ class PopulationTemplateSerializer(serializers.Serializer):
             raise BadRequest(msg)
         return label_attr
 
-    def post_processing(self, dataframe, drop_constraints=False):
+    @staticmethod
+    def post_processing(dataframe, drop_constraints=False,
+                        logger=logging.getLogger('population')):
         populations = Population.objects.filter(
             id__in=dataframe['population_id'].unique())
-        self.logger.info('Disaggregiere Bevölkerungsdaten')
+        logger.info('Disaggregiere Bevölkerungsdaten')
         for i, population in enumerate(populations):
             disaggregate_population(population, use_intersected_data=True,
                                     drop_constraints=drop_constraints)
-            self.logger.info(f'{i + 1}/{len(populations)}')
-        self.logger.info('Aggregiere Bevölkerungsdaten')
+            logger.info(f'{i + 1}/{len(populations)}')
+        logger.info('Aggregiere Bevölkerungsdaten')
         aggregate_many(AreaLevel.objects.all(), populations,
                        drop_constraints=drop_constraints)

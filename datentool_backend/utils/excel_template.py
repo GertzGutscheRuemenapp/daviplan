@@ -3,6 +3,9 @@ from distutils.util import strtobool
 import sys
 import traceback
 import logging
+import pandas as pd
+from datentool_backend.utils.processes import (ProtectedProcessManager,
+                                               ProcessScope)
 
 from django.http import HttpResponse
 from django.db import transaction
@@ -74,21 +77,57 @@ class ExcelTemplateMixin:
         if queryset is None:
             queryset = serializer.get_queryset(request) \
                 if hasattr(serializer, 'get_queryset') else self.get_queryset()
-        model = queryset.model
-        manager = model.copymanager
         drop_constraints = bool(strtobool(
             request.data.get('drop_constraints', 'False')))
+        run_sync = bool(strtobool(request.data.get('sync', 'False')))
 
+        try:
+            logger.info('Lese Excel-Datei')
+            df = serializer.read_excel_file(request, **kwargs)
+        except (ColumnError, AssertionError) as e:
+            msg = f'{e} Bitte überprüfen Sie das Template.'
+            logger.error(msg)
+            return Response({'Fehler': msg},
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        with ProtectedProcessManager(
+            request.user,
+            scope=getattr(serializer, 'scope', ProcessScope.GENERAL)) as ppm:
+
+            # workaround: if post requesting is required, do all the writing
+            # of data before synchronously
+            # did not manage to pass both into async
+            if hasattr(serializer, 'post_processing'):
+                self.write_template_df(df, queryset, logger,
+                                       drop_constraints=drop_constraints)
+                if not run_sync:
+                    ppm.run_async(serializer.post_processing, df,
+                                  drop_constraints=drop_constraints)
+                else:
+                    serializer.post_processing(
+                        df, drop_constraints=drop_constraints)
+            else:
+                if not run_sync:
+                    ppm.run_async(self.write_template_df, df, queryset, logger,
+                                  drop_constraints=drop_constraints)
+                else:
+                    self.write_template_df(df, queryset, logger,
+                                           drop_constraints=drop_constraints)
+
+        return Response({'message': 'Upload gestartet'},
+                        status=status.HTTP_202_ACCEPTED)
+
+    @staticmethod
+    def write_template_df(df: pd.DataFrame, queryset, logger, drop_constraints=False):
+        model = queryset.model
+        manager = model.copymanager
         with transaction.atomic():
             if drop_constraints:
                 manager.drop_constraints()
                 manager.drop_indexes()
-
+            logger.info(f'Lösche {len(queryset)} vorhandene Einträge')
             queryset.delete()
-
             try:
-                logger.info('Lese Excel-Datei')
-                df = serializer.read_excel_file(request, **kwargs)
                 if len(df):
                     logger.info('Schreibe Daten in Datenbank')
                     with StringIO() as file:
@@ -98,18 +137,11 @@ class ExcelTemplateMixin:
                             file,
                             drop_constraints=False, drop_indexes=False,
                         )
-            except ColumnError as e:
-                msg = f'{e} Bitte überprüfen Sie das Template.'
-                logger.error(msg)
-                return Response({'Fehler': msg},
-                                status=status.HTTP_406_NOT_ACCEPTABLE)
 
             except Exception as e:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 msg = repr(traceback.format_tb(exc_traceback))
                 logger.error(msg)
-                return Response({'Fehler': msg},
-                                status=status.HTTP_406_NOT_ACCEPTABLE)
 
             finally:
                 # recreate indices
@@ -117,13 +149,5 @@ class ExcelTemplateMixin:
                     manager.restore_constraints()
                     manager.restore_indexes()
 
-        if hasattr(serializer, 'post_processing'):
-            serializer.post_processing(df, drop_constraints)
-
-        if len(df):
-            msg = f'Upload von {len(df)} Einträgen erfolgreich'
-        else:
-            msg = f'Upload erfolgreich'
+        msg = f'{len(df)} Einträge geschrieben'
         logger.info(msg)
-        return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
-

@@ -93,7 +93,8 @@ export class SettingsService {
     this.http.get<SiteSettings>(this.rest.URLS.siteSettings)
       .subscribe(siteSettings => {
         if (environment.production) {
-          siteSettings.logo = siteSettings.logo.replace('http:', 'https:');
+          if (siteSettings.logo)
+            siteSettings.logo = siteSettings.logo.replace('http:', 'https:');
         }
         this.siteSettings$.next(siteSettings)
       });

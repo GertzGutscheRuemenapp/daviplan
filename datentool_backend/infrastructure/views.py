@@ -118,17 +118,15 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
             parser_classes=[CamelCaseMultiPartParser])
     def upload_template(self, request):
         """Download the Template"""
-        with ProtectedProcessManager(request.user,
-                                     scope=ProcessScope.INFRASTRUCTURE):
-            # no constraint dropping, because we use individual updates
-            data = QueryDict(mutable=True)
-            data.update(self.request.data)
-            data['drop_constraints'] = 'False'
-            request._full_data = data
+        # no constraint dropping, because we use individual updates
+        data = QueryDict(mutable=True)
+        data.update(self.request.data)
+        data['drop_constraints'] = 'False'
+        request._full_data = data
 
-            queryset = Place.objects.none()
-            return super().upload_template(request,
-                                           queryset=queryset,)
+        queryset = Place.objects.none()
+        return super().upload_template(request,
+                                       queryset=queryset,)
 
     @action(methods=['POST'], detail=False,
             permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])

@@ -21,7 +21,7 @@
     <app-input-card #yearCard
                     [title]="'Prognosejahre'"
                     [editTemplate]="yearsEdit"
-                    [disabled]="!popLevel"
+                    [disabled]="!popLevel || isProcessing"
                     dialogWidth="500px"
                     infoText="<p>Bevor Sie Prognosedaten hochladen, müssen Sie an dieser Stelle die wichtigsten Rahmendaten der Prognose eintragen. Diese Rahmendaten definieren u.a. die Struktur der Vorlagedateien, die Sie sich in der Box „Prognosedaten der ausgewählten Variante hochladen“ herunterladen können. Nachträgliche Veränderungen an den Rahmendaten führen daher zu einem Löschen aller bereits hochgeladenen Prognosedaten.</p>
                               <p>Um konsistente Zeitreihen sicherzustellen, müssen sich die Prognosedaten auf die gleiche Gebietseinteilung beziehen wie die Realdaten der zurückliegenden Jahr. Die Eintragung hinter „Gebietseinheit“ wurde daher aus Ihren Einstellungen bei den Realdaten übernommen. Falls Sie eine andere Gebietseinteilung nutzen möchten, müssen Sie die Einstellung dort ändern.</p>
@@ -39,7 +39,7 @@
       </table>
     </app-input-card>
     <app-input-card [title]="'Prognosevarianten'"
-                    [disabled]="!popLevel"
+                    [disabled]="!popLevel || isProcessing"
                     subtitle="Varianten hinzufügen bzw. bereits hinzugefügte bearbeiten">
       <mat-selection-list [multiple]="false"
                           id="prognosis-select">
@@ -97,6 +97,7 @@
   </div>
   <div fxLayout="column" fxFlex="1100px">
     <app-input-card [title]="'Prognosedaten der ausgewählten Variante hochladen'"
+                    [disabled]="isProcessing"
                     [topRightHelp]="true"
                     [class.hidden]="!popLevel || !activePrognosis"
                     infoText="<p>Wenn Sie für diese Prognosevariante noch keine Einwohnerdaten hochgeladen haben (oder die bereits hochgeladenen Daten ersetzen möchten), können Sie sich mit der Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excelformat  herunterladen. Befüllen Sie diese mit Ihren Daten für die angezeigte Variante und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Zur Kontrolle können Sie sich die hochgeladenen Daten anschließend in der Box „Veranschaulichung“ für einzelne Gebiete anschauen. Alternativ können Sie sich die Gesamttabelle der Prognosevariante über die Schaltfläche „Datentabelle ansehen“ anzeigen lassen.</p>
@@ -143,12 +144,13 @@
           </button>-->
         </div>
         <div id="log-window" style="width: 50%">
-          <span class="subtitle1">Daten-Historie</span>
-          <app-log room="population" height="200px"></app-log>
+          <span class="subtitle1">Daten-Historie Bevölkerung</span>
+          <app-log room="population" (onMessage)="onMessage($event)"  height="200px"></app-log>
         </div>
       </div>
     </app-input-card>
     <app-input-card [title]="'Veranschaulichung der ausgewählten Variante für ein ausgewähltes Gebiet'"
+                    [disabled]="isProcessing"
                     [topRightHelp]="true"
                     [class.hidden]="!popLevel || !activePrognosis"
                     subtitle="Auswahl eines Gebiets über die Karte bzw. die Auswahlbox"
@@ -307,5 +309,5 @@
   <p>
     Befülltes Excel-Template mit Bevölkerungsdaten für die Prognose <b>"{{activePrognosis?.name}}"</b> hochladen
   </p>
-  <input #fileInput type="file" accept=".xlsx,xls" (change)="setFiles($event)">
+  <input #fileInput type="file" accept=".xlsx,.xls" (change)="setFiles($event)">
 </ng-template>

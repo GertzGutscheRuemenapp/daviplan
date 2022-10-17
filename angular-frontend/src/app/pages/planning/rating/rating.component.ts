@@ -17,7 +17,7 @@ import {
 import { MapControl, MapService } from "../../../map/map.service";
 import * as d3 from "d3";
 import { Subscription } from "rxjs";
-import { MapLayerGroup, VectorLayer, VectorTileLayer } from "../../../map/layers";
+import { MapLayerGroup, ValueStyle, VectorLayer, VectorTileLayer } from "../../../map/layers";
 import { modes } from "../mode-select/mode-select.component";
 
 @Component({
@@ -128,11 +128,32 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     this.planningService.computeIndicator<RasterIndicatorResult>(this.selectedIndicator!.name, this.activeService!.id, params
       ).subscribe(cellResults => {
       let values: Record<string, number> = {};
-      cellResults.forEach(cellResult => {
-        values[cellResult.cellCode] = Math.round(cellResult.value);
+      cellResults.values.forEach(cellResult => {
+        values[cellResult.cellCode] = cellResult.value;// Math.round(cellResult.value);
         max = Math.max(max, cellResult.value);
         min = Math.min(min, cellResult.value);
       })
+
+      let style: ValueStyle = {
+        field: 'value',
+        min: Math.max(min, 0),
+        max: max || 1
+      };
+
+      if (cellResults.legend) {
+        style.fillColor = {
+          bins: cellResults.legend
+        }
+      }
+      else {
+        style.fillColor = {
+          interpolation: {
+            range: d3.interpolatePurples,
+            scale: 'sequential',
+            steps: 5
+          }
+        }
+      }
 
       const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
       this.indicatorLayer = new VectorTileLayer( this.selectedIndicator!.title, url,{
@@ -145,23 +166,12 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         },
         labelField: 'value',
         showLabel: this.showLabel,
-        valueStyles: {
-          field: 'value',
-          fillColor: {
-            interpolation: {
-              range: d3.interpolatePurples,
-              scale: 'sequential',
-              steps: 5
-            }
-          },
-          min: Math.max(min, 0),
-          max: max || 1
-        },
+        valueStyles: style,
         valueMap: {
           field: 'cellcode',
           values: values
         },
-        unit: 'Minuten'
+        unit: this.selectedIndicator?.unit
       });
       this.layerGroup?.addLayer(this.indicatorLayer);
     })
@@ -177,17 +187,45 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         let max = 0;
         let min = Number.MAX_VALUE;
         let displayedPlaces: any[] = [];
-        results.forEach(result => {
+        results.values.forEach(result => {
           const place = places.find(p => p.id == result.placeId);
           if (!place) return;
+          const formattedValue = `${result.value} ${this.selectedIndicator?.unit}`;
           displayedPlaces.push({
             id: place.id,
             geometry: place.geom,
-            properties: { name: place.name, label: place.label, value: result.value, scenario: place.scenario }
+            properties: {
+              name: place.name,
+              label: formattedValue,
+              description: `<b>${place.name}</b><br>${this.selectedIndicator!.title}: ${formattedValue}`,
+              value: result.value
+            }
           });
           max = Math.max(max, result.value);
           min = Math.min(min, result.value);
         })
+
+        let style: ValueStyle = {
+          field: 'value',
+          min: Math.max(min, 0),
+          max: max || 1
+        };
+
+        if (results.legend) {
+          style.fillColor = {
+            bins: results.legend
+          }
+        }
+        else {
+          style.fillColor = {
+            interpolation: {
+              range: d3.interpolatePurples,
+              scale: 'sequential',
+              steps: 5
+            }
+          }
+        }
+
         this.indicatorLayer = new VectorLayer(this.selectedIndicator!.title, {
           order: 0,
           // description: desc,
@@ -199,9 +237,9 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
             symbol: 'circle'
           },
           radius: 7,
-          labelField: 'value',
+          labelField: 'label',
           showLabel: this.showLabel,
-          tooltipField: 'value',
+          tooltipField: 'description',
           select: {
             enabled: true,
             style: {
@@ -210,23 +248,13 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
             },
             multi: false
           },
+          valueStyles: style,
           mouseOver: {
             enabled: true,
             cursor: 'pointer'
           },
-          valueStyles: {
-            field: 'value',
-            fillColor: {
-              interpolation: {
-                range: d3.interpolatePurples,
-                scale: 'sequential',
-                steps: 5
-              }
-            },
-            min: Math.max(min, 0),
-            max: max || 1
-          },
-          labelOffset: { y: 15 }
+          labelOffset: { y: 15 },
+          unit: this.selectedIndicator?.unit
         });
         this.layerGroup?.addLayer(this.indicatorLayer);
         this.indicatorLayer.addFeatures(displayedPlaces);
@@ -243,13 +271,35 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         let max = 0;
         let min = Number.MAX_VALUE;
         areas.forEach(area => {
-          const data = results.find(d => d.areaId == area.id);
+          const data = results.values.find(d => d.areaId == area.id);
           const value = (data && data.value)? data.value: 0;
           max = Math.max(max, value);
           min = Math.min(min, value);
+          const formattedValue = `${value} ${this.selectedIndicator?.unit}`;
           area.properties.value = value;
-          area.properties.description = `<b>${area.properties.label}</b><br>${this.selectedIndicator!.title}: ${area.properties.value}`
+          area.properties.description = `<b>${area.properties.label}</b><br>${this.selectedIndicator!.title}: ${formattedValue}`;
+          area.properties.label = formattedValue;
         })
+        let style: ValueStyle = {
+          field: 'value',
+          min: Math.max(min, 0),
+          max: max || 1
+        };
+
+        if (results.legend) {
+          style.fillColor = {
+            bins: results.legend
+          }
+        }
+        else {
+          style.fillColor = {
+            interpolation: {
+              range: d3.interpolatePurples,
+              scale: 'sequential',
+              steps: 5
+            }
+          }
+        }
         this.indicatorLayer = new VectorLayer(`${this.selectedIndicator!.title} (${this.selectedAreaLevel!.name})`, {
           order: 0,
           description: this.selectedIndicator!.description,
@@ -259,7 +309,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
             fillColor: 'rgba(165, 15, 21, 0.9)',
             symbol: 'line'
           },
-          labelField: 'value',
+          labelField: 'label',
           showLabel: this.showLabel,
           tooltipField: 'description',
           mouseOver: {
@@ -269,18 +319,8 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
               fillColor: 'rgba(255, 255, 0, 0.7)'
             }
           },
-          valueStyles: {
-            field: 'value',
-            fillColor: {
-              interpolation: {
-                range: d3.interpolatePurples,
-                scale: 'sequential',
-                steps: 5
-              }
-            },
-            min: min,
-            max: max || 1
-          },
+          valueStyles: style,
+          unit: this.selectedIndicator?.unit
         });
         this.layerGroup?.addLayer(this.indicatorLayer);
         this.indicatorLayer.addFeatures(areas,{ properties: 'properties' });

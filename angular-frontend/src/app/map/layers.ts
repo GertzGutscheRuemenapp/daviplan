@@ -1,5 +1,5 @@
 import { EventEmitter } from "@angular/core";
-import { Symbol } from "../rest-interfaces";
+import { IndicatorLegendClass, Symbol } from "../rest-interfaces";
 import { OlMap } from "./map";
 import { Feature } from "ol";
 import { Layer as OlLayer } from "ol/layer";
@@ -204,7 +204,7 @@ export interface ColorBin {
   color: string;
 }
 
-interface ValueStyle {
+export interface ValueStyle {
   field?: string,
   radius?: {
     range: number[],
@@ -221,11 +221,7 @@ interface ValueStyle {
       steps?: number,
       reverse?: boolean,
     }
-    bins?: {
-      colors: string[];
-      labels?: string[];
-      values: number[];
-    }
+    bins?: IndicatorLegendClass[],
     colorFunc?: ((d: number) => string)
   },
   min?: number,
@@ -313,9 +309,11 @@ export class VectorLayer extends MapLayer {
       this.valueStyles.radius.radiusFunc = seqFunc().domain([min, max]).range(this.valueStyles.radius.range);
     }
     if (this.valueStyles?.fillColor?.bins) {
+      const colors = this.valueStyles!.fillColor!.bins!.map(b => b.color);
+      const values = this.valueStyles!.fillColor!.bins!.map(b => b.maxValue || 99999999999999);
       this.valueStyles.fillColor.colorFunc = (value: number) => {
-        const idx = findBin(this.valueStyles!.fillColor!.bins!.values!, value);
-        return this.valueStyles!.fillColor!.bins!.colors[idx];
+        const idx = findBin(values, value);
+        return colors[idx];
       }
     }
   }
@@ -364,19 +362,15 @@ export class VectorLayer extends MapLayer {
     }
     const colorFunc = this.valueStyles.fillColor.colorFunc;
     if (this.valueStyles.fillColor.bins){
-      let values = this.valueStyles.fillColor.bins.values.map(x => x);
-      values.push(values[values.length-1]);
-      let preLabels = this.valueStyles.fillColor.bins.labels;
-      values.forEach((value, i) => {
-        let label = preLabels? preLabels[i]:
-          (i === 0)? `bis ${value}`:
-            (i < values.length - 1)? `${values[i-1]} bis ${value}`:
-              `ab ${value}`;
+      this.valueStyles.fillColor.bins.forEach(bin => {
+        let label = (bin.minValue == undefined)? `bis ${bin.maxValue}`:
+            (bin.maxValue == undefined)? `ab ${bin.minValue}`:
+              `${bin.minValue} bis ${bin.maxValue}`;
         if (this.unit)
           label += ` ${this.unit}`;
         legend.entries.push({
           label: label,
-          color: (i < values.length - 1)? colorFunc(value): colorFunc(value + 0.01)
+          color: bin.color
         });
       })
       return legend;

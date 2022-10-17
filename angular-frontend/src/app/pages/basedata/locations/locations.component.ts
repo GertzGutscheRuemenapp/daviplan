@@ -6,11 +6,11 @@ import {
   Capacity,
   Service,
   FieldType,
-  PlaceField
+  PlaceField, LogEntry
 } from "../../../rest-interfaces";
 import * as fileSaver from "file-saver";
 import { RestAPI } from "../../../rest-api";
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, Subscription } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
@@ -21,6 +21,7 @@ import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dia
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 import { PlanningService } from "../../planning/planning.service";
+import { SettingsService } from "../../../settings.service";
 
 interface PlaceEditField extends PlaceField {
   edited?: boolean;
@@ -56,9 +57,11 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   selectedPlaces: Place[] = [];
   placeDialogRef?: MatDialogRef<any>;
   file?: File;
+  isProcessing = false;
+  subscriptions: Subscription[] = [];
 
   constructor(private mapService: MapService, private rest: RestAPI, private http: HttpClient,
-              private dialog: MatDialog, private restService: PlanningService) { }
+              private dialog: MatDialog, private restService: PlanningService, private settings: SettingsService) { }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-locations-map');
@@ -72,6 +75,9 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         this.isLoading$.next(false);
       })
     })
+    this.subscriptions.push(this.settings.baseDataSettings$.subscribe(bs => {
+      this.isProcessing = bs.processes?.routing || false;
+    }));
     this.setupAttributeCard();
   }
 
@@ -332,7 +338,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       formData.append('excel_file', this.file);
       const url = `${this.rest.URLS.places}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
-        this.onInfrastructureChange(true);
+        this.isProcessing = true;
       }, error => {
       });
     });
@@ -367,7 +373,15 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  onMessage(log: LogEntry): void {
+    if (log?.status?.success) {
+      this.isProcessing = false;
+      this.onInfrastructureChange(true);
+    }
+  }
+
   ngOnDestroy(): void {
     this.mapControl?.destroy();
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }

@@ -17,7 +17,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import serializers
 
-from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
+from drf_spectacular.utils import (extend_schema, inline_serializer,
+                                   OpenApiResponse, OpenApiParameter)
 
 from datentool_backend.utils.routers import OSRMRouter
 from datentool_backend.utils.excel_template import ExcelTemplateMixin
@@ -47,9 +48,8 @@ from datentool_backend.indicators.serializers import (StopSerializer,
                                                       StopTemplateSerializer,
                                                       MatrixStopStopTemplateSerializer,
                                                       RouterSerializer,
+                                                      MatrixStopStopSerializer
                                                       )
-from datentool_backend.utils.processes import (ProtectedProcessManager,
-                                               ProcessScope)
 
 
 class RoutingError(Exception):
@@ -72,19 +72,45 @@ class StopViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSet
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
     def get_queryset(self):
-        variant = int(self.request.data.get('variant'))
-        return Stop.objects.filter(variant=variant)
+        variant = self.request.data.get(
+            'variant', self.request.query_params.get('variant'))
+        if variant is not None:
+            return Stop.objects.filter(variant=variant)
+        return Stop.objects.all()
+
+    @extend_schema(
+            parameters=[
+                OpenApiParameter(name='variant', description='mode_variant_id',
+                                 required=True, type=int),
+            ],
+        )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class MatrixStopStopViewSet(ExcelTemplateMixin,
-                            viewsets.GenericViewSet):
-    serializer_class = MatrixStopStopTemplateSerializer
+                            viewsets.ModelViewSet):
+    serializer_class = MatrixStopStopSerializer
+    serializer_action_classes = {'upload_template': MatrixStopStopTemplateSerializer,
+                                 'create_template': MatrixStopStopTemplateSerializer,
+                                 }
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
     def get_queryset(self):
-        variant = self.request.data.get('variant')
-        return MatrixStopStop.objects.filter(variant=variant)
+        variant = self.request.data.get(
+            'variant', self.request.query_params.get('variant'))
+        if variant is not None:
+            return MatrixStopStop.objects.filter(variant=variant)
+        return MatrixStopStop.objects.all()
 
+    @extend_schema(
+            parameters=[
+                OpenApiParameter(name='variant', description='mode_variant_id',
+                                 required=True, type=int),
+            ],
+        )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
     @extend_schema(description='Upload Excel-File or PTV-Visum-Matrix with Traveltimes from Stop to Stop',
                    request=inline_serializer(
                        name='FileDropConstraintModeVariantSerializer',
@@ -103,8 +129,7 @@ class MatrixStopStopViewSet(ExcelTemplateMixin,
             parser_classes=[CamelCaseMultiPartParser])
     def upload_template(self, request):
         """Upload the filled out Stops-Template"""
-        with ProtectedProcessManager(request.user, scope=ProcessScope.ROUTING):
-            return super().upload_template(request)
+        return super().upload_template(request)
 
 
 class RouterViewSet(viewsets.ModelViewSet):

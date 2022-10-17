@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import logging
 
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.worksheet.dimensions import ColumnDimension
@@ -14,15 +15,15 @@ from django.contrib.gis.geos import Point
 
 from datentool_backend.utils.geometry_fields import GeometrySRIDField
 from datentool_backend.indicators.models import Stop
+from datentool_backend.utils.processes import ProcessScope
 
 
-class StopSerializer(GeoFeatureModelSerializer):
+class StopSerializer(serializers.ModelSerializer):
     geom = GeometrySRIDField(srid=3857)
 
     class Meta:
         model = Stop
-        geo_field = 'geom'
-        fields = ('id', 'name')
+        fields = ('id', 'name', 'geom')
 
 
 class StopTemplateSerializer(serializers.Serializer):
@@ -31,6 +32,8 @@ class StopTemplateSerializer(serializers.Serializer):
     drop_constraints = BooleanField(default=True,
                                     label='temporarily delete constraints and indices',
                                     help_text='Set to False in unittests')
+    scope = ProcessScope.ROUTING
+    logger = logging.getLogger('routing')
 
     def create_template(self) -> bytes:
         columns = {'HstNr': 'wie in Reisezeitmatrix',

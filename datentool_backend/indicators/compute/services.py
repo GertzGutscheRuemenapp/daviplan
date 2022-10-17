@@ -45,6 +45,8 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
 class NumberOfLocations(ComputeAreaIndicator):
     title = 'NumLocations'
     description = 'Number of Locations per Area'
+    representation = 'colorramp'
+    colormap_name = 'Blues'
 
     def aggregate_places(self,
                          places: Place,
@@ -72,6 +74,8 @@ class NumberOfLocations(ComputeAreaIndicator):
 class TotalCapacityInArea(ComputeAreaIndicator):
     title = 'Total Capacity'
     description = 'Total Capacity per Area'
+    representation = 'colorramp'
+    colormap_name = 'Blues'
 
     def aggregate_places(self,
                          places: Place,

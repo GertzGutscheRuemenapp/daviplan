@@ -21,6 +21,8 @@ class AverageAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, Servic
     Leistung zu erreichen'''
     title = 'Mittlere Wegedauer'
     params = (ModeParameter(), )
+    representation = 'colorramp'
+    colormap_name = 'Reds'
     result_serializer = ResultSerializer.AREA
 
     @property

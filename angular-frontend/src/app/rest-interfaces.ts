@@ -106,9 +106,16 @@ export interface Indicator {
   service: number,
   name: string,
   title: string,
+  unit?: string,
   description: string,
   resultType: 'place' | 'area' | 'raster' | 'pop',
   additionalParameters?: IndicatorParameter[]
+}
+
+export interface IndicatorLegendClass {
+  color: string,
+  minValue?: number,
+  maxValue?: number
 }
 
 export interface RasterCell {
@@ -322,6 +329,18 @@ export interface Place {
   scenario?: number,
   value?: number,
   capacities?: Capacity[]
+}
+
+export interface TransitStop {
+  id: number,
+  geom: string | Geometry,
+  name: string
+}
+
+export interface TransitMatrixEntry {
+  fromStop: number,
+  toStop: number,
+  minutes: number
 }
 
 export interface Capacity {

@@ -1,7 +1,3 @@
-<p class="under-construction">
-  <mat-icon class="material-icons-outlined">construction</mat-icon>
-  Diese Seite ist noch nicht fertig implementiert. Die gezeigten Daten sind zur Zeit nur Platzhalter. Das Layout wird noch überarbeitet.
-</p>
 <app-header-card [title]="'Erreichbarkeiten'"
                  cookieId="exp-reach-header"
                  width="1430px">
@@ -21,7 +17,7 @@
                           class="categorized"
                           id="mode-select">
         <mat-list-option *ngFor="let variant of variants"
-                         (click)="selectedVariant = variant"
+                         (click)="selectVariant(variant);"
                          [selected]="(selectedVariant?.id === variant.id)">
           <div class="option-text">{{variant.label}}</div>
           <mat-icon *ngIf="variant.isDefault" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
@@ -56,7 +52,7 @@
       </div>
     </app-input-card>
   </div>
-  <div fxLayout="column" fxFlex="1100px">
+  <div fxLayout="column" fxFlex="1100px" *ngIf="selectedVariant">
     <div fxLayout="row">
       <div style="width: 500px;">
         <app-input-card [title]="'Schritt 1: Haltestellen'"
@@ -66,15 +62,15 @@
           </span>
           <table>
             <tr>
-              <td i18n>Status: </td>
-              <td>vorhanden</td>
+              <td i18n>Anzahl Haltestellen: </td>
+              <td>{{stops.length}}</td>
             </tr>
           </table>
           <div style="display: flex; margin-top: 10px;">
-            <button mat-stroked-button color="primary" style="margin-right: 10px;">
+            <button mat-stroked-button color="primary" style="margin-right: 10px;" (click)="downloadTemplate()">
               <mat-icon>download</mat-icon> Vorlage Haltestellen
             </button>
-            <button mat-flat-button color="primary">
+            <button mat-flat-button color="primary" (click)="uploadStops()">
               <mat-icon>upload</mat-icon> Haltestellen hochladen
             </button>
           </div>
@@ -88,8 +84,8 @@
           </span>
           <table>
             <tr>
-              <td i18n>Status: </td>
-              <td>vorhanden</td>
+              <td i18n>Anzahl Einträge: </td>
+              <td>{{matrixEntries.length}}</td>
             </tr>
           </table>
           <div style="display: flex; margin-top: 10px;">
@@ -97,10 +93,10 @@
               <span class="subtitle1 sub" style="margin-top: 10px;">
                 Variante 1: Excel
               </span>
-              <button mat-stroked-button color="primary" style="margin-top: 10px;">
+              <button mat-stroked-button color="primary" style="margin-top: 10px;" (click)="downloadTemplate(true)">
                 <mat-icon>download</mat-icon> Vorlage Reisezeitmatrix
               </button>
-              <button mat-flat-button color="primary" style="margin-top: 10px;">
+              <button mat-flat-button color="primary" style="margin-top: 10px;" (click)="uploadMatrix()">
                 <mat-icon>upload</mat-icon> Reisezeitmatrix hochladen
               </button>
             </div>
@@ -109,7 +105,7 @@
               <span class="subtitle1 sub" style="width: 100%; margin-top: 10px;">
                 Variante 2: VISUM
               </span>
-              <button mat-flat-button color="primary" style="align-self: end;">
+              <button mat-flat-button color="primary" style="align-self: end;" (click)="uploadMatrix(true)">
                 <mat-icon>upload</mat-icon> Visumdatei hochladen
               </button>
             </div>
@@ -117,38 +113,33 @@
         </app-input-card>
       </div>
     </div>
-    <app-input-card [title]="'Schritt 3: Reisezeitmatrizen Standorte'"
+    <app-input-card *ngIf="selectedVariant" [title]="'Schritt 3: Reisezeitmatrizen Standorte'"
                     [topRightHelp]="true"
                     infoText="<p>Wenn Sie für diese Erreichbarkeitsmatrix Daten aus einer externen Vorberechnung nutzen möchten, können Sie sich mit der Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei herunterladen. Befüllen Sie diese mit Ihren Matrixdaten und laden Sie sie anschließend mit der Schaltfläche „Daten hochladen“ wieder hoch.</p>
                     <p>Alternativ können Sie die Erreichbarkeitsmatrix auch über die Schaltfläche „Berechnen“ berechnen lassen. Voraussetzung ist, dass Sie im vorigen Menüpunkt „Verkehrsnetz“ ein passendes Verkehrsnetz mit Routensucher erzeugt haben. Dieses können Sie in dem Dialog auswählen, der sich nach dem Anklicken der Schaltfläche „Berechnen“ öffnet.</p>">
       <div style="width: 100%; display: flex;">
-        <div style="width: 50%; align-self: start;">
+        <div style="width: 50%; display: flex; flex-wrap: wrap;">
           <span class="subtitle1 sub">
             Reisezeitmatrizen „{{selectedVariant?.label}}“ <br>
             von Wohnstandorten zu Einrichtungen
           </span>
-          <div style="display: flex; margin-top: 15px;">
+<!--          <div style="display: flex; margin-top: 15px;">
             <table>
               <tr>
                 <td i18n>erzeugt am</td>
                 <td>01.01.0001</td>
               </tr>
             </table>
-          </div>
-          <div style="display: flex; margin-top: 15px;">
-          </div>
-          <br>
-          <div style="display: flex">
-          </div>
-          <div style="margin-top: 20px;">
-            <button mat-flat-button color="primary">
+          </div>-->
+          <div style="align-self: end;">
+            <button mat-flat-button color="primary" (click)="createMatrices()">
               <mat-icon>build</mat-icon> Erreichbarkeitsmatrix erzeugen
             </button>
           </div>
         </div>
         <div id="log-window" style="width: 50%">
-          <span class="subtitle1">Daten-Historie</span>
-          <app-log height="200px"></app-log>
+          <span class="subtitle1">Daten-Historie Erreichbarkeiten</span>
+          <app-log height="200px" room="routing"></app-log>
         </div>
       </div>
     </app-input-card>
@@ -169,4 +160,11 @@
       </mat-form-field>
     </div>
   </form>
+</ng-template>
+
+<ng-template #fileUploadTemplate let-accept="accept">
+  <mat-error *ngFor="let error of uploadErrors | keyvalue" class="alert">
+    {{ error.key }}: {{ error.value }}
+  </mat-error>
+  <input #fileInput type="file" [accept]="accept" (change)="setFiles($event)">
 </ng-template>

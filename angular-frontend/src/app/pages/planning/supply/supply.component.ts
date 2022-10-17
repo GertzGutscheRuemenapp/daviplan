@@ -6,7 +6,6 @@ import {
   Infrastructure,
   Place,
   Service,
-  PlanningProcess,
   Scenario, FieldType, PlaceField, Capacity
 } from "../../../rest-interfaces";
 import { MapControl, MapService } from "../../../map/map.service";
