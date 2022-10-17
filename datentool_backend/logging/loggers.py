@@ -1,6 +1,6 @@
 import logging
 import datetime
-
+from django.db.utils import InternalError
 
 class PersistLogHandler(logging.StreamHandler):
     loggers = ['areas', 'population', 'infrastructure', 'routing']
@@ -21,6 +21,9 @@ class PersistLogHandler(logging.StreamHandler):
         # in settings, app is not ready to import models
         from .models import LogEntry
         room = record.name
-        entry = LogEntry.objects.create(
-            date=datetime.datetime.now(), room=room, text=record.getMessage(),
-            user=self.user, level=record.levelname)
+        try:
+            entry = LogEntry.objects.create(
+                date=datetime.datetime.now(), room=room, text=record.getMessage(),
+                user=self.user, level=record.levelname)
+        except InternalError:
+            pass
