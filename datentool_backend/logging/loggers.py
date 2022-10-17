@@ -1,11 +1,7 @@
 import logging
-<<<<<<< HEAD
-import datetime
 from django.db.utils import InternalError
-=======
 from django.utils import timezone
 
->>>>>>> main
 
 class PersistLogHandler(logging.StreamHandler):
     loggers = ['areas', 'population', 'infrastructure', 'routing']
