@@ -61,9 +61,9 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   yearSelection = new SelectionModel<number>(true);
   maxYear = new Date().getFullYear() - 1;
   Object = Object;
-  dataColumns: string[] = [];
-  dataRows: any[][] = [];
-  dataYear?: Year;
+  dataTableColumns: string[] = [];
+  dataTableRows: any[][] = [];
+  dataTableYear?: Year;
   file?: File;
   isProcessing = false;
   subscriptions: Subscription[] = [];
@@ -99,13 +99,13 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
     this.previewArea = undefined;
     this.ageTree?.clear();
     this.updatePreview();
-    this.dataColumns = ['Gebiet']
+    this.dataTableColumns = ['Gebiet']
     this.popService.getGenders().subscribe(genders => {
       this.genders = genders;
       this.popService.getAgeGroups().subscribe(ageGroups => {
         this.checkAgeGroups(ageGroups);
         this.genders.forEach(gender => {
-          this.dataColumns = this.dataColumns.concat(ageGroups.map(ag => `${ag.label} (${gender.name})`));
+          this.dataTableColumns = this.dataTableColumns.concat(ageGroups.map(ag => `${ag.label} (${gender.name})`));
         })
         this.ageGroups = sortBy(ageGroups, 'fromAge');
         this.http.get<Year[]>(this.rest.URLS.years).subscribe(years => {
@@ -146,7 +146,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         })
         this.realYears.sort();
         this.previewYear = undefined;
-        this.dataYear = undefined;
+        this.dataTableYear = undefined;
         this.ageTree?.clear();
         this.updatePreview();
         this.yearCard?.closeDialog(true);
@@ -186,7 +186,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
           if(year === this.previewYear) {
             this.previewYear = undefined;
             this.ageTree?.clear();
-            this.dataRows = [];
+            this.dataTableRows = [];
             this.updatePreview();
           }
           this.yearCard?.setLoading(false);
@@ -213,9 +213,10 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         this.popEntries[pe.area].push(pe);
       })
       let max = 1000;
-      this.dataRows = [];
+      this.dataTableRows = [];
       this.areas.forEach(area => {
         const entries = this.popEntries[area.id];
+        if (!entries) return;
         // map data
         const value = entries.reduce((p: number, e: PopEntry) => p + e.value, 0);
         area.properties.value = value;
@@ -354,9 +355,9 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   }
 
   updateTableData(): void {
-    this.dataRows = [];
-    if (!this.dataYear) return;
-    const population = this.populations.find(p => p.year === this.dataYear!.id);
+    this.dataTableRows = [];
+    if (!this.dataTableYear) return;
+    const population = this.populations.find(p => p.year === this.dataTableYear!.id);
     if (!population) return;
     let rows: any[][] = [];
     this.isLoading$.next(true);
@@ -375,7 +376,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         })
         rows.push(row);
       })
-      this.dataRows = rows;
+      this.dataTableRows = rows;
       this.isLoading$.next(false);
     })
   }

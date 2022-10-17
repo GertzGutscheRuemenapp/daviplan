@@ -240,14 +240,6 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           labelField: 'label',
           showLabel: this.showLabel,
           tooltipField: 'description',
-          select: {
-            enabled: true,
-            style: {
-              strokeWidth: 2,
-              fillColor: 'yellow',
-            },
-            multi: false
-          },
           valueStyles: style,
           mouseOver: {
             enabled: true,
