@@ -15,7 +15,7 @@
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
     <app-input-card [title]="'Leistungen'"
-                    [subtitle]="'Leistung auswählen, um Nachfragequoten anzuzeigen oder zu definieren'"
+                    [subtitle]="'Leistung auswählen, um das Prinzip der Nachfrageberechnung anzuzeigen und ggf. zu ändern.'"
                     infoText="<p>Wählen aus der Liste die Leistung aus, für die Sie die Nachfragequoten definieren möchten.</p>
                     <p>Legen Sie anschließend in der Box „Definition der Nachfragequote für ausgewählte Leistung“ fest, wie genau die Nachfragequote dieser Leistung definiert und bezeichnet sein soll.</p>
                     <p>Anschließend können Sie auf Basis dieser Rahmenfestlegungen in der Box „Nachfragequoten-Sets der ausgewählten Leistung“ ein erstes Nachfragequoten-Set hinzufügen.</p>">
@@ -50,7 +50,7 @@
   <mat-divider style="margin: 10px 0; max-width: 1250px;"></mat-divider>
   <div fxLayout="row wrap">
     <div fxLayout="column" fxFlex="350px">
-      <app-input-card [title]="'Varianten'"
+      <app-input-card [title]="'Nachfragequoten bzw. Nutzungshäufigkeiten (Varianten)'"
                       [subtitle]="'Leistung ' + activeService?.name"
                       infoText="<p>Klicken Sie auf „Hinzufügen“, um ein Nachfragequoten-Set zu definieren. </p>
                                 <p>Ein Nachfragequoten-Set legt die Nachfragequote für jede in der Box „Definition der Nachfragequote für ausgewählte Leistung“ ausgewählte Altersgruppe sowie für jedes Prognosejahr fest. Sofern in der Box „Einwohner-Differenzierung“ für die Leistung eine geschlechterspezifische Differenzierung der Quoten ausgewählt wurde, sind dabei die Nachfragequoten auch nach Geschlecht zu differenzieren.</p>
@@ -127,7 +127,7 @@
     <div fxLayout="column" fxFlex="900px" [class.hidden]="!activeDemandRateSet">
       <app-input-card #demandRateSetCard
                       [title]="'Werte der ausgewählten Variante'"
-                      [subtitle]="'Leistung ' + activeService?.name + ' / ' + 'Set „' + activeDemandRateSet?.name + '“'"
+                      [subtitle]="'Leistung ' + activeService?.name + ' / ' + 'Variante „' + activeDemandRateSet?.name + '“'"
                       [editTemplate]="demandRateSetEdit"
                       dialogWidth="1200px"
                       [topRightHelp]="true"

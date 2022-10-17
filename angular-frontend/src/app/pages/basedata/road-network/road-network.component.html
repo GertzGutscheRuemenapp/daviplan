@@ -1,7 +1,7 @@
-<app-header-card [title]="'Straßennetz (optional)'"
+<app-header-card [title]="'Straßennetz: Reisezeiten zu den Einrichtungen zu Fuß, mit dem Rad und mit dem Auto'"
                  cookieId="exp-router-header"
                  width="1230px">
-  <p>Die Erreichbarkeitsverhältnisse in Ihrem Projektgebiet werden anhand von Reisezeitmatrizen abgebildet. Reisezeitmatrizen sind (große) Tabellen, in denen für ein bestimmtes Verkehrsmittel verzeichnet ist, wie lange man von den einzelnen Startpunkten (z.B. den Wohnstandorten) zu den Zielen (z.B. den Einrichtungen) kommt.</p>
+  <p>Die Erreichbarkeitsverhältnisse in Ihrem Planungsraum werden anhand von Reisezeitmatrizen abgebildet. Reisezeitmatrizen sind (große) Tabellen, in denen für ein bestimmtes Verkehrsmittel verzeichnet ist, wie lange man von den einzelnen Startpunkten (z.B. den Wohnstandorten) zu den Zielen (z.B. den Einrichtungen) kommt.</p>
   <p>Auf dieser Seite können Sie die Reisezeitmatrizen für die drei straßenbezogenen Verkehrsmittel</p>
   <ul>
     <li>zu Fuß</li>
@@ -12,13 +12,13 @@
   <p>Die Erzeugung der Reisezeitmatrizen erfolgt in drei Arbeitsschritten, denen jeweils einer der drei nachfolgenden Eingabeboxen entspricht.</p>
   <b>Schritt 1: OpenStreetMap-Straßennetz herunterladen</b>
   <p>Daviplan nutzt kostenfreie Straßendaten von OpenStreetMap (OSM). Wenn Sie die Schaltfläche „Basisnetz herunterladen“ anklicken, wird ein kostenfreies, aktuelles deutschlandweites Straßennetz vom OSM-Anbieter Geofabrik heruntergeladen und auf Ihrem Server zwischengespeichert. Aufgrund der Datenmenge kann der Download etwas dauern. Ein Häkchen hinter der Statusanzeige zeigt Ihnen, wenn der Download erfolgreich war oder bereits zu einem früheren Zeitpunkt durchgeführt wurde.</p>
-  <b>Schritt 2: FMit Projektgebiet verschneiden</b>
-  <p>Um die nachfolgenden Berechnungsschritte zu beschleunigen, wird das Straßennetz mit Ihrem Projektgebiet verschnitten. Dazu wird ein Ausschnitt aus dem Straßennetz herausgeschnitten, dass Ihr Projektgebiet plus einem Puffer von 30 km rund um ihr Projektgebiet umfasst. Der Puffer umfasst keine Flächen außerhalb Deutschlands.</p>
+  <b>Schritt 2: Mit Planungsraum verschneiden</b>
+  <p>Um die nachfolgenden Berechnungsschritte zu beschleunigen, wird das Straßennetz mit Ihrem Planungsraum verschnitten. Dazu wird ein Ausschnitt aus dem Straßennetz herausgeschnitten, dass Ihr Planungsraum plus einen Puffer von 30 km rund um ihren Planungsraum umfasst. Der Puffer umfasst keine Flächen außerhalb Deutschlands.</p>
   <p>Um diese Verschneidung durchzuführen, klicken Sie bitte auf die Schaltfläche „Straßennetz verschneiden“. Ein Häkchen hinter der Statusanzeige zeigt Ihnen, wenn die Verschneidung erfolgreich war oder bereits zu einem früheren Zeitpunkt durchgeführt wurde.</p>
   <b>Schritt 3: Reisezeitmatrizen Fuß, Rad und Auto erzeugen</b>
   <p>Im letzten Schritt wird das zuvor heruntergeladene und verschnittene Straßennetz verwendet, um Reisezeitmatrizen für die drei Verkehrsmittel „Fuß“, „Rad“ und „Auto“ zu berechnen. Dabei wird die minimale Wegezeit zwischen allen Wohnstandorten und Errichtungen ermittelt.</p>
-  <p><b>Diesen zeitintensiven Rechenschritt sollten Sie erst durchführen, wenn Sie im Menüpunkt „Infrastrukturdaten > Standorte und Kapazitäten“ bereits alle für Ihr Projekt relevanten Standorte hochgeladen haben. Zwar können Sie auch später noch – z.B. im Zuge der Szenarienentwicklung im Bereich „Infrastrukturplanung“ – einzelne Standorte nachdefinieren. Die Neuberechnung der Reisezeitmatrizen dauert jedoch mitunter länger.</b></p>
-  <p>Um für Ihre zuvor eingelesenen Standorte Reisezeitmatrizen zu erstellen, klicken Sie auf „Reisezeitmatrizen erzeugen“. Je nach Größe und Netzdichte Ihres Projektgebiet dauert die damit angestoßene Berechnung länger, ggf. auch über eine Stunde.</p>
+  <p><b>Diesen zeitintensiven Rechenschritt sollten Sie erst durchführen, wenn Sie im Menüpunkt „Infrastrukturdaten > Standorte und Kapazitäten“ bereits alle für Ihre Planung relevanten Standorte hochgeladen haben. Zwar können Sie auch später noch – z.B. im Zuge der Szenarienentwicklung im Bereich „Infrastrukturplanung“ – einzelne Standorte nachdefinieren. Die Neuberechnung der Reisezeitmatrizen dauert jedoch mitunter länger.</b></p>
+  <p>Um für Ihre zuvor eingelesenen Standorte Reisezeitmatrizen zu erstellen, klicken Sie auf „Reisezeitmatrizen erzeugen“. Je nach Größe und Netzdichte Ihres Planungsraums dauert die damit angestoßene Berechnung länger, ggf. auch über eine Stunde.</p>
   <p>Ein Häkchen hinter der Statusanzeige zeigt Ihnen, wenn die Berechnung der Reisezeitmatrizen erfolgreich war oder bereits zu einem früheren Zeitpunkt durchgeführt wurde.</p>
   <b>Historie</b>
   <p>Über die Historie können Sie sehen, welche der vorstehenden Arbeitsschritte bereits zu einem früheren Zeitpunkt durchgeführt wurden. Anhand dieser Informationen können Sie entscheiden, ob Datenänderungen an anderer Stelle (z.B. neu hinzugekommene Standorte) ggf. eine Neuberechnung der Reisezeitmatrizen erforderlich machen.</p>
@@ -41,9 +41,9 @@
         Straßennetz herunterladen
       </button>
     </app-input-card>
-    <app-input-card [title]="'Schritt 2: Mit Projektgebiet verschneiden'"
+    <app-input-card [title]="'Schritt 2: Mit Planungsraum verschneiden'"
                     [disabled]="isProcessing"
-                    infoText="<p>Das OSM-Straßennetz wird in diesem Schritt mit dem Projektgebiet inklusive einem Puffer von 30 km verschnitten und anschließend für die Verkehrsmittel „Fuß“, „Rad“ und „Auto“ mit der Erzeugung separater Router optimiert.</p>
+                    infoText="<p>Das OSM-Straßennetz wird in diesem Schritt mit dem Planungsraum inklusive einem Puffer von 30 km verschnitten und anschließend für die Verkehrsmittel „Fuß“, „Rad“ und „Auto“ mit der Erzeugung separater Router optimiert.</p>
                               <p>Mit einem Klick auf die Schaltfläche „Straßennetz verschneiden“ wird der Vorgang gestartet.</p>
                               <p>Das verschnittene Netz wird für die Berechnung der Reisezeiten in Schritt 3 benötigt.">
       <div>
@@ -70,7 +70,7 @@
                     </span>-->
           <!--<table>
             <tr>
-              <td style="min-width: 130px;; white-space: normal;">Buffer um das Projektgebiet</td>
+              <td style="min-width: 130px;; white-space: normal;">Buffer um den Planungsraum</td>
               <td>10km</td>
             </tr>
             <tr>

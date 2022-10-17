@@ -1,7 +1,7 @@
 <div class="loadOverlay" *ngIf="(popService.isLoading$ | async) || (this.isLoading$ | async)">
   <mat-spinner [diameter]="50"></mat-spinner>
 </div>
-<app-header-card [title]="'Realdaten (= Einwohnerdaten der zurückliegenden Jahre)'"
+<app-header-card [title]="'Einwohnerdaten der Vergangenheit (Realdaten)'"
                  cookieId="exp-realdata-header"
                  width="1430px">
   <p>Für die Abschätzung der Nachfrage nach Infrastrukturen werden u.a. Einwohnerdaten benötigt. Auf dieser Seite können Realdaten, also Daten zur Einwohnerzahl und Altersstruktur in den zurückliegenden Jahren einlesen. Prognosedaten werden hingegen im entsprechend benannten Menüpunkt eingepflegt.</p>
