@@ -58,6 +58,7 @@
   </div>
 </div>
 <mat-sidenav #drawer class="context-bar"
+             [disableClose]="true"
              [autoFocus]="false"
              [opened]="(isSM$ | async) === false">
   <router-outlet>

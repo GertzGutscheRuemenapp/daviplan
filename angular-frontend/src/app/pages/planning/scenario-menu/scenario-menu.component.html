@@ -68,6 +68,12 @@
       </div>
     </div>
   </div>
+  <div class="side-toggle-trigger"
+       style="height : 60px"
+       [title]="'Szenariomenü einklappen'"
+       (click)="planningService.showScenarioMenu = false">
+    <div class="side-toggle-indicator"> <mat-icon>chevron_left</mat-icon> </div>
+  </div>
 </div>
 
 <ng-template #editScenario>

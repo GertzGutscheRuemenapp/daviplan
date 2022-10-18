@@ -291,7 +291,7 @@ export class MapControl {
 
   refresh(options?: { internal?: boolean, external?: boolean }): void {
     if (options?.internal === false && !options?.external === false) return;
-    this.saveSettings();
+    this.saveMapSettings();
     this.getLayers(options).forEach(l => l.removeFromMap());
     if (options?.internal) this.layerGroups = sortBy(this.layerGroups.filter(g => g.external !== false), 'order');
     if (options?.external) this.layerGroups = sortBy(this.layerGroups.filter(g => g.external !== true), 'order');
@@ -364,6 +364,7 @@ export class MapControl {
 
   saveCurrentExtent(name: string): void {
     this.mapExtents[name] = this.map?.view.calculateExtent();
+    this.settings.user?.set('extents', this.mapExtents, { patch: true });
   }
 
   loadExtent(name: string): void {
@@ -374,9 +375,10 @@ export class MapControl {
 
   removeExtent(name: string): void {
     delete this.mapExtents[name];
+    this.settings.user?.set('extents', this.mapExtents, { patch: true });
   }
 
-  saveSettings(): void {
+  saveMapSettings(): void {
     const layers = this.getLayers();
     layers.forEach(layer => {
       if (layer.id != undefined) {
@@ -392,7 +394,6 @@ export class MapControl {
     this.mapSettings['background-layer'] = this.background?.id;
     this.mapSettings['legend-edit-mode'] = this.editMode;
     this.settings.user?.set(this.target, this.mapSettings, { patch: true });
-    this.settings.user?.set('extents', this.mapExtents, { patch: true });
   }
 
   setDescription(text: string): void {
@@ -409,7 +410,7 @@ export class MapControl {
   }
 
   destroy(): void {
-    this.saveSettings();
+    this.saveMapSettings();
     if(!this.map) return;
     this.map.unset();
     this.destroyed.emit(this.target);

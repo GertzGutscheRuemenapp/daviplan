@@ -347,6 +347,8 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
         run_sync = request.data.get('sync', False)
 
         with ProtectedProcessManager(request.user, scope=ProcessScope.AREAS) as ppm:
+            msg = f'Rufe Gebiete der Ebene "{area_level.name}" ab'
+            logger.info(msg)
             if not run_sync:
                 ppm.run_async(self._pull_areas, area_level, project_area,
                               truncate=truncate, simplify=simplify)
@@ -359,8 +361,6 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
     @staticmethod
     def _pull_areas(area_level: AreaLevel, project_area,
                     truncate=False, simplify=False):
-        msg = f'Rufe Gebiete der Ebene "{area_level.name}" ab'
-        logger.info(msg)
         url = area_level.source.url
         layer = area_level.source.layer
         if not url or not layer:

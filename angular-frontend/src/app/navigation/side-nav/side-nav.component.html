@@ -3,6 +3,7 @@
                [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
                [mode]="(isHandset$ | async) ? 'over' : 'side'"
                [style.width]="width"
+               [disableClose]="true"
                [opened]="(isHandset$ | async) === false">
     <mat-nav-list [style.margin-top]="marginTop">
       <div *ngFor="let item of menuItems">

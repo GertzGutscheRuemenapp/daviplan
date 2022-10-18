@@ -142,3 +142,22 @@
     }
   }
 }
+
+.side-toggle-indicator {
+  width: 35px;
+  height: 60px;
+  color: white;
+  background-color: $primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 8px 8px 0;
+  box-shadow: 1px 0px 3px 1px #a7a7a7;
+  user-select: none;
+  position: absolute;
+  right: -35px;
+  //top: 6px;
+  border-left: 1px solid #2196F3;
+  z-index: -1;
+  cursor: pointer;
+}
