@@ -218,6 +218,9 @@ class PlacesTemplateSerializer(serializers.Serializer):
             df_classification.reset_index().to_excel(writer,
                                                      sheet_name=sn_classifications,
                                                      index=False)
+            # hide classifications
+            sheet = writer.book.get_sheet_by_name(sn_classifications)
+            sheet.sheet_state = 'hidden'
 
             df_places.to_excel(writer,
                                sheet_name=sheetname,
