@@ -1,16 +1,20 @@
 <div class="loadOverlay" *ngIf="isLoading$ | async">
   <mat-spinner [diameter]="50"></mat-spinner>
 </div>
-<app-header-card [title]="'Gebiete'"
+<app-header-card [title]="'Gebietseinheiten'"
                  cookieId="exp-areas-header"
                  width="1380px">
-  <p>Sie können Ihr Projektgebiet in Gebiete einteilen. Die Gebiete dienen später der räumlich differenzierten Bilanzierung von Angebot und Nachfrage nach den betrachteten Infrastrukturen. Sie müssen mindestens eine Gebietseinteilung aktivieren.</p>
-  <p>Standardmäßig entsprechen die Gebiete den administrativen Einheiten, d.h. je nach Gesamtgröße den Gemeinden, Verwaltungsgemeinschaften (Ämter, Samtgemeinden, Verbandsgemeinden, VG), Kreisen und Bundesländern. Diese amtlichen Grenzen können auf Sie einfach vom Bundesamt für Kartographie und Geodäsie (BKG) herunterladen lassen.</p>
-  <p>Ergänzend können Sie benutzerdefinierte Gebietseinheiten, z.B. Ortsteile, hinzufügen. Hierzu laden Sie ein Shape-File hoch oder Sie geben einen WFS-Dienst an. Alle Gebietseinteilungen müssen das gesamte Projektgebiet abdecken.</p>
+  <p>Nachdem Sie bei den Basisdefinitionen im Administrationsbereich ein Planungsgebiets definiert haben, auf das Sie daviplan anwenden möchten, können Sie dieses Planungsgebiet in Gebietseinheiten unterteilen. Diese Gebietseinheiten dienen später der räumlich differenzierten Bilanzierung von Angebot und Nachfrage nach den betrachteten Infrastrukturen.</p>
+  <p>Die einzelnen Gebietseinheiten werden über Gebietseinteilungen definiert, die das gesamte Planungsgebiet abdecken müssen.</p>
+  <p>Standardmäßig entsprechen die Gebietseinteilungen den administrativen Ebenen, d.h. den Gemeinden, Verwaltungsgemeinschaften (Ämter, Samtgemeinden, Verbandsgemeinden, VG), Kreisen und Bundesländern. Diese amtlichen Grenzen können auf Sie einfach vom Bundesamt für Kartographie und Geodäsie (BKG) herunterladen lassen und für Ihre daviplan-Anwendung auswählen.</p>
+  <p>Ergänzend können Sie benutzerdefinierte Gebietseinteilungen, z.B. Ortsteile, hinzufügen. Hierzu laden Sie ein Shape-File hoch oder Sie geben einen WFS-Dienst an. Auch die benutzerdefinierten Gebietseinteilungen müssen das gesamte Planungsgebiets abdecken.</p>
+  <p>Sie müssen mindestens eine Gebietseinteilung auswählen oder definieren, um mit der Erfassung der Grundlagendaten fortzufahren.</p>
+  <p>Wenn Sie mehrere Gebietseinteilungen auswählen oder selbst definieren, können Sie sich später die Ergebnisse von Auswertungen für jeden dieser Gebietseinteilungen (z.B. Gemeinden, Verwaltungsgemeinschaften und Kreise) auswerten lassen.</p>
+  <p>Wenn Sie mehrere Gebietseinteilungen auswählen oder selbst definieren, müssen Sie festlegen, welche davon die Grundlage für die Erfassung der Einwohnerdaten (Vergangenheit und Prognose) im nachfolgenden Schritt „Bevölkerung“ sein soll.</p>
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="400px">
-    <app-input-card [title]="'Gebietseinheiten'"
+    <app-input-card [title]="'Gebietseinteilungen'"
                     subtitle="Administrative Ebenen aktivieren und/oder benutzerdefinierte Gebietseinteilung hinzufügen"
                     infoText="<p>Die vier oberen Gebietseinteilungen sind die administrativen Grenzen. Wählen Sie eine Gebietseinteilung aus und klicken Sie anschließend in der Box „Daten der Gebietseinteilung“ auf „Daten abrufen bzw. aktualisieren“. Daraufhin werden die Daten vom BKG heruntergeladen, mit Ihrem Projektgebiet verschnitten und in der Karte angezeigt.</p>
                               <p>Nur aktive Gebietseinteilungen können außerhalb dieser Seite ausgewählt werden und in der Karte dargestellt werden. Die Aktivität kann über die Auswahlbox neben dem Namen der jeweiligen Gebietseinteilung umgeschaltet werden.</p>
@@ -75,7 +79,7 @@
               (click)="activeLevel && setPopAreaLevel(activeLevel)"
               [disabled]="activeLevel?.isPreset && !activeLevel?.isDefaultPopLevel">
         <mat-icon class="material-icons-outlined">verified</mat-icon>
-        Als Gebietseinheit für alle Einwohnerdaten festlegen
+        Als Gebietseinteilung für alle Einwohnerdaten festlegen
       </button>
       <div style="margin-top: 10px;">
         <button mat-button color="primary"

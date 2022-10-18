@@ -87,7 +87,8 @@
         <div class="diagram-wrapper">
           <app-help-button title="Wanderung" position="left"
                            style="position: absolute; right: 0; top: 10px; z-index: 1;">
-            <p>Platzhalter Erklärung Diagramm</p>
+            <p *ngIf="theme === 'nature'">Platzhalter Erklärung Diagramm Wanderung Natur</p>
+            <p *ngIf="theme === 'migration'">Platzhalter Erklärung Diagramm Wanderung Migration</p>
           </app-help-button>
           <div *ngIf="selectedTab===0">
             <app-balance-chart #balanceChart
@@ -115,7 +116,8 @@
         <div class="diagram-wrapper">
           <app-help-button title="Wanderungssaldo Gesamtgebiet" position="left"
                            style="position: absolute; right: 0; top: 10px; z-index: 1;">
-            <p>Platzhalter Erklärung Diagramm</p>
+            <p *ngIf="theme === 'nature'">Platzhalter Erklärung Diagramm Wanderungsaldo Natur</p>
+            <p *ngIf="theme === 'migration'">Platzhalter Erklärung Diagramm Wanderungsaldo Migration</p>
           </app-help-button>
           <div *ngIf="selectedTab===1">
             <app-multiline-chart #totalChart

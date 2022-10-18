@@ -14,7 +14,8 @@ from djangorestframework_camel_case.util import camelize
 
 from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
 from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
-from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
+from datentool_backend.utils.permissions import (HasAdminAccess,
+                                                 HasAdminAccessOrReadOnly, 
                                                  CanEditBasedata)
 from datentool_backend.models import (
     InfrastructureAccess, Infrastructure, Place, Capacity, PlaceField,
@@ -102,7 +103,8 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
                        fields={'infrastructure': infrastructure_id_serializer}
                    ),
                    )
-    @action(methods=['POST'], detail=False, permission_classes=[CanEditBasedata])
+    @action(methods=['POST'], detail=False,
+            permission_classes=[HasAdminAccess | CanEditBasedata])
     def create_template(self, request):
         """Download the Template"""
         infrastructure_id = request.data.get('infrastructure')
@@ -114,7 +116,7 @@ class PlaceViewSet(ExcelTemplateMixin, ProtectCascadeMixin, viewsets.ModelViewSe
                        fields={'excel_file': serializers.FileField(),}
                    ))
     @action(methods=['POST'], detail=False,
-            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata],
+            permission_classes=[HasAdminAccess | CanEditBasedata],
             parser_classes=[CamelCaseMultiPartParser])
     def upload_template(self, request):
         """Download the Template"""

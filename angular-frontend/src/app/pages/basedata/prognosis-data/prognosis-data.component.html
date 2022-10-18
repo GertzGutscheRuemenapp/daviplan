@@ -1,7 +1,7 @@
 <div class="loadOverlay" *ngIf="popService.isLoading$ | async">
   <mat-spinner [diameter]="50"></mat-spinner>
 </div>
-<app-header-card [title]="'Prognosedaten'"
+<app-header-card [title]="'Einwohnerdaten für die Zukunft (Prognosedaten, ggf. in Szenarien)'"
                  cookieId="exp-progdata-header"
                  width="1430px">
   <p>Für die Abschätzung der zukünftigen Nachfrageentwicklung nach Infrastrukturen werden u.a. Prognosedaten zur Einwohnerentwicklung benötigt. Auf dieser Seite können Sie daher Einwohnerprognosen einlesen. Reale Einwohnerdaten für die zurückliegenden Jahre werden hingegen im vorstehenden Menüpunkt „Realdaten“ eingepflegt.</p>
