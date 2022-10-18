@@ -17,6 +17,7 @@ from rest_framework.decorators import action
 from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
 
 from datentool_backend.utils.serializers import MessageSerializer, drop_constraints
+from datentool_backend.utils.permissions import HasAdminAccess, CanEditBasedata
 
 
 class ColumnError(Exception):
@@ -38,7 +39,8 @@ class ExcelTemplateMixin:
                    #},
                    )
 
-    @action(methods=['POST'], detail=False)
+    @action(methods=['POST'], detail=False,
+            permission_classes=[HasAdminAccess | CanEditBasedata])
     def create_template(self, request, **kwargs):
         """Download the Template"""
         serializer = self.get_serializer()

@@ -55,7 +55,8 @@ class CanEditBasedata(permissions.BasePermission):
 class HasAdminAccess(permissions.BasePermission):
     def has_permission(self, request, view):
         return (request.user.is_authenticated
-                and request.user.profile.admin_access)
+                and (request.user.is_superuser or
+                     request.user.profile.admin_access))
 
     def has_object_permission(self, request, view, obj):
         return self.has_permission(request, view)
