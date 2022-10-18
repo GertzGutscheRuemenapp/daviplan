@@ -621,6 +621,13 @@ class FieldTypeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     permission_classes = [ProtectPresetPermission &
                           (HasAdminAccessOrReadOnly | CanEditBasedata)]
 
+    def update(self, request, *args, **kwargs):
+        """put the ftype_id into the classifications"""
+        ftype = FieldType(pk=kwargs['pk'])
+        for classification in request.data.get('classification', []):
+            classification['ftype_id'] = ftype.pk
+        return super().update(request, *args, **kwargs)
+
 
 class AreaFieldViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = AreaField.objects.all()

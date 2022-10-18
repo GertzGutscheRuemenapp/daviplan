@@ -212,13 +212,14 @@ class FClassSerializer(serializers.ModelSerializer):
     ftype_id = serializers.PrimaryKeyRelatedField(
         write_only=True,
         required=False,
+        # needs a default which is ignored, but otherwise an SkipField-exception is raised
+        default=-1,
         source='ftype',
         queryset=FieldType.objects.all())
 
     class Meta:
         model = FClass
         read_only_fields = ('id', 'ftype', )
-        write_only_fields = ('ftype_id', )
         fields = ('id', 'order', 'value',
                   'ftype', 'ftype_id')
 
@@ -253,6 +254,11 @@ class FieldTypeSerializer(serializers.ModelSerializer):
         names = [f['value'] for f in data]
         if (len(set(names)) != len(names)):
             raise NotAcceptable('Die Werte der Klassen müssen einzigartig sein!')
+
+        new_values = [d['value'] for d in data]
+        to_delete = FClass.objects.filter(ftype=instance).exclude(value__in=new_values)
+        to_delete.delete()
+
         for classification in data:
             order = classification.get('order', 0)
             try:
@@ -263,11 +269,6 @@ class FieldTypeSerializer(serializers.ModelSerializer):
             except FClass.DoesNotExist:
                 fclass = FClass.objects.create(
                     ftype=instance, value=classification['value'], order=order)
-            classifications.append(fclass)
-        classification_data_ids = [f.id for f in classifications]
-        for fclass in instance.fclass_set.all():
-            if fclass.id not in classification_data_ids:
-                fclass.delete(keep_parents=True)
 
 
 class AreaAttributeField(serializers.JSONField):
