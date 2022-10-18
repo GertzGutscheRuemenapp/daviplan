@@ -29,8 +29,8 @@ class Scenario(DatentoolModelMixin, NamedModel, models.Model):
     """BULE-Scenario"""
     name = models.TextField()
     planning_process = models.ForeignKey(PlanningProcess,
-                                         on_delete=PROTECT_CASCADE)
-    prognosis = models.ForeignKey(Prognosis, on_delete=PROTECT_CASCADE,
+                                         on_delete=models.CASCADE)
+    prognosis = models.ForeignKey(Prognosis, on_delete=models.SET_NULL,
                                   null=True)
     demandratesets = models.ManyToManyField(DemandRateSet,
                                             related_name='scenario_service',

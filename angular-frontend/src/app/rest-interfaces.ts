@@ -51,7 +51,7 @@ export interface PlanningProcess {
   allowSharedChange: boolean,
   description?: string,
   scenarios?: Scenario[],
-  infrastructures?: number[]
+  infrastructures: number[]
 }
 
 export interface Scenario {

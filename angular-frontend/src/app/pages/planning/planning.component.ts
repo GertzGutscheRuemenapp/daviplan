@@ -164,6 +164,10 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
       this.cookies.set('planning-process', process?.id);
     this.planningService.activeProcess$.next(process);
     this.planningService.activeScenario$.next(scenario);
+    if (!this.activeProcess || (this.planningService.activeInfrastructure && this.activeProcess.infrastructures.indexOf(this.planningService.activeInfrastructure.id) < 0)) {
+      this.planningService.activeInfrastructure$.next(undefined);
+      this.planningService.activeService$.next(undefined);
+    }
   }
 
   setSlider(): void {
@@ -221,6 +225,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
       ).subscribe(process => {
         process.scenarios = [];
         this.myProcesses.push(process);
+        this.setProcess(process.id);
         dialogRef.close();
       },(error) => {
         this.editProcessForm.setErrors(error.error);
@@ -272,7 +277,9 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
       };
       this.http.patch<PlanningProcess>(`${this.rest.URLS.processes}${process.id}/`, attributes
       ).subscribe(resProcess => {
+        // window.location.reload();
         Object.assign(process, resProcess);
+        this.setProcess(process.id);
         dialogRef.close();
       },(error) => {
         this.editProcessForm.setErrors(error.error);

@@ -26,13 +26,10 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   compareSupply = true;
   compareStatus = 'option 1';
   infrastructures: Infrastructure[] = [];
-  activeInfrastructure?: Infrastructure;
   activeLevel?: AreaLevel;
-  activeService?: Service;
   areaLevels: AreaLevel[] = [];
   areas: Area[] = [];
   activeProcess?: PlanningProcess;
-  activeScenario?: Scenario;
   realYears?: number[];
   prognosisYears?: number[];
   mapControl?: MapControl;
@@ -49,18 +46,12 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
     this.layerGroup = new MapLayerGroup('Nachfrage', { order: -1 })
     this.mapControl.addGroup(this.layerGroup);
     this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
-      this.activeProcess = process;
       this.updateMap();
     }));
     this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
-      this.activeScenario = scenario;
       this.updateMap();
     }));
-    this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
-      this.activeInfrastructure = infrastructure;
-    }))
     this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
-      this.activeService = service;
       this.updateMap();
     }))
     this.initData();
@@ -109,11 +100,11 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
       this.demandLayer = undefined;
     }*/
     this.layerGroup?.clear();
-    if (!this.year || !this.activeLevel || !this.activeService || !this.activeProcess) return;
+    if (!this.year || !this.activeLevel || !this.planningService.activeService || !this.planningService.activeScenario) return;
     this.updateMapDescription();
     const scenarioId = this.planningService.activeScenario?.isBase? undefined: this.planningService.activeScenario?.id;
     this.planningService.getDemand(this.activeLevel.id,
-      { year: this.year!, service: this.activeService?.id, scenario: scenarioId
+      { year: this.year!, service: this.planningService.activeService?.id, scenario: scenarioId
       }).subscribe(demandData => {
       let max = 1;
       let min = Number.MAX_VALUE;
@@ -125,13 +116,13 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
         area.properties.value = value;
         const formattedValue = value? value.toLocaleString(): value;
         area.properties.description = `<b>${area.properties.label}</b>
-                <br>Nachfrage nach Leistung "${this.activeService?.name}"
-                <br>${formattedValue} ${this.activeService?.demandPluralUnit} im Jahr ${this.year}
-                <br>im Szenario "${this.activeScenario?.name}"`
+                <br>Nachfrage nach Leistung "${this.planningService.activeService?.name}"
+                <br>${formattedValue} ${this.planningService.activeService?.demandPluralUnit} im Jahr ${this.year}
+                <br>im Szenario "${this.planningService.activeScenario?.name}"`
       })
       max = Math.max(max, 10);
       const steps = (max < 1.2 * min)? 3: (max < 1.4 * min)? 5: (max < 1.6 * min)? 7: 9;
-      const desc = `<b>${this.activeService?.demandPluralUnit} ${this.year} nach ${this.activeLevel?.name}</b><br>
+      const desc = `<b>${this.planningService.activeService?.demandPluralUnit} ${this.year} nach ${this.activeLevel?.name}</b><br>
                     Minimum: ${min.toLocaleString()}<br>
                     Maximum: ${max.toLocaleString()}`;
       let style: ValueStyle = {
@@ -154,7 +145,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
           }
         }
       }
-      this.demandLayer = new VectorLayer(this.activeService?.demandPluralUnit || 'Nachfragende',{
+      this.demandLayer = new VectorLayer(this.planningService.activeService?.demandPluralUnit || 'Nachfragende',{
           order: 0,
           description: desc,
           opacity: 1,
@@ -181,9 +172,9 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   }
 
   updateMapDescription(): void {
-    const desc = `${this.activeScenario?.name}<br>
-                  Nachfrage nach "${this.activeService?.name}"<br>
-                  <b>${this.activeService?.demandPluralUnit} ${this.year} nach ${this.activeLevel?.name}</b>`
+    const desc = `${this.planningService.activeScenario?.name}<br>
+                  Nachfrage nach "${this.planningService.activeService?.name}"<br>
+                  <b>${this.planningService.activeService?.demandPluralUnit} ${this.year} nach ${this.activeLevel?.name}</b>`
     this.mapControl?.setDescription(desc);
   }
 
