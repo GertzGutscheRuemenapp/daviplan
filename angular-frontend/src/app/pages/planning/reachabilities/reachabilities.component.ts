@@ -43,7 +43,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
   @ViewChild('filterTemplate') filterTemplate!: TemplateRef<any>;
   rasterCells: RasterCell[] = [];
   activeMode: TransportMode = TransportMode.WALK;
-  indicator: 'place' | 'cell' | 'next' = 'place';
+  indicator: 'place' | 'cell' | 'next' = 'next';
   infrastructures: Infrastructure[] = [];
   places: Place[] = [];
   activeInfrastructure?: Infrastructure;

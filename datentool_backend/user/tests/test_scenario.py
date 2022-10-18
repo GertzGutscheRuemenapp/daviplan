@@ -1,5 +1,6 @@
 from django.test import TestCase
 from test_plus import APITestCase
+import unittest
 
 from datentool_backend.api_test import (BasicModelTest,
                                         TestAPIMixin,
@@ -174,6 +175,7 @@ class TestScenarioAPI(TestAPIMixin, BasicModelTest, APITestCase):
 class TestPlanningProcessProtectCascade(TestAPIMixin, LoginTestCase, APITestCase):
     url_key = "planningprocesses"
 
+    @unittest.skip('protection is disabled')
     def test_protection_of_referenced_objects(self):
         """
         Test if the deletion of an object fails, if there are related objects
@@ -193,6 +195,7 @@ class TestPlanningProcessProtectCascade(TestAPIMixin, LoginTestCase, APITestCase
         response = self.delete(url, **kwargs, extra={'format': 'json'})
         self.response_204(msg=response.content)
 
+    @unittest.skip('protection is disabled')
     def test_without_protection_of_referenced_objects(self):
         """
         Test if the deletion of an object works, if there are related objects

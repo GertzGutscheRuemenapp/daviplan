@@ -297,83 +297,83 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     }
     ageGroups = sortBy(ageGroups, 'fromAge');
     // this.populationService.getPopulationData(this.activeArea.id, { genders: genders }).subscribe( popData => {
-      this.populationService.getPopulationData(this.activeArea!.id, { prognosis: this.activePrognosis?.id, genders: genders }).subscribe(progData => {
-        // const data = popData.concat(progData);
-        const data = progData.values;
-        if (data.length === 0) return;
-        const years = [... new Set(data.map(d => d.year))].sort();
-        let stackedData: StackedData[] = [];
-        let ageTreeData: Record<number, AgeTreeData[]> = {}
-        const labels = ageGroups.map(ag => ag.label!);
-        const colors = ageGroups.map(ag => this.ageGroupColors[ag.id!]);
-        const maleId = this.genders.find(g => g.name === 'männlich')?.id || 1;
-        const femaleId = this.genders.find(g => g.name === 'weiblich')?.id || 2;
-        years.forEach(year => {
-          let summed: number[] = [];
-          let yearAgeData: AgeTreeData[] = [];
-          const yearData = data.filter(d => d.year === year)!;
-          ageGroups.forEach(ageGroup => {
-            const ad = yearData.filter(d => d.agegroup === ageGroup.id);
-            yearAgeData.push({
-              male: ad.find(d => d.gender === maleId)?.value || 0,
-              fromAge: ageGroup.fromAge,
-              toAge: ageGroup.toAge,
-              female: ad.find(d => d.gender === femaleId)?.value || 0,
-              label: ageGroup.label || ''
-            })
-            const sum = (ad)? ad.reduce((a, d) => a + d.value, 0): 0;
-            summed.push(sum);
+    this.populationService.getPopulationData(this.activeArea!.id, { prognosis: this.activePrognosis?.id, genders: genders }).subscribe(progData => {
+      // const data = popData.concat(progData);
+      const data = progData.values;
+      if (data.length === 0) return;
+      const years = [... new Set(data.map(d => d.year))].sort();
+      let stackedData: StackedData[] = [];
+      let ageTreeData: Record<number, AgeTreeData[]> = {}
+      const labels = ageGroups.map(ag => ag.label!);
+      const colors = ageGroups.map(ag => this.ageGroupColors[ag.id!]);
+      const maleId = this.genders.find(g => g.name === 'männlich')?.id || 1;
+      const femaleId = this.genders.find(g => g.name === 'weiblich')?.id || 2;
+      years.forEach(year => {
+        let summed: number[] = [];
+        let yearAgeData: AgeTreeData[] = [];
+        const yearData = data.filter(d => d.year === year)!;
+        ageGroups.forEach(ageGroup => {
+          const ad = yearData.filter(d => d.agegroup === ageGroup.id);
+          yearAgeData.push({
+            male: ad.find(d => d.gender === maleId)?.value || 0,
+            fromAge: ageGroup.fromAge,
+            toAge: ageGroup.toAge,
+            female: ad.find(d => d.gender === femaleId)?.value || 0,
+            label: ageGroup.label || ''
           })
-          ageTreeData[year] = yearAgeData;
-          stackedData.push({
-            group: String(year),
-            values: summed
-          });
+          const sum = (ad)? ad.reduce((a, d) => a + d.value, 0): 0;
+          summed.push(sum);
         })
-
-        const baseYear = this.realYears![this.realYears!.length - 1];
-        const xSeparator = {
-          leftLabel: `Realdaten`,
-          rightLabel: `Prognose (Basisjahr: ${baseYear})`,
-          x: String(baseYear),
-          highlight: false
-        }
-
-        //Stacked Bar Chart
-        this.barChartProps.labels = labels;
-        this.barChartProps.colors = colors;
-        this.barChartProps.title = 'Bevölkerungsentwicklung';
-        if (this.selectedGender!.id !== -1)
-          this.barChartProps.title += ` (${this.selectedGender!.name})`;
-        this.barChartProps.subtitle = this.activeArea?.properties.label!;
-        this.barChartProps.xSeparator = xSeparator;
-        this.barChartProps.data = stackedData;
-
-        // Line Chart
-        let first = stackedData[0].values;
-        let relData = stackedData.map(d => { return {
-          group: d.group,
-          values: d.values.map((v, i) => 100 * v / first[i] )
-        }})
-        let max = Math.max(...relData.map(d => Math.max(...d.values))),
-          min = Math.min(...relData.map(d => Math.min(...d.values)));
-        this.lineChartProps.labels = labels;
-        this.lineChartProps.colors = colors;
-        this.lineChartProps.title = 'relative Altersgruppenentwicklung';
-        if (this.selectedGender!.id !== -1)
-          this.lineChartProps.title += ` (${this.selectedGender!.name})`;
-        this.lineChartProps.subtitle = this.activeArea?.properties.label!;
-        this.lineChartProps.min = Math.floor(min / 10) * 10;
-        this.lineChartProps.max = Math.ceil(max / 10) * 10;
-        this.lineChartProps.xSeparator = xSeparator;
-        this.lineChartProps.data = relData;
-
-        this.ageTreeProps.title = 'Bevölkerungspyramide';
-        this.ageTreeProps.subtitle = this.activeArea?.properties.label!;
-        this.ageTreeProps.data = ageTreeData;
-
-        this.forceDiagramReload();
+        ageTreeData[year] = yearAgeData;
+        stackedData.push({
+          group: String(year),
+          values: summed
+        });
       })
+
+      const baseYear = this.realYears![this.realYears!.length - 1];
+      const xSeparator = {
+        leftLabel: `Realdaten`,
+        rightLabel: `Prognose (Basisjahr: ${baseYear})`,
+        x: String(baseYear),
+        highlight: false
+      }
+
+      //Stacked Bar Chart
+      this.barChartProps.labels = labels;
+      this.barChartProps.colors = colors;
+      this.barChartProps.title = 'Bevölkerungsentwicklung';
+      if (this.selectedGender!.id !== -1)
+        this.barChartProps.title += ` (${this.selectedGender!.name})`;
+      this.barChartProps.subtitle = this.activeArea?.properties.label!;
+      this.barChartProps.xSeparator = xSeparator;
+      this.barChartProps.data = stackedData;
+
+      // Line Chart
+      let first = stackedData[0].values;
+      let relData = stackedData.map(d => { return {
+        group: d.group,
+        values: d.values.map((v, i) => 100 * v / first[i] )
+      }})
+      let max = Math.max(...relData.map(d => Math.max(...d.values))),
+        min = Math.min(...relData.map(d => Math.min(...d.values)));
+      this.lineChartProps.labels = labels;
+      this.lineChartProps.colors = colors;
+      this.lineChartProps.title = 'relative Altersgruppenentwicklung';
+      if (this.selectedGender!.id !== -1)
+        this.lineChartProps.title += ` (${this.selectedGender!.name})`;
+      this.lineChartProps.subtitle = this.activeArea?.properties.label!;
+      this.lineChartProps.min = Math.floor(min / 10) * 10;
+      this.lineChartProps.max = Math.ceil(max / 10) * 10;
+      this.lineChartProps.xSeparator = xSeparator;
+      this.lineChartProps.data = relData;
+
+      this.ageTreeProps.title = 'Bevölkerungspyramide';
+      this.ageTreeProps.subtitle = this.activeArea?.properties.label!;
+      this.ageTreeProps.data = ageTreeData;
+
+      this.forceDiagramReload();
+    })
     // })
   }
 

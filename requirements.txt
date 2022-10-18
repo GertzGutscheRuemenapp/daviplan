@@ -1,7 +1,6 @@
 django==4.*
 django-cors-headers==3.*
 psycopg2==2.*
-numpy
 django-rest-framework
 markdown
 django-filter

@@ -1,7 +1,6 @@
 from rest_framework.exceptions import PermissionDenied
 from datentool_backend.site.models import ProcessScope, ProcessState
 from django_q.tasks import async_task
-from datentool.loggers import send
 
 import logging
 import channels.layers

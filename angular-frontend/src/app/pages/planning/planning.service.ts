@@ -44,19 +44,7 @@ export class PlanningService extends RestCacheService {
   constructor(protected http: HttpClient, protected rest: RestAPI, private settings: SettingsService,
               private cookies: CookieService) {
     super(http, rest);
-/*    this.year$.next(this.cookies.get('planning-year', 'number') || 0);
-    this.activeProcess$.next(this.cookies.get('planning-year', 'number') || 0);
-    this.activeScenario$.next(this.cookies.get('planning-year', 'number') || 0);
-
-    this.year$.subscribe(year => {
-      this.cookies.set('planning-year', year);
-    });
-    this.activeProcess$.subscribe(process => {
-      this.cookies.set('planning-process', process?.id);
-    })
-    this.activeScenario$.subscribe(scenario => {
-      this.cookies.set('planning-scenario', scenario?.id);
-    })*/
+    // store the current states in variables, easier to access than subscribing to observables
     // could also be done later with [...].pipe(take(1)).subscribe(...), easier by remembering in separate variable
     this.activeInfrastructure$.subscribe(infrastructure => this.activeInfrastructure = infrastructure);
     this.activeService$.subscribe(service => this.activeService = service);

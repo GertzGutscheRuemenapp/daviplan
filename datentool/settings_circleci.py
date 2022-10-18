@@ -36,3 +36,8 @@ OSRM_ROUTING = {
         'routing_port': 5003,
     },
 }
+
+# workaround: deactivate loggers may cause errors while running tests in circleci
+LOGGING['loggers'] = {}
+# sync=True preserves database connections, disabled for circleci
+Q_CLUSTER['sync'] = False
