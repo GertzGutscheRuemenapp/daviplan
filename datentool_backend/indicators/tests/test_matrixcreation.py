@@ -73,7 +73,8 @@ class TestMatrixCreation(CreateTestdataMixin,
 
         data = {'variants': [walk.pk, car.pk, bike.pk],
                 'drop_constraints': False,
-                'air_distance_routing': True, }
+                'air_distance_routing': True,
+                'sync': True,}
 
         res= self.post('matrixcellplaces-precalculate-traveltime', data=data,
                        extra={'format': 'json'})
@@ -206,6 +207,7 @@ class TestMatrixCreation(CreateTestdataMixin,
         data = {
             'excel_file': file_content,
             'variant': self.transit.pk,
+            'sync': True,
         }
 
         url = reverse('stops-upload-template')
@@ -220,6 +222,7 @@ class TestMatrixCreation(CreateTestdataMixin,
             'excel_or_visum_file': file_content,
             'variant': self.transit.pk,
             'drop_constraints': False,
+            'sync': True,
         }
 
         url = reverse('matrixstopstops-upload-template')
