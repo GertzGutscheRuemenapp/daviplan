@@ -36,3 +36,6 @@ OSRM_ROUTING = {
         'routing_port': 5003,
     },
 }
+
+# workaround: deactivate loggers causing errors while running tests in circleci
+LOGGING['loggers'] = {}
