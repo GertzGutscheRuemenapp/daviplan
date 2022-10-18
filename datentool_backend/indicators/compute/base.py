@@ -124,7 +124,7 @@ class ComputeIndicator(metaclass=ABCMeta):
                 bins = get_percentiles(values, percentiles)
 
         if bins is None or len(bins) == 0:
-            return {}
+            return []
         elif len(bins) == 1:
             value = bins[0]
             if np.isnan(value):

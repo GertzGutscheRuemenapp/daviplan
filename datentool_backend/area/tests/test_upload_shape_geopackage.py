@@ -36,6 +36,7 @@ class UploadTest(LoginTestCase, APITestCase):
         file_content = open(file_path_areas, 'rb')
         data = {
                 'file' : file_content,
+                'sync' : True,
             }
 
         url = reverse('arealevels-upload-shapefile',
@@ -57,6 +58,7 @@ class UploadTest(LoginTestCase, APITestCase):
         file_content = open(file_path_areas, 'rb')
         data = {
                 'file' : file_content,
+                'sync': True,
             }
 
         url = reverse('arealevels-upload-shapefile',
@@ -77,7 +79,8 @@ class UploadTest(LoginTestCase, APITestCase):
                                        file_name_areas)
         file_content = open(file_path_areas, 'rb')
         data = {
-                'file' : file_content, 'sync': True,
+                'file' : file_content,
+                'sync': True,
             }
 
         url = reverse('arealevels-upload-shapefile',

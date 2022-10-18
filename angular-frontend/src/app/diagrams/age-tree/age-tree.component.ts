@@ -60,6 +60,7 @@ export class AgeTreeComponent implements AfterViewInit {
   }
 
   public draw(data: AgeTreeData[]): void {
+    this.clear();
 
     let femaleAges = Array(this.ageCutoff).fill(0),
         labels = Array(this.ageCutoff),

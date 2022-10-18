@@ -105,7 +105,7 @@ class PlanningProcessSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlanningProcess
         fields = ('id', 'name', 'owner', 'users', 'allow_shared_change',
-                  'description')
+                  'infrastructures', 'description')
         read_only_fields = ('owner', )
 
     def create(self, validated_data):

@@ -31,6 +31,9 @@ import { CookieService } from "../../helpers/cookies.service";
 interface SharedUser extends User {
   shared?: boolean;
 }
+interface IncludedInfrastructure extends Infrastructure {
+  included?: boolean;
+}
 
 @Component({
   selector: 'app-planning',
@@ -50,7 +53,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   mapControl?: MapControl;
   realYears?: number[];
   prognosisYears?: number[];
-  infrastructures: Infrastructure[] = [];
+  infrastructures: IncludedInfrastructure[] = [];
   baseScenario?: Scenario;
   editProcessForm: FormGroup;
   Object = Object;
@@ -161,6 +164,10 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
       this.cookies.set('planning-process', process?.id);
     this.planningService.activeProcess$.next(process);
     this.planningService.activeScenario$.next(scenario);
+    if (!this.activeProcess || (this.planningService.activeInfrastructure && this.activeProcess.infrastructures.indexOf(this.planningService.activeInfrastructure.id) < 0)) {
+      this.planningService.activeInfrastructure$.next(undefined);
+      this.planningService.activeService$.next(undefined);
+    }
   }
 
   setSlider(): void {
@@ -196,6 +203,12 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
         allowSharedChange: false,
         description: '',
       });
+      this.otherUsers.forEach(user => {
+        user.shared = false;
+      })
+      this.infrastructures.forEach(infrastructure => {
+        infrastructure.included = true;
+      })
     })
     dialogRef.componentInstance.confirmed.subscribe(() => {
       this.editProcessForm.setErrors(null);
@@ -212,6 +225,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
       ).subscribe(process => {
         process.scenarios = [];
         this.myProcesses.push(process);
+        this.setProcess(process.id);
         dialogRef.close();
       },(error) => {
         this.editProcessForm.setErrors(error.error);
@@ -242,6 +256,9 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
       this.otherUsers.forEach(user => {
         user.shared = (process.users.indexOf(user.id) > -1);
       })
+      this.infrastructures.forEach(infrastructure => {
+        infrastructure.included = (process.infrastructures && process.infrastructures.indexOf(infrastructure.id) > -1);
+      })
     })
     dialogRef.componentInstance.confirmed.subscribe(() => {
       this.editProcessForm.setErrors(null);
@@ -250,15 +267,19 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
       if (this.editProcessForm.invalid) return;
       dialogRef.componentInstance.isLoading$.next(true);
       const sharedUsers = this.otherUsers.filter(user => user.shared).map(user => user.id);
+      const includedInfrastructures = this.infrastructures.filter(i => i.included).map(i => i.id);
       let attributes = {
         name: this.editProcessForm.value.name,
         description: this.editProcessForm.value.description,
         allowSharedChange: this.editProcessForm.value.allowSharedChange,
+        infrastructures: includedInfrastructures,
         users: sharedUsers
       };
       this.http.patch<PlanningProcess>(`${this.rest.URLS.processes}${process.id}/`, attributes
       ).subscribe(resProcess => {
+        // window.location.reload();
         Object.assign(process, resProcess);
+        this.setProcess(process.id);
         dialogRef.close();
       },(error) => {
         this.editProcessForm.setErrors(error.error);
