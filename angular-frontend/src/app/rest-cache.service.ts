@@ -28,7 +28,7 @@ import {
   LogEntry,
   IndicatorLegendClass,
   TransitStop,
-  TransitMatrixEntry
+  TransitMatrixEntry, PlanningProcess
 } from "./rest-interfaces";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
@@ -182,11 +182,13 @@ export class RestCacheService {
     }));
   }
 
-  getInfrastructures(): Observable<Infrastructure[]> {
+  getInfrastructures(options?: { process?: PlanningProcess }): Observable<Infrastructure[]> {
     const observable = new Observable<Infrastructure[]>(subscriber => {
       const infraUrl = this.rest.URLS.infrastructures;
       this.getCachedData<Infrastructure[]>(infraUrl).subscribe(infrastructures => {
         const serviceUrl = this.rest.URLS.services;
+        if (options?.process)
+          infrastructures = infrastructures.filter(i => options.process!.infrastructures.indexOf(i.id) > -1);
         this.getCachedData<Service[]>(serviceUrl).subscribe(services => {
           infrastructures.forEach( infrastructure => {
             infrastructure.services = services.filter(service => service.infrastructure === infrastructure.id);
