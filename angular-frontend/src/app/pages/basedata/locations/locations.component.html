@@ -4,18 +4,18 @@
 <app-header-card [title]="'Standorte der Infrastrukturen und Kapazitäten für Leistungen'"
                  cookieId="exp-locations-header"
                  width="1430px">
-  <p>In diesem Bereich können Sie für jeden Infrastrukturbereich eine Adressliste mit den Standorten der Infrastrukturen hochladen (oder diese händisch in der Karten eintragen).</p>
-  <p>Wählen Sie dazu einen Infrastrukturbereich aus und legen zu zunächst in Abschnitt „Standorteigenschaften“ fest, mit welchen Attributen (z.B. Name, Gebäudezustand, Typ, Budget, Investitionsbedarf …) sie die Standorte zusätzlich zu ihrer räumlichen Lage beschreiben möchten.</p>
-  <p>Anschließend können Sie sich für den betreffenden Infrastrukturbereich eine dazu passende Vorlagedatei erzeugen lassen, die sie in der Box „Standorte des ausgewählten Infrastrukturbereichs“ herunterladen, befüllen und anschließend wieder hochladen können.</p>
-  <p>Die eingelesenen Standorte werden Ihnen anschließend in der Karte angezeigt, wo Sie deren Lage und Eigenschaften noch einmal korrigieren können.</p>
-  <p>Sie können jedem Standort im nachfolgenden Menüpunkt „Kapazitäten“ bei Bedarf auch mehrere Leistungen zuordnen, z.B. wenn eine Kita Krippe und Elementarbetreuung anbietet oder ein Ärztehaus sowohl haus- wie auch fachärztliche Leistungen anbietet.</p>
+  <p>In diesem Bereich können Sie für jeden Infrastrukturbereich eine Liste mit den Standorten der Infrastrukturen hochladen.</p>
+  <p>Wählen Sie dazu zunächst in der Box „Infrastrukturbereiche“ einen Infrastrukturbereich aus. Legen Sie anschließend in Schritt 1 Standorteigenschaften fest, die Sie neben dem Namen, der Adresse / räumlichen Lage und den Kapazitäten für die einzelnen Leistungen des betreffenden Infrastrukturbereichs auch noch erfassen möchten, um sie später als Zusatzinformation in den Karten und Listen des Abschnitts „Infrastrukturplanung“ anzeigen zu können. Dieser Schritt 1 ist optional.</p>
+  <p>Anschließend können Sie sich in der Box „Schritt 2“ eine Vorlagedatei zur Erfassung Ihrer Standorte herunterladen. Diese Standortliste befüllen Sie anschließend in Excel und laden Sie anschließend wieder hoch.</p>
+  <p>Die eingelesenen Standorte werden anschließend in der Karte angezeigt. Eine Listendarstellung erreichen Sie über die Schaltfläche „Standortliste anzeigen“ in der Box „Schritt 2“.</p>
+  <p>Wenn Sie Änderungen, Ergänzungen oder Aktualisierungen vornehmen möchten, laden Sie die Vorlage der Standortliste erneut herunter. Diese enthält stets aller bereits vorliegenden Daten. Ändern Sie diese anschließend in Excel und laden Sie sie wieder hoch.</p>
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
     <app-input-card [title]="'Infrastrukturbereiche'"
                     subtitle="Infrastrukturbereich auswählen, um Standorte anzuzeigen bzw. einzutragen"
                     infoText="<p>Wählen Sie in der Liste den Infrastrukturbereich aus, dessen Standort sie anzeigen, hochladen oder verändern möchten.</p>
-                    <p>Bevor Sie eine Standortliste hochladen oder Standorte in die Karte einzeichnen, legen Sie bitte erst die Attribute der Standortliste fest, indem Sie auf die Schaltfläche „Editieren“ am Fuß dieser Eingabebox klicken. Weitere Informationen finden Sie in der darunter stehenden Hilfe.</p>">
+                    <p>Daraufhin erscheinen zwei Eingabeboxen. Bevor Sie im „Schritt 2“ eine Standortliste für den gewählten Infrastrukturbereich hochladen („Schritt 2“) können Sie im „Schritt 1“ optional weitere Standorteigenschaften festlegen, die Sie – neben den immer erfassten Eigenschaften Name, Adresse und Kapazitäten – mit erfassen möchten.</p>">
       <mat-selection-list id="infrastructure-select" [multiple]="false">
 <!--        ngmodel does not work here as it always returns arrays even ig multiple=false-->
         <mat-list-option *ngFor="let infrastructure of infrastructures"
@@ -26,14 +26,21 @@
       </mat-selection-list>
     </app-input-card>
     <app-input-card #editAttributesCard
-                    [title]="'Standorteigenschaften'"
+                    [title]="'Schritt 1: Weitere Standorteigenschaften (optional)'"
                     [editTemplate]="editAttributesTemplate"
                     [class.hidden]="!selectedInfrastructure"
                     [subtitle]="selectedInfrastructure?.name || ''"
-                    dialogWidth="850px"
-                    dialogInfoText="ToDo: Erklärung Attributtyp kann nachträglich nicht geändert werden. Attribut löschen, löscht Daten (falls schon vorhanden). Klassifikationen erklären"
-                    infoText="<p>Neben der räumlichen Lage können sie die einzelnen Standorte anhand weiterer Eigenschaften („Attribute“) beschreiben. Welche dies sind (z.B. Name, Gebäudezustand, Typ, Budget, Investitionsbedarf …) entscheiden Sie selbst.</p>
-                    <p>Klicken Sie hierzu auf die Schaltfläche „Editieren“ und folgenden Sie den Erläuterungen im Hilfetext des dann erscheinenden Eingabedialogs.</p>">
+                    dialogWidth="1000px"
+                    dialogInfoText="
+                    <p>Klicken Sie auf „Standorteigenschaft hinzufügen“, um eine optionale Standorteigenschaft hinzuzufügen und füllen Sie die dann erscheinende Tabellenzeile aus. Geben Sie der Eigenschaft einen Namen und legen Sie fest, ob es sich um eine Anzahl, einen String (Text) oder eine Klassifikation handelt. Wenn Sie „Anzahl“ auswählen, können Sie zusätzlich eine Einheit angeben. Diese sollte möglichst kurz sein.</p>
+                    <p>Sie können eigene Klassifikationen (z.B. Klassifikation „Bewertung“ mit den Klassen „gut“, „mittel“, „schlecht“) definieren und einzelnen Standorteigenschaften (z.B. „Gebäudezustand“) zuordnen. Die Standortliste in Schritt erhalten dann in der betreffenden Eigenschaftsspalte (z.B. „Gebäudezustand“) Auswahlfelder mit den von Ihnen definierten Klassen. Sie müssen die Klassifikation erst definieren, bevor Sie sie einer Standorteigenschaft zuweisen können.</p>
+                    <p>Mit dem roten Kreuzchen am Ende der Zeilen können Sie eine Standorteigenschaft wieder löschen. Achtung: Wenn Sie im Schritt 2 zu dieser Standorteigenschaft bereits Daten hochgeladen haben, werden auch diese gelöscht.</p>
+                    <p>Wenn Sie fertig sind, klicken Sie auch „Speichern“. </p>
+                    <p>Es ist nicht möglich, den Typ einer Standorteigenschaft (Anzahl. String, Klassifikation) nachträglich – d.h. nach dem Speichern – zu ändern. Im Zweifelsfall müssen Sie die Eigenschaft (mit ihren Daten) löschen und anschließend neu (und mit dem richtigen Typ) hinzufügen.</p>"
+                    infoText="<p>Die Spaltenstruktur der Standortliste im nachfolgenden Schritt 2 enthält standardmäßig die Standorteigenschaften Name, Adresse und Kapazitäten – letzteres differenziert nach den für den Infrastrukturbereich definierten Leistungen.</p>
+                    <p>Diesen vordefinierten (und nicht veränderbaren) Datenspalten können Sie optional weitere Standorteigenschaften hinzufügen. Dies kann z.B. der bauliche Zustand, die Anzahl der Räume, das Budget o.ä. sein. Daviplan kann diese optionalen Standorteigenschaften nicht in Berechnungen und Bewertungen verwenden. Die Zusatzinformationen können aber zur Unterstützung der Szenarienerarbeitung angezeigt sowie zum Filtern von Standorten verwendet werden.</p>
+                    <p>Um der Standortliste zusätzliche Standorteigenschaften hinzuzufügen klicken Sie auf die Schaltfläche „Editieren“ und folgen den Erläuterungen im Hilfetext des dann erscheinenden Eingabedialogs. Bei der Eingabe geht es nur um die Bezeichnung der zusätzlichen Standorteigenschaften, d.h. die zusätzlichen Spaltenüberschriften der Standortliste in Schritt 2. Die konkreten Werte der einzelnen Standorte erfassen Sie erst bei deren Befüllung in Schritt 2.</p>">
+      <p>Neben Name, Adresse und Kapazitäten für die Leistungen sollen für jeden Standort folgende Eigenschaften erfasst werden. Diese gehen nicht in Berechnungen ein, können aber u.a. zum Filtern der Standorten verwendet werden.</p>
       <table>
         <tr>
           <td>Name</td>
@@ -47,16 +54,17 @@
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="1100px">
-    <app-input-card [title]="'Standortdaten und Kapazitäten'"
+    <app-input-card [title]="'Schritt 2: Standortliste mit Eigenschaften und Kapazitäten'"
                     [disabled]="isProcessing"
                     [class.hidden]="!selectedInfrastructure"
                     [topRightHelp]="true"
-                    infoText="<p>Nachdem Sie in der Box „Standorteigenschaften“ die Datenstruktur zur Beschreibung der Standorte des gewählten Infrastrukturbereichs definiert haben, können Sie sich über die Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excel-Format  herunterladen.</p>
-                    <p>Tragen Sie in diese Vorlage bitte alle für den Infrastrukturbereich relevanten Standorte ein, unabhängig davon, welche Leistungen des Infrastrukturbereichs in welchem dieser Standorte angeboten wird. (Dies ist erst Gegenstand des nachfolgenden Menüpunkts „Kapazitäten“.)</p>
-                    <p>Beim Ausfüllen der Vorlage entspricht jede Zeile einem Infrastrukturstandort, z.B. einer Schule. Neben der postalisch korrekten Adresse (auf deren Basis die Verortung in der Karte erfolgt) werden Sie in der Vorlage um Angaben zu allen Standorteigenschaften gebeten, die Sie in der Box „Standorteigenschaften“ definiert haben.</p>
-                    <p>Laden Sie die ausgefüllte Vorlagedatei anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Das System wird die Standorte anhand der Adresse georeferenzieren und in der Karte anzeigen. Kontrollieren Sie die Lage der Standorte in der Karte und korrigieren  Sie diese gegeben Falls.</p>
-
-                    <p>Eine Liste aller Standorte des Infrastrukturbereichs wird Ihnen angezeigt, wenn Sie auf „Datentabelle ansehen“ klicken.</p>">
+                    infoText="<p>Nachdem Sie in der Box „Schritt 1: Weitere Standorteigenschaften“ der Datenstruktur zur Beschreibung der Standorte des gewählten Infrastrukturbereichs optional weitere Eigenschaftsfelder hinzugefügt haben, können Sie sich nun hier über die Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excel-Format herunterladen. Sofern Sie bereits Daten hochgeladen haben, enthält die Vorlage alle bereits vorliegenden Daten.</p>
+                    <p>In der Vorlage entspricht jede Zeile einem Infrastrukturstandort, z.B. einer Schule.</p>
+                    <p>Jede Spalte entspricht einer Standorteigenschaft. Dies sind die vordefinierten Eigenschaften „Name“ und „postalisch korrekte Adresse“ (auf deren Basis die Verortung in der Karte erfolgt) sowie die von Ihnen ggf. im Schritt 1 zusätzlich definierten Standorteigenschaften. Zudem enthält die Standortliste je eine Spalte pro von Ihnen definierter Leistung des Infrastrukturbereichs. In diese Spalten tragen Sie bitte die Kapazität des Standortes für die einzelnen Leistungen ein.</p>
+                    <p>Bei Leistungen ohne Berücksichtigung einer Kapazität tragen Sie bitte eine 1 bei allen Standorten ein, die diese Leistung anbieten (und eine 0 bei allen anderen).</p>
+                    <p>Laden Sie die ausgefüllte Vorlagedatei anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Daviplan wird die Standorte anhand der Adresse georeferenzieren und in der Karte anzeigen. Kontrollieren Sie die Lage der Standorte in der Karte und korrigieren Sie bei Bedarf die Adresse oder die Geokoordinate, indem Sie die Vorlage erneut herunterladen, korrigieren und wieder hochladen. </p>
+                    <p>Das gleiche Prinzip gilt auch für alle anderen Korrekturen und Aktualisierungen: Vorlagen (mit dem aktuellen Datenbestand herunterladen), in Excel bearbeiten, anschließend wieder hochladen.</p>
+                    <p>Eine Liste aller bereits hochgeladenen Standorte des Infrastrukturbereichs und ihrer Eigenschafteen wird Ihnen angezeigt, wenn Sie auf „Standortliste anzeigen“ klicken. Über die kleinen Dreiecke in den Spaltenüberschriften können Sie die Liste sortieren.</p>">
 <!--      <p>Einzelne Standorte können Sie auch über die Funktion „Neuen Standort hinzufügen“ in der Karte eintragen (Icon oben links).</p>-->
       <div style="width: 100%; display: flex;">
         <div style="width: 50%; display: flex; flex-wrap: wrap;">
@@ -97,7 +105,7 @@
                     mat-button color="primary"
                     title="Datentabelle der Orte der Infrastruktur anzeigen"
                     (click)="showDataTable()">
-              <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
+              <mat-icon class="material-icons-outlined">table_chart</mat-icon> Standortliste anzeigen
             </button>
             <button class="mat-button-dv"
                     mat-button color="warn"
@@ -179,9 +187,10 @@
       {{ error.key }}: {{ error.value }}
     </mat-error>
   </div>
+  <p>Neben Name, Adresse und Kapazitäten für die Leistungen sollen für jeden Standort folgende Eigenschaften erfasst werden. Dabei können optional Klassifikationen verwendet werden (siehe Hilfetext).</p>
   <table id="place-attr-table">
     <tr>
-      <th>Name des Attributs</th>
+      <th>Bezeichnung Standorteigenschaft</th>
       <th>Attributtyp / Klassifikation</th>
       <th>Einheit</th>
       <th style="width: 1%; text-align: center;">
@@ -243,7 +252,7 @@
           <button mat-button color="warn"
                   class="mat-button-dv"
                   (click)="field.removed = true;"
-                  title="Attribut entfernen">
+                  title="Standorteigenschaft entfernen">
             <mat-icon>close</mat-icon>
           </button>
         </td>
@@ -255,8 +264,8 @@
                 class="mat-button-dv"
                 (click)="addField()"
                 style="margin-top: 10px"
-                title="Attribut hinzufügen" i18n>
-          <mat-icon>add</mat-icon>Attribut hinzufügen
+                title="Standorteigenschaft hinzufügen" i18n>
+          <mat-icon>add</mat-icon>Standorteigenschaft hinzufügen
         </button>
       </td>
       <td>
@@ -264,7 +273,7 @@
                 class="mat-button-dv"
                 (click)="editClassifications()"
                 style="margin-top: 10px"
-                title="Klassifikationen (Attributtypen) bearbeiten" i18n>
+                title="Klassifikationen (Standorteigenschaften) bearbeiten" i18n>
           <mat-icon>edit</mat-icon>Klassifikationen
         </button>
       </td>

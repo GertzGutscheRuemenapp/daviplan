@@ -19,7 +19,7 @@ class AverageAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, Servic
     '''Mittlerer Zeitaufwand der Nachfragenden aus einer Gebietseinheit, um mit
     einem bestimmten Verkehrsmittel die nächste Einrichtung mit der betrachteten
     Leistung zu erreichen'''
-    title = 'Mittlere Wegedauer'
+    title = 'Mittlere Wegedauer der Nachfragenden im Gebiet'
     params = (ModeParameter(), )
     representation = 'colorramp'
     colormap_name = 'Reds'

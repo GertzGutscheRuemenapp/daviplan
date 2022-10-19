@@ -17,7 +17,7 @@ from rest_framework.response import Response
 
 from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
 from datentool_backend.utils.permissions import (
-    HasAdminAccessOrReadOnly, CanEditBasedata)
+    HasAdminAccessOrReadOnly, HasAdminAccess, CanEditBasedata)
 from datentool_backend.utils.pop_aggregation import (
     intersect_areas_with_raster, aggregate_population, aggregate_many,
     disaggregate_population)
@@ -96,7 +96,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                               406: OpenApiResponse(MessageSerializer,
                                                    'Disaggregation failed')})
     @action(methods=['POST'], detail=False,
-            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+            permission_classes=[HasAdminAccess | CanEditBasedata])
     def disaggregateall(self, request, **kwargs):
         manager = RasterCellPopulationAgeGender.copymanager
         drop_constraints = request.data.get('drop_constraints', False)
@@ -154,7 +154,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                    responses={202: OpenApiResponse(MessageSerializer, 'Disaggregation successful'),
                               406: OpenApiResponse(MessageSerializer, 'Disaggregation failed')})
     @action(methods=['POST'], detail=True,
-            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+            permission_classes=[HasAdminAccess | CanEditBasedata])
     def disaggregate(self, request, **kwargs):
         """
         route to disaggregate the population to the raster cells
@@ -185,7 +185,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                    responses={202: OpenApiResponse(MessageSerializer, 'Aggregation successful'),
                               406: OpenApiResponse(MessageSerializer, 'Aggregation failed')})
     @action(methods=['POST'], detail=True,
-            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+            permission_classes=[HasAdminAccess | CanEditBasedata])
     def aggregate_from_cell_to_area(self, request, **kwargs):
         """aggregate population from cell to area"""
         try:
@@ -198,7 +198,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
         area_level = AreaLevel.objects.get(id=request.data.get('area_level'))
         aggregate_population(area_level, population,
                              drop_constraints=drop_constraints)
-
+        msg = 'success'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
 
@@ -215,7 +215,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                               406: OpenApiResponse(MessageSerializer,
                                                    'Aggregation failed')})
     @action(methods=['POST'], detail=False,
-            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+            permission_classes=[HasAdminAccess | CanEditBasedata])
     def aggregateall_from_cell_to_area(self, request, **kwargs):
         drop_constraints = request.data.get('drop_constraints', False)
 
@@ -239,7 +239,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                               500: OpenApiResponse(MessageSerializer,
                                                    'Pull failed')})
     @action(methods=['POST'], detail=False,
-            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+            permission_classes=[HasAdminAccess | CanEditBasedata])
     def pull_regionalstatistik(self, request, **kwargs):
         logger.info('Frage Bevölkerungsdaten von der Regionalstatistik ab.')
         age_groups = AgeGroup.objects.all()
@@ -394,7 +394,8 @@ class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
                        }
                        ),
                    )
-    @action(methods=['POST'], detail=False, permission_classes=[CanEditBasedata])
+    @action(methods=['POST'], detail=False,
+            permission_classes=[HasAdminAccess | CanEditBasedata])
     def create_template(self, request, **kwargs):
         area_level_id = request.data.get('area_level')
         prognosis_id = request.data.get('prognosis')
@@ -406,6 +407,7 @@ class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
                                        )
 
     @action(methods=['POST'], detail=False,
+            permission_classes=[HasAdminAccess | CanEditBasedata], 
             parser_classes=[CamelCaseMultiPartParser])
     def upload_template(self, request):
         """Upload the filled out Stops-Template"""

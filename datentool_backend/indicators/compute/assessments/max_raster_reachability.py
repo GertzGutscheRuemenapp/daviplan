@@ -12,11 +12,12 @@ from datentool_backend.indicators.compute.reachabilities import ModeVariantMixin
 class MaxRasterReachability(ModeVariantMixin, ServiceIndicator):
     '''Wegezeit mit Verkehrsmittel zur nächsten Einrichtung mit ….
     für alle Wohnstandorte'''
-    title = 'Wegezeit nächste Einrichtung'
+    title = 'Wegezeit Wohnstandort zur nächsten Einrichtung'
     params = (ModeParameter(), )
     representation = 'colorramp'
     colormap_name = 'RdYlGn'
     inverse = True
+    digits = 0
     result_serializer = ResultSerializer.RASTER
 
     @property
