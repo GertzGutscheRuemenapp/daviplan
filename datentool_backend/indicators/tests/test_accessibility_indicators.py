@@ -110,6 +110,9 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         result = pd.DataFrame(response.data['values']).set_index('place_id')
         self.assertEquals(len(result), 3)
 
+        # should be rounded, so mod(value,1) should be 0
+        self.assertTrue((result.value % 1 == 0).all())
+
         # set capacities to 0 for all places except place 5
         capacities_places1_4 = Capacity.objects.exclude(place=self.place5)
         for capacity in capacities_places1_4:
@@ -119,6 +122,8 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         response = self.post(url, data=query_params, extra={'format': 'json'})
         result2 = pd.DataFrame(response.data['values']).set_index('place_id')
         self.assertEquals(len(result2), 1)
+        # should be rounded, so mod(value,1) should be 0
+        self.assertTrue((result2.value % 1 == 0).all())
 
     def test_average_place_reachability(self):
         """Test average place reachability"""

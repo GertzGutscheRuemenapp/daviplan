@@ -198,7 +198,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
         area_level = AreaLevel.objects.get(id=request.data.get('area_level'))
         aggregate_population(area_level, population,
                              drop_constraints=drop_constraints)
-
+        msg = 'success'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
 

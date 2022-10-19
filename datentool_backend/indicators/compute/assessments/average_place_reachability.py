@@ -14,7 +14,7 @@ class AveragePlaceReachability(ModeVariantMixin, PopulationIndicatorMixin, Servi
     '''Mittlere Wegezeit der Nachfragenden aus allen Gebietseinheiten, für
     welche die betreffende Einrichtung mit einem bestimmten Verkehrsmittel die
     am schnellsten erreichbar ist'''
-    title = 'Mittlere Erreichbarkeit'
+    title = 'Mittlere Wegezeit zur Einrichtung'
     params = (ModeParameter(), )
     representation = 'colorramp'
     colormap_name = 'OrRd'

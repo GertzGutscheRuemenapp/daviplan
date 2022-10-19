@@ -14,7 +14,7 @@ class AccessibleDemandPerPlace(ModeVariantMixin, PopulationIndicatorMixin, Servi
     '''Anzahl der Nachfragenden nach der betrachteten Leistung aus allen
     Gebietseinheiten, für welche die betreffende Einrichtung mit dieser Leistung
     am besten mit einem bestimmten Verkehrsmittel erreichbar ist.'''
-    title = 'Nachfrage im Einzugsbereich'
+    title = 'Nachfrage im Einzugsbereich der Einrichtung'
     params = (ModeParameter(), )
     representation = 'colorramp'
     colormap_name = 'PuBu'
