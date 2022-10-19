@@ -311,7 +311,13 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         template: this.editClassificationsTemplate,
         closeOnConfirm: true,
         hideConfirmButton: true,
-        infoText: 'ToDo: Erklärung Sortier- und Filterreihenfolge, Änderungen erfolgen sofort'
+        infoText: "<p>Sie können eigene Klassifikationen (z.B. Klassifikation „Bewertung“ mit den Klassen „gut“, „mittel“, „schlecht“) definieren, um diese danach einzelnen Standorteigenschaften (z.B. „Gebäudezustand“) zuordnen. </p> " +
+          "<p>Klassifikationen erleichtern zum einen eine strukturierte Dateneingabe. Zum anderen können Sie in daviplan später als Grundlage für Sortier- und Filterfunktionen verwendet werden.</p>" +
+          "<p>Klicken Sie auf die Schaltfläche „Hinzufügen“ unter der linken Liste „Klassifikationen“, um eine Klassifikation hinzuzufügen. Klicken Sie anschließen auf die Schaltfläche „Hinzufügen“ unter der rechten Liste „Klassen“, um dieser Klassifikation einzelne Klassen zuzufügen.</p>" +
+          "<p>Klicken Sie auf „OK“, wenn Sie fertig sind. Achtung: Dieser Eingabebereich hat keinen Entwurfsmodus mit “Abbrechen” und “Speichern”. Alle Eintragungen und Änderungen an den Klassifikationen und Klassen werden daher sofort in die Datenbank übernommen. </p>"
+
+
+
       }
     });
   }

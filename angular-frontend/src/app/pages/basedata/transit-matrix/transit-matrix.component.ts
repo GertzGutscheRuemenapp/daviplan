@@ -194,11 +194,11 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
       data: {
-        title: 'Reisezeitmatrix hochladen',
+        title: 'Fahrzeitenliste hochladen',
         confirmButtonText: 'Datei hochladen',
         template: this.fileUploadTemplate,
         closeOnConfirm: false,
-        message: visum? 'Reisezeitmatrix im VISUM-Format hochladen': 'Befülltes Excel-Template mit der Reisezeitmatrix hochladen',
+        message: visum? 'Fahrzeitenliste im VISUM-Format hochladen': 'Befülltes Excel-Template mit der Fahrzeitenliste hochladen',
         context: {
           accept: visum? '.mtx': '.xlsx,.xls'
         }

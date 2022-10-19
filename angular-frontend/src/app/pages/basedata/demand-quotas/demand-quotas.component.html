@@ -4,21 +4,23 @@
 <app-header-card [title]="'Nachfragequoten'"
                  cookieId="exp-quota-header"
                  width="1230px">
-  <p>Die zukünftige Nachfrage nach den definierten Leistungen wird geschätzt, in dem die Zahl der Einwohner*innen in diesem Prognosejahr mit einer Nachfragequote multipliziert wird. Sowohl die Einwohnerzahl wie auch die Nachfragequote werden dabei nach Alter differenziert. Optional ist auch eine Differenzierung nach Geschlecht möglich.</p>
-  <p>So kann z.B. die Krippennachfrage aus der Zahl der unter 3-Jährigen im Prognosejahr X und einer Nachfragequote von z.B. 45% geschätzt werden. Ähnlich könnte z.B. die Zahl der Patienten pro Jahr, die die Leistung „Facharzt (Fachrichtung Urologie)“ nachfragen, anhand einer Multiplikation der Einwohnerzahl im Prognosejahr und einer mittleren Arztkontakt-Häufigkeit pro Patient*in geschätzt werden. Da ältere Menschen häufiger zum Arzt gehen und die Inanspruchnahme der Fachrichtung Urologie zwischen Männern und Frauen nicht identisch ist, sollte die Nachfragequote (hier: Arztkontakt-Häufigkeit) nach Altersgruppen und Geschlecht differenziert werden.</p>
-  <p>Zudem können sich die Nachfragequoten im Zeitverlauf ändern, z.B. welche in Zukunft ein höherer Prozentsatz der Kinder eine Kita- oder schulische Nachmittagsbetreuung nachfragt als dies in den letzten Jahren der Fall war.</p>
-  <p>Auf dieser Seite legen Sie daher für jede Leistung ein Nutzungsquoten-Set fest. Ein Set beinhaltet eine Nutzungsquote für jede Kombination aus Altersgruppe, Geschlecht und Prognosejahr. Im einfachsten Fall sind die Nutzungsquoten aller Kombinationen gleich.</p>
-  <p>Da häufig Unsicherheiten hinsichtlich der zukünftigen Entwicklung der Nachfragequoten bestehen, können Sie für eine Leistung auch mehrere Nachfragequoten-Sets definieren. Für den Krippenbereich der Kitas könnte diese z.B. „Nutzungsquote bleibt auf aktuellem Niveau“, „Nutzungsquote steigt leicht an“ und „Nutzungsquote steigt stark an“ heißen.</p>
-  <p>Um Nutzungsquoten festzulegen, gehen Sie wie folgt vor: Wählen Sie zunächst in der Box „Leistungen“ eine Leistung aus. Für diese Leistung legen Sie anschließend in der Box „Definition der Nachfragequote für ausgewählte Leistung“ fest, wie genau diese Quote definiert und bezeichnet sein soll. Diese Festlegungen gelten für alle Nachfragequoten-Sets der ausgewählten Leistung.</p>
-  <p>Um nun ein konkretes Nachfragequoten-Set zu definieren, klicken Sie in der Box „Nachfragequoten-Sets der ausgewählten Leistung“ auf „Hinzufügen“. Anschließend können Sie in der Box „Werte des ausgewählten Nachfragequoten-Sets“ die eigentlichen Nachfragequoten in der zuvor definierten Differenzierung eintragen. Dabei können Sie zusätzlich nach den Prognosejahren differenzieren. Wie Sie die Quoten effizient eingeben können, erläutert Ihnen der dortige Hilfetext.</p>
+  <p>Auf dieser Seite legen Sie für jede zuvor definierte Leistung fest, wie der Umfang der Nachfrage nach dieser Leistung berechnet werden soll. Dabei können Sie zwischen drei Berechnungsprinzipien wählen, die für die betreffende Leistung dann für alle Jahre und alle Gebietseinheiten Ihres Planungsraums angewendet wird:</p>
+  <ol>
+    <li>Die Nachfrage wird in jedem Jahr berechnet, indem eine (ggf. nach Alter und Geschlecht differenzierte) <b> Nachfragequote </b>(z.B. 35% der unter 3-Jährigen) mit der Zahl der Einwohner:innen (nach Alter und Geschlecht) multipliziert wird. Ergebnis ist eine <b> Anzahl an Nachfrager:innen</b>, z.B. die Zahl der Krippenkinder.</li>
+    <li>Die Nachfrage wird berechnet, indem eine (ggf. nach Alter und Geschlecht differenzierte) <b>Nutzungshäufigkeit pro Einwohner:in </b>(z.B. 10 Arztkontakte pro Jahre) mit der Zahl der Einwohner:innen (nach Alter und Geschlecht) multipliziert wird. Ergebnis ist eine <b>Anzahl an Nutzungen pro Jahr</b>, z.B. die Zahl der gewünschten Arztkontakte pro Jahr.</li>
+    <li>Die Nachfrage entspricht schlicht der <b>Gesamtzahl der Einwohner:innen</b>, z.B. beim Brandschutz.</li>
+  </ol>
+  <p>Wenn Sie für eine ausgewählte Leistung eines der ersten beiden Berechnungsprinzipien ausgewählt haben, werden sie anschließend aufgefordert, Nachfragequoten bzw. Nutzungshäufigkeiten zu definieren. Beim dritten Berechnungsprinzip ist dies nicht erforderlich.</p>
+  <p>Nachfragequoten und Nutzungshäufigkeiten unterscheiden sich häufig nach Alter (Beispiel: nur Kinder gehen in den Kindergarten) und Geschlecht (Beispiel: Inanspruchnahme der Fachrichtungen Urologie und Gynäkologie). Zudem können sie sich im Laufe der Zeit verändern (Beispiel: Steigender Anteil an Schüler:innen im Ganztag). Aus diesem Grunde können Sie die ggf. für ihr ausgewähltes Berechnungsprinzip notwendigen Nachfragequoten und Nutzungshäufigkeiten nach Geschlecht, Alter und Betrachtungsjahr differenzieren.</p>
+  <p>Da die Vorhersage zukünftiger Nachfragequoten und Nutzungshäufigkeiten nicht immer leicht ist, können Sie für eine Leistung auch mehrere Varianten definieren, zwischen denen Sie bei der Szenarienentwicklung im Abschnitt „Infrastrukturplanung“ hin- und herwechseln können. Wenn Sie für eine Leistung mehrere Nachfragequoten- bzw. Nutzungshäufigkeitsvarianten definiert haben, müssen Sie eine davor als Standardannahme für die von daviplan automatisch generierten Trendfortschreibungen auswählen.</p>
+  <p>Um für eine ausgewählte Leistung Nachfragequoten oder Nutzungshäufigkeiten zu definieren, klicken Sie in der Box „Nachfragequoten bzw. Nutzungshäufigkeiten (Varianten)“ auf „Hinzufügen“ und geben der Variante einen Namen. Daraufhin öffnet sich eine weitere Eingabebox, in der Sie die Nachfragequoten oder Nutzungshäufigkeiten eintragen können. Um weitere Varianten der Nachfragequoten bzw. Nutzungshäufigkeiten zu erstellen, klicken Sie in der Box „Nachfragequoten bzw. Nutzungshäufigkeiten (Varianten)“ erneut auf „Hinzufügen“ oder auf „Klonen“. </p>
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
     <app-input-card [title]="'Leistungen'"
-                    [subtitle]="'Leistung auswählen, um Nachfragequoten anzuzeigen oder zu definieren'"
-                    infoText="<p>Wählen aus der Liste die Leistung aus, für die Sie die Nachfragequoten definieren möchten.</p>
-                    <p>Legen Sie anschließend in der Box „Definition der Nachfragequote für ausgewählte Leistung“ fest, wie genau die Nachfragequote dieser Leistung definiert und bezeichnet sein soll.</p>
-                    <p>Anschließend können Sie auf Basis dieser Rahmenfestlegungen in der Box „Nachfragequoten-Sets der ausgewählten Leistung“ ein erstes Nachfragequoten-Set hinzufügen.</p>">
+                    [subtitle]="'Leistung auswählen, um das Prinzip der Nachfrageberechnung anzuzeigen und ggf. zu ändern.'"
+                    infoText="<p>Wählen Sie aus der Liste die Leistung aus, für die Sie das Prinzip der Nachfrageberechnung anzeigen und ggf. verändern möchten.</p>
+                    <p>Wählen Sie anschließend in der Box „Prinzip der Nachfrageberechnung“ das passende Berechnungsprinzip aus und definieren sie anschließend – falls erforderlich – Nachfragequote bzw. Nutzungshäufigkeiten nach Alter und Geschlecht.</p>">
     <mat-selection-list [multiple]="false"
                         class="categorized"
                         id="service-select">
@@ -39,7 +41,8 @@
                     [title]="'Prinzip der Nachfrageberechnung'"
                     [editTemplate]="demandTypeEdit"
                     [subtitle]="'Leistung ' + activeService?.name"
-                    infoText="Platzhalter">
+                    infoText="<p>Klicken Sie auf „Editieren“, um das Prinzip der Nachfrageberechnung zu verändern.</p>
+                    <p>Wenn Sie eine Nachfrageberechnung mit Nutzungsquoten oder Nutzungshäufigkeiten ausgewählt haben, erscheint eine Eingabebox „Nachfragequoten bzw. Nutzungshäufigkeiten (Varianten)“, über die Sie diese Nutzungsquoten bzw. Nutzungshäufigkeiten definieren können. </p>">
       <ul>
         <li *ngIf="activeService">{{demandTypes[activeService.demandType][0]}}</li>
       </ul>
@@ -50,13 +53,12 @@
   <mat-divider style="margin: 10px 0; max-width: 1250px;"></mat-divider>
   <div fxLayout="row wrap">
     <div fxLayout="column" fxFlex="350px">
-      <app-input-card [title]="'Varianten'"
+      <app-input-card [title]="'Nachfragequoten bzw. Nutzungshäufigkeiten (Varianten)'"
                       [subtitle]="'Leistung ' + activeService?.name"
-                      infoText="<p>Klicken Sie auf „Hinzufügen“, um ein Nachfragequoten-Set zu definieren. </p>
-                                <p>Ein Nachfragequoten-Set legt die Nachfragequote für jede in der Box „Definition der Nachfragequote für ausgewählte Leistung“ ausgewählte Altersgruppe sowie für jedes Prognosejahr fest. Sofern in der Box „Einwohner-Differenzierung“ für die Leistung eine geschlechterspezifische Differenzierung der Quoten ausgewählt wurde, sind dabei die Nachfragequoten auch nach Geschlecht zu differenzieren.</p>
-                                <p>Für jede Leistung muss mindestens ein Nachfragequoten-Set definiert sein. </p>
-                                <p>Im Sinne von Szenarien können für eine Leistung auch mehrere Nachfragequoten-Sets definiert werden, auf die die Nutzer*innen im Hauptmenüabschnitt „Infrastrukturplanung“ dann für alternative Planungs- und Auswertungsvarianten zurückgreifen können.</p>
-                                <p>Wenn Sie für eine Leistung mehr als ein Nachfragequoten-Set definieren, müssen Sie noch festlegen, welches Set davon für das im Hauptmenüabschnitt „Infrastrukturplanung“ immer automatisch erzeugte Planungsszenario „Trendfortschreibung“ verwendet werden soll. Wählen Sie hierzu das betreffende Set in der Liste aus und klicken Sie auf „Als Annahme für Trendfortschreibung festlegen“</p>">
+                      infoText="<p>Klicken Sie auf „Hinzufügen“, um eine erste oder eine weitere Variante an Nachfragequoten oder Nutzungshäufigkeiten zu definieren. Daraufhin erscheint ein Eingabedialog, in dem Sie der Variante einen Namen sowie eine kurze Beschreibung geben können. Name und Beschreibung können Sie nachträglich ändern, indem Sie auf die Schaltfläche „Editieren“ unmittelbar über diesem Hilfetext klicken.</p>
+                                <p>Nach dem Hinzufügen (oder dem Auswählen einer bereits definierten) Variante erscheint eine Eingabebox, in der Sie die Nachfragequoten bzw. Nutzungshäufigkeiten in Abhängigkeit von Geschlecht, Alter und Betrachtungsjahr eintragen können.</p>
+                                <p>Um eine weitere Variante zu definieren, können Sie entweder erneut „Hinzufügen“ klicken (und mit einer leeren Tabelle starten) oder Sie wählen eine bereits definierte Variante aus und erstellen über die Schaltfläche „Klonen“ eine Kopie, der Sie einen neuen Namen geben. Diese können Sie anschließend punktuell verändern.</p>
+                                <p>Wenn Sie für eine Leistung mehrere Varianten definiert haben, müssen Sie festlegen, welche Variante bei den im Abschnitt „Infrastrukturplanung“ automatisch erzeugten Trendfortschreibungsszenario verwendet werden soll. Wählen Sie hierzu eine Variante in der Liste aus und klicken Sie auf „Als Annahme für Trendfortschreibung festlegen“.</p>">
         {{activeDemandRateSet?.name}}
         <mat-selection-list #demandSetSelection [multiple]="false" id="quota-select" >
           <mat-list-option *ngFor="let demandRateSet of demandRateSets"
@@ -127,15 +129,22 @@
     <div fxLayout="column" fxFlex="900px" [class.hidden]="!activeDemandRateSet">
       <app-input-card #demandRateSetCard
                       [title]="'Werte der ausgewählten Variante'"
-                      [subtitle]="'Leistung ' + activeService?.name + ' / ' + 'Set „' + activeDemandRateSet?.name + '“'"
+                      [subtitle]="'Leistung ' + activeService?.name + ' / ' + 'Variante „' + activeDemandRateSet?.name + '“'"
                       [editTemplate]="demandRateSetEdit"
                       dialogWidth="1200px"
                       [topRightHelp]="true"
-                      infoText="<p>In dieser Box können Sie die Quoten des ausgewählten Nachfragequoten-Sets eintragen bzw. bereits eingetragene Werte in Tabellen- und Diagrammform betrachten und kontrollieren.</p>
-                                <p>Klicken Sie auf „Editieren“, um die Werte der Quoten des ausgewählten Nachfragequoten-Sets erstmalig einzutragen oder zu verändern.</p>
+                      dialogInfoText="
+                      <p>Wählen Sie mit dem Zeitschieber das Jahr aus, für das Sie Nachfragequoten bzw. Nutzungshäufigkeit eintragen möchten und nehmen Sie anschließend Eintragungen vor. </p>
+                      <p>Damit Sie nicht alle Werte händisch eintragen müssen, stehen Ihnen die folgenden Funktionen zur Verfügung: </p>
+                      <p>Über die <b> blauen Schaltflächen mit dem Doppelpfeil </b> im Kopf der Tabellenspalten „männlich“ und „weiblich“ können Sie die Werte eines Geschlechts in die Datenspalte des anderen Geschlechts kopieren. </p>
+                      <p>Mit der <b> Schaltfläche „Kopieren“ </b> können Sie die Nachfragequoten bzw. Nutzungshäufigkeiten eines Jahres in ein anderes Jahr kopieren. Dazu öffnet sich nach dem Anklicken ein entsprechender Steuerungsdialog, über den Sie auch entscheiden können, ob die Werte auch in alle dazwischen liegenden Jahre kopiert werden sollen oder nicht. Kopiert werden die Nachfragequoten bzw. Nutzungshäufigkeit aller Altersgruppen und Geschlechter. </p>
+                      <p>Mit der <b> Schaltfläche „Interpolieren“ </b> haben Sie die Möglichkeit, die Nutzungsquoten zwischen zwei ausgewählten Jahren linear zu interpolieren. Wenn Sie z.B. im Jahr 2025 für Männer zwischen 35 und 40 eine Nachfragequote von 40% und im Jahr 2030 von 45% eingetragen haben, würde die Funktion „Interpolieren“ die Quote zwischen 2025 und 2030 jedes Jahr um 1% erhöhen. Diese Interpolation erfolgt gleichzeitig für allen Altersgruppen und beide Geschlechter. </p>
+                      <p>Die Wirkungen ihrer händischen Eintragungen sowie der vorstehenden Funktionen können Sie stets in den beiden Diagrammen kontrollieren. Das obere Diagramm zeigt nur die Werte für das mit dem Zeitschieber ausgewählte Jahr, das untere Diagramm nur die Werte der im Auswahlfeld zwischen den Diagrammen ausgewählten Altersgruppe. </p>"
+                      infoText="<p>In dieser Box können Sie die Nachfragequoten bzw. Nutzungshäufigkeiten der ausgewählten Variante in Tabellen- und Diagrammform betrachten, kontrollieren und bei Bedarf verändern.</p>
+                                <p>Klicken Sie auf „Editieren“, um die Werte erstmalig einzutragen oder zu verändern.</p>
                                 <p>Für die Betrachtung und Kontrolle der Nachfragequoten stehen Ihnen zwei Ansichten zur Verfügung.</p>
-                                <p>Mit dem Jahres-Schieber können Sie zwischen den Jahren hin- und herspringen. Dabei passen sich die Tabelle und das obere der beiden Diagramme an und zeigen jeweils die Quoten der einzelnen Altersgruppen in dem gerade ausgewählten Jahr.</p>
-                                <p>Wenn Sie in der Tabelle eine Altersgruppe anklicken, passt sich zudem das untere Diagramm an und zeigt Ihnen die im ausgewählten Set definierte Veränderung der Nachfragequote dieser Altersgruppe im Laufe der Zeit.</p>">
+                                <p>Mit dem Jahres-Schieber können Sie zwischen den Jahren hin- und herspringen. Dabei passen sich die Tabelle und das obere der beiden Diagramme an und zeigen jeweils die Nachfragequoten bzw. Nutzungshäufigkeiten der einzelnen Altersgruppen und Geschlechter in dem gerade ausgewählten Jahr.</p>
+                                <p>Wenn Sie über das Auswahlfeld zwischen den Diagrammen eine Altersgruppe auswählen, passt sich zudem das untere Diagramm an und zeigt Ihnen die Veränderung der Nachfragequote bzw. Nutzungshäufigkeit dieser Altersgruppe im Laufe der Zeit an.</p>">
         <app-demand-rate-set-view #demandRateSetPreview
                                   [years]="years"
                                   [demandRateSet]="activeDemandRateSet"
