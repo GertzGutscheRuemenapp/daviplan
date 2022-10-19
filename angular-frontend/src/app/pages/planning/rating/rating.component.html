@@ -141,10 +141,19 @@
 </mat-expansion-panel>-->
 <!--this div is only there to cover glitched shadow of chart toggle-->
 <div style="width: 100%; height: 200px; background-color: white;"></div>
-<app-side-toggle id="chart-toggle" icon="bar_chart" name="Diagramm"
+<app-side-toggle *ngIf="selectedIndicator?.resultType === 'area' || selectedIndicator?.resultType === 'place'"
+                 id="chart-toggle" icon="bar_chart" name="Diagramm"
                  cookieExpansion="exp-rating-diagram">
   <div class="diagram-wrapper">
-    <img src="{{backend}}/static/img/Indikator U3 Screenshot.png" width="500px">
+    <app-vertical-barchart #barChart
+                          xLabel="Jahre"
+                          yLabel="Einwohner"
+                          [animate]="true"
+                          [colors]="barChartProps.colors"
+                          [title]="barChartProps.title"
+                          [subtitle]="barChartProps.subtitle"
+                          [data]="barChartProps.data">
+    </app-vertical-barchart>
     <div class="diagram-controls">
       <button mat-mini-fab
               class="small"

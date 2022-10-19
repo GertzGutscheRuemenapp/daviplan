@@ -19,6 +19,8 @@ import * as d3 from "d3";
 import { Subscription } from "rxjs";
 import { MapLayerGroup, ValueStyle, VectorLayer, VectorTileLayer } from "../../../map/layers";
 import { modes } from "../mode-select/mode-select.component";
+import { StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
+import { BarChartData } from "../../../diagrams/vertical-barchart/vertical-barchart.component";
 
 @Component({
   selector: 'app-rating',
@@ -27,6 +29,12 @@ import { modes } from "../mode-select/mode-select.component";
 })
 export class RatingComponent implements AfterViewInit, OnDestroy {
   @ViewChild('diagramDialog') diagramDialogTemplate!: TemplateRef<any>;
+  barChartProps: {
+    colors: string[],
+    title: string,
+    subtitle: string,
+    data: BarChartData
+  } = { colors: [], title: '', subtitle: '', data: { groups: [], values: []}};
   backend: string = environment.backend;
   compareSupply = true;
   compareStatus = 'option 1';
@@ -250,6 +258,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         });
         this.layerGroup?.addLayer(this.indicatorLayer);
         this.indicatorLayer.addFeatures(displayedPlaces);
+        this.renderPlacesDiagram(places);
       });
     });
   }
@@ -316,8 +325,17 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         });
         this.layerGroup?.addLayer(this.indicatorLayer);
         this.indicatorLayer.addFeatures(areas,{ properties: 'properties' });
+        this.renderAreasDiagram(areas);
       })
     })
+  }
+
+  renderAreasDiagram(areas: Area[]){
+
+  }
+
+  renderPlacesDiagram(places: Place[]){
+
   }
 
   getAdditionalParams(): Record<string, any> {
