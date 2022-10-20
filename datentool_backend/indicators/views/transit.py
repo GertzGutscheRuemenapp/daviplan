@@ -6,6 +6,7 @@ import numpy as np
 from typing import List, Tuple
 from io import StringIO
 
+
 from django.db import transaction, connection
 from django.db.models.query import QuerySet
 from django.db.models import FloatField
@@ -20,9 +21,14 @@ from rest_framework import serializers
 from drf_spectacular.utils import (extend_schema, inline_serializer,
                                    OpenApiResponse, OpenApiParameter)
 
+from datentool_backend.utils.processes import (ProtectedProcessManager,
+                                               ProcessScope)
+
 from datentool_backend.utils.routers import OSRMRouter
 from datentool_backend.utils.excel_template import ExcelTemplateMixin
-from datentool_backend.utils.serializers import MessageSerializer, drop_constraints
+from datentool_backend.utils.serializers import (MessageSerializer,
+                                                 drop_constraints,
+                                                 run_sync, )
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
@@ -138,21 +144,23 @@ class RouterViewSet(viewsets.ModelViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
 
-class TravelTimeRouterMixin(viewsets.GenericViewSet):
+class TravelTimeRouterViewMixin(viewsets.GenericViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-    columns: List[str] = []
+
+    router: 'TravelTimeRouterMixin'
 
     @extend_schema(description='Create Traveltime Matrix',
                    request=inline_serializer(
                        name='TravelTimeSerializer',
                        fields={
                            'drop_constraints': drop_constraints,
-                               'air_distance_routing': air_distance_routing,
-                               'variants': serializers.ListField(
-                                   child=serializers.PrimaryKeyRelatedField(
-                                       queryset=ModeVariant.objects.all()
-                                   ),
-                                   help_text='mode_variant_ids',),
+                           'run_sync': run_sync,
+                           'air_distance_routing': air_distance_routing,
+                           'variants': serializers.ListField(
+                               child=serializers.PrimaryKeyRelatedField(
+                                   queryset=ModeVariant.objects.all()
+                               ),
+                               help_text='mode_variant_ids',),
                             'places': serializers.ListField(
                                 child=serializers.PrimaryKeyRelatedField(
                                     queryset=Place.objects.all()
@@ -160,9 +168,9 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                                 help_text='place_ids',
                                 required=False),
                             'access_variant': serializers.PrimaryKeyRelatedField(
-                                    queryset=ModeVariant.objects.exclude(mode=Mode.TRANSIT),
-                                    help_text='access_mode_variant_id',
-                                    required=False),
+                               queryset=ModeVariant.objects.exclude(mode=Mode.TRANSIT),
+                               help_text='access_mode_variant_id',
+                               required=False),
                             'max_distance': serializers.FloatField(
                                 help_text='Maximum distance in meters between source and destination',
                                 required=False),
@@ -170,7 +178,7 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                                 help_text='maximum distance in meters to next transit stops',
                                 required=False
                             ),
-                            'max_direct_walktime': serializers.FloatField(
+                           'max_direct_walktime': serializers.FloatField(
                                 help_text='direct walking time is taken instead '
                                 'of transit time, if it is shorter '
                                 'than the parameter `max_direct_walktime` in minutes',
@@ -186,34 +194,116 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
     def precalculate_traveltime(self, request):
         """Calculate traveltime with a air distance or network router"""
         drop_constraints = request.data.get('drop_constraints', False)
+        run_sync = request.data.get('sync', False)
         variant_ids = request.data.get('variants', [])
         air_distance_routing = request.data.get('air_distance_routing', False)
+        max_distance = request.data.get('max_distance')
+        access_variant_id = request.data.get('access_variant')
+        max_access_distance = request.data.get('max_access_distance')
+        max_direct_walktime = request.data.get('max_direct_walktime')
+
         places = request.data.get('places')
         logger.info('Starte Berechnung der Reisezeitmatrizen')
-        dataframes = []
+
+        with ProtectedProcessManager(
+                request.user,
+                scope=ProcessScope.ROUTING) as ppm:
+            if not run_sync:
+                ppm.run_async(self.calc,
+                              self.router,
+                              variant_ids,
+                              places,
+                              drop_constraints,
+                              logger,
+                              max_distance,
+                              access_variant_id,
+                              max_access_distance,
+                              max_direct_walktime,
+                              air_distance_routing,
+                              )
+            else:
+                self.calc(
+                    self.router,
+                    variant_ids,
+                    places,
+                    drop_constraints,
+                    logger,
+                    max_distance,
+                    access_variant_id,
+                    max_access_distance,
+                    max_direct_walktime,
+                    air_distance_routing,
+                )
+
+        return Response({'message': 'Routenberechnung gestartet'},
+                        status=status.HTTP_202_ACCEPTED)
+
+
+    @staticmethod
+    def calc(router_class: 'TravelTimeRouterMixin',
+             variant_ids: List[int],
+             places: List[int],
+             drop_constraints: bool,
+             logger: logging.Logger,
+             max_distance: float = None,
+             access_variant_id: int = None,
+             max_access_distance: float = None,
+             max_direct_walktime: float = None,
+             air_distance_routing: bool = False,
+             ):
+        router = router_class()
+        router.calc(variant_ids,
+                    places,
+                    drop_constraints,
+                    logger,
+                    max_distance,
+                    access_variant_id,
+                    max_access_distance,
+                    max_direct_walktime,
+                    air_distance_routing,
+                    )
+
+
+class TravelTimeRouterMixin:
+    columns: List[str] = []
+
+    def calc(self,
+             variant_ids: List[int],
+             places: List[int],
+             drop_constraints: bool,
+             logger: logging.Logger,
+             max_distance: float=None,
+             access_variant_id: int=None,
+             max_access_distance: float=None,
+             max_direct_walktime: float=None,
+             air_distance_routing: bool=False,
+             ):
         variants = [ModeVariant.objects.get(pk=vid) for vid in variant_ids] \
             or ModeVariant.objects.all()
+        dataframes = []
         try:
             queryset = self.get_filtered_queryset(variants=variants,
                                                   places=places)
             for variant in variants:
                 logger.info('Berechne Reisezeiten für Modus '
                             f'{Mode(variant.mode).name}')
-                max_distance = float(request.data.get(
-                    'max_distance', MODE_MAX_DISTANCE[variant.mode]))
+                max_distance_mode = float(max_distance or
+                                          MODE_MAX_DISTANCE[variant.mode])
 
                 if variant.mode == Mode.TRANSIT:
                     #  access variant is WALK, if no other mode is requested
-                    access_variant = ModeVariant.objects.get(
-                        id=request.data.get('access_variant',
-                                            Mode.WALK))
-                    max_access_distance = float(
-                        request.data.get('max_access_distance',
-                                         MODE_MAX_DISTANCE[variant.mode]))
-                    max_direct_walktime = float(
-                        request.data.get('max_direct_walktime',
-                                         DEFAULT_MAX_DIRECT_WALKTIME))
+                    if access_variant_id:
+                        access_variant = ModeVariant.objects.get(id=access_variant_id)
+                    else:
+                        access_variant = ModeVariant.objects.get(mode=Mode.WALK)
+
+                    max_access_distance = float(max_access_distance or
+                                                MODE_MAX_DISTANCE[variant.mode])
+                    max_direct_walktime = float(max_direct_walktime or
+                                                DEFAULT_MAX_DIRECT_WALKTIME)
+
                     df = self.prepare_and_calc_transit_traveltimes(
+                        logger,
                         access_variant,
                         places,
                         max_access_distance,
@@ -225,7 +315,12 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                 else:
                     if air_distance_routing:
                         df = self.calculate_airdistance_traveltimes(
-                            variant, max_distance=max_distance, places=places)
+                            variant,
+                            max_distance=max_distance_mode,
+                            places=places,
+                            columns=self.columns,
+                            logger=logger,
+                        )
                         dataframes.append(df)
                     else:
                         if not places:
@@ -234,7 +329,9 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                         for i in range(0, len(places), chunk_size):
                             place_part = places[i:i+chunk_size]
                             df = self.calc_routed_traveltimes(
-                                variant, max_distance=max_distance,
+                                variant,
+                                max_distance=max_distance_mode,
+                                logger=logger,
                                 places=place_part)
                             dataframes.append(df)
                             logger.info(f'{min((i+chunk_size), len(places))}/'
@@ -258,9 +355,9 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
             ret_status = status.HTTP_202_ACCEPTED
             logger.info(msg)
             logger.info('Berechnung der Reisezeitmatrizen erfolgreich abgeschlossen')
-        return Response({'message': msg, }, status=ret_status)
 
     def prepare_and_calc_transit_traveltimes(self,
+                                             logger: logging.Logger,
                                              access_variant: ModeVariant,
                                              places: List[int],
                                              max_distance: float,
@@ -269,11 +366,12 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
                                              max_direct_walktime: float,
                                              ) -> pd.DataFrame:
         # calculate time from place to stop
-        matrix_place_stop = MatrixPlaceStopViewSet()
+        matrix_place_stop = MatrixPlaceStopRouter()
         df_ps = matrix_place_stop.calc_routed_traveltimes(
             variant=access_variant,
             places=places,
             max_distance=max_distance,
+            logger=logger,
         )
         qs = matrix_place_stop.get_filtered_queryset(
             variants=[access_variant.pk],
@@ -283,7 +381,7 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
             raise RoutingError(msg)
 
         # calculate time from stop to cell
-        matrix_cell_stop = MatrixCellStopViewSet()
+        matrix_cell_stop = MatrixCellStopRouter()
         stops = Stop.objects.values_list('id', flat=True)
         chunk_size = 100
         dataframes_cs = []
@@ -293,7 +391,9 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
             df_cs = matrix_cell_stop.calc_routed_traveltimes(
                 variant=access_variant,
                 max_distance=max_distance,
-                stops=stops_part)
+                stops=stops_part,
+                logger=logger,
+            )
             dataframes_cs.append(df_cs)
         df_cs = pd.concat(dataframes_cs)
 
@@ -320,8 +420,13 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
             .values('id', 'lon', 'lat')
 
     @staticmethod
-    def route(variant: ModeVariant, sources: QuerySet, destinations: QuerySet,
-              max_distance: float = None, id_columns=None) -> pd.DataFrame:
+    def route(variant: ModeVariant,
+              sources: QuerySet,
+              destinations: QuerySet,
+              logger: logging.Logger,
+              max_distance: float = None,
+              id_columns=None,
+              ) -> pd.DataFrame:
         """calculate traveltimes"""
         mode = Mode(variant.mode)
 
@@ -415,21 +520,28 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
     def calc_routed_traveltimes(self,
                                 variant: ModeVariant,
                                 max_distance: float,
+                                logger: logging.Logger,
                                 **kwargs) -> pd.DataFrame:
         """calculate traveltimes"""
 
         sources = self.get_sources(**kwargs).order_by('id')
         destinations = self.get_destinations(**kwargs).order_by('id')
 
-        return self.route(variant, sources, destinations,
-                          max_distance=max_distance, id_columns=self.columns)
+        return self.route(variant,
+                          sources,
+                          destinations,
+                          logger,
+                          max_distance=max_distance,
+                          id_columns=self.columns)
 
     def calculate_airdistance_traveltimes(self,
                                           variant: ModeVariant,
                                           max_distance: float,
+                                          columns: List[str],
+                                          logger: logging.Logger,
                                           **kwargs) -> pd.DataFrame:
         """calculate traveltimes"""
-
+        logger.info('start calculation of air-distance matrix')
         speed = MODE_SPEED[variant.mode]
 
         query, params = self.get_airdistance_query(speed=speed,
@@ -438,9 +550,11 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
 
         with connection.cursor() as cursor:
             cursor.execute(query, params)
-            columns = self.columns + ['minutes']
+            cols = columns + ['minutes']
             df = pd.DataFrame(cursor.fetchall(),
-                              columns=columns)
+                              columns=cols)
+
+        logger.info('calculation of air-distance matrix finished')
 
         df['variant_id'] = variant.id
 
@@ -461,9 +575,8 @@ class TravelTimeRouterMixin(viewsets.GenericViewSet):
         raise NotImplementedError()
 
 
-class MatrixCellPlaceViewSet(TravelTimeRouterMixin):
+class MatrixCellPlaceRouter(TravelTimeRouterMixin):
     columns = ['place_id', 'cell_id']
-    model = MatrixCellPlace
 
     def get_filtered_queryset(self,
                               variants: List[int],
@@ -611,9 +724,9 @@ class MatrixCellPlaceViewSet(TravelTimeRouterMixin):
 
         return query, params
 
-class MatrixCellStopViewSet(TravelTimeRouterMixin):
+
+class MatrixCellStopRouter(TravelTimeRouterMixin):
     columns = ['stop_id', 'cell_id']
-    model = MatrixCellStop
 
     def get_filtered_queryset(self, variants: List[int], **kwargs) -> QuerySet:
         return MatrixCellStop.objects.filter(variant_id__in=variants)
@@ -684,9 +797,8 @@ class MatrixCellStopViewSet(TravelTimeRouterMixin):
         return query, params
 
 
-class MatrixPlaceStopViewSet(TravelTimeRouterMixin):
+class MatrixPlaceStopRouter(TravelTimeRouterMixin):
     columns = ['place_id', 'stop_id']
-    model = MatrixPlaceStop
 
     def get_filtered_queryset(self,
                               variants: List[int],
@@ -762,3 +874,18 @@ class MatrixPlaceStopViewSet(TravelTimeRouterMixin):
         '''
         params = (speed, p_places, max_distance)
         return query, params
+
+
+class MatrixCellStopViewSet(TravelTimeRouterViewMixin):
+    model = MatrixCellStop
+    router = MatrixCellStopRouter
+
+
+class MatrixPlaceStopViewSet(TravelTimeRouterViewMixin):
+    model = MatrixPlaceStop
+    router = MatrixPlaceStopRouter
+
+
+class MatrixCellPlaceViewSet(TravelTimeRouterViewMixin):
+    model = MatrixCellPlace
+    router = MatrixCellPlaceRouter

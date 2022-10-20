@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger('routing')
+
 import pandas as pd
 from asgiref.sync import sync_to_async
 from requests.exceptions import ConnectionError
@@ -121,7 +124,7 @@ class PlaceSerializer(serializers.ModelSerializer):
             for variant in ModeVariant.objects.all():
                 try:
                     df = TravelTimeRouterMixin.route(
-                        variant, sources, destinations,
+                        variant, sources, destinations, logger,
                         id_columns=['place_id', 'cell_id'])
                 except ConnectionError:
                     return instance
