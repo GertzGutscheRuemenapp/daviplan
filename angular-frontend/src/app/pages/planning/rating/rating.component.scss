@@ -12,16 +12,13 @@
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
-    img {
-      border: 1px solid lightgrey;
-    }
-    .diagram-controls {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      .mat-mini-fab {
-        box-shadow: 1px 1px 5px 0px #a7a7a7;
-      }
+  }
+  .diagram-controls {
+    position: absolute;
+    top: 10px;
+    right: 17px;
+    .mat-mini-fab {
+      box-shadow: 1px 1px 5px 0px #a7a7a7;
     }
   }
 }

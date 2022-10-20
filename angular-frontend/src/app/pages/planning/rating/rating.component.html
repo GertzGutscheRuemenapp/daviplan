@@ -144,15 +144,17 @@
 <app-side-toggle [class.hidden]="!(selectedIndicator?.resultType === 'area' || selectedIndicator?.resultType === 'place')"
                  id="chart-toggle" icon="bar_chart" name="Diagramm"
                  cookieExpansion="exp-rating-diagram">
-  <div class="diagram-wrapper" style="width: 400px; height: 400px; ">
-    <app-horizontal-barchart #barChart
-                             xLabel="Jahre"
-                             yLabel="Einwohner"
-                             [height]="1000"
-                             [animate]="true"
-                             [title]="barChartProps.title"
-                             [subtitle]="barChartProps.subtitle">
-    </app-horizontal-barchart>
+  <div style="position: relative;">
+    <div class="diagram-wrapper" style="width: 400px; height: 400px; ">
+      <app-horizontal-barchart #barChart
+                               xLabel="Jahre"
+                               yLabel="Einwohner"
+                               [height]="1000"
+                               [animate]="true"
+                               [title]="barChartProps.title"
+                               [subtitle]="barChartProps.subtitle">
+      </app-horizontal-barchart>
+    </div>
     <div class="diagram-controls">
       <button mat-mini-fab
               class="small"

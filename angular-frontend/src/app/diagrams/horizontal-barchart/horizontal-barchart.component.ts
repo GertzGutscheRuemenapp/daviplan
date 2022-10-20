@@ -55,13 +55,10 @@ export class HorizontalBarchartComponent implements AfterViewInit {
     this.clear();
     if (data.length == 0) return;
 
-    const axisMargin = 20,
-      margin = 40,
+    const margin = 40,
       valueMargin = 4,
-      width = parseInt(d3.select('body').style('width'), 10),
-      height = parseInt(d3.select('body').style('height'), 10),
-      barHeight = (height-axisMargin-margin*2)* 0.4/data.length,
-      barPadding = (height-axisMargin-margin*2)*0.6/data.length,
+      barHeight = 20,
+      barPadding = 5,
       max = d3.max(data, d => d.value) || 0;
     let labelWidth = 0;
 
@@ -74,29 +71,30 @@ export class HorizontalBarchartComponent implements AfterViewInit {
       .attr("cx",0)
       .attr("transform", (d: BarChartData, i: number) => `translate(${margin}, ${i * (barHeight + barPadding) + barPadding})`);
 
+    const scale = d3.scaleLinear()
+      .domain([0, max])
+      .range([0, this.width! - margin*2]);
+
+    bar.append("rect")
+      // .attr("transform", "translate("+labelWidth+", 0)")
+      .style("fill", '#6daf56')
+      .attr("height", barHeight)
+      .attr("width", (d: BarChartData) => scale(d.value));
+
     bar.append("text")
       .attr("class", "label")
       .attr("y", barHeight / 2)
       .attr("dy", ".35em") //vertical align middle
+      .style('text-shadow', '-1px -1px white, -1px 1px white, 1px 1px white, 1px -1px white, -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white')
       .text((d: BarChartData) => d.label
       ).each(() => {
         labelWidth = Math.ceil(Math.max(labelWidth, this.width!))
       });
 
-    const scale = d3.scaleLinear()
-      .domain([0, max])
-      .range([0, width - margin*2 - labelWidth]);
-
     // const xAxis = d3.axisBottom()
     //   .scale(scale)
     //   .tickSize(-height + 2*margin + axisMargin)
     //   .orient("bottom");
-
-    bar.append("rect")
-      // .attr("transform", "translate("+labelWidth+", 0)")
-      .style("fill", 'blue')
-      .attr("height", barHeight)
-      .attr("width", (d: BarChartData) => scale(d.value));
 
     bar.append("text")
       .attr("class", "value")
