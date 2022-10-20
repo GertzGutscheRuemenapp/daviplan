@@ -25,6 +25,7 @@ export class StackedBarchartComponent implements AfterViewInit {
   @Input() height?: number;
   @Input() animate?: boolean;
   @Input() xSeparator?: { leftLabel?: string, rightLabel?:string, x: string, highlight?: boolean };
+  @Input() figureId: String = 'stacked-barchart';
 
   private svg: any;
   private margin: {top: number, bottom: number, left: number, right: number } = {
@@ -46,7 +47,7 @@ export class StackedBarchartComponent implements AfterViewInit {
   }
 
   private createSvg(): void {
-    let figure = d3.select("figure#stacked-barchart");
+    let figure = d3.select(`figure#${ this.figureId }`);
     if (!(this.width && this.height)){
       let node: any = figure.node()
       let bbox = node.getBoundingClientRect();

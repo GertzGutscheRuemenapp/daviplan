@@ -96,7 +96,7 @@ import { DemandRateSetViewComponent } from './pages/basedata/demand-quotas/deman
 import { ClassificationsComponent } from './pages/basedata/locations/classifications/classifications.component';
 import { ServiceSelectComponent } from './pages/planning/service-select/service-select.component';
 import { ModeSelectComponent } from './pages/planning/mode-select/mode-select.component';
-import { VerticalBarchartComponent } from './diagrams/vertical-barchart/vertical-barchart.component';
+import { HorizontalBarchartComponent } from './diagrams/horizontal-barchart/horizontal-barchart.component';
 
 @NgModule({
   declarations: [
@@ -162,7 +162,7 @@ import { VerticalBarchartComponent } from './diagrams/vertical-barchart/vertical
     ClassificationsComponent,
     ServiceSelectComponent,
     ModeSelectComponent,
-    VerticalBarchartComponent
+    HorizontalBarchartComponent
   ],
   imports: [
     BrowserModule,
