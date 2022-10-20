@@ -53,7 +53,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         logger = logging.getLogger('routing')
         df = mcs.calculate_airdistance_traveltimes(variant=variant,
                                                    max_distance=5000,
-                                                   columns=self.columns,
+                                                   columns=mcs.columns,
                                                    logger=logger)
         cellplaces = [MatrixCellPlace(**row.to_dict()) for i, row in df.iterrows()]
         MatrixCellPlace.objects.bulk_create(cellplaces)
