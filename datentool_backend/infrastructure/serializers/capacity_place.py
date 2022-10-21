@@ -121,6 +121,9 @@ class PlaceSerializer(serializers.ModelSerializer):
                 geom='pnt')
             dataframes = []
             for variant in ModeVariant.objects.all():
+                # ToDo: route transit
+                if variant.mode == Mode.TRANSIT:
+                    continue
                 try:
                     df = TravelTimeRouterMixin.route(
                         variant, sources, destinations, logger,

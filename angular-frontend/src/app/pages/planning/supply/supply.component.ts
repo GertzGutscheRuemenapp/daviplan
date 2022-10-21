@@ -107,6 +107,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   updatePlaces(options?: { resetScenario?: boolean, selectPlaceId?: number }): void {
+    this.layerGroup?.clear();
     if (!this.activeInfrastructure || !this.activeService || !this.activeScenario) return;
     this.updateMapDescription();
     let placeOptions: any = {
