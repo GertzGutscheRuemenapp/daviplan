@@ -1,10 +1,10 @@
 import { AfterViewInit, Component, Input } from '@angular/core';
 import * as d3 from 'd3';
-import { StackedData } from "../stacked-barchart/stacked-barchart.component";
 
 export interface BarChartData {
   label: string,
-  value: number
+  value: number,
+  color?: string
 }
 
 @Component({
@@ -72,7 +72,6 @@ export class HorizontalBarchartComponent implements AfterViewInit {
     const scale = d3.scaleLinear()
       .domain([0, max])
       .range([0, this.width! - this.margin*2]);
-    console.log(data)
 
     this.svg.append('g')
       .attr('class', 'axis x right')
@@ -96,7 +95,7 @@ export class HorizontalBarchartComponent implements AfterViewInit {
     };
 
     function onMouseOutBar(this: any, event: MouseEvent) {
-      bar.select('rect').classed('highlight', false);
+      bars.select('rect').classed('highlight', false);
       tooltip.style('display', 'none');
     }
 
@@ -105,31 +104,38 @@ export class HorizontalBarchartComponent implements AfterViewInit {
         .style('top', event.pageY + 10 + 'px');
     }
 
-    const bar = this.svg.append('g').selectAll('g')
+    const bars = this.svg.append('g').selectAll('g')
       .data(data)
       .enter()
       .append('g');
 
-    bar.attr('class', 'bar')
+    bars.attr('class', 'bar')
       .attr('cx',0)
       .attr('transform', (d: BarChartData, i: number) => `translate(${this.margin}, ${i * (barHeight + barPadding) + barPadding})`)
       .on('mouseover', onMouseOverBar)
       .on('mouseout', onMouseOutBar)
       .on('mousemove', onMouseMove);
 
-    bar.append('rect')
+    bars.append('rect')
       // .attr('transform', 'translate('+labelWidth+', 0)')
-      .style('fill', '#6daf56')
+      .style('fill', (d: BarChartData) => d.color || '#6daf56')
       .attr('height', barHeight)
-      .attr('width', (d: BarChartData) => scale(d.value));
+      .attr('width', (d: BarChartData) => {
+          if (this.animate) return 0;
+          return scale(d.value);
+        })
 
-    bar.append('text')
+    bars.append('text')
       .attr('class', 'label')
       .attr('y', barHeight / 2)
       .attr('dy', '.35em') //vertical align middle
-      .style('text-shadow', '-1px -1px white, -1px 1px white, 1px 1px white, 1px -1px white, -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white')
       .text((d: BarChartData) => d.label);
 
+    if (this.animate) {
+      bars.selectAll('rect').transition()
+        .duration(800)
+        .attr('width', (d: BarChartData) => scale(d.value));
+    }
 
     let tooltip = d3.select('body')
       .append('div')

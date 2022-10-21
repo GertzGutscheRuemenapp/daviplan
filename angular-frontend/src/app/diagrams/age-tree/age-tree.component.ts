@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, Input, ViewEncapsulation } from '@angular/core';
-import * as d3 from "d3";
-import { v4 as uuid } from "uuid";
+import * as d3 from 'd3';
+import { v4 as uuid } from 'uuid';
 
 export interface AgeTreeData {
   label: string,
@@ -54,9 +54,9 @@ export class AgeTreeComponent implements AfterViewInit {
       if (!this.height)
         this.height = bbox.height;
     }
-    this.svg = figure.append("svg")
-      .attr("viewBox", `0 0 ${this.width!} ${this.height!}`)
-      .append("g");
+    this.svg = figure.append('svg')
+      .attr('viewBox', `0 0 ${this.width!} ${this.height!}`)
+      .append('g');
   }
 
   public draw(data: AgeTreeData[]): void {
@@ -107,7 +107,7 @@ export class AgeTreeComponent implements AfterViewInit {
       .range([height, 0]);
 
     // axes
-    this.svg.append("g")
+    this.svg.append('g')
       .attr('class', 'axis y')
       .attr('transform', translation(this.margin.left + width / 2, this.margin.top))
       .call(
@@ -122,24 +122,24 @@ export class AgeTreeComponent implements AfterViewInit {
       .attr('font-size', '0.8em')
       .style('text-anchor', 'middle');
 
-    this.svg.append("g")
+    this.svg.append('g')
       .attr('class', 'axis x right')
       .attr('transform', translation(this.margin.left + pointB, height + 3 + this.margin.top))
       .call(
         d3.axisBottom(xScale)
           .ticks(5)
           .tickSize(-height)
-          .tickFormat(d3.format("d"))
+          .tickFormat(d3.format('d'))
       );
 
-    this.svg.append("g")
+    this.svg.append('g')
       .attr('class', 'axis x left')
       .attr('transform', translation(this.margin.left, height + 3 + this.margin.top))
       .call(
         d3.axisBottom(xScale.copy().range([pointA, 0]))
           .ticks(5)
           .tickSize(-height)
-          .tickFormat(d3.format("d"))
+          .tickFormat(d3.format('d'))
       );
 
     // title
@@ -163,7 +163,7 @@ export class AgeTreeComponent implements AfterViewInit {
     const tooltip = d3.select('body')
       .append('div')
       .attr('class', 'd3-tooltip')
-      .style("display", 'none');
+      .style('display', 'none');
 
     function onMouseMove(this: any, event: MouseEvent){
       tooltip.style('left', event.pageX + 20 + 'px')
@@ -180,17 +180,17 @@ export class AgeTreeComponent implements AfterViewInit {
       rightBar.selectAll('rect').classed('highlight', true);
 
       let text = `<b>${labels[i]}</b><br>`;
-      text += `<span class="female"><b>Anzahl weiblich:</b></span> ${femaleAges[i]}<br>`;
-      text += `<span class="male"><b>Anzahl männlich:</b></span> ${maleAges[i]}<br>`;
+      text += `<span class='female'><b>Anzahl weiblich:</b></span> ${femaleAges[i]}<br>`;
+      text += `<span class='male'><b>Anzahl männlich:</b></span> ${maleAges[i]}<br>`;
 
-      tooltip.style("display", null);
+      tooltip.style('display', null);
       tooltip.html(text);
     };
 
     const mouseOutBar = function (event: MouseEvent, d: any) {
       left.selectAll('rect').classed('highlight', false);
       right.selectAll('rect').classed('highlight', false);
-      tooltip.style("display", 'none');
+      tooltip.style('display', 'none');
     };
 
     const barHeight = height / maxY;
@@ -261,12 +261,12 @@ export class AgeTreeComponent implements AfterViewInit {
     if (this.animate) {
       rightBars.transition()
         .duration(800)
-        .attr("width", (d: number, i: number) => {
+        .attr('width', (d: number, i: number) => {
           return widthScale(d, i) - widthScale(0, i);
         });
       leftBars.transition()
         .duration(800)
-        .attr("width", (d: number, i: number) => {
+        .attr('width', (d: number, i: number) => {
           return widthScale(d, i) - widthScale(0, i);
         });
     }
@@ -299,7 +299,7 @@ export class AgeTreeComponent implements AfterViewInit {
   }
 
   public clear(): void {
-    this.svg.selectAll("*").remove();
+    this.svg.selectAll('*').remove();
   }
 
 }

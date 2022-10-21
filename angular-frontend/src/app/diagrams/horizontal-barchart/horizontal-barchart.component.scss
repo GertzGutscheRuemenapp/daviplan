@@ -12,4 +12,8 @@
     stroke: #777;
     stroke-dasharray: 2,2;
   }
+
+  text.label {
+    text-shadow: -1px -1px white, -1px 1px white, 1px 1px white, 1px -1px white, -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;
+  }
 }
