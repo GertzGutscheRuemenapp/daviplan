@@ -18,7 +18,6 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
   modeVariants: ModeVariant[] = [];
   isProcessing = false;
   subscriptions: Subscription[] = [];
-  errors: any = {};
 
   constructor(private http: HttpClient, private rest: RestAPI, private dialog: MatDialog,
               private settings: SettingsService, private restCache: RestCacheService) { }
@@ -93,15 +92,15 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
         this.baseDataSettings.routing.projectAreaNet = false;
         this.baseDataSettings.routing.baseNet = false;
       }
+      dialogRef.componentInstance.isLoading$.next(true);
       this.http.post<any>(`${this.rest.URLS.matrixCellPlaces}precalculate_traveltime/`, {variants: this.modeVariants.map(m => m.id)}).subscribe(() => {
         this.isProcessing = true;
+        dialogRef.close();
       }, (error) => {
         dialogRef.componentInstance.setErrors(error.error);
+        dialogRef.componentInstance.isLoading$.next(false);
       })
     });
-    dialogRef.afterClosed().subscribe(ok => {
-      this.errors = {};
-    })
   }
 
   onMessage(log: LogEntry): void {
