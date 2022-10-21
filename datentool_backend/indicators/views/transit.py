@@ -19,6 +19,7 @@ from datentool_backend.utils.processes import (ProtectedProcessManager,
 from datentool_backend.indicators.compute.routing import (MatrixCellPlaceRouter,
                                                           MatrixCellStopRouter,
                                                           MatrixPlaceStopRouter,
+                                                          TravelTimeRouterMixin,
                                                           )
 from datentool_backend.utils.excel_template import ExcelTemplateMixin
 from datentool_backend.utils.serializers import (MessageSerializer,
@@ -138,7 +139,7 @@ class RouterViewSet(viewsets.ModelViewSet):
 class TravelTimeRouterViewMixin(viewsets.GenericViewSet):
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
 
-    router: 'TravelTimeRouterMixin'
+    router: TravelTimeRouterMixin
 
     @extend_schema(description='Create Traveltime Matrix',
                    request=inline_serializer(
@@ -231,7 +232,7 @@ class TravelTimeRouterViewMixin(viewsets.GenericViewSet):
 
 
     @staticmethod
-    def calc(router_class: 'TravelTimeRouterMixin',
+    def calc(router_class: TravelTimeRouterMixin,
              variant_ids: List[int],
              places: List[int],
              drop_constraints: bool,
