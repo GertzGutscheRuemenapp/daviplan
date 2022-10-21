@@ -2,15 +2,14 @@ import logging
 logger = logging.getLogger('routing')
 
 import pandas as pd
-from asgiref.sync import sync_to_async
 from requests.exceptions import ConnectionError
 from rest_framework.validators import ValidationError
 from rest_framework import serializers
 
 from datentool_backend.population.models import RasterCell
-from datentool_backend.modes.models import ModeVariant, Mode
+from datentool_backend.modes.models import ModeVariant
 from datentool_backend.indicators.models import MatrixCellPlace
-from datentool_backend.indicators.views.transit import TravelTimeRouterMixin
+from datentool_backend.indicators.compute.routing import TravelTimeRouterMixin
 from datentool_backend.area.models import FClass, FieldTypes
 from datentool_backend.infrastructure.models.places import (Place,
                                                             Capacity,
