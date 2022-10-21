@@ -145,11 +145,11 @@
                  id="chart-toggle" icon="bar_chart" name="Diagramm"
                  cookieExpansion="exp-rating-diagram">
   <div style="position: relative;">
-    <div class="diagram-wrapper" style="width: 400px; height: 400px; ">
+    <div class="diagram-wrapper" style="width: 500px; height: 400px; ">
       <app-horizontal-barchart #barChart
                                xLabel="Jahre"
                                yLabel="Einwohner"
-                               [height]="1000"
+                               [unit]="barChartProps.unit"
                                [animate]="true"
                                [title]="barChartProps.title"
                                [subtitle]="barChartProps.subtitle">

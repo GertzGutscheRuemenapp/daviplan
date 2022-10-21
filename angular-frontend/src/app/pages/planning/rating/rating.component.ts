@@ -9,8 +9,8 @@ import {
   AreaIndicatorResult,
   AreaLevel,
   Indicator,
-  Infrastructure, Place, PlaceIndicatorResult,
-  PlanningProcess, RasterCell, RasterIndicatorResult, Scenario,
+  Infrastructure, PlaceIndicatorResult,
+  RasterIndicatorResult, Scenario,
   Service,
   TransportMode
 } from "../../../rest-interfaces";
@@ -18,8 +18,6 @@ import { MapControl, MapService } from "../../../map/map.service";
 import * as d3 from "d3";
 import { Subscription } from "rxjs";
 import { MapLayerGroup, ValueStyle, VectorLayer, VectorTileLayer } from "../../../map/layers";
-import { modes } from "../mode-select/mode-select.component";
-import { StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import {
   BarChartData,
   HorizontalBarchartComponent
@@ -37,8 +35,9 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   barChartProps: {
     title: string,
     subtitle: string,
+    unit: string,
     data: BarChartData[]
-  } = { title: '', subtitle: '', data: []};
+  } = { title: '', subtitle: '', data: [], unit: ''};
   backend: string = environment.backend;
   compareSupply = true;
   compareStatus = 'option 1';
@@ -265,6 +264,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         });
         this.layerGroup?.addLayer(this.indicatorLayer);
         this.indicatorLayer.addFeatures(displayedPlaces);
+        this.barChartProps.unit = this.selectedIndicator?.unit || '';
         this.renderDiagram(chartData);
       });
     });
@@ -344,6 +344,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         });
         this.layerGroup?.addLayer(this.indicatorLayer);
         this.indicatorLayer.addFeatures(displayedAreas,{ properties: 'properties' });
+        this.barChartProps.unit = this.selectedIndicator?.unit || '';
         this.renderDiagram(chartData);
       })
     })

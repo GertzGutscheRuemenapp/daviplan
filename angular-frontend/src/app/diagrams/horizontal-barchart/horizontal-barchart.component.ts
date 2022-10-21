@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, Input } from '@angular/core';
-import * as d3 from "d3";
+import * as d3 from 'd3';
+import { StackedData } from "../stacked-barchart/stacked-barchart.component";
 
 export interface BarChartData {
   label: string,
@@ -15,13 +16,20 @@ export class HorizontalBarchartComponent implements AfterViewInit {
   @Input() data?: BarChartData[];
   @Input() title: string = '';
   @Input() subtitle: string = '';
-  @Input() drawLegend: boolean = true;
   @Input() xLabel?: string;
   @Input() yLabel?: string;
   @Input() width?: number;
+  @Input() margin: number = 20;
   @Input() height?: number;
   @Input() animate?: boolean;
+  @Input() unit: string = '';
   @Input() figureId: String = 'horizontal-barchart';
+  localeFormatter = d3.formatLocale({
+    decimal: ',',
+    thousands: '.',
+    grouping: [3],
+    currency: ['€', '']
+  })
   private svg: any;
 
   constructor() { }
@@ -41,69 +49,95 @@ export class HorizontalBarchartComponent implements AfterViewInit {
       if (!this.height)
         this.height = bbox.height;
     }
-    this.svg = figure.append("svg")
-      .attr("viewBox", `0 0 ${this.width!} ${this.height!}`)
-      .append("g");
+    this.svg = figure.append('svg')
+      .attr('viewBox', `0 0 ${this.width!} ${this.height!}`);
   }
 
   clear(): void {
-    this.svg.selectAll("*").remove();
+    this.svg.selectAll('*').remove();
   }
 
   draw(data: BarChartData[]): void {
-    console.log(data);
     this.clear();
     if (data.length == 0) return;
 
-    const margin = 40,
-      valueMargin = 4,
-      barHeight = 20,
+    const barHeight = 20,
       barPadding = 5,
-      max = d3.max(data, d => d.value) || 0;
-    let labelWidth = 0;
+      max = d3.max(data, d => d.value) || 1;
 
-    const bar = this.svg.selectAll("g")
-      .data(data)
-      .enter()
-      .append("g");
+    const height = (barHeight + barPadding) * data.length
 
-    bar.attr("class", "bar")
-      .attr("cx",0)
-      .attr("transform", (d: BarChartData, i: number) => `translate(${margin}, ${i * (barHeight + barPadding) + barPadding})`);
+    this.svg.attr('viewBox', `0 0 ${this.width!} ${height + this.margin * 2}`);
 
     const scale = d3.scaleLinear()
       .domain([0, max])
-      .range([0, this.width! - margin*2]);
+      .range([0, this.width! - this.margin*2]);
+    console.log(data)
 
-    bar.append("rect")
-      // .attr("transform", "translate("+labelWidth+", 0)")
-      .style("fill", '#6daf56')
-      .attr("height", barHeight)
-      .attr("width", (d: BarChartData) => scale(d.value));
+    this.svg.append('g')
+      .attr('class', 'axis x right')
+      .attr('transform', `translate(${this.margin}, ${this.margin})`)
+      .call(
+        d3.axisBottom(scale)
+          .ticks(5)
+          .tickSize(height)
+          .tickFormat(d3.format('d'))
+      );
 
-    bar.append("text")
-      .attr("class", "label")
-      .attr("y", barHeight / 2)
-      .attr("dy", ".35em") //vertical align middle
+    // tooltips
+    function onMouseOverBar(this: any, event: MouseEvent) {
+      let bar = d3.select(this);
+      bar.select('rect').classed('highlight', true);
+      const data = this.__data__;
+      const formatter = _this.localeFormatter.format(',.2f');
+      let text = `<b>${data.label}</b><br>${formatter(data.value)} ${_this.unit}`;
+      tooltip.style('display', null);
+      tooltip.html(text);
+    };
+
+    function onMouseOutBar(this: any, event: MouseEvent) {
+      bar.select('rect').classed('highlight', false);
+      tooltip.style('display', 'none');
+    }
+
+    function onMouseMove(this: any, event: MouseEvent){
+      tooltip.style('left', event.pageX + 20 + 'px')
+        .style('top', event.pageY + 10 + 'px');
+    }
+
+    const bar = this.svg.append('g').selectAll('g')
+      .data(data)
+      .enter()
+      .append('g');
+
+    bar.attr('class', 'bar')
+      .attr('cx',0)
+      .attr('transform', (d: BarChartData, i: number) => `translate(${this.margin}, ${i * (barHeight + barPadding) + barPadding})`)
+      .on('mouseover', onMouseOverBar)
+      .on('mouseout', onMouseOutBar)
+      .on('mousemove', onMouseMove);
+
+    bar.append('rect')
+      // .attr('transform', 'translate('+labelWidth+', 0)')
+      .style('fill', '#6daf56')
+      .attr('height', barHeight)
+      .attr('width', (d: BarChartData) => scale(d.value));
+
+    bar.append('text')
+      .attr('class', 'label')
+      .attr('y', barHeight / 2)
+      .attr('dy', '.35em') //vertical align middle
       .style('text-shadow', '-1px -1px white, -1px 1px white, 1px 1px white, 1px -1px white, -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white')
-      .text((d: BarChartData) => d.label
-      ).each(() => {
-        labelWidth = Math.ceil(Math.max(labelWidth, this.width!))
-      });
+      .text((d: BarChartData) => d.label);
 
-    // const xAxis = d3.axisBottom()
-    //   .scale(scale)
-    //   .tickSize(-height + 2*margin + axisMargin)
-    //   .orient("bottom");
 
-    bar.append("text")
-      .attr("class", "value")
-      .attr("y", barHeight / 2)
-      .attr("dx", -valueMargin + labelWidth) //margin right
-      .attr("dy", ".35em") //vertical align middle
-      .attr("text-anchor", "end")
-      .text( (d: BarChartData) => d.value)
-      .attr("x", (d: BarChartData) => Math.max(this.width! + valueMargin, scale(d.value)));
+    let tooltip = d3.select('body')
+      .append('div')
+      .attr('class', 'd3-tooltip')
+      .style('display', 'none');
+
+    let _this = this;
+
   }
 
   ngOnInit(): void {
