@@ -51,8 +51,8 @@
         <mat-icon *ngIf="baseDataSettings?.routing?.projectAreaNet" color="primary">done</mat-icon>
       </div>
       <button mat-flat-button color="primary"
-              [disabled]="!baseDataSettings?.routing?.baseNet"
               (click)="createProjectNetwork()">
+<!--        [disabled]="!baseDataSettings?.routing?.baseNet"-->
         Straßennetz verschneiden
       </button>
     </app-input-card>
@@ -84,8 +84,8 @@
           </table>-->
           <div style="align-self: end;">
             <button mat-flat-button color="primary"
-                    [disabled]="!baseDataSettings?.routing?.projectAreaNet"
                     (click)="createMatrices()">
+<!--              [disabled]="!baseDataSettings?.routing?.projectAreaNet"-->
               <mat-icon>build</mat-icon> Reisezeitmatrizen erzeugen
             </button>
           </div>

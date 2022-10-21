@@ -28,6 +28,7 @@ from datentool_backend.utils.serializers import (MessageSerializer,
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, CanEditBasedata)
+from datentool_backend.utils.routers import OSRMRouter
 
 from datentool_backend.indicators.models import (Stop,
                                                  MatrixStopStop,
@@ -193,6 +194,24 @@ class TravelTimeRouterViewMixin(viewsets.GenericViewSet):
         access_variant_id = request.data.get('access_variant')
         max_access_distance = request.data.get('max_access_distance')
         max_direct_walktime = request.data.get('max_direct_walktime')
+
+        error_msg = None
+        # run all routers on start
+        for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
+            router = OSRMRouter(mode)
+            if not router.service_is_up:
+                error_msg = ('Der Router-Service reagiert nicht. '
+                             'Bitte kontaktieren Sie den Administrator.')
+                break
+            if not router.is_running:
+                router.run()
+                error_msg = ('Der Router läuft gerade nicht. Er wird versucht '
+                             'zu starten. Bitte warten Sie ein paar Minuten '
+                             'und versuchen Sie es dann erneut')
+
+        if error_msg:
+            return Response({'Fehler': error_msg},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         places = request.data.get('places')
         logger.info('Starte Berechnung der Reisezeitmatrizen')

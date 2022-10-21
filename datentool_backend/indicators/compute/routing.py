@@ -277,7 +277,7 @@ class TravelTimeRouterMixin:
                 if drop_constraints:
                     manager.restore_constraints()
                     manager.restore_indexes()
-            msg = (f'Berechnung der Reiszeiten erfolgreich, {n_deleted} Einträge '
+            msg = (f'Berechnung der Reisezeiten erfolgreich, {n_deleted} Einträge '
                    f'entfernt und {len(df)} Einträge hinzugefügt '
                    f'({model._meta.object_name})')
             return (True, msg)
