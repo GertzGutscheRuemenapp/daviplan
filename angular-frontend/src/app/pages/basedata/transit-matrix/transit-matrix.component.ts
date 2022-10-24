@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl } from "../../../map/map.service";
 import {
-  DemandRateSet,
+  DemandRateSet, LogEntry,
   ModeVariant,
   Service,
   TransitMatrixEntry,
@@ -31,6 +31,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
   uploadErrors: any = {};
   stops: TransitStop[] = [];
   matrixEntries: TransitMatrixEntry[] = [];
+  isProcessing = false;
   @ViewChild('editVariant') editVariantTemplate?: TemplateRef<any>;
   @ViewChild('fileUploadTemplate') fileUploadTemplate?: TemplateRef<any>;
 
@@ -115,15 +116,19 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
         title: `Reisezeitmatrizen erzeugen`,
         confirmButtonText: 'Berechnung starten',
         message: 'Die Reisezeiten zwischen allen vorhandenen Standorten und den Siedlungszellen über die Haltestellen im ÖPNV-Netz werden berechnet. Dies kann einige Minuten dauern.',
-        closeOnConfirm: true
+        closeOnConfirm: false
       }
     });
-    dialogRef.afterClosed().subscribe(ok => {
-      if (ok)
-        this.http.post<any>(`${this.rest.URLS.matrixCellPlaces}precalculate_traveltime/`, {variants: [this.selectedVariant!.id]}).subscribe(() => {
-        },(error) => {
-        })
-    })
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      dialogRef.componentInstance.isLoading$.next(true);
+      this.http.post<any>(`${this.rest.URLS.matrixCellPlaces}precalculate_traveltime/`, {variants: [this.selectedVariant!.id]}).subscribe(() => {
+        this.isProcessing = true;
+        dialogRef.close();
+      }, (error) => {
+        dialogRef.componentInstance.setErrors(error.error);
+        dialogRef.componentInstance.isLoading$.next(false);
+      })
+    });
   }
 
   onSetAsDefault(): void {
@@ -174,13 +179,8 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
       formData.append('variant', this.selectedVariant!.id.toString());
       const url = `${this.rest.URLS.transitStops}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
-        this.restService.getTransitStops({ reset: true, variant: this.selectedVariant!.id }).subscribe(stops => {
-          this.stops = stops;
-          this.restService.getTransitMatrix({ reset: true, variant: this.selectedVariant!.id }).subscribe(entries => {
-            this.matrixEntries = entries;
-            dialogRef.close();
-          })
-        })
+        this.isProcessing = true;
+        dialogRef.close();
       }, error => {
         this.uploadErrors = error.error;
         dialogRef.componentInstance.setLoading(false);
@@ -213,6 +213,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
       formData.append('variant', this.selectedVariant!.id.toString());
       const url = `${this.rest.URLS.transitMatrix}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
+        this.isProcessing = true;
         dialogRef.close();
       }, error => {
         this.uploadErrors = error.error;
@@ -221,6 +222,17 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  onMessage(log: LogEntry): void {
+    if (log?.status?.success) {
+      this.isProcessing = false;
+      this.restService.getTransitStops({ reset: true, variant: this.selectedVariant!.id }).subscribe(stops => {
+        this.stops = stops;
+        this.restService.getTransitMatrix({ reset: true, variant: this.selectedVariant!.id }).subscribe(entries => {
+          this.matrixEntries = entries;
+        })
+      })
+    }
+  }
 
   setFiles(event: Event){
     const element = event.currentTarget as HTMLInputElement;

@@ -141,7 +141,7 @@ class PlacesTemplateSerializer(serializers.Serializer):
                 value_col = '_value'
 
             elif place_field.field_type.ftype == FieldTypes.NUMBER:
-                unit = place_field.unit or unit
+                unit = place_field.unit or 'Zahl'
                 description = f'Nutzerdefinierte Spalte ({unit})'
                 validations[col_no] = dv_float
                 value_col = 'num_value'

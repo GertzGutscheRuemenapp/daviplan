@@ -84,16 +84,23 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
         title: `Reisezeitmatrizen erzeugen`,
         confirmButtonText: 'Berechnung starten',
         message: 'Die Reisezeiten zwischen allen vorhandenen Standorten und den Siedlungszellen mit den Modi Fuß, Rad und Auto werden berechnet. Dies kann einige Minuten dauern.',
-        closeOnConfirm: true
+        closeOnConfirm: false
       }
     });
-    dialogRef.afterClosed().subscribe(ok => {
-      if (ok)
-        this.http.post<any>(`${this.rest.URLS.matrixCellPlaces}precalculate_traveltime/`, {variants: this.modeVariants.map(m => m.id)}).subscribe(() => {
-          // this.isProcessing = true;
-        },(error) => {
-        })
-    })
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      if (this.baseDataSettings?.routing) {
+        this.baseDataSettings.routing.projectAreaNet = false;
+        this.baseDataSettings.routing.baseNet = false;
+      }
+      dialogRef.componentInstance.isLoading$.next(true);
+      this.http.post<any>(`${this.rest.URLS.matrixCellPlaces}precalculate_traveltime/`, {variants: this.modeVariants.map(m => m.id)}).subscribe(() => {
+        this.isProcessing = true;
+        dialogRef.close();
+      }, (error) => {
+        dialogRef.componentInstance.setErrors(error.error);
+        dialogRef.componentInstance.isLoading$.next(false);
+      })
+    });
   }
 
   onMessage(log: LogEntry): void {
