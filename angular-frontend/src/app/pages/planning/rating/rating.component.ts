@@ -216,7 +216,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           });
           max = Math.max(max, result.value);
           min = Math.min(min, result.value);
-          chartData.push({ label: place.label || '', value: result.value });
+          chartData.push({ label: place.name || '', value: result.value });
         })
 
         let style: ValueStyle = {

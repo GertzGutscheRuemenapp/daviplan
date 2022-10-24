@@ -19,7 +19,6 @@ export class HorizontalBarchartComponent implements AfterViewInit {
   @Input() xLabel?: string;
   @Input() yLabel?: string;
   @Input() width?: number;
-  @Input() margin: number = 20;
   @Input() height?: number;
   @Input() animate?: boolean;
   @Input() unit: string = '';
@@ -31,6 +30,13 @@ export class HorizontalBarchartComponent implements AfterViewInit {
     currency: ['€', '']
   })
   private svg: any;
+  @Input()  margin: {top: number, bottom: number, left: number, right: number } = {
+    top: 50,
+    bottom: 20,
+    left: 20,
+    right: 40
+  };
+
 
   constructor() { }
 
@@ -60,6 +66,7 @@ export class HorizontalBarchartComponent implements AfterViewInit {
   draw(data: BarChartData[]): void {
     this.clear();
     if (data.length == 0) return;
+    const _this = this;
 
     const barHeight = 20,
       barPadding = 5,
@@ -67,15 +74,15 @@ export class HorizontalBarchartComponent implements AfterViewInit {
 
     const height = (barHeight + barPadding) * data.length
 
-    this.svg.attr('viewBox', `0 0 ${this.width!} ${height + this.margin * 2}`);
+    this.svg.attr('viewBox', `0 0 ${this.width!} ${height + this.margin.left + this.margin.right}`);
 
     const scale = d3.scaleLinear()
       .domain([0, max])
-      .range([0, this.width! - this.margin*2]);
+      .range([0, this.width! - (this.margin.left + this.margin.right)]);
 
     this.svg.append('g')
       .attr('class', 'axis x right')
-      .attr('transform', `translate(${this.margin}, ${this.margin})`)
+      .attr('transform', `translate(${ this.margin.left }, ${ this.margin.top })`)
       .call(
         d3.axisBottom(scale)
           .ticks(5)
@@ -111,7 +118,7 @@ export class HorizontalBarchartComponent implements AfterViewInit {
 
     bars.attr('class', 'bar')
       .attr('cx',0)
-      .attr('transform', (d: BarChartData, i: number) => `translate(${this.margin}, ${i * (barHeight + barPadding) + barPadding})`)
+      .attr('transform', (d: BarChartData, i: number) => `translate(${this.margin.left}, ${this.margin.top + i * (barHeight + barPadding) + barPadding})`)
       .on('mouseover', onMouseOverBar)
       .on('mouseout', onMouseOutBar)
       .on('mousemove', onMouseMove);
@@ -142,7 +149,19 @@ export class HorizontalBarchartComponent implements AfterViewInit {
       .attr('class', 'd3-tooltip')
       .style('display', 'none');
 
-    let _this = this;
+    this.svg.append('text')
+      .attr('class', 'title')
+      .attr('x', this.margin.left)
+      .attr('y', 15)
+      .text(this.title);
+
+    this.svg.append('text')
+      .attr('class', 'subtitle')
+      .attr('x', this.margin.left)
+      .attr('y', 15)
+      .attr('font-size', '0.8em')
+      .attr('dy', '1em')
+      .text(this.subtitle);
 
   }
 

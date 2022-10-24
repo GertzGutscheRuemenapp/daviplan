@@ -149,9 +149,9 @@
       <app-horizontal-barchart #barChart
                                xLabel="Jahre"
                                yLabel="Einwohner"
-                               [unit]="barChartProps.unit"
+                               [unit]="this.selectedIndicator?.unit || ''"
                                [animate]="true"
-                               [title]="barChartProps.title"
+                               [title]="this.selectedIndicator?.title || ''"
                                [subtitle]="barChartProps.subtitle">
       </app-horizontal-barchart>
     </div>
