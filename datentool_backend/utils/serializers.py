@@ -11,9 +11,15 @@ use_intersected_data = serializers.BooleanField(
 
 
 drop_constraints = serializers.BooleanField(
-        default=True,
-        label='temporarily delete constraints and indices',
-        help_text='Set to False in unittests')
+    default=True,
+    label='temporarily delete constraints and indices',
+    help_text='Set to False in unittests')
+
+
+run_sync = serializers.BooleanField(
+    default=False,
+    label='run in sync',
+    help_text='Set to True in unittests')
 
 
 area_level = serializers.IntegerField(

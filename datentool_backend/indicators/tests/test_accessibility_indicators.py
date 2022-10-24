@@ -2,11 +2,12 @@ import pandas as pd
 import numpy as np
 from django.urls import reverse
 from test_plus import APITestCase
+import logging
 
 from datentool_backend.api_test import LoginTestCase
 
 from datentool_backend.indicators.tests.setup_testdata import CreateTestdataMixin
-from datentool_backend.indicators.views.transit import MatrixCellPlaceViewSet
+from datentool_backend.indicators.views.transit import MatrixCellPlaceRouter
 from datentool_backend.modes.factories import ModeVariantFactory, Mode, ModeVariant
 from datentool_backend.indicators.models import MatrixCellPlace
 from datentool_backend.infrastructure.models.places import Capacity
@@ -48,8 +49,11 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
     def create_traveltime_matrix(cls):
         """create traveltime matrix between all cells and places"""
         variant = ModeVariantFactory(mode=Mode.WALK)
-        mcs = MatrixCellPlaceViewSet()
-        df = mcs.calculate_airdistance_traveltimes(variant=variant, max_distance=5000)
+        mcs = MatrixCellPlaceRouter()
+        logger = logging.getLogger('routing')
+        df = mcs.calculate_airdistance_traveltimes(variant=variant,
+                                                   max_distance=5000,
+                                                   logger=logger)
         cellplaces = [MatrixCellPlace(**row.to_dict()) for i, row in df.iterrows()]
         MatrixCellPlace.objects.bulk_create(cellplaces)
         cls.variant_id = variant.pk

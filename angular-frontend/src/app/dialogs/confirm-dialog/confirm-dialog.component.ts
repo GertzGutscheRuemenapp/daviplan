@@ -26,6 +26,7 @@ interface DialogData {
 export class ConfirmDialogComponent implements AfterViewInit  {
   isLoading$ = new BehaviorSubject<boolean>(false);
   @Output() confirmed = new EventEmitter<boolean>();
+  errors: Record<string, string> = {};
   initReady = false;
 
   constructor(public dialogRef: MatDialogRef<ConfirmDialogComponent>,
@@ -37,6 +38,10 @@ export class ConfirmDialogComponent implements AfterViewInit  {
 
   setLoading(loading: boolean) {
     this.isLoading$.next(loading);
+  }
+
+  setErrors(errors: Record<string, string>) {
+    this.errors = errors;
   }
 
   onConfirmClick() {

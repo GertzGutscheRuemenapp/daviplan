@@ -14,3 +14,11 @@ class BackendConfig(AppConfig):
         # thrown at migration, ProcessState does not exist yet
         except DatabaseError:
             pass
+
+        from datentool_backend.utils.routers import OSRMRouter
+        from datentool_backend.modes.models import Mode
+        # run all routers on start
+        for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
+            router = OSRMRouter(mode)
+            if router.service_is_up and not router.is_running:
+                router.run()
