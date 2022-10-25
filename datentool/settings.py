@@ -29,6 +29,8 @@ DB_PORT = os.environ.get('DB_PORT', 5432)
 DB_HOST = os.environ.get('DB_HOST', 'localhost')
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
+TIME_ZONE = os.environ.get('TIME_ZONE', 'Europe/Berlin')
+
 OSRM_ROUTING = {
     'CAR': {
         'alias': 'car',
