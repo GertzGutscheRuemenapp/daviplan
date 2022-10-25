@@ -23,6 +23,7 @@ import {
   HorizontalBarchartComponent
 } from "../../../diagrams/horizontal-barchart/horizontal-barchart.component";
 import { sortBy } from "../../../helpers/utils";
+import { saveSvgAsPng } from "save-svg-as-png"
 
 @Component({
   selector: 'app-rating',
@@ -392,6 +393,10 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         template: this.diagramDialogTemplate
       }
     });
+  }
+
+  downloadDiagram(): void {
+    saveSvgAsPng(this.barChart.svg.node(), "diagram.png", {backgroundColor: 'white'});
   }
 
   ngOnDestroy(): void {

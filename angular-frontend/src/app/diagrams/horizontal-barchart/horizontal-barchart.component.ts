@@ -29,7 +29,7 @@ export class HorizontalBarchartComponent implements AfterViewInit {
     grouping: [3],
     currency: ['€', '']
   })
-  private svg: any;
+  svg: any;
   @Input()  margin: {top: number, bottom: number, left: number, right: number } = {
     top: 50,
     bottom: 20,
@@ -56,7 +56,7 @@ export class HorizontalBarchartComponent implements AfterViewInit {
         this.height = bbox.height;
     }
     this.svg = figure.append('svg')
-      .attr('viewBox', `0 0 ${this.width!} ${this.height!}`);
+      .attr('viewBox', `0 0 ${this.width!} ${this.height!}`)
   }
 
   clear(): void {
