@@ -366,7 +366,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
         intersections.forEach((feature: Feature<any>) => {
           if (feature.get('gf') != 4) return;
           feature.set('inSelection', true);
-          _this.selectedBaseAreaMapping.set(feature.get('debkg_id'), feature)
+          _this.selectedBaseAreaMapping.set(feature.get('objid'), feature)
         })
         _this.updateProjectLayer();
       });
@@ -526,12 +526,12 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     selectedBaseFeatures.forEach(feature => {
       if (feature.get('gf') === 4) {
         feature.set('inSelection', true);
-        _this.selectedBaseAreaMapping.set(feature.get('debkg_id'), feature);
+        _this.selectedBaseAreaMapping.set(feature.get('objid'), feature);
       }
     })
     deselectedBaseFeatures.forEach(feature => {
       feature.set('inSelection', false);
-      _this.selectedBaseAreaMapping.delete(feature.get('debkg_id'));
+      _this.selectedBaseAreaMapping.delete(feature.get('objid'));
     })
     this.updateProjectLayer();
     this.areaCard.setLoading(false);
@@ -612,7 +612,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
           intersections = this.getIntersections(extent!, this._baseSelectLayer!);
     let areas = Array.from(this.selectedBaseAreaMapping.values());
     intersections.forEach(feature => {
-      if (!_this.selectedBaseAreaMapping.has(feature.get('debkg_id')) && (feature.get('gf') == 4))
+      if (!_this.selectedBaseAreaMapping.has(feature.get('objid')) && (feature.get('gf') == 4))
         areas.push(feature);
     })
     this.baseAreasInExtent = areas.sort(
@@ -631,11 +631,11 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
 
   toggleFeatureSelection(feature: Feature<any>): void{
     this.areaCard.setLoading(true);
-    const isSelected = this.selectedBaseAreaMapping.has(feature.get('debkg_id'));
+    const isSelected = this.selectedBaseAreaMapping.has(feature.get('objid'));
     if (isSelected)
-      this.selectedBaseAreaMapping.delete(feature.get('debkg_id'));
+      this.selectedBaseAreaMapping.delete(feature.get('objid'));
     else
-      this.selectedBaseAreaMapping.set(feature.get('debkg_id'), feature);
+      this.selectedBaseAreaMapping.set(feature.get('objid'), feature);
     feature.set('inSelection', !isSelected);
     this.updateProjectLayer();
     this.areaCard.setLoading(false);
