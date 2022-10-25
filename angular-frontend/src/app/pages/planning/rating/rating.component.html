@@ -141,10 +141,20 @@
 </mat-expansion-panel>-->
 <!--this div is only there to cover glitched shadow of chart toggle-->
 <div style="width: 100%; height: 200px; background-color: white;"></div>
-<app-side-toggle id="chart-toggle" icon="bar_chart" name="Diagramm"
+<app-side-toggle [class.hidden]="!(selectedIndicator?.resultType === 'area' || selectedIndicator?.resultType === 'place')"
+                 id="chart-toggle" icon="bar_chart" name="Diagramm"
                  cookieExpansion="exp-rating-diagram">
-  <div class="diagram-wrapper">
-    <img src="{{backend}}/static/img/Indikator U3 Screenshot.png" width="500px">
+  <div style="position: relative;">
+    <div class="diagram-wrapper" style="width: 500px; height: 400px; margin: 10px 0;">
+      <app-horizontal-barchart #barChart
+                               xLabel="Jahre"
+                               yLabel="Einwohner"
+                               [unit]="this.selectedIndicator?.unit || ''"
+                               [animate]="true"
+                               [title]="this.selectedIndicator?.title || ''"
+                               [subtitle]="barChartProps.subtitle">
+      </app-horizontal-barchart>
+    </div>
     <div class="diagram-controls">
       <button mat-mini-fab
               class="small"
@@ -158,6 +168,7 @@
               class="small"
               style="margin: 5px 0;"
               color="primary"
+              (click)="downloadDiagram()"
               title="Diagramm als Bilddatei herunterladen">
         <mat-icon style="font-size: 20px; margin-top: 0;">download</mat-icon>
       </button>

@@ -9,8 +9,8 @@ import {
   AreaIndicatorResult,
   AreaLevel,
   Indicator,
-  Infrastructure, Place, PlaceIndicatorResult,
-  PlanningProcess, RasterCell, RasterIndicatorResult, Scenario,
+  Infrastructure, PlaceIndicatorResult,
+  RasterIndicatorResult, Scenario,
   Service,
   TransportMode
 } from "../../../rest-interfaces";
@@ -18,7 +18,12 @@ import { MapControl, MapService } from "../../../map/map.service";
 import * as d3 from "d3";
 import { Subscription } from "rxjs";
 import { MapLayerGroup, ValueStyle, VectorLayer, VectorTileLayer } from "../../../map/layers";
-import { modes } from "../mode-select/mode-select.component";
+import {
+  BarChartData,
+  HorizontalBarchartComponent
+} from "../../../diagrams/horizontal-barchart/horizontal-barchart.component";
+import { sortBy } from "../../../helpers/utils";
+import { saveSvgAsPng } from "save-svg-as-png"
 
 @Component({
   selector: 'app-rating',
@@ -27,6 +32,13 @@ import { modes } from "../mode-select/mode-select.component";
 })
 export class RatingComponent implements AfterViewInit, OnDestroy {
   @ViewChild('diagramDialog') diagramDialogTemplate!: TemplateRef<any>;
+  @ViewChild('barChart') barChart!: HorizontalBarchartComponent;
+  barChartProps: {
+    title: string,
+    subtitle: string,
+    unit: string,
+    data: BarChartData[]
+  } = { title: '', subtitle: '', data: [], unit: ''};
   backend: string = environment.backend;
   compareSupply = true;
   compareStatus = 'option 1';
@@ -105,6 +117,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     this.showLabel = (this.indicatorLayer?.showLabel !== undefined)? this.indicatorLayer.showLabel: true;
     this.layerGroup?.clear();
     this.updateMapDescription();
+    this.barChart.clear();
     if(!this.activeScenario || !this.activeService) return;
     switch (this.selectedIndicator?.resultType) {
       case 'area':
@@ -187,6 +200,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         let max = 0;
         let min = Number.MAX_VALUE;
         let displayedPlaces: any[] = [];
+        let chartData: BarChartData[] = [];
         results.values.forEach(result => {
           const place = places.find(p => p.id == result.placeId);
           if (!place) return;
@@ -203,6 +217,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           });
           max = Math.max(max, result.value);
           min = Math.min(min, result.value);
+          chartData.push({ label: place.name || '', value: result.value });
         })
 
         let style: ValueStyle = {
@@ -250,6 +265,8 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         });
         this.layerGroup?.addLayer(this.indicatorLayer);
         this.indicatorLayer.addFeatures(displayedPlaces);
+        this.barChartProps.unit = this.selectedIndicator?.unit || '';
+        this.renderDiagram(chartData);
       });
     });
   }
@@ -262,15 +279,27 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
       this.planningService.computeIndicator<AreaIndicatorResult>(this.selectedIndicator!.name, this.activeService!.id, params).subscribe(results => {
         let max = 0;
         let min = Number.MAX_VALUE;
+        let chartData: BarChartData[] = [];
+        let displayedAreas: Area[] = [];
         areas.forEach(area => {
           const data = results.values.find(d => d.areaId == area.id);
           const value = (data && data.value)? data.value: 0;
           max = Math.max(max, value);
           min = Math.min(min, value);
           const formattedValue = `${value} ${this.selectedIndicator?.unit}`;
-          area.properties.value = value;
-          area.properties.description = `<b>${area.properties.label}</b><br>${this.selectedIndicator!.title}: ${formattedValue}`;
-          area.properties.label = formattedValue;
+          // display "copies" because changes are made to the properties
+          displayedAreas.push({
+            id: area.id,
+            geometry: area.geometry,
+            properties: {
+              areaLevel: area.properties.areaLevel,
+              attributes: area.properties.attributes,
+              value: value,
+              description: `<b>${area.properties.label}</b><br>${this.selectedIndicator!.title}: ${formattedValue}`,
+              label: formattedValue
+            }
+          })
+          chartData.push({ label: area.properties.label, value: value });
         })
         let style: ValueStyle = {
           field: 'value',
@@ -315,9 +344,15 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           unit: this.selectedIndicator?.unit
         });
         this.layerGroup?.addLayer(this.indicatorLayer);
-        this.indicatorLayer.addFeatures(areas,{ properties: 'properties' });
+        this.indicatorLayer.addFeatures(displayedAreas,{ properties: 'properties' });
+        this.barChartProps.unit = this.selectedIndicator?.unit || '';
+        this.renderDiagram(chartData);
       })
     })
+  }
+
+  renderDiagram(data: BarChartData[]){
+    this.barChart.draw(sortBy(data, 'value', { reverse: true }));
   }
 
   getAdditionalParams(): Record<string, any> {
@@ -358,6 +393,10 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         template: this.diagramDialogTemplate
       }
     });
+  }
+
+  downloadDiagram(): void {
+    saveSvgAsPng(this.barChart.svg.node(), "diagram.png", {backgroundColor: 'white'});
   }
 
   ngOnDestroy(): void {
