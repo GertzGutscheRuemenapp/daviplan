@@ -134,6 +134,8 @@ class PopulationTemplateSerializer(serializers.Serializer):
                         values='value', index=df_values.index,
                         columns=['gender_id', 'age_group_id'])
                     df_areas.loc[df_values.index, :] = df_values.values
+                else:
+                    df_areas.loc[:, :] = pd.NA
 
                 df_areas.to_excel(writer,
                                   sheet_name=str(year),
