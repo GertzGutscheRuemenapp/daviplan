@@ -24,6 +24,7 @@ class AverageAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, Servic
     representation = 'colorramp'
     colormap_name = 'Reds'
     result_serializer = ResultSerializer.AREA
+    unit = 'Minuten'
 
     @property
     def description(self):

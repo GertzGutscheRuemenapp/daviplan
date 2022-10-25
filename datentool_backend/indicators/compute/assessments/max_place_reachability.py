@@ -20,6 +20,7 @@ class MaxPlaceReachability(ModeVariantMixin, ServiceIndicator):
     colormap_name = 'YlOrRd'
     digits = 0
     result_serializer = ResultSerializer.PLACE
+    unit = 'Minuten'
 
     @property
     def description(self):
