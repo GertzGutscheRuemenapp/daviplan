@@ -427,8 +427,7 @@ export class VectorLayer extends MapLayer {
       olFeatures.forEach((feat, i) => feat.set('zIndex', olFeatures.length - i));
     }
     this.map.addFeatures(this.mapId!, olFeatures);
-    if (this.valueStyles?.fillColor)
-      this.legend = this._getColorLegend();
+    this.legend = this._getColorLegend();
     return olFeatures;
   }
 
