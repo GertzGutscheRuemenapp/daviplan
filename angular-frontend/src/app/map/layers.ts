@@ -363,9 +363,9 @@ export class VectorLayer extends MapLayer {
     const colorFunc = this.valueStyles.fillColor.colorFunc;
     if (this.valueStyles.fillColor.bins){
       this.valueStyles.fillColor.bins.forEach(bin => {
-        let label = (bin.minValue == undefined)? `bis ${bin.maxValue}`:
-            (bin.maxValue == undefined)? `ab ${bin.minValue}`:
-              `${bin.minValue} bis ${bin.maxValue}`;
+        let label = (bin.minValue == undefined)? `bis ${bin.maxValue?.toLocaleString()}`:
+            (bin.maxValue == undefined)? `ab ${bin.minValue.toLocaleString()}`:
+              `${bin.minValue.toLocaleString()} bis ${bin.maxValue.toLocaleString()}`;
         if (this.unit)
           label += ` ${this.unit}`;
         legend.entries.push({
