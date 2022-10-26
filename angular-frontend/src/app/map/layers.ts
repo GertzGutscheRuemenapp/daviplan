@@ -363,9 +363,9 @@ export class VectorLayer extends MapLayer {
     const colorFunc = this.valueStyles.fillColor.colorFunc;
     if (this.valueStyles.fillColor.bins){
       this.valueStyles.fillColor.bins.forEach(bin => {
-        let label = (bin.minValue == undefined)? `bis ${bin.maxValue}`:
-            (bin.maxValue == undefined)? `ab ${bin.minValue}`:
-              `${bin.minValue} bis ${bin.maxValue}`;
+        let label = (bin.minValue == undefined)? `bis ${bin.maxValue?.toLocaleString()}`:
+            (bin.maxValue == undefined)? `ab ${bin.minValue.toLocaleString()}`:
+              `${bin.minValue.toLocaleString()} bis ${bin.maxValue.toLocaleString()}`;
         if (this.unit)
           label += ` ${this.unit}`;
         legend.entries.push({
@@ -427,8 +427,7 @@ export class VectorLayer extends MapLayer {
       olFeatures.forEach((feat, i) => feat.set('zIndex', olFeatures.length - i));
     }
     this.map.addFeatures(this.mapId!, olFeatures);
-    if (this.valueStyles?.fillColor)
-      this.legend = this._getColorLegend();
+    this.legend = this._getColorLegend();
     return olFeatures;
   }
 

@@ -23,7 +23,8 @@ import {
   HorizontalBarchartComponent
 } from "../../../diagrams/horizontal-barchart/horizontal-barchart.component";
 import { sortBy } from "../../../helpers/utils";
-import { saveSvgAsPng } from "save-svg-as-png"
+import { saveSvgAsPng } from "save-svg-as-png";
+import { modes } from "../mode-select/mode-select.component";
 
 @Component({
   selector: 'app-rating',
@@ -205,13 +206,22 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           const place = places.find(p => p.id == result.placeId);
           if (!place) return;
           const formattedValue = `${result.value} ${this.selectedIndicator?.unit}`;
+          let description = `<b>${place.name}</b><br>
+                            ${this.selectedIndicator!.description}: <b>${formattedValue}</b><br>
+                            Jahr: ${this.year}<br>
+                            Szenario: ${this.activeScenario?.name}`;
+          this.selectedIndicator?.additionalParameters?.forEach(param => {
+            let value = this.indicatorParams[param.name];
+            if (param.name == 'mode') value = modes[value];
+            description += `<br>${param.title}: ${(value != undefined)? value: '-'}`;
+          })
           displayedPlaces.push({
             id: place.id,
             geometry: place.geom,
             properties: {
               name: place.name,
               label: formattedValue,
-              description: `<b>${place.name}</b><br>${this.selectedIndicator!.title}: ${formattedValue}`,
+              description: description,
               value: result.value
             }
           });
@@ -286,7 +296,16 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           const value = (data && data.value)? data.value: 0;
           max = Math.max(max, value);
           min = Math.min(min, value);
-          const formattedValue = `${value} ${this.selectedIndicator?.unit}`;
+          const formattedValue = `${value.toLocaleString()} ${this.selectedIndicator?.unit}`;
+          let description = `<b>${area.properties.label}</b><br>
+                            ${this.selectedIndicator!.description}: <b>${formattedValue}</b><br>
+                            Jahr: ${this.year}<br>
+                            Szenario: ${this.activeScenario?.name}`;
+          this.selectedIndicator?.additionalParameters?.forEach(param => {
+            let value = this.indicatorParams[param.name];
+            if (param.name == 'mode') value = modes[value];
+            description += `<br>${param.title}: ${(value != undefined)? value: '-'}`;
+          })
           // display "copies" because changes are made to the properties
           displayedAreas.push({
             id: area.id,
@@ -295,7 +314,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
               areaLevel: area.properties.areaLevel,
               attributes: area.properties.attributes,
               value: value,
-              description: `<b>${area.properties.label}</b><br>${this.selectedIndicator!.title}: ${formattedValue}`,
+              description: description,
               label: formattedValue
             }
           })

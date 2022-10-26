@@ -13,7 +13,6 @@ from datentool_backend.indicators.models import MatrixCellPlace
 from datentool_backend.area.models import Area
 
 
-
 @register_indicator()
 class AverageAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, ServiceIndicator):
     '''Mittlerer Zeitaufwand der Nachfragenden aus einer Gebietseinheit, um mit

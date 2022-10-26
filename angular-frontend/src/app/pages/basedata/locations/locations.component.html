@@ -238,7 +238,7 @@
           </mat-form-field>
         </td>
         <td>
-          <ng-container *ngIf="getFieldType(field.fieldType).ftype !== 'STR'">
+          <ng-container *ngIf="getFieldType(field.fieldType).ftype === 'NUM'">
             <input [(ngModel)]="field.unit" (change)="field.edited = true;">
           </ng-container>
         </td>

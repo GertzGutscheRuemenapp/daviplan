@@ -16,6 +16,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import * as fileSaver from "file-saver";
+import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 
 @Component({
   selector: 'app-transit-matrix',
@@ -234,10 +235,38 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  setFiles(event: Event){
+  setFiles(event: Event): void {
     const element = event.currentTarget as HTMLInputElement;
     const files: FileList | null = element.files;
     this.file =  (files && files.length > 0)? files[0]: undefined;
+  }
+
+  onDeleteVariant(): void {
+    if (!this.selectedVariant)
+      return;
+    const dialogRef = this.dialog.open(RemoveDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Das ÖPNV-Netz wirklich entfernen?',
+        message: 'Die Entfernung des ÖPNV-Netzes entfernt auch alle Haltestellen und die berechneten Erreichbarkeiten.',
+        confirmButtonText: `ÖPNV-Netz entfernen`,
+        value: this.selectedVariant.label
+      }
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.http.delete(`${this.rest.URLS.modevariants}${this.selectedVariant!.id}/`
+        ).subscribe(res => {
+          const idx = this.variants.indexOf(this.selectedVariant!);
+          if (idx > -1) {
+            this.variants.splice(idx, 1);
+          }
+          this.selectedVariant = undefined;
+        }, error => {
+          console.log('there was an error sending the query', error);
+        });
+      }
+    });
   }
 
   ngOnDestroy(): void {
