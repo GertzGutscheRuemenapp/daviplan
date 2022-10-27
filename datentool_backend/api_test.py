@@ -273,9 +273,12 @@ class BasicModelPutPatchTest:
         expected.update(self.expected_put_data)
         self.compare_data(response.data, expected)
 
+        data = self.patch_data.copy()
+        data['sync'] = True
+
         # check status code for patch
         response = self.patch(url, **kwargs,
-                              data=self.patch_data, extra=formatjson)
+                              data=data, extra=formatjson)
         self.response_200(msg=response.content)
 
         # check if name has changed
