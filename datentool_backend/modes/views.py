@@ -50,7 +50,7 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     @action(methods=['POST'], detail=False)
     def pull_base_network(self, request, **kwargs):
 
-        with ProtectedProcessManager(request.user,
+        with ProtectedProcessManager(user=request.user,
                                      scope=ProcessScope.ROUTING) as ppm:
             ppm.run_async(self._pull_base_network)
         return Response({'message': f'Download of base network successful'},
@@ -101,7 +101,7 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             return Response({'message': msg },
                             status=status.HTTP_400_BAD_REQUEST)
 
-        with ProtectedProcessManager(request.user,
+        with ProtectedProcessManager(user=request.user,
                                      scope=ProcessScope.ROUTING) as ppm:
             ppm.run_async(self._build_project_network)
 

@@ -69,8 +69,8 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
         drop_constraints = request.data.get('drop_constraints', True)
         run_sync = request.data.get('sync', False)
 
-        with ProtectedProcessManager(
-            request.user, scope=ProcessScope.POPULATION) as ppm:
+        with ProtectedProcessManager(user=request.user,
+                                     scope=ProcessScope.POPULATION) as ppm:
             if not run_sync:
                 ppm.run_async(self._pull_regionalstatistik, area_level,
                               drop_constraints=drop_constraints)

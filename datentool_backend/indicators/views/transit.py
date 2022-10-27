@@ -216,9 +216,8 @@ class TravelTimeRouterViewMixin(viewsets.GenericViewSet):
         places = request.data.get('places')
         logger.info('Starte Berechnung der Reisezeitmatrizen')
 
-        with ProtectedProcessManager(
-                request.user,
-                scope=ProcessScope.ROUTING) as ppm:
+        with ProtectedProcessManager(user=request.user,
+                                     scope=ProcessScope.ROUTING) as ppm:
             if not run_sync:
                 ppm.run_async(self.calc,
                               self.router,

@@ -49,6 +49,7 @@
   </div>
   <div fxLayout="column" fxFlex="600px">
     <app-input-card #areaCard
+                    [disabled]="isProcessing"
                     [title]="'Planungsraum'"
                     [topRightHelp]="true"
                     infoText="Um Ihren Planungsraum festzulegen oder zu verändern, klicken Sie bitte auf „Editieren“. Sie gelangen dann zu einer Kartendarstellung, in der Sie Ihren Planungsraum aus einzelnen Gemeinden, Verwaltungsgemeinschaften und Landkreisen zusammensetzen können."
@@ -64,6 +65,9 @@
       <div id="project-preview-map" class="map-container">
         <app-map-controls target="project-preview-map"></app-map-controls>
       </div>
+    </app-input-card>
+    <app-input-card subtitle="Daten-Historie Gebiete">
+      <app-log room="areas" (onMessage)="onMessage($event)" height="200px"></app-log>
     </app-input-card>
   </div>
 </div>
