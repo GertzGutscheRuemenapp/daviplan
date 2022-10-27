@@ -8,9 +8,7 @@ import logging
 
 from datentool_backend.utils.routers import OSRMRouter
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
-from datentool_backend.utils.pop_aggregation import intersect_areas_with_raster
 from datentool_backend.modes.models import Mode
-from datentool_backend.area.views import AreaLevelViewSet
 from datentool_backend.population.views.raster import PopulationRasterViewSet
 from datentool_backend.models import (DemandRateSet, Prognosis, ModeVariant,
                                       Year, AreaLevel, PopulationRaster, Area)
@@ -54,42 +52,6 @@ class ProjectSettingSerializer(serializers.ModelSerializer):
 
     def get_min_year(self, obj):
         return Year.MIN_YEAR
-
-    def update(self, instance, validated_data):
-        instance = super().update(instance, validated_data)
-        if (validated_data.get('project_area')):
-            with ProtectedProcessManager(scope=ProcessScope.AREAS) as ppm:
-                ppm.run_async(self._postprocess_project_area)
-        return instance
-
-    @staticmethod
-    def _postprocess_project_area():
-        logger.info('Verarbeitung des Planungsraums gestartet')
-        for popraster in PopulationRaster.objects.all():
-            logger.info('Verschneide Planungsraum mit dem Zensusraster...')
-            PopulationRasterViewSet._intersect_census(
-                popraster, drop_constraints=True)
-        logger.info('Bereinige Daten:')
-        for area_level in AreaLevel.objects.filter(is_preset=True):
-            areas = Area.objects.filter(area_level=area_level)
-            if len(areas) > 0:
-                logger.info(f'Lösche {len(areas)} Gebiete der Gebietseinteilung'
-                            f' {area_level.name}...')
-                areas.delete()
-        logger.info('Entferne eventuell vorhandene Router...')
-        # remove existing routers:
-        fp_target_pbf = os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf')
-        # ToDo: default network?
-        if os.path.exists(fp_target_pbf):
-            try:
-                os.remove(fp_target_pbf)
-            except:
-                pass
-        for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
-            router = OSRMRouter(mode)
-            if router.service_is_up:
-                router.remove()
-        logger.info('Verarbeitung des Planungsraums abgeschlossen.')
 
 
 class BaseDataSettingSerializer(serializers.Serializer):

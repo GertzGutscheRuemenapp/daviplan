@@ -209,7 +209,7 @@ class TravelTimeRouterViewMixin(viewsets.GenericViewSet):
                              'zu starten. Bitte warten Sie ein paar Minuten '
                              'und versuchen Sie es dann erneut')
 
-        if error_msg:
+        if error_msg and not air_distance_routing:
             return Response({'Fehler': error_msg},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

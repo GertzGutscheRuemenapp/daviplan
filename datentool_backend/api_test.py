@@ -257,9 +257,12 @@ class BasicModelPutPatchTest:
         if 'id' in response.data:
             assert response.data['id'] == self.obj.pk
 
+        data = self.put_data.copy()
+        data['sync'] = True
+
         # check status code for put
         response = self.put(url, **kwargs,
-                            data=self.put_data,
+                            data=data,
                             extra=formatjson)
         self.response_200(msg=response.content)
         assert response.status_code == status.HTTP_200_OK

@@ -107,6 +107,9 @@ class TestSiteSetting(TestAPIMixin, BasicModelSingletonTest, APITestCase):
         logo = self.patch_data['logo']
         logo.seek(0)
 
+        data = self.put_data.copy()
+        data['sync'] = True
+
         response = self.put(url, **kwargs,
                             data=self.put_data,
                             extra=format_multipart)
