@@ -12,7 +12,7 @@ import proj4 from 'proj4';
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { FormBuilder, FormGroup } from "@angular/forms";
-import { Observable } from "rxjs";
+import { Observable, Subscription } from "rxjs";
 import { Layer } from "ol/layer";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
@@ -20,6 +20,7 @@ import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dia
 import { tap } from "rxjs/operators";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import { RestCacheService } from "../../../rest-cache.service";
+import { SettingsService } from "../../../settings.service";
 
 export interface ProjectSettings {
   projectArea: string,
@@ -82,10 +83,12 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   @ViewChild('ageGroupCard') ageGroupCard!: InputCardComponent;
   @ViewChild('ageGroupContainer') ageGroupContainer!: ElementRef;
   @ViewChild('ageGroupWarning') ageGroupWarningTemplate?: TemplateRef<any>;
+  subscriptions: Subscription[] = [];
   isProcessing = false;
 
   constructor(private restService: RestCacheService,private mapService: MapService, private formBuilder: FormBuilder,
-              private http: HttpClient, private rest: RestAPI, private dialog: MatDialog) { }
+              private http: HttpClient, private rest: RestAPI, private dialog: MatDialog,
+              private settings: SettingsService) { }
 
   ngAfterViewInit(): void {
     this.setupPreviewMap();
@@ -99,6 +102,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     this.fetchAgeGroups().subscribe(ageGroups => {
       this.setupAgeGroupCard();
     });
+    this.subscriptions.push(this.settings.baseDataSettings$.subscribe(bs => this.isProcessing = bs.processes?.areas || false));
   }
 
   fetchProjectSettings(): Observable<ProjectSettings> {
@@ -615,10 +619,6 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     return intersections;
   }
 
-  ngOnDestroy(): void {
-    this.previewMapControl?.destroy();
-  }
-
   updateAreasInExtent(): void {
     const _this = this,
           extent = this.areaSelectMapControl?.map?.getExtent(),
@@ -671,5 +671,10 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
         this.updatePreviewLayer();
       });
     }
+  }
+
+  ngOnDestroy(): void {
+    this.previewMapControl?.destroy();
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }
