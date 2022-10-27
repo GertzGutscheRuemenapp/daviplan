@@ -3,7 +3,7 @@ import { MapControl, MapService } from "../../../map/map.service";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { Geometry, MultiPolygon, Polygon } from "ol/geom";
 import { Feature } from 'ol';
-import { AgeGroup } from "../../../rest-interfaces";
+import { AgeGroup, LogEntry } from "../../../rest-interfaces";
 import { register } from 'ol/proj/proj4'
 import union from '@turf/union';
 import * as turf from '@turf/helpers';
@@ -19,6 +19,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { tap } from "rxjs/operators";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
+import { RestCacheService } from "../../../rest-cache.service";
 
 export interface ProjectSettings {
   projectArea: string,
@@ -81,9 +82,10 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   @ViewChild('ageGroupCard') ageGroupCard!: InputCardComponent;
   @ViewChild('ageGroupContainer') ageGroupContainer!: ElementRef;
   @ViewChild('ageGroupWarning') ageGroupWarningTemplate?: TemplateRef<any>;
+  isProcessing = false;
 
-  constructor(private mapService: MapService, private formBuilder: FormBuilder, private http: HttpClient,
-              private rest: RestAPI, private dialog: MatDialog) { }
+  constructor(private restService: RestCacheService,private mapService: MapService, private formBuilder: FormBuilder,
+              private http: HttpClient, private rest: RestAPI, private dialog: MatDialog) { }
 
   ngAfterViewInit(): void {
     this.setupPreviewMap();
@@ -377,24 +379,35 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       this.showAreaLayers = false;
     })
     this.areaCard.dialogConfirmed.subscribe(ok => {
-      const dialogRef = SimpleDialogComponent.show(
-        'Geometrie des Projektgebietes wird hochgeladen und mit dem Raster verschnitten. ' +
-                'Die Gebiete der vordefinierten Gebietseinteilungen innerhalb des Projektgebietes werden heruntergeladen.<br><br>' +
-                'Dies kann einige Minuten dauern. Bitte warten',
-        this.dialog, { showAnimatedDots: true, width: '400px' });
-      const format = new WKT();
-      let projectGeom = this.getMergedSelectGeometry();
-      let wkt = projectGeom? `SRID=${this.areaSelectMapControl?.srid};` + format.writeGeometry(projectGeom) : null
-      this.http.patch<ProjectSettings>(`${this.rest.URLS.projectSettings}`,
-        { projectArea: wkt }
-      ).subscribe(settings => {
-        dialogRef.close();
-        this.areaCard?.closeDialog(true);
-        this.projectSettings = settings;
-        this.updatePreviewLayer();
-      },(error) => {
-        dialogRef.close();
-        this.projectAreaErrors = error.error;
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '400px',
+        data: {
+          title: 'Planungsraum bestätigen',
+          confirmButtonText: 'Planungsraum speichern',
+          closeOnConfirm: true,
+          message: 'Das Setzen des Planungsraum entfernt alle bereits mit diesem verknüpften Daten.<br>' +
+            'Dazu zählen die Router, die Gebiete der vordefinierten Gebietseinteilungen und damit verbundene Bevölkerungsdaten.'
+        },
+        panelClass: 'warning'
+      });
+      dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+        if (confirmed) {
+          this.areaCard?.setLoading(true);
+          const format = new WKT();
+          let projectGeom = this.getMergedSelectGeometry();
+          let wkt = projectGeom? `SRID=${this.areaSelectMapControl?.srid};` + format.writeGeometry(projectGeom) : null
+          this.http.patch<ProjectSettings>(`${this.rest.URLS.projectSettings}`,
+            { projectArea: wkt }
+          ).subscribe(settings => {
+            // reset cache
+            this.restService.reset();
+            this.isProcessing = true;
+            this.areaCard?.closeDialog(true);
+          },(error) => {
+            this.projectAreaErrors = error.error;
+            this.areaCard?.setLoading(false);
+          });
+        }
       });
     })
   }
@@ -649,5 +662,14 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     this.selectedBaseAreaMapping.clear();
     this.updateProjectLayer();
     this.areaCard.setLoading(false);
+  }
+
+  onMessage(log: LogEntry): void {
+    if (log?.status?.success) {
+      this.isProcessing = false;
+      this.fetchProjectSettings().subscribe(settings => {
+        this.updatePreviewLayer();
+      });
+    }
   }
 }

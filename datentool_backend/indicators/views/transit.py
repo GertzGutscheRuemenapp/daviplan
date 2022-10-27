@@ -209,16 +209,15 @@ class TravelTimeRouterViewMixin(viewsets.GenericViewSet):
                              'zu starten. Bitte warten Sie ein paar Minuten '
                              'und versuchen Sie es dann erneut')
 
-        if error_msg:
+        if error_msg and not air_distance_routing:
             return Response({'Fehler': error_msg},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         places = request.data.get('places')
         logger.info('Starte Berechnung der Reisezeitmatrizen')
 
-        with ProtectedProcessManager(
-                request.user,
-                scope=ProcessScope.ROUTING) as ppm:
+        with ProtectedProcessManager(user=request.user,
+                                     scope=ProcessScope.ROUTING) as ppm:
             if not run_sync:
                 ppm.run_async(self.calc,
                               self.router,
