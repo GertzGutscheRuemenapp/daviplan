@@ -396,21 +396,27 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       });
       dialogRef.afterClosed().subscribe((confirmed: boolean) => {
         if (confirmed) {
-          this.areaCard?.setLoading(true);
-          const format = new WKT();
-          let projectGeom = this.getMergedSelectGeometry();
-          let wkt = projectGeom? `SRID=${this.areaSelectMapControl?.srid};` + format.writeGeometry(projectGeom) : null
-          this.http.patch<ProjectSettings>(`${this.rest.URLS.projectSettings}`,
-            { projectArea: wkt }
-          ).subscribe(settings => {
-            // reset cache
-            this.restService.reset();
-            this.isProcessing = true;
-            this.areaCard?.closeDialog(true);
-          },(error) => {
-            this.projectAreaErrors = error.error;
-            this.areaCard?.setLoading(false);
-          });
+          const dialogRef = SimpleDialogComponent.show(
+            '<p>Während der Berechnung der Geometrien kann es passieren, dass die Seite nicht mehr reagiert. </p>'+
+            'Bitte trotzdem warten...', this.dialog, { width: '400px' });
+          setTimeout(() => {
+            this.areaCard?.setLoading(true);
+            const format = new WKT();
+            let projectGeom = this.getMergedSelectGeometry();
+            let wkt = projectGeom? `SRID=${this.areaSelectMapControl?.srid};` + format.writeGeometry(projectGeom) : null
+            this.http.patch<ProjectSettings>(`${this.rest.URLS.projectSettings}`,
+              { projectArea: wkt }
+            ).subscribe(settings => {
+              // reset cache
+              this.restService.reset();
+              this.isProcessing = true;
+              this.areaCard?.closeDialog(true);
+            },(error) => {
+              this.projectAreaErrors = error.error;
+              this.areaCard?.setLoading(false);
+            });
+            dialogRef.close();
+          }, 0);
         }
       });
     })
@@ -485,28 +491,32 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
    * change active layer to currently selected one
    */
   changeAreaLayer(): void {
-    this.areaCard.setLoading(true);
-    this.areaLayers.forEach(al => {
-      const layer = this.areaSelectMapControl?.map?.getLayer(al.tag),
-            select = layer?.get('select');
-      layer?.setOpacity((al.tag === this.selectedAreaLayer.tag) ? 0.5 : 0);
-      select.setActive(al.tag === this.selectedAreaLayer.tag);
-      layer?.set('showTooltip', al.tag === this.selectedAreaLayer.tag);
-      const overlay = this.areaSelectMapControl?.map?.overlays[layer?.get('name')];
-      if (overlay) {
-        // overlay.getSource().clear();
-        overlay.setVisible(al.tag === this.selectedAreaLayer.tag);
-      }
-    })
-    const layer = this.areaSelectMapControl?.map?.getLayer(this.selectedAreaLayer.tag),
+    const dialogRef = SimpleDialogComponent.show(
+      '<p>Während der Berechnung der Geometrien kann es passieren, dass die Seite nicht mehr reagiert. </p>'+
+      'Bitte trotzdem warten...', this.dialog, { width: '400px' });
+    setTimeout(() => {
+      this.areaLayers.forEach(al => {
+        const layer = this.areaSelectMapControl?.map?.getLayer(al.tag),
           select = layer?.get('select');
-    select.getFeatures().clear();
-    const selectGeom = this.getMergedSelectGeometry();
-    if (selectGeom) {
-      let intersections = this.getIntersections(selectGeom, layer!);
-      select.getFeatures().extend(intersections);
-    }
-    this.areaCard.setLoading(false);
+        layer?.setOpacity((al.tag === this.selectedAreaLayer.tag) ? 0.5 : 0);
+        select.setActive(al.tag === this.selectedAreaLayer.tag);
+        layer?.set('showTooltip', al.tag === this.selectedAreaLayer.tag);
+        const overlay = this.areaSelectMapControl?.map?.overlays[layer?.get('name')];
+        if (overlay) {
+          // overlay.getSource().clear();
+          overlay.setVisible(al.tag === this.selectedAreaLayer.tag);
+        }
+      })
+      const layer = this.areaSelectMapControl?.map?.getLayer(this.selectedAreaLayer.tag),
+        select = layer?.get('select');
+      select.getFeatures().clear();
+      const selectGeom = this.getMergedSelectGeometry();
+      if (selectGeom) {
+        let intersections = this.getIntersections(selectGeom, layer!);
+        select.getFeatures().extend(intersections);
+      }
+      dialogRef.close();
+    }, 0);
   }
 
   /**
@@ -567,6 +577,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     let mergedGeom: turf.Feature<turf.MultiPolygon | turf.Polygon> | null = null;
     this.selectedBaseAreaMapping.forEach((f: Feature<any>) => {
       // const json = format.writeGeometryObject(f.getGeometry());
+      const geom = f.getGeometry();
       const poly = turf.multiPolygon(f.getGeometry().getCoordinates());
       mergedGeom = mergedGeom ? union(poly, mergedGeom) : poly;
     })
