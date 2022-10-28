@@ -80,7 +80,8 @@ class ProtectedProcessManager:
                 break
         if blocking_scope:
             user = self.user(blocking_scope)
-            user_name = f'Nutzer:in "{user_name}"' if user else 'Unbekannte:r Nutzer:in'
+            user_name = f'Nutzer:in "{user.username}"' if user \
+                else 'Unbekannte:r Nutzer:in'
             msg = (f'{user_name} lädt momentan Daten im Bereich '
                    f'"{ProcessScope(blocking_scope).label}" hoch. Andere Uploads '
                    'sind währenddessen gesperrt. Bitte warten Sie bis '
