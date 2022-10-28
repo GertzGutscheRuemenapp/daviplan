@@ -256,7 +256,8 @@ function findBin(arr: number[], value: number) {
 }
 
 export class VectorLayer extends MapLayer {
-  featureSelected: EventEmitter<{ feature: any, selected: boolean }>
+  featuresSelected: EventEmitter<Feature<any>[]>
+  featuresDeselected: EventEmitter<Feature<any>[]>
   showLabel?: boolean;
   tooltipField?: string;
   labelField?: string;
@@ -288,7 +289,8 @@ export class VectorLayer extends MapLayer {
     this.selectable = options?.select?.enabled;
     this.multiSelect = options?.select?.multi;
     this.mouseOverCursor = options?.mouseOver?.cursor;
-    this.featureSelected = new EventEmitter<any>();
+    this.featuresSelected = new EventEmitter<Feature<any>[]>();
+    this.featuresDeselected = new EventEmitter<Feature<any>[]>();
     this.valueStyles = options?.valueStyles;
     this.radius = options?.radius;
     this.unit = options?.unit;
@@ -433,10 +435,11 @@ export class VectorLayer extends MapLayer {
 
   protected initSelect() {
     this.map?.selected.subscribe(evt => {
+      if (evt.layer.get('id') !== this.id) return;
       if (evt.selected && evt.selected.length > 0)
-        evt.selected.forEach(feature => this.featureSelected.emit({ feature: feature, selected: true }));
+        this.featuresSelected.emit(evt.selected);
       if (evt.deselected && evt.deselected.length > 0)
-        evt.deselected.forEach(feature => this.featureSelected.emit({ feature: feature, selected: false }));
+        this.featuresDeselected.emit(evt.deselected);
     })
   }
 
@@ -466,7 +469,7 @@ export class VectorLayer extends MapLayer {
 
   removeFromMap(): void {
     this.setSelectable(false);
-    this.featureSelected.unsubscribe();
+    this.featuresSelected.unsubscribe();
     this.map?.removeLayer(this.mapId!);
     this.mapId = undefined;
     this.map = undefined;
