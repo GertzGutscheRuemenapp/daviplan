@@ -180,8 +180,8 @@ export class AgeTreeComponent implements AfterViewInit {
       rightBar.selectAll('rect').classed('highlight', true);
 
       let text = `<b>${labels[i]}</b><br>`;
-      text += `<span class='female'><b>Anzahl weiblich:</b></span> ${femaleAges[i]}<br>`;
-      text += `<span class='male'><b>Anzahl männlich:</b></span> ${maleAges[i]}<br>`;
+      text += `<span class='female'><b>Anzahl weiblich:</b></span> ${femaleAges[i].toLocaleString()}<br>`;
+      text += `<span class='male'><b>Anzahl männlich:</b></span> ${maleAges[i].toLocaleString()}<br>`;
 
       tooltip.style('display', null);
       tooltip.html(text);
