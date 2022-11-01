@@ -23,8 +23,12 @@ from datentool_backend.utils.permissions import CanEditBasedata
 from datentool_backend.utils.views import ProtectCascadeMixin
 from datentool_backend.models import (SiteSetting, ProjectSetting, Year,
                                       Year, AreaLevel, PopulationRaster, Area)
-from .serializers import (SiteSettingSerializer, ProjectSettingSerializer,
-                          BaseDataSettingSerializer, YearSerializer)
+from .serializers import (SiteSettingSerializer,
+                          ProjectSettingSerializer,
+                          BaseDataSettingSerializer,
+                          YearSerializer,
+                          MatrixStatisticsSerializer,
+                          )
 from datentool_backend.utils.processes import (ProtectedProcessManager,
                                                ProcessScope)
 from datentool_backend.population.views.raster import PopulationRasterViewSet
@@ -219,4 +223,12 @@ class SiteSettingViewSet(SingletonViewSet):
     serializer_class = SiteSettingSerializer
     parser_classes = [CamelCaseMultiPartParser, CamelCaseJSONParser]
     permission_classes = [HasAdminAccessOrReadOnlyAny]
+
+
+class MatrixStatisticsViewSet(viewsets.GenericViewSet):
+    serializer_class = MatrixStatisticsSerializer
+    def list(self, request):
+        results = self.serializer_class({}, many=False).data
+        return Response(results)
+
 

@@ -3,11 +3,15 @@ from datentool_backend.user.views import UserViewSet
 from datentool_backend.site.views import (SiteSettingViewSet,
                                           ProjectSettingViewSet,
                                           BaseDataSettingViewSet,
+                                          MatrixStatisticsViewSet,
                                           YearViewSet)
 
-from .area.views import (LayerGroupViewSet, WMSLayerViewSet,
-                         AreaLevelViewSet, AreaViewSet,
-                         FieldTypeViewSet, AreaFieldViewSet,
+from .area.views import (LayerGroupViewSet,
+                         WMSLayerViewSet,
+                         AreaLevelViewSet,
+                         AreaViewSet,
+                         FieldTypeViewSet,
+                         AreaFieldViewSet,
                          )
 
 from .demand.views import (GenderViewSet,
@@ -119,6 +123,8 @@ router.register(r'services', ServiceViewSet, basename='services')
 # site
 router.register('basedatasettings', BaseDataSettingViewSet,
                 basename='basedatasettings')
+router.register('matrixstatistics', MatrixStatisticsViewSet,
+                basename='matrixstatistics')
 srouter = SingletonRouter()
 srouter.register('projectsettings', ProjectSettingViewSet,
                  basename='projectsettings')
