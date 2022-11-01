@@ -181,12 +181,13 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   onCreateArea(): void {
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
-      width: '300px',
+      width: '500px',
       disableClose: true,
       data: {
         title: 'Neue benutzerdefinierte Gebietseinteilung',
         template: this.createLevelTemplate,
-        closeOnConfirm: false
+        closeOnConfirm: false,
+        showCloseButton: false
       }
     });
     dialogRef.afterOpened().subscribe(sth => {
