@@ -129,6 +129,7 @@ export class ScenarioMenuComponent implements OnInit {
   onCreateScenario(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
+      panelClass: 'absolute',
       data: {
         title: $localize`Szenario erstellen`,
         // confirmButtonText: $localize`erstellen`,
@@ -162,6 +163,7 @@ export class ScenarioMenuComponent implements OnInit {
     if(!this.activeScenario) return;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
+      panelClass: 'absolute',
       data: {
         title: $localize`Szenario umbenennen`,
         // confirmButtonText: $localize`umbenennen`,
@@ -193,6 +195,7 @@ export class ScenarioMenuComponent implements OnInit {
   onShowSupplyTable(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
+      panelClass: 'absolute',
       data: {
         title: $localize`Übersicht der Änderungen`,
         // confirmButtonText: $localize`umbenennen`,
@@ -207,6 +210,7 @@ export class ScenarioMenuComponent implements OnInit {
   onShowDemandPlaceholder(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
+      panelClass: 'absolute',
       data: {
         // title: $localize``,
         // confirmButtonText: $localize`umbenennen`,
@@ -229,6 +233,7 @@ export class ScenarioMenuComponent implements OnInit {
             const service = this.planningService.activeService;
             const dialogRef = this.dialog.open(ConfirmDialogComponent, {
               width: '900px',
+              panelClass: 'absolute',
               data: {
                 title: 'Nachfragequoten',
                 subtitle: `Leistung "${service?.name}" / Set "${demandRateSet?.name}"`,

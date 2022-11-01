@@ -331,6 +331,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   uploadTemplate(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: `Template hochladen`,
         confirmButtonText: 'Datei hochladen',

@@ -323,6 +323,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   pullService(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
+      panelClass: 'absolute',
       data: {
         title: 'Einwohnerdaten abrufen',
         confirmButtonText: 'Daten abrufen',
@@ -385,6 +386,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   uploadTemplate(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: `Template hochladen`,
         confirmButtonText: 'Datei hochladen',

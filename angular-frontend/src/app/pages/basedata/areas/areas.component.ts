@@ -249,6 +249,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       return;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: `WFS Daten abrufen`, //für Gebietseinheit "${this.activeLevel.name}"`,
         confirmButtonText: 'Daten abrufen',
@@ -279,6 +280,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       return;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: `Daten hochladen`, //für Gebietseinheit "${this.activeLevel.name}"`,
         confirmButtonText: 'Datei hochladen',
