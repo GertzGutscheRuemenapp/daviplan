@@ -1,13 +1,13 @@
 import { Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { AreaLevel, FClass, FieldType, Infrastructure } from "../../../../rest-interfaces";
-import { BehaviorSubject, forkJoin, Observable } from "rxjs";
+import { FClass, FieldType } from "../../../../rest-interfaces";
+import { BehaviorSubject, Observable } from "rxjs";
 import { RestAPI } from "../../../../rest-api";
 import { HttpClient } from "@angular/common/http";
 import { MatDialog } from "@angular/material/dialog";
 import { RemoveDialogComponent } from "../../../../dialogs/remove-dialog/remove-dialog.component";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { ConfirmDialogComponent } from "../../../../dialogs/confirm-dialog/confirm-dialog.component";
-import { arrayMove, sortBy } from "../../../../helpers/utils";
+import { arrayMove } from "../../../../helpers/utils";
 
 @Component({
   selector: 'app-classifications',
@@ -142,7 +142,7 @@ export class ClassificationsComponent implements OnInit {
       if (this.nameForm.invalid) return;
       let classes = Object.assign([],this.selectedClassification!.classification || []);
       const value = this.nameForm.value.name;
-      classes.push({ value: value, order: classes!.length || 1 })
+      classes.push({ value: value, order: classes.length + 1 })
       const attributes = { classification: classes };
       this.patchClassificaton(this.selectedClassification!.id, attributes).subscribe(fieldType => {
         Object.assign(this.selectedClassification!, fieldType);
@@ -217,7 +217,7 @@ export class ClassificationsComponent implements OnInit {
     else return;
 
     this.selectedClassification.classification!.forEach((fclass,i) => {
-        fclass.order = i + 1;
+      fclass.order = i + 1;
     });
     this.patchClassificaton(this.selectedClassification.id, { classification: this.selectedClassification.classification })
       .subscribe(() => this.orderIsChanging$.next(false))
