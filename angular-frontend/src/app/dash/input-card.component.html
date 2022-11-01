@@ -1,4 +1,6 @@
-<mat-card class="dashboard-card mat-elevation-z0" [ngClass]="{'borderless': borderless, 'disabled': disabled}">
+<mat-card class="dashboard-card mat-elevation-z0"
+          [ngClass]="{'borderless': borderless, 'disabled': disabled}"
+          [style.width]="width? width: ''">
   <h4 *ngIf="title" class="title">{{title}}</h4>
   <div *ngIf="!disabled && infoText && topRightHelp" class="info-text"
        [ngClass]="{'top-right': topRightHelp}"

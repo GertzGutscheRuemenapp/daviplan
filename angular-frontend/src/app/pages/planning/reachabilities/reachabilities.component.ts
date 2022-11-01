@@ -177,12 +177,10 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         }));
         this.placesLayer?.setSelectable(this.indicator === 'place');
 
-        this.placesLayer?.featureSelected?.subscribe(evt => {
-          if (evt.selected) {
-            this.selectedPlaceId = evt.feature.get('id');
-            this.cookies.set('reachability-place', this.selectedPlaceId);
-            this.showPlaceReachability();
-          }
+        this.placesLayer?.featuresSelected?.subscribe(features => {
+          this.selectedPlaceId = features[0].get('id');
+          this.cookies.set('reachability-place', this.selectedPlaceId);
+          this.showPlaceReachability();
         })
         subscriber.next(true);
         subscriber.complete();

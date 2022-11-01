@@ -10,16 +10,25 @@ from rest_framework import viewsets, status, serializers
 from rest_framework.decorators import action
 from djangorestframework_camel_case.parser import (CamelCaseMultiPartParser,
                                                    CamelCaseJSONParser)
-from django.db import connection
+from django.conf import settings
+import os
+import logging
 
+from datentool_backend.utils.routers import OSRMRouter
+from datentool_backend.modes.models import Mode
 from datentool_backend.utils.serializers import MessageSerializer
 from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
                                                  HasAdminAccessOrReadOnlyAny)
 from datentool_backend.utils.permissions import CanEditBasedata
 from datentool_backend.utils.views import ProtectCascadeMixin
-from .models import SiteSetting, ProjectSetting, Year
+from datentool_backend.models import (SiteSetting, ProjectSetting, Year,
+                                      Year, AreaLevel, PopulationRaster, Area)
 from .serializers import (SiteSettingSerializer, ProjectSettingSerializer,
                           BaseDataSettingSerializer, YearSerializer)
+from datentool_backend.utils.processes import (ProtectedProcessManager,
+                                               ProcessScope)
+from datentool_backend.population.views.raster import PopulationRasterViewSet
+
 
 
 class YearFilter(filters.FilterSet):
@@ -152,6 +161,49 @@ class ProjectSettingViewSet(SingletonViewSet):
     model_class = ProjectSetting
     serializer_class = ProjectSettingSerializer
     permission_classes = [HasAdminAccessOrReadOnlyAny]
+
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        run_sync = request.data.get('sync', False)
+
+        if response.status_code == 200 and request.data.get('project_area'):
+            with ProtectedProcessManager(user=request.user,
+                                         scope=ProcessScope.AREAS) as ppm:
+                if not run_sync:
+                    ppm.run_async(self._postprocess_project_area)
+                else:
+                    self._postprocess_project_area()
+        return response
+
+    @staticmethod
+    def _postprocess_project_area():
+        logger = logging.getLogger('areas')
+        logger.info('Verarbeitung des Planungsraums gestartet')
+        for popraster in PopulationRaster.objects.all():
+            logger.info('Verschneide Planungsraum mit dem Zensusraster...')
+            PopulationRasterViewSet._intersect_census(
+                popraster, drop_constraints=True)
+        logger.info('Bereinige Daten:')
+        for area_level in AreaLevel.objects.filter(is_preset=True):
+            areas = Area.objects.filter(area_level=area_level)
+            if len(areas) > 0:
+                logger.info(f'Lösche {len(areas)} Gebiete der Ebene '
+                            f'{area_level.name}...')
+                areas.delete()
+        logger.info('Entferne eventuell vorhandene Router...')
+        # remove existing routers:
+        fp_target_pbf = os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf')
+        # ToDo: default network?
+        if os.path.exists(fp_target_pbf):
+            try:
+                os.remove(fp_target_pbf)
+            except:
+                pass
+        for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
+            router = OSRMRouter(mode)
+            if router.service_is_up:
+                router.remove()
+        logger.info('Verarbeitung des Planungsraums abgeschlossen.')
 
 
 class BaseDataSettingViewSet(viewsets.GenericViewSet):

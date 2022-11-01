@@ -15,7 +15,7 @@ class Stop(DatentoolModelMixin, NamedModel, models.Model):
     hstnr = models.IntegerField()
     name = models.TextField()
     geom = gis_models.PointField(srid=3857)
-    variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
+    variant = models.ForeignKey(ModeVariant, on_delete=models.CASCADE)
 
     objects = models.Manager()
     copymanager = DirectCopyManager()
@@ -46,7 +46,7 @@ class MatrixCellStop(DatentoolModelMixin, models.Model):
                              related_name='cell_stop')
     stop = models.ForeignKey(Stop, on_delete=PROTECT_CASCADE,
                              related_name='stop_cell')
-    variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
+    variant = models.ForeignKey(ModeVariant, on_delete=models.CASCADE)
     minutes = models.FloatField()
 
     class Meta:
@@ -62,7 +62,7 @@ class MatrixPlaceStop(models.Model):
                               related_name='place_stop')
     stop = models.ForeignKey(Stop, on_delete=PROTECT_CASCADE,
                              related_name='stop_place')
-    variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
+    variant = models.ForeignKey(ModeVariant, on_delete=models.CASCADE)
     minutes = models.FloatField()
 
     class Meta:
@@ -78,7 +78,7 @@ class MatrixStopStop(models.Model):
                                   related_name='from_stop')
     to_stop = models.ForeignKey(Stop, on_delete=PROTECT_CASCADE,
                                 related_name='to_stop')
-    variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
+    variant = models.ForeignKey(ModeVariant, on_delete=models.CASCADE)
     minutes = models.FloatField()
 
     class Meta:

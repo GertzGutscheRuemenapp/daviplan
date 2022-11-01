@@ -37,6 +37,7 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
   downloadBaseNetwork(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: `OpenStreetMap-Straßennetz herunterladen`,
         confirmButtonText: 'Straßennetz herunterladen',
@@ -61,6 +62,7 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
   createProjectNetwork(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: `Straßennetz mit Projektgebiet verschneiden`,
         confirmButtonText: 'Straßennetz verschneiden',
@@ -80,6 +82,7 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
   createMatrices(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: `Reisezeitmatrizen erzeugen`,
         confirmButtonText: 'Berechnung starten',

@@ -43,6 +43,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   subscriptions: Subscription[] = [];
   populationLayer?: VectorLayer;
   layerGroup?: MapLayerGroup;
+  comparedYear = 0;
   compareYears = false;
   areaLevels: AreaLevel[] = [];
   areas: Area[] = [];
@@ -145,6 +146,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     this.activePrognosis = this.prognoses!.find(p => p.id === progId) || defaultProg;
     const year = this.cookies.get('pop-year','number');
     this.year = year || this.realYears![this.realYears!.length - 1];
+    this.comparedYear = this.realYears![0];
     const areaLevelId = this.cookies.get('pop-area-level','number');
     this.activeLevel = this.areaLevels.find(al => al.id === areaLevelId) || ((this.areaLevels.length > 0)? this.areaLevels[this.areaLevels.length - 1]: undefined);
 
@@ -214,14 +216,19 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     const prognosis = (this.realYears?.indexOf(this.year) === -1)? this.activePrognosis?.id: undefined;
     const genders = (this.selectedGender?.id !== -1)? [this.selectedGender!.id]: undefined;
     const ageGroups = this.ageGroupSelection.selected;
-    if (this.populationLayer) {
-      this.layerGroup?.removeLayer(this.populationLayer);
-      this.populationLayer = undefined;
-    }
+    const showLabel = (this.populationLayer?.showLabel !== undefined)? this.populationLayer.showLabel: true;
+    this.layerGroup?.clear()
     this.updateMapDescription();
     if (ageGroups.length === 0 || !this.activeLevel) return;
-    this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,
-      { genders: genders, prognosis: prognosis, ageGroups: ageGroups.map(ag => ag.id!) }).subscribe(popData => {
+    const comparedYear = (this.compareYears)? this.comparedYear: undefined;
+    const comparedPrognosis = (comparedYear && this.realYears?.indexOf(comparedYear) === -1)? this.activePrognosis?.id: undefined;
+    this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,{
+      genders: genders, prognosis: prognosis, ageGroups: ageGroups.map(ag => ag.id!),
+      comparedYear: comparedYear, comparedPrognosis: comparedPrognosis
+      }).subscribe(popData => {
+      const fillColor = (this.compareYears)? {
+        colorFunc: (value: number) => (value > 0)? '#1a9850': (value < 0)? '#d73027': 'grey'
+      }: undefined;
       this.populationLayer = new VectorLayer(this.activeLevel!.name,{
         order: 0,
         description: this.activeLevel!.name,
@@ -232,6 +239,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
           symbol: 'circle'
         },
         labelField: 'value',
+        showLabel: showLabel,
         tooltipField: 'description',
         mouseOver: {
           enabled: true,
@@ -253,6 +261,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
             range: [5, 50],
             scale: 'linear'
           },
+          fillColor: fillColor,
           min: 0,
           max: this.activeLevel?.maxValues!.population! || 1000
         },
@@ -262,7 +271,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       this.areas.forEach(area => {
         const data = popData.values.find(d => d.areaId == area.id);
         area.properties.value = (data)? Math.round(data.value): 0;
-        area.properties.description = `<b>${area.properties.label}</b><br>Bevölkerung: ${area.properties.value}`
+        area.properties.description = `<b>${area.properties.label}</b><br>Bevölkerung: ${area.properties.value.toLocaleString()}`
       })
       this.populationLayer.addFeatures(this.areas,{
         properties: 'properties',
@@ -271,18 +280,22 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       });
       if (this.activeArea)
         this.populationLayer.selectFeatures([this.activeArea.id], { silent: true });
-      this.populationLayer!.featureSelected.subscribe(evt => {
-        if (evt.selected) {
-          this.activeArea = this.areas.find(area => area.id === evt.feature.get('id'));
-        }
-        else {
-          this.activeArea = undefined;
-        }
-        this.cookies.set(`pop-area-${this.activeLevel!.id}`, this.activeArea?.id);
-        this.chartToggle.expanded = true;
-        this.updateDiagrams();
+
+      this.populationLayer!.featuresSelected.subscribe(features => {
+        this.setArea(this.areas.find(area => area.id === features[0].get('id')));
+      })
+      this.populationLayer!.featuresSelected.subscribe(features => {
+        if (this.activeArea?.id === features[0].get('id'))
+          this.setArea(undefined);
       })
     })
+  }
+
+  setArea(area: Area | undefined): void {
+    this.activeArea = area;
+    this.cookies.set(`pop-area-${this.activeLevel!.id}`, this.activeArea?.id);
+    this.chartToggle.expanded = true;
+    this.updateDiagrams();
   }
 
   updateDiagrams(): void {
@@ -427,6 +440,12 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
                     `${genderDesc} | ${ageGroupDesc}`;
     }
     this.mapControl?.setDescription(description);
+  }
+
+  updateCompare(): void {
+    console.log(this.comparedYear);
+    console.log(this.compareYears);
+    this.updateMap();
   }
 
   ngOnDestroy(): void {

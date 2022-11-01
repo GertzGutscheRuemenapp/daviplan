@@ -34,6 +34,7 @@ export class SimpleDialogComponent {
   ): MatDialogRef<SimpleDialogComponent> {
     const dialogRef = dialog.open(SimpleDialogComponent, {
       autoFocus: true,
+      panelClass: 'absolute',
       width: options?.width || '300px',
       disableClose: (options?.disableClose != undefined)? options?.disableClose: true,
       data: {

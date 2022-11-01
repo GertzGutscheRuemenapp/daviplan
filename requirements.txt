@@ -28,7 +28,6 @@ matrixconverters
 packaging
 channels==3.*
 channels_redis
-aioredis
 routingpy
 django_q
 matplotlib
