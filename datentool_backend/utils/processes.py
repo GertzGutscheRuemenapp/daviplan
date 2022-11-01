@@ -22,7 +22,7 @@ class ProtectedProcessManager:
     '''
     # for some undocumented reason django_q needs this attribute
     __name__ = 'ProtectedProcessManager'
-    def __init__(self, user: 'User', scope: ProcessScope = ProcessScope.GENERAL,
+    def __init__(self, user: 'User' = None, scope: ProcessScope = ProcessScope.GENERAL,
                  logger=None, blocked_by=[s for s in ProcessScope]):
         '''
         Parameters
@@ -80,8 +80,9 @@ class ProtectedProcessManager:
                 break
         if blocking_scope:
             user = self.user(blocking_scope)
-            user_name = user.username if user else 'unbekannt'
-            msg = (f'User "{user_name}" lädt momentan Daten im Bereich '
+            user_name = f'Nutzer:in "{user.username}"' if user \
+                else 'Unbekannte:r Nutzer:in'
+            msg = (f'{user_name} lädt momentan Daten im Bereich '
                    f'"{ProcessScope(blocking_scope).label}" hoch. Andere Uploads '
                    'sind währenddessen gesperrt. Bitte warten Sie bis '
                    'der Vorgang abgeschlossen ist und versuchen Sie es erneut.')

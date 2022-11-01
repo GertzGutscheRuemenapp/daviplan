@@ -56,7 +56,8 @@ class IndicatorListSerializer(serializers.ListSerializer):
         # so, first get a queryset from the Manager if needed
         iterable = data.all() if isinstance(data, models.Manager) else data
 
-        self.child._digits_to_round = self.get_digits(iterable)
+        if self.child._digits_to_round is None:
+            self.child._digits_to_round = self.get_digits(iterable)
 
         return [
             self.child.to_representation(item) for item in iterable

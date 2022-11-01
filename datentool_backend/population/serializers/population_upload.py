@@ -134,6 +134,8 @@ class PopulationTemplateSerializer(serializers.Serializer):
                         values='value', index=df_values.index,
                         columns=['gender_id', 'age_group_id'])
                     df_areas.loc[df_values.index, :] = df_values.values
+                else:
+                    df_areas.loc[:, :] = pd.NA
 
                 df_areas.to_excel(writer,
                                   sheet_name=str(year),
@@ -212,25 +214,23 @@ class PopulationTemplateSerializer(serializers.Serializer):
                                     columns=['age_group_id', 'Altersgruppe'])\
             .set_index('Altersgruppe')
 
-        #if prognosis_name:
-            #prognosis
         n_years = meta['B2'].value
         years = [meta.cell(3, n).value for n in range(2, n_years + 2)]
         populations = []
         for y in years:
+            if not str(y) in wb.sheetnames:
+                self.logger.info(f'Excel-Blatt für Jahr {y} nicht vorhanden')
+                continue
             year, created = Year.objects.get_or_create(year=y)
             population, created = Population.objects.get_or_create(
                 prognosis_id=prognosis_id,
                 year=year,
-                #popraster=popraster,
-                )
-
+            )
             try:
                 # get the values and unpivot the data
                 df_pop = pd.read_excel(excel_file.file,
                                        sheet_name=str(y),
                                        header=[1, 2, 3, 4],
-                                       #skiprows=[1],
                                        dtype={key_attr: object,},
                                        index_col=[0, 1, 2])\
                     .stack(level=[0, 1, 2, 3])\

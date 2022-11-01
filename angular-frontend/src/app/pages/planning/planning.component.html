@@ -235,7 +235,7 @@
 <!--          <mat-checkbox class="reverse" color="primary">alle</mat-checkbox>
           <mat-divider style="margin-bottom: 10px;"></mat-divider>-->
           <mat-checkbox class="reverse" color="primary"
-                        *ngFor="let infrastructure of infrastructures"
+                        *ngFor="let infrastructure of allInfrastructures"
                         (change)="infrastructure.included = $event.checked"
                         [checked]="infrastructure.included || false">
             {{infrastructure.name}}

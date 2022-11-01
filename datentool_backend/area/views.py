@@ -346,9 +346,8 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
         simplify = request.data.get('simplify', False)
         run_sync = request.data.get('sync', False)
 
-        with ProtectedProcessManager(request.user, scope=ProcessScope.AREAS) as ppm:
-            msg = f'Rufe Gebiete der Ebene "{area_level.name}" ab'
-            logger.info(msg)
+        with ProtectedProcessManager(user=request.user,
+                                     scope=ProcessScope.AREAS) as ppm:
             if not run_sync:
                 ppm.run_async(self._pull_areas, area_level, project_area,
                               truncate=truncate, simplify=simplify)
@@ -361,6 +360,8 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
     @staticmethod
     def _pull_areas(area_level: AreaLevel, project_area,
                     truncate=False, simplify=False):
+        msg = f'Rufe Gebiete der Ebene "{area_level.name}" ab'
+        logger.info(msg)
         url = area_level.source.url
         layer = area_level.source.layer
         if not url or not layer:
@@ -486,7 +487,7 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
         # ToDo: check file before calling _upload_shapefile() and return 406
         # if broken
 
-        with ProtectedProcessManager(request.user,
+        with ProtectedProcessManager(user=request.user,
                                      scope=ProcessScope.AREAS) as ppm:
             if not run_sync:
                 ppm.run_async(self._upload_shapefile, area_level, fp.name,
@@ -620,6 +621,13 @@ class FieldTypeViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     serializer_class = FieldTypeSerializer
     permission_classes = [ProtectPresetPermission &
                           (HasAdminAccessOrReadOnly | CanEditBasedata)]
+
+    def update(self, request, *args, **kwargs):
+        """put the ftype_id into the classifications"""
+        ftype = FieldType(pk=kwargs['pk'])
+        for classification in request.data.get('classification', []):
+            classification['ftype_id'] = ftype.pk
+        return super().update(request, *args, **kwargs)
 
 
 class AreaFieldViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):

@@ -1,5 +1,7 @@
 from django.db import models, transaction
-from django.db.models import TextField, F, OuterRef, Subquery, Prefetch, Value
+from django.db.models import (TextField, F, OuterRef, Subquery,
+                              Prefetch, Value,
+                              UniqueConstraint, Deferrable)
 from django.db.models.functions import Cast, Coalesce
 from django.db.models.signals import post_save
 from django.contrib.gis.db import models as gis_models
@@ -154,11 +156,20 @@ class Area(DatentoolModelMixin, models.Model):
                                                  .values('_value')[:1])
                        for area_field in area_fields}
 
-        label_attribute = area_attributes.filter(is_label=True)
-        key_attribute = area_attributes.filter(is_key=True)
+        try:
+            label_field = area_fields.get(is_label=True)
+            label_attribute = area_attributes.filter(field=label_field)
+            annotations['_label'] = Subquery(label_attribute.values('_value')[:1])
+        except AreaField.DoesNotExist:
+            pass
 
-        annotations['_label'] = Subquery(label_attribute.values('_value')[:1])
-        annotations['_key'] = Subquery(key_attribute.values('_value')[:1])
+        try:
+            key_field = area_fields.get(is_key=True)
+            key_attribute = area_attributes.filter(field=key_field)
+            annotations['_key'] = Subquery(key_attribute.values('_value')[:1])
+        except AreaField.DoesNotExist:
+            pass
+
         annotations['_field_names'] = Value(area_field_names)
 
         qs = cls.objects\
@@ -290,6 +301,9 @@ class FClass(DatentoolModelMixin, models.Model):
 
     class Meta:
         ordering = ['order']
+        constraints = [UniqueConstraint(fields=['ftype', 'order'],
+                                        name='fclass_unique',
+                                        deferrable=Deferrable.DEFERRED)]
 
     def __str__(self) -> str:
         return (f'{self.__class__.__name__}: {self.ftype.name}: '

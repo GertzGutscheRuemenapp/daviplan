@@ -6,7 +6,6 @@ import {
   TemplateRef,
   EventEmitter,
   AfterViewInit,
-  ElementRef,
   ViewChild
 } from '@angular/core';
 import { ConfirmDialogComponent } from "../dialogs/confirm-dialog/confirm-dialog.component";
@@ -29,6 +28,7 @@ export class InputCardComponent implements AfterViewInit {
   @Input() infoText: string = '';
   @Input() dialogInfoText: string = '';
   @Input() confirmButtonText: string = '';
+  @Input() width: string = '';
   @Input() dialogWidth: string = '500px';
   @Input() cancelButtonText: string = '';
   @Input() previewTemplate!: TemplateRef<any>;

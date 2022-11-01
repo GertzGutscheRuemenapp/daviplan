@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl } from "../../../map/map.service";
 import {
-  DemandRateSet,
+  DemandRateSet, LogEntry,
   ModeVariant,
   Service,
   TransitMatrixEntry,
@@ -16,6 +16,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import * as fileSaver from "file-saver";
+import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 
 @Component({
   selector: 'app-transit-matrix',
@@ -31,6 +32,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
   uploadErrors: any = {};
   stops: TransitStop[] = [];
   matrixEntries: TransitMatrixEntry[] = [];
+  isProcessing = false;
   @ViewChild('editVariant') editVariantTemplate?: TemplateRef<any>;
   @ViewChild('fileUploadTemplate') fileUploadTemplate?: TemplateRef<any>;
 
@@ -111,19 +113,24 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
     if (!this.selectedVariant) return;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: `Reisezeitmatrizen erzeugen`,
         confirmButtonText: 'Berechnung starten',
         message: 'Die Reisezeiten zwischen allen vorhandenen Standorten und den Siedlungszellen über die Haltestellen im ÖPNV-Netz werden berechnet. Dies kann einige Minuten dauern.',
-        closeOnConfirm: true
+        closeOnConfirm: false
       }
     });
-    dialogRef.afterClosed().subscribe(ok => {
-      if (ok)
-        this.http.post<any>(`${this.rest.URLS.matrixCellPlaces}precalculate_traveltime/`, {variants: [this.selectedVariant!.id]}).subscribe(() => {
-        },(error) => {
-        })
-    })
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      dialogRef.componentInstance.isLoading$.next(true);
+      this.http.post<any>(`${this.rest.URLS.matrixCellPlaces}precalculate_traveltime/`, {variants: [this.selectedVariant!.id]}).subscribe(() => {
+        this.isProcessing = true;
+        dialogRef.close();
+      }, (error) => {
+        dialogRef.componentInstance.setErrors(error.error);
+        dialogRef.componentInstance.isLoading$.next(false);
+      })
+    });
   }
 
   onSetAsDefault(): void {
@@ -154,6 +161,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
     this.uploadErrors = {};
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: 'Haltestellen hochladen',
         confirmButtonText: 'Datei hochladen',
@@ -174,13 +182,8 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
       formData.append('variant', this.selectedVariant!.id.toString());
       const url = `${this.rest.URLS.transitStops}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
-        this.restService.getTransitStops({ reset: true, variant: this.selectedVariant!.id }).subscribe(stops => {
-          this.stops = stops;
-          this.restService.getTransitMatrix({ reset: true, variant: this.selectedVariant!.id }).subscribe(entries => {
-            this.matrixEntries = entries;
-            dialogRef.close();
-          })
-        })
+        this.isProcessing = true;
+        dialogRef.close();
       }, error => {
         this.uploadErrors = error.error;
         dialogRef.componentInstance.setLoading(false);
@@ -193,6 +196,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
     this.uploadErrors = {};
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: 'Fahrzeitenliste hochladen',
         confirmButtonText: 'Datei hochladen',
@@ -213,6 +217,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
       formData.append('variant', this.selectedVariant!.id.toString());
       const url = `${this.rest.URLS.transitMatrix}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
+        this.isProcessing = true;
         dialogRef.close();
       }, error => {
         this.uploadErrors = error.error;
@@ -221,11 +226,50 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  onMessage(log: LogEntry): void {
+    if (log?.status?.success) {
+      this.isProcessing = false;
+      this.restService.getTransitStops({ reset: true, variant: this.selectedVariant!.id }).subscribe(stops => {
+        this.stops = stops;
+        this.restService.getTransitMatrix({ reset: true, variant: this.selectedVariant!.id }).subscribe(entries => {
+          this.matrixEntries = entries;
+        })
+      })
+    }
+  }
 
-  setFiles(event: Event){
+  setFiles(event: Event): void {
     const element = event.currentTarget as HTMLInputElement;
     const files: FileList | null = element.files;
     this.file =  (files && files.length > 0)? files[0]: undefined;
+  }
+
+  onDeleteVariant(): void {
+    if (!this.selectedVariant)
+      return;
+    const dialogRef = this.dialog.open(RemoveDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Das ÖPNV-Netz wirklich entfernen?',
+        message: 'Die Entfernung des ÖPNV-Netzes entfernt auch alle Haltestellen und die berechneten Erreichbarkeiten.',
+        confirmButtonText: `ÖPNV-Netz entfernen`,
+        value: this.selectedVariant.label
+      }
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.http.delete(`${this.rest.URLS.modevariants}${this.selectedVariant!.id}/`
+        ).subscribe(res => {
+          const idx = this.variants.indexOf(this.selectedVariant!);
+          if (idx > -1) {
+            this.variants.splice(idx, 1);
+          }
+          this.selectedVariant = undefined;
+        }, error => {
+          console.log('there was an error sending the query', error);
+        });
+      }
+    });
   }
 
   ngOnDestroy(): void {

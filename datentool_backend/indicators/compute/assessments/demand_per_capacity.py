@@ -12,7 +12,7 @@ class DemandPerCapacity(ServiceIndicator):
     '''Nachfragende nach betrachteter Leistung in einer Gebietseinheit pro
     Kapazitätseinheit für diese Leistung in der gleichen Gebietseinheit'''
     capacity_required = True
-    title = 'Nachfrage pro Platz'
+    title = 'Nachfrage pro Platz im Gebiet'
     representation = 'colorramp'
     colormap_name = 'Blues'
     result_serializer = ResultSerializer.AREA

@@ -181,12 +181,13 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   onCreateArea(): void {
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
-      width: '300px',
+      width: '500px',
       disableClose: true,
       data: {
         title: 'Neue benutzerdefinierte Gebietseinteilung',
         template: this.createLevelTemplate,
-        closeOnConfirm: false
+        closeOnConfirm: false,
+        showCloseButton: false
       }
     });
     dialogRef.afterOpened().subscribe(sth => {
@@ -249,6 +250,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       return;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: `WFS Daten abrufen`, //für Gebietseinheit "${this.activeLevel.name}"`,
         confirmButtonText: 'Daten abrufen',
@@ -279,6 +281,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       return;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: `Daten hochladen`, //für Gebietseinheit "${this.activeLevel.name}"`,
         confirmButtonText: 'Datei hochladen',

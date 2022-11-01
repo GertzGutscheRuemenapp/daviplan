@@ -257,9 +257,12 @@ class BasicModelPutPatchTest:
         if 'id' in response.data:
             assert response.data['id'] == self.obj.pk
 
+        data = self.put_data.copy()
+        data['sync'] = True
+
         # check status code for put
         response = self.put(url, **kwargs,
-                            data=self.put_data,
+                            data=data,
                             extra=formatjson)
         self.response_200(msg=response.content)
         assert response.status_code == status.HTTP_200_OK
@@ -270,9 +273,12 @@ class BasicModelPutPatchTest:
         expected.update(self.expected_put_data)
         self.compare_data(response.data, expected)
 
+        data = self.patch_data.copy()
+        data['sync'] = True
+
         # check status code for patch
         response = self.patch(url, **kwargs,
-                              data=self.patch_data, extra=formatjson)
+                              data=data, extra=formatjson)
         self.response_200(msg=response.content)
 
         # check if name has changed

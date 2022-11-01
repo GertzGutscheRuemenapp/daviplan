@@ -48,14 +48,15 @@
                 <ng-template #popover>
                   <div *ngIf="layer.description" [innerHTML]="layer.description"></div>
                 </ng-template>
-                <div class="entry-prefix">
-                  <mat-checkbox *ngIf="mapControl.editMode"
-                                color="primary"
+                <div class="entry-toggle" *ngIf="mapControl.editMode">
+                  <mat-checkbox color="primary"
                                 [checked]="layer.visible || false"
                                 (change)="toggleLayer(layer)"
                                 title="Layer anzeigen/verstecken">
                   </mat-checkbox>
-                  <ng-container *ngIf="!mapControl.editMode">
+                </div>
+                <div class="entry-prefix">
+                  <ng-container>
                     <ng-container *ngIf="layer.legend">
                       <div title="Farblegende des Layer ein-/ausklappen" (click)="toggleLayerLegend($any(layer))">
                         <mat-icon color="primary" *ngIf="layer.legend?.elapsed">expand_less</mat-icon>

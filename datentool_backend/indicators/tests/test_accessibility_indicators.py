@@ -2,11 +2,12 @@ import pandas as pd
 import numpy as np
 from django.urls import reverse
 from test_plus import APITestCase
+import logging
 
 from datentool_backend.api_test import LoginTestCase
 
 from datentool_backend.indicators.tests.setup_testdata import CreateTestdataMixin
-from datentool_backend.indicators.views.transit import MatrixCellPlaceViewSet
+from datentool_backend.indicators.views.transit import MatrixCellPlaceRouter
 from datentool_backend.modes.factories import ModeVariantFactory, Mode, ModeVariant
 from datentool_backend.indicators.models import MatrixCellPlace
 from datentool_backend.infrastructure.models.places import Capacity
@@ -48,8 +49,11 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
     def create_traveltime_matrix(cls):
         """create traveltime matrix between all cells and places"""
         variant = ModeVariantFactory(mode=Mode.WALK)
-        mcs = MatrixCellPlaceViewSet()
-        df = mcs.calculate_airdistance_traveltimes(variant=variant, max_distance=5000)
+        mcs = MatrixCellPlaceRouter()
+        logger = logging.getLogger('routing')
+        df = mcs.calculate_airdistance_traveltimes(variant=variant,
+                                                   max_distance=5000,
+                                                   logger=logger)
         cellplaces = [MatrixCellPlace(**row.to_dict()) for i, row in df.iterrows()]
         MatrixCellPlace.objects.bulk_create(cellplaces)
         cls.variant_id = variant.pk
@@ -110,6 +114,9 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         result = pd.DataFrame(response.data['values']).set_index('place_id')
         self.assertEquals(len(result), 3)
 
+        # should be rounded, so mod(value,1) should be 0
+        self.assertTrue((result.value % 1 == 0).all())
+
         # set capacities to 0 for all places except place 5
         capacities_places1_4 = Capacity.objects.exclude(place=self.place5)
         for capacity in capacities_places1_4:
@@ -119,6 +126,8 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         response = self.post(url, data=query_params, extra={'format': 'json'})
         result2 = pd.DataFrame(response.data['values']).set_index('place_id')
         self.assertEquals(len(result2), 1)
+        # should be rounded, so mod(value,1) should be 0
+        self.assertTrue((result2.value % 1 == 0).all())
 
     def test_average_place_reachability(self):
         """Test average place reachability"""

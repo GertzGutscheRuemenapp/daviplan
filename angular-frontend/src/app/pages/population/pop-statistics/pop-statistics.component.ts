@@ -202,18 +202,21 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       });
       if (this.activeArea)
         this.statisticsLayer.selectFeatures([this.activeArea.id], { silent: true });
-      this.statisticsLayer!.featureSelected?.subscribe(evt => {
-        if (evt.selected) {
-          this.activeArea = this.areas.find(area => area.id === evt.feature.get('id'));
-        }
-        else {
-          this.activeArea = undefined;
-        }
-        this.cookies.set(`pop-area-${this.areaLevel!.id}`, this.activeArea?.id);
-        this.chartToggle.expanded = true;
-        this.updateDiagrams();
+      this.statisticsLayer!.featuresSelected.subscribe(features => {
+        this.setArea(this.areas.find(area => area.id === features[0].get('id')));
+      })
+      this.statisticsLayer!.featuresSelected.subscribe(features => {
+        if (this.activeArea?.id === features[0].get('id'))
+          this.setArea(undefined);
       })
     })
+  }
+
+  setArea(area: Area | undefined): void {
+    this.activeArea = area;
+    this.cookies.set(`pop-area-${this.areaLevel!.id}`, this.activeArea?.id);
+    this.chartToggle.expanded = true;
+    this.updateDiagrams();
   }
 
   updateDiagrams(): void {

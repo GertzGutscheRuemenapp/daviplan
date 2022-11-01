@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
-import { CheckTreeComponent, TreeItemFlatNode, TreeItemNode } from "../../../elements/check-tree/check-tree.component";
+import { CheckTreeComponent, TreeItemNode } from "../../../elements/check-tree/check-tree.component";
 import { MapControl, MapService } from "../../../map/map.service";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
@@ -10,7 +10,6 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { MatDialog } from "@angular/material/dialog";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { arrayMove } from "../../../helpers/utils";
-import { sortBy } from "../../../helpers/utils";
 import { ExtLayerGroup, ExtLayer } from "../../../rest-interfaces";
 import { RestCacheService } from "../../../rest-cache.service";
 import { MapLayer, MapLayerGroup, WMSLayer } from "../../../map/layers";

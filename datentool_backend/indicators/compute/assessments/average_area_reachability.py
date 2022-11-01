@@ -13,17 +13,17 @@ from datentool_backend.indicators.models import MatrixCellPlace
 from datentool_backend.area.models import Area
 
 
-
 @register_indicator()
 class AverageAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, ServiceIndicator):
     '''Mittlerer Zeitaufwand der Nachfragenden aus einer Gebietseinheit, um mit
     einem bestimmten Verkehrsmittel die nächste Einrichtung mit der betrachteten
     Leistung zu erreichen'''
-    title = 'Mittlere Wegedauer'
+    title = 'Mittlere Wegedauer der Nachfragenden im Gebiet'
     params = (ModeParameter(), )
     representation = 'colorramp'
     colormap_name = 'Reds'
     result_serializer = ResultSerializer.AREA
+    unit = 'Minuten'
 
     @property
     def description(self):

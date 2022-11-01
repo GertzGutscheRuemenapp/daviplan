@@ -93,7 +93,7 @@ class ExcelTemplateMixin:
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
         with ProtectedProcessManager(
-            request.user,
+            user=request.user,
             scope=getattr(serializer, 'scope', ProcessScope.GENERAL)) as ppm:
 
             # workaround: if post requesting is required, do all the writing

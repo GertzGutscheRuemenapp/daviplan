@@ -12,7 +12,7 @@ from datentool_backend.area.models import Area
 class FacilitiesPerDemandInArea(ServiceIndicator):
     '''Einrichtungen mit der betrachteten Leistung in einer Gebietseinheit pro
     Nachfragen­de in der gleichen Gebietseinheit'''
-    title = 'Einrichtungen pro Nachfrage'
+    title = 'Einrichtungen pro Nachfrage im Gebiet'
     representation = 'colorramp'
     colormap_name = 'Purples'
     result_serializer = ResultSerializer.AREA

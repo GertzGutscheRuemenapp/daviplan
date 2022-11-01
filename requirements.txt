@@ -26,9 +26,8 @@ django-postgres-copy
 openpyxl
 matrixconverters
 packaging
-channels
+channels==3.*
 channels_redis
-aioredis
 routingpy
 django_q
 matplotlib

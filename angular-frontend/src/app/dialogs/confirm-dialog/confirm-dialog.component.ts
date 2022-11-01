@@ -14,6 +14,7 @@ interface DialogData {
   subtitle?: string;
   infoText?: string;
   infoExpanded?: boolean;
+  // default: true
   showCloseButton?: boolean;
 }
 
@@ -26,6 +27,7 @@ interface DialogData {
 export class ConfirmDialogComponent implements AfterViewInit  {
   isLoading$ = new BehaviorSubject<boolean>(false);
   @Output() confirmed = new EventEmitter<boolean>();
+  errors: Record<string, string> = {};
   initReady = false;
 
   constructor(public dialogRef: MatDialogRef<ConfirmDialogComponent>,
@@ -33,10 +35,15 @@ export class ConfirmDialogComponent implements AfterViewInit  {
     data.confirmButtonText = data.confirmButtonText || $localize`Bestätigen`;
     data.cancelButtonText = data.cancelButtonText || (data.hideConfirmButton)? 'OK': $localize`Abbrechen`;
     data.context = data.context || {};
+    data.showCloseButton = (data.showCloseButton === undefined)? true: data.showCloseButton;
   }
 
   setLoading(loading: boolean) {
     this.isLoading$.next(loading);
+  }
+
+  setErrors(errors: Record<string, string>) {
+    this.errors = errors;
   }
 
   onConfirmClick() {

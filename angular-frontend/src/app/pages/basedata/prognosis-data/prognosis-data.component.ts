@@ -232,14 +232,15 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       if (this.previewArea)
         this.previewLayer?.selectFeatures([this.previewArea.id], { silent: true });
       this.updateAgeTree();
-      this.previewLayer!.featureSelected?.subscribe(evt => {
-        if (evt.selected) {
-          this.previewArea = this.areas.find(area => area.id === evt.feature.get('id'));
-        }
-        else {
-          this.previewArea = undefined;
-        }
+      this.previewLayer!.featuresSelected.subscribe(features => {
+        this.previewArea = this.areas.find(area => area.id === features[0].get('id'));
         this.updateAgeTree();
+      })
+      this.previewLayer!.featuresSelected.subscribe(features => {
+        if (this.previewArea?.id === features[0].get('id')) {
+          this.previewArea = undefined;
+          this.updateAgeTree();
+        }
       })
     })
   }
@@ -457,6 +458,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
     if (!this.activePrognosis) return;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: `Template hochladen`,
         confirmButtonText: 'Datei hochladen',

@@ -8,6 +8,7 @@ import logging
 from django.conf import settings
 from django.db.models import Q
 from django.db.models.fields import FloatField
+from django.core.exceptions import BadRequest
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db.models.functions import GeoFunc, Transform
 from rest_framework import serializers
@@ -140,13 +141,16 @@ class PlacesTemplateSerializer(serializers.Serializer):
                 value_col = '_value'
 
             elif place_field.field_type.ftype == FieldTypes.NUMBER:
-                description = f'Nutzerdefinierte Spalte (Zahl)'
+                unit = place_field.unit or 'Zahl'
+                description = f'Nutzerdefinierte Spalte ({unit})'
                 validations[col_no] = dv_float
                 value_col = 'num_value'
 
             else:
                 description = f'Nutzerdefinierte Spalte (Klassifizierte Werte)'
-                cf_colno = classifications.get(place_field.field_type.name)
+
+                cl_name = place_field.field_type.name
+                cf_colno = classifications.get(cl_name)
                 value_col = '_value'
 
                 if cf_colno:
@@ -155,10 +159,10 @@ class PlacesTemplateSerializer(serializers.Serializer):
                     df = pd.DataFrame(
                         place_field.field_type.fclass_set.values('order', 'value'))\
                         .set_index('order')\
-                        .rename(columns={'value': place_field.field_type.name,})
+                        .rename(columns={'value': cl_name,})
 
                     cn = col_no_classifications
-                    classifications[place_field.field_type.name] = (df, cn)
+                    classifications[cl_name] = (df, cn)
                     col_no_classifications += 1
 
                 # list validator
@@ -214,6 +218,9 @@ class PlacesTemplateSerializer(serializers.Serializer):
             df_classification.reset_index().to_excel(writer,
                                                      sheet_name=sn_classifications,
                                                      index=False)
+            # hide classifications
+            sheet = writer.book.get_sheet_by_name(sn_classifications)
+            sheet.sheet_state = 'hidden'
 
             df_places.to_excel(writer,
                                sheet_name=sheetname,
@@ -269,28 +276,13 @@ class PlacesTemplateSerializer(serializers.Serializer):
 
         infra = Infrastructure.objects.get(pk=infrastructure_id)
 
-        # Check the classification
-        # TODO: REMOVE TTHIS PLEASE!!!! (from template) creation as well)
-        df_klassifizierungen = pd.read_excel(excel_file.file,
-                           sheet_name='Klassifizierungen').set_index('order')
-
-        for field_name, series in df_klassifizierungen.items():
-            ft, created = FieldType.objects.get_or_create(
-                name=field_name, ftype=FieldTypes.CLASSIFICATION)
-            series = series.loc[~pd.isna(series)]
-            # add/change entries of the classification values
-            for order, value in series.iteritems():
-                fc, created = FClass.objects.get_or_create(ftype=ft, order=order)
-                fc.value = value
-                fc.save()
-
         # get the services and the place fields of the infrastructure
         services = infra.service_set.all().values('id', 'has_capacity', 'name')
         place_fields = infra.placefield_set.all().values('id',
                                                          'name',
                                                          'field_type',
                                                          'field_type__ftype',
-                                                         #'field_type__fclass',
+                                                         'field_type__name',
                                                          )
 
 
@@ -363,7 +355,14 @@ class PlacesTemplateSerializer(serializers.Serializer):
                     elif ftype == 'NUM':
                         num_value = float(attr)
                     else:
-                        class_value = fclass_dict[(place_field['field_type'], attr)]
+                        try:
+                            class_value = fclass_dict[(place_field['field_type'],
+                                                       attr)]
+                        except KeyError:
+                            fieldtype_name = place_field['field_type__name']
+                            msg = f'Wert {attr} existiert nicht für Klassifizierung '\
+                                f'{fieldtype_name} in Spalte {place_field_name}'
+                            raise BadRequest(msg)
                     attribute = (place.id, place_field['id'], str_value, num_value, class_value)
                     place_attributes.append(attribute)
 

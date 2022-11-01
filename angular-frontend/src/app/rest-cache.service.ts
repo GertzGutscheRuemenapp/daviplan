@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { BehaviorSubject, Observable } from "rxjs";
+import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import {
   Place,
   AreaLevel,
@@ -28,7 +28,7 @@ import {
   LogEntry,
   IndicatorLegendClass,
   TransitStop,
-  TransitMatrixEntry
+  TransitMatrixEntry, PlanningProcess
 } from "./rest-interfaces";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
@@ -182,11 +182,13 @@ export class RestCacheService {
     }));
   }
 
-  getInfrastructures(): Observable<Infrastructure[]> {
+  getInfrastructures(options?: { process?: PlanningProcess }): Observable<Infrastructure[]> {
     const observable = new Observable<Infrastructure[]>(subscriber => {
       const infraUrl = this.rest.URLS.infrastructures;
       this.getCachedData<Infrastructure[]>(infraUrl).subscribe(infrastructures => {
         const serviceUrl = this.rest.URLS.services;
+        if (options?.process)
+          infrastructures = infrastructures.filter(i => options.process!.infrastructures.indexOf(i.id) > -1);
         this.getCachedData<Service[]>(serviceUrl).subscribe(services => {
           infrastructures.forEach( infrastructure => {
             infrastructure.services = services.filter(service => service.infrastructure === infrastructure.id);
@@ -292,8 +294,9 @@ export class RestCacheService {
     }))
   }
 
-  getAreaLevelPopulation(areaLevelId: number, year: number, options?: { genders?: number[], prognosis?: number, ageGroups?: number[] }): Observable<{ values: AreaIndicatorResult[], legend: IndicatorLegendClass[] }> {
-    const key = `${areaLevelId}-${year}-${options?.prognosis}-${options?.genders}-${options?.ageGroups}`;
+  getAreaLevelPopulation(areaLevelId: number, year: number, options?: {
+    genders?: number[], prognosis?: number, ageGroups?: number[], comparedYear?: number, comparedPrognosis?: number
+  }): Observable<{ values: AreaIndicatorResult[], legend: IndicatorLegendClass[] }> {
     const params: any = { area_level: areaLevelId, year: year };
     if (options?.prognosis != undefined)
       params.prognosis = options.prognosis;
@@ -301,11 +304,35 @@ export class RestCacheService {
       params.genders = options.genders;
     if (options?.ageGroups)
       params.age_groups = options.ageGroups;
-    return this.getCachedData<{ values: AreaIndicatorResult[], legend: IndicatorLegendClass[] }>(
+
+    // no year to compare => return plain year data call
+    const yearData = this.getCachedData<{ values: AreaIndicatorResult[], legend: IndicatorLegendClass[] }>(
       this.rest.URLS.areaPopulation, { params: params, method: "POST" });
+    if (options?.comparedYear == undefined) return yearData;
+
+    let compParams = Object.assign({}, params);
+    if (options?.comparedPrognosis != undefined)
+      compParams.prognosis = options.prognosis;
+    else
+      delete compParams.prognosis
+    compParams.year = options?.comparedYear;
+    // year to compare -> join calls and change data to return difference of results of year and results of compared year
+    const compData = this.getCachedData<{ values: AreaIndicatorResult[], legend: IndicatorLegendClass[] }>(
+      this.rest.URLS.areaPopulation, { params: compParams, method: "POST" });
+    return forkJoin([yearData, compData]).pipe(map(results => {
+        const diffValues = results[0].values.map(areaResult => {
+          const compResult = results[1].values.find(r => r.areaId === areaResult.areaId);
+          return {
+            value: areaResult.value - (compResult?.value || 0),
+            areaId: areaResult.areaId };
+        });
+        return { values: diffValues, legend: [] };
+    }));
   }
 
-  getPopulationData(areaId: number, options?: { year?: number, prognosis?: number, genders?: number[], ageGroups?: number[]}): Observable<{ values: PopulationData[], legend: IndicatorLegendClass[] }> {
+  getPopulationData(areaId: number, options?: {
+    year?: number, prognosis?: number, genders?: number[], ageGroups?: number[]
+  }): Observable<{ values: PopulationData[], legend: IndicatorLegendClass[] }> {
     let params: any = { areas: [areaId] };
     if (options?.year != undefined)
       params.year = options?.year;

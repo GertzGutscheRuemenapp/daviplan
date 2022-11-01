@@ -2,7 +2,6 @@ from django.db import models, transaction
 import os
 
 from datentool_backend.base import (NamedModel,
-                                    JsonAttributes,
                                     DatentoolModelMixin, )
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.infrastructure.models.infrastructures import Infrastructure
@@ -81,6 +80,6 @@ class ModeVariant(DatentoolModelMixin, models.Model):
 
 
 class CutOffTime(models.Model):
-    mode_variant = models.ForeignKey(ModeVariant, on_delete=PROTECT_CASCADE)
+    mode_variant = models.ForeignKey(ModeVariant, on_delete=models.CASCADE)
     infrastructure = models.ForeignKey(Infrastructure, on_delete=PROTECT_CASCADE)
     minutes = models.FloatField()

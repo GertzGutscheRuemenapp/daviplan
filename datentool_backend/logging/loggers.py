@@ -23,6 +23,6 @@ class PersistLogHandler(logging.StreamHandler):
         room = record.name
         message = record.getMessage()
         if message:
-        	entry = LogEntry.objects.create(
-            	date=timezone.now(), room=room, text=message,
-            	user=self.user, level=record.levelname)
+            LogEntry.objects.create(
+                date=timezone.now(), room=room, text=message,
+                user=self.user, level=record.levelname)
