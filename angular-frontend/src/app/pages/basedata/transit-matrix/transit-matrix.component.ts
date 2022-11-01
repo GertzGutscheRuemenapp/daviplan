@@ -113,6 +113,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
     if (!this.selectedVariant) return;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: `Reisezeitmatrizen erzeugen`,
         confirmButtonText: 'Berechnung starten',
@@ -160,6 +161,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
     this.uploadErrors = {};
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: 'Haltestellen hochladen',
         confirmButtonText: 'Datei hochladen',
@@ -194,6 +196,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
     this.uploadErrors = {};
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: 'Fahrzeitenliste hochladen',
         confirmButtonText: 'Datei hochladen',

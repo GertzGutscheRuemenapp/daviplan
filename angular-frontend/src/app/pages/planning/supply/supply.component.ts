@@ -217,8 +217,13 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           this.selectedPlaces = this.places.filter(p => ids.indexOf(p.id) > -1);
           this.placesLayer?.selectFeatures(ids, { silent: true });
         }
-        this.placesLayer?.featureSelected?.subscribe(evt => {
-          this.selectPlace(evt.feature.get('id'), evt.selected);
+        this.placesLayer?.featuresSelected?.subscribe(features => {
+          // on map selection deselect the previously selected ones by just setting empty list
+          this.selectedPlaces = [];
+          features.forEach(f => this.selectPlace(f.get('id'), true));
+        })
+        this.placesLayer?.featuresDeselected?.subscribe(features => {
+          features.forEach(f => this.selectPlace(f.get('id'), false));
         })
 
         // add layer for marking changes in scenario

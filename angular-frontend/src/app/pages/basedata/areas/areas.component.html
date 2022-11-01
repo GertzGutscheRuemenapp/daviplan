@@ -3,7 +3,7 @@
 </div>
 <app-header-card [title]="'Gebietseinheiten'"
                  cookieId="exp-areas-header"
-                 width="1380px">
+                 width="1270px">
   <p>Nachdem Sie bei den Basisdefinitionen im Administrationsbereich ein Planungsgebiets definiert haben, auf das Sie daviplan anwenden möchten, können Sie dieses Planungsgebiet in Gebietseinheiten unterteilen. Diese Gebietseinheiten dienen später der räumlich differenzierten Bilanzierung von Angebot und Nachfrage nach den betrachteten Infrastrukturen.</p>
   <p>Die einzelnen Gebietseinheiten werden über Gebietseinteilungen definiert, die das gesamte Planungsgebiet abdecken müssen.</p>
   <p>Standardmäßig entsprechen die Gebietseinteilungen den administrativen Ebenen, d.h. den Gemeinden, Verwaltungsgemeinschaften (Ämter, Samtgemeinden, Verbandsgemeinden, VG), Kreisen und Bundesländern. Diese amtlichen Grenzen können auf Sie einfach vom Bundesamt für Kartographie und Geodäsie (BKG) herunterladen lassen und für Ihre daviplan-Anwendung auswählen.</p>
@@ -13,7 +13,7 @@
   <p>Wenn Sie mehrere Gebietseinteilungen auswählen oder selbst definieren, müssen Sie festlegen, welche davon die Grundlage für die Erfassung der Einwohnerdaten (Vergangenheit und Prognose) im nachfolgenden Schritt „Bevölkerung“ sein soll.</p>
 </app-header-card>
 <div fxLayout="row wrap">
-  <div fxLayout="column" fxFlex="400px">
+  <div fxFlex="400px">
     <app-input-card [title]="'Gebietseinteilungen'"
                     subtitle="Administrative Ebenen aktivieren und/oder benutzerdefinierte Gebietseinteilung hinzufügen"
                     infoText="<p>Die vier oberen Gebietseinteilungen sind die administrativen Grenzen. Wählen Sie eine Gebietseinteilung aus und klicken Sie anschließend in der Box „Daten der Gebietseinteilung“ auf „Daten abrufen bzw. aktualisieren“. Daraufhin werden die Daten vom BKG heruntergeladen, mit Ihrem Projektgebiet verschnitten und in der Karte angezeigt.</p>
@@ -65,7 +65,6 @@
             <mat-icon>expand_less</mat-icon>
           </button>
           <button mat-icon-button
-                  [disabled]="activeLevel?.isPreset"
                   title="In der Sortierung eins nach unten"
                   [disabled] = "(orderIsChanging$ | async) || !activeLevel || activeLevel?.isPreset || activeLevel === customAreaLevels[customAreaLevels.length - 1]"
                   (click)="moveSelected('down')">
@@ -90,7 +89,7 @@
         <button mat-button color="primary"
                 style="margin-left: 40px;"
                 class="mat-button-dv"
-                [disabled]="activeLevel?.isPreset"
+                [disabled]="activeLevel?.isPreset || isProcessing"
                 (click)="onDeleteAreaLevel()" i18n>
           <mat-icon>close</mat-icon>entfernen
         </button>
@@ -98,6 +97,7 @@
     </app-input-card>
     <app-input-card #editArealevelCard
                     [ngClass]="{'hidden': !activeLevel}"
+                    [disabled]="isProcessing"
                     [title]="'Darstellung der ausgewählten Gebietseinteilung'"
                     [editTemplate]="propertiesEdit"
                     [subtitle]="'In allen Karten der Anwendung so darstellen'"
@@ -136,49 +136,53 @@
       </table>
     </app-input-card>
   </div>
-  <div fxLayout="column" fxFlex="1000px">
-    <app-input-card [title]="'Daten der ausgewählten Gebietseinteilung'"
-                    [topRightHelp]="true"
-                    [dialogTitle]="'Kontakt E-Mail ändern'"
-                    [disabled]="isProcessing"
-                    [infoText]="(activeLevel?.source?.sourceType === 'WFS')?
-                    '<p>Klicken Sie auf „Daten abrufen bzw. aktualisieren“, um die Daten erstmalig oder – zum Aktualisieren – erneut vom Bundesamt für Kartographie und Geodäsie (BKG) herunterzuladen. Den Zeitpunkt der letzten Aktualisierung können Sie der Daten-Historie entnehmen.</p>':
-                    'Platzhalter'">
-      <div style="width: 100%; display: flex;">
-        <div style="width: 50%; align-self: start;">
-          <span class="subtitle1 sub">
-            Gebietseinheit: <p style="font-size: 1.5em;">"{{activeLevel?.name || '-'}}"</p>
-          </span>
-          <table style="margin-top: 15px;">
-            <tr>
-              <td i18n>Gebiete (Features)</td>
-              <td>{{activeLevel?.areaCount}}</td>
-            </tr>
-            <tr>
-              <td i18n>Quelle</td>
-              <td>
-                {{activeLevel?.source?.sourceType}}
-              </td>
-            </tr>
-            <tr *ngIf="activeLevel?.source?.sourceType === 'WFS'">
-              <td i18n>Layer</td>
-              <td style="max-width: 100px; overflow: hidden; text-overflow: ellipsis;">
-                {{activeLevel?.source?.url}}
-              </td>
-            </tr>
-            <tr *ngIf="activeLevel?.source?.sourceType === 'WFS'">
-              <td i18n>URL</td>
-              <td style="max-width: 100px; overflow: hidden; text-overflow: ellipsis;">
-                {{activeLevel?.source?.layer}}
-              </td>
-            </tr>
-            <tr>
-              <td i18n>{{(activeLevel?.source?.sourceType === 'WFS')? 'letzter Abruf': 'letzter Upload'}}</td>
-              <td>
-                {{activeLevel?.source?.date}}
-              </td>
-            </tr>
-          </table>
+  <div fxLayout="column">
+    <div fxLayout="row wrap">
+      <app-input-card [title]="'Daten der ausgewählten Gebietseinteilung'"
+                      [ngClass]="{'hidden': !activeLevel}"
+                      width="450px"
+                      [disabled]="isProcessing"
+                      [infoText]="(activeLevel?.source?.sourceType === 'WFS')?
+                      '<p>Klicken Sie auf „Daten abrufen bzw. aktualisieren“, um die Daten erstmalig oder – zum Aktualisieren – erneut vom Bundesamt für Kartographie und Geodäsie (BKG) herunterzuladen. Den Zeitpunkt der letzten Aktualisierung können Sie der Daten-Historie entnehmen.</p>':
+                      'Platzhalter'">
+        <span class="subtitle1 sub">
+          Gebietseinheit: <p style="font-size: 1.5em;">"{{activeLevel?.name || '-'}}"</p>
+        </span>
+        <table style="margin-top: 15px;">
+          <tr>
+            <td i18n>Gebiete</td>
+            <td [title]="activeLevel?.areaCount">
+              {{activeLevel?.areaCount}}
+            </td>
+          </tr>
+          <tr>
+            <td i18n>Quelle</td>
+            <td [title]="activeLevel?.source?.sourceType">
+              {{activeLevel?.source?.sourceType}}
+            </td>
+          </tr>
+          <tr *ngIf="activeLevel?.source?.sourceType === 'WFS'"
+              [title]="activeLevel?.source?.url">
+            <td i18n>Layer</td>
+            <td style="max-width: 100px; overflow: hidden; text-overflow: ellipsis;">
+              {{activeLevel?.source?.url}}
+            </td>
+          </tr>
+          <tr *ngIf="activeLevel?.source?.sourceType === 'WFS'">
+            <td i18n>URL</td>
+            <td style="max-width: 100px; overflow: hidden; text-overflow: ellipsis;"
+                [title]="activeLevel?.source?.layer">
+              {{activeLevel?.source?.layer}}
+            </td>
+          </tr>
+          <tr>
+            <td i18n>{{(activeLevel?.source?.sourceType === 'WFS')? 'letzter Abruf': 'letzter Upload'}}</td>
+            <td [title]="activeLevel?.source?.date">
+              {{activeLevel?.source?.date}}
+            </td>
+          </tr>
+        </table>
+        <div>
           <button *ngIf="activeLevel?.source?.sourceType === 'WFS' || activeLevel?.isPreset"
                   class="mat-button-dv"
                   mat-button color="primary"
@@ -195,52 +199,56 @@
             <mat-icon class="material-icons-outlined">upload</mat-icon>
             Shapefile oder Geopackage hochladen
           </button>
-          <div>
-            <button class="mat-button-dv"
-                    mat-button color="primary"
-                    (click)="showDataTable()">
-              <mat-icon class="material-icons-outlined">table_chart</mat-icon>
-              Datentabelle ansehen
-            </button>
-            <button class="mat-button-dv"
-                    mat-button color="warn"
-                    style="float: right; margin-right: 10px; box-shadow: none;"
-                    (click)="onDeleteAreas()">
-              <mat-icon>cancel</mat-icon>
-              Daten löschen
-            </button>
-<!--            <button mat-mini-fab color="primary"
-                    aria-label="Daten herunterladen" title="Daten herunterladen"
-                    style="float: right; margin-right: 10px; box-shadow: none;">
-              <mat-icon>download</mat-icon>
-            </button>-->
-          </div>
         </div>
-        <div id="log-window" style="width: 50%">
-          <span class="subtitle1">Daten-Historie Gebiete</span>
-          <app-log room="areas" (onMessage)="onMessage($event)" height="200px"></app-log>
+        <div>
+          <button class="mat-button-dv"
+                  mat-button color="primary"
+                  (click)="showDataTable()">
+            <mat-icon class="material-icons-outlined">table_chart</mat-icon>
+            Datentabelle ansehen
+          </button>
+          <button class="mat-button-dv"
+                  mat-button color="warn"
+                  style="float: right; margin-right: 10px; box-shadow: none;"
+                  (click)="onDeleteAreas()">
+            <mat-icon>cancel</mat-icon>
+            Daten löschen
+          </button>
+  <!--            <button mat-mini-fab color="primary"
+                  aria-label="Daten herunterladen" title="Daten herunterladen"
+                  style="float: right; margin-right: 10px; box-shadow: none;">
+            <mat-icon>download</mat-icon>
+          </button>-->
         </div>
-      </div>
-    </app-input-card>
-    <app-input-card [title]="'Kartenvorschau'"
-                    [topRightHelp]="true"
-                    infoText="<p>Die Karte zeigt die Gebiete der aktuell ausgewählten Gebietseinheiten als ausgefüllte Flächen.<p>
-                    <p>Zusätzlich zeigt sie auf Wunsch alle zur Darstellung freigegeben Gebietseinheiten, auswählbar über die Legende.
-                    Die Darstellung der einzelnen Gebietseinheiten in der Karte können Sie in der Box „Darstellung der ausgewählten Gebietseinteilung“ anpassen.</p>">
-      <div id="base-areas-map" class="map-container">
-        <app-map-controls target="base-areas-map"></app-map-controls>
-        <app-side-toggle id="legend"
-                         icon="layers"
-                         direction="left"
-                         name="Legenden- und Layersteuerung"
-                         cookieExpansion="base-areas-legend" [initiallyExpanded]="true">
-          <app-legend target="base-areas-map"
-                      [showInternal]="true"
-                      [showExternal]="false">
-          </app-legend>
-        </app-side-toggle>
-      </div>
-    </app-input-card>
+      </app-input-card>
+      <app-input-card subtitle="Daten-Historie Gebiete"
+                      width="400px">
+        <app-log room="areas" (onMessage)="onMessage($event)" height="350px"></app-log>
+      </app-input-card>
+    </div>
+    <div fxLayout="row wrap">
+      <app-input-card [title]="'Kartenvorschau'"
+                      [ngClass]="{'hidden': !activeLevel}"
+                      [topRightHelp]="true"
+                      width="870px"
+                      infoText="<p>Die Karte zeigt die Gebiete der aktuell ausgewählten Gebietseinheiten als ausgefüllte Flächen.<p>
+                      <p>Zusätzlich zeigt sie auf Wunsch alle zur Darstellung freigegeben Gebietseinheiten, auswählbar über die Legende.
+                      Die Darstellung der einzelnen Gebietseinheiten in der Karte können Sie in der Box „Darstellung der ausgewählten Gebietseinteilung“ anpassen.</p>">
+        <div id="base-areas-map" class="map-container">
+          <app-map-controls target="base-areas-map"></app-map-controls>
+          <app-side-toggle id="legend"
+                           icon="layers"
+                           direction="left"
+                           name="Legenden- und Layersteuerung"
+                           cookieExpansion="base-areas-legend" [initiallyExpanded]="true">
+            <app-legend target="base-areas-map"
+                        [showInternal]="true"
+                        [showExternal]="false">
+            </app-legend>
+          </app-side-toggle>
+        </div>
+      </app-input-card>
+    </div>
   </div>
 </div>
 

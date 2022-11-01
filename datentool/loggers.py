@@ -2,7 +2,7 @@ import logging
 import json
 import time
 import channels.layers
-from aioredis import RedisError
+from redis.asyncio import RedisError
 from redis.exceptions import ConnectionError as RedisConnectionError
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import AsyncWebsocketConsumer

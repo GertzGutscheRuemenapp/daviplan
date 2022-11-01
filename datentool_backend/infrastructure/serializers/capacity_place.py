@@ -7,7 +7,7 @@ from rest_framework.validators import ValidationError
 from rest_framework import serializers
 
 from datentool_backend.population.models import RasterCell
-from datentool_backend.modes.models import ModeVariant
+from datentool_backend.modes.models import ModeVariant, Mode
 from datentool_backend.indicators.models import MatrixCellPlace
 from datentool_backend.indicators.compute.routing import TravelTimeRouterMixin
 from datentool_backend.area.models import FClass, FieldTypes

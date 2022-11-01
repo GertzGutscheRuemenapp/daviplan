@@ -150,9 +150,11 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
     this.layerGroup?.addLayer(this.placesLayer);
     this.placesLayer.addFeatures(this.places.map(place => { return {
       id: place.id, geometry: place.geom, properties: { name: place.name } }}));
-    this.placesLayer?.featureSelected?.subscribe(evt => {
-      const placeId = evt.feature.get('id');
-      this.selectPlace(placeId, evt.selected);
+    this.placesLayer?.featuresSelected?.subscribe(features => {
+      features.forEach(f => this.selectPlace(f.get('id'), true));
+    })
+    this.placesLayer?.featuresDeselected?.subscribe(features => {
+      features.forEach(f => this.selectPlace(f.get('id'), false));
     })
   }
 
@@ -329,6 +331,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   uploadTemplate(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: `Template hochladen`,
         confirmButtonText: 'Datei hochladen',
