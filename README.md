@@ -3,7 +3,7 @@ two options under Windows
 - with OSGeo4W Installer (settings.py):
 https://docs.djangoproject.com/en/3.2/ref/contrib/gis/install/#windows
 - with conda installation (settings_dev.py):
-conda install -c conda-forge gdal=3.4 shapely osmium-tool protobuf (global)
+conda install -c conda-forge gdal=3.4 shapely osmium-tool protobuf pip pyproj (global)
 # install osmium-tool and protobuf (needed for vector-tiles)
 conda install -c conda-forge osmium-tool protobuf
 

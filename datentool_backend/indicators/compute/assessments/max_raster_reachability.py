@@ -19,6 +19,7 @@ class MaxRasterReachability(ModeVariantMixin, ServiceIndicator):
     inverse = True
     digits = 0
     result_serializer = ResultSerializer.RASTER
+    unit = 'Minuten'
 
     @property
     def description(self):
