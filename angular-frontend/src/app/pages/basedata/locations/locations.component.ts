@@ -44,6 +44,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   fieldTypes: FieldType[] = [];
   fieldRemoved: boolean = false;
   selectedInfrastructure?: Infrastructure;
+  placeFields: PlaceField[] = [];
   editFields: PlaceEditField[] = [];
   editErrors?: any;
   mapControl?: MapControl;
@@ -88,7 +89,8 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       this.placesLayer = undefined;
     }
     if (!this.selectedInfrastructure) return;
-    this.editFields = JSON.parse(JSON.stringify(this.selectedInfrastructure.placeFields));
+    this.placeFields = this.selectedInfrastructure.placeFields?.filter(f => !f.isPreset) || [];
+    this.editFields = JSON.parse(JSON.stringify(this.placeFields));
     this.isLoading$.next(true);
     this.restService.getPlaces( { infrastructure: this.selectedInfrastructure, reset: reset }).subscribe(places => {
       this.selectedInfrastructure!.placesCount = places.length;
@@ -252,7 +254,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
     this.editAttributesCard.dialogClosed.subscribe(() => {
       this.fieldRemoved = false;
       this.editErrors = undefined;
-      this.editFields = JSON.parse(JSON.stringify(this.selectedInfrastructure?.placeFields || []));
+      this.editFields = JSON.parse(JSON.stringify(this.placeFields || []));
     })
     this.editAttributesCard.dialogConfirmed.subscribe((ok)=> {
       const removeFields = this.editFields.filter(f => f.removed && !f.new);
@@ -297,7 +299,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
 
   addField(): void {
     this.editFields?.push({
-      name: '', unit: '', sensitive: false,
+      name: '', unit: '',// sensitive: false,
       fieldType: (this.fieldTypes.find(ft => ft.ftype == 'NUM') || this.fieldTypes[0]).id,
       new: true
     })

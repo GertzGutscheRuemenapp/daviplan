@@ -42,11 +42,7 @@
                     <p>Um der Standortliste zusätzliche Standorteigenschaften hinzuzufügen klicken Sie auf die Schaltfläche „Editieren“ und folgen den Erläuterungen im Hilfetext des dann erscheinenden Eingabedialogs. Bei der Eingabe geht es nur um die Bezeichnung der zusätzlichen Standorteigenschaften, d.h. die zusätzlichen Spaltenüberschriften der Standortliste in Schritt 2. Die konkreten Werte der einzelnen Standorte erfassen Sie erst bei deren Befüllung in Schritt 2.</p>">
       <p>Neben Name, Adresse und Kapazitäten für die Leistungen sollen für jeden Standort folgende Eigenschaften erfasst werden. Diese gehen nicht in Berechnungen ein, können aber u.a. zum Filtern der Standorten verwendet werden.</p>
       <table>
-        <tr>
-          <td>Name</td>
-          <td>Zeichenkette</td>
-        </tr>
-        <tr *ngFor="let field of selectedInfrastructure?.placeFields">
+        <tr *ngFor="let field of placeFields">
           <td>{{field.name}}</td>
           <td>{{getFieldType(field.fieldType).name}}</td>
         </tr>
@@ -193,24 +189,10 @@
       <th>Bezeichnung Standorteigenschaft</th>
       <th>Attributtyp / Klassifikation</th>
       <th>Einheit</th>
-      <th style="width: 1%; text-align: center;">
+<!--      <th style="width: 1%; text-align: center;">
         sensible Information
-      </th>
+      </th>-->
       <th></th>
-    </tr>
-    <tr>
-      <td class="not-first-child">
-        <input disabled value="Name">
-      </td>
-      <td>
-        <mat-form-field class="small" appearance="outline" style="margin-right: 10px;">
-          <mat-select disabled value="Zeichenkette">
-            <mat-option value="Zeichenkette">
-              Zeichenkette
-            </mat-option>
-          </mat-select>
-        </mat-form-field></td>
-      <td></td><td></td>
     </tr>
     <ng-container *ngFor="let field of editFields">
       <tr *ngIf="!field.removed">
@@ -242,12 +224,12 @@
             <input [(ngModel)]="field.unit" (change)="field.edited = true;">
           </ng-container>
         </td>
-        <td style="text-align: center;">
+<!--        <td style="text-align: center;">
           <mat-checkbox color="primary"
                         [(ngModel)]="field.sensitive"
                         (change)="field.edited = true;">
           </mat-checkbox>
-        </td>
+        </td>-->
         <td>
           <button mat-button color="warn"
                   class="mat-button-dv"
