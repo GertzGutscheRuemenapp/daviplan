@@ -51,6 +51,7 @@ class PlaceField(DatentoolModelMixin, models.Model):
     is_label = models.BooleanField(null=True, default=None)
     sensitive = models.BooleanField(default=False)
     unit = models.TextField(blank=True, default='')
+    is_preset = models.BooleanField(default=False)
 
     class Meta:
         constraints = [UniqueConstraint('infrastructure',
