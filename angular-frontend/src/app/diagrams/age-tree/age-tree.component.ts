@@ -34,7 +34,7 @@ export class AgeTreeComponent implements AfterViewInit {
   public margin: { top: number, bottom: number, left: number, right: number, middle: number } = {
     top: 40,
     right: 20,
-    bottom: 40,
+    bottom: 50,
     left: 20,
     middle: 10
   };
@@ -287,7 +287,7 @@ export class AgeTreeComponent implements AfterViewInit {
       .text('Anzahl männlich pro Jahrgang')
       .attr('font-size', '0.8em')
       .attr('x', width / 4 + this.margin.left)
-      .attr('y', height + this.margin.top + this.margin.bottom);
+      .attr('y', height + this.margin.top + this.margin.bottom - 10);
 
     this.svg.append('text')
       .attr('class', 'female')
@@ -295,7 +295,7 @@ export class AgeTreeComponent implements AfterViewInit {
       .text('Anzahl weiblich pro Jahrgang')
       .attr('font-size', '0.8em')
       .attr('x', 3 * width / 4 + this.margin.left)
-      .attr('y', height + this.margin.top + this.margin.bottom);
+      .attr('y', height + this.margin.top + this.margin.bottom - 10);
   }
 
   public clear(): void {

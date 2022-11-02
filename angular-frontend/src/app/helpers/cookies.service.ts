@@ -50,7 +50,7 @@ export class CookieService {
   }
 
   public set(name: string, val: any, path?: string | undefined) {
-    const strVal = (val.toString)? val.toString(): (val instanceof Object)? JSON.stringify(val): String(val);
+    const strVal = (val !== undefined && val.toString)? val.toString(): (val instanceof Object)? JSON.stringify(val): String(val);
     this.ngxCookies.set(name, strVal, { path: path, expires: 3650 });
   }
 
