@@ -284,7 +284,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       this.populationLayer!.featuresSelected.subscribe(features => {
         this.setArea(this.areas.find(area => area.id === features[0].get('id')));
       })
-      this.populationLayer!.featuresSelected.subscribe(features => {
+      this.populationLayer!.featuresDeselected.subscribe(features => {
         if (this.activeArea?.id === features[0].get('id'))
           this.setArea(undefined);
       })
