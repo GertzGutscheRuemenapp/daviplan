@@ -61,7 +61,7 @@ DEBUG = False
 hosts = os.environ.get('ALLOWED_HOSTS')
 if hosts:
     hosts = hosts.split(',')
-    CSRF_TRUSTED_ORIGINS = hosts
+    CSRF_TRUSTED_ORIGINS = [f'https://{h}' for h in hosts]
     ALLOWED_HOSTS = hosts
 
 # Application definition
