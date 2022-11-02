@@ -436,7 +436,8 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       const genderDesc = `Geschlecht: ${this.selectedGender?.name || '-'}`;
       const ageGroupDesc = `${(this.ageGroupSelection.selected.length == this.ageGroups.length)? 'alle' : this.ageGroupSelection.selected.length === 0? 'keine': 'ausgewählte'} Altersgruppen`;
       const progDesc = (this.realYears?.indexOf(this.year) === -1)? `${this.activePrognosis?.name} `: '';
-      description = `Bevölkerungsentwicklung für Gebietseinheit ${this.activeLevel.name} | ${progDesc}${this.year} <br>` +
+      const pre = this.compareYears? 'Bevölkerungsentwicklung für': 'Zahl der Einwohner:innen nach'
+      description = `${pre} Gebietseinheit ${this.activeLevel.name} | ${progDesc}${this.year} <br>` +
                     `${genderDesc} | ${ageGroupDesc}`;
     }
     this.mapControl?.setDescription(description);
