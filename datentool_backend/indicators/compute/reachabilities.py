@@ -20,8 +20,11 @@ class ModeVariantMixin:
         if scenario_modevariant:
             variant = scenario_modevariant.first().variant
         else:
-            variant = ModeVariant.objects.get(mode=mode,
-                                              is_default=True)
+            try:
+                variant = ModeVariant.objects.get(mode=mode,
+                                                  is_default=True)
+            except ModeVariant.DoesNotExist:
+                variant = ModeVariant.objects.filter(mode=mode)[0]
         return variant
 
 reachability_bins_by_mode = {
