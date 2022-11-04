@@ -444,8 +444,6 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   }
 
   updateCompare(): void {
-    console.log(this.comparedYear);
-    console.log(this.compareYears);
     this.updateMap();
   }
 

@@ -3,7 +3,7 @@
 </div>
 <app-header-card [title]="'Einwohnerdaten der Vergangenheit (Realdaten)'"
                  cookieId="exp-realdata-header"
-                 width="1430px">
+                 width="1220px">
   <p>Für die Abschätzung der Nachfrage nach Infrastrukturen werden u.a. Einwohnerdaten benötigt. Auf dieser Seite können Realdaten, also Daten zur Einwohnerzahl und Altersstruktur in den zurückliegenden Jahren einlesen. Prognosedaten werden hingegen im entsprechend benannten Menüpunkt eingepflegt.</p>
   <p>Legen Sie zunächst in der Box „Gebietseinteilung“ fest, auf welche Gebietseinteilung sich Ihre Daten beziehen. Häufig ist dies die Ebene „Gemeinden“.</p>
   <p>Klicken Sie anschließend in der Box „Jahre“ auf „Hinzufügen“ und geben Sie die Jahreszahl ein, für die Sie Einwohnerdaten erfassen möchten. Daraufhin haben Sie in der Box „Ergänzende Einwohnerdaten hochladen“ die Möglichkeit eine Vorlagedatei („Template“) für dieses Jahr herunterzuladen. Befüllen Sie diese mit Ihren Daten und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch.</p>
@@ -15,33 +15,28 @@
   <h1 style="color: red; margin: 30px;">Fehler: Es ist keine Gebietseinheit für die Bevölkerungsdaten festgelegt!</h1>
 </div>
 <div fxLayout="row wrap">
-  <div fxLayout="column" fxFlex="350px">
-    <app-input-card [title]="'Einwohnerdaten online abrufen'"
-                    infoText="<p>ToDo: nur verfügbar wenn: Gemeinden, Altersgruppen gemäß Regionalstatistik</p>"
-                    [subtitle]="'Abruf der Regionalstatistik'"
-                    [disabled]="!popLevel || !popLevel.isDefaultPopLevel || isProcessing">
-      <ng-container *ngIf="popLevel && popLevel.isDefaultPopLevel && ageGroupsRegStatValid; else notAvailable">
-<!--        <table>
-          <tr>
-            <td i18n>letzter Abruf</td>
-            <td>02.06.2022</td>
-          </tr>
-        </table>-->
-        <div style="margin-top: 10px">
-          <button mat-flat-button color="primary"
-                  (click)="pullService()">
-            <mat-icon>refresh</mat-icon> Abrufen
-          </button>
-        </div>
-      </ng-container>
-      <ng-template #notAvailable>Die Regionalstatistik kann nur abgerufen werden, wenn "{{defaultPopLevel?.name}}" als Gebietseinheit für die Bevölkerungsdaten ausgewählt wurde und die Altersgruppeneinteilung mit der der Regionalstatistik übereinstimmt (siehe Projektdefinition).</ng-template>
-    </app-input-card>
+  <app-input-card [title]="'Einwohnerdaten online abrufen'"
+                  width="350px"
+                  infoText="<p>ToDo: nur verfügbar wenn: Gemeinden, Altersgruppen gemäß Regionalstatistik</p>"
+                  [subtitle]="'Abruf der Regionalstatistik'"
+                  [disabled]="!popLevel || !popLevel.isDefaultPopLevel || isProcessing">
+    <ng-container *ngIf="popLevel && popLevel.isDefaultPopLevel && ageGroupsRegStatValid; else notAvailable">
+      <div style="margin-top: 10px">
+        <button mat-flat-button color="primary"
+                (click)="pullService()">
+          <mat-icon>refresh</mat-icon> Abrufen
+        </button>
+      </div>
+    </ng-container>
+    <ng-template #notAvailable>Die Regionalstatistik kann nur abgerufen werden, wenn "{{defaultPopLevel?.name}}" als Gebietseinheit für die Bevölkerungsdaten ausgewählt wurde und die Altersgruppeneinteilung mit der der Regionalstatistik übereinstimmt (siehe Projektdefinition).</ng-template>
+  </app-input-card>
+  <div fxFlex="450px">
     <app-input-card #yearCard
-                    [title]="'Jahre'"
-                    [editTemplate]="yearsEdit"
-                    infoText="<p></p>"
-                    dialogWidth="500px"
-                    [disabled]="!popLevel || isProcessing">
+                      [title]="'Jahre'"
+                      [editTemplate]="yearsEdit"
+                      infoText="<p></p>"
+                      dialogWidth="500px"
+                      [disabled]="!popLevel || isProcessing">
       <table>
         <tr>
           <td i18n>Jahre</td>
@@ -54,63 +49,49 @@
         </tr>
       </table>
     </app-input-card>
-  </div>
-  <div fxLayout="column" fxFlex="1100px">
     <app-input-card [title]="'Ergänzende Einwohnerdaten hochladen'"
-                    [topRightHelp]="true"
                     [disabled]="!popLevel || isProcessing"
-                    infoText="<p>Wenn Sie für dieses Jahr noch keine Einwohnerdaten hochgeladen haben (oder die bereits hochgeladenen Daten ersetzen möchten), können Sie sich mit der Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excelformat  herunterladen. Befüllen Sie diese mit Ihren Daten für das angezeigte Jahr und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Zur Kontrolle können Sie sich die hochgeladenen Daten anschließend in der Box „Alterspyramide“ für einzelne Gebiete anschauen. Alternativ können Sie sich die Gesamttabelle des Jahres über die Schaltfläche „Datentabelle ansehen“ anzeigen lassen.</p>
-                    <p>Um die Daten weiterer Jahre hochzuladen, fügen Sie bitte in der Box „Jahre“ weitere Jahre hinzu und wiederholen das Vorgehen entsprechend. Für jedes Jahr benötigen Sie eine eigene Vorlagedatei.</p>">
+                    infoText="<p>Wenn Sie für dieses Jahr noch keine Einwohnerdaten hochgeladen haben (oder die bereits hochgeladenen Daten ersetzen möchten),
+                    können Sie sich mit der Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excelformat  herunterladen.
+                    Befüllen Sie diese mit Ihren Daten für das angezeigte Jahr und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch.
+                    Zur Kontrolle können Sie sich die hochgeladenen Daten anschließend in der Box „Alterspyramide“ für einzelne Gebiete anschauen.
+                    Alternativ können Sie sich die Gesamttabelle des Jahres über die Schaltfläche „Datentabelle ansehen“ anzeigen lassen.</p>
+                    <p>Um die Daten weiterer Jahre hochzuladen, fügen Sie bitte in der Box „Jahre“ weitere Jahre hinzu und wiederholen das Vorgehen entsprechend.
+                    Für jedes Jahr benötigen Sie eine eigene Vorlagedatei.</p>">
       <div style="width: 100%; display: flex;">
-        <div style="width: 50%; align-self: start;">
-<!--          <div style="margin-top: 15px; display: flex;">
-            <table>
-              <tr>
-                <td i18n>letzter Upload am</td>
-                <td>02.06.2022</td>
-              </tr>
-            </table>
-            <table style="margin-left: 20px; align-self: flex-end;">
-              <tr>
-                <td i18n>durch</td>
-                <td>Sascha Schmidt</td>
-              </tr>
-            </table>
-          </div>-->
-          <div style="margin: 20px 0 10px 0;">
-            <button mat-stroked-button color="primary" style="margin-right: 10px;"
-                    (click)="downloadTemplate()">
-              <mat-icon>download</mat-icon> Vorlage herunterladen
-            </button>
-            <button mat-flat-button color="primary"
-                    (click)="uploadTemplate()">
-              <mat-icon>upload</mat-icon> Daten hochladen
-            </button>
-          </div>
-          <button class="mat-button-dv"
-                  mat-button color="primary"
-                  (click)="showDataTable()">
-            <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
-          </button>
-<!--          <button mat-mini-fab color="primary"
-                  aria-label="Daten herunterladen" title="Daten herunterladen"
-                  style="float: right; margin: -10px 15px 0 0; box-shadow: none;">
-            <mat-icon>download</mat-icon>
-          </button>-->
-        </div>
-        <div id="log-window" style="width: 50%">
-          <span class="subtitle1">Daten-Historie Bevölkerung</span>
-          <app-log room="population" (onMessage)="onMessage($event)"  height="200px"></app-log>
-        </div>
+        <button mat-stroked-button color="primary" style="margin-right: 10px;"
+                (click)="downloadTemplate()">
+          <mat-icon>download</mat-icon> Vorlage herunterladen
+        </button>
+        <button mat-flat-button color="primary"
+                (click)="uploadTemplate()">
+          <mat-icon>upload</mat-icon> Daten hochladen
+        </button>
       </div>
     </app-input-card>
-    <app-input-card [title]="'Alterspyramide für ausgewähltes Jahr und ein ausgewähltes Gebiet'"
-                    [topRightHelp]="true"
-                    [disabled]="!popLevel || isProcessing"
-                    subtitle="Auswahl eines Gebiets über die Karte bzw. die Auswahlbox"
-                    infoText="<p>Wählen Sie in der Auswahlliste „Gebiet“ ein Gebiet aus, um dessen Einwohnerdaten in der Alterspyramide anzuzeigen. Alternativ können Sie das Gebiet auch durch Anklicken in der Karte auswählen. Die Daten der Alterspyramide beziehen sich auf das in der Box „Jahre“ ausgewählte Jahr. Um für das gleiche Gebiet zwischen den Jahren zu springen, klicken Sie in der Box „Jahre“ ein anderes Jahr an.</p>
-                    <p>Voraussetzung für die Anzeige ist, dass Sie bereits Einwohnerdaten für mindestens ein Jahr hochgeladen haben.</p>">
-      <div>
+  </div>
+  <app-input-card subtitle="Daten-Historie Bevölkerung"
+                  width="400px">
+    <app-log room="population" (onMessage)="onMessage($event)" height="350px"></app-log>
+  </app-input-card>
+</div>
+<div fxLayout="row wrap">
+  <app-input-card [title]="'Bereits importierte Einwohnerdaten'"
+                  [topRightHelp]="true"
+                  width="1220px"
+                  [disabled]="!popLevel || isProcessing"
+                  infoText="<p>Wählen Sie in der Auswahlliste „Gebiet“ ein Gebiet aus, um dessen Einwohnerdaten in der Alterspyramide anzuzeigen. Alternativ können Sie das Gebiet auch durch Anklicken in der Karte auswählen. Die Daten der Alterspyramide beziehen sich auf das in der Box „Jahre“ ausgewählte Jahr. Um für das gleiche Gebiet zwischen den Jahren zu springen, klicken Sie in der Box „Jahre“ ein anderes Jahr an.</p>
+                  <p>Voraussetzung für die Anzeige ist, dass Sie bereits Einwohnerdaten für mindestens ein Jahr hochgeladen haben.</p>">
+    <div style="margin-bottom: 10px;">
+      <button class="mat-button-dv"
+              mat-button color="primary"
+              (click)="showDataTable()">
+        <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
+      </button>
+    </div>
+    <div style="width: 100%; display: flex;">
+      <div style="width: 50%; margin-right: 10px;">
+        <span class="subtitle1">Alle Gesamtwerte eines Jahres</span><br>
         <mat-form-field appearance="outline" class="small" style="margin-right: 10px;">
           <mat-label>Jahr</mat-label>
           <mat-select disableOptionCentering disableRipple
@@ -119,23 +100,10 @@
             <ng-container *ngFor="let year of years">
               <mat-option *ngIf="year.isReal" [value]="year">
                 {{year.year}}
-                <!--              <ng-container *ngIf="year.isReal">(aktiv)</ng-container>-->
               </mat-option>
             </ng-container>
           </mat-select>
         </mat-form-field>
-        <mat-form-field appearance="outline" class="small">
-          <mat-label>Gebiet</mat-label>
-          <mat-select disableOptionCentering disableRipple
-                      [(ngModel)]="previewArea"
-                      (ngModelChange)="onAreaChange()">
-            <mat-option *ngFor="let area of areas" [value]="area">
-              {{area.properties.label}}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
-      <div style="width: 100%; display: flex;">
         <div id="base-real-data-map" class="map-container">
           <app-map-controls target="base-real-data-map"></app-map-controls>
           <app-side-toggle *ngIf="popLevel"
@@ -147,7 +115,20 @@
                         target="base-real-data-map"></app-legend>
           </app-side-toggle>
         </div>
+      </div>
+      <div style="width: 50%">
         <div class="diagram-container">
+          <span class="subtitle1">Alterstruktur eines Gebiets in diesem Jahr</span><br>
+          <mat-form-field appearance="outline" class="small">
+            <mat-label>Gebiet</mat-label>
+            <mat-select disableOptionCentering disableRipple
+                        [(ngModel)]="previewArea"
+                        (ngModelChange)="onAreaChange()">
+              <mat-option *ngFor="let area of areas" [value]="area">
+                {{area.properties.label}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
           <div class="diagram-wrapper">
             <app-age-tree #ageTree
                           [animate]="true"
@@ -156,8 +137,8 @@
           </div>
         </div>
       </div>
-    </app-input-card>
-  </div>
+    </div>
+  </app-input-card>
 </div>
 
 <ng-template #yearsEdit>
