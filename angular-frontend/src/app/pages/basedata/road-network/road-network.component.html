@@ -1,3 +1,6 @@
+<div class="loadOverlay" *ngIf="isLoading$ | async" xmlns="http://www.w3.org/1999/html">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
 <app-header-card [title]="'Straßennetz: Reisezeiten zu den Einrichtungen zu Fuß, mit dem Rad und mit dem Auto'"
                  cookieId="exp-router-header"
                  width="1000px">
@@ -25,7 +28,7 @@
 </app-header-card>
 
 <div fxLayout="row wrap">
-  <div fxLayout="column" fxFlex="350px">
+  <div fxLayout="column" fxFlex="450px">
     <app-input-card [title]="'Schritt 1: OpenStreetMap-Straßennetz herunterladen'"
                     [disabled]="isProcessing"
                     infoText="<p>Über die Schaltfläche „Basisnetz herunterladen“ wird das aktuelle Straßennetz auf den Server heruntergeladen. Das OSM-Netz wird für die Ausführung von Schritt 2 benötigt.</p>">
@@ -34,6 +37,7 @@
         <mat-icon *ngIf="baseDataSettings?.routing?.baseNet" color="primary">done</mat-icon>
       </div>
       <button mat-flat-button color="primary"
+              style="margin-top: 10px"
               (click)="downloadBaseNetwork()">
         <!--        <mat-icon>build</mat-icon> -->
         Straßennetz herunterladen
@@ -49,6 +53,7 @@
         <mat-icon *ngIf="baseDataSettings?.routing?.projectAreaNet" color="primary">done</mat-icon>
       </div>
       <button mat-flat-button color="primary"
+              style="margin-top: 10px"
               (click)="createProjectNetwork()">
 <!--        [disabled]="!baseDataSettings?.routing?.baseNet"-->
         Straßennetz verschneiden
@@ -58,24 +63,22 @@
                     [disabled]="isProcessing"
                     infoText="<p>In diesem Schritt werden die Reisezeitmatrizen für die Verkehrsmittel „Fuß“, „Rad“ und „Auto“ berechnet. </p>
                               <p>Die berechneten Matrizen werden für die Erreichbarkeitsanalyse in der Infrastrukturplanung benötigt.</p>">
-          <!--          <span class="subtitle1 sub">
-                      Verkehrsnetz „{{selectedRouter}}“
-                    </span>-->
-          <!--<table>
-            <tr>
-              <td style="min-width: 130px;; white-space: normal;">Buffer um den Planungsraum</td>
-              <td>10km</td>
-            </tr>
-            <tr>
-              <td>erzeugt am</td>
-              <td>31.05.2022</td>
-            </tr>
-            <tr>
-              <td>von</td>
-              <td>Sascha Schmidt</td>
-            </tr>
-          </table>-->
+      <table>
+        <tr>
+          <td i18n>Anzahl Relationen Fuß: </td>
+          <td>{{statistics?.nRelsPlaceCellWalk?.toLocaleString() || '-'}}</td>
+        </tr>
+        <tr>
+          <td i18n>Anzahl Relationen Rad: </td>
+          <td>{{statistics?.nRelsPlaceCellBike?.toLocaleString() || '-'}}</td>
+        </tr>
+        <tr>
+          <td i18n>Anzahl Relationen Auto: </td>
+          <td>{{statistics?.nRelsPlaceCellCar?.toLocaleString() || '-'}}</td>
+        </tr>
+      </table>
       <button mat-flat-button color="primary"
+              style="margin-top: 10px"
               (click)="createMatrices()">
 <!--              [disabled]="!baseDataSettings?.routing?.projectAreaNet"-->
         <mat-icon>build</mat-icon> Reisezeitmatrizen erzeugen

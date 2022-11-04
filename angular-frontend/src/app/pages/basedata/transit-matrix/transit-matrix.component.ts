@@ -1,12 +1,10 @@
 import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl } from "../../../map/map.service";
 import {
-  DemandRateSet, LogEntry,
+  LogEntry,
   ModeVariant,
-  Service,
-  TransitMatrixEntry,
-  TransitStop,
-  TransportMode
+  TransportMode,
+  ModeStatistics
 } from "../../../rest-interfaces";
 import { RestCacheService } from "../../../rest-cache.service";
 import { HttpClient } from "@angular/common/http";
@@ -17,6 +15,7 @@ import { FormBuilder, FormGroup } from "@angular/forms";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import * as fileSaver from "file-saver";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
+import { BehaviorSubject } from "rxjs";
 
 @Component({
   selector: 'app-transit-matrix',
@@ -30,8 +29,8 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
   variantForm: FormGroup;
   file?: File;
   uploadErrors: any = {};
-/*  stops: TransitStop[] = [];
-  matrixEntries: TransitMatrixEntry[] = [];*/
+  statistics?: ModeStatistics;
+  isLoading$ = new BehaviorSubject<boolean>(false);
   isProcessing = false;
   @ViewChild('editVariant') editVariantTemplate?: TemplateRef<any>;
   @ViewChild('fileUploadTemplate') fileUploadTemplate?: TemplateRef<any>;
@@ -41,8 +40,10 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
     this.variantForm = this.formBuilder.group({
       label: ''
     });
+    this.isLoading$.next(true);
     this.restService.getModeVariants().subscribe(variants => {
       this.variants = variants.filter(v => v.mode === TransportMode.TRANSIT);
+      this.isLoading$.next(false);
     })
   }
 
@@ -52,15 +53,12 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
   selectVariant(variant: ModeVariant): void {
     if (variant === this.selectedVariant) return;
     this.selectedVariant = variant;
-/*    this.stops = []; this.matrixEntries = [];
-    if (this.selectedVariant) {
-      this.restService.getTransitStops({ variant: this.selectedVariant.id }).subscribe(stops => {
-        this.stops = stops;
-      })
-      this.restService.getTransitMatrix({ variant: this.selectedVariant.id }).subscribe(entries => {
-        this.matrixEntries = entries;
-      })
-    }*/
+    this.statistics = undefined;
+    this.isLoading$.next(true);
+    this.restService.getRoutingStatistics({ reset: true }).subscribe(stats => {
+      this.statistics = stats;
+      this.isLoading$.next(false);
+    });
   }
 
   onEditVariant(create = false): void {
@@ -229,12 +227,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
   onMessage(log: LogEntry): void {
     if (log?.status?.success) {
       this.isProcessing = false;
-/*      this.restService.getTransitStops({ reset: true, variant: this.selectedVariant!.id }).subscribe(stops => {
-        this.stops = stops;
-        this.restService.getTransitMatrix({ reset: true, variant: this.selectedVariant!.id }).subscribe(entries => {
-          this.matrixEntries = entries;
-        })
-      })*/
+      this.restService.getRoutingStatistics({ reset: true }).subscribe(stats => this.statistics = stats)
     }
   }
 
@@ -275,5 +268,4 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.mapControl?.destroy();
   }
-// /matrixcellplaces/precalculate_traveltime
 }

@@ -393,3 +393,16 @@ export interface LogEntry {
   message: string,
   status?: {success?: boolean}
 }
+
+export interface ModeStatistics {
+  nPlaces: number,
+  nCells: number,
+  nRelsPlaceCellWalk: number,
+  nRelsPlaceCellBike: number,
+  nRelsPlaceCellCar: number,
+  nRelsPlaceCellTransit: number,
+  nStops: number,
+  nRelsPlaceStopTransit: number,
+  nRelsStopCellTransit: number,
+  nRelsStopStopTransit: number
+}

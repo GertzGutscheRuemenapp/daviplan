@@ -28,7 +28,7 @@ import {
   LogEntry,
   IndicatorLegendClass,
   TransitStop,
-  TransitMatrixEntry, PlanningProcess
+  TransitMatrixEntry, PlanningProcess, ModeStatistics
 } from "./rest-interfaces";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
@@ -404,6 +404,11 @@ export class RestCacheService {
   getNetworks(options?: { reset: boolean }): Observable<Network[]> {
     const url = this.rest.URLS.networks;
     return this.getCachedData<Network[]>(url, options);
+  }
+
+  getRoutingStatistics(options?: { reset: boolean }): Observable<ModeStatistics> {
+    const url = this.rest.URLS.routingStatistics;
+    return this.getCachedData<ModeStatistics>(url, options);
   }
 
   getStatistics(options?: { reset?: boolean }): Observable<Statistic[]>{

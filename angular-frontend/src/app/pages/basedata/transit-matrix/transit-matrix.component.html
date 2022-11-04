@@ -1,3 +1,6 @@
+<div class="loadOverlay" *ngIf="isLoading$ | async" xmlns="http://www.w3.org/1999/html">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
 <app-header-card [title]="'ÖPNV-Netz: Reisezeiten zu den Einrichtungen mit Bus und Bahn'"
                  cookieId="exp-reach-header"
                  width="1210px">
@@ -65,12 +68,12 @@
       <span class="subtitle1 sub">
         Haltestellen für „{{selectedVariant?.label}}“
       </span>
-<!--      <table>
+      <table>
         <tr>
           <td i18n>Anzahl Haltestellen: </td>
-          <td>{{stops.length}}</td>
+          <td>{{statistics?.nStops?.toLocaleString() || '-'}}</td>
         </tr>
-      </table>-->
+      </table>
       <div style="display: flex; margin-top: 10px;">
         <button mat-stroked-button color="primary" style="margin-right: 10px;" (click)="downloadTemplate()">
           <mat-icon>download</mat-icon> Vorlage Haltestellen
@@ -92,12 +95,12 @@
       <span class="subtitle1 sub">
         Fahrzeitliste für „{{selectedVariant?.label}}“ zwischen Haltestellen
       </span>
-<!--      <table>
+      <table>
         <tr>
-          <td i18n>Anzahl Einträge: </td>
-          <td>{{matrixEntries.length}}</td>
+          <td i18n>Anzahl Relationen: </td>
+          <td>{{this.statistics?.nRelsStopStopTransit?.toLocaleString() || '-'}}</td>
         </tr>
-      </table>-->
+      </table>
       <div style="display: flex; margin-top: 10px;">
         <div style="width: 45%; display: flex; flex-wrap: wrap;">
           <span class="subtitle1 sub" style="margin-top: 10px;">
@@ -127,19 +130,16 @@
                     [disabled]="isProcessing"
                     infoText="<p>Mit einem Klick auf die Schaltfläche „„Reisezeitmatrix erzeugen“ starten Sie die daviplan-interne Berechnung der ÖPNV-Reisezeitmatrix. Dabei ermittelt daviplan die ÖPNV-Wegezeiten von allen Wohnstandorten (Rasterzellen) in Ihrem Planungsraum und allen Standorten von Infrastruktureinrichtungen.</p>
                     <p>Diesen zeitintensiven Rechenschritt sollten Sie erst durchführen, wenn Sie im Menüpunkt „Infrastrukturdaten > Standorte und Kapazitäten“ bereits alle für Ihr Projekt relevanten Standorte hochgeladen haben. Zwar können Sie auch später noch – z.B. im Zuge der Szenarienentwicklung im Bereich „Infrastrukturplanung“ – einzelne Standorte nachdefinieren. Die Neuberechnung der ÖPNV-Reisezeitmatrix dauert jedoch mitunter länger.</p>">
-
       <span class="subtitle1 sub">
         Reisezeitmatrix „{{selectedVariant?.label}}“ <br>
         von Wohnstandorten zu Einrichtungen
       </span>
-  <!--          <div style="display: flex; margin-top: 15px;">
-        <table>
-          <tr>
-            <td i18n>erzeugt am</td>
-            <td>01.01.0001</td>
-          </tr>
-        </table>
-      </div>-->
+      <table>
+        <tr>
+          <td i18n>Anzahl Relationen: </td>
+          <td>{{this.statistics?.nRelsPlaceCellTransit?.toLocaleString() || '-'}}</td>
+        </tr>
+      </table>
       <button mat-flat-button color="primary" (click)="createMatrices()">
         <mat-icon>build</mat-icon> Reisezeitmatrix erzeugen
       </button>
