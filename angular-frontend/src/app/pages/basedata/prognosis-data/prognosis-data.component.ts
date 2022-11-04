@@ -488,7 +488,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
 
   setDefaultPrognosis(prognosis: Prognosis): void {
     if (!prognosis) return;
-    const attributes = { default: true };
+    const attributes = { isDefault: true };
     this.isLoading$.next(true);
     this.http.patch<Prognosis>(`${this.rest.URLS.prognoses}${this.activePrognosis?.id}/`, attributes
     ).subscribe(prognosis => {
