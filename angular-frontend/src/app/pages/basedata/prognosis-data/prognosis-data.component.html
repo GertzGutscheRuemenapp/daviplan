@@ -57,6 +57,10 @@
                          (click)="activePrognosis = prognosis; onPrognosisChange();"
                          [selected]="(prognosis === activePrognosis)">
           <div class="option-text">{{prognosis.name}}</div>
+          <mat-icon *ngIf="prognosis.isDefault"
+                    style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">
+            verified
+          </mat-icon>
         </mat-list-option>
       </mat-selection-list>
       <div style="margin-top: 10px;">
@@ -73,10 +77,19 @@
           <mat-icon>close</mat-icon>entfernen
         </button>
       </div>
+      <button mat-button color="primary"
+              class="multiline-button"
+              style="width: 86%;"
+              (click)="activePrognosis && setDefaultPrognosis(activePrognosis)"
+              [disabled]="!activePrognosis">
+        <mat-icon class="material-icons-outlined">verified</mat-icon>
+        Als Gebietseinteilung für alle Einwohnerdaten festlegen
+      </button>
     </app-input-card>
   </div>
-  <div fxFlex="450px">
+  <div fxLayout="column">
     <app-input-card #propertiesCard
+                    width="450px"
                     [title]="'Bezeichnung der ausgewählten Variante'"
                     [class.hidden]="!popLevel || !activePrognosis"
                     [editTemplate]="propertiesEdit">
@@ -96,6 +109,7 @@
       </table>
     </app-input-card>
     <app-input-card [title]="'Prognosedaten der ausgewählten Variante hochladen'"
+                    width="450px"
                     [disabled]="isProcessing"
                     [class.hidden]="!popLevel || !activePrognosis"
                     infoText="<p>Wenn Sie für diese Prognosevariante noch keine Einwohnerdaten hochgeladen haben (oder die bereits hochgeladenen Daten ersetzen möchten), können Sie sich mit der Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excelformat herunterladen. Befüllen Sie diese mit Ihren Daten für die angezeigte Variante und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Für jede Prognosevariante benötigen Sie eine eigene Vorlagedatei.</p>
@@ -127,6 +141,7 @@
   <app-input-card [title]="'Bereits importierte Prognosedaten für die ausgewählte Variante'"
                   [disabled]="isProcessing"
                   [topRightHelp]="true"
+                  class="spaced"
                   width="1200px"
                   [class.hidden]="!popLevel || !activePrognosis"
                   infoText="<p>Sie haben drei Möglichkeiten, sich die bereits importierten Prognosedaten für die ausgewählte Variante anzusehen.</p>
