@@ -58,9 +58,11 @@ PBF_URL = f'http://download.geofabrik.de/europe/{BASE_PBF}'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = [
-    'datentool.ggr-planung.de'
-]
+hosts = os.environ.get('ALLOWED_HOSTS')
+if hosts:
+    hosts = hosts.split(',')
+    CSRF_TRUSTED_ORIGINS = [f'https://{h}' for h in hosts]
+    ALLOWED_HOSTS = hosts
 
 # Application definition
 

@@ -111,7 +111,7 @@ export class ScenarioMenuComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.scenarios}${this.activeScenario!.id}/?force=true/`
+        this.http.delete(`${this.rest.URLS.scenarios}${this.activeScenario!.id}/?force=true`
         ).subscribe(res => {
           const idx = this.process!.scenarios!.indexOf(this.activeScenario!);
           if (idx >= 0) {
