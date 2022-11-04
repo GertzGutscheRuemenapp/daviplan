@@ -3,10 +3,10 @@ import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { MatDialog } from "@angular/material/dialog";
 import { SettingsService } from "../../../settings.service";
-import { BasedataSettings, LogEntry, ModeVariant, TransportMode } from "../../../rest-interfaces";
+import { BasedataSettings, LogEntry, ModeStatistics, ModeVariant, TransportMode } from "../../../rest-interfaces";
 import { RestCacheService } from "../../../rest-cache.service";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
-import { Subscription } from "rxjs";
+import { BehaviorSubject, Subscription } from "rxjs";
 
 @Component({
   selector: 'app-road-network',
@@ -18,6 +18,8 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
   modeVariants: ModeVariant[] = [];
   isProcessing = false;
   subscriptions: Subscription[] = [];
+  isLoading$ = new BehaviorSubject<boolean>(false);
+  statistics?: ModeStatistics;
 
   constructor(private http: HttpClient, private rest: RestAPI, private dialog: MatDialog,
               private settings: SettingsService, private restCache: RestCacheService) { }
@@ -29,8 +31,13 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
       this.isProcessing = bs.processes?.routing || false;
     }));
     this.settings.fetchBaseDataSettings();
+    this.isLoading$.next(true);
     this.restCache.getModeVariants().subscribe(modeVariants => {
       this.modeVariants = modeVariants.filter(m => m.mode !== TransportMode.TRANSIT);
+      this.restCache.getRoutingStatistics({ reset: true }).subscribe(stats => {
+        this.statistics = stats;
+        this.isLoading$.next(false);
+      })
     })
   }
 
@@ -110,6 +117,7 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
     if (log?.status?.success) {
       this.isProcessing = false;
       this.settings.fetchBaseDataSettings();
+      this.restCache.getRoutingStatistics({ reset: true }).subscribe(stats => this.statistics = stats)
     }
   }
 

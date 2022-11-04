@@ -180,6 +180,7 @@ mat-list-option:not([aria-selected="true"]):hover {
 
 .cdk-overlay-pane.absolute{
   position: absolute!important;
+  max-height: 100vh;
 }
 
 mat-form-field.full {
@@ -216,9 +217,14 @@ button.large {
 }
 
 .hidden, .hidden > * {
-  //display: None!important;
  opacity: 0;
  pointer-events: none!important;
+}
+.hidden:not(.spaced), .hidden:not(.spaced) > * {
+  width: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
 }
 
 .fill-space {
