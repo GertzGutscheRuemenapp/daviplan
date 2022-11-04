@@ -4,9 +4,11 @@ from rest_framework.exceptions import NotAcceptable
 
 from datentool_backend.infrastructure.models.infrastructures import (
     InfrastructureAccess, Infrastructure, PlaceField)
-from datentool_backend.area.models import MapSymbol
+from datentool_backend.area.models import MapSymbol, FieldTypes, FieldType
 from datentool_backend.area.serializers import MapSymbolSerializer
-from datentool_backend.infrastructure.serializers import PlaceFieldNestedSerializer
+from datentool_backend.infrastructure.serializers import (
+    PlaceFieldNestedSerializer, ADDRESS_FIELDS)
+
 
 class InfrastructureAccessSerializer(serializers.ModelSerializer):
     class Meta:
@@ -42,6 +44,15 @@ class InfrastructureSerializer(serializers.ModelSerializer):
             symbol=symbol, **validated_data)
         instance.editable_by.set(editable_by)
         instance.accessible_by.set([a['profile'] for a in accessible_by])
+
+        # preset fields for address uploads
+        str_type = FieldType.objects.get(ftype=FieldTypes.STRING)
+        for field_name in ADDRESS_FIELDS.keys():
+            place_field = PlaceField.objects.create(
+                infrastructure=instance, name=field_name, is_preset=True,
+                field_type=str_type)
+            place_field.save()
+
         for profile_access in accessible_by:
             infrastructure_access = InfrastructureAccess.objects.get(
                 infrastructure=instance,
@@ -130,7 +141,7 @@ class InfrastructureSerializer(serializers.ModelSerializer):
             place_fields.append(place_field)
         place_fields_ids = [f.id for f in place_fields]
         for place_field in instance.placefield_set.exclude(
-            id__in=place_fields_ids):
+            is_preset=True).exclude(id__in=place_fields_ids):
             place_field.delete(keep_parents=True)
 
     def get_places_count(self, instance):

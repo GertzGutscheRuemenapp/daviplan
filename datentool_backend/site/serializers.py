@@ -2,7 +2,7 @@ from typing import Dict
 import os
 from rest_framework import serializers
 from .models import SiteSetting, ProjectSetting
-from django.db.models import Max, Min
+from django.db.models import Max, Min, Count
 from django.conf import settings
 import logging
 
@@ -14,6 +14,13 @@ from datentool_backend.models import (DemandRateSet, Prognosis, ModeVariant,
                                       Year, AreaLevel, PopulationRaster, Area)
 from datentool_backend.utils.processes import (ProtectedProcessManager,
                                                ProcessScope)
+
+from datentool_backend.indicators.models import (MatrixCellPlace,
+                                                 MatrixCellStop,
+                                                 MatrixPlaceStop,
+                                                 MatrixStopStop,
+                                                 Stop,
+                                                 )
 
 logger = logging.getLogger('areas')
 
@@ -138,3 +145,64 @@ class SiteSettingSerializer(serializers.ModelSerializer):
             'bkg_password': {'write_only': True},
             'regionalstatistik_password': {'write_only': True}
         }
+
+
+class MatrixStatisticsSerializer(serializers.Serializer):
+    n_places = serializers.SerializerMethodField(read_only=True)
+    n_cells = serializers.SerializerMethodField(read_only=True)
+    n_rels_place_cell_walk = serializers.SerializerMethodField(read_only=True)
+    n_rels_place_cell_bike = serializers.SerializerMethodField(read_only=True)
+    n_rels_place_cell_car = serializers.SerializerMethodField(read_only=True)
+    n_rels_place_cell_transit = serializers.SerializerMethodField(read_only=True)
+    n_stops = serializers.SerializerMethodField(read_only=True)
+    n_rels_place_stop_transit = serializers.SerializerMethodField(read_only=True)
+    n_rels_stop_cell_transit = serializers.SerializerMethodField(read_only=True)
+    n_rels_stop_stop_transit = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        fields = ('n_places',
+                  'n_cells',
+                  'n_rels_place_cell_walk',
+                  'n_rels_place_cell_bike',
+                  'n_rels_place_cell_car',
+                  'n_rels_place_cell_transit',
+                  'n_stops',
+                  'n_rels_place_stop_transit',
+                  'n_rels_stop_cell_transit',
+                  'n_rels_stop_stop_transit',
+                  )
+
+    def get_n_places(self, obj) -> int:
+            return MatrixCellPlace.objects.distinct('place_id').count()
+
+    def get_n_cells(self, obj) -> int:
+            return MatrixCellPlace.objects.distinct('cell_id').count()
+
+    def get_n_rels_place_cell_walk(self, obj) -> int:
+            return MatrixCellPlace.objects.filter(variant__mode=Mode.WALK)\
+                .count()
+
+    def get_n_rels_place_cell_bike(self, obj) -> int:
+            return MatrixCellPlace.objects.filter(variant__mode=Mode.BIKE)\
+                .count()
+
+    def get_n_rels_place_cell_car(self, obj) -> int:
+            return MatrixCellPlace.objects.filter(variant__mode=Mode.CAR)\
+                .count()
+
+    def get_n_rels_place_cell_transit(self, obj) -> int:
+            return MatrixCellPlace.objects.filter(variant__mode=Mode.TRANSIT)\
+                .count()
+
+    def get_n_stops(self, obj) -> int:
+            return Stop.objects.count()
+
+    def get_n_rels_place_stop_transit(self, obj) -> int:
+            return MatrixPlaceStop.objects.count()
+
+    def get_n_rels_stop_cell_transit(self, obj) -> int:
+            return MatrixCellStop.objects.count()
+
+    def get_n_rels_stop_stop_transit(self, obj) -> int:
+            return MatrixStopStop.objects.count()
+

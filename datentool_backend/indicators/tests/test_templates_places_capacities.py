@@ -16,7 +16,6 @@ from datentool_backend.infrastructure.factories import (InfrastructureFactory,
                                                         FieldTypeFactory,
                                                         PlaceFactory,
                                                         )
-
 from datentool_backend.area.models import FieldTypes
 from datentool_backend.area.factories import FClassFactory
 
