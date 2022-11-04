@@ -3,29 +3,34 @@
 </div>
 <app-header-card [title]="'Einwohnerdaten für die Zukunft (Prognosedaten, ggf. in Szenarien)'"
                  cookieId="exp-progdata-header"
-                 width="1430px">
-  <p>Für die Abschätzung der zukünftigen Nachfrageentwicklung nach Infrastrukturen werden u.a. Prognosedaten zur Einwohnerentwicklung benötigt. Auf dieser Seite können Sie daher Einwohnerprognosen einlesen. Reale Einwohnerdaten für die zurückliegenden Jahre werden hingegen im vorstehenden Menüpunkt „Realdaten“ eingepflegt.</p>
-  <p>Zum Einlesen von Prognosedaten legen Sie zunächst in der Box „Rahmendaten“ fest, auf welche Gebietseinteilung sich die Prognosedaten beziehen, welche Altersgruppen die Prognose enthält für welche Prognosejahre Werte eingespielt werden sollen.</p>
-  <p>Da Einwohnerprognosen manchmal unterschiedliche Prognosevarianten enthalten (z.B. „Trendentwicklung“, „mehr Zuwanderung“, „mehr Abwanderung“), können Sie in der Box „Prognosevarianten“ bei Bedarf auch unterschiedliche Varianten definieren. Wenn Ihre Prognose keine Varianten enthält, definieren Sie hier nur eine Variante. Um eine Prognosevariante zu definieren, klicken Sie auf die Schaltfläche „Hinzufügen“.</p>
-  <p>Für jede Prognosevariante, die Sie definiert haben, können Sie sich anschließend in der Box „Prognosedaten der ausgewählten Variante hochladen“ eine Vorlagedatei („Template“) herunterzuladen. Deren Struktur ist auch von den Einstellungen in der Box „Rahmendaten“ abhängig. Die Rahmendaten sollten Sie daher vor dem Vorlagen-Download abschließend festgelegt haben.</p>
-  <p>Befüllen Sie nun die Vorlage mit den Prognosedaten für die betreffende Prognosevariante und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch.</p>
-  <p>Wiederholen Sie dieses Vorgehen bitte für alle Prognosevarianten, die Sie definiert haben, um sie Ihren Nutzer*innen zur Verfügung zu stellen.</p>
-  <p>Bereits hochgeladene Prognosedaten können in der Box „Veranschaulichung für ausgewähltes Gebiet“ in Grafiken dargestellt werden.</p>
-  <p>Zudem sind sie für alle Nutzer*innen im Hauptmenübereich „Bevölkerung“ sichtbar und stehen für Auswertungen im Hauptmenübereich „Infrastrukturplanung“ zur Verfügung.</p>
+                 width="1200px">
+  <p>Für die Abschätzung der zukünftigen Nachfrageentwicklung nach Infrastrukturen werden u.a. Prognosedaten zur Einwohnerentwicklung benötigt. Auf dieser Seite können Sie daher Einwohnerprognosen einlesen. Reale Einwohnerdaten für die zurückliegenden Jahre werden hingegen im vorstehenden Menüpunkt „Vergangenheit“ eingepflegt.</p>
+  <p>Legen Sie in der Eingabebox „Prognosejahre“ zunächst fest, für welche Jahre Sie Prognosedaten hochladen wollen.</p>
+  <p>Da Einwohnerprognosen manchmal unterschiedliche Prognosevarianten enthalten (z.B. „Trendentwicklung“, „mehr Zuwanderung“, „mehr Abwanderung“), können Sie in der Box „Prognosevarianten“ bei Bedarf unterschiedliche Varianten definieren. Wenn Ihre Prognose keine Varianten enthält, definieren Sie hier nur eine Variante. Um eine Prognosevariante zu definieren, klicken Sie auf die Schaltfläche „Hinzufügen“.</p>
+  <p>Für jede Prognosevariante, die Sie definiert haben, können Sie sich anschließend in der Box „Prognosedaten der ausgewählten Variante hochladen“ eine Vorlagedatei herunterzuladen. Befüllen Sie diese Vorlage in Excel mit den Prognosedaten für die zuvor definierten Prognosevariante und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch.</p>
+  <p>Wiederholen Sie dieses Vorgehen für alle Prognosevarianten, in dem Sie in der Liste „Prognosevarianten“ die nächste Variante auswählen.</p>
+  <p>Bereits hochgeladene Prognosedaten einer ausgewählten Variante können Sie über die Karte sowie das Alterspyramiden-Diagramm kontrollieren. Zudem können Sie sich alle Daten in einer Tabellenansicht anzeigen lassen.</p>
+  <p>Die auf dieser Seite zusammengetragenen Prognosedaten sind für alle Nutzer*innen im Hauptmenübereich „Bevölkerung“ sichtbar. Zudem stehen sie für Auswertungen im Hauptmenübereich „Infrastrukturplanung“ zur Verfügung.</p>
 </app-header-card>
 <div *ngIf="popLevelMissing">
   <h1 style="color: red; margin: 30px;">Fehler: Es ist keine Gebietseinheit für die Bevölkerungsdaten festgelegt!</h1>
 </div>
 <div fxLayout="row wrap">
-  <div fxLayout="column" fxFlex="350px">
+  <div fxFlex="350px">
     <app-input-card #yearCard
-                    [title]="'Prognosejahre'"
+                    [title]="'Angezeigte Prognosejahre'"
                     [editTemplate]="yearsEdit"
                     [disabled]="!popLevel || isProcessing"
                     dialogWidth="500px"
-                    infoText="<p>Bevor Sie Prognosedaten hochladen, müssen Sie an dieser Stelle die wichtigsten Rahmendaten der Prognose eintragen. Diese Rahmendaten definieren u.a. die Struktur der Vorlagedateien, die Sie sich in der Box „Prognosedaten der ausgewählten Variante hochladen“ herunterladen können. Nachträgliche Veränderungen an den Rahmendaten führen daher zu einem Löschen aller bereits hochgeladenen Prognosedaten.</p>
-                              <p>Um konsistente Zeitreihen sicherzustellen, müssen sich die Prognosedaten auf die gleiche Gebietseinteilung beziehen wie die Realdaten der zurückliegenden Jahr. Die Eintragung hinter „Gebietseinheit“ wurde daher aus Ihren Einstellungen bei den Realdaten übernommen. Falls Sie eine andere Gebietseinteilung nutzen möchten, müssen Sie die Einstellung dort ändern.</p>
-                              <p>Legen Sie zudem fest, für welche zukünftigen Jahre Ihnen aus der Ihnen vorliegenden Prognose Werte hochgeladen werden sollen. Prognosedaten für Jahre, für die zwischenzeitlich Realdaten hochgeladen wurden, werden in den Hauptmenübereichen „Bevölkerung“ und „Infrastrukturplanung“ nicht mehr angezeigt oder für Berechnungen verwendet. Sie müssen dafür nicht aktiv gelöscht werden.</p>">
+                    infoText="<p>Legen Sie über die Schaltfläche „Editieren“ fest, für welche zukünftigen Jahre Ihnen
+                    aus der Ihnen vorliegenden Prognose Werte hochgeladen werden sollen. Über die gleiche Schaltfläche
+                    können Sie zudem entscheiden, welche Jahre den Nutzer*innen angezeigt werden sollen. Zudem können Sie
+                    über die Schaltfläche bereits hochgeladene Prognosedaten wieder löschen.</p>"
+                    dialogInfoText="<p>Die Liste enthält alle Jahre Ihres Betrachtungszeitraums. Zurückliegende Jahre sind mit einem Sternchen gekennzeichnet.</p>
+                    <p>In der mittleren Spalte sind die Jahre mit einem grauen Häkchen markiert, für die bereits Prognosedaten hochgeladen wurden (ob diese für alle Varianten vorliegen, wird nicht überprüft).</p>
+                    <p>Sie können in der ersten Spalte auswählen, welche dieser Daten Sie den Nutzer*innen der Hauptmenübereiche „Bevölkerung“ und „Infrastrukturplanung“ als Prognosedaten anzeigen möchten.</p>
+                    <p>Besonders relevant ist diese Auswahl, wenn in einem Jahr sowohl Realdaten aus der Einwohnerstatistik wie auch Prognosedaten aus einer ggf. schon etwas älteren Prognose vorliegen. Daher zeigt Ihnen die letzte Spalte an, für welche der zurückliegenden Jahre auch Realdaten in daviplan hochgeladen wurden.</p>
+                    <p>Um bereits hochgeladenen reale Prognosedaten wieder zu löschen, klicken Sie auf das entsprechende rote Kreuzchen in der Spalte „Prognosedaten“. Die Löschung betrifft alle Varianten für das betreffende Jahr. Realdaten löschen Sie über den Menüpunkt „Bevölkerung > Vergangenheit“ im Menü am linken Browserrand.</p>">
       <table>
         <tr>
           <td i18n>Prognosejahre</td>
@@ -40,7 +45,12 @@
     </app-input-card>
     <app-input-card [title]="'Prognosevarianten'"
                     [disabled]="!popLevel || isProcessing"
-                    subtitle="Varianten hinzufügen bzw. bereits hinzugefügte bearbeiten">
+                    subtitle="Varianten hinzufügen bzw. bereits hinzugefügte bearbeiten"
+                    infoText="<p>Klicken Sie auf „Hinzufügen“, um die erste Prognosevariante hinzuzufügen. Tun Sie dies auch, wenn Ihre Prognose keine Varianten ausweist.</p>
+                    <p>In dem sich öffnenden Dialog geben Sie nur die Bezeichnung dieser Variante an, z.B. „Basisvariante“, „Trendfortschreibung“, „mehr Zuzug“ oder auch „einzige Variante“. Die hinzugefügte Variante erscheint dann in der Liste.</p>
+                    <p>Für eine in der Liste ausgewählte Varianten können Sie anschließend in der Box „Prognosedaten der ausgewählten Variante hochladen“ eine Vorlagedatei herunterzuladen. Befüllen Sie diese mit Ihren Daten und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch.</p>
+                    <p>Wiederholen Sie dieses Vorgehen bitte für alle Prognosevarianten, die Sie Ihren Nutzer*innen zur Verfügung stellen möchten.</p>
+                    <p>Um eine Variante samt ihrer ggf. bereits hochgeladenen Daten zu löschen wählen Sie diese in der Liste aus und klicken auf „Entfernen“.</p>">
       <mat-selection-list [multiple]="false"
                           id="prognosis-select">
         <mat-list-option *ngFor="let prognosis of prognoses"
@@ -63,100 +73,84 @@
           <mat-icon>close</mat-icon>entfernen
         </button>
       </div>
-      <div [class.hidden]="!activePrognosis" [style.height]="!activePrognosis? '0px': ''"
-           between>
-      <mat-divider style="margin: 10px 0;"></mat-divider>
-        <div style="padding: 10px 0;">
-          <app-input-card #propertiesCard
-                          [borderless]="true"
-                          [subtitle]="'Bezeichnung der ausgewählten Variante'"
-                          [editTemplate]="propertiesEdit"
-                          infoText="<p>Klicken Sie auf „Hinzufügen“, um die erste Prognosevariante hinzuzufügen. Tun Sie dies auch, wenn Ihre Prognose keine Varianten ausweist.</p>
-                                    <p>In dem sich öffnenden Dialog geben Sie nur die Bezeichnung dieser Variante an, z.B. „Basisvariante“, „Trendfortschreibung“, „mehr Zuzug“ oder auch „einzige Variante“. Die hinzugefügte Variante erscheint dann in der Liste.</p>
-                                    <p>Für eine in der Liste ausgewählte Varianten können Sie anschließend in der Box „Prognosedaten der ausgewählten Variante hochladen“ eine Vorlagedatei herunterzuladen. Befüllen Sie diese mit Ihren Daten und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch.</p>
-                                    <p>Wiederholen Sie dieses Vorgehen bitte für alle Prognosevarianten, die Sie Ihren Nutzer*innen zur Verfügung stellen möchten.</p>
-                                    <p>Um eine Variante samt ihrer ggf. bereits hochgeladenen Daten zu löschen wählen Sie diese in der Liste aus und klicken auf „Entfernen“.</p>">
-            <table *ngIf="activePrognosis">
-              <tr>
-                <td>Name</td>
-                <td>{{activePrognosis.name}}</td>
-              </tr>
-              <tr>
-                <td>Beschreibung</td>
-                <td>
-                  <div style="overflow: hidden; -webkit-line-clamp: 5; -webkit-box-orient: vertical; display: -webkit-box;">
-                    {{activePrognosis.description}}
-                  </div>
-                </td>
-              </tr>
-            </table>
-          </app-input-card>
-        </div>
+    </app-input-card>
+  </div>
+  <div fxFlex="450px">
+    <app-input-card #propertiesCard
+                    [title]="'Bezeichnung der ausgewählten Variante'"
+                    [class.hidden]="!popLevel || !activePrognosis"
+                    [editTemplate]="propertiesEdit">
+      <table *ngIf="activePrognosis">
+        <tr>
+          <td>Name</td>
+          <td>{{activePrognosis.name}}</td>
+        </tr>
+        <tr>
+          <td>Beschreibung</td>
+          <td>
+            <div style="overflow: hidden; -webkit-line-clamp: 5; -webkit-box-orient: vertical; display: -webkit-box;">
+              {{activePrognosis.description}}
+            </div>
+          </td>
+        </tr>
+      </table>
+    </app-input-card>
+    <app-input-card [title]="'Prognosedaten der ausgewählten Variante hochladen'"
+                    [disabled]="isProcessing"
+                    [class.hidden]="!popLevel || !activePrognosis"
+                    infoText="<p>Wenn Sie für diese Prognosevariante noch keine Einwohnerdaten hochgeladen haben (oder die bereits hochgeladenen Daten ersetzen möchten), können Sie sich mit der Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excelformat herunterladen. Befüllen Sie diese mit Ihren Daten für die angezeigte Variante und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Für jede Prognosevariante benötigen Sie eine eigene Vorlagedatei.</p>
+                    <p>Zur Kontrolle können Sie sich die hochgeladenen Daten anschließend in der Box „Bereits importierte Prognosedaten für die ausgewählte Variante“ für einzelne Gebiete anschauen.</p>">
+      <span class="subtitle1 sub">
+        Prognosevariante:
+        <p style="font-size: 1.5em;">"{{activePrognosis?.name || '-'}}"</p>
+      </span>
+      <div style="width: 100%; display: flex;">
+        <button mat-stroked-button color="primary"
+                style="margin-right: 10px;"
+                (click)="downloadTemplate()">
+          <mat-icon>download</mat-icon> Vorlage herunterladen
+        </button>
+        <button mat-flat-button color="primary" (click)="uploadTemplate()">
+          <mat-icon>upload</mat-icon> Daten hochladen
+        </button>
       </div>
     </app-input-card>
   </div>
-  <div fxLayout="column" fxFlex="1100px">
-    <app-input-card [title]="'Prognosedaten der ausgewählten Variante hochladen'"
-                    [disabled]="isProcessing"
-                    [topRightHelp]="true"
-                    [class.hidden]="!popLevel || !activePrognosis"
-                    infoText="<p>Wenn Sie für diese Prognosevariante noch keine Einwohnerdaten hochgeladen haben (oder die bereits hochgeladenen Daten ersetzen möchten), können Sie sich mit der Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excelformat  herunterladen. Befüllen Sie diese mit Ihren Daten für die angezeigte Variante und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Zur Kontrolle können Sie sich die hochgeladenen Daten anschließend in der Box „Veranschaulichung“ für einzelne Gebiete anschauen. Alternativ können Sie sich die Gesamttabelle der Prognosevariante über die Schaltfläche „Datentabelle ansehen“ anzeigen lassen.</p>
-                              <p>Um die Daten weitere Prognosevarianten hochzuladen, fügen Sie bitte in der Box „Prognosevariante“ weitere Varianten hinzu und wiederholen das Vorgehen entsprechend. Für jede Prognosevariante benötigen Sie eine eigene Vorlagedatei.</p>">
-      <div style="width: 100%; display: flex;">
-        <div style="width: 50%; align-self: start;">
-          <span class="subtitle1 sub">
-            Prognosevariante:
-            <p style="font-size: 1.5em;">"{{activePrognosis?.name || '-'}}"</p>
-          </span>
-<!--          <div style="margin-top: 15px; display: flex;">
-            <table>
-              <tr>
-                <td i18n>Upload am</td>
-                <td>02.06.2022</td>
-              </tr>
-            </table>
-            <table style="margin-left: 20px;">
-              <tr>
-                <td i18n>durch</td>
-                <td>Sascha Schmidt</td>
-              </tr>
-            </table>
-          </div>-->
-          <div style="margin: 20px 0 10px 0;">
-            <button mat-stroked-button color="primary"
-                    style="margin-right: 10px;"
-                    (click)="downloadTemplate()">
-              <mat-icon>download</mat-icon> Vorlage herunterladen
-            </button>
-            <button mat-flat-button color="primary" (click)="uploadTemplate()">
-              <mat-icon>upload</mat-icon> Daten hochladen
-            </button>
-          </div>
-          <button class="mat-button-dv"
-                  mat-button color="primary"
-                  (click)="showDataTable()">
-            <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
-          </button>
-<!--          <button mat-mini-fab color="primary"
-                  aria-label="Daten herunterladen" title="Daten herunterladen"
-                  style="float: right; margin: -10px 15px 0 0; box-shadow: none;">
-            <mat-icon>download</mat-icon>
-          </button>-->
-        </div>
-        <div id="log-window" style="width: 50%">
-          <span class="subtitle1">Daten-Historie Bevölkerung</span>
-          <app-log room="population" (onMessage)="onMessage($event)"  height="200px"></app-log>
-        </div>
-      </div>
-    </app-input-card>
-    <app-input-card [title]="'Veranschaulichung der ausgewählten Variante für ein ausgewähltes Gebiet'"
-                    [disabled]="isProcessing"
-                    [topRightHelp]="true"
-                    [class.hidden]="!popLevel || !activePrognosis"
-                    subtitle="Auswahl eines Gebiets über die Karte bzw. die Auswahlbox"
-                    infoText="<p>Wählen Sie in der Auswahlliste „Gebiet“ ein Gebiet aus, um dessen Prognosedaten in den Diagrammen anzuzeigen. Alternativ können Sie das Gebiet auch durch Anklicken in der Karte auswählen. Die Daten der Diagramme beziehen sich auf die in der Box „Prognosevarianten“ ausgewählte Variante. Um für das gleiche Gebiet zwischen den Prognosevarianten zu springen, klicken Sie in der Box „Prognosevarianten“ eine andere Variante an.</p>
-                    <p>Voraussetzung für die Anzeige ist, dass Sie bereits Einwohnerdaten für mindestens eine Prognosevariante hochgeladen haben.</p>">
-      <div>
+  <app-input-card subtitle="Daten-Historie Bevölkerung"
+                  width="400px"
+                  infoText="<p>Die Liste zeigt Ihnen eine Chronik aller Datenimporte (Hochladen der befüllten Vorlagen).</p>
+                  <p>Die Chronik enthält auch Informationen über alle Datenimporte für Realdaten, die über den Menüpunkt „Bevölkerung > Vergangenheit“ (linker Browserrand) durchgeführt wurden.</p>">
+    <app-log room="population" (onMessage)="onMessage($event)" height="350px"></app-log>
+  </app-input-card>
+</div>
+<div fxLayout="row wrap">
+  <app-input-card [title]="'Bereits importierte Prognosedaten für die ausgewählte Variante'"
+                  [disabled]="isProcessing"
+                  [topRightHelp]="true"
+                  width="1200px"
+                  [class.hidden]="!popLevel || !activePrognosis"
+                  infoText="<p>Sie haben drei Möglichkeiten, sich die bereits importierten Prognosedaten für die ausgewählte Variante anzusehen.</p>
+                  <ol type='1'>
+                    <li>Sie können sich alle Daten in einer Tabellenansicht ansehen</li>
+                    <li>Sie können ein Jahr auswählen und sich die Gesamteinwohnerzahl aller Gebiete in der Karte ansehen. Diese können Sie über die Kartensteuerung auch als Vollbild über den gesamten Bildschirm anzeigen lassen. Die Namen der Gebiete werden Ihnen angezeigt, wenn Sie mit der Maus über die Karte fahren.</li>
+                    <li>Wenn Sie ein Gebiet in der Karte anklicken wird Ihnen die Alterspyramide nach Geschlecht für das Jahr der Kartendarstellung angezeigt. Alternativ können Sie das Gebiet auch über die darüberstehende Auswahlliste wählen.</li>
+                  </ol>
+                  Voraussetzung für alle Anzeigen ist, dass Sie bereits Prognosedaten für mindestens ein Jahr hochgeladen haben und mindestens ein Jahr zur Anzeige ausgewählt wurde.
+                  </p>">
+    <span class="subtitle1 sub">
+      Prognosevariante:
+      <p style="font-size: 1.5em;">"{{activePrognosis?.name || '-'}}"</p>
+    </span>
+    <div style="margin-bottom: 10px;">
+      <button class="mat-button-dv"
+              mat-button color="primary"
+              (click)="showDataTable()">
+        <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
+      </button>
+    </div>
+    <div style="width: 100%; display: flex;">
+      <div style="width: 50%; margin-right: 10px;">
+        <span class="subtitle1">Alle Gesamtwerte eines Jahres</span><br>
         <mat-form-field appearance="outline" class="small" style="margin-right: 10px;">
           <mat-label>Jahr</mat-label>
           <mat-select disableOptionCentering disableRipple
@@ -165,11 +159,26 @@
             <ng-container *ngFor="let year of years">
               <mat-option *ngIf="year.isPrognosis" [value]="year">
                 {{year.year}}
-                <!--              <ng-container *ngIf="year.isReal">(aktiv)</ng-container>-->
               </mat-option>
             </ng-container>
           </mat-select>
         </mat-form-field>
+        <div style="width: 100%; display: flex">
+          <div id="base-prog-data-map" class="map-container">
+            <app-map-controls *ngIf="popLevel && activePrognosis"
+                              target="base-prog-data-map"></app-map-controls>
+            <app-side-toggle [class.hidden]="!popLevel || !activePrognosis"
+                             id="legend"
+                             icon="layers"
+                             name="Legenden- und Layersteuerung"
+                             direction="left">
+              <app-legend target="base-prog-data-map"></app-legend>
+            </app-side-toggle>
+          </div>
+        </div>
+      </div>
+      <div style="width: 50%">
+        <span class="subtitle1">Alterstruktur eines Gebiets in diesem Jahr</span><br>
         <mat-form-field appearance="outline" class="small">
           <mat-label>Gebiet</mat-label>
           <mat-select disableOptionCentering disableRipple
@@ -180,30 +189,15 @@
             </mat-option>
           </mat-select>
         </mat-form-field>
-      </div>
-      <div style="width: 100%; display: flex">
-        <div id="base-prog-data-map" class="map-container">
-          <app-map-controls *ngIf="popLevel && activePrognosis"
-                            target="base-prog-data-map"></app-map-controls>
-          <app-side-toggle [class.hidden]="!popLevel || !activePrognosis"
-                           id="legend"
-                           icon="layers"
-                           name="Legenden- und Layersteuerung"
-                           direction="left">
-            <app-legend target="base-prog-data-map"></app-legend>
-          </app-side-toggle>
-        </div>
-        <div class="diagram-container">
-          <div class="diagram-wrapper">
-            <app-age-tree #ageTree
-                          [animate]="true"
-                          [title]="'Bevölkerungspyramide'">
-            </app-age-tree>
-          </div>
+        <div class="diagram-wrapper">
+          <app-age-tree #ageTree
+                        [animate]="true"
+                        [title]="'Bevölkerungspyramide'">
+          </app-age-tree>
         </div>
       </div>
-    </app-input-card>
-  </div>
+    </div>
+  </app-input-card>
 </div>
 
 <ng-template #yearsEdit>
@@ -213,8 +207,8 @@
       <th colspan="2">Daten in der Datenbank</th>
     </tr>
     <tr>
-      <th>Jahr (*Realdatenjahr)</th>
-      <th>Als Prognosejahr ausgewählt</th>
+      <th>Jahr (*zurückliegend)</th>
+      <th>Als Prognosejahr anzeigen</th>
       <th>Prognosedaten</th>
       <th>Realdaten</th>
     </tr>

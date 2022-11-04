@@ -128,24 +128,22 @@
         </div>
       </div>
       <div style="width: 50%">
-        <div class="diagram-container">
-          <span class="subtitle1">Alterstruktur eines Gebiets in diesem Jahr</span><br>
-          <mat-form-field appearance="outline" class="small">
-            <mat-label>Gebiet</mat-label>
-            <mat-select disableOptionCentering disableRipple
-                        [(ngModel)]="previewArea"
-                        (ngModelChange)="onAreaChange()">
-              <mat-option *ngFor="let area of areas" [value]="area">
-                {{area.properties.label}}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-          <div class="diagram-wrapper">
-            <app-age-tree #ageTree
-                          [animate]="true"
-                          [title]="'Bevölkerungspyramide'">
-            </app-age-tree>
-          </div>
+        <span class="subtitle1">Alterstruktur eines Gebiets in diesem Jahr</span><br>
+        <mat-form-field appearance="outline" class="small">
+          <mat-label>Gebiet</mat-label>
+          <mat-select disableOptionCentering disableRipple
+                      [(ngModel)]="previewArea"
+                      (ngModelChange)="onAreaChange()">
+            <mat-option *ngFor="let area of areas" [value]="area">
+              {{area.properties.label}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <div class="diagram-wrapper">
+          <app-age-tree #ageTree
+                        [animate]="true"
+                        [title]="'Bevölkerungspyramide'">
+          </app-age-tree>
         </div>
       </div>
     </div>
