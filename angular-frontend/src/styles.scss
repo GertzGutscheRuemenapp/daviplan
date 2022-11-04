@@ -180,6 +180,7 @@ mat-list-option:not([aria-selected="true"]):hover {
 
 .cdk-overlay-pane.absolute{
   position: absolute!important;
+  max-height: 100vh;
 }
 
 mat-form-field.full {
