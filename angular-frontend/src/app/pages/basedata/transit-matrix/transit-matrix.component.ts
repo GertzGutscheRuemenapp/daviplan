@@ -30,8 +30,8 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
   variantForm: FormGroup;
   file?: File;
   uploadErrors: any = {};
-  stops: TransitStop[] = [];
-  matrixEntries: TransitMatrixEntry[] = [];
+/*  stops: TransitStop[] = [];
+  matrixEntries: TransitMatrixEntry[] = [];*/
   isProcessing = false;
   @ViewChild('editVariant') editVariantTemplate?: TemplateRef<any>;
   @ViewChild('fileUploadTemplate') fileUploadTemplate?: TemplateRef<any>;
@@ -52,7 +52,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
   selectVariant(variant: ModeVariant): void {
     if (variant === this.selectedVariant) return;
     this.selectedVariant = variant;
-    this.stops = []; this.matrixEntries = [];
+/*    this.stops = []; this.matrixEntries = [];
     if (this.selectedVariant) {
       this.restService.getTransitStops({ variant: this.selectedVariant.id }).subscribe(stops => {
         this.stops = stops;
@@ -60,7 +60,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
       this.restService.getTransitMatrix({ variant: this.selectedVariant.id }).subscribe(entries => {
         this.matrixEntries = entries;
       })
-    }
+    }*/
   }
 
   onEditVariant(create = false): void {
@@ -229,12 +229,12 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
   onMessage(log: LogEntry): void {
     if (log?.status?.success) {
       this.isProcessing = false;
-      this.restService.getTransitStops({ reset: true, variant: this.selectedVariant!.id }).subscribe(stops => {
+/*      this.restService.getTransitStops({ reset: true, variant: this.selectedVariant!.id }).subscribe(stops => {
         this.stops = stops;
         this.restService.getTransitMatrix({ reset: true, variant: this.selectedVariant!.id }).subscribe(entries => {
           this.matrixEntries = entries;
         })
-      })
+      })*/
     }
   }
 
