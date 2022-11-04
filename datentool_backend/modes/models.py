@@ -81,5 +81,5 @@ class ModeVariant(DatentoolModelMixin, models.Model):
 
 class CutOffTime(models.Model):
     mode_variant = models.ForeignKey(ModeVariant, on_delete=models.CASCADE)
-    infrastructure = models.ForeignKey(Infrastructure, on_delete=PROTECT_CASCADE)
+    infrastructure = models.ForeignKey(Infrastructure, on_delete=models.CASCADE)
     minutes = models.FloatField()

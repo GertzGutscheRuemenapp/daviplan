@@ -327,9 +327,13 @@ class PopulationViewSet(viewsets.ModelViewSet):
         year_grouped = df_population.groupby('year')
         year2population = {}
         populations = []
+        Year.objects.all().update(is_real=False)
         for y, year_group in year_grouped:
             try:
                 year = Year.objects.get(year=y)
+                year.is_real = True
+                year.is_prognosis = False
+                year.save()
             except Year.DoesNotExist:
                 continue
             # delete existing population and all depending objects

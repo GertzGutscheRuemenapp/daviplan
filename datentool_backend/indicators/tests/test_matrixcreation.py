@@ -125,6 +125,13 @@ class TestMatrixCreation(CreateTestdataMixin,
         content = self.calc_cell_place_matrix(variants=[bike.pk])
         print(content)
         print(MatrixCellPlace.objects.filter(variant=bike.pk).count())
+        url = 'matrixstatistics-list'
+        response = self.get(url)
+        self.assert_http_200_ok(response)
+        data = response.data
+        self.assertEqual(data['n_places'], 5)
+        self.assertEqual(data['n_cells'], 8)
+        self.assertEqual(data['n_rels_place_cell_bike'], 40)
 
     @skipIf(not OSRMRouter(Mode.CAR).service_is_up, 'osrm docker not running')
     def test_create_routed_car_matrix(self):
@@ -325,3 +332,16 @@ class TestMatrixCreation(CreateTestdataMixin,
         self.assert_http_202_accepted(res)
         print(res.content)
         print(MatrixCellPlace.objects.filter(variant=self.transit.pk).count())
+
+        url = 'matrixstatistics-list'
+        response = self.get(url)
+        self.assert_http_200_ok(response)
+        data = response.data
+        self.assertEqual(data['n_places'], 5)
+        self.assertEqual(data['n_cells'], 8)
+        self.assertEqual(data['n_rels_place_cell_walk'], 36)
+        self.assertEqual(data['n_rels_place_cell_transit'], 40)
+        self.assertEqual(data['n_stops'], 383)
+        self.assertEqual(data['n_rels_place_stop_transit'], 17)
+        self.assertEqual(data['n_rels_stop_cell_transit'], 18)
+        self.assertEqual(data['n_rels_stop_stop_transit'], 88412)
