@@ -113,7 +113,7 @@
                 [(ngModel)]="comparedYear"
                 [disabled]="!compareYears"
                 (selectionChange)="updateCompare()">
-      <mat-optgroup label="Realjahre">
+      <mat-optgroup>
         <mat-option *ngFor="let year of realYears" [value]="year">
           {{year}}
         </mat-option>

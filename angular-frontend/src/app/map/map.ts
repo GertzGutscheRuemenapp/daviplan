@@ -358,6 +358,8 @@ export class OlMap {
       selectedColor?: string, mouseOverColor?: string },
     radius?: number | ((d: number) => number),
     labelField?: string,
+    unit?: string,
+    forceSign?: boolean,
     labelOffset?: { x?: number, y?: number },
     valueField?: string,
     showLabel?: boolean,
@@ -404,8 +406,10 @@ export class OlMap {
     const styleFunc = function(feature: any) {
       if (options?.labelField && layer.get('showLabel')){// && _this.view.getZoom()! > 10) {
         let label = feature.get(options?.labelField);
-        if (typeof label === 'number')
-          label = label.toLocaleString();
+        if (typeof label === 'number') {
+          label = `${(options.forceSign && label > 0)? '+': ''}${label.toLocaleString()}`;
+          if (options.unit) label += ` ${options.unit}`;
+        }
         style.getText().setText(label || '');
       }
       else {
@@ -425,7 +429,7 @@ export class OlMap {
       style.getFill().setColor(fc);
       style.getStroke().setColor(sc);
       if (options?.shape) {
-        const radius = (typeof options?.radius === 'function')? Math.abs(options.radius(value)): options?.radius;
+        const radius = (typeof options?.radius === 'function')? options.radius(Math.abs(value)): options?.radius;
         const shape = _this.getShape(options?.shape, { fillColor: fc, strokeColor: sc, strokeWidth: options?.stroke?.width, radius: radius });
         style.setImage(shape);
       }

@@ -245,6 +245,7 @@ interface VectorLayerOptions extends LayerOptions {
   },
   radius?: number,
   unit?: string,
+  forceSign?: boolean,
   valueStyles?: ValueStyle,
   labelOffset?: { x?: number, y?: number }
 }
@@ -273,6 +274,7 @@ export class VectorLayer extends MapLayer {
   visible?: boolean = true;
   radius?: number;
   unit?: string;
+  forceSign?: boolean;
   valueStyles?: ValueStyle;
   labelOffset?: { x?: number, y?: number };
 
@@ -294,6 +296,7 @@ export class VectorLayer extends MapLayer {
     this.valueStyles = options?.valueStyles;
     this.radius = options?.radius;
     this.unit = options?.unit;
+    this.forceSign = options?.forceSign;
     this.labelOffset = options?.labelOffset;
   }
 
@@ -364,7 +367,9 @@ export class VectorLayer extends MapLayer {
       shape: (this.style?.symbol !== 'line')? this.style?.symbol: undefined,
       selectable: this.selectable,
       showLabel: this.showLabel,
-      labelOffset: this.labelOffset
+      labelOffset: this.labelOffset,
+      unit: this.unit,
+      forceSign: this.forceSign
     })
   }
 
@@ -437,8 +442,13 @@ export class VectorLayer extends MapLayer {
     })
     if (options?.zIndex) {
       const attr = options?.zIndex;
-      olFeatures = olFeatures.sort((a, b) =>
-        (a.get(attr) > b.get(attr)) ? 1 : (a.get(attr) < b.get(attr)) ? -1 : 0);
+      olFeatures = olFeatures.sort((a, b) => {
+        let leftVal = a.get(attr);
+        let rightVal = b.get(attr);
+        if (typeof leftVal === 'number') leftVal = Math.abs(leftVal);
+        if (typeof rightVal === 'number') rightVal = Math.abs(rightVal);
+        return (leftVal > rightVal)? 1 : (leftVal < rightVal) ? -1 : 0;
+      });
       olFeatures.forEach((feat, i) => feat.set('zIndex', olFeatures.length - i));
     }
     this.map.addFeatures(this.mapId!, olFeatures);
