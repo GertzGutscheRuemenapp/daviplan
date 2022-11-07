@@ -207,8 +207,8 @@ export interface ColorBin {
 export interface ValueStyle {
   field?: string,
   radius?: {
-    range: number[],
-    scale?: 'linear' | 'sequential',
+    range?: number[],
+    scale?: 'linear' | 'sequential' | 'sqrt',
     radiusFunc?: ((d: number) => number)
   },
   strokeColor?: {
@@ -220,7 +220,7 @@ export interface ValueStyle {
       scale?: 'linear' | 'sequential',
       steps?: number,
       reverse?: boolean,
-    }
+    },
     bins?: IndicatorLegendClass[],
     colorFunc?: ((d: number) => string)
   },
@@ -305,7 +305,20 @@ export class VectorLayer extends MapLayer {
       this.valueStyles.fillColor.colorFunc = seqFunc(this.valueStyles.fillColor.interpolation.range).domain([min, max]);
     }
     if (this.valueStyles?.radius?.range) {
-      const seqFunc: any = (this.valueStyles.radius.scale === 'linear')? d3.scaleLinear : d3.scaleSequential;
+      let seqFunc: any;
+      switch(this.valueStyles.radius.scale) {
+        case 'linear':
+          seqFunc = d3.scaleLinear;
+          break;
+        case 'sqrt':
+          seqFunc = d3.scaleSqrt;
+          break;
+        case 'sequential':
+          seqFunc = d3.scaleSequential;
+          break;
+        default:
+          seqFunc = d3.scaleLinear;
+      }
       let max = this.valueStyles.max;
       let min = this.valueStyles.min;
       this.valueStyles.radius.radiusFunc = seqFunc().domain([min, max]).range(this.valueStyles.radius.range);

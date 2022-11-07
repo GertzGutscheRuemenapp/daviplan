@@ -40,8 +40,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   year?: number;
   realYears: number[] = [0];
   prognosisYears?: number[];
-  compareSupply = true;
-  compareStatus = 'option 1';
   mapControl?: MapControl;
   layerGroup?: MapLayerGroup;
   placesLayer?: VectorLayer;

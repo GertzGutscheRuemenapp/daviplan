@@ -229,6 +229,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       const fillColor = (this.compareYears)? {
         colorFunc: (value: number) => (value > 0)? '#1a9850': (value < 0)? '#d73027': 'grey'
       }: undefined;
+      const max = Math.max(...popData.values.map(d => d.value));
       this.populationLayer = new VectorLayer(this.activeLevel!.name,{
         order: 0,
         description: this.activeLevel!.name,
@@ -259,11 +260,11 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
           field: 'value',
           radius: {
             range: [5, 50],
-            scale: 'linear'
+            scale: 'sqrt'
           },
           fillColor: fillColor,
           min: 0,
-          max: this.activeLevel?.maxValues!.population! || 1000
+          max: max || 1
         },
         labelOffset: { y: 15 }
       });
