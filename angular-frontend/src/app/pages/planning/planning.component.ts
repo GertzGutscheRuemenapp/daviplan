@@ -73,6 +73,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
               public planningService: PlanningService, private settings: SettingsService,
               private auth: AuthService, private formBuilder: FormBuilder, private cdref: ChangeDetectorRef,
               private http: HttpClient, private rest: RestAPI, private cookies: CookieService) {
+    this.planningService.reset();
     this.editProcessForm = this.formBuilder.group({
       name: new FormControl(''),
       description: new FormControl(''),

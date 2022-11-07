@@ -4,10 +4,8 @@ import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../rest-api";
 import { TimeSliderComponent } from "../../elements/time-slider/time-slider.component";
 import { RestCacheService } from "../../rest-cache.service";
-import { BehaviorSubject, Observable } from "rxjs";
+import { Observable } from "rxjs";
 import { PopEntry, Population, Prognosis } from "../../rest-interfaces";
-import { map, shareReplay } from "rxjs/operators";
-import { BreakpointObserver } from "@angular/cdk/layout";
 
 @Injectable({
   providedIn: 'root'
