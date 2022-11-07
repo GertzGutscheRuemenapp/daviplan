@@ -104,7 +104,7 @@
   </mat-expansion-panel-header>
   <mat-checkbox color="primary" [(ngModel)]="compareYears"
                 style="width: 230px; margin-bottom: 10px;"
-                (change)="updateCompare()">
+                (change)="onUpdateCompare()">
     Ausgewählte Bevölkerungs- daten vergleichen mit denen aus dem Jahr
   </mat-checkbox>
   <mat-form-field *ngIf="realYears && prognosisYears" appearance="outline" class="small">
@@ -112,7 +112,7 @@
     <mat-select disableOptionCentering disableRipple
                 [(ngModel)]="comparedYear"
                 [disabled]="!compareYears"
-                (selectionChange)="updateCompare()">
+                (selectionChange)="onUpdateCompare()">
       <mat-optgroup>
         <mat-option *ngFor="let year of realYears" [value]="year">
           {{year}}

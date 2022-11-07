@@ -146,7 +146,8 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     this.activePrognosis = this.prognoses!.find(p => p.id === progId) || defaultProg;
     const year = this.cookies.get('pop-year','number');
     this.year = year || this.realYears[this.realYears.length - 1];
-    this.comparedYear = this.realYears[0];
+    this.comparedYear = this.cookies.get('pop-compared-year', 'number') || this.realYears[0];
+    this.compareYears = this.cookies.get('pop-compare-years', 'boolean') || false;
     const areaLevelId = this.cookies.get('pop-area-level','number');
     this.activeLevel = this.areaLevels.find(al => al.id === areaLevelId) || ((this.areaLevels.length > 0)? this.areaLevels[this.areaLevels.length - 1]: undefined);
 
@@ -339,10 +340,10 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         ageGroups.forEach(ageGroup => {
           const ad = yearData.filter(d => d.agegroup === ageGroup.id);
           yearAgeData.push({
-            male: ad.find(d => d.gender === maleId)?.value || 0,
+            male: Math.round(ad.find(d => d.gender === maleId)?.value || 0),
             fromAge: ageGroup.fromAge,
             toAge: ageGroup.toAge,
-            female: ad.find(d => d.gender === femaleId)?.value || 0,
+            female: Math.round(ad.find(d => d.gender === femaleId)?.value || 0),
             label: ageGroup.label || ''
           })
           const sum = (ad)? ad.reduce((a, d) => a + d.value, 0): 0;
@@ -457,7 +458,9 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     this.mapControl?.setDescription(description);
   }
 
-  updateCompare(): void {
+  onUpdateCompare(): void {
+    this.cookies.set('pop-compare-years', this.compareYears);
+    this.cookies.set('pop-compared-year', this.comparedYear);
     this.updateMap();
   }
 
