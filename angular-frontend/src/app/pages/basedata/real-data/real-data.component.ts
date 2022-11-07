@@ -235,6 +235,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         labelField: 'value',
         showLabel: true,
         tooltipField: 'description',
+        labelOffset: { y: 10 },
         mouseOver: {
           enabled: true,
           style: {
@@ -271,7 +272,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         this.previewArea = this.areas.find(area => area.id === features[0].get('id'));
         this.updateAgeTree();
       })
-      this.previewLayer!.featuresSelected.subscribe(features => {
+      this.previewLayer!.featuresDeselected.subscribe(features => {
         if (this.previewArea?.id === features[0].get('id')) {
           this.previewArea = undefined;
           this.updateAgeTree();

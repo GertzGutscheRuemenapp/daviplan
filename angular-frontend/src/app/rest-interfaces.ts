@@ -305,7 +305,8 @@ export interface PlaceField {
   fieldType: number
   name: string,
   unit: string,
-  sensitive: boolean
+  sensitive?: boolean,
+  isPreset?: boolean
 }
 
 export interface Infrastructure {
@@ -391,4 +392,17 @@ export interface LogEntry {
   timestamp: string,
   message: string,
   status?: {success?: boolean}
+}
+
+export interface ModeStatistics {
+  nPlaces: number,
+  nCells: number,
+  nRelsPlaceCellWalk: number,
+  nRelsPlaceCellBike: number,
+  nRelsPlaceCellCar: number,
+  nRelsPlaceCellTransit: number,
+  nStops: number,
+  nRelsPlaceStopTransit: number,
+  nRelsStopCellTransit: number,
+  nRelsStopStopTransit: number
 }

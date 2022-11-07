@@ -28,7 +28,7 @@ import {
   LogEntry,
   IndicatorLegendClass,
   TransitStop,
-  TransitMatrixEntry, PlanningProcess
+  TransitMatrixEntry, PlanningProcess, ModeStatistics
 } from "./rest-interfaces";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { RestAPI } from "./rest-api";
@@ -406,6 +406,11 @@ export class RestCacheService {
     return this.getCachedData<Network[]>(url, options);
   }
 
+  getRoutingStatistics(options?: { reset: boolean }): Observable<ModeStatistics> {
+    const url = this.rest.URLS.routingStatistics;
+    return this.getCachedData<ModeStatistics>(url, options);
+  }
+
   getStatistics(options?: { reset?: boolean }): Observable<Statistic[]>{
     const url = this.rest.URLS.statistics;
     return this.getCachedData<Statistic[]>(url, options);
@@ -441,20 +446,20 @@ export class RestCacheService {
 
   getPlaceReachability(placeId: number, mode: TransportMode, options?: { scenario?: Scenario }): Observable<{ values: CellResult[], legend: IndicatorLegendClass[] }>{
     let params: any = { mode: mode, place: placeId };
-    if (options?.scenario) params.scenario = options.scenario.id;
+    if (options?.scenario && !options.scenario.isBase) params.scenario = options.scenario.id;
     return this.getCachedData<{ values: CellResult[], legend: IndicatorLegendClass[] }>(this.rest.URLS.reachabilityPlace, { params: params, method: 'POST' });
   }
 
   getCellReachability(cellCode: string, mode: TransportMode, options?: { scenario?: Scenario }): Observable<{ values: PlaceResult[], legend: IndicatorLegendClass[] }>{
     let params: any = { mode: mode, cell_code: cellCode };
-    if (options?.scenario) params.scenario = options.scenario.id;
+    if (options?.scenario && !options.scenario.isBase) params.scenario = options.scenario.id;
     return this.getCachedData<{ values: PlaceResult[], legend: IndicatorLegendClass[] }>(this.rest.URLS.reachabilityCell, { params: params, method: 'POST' });
   }
 
   getNextPlaceReachability(services: Service[], mode: TransportMode, options?: { year?: number, scenario?: Scenario, places?: Place[] }): Observable<{ values: CellResult[], legend: IndicatorLegendClass[] }> {
     let params: any = { mode: mode, services: services.map(s => s.id) };
     if (options?.year) params.year = options.year;
-    if (options?.scenario) params.scenario = options.scenario.id;
+    if (options?.scenario && !options.scenario.isBase) params.scenario = options.scenario.id;
     if (options?.places) params.places = options.places.map(p => p.id);
     return this.getCachedData<{ values: CellResult[], legend: IndicatorLegendClass[] }>(this.rest.URLS.reachabilityNextPlace, { params: params, method: 'POST' });
   }

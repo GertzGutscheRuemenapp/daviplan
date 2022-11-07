@@ -32,7 +32,10 @@
                              (click)="selectAreaLevel(areaLevel)"
                              [selected]="(activeLevel && (areaLevel.id === activeLevel.id))">
               <div class="option-text">{{ areaLevel.name }}</div>
-              <mat-icon *ngIf="areaLevel.isPopLevel" style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">verified</mat-icon>
+              <mat-icon *ngIf="areaLevel.isPopLevel"
+                        style="color: #2196F3; position: absolute; right: 0; top: 8px; font-size: 1.2em;">
+                verified
+              </mat-icon>
             </mat-list-option>
             <mat-checkbox color="primary"
                           [checked]="areaLevel.isActive!"
@@ -229,6 +232,7 @@
     <div fxLayout="row wrap">
       <app-input-card [title]="'Kartenvorschau'"
                       [ngClass]="{'hidden': !activeLevel}"
+                      class="spaced"
                       [topRightHelp]="true"
                       width="870px"
                       infoText="<p>Die Karte zeigt die Gebiete der aktuell ausgewählten Gebietseinheiten als ausgefüllte Flächen.<p>

@@ -7,21 +7,16 @@
 
 #base-real-data-map {
   margin-top: 10px;
-  width: 50%;
+  width: 100%;
   height: 500px;
   position: relative;
   background-color: white;
 }
 
-.diagram-container {
-  width: 50%;
-  height: 500px;
-  padding: 10px 0 0 10px;
-}
-
 .diagram-wrapper {
+  margin-top: 10px;
   width: 100%;
-  height: 100%;
+  height: 500px;
   padding: 15px;
   border: 1px solid lightgrey;
   box-sizing: border-box;

@@ -19,13 +19,12 @@ import { MatDialog } from "@angular/material/dialog";
 import { PopulationService } from "../../population/population.service";
 import { sortBy } from "../../../helpers/utils";
 import { AgeTreeComponent, AgeTreeData } from "../../../diagrams/age-tree/age-tree.component";
-import * as d3 from "d3";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { BehaviorSubject, Subscription } from "rxjs";
 import * as fileSaver from "file-saver";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
-import { MapLayer, MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-prognosis-data',
@@ -236,7 +235,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
         this.previewArea = this.areas.find(area => area.id === features[0].get('id'));
         this.updateAgeTree();
       })
-      this.previewLayer!.featuresSelected.subscribe(features => {
+      this.previewLayer!.featuresDeselected.subscribe(features => {
         if (this.previewArea?.id === features[0].get('id')) {
           this.previewArea = undefined;
           this.updateAgeTree();
@@ -484,6 +483,18 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
     });
     dialogRef.afterClosed().subscribe(ok => {
       this.uploadErrors = {};
+    })
+  }
+
+  setDefaultPrognosis(prognosis: Prognosis): void {
+    if (!prognosis) return;
+    const attributes = { isDefault: true };
+    this.isLoading$.next(true);
+    this.http.patch<Prognosis>(`${this.rest.URLS.prognoses}${this.activePrognosis?.id}/`, attributes
+    ).subscribe(prognosis => {
+      this.prognoses.forEach(p => p.isDefault = false);
+      this.activePrognosis!.isDefault = prognosis.isDefault;
+      this.isLoading$.next(false);
     })
   }
 

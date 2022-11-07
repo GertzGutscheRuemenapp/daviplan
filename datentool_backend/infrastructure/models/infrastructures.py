@@ -9,6 +9,7 @@ from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 
 from datentool_backend.area.models import (FieldType, MapSymbol)
 from datentool_backend.user.models.profile import Profile
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class Infrastructure(DatentoolModelMixin, NamedModel, models.Model):
@@ -33,7 +34,7 @@ class Infrastructure(DatentoolModelMixin, NamedModel, models.Model):
         """the label field derived from the Fields"""
         try:
             return self.placefield_set.get(is_label=True).name
-        except PlaceField.DoesNotExist:
+        except ObjectDoesNotExist:
             return ''
 
 
@@ -46,11 +47,12 @@ class InfrastructureAccess(models.Model):
 class PlaceField(DatentoolModelMixin, models.Model):
     """a field of a Place of this infrastructure"""
     name = models.TextField()
-    infrastructure = models.ForeignKey(Infrastructure, on_delete=PROTECT_CASCADE)
+    infrastructure = models.ForeignKey(Infrastructure, on_delete=models.CASCADE)
     field_type = models.ForeignKey(FieldType, on_delete=PROTECT_CASCADE)
     is_label = models.BooleanField(null=True, default=None)
     sensitive = models.BooleanField(default=False)
     unit = models.TextField(blank=True, default='')
+    is_preset = models.BooleanField(default=False)
 
     class Meta:
         constraints = [UniqueConstraint('infrastructure',
@@ -90,7 +92,7 @@ class Service(DatentoolModelMixin, NamedModel, models.Model):
     quota_type = models.TextField()
     description = models.TextField(blank=True)
     infrastructure = models.ForeignKey(Infrastructure,
-                                       on_delete=PROTECT_CASCADE)
+                                       on_delete=models.CASCADE)
     editable_by = models.ManyToManyField(Profile,
                                          related_name='service_editable_by',
                                          blank=True)

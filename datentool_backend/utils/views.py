@@ -44,7 +44,7 @@ class ProtectCascadeMixin:
         force = request.query_params.get(
             'force', False) or request.data.get(
             'force', False)
-        self.use_protection = force not in ('true', 'True', True)
+        self.use_protection = force not in ('true', 'true/', 'True', 'True/', True)
         try:
             response = super().destroy(request, **kwargs)
         except ProtectedError as err:
