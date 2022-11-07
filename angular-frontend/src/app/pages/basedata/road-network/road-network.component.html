@@ -1,6 +1,9 @@
+<div class="loadOverlay" *ngIf="isLoading$ | async" xmlns="http://www.w3.org/1999/html">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
 <app-header-card [title]="'Straßennetz: Reisezeiten zu den Einrichtungen zu Fuß, mit dem Rad und mit dem Auto'"
                  cookieId="exp-router-header"
-                 width="1230px">
+                 width="1000px">
   <p>Die Erreichbarkeitsverhältnisse in Ihrem Planungsraum werden anhand von Reisezeitmatrizen abgebildet. Reisezeitmatrizen sind (große) Tabellen, in denen für ein bestimmtes Verkehrsmittel verzeichnet ist, wie lange man von den einzelnen Startpunkten (z.B. den Wohnstandorten) zu den Zielen (z.B. den Einrichtungen) kommt.</p>
   <p>Auf dieser Seite können Sie die Reisezeitmatrizen für die drei straßenbezogenen Verkehrsmittel</p>
   <ul>
@@ -22,12 +25,10 @@
   <p>Ein Häkchen hinter der Statusanzeige zeigt Ihnen, wenn die Berechnung der Reisezeitmatrizen erfolgreich war oder bereits zu einem früheren Zeitpunkt durchgeführt wurde.</p>
   <b>Historie</b>
   <p>Über die Historie können Sie sehen, welche der vorstehenden Arbeitsschritte bereits zu einem früheren Zeitpunkt durchgeführt wurden. Anhand dieser Informationen können Sie entscheiden, ob Datenänderungen an anderer Stelle (z.B. neu hinzugekommene Standorte) ggf. eine Neuberechnung der Reisezeitmatrizen erforderlich machen.</p>
-
-
 </app-header-card>
 
 <div fxLayout="row wrap">
-  <div fxLayout="column" fxFlex="350px">
+  <div fxLayout="column" fxFlex="450px">
     <app-input-card [title]="'Schritt 1: OpenStreetMap-Straßennetz herunterladen'"
                     [disabled]="isProcessing"
                     infoText="<p>Über die Schaltfläche „Basisnetz herunterladen“ wird das aktuelle Straßennetz auf den Server heruntergeladen. Das OSM-Netz wird für die Ausführung von Schritt 2 benötigt.</p>">
@@ -36,6 +37,7 @@
         <mat-icon *ngIf="baseDataSettings?.routing?.baseNet" color="primary">done</mat-icon>
       </div>
       <button mat-flat-button color="primary"
+              style="margin-top: 10px"
               (click)="downloadBaseNetwork()">
         <!--        <mat-icon>build</mat-icon> -->
         Straßennetz herunterladen
@@ -51,51 +53,42 @@
         <mat-icon *ngIf="baseDataSettings?.routing?.projectAreaNet" color="primary">done</mat-icon>
       </div>
       <button mat-flat-button color="primary"
+              style="margin-top: 10px"
               (click)="createProjectNetwork()">
 <!--        [disabled]="!baseDataSettings?.routing?.baseNet"-->
         Straßennetz verschneiden
       </button>
     </app-input-card>
-  </div>
-  <div fxLayout="column" fxFlex="900px">
     <app-input-card [title]="'Schritt 3: Reisezeitmatrizen Fuß, Rad und Auto erzeugen\n'"
                     [disabled]="isProcessing"
-                    [topRightHelp]="true"
                     infoText="<p>In diesem Schritt werden die Reisezeitmatrizen für die Verkehrsmittel „Fuß“, „Rad“ und „Auto“ berechnet. </p>
                               <p>Die berechneten Matrizen werden für die Erreichbarkeitsanalyse in der Infrastrukturplanung benötigt.</p>">
-      <div style="width: 100%; display: flex;">
-        <div style="width: 40%; display: flex;">
-          <!--          <span class="subtitle1 sub">
-                      Verkehrsnetz „{{selectedRouter}}“
-                    </span>-->
-          <!--<table>
-            <tr>
-              <td style="min-width: 130px;; white-space: normal;">Buffer um den Planungsraum</td>
-              <td>10km</td>
-            </tr>
-            <tr>
-              <td>erzeugt am</td>
-              <td>31.05.2022</td>
-            </tr>
-            <tr>
-              <td>von</td>
-              <td>Sascha Schmidt</td>
-            </tr>
-          </table>-->
-          <div style="align-self: end;">
-            <button mat-flat-button color="primary"
-                    (click)="createMatrices()">
+      <table>
+        <tr>
+          <td i18n>Anzahl Relationen Fuß: </td>
+          <td>{{statistics?.nRelsPlaceCellWalk?.toLocaleString() || '-'}}</td>
+        </tr>
+        <tr>
+          <td i18n>Anzahl Relationen Rad: </td>
+          <td>{{statistics?.nRelsPlaceCellBike?.toLocaleString() || '-'}}</td>
+        </tr>
+        <tr>
+          <td i18n>Anzahl Relationen Auto: </td>
+          <td>{{statistics?.nRelsPlaceCellCar?.toLocaleString() || '-'}}</td>
+        </tr>
+      </table>
+      <button mat-flat-button color="primary"
+              style="margin-top: 10px"
+              (click)="createMatrices()">
 <!--              [disabled]="!baseDataSettings?.routing?.projectAreaNet"-->
-              <mat-icon>build</mat-icon> Reisezeitmatrizen erzeugen
-            </button>
-          </div>
-        </div>
-        <div style="width: 60%">
-          <span class="subtitle1">Daten-Historie Erreichbarkeiten</span>
-          <app-log room="routing" (onMessage)="onMessage($event)" height="200px"></app-log>
-        </div>
-      </div>
+        <mat-icon>build</mat-icon> Reisezeitmatrizen erzeugen
+      </button>
     </app-input-card>
   </div>
+  <app-input-card subtitle="Daten-Historie Erreichbarkeiten"
+                  width="400px"
+                  infoText="<p>Die Liste zeigt Ihnen eine Chronik aller Datenimporte und Berechnungen im Bereich „Erreichbarkeiten“.</p>">
+    <app-log room="routing" (onMessage)="onMessage($event)" height="350px"></app-log>
+  </app-input-card>
 </div>
 
