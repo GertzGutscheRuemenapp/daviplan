@@ -72,10 +72,13 @@
   }
 
   #pop-description {
-    padding: 10px 10px 0;
+    padding: 5px 15px;
+    line-height: normal;
     min-height: 70px;
     max-width: 600px;
     overflow-y: auto;
+    display: flex;
+    align-items: center;
   }
 }
 

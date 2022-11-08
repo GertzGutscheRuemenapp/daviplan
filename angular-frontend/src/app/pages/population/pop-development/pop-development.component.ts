@@ -47,9 +47,9 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   compareYears = false;
   areaLevels: AreaLevel[] = [];
   areas: Area[] = [];
-  realYears?: number[];
+  realYears: number[] = [];
   selectedTab = 0;
-  prognosisYears?: number[];
+  prognosisYears: number[] = [];
   prognoses?: Prognosis[];
   activePrognosis?: Prognosis;
   genders: Gender[] = [];
@@ -69,7 +69,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
-    this.layerGroup = new MapLayerGroup('Nachfrage', { order: -1 });
+    this.layerGroup = new MapLayerGroup('', { order: -1 });
     this.mapControl.addGroup(this.layerGroup);
     this.mapControl.setDescription('');
     if (this.populationService.isReady)
@@ -145,8 +145,9 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     const defaultProg = this.prognoses?.find(prognosis => prognosis.isDefault);
     this.activePrognosis = this.prognoses!.find(p => p.id === progId) || defaultProg;
     const year = this.cookies.get('pop-year','number');
-    this.year = year || this.realYears![this.realYears!.length - 1];
-    this.comparedYear = this.realYears![0];
+    this.year = year || this.realYears[this.realYears.length - 1];
+    this.comparedYear = this.cookies.get('pop-compared-year', 'number') || this.realYears[0];
+    this.compareYears = this.cookies.get('pop-compare-years', 'boolean') || false;
     const areaLevelId = this.cookies.get('pop-area-level','number');
     this.activeLevel = this.areaLevels.find(al => al.id === areaLevelId) || ((this.areaLevels.length > 0)? this.areaLevels[this.areaLevels.length - 1]: undefined);
 
@@ -155,7 +156,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   }
 
   setSlider(): void {
-    if (!(this.realYears && this.prognosisYears)) return;
+    if (this.realYears.length + this.prognosisYears.length === 0) return;
     let slider = this.populationService.timeSlider!;
     slider.prognosisStart = this.prognosisYears[0] || 0;
     slider.years = this.realYears.concat(this.prognosisYears);
@@ -213,15 +214,16 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
   updateMap(): void {
     // only catch prognosis data if selected year is not in real data
-    const prognosis = (this.realYears?.indexOf(this.year) === -1)? this.activePrognosis?.id: undefined;
+    const prognosis = (this.realYears.indexOf(this.year) === -1)? this.activePrognosis?.id: undefined;
     const genders = (this.selectedGender?.id !== -1)? [this.selectedGender!.id]: undefined;
     const ageGroups = this.ageGroupSelection.selected;
     const showLabel = (this.populationLayer?.showLabel !== undefined)? this.populationLayer.showLabel: true;
     this.layerGroup?.clear()
     this.updateMapDescription();
+    this.layerGroup!.name = (this.compareYears)? 'Bevölkerungsentwicklung': 'Zahl der Einwohner:innen';
     if (ageGroups.length === 0 || !this.activeLevel) return;
     const comparedYear = (this.compareYears)? this.comparedYear: undefined;
-    const comparedPrognosis = (comparedYear && this.realYears?.indexOf(comparedYear) === -1)? this.activePrognosis?.id: undefined;
+    const comparedPrognosis = (comparedYear && this.realYears.indexOf(comparedYear) === -1)? this.activePrognosis?.id: undefined;
     this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,{
       genders: genders, prognosis: prognosis, ageGroups: ageGroups.map(ag => ag.id!),
       comparedYear: comparedYear, comparedPrognosis: comparedPrognosis
@@ -229,6 +231,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       const fillColor = (this.compareYears)? {
         colorFunc: (value: number) => (value > 0)? '#1a9850': (value < 0)? '#d73027': 'grey'
       }: undefined;
+      const max = Math.max(...popData.values.map(d => Math.abs(d.value)));
       this.populationLayer = new VectorLayer(this.activeLevel!.name,{
         order: 0,
         description: this.activeLevel!.name,
@@ -241,6 +244,8 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         labelField: 'value',
         showLabel: showLabel,
         tooltipField: 'description',
+        unit: 'Ew.',
+        forceSign: this.compareYears,
         mouseOver: {
           enabled: true,
           style: {
@@ -259,19 +264,26 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
           field: 'value',
           radius: {
             range: [5, 50],
-            scale: 'linear'
+            scale: 'sqrt'
           },
           fillColor: fillColor,
           min: 0,
-          max: this.activeLevel?.maxValues!.population! || 1000
+          max: max || 1
         },
         labelOffset: { y: 15 }
       });
       this.layerGroup?.addLayer(this.populationLayer);
+      const hasProg = this.realYears.indexOf(this.year) === -1 || this.realYears.indexOf(this.comparedYear) === -1;
       this.areas.forEach(area => {
         const data = popData.values.find(d => d.areaId == area.id);
-        area.properties.value = (data)? Math.round(data.value): 0;
-        area.properties.description = `<b>${area.properties.label}</b><br>Bevölkerung: ${area.properties.value.toLocaleString()}`
+        const value = (data)? Math.round(data.value): 0;
+        area.properties.value = value;
+        let description = `<b>${area.properties.label}</b><br>`;
+        description += (this.compareYears && !value)? 'keine Änderung ': `${this.compareYears && value > 0? '+': ''}${area.properties.value.toLocaleString()} Ew. `;
+        description += (this.compareYears)? `zwischen ${this.comparedYear} und ${this.year}`: `im Jahr ${this.year}`;
+        if (hasProg)
+          description += `<br>Prognoseszenario: ${this.activePrognosis?.name}`
+        area.properties.description = description;
       })
       this.populationLayer.addFeatures(this.areas,{
         properties: 'properties',
@@ -294,7 +306,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   setArea(area: Area | undefined): void {
     this.activeArea = area;
     this.cookies.set(`pop-area-${this.activeLevel!.id}`, this.activeArea?.id);
-    this.chartToggle.expanded = true;
+    this.chartToggle.expanded = area !== undefined;
     this.updateDiagrams();
   }
 
@@ -328,10 +340,10 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         ageGroups.forEach(ageGroup => {
           const ad = yearData.filter(d => d.agegroup === ageGroup.id);
           yearAgeData.push({
-            male: ad.find(d => d.gender === maleId)?.value || 0,
+            male: Math.round(ad.find(d => d.gender === maleId)?.value || 0),
             fromAge: ageGroup.fromAge,
             toAge: ageGroup.toAge,
-            female: ad.find(d => d.gender === femaleId)?.value || 0,
+            female: Math.round(ad.find(d => d.gender === femaleId)?.value || 0),
             label: ageGroup.label || ''
           })
           const sum = (ad)? ad.reduce((a, d) => a + d.value, 0): 0;
@@ -344,7 +356,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
         });
       })
 
-      const baseYear = this.realYears![this.realYears!.length - 1];
+      const baseYear = this.realYears[this.realYears.length - 1];
       const xSeparator = {
         leftLabel: `Realdaten`,
         rightLabel: `Prognose (Basisjahr: ${baseYear})`,
@@ -435,15 +447,20 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     else {
       const genderDesc = `Geschlecht: ${this.selectedGender?.name || '-'}`;
       const ageGroupDesc = `${(this.ageGroupSelection.selected.length == this.ageGroups.length)? 'alle' : this.ageGroupSelection.selected.length === 0? 'keine': 'ausgewählte'} Altersgruppen`;
-      const progDesc = (this.realYears?.indexOf(this.year) === -1)? `${this.activePrognosis?.name} `: '';
       const pre = this.compareYears? 'Bevölkerungsentwicklung für': 'Zahl der Einwohner:innen nach'
-      description = `${pre} Gebietseinheit ${this.activeLevel.name} | ${progDesc}${this.year} <br>` +
-                    `${genderDesc} | ${ageGroupDesc}`;
+      description = `${pre} ${this.activeLevel.name} ${this.year}`;
+      if (this.compareYears)
+        description += ` im Vergleich zu ${this.comparedYear}`
+      if (this.realYears.indexOf(this.year) === -1 || this.realYears.indexOf(this.comparedYear) === -1)
+        description += `<br>Prognoseszenario: ${this.activePrognosis?.name}`;
+      description += `<br>${genderDesc} | ${ageGroupDesc}`;
     }
     this.mapControl?.setDescription(description);
   }
 
-  updateCompare(): void {
+  onUpdateCompare(): void {
+    this.cookies.set('pop-compare-years', this.compareYears);
+    this.cookies.set('pop-compared-year', this.comparedYear);
     this.updateMap();
   }
 

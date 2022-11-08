@@ -26,7 +26,9 @@ export class PopulationComponent implements AfterViewInit {
     );
 
   constructor(private breakpointObserver: BreakpointObserver, private mapService: MapService,
-              public populationService: PopulationService, private cdref: ChangeDetectorRef) { }
+              public populationService: PopulationService, private cdref: ChangeDetectorRef) {
+    this.populationService.reset();
+  }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
