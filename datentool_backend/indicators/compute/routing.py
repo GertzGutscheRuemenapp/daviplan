@@ -142,13 +142,15 @@ class TravelTimeRouterMixin:
         # calculate time from place to stop
         matrix_place_stop = MatrixPlaceStopRouter()
         df_ps = matrix_place_stop.calc_routed_traveltimes(
-            variant=access_variant,
+            variant=variant,
+            access_variant=access_variant,
             places=places,
             max_distance=max_distance,
             logger=logger,
         )
         qs = matrix_place_stop.get_filtered_queryset(
-            variants=[access_variant.pk],
+            variant=variant.pk,
+            access_variant=access_variant.pk,
             places=places)
         success, msg = matrix_place_stop.save_df(df_ps, qs, drop_constraints)
         if not success:
@@ -172,7 +174,9 @@ class TravelTimeRouterMixin:
         df_cs = pd.concat(dataframes_cs)
 
         qs = matrix_cell_stop.get_filtered_queryset(
-            variants=[access_variant.pk])
+            access_variant=access_variant.pk,
+            variant=variant.pk,
+        )
         success, msg = matrix_cell_stop.save_df(df_cs, qs, drop_constraints)
         if not success:
             raise RoutingError(msg)
@@ -352,10 +356,12 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
     columns = ['place_id', 'cell_id']
 
     def get_filtered_queryset(self,
-                              variants: List[int],
+                              variant: int,
+                              access_variant: int=None,
                               places: List[int] = None,
                               **kwargs) -> QuerySet:
-        qs = MatrixCellPlace.objects.filter(variant_id__in=variants)
+        qs = MatrixCellPlace.objects.filter(variant=variant,
+                                            access_variant=access_variant)
         if places:
             qs = qs.filter(place_id__in=places)
         return qs
@@ -387,10 +393,12 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
 
         # travel time place to stop
         q_placestop, p_placestop = MatrixPlaceStop.objects.filter(
-            variant=access_variant).query.sql_with_params()
+            variant=transit_variant,
+            access_variant=access_variant).query.sql_with_params()
         # travel time cell to stop
         q_cellstop, p_cellstop = MatrixCellStop.objects.filter(
-            variant=access_variant).query.sql_with_params()
+            variant=transit_variant,
+            access_variant=access_variant).query.sql_with_params()
         # travel time between stops
         q_stopstop, p_stopstop = MatrixStopStop.objects.filter(
             variant=transit_variant).query.sql_with_params()
@@ -442,6 +450,7 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
                               columns=columns)
 
         df['variant_id'] = transit_variant.id
+        df['access_variant_id'] = access_variant.id
 
         return df
 
@@ -501,13 +510,18 @@ class MatrixCellPlaceRouter(TravelTimeRouterMixin):
 class MatrixCellStopRouter(TravelTimeRouterMixin):
     columns = ['stop_id', 'cell_id']
 
-    def get_filtered_queryset(self, variants: List[int], **kwargs) -> QuerySet:
-        return MatrixCellStop.objects.filter(variant_id__in=variants)
+    def get_filtered_queryset(self,
+                              variant: int,
+                              **kwargs) -> QuerySet:
+        return MatrixCellStop.objects.filter(variant_id=variant)
 
     def get_sources(self,
                     stops: List[int] = [],
+                    variant:int = None,
                     **kwargs):
-        sources = Stop.objects.all()
+        if not variant:
+            variant = ModeVariant.objects.filter(mode=Mode.TRANSIT).first()
+        sources = Stop.objects.filter(variant=variant)
         if stops:
             sources = sources.filter(id__in=stops)
         sources = sources\
@@ -528,6 +542,7 @@ class MatrixCellStopRouter(TravelTimeRouterMixin):
     def get_airdistance_query(self,
                               speed: float,
                               max_distance: float,
+                              variant: int,
                               **kwargs) -> str:
         """
         returns a query and its parameters to calculate the air distance
@@ -535,6 +550,7 @@ class MatrixCellStopRouter(TravelTimeRouterMixin):
         ----------
         speed: float
         max_distance: float
+        variant: int: the transit-variant of the stops
 
         Returns
         -------
@@ -562,11 +578,12 @@ class MatrixCellStopRouter(TravelTimeRouterMixin):
         s.geom,
         st_transform(s.geom, 25832) AS pnt_25832,
         cosd(st_y(st_transform(s.geom, 4326))) AS kf
-        FROM "{stop_tbl}" AS s) AS s
+        FROM "{stop_tbl}" AS s
+        WHERE s.variant_id = %s) AS s
         WHERE c.id = r.cell_id
         AND st_dwithin(c."pnt", s."geom", %s * s.kf)
         '''
-        params = (speed, max_distance)
+        params = (speed, variant, max_distance)
         return query, params
 
 
@@ -574,10 +591,12 @@ class MatrixPlaceStopRouter(TravelTimeRouterMixin):
     columns = ['place_id', 'stop_id']
 
     def get_filtered_queryset(self,
-                              variants: List[int],
+                              variant: int,
+                              access_variant: int,
                               places: List[int] = None,
                               **kwargs) -> QuerySet:
-        qs = MatrixPlaceStop.objects.filter(variant_id__in=variants)
+        qs = MatrixPlaceStop.objects.filter(variant_id=variant,
+                                            access_variant_id=access_variant)
         if places:
             qs = qs.filter(place_id__in=places)
         return qs
@@ -593,8 +612,8 @@ class MatrixPlaceStopRouter(TravelTimeRouterMixin):
             .values('id', 'lon', 'lat')
         return sources
 
-    def get_destinations(self, **kwargs) -> Stop:
-        destinations = Stop.objects.all()\
+    def get_destinations(self, variant, **kwargs) -> Stop:
+        destinations = Stop.objects.filter(variant_id=variant)\
             .annotate(wgs=Transform('geom', 4326))\
             .annotate(lat=Func('wgs', function='ST_Y', output_field=FloatField()),
                       lon=Func('wgs', function='ST_X', output_field=FloatField()))\
@@ -604,6 +623,7 @@ class MatrixPlaceStopRouter(TravelTimeRouterMixin):
     def get_airdistance_query(self,
                               speed: float,
                               max_distance: float,
+                              variant:int,
                               places: List[int] = [],
                               **kwargs,
                               ) -> Tuple[str, tuple]:
@@ -613,6 +633,7 @@ class MatrixPlaceStopRouter(TravelTimeRouterMixin):
         ----------
         speed: float
         max_distance: float
+        variant: int: the transit-variant of the stops
         places: List[int], optional
 
         Returns
@@ -636,7 +657,8 @@ class MatrixPlaceStopRouter(TravelTimeRouterMixin):
         s.id,
         s.geom,
         st_transform(s.geom, 25832) AS pnt_25832
-        FROM "{stop_tbl}" AS s) AS s,
+        FROM "{stop_tbl}" AS s
+        WHERE s.variant_id = %s) AS s,
         (SELECT p.id,
         p.geom,
         st_transform(p.geom, 25832) AS pnt_25832,
@@ -645,5 +667,5 @@ class MatrixPlaceStopRouter(TravelTimeRouterMixin):
         WHERE p.id = ANY(%s)) AS p
         WHERE st_dwithin(s."geom", p."geom", %s * p.kf)
         '''
-        params = (speed, p_places, max_distance)
+        params = (speed, variant, p_places, max_distance)
         return query, params
