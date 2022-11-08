@@ -9,6 +9,9 @@
         <div class="davicon icon-GGR-davicons-Font-Simple-3-Standorte-Leistungen"></div>
       </div>
       Leistung
+      <mat-icon color="warn" *ngIf="!planningService.activeService" style="margin-left: 10px;">
+        error_outline
+      </mat-icon>
       <app-help-button title="Leistung" position="right">
         <p>Wählen Sie hier die Leistung aus, deren Nachfrage Sie in der Karte anzeigen möchten.</p>
         <p>Wählen Sie hierzu zunächst im Dropdown-Menü den entsprechenden Infrastrukturbereich und dann per Checkbox die gewünschte Leistung.</p>
