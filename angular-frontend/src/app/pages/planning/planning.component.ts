@@ -149,6 +149,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   }
 
   setProcess(id: number | undefined, options?: { persist: boolean }): void {
+    this.planningService.activeService$.next(undefined);
     let process = this.getProcess(id);
     this.activeProcess = process;
     const scenarioId = this.cookies.get(`planning-scenario-${process?.id}`, 'number');
@@ -159,7 +160,9 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
     this.planningService.activeScenario$.next(scenario);
     this.planningService.getInfrastructures({ process: process }).subscribe( infrastructures => {
       this.infrastructures = infrastructures;
-      const activeInfrastructure = this.infrastructures?.find(i => i.id === this.cookies.get(`planning-infrastructure-${id}`, 'number'));
+      const infraId = this.cookies.get(`planning-infrastructure-${id}`, 'number');
+      // process does not contain last selected infrastructure -> do not select it
+      let activeInfrastructure = (infraId !== undefined && this.activeProcess && this.activeProcess.infrastructures.indexOf(infraId) >= 0)? this.infrastructures?.find(i => i.id === infraId): undefined;
       this.planningService.activeInfrastructure$.next(activeInfrastructure);
       const activeService = activeInfrastructure?.services.find(i => i.id === this.cookies.get(`planning-service-${id}`, 'number'));
       this.planningService.activeService$.next(activeService);
