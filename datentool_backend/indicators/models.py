@@ -32,6 +32,7 @@ class MatrixCellPlace(DatentoolModelMixin, models.Model):
                               related_name='place_cell')
     variant = models.ForeignKey(ModeVariant, on_delete=models.CASCADE)
     minutes = models.FloatField()
+    access_variant = models.ForeignKey(ModeVariant, on_delete=models.SET_NULL)
 
     class Meta:
         unique_together = ['variant', 'cell', 'place']
@@ -48,6 +49,7 @@ class MatrixCellStop(DatentoolModelMixin, models.Model):
                              related_name='stop_cell')
     variant = models.ForeignKey(ModeVariant, on_delete=models.CASCADE)
     minutes = models.FloatField()
+    access_variant = models.ForeignKey(ModeVariant, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ['variant', 'cell', 'stop']
@@ -64,6 +66,7 @@ class MatrixPlaceStop(models.Model):
                              related_name='stop_place')
     variant = models.ForeignKey(ModeVariant, on_delete=models.CASCADE)
     minutes = models.FloatField()
+    access_variant = models.ForeignKey(ModeVariant, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ['variant', 'place', 'stop']
