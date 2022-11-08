@@ -1233,7 +1233,7 @@ mat-checkbox.reverse {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0,0,0,0.1);
+  background-color: rgba(0,0,0,0.2);
   z-index: 100;
   cursor: not-allowed;
 }
@@ -1244,7 +1244,17 @@ mat-checkbox.reverse {
 
 .loadOverlay > mat-spinner {
   left: 45%;
-  top: 40%;
+  top: 45%;
+  width: 70px !important;
+  height: 70px !important;
+  background-color: rgba(255,255,255,0.9);
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 1px 0px 3px 1px #a7a7a7;
+
+  > svg {
+    margin: 10px;
+  }
 }
 
 #years-check-table {
