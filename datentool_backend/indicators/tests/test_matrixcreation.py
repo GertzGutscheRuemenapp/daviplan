@@ -1,12 +1,10 @@
 import os
 from unittest import skipIf
 import urllib
-import requests
 from typing import List
 
 from test_plus import APITestCase
 from django.urls import reverse
-from django.conf import settings
 from django.contrib.gis.geos import Point
 
 from datentool_backend.utils.routers import OSRMRouter
@@ -131,7 +129,8 @@ class TestMatrixCreation(CreateTestdataMixin,
         data = response.data
         self.assertEqual(data['n_places'], 5)
         self.assertEqual(data['n_cells'], 8)
-        self.assertEqual(data['n_rels_place_cell_bike'], 40)
+        self.assertDictEqual(data['n_rels_place_cell_modevariant'],
+                             {bike.pk: 40})
 
     @skipIf(not OSRMRouter(Mode.CAR).service_is_up, 'osrm docker not running')
     def test_create_routed_car_matrix(self):
@@ -339,9 +338,14 @@ class TestMatrixCreation(CreateTestdataMixin,
         data = response.data
         self.assertEqual(data['n_places'], 5)
         self.assertEqual(data['n_cells'], 8)
-        self.assertEqual(data['n_rels_place_cell_walk'], 36)
-        self.assertEqual(data['n_rels_place_cell_transit'], 40)
+        self.assertDictEqual(data['n_rels_place_cell_modevariant'],
+                             {walk.pk: 36,
+                              self.transit.pk: 40,})
+
         self.assertEqual(data['n_stops'], 383)
-        self.assertEqual(data['n_rels_place_stop_transit'], 17)
-        self.assertEqual(data['n_rels_stop_cell_transit'], 18)
-        self.assertEqual(data['n_rels_stop_stop_transit'], 88412)
+        self.assertDictEqual(data['n_rels_place_stop_modevariant'],
+                             {walk.pk: 17,})
+        self.assertDictEqual(data['n_rels_stop_cell_modevariant'],
+                             {walk.pk: 18,})
+        self.assertDictEqual(data['n_rels_stop_stop_modevariant'],
+                             {self.transit.pk: 88412,})
