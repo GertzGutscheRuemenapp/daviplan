@@ -1,3 +1,6 @@
+<div class="loadOverlay" *ngIf="isLoading$ | async" xmlns="http://www.w3.org/1999/html">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
 <app-header-card [title]="'Leistungen in den Infrastrukturbereichen'"
                  cookieId="exp-services-header"
                  width="1130px">

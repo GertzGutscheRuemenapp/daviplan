@@ -3,7 +3,7 @@
 </div>
 <app-header-card [title]="'ÖPNV-Netz: Reisezeiten zu den Einrichtungen mit Bus und Bahn'"
                  cookieId="exp-reach-header"
-                 width="1190px">
+                 width="1170px">
   <p>Wie schon im vorigen Menüpunkt beschrieben werden die Erreichbarkeitsverhältnisse in Ihrem Planungsraum anhand von Erreichbarkeitsmatrizen abgebildet.</p>
   <p>Erreichbarkeitsmatrizen sind (große) Tabellen, in denen für ein bestimmtes Verkehrsmittel verzeichnet ist, wie lange man mit diesem von Teilfläche A zu Teilfläche B braucht. Die Teilflächen entsprechend dabei dem europaweit standardisierten 100x100-Meter-LAEA-Raster, auf das bereits im Menüpunkt „Einwohnerraster“ Bezug genommen wurde.</p>
   <p>Diese Erreichbarkeitsmatrizen können Sie auf dieser Seite für die vier Verkehrsmittel „zu Fuß“, „Fahrrad“, „Auto“ und „ÖPNV“ zusammentragen. Dabei können Sie entweder extern vorberechnete Erreichbarkeitsmatrizen hochladen. Alternativ können Sie alle oder einzelne Erreichbarkeitsmatrizen mit einem oder mehreren im vorigen Menüpunkt „Verkehrsnetz“ erzeugten Verkehrsnetzen und deren Routensuchern berechnen.</p>
@@ -159,7 +159,7 @@
     </app-input-card>
   </div>
   <app-input-card subtitle="Daten-Historie Erreichbarkeiten"
-                  width="400px"
+                  width="380px"
                   infoText="<p>Die Liste zeigt Ihnen eine Chronik aller Datenimporte und Berechnungen im Bereich „Erreichbarkeiten“.</p>">
     <app-log room="routing" (onMessage)="onMessage($event)" height="350px"></app-log>
   </app-input-card>

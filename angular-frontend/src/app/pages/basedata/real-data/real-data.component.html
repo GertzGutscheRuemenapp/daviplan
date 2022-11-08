@@ -3,7 +3,7 @@
 </div>
 <app-header-card [title]="'Einwohnerdaten der Vergangenheit (Realdaten)'"
                  cookieId="exp-realdata-header"
-                 width="1220px">
+                 width="1170px">
   <p>Für die Abschätzung der Nachfrage nach Infrastrukturen werden u.a. Einwohnerdaten benötigt. Auf dieser Seite können Sie Daten zur Einwohnerzahl und Altersstruktur in den zurückliegenden Jahren einlesen. Prognosedaten werden über den Eingabeseite „Zukunft“ (nächster Punkte im Menü links) eingepflegt.</p>
   <p>Die Einwohnerdaten werden für die Gebietsebene eingelesen, die Sie im obersten Menüpunkt „Gebietseinheiten“ hierfür ausgewählt haben. Standardmäßig ist dies die Gemeindeebene. Einwohnerdaten anderer Gebietseinheiten (z.B. Kreise oder Verwaltungsgemeinschaften) werden aus diesen Daten automatisch abgeleitet.</p>
   <p>Sie können Einwohnerdaten für Ihren Planungsraum online vom zentralen Datendienst „Regionalstatistik“ der Statistikämter des Bundes und der Länder abrufen und diese Daten bei Bedarf händisch ergänzen.</p>
@@ -15,7 +15,7 @@
 </div>
 <div fxLayout="row wrap">
   <app-input-card [title]="'Einwohnerdaten online abrufen'"
-                  width="350px"
+                  width="300px"
                   infoText="<p>Mit einem Klick auf die Schaltfläche „Abrufen“ können Sie Einwohnerdaten für Ihren Planungsraum online vom zentralen Datendienst „Regionalstatistik“ der Statistikämter des Bundes und der Länder abrufen. Der Zugriff ist kostenlos, er kann jedoch einige Minuten dauern.</p>
                   <p>Der Fortschritt der Abfrage wird Ihnen in der Box „Datenhistorie“ angezeigt. Die eingelesenen Daten können Sie anschließend in der Box „Bereits eingelesene Daten“ als Tabelle, Karte oder Diagramm betrachten.</p>
                   <p>Der Online-Abruf steht nur zur Verfügung, wenn die Einteilung der Altersgruppen im Administrationsbereich nicht gegenüber der Standardeinstellung (Alterseinteilung der Regionalstatistik) verändert wurde.</p>"
@@ -75,8 +75,7 @@
     </app-input-card>
   </div>
   <app-input-card subtitle="Daten-Historie Bevölkerung"
-                  infoText="<p>Die Liste zeigt Ihnen eine Chronik aller Datenimporte (online-Abfragen und Hochladen befüllter Vorlagen). Sie zeigt Ihnen zudem den Fortschritt laufender online-Abfragen.</p>
-                  <p>Die Chronik enthält auch Informationen über alle Datenimporte für Prognosedaten, die über den Menüpunkt „Bevölkerung > Zukunft“ (linker Browserrand) durchgeführt wurden.</p>"
+                  infoText="<p>Die Liste zeigt Ihnen eine Chronik aller Datenimporte (Online-Abfragen und Hochladen befüllter Vorlagen) und Berechnungen im Bereich „Bevölkerung“.</p>"
                   width="400px">
     <app-log room="population" (onMessage)="onMessage($event)" height="350px"></app-log>
   </app-input-card>
@@ -84,7 +83,7 @@
 <div fxLayout="row wrap">
   <app-input-card [title]="'Bereits importierte Einwohnerdaten'"
                   [topRightHelp]="true"
-                  width="1220px"
+                  width="1170px"
                   [disabled]="!popLevel || isProcessing"
                   infoText="<p>Sie haben drei Möglichkeiten, sich die bereits importierten Einwohnerdaten der zurückliegenden Jahre anzusehen.</p>
                   <ol type='1'>
@@ -97,7 +96,8 @@
       <button class="mat-button-dv"
               mat-button color="primary"
               (click)="showDataTable()">
-        <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
+        <mat-icon class="material-icons-outlined">table_chart</mat-icon>
+        Alle Daten (als Tabelle)
       </button>
     </div>
     <div style="width: 100%; display: flex;">

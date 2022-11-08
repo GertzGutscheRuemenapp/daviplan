@@ -3,7 +3,7 @@ import { CheckTreeComponent, TreeItemNode } from "../../../elements/check-tree/c
 import { MapControl, MapService } from "../../../map/map.service";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
-import { forkJoin, Observable } from "rxjs";
+import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
@@ -35,12 +35,11 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   layerGroupForm: FormGroup;
   addLayerForm: FormGroup;
   editLayerForm: FormGroup;
-
   selectedLayer?: MapLayer;
   selectedGroup?: MapLayerGroup;
   Object = Object;
-
   availableLayers: MapLayer[] = [];
+  isLoading$ = new BehaviorSubject<boolean>(false);
 
   constructor(private mapService: MapService, private http: HttpClient, private dialog: MatDialog,
               private rest: RestAPI, private restService: RestCacheService, private formBuilder: FormBuilder) {
@@ -62,6 +61,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    this.isLoading$.next(true);
     this.mapService.fetchExternalLayers({ reset: true }).subscribe(groups => {
       this.layerGroups = groups;
       this.layerTree.setItems(this.layerGroups);
@@ -70,6 +70,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
           if (layer.active)
             this.layerTree.setChecked(layer, layer.active);
         })
+        this.isLoading$.next(false);
       });
     })
     this.layerTree.addItemClicked.subscribe(node => {
