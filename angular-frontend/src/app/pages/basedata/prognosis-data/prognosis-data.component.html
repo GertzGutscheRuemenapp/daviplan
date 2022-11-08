@@ -152,20 +152,23 @@
                   </ol>
                   Voraussetzung für alle Anzeigen ist, dass Sie bereits Prognosedaten für mindestens ein Jahr hochgeladen haben und mindestens ein Jahr zur Anzeige ausgewählt wurde.
                   </p>">
-    <span class="subtitle1 sub">
-      Prognosevariante:
-      <p style="font-size: 1.5em;">"{{activePrognosis?.name || '-'}}"</p>
-    </span>
+
+<!--      <p style="font-size: 1.5em;">"{{activePrognosis?.name || '-'}}"</p>-->
+
     <div style="margin-bottom: 10px;">
+          <span class="subtitle1">
+            Alle Daten (Als Tabelle) </span>
+      <div>
       <button class="mat-button-dv"
               mat-button color="primary"
               (click)="showDataTable()">
         <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
       </button>
+      </div>
     </div>
     <div style="width: 100%; display: flex;">
       <div style="width: 50%; margin-right: 10px;">
-        <span class="subtitle1">Alle Gesamtwerte eines Jahres</span><br>
+        <span class="subtitle1">Alle Gesamtwerte eines Jahres <br> (Als Karte)</span><br>
         <mat-form-field appearance="outline" class="small" style="margin-right: 10px;">
           <mat-label>Jahr</mat-label>
           <mat-select disableOptionCentering disableRipple
@@ -193,7 +196,7 @@
         </div>
       </div>
       <div style="width: 50%">
-        <span class="subtitle1">Alterstruktur eines Gebiets in diesem Jahr</span><br>
+        <span class="subtitle1">Altersstruktur eines Gebiets in diesem Jahr <br>(Auswahl auch über Karte möglich)</span><br>
         <mat-form-field appearance="outline" class="small">
           <mat-label>Gebiet</mat-label>
           <mat-select disableOptionCentering disableRipple
