@@ -150,6 +150,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
 
   setProcess(id: number | undefined, options?: { persist: boolean }): void {
     this.planningService.activeService$.next(undefined);
+    this.mapControl?.setDescription('');
     let process = this.getProcess(id);
     this.activeProcess = process;
     const scenarioId = this.cookies.get(`planning-scenario-${process?.id}`, 'number');

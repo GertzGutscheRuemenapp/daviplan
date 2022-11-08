@@ -117,18 +117,21 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   updateMap(): void {
     this.showLabel = (this.indicatorLayer?.showLabel !== undefined)? this.indicatorLayer.showLabel: true;
     this.layerGroup?.clear();
-    this.updateMapDescription();
     this.barChart.clear();
+    this.mapControl?.setDescription('');
     if(!this.activeScenario || !this.activeService) return;
     switch (this.selectedIndicator?.resultType) {
       case 'area':
         this.renderAreaIndicator();
+        this.updateMapDescription();
         break;
       case 'place':
         this.renderPlaceIndicator();
+        this.updateMapDescription();
         break;
       case 'raster':
         this.renderRasterIndicator();
+        this.updateMapDescription();
         break;
       default:
     }
