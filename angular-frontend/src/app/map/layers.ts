@@ -207,8 +207,8 @@ export interface ColorBin {
 export interface ValueStyle {
   field?: string,
   radius?: {
-    range: number[],
-    scale?: 'linear' | 'sequential',
+    range?: number[],
+    scale?: 'linear' | 'sequential' | 'sqrt',
     radiusFunc?: ((d: number) => number)
   },
   strokeColor?: {
@@ -220,7 +220,7 @@ export interface ValueStyle {
       scale?: 'linear' | 'sequential',
       steps?: number,
       reverse?: boolean,
-    }
+    },
     bins?: IndicatorLegendClass[],
     colorFunc?: ((d: number) => string)
   },
@@ -245,6 +245,7 @@ interface VectorLayerOptions extends LayerOptions {
   },
   radius?: number,
   unit?: string,
+  forceSign?: boolean,
   valueStyles?: ValueStyle,
   labelOffset?: { x?: number, y?: number }
 }
@@ -273,6 +274,7 @@ export class VectorLayer extends MapLayer {
   visible?: boolean = true;
   radius?: number;
   unit?: string;
+  forceSign?: boolean;
   valueStyles?: ValueStyle;
   labelOffset?: { x?: number, y?: number };
 
@@ -294,6 +296,7 @@ export class VectorLayer extends MapLayer {
     this.valueStyles = options?.valueStyles;
     this.radius = options?.radius;
     this.unit = options?.unit;
+    this.forceSign = options?.forceSign;
     this.labelOffset = options?.labelOffset;
   }
 
@@ -305,7 +308,20 @@ export class VectorLayer extends MapLayer {
       this.valueStyles.fillColor.colorFunc = seqFunc(this.valueStyles.fillColor.interpolation.range).domain([min, max]);
     }
     if (this.valueStyles?.radius?.range) {
-      const seqFunc: any = (this.valueStyles.radius.scale === 'linear')? d3.scaleLinear : d3.scaleSequential;
+      let seqFunc: any;
+      switch(this.valueStyles.radius.scale) {
+        case 'linear':
+          seqFunc = d3.scaleLinear;
+          break;
+        case 'sqrt':
+          seqFunc = d3.scaleSqrt;
+          break;
+        case 'sequential':
+          seqFunc = d3.scaleSequential;
+          break;
+        default:
+          seqFunc = d3.scaleLinear;
+      }
       let max = this.valueStyles.max;
       let min = this.valueStyles.min;
       this.valueStyles.radius.radiusFunc = seqFunc().domain([min, max]).range(this.valueStyles.radius.range);
@@ -351,7 +367,9 @@ export class VectorLayer extends MapLayer {
       shape: (this.style?.symbol !== 'line')? this.style?.symbol: undefined,
       selectable: this.selectable,
       showLabel: this.showLabel,
-      labelOffset: this.labelOffset
+      labelOffset: this.labelOffset,
+      unit: this.unit,
+      forceSign: this.forceSign
     })
   }
 
@@ -424,8 +442,13 @@ export class VectorLayer extends MapLayer {
     })
     if (options?.zIndex) {
       const attr = options?.zIndex;
-      olFeatures = olFeatures.sort((a, b) =>
-        (a.get(attr) > b.get(attr)) ? 1 : (a.get(attr) < b.get(attr)) ? -1 : 0);
+      olFeatures = olFeatures.sort((a, b) => {
+        let leftVal = a.get(attr);
+        let rightVal = b.get(attr);
+        if (typeof leftVal === 'number') leftVal = Math.abs(leftVal);
+        if (typeof rightVal === 'number') rightVal = Math.abs(rightVal);
+        return (leftVal > rightVal)? 1 : (leftVal < rightVal) ? -1 : 0;
+      });
       olFeatures.forEach((feat, i) => feat.set('zIndex', olFeatures.length - i));
     }
     this.map.addFeatures(this.mapId!, olFeatures);

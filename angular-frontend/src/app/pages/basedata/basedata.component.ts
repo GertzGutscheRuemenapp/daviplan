@@ -8,7 +8,7 @@ import { Component, OnInit } from '@angular/core';
 export class BasedataComponent implements OnInit {
 
   menuItems = [
-    {name:  $localize`Gebietseinheiten`, url: 'grundlagendaten/gebiete', icon: 'public', children: []},
+    {name:  $localize`Gebietseinteilungen`, url: 'grundlagendaten/gebiete', icon: 'public', children: []},
     {name:  $localize`Bevölkerung`, icon: 'groups', url: '', children: [
         {name:  $localize`Vergangenheit`, url: 'grundlagendaten/realdaten', icon: 'timeline', children: []},
         {name:  $localize`Zukunft`, url: 'grundlagendaten/prognosedaten', icon: 'auto_graph', children: []},

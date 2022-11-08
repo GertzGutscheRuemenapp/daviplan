@@ -50,6 +50,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   sharedProcesses: PlanningProcess[] = [];
   activeProcess?: PlanningProcess;
   otherUsers: SharedUser[] = [];
+  user?: User;
   mapControl?: MapControl;
   realYears?: number[];
   prognosisYears?: number[];
@@ -73,6 +74,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
               public planningService: PlanningService, private settings: SettingsService,
               private auth: AuthService, private formBuilder: FormBuilder, private cdref: ChangeDetectorRef,
               private http: HttpClient, private rest: RestAPI, private cookies: CookieService) {
+    this.planningService.reset();
     this.editProcessForm = this.formBuilder.group({
       name: new FormControl(''),
       description: new FormControl(''),
@@ -126,6 +128,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
       this.planningService.getBaseScenario().subscribe(scenario => {
         this.baseScenario = scenario;
         this.auth.getCurrentUser().subscribe(user => {
+          this.user = user;
           if (!user) return;
           this.planningService.getUsers().subscribe(users => {
             this.otherUsers = users.filter(u => u.id != user.id);

@@ -2,7 +2,12 @@ import logging
 import json
 import time
 import channels.layers
-from redis.asyncio import RedisError
+try:    
+    # redis 4.*
+    from redis.asyncio import RedisError
+except ModuleNotFoundError:
+    # redis 3.*
+    from redis import RedisError 
 from redis.exceptions import ConnectionError as RedisConnectionError
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import AsyncWebsocketConsumer

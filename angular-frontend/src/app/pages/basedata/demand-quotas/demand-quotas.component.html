@@ -135,7 +135,7 @@
     </div>
     <div fxLayout="column" fxFlex="900px" [class.hidden]="!activeDemandRateSet">
       <app-input-card #demandRateSetCard
-                      [title]="'Werte der ausgewählten Variante'"
+                      [title]="'Nachfragequoten bzw. Nutzungshäufigkeiten der ausgewählten Variante'"
                       [subtitle]="'Leistung ' + activeService?.name + ' / ' + 'Variante „' + activeDemandRateSet?.name + '“'"
                       [editTemplate]="demandRateSetEdit"
                       dialogWidth="1200px"
