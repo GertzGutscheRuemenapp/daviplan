@@ -75,8 +75,7 @@
     </app-input-card>
   </div>
   <app-input-card subtitle="Daten-Historie Bevölkerung"
-                  infoText="<p>Die Liste zeigt Ihnen eine Chronik aller Datenimporte (online-Abfragen und Hochladen befüllter Vorlagen). Sie zeigt Ihnen zudem den Fortschritt laufender online-Abfragen.</p>
-                  <p>Die Chronik enthält auch Informationen über alle Datenimporte für Prognosedaten, die über den Menüpunkt „Bevölkerung > Zukunft“ (linker Browserrand) durchgeführt wurden.</p>"
+                  infoText="<p>Die Liste zeigt Ihnen eine Chronik aller Datenimporte (Online-Abfragen und Hochladen befüllter Vorlagen) und Berechnungen im Bereich „Bevölkerung“.</p>"
                   width="400px">
     <app-log room="population" (onMessage)="onMessage($event)" height="350px"></app-log>
   </app-input-card>
@@ -97,7 +96,8 @@
       <button class="mat-button-dv"
               mat-button color="primary"
               (click)="showDataTable()">
-        <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
+        <mat-icon class="material-icons-outlined">table_chart</mat-icon>
+        Alle Daten (als Tabelle)
       </button>
     </div>
     <div style="width: 100%; display: flex;">

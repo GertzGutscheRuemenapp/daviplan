@@ -3,7 +3,7 @@
 </div>
 <app-header-card [title]="'Gebietseinteilungen'"
                  cookieId="exp-areas-header"
-                 width="1270px">
+                 width="1220px">
   <p>Nachdem Sie bei den Basisdefinitionen im Administrationsbereich ein Planungsgebiets definiert haben, auf das Sie daviplan anwenden möchten, können Sie dieses Planungsgebiet in Gebietseinheiten unterteilen. Diese Gebietseinheiten dienen später der räumlich differenzierten Bilanzierung von Angebot und Nachfrage nach den betrachteten Infrastrukturen.</p>
   <p>Die einzelnen Gebietseinheiten werden über Gebietseinteilungen definiert, die das gesamte Planungsgebiet abdecken müssen.</p>
   <p>Standardmäßig entsprechen die Gebietseinteilungen den administrativen Ebenen, d.h. den Gemeinden, Verwaltungsgemeinschaften (Ämter, Samtgemeinden, Verbandsgemeinden, VG), Kreisen und Bundesländern. Diese amtlichen Grenzen können auf Sie einfach vom Bundesamt für Kartographie und Geodäsie (BKG) herunterladen lassen und für Ihre daviplan-Anwendung auswählen.</p>
@@ -225,8 +225,9 @@
         </div>
       </app-input-card>
       <app-input-card subtitle="Daten-Historie Gebiete"
-                      width="400px">
-        <app-log room="areas" (onMessage)="onMessage($event)" height="350px"></app-log>
+                      infoText="<p>Die Liste zeigt Ihnen eine Chronik aller Datenimporte (Online-Abfragen und Hochladen befüllter Vorlagen) und Berechnungen im Bereich „Gebiete“ und aus der Definition des Planungsraums.</p>"
+                      width="350px">
+        <app-log room="areas" (onMessage)="onMessage($event)" height="310px"></app-log>
       </app-input-card>
     </div>
     <div fxLayout="row wrap">
@@ -234,7 +235,7 @@
                       [ngClass]="{'hidden': !activeLevel}"
                       class="spaced"
                       [topRightHelp]="true"
-                      width="870px"
+                      width="820px"
                       infoText="<p>Die Karte zeigt die Gebiete der aktuell ausgewählten Gebietseinheiten als ausgefüllte Flächen.<p>
                       <p>Zusätzlich zeigt sie auf Wunsch alle zur Darstellung freigegeben Gebietseinheiten, auswählbar über die Legende.
                       Die Darstellung der einzelnen Gebietseinheiten in der Karte können Sie in der Box „Darstellung der ausgewählten Gebietseinteilung“ anpassen.</p>">

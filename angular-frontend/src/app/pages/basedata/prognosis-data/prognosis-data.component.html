@@ -89,7 +89,7 @@
   </div>
   <div fxLayout="column">
     <app-input-card #propertiesCard
-                    width="450px"
+                    width="430px"
                     [title]="'Bezeichnung der ausgewählten Variante'"
                     [class.hidden]="!popLevel || !activePrognosis"
                     [editTemplate]="propertiesEdit">
@@ -109,15 +109,12 @@
       </table>
     </app-input-card>
     <app-input-card [title]="'Prognosedaten der ausgewählten Variante hochladen'"
-                    width="450px"
+                    width="430px"
+                    [subtitle]="activePrognosis?.name || '-'"
                     [disabled]="isProcessing"
                     [class.hidden]="!popLevel || !activePrognosis"
                     infoText="<p>Wenn Sie für diese Prognosevariante noch keine Einwohnerdaten hochgeladen haben (oder die bereits hochgeladenen Daten ersetzen möchten), können Sie sich mit der Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excelformat herunterladen. Befüllen Sie diese mit Ihren Daten für die angezeigte Variante und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Für jede Prognosevariante benötigen Sie eine eigene Vorlagedatei.</p>
                     <p>Zur Kontrolle können Sie sich die hochgeladenen Daten anschließend in der Box „Bereits importierte Prognosedaten für die ausgewählte Variante“ für einzelne Gebiete anschauen.</p>">
-      <span class="subtitle1 sub">
-        Prognosevariante:
-        <p style="font-size: 1.5em;">"{{activePrognosis?.name || '-'}}"</p>
-      </span>
       <div style="width: 100%; display: flex;">
         <button mat-stroked-button color="primary"
                 style="margin-right: 10px;"
@@ -132,8 +129,7 @@
   </div>
   <app-input-card subtitle="Daten-Historie Bevölkerung"
                   width="400px"
-                  infoText="<p>Die Liste zeigt Ihnen eine Chronik aller Datenimporte (Hochladen der befüllten Vorlagen).</p>
-                  <p>Die Chronik enthält auch Informationen über alle Datenimporte für Realdaten, die über den Menüpunkt „Bevölkerung > Vergangenheit“ (linker Browserrand) durchgeführt wurden.</p>">
+                  infoText="<p>Die Liste zeigt Ihnen eine Chronik aller Datenimporte (Online-Abfragen und Hochladen befüllter Vorlagen) und Berechnungen im Bereich „Bevölkerung“.</p>">
     <app-log room="population" (onMessage)="onMessage($event)" height="350px"></app-log>
   </app-input-card>
 </div>
@@ -152,19 +148,17 @@
                   </ol>
                   Voraussetzung für alle Anzeigen ist, dass Sie bereits Prognosedaten für mindestens ein Jahr hochgeladen haben und mindestens ein Jahr zur Anzeige ausgewählt wurde.
                   </p>">
-
-<!--      <p style="font-size: 1.5em;">"{{activePrognosis?.name || '-'}}"</p>-->
-
+    <span class="subtitle1 sub">
+      Prognosevariante:
+      <p style="font-size: 1.5em;">"{{activePrognosis?.name || '-'}}"</p>
+    </span>
     <div style="margin-bottom: 10px;">
-          <span class="subtitle1">
-            Alle Daten (Als Tabelle) </span>
-      <div>
       <button class="mat-button-dv"
               mat-button color="primary"
               (click)="showDataTable()">
-        <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
+        <mat-icon class="material-icons-outlined">table_chart</mat-icon>
+        Alle Daten (als Tabelle)
       </button>
-      </div>
     </div>
     <div style="width: 100%; display: flex;">
       <div style="width: 50%; margin-right: 10px;">
