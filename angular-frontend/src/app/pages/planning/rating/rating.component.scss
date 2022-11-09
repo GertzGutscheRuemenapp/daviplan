@@ -9,17 +9,13 @@
   .diagram-wrapper {
     padding: 10px;
     max-height: 500px;
+    width: 500px;
+    height: 400px;
+    margin: 10px 10px;
+    border: 1px solid lightgrey;
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
-  }
-  .diagram-controls {
-    position: absolute;
-    top: 10px;
-    right: 17px;
-    .mat-mini-fab {
-      box-shadow: 1px 1px 5px 0px #a7a7a7;
-    }
   }
 }
 

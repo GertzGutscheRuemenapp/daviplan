@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, Input } from '@angular/core';
 import * as d3 from 'd3';
-import { v4 as uuid } from "uuid";
+import { DiagramComponent } from "../diagram/diagram.component";
 
 export interface MultilineData {
   group: string,
@@ -9,15 +9,12 @@ export interface MultilineData {
 
 @Component({
   selector: 'app-multiline-chart',
-  templateUrl: './multiline-chart.component.html',
-  styleUrls: ['./multiline-chart.component.scss']
+  templateUrl: '../diagram/diagram.component.html',
+  styleUrls: ['./multiline-chart.component.scss', '../diagram/diagram.component.scss']
 })
-export class MultilineChartComponent implements AfterViewInit {
+export class MultilineChartComponent extends DiagramComponent implements AfterViewInit {
 
   @Input() data?: MultilineData[];
-  @Input() figureId: String = `figure${uuid()}`;
-  @Input() title: string = '';
-  @Input() subtitle: string = '';
   @Input() labels?: string[];
   @Input() drawLegend: boolean = true;
   @Input() xLabel?: string;
@@ -25,8 +22,6 @@ export class MultilineChartComponent implements AfterViewInit {
   @Input() yTicks?: number;
   @Input() yTopLabel?: string;
   @Input() yBottomLabel?: string;
-  @Input() width?: number;
-  @Input() height?: number;
   @Input() unit?: string;
   @Input() min?: number;
   @Input() max?: number;
@@ -34,12 +29,11 @@ export class MultilineChartComponent implements AfterViewInit {
   @Input() yPadding: number = 0;
   @Input() yOrigin: number = 0;
   @Input() xLegendOffset: number = 70;
-  @Input() yLegendOffset: number = 0;
+  @Input() yLegendOffset: number = 20;
   @Input() animate?: boolean;
   @Input() xSeparator?: { leftLabel?: string, rightLabel?:string, x: string, highlight?: boolean };
   @Input() shiftXLabelDown?: boolean;
 
-  private svg: any;
   @Input() margin: {top: number, bottom: number, left: number, right: number } = {
     top: 50,
     bottom: 50,
@@ -57,25 +51,6 @@ export class MultilineChartComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.createSvg();
     if (this.data) this.draw(this.data);
-  }
-
-  private createSvg(): void {
-    let figure = d3.select(`figure#${this.figureId}`);
-    if (!(this.width && this.height)){
-      let node: any = figure.node()
-      let bbox = node.getBoundingClientRect();
-      if (!this.width)
-        this.width = bbox.width;
-      if (!this.height)
-        this.height = bbox.height;
-    }
-    this.svg = figure.append("svg")
-      .attr("viewBox", `0 0 ${this.width!} ${this.height!}`)
-      .append("g");
-  }
-
-  clear(): void {
-    this.svg.selectAll("*").remove();
   }
 
   public draw(data: MultilineData[]): void {
@@ -97,8 +72,8 @@ export class MultilineChartComponent implements AfterViewInit {
 
     let max = this.max || Math.max(d3.max(data, d => { return d3.max(d.values) }) || 0, 0);
     max! += this.yPadding;
-    let min = (this.min === undefined)? d3.min(data, d => { return d3.min(d.values) }): this.min;
-    min! -= this.yPadding;
+    let min = (this.min === undefined)? d3.min(data, d => { return d3.min(d.values) }) || 0: this.min;
+    min -= this.yPadding;
     const y = d3.scaleLinear()
       .domain([min!, max!])
       .range([innerHeight, 0]);
@@ -159,7 +134,7 @@ export class MultilineChartComponent implements AfterViewInit {
     let line = d3.line()
       // .curve(d3.curveCardinal)
       .x((d: any) => x(d.group)!)
-      .y((d: any) => y(d.value));
+      .y((d: any) => y(d.value || 0));
 
     let _this = this;
 
@@ -194,13 +169,13 @@ export class MultilineChartComponent implements AfterViewInit {
       lineG.selectAll('circle')
         .transition()
         .duration(this.animate ? 60 : 0)
-        .attr("transform", (d: null, i: number) => `translate(${x(groups[xIdx])}, ${y(groupData.values[i])})`);
+        .attr("transform", (d: null, i: number) => `translate(${x(groups[xIdx])}, ${y(groupData.values[i] || 0)})`);
       let text = `<b>${groupData.group}</b><br>`;
       const formatter = _this.localeFormatter.format(',.2f');
       _this.labels?.slice().reverse().forEach((label, i)=>{
         const j = _this.labels!.length - i - 1;
         let color = (_this.colors)? _this.colors[j]: colorScale(j);
-        text += `<b style="color: ${color}">${label}</b>: ${formatter(groupData.values[j])}${(_this.unit)? _this.unit : ''}<br>`;
+        text += `<b style="color: ${color}">${label}</b>: ${formatter(groupData.values[j] || 0)}${(_this.unit)? _this.unit : ''}<br>`;
       })
       tooltip.html(text);
       tooltip.style('left', event.pageX + 20 + 'px')
@@ -212,7 +187,7 @@ export class MultilineChartComponent implements AfterViewInit {
       let di = data.map(d => {
         return {
           group: d.group,
-          value: d.values[i]
+          value: d.values[i] || 0
         }
       });
       let path = lineG.append("path")
