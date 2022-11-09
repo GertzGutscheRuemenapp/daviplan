@@ -97,8 +97,8 @@ export class MultilineChartComponent implements AfterViewInit {
 
     let max = this.max || Math.max(d3.max(data, d => { return d3.max(d.values) }) || 0, 0);
     max! += this.yPadding;
-    let min = (this.min === undefined)? d3.min(data, d => { return d3.min(d.values) }): this.min;
-    min! -= this.yPadding;
+    let min = (this.min === undefined)? d3.min(data, d => { return d3.min(d.values) }) || 0: this.min;
+    min -= this.yPadding;
     const y = d3.scaleLinear()
       .domain([min!, max!])
       .range([innerHeight, 0]);
@@ -159,7 +159,7 @@ export class MultilineChartComponent implements AfterViewInit {
     let line = d3.line()
       // .curve(d3.curveCardinal)
       .x((d: any) => x(d.group)!)
-      .y((d: any) => y(d.value));
+      .y((d: any) => y(d.value || 0));
 
     let _this = this;
 
@@ -194,13 +194,13 @@ export class MultilineChartComponent implements AfterViewInit {
       lineG.selectAll('circle')
         .transition()
         .duration(this.animate ? 60 : 0)
-        .attr("transform", (d: null, i: number) => `translate(${x(groups[xIdx])}, ${y(groupData.values[i])})`);
+        .attr("transform", (d: null, i: number) => `translate(${x(groups[xIdx])}, ${y(groupData.values[i] || 0)})`);
       let text = `<b>${groupData.group}</b><br>`;
       const formatter = _this.localeFormatter.format(',.2f');
       _this.labels?.slice().reverse().forEach((label, i)=>{
         const j = _this.labels!.length - i - 1;
         let color = (_this.colors)? _this.colors[j]: colorScale(j);
-        text += `<b style="color: ${color}">${label}</b>: ${formatter(groupData.values[j])}${(_this.unit)? _this.unit : ''}<br>`;
+        text += `<b style="color: ${color}">${label}</b>: ${formatter(groupData.values[j] || 0)}${(_this.unit)? _this.unit : ''}<br>`;
       })
       tooltip.html(text);
       tooltip.style('left', event.pageX + 20 + 'px')
@@ -212,7 +212,7 @@ export class MultilineChartComponent implements AfterViewInit {
       let di = data.map(d => {
         return {
           group: d.group,
-          value: d.values[i]
+          value: d.values[i] || 0
         }
       });
       let path = lineG.append("path")

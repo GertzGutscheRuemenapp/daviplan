@@ -37,7 +37,6 @@ export class HorizontalBarchartComponent implements AfterViewInit {
     right: 40
   };
 
-
   constructor() { }
 
   ngAfterViewInit(): void {
