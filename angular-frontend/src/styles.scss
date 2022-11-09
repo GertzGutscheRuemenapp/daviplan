@@ -914,9 +914,14 @@ mat-sidenav {
   }
 }
 
-.mat-mini-fab mat-icon{
-  margin-top: -3px;
-  margin-left: 1px;
+.mat-mini-fab{
+  mat-icon {
+    margin-top: -3px;
+    margin-left: 1px;
+  }
+  .mat-button-wrapper {
+    display: inline !important;
+  }
 }
 
 .map-drag-element {

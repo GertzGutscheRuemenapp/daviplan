@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, Input } from '@angular/core';
 import * as d3 from 'd3';
-import { v4 as uuid } from "uuid";
+import { DiagramComponent } from "../diagram/diagram.component";
 
 export interface MultilineData {
   group: string,
@@ -9,15 +9,12 @@ export interface MultilineData {
 
 @Component({
   selector: 'app-multiline-chart',
-  templateUrl: './multiline-chart.component.html',
-  styleUrls: ['./multiline-chart.component.scss']
+  templateUrl: '../diagram/diagram.component.html',
+  styleUrls: ['./multiline-chart.component.scss', '../diagram/diagram.component.scss']
 })
-export class MultilineChartComponent implements AfterViewInit {
+export class MultilineChartComponent extends DiagramComponent implements AfterViewInit {
 
   @Input() data?: MultilineData[];
-  @Input() figureId: String = `figure${uuid()}`;
-  @Input() title: string = '';
-  @Input() subtitle: string = '';
   @Input() labels?: string[];
   @Input() drawLegend: boolean = true;
   @Input() xLabel?: string;
@@ -25,8 +22,6 @@ export class MultilineChartComponent implements AfterViewInit {
   @Input() yTicks?: number;
   @Input() yTopLabel?: string;
   @Input() yBottomLabel?: string;
-  @Input() width?: number;
-  @Input() height?: number;
   @Input() unit?: string;
   @Input() min?: number;
   @Input() max?: number;
@@ -34,12 +29,11 @@ export class MultilineChartComponent implements AfterViewInit {
   @Input() yPadding: number = 0;
   @Input() yOrigin: number = 0;
   @Input() xLegendOffset: number = 70;
-  @Input() yLegendOffset: number = 0;
+  @Input() yLegendOffset: number = 20;
   @Input() animate?: boolean;
   @Input() xSeparator?: { leftLabel?: string, rightLabel?:string, x: string, highlight?: boolean };
   @Input() shiftXLabelDown?: boolean;
 
-  private svg: any;
   @Input() margin: {top: number, bottom: number, left: number, right: number } = {
     top: 50,
     bottom: 50,
@@ -57,25 +51,6 @@ export class MultilineChartComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.createSvg();
     if (this.data) this.draw(this.data);
-  }
-
-  private createSvg(): void {
-    let figure = d3.select(`figure#${this.figureId}`);
-    if (!(this.width && this.height)){
-      let node: any = figure.node()
-      let bbox = node.getBoundingClientRect();
-      if (!this.width)
-        this.width = bbox.width;
-      if (!this.height)
-        this.height = bbox.height;
-    }
-    this.svg = figure.append("svg")
-      .attr("viewBox", `0 0 ${this.width!} ${this.height!}`)
-      .append("g");
-  }
-
-  clear(): void {
-    this.svg.selectAll("*").remove();
   }
 
   public draw(data: MultilineData[]): void {

@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, Input } from '@angular/core';
 import * as d3 from 'd3';
+import { DiagramComponent } from "../diagram/diagram.component";
 
 export interface BarChartData {
   label: string,
@@ -9,20 +10,16 @@ export interface BarChartData {
 
 @Component({
   selector: 'app-horizontal-barchart',
-  templateUrl: './horizontal-barchart.component.html',
-  styleUrls: ['./horizontal-barchart.component.scss']
+  templateUrl: '../diagram/diagram.component.html',
+  styleUrls: ['./horizontal-barchart.component.scss', '../diagram/diagram.component.scss']
 })
-export class HorizontalBarchartComponent implements AfterViewInit {
+export class HorizontalBarchartComponent extends DiagramComponent implements AfterViewInit {
   @Input() data?: BarChartData[];
-  @Input() title: string = '';
   @Input() subtitle: string = '';
   @Input() xLabel?: string;
   @Input() yLabel?: string;
-  @Input() width?: number;
-  @Input() height?: number;
   @Input() animate?: boolean;
   @Input() unit: string = '';
-  @Input() figureId: String = 'horizontal-barchart';
   localeFormatter = d3.formatLocale({
     decimal: ',',
     thousands: '.',
@@ -37,35 +34,16 @@ export class HorizontalBarchartComponent implements AfterViewInit {
     right: 40
   };
 
-  constructor() { }
-
   ngAfterViewInit(): void {
     this.createSvg();
     if (this.data) this.draw(this.data);
-  }
-
-  private createSvg(): void {
-    let figure = d3.select(`figure#${ this.figureId }`);
-    if (!(this.width && this.height)){
-      let node: any = figure.node()
-      let bbox = node.getBoundingClientRect();
-      if (!this.width)
-        this.width = bbox.width;
-      if (!this.height)
-        this.height = bbox.height;
-    }
-    this.svg = figure.append('svg')
-      .attr('viewBox', `0 0 ${this.width!} ${this.height!}`)
-  }
-
-  clear(): void {
-    this.svg.selectAll('*').remove();
   }
 
   draw(data: BarChartData[]): void {
     this.clear();
     if (data.length == 0) return;
     const _this = this;
+    this.data = data;
 
     const barHeight = 20,
       barPadding = 5,
@@ -161,10 +139,11 @@ export class HorizontalBarchartComponent implements AfterViewInit {
       .attr('font-size', '0.8em')
       .attr('dy', '1em')
       .text(this.subtitle);
-
   }
 
-  ngOnInit(): void {
+  getCSVRows(): (string | number)[][] {
+    let rows = [['Name', `${this.title} ${this.unit? '(' + this.unit + ')': ''}`]];
+    rows = rows.concat(this.data?.map(d => [d.label, d.value.toLocaleString()]) || []);
+    return rows;
   }
-
 }

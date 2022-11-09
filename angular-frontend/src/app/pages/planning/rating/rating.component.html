@@ -153,6 +153,8 @@
   <div style="position: relative;">
     <div class="diagram-wrapper">
       <app-horizontal-barchart #barChart
+                               [showCSVExport]="true"
+                               [showPNGExport]="true"
                                xLabel="Jahre"
                                yLabel="Einwohner"
                                [unit]="this.selectedIndicator?.unit || ''"
@@ -162,22 +164,6 @@
       </app-horizontal-barchart>
     </div>
     <div class="diagram-controls">
-      <button mat-mini-fab
-              class="small no-shadow"
-              style="margin: 5px 5px;"
-              color="primary"
-              (click)="downloadPNG()"
-              title="Diagramm als Bilddatei exportieren">
-        <mat-icon style="font-size: 20px; margin-top: 0;">photo_camera</mat-icon>
-      </button>
-      <button mat-mini-fab
-              class="small no-shadow"
-              style="margin: 5px 0;"
-              color="primary"
-              (click)="downloadCSV()"
-              title="Daten als CSV-Datei exportieren">
-        <mat-icon style="font-size: 20px; margin-top: 0;">article</mat-icon>
-      </button>
       <br>
       <app-help-button title="Diagrammdarstellung" position="right" style="float: right;">
         <p>Das Diagramm zeigt die Kennwerte des ausgewählten Indikators für alle Gebiete der ausgewählten Gebietseinheit.</p>

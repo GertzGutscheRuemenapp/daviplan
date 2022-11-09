@@ -416,26 +416,6 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  downloadPNG(): void {
-    saveSvgAsPng(this.barChart.svg.node(), `${this.selectedIndicator?.title}.png`,
-      { backgroundColor: 'white' });
-  }
-
-  downloadCSV(): void {
-    // UTF-8 BOM
-    let csvContent = 'data:text/csv;charset=utf-8,\uFEFF';
-
-    this.chartData.forEach(d => {
-      let row = (`${d.label};${d.value.toLocaleString()}`); //Object.values(d).join(';');
-      csvContent += row + "\r\n";
-    });
-    const link = document.createElement('a');
-    link.setAttribute('href', encodeURI(csvContent));
-    link.setAttribute('download', `${this.selectedIndicator?.title}.csv`);
-    document.body.appendChild(link);
-    link.click();
-  }
-
   ngOnDestroy(): void {
     if (this.layerGroup) {
       this.mapControl?.removeGroup(this.layerGroup);
