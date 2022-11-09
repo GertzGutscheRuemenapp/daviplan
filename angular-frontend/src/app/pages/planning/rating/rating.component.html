@@ -151,7 +151,7 @@
                  id="chart-toggle" icon="bar_chart" name="Diagramm"
                  cookieExpansion="exp-rating-diagram">
   <div style="position: relative;">
-    <div class="diagram-wrapper" style="width: 500px; height: 400px; margin: 10px 0;">
+    <div class="diagram-wrapper">
       <app-horizontal-barchart #barChart
                                xLabel="Jahre"
                                yLabel="Einwohner"
@@ -162,24 +162,24 @@
       </app-horizontal-barchart>
     </div>
     <div class="diagram-controls">
-<!--      <button mat-mini-fab
-              class="small"
-              color="primary"
-              title="Diagramm vergrößert darstellen"
-              (click)="onFullscreenDialog()">
-        <mat-icon>fullscreen</mat-icon>
-      </button>
-      <br>-->
       <button mat-mini-fab
-              class="small"
+              class="small no-shadow"
+              style="margin: 5px 5px;"
+              color="primary"
+              (click)="downloadPNG()"
+              title="Diagramm als Bilddatei exportieren">
+        <mat-icon style="font-size: 20px; margin-top: 0;">photo_camera</mat-icon>
+      </button>
+      <button mat-mini-fab
+              class="small no-shadow"
               style="margin: 5px 0;"
               color="primary"
-              (click)="downloadDiagram()"
-              title="Diagramm als Bilddatei herunterladen">
-        <mat-icon style="font-size: 20px; margin-top: 0;">download</mat-icon>
+              (click)="downloadCSV()"
+              title="Daten als CSV-Datei exportieren">
+        <mat-icon style="font-size: 20px; margin-top: 0;">article</mat-icon>
       </button>
       <br>
-      <app-help-button title="Diagrammdarstellung" position="right">
+      <app-help-button title="Diagrammdarstellung" position="right" style="float: right;">
         <p>Das Diagramm zeigt die Kennwerte des ausgewählten Indikators für alle Gebiete der ausgewählten Gebietseinheit.</p>
         <p>Mit einem Klick auf den Vollbild-Button rechts oben können Sie sich das Diagramm vergrößert in einem Dialog anzeigen lassen.</p>
         <p>Über den Herunterladen-Button darunter können Sie sich das Diagramm als Bild (PNG) herunterladen.</p>
