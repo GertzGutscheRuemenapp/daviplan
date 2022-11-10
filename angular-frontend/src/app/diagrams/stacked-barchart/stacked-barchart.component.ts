@@ -10,7 +10,7 @@ export interface StackedData {
 @Component({
   selector: 'app-stacked-barchart',
   templateUrl: '../diagram/diagram.component.html',
-  styleUrls: ['./stacked-barchart.component.scss', '../diagram/diagram.component.scss']
+  styleUrls: ['../diagram/diagram.component.scss']
 })
 export class StackedBarchartComponent extends DiagramComponent implements AfterViewInit {
 

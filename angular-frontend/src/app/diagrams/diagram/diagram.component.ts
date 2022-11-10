@@ -34,8 +34,7 @@ export class DiagramComponent {
         this.height = bbox.height;
     }
     this.svg = figure.append('svg')
-      .attr('viewBox', `0 0 ${this.width!} ${this.height!}`)
-      .append('g');
+      .attr('viewBox', `0 0 ${this.width!} ${this.height!}`);
   }
 
   clear(): void {

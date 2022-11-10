@@ -10,7 +10,7 @@ export interface MultilineData {
 @Component({
   selector: 'app-multiline-chart',
   templateUrl: '../diagram/diagram.component.html',
-  styleUrls: ['./multiline-chart.component.scss', '../diagram/diagram.component.scss']
+  styleUrls: ['../diagram/diagram.component.scss']
 })
 export class MultilineChartComponent extends DiagramComponent implements AfterViewInit {
 
@@ -40,13 +40,6 @@ export class MultilineChartComponent extends DiagramComponent implements AfterVi
     left: 60,
     right: 130
   };
-
-  localeFormatter = d3.formatLocale({
-    decimal: ',',
-    thousands: '.',
-    grouping: [3],
-    currency: ['€', '']
-  })
 
   ngAfterViewInit(): void {
     this.createSvg();
@@ -171,11 +164,10 @@ export class MultilineChartComponent extends DiagramComponent implements AfterVi
         .duration(this.animate ? 60 : 0)
         .attr("transform", (d: null, i: number) => `translate(${x(groups[xIdx])}, ${y(groupData.values[i] || 0)})`);
       let text = `<b>${groupData.group}</b><br>`;
-      const formatter = _this.localeFormatter.format(',.2f');
       _this.labels?.slice().reverse().forEach((label, i)=>{
         const j = _this.labels!.length - i - 1;
         let color = (_this.colors)? _this.colors[j]: colorScale(j);
-        text += `<b style="color: ${color}">${label}</b>: ${formatter(groupData.values[j] || 0)}${(_this.unit)? _this.unit : ''}<br>`;
+        text += `<b style="color: ${color}">${label}</b>: ${(groupData.values[j] || 0).toLocaleString()}${(_this.unit)? _this.unit : ''}<br>`;
       })
       tooltip.html(text);
       tooltip.style('left', event.pageX + 20 + 'px')
@@ -239,7 +231,7 @@ export class MultilineChartComponent extends DiagramComponent implements AfterVi
         .attr("y", (d: string, i: number) => 5 + this.yLegendOffset + (i * (size + 1) + (size / 2)))
         .style("fill", (d: string, i: number) => {
           const j = this.labels!.length - i - 1;
-          return (this.colors) ? this.colors[j] : colorScale(j)
+          return (this.colors) ? this.colors[j] : colorScale(j);
         })
         .text((d: string) => d)
         .attr("text-anchor", "left")

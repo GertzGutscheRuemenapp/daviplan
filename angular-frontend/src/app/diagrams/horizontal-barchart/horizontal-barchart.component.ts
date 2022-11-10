@@ -11,7 +11,14 @@ export interface BarChartData {
 @Component({
   selector: 'app-horizontal-barchart',
   templateUrl: '../diagram/diagram.component.html',
-  styleUrls: ['./horizontal-barchart.component.scss', '../diagram/diagram.component.scss']
+  styleUrls: ['../diagram/diagram.component.scss'],
+  // absolutely no idea why the styles are not applied for this diagram except when declaring them as deep
+  // saveSvgAsPng does not recognize them this way though (and no other way i tried)
+  styles: [
+    ':host::ng-deep .x.axis path.domain, .y.axis path.domain {display: none; visibility: hidden;}',
+    ':host::ng-deep .x.axis line {stroke: #777; stroke-dasharray: 2,2; }',
+    ':host::ng-deep text.label {font-size: 0.8em; text-shadow: -1px -1px white, -1px 1px white, 1px 1px white, 1px -1px white, -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;}'
+  ]
 })
 export class HorizontalBarchartComponent extends DiagramComponent implements AfterViewInit {
   @Input() data?: BarChartData[];
@@ -20,12 +27,6 @@ export class HorizontalBarchartComponent extends DiagramComponent implements Aft
   @Input() yLabel?: string;
   @Input() animate?: boolean;
   @Input() unit: string = '';
-  localeFormatter = d3.formatLocale({
-    decimal: ',',
-    thousands: '.',
-    grouping: [3],
-    currency: ['€', '']
-  })
   svg: any;
   @Input()  margin: {top: number, bottom: number, left: number, right: number } = {
     top: 50,
@@ -72,8 +73,7 @@ export class HorizontalBarchartComponent extends DiagramComponent implements Aft
       let bar = d3.select(this);
       bar.select('rect').classed('highlight', true);
       const data = this.__data__;
-      const formatter = _this.localeFormatter.format(',.2f');
-      let text = `<b>${data.label}</b><br>${formatter(data.value)} ${_this.unit}`;
+      let text = `<b>${data.label}</b><br>${data.value.toLocaleString()} ${_this.unit}`;
       tooltip.style('display', null);
       tooltip.html(text);
     };
