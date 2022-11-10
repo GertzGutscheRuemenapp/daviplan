@@ -327,9 +327,9 @@ export interface Place {
   infrastructure: number,
   attributes: any,
   label?: string,
-  capacity?: number,
+  capacity?: number, // set client side
+  baseCapacity?: number, // set client side
   scenario?: number,
-  value?: number,
   capacities?: Capacity[]
 }
 
