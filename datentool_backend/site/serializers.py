@@ -137,17 +137,26 @@ class SiteSettingSerializer(serializers.ModelSerializer):
     #''''''
     #url = serializers.HyperlinkedIdentityField(
         #view_name='settings-detail', read_only=True)
+    bkg_password_is_set = serializers.SerializerMethodField()
+    regionalstatistik_password_is_set = serializers.SerializerMethodField()
 
     class Meta:
         model = SiteSetting
         fields = ('name', 'title', 'contact_mail', 'logo',
                   'primary_color', 'secondary_color', 'welcome_text',
-                  'bkg_user', 'bkg_password', 'regionalstatistik_user',
+                  'bkg_password_is_set', 'regionalstatistik_password_is_set',
+                  'bkg_password', 'regionalstatistik_user',
                   'regionalstatistik_password')
         extra_kwargs = {
             'bkg_password': {'write_only': True},
             'regionalstatistik_password': {'write_only': True}
         }
+
+    def get_bkg_password_is_set(self, obj):
+        return bool(obj.bkg_password)
+
+    def get_regionalstatistik_password_is_set(self, obj):
+        return bool(obj.regionalstatistik_password)
 
     def update(self, instance, validated_data):
         bkg_pass = validated_data.pop('bkg_password', None)
@@ -155,9 +164,10 @@ class SiteSettingSerializer(serializers.ModelSerializer):
         instance = super().update(instance, validated_data)
         try:
             if bkg_pass is not None:
-                instance.bkg_password = encrypt(bkg_pass)
+                instance.bkg_password = encrypt(bkg_pass) if bkg_pass else ''
             if regstat_pass is not None:
-                instance.regionalstatistik_password = encrypt(regstat_pass)
+                instance.regionalstatistik_password = encrypt(regstat_pass) \
+                    if regstat_pass else ''
             instance.save()
         except ValueError as e:
             raise serializers.ValidationError({

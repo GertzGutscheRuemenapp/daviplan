@@ -260,11 +260,13 @@ export class SettingsComponent implements AfterViewInit {
       this.BKGForm.markAllAsTouched();
       if (this.BKGForm.invalid) return;
       let attributes: any = {
-        bkgPassword: this.BKGForm.value.bkgPassword,
+        bkgPassword: this.BKGForm.value.bkgPassword || '',
       }
       this.BKGEdit.setLoading(true);
       this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, attributes
-      ).subscribe(data => {
+      ).subscribe(settings => {
+        this.settings = Object.assign({}, settings);
+        this.settingsService.refresh();
         this.BKGEdit.closeDialog(true);
       },(error) => {
         this.BKGForm.setErrors(error.error);

@@ -46,10 +46,15 @@
                     subtitle="Zugangsdaten ändern"
                     [dialogTitle]="'Zugangsdaten für den BKG-Geocoder'"
                     dialogWidth="600px"
-                    infoText="Für die Geokodierung von Standortdaten wird die Geocoding-Schnittstelle des BKG verwendet. Um diesen nutzen zu können, wird ein eindeutiger Nutzeridentifikator (UUID) benötigt, der vom BKG bezogen werden kann"
+                    infoText="Für die Geokodierung von Standortdaten wird die Geocoding-Schnittstelle des BKG verwendet.
+                    Um diesen nutzen zu können, wird ein eindeutiger Nutzeridentifikator (UUID) benötigt,
+                    der vom BKG bezogen werden kann"
                     [editTemplate]="BKGTemplate"
                     [editButton]="BKGEditButton">
-      <div #BKGEditButton class="row-button" style="width: 90%">
+      <div #BKGEditButton
+           class="row-button"
+           style="width: 90%">
+        <label>{{settings?.bkgPasswordIsSet? '·········': '-'}}</label>
         <div class="fill-space"></div>
         <button mat-icon-button color="primary">
           <mat-icon>edit</mat-icon>
@@ -79,7 +84,8 @@
                     [title]="'Kontakt E-Mail (optional)'"
                     subtitle="E-Mail ändern"
                     [dialogTitle]="'Kontakt E-Mail ändern'"
-                    infoText="<p>Diese E-Mail-Adresse wird im Loginbereich als Kontakt angegeben, an den sich Nutzer für die Beantragung eines Accounts bzw. zum Zurücksetzen des Passworts wenden können. Die Adresse wird anderweitig nicht verwendet.</p>
+                    infoText="<p>Diese E-Mail-Adresse wird im Loginbereich als Kontakt angegeben, an den sich Nutzer für die Beantragung eines Accounts bzw.
+                    zum Zurücksetzen des Passworts wenden können. Die Adresse wird anderweitig nicht verwendet.</p>
                     <p>Zum Entfernen der Mail muss das Eingabefeld leer gelassen werden.</p>"
                     [editTemplate]="contactTemplate"
                     [editButton]="contactEditButton">
@@ -209,7 +215,7 @@
       <mat-label i18n>Nutzeridentifikator (UUID)</mat-label>
       <input matInput formControlName="bkgPassword" autocomplete="bkg-uuid"
              [type]="showBKGPassword ? 'text' : 'password'"
-             placeholder="·········" required>
+             placeholder="·········">
       <fa-icon matSuffix [icon]="showBKGPassword? faEyeSlash: faEye" (click)="showBKGPassword = !showBKGPassword"></fa-icon>
     </mat-form-field>
   </form>
