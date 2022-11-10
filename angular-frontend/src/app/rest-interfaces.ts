@@ -7,11 +7,17 @@ export const DemandTypes = {
 }
 
 export interface BasedataSettings {
-  popAreaLevel: number,
-  popStatisticsAreaLevel: number,
-  defaultModeVariants: { mode: number, variant: number }[],
-  defaultDemandRateSets: { service: number, demandrateset: number }[]
-  defaultPrognosis: number
+  popAreaLevel: number;
+  popStatisticsAreaLevel: number;
+  defaultModeVariants: { mode: number, variant: number }[];
+  defaultDemandRateSets: { service: number, demandrateset: number }[];
+  defaultPrognosis: number;
+  routing?: {
+    baseNet: boolean,
+    projectAreaNet: boolean,
+    running?: Record<string, boolean>
+  };
+  processes?: Record<string, boolean>
 }
 
 export type Profile = {
@@ -44,7 +50,8 @@ export interface PlanningProcess {
   users: number[],
   allowSharedChange: boolean,
   description?: string,
-  scenarios?: Scenario[]
+  scenarios?: Scenario[],
+  infrastructures: number[]
 }
 
 export interface Scenario {
@@ -82,19 +89,34 @@ export interface ExtLayer {
 }
 
 export interface Source {
-  id: number;
-  sourceType: 'WFS' | 'FILE';
-  layer: string;
-  date: string;
-  url: string;
+  id: number,
+  sourceType: 'WFS' | 'FILE',
+  layer: string,
+  date: string,
+  url: string
+}
+
+interface IndicatorParameter {
+  name: string,
+  type : 'choice' | 'number' | 'string',
+  title: string,
+  choices?: string[];
 }
 
 export interface Indicator {
-  service: number;
-  name: string;
-  title: string;
-  description: string;
-  resultType: 'place' | 'area' | 'raster' | 'pop';
+  service: number,
+  name: string,
+  title: string,
+  unit?: string,
+  description: string,
+  resultType: 'place' | 'area' | 'raster' | 'pop',
+  additionalParameters?: IndicatorParameter[]
+}
+
+export interface IndicatorLegendClass {
+  color: string,
+  minValue?: number,
+  maxValue?: number
 }
 
 export interface RasterCell {
@@ -165,6 +187,18 @@ export interface Prognosis {
 
 export interface AreaIndicatorResult {
   areaId: number,
+  label?: string,
+  value: number
+}
+
+export interface RasterIndicatorResult {
+  cellCode: string,
+  label?: string,
+  value: number
+}
+
+export interface PlaceIndicatorResult {
+  placeId: number,
   label?: string,
   value: number
 }
@@ -271,7 +305,8 @@ export interface PlaceField {
   fieldType: number
   name: string,
   unit: string,
-  sensitive: boolean
+  sensitive?: boolean,
+  isPreset?: boolean
 }
 
 export interface Infrastructure {
@@ -296,6 +331,18 @@ export interface Place {
   scenario?: number,
   value?: number,
   capacities?: Capacity[]
+}
+
+export interface TransitStop {
+  id: number,
+  geom: string | Geometry,
+  name: string
+}
+
+export interface TransitMatrixEntry {
+  fromStop: number,
+  toStop: number,
+  minutes: number
 }
 
 export interface Capacity {
@@ -332,7 +379,30 @@ export interface Network {
 
 export interface ModeVariant {
   id: number,
+  label: string,
   mode: number,
-  network: number
+  network: number,
+  isDefault: boolean
   // cutoffTime: number
+}
+
+export interface LogEntry {
+  user?: number,
+  level: 'ERROR' | 'INFO' | 'DEBUG',
+  timestamp: string,
+  message: string,
+  status?: {success?: boolean}
+}
+
+export interface ModeStatistics {
+  nPlaces: number,
+  nCells: number,
+  nRelsPlaceCellWalk: number,
+  nRelsPlaceCellBike: number,
+  nRelsPlaceCellCar: number,
+  nRelsPlaceCellTransit: number,
+  nStops: number,
+  nRelsPlaceStopTransit: number,
+  nRelsStopCellTransit: number,
+  nRelsStopStopTransit: number
 }

@@ -30,13 +30,40 @@ DB_HOST = os.environ.get('DB_HOST', 'localhost')
 SECRET_KEY = os.environ.get('SECRET_KEY')
 ENCRYPT_KEY = os.environ.get('ENCRYPT_KEY')
 
+TIME_ZONE = os.environ.get('TIME_ZONE', 'Europe/Berlin')
+
+OSRM_ROUTING = {
+    'CAR': {
+        'alias': 'car',
+        'host': os.environ.get('MODE_CAR_HOST', 'localhost'),
+        'service_port': os.environ.get('MODE_CAR_SERVICE_PORT', 8001),
+        'routing_port': os.environ.get('MODE_CAR_ROUTING_PORT', 5001),
+    },
+    'BIKE': {
+        'alias': 'bicycle',
+        'host': os.environ.get('MODE_BIKE_HOST', 'localhost'),
+        'service_port': os.environ.get('MODE_BIKE_SERVICE_PORT', 8002),
+        'routing_port': os.environ.get('MODE_BIKE_ROUTING_PORT', 5002),
+    },
+    'WALK': {
+        'alias': 'foot',
+        'host': os.environ.get('MODE_WALK_HOST', 'localhost'),
+        'service_port': os.environ.get('MODE_WALK_SERVICE_PORT', 8003),
+        'routing_port': os.environ.get('MODE_WALK_ROUTING_PORT', 5003),
+    },
+}
+
+BASE_PBF = 'germany-latest.osm.pbf'
+PBF_URL = f'http://download.geofabrik.de/europe/{BASE_PBF}'
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = [
-    'datentool.ggr-planung.de'
-]
-
+hosts = os.environ.get('ALLOWED_HOSTS')
+if hosts:
+    hosts = hosts.split(',')
+    CSRF_TRUSTED_ORIGINS = [f'https://{h}' for h in hosts]
+    ALLOWED_HOSTS = hosts
 
 # Application definition
 
@@ -53,7 +80,9 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'drf_spectacular',
     'django_cleanup.apps.CleanupConfig',
-    'django_filters'
+    'django_filters',
+    'channels',
+    'django_q'
 ]
 
 MIDDLEWARE = [
@@ -81,8 +110,6 @@ REST_FRAMEWORK = {
         'djangorestframework_camel_case.render.CamelCaseBrowsableAPIRenderer',
     ),
     'DEFAULT_PARSER_CLASSES': (
-        'djangorestframework_camel_case.parser.CamelCaseFormParser',
-        'djangorestframework_camel_case.parser.CamelCaseMultiPartParser',
         'djangorestframework_camel_case.parser.CamelCaseJSONParser',
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
@@ -126,6 +153,19 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'datentool.wsgi.application'
+ASGI_APPLICATION = 'datentool.asgi.application'
+
+REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
+REDIS_PORT = os.environ.get('REDIS_PORT', 6379)
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [(REDIS_HOST, REDIS_PORT)],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
@@ -258,12 +298,70 @@ STATIC_ROOT = os.path.join(PUBLIC_DIR, 'static')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(PUBLIC_DIR, 'media')
 
-POPRASTER_ROOT = os.path.join(BASE_DIR, 'datentool_backend', 'data')
+DATA_ROOT = os.path.join(BASE_DIR, 'datentool_backend', 'data')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': 'INFO',
+        },
+        'web_socket': {
+            'level': 'DEBUG',
+            'class': 'datentool.loggers.WebSocketHandler',
+        },
+        'persist': {
+            'level': 'DEBUG',
+            'class': 'datentool_backend.logging.loggers.PersistLogHandler',
+        },
+    },
+    'loggers': {
+        'areas': {
+            'handlers': ['web_socket', 'console', 'persist'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'population': {
+            'handlers': ['web_socket', 'console', 'persist'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'infrastructure': {
+            'handlers': ['web_socket', 'console', 'persist'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'routing': {
+            'handlers': ['web_socket', 'console', 'persist'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
+Q_CLUSTER = {
+    'name': 'datentool',
+    'workers': 8,
+    'recycle': 500,
+    'timeout': 848000,
+    'retry': 848001,
+    'compress': True,
+    'save_limit': 250,
+    'queue_limit': 500,
+    'cpu_affinity': 1,
+    'label': 'Django Q',
+    'redis': {
+        'host': REDIS_HOST,
+        'port': REDIS_PORT,
+        'db': 0, }
+}
 
 def load_stats_json():
     fn = os.path.join(FRONTEND_APP_DIR,

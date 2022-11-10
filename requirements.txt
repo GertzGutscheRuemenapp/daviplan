@@ -1,7 +1,6 @@
-django==3.*
+django==4.*
 django-cors-headers==3.*
 psycopg2==2.*
-numpy
 django-rest-framework
 markdown
 django-filter
@@ -22,9 +21,14 @@ owslib
 django-sql-utils
 mapbox_vector_tile
 xarray
-drf-spectacular
+drf-spectacular<=0.22
 django-postgres-copy
 openpyxl
 matrixconverters
 packaging
 cryptography
+channels==3.*
+channels_redis
+routingpy
+django_q
+matplotlib

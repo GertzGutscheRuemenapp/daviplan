@@ -1,15 +1,32 @@
 from typing import Dict
+import os
 from rest_framework import serializers
 from .models import SiteSetting, ProjectSetting
-from django.db.models import Max, Min
+from django.db.models import Max, Min, Count
+from django.conf import settings
+import logging
 
+from datentool_backend.utils.routers import OSRMRouter
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
 from datentool_backend.utils.crypto import encrypt
 from datentool_backend.utils.pop_aggregation import intersect_areas_with_raster
 from datentool_backend.area.views import AreaLevelViewSet
+from datentool_backend.modes.models import Mode
 from datentool_backend.population.views.raster import PopulationRasterViewSet
 from datentool_backend.models import (DemandRateSet, Prognosis, ModeVariant,
-                                      Year, AreaLevel, PopulationRaster)
+                                      Year, AreaLevel, PopulationRaster, Area)
+from datentool_backend.utils.processes import (ProtectedProcessManager,
+                                               ProcessScope)
+
+from datentool_backend.indicators.models import (MatrixCellPlace,
+                                                 MatrixCellStop,
+                                                 MatrixPlaceStop,
+                                                 MatrixStopStop,
+                                                 Stop,
+                                                 )
+
+logger = logging.getLogger('areas')
+
 
 
 class YearSerializer(serializers.ModelSerializer):
@@ -46,22 +63,6 @@ class ProjectSettingSerializer(serializers.ModelSerializer):
     def get_min_year(self, obj):
         return Year.MIN_YEAR
 
-    def update(self, instance, validated_data):
-        instance = super().update(instance, validated_data)
-        # trigger various calculations on project area change
-        if (validated_data.get('project_area')):
-            for popraster in PopulationRaster.objects.all():
-                PopulationRasterViewSet._intersect_census(
-                    popraster, drop_constraints=True)
-            for area_level in AreaLevel.objects.filter(is_preset=True):
-                try:
-                    areas = AreaLevelViewSet._pull_areas(
-                        area_level, instance.project_area, truncate=True)
-                    intersect_areas_with_raster(areas, drop_constraints=True)
-                except:
-                    pass
-        return instance
-
 
 class BaseDataSettingSerializer(serializers.Serializer):
     pop_area_level = serializers.SerializerMethodField(read_only=True)
@@ -69,6 +70,8 @@ class BaseDataSettingSerializer(serializers.Serializer):
     default_demand_rate_sets = serializers.SerializerMethodField(read_only=True)
     default_mode_variants = serializers.SerializerMethodField(read_only=True)
     default_prognosis = serializers.SerializerMethodField(read_only=True)
+    routing = serializers.SerializerMethodField(read_only=True)
+    processes = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         fields = ('default_pop_area_level', 'pop_statistics_area_level',
@@ -110,6 +113,25 @@ class BaseDataSettingSerializer(serializers.Serializer):
         except Prognosis.DoesNotExist:
             return
 
+    def get_routing(self, obj):
+        base_net_existing = os.path.exists(
+            os.path.join(settings.MEDIA_ROOT, settings.BASE_PBF))
+        project_area_net_existing = os.path.exists(
+            os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf'))
+        #running = {}
+        #for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
+            #running[mode.name] = OSRMRouter(mode).is_running
+        return {
+            'base_net': base_net_existing,
+            'project_area_net': project_area_net_existing,
+            #'running': running,
+        }
+
+    def get_processes(self, obj):
+        return { ProcessScope(scope).name.lower():
+                 ProtectedProcessManager.is_running(ProcessScope(scope))
+                 for scope in ProcessScope }
+
 
 class SiteSettingSerializer(serializers.ModelSerializer):
     #''''''
@@ -143,3 +165,63 @@ class SiteSettingSerializer(serializers.ModelSerializer):
                 f'Passwörter in der Datenbank (ENCRYPT_KEY) ist nicht valide. '
                 f'Bitte wenden Sie sich an den Systemadministrator. {e}'})
         return instance
+
+
+class MatrixStatisticsSerializer(serializers.Serializer):
+    n_places = serializers.SerializerMethodField(read_only=True)
+    n_cells = serializers.SerializerMethodField(read_only=True)
+    n_rels_place_cell_walk = serializers.SerializerMethodField(read_only=True)
+    n_rels_place_cell_bike = serializers.SerializerMethodField(read_only=True)
+    n_rels_place_cell_car = serializers.SerializerMethodField(read_only=True)
+    n_rels_place_cell_transit = serializers.SerializerMethodField(read_only=True)
+    n_stops = serializers.SerializerMethodField(read_only=True)
+    n_rels_place_stop_transit = serializers.SerializerMethodField(read_only=True)
+    n_rels_stop_cell_transit = serializers.SerializerMethodField(read_only=True)
+    n_rels_stop_stop_transit = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        fields = ('n_places',
+                  'n_cells',
+                  'n_rels_place_cell_walk',
+                  'n_rels_place_cell_bike',
+                  'n_rels_place_cell_car',
+                  'n_rels_place_cell_transit',
+                  'n_stops',
+                  'n_rels_place_stop_transit',
+                  'n_rels_stop_cell_transit',
+                  'n_rels_stop_stop_transit',
+                  )
+
+    def get_n_places(self, obj) -> int:
+            return MatrixCellPlace.objects.distinct('place_id').count()
+
+    def get_n_cells(self, obj) -> int:
+            return MatrixCellPlace.objects.distinct('cell_id').count()
+
+    def get_n_rels_place_cell_walk(self, obj) -> int:
+            return MatrixCellPlace.objects.filter(variant__mode=Mode.WALK)\
+                .count()
+
+    def get_n_rels_place_cell_bike(self, obj) -> int:
+            return MatrixCellPlace.objects.filter(variant__mode=Mode.BIKE)\
+                .count()
+
+    def get_n_rels_place_cell_car(self, obj) -> int:
+            return MatrixCellPlace.objects.filter(variant__mode=Mode.CAR)\
+                .count()
+
+    def get_n_rels_place_cell_transit(self, obj) -> int:
+            return MatrixCellPlace.objects.filter(variant__mode=Mode.TRANSIT)\
+                .count()
+
+    def get_n_stops(self, obj) -> int:
+            return Stop.objects.count()
+
+    def get_n_rels_place_stop_transit(self, obj) -> int:
+            return MatrixPlaceStop.objects.count()
+
+    def get_n_rels_stop_cell_transit(self, obj) -> int:
+            return MatrixCellStop.objects.count()
+
+    def get_n_rels_stop_stop_transit(self, obj) -> int:
+            return MatrixStopStop.objects.count()

@@ -18,22 +18,21 @@ export class PlaceFilterComponent  implements AfterViewInit {
   @ViewChild('timeSlider') timeSlider?: TimeSliderComponent;
   @ViewChild('filterTable') filterTable?: FilterTableComponent;
   @Input() infrastructure?: Infrastructure;
+  @Input() service?: Service;
   @Input() scenario?: Scenario;
   // @Input() services?: Service[];
   @Input() year?: number;
-  @Input() places?: Place[];
   @Output() onFilter = new EventEmitter<FilterColumn[]>();
   public columns: FilterColumn[] = [];
-  filterColumns: FilterColumn[] = [];
   _filterColumnsTemp: FilterColumn[] = [];
   years: number[] = [];
   prognosisYears: number[] = [];
   private realYears: number[] = [];
   private fieldTypes: FieldType[] = [];
   rows: any[][] = [];
+  places: Place[] = [];
 
   constructor(public dialog: MatDialog, public planningService: PlanningService) {
-    this.filterColumns = this.planningService.placeFilterColumns;
   }
 
   ngAfterViewInit(): void {
@@ -41,33 +40,38 @@ export class PlaceFilterComponent  implements AfterViewInit {
 
   onClick() {
     if (!this.infrastructure) return;
-    // this.services = this.infrastructure!.services;
-    this.planningService.getFieldTypes().subscribe(fieldTypes => {
+    let observables: Observable<any>[] = [];
+    observables.push(this.planningService.getFieldTypes().pipe(map(fieldTypes => {
       this.fieldTypes = fieldTypes;
       this.columns = this.getColumns();
-      this.planningService.getRealYears().subscribe(years => {
-        this.realYears = years;
-        this.planningService.getPrognosisYears().subscribe(years => {
-          this.prognosisYears = years;
-          this.years = this.realYears.concat(this.prognosisYears);
-          if (!this.year) this.year = this.realYears![0];
-          this.planningService.updateCapacities({ infrastructureId: this.infrastructure?.id, year: this.year }).subscribe(() => {
-            this.rows = this.placesToRows(this.places!);
-            this.openDialog();
-          });
-        })
-      })
+    })))
+    observables.push(this.planningService.getRealYears().pipe(map(years => {
+      this.realYears = years;
+    })))
+    observables.push(this.planningService.getPrognosisYears().pipe(map(years => {
+      this.prognosisYears = years;
+    })))
+    observables.push(this.planningService.getPlaces().pipe(map(places => {
+      this.places = places;
+    })))
+    forkJoin(...observables).subscribe(() => {
+      this.years = this.realYears.concat(this.prognosisYears);
+      if (!this.year) this.year = this.realYears![0];
+      this.planningService.updateCapacities({ infrastructure: this.infrastructure, year: this.year }).subscribe(() => {
+        this.rows = this.placesToRows(this.places!);
+        this.openDialog();
+      });
     })
   }
 
   updateTable(): void {
-    this.planningService.updateCapacities({ infrastructureId: this.infrastructure?.id, year: this.year }
+    this.planningService.updateCapacities({ infrastructure: this.infrastructure, year: this.year, scenario: this.scenario }
     ).subscribe(() => this.rows = this.placesToRows(this.places!));
   }
 
   private openDialog(): void {
     if (!this.infrastructure) return;
-    this._filterColumnsTemp = this.filterColumns;
+    this._filterColumnsTemp = this.planningService.placeFilterColumns;
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
       // width: '100%',
@@ -91,7 +95,7 @@ export class PlaceFilterComponent  implements AfterViewInit {
     dialogRef.afterClosed().subscribe((ok: boolean) => {  });
     dialogRef.componentInstance.confirmed.subscribe(() => {
       this.planningService.placeFilterColumns = this._filterColumnsTemp;
-      this.onFilter.emit(this.filterColumns);
+      this.onFilter.emit(this.planningService.placeFilterColumns);
     });
   }
 
@@ -99,12 +103,13 @@ export class PlaceFilterComponent  implements AfterViewInit {
     let columns: FilterColumn[] = [{ name: 'Name', type: 'STR' }];
     this.infrastructure!.services!.forEach(service => {
       const column: FilterColumn = {
-        name: `Kapazität ${service.name}`,
+        // name: service.hasCapacity? `${service.name} (Kapazität)`: service.name,
+        name: service.name,
         service: service,
-        type: 'NUM',
-        unit: service.capacityPluralUnit
+        type: service.hasCapacity? 'NUM' : 'BOOL',
+        unit: service.hasCapacity? service.capacityPluralUnit: ''
       };
-      const filterInput = this.filterColumns?.find(c => c.service === service);
+      const filterInput = this.planningService.placeFilterColumns?.find(c => c.service === service);
       if (filterInput)
         column.filter = Object.assign(Object.create(Object.getPrototypeOf(filterInput.filter)), filterInput.filter);
       columns.push(column);
@@ -119,7 +124,7 @@ export class PlaceFilterComponent  implements AfterViewInit {
         classes: fieldType.classification?.map(c => c.value),
         unit: field.unit
       };
-      const filterInput = this.filterColumns?.find(c => c.attribute === field.name);
+      const filterInput = this.planningService.placeFilterColumns?.find(c => c.attribute === field.name);
       if (filterInput)
         column.filter = Object.assign(Object.create(Object.getPrototypeOf(filterInput.filter)), filterInput.filter);
       columns.push(column);
@@ -130,8 +135,10 @@ export class PlaceFilterComponent  implements AfterViewInit {
   private placesToRows(places: Place[]): any[][]{
     const rows: any[][] = [];
     places.forEach(place => {
+      if (this.service && !this.planningService.getPlaceCapacity(place, { service: this.service, year: this.year, scenario: this.scenario })) return;
       const capValues = this.infrastructure!.services!.map(service => {
-        return this.planningService.getPlaceCapacity(place, { service: service });
+        const capacity = this.planningService.getPlaceCapacity(place, { service: service, year: this.year, scenario: this.scenario });
+        return service.hasCapacity? capacity: !!capacity;
       })
       const values: any[] = this.infrastructure!.placeFields!.map(field => {
         return place.attributes[field.name] || '';
@@ -155,5 +162,4 @@ export class PlaceFilterComponent  implements AfterViewInit {
   onFilterChange(columns: FilterColumn[]): void {
     this._filterColumnsTemp = columns;
   }
-
 }

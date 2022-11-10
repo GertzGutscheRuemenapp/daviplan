@@ -12,11 +12,10 @@
     </mat-selection-list>
     <button mat-button color="primary"
             class="mat-button-dv"
-            (click)="renameClassification()"
-            [disabled]="!selectedClassification"
+            (click)="addClassification()"
             style="margin-top: 10px;"
-            title="Klassifikation umbenennen" i18n>
-      <mat-icon>edit</mat-icon>umbenennen
+            title="Klassifikation hinzufügen" i18n>
+      <mat-icon>add</mat-icon>hinzufügen
     </button>
     <button mat-button color="primary"
             class="mat-button-dv"
@@ -29,9 +28,11 @@
     <br>
     <button mat-button color="primary"
             class="mat-button-dv"
-            (click)="addClassification()"
-            title="Klassifikation hinzufügen" i18n>
-      <mat-icon>add</mat-icon>hinzufügen
+            (click)="renameClassification()"
+            [disabled]="!selectedClassification"
+            style="margin-top: 10px;"
+            title="Klassifikation umbenennen" i18n>
+      <mat-icon>edit</mat-icon>umbenennen
     </button>
   </div>
   <div>
@@ -77,7 +78,7 @@
     </button>
   </div>
 </div>
-<i>Hinweis: Änderungen an den Klassifikationen werden sofort vorgenommen</i>
+<i>Hinweis: Dieser Eingabebereich hat keinen Entwurfsmodus mit “Abbrechen” und “Speichern”. Alle Eintragungen und Änderungen werden daher sofort in die Datenbank übernommen.</i>
 
 <ng-template #nameTemplate>
   <form [formGroup]="nameForm">

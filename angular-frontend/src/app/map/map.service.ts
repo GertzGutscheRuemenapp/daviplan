@@ -1,6 +1,6 @@
 import { Injectable, EventEmitter } from '@angular/core';
 import { OlMap } from './map'
-import { forkJoin, Observable } from "rxjs";
+import { BehaviorSubject, forkJoin, Observable } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { sortBy } from "../helpers/utils";
 import { WKT } from "ol/format";
@@ -13,6 +13,7 @@ import { getCenter } from 'ol/extent';
 import { Icon, Style } from "ol/style";
 import { RestCacheService } from "../rest-cache.service";
 import { MapLayerGroup, MapLayer, VectorTileLayer, WMSLayer, TileLayer, VectorLayer } from "./layers";
+import { Service } from "../rest-interfaces";
 
 interface BackgroundLayerDef {
   id: string | number,
@@ -50,8 +51,6 @@ const backgroundLayerDefs: BackgroundLayerDef[] = [
     layerName: 'web_grau'
   }
 ]
-
-
 
 @Injectable({
   providedIn: 'root'
@@ -110,7 +109,8 @@ export class MapService {
             id: `area-layer-level-${level.id}`,
             description: `Gebiete der Gebietseinheit ${level.name}`,
             style: level.symbol,
-            labelField: '_label'
+            labelField: '_label',
+            zIndex: 20000
           })
           layers.push(mLayer);
         });
@@ -163,7 +163,7 @@ export class MapControl {
   target = '';
   destroyed = new EventEmitter<string>();
   map?: OlMap;
-  mapDescription = '';
+  mapDescription$ = new BehaviorSubject<string>('');
   layerGroups: MapLayerGroup[] = [];
   private markerLayer?: VectorLayer;
   mapExtents: any = {};
@@ -171,7 +171,10 @@ export class MapControl {
   background?: TileLayer;
   mapSettings: any = {};
   backgroundLayers: TileLayer[] = [];
-  markerImg = `${environment.backend}/static/img/map-marker-red.svg`;
+  markerImg = `${environment.backend}/static/img/map-marker-blue.svg`;
+  markerCursorImg = `${environment.backend}/static/img/map-marker-cursor.png`;
+  searchCursorImg = `${environment.backend}/static/img/location-searching.png`;
+
 
   constructor(target: string, private mapService: MapService, private settings: SettingsService) {
     this.target = target;
@@ -207,7 +210,7 @@ export class MapControl {
       this.getServiceLayerGroups({ internal: true, external: true });
     })
     this.markerLayer = new VectorLayer('marker-layer', {
-      order: 100
+      zIndex: 100000
     });
     this.markerLayer.addToMap(this.map);
   }
@@ -288,10 +291,10 @@ export class MapControl {
 
   refresh(options?: { internal?: boolean, external?: boolean }): void {
     if (options?.internal === false && !options?.external === false) return;
-    this.saveSettings();
+    this.saveMapSettings();
     this.getLayers(options).forEach(l => l.removeFromMap());
-    if (options?.internal) this.layerGroups = this.layerGroups.filter(g => g.external !== false);
-    if (options?.external) this.layerGroups = this.layerGroups.filter(g => g.external !== true);
+    if (options?.internal) this.layerGroups = sortBy(this.layerGroups.filter(g => g.external !== false), 'order');
+    if (options?.external) this.layerGroups = sortBy(this.layerGroups.filter(g => g.external !== true), 'order');
     this.getServiceLayerGroups({ reset: true, internal: options?.internal, external: options?.external });
   }
 
@@ -337,7 +340,7 @@ export class MapControl {
     const mapLayer = this.map?.getLayer(layer.mapId),
           _this = this;
     mapLayer!.getSource().once('featuresloadend', (evt: any) => {
-      this.map?.centerOnLayer(layer.mapId!);
+      this.map?.zoomToExtent(layer.mapId!);
     })
   }
 
@@ -361,6 +364,7 @@ export class MapControl {
 
   saveCurrentExtent(name: string): void {
     this.mapExtents[name] = this.map?.view.calculateExtent();
+    this.settings.user?.set('extents', this.mapExtents, { patch: true });
   }
 
   loadExtent(name: string): void {
@@ -371,9 +375,10 @@ export class MapControl {
 
   removeExtent(name: string): void {
     delete this.mapExtents[name];
+    this.settings.user?.set('extents', this.mapExtents, { patch: true });
   }
 
-  saveSettings(): void {
+  saveMapSettings(): void {
     const layers = this.getLayers();
     layers.forEach(layer => {
       if (layer.id != undefined) {
@@ -389,11 +394,23 @@ export class MapControl {
     this.mapSettings['background-layer'] = this.background?.id;
     this.mapSettings['legend-edit-mode'] = this.editMode;
     this.settings.user?.set(this.target, this.mapSettings, { patch: true });
-    this.settings.user?.set('extents', this.mapExtents, { patch: true });
+  }
+
+  setDescription(text: string): void {
+    this.mapDescription$.next(text);
+  }
+
+  setCursor(cursor?: 'crosshair' | 'pointer' | 'marker' | 'search' | 'auto' | 'default' ): void {
+    let cur: string = cursor || '';
+    if (cursor === 'marker')
+      cur = `url(${this.markerCursorImg}) 10 30, pointer`;
+    if (cursor === 'search')
+      cur = `url(${this.searchCursorImg}) 15 15, pointer`;
+    this.map?.setCursor(cur);
   }
 
   destroy(): void {
-    this.saveSettings();
+    this.saveMapSettings();
     if(!this.map) return;
     this.map.unset();
     this.destroyed.emit(this.target);

@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
-import { Area, AreaLevel } from "../../../rest-interfaces";
-import { BehaviorSubject, forkJoin, Observable } from "rxjs";
+import { Area, AreaLevel, LogEntry } from "../../../rest-interfaces";
+import { BehaviorSubject, forkJoin, Observable, Subscription } from "rxjs";
 import { arrayMove, sortBy } from "../../../helpers/utils";
 import { HttpClient } from "@angular/common/http";
 import { MatDialog } from "@angular/material/dialog";
@@ -16,6 +16,7 @@ import { RestCacheService } from "../../../rest-cache.service";
 import { tap } from "rxjs/operators";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { SettingsService } from "../../../settings.service";
 
 @Component({
   selector: 'app-areas',
@@ -46,9 +47,12 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   dataRows: any[][] = [];
   file?: File;
   uploadErrors: any = {};
+  isProcessing = false;
+  subscriptions: Subscription[] = [];
 
   constructor(private mapService: MapService, private http: HttpClient, private dialog: MatDialog,
-              private rest: RestAPI, private formBuilder: FormBuilder, private restService: RestCacheService) {
+              private rest: RestAPI, private formBuilder: FormBuilder, private restService: RestCacheService,
+              private settings: SettingsService) {
     this.editLevelForm = this.formBuilder.group({
       name: new FormControl(''),
       labelField: new FormControl(''),
@@ -67,6 +71,8 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       this.isLoading$.next(false);
     })
     this.setupEditLevelCard();
+    this.subscriptions.push(this.settings.baseDataSettings$.subscribe(bs => this.isProcessing = bs.processes?.areas || false));
+    this.settings.fetchBaseDataSettings();
   }
 
   /**
@@ -126,7 +132,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         Object.assign(this.activeLevel!, arealevel);
         this.editArealevelCard.closeDialog(true);
         this.mapControl?.refresh({ internal: true });
-        this.selectAreaLevel(arealevel, true);
+        this.selectAreaLevel(arealevel);
       },(error) => {
         this.editLevelForm.setErrors(error.error);
         this.editArealevelCard.setLoading(false);
@@ -134,7 +140,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     })
   }
 
-  selectAreaLevel(areaLevel: AreaLevel, reset: boolean = false): void {
+  selectAreaLevel(areaLevel: AreaLevel): void {
     this.activeLevel = areaLevel;
     if (this.areaLayer) {
       this.layerGroup?.removeLayer(this.areaLayer);
@@ -143,7 +149,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     if (!areaLevel) return;
     this.isLoading$.next(true);
     this.restService.getAreas(this.activeLevel.id,
-      {targetProjection: this.mapControl?.map?.mapProjection, reset: reset}).subscribe(areas => {
+      {targetProjection: this.mapControl?.map?.mapProjection, reset: true}).subscribe(areas => {
         this.areas = areas;
         this.areaLayer = new VectorLayer(this.activeLevel!.name, {
           description: '',
@@ -175,12 +181,13 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   onCreateArea(): void {
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
-      width: '300px',
+      width: '500px',
       disableClose: true,
       data: {
         title: 'Neue benutzerdefinierte Gebietseinteilung',
         template: this.createLevelTemplate,
-        closeOnConfirm: false
+        closeOnConfirm: false,
+        showCloseButton: false
       }
     });
     dialogRef.afterOpened().subscribe(sth => {
@@ -239,30 +246,23 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   }
 
   pullWfsAreas(): void {
-    if (!this.activeLevel || this.activeLevel.source?.sourceType !== 'WFS')
+    if (!this.activeLevel || !(this.activeLevel.source?.sourceType === 'WFS' || this.activeLevel.isPreset))
       return;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: `WFS Daten abrufen`, //für Gebietseinheit "${this.activeLevel.name}"`,
         confirmButtonText: 'Daten abrufen',
-        closeOnConfirm: false,
+        closeOnConfirm: true,
         template: this.pullWfsTemplate
       }
     });
     dialogRef.componentInstance.confirmed.subscribe((confirmed: boolean) => {
-      const dialogRef2 = SimpleDialogComponent.show(
-        'Die Gebiete werden abgerufen und mit eventuell vorhandenen Bevölkerungsdaten verschnitten. Bitte warten',
-        this.dialog, { showAnimatedDots: true, width: '350px' });
-      this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/pull_areas/`,
-        { truncate: true, simplify: false }).subscribe(res => {
-        dialogRef2.close();
-        dialogRef.close();
-        this.selectAreaLevel(this.activeLevel!, true);
+      this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/pull_areas/`, { area_level: this.activeLevel!.id, truncate: true, simplify: false }).subscribe(res => {
+        this.isProcessing = true;
       }, error => {
-        dialogRef2.close();
         this.uploadErrors = error.error;
-        dialogRef.componentInstance.isLoading$.next(false);
       });
     });
     dialogRef.afterClosed().subscribe(ok => {
@@ -281,9 +281,11 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       return;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: `Daten hochladen`, //für Gebietseinheit "${this.activeLevel.name}"`,
         confirmButtonText: 'Datei hochladen',
+        closeOnConfirm: true,
         template: this.fileUploadTemplate
       }
     });
@@ -292,19 +294,10 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         return;
       const formData = new FormData();
       formData.append('file', this.file);
-      const dialogRef2 = SimpleDialogComponent.show(
-        'Die Gebiete werden hochgeladen und mit eventuell vorhandenen Bevölkerungsdaten verschnitten. Bitte warten',
-        this.dialog, { showAnimatedDots: true, width: '350px' });
       this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/upload_shapefile/`, formData).subscribe(res => {
-        dialogRef.close();
-        dialogRef2.close();
-        this.http.get<AreaLevel>(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/`).subscribe(al => {
-          Object.assign(this.activeLevel, al);
-          this.selectAreaLevel(this.activeLevel!, true);
-        })
+        this.isProcessing = true;
       }, error => {
         this.uploadErrors = error.error;
-        dialogRef2.close();
       });
     });
     dialogRef.afterClosed().subscribe(ok => {
@@ -327,7 +320,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       if (confirmed) {
         this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/clear/`, {}
         ).subscribe(res => {
-          this.selectAreaLevel(this.activeLevel!, true);
+          this.selectAreaLevel(this.activeLevel!);
         }, error => {
           console.log('there was an error sending the query', error);
         });
@@ -405,7 +398,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
 
   showDataTable(): void {
     if (!this.activeLevel) return;
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+    this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
       width: '400',
       disableClose: false,
@@ -419,8 +412,17 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  ngOnDestroy(): void {
-    this.mapControl?.destroy();
+  onMessage(log: LogEntry): void {
+    if (log?.status?.success) {
+      this.isProcessing = false;
+      this.fetchAreaLevels().subscribe(res => {
+        if (this.activeLevel)  this.selectAreaLevel(this.activeLevel);
+      });
+    }
   }
 
+  ngOnDestroy(): void {
+    this.mapControl?.destroy();
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
+  }
 }

@@ -1,17 +1,21 @@
-<app-scenario-menu domain="rating" [ngClass]="{'expanded': planningService.showScenarioMenu}"></app-scenario-menu>
-<mat-expansion-panel class="side-toggle" id="scenario-toggle"
-                     [expanded]="planningService.showScenarioMenu">
-  <mat-expansion-panel-header (click)="planningService.showScenarioMenu=!planningService.showScenarioMenu;">
+<app-scenario-menu domain="rating"></app-scenario-menu>
+<mat-expansion-panel cookieExpansion="exp-rating-services">
+  <mat-expansion-panel-header>
     <mat-panel-title>
-      <div class="mini-fab-icon" [ngClass]="{'primary': planningService.showScenarioMenu}">
-        <div class="davicon icon-GGR-davicons-Font-Simple-2-Szenario"></div>
+      <div class="mini-fab-icon">
+        <div class="davicon icon-GGR-davicons-Font-Simple-3-Standorte-Leistungen"></div>
       </div>
-      Szenario
-      <app-help-button title="Szenario" position="right">
-        <p>Sie können sich hier Ihre Szenarien anzeigen lassen, diese editieren, neue hinzufügen und bestehende löschen.</p>
+      Leistung
+      <mat-icon color="warn" *ngIf="!planningService.activeService" style="margin-left: 10px;">
+        error_outline
+      </mat-icon>
+      <app-help-button title="Leistung" position="right">
+        <p>Wählen Sie hier die Leistung aus, für die Sie Indikatoren in der Karte anzeigen möchten.</p>
+        <p>Wählen Sie hierzu zunächst im Dropdown-Menü den entsprechenden Infrastrukturbereich und dann per Checkbox die gewünschte Leistung.</p>
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
+  <app-service-select></app-service-select>
 </mat-expansion-panel>
 <mat-expansion-panel cookieExpansion="exp-rating-indicators">
   <mat-expansion-panel-header>
@@ -20,12 +24,14 @@
         <mat-icon class="material-icons-outlined">lightbulb</mat-icon>
       </div>
       Indikator
+      <mat-icon color="warn" *ngIf="!selectedIndicator" style="margin-left: 10px;">
+        error_outline
+      </mat-icon>
       <app-help-button title="Indikator" position="right">
-        <p>Wählen Sie hier aus den definierten Indikatoren für die Darstellung aus. Sie können hier zudem eigene Indikatoren hinzufügen oder löschen.</p>
+        <p>Wählen Sie hier aus den definierten Indikatoren für die Darstellung aus.</p>
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
-  <app-service-select></app-service-select>
   <mat-form-field appearance="outline" class="small" style="margin-top: 12px;">
     <mat-label>Indikator</mat-label>
     <mat-select disableOptionCentering panelClass="custom-option-panel"
@@ -46,8 +52,31 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
+  <ng-container *ngIf="selectedIndicator?.additionalParameters">
+    <div *ngFor="let parameter of selectedIndicator?.additionalParameters"
+         style="margin-top: 10px;">
+      <ng-container *ngIf="parameter.type === 'number' || parameter.type === 'string'">
+        <mat-form-field class="small" appearance="outline">
+          <mat-label>{{parameter.title}}</mat-label>
+          <input matInput *ngIf="parameter.type === 'number'" type="number"
+                 [value]="indicatorParams[parameter.name] || 0"
+                 (change)="setParam(parameter.name, $any($event.target).value)">
+          <input matInput *ngIf="parameter.type === 'string'"
+                 [value]="indicatorParams[parameter.name] || ''"
+                 (change)="setParam(parameter.name, $any($event.target).value!)">
+        </mat-form-field>
+      </ng-container>
+      <ng-container *ngIf="parameter.name === 'mode'">
+        <app-mode-select [mode]="indicatorParams['mode']"
+                         [label]="parameter.title"
+                         (modeChanged)="setParam('mode', $event);">
+        </app-mode-select>
+      </ng-container>
+    </div>
+  </ng-container>
 </mat-expansion-panel>
-<mat-expansion-panel cookieExpansion="exp-rating-areas">
+<mat-expansion-panel *ngIf="selectedIndicator && selectedIndicator.resultType !== 'area'"
+                     cookieExpansion="exp-rating-areas">
   <mat-expansion-panel-header>
     <mat-panel-title>
       <div class="mini-fab-icon">
@@ -69,7 +98,7 @@
     </mat-select>
   </mat-form-field>
 </mat-expansion-panel>
-<mat-expansion-panel cookieExpansion="exp-rating-compare" class="disabled">
+<!--<mat-expansion-panel cookieExpansion="exp-rating-compare" class="disabled">
   <mat-expansion-panel-header>
     <mat-panel-title>
       <div class="mini-fab-icon">
@@ -81,7 +110,7 @@
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
-  <mat-checkbox style="padding-left: 12px;" color="primary" [(ngModel)]="compareSupply" i18n> <!--style="margin-left: -12px"-->
+  <mat-checkbox style="padding-left: 12px;" color="primary" [(ngModel)]="compareSupply" i18n> &lt;!&ndash;style="margin-left: -12px"&ndash;&gt;
     Nachfrage vergleichen
   </mat-checkbox>
   <div class="sub-select-wrapper compare-radio-list">
@@ -115,31 +144,28 @@
       </mat-form-field>
     </mat-radio-group>
   </div>
-</mat-expansion-panel>
+</mat-expansion-panel>-->
 <!--this div is only there to cover glitched shadow of chart toggle-->
-<div style="width: 100%; height: 20px; background-color: white;"></div>
-<app-side-toggle id="chart-toggle" icon="bar_chart" name="Diagramm"
+<div style="width: 100%; height: 200px; background-color: white;"></div>
+<app-side-toggle [class.hidden]="!(selectedIndicator?.resultType === 'area' || selectedIndicator?.resultType === 'place')"
+                 id="chart-toggle" icon="bar_chart" name="Diagramm"
                  cookieExpansion="exp-rating-diagram">
-  <div class="diagram-wrapper">
-    <img src="{{backend}}/static/img/Indikator U3 Screenshot.png" width="500px">
+  <div style="position: relative;">
+    <div class="diagram-wrapper">
+      <app-horizontal-barchart #barChart
+                               [showCSVExport]="true"
+                               [showPNGExport]="true"
+                               xLabel="Jahre"
+                               yLabel="Einwohner"
+                               [unit]="this.selectedIndicator?.unit || ''"
+                               [animate]="true"
+                               [title]="this.selectedIndicator?.title || ''"
+                               [subtitle]="barChartProps.subtitle">
+      </app-horizontal-barchart>
+    </div>
     <div class="diagram-controls">
-      <button mat-mini-fab
-              class="small"
-              color="primary"
-              title="Diagramm vergrößert darstellen"
-              (click)="onFullscreenDialog()">
-        <mat-icon>fullscreen</mat-icon>
-      </button>
       <br>
-      <button mat-mini-fab
-              class="small"
-              style="margin: 5px 0;"
-              color="primary"
-              title="Diagramm als Bilddatei herunterladen">
-        <mat-icon style="font-size: 20px; margin-top: 0;">download</mat-icon>
-      </button>
-      <br>
-      <app-help-button title="Diagrammdarstellung" position="right">
+      <app-help-button title="Diagrammdarstellung" position="right" style="float: right;">
         <p>Das Diagramm zeigt die Kennwerte des ausgewählten Indikators für alle Gebiete der ausgewählten Gebietseinheit.</p>
         <p>Mit einem Klick auf den Vollbild-Button rechts oben können Sie sich das Diagramm vergrößert in einem Dialog anzeigen lassen.</p>
         <p>Über den Herunterladen-Button darunter können Sie sich das Diagramm als Bild (PNG) herunterladen.</p>

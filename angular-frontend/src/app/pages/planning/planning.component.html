@@ -1,4 +1,4 @@
-<div class="loadOverlay" *ngIf="planningService.isLoading$ | async">
+<div class="loadOverlay" *ngIf="isLoading">
   <mat-spinner [diameter]="50"></mat-spinner>
 </div>
 <mat-toolbar class="sub-nav">
@@ -27,7 +27,8 @@
         </mat-select-trigger>
         <mat-option [value]="-1" style="display: none;"></mat-option>
         <mat-optgroup label="Meine Planungsprozesse">
-          <button title="Planungsprozess erstellen"
+          <button *ngIf="user?.profile?.canCreateProcess"
+                  title="Planungsprozess erstellen"
                   mat-icon-button color="primary" class="small"
                   style="position: absolute; right: 6px; top: 8px;"
                   (click)="onCreateProcess()">
@@ -42,6 +43,7 @@
             <mat-option class="custom-option"
                         [value]="process.id"
                         [ngbPopover]="ProcessPopover"
+                        [popoverTitle]="process?.name"
                         placement="right"
                         container="body"
                         triggers="mouseenter:mouseleave">
@@ -75,6 +77,7 @@
             </ng-template>
             <mat-option [value]="process.id"
                         [ngbPopover]="ProcessPopover"
+                        [popoverTitle]="process?.name"
                         placement="right"
                         container="body"
                         triggers="mouseenter:mouseleave">
@@ -84,13 +87,13 @@
         </mat-optgroup>
       </mat-select>
     </mat-form-field>
-    <button *ngIf="activeProcess" class="process-button small"
+    <button *ngIf="activeProcess && activeProcess.owner === user?.id" class="process-button small"
             title="ausgewählten Planungsprozess editieren"
             mat-icon-button color="primary"
             (click)="editProcess(activeProcess)" i18n>
       <mat-icon>edit</mat-icon>
     </button>
-    <button *ngIf="!activeProcess" class="process-button small"
+    <button *ngIf="!activeProcess && user?.profile?.canCreateProcess" class="process-button small"
             title="Planungsprozess erstellen"
             mat-icon-button color="primary"
             (click)="onCreateProcess()" i18n>
@@ -98,8 +101,14 @@
     </button>
     <app-help-button title="Planungsprozess"
                      position="right" [top]="50">
-      <p>Wählen Sie hier den Planungsprozess aus. </p>
-      <p> Mit einem Klick auf das Stift-Symbol können Sie den ausgewählten Planungsprozess editieren. Über das Plus-Symbol können Sie Planungsprozesse hinzufügen.</p>
+      <p>Legen Sie hier einen Planungsprozess (z.B. „Kita-Bedarfsplanung“, „Feuerwehrkonzept“ oder
+        „Zukunftskonzept Hausarztversorgung“) an und wählen Sie die dafür relevanten Infrastrukturbereiche aus.  </p>
+      <p> Ein Planungsprozess bildet den Rahmen für Ihre Szenarien zur Infrastrukturentwicklung und deren Bewertung.
+        Sie legen fest, welche daviplan-Nutzer/innen den Planungsprozess sehen und bearbeiten können sollen.</p>
+      <p>
+        Alle Szenarien eines Planungsprozesses beziehen sich auf alle von Ihnen für diesen Prozess ausgewählten
+        Infrastrukturbereiche und deren Leistungen.
+      </p>
     </app-help-button>
   </div>
   <span class="sub-links">
@@ -108,8 +117,24 @@
     <a routerLink="/planung/erreichbarkeiten" routerLinkActive="active-link" i18n> Erreichbarkeiten </a>
     <a routerLink="/planung/bewertung" routerLinkActive="active-link" i18n> Bewertung </a>
   </span>
-  <app-help-button title="Infrastrukturplanung" position="center" style="margin-left: 8px;" [top]="50">
-    <p>allgemeiner erklärender Text zu Abschnitten/Bereichen der Planungsseite</p>
+  <app-help-button title="Infrastrukturplanung" position="center" style="margin-left: 8px;" [top]="50" [width]="600">
+    <p>Im gerade angezeigten Hauptmenübereich „Infrastrukturplanung“ können Sie auf Basis von Szenarien eine
+    Infrastrukturplanung für die zuvor definierten Infrastrukturbereiche vornehmen.</p>
+    <p>Wenn Sie auf „Nachfrage“ klicken, können Sie sich für jede einzelne Leistung eine Nachfrageschätzung ansehen und
+      die editieren. Die Nachfrage errechnet sich für jede Gebietseinheit aus der Zahl der Einwohner:innen in einem
+      bestimmten Alter und einer Nachfragequote.</p>
+    <p>Im Abschnitt „Angebot“ können Sie sich das Angebot aktuelle Angebot ansehen, d.h. die räumliche Verteilung
+      und ggf. die Kapazitäten der Einrichtungen, die die von Ihnen betrachtete Leistung anbieten. Dieses Angebot
+      können Sie über Szenarien für die Zukunft variieren.</p>
+    <p>Der Abschnitt „Erreichbarkeiten“ ermöglicht Ihnen eine Analyse der Wegzeiten zwischen den Wohnstandorten der
+      Nachfragenden und den Einrichtungen. Auch hier können Sie in Szenarien unterschiedliche Erreichbarkeitsverhältnisse
+      definieren.</p>
+    <p>Im Abschnitt „Bewertung“ überprüfen Sie, in welchen Szenario Ihre Annahmen zur Nachfrage-, Angebots- und
+      Erreichbarkeitsentwicklung zur besten Versorgungssituation führen. Bei Bedarf kehren Sie zu einem der anderen
+      Abschnitte zurück, um Ihre Annahmen anzupassen oder weitere Szenarien zu definieren.</p>
+    <p>Bevor Sie mit der Szenarienarbeit beginnen, legen Sie oben links einen Planungsprozess an. Mit diesem
+      definieren Sie, welche Infrastrukturbereiche betrachtet werden sollen und wer an der Szenarienentwicklung
+      mitwirken darf.</p>
   </app-help-button>
 </mat-toolbar>
 <div class="map-wrapper">
@@ -118,13 +143,13 @@
   </div>
   <div id="planning-map" class="map-container">
     <div id="info" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">
-      <div class="handle" title="Anzeigeinformationen" cdkDragHandle>
-        <mat-icon color="primary">info</mat-icon>
+      <div class="handle" title="Kartentitel" cdkDragHandle>
+        <mat-icon class="material-icons-outlined" color="primary">map</mat-icon>
         <fa-icon class="drag-indicator" matSuffix [icon]="faArrows"></fa-icon>
       </div>
       <app-side-toggle [fullHeightIndicator]="true" cookieExpansion="exp-planning-description"
                        [initiallyExpanded]="true">
-        <div style="padding: 10px; min-height: 70px;" [innerHTML]="this.mapControl?.mapDescription"></div>
+        <div style="padding: 5px 15px; min-height: 70px; line-height: normal;" [innerHTML]="mapDescription"></div>
       </app-side-toggle>
     </div>
     <div id="time-slider" class="map-drag-element" cdkDrag cdkDragBoundary="#planning-map">
@@ -166,6 +191,7 @@
   <div *ngIf="!activeProcess" i18n>Wählen Sie hier einen Planungsprozess aus</div>
 </ng-template>
 <mat-sidenav #drawer class="context-bar"
+             [disableClose]="true"
              [opened]="(isSM$ | async) === false">
   <div class="deactivateOverlay" title="Bitte wählen bzw. erstellen Sie einen Planungsprozess!"
        *ngIf="!activeProcess">
@@ -186,8 +212,8 @@
 <ng-template #processTemplate>
   <form [formGroup]="editProcessForm">
     <div *ngIf="editProcessForm.errors">
-      <mat-error *ngFor="let error of Object.values(editProcessForm.errors)" class="alert">
-        {{ error }}
+      <mat-error *ngFor="let error of editProcessForm.errors | keyvalue" class="alert">
+        {{ error.key }}: {{ error.value }}
       </mat-error>
     </div>
     <div fxLayout="row wrap">
@@ -209,9 +235,12 @@
       <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
         <span class="subtitle1" style="color: grey;">Infrastrukturbereiche</span>
         <div class="border-box" style="height: 250px;">
-          <mat-checkbox class="reverse" color="primary">alle</mat-checkbox>
-          <mat-divider style="margin-bottom: 10px;"></mat-divider>
-          <mat-checkbox class="reverse" color="primary" *ngFor="let infrastructure of infrastructures">
+<!--          <mat-checkbox class="reverse" color="primary">alle</mat-checkbox>
+          <mat-divider style="margin-bottom: 10px;"></mat-divider>-->
+          <mat-checkbox class="reverse" color="primary"
+                        *ngFor="let infrastructure of allInfrastructures"
+                        (change)="infrastructure.included = $event.checked"
+                        [checked]="infrastructure.included || false">
             {{infrastructure.name}}
           </mat-checkbox>
         </div>
@@ -219,7 +248,10 @@
       <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
         <span class="subtitle1" style="color: grey;">Zugriff auf Planungsprozess</span>
         <div class="border-box" style="height: 250px;">
-          <mat-checkbox class="reverse" color="primary" *ngFor="let user of otherUsers" (change)="user.shared = $event.checked" [checked]="user.shared || false">
+          <mat-checkbox class="reverse" color="primary"
+                        *ngFor="let user of otherUsers"
+                        (change)="user.shared = $event.checked"
+                        [checked]="user.shared || false">
             {{user.username + ((user.firstName.length > 0 || user.lastName.length > 0)? (' (' + user.firstName + ((user.firstName.length > 0 && user.lastName.length > 0)? ' ': '') + user.lastName + ')'): '')}}
           </mat-checkbox>
         </div>

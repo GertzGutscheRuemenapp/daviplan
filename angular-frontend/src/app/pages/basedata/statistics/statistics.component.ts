@@ -2,17 +2,21 @@ import { AfterViewInit, Component, OnDestroy, TemplateRef, ViewChild } from '@an
 import { environment } from "../../../../environments/environment";
 import { MapControl, MapService } from "../../../map/map.service";
 import { RestCacheService } from "../../../rest-cache.service";
-import { Area, AreaLevel, ExtLayer, ExtLayerGroup, Statistic, StatisticsData, Year } from "../../../rest-interfaces";
+import {
+  Area,
+  AreaLevel,
+  LogEntry,
+  Statistic,
+  StatisticsData,
+} from "../../../rest-interfaces";
 import { sortBy } from "../../../helpers/utils";
-import * as d3 from "d3";
 import { SettingsService } from "../../../settings.service";
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, Subscription } from "rxjs";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
-import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 
 @Component({
@@ -22,7 +26,6 @@ import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 })
 export class StatisticsComponent implements AfterViewInit, OnDestroy {
   @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
-  @ViewChild('pullServiceTemplate') pullServiceTemplate?: TemplateRef<any>;
   backend: string = environment.backend;
   mapControl?: MapControl;
   statistics?: Statistic[];
@@ -40,7 +43,8 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
   isLoading$ = new BehaviorSubject<boolean>(false);
   dataColumns: string[] = ['Gebiet', 'AGS', 'Geburten', 'Sterbefälle', 'Zuzüge', 'Fortzüge'];
   dataRows: any[][] = [];
-  pullErrors: any = {};
+  isProcessing = false;
+  subscriptions: Subscription[] = [];
 
   constructor(private mapService: MapService, private restService: RestCacheService, private rest: RestAPI,
               private settings: SettingsService, private dialog: MatDialog, private http: HttpClient) { }
@@ -50,7 +54,8 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
     this.layerGroup = new MapLayerGroup('Bevölkerungssalden', { order: -1 });
     this.mapControl.addGroup(this.layerGroup);
     this.isLoading$.next(true);
-    this.settings.baseDataSettings$.subscribe(baseSettings => {
+    this.subscriptions.push(this.settings.baseDataSettings$.subscribe(baseSettings => {
+      this.isProcessing = baseSettings.processes?.population || false;
       const baseLevel = baseSettings.popStatisticsAreaLevel;
       // ToDo: warn if areas are empty, disable pull
       this.restService.getAreaLevels({ active: true }).subscribe(areaLevels => {
@@ -61,7 +66,8 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
           this.fetchData();
         })
       });
-    });
+    }));
+    this.settings.fetchBaseDataSettings();
   }
 
   fetchData(): void {
@@ -205,28 +211,30 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
   pullService(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
+      panelClass: 'absolute',
       data: {
         title: 'Einwohnerdaten abrufen',
         confirmButtonText: 'Daten abrufen',
-        template: this.pullServiceTemplate,
-        closeOnConfirm: false
+        message: '<p> Sollen die Daten aus der Regionalstatistik jetzt abgerufen und in die Datenbank eingespielt werden? </p>' +
+                 '<p> Achtung: bereits eingespielte Statistiken werden überschrieben!</p>',
+        closeOnConfirm: true
       }
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
       const url = `${this.rest.URLS.statistics}pull_regionalstatistik/`;
-      const dialogRef2 = SimpleDialogComponent.show(
-        'Die Bevölkerungsstatistiken werden abgerufen. Bitte warten', this.dialog, { showAnimatedDots: true });
       this.http.post(url, {}).subscribe(() => {
-        this.restService.reset();
-        this.fetchData();
-        dialogRef.close();
-        dialogRef2.close();
-      }, error => {
-        this.pullErrors = error.error;
-        dialogRef.componentInstance.isLoading$.next(false);
-        dialogRef2.close();
+        this.isProcessing = true;
+        }, error => {
       })
     })
+  }
+
+  onMessage(log: LogEntry): void {
+    if (log?.status?.success) {
+      this.isProcessing = false;
+      this.restService.reset();
+      this.fetchData();
+    }
   }
 
   onRemoveStatistics(): void {
@@ -259,5 +267,6 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.mapControl?.destroy();
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }

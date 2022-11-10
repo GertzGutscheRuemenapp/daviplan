@@ -3,7 +3,7 @@ import { MapControl, MapService } from "../../../map/map.service";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { Geometry, MultiPolygon, Polygon } from "ol/geom";
 import { Feature } from 'ol';
-import { AgeGroup } from "../../../rest-interfaces";
+import { AgeGroup, LogEntry } from "../../../rest-interfaces";
 import { register } from 'ol/proj/proj4'
 import union from '@turf/union';
 import * as turf from '@turf/helpers';
@@ -12,13 +12,15 @@ import proj4 from 'proj4';
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { FormBuilder, FormGroup } from "@angular/forms";
-import { Observable } from "rxjs";
+import { Observable, Subscription } from "rxjs";
 import { Layer } from "ol/layer";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { tap } from "rxjs/operators";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
+import { RestCacheService } from "../../../rest-cache.service";
+import { SettingsService } from "../../../settings.service";
 
 export interface ProjectSettings {
   projectArea: string,
@@ -81,9 +83,12 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   @ViewChild('ageGroupCard') ageGroupCard!: InputCardComponent;
   @ViewChild('ageGroupContainer') ageGroupContainer!: ElementRef;
   @ViewChild('ageGroupWarning') ageGroupWarningTemplate?: TemplateRef<any>;
+  subscriptions: Subscription[] = [];
+  isProcessing = false;
 
-  constructor(private mapService: MapService, private formBuilder: FormBuilder, private http: HttpClient,
-              private rest: RestAPI, private dialog: MatDialog) { }
+  constructor(private restService: RestCacheService,private mapService: MapService, private formBuilder: FormBuilder,
+              private http: HttpClient, private rest: RestAPI, private dialog: MatDialog,
+              private settings: SettingsService) { }
 
   ngAfterViewInit(): void {
     this.setupPreviewMap();
@@ -97,6 +102,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     this.fetchAgeGroups().subscribe(ageGroups => {
       this.setupAgeGroupCard();
     });
+    this.subscriptions.push(this.settings.baseDataSettings$.subscribe(bs => this.isProcessing = bs.processes?.areas || false));
   }
 
   fetchProjectSettings(): Observable<ProjectSettings> {
@@ -136,6 +142,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     this.previewMapControl.setBackground(this.previewMapControl.backgroundLayers[0].id!);
     this.previewMapControl.map?.addVectorLayer('project-area',{
       visible: true,
+      zIndex: 1000,
       stroke: { color: '#DA9A22', width: 3 },
       fill: { color: 'rgba(218, 154, 34, 0.7)' }
     });
@@ -288,7 +295,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
         source.clear();
         source.addFeature(feature);
         if (this.projectGeom?.getArea())
-          this.previewMapControl?.map?.centerOnLayer('project-area');
+          this.previewMapControl?.map?.zoomToExtent('project-area');
       }
     }
   }
@@ -300,6 +307,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       this.areaSelectMapControl.setBackground(this.areaSelectMapControl.backgroundLayers[0].id!);
 
       const projectLayer = this.areaSelectMapControl.map?.addVectorLayer('project-area', {
+        zIndex: 1000,
         stroke: { color: 'rgba(0, 0, 0, 0)' },
         fill: { color: 'rgba(218, 154, 34, 0.7)' },
         visible: true
@@ -308,7 +316,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       const hasProjectArea = this.projectGeom?.getArea();
       if (hasProjectArea) {
         projectLayer?.getSource().addFeature(new Feature(this.projectGeom));
-        this.areaSelectMapControl.map?.centerOnLayer('project-area');
+        this.areaSelectMapControl.map?.zoomToExtent('project-area');
       }
       projectLayer?.getSource().clear();
       this.areaSelectMapControl.map?.selected.subscribe(event => {
@@ -330,6 +338,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
                 ',EPSG:3857'
               )},
             visible: al === this.baseAreaLayer,
+            zIndex: 1001,
             selectable: true,
             tooltipField: 'gen',
             stroke: { color: 'black', selectedColor: 'black',
@@ -363,7 +372,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
         intersections.forEach((feature: Feature<any>) => {
           if (feature.get('gf') != 4) return;
           feature.set('inSelection', true);
-          _this.selectedBaseAreaMapping.set(feature.get('debkg_id'), feature)
+          _this.selectedBaseAreaMapping.set(feature.get('objid'), feature)
         })
         _this.updateProjectLayer();
       });
@@ -374,24 +383,41 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
       this.showAreaLayers = false;
     })
     this.areaCard.dialogConfirmed.subscribe(ok => {
-      const dialogRef = SimpleDialogComponent.show(
-        'Geometrie des Projektgebietes wird hochgeladen und mit dem Raster verschnitten. ' +
-                'Die Gebiete der vordefinierten Gebietseinteilungen innerhalb des Projektgebietes werden heruntergeladen.<br><br>' +
-                'Dies kann einige Minuten dauern. Bitte warten',
-        this.dialog, { showAnimatedDots: true, width: '400px' });
-      const format = new WKT();
-      let projectGeom = this.getMergedSelectGeometry();
-      let wkt = projectGeom? `SRID=${this.areaSelectMapControl?.srid};` + format.writeGeometry(projectGeom) : null
-      this.http.patch<ProjectSettings>(`${this.rest.URLS.projectSettings}`,
-        { projectArea: wkt }
-      ).subscribe(settings => {
-        dialogRef.close();
-        this.areaCard?.closeDialog(true);
-        this.projectSettings = settings;
-        this.updatePreviewLayer();
-      },(error) => {
-        dialogRef.close();
-        this.projectAreaErrors = error.error;
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '400px',
+        data: {
+          title: 'Planungsraum bestätigen',
+          confirmButtonText: 'Planungsraum speichern',
+          closeOnConfirm: true,
+          message: 'Das Setzen des Planungsraum entfernt alle bereits mit diesem verknüpften Daten.<br>' +
+            'Dazu zählen die Router, die Gebiete der vordefinierten Gebietseinteilungen und damit verbundene Bevölkerungsdaten.'
+        },
+        panelClass: 'warning'
+      });
+      dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+        if (confirmed) {
+          const dialogRef = SimpleDialogComponent.show(
+            '<p>Während der Berechnung der Geometrien kann es passieren, dass die Seite nicht mehr reagiert. </p>'+
+            'Bitte trotzdem warten...', this.dialog, { width: '400px' });
+          setTimeout(() => {
+            this.areaCard?.setLoading(true);
+            const format = new WKT();
+            let projectGeom = this.getMergedSelectGeometry();
+            let wkt = projectGeom? `SRID=${this.areaSelectMapControl?.srid};` + format.writeGeometry(projectGeom) : null
+            this.http.patch<ProjectSettings>(`${this.rest.URLS.projectSettings}`,
+              { projectArea: wkt }
+            ).subscribe(settings => {
+              // reset cache
+              this.restService.reset();
+              this.isProcessing = true;
+              this.areaCard?.closeDialog(true);
+            },(error) => {
+              this.projectAreaErrors = error.error;
+              this.areaCard?.setLoading(false);
+            });
+            dialogRef.close();
+          }, 0);
+        }
       });
     })
   }
@@ -465,28 +491,32 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
    * change active layer to currently selected one
    */
   changeAreaLayer(): void {
-    this.areaCard.setLoading(true);
-    this.areaLayers.forEach(al => {
-      const layer = this.areaSelectMapControl?.map?.getLayer(al.tag),
-            select = layer?.get('select');
-      layer?.setOpacity((al.tag === this.selectedAreaLayer.tag) ? 0.5 : 0);
-      select.setActive(al.tag === this.selectedAreaLayer.tag);
-      layer?.set('showTooltip', al.tag === this.selectedAreaLayer.tag);
-      const overlay = this.areaSelectMapControl?.map?.overlays[layer?.get('name')];
-      if (overlay) {
-        // overlay.getSource().clear();
-        overlay.setVisible(al.tag === this.selectedAreaLayer.tag);
-      }
-    })
-    const layer = this.areaSelectMapControl?.map?.getLayer(this.selectedAreaLayer.tag),
+    const dialogRef = SimpleDialogComponent.show(
+      '<p>Während der Berechnung der Geometrien kann es passieren, dass die Seite nicht mehr reagiert. </p>'+
+      'Bitte trotzdem warten...', this.dialog, { width: '400px' });
+    setTimeout(() => {
+      this.areaLayers.forEach(al => {
+        const layer = this.areaSelectMapControl?.map?.getLayer(al.tag),
           select = layer?.get('select');
-    select.getFeatures().clear();
-    const selectGeom = this.getMergedSelectGeometry();
-    if (selectGeom) {
-      let intersections = this.getIntersections(selectGeom, layer!);
-      select.getFeatures().extend(intersections);
-    }
-    this.areaCard.setLoading(false);
+        layer?.setOpacity((al.tag === this.selectedAreaLayer.tag) ? 0.5 : 0);
+        select.setActive(al.tag === this.selectedAreaLayer.tag);
+        layer?.set('showTooltip', al.tag === this.selectedAreaLayer.tag);
+        const overlay = this.areaSelectMapControl?.map?.overlays[layer?.get('name')];
+        if (overlay) {
+          // overlay.getSource().clear();
+          overlay.setVisible(al.tag === this.selectedAreaLayer.tag);
+        }
+      })
+      const layer = this.areaSelectMapControl?.map?.getLayer(this.selectedAreaLayer.tag),
+        select = layer?.get('select');
+      select.getFeatures().clear();
+      const selectGeom = this.getMergedSelectGeometry();
+      if (selectGeom) {
+        let intersections = this.getIntersections(selectGeom, layer!);
+        select.getFeatures().extend(intersections);
+      }
+      dialogRef.close();
+    }, 0);
   }
 
   /**
@@ -523,12 +553,12 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     selectedBaseFeatures.forEach(feature => {
       if (feature.get('gf') === 4) {
         feature.set('inSelection', true);
-        _this.selectedBaseAreaMapping.set(feature.get('debkg_id'), feature);
+        _this.selectedBaseAreaMapping.set(feature.get('objid'), feature);
       }
     })
     deselectedBaseFeatures.forEach(feature => {
       feature.set('inSelection', false);
-      _this.selectedBaseAreaMapping.delete(feature.get('debkg_id'));
+      _this.selectedBaseAreaMapping.delete(feature.get('objid'));
     })
     this.updateProjectLayer();
     this.areaCard.setLoading(false);
@@ -547,6 +577,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     let mergedGeom: turf.Feature<turf.MultiPolygon | turf.Polygon> | null = null;
     this.selectedBaseAreaMapping.forEach((f: Feature<any>) => {
       // const json = format.writeGeometryObject(f.getGeometry());
+      const geom = f.getGeometry();
       const poly = turf.multiPolygon(f.getGeometry().getCoordinates());
       mergedGeom = mergedGeom ? union(poly, mergedGeom) : poly;
     })
@@ -599,17 +630,13 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     return intersections;
   }
 
-  ngOnDestroy(): void {
-    this.previewMapControl?.destroy();
-  }
-
   updateAreasInExtent(): void {
     const _this = this,
           extent = this.areaSelectMapControl?.map?.getExtent(),
           intersections = this.getIntersections(extent!, this._baseSelectLayer!);
     let areas = Array.from(this.selectedBaseAreaMapping.values());
     intersections.forEach(feature => {
-      if (!_this.selectedBaseAreaMapping.has(feature.get('debkg_id')) && (feature.get('gf') == 4))
+      if (!_this.selectedBaseAreaMapping.has(feature.get('objid')) && (feature.get('gf') == 4))
         areas.push(feature);
     })
     this.baseAreasInExtent = areas.sort(
@@ -628,11 +655,11 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
 
   toggleFeatureSelection(feature: Feature<any>): void{
     this.areaCard.setLoading(true);
-    const isSelected = this.selectedBaseAreaMapping.has(feature.get('debkg_id'));
+    const isSelected = this.selectedBaseAreaMapping.has(feature.get('objid'));
     if (isSelected)
-      this.selectedBaseAreaMapping.delete(feature.get('debkg_id'));
+      this.selectedBaseAreaMapping.delete(feature.get('objid'));
     else
-      this.selectedBaseAreaMapping.set(feature.get('debkg_id'), feature);
+      this.selectedBaseAreaMapping.set(feature.get('objid'), feature);
     feature.set('inSelection', !isSelected);
     this.updateProjectLayer();
     this.areaCard.setLoading(false);
@@ -646,5 +673,19 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     this.selectedBaseAreaMapping.clear();
     this.updateProjectLayer();
     this.areaCard.setLoading(false);
+  }
+
+  onMessage(log: LogEntry): void {
+    if (log?.status?.success) {
+      this.isProcessing = false;
+      this.fetchProjectSettings().subscribe(settings => {
+        this.updatePreviewLayer();
+      });
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.previewMapControl?.destroy();
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }

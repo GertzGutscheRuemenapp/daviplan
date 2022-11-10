@@ -14,8 +14,8 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
-from django.conf.urls import url, include
+from django.urls import path, re_path
+from django.conf.urls import include
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework_simplejwt.views import (
@@ -23,18 +23,18 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView
 )
-
 from drf_spectacular.views import (SpectacularAPIView,
                                    SpectacularRedocView,
                                    SpectacularSwaggerView)
 
-from datentool_backend.views import AreaLevelTileView, RasterCellTileView
+from .loggers import LogConsumer
+from datentool_backend.views import (AreaLevelTileView, RasterCellTileView)
 
 from .views import HomePageView
 
 urlpatterns = [
     path('django-admin/', admin.site.urls),
-    url('api/', include('datentool_backend.rest_urls')),
+    re_path('api/', include('datentool_backend.rest_urls')),
     path('api/token/', TokenObtainPairView.as_view(),
          name='token_obtain_pair'),
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
@@ -54,7 +54,11 @@ urlpatterns = [
     # match all routes to the home page (entry point to angular) to let angular
     # handle the routing, /api and /static routes are still handled by django
     # automatically, for some reason /media is not, so it is excluded here
-    url('^(?!media).*', HomePageView.as_view(), name='home'),
+    re_path('^(?!media).*', HomePageView.as_view(), name='home'),
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+websocket_urlpatterns = [
+    re_path(r'ws/log/(?P<room_name>\w+)/$', LogConsumer.as_asgi()),
+]

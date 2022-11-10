@@ -28,7 +28,8 @@ export class RestAPI {
     areaPopulation: `${ this.API_ENDPOINT }/indicators/aggregate_population/`,
     populationData: `${ this.API_ENDPOINT }/indicators/population_details/`,
     reachabilityPlace: `${ this.API_ENDPOINT }/indicators/reachability_place/`,
-    reachabilityCell: `${ this.API_ENDPOINT }/indicators/reachibility_cell/`,
+    reachabilityCell: `${ this.API_ENDPOINT }/indicators/reachability_cell/`,
+    reachabilityNextPlace: `${ this.API_ENDPOINT }/indicators/reachability_next_place/`,
     areaDemand: `${ this.API_ENDPOINT }/indicators/demand/`,
     statistics: `${ this.API_ENDPOINT }/popstatistics/`,
     statisticsData: `${ this.API_ENDPOINT }/popstatentries/`,
@@ -42,10 +43,14 @@ export class RestAPI {
     processes: `${ this.API_ENDPOINT }/planningprocesses/`,
     scenarios: `${ this.API_ENDPOINT }/scenarios/`,
     matrixCellPlaces: `${ this.API_ENDPOINT }/matrixcellplaces/`,
+    transitMatrix: `${ this.API_ENDPOINT }/matrixstopstops/`,
+    transitStops: `${ this.API_ENDPOINT }/stops/`,
     rasterCells: `${ this.API_ENDPOINT }/rastercells/`,
     closestCell: `${ this.API_ENDPOINT }/rastercells/closest_cell/`,
     modevariants: `${ this.API_ENDPOINT }/modevariants/`,
     networks: `${ this.API_ENDPOINT }/networks/`,
+    routingStatistics: `${ this.API_ENDPOINT }/matrixstatistics/`,
+    logs: `${ this.API_ENDPOINT }/logs/`
   }
   // ToDo: functions with generalized HTTP calls in here
 }

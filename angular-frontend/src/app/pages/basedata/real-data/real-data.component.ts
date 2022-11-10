@@ -11,7 +11,7 @@ import {
   ExtLayerGroup,
   PopEntry,
   Population,
-  Year
+  Year, LogEntry
 } from "../../../rest-interfaces";
 import { SettingsService } from "../../../settings.service";
 import { SelectionModel } from "@angular/cdk/collections";
@@ -25,7 +25,7 @@ import { AgeTreeComponent, AgeTreeData } from "../../../diagrams/age-tree/age-tr
 import { sortBy } from "../../../helpers/utils";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { Router } from "@angular/router";
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, Subscription } from "rxjs";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import { MapLayer, MapLayerGroup, VectorLayer } from "../../../map/layers";
 
@@ -60,12 +60,13 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   ageGroups: AgeGroup[] = [];
   yearSelection = new SelectionModel<number>(true);
   maxYear = new Date().getFullYear() - 1;
-  pullErrors: any = {};
   Object = Object;
-  dataColumns: string[] = [];
-  dataRows: any[][] = [];
-  dataYear?: Year;
+  dataTableColumns: string[] = [];
+  dataTableRows: any[][] = [];
+  dataTableYear?: Year;
   file?: File;
+  isProcessing = false;
+  subscriptions: Subscription[] = [];
   uploadErrors: any = {};
 
   constructor(private mapService: MapService, public popService: PopulationService,
@@ -85,6 +86,10 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
       else
         this.popLevelMissing = true;
     })
+    this.subscriptions.push(this.settings.baseDataSettings$.subscribe(baseSettings => {
+      this.isProcessing = baseSettings.processes?.population || false;
+    }));
+    this.settings.fetchBaseDataSettings();
     this.fetchData();
     this.setupYearCard();
   }
@@ -94,13 +99,13 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
     this.previewArea = undefined;
     this.ageTree?.clear();
     this.updatePreview();
-    this.dataColumns = ['Gebiet']
+    this.dataTableColumns = ['Gebiet']
     this.popService.getGenders().subscribe(genders => {
       this.genders = genders;
       this.popService.getAgeGroups().subscribe(ageGroups => {
         this.checkAgeGroups(ageGroups);
         this.genders.forEach(gender => {
-          this.dataColumns = this.dataColumns.concat(ageGroups.map(ag => `${ag.label} (${gender.name})`));
+          this.dataTableColumns = this.dataTableColumns.concat(ageGroups.map(ag => `${ag.label} (${gender.name})`));
         })
         this.ageGroups = sortBy(ageGroups, 'fromAge');
         this.http.get<Year[]>(this.rest.URLS.years).subscribe(years => {
@@ -141,7 +146,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         })
         this.realYears.sort();
         this.previewYear = undefined;
-        this.dataYear = undefined;
+        this.dataTableYear = undefined;
         this.ageTree?.clear();
         this.updatePreview();
         this.yearCard?.closeDialog(true);
@@ -181,7 +186,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
           if(year === this.previewYear) {
             this.previewYear = undefined;
             this.ageTree?.clear();
-            this.dataRows = [];
+            this.dataTableRows = [];
             this.updatePreview();
           }
           this.yearCard?.setLoading(false);
@@ -208,9 +213,10 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         this.popEntries[pe.area].push(pe);
       })
       let max = 1000;
-      this.dataRows = [];
+      this.dataTableRows = [];
       this.areas.forEach(area => {
         const entries = this.popEntries[area.id];
+        if (!entries) return;
         // map data
         const value = entries.reduce((p: number, e: PopEntry) => p + e.value, 0);
         area.properties.value = value;
@@ -229,6 +235,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         labelField: 'value',
         showLabel: true,
         tooltipField: 'description',
+        labelOffset: { y: 10 },
         mouseOver: {
           enabled: true,
           style: {
@@ -261,14 +268,15 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         zIndex: 'value'
       });
       this.updateAgeTree();
-      this.previewLayer!.featureSelected?.subscribe(evt => {
-        if (evt.selected) {
-          this.previewArea = this.areas.find(area => area.id === evt.feature.get('id'));
-        }
-        else {
-          this.previewArea = undefined;
-        }
+      this.previewLayer!.featuresSelected.subscribe(features => {
+        this.previewArea = this.areas.find(area => area.id === features[0].get('id'));
         this.updateAgeTree();
+      })
+      this.previewLayer!.featuresDeselected.subscribe(features => {
+        if (this.previewArea?.id === features[0].get('id')) {
+          this.previewArea = undefined;
+          this.updateAgeTree();
+        }
       })
     })
   }
@@ -316,26 +324,19 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   pullService(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
+      panelClass: 'absolute',
       data: {
         title: 'Einwohnerdaten abrufen',
         confirmButtonText: 'Daten abrufen',
         template: this.pullServiceTemplate,
-        closeOnConfirm: false
+        closeOnConfirm: true
       }
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
       const url = `${this.rest.URLS.populations}pull_regionalstatistik/`;
-      const dialogRef2 = SimpleDialogComponent.show(
-        'Die Bevölkerungsdaten werden von der Regionalstatistik abgerufen. Sie werden auf das Raster disaggregiert und anschließend auf die vorhandenen Gebiete aggregiert.<br><br>' +
-        'Dies kann einige Minuten dauern. Bitte warten', this.dialog, { showAnimatedDots: true, width: '400px' });
       this.http.post(url, {}).subscribe(() => {
-        this.popService.reset();
-        this.fetchData();
-        dialogRef2.close();
-        dialogRef.close();
+        this.isProcessing = true;
       }, error => {
-        this.pullErrors = error.error;
-        dialogRef2.close();
       })
     })
   }
@@ -357,9 +358,9 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   }
 
   updateTableData(): void {
-    this.dataRows = [];
-    if (!this.dataYear) return;
-    const population = this.populations.find(p => p.year === this.dataYear!.id);
+    this.dataTableRows = [];
+    if (!this.dataTableYear) return;
+    const population = this.populations.find(p => p.year === this.dataTableYear!.id);
     if (!population) return;
     let rows: any[][] = [];
     this.isLoading$.next(true);
@@ -378,7 +379,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         })
         rows.push(row);
       })
-      this.dataRows = rows;
+      this.dataTableRows = rows;
       this.isLoading$.next(false);
     })
   }
@@ -386,34 +387,40 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   uploadTemplate(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: `Template hochladen`,
         confirmButtonText: 'Datei hochladen',
+        closeOnConfirm: false,
         template: this.fileUploadTemplate
       }
     });
-    dialogRef.componentInstance.confirmed.subscribe((confirmed: boolean) => {
+    dialogRef.componentInstance.confirmed.subscribe(() => {
       if (!this.file)
         return;
+      dialogRef.componentInstance.isLoading$.next(true);
       const formData = new FormData();
       formData.append('excel_file', this.file);
-      const dialogRef2 = SimpleDialogComponent.show(
-        'Das Template wird hochgeladen. Die Bevölkerungsdaten werden auf das Raster disaggregiert und anschließend auf die vorhandenen Gebiete aggregiert.<br><br>' +
-        'Dies kann einige Minuten dauern. Bitte warten', this.dialog, { showAnimatedDots: true, width: '400px' });
       const url = `${this.rest.URLS.popEntries}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
-        this.popService.reset();
-        this.fetchData();
+        this.isProcessing = true;
         dialogRef.close();
-        dialogRef2.close();
       }, error => {
         this.uploadErrors = error.error;
-        dialogRef2.close();
+        dialogRef.componentInstance.isLoading$.next(false);
       });
     });
     dialogRef.afterClosed().subscribe(ok => {
       this.uploadErrors = {};
     })
+  }
+
+  onMessage(log: LogEntry): void {
+    if (log?.status?.success) {
+      this.isProcessing = false;
+      this.popService.reset();
+      this.fetchData();
+    }
   }
 
   setFiles(event: Event){
@@ -424,5 +431,6 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.mapControl?.destroy();
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }

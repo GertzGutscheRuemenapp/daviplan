@@ -1,13 +1,13 @@
 import pandas as pd
+import math
 from io import StringIO
-from distutils.util import strtobool
 from django.http.request import QueryDict
 from django_filters import rest_framework as filters
 from django.db.models import Max, Min
 from drf_spectacular.utils import (extend_schema,
                                    OpenApiResponse,
                                    inline_serializer)
-import math
+from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -17,7 +17,7 @@ from rest_framework.response import Response
 
 from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
 from datentool_backend.utils.permissions import (
-    HasAdminAccessOrReadOnly, CanEditBasedata)
+    HasAdminAccessOrReadOnly, HasAdminAccess, CanEditBasedata)
 from datentool_backend.utils.pop_aggregation import (
     intersect_areas_with_raster, aggregate_population, aggregate_many,
     disaggregate_population)
@@ -37,17 +37,18 @@ from datentool_backend.utils.serializers import (MessageSerializer,
                                                  use_intersected_data,
                                                  drop_constraints,
                                                  area_level)
-from datentool_backend.utils.processes import ProtectedProcessManager
-from datentool_backend.population.serializers import (PrognosisSerializer,
-                                                      PopulationSerializer,
-                                                      PopulationDetailSerializer,
-                                                      PopulationEntrySerializer,
-                                                      PopulationTemplateSerializer,
-                                                      prognosis_id_serializer,
-                                                      area_level_id_serializer,
-                                                      years_serializer)
+from datentool_backend.population.serializers import (
+    PrognosisSerializer, PopulationSerializer, PopulationDetailSerializer,
+    PopulationEntrySerializer, PopulationTemplateSerializer,
+    prognosis_id_serializer, area_level_id_serializer, years_serializer)
 from datentool_backend.site.models import SiteSetting
 from datentool_backend.area.models import Area, AreaLevel
+from datentool_backend.utils.processes import (ProcessScope,
+                                               ProtectedProcessManager)
+
+import logging
+
+logger = logging.getLogger('population')
 
 
 class PrognosisViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
@@ -95,11 +96,10 @@ class PopulationViewSet(viewsets.ModelViewSet):
                               406: OpenApiResponse(MessageSerializer,
                                                    'Disaggregation failed')})
     @action(methods=['POST'], detail=False,
-            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+            permission_classes=[HasAdminAccess | CanEditBasedata])
     def disaggregateall(self, request, **kwargs):
         manager = RasterCellPopulationAgeGender.copymanager
-        drop_constraints = bool(strtobool(
-            request.data.get('drop_constraints', 'False')))
+        drop_constraints = request.data.get('drop_constraints', False)
 
         with transaction.atomic():
             if drop_constraints:
@@ -110,11 +110,10 @@ class PopulationViewSet(viewsets.ModelViewSet):
             old_data = self.request.data
             data = QueryDict(mutable=True)
             data.update(self.request.data)
-            data['drop_constraints'] = 'False'
+            data['drop_constraints'] = False
             request._full_data = data
 
-            use_intersected_data = bool(strtobool(
-                request.data.get('use_intersected_data', 'False')))
+            use_intersected_data = request.data.get('use_intersected_data', False)
             pop_rasters = PopulationRaster.objects.all()
             for pop_raster in pop_rasters:
                 for area_level in AreaLevel.objects.all():
@@ -124,14 +123,17 @@ class PopulationViewSet(viewsets.ModelViewSet):
                         continue
                     intersect_areas_with_raster(areas, pop_raster=pop_raster)
 
-            data['use_intersected_data'] = 'True'
-            request._full_data = data
+            #data['use_intersected_data'] = 'True'
+            #request._full_data = data
 
             for population in Population.objects.all():
-                self.disaggregate(request, **{'pk': population.id})
+                disaggregate_population(population=population,
+                                        use_intersected_data=True,
+                                       drop_constraints=drop_constraints)
+                #self.disaggregate(request, **{'pk': population.id})
 
             # restore the data
-            request._request.GET = old_data
+            #request._request.GET = old_data
 
             if drop_constraints:
                 manager.restore_constraints()
@@ -152,7 +154,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                    responses={202: OpenApiResponse(MessageSerializer, 'Disaggregation successful'),
                               406: OpenApiResponse(MessageSerializer, 'Disaggregation failed')})
     @action(methods=['POST'], detail=True,
-            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+            permission_classes=[HasAdminAccess | CanEditBasedata])
     def disaggregate(self, request, **kwargs):
         """
         route to disaggregate the population to the raster cells
@@ -163,10 +165,8 @@ class PopulationViewSet(viewsets.ModelViewSet):
             msg = f'Population for {kwargs} not found'
             return Response({'message': msg,}, status.HTTP_406_NOT_ACCEPTABLE)
 
-        use_intersected_data = bool(strtobool(
-            request.data.get('use_intersected_data', 'False')))
-        drop_constraints = bool(strtobool(
-            request.data.get('drop_constraints', 'False')))
+        use_intersected_data = request.data.get('use_intersected_data', False)
+        drop_constraints = request.data.get('drop_constraints', 'False')
         msg = disaggregate_population(
             population, use_intersected_data=use_intersected_data,
             drop_constraints=drop_constraints)
@@ -185,7 +185,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
                    responses={202: OpenApiResponse(MessageSerializer, 'Aggregation successful'),
                               406: OpenApiResponse(MessageSerializer, 'Aggregation failed')})
     @action(methods=['POST'], detail=True,
-            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+            permission_classes=[HasAdminAccess | CanEditBasedata])
     def aggregate_from_cell_to_area(self, request, **kwargs):
         """aggregate population from cell to area"""
         try:
@@ -194,12 +194,11 @@ class PopulationViewSet(viewsets.ModelViewSet):
             msg = f'Population for {kwargs} not found'
             return Response({'message': msg, }, status.HTTP_406_NOT_ACCEPTABLE)
 
-        drop_constraints = bool(strtobool(
-            request.data.get('drop_constraints', 'False')))
+        drop_constraints = request.data.get('drop_constraints', False)
         area_level = AreaLevel.objects.get(id=request.data.get('area_level'))
         aggregate_population(area_level, population,
                              drop_constraints=drop_constraints)
-
+        msg = 'success'
         return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
 
 
@@ -216,10 +215,9 @@ class PopulationViewSet(viewsets.ModelViewSet):
                               406: OpenApiResponse(MessageSerializer,
                                                    'Aggregation failed')})
     @action(methods=['POST'], detail=False,
-            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+            permission_classes=[HasAdminAccess | CanEditBasedata])
     def aggregateall_from_cell_to_area(self, request, **kwargs):
-        drop_constraints = bool(strtobool(
-            request.data.get('drop_constraints', 'False')))
+        drop_constraints = request.data.get('drop_constraints', False)
 
         aggregate_many(AreaLevel.objects.all(), Population.objects.all(),
                        drop_constraints=drop_constraints)
@@ -241,109 +239,143 @@ class PopulationViewSet(viewsets.ModelViewSet):
                               500: OpenApiResponse(MessageSerializer,
                                                    'Pull failed')})
     @action(methods=['POST'], detail=False,
-            permission_classes=[HasAdminAccessOrReadOnly | CanEditBasedata])
+            permission_classes=[HasAdminAccess | CanEditBasedata])
     def pull_regionalstatistik(self, request, **kwargs):
-        with ProtectedProcessManager(request.user):
-            CHUNK_SIZE = 10
-            age_groups = AgeGroup.objects.all()
-            if not RegStatAgeGroups.check(age_groups):
-                return Response({'message': 'Die Altersklassen stimmen nicht mit '
-                                 'denen der Regionalstatistik überein'},
-                                status=status.HTTP_406_NOT_ACCEPTABLE)
-            # ToDo: there is also is_default_pop_level. set is_default_pop_level
-            # automatically to the is_statistic_level level on completion
-            # or complain here with 406 if they are not the same atm?
+        logger.info('Frage Bevölkerungsdaten von der Regionalstatistik ab.')
+        age_groups = AgeGroup.objects.all()
+        if not RegStatAgeGroups.check(age_groups):
+            msg = ('Die Altersklassen stimmen nicht mit '
+                   'denen der Regionalstatistik überein')
+            logger.error(msg)
+            return Response({'message': msg},
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+        # ToDo: there is also is_default_pop_level. set is_default_pop_level
+        # automatically to the is_statistic_level level on completion
+        # or complain here with 406 if they are not the same atm?
+        try:
+            area_level = AreaLevel.objects.get(is_statistic_level=True)
+        except AreaLevel.DoesNotExist:
+            msg = 'Keine Gebietseinheit für die Statistiken definiert'
+            logger.error(msg)
+            return Response({'message': msg},
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        drop_constraints = request.data.get('drop_constraints', True)
+        run_sync = request.data.get('sync', False)
+
+        with ProtectedProcessManager(user=request.user,
+                                     scope=ProcessScope.POPULATION) as ppm:
+            if not run_sync:
+                ppm.run_async(self._pull_regionalstatistik, area_level,
+                              drop_constraints=drop_constraints)
+            else:
+                self._pull_regionalstatistik(area_level,
+                                             drop_constraints=drop_constraints)
+
+        return Response({
+            'message': f'Abruf der Bevölkerungsdaten gestartet'
+            }, status=status.HTTP_202_ACCEPTED)
+
+    @staticmethod
+    def _pull_regionalstatistik(area_level: AreaLevel, drop_constraints=False):
+        CHUNK_SIZE = 10
+        areas = Area.annotated_qs(area_level).filter(area_level=area_level)
+
+        min_max_years = Year.objects.all().aggregate(Min('year'), Max('year'))
+        settings = SiteSetting.load()
+        username = settings.regionalstatistik_user or None
+        password = settings.regionalstatistik_password or None
+        api = Regionalstatistik(start_year=min_max_years['year__min'],
+                                end_year=min_max_years['year__max'],
+                                username=username,
+                                password=password)
+        logger.info(f'Jahre {min_max_years["year__min"]} bis '
+                    f'{min_max_years["year__max"]} angefragt')
+        ags_list = areas.values_list('ags', flat=True)
+        frames = []
+        try:
+            chunks = math.ceil(len(ags_list) / CHUNK_SIZE)
+            for i in range(0, chunks):
+                j = i * CHUNK_SIZE
+                k = min(j+CHUNK_SIZE, len(ags_list))
+                ags = ags_list[j:k]
+                frames.append(api.query_population(ags=ags))
+                logger.info(f'{k}/{len(ags_list)} Gebiete abgefragt')
+        except PermissionDenied as e:
+            msg = ('Die Datenmenge ist zu groß, um sie ohne Konto bei der '
+            'Regionalstatistik abrufen zu können. Bitte benachrichtigen Sie '
+            'den/die Toolkoordinator/in, dass ein Konto beantragt und die '
+            'Zugangsdaten in den Grundeinstellungen von daviplan eingetragen '
+            'werden müssen. Falls dort bereits ein Konto eingetragen ist, '
+            'überprüfen Sie bitte die Gültigkeit der Zugangsdaten.')
+            logger.error(msg)
+            return
+        except Exception as e:
+            logger.error(str(e))
+            return
+        df_population = pd.concat(frames)
+        years = df_population['year'].unique()
+        years.sort()
+        logger.info('Bevölkerungsdaten für die Jahre '
+                    f'{", ".join(years.astype("str"))} gefunden')
+        logger.info('Verarbeite Bevölkerungsdaten')
+        regstatagegroups = RegStatAgeGroups.as_series()
+        area_ids = pd.DataFrame(
+            areas.values('id', 'ags')).set_index('ags').loc[:, 'id']
+        area_ids.name = 'area_id'
+
+        year_grouped = df_population.groupby('year')
+        year2population = {}
+        populations = []
+        Year.objects.all().update(is_real=False)
+        for y, year_group in year_grouped:
             try:
-                area_level = AreaLevel.objects.get(is_statistic_level=True)
-            except AreaLevel.DoesNotExist:
-                msg = 'No AreaLevel for statistics defined'
-                return Response({'message': msg, },
-                                status=status.HTTP_406_NOT_ACCEPTABLE)
-
-            areas = Area.annotated_qs(area_level).filter(area_level=area_level)
-
-            min_max_years = Year.objects.all().aggregate(Min('year'), Max('year'))
-            settings = SiteSetting.load()
-            username = settings.regionalstatistik_user or None
-            password = settings.regionalstatistik_password or None
-            api = Regionalstatistik(start_year=min_max_years['year__min'],
-                                    end_year=min_max_years['year__max'],
-                                    username=username,
-                                    password=password)
-            ags_list = areas.values_list('ags', flat=True)
-            frames = []
+                year = Year.objects.get(year=y)
+                year.is_real = True
+                year.is_prognosis = False
+                year.save()
+            except Year.DoesNotExist:
+                continue
+            # delete existing population and all depending objects
             try:
-                chunks = math.ceil(len(ags_list) / CHUNK_SIZE)
-                for i in range(0, chunks):
-                    j = i * CHUNK_SIZE
-                    ags = ags_list[j:min(j+CHUNK_SIZE, len(ags_list))]
-                    frames.append(api.query_population(ags=ags))
-            except PermissionDenied as e:
-                msg = ('Die Datenmenge ist zu groß, um sie ohne Konto bei der '
-                'Regionalstatistik abrufen zu können. Bitte benachrichtigen Sie '
-                'den/die Toolkoordinator/in, dass ein Konto beantragt und die '
-                'Zugangsdaten in den Grundeinstellungen von daviplan eingetragen '
-                'werden müssen. Falls dort bereits ein Konto eingetragen ist, '
-                'überprüfen Sie bitte die Gültigkeit der Zugangsdaten.')
-                return Response({'message': msg, },
-                                status=status.HTTP_403_FORBIDDEN)
-            except Exception as e:
-                return Response({'message': str(e),},
-                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                population = Population.objects.get(year=year, prognosis=None)
+                population.delete()
+            except Population.DoesNotExist:
+                pass
+            # (Re-)Create Population
+            population = Population.objects.create(year=year, prognosis=None)
+            populations.append(population)
+            year2population[year.year] = population.id
 
-            df_population = pd.concat(frames)
-            regstatagegroups = RegStatAgeGroups.as_series()
-            area_ids = pd.DataFrame(
-                areas.values('id', 'ags')).set_index('ags').loc[:, 'id']
-            area_ids.name = 'area_id'
+        y2p = pd.Series(year2population, name='population_id')
+        # add gender_id, agegroup_id, area_id and population_id
+        df_population = df_population\
+            .merge(regstatgenders, left_on='GES', right_index=True)\
+            .merge(regstatagegroups, left_on='ALTX20', right_index=True)\
+            .merge(area_ids, left_on='AGS', right_index=True)\
+            .merge(y2p, left_on='year', right_index=True)\
+            .rename(columns={'inhabitants': 'value', })\
+            .loc[:, ['population_id', 'area_id', 'gender_id', 'age_group_id', 'value']]
 
-            year_grouped = df_population.groupby('year')
-            year2population = {}
-            populations = []
-            for y, year_group in year_grouped:
-                try:
-                    year = Year.objects.get(year=y)
-                except Year.DoesNotExist:
-                    continue
-                # delete existing population and all depending objects
-                try:
-                    population = Population.objects.get(year=year, prognosis=None)
-                    population.delete()
-                except Population.DoesNotExist:
-                    pass
-                # (Re-)Create Population
-                population = Population.objects.create(year=year, prognosis=None)
-                populations.append(population)
-                year2population[year.year] = population.id
-
-            y2p = pd.Series(year2population, name='population_id')
-            # add gender_id, agegroup_id, area_id and population_id
-            df_population = df_population\
-                .merge(regstatgenders, left_on='GES', right_index=True)\
-                .merge(regstatagegroups, left_on='ALTX20', right_index=True)\
-                .merge(area_ids, left_on='AGS', right_index=True)\
-                .merge(y2p, left_on='year', right_index=True)\
-                .rename(columns={'inhabitants': 'value', })\
-                .loc[:, ['population_id', 'area_id', 'gender_id', 'age_group_id', 'value']]
-
-            drop_constraints = request.data.get('drop_constraints', True)
-            if not isinstance(drop_constraints, bool):
-                drop_constraints = strtobool(drop_constraints)
-
-            with StringIO() as file:
-                df_population.to_csv(file, index=False)
-                file.seek(0)
-                PopulationEntry.copymanager.from_csv(
-                    file,
-                    drop_constraints=drop_constraints, drop_indexes=drop_constraints,
-                )
-            for population in populations:
-                disaggregate_population(population, use_intersected_data=True,
-                                        drop_constraints=drop_constraints)
-            aggregate_many(AreaLevel.objects.all(), populations,
-                           drop_constraints=drop_constraints)
-            msg = 'Download of Population from Regionalstatistik successful'
-            return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
+        logger.info('Schreibe Bevölkerungsdaten in Datenbank')
+        with StringIO() as file:
+            df_population.to_csv(file, index=False)
+            file.seek(0)
+            PopulationEntry.copymanager.from_csv(
+                file,
+                drop_constraints=drop_constraints, drop_indexes=drop_constraints,
+            )
+        logger.info('Disaggregiere Bevölkerungsdaten')
+        for i, population in enumerate(populations):
+            disaggregate_population(population, use_intersected_data=True,
+                                    drop_constraints=drop_constraints)
+            logger.info(f'{i + 1}/{len(populations)}')
+        logger.info('Aggregiere Bevölkerungsdaten')
+        aggregate_many(AreaLevel.objects.all(), populations,
+                       drop_constraints=drop_constraints)
+        msg = ('Abfrage der Bevölkerungsdaten von der Regionalstatistik '
+               'erfolgreich')
+        logger.info(msg)
 
 
 class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
@@ -353,7 +385,7 @@ class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
                                  'upload_template': PopulationTemplateSerializer,
                                  }
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-    filter_fields = ['population']
+    filterset_fields = ['population']
 
     @extend_schema(description='Upload Population Template',
                    request=inline_serializer(
@@ -366,7 +398,8 @@ class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
                        }
                        ),
                    )
-    @action(methods=['POST'], detail=False, permission_classes=[CanEditBasedata])
+    @action(methods=['POST'], detail=False,
+            permission_classes=[HasAdminAccess | CanEditBasedata])
     def create_template(self, request, **kwargs):
         area_level_id = request.data.get('area_level')
         prognosis_id = request.data.get('prognosis')
@@ -377,8 +410,9 @@ class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
                                        prognosis_id=prognosis_id,
                                        )
 
-    @action(methods=['POST'], detail=False)
+    @action(methods=['POST'], detail=False,
+            permission_classes=[HasAdminAccess | CanEditBasedata],
+            parser_classes=[CamelCaseMultiPartParser])
     def upload_template(self, request):
         """Upload the filled out Stops-Template"""
-        with ProtectedProcessManager(request.user):
-            return super().upload_template(request)
+        return super().upload_template(request)

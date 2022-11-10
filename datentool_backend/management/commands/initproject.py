@@ -49,7 +49,7 @@ class Command(BaseCommand):
             source_type=SourceTypes.WFS
         )
         gem = AreaLevel.objects.create(id=1,
-                                       name='Gemeinde',
+                                       name='Gemeinden',
                                        symbol=symbol,
                                        source=source,
                                        is_preset=True,
@@ -66,7 +66,7 @@ class Command(BaseCommand):
             source_type=SourceTypes.WFS
         )
         vwg = AreaLevel.objects.create(id=2,
-                                       name='Verwaltungsgemeinschaft',
+                                       name='Verwaltungsgemeinschaften',
                                        symbol=symbol,
                                        source=source,
                                        is_preset=True,
@@ -81,7 +81,7 @@ class Command(BaseCommand):
             source_type=SourceTypes.WFS
         )
         krs = AreaLevel.objects.create(id=3,
-                                       name='Kreis',
+                                       name='Kreise',
                                        symbol=symbol,
                                        source=source,
                                        is_preset=True,
@@ -96,18 +96,24 @@ class Command(BaseCommand):
             source_type=SourceTypes.WFS
         )
         lan = AreaLevel.objects.create(id=4,
-                                       name='Bundesland',
+                                       name='Bundesländer',
                                        symbol=symbol,
                                        source=source,
                                        is_preset=True,
                                        order=0
                                        )
 
+
         # label and key fields for each level (as provided by BKG API)
-        for level in [gem, vwg, krs, lan]:
-            AreaField.objects.create(area_level=level, name='gen',
+        levels = {gem: ('gen', 'ags'),
+                  vwg: ('gen', 'ars'),
+                  krs: ('gen', 'ags'),
+                  lan: ('gen', 'ags'),
+                  }
+        for level, (label_field, key_field) in levels.items():
+            AreaField.objects.create(area_level=level, name=label_field,
                                      is_label=True, field_type=str_field)
-            AreaField.objects.create(area_level=level, name='ags',
+            AreaField.objects.create(area_level=level, name=key_field,
                                      is_key=True, field_type=str_field)
 
         # add raster

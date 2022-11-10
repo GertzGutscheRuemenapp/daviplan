@@ -16,7 +16,7 @@ class AgeGroupSerializer(serializers.ModelSerializer):
 
 
 class DemandRateSerializer(serializers.ModelSerializer):
-    filter_fields = ['demand_rate_set']
+    filterset_fields = ['demand_rate_set']
     year = serializers.IntegerField(source='year.year')
     class Meta:
         model = DemandRate

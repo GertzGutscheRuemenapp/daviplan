@@ -168,14 +168,14 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         infr.accessible_by.set([pr1])
         infr.save()
 
-        field1 = PlaceFieldFactory(name='int_field', sensitive=False,
+        field1 = PlaceFieldFactory(name='intfield', sensitive=False,
                                    field_type__ftype=FieldTypes.NUMBER,
                                    infrastructure=infr)
-        field2 = PlaceFieldFactory(name='text_field', sensitive=False,
+        field2 = PlaceFieldFactory(name='textfield', sensitive=False,
                                    field_type__ftype=FieldTypes.STRING,
                                    infrastructure=infr)
         field3 = PlaceFieldFactory(
-            name='class_field',
+            name='classfield',
             sensitive=False,
             field_type__ftype=FieldTypes.CLASSIFICATION,
             infrastructure=infr)
@@ -187,9 +187,9 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
                                 order=2,
                                 value='Category_2')
 
-        attributes = {'int_field': 123,
-                      'text_field': 'ABC',
-                      'class_field': 'Category_1', }
+        attributes = {'intfield': 123,
+                      'textfield': 'ABC',
+                      'classfield': 'Category_1', }
         place.attributes = attributes
         place.save()
 
@@ -200,9 +200,9 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         pr1, place = self.setup_place()
 
         patch_data = {'name': 'NewName',
-                      'attributes': {'int_field': 456,
-                                     'text_field': 'DEF',
-                                     'class_field': 'Category_2', }
+                      'attributes': {'intfield': 456,
+                                     'textfield': 'DEF',
+                                     'classfield': 'Category_2', }
                       }
 
         response = self.patch(self.url_key + '-detail', pk=place.pk,
@@ -226,14 +226,14 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         self.compare_data(attrs, patch_data)
 
         # patch only one value
-        patch_data = {'attributes': {'int_field': 678, }}
+        patch_data = {'attributes': {'intfield': 678, }}
         response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_200(msg=response.content)
 
-        expected = {'attributes': {'int_field': 678,
-                                   'text_field': 'DEF',
-                                   'class_field': 'Category_2', }
+        expected = {'attributes': {'intfield': 678,
+                                   'textfield': 'DEF',
+                                   'classfield': 'Category_2', }
                     }
         # check the results returned by the view
         attrs = response.data['attributes']
@@ -245,35 +245,35 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         self.compare_data(attrs, expected)
 
         # check if invalid attributes return a BadRequest
-        patch_data = {'attributes': {'integer_field': 456, }}
+        patch_data = {'attributes': {'integerfield': 456, }}
         response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_400(msg=response.content)
 
-        patch_data = {'attributes': {'int_field': '456', }}
+        patch_data = {'attributes': {'intfield': '456', }}
         response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_400(msg=response.content)
 
-        patch_data = {'attributes': {'text_field': 12.3, }}
+        patch_data = {'attributes': {'textfield': 12.3, }}
         response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_400(msg=response.content)
 
-        patch_data = {'attributes': {'class_field': 'Category_7', }}
+        patch_data = {'attributes': {'classfield': 'Category_7', }}
         response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_400(msg=response.content)
 
         # this should work
-        patch_data = {'attributes': {'class_field': 'Category_1', }}
+        patch_data = {'attributes': {'classfield': 'Category_1', }}
         response = self.patch(self.url_key + '-detail', pk=place.pk,
                               data=patch_data, extra=dict(format='json'))
         self.response_200(msg=response.content)
 
-        expected = {'attributes': {'int_field': 678,
-                                   'text_field': 'DEF',
-                                   'class_field': 'Category_1', }
+        expected = {'attributes': {'intfield': 678,
+                                   'textfield': 'DEF',
+                                   'classfield': 'Category_1', }
                     }
 
         attrs = response.data['attributes']
@@ -288,22 +288,23 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         self.client.logout()
         self.client.force_login(profile.user)
 
-        attributes2 = {'int_field': 789,
-                       'class_field': 'Category_2', }
+        attributes2 = {'intfield': 789,
+                       'classfield': 'Category_2', }
         place2 = PlaceFactory(infrastructure=place1.infrastructure,
                               attributes=attributes2)
 
         place_fields = PlaceField.objects.filter(
             infrastructure=place1.infrastructure,
-            name__in=['int_field', 'text_field', 'class_field'])
+            name__in=['intfield', 'textfield', 'classfield'])
 
         for place_field in place_fields:
             # deleting the place field should fail,
             # if there are attributes of this place_field
-            response = self.delete('placefields-detail', pk=place_field.pk)
+            response = self.delete('placefields-detail', pk=place_field.pk,
+                                   extra={'format': 'json'})
             self.response_403(msg=response.content)
 
-        field_name = 'int_field'
+        field_name = 'intfield'
         int_field = PlaceField.objects.get(name=field_name,
                                            infrastructure=place1.infrastructure)
 
@@ -311,7 +312,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         # from the place attributes
         response = self.delete('placefields-detail',
                                pk=int_field.pk,
-                               data=dict(force=True))
+                               data=dict(force=True), extra={'format': 'json'})
         self.response_204(msg=response.content)
 
         place_attributes = PlaceAttribute.objects.filter(
@@ -319,11 +320,11 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         self.assertQuerysetEqual(
             place_attributes, [], msg=f'{field_name} should be removed from the place attributes')
 
-        field_name = 'text_field'
+        field_name = 'textfield'
         text_field = PlaceField.objects.get(name=field_name,
                                             infrastructure=place1.infrastructure)
         # remove the text_field from place1, so there is no text_field defined
-        attributes = {'class_field': 'Category_1', }
+        attributes = {'classfield': 'Category_1', }
         place1.attributes = attributes
         place1.save()
 
@@ -331,7 +332,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         # because it is not referenced any more
         response = self.delete('placefields-detail',
                                pk=text_field.pk,
-                               data=dict(force=False))
+                               data=dict(force=False), extra={'format': 'json'})
         self.response_204(msg=response.content)
 
     def test_get_capacity_for_service(self):

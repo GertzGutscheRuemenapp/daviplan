@@ -1,18 +1,7 @@
-<app-scenario-menu domain="reachabilities" [ngClass]="{'expanded': planningService.showScenarioMenu}"></app-scenario-menu>
-<mat-expansion-panel class="side-toggle" id="scenario-toggle"
-                     [expanded]="planningService.showScenarioMenu">
-  <mat-expansion-panel-header (click)="planningService.showScenarioMenu=!planningService.showScenarioMenu;">
-    <mat-panel-title>
-      <div class="mini-fab-icon" [ngClass]="{'primary': planningService.showScenarioMenu}">
-        <div class="davicon icon-GGR-davicons-Font-Simple-2-Szenario"></div>
-      </div>
-      Szenario
-      <app-help-button title="Szenario" position="right">
-        <p>Sie können sich hier Ihre Erreichbarkeitsszenarien anzeigen lassen, diese editieren, neue hinzufügen und bestehende löschen.</p>
-      </app-help-button>
-    </mat-panel-title>
-  </mat-expansion-panel-header>
-</mat-expansion-panel>
+<app-scenario-menu domain="reachabilities" helpText="
+    <p>Wählen Sie hier das Szenario aus, dessen Erreichbarkeitsverhältnisse Sie in der Karte anzeigen möchten. Erreichbarkeiten beschreiben, wie lange der Nachfragenden mit unterschiedlichen Verkehrsmitteln zu den Einrichtungen brauchen (oder umgekehrt, z.B. bei der Feuerwehr).</p>
+    <p>Sie können die Erreichbarkeitsverhältnisse des Szenarien verändern, indem Sie – sofern vorhanden – ein anderes Wegenetz auswählen. Zudem können Sie ein neues Szenario hinzufügen oder ein bestehendes löschen.</p>">
+</app-scenario-menu>
 <mat-expansion-panel cookieExpansion="exp-reach-services">
   <mat-expansion-panel-header>
     <mat-panel-title>
@@ -21,8 +10,9 @@
       </div>
       Leistung/en
       <app-help-button title="Leistung/en" position="right">
-        <p>Wählen Sie hier im Dropdown-Menü den Infrastrukturbereich und per Checkbox die Leistungen aus dem jeweiligen Infrastrukturbereich aus. Mit dem Klick auf das Filtersymbol können Sie Filter auf Standorte setzen und bearbeiten.</p>
-        <p>Cluster, Verdrängung und Zoom auf alle stellen Darstellungsoptionen für die Karte dar. </p>
+        <p>Wählen Sie hier die Leistung aus, für die Sie die Erreichbarkeitsverhältnisse in der Karten anzeigen möchten. Wählen Sie hierzu zunächst im Dropdown-Menü den entsprechenden Infrastrukturbereich und dann per Checkbox die gewünschte Leistung.</p>
+        <p>Sie können zusätzlich Standorte nach eigenen Kriterien filtern. Klicken Sie hierzu auf das Filtersymbol neben dem Dropdown-Menü. Die in der Karte gezeigten Erreichbarkeitsverhältnisse berücksichtigen nur die Standorte Ihrer Filtereinstellung.</p>
+        <!--<p>Über die beiden Schalter „Cluster“ und „Verdrängung“ steuern sie, wie Standorte in der Karte dargestellt werden sollen, die nahe beieinander liegen oder sogar die gleiche Adresse haben. Die in der Karte gezeigten Erreichbarkeitsverhältnisse berücksichtigen immer den realen Standort der Einrichtungen.</p>-->
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
@@ -34,7 +24,7 @@
       style="margin-top: 7px;"
       (onFilter)="onFilter()"
       [infrastructure]="this.activeInfrastructure"
-      [places]="places"
+      [service]="this.activeService"
       [scenario]="activeScenario"
       [year]="year">
     </app-place-filter-button>
@@ -43,7 +33,7 @@
   <div>
     <ul style="list-style-type: none; margin: 10px 0 10px -28px;">
       <li><mat-slide-toggle color="primary">Cluster</mat-slide-toggle></li>
-      <li><mat-slide-toggle color="primary">Verdrängung</mat-slide-toggle></li>
+      <!--<li><mat-slide-toggle color="primary">Verdrängung</mat-slide-toggle></li>-->
       <li>
         <div class="row-button">
           <label i18n>Zoom auf alle</label>
@@ -63,48 +53,48 @@
         <div class="davicon icon-GGR-davicons-Font-Simple-5-Fortbewegung-Wegezeit"></div>
       </div>
       Indikator
-      <app-help-button title="Gebietseinheit" position="right">
-        Wählen Sie hier den Erreichbarkeitsindikator für die Darstellung in der Karte aus. Dargestelt stellt wird die Erreichbarkeit mit dem unten ausgewählten Verkehrsmittel. Sie haben dabei drei Optionen:
-        <ul>
-          <li>Erreichbarkeit eines Standortes mit ausgewählter Leistung von allen Wohnstandorten anzeigen (>gewünschten Standort mit Klick in die Karte auswählen)</li>
-          <li>Erreichbarkeit aller Standorte mit ausgewählter Leistung von einem Wohnstandort aus anzeigen (>gewünschten Wohnstandort mit Klick in die Karte auswählen)</li>
-          <li>Erreichbarkeit des jeweils nächsten Standortes mit ausgewählter Leistung für alle Wohnstandorte. </li>
-        </ul>
+      <app-help-button title="Erreichbarkeitsindikatoren" position="right" [width]="500">
+        <p>Sie können zwischen drei Erreichbarkeitsindikatoren wählen.</p>
+        <p>Die Ergebnisse beziehen Sie jeweils auf das unten links ausgewählte Verkehrsmittel. Berücksichtigt werden nur Einrichtungen, in denen im ausgewählten Jahr und Szenario die von Ihnen ausgewählte Leistung angeboten wird. Zudem werden Ihre Filtereinstellungen berücksichtigt.</p>
+        <b>Option „Von allen Wohnstandorten zu einem Angebot“</b>
+        <p>Klicken Sie auf „Einrichtung auswählen“ und wählen Sie anschließend in der Karte eine Einrichtung aus. In der Karten werden daraufhin alle Wohnstandorte in Abhängigkeit der Zeit eingefärbt, mit der von hier aus die gewählte Einrichtung mit dem ausgewählten Verkehrsmittel erreicht wird. Wohnstandorte, deren Wegzeit eine Maximalzeit übersteigt, werden nicht eingefärbt.</p>
+        <b>Option „Von einem Wohnstandort zu allen Angeboten“</b>
+        <p>Klicken Sie auf „Wohnstandort auswählen“ und wählen Sie anschließen in der Karte einen Wohnstandort aus. In der Karten werden daraufhin alle Einrichtungen in Abhängigkeit der Zeit eingefärbt, mit diese von dem gewählten Wohnstandort aus mit dem ausgewählten Verkehrsmittel erreicht werden.</p>
+        <b>Option „Von allen Wohnstandorten zum jeweils nächsten Angebot“</b>
+        <p>Wenn Sie diese Option wählen, werden in der Karte alle Wohnstandorte in Abhängigkeit der Zeit eingefärbt, mit der die jeweils am schnellsten erreichbare Einrichtung mit dem ausgewählten Verkehrsmittel erreicht wird.</p>
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
   <div id="indicator-select"><!--  <div style="padding-left: 8px;">-->
-    <mat-radio-group [(ngModel)]="indicator" (change)="toggleIndicator()">
-      <mat-radio-button value="option 1" color="primary" i18n>
-        von allen Wohnstandorten <br> zum Angebot
-      </mat-radio-button>
-      <div class="row-button"
-           [ngClass]="{'active': selectPlaceMode, 'disabled': indicator!=='option 1'}"
-           (click)="setPlaceSelection(!selectPlaceMode)">
-        <label i18n>Einrichtung auswählen</label>
-        <div class="fill-space"></div>
+    <mat-radio-group [(ngModel)]="indicator" (change)="onIndicatorChange()">
+      <mat-radio-button value="place" color="primary"
+                        style="width: 100%; margin-bottom: 10px;"
+                        title="Einrichtung mit Klick auf Einrichtung in Karte auswählen">
+        Von allen Wohnstandorten <br> zu einem Angebot
         <button color="primary"
-                [ngClass]="{inverted: selectPlaceMode}" class="small" mat-icon-button>
-          <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
+                style="position: absolute; right: 10px; margin-top: -15px; pointer-events: none;"
+                [ngClass]="{inverted: indicator === 'place'}" class="small" mat-icon-button>
+          <mat-icon class="material-icons-outlined">my_location</mat-icon>
         </button>
-      </div>
-      <mat-radio-button value="option 2" color="primary" i18n>
-        von einem Wohnstandort <br> zu allen Angeboten
       </mat-radio-button>
-      <div class="row-button"
-           [ngClass]="{'active': placeMarkerMode, 'disabled': indicator!=='option 2'}"
-           (click)="setMarkerPlacement(!placeMarkerMode)">
-        <label i18n>Wohnstandort auswählen</label>
-        <div class="fill-space"></div>
-        <button color="primary" *ngIf="!placeMarkerMode" class="small" mat-icon-button>
-          <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
+<!--      <p *ngIf="indicator === 'place'" style="color: grey; text-align: end; margin-top: -10px; padding-right: 25px;">
+        Ort auf der Karte auswählen &ndash;&gt;
+      </p>-->
+      <mat-radio-button value="cell" color="primary"
+                        style="width: 100%; margin-bottom: 10px;"
+                        title="Wohnstandort mit Klick auf Karte auswählen">
+        Von einem Wohnstandort <br> zu allen Angeboten
+        <button color="primary"
+                style="position: absolute; right: 10px; margin-top: -15px; pointer-events: none;"
+                [ngClass]="{inverted: indicator === 'cell'}" class="small" mat-icon-button>
+          <mat-icon class="material-icons-outlined">location_on</mat-icon>
         </button>
-        <button color="primary" *ngIf="placeMarkerMode" class="small no-shadow" mat-mini-fab>
-          <mat-icon class="material-icons-outlined">pin_drop</mat-icon>
-        </button>
-      </div>
-      <mat-radio-button value="option 3" color="primary" i18n>
-        von allen Wohnstandorten <br> zum jeweils nächsten Angebot
+      </mat-radio-button>
+<!--      <p *ngIf="indicator === 'cell'" style="color: grey; text-align: end; margin-top: -10px; padding-right: 25px;">
+        Markierung auf der Karte setzen &ndash;&gt;
+      </p>-->
+      <mat-radio-button value="next" color="primary">
+        Von allen Wohnstandorten <br> zum jeweils nächsten Angebot
       </mat-radio-button>
     </mat-radio-group>
   </div>
@@ -116,57 +106,12 @@
         <mat-icon class="material-icons-outlined">directions_bus_filled</mat-icon>
       </div>
       Verkehrsmittel
-      <app-help-button title="Gebietseinheit" position="right">
+      <app-help-button title="Verkehrsmittel" position="right">
         <p>Wählen Sie hier das Verkehrsmittel für die Erreichbarkeitsdarstellung.</p>
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
-  <div id="mode-select" class="sub-select-wrapper" style="display: flex">
-    <div (click)="changeMode(TransportMode.WALK)" title="zu Fuß"
-         [ngClass]="{'selected': mode === TransportMode.WALK}">
-      <div class="mini-fab-icon primary"
-           [ngClass]="{'inverted': mode === TransportMode.WALK}"
-           style="cursor: pointer;">
-        <mat-icon style="font-size: 20px;" class="material-icons-outlined">directions_walk</mat-icon>
-      </div>
-      <div>
-        zu Fuß
-      </div>
-    </div>
-    <div (click)="changeMode(TransportMode.BIKE)" title="Fahrrad"
-         [ngClass]="{'selected': mode === TransportMode.BIKE}">
-      <div class="mini-fab-icon primary"
-           [ngClass]="{'inverted': mode === TransportMode.BIKE}"
-           title="Fahrrad" style="cursor: pointer;">
-        <mat-icon style="font-size: 20px;" class="material-icons-outlined">directions_bike</mat-icon>
-      </div>
-      <div>
-        Rad
-      </div>
-    </div>
-    <div (click)="changeMode(TransportMode.CAR)" title="Auto"
-         [ngClass]="{'selected': mode === TransportMode.CAR}">
-      <div class="mini-fab-icon primary"
-           [ngClass]="{'inverted': mode === TransportMode.CAR}"
-           style="cursor: pointer;">
-        <div class="davicon icon-GGR-davicons-Font-Simple-17-PKW"></div>
-      </div>
-      <div style="margin-top: -4px;">
-        Auto
-      </div>
-    </div>
-    <div title="ÖPNV (nicht verfügbar)" class="disabled"
-         [ngClass]="{'selected': mode === TransportMode.TRANSIT}"> <!--(click)="transportMode = TransportMode.TRANSIT"-->
-      <div class="mini-fab-icon primary disabled"
-           [ngClass]="{'inverted': mode === TransportMode.TRANSIT}"
-           style="cursor: pointer;">
-        <div class="davicon icon-GGR-davicons-Font-Simple-18-OEPNV"></div>
-      </div>
-      <div style="margin-top: -4px;">
-        ÖPNV
-      </div>
-    </div>
-  </div>
+  <app-mode-select [mode]="activeMode" (modeChanged)="changeMode($event)"></app-mode-select>
 </mat-expansion-panel>
 
 <ng-template #filterTemplate>

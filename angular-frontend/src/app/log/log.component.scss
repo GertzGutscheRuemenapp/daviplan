@@ -5,4 +5,11 @@
   box-sizing: border-box;
   overflow-x: hidden;
   overflow-y: auto;
+  border: 1px solid lightgrey;
+  background-color: #fbfbfb;
+  pointer-events: all;
+}
+
+.log-row {
+  margin-bottom: 0;
 }

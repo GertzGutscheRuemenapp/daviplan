@@ -257,9 +257,12 @@ class BasicModelPutPatchTest:
         if 'id' in response.data:
             assert response.data['id'] == self.obj.pk
 
+        data = self.put_data.copy()
+        data['sync'] = True
+
         # check status code for put
         response = self.put(url, **kwargs,
-                            data=self.put_data,
+                            data=data,
                             extra=formatjson)
         self.response_200(msg=response.content)
         assert response.status_code == status.HTTP_200_OK
@@ -270,9 +273,12 @@ class BasicModelPutPatchTest:
         expected.update(self.expected_put_data)
         self.compare_data(response.data, expected)
 
+        data = self.patch_data.copy()
+        data['sync'] = True
+
         # check status code for patch
         response = self.patch(url, **kwargs,
-                              data=self.patch_data, extra=formatjson)
+                              data=data, extra=formatjson)
         self.response_200(msg=response.content)
 
         # check if name has changed
@@ -298,7 +304,7 @@ class BasicModelPostDeleteTest:
         response = self.get_check_200(url, **kwargs)
         data = response.data
 
-        response = self.delete(url, **kwargs)
+        response = self.delete(url, **kwargs, extra={'format': 'json'})
         self.response_204(msg=response.content)
 
         # it should be deleted and raise 404
@@ -309,7 +315,7 @@ class BasicModelPostDeleteTest:
         """Test that delete is forbidden"""
         kwargs = self.kwargs
         url = self.url_key + '-detail'
-        response = self.delete(url, **kwargs)
+        response = self.delete(url, **kwargs, extra={'format': 'json'})
         self.response_403(msg=response.content)
 
     def test_post(self):
@@ -397,7 +403,7 @@ class BasicModelWritePermissionTest(BasicModelTest):
         self.profile.user.user_permissions.clear()
         kwargs = {**self.url_pks, 'pk': self.obj.pk, }
         url = self.url_key + '-detail'
-        response = self.delete(url, **kwargs)
+        response = self.delete(url, **kwargs, extra={'format': 'json'})
         self.response_403(msg=response.content)
 
     def test_put_permission(self):
@@ -421,12 +427,12 @@ class WriteOnlyWithCanEditBaseDataTest:
 
     def test_delete(self):
         """Test delete with and without can_edit_basedata permissions"""
-        self.profile.can_edit_basedata = True
-        self.profile.save()
-        self._test_delete()
         self.profile.can_edit_basedata = False
         self.profile.save()
         self._test_delete_forbidden()
+        self.profile.can_edit_basedata = True
+        self.profile.save()
+        self._test_delete()
 
     def test_post(self):
         """Test post with and without can_edit_basedata permissions"""

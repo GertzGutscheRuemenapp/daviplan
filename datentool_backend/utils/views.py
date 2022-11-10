@@ -1,7 +1,5 @@
 from django.http import HttpResponseForbidden
 from django.db.models import ProtectedError
-from django.utils.translation import ugettext as _
-
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 
@@ -46,7 +44,7 @@ class ProtectCascadeMixin:
         force = request.query_params.get(
             'force', False) or request.data.get(
             'force', False)
-        self.use_protection = force not in ('true', 'True', True)
+        self.use_protection = force not in ('true', 'true/', 'True', 'True/', True)
         try:
             response = super().destroy(request, **kwargs)
         except ProtectedError as err:
@@ -54,7 +52,7 @@ class ProtectCascadeMixin:
             show = 5
             n_objects = len(qs)
             msg_n_referenced = '{} {}:'.format(n_objects,
-                                               _('Referencing Object(s)')
+                                               ('Referencing Object(s)')
                                                )
             msg = '<br/>'.join(list(err.args[:1]) +
                                [msg_n_referenced] +

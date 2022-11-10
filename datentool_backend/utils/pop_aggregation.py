@@ -13,15 +13,22 @@ from datentool_backend.models import (Area, PopulationRaster, AreaCell,
                                       RasterCellPopulationAgeGender,
                                       RasterCellPopulation)
 
-def disaggregate_population(population, use_intersected_data=False,
-                            drop_constraints=False):
+import logging
+
+logger = logging.getLogger('population')
+
+def disaggregate_population(population: Population,
+                            use_intersected_data: bool=False,
+                            drop_constraints: bool=False):
     areas = population.populationentry_set.distinct('area_id')\
         .values_list('area_id', flat=True)
+    if not areas:
+        return 'skipped'
 
     popraster = population.popraster or PopulationRaster.objects.first()
 
     ac = AreaCell.objects.filter(area__in=areas,
-                                 cell__popraster=popraster)
+                                 rastercellpop__popraster=popraster)
 
     # if rastercells are not intersected yet
     if ac and use_intersected_data:
@@ -31,14 +38,14 @@ def disaggregate_population(population, use_intersected_data=False,
                                     pop_raster=population.popraster)
         msg = f'{len(areas)} Areas intersected with Rastercells.\n'
         ac = AreaCell.objects.filter(area__in=areas,
-                                     cell__popraster=population.popraster)
+                                     rastercellpop__popraster=population.popraster)
     if not ac:
         return 'no area cells found to intersect with'
 
     # get the intersected data from the database
     df_area_cells = pd.DataFrame.from_records(
-        ac.values('cell__cell_id', 'area_id', 'share_cell_of_area'))\
-        .rename(columns={'cell__cell_id': 'cell_id', })
+        ac.values('rastercellpop__cell_id', 'area_id', 'share_cell_of_area'))\
+        .rename(columns={'rastercellpop__cell_id': 'cell_id', })
 
     # take the Area population by age_group and gender
     entries = population.populationentry_set
@@ -105,7 +112,8 @@ def disaggregate_population(population, use_intersected_data=False,
     return msg
 
 def intersect_areas_with_raster(
-    areas: List[Area], pop_raster: PopulationRaster=None,
+    areas: List[Area],
+    pop_raster: PopulationRaster=None,
     drop_constraints: bool=False):
     '''
     intersect areas with raster creating AreaCells in database,
@@ -176,9 +184,10 @@ def intersect_areas_with_raster(
 
     df2 = df[['rcp_id', 'share_area_of_cell', 'share_cell_of_area']]\
         .reset_index()\
-        .rename(columns={'rcp_id': 'cell_id'})[['area_id', 'cell_id', 'share_area_of_cell', 'share_cell_of_area']]
+        .rename(columns={'rcp_id': 'rastercellpop_id'})[
+            ['area_id', 'rastercellpop_id', 'share_area_of_cell', 'share_cell_of_area']]
 
-    ac = AreaCell.objects.filter(area__in=areas, cell__popraster=pop_raster)
+    ac = AreaCell.objects.filter(area__in=areas, rastercellpop__popraster=pop_raster)
     ac.delete()
 
     with StringIO() as file:
@@ -195,7 +204,7 @@ def aggregate_many(area_levels, populations, drop_constraints=False):
             manager.drop_constraints()
             manager.drop_indexes()
 
-        for area_level in area_levels:
+        for i, area_level in enumerate(area_levels):
             for population in populations:
                 aggregate_population(area_level, population,
                                      drop_constraints=False)
@@ -209,6 +218,8 @@ def aggregate_many(area_levels, populations, drop_constraints=False):
             area_level.max_population = max_value
             area_level.population_cache_dirty = False
             area_level.save()
+            logger.info(f'Daten auf Gebietseinheit {area_level.name} aggregiert '
+                        f'{i + 1}/{len(area_levels)}')
 
         if drop_constraints:
             manager.restore_constraints()
@@ -222,7 +233,7 @@ def aggregate_population(area_level: AreaLevel, population: Population,
     rcp = RasterCellPopulation.objects.all()
 
     q_acells, p_acells = acells.values(
-        'area_id', 'cell_id', 'share_area_of_cell').query.sql_with_params()
+        'area_id', 'rastercellpop_id', 'share_area_of_cell').query.sql_with_params()
     q_pop, p_pop = rasterpop.values(
         'population_id', 'cell_id', 'value', 'age_group_id', 'gender_id')\
         .query.sql_with_params()
@@ -239,7 +250,7 @@ def aggregate_population(area_level: AreaLevel, population: Population,
       ({q_acells}) AS ac,
       ({q_pop}) AS p,
       ({q_rcp}) AS rcp
-    WHERE ac."cell_id" = rcp."id"
+    WHERE ac."rastercellpop_id" = rcp."id"
     AND p."cell_id" = rcp."cell_id"
     GROUP BY p."population_id", ac."area_id", p."age_group_id", p."gender_id"
     '''

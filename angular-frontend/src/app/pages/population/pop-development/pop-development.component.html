@@ -73,7 +73,7 @@
             (click)="editAgeGroups()">
       <mat-icon>edit</mat-icon>
     </button>-->
-    <div class="border-box" style="margin-top: 10px">
+    <div class="border-box" style="margin-top: 10px; max-height: 300px;">
       <mat-checkbox class="reverse" color="primary"
                     [indeterminate]="someAgeGroupsChecked()"
                     [checked]="allAgeGroupsChecked"
@@ -90,7 +90,7 @@
     </div>
   </div>
 </mat-expansion-panel>
-<mat-expansion-panel cookieExpansion="exp-pop-compare" class="disabled">
+<mat-expansion-panel cookieExpansion="exp-pop-compare">
   <mat-expansion-panel-header>
     <mat-panel-title>
       <div class="mini-fab-icon">
@@ -102,23 +102,35 @@
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
-  <mat-checkbox color="primary" [(ngModel)]="compareYears" style="width: 230px; margin-bottom: 10px;"
-                i18n>Ausgewählte Bevölkerungs- daten vergleichen mit denen aus dem Jahr
-  </mat-checkbox> <!--style="margin: 0 0 10px -12px;"-->
-<!--    Bevölkerungsstruktur vergleichen-->
+  <mat-checkbox color="primary" [(ngModel)]="compareYears"
+                style="width: 230px; margin-bottom: 10px;"
+                (change)="onUpdateCompare()">
+    Ausgewählte Bevölkerungs- daten vergleichen mit denen aus dem Jahr
+  </mat-checkbox>
   <mat-form-field *ngIf="realYears && prognosisYears" appearance="outline" class="small">
-    <mat-label>Jahr</mat-label>
-    <mat-select disableOptionCentering disableRipple [value]="realYears[0]" [disabled]="!compareYears">
-      <mat-option *ngFor="let year of realYears.concat(prognosisYears)" [value]="year">
-        {{year}}
-      </mat-option>
+    <mat-label>Vergleichsjahr</mat-label>
+    <mat-select disableOptionCentering disableRipple
+                [(ngModel)]="comparedYear"
+                [disabled]="!compareYears"
+                (selectionChange)="onUpdateCompare()">
+      <mat-optgroup>
+        <mat-option *ngFor="let year of realYears" [value]="year">
+          {{year}}
+        </mat-option>
+      </mat-optgroup>
+      <mat-optgroup label="Prognosejahre">
+        <mat-option *ngFor="let year of prognosisYears" [value]="year">
+          {{year}}
+        </mat-option>
+      </mat-optgroup>
     </mat-select>
   </mat-form-field>
 </mat-expansion-panel>
 
 <!--this div is only there to cover glitched shadow of chart toggle-->
 <div style="width: 100%; height: 20px; background-color: white;"></div>
-<app-side-toggle id="chart-toggle"
+<app-side-toggle #chartToggle
+                 id="chart-toggle"
                  icon="multiline_chart"
                  direction="right"
                  name="Diagramme"
@@ -134,7 +146,7 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
-    <app-help-button title="Gebiet" position="left" style="margin-left: 5px;" [top]="50">
+    <app-help-button title="Gebiet" position="right" style="margin-left: 5px;" [top]="50">
       <p>Wählen Sie aus dem Dropdown-Menü das Gebiet, für das Sie sich Ergebnisse in Diagrammen anzeigen lassen wollen.</p>
       <p>Alternativ können Sie ein Gebiet auch in der Karte auswählen durch einen Klick auf selbiges.</p>
     </app-help-button>
@@ -143,14 +155,15 @@
     <mat-tab label="Bevölkerungsentwicklung">
       <ng-template matTabContent>
         <div class="diagram-wrapper">
-          <app-help-button title="Bevölkerungsentwicklung" position="left"
-                           style="position: absolute; right: 0; top: 10px; z-index: 1;">
+          <app-help-button title="Bevölkerungsentwicklung" position="right"
+                           style="position: absolute; left: 0; top: 10px; z-index: 1;">
             <p>Das Diagramm stellt die absolute Entwicklung der Bevölkerungszahl des oben ausgewählten Gebiets dar. Passen Sie die Darstellung ggf. durch Auswahl des Geschlechtes sowie der Altersklassen auf der linken Seite an.</p>
           </app-help-button>
           <div *ngIf="selectedTab===0">
             <app-stacked-barchart #barChart
                                   xLabel="Jahre"
                                   yLabel="Einwohner"
+                                  [showPNGExport]="true"
                                   [animate]="true"
                                   [labels]="barChartProps.labels"
                                   [colors]="barChartProps.colors"
@@ -166,8 +179,8 @@
     <mat-tab label="Altersgruppenentwicklung">
       <ng-template matTabContent>
         <div class="diagram-wrapper">
-          <app-help-button title="relative Altersgruppenentwicklung" position="left"
-                           style="position: absolute; right: 0; top: 10px; z-index: 1;">
+          <app-help-button title="relative Altersgruppenentwicklung" position="right"
+                           style="position: absolute; left: 0; top: 10px; z-index: 1;">
             <p>Das Diagramm stellt die relative Entwicklung der Bevölkerungszahl des oben ausgewählten Gebiets dar. Das erste im Datensatz verfügbare Jahr wird auf 100%, alle anderen Jahre dazu ins Verhältnis gesetzt. Passen Sie die Darstellung ggf. durch Auswahl des Geschlechtes sowie der Altersklassen auf der linken Seite an.</p>
           </app-help-button>
           <div *ngIf="selectedTab===1">
@@ -175,6 +188,7 @@
                                  figureId="einwohnerrelativ"
                                  xLabel="Jahre"
                                  yLabel="Einwohner relativ"
+                                 [showPNGExport]="true"
                                  [animate]="true"
                                  [yOrigin]="100"
                                  [shiftXLabelDown]="true"
@@ -195,13 +209,14 @@
     <mat-tab label="Bevölkerungspyramide">
       <ng-template matTabContent>
         <div class="diagram-wrapper">
-          <app-help-button title="Bevölkerungspyramide" position="left"
-                           style="position: absolute; right: 0; top: 10px; z-index: 1;">
-            <p>Platzhalter</p>
+          <app-help-button title="Bevölkerungspyramide" position="right"
+                           style="position: absolute; left: 0; top: 10px; z-index: 1;">
+            <p>Das Diagramm zeigt die Zahl der Einwohner (blau) und EInwohnerinnen (rot) nach Altersgruppe an. Die Balkenlänge entspricht der mittleren Jahrgangsstärke der betreffenden Altersgruppe. Die Balkenhöhe entspricht der Anzahl an Altersjahren in der Altersgruppe. Gibt es in einem Gebiet z.B. 100 10 bis unter 15-Jährige Frauen, so ist der rote Balken 5 Einheiten hoch (für fünf Jahrgänge) und 20 Einheiten breit (für im Mittel 20 Personen pro Jahrgang). Passen Sie die Darstellung ggf. durch Auswahl des Geschlechtes sowie der Altersklassen auf der linken Seite an.</p>
           </app-help-button>
           <div *ngIf="selectedTab===2">
             <app-age-tree #ageTree
                           figureId="bevpyramide"
+                          [showPNGExport]="true"
                           [animate]="true"
                           [title]="ageTreeProps.title"
                           subtitle="{{ageTreeProps.subtitle}} {{year}}"

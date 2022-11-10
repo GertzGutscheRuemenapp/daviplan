@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 
 from io import StringIO
-from distutils.util import strtobool
 
 from osgeo import gdal, ogr, osr
 from django.contrib.gis.geos import Point, Polygon
@@ -131,8 +130,8 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
     @staticmethod
     def _intersect_census(popraster, drop_constraints=False):
-        fp = os.path.join(settings.POPRASTER_ROOT, popraster.filename)
-        fp_clip = os.path.join(settings.POPRASTER_ROOT, 'clipped.tif')
+        fp = os.path.join(settings.DATA_ROOT, popraster.filename)
+        fp_clip = os.path.join(settings.DATA_ROOT, 'clipped.tif')
 
         raster = gdal.Open(fp)
         srs = raster.GetSpatialRef()
@@ -313,8 +312,7 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                 )
     @action(methods=['POST'], detail=True)
     def intersect_census(self, request, pk):
-        drop_constraints = bool(strtobool(
-            request.data.get('drop_constraints', 'False')))
+        drop_constraints = request.data.get('drop_constraints', False)
         try:
             df_rcpopulation = self._intersect_census(
                 PopulationRaster.objects.get(pk=pk),

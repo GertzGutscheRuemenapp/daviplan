@@ -1,6 +1,6 @@
 from factory.django import DjangoModelFactory
 
-from .models import (Mode, ModeVariant, CutOffTime, Network)
+from datentool_backend.modes.models import (Mode, ModeVariant, CutOffTime, Network)
 from datentool_backend.infrastructure.factories import InfrastructureFactory
 
 import factory

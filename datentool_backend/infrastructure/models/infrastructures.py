@@ -1,19 +1,15 @@
-from typing import List
-
 from django.db import models
-from django.db.models import Q
-from django.contrib.gis.db import models as gis_models
-from sql_util.utils import Exists
+from django.db.models.constraints import UniqueConstraint
+from django.db.models.functions import Lower
 
 from datentool_backend.base import (NamedModel,
                                     DatentoolModelMixin,
                                     )
 from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
-from datentool_backend.utils.copy_postgres import DirectCopyManager
 
-from datentool_backend.area.models import (FieldType, FieldTypes,
-                                           MapSymbol)
+from datentool_backend.area.models import (FieldType, MapSymbol)
 from datentool_backend.user.models.profile import Profile
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class Infrastructure(DatentoolModelMixin, NamedModel, models.Model):
@@ -38,7 +34,7 @@ class Infrastructure(DatentoolModelMixin, NamedModel, models.Model):
         """the label field derived from the Fields"""
         try:
             return self.placefield_set.get(is_label=True).name
-        except PlaceField.DoesNotExist:
+        except ObjectDoesNotExist:
             return ''
 
 
@@ -51,18 +47,33 @@ class InfrastructureAccess(models.Model):
 class PlaceField(DatentoolModelMixin, models.Model):
     """a field of a Place of this infrastructure"""
     name = models.TextField()
-    infrastructure = models.ForeignKey(Infrastructure, on_delete=PROTECT_CASCADE)
+    infrastructure = models.ForeignKey(Infrastructure, on_delete=models.CASCADE)
     field_type = models.ForeignKey(FieldType, on_delete=PROTECT_CASCADE)
     is_label = models.BooleanField(null=True, default=None)
     sensitive = models.BooleanField(default=False)
     unit = models.TextField(blank=True, default='')
+    is_preset = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = [['infrastructure', 'name'],
-                           ['infrastructure', 'is_label']]
+        constraints = [UniqueConstraint('infrastructure',
+                                        Lower('name'),
+                                        name='unique_infra_field_name_lower_constraint'),
+                       UniqueConstraint('infrastructure',
+                                        'is_label',
+                                        name='unique_infra_field_is_label_constraint')]
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__}: {self.name} ({self.infrastructure.name})'
+
+DEFAULT_WORDING = {
+    'capacity_singular_unit': 'Kapazitätseinheit',
+    'capacity_plural_unit': 'Kapazitätseinheiten',
+    'demand_singular_unit': 'Nachfragende:r',
+    'demand_plural_unit': 'Nachfragende',
+    'facility_singular_unit': 'Einrichtung',
+    'facility_article': 'die',
+    'facility_plural_unit':  'Einrichtungen',
+}
 
 
 class Service(DatentoolModelMixin, NamedModel, models.Model):
@@ -81,13 +92,12 @@ class Service(DatentoolModelMixin, NamedModel, models.Model):
     quota_type = models.TextField()
     description = models.TextField(blank=True)
     infrastructure = models.ForeignKey(Infrastructure,
-                                       on_delete=PROTECT_CASCADE)
+                                       on_delete=models.CASCADE)
     editable_by = models.ManyToManyField(Profile,
                                          related_name='service_editable_by',
                                          blank=True)
     capacity_singular_unit = models.TextField(null=True, blank=True)
     capacity_plural_unit = models.TextField(null=True, blank=True)
-    has_capacity = models.BooleanField(null=True, blank=True)
     demand_singular_unit = models.TextField(null=True, blank=True)
     demand_plural_unit = models.TextField(null=True, blank=True)
     demand_name = models.TextField(null=True, blank=True)
@@ -100,3 +110,11 @@ class Service(DatentoolModelMixin, NamedModel, models.Model):
         choices=WayRelationship.choices, default=WayRelationship.TO)
     demand_type = models.IntegerField(
         choices=DemandType.choices, default=DemandType.QUOTA)
+
+    def save(self, **kwargs):
+        super().save(**kwargs)
+        for attribute, text in DEFAULT_WORDING.items():
+            cur_text = getattr(self, attribute)
+            if not cur_text:
+                setattr(self, attribute, text)
+        super().save()

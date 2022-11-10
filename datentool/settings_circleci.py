@@ -14,3 +14,30 @@ DATABASES = {
         'PORT': '5432'
     }
 }
+
+
+OSRM_ROUTING = {
+    'CAR': {
+        'alias': 'car',
+        'host': 'localhost',
+        'service_port': 8001,
+        'routing_port': 5001,
+    },
+    'BIKE': {
+        'alias': 'bicycle',
+        'host': 'localhost',
+        'service_port': 8001,
+        'routing_port': 5002,
+    },
+    'WALK': {
+        'alias': 'foot',
+        'host': 'localhost',
+        'service_port': 8001,
+        'routing_port': 5003,
+    },
+}
+
+# workaround: deactivate loggers may cause errors while running tests in circleci
+LOGGING['loggers'] = {}
+# sync=True preserves database connections, disabled for circleci
+Q_CLUSTER['sync'] = False

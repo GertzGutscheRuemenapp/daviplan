@@ -10,6 +10,7 @@ import { Subscription } from "rxjs";
 })
 export class ServiceSelectComponent implements OnInit, OnDestroy {
   infrastructures: Infrastructure[] = [];
+  activeInfrastructures: Infrastructure[] = [];
   services: Service[] = [];
   subscriptions: Subscription[] = [];
   selectedService?: Service;
@@ -17,17 +18,19 @@ export class ServiceSelectComponent implements OnInit, OnDestroy {
 
   constructor(public planningService: PlanningService) {
     this.planningService.getInfrastructures().subscribe( infrastructures => {
-      this.infrastructures = infrastructures;
+      this.activeInfrastructures = this.infrastructures = infrastructures.filter(i => (i.services.length > 0));
       this.services = [];
       this.infrastructures?.forEach(i => this.services = this.services.concat(i.services));
-      this.planningService.activeInfrastructure$.subscribe(
-        infrastructure => this.selectedInfrastructure = this.infrastructures?.find(i => i.id === infrastructure?.id));
-      this.planningService.activeService$.subscribe(service => this.selectedService = service);
+      this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(
+        infrastructure => this.selectedInfrastructure = this.activeInfrastructures?.find(i => i.id === infrastructure?.id)));
+      this.subscriptions.push(this.planningService.activeService$.subscribe(service => this.selectedService = service));
+      this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
+          this.activeInfrastructures = process? this.infrastructures.filter(i => process.infrastructures!.indexOf(i.id) > -1): [];
+      }))
     })
   }
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void { }
 
   onInfrastructureChange() {
     this.planningService.activeInfrastructure$.next(this.selectedInfrastructure);

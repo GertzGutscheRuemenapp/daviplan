@@ -11,13 +11,15 @@ from datentool_backend.area.models import Area
 class DemandPerFacility(ServiceIndicator):
     '''Nachfragende nach betrachteter Leistung in einer Gebietseinheit pro
     Einrichtung mit dieser Leistung in der gleichen Gebietseinheit'''
-    title = 'Nachfrage pro Einrichtung'
+    title = 'Nachfrage pro Einrichtung im Gebiet'
+    representation = 'colorramp'
+    colormap_name = 'Oranges'
     result_serializer = ResultSerializer.AREA
 
     @property
     def description(self):
-        return (f'{self.service.demand_plural_unit or "Nachfragende"} pro '
-                f'{self.service.facility_singular_unit or "Einrichtung"}')
+        return (f'{self.service.demand_plural_unit} pro '
+                f'{self.service.facility_singular_unit}')
 
     def compute(self):
         demand_area_indicator = DemandAreaIndicator(self.data)
@@ -33,6 +35,7 @@ class DemandPerFacility(ServiceIndicator):
 
         query = f'''SELECT
         l."id",
+        d."_label",
         CASE WHEN COALESCE(l."value", 0) = 0 THEN NULL
         ELSE COALESCE(d."value", 0) / l."value"
         END AS "value"

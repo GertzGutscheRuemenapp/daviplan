@@ -5,15 +5,12 @@ import {
   Area,
   AreaLevel,
   Infrastructure,
-  PlanningProcess,
-  Scenario,
-  Service
+  PlanningProcess
 } from "../../../rest-interfaces";
 import { map } from "rxjs/operators";
 import { forkJoin, Observable, Subscription } from "rxjs";
 import { MapControl, MapService } from "../../../map/map.service";
-import { SelectionModel } from "@angular/cdk/collections";
-import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { MapLayerGroup, ValueStyle, VectorLayer } from "../../../map/layers";
 import * as d3 from "d3";
 
 @Component({
@@ -26,13 +23,10 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   compareSupply = true;
   compareStatus = 'option 1';
   infrastructures: Infrastructure[] = [];
-  activeInfrastructure?: Infrastructure;
   activeLevel?: AreaLevel;
-  activeService?: Service;
   areaLevels: AreaLevel[] = [];
   areas: Area[] = [];
   activeProcess?: PlanningProcess;
-  activeScenario?: Scenario;
   realYears?: number[];
   prognosisYears?: number[];
   mapControl?: MapControl;
@@ -49,18 +43,12 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
     this.layerGroup = new MapLayerGroup('Nachfrage', { order: -1 })
     this.mapControl.addGroup(this.layerGroup);
     this.subscriptions.push(this.planningService.activeProcess$.subscribe(process => {
-      this.activeProcess = process;
       this.updateMap();
     }));
     this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
-      this.activeScenario = scenario;
       this.updateMap();
     }));
-    this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
-      this.activeInfrastructure = infrastructure;
-    }))
     this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
-      this.activeService = service;
       this.updateMap();
     }))
     this.initData();
@@ -104,31 +92,59 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   }
 
   updateMap(): void {
-    if (this.demandLayer) {
+/*    if (this.demandLayer) {
       this.layerGroup?.removeLayer(this.demandLayer);
       this.demandLayer = undefined;
-    }
-    if (!this.year || !this.activeLevel || !this.activeService || !this.activeProcess) return;
+    }*/
+    this.layerGroup?.clear();
+    if (!this.year || !this.activeLevel  || !this.planningService.activeInfrastructure || !this.planningService.activeService || !this.planningService.activeScenario) return;
     this.updateMapDescription();
     const scenarioId = this.planningService.activeScenario?.isBase? undefined: this.planningService.activeScenario?.id;
     this.planningService.getDemand(this.activeLevel.id,
-      { year: this.year!, service: this.activeService?.id, scenario: scenarioId
+      { year: this.year!, service: this.planningService.activeService?.id, scenario: scenarioId
       }).subscribe(demandData => {
       let max = 1;
       let min = Number.MAX_VALUE;
       this.areas.forEach(area => {
-        const data = demandData.find(d => d.areaId == area.id);
+        const data = demandData.values.find(d => d.areaId == area.id);
         const value = (data)? Math.round(data.value): 0;
         max = Math.max(max, value);
         min = Math.min(min, value);
         area.properties.value = value;
-        area.properties.description = `<b>${area.properties.label}</b><br>Nachfrage: ${area.properties.value}`
+        const formattedValue = value? value.toLocaleString(): value;
+        area.properties.description = `<b>${area.properties.label}</b>
+                <br>Nachfrage nach Leistung "${this.planningService.activeService?.name}"
+                <br>${formattedValue} ${this.planningService.activeService?.demandPluralUnit} im Jahr ${this.year}
+                <br>im Szenario "${this.planningService.activeScenario?.name}"`
       })
       max = Math.max(max, 10);
       const steps = (max < 1.2 * min)? 3: (max < 1.4 * min)? 5: (max < 1.6 * min)? 7: 9;
-      this.demandLayer = new VectorLayer(this.activeLevel!.name,{
+      const desc = `<b>${this.planningService.activeService?.demandPluralUnit} ${this.year} nach ${this.activeLevel?.name}</b><br>
+                    Minimum: ${min.toLocaleString()}<br>
+                    Maximum: ${max.toLocaleString()}`;
+      let style: ValueStyle = {
+        field: 'value',
+        min: Math.max(min, 0),
+        max: max || 1
+      };
+
+      if (demandData.legend) {
+        style.fillColor = {
+          bins: demandData.legend
+        }
+      }
+      else {
+        style.fillColor = {
+          interpolation: {
+            range: d3.interpolatePurples,
+            scale: 'sequential',
+            steps: 5
+          }
+        }
+      }
+      this.demandLayer = new VectorLayer(this.planningService.activeService?.demandPluralUnit || 'Nachfragende',{
           order: 0,
-          description: this.activeLevel!.name,
+          description: desc,
           opacity: 1,
           style: {
             strokeColor: 'white',
@@ -145,16 +161,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
               fillColor: 'rgba(255, 255, 0, 0.7)'
             }
           },
-          valueStyles: {
-            field: 'value',
-            fillColor: {
-              range: d3.interpolateBlues,
-              scale: 'sequential',
-              bins: steps
-            },
-            min: min,
-            max: max
-          }
+          valueStyles: style
         });
       this.layerGroup?.addLayer(this.demandLayer);
       this.demandLayer.addFeatures(this.areas, { properties: 'properties' });
@@ -162,9 +169,10 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   }
 
   updateMapDescription(): void {
-    const desc = `Planungsprozess: ${this.activeProcess?.name} > ${this.activeScenario?.name} | ${this.year} <br>
-                  Nachfrage nach ${this.activeService?.name} auf Ebene ${this.activeLevel?.name}`
-    this.mapControl!.mapDescription = desc;
+    const desc = `${this.planningService.activeScenario?.name}<br>
+                  Nachfrage nach "${this.planningService.activeService?.name}"<br>
+                  <b>${this.planningService.activeService?.demandPluralUnit} ${this.year} nach ${this.activeLevel?.name}</b>`
+    this.mapControl?.setDescription(desc);
   }
 
   ngOnDestroy(): void {

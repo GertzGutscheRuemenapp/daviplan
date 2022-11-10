@@ -9,7 +9,7 @@
   float: left;
 }
 
-#scenario-menu {
+#scenario-cards-wrapper {
   background-color: white;
   //border: 1px solid #cbe6f8;
   border-left: 2px solid $primary;
@@ -108,7 +108,7 @@
 
 ::ng-deep app-scenario-menu {
   .scenario-card:not(.active):not(:hover), .mat-select-disabled {
-    .mat-select-min-line, .mat-select-trigger span, .mat-select-arrow, mat-icon {
+    .mat-select-min-line, .mat-select-trigger span, .mat-select-arrow, mat-icon, .mat-icon-button {
       color: grey !important;
     }
   }
@@ -141,4 +141,23 @@
       opacity: 0;
     }
   }
+}
+
+.side-toggle-indicator {
+  width: 35px;
+  height: 60px;
+  color: white;
+  background-color: $primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 8px 8px 0;
+  box-shadow: 1px 0px 3px 1px #a7a7a7;
+  user-select: none;
+  position: absolute;
+  right: -35px;
+  //top: 6px;
+  border-left: 1px solid #2196F3;
+  z-index: -1;
+  cursor: pointer;
 }

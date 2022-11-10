@@ -1,6 +1,9 @@
+<div class="loadOverlay" *ngIf="isLoading$ | async" xmlns="http://www.w3.org/1999/html">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
 <app-header-card [title]="'Externe Layer'"
                  cookieId="exp-ext-layers-header"
-                 width="1280px">
+                 width="1170px">
   <p>Viele Ansichten von daviplan enthalten Karten, in denen die Einwohner- und Infrastrukturbezogenen Informationen dargestellt und ausgewertet werden.</p>
   <p>Sie haben die Möglichkeit, den Nutzer*innen darüber hinaus weitere Informationen („Layer“) in den Karten anzuzeigen. Die Nutzer*innen können diese Zusatzinformationen dann individuell in den Karten über die Legendensteuerung ein- oder ausschalten.</p>
   <p>Zusätzliche Layer werden als WMS-Dienste eingebunden. Ein direktes Hochladen von Shape-Files oder anderen GIS-Formaten für lokal gespeicherte Layer ist nicht möglich.</p>
@@ -9,7 +12,7 @@
   <p>Eine Veränderung der Kartendarstellung ist nur bei den WMS-Dienst-Bereitstellenden direkt möglich. Die Nutzer*innen haben lediglich die Möglichkeit, die Transparenz der einzelnen Layer einzustellen.</p>
 </app-header-card>
 <div fxLayout="row wrap">
-  <div fxLayout="column" fxFlex="500px">
+  <div fxLayout="column" fxFlex="450px">
     <app-input-card [title]="'Layer'"
                     subtitle="Externe Layer eintragen und in Layergruppen sortieren"
                     infoText="Damit die Nutzer*innen von daviplan beim Öffnen der Layer- und Legendensteuerung der einzelnen Karten den Überblick behalten, werden (auch) die externen Layer in Layergruppen gruppiert angezeigt.</p>
@@ -93,7 +96,7 @@
       </table>
     </app-input-card>
   </div>
-  <div fxLayout="column" fxFlex="800px">
+  <div fxLayout="column" fxFlex="740px">
     <app-input-card [title]="'Kartenansicht'"
                     [topRightHelp]="true"
                     infoText="In der Karte können Sie sehen, ob der Datenzugriff für den ausgewählten externen Layer funktioniert und wie er in allen daviplan-Karten angezeigt wird.</p>

@@ -1,5 +1,6 @@
 from django.test import TestCase
 from test_plus import APITestCase
+import unittest
 
 from datentool_backend.api_test import (BasicModelTest,
                                         TestAPIMixin,
@@ -9,6 +10,9 @@ from datentool_backend.api_test import (BasicModelTest,
 from datentool_backend.user.factories import (ProfileFactory,
                                               PlanningProcessFactory,
                                               )
+from datentool_backend.area.factories import WMSLayerFactory
+from datentool_backend.area.models import LayerGroup, WMSLayer
+
 from datentool_backend.user.models.process import (Scenario,
                                                    ScenarioMode,
                                                    ScenarioService)
@@ -168,29 +172,36 @@ class TestScenarioAPI(TestAPIMixin, BasicModelTest, APITestCase):
         response = self.post(self.url_key + '-list',
                               data=patch_data, extra=dict(format='json'))
         self.response_201(msg=response.content)
-        self.compare_data(response.data, patch_data)
+        #self.compare_data(response.data, patch_data)
 
 
-class TestPlanningProcessProtectCascade(TestAPIMixin, LoginTestCase, APITestCase):
-    url_key = "planningprocesses"
+class TestProtectCascade(TestAPIMixin, LoginTestCase, APITestCase):
+    url_key = "layergroups"
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.layer = WMSLayerFactory()
+        cls.profile.admin_access = True
+        cls.profile.save()
 
     def test_protection_of_referenced_objects(self):
         """
         Test if the deletion of an object fails, if there are related objects
         using on_delete=PROTECT_CASCADE and we use use_protection=True
         """
-        self.profile.can_create_process = True
-        self.profile.save()
-        planning_process = PlanningProcessFactory(owner=self.profile)
-        scenario = ScenarioFactory(planning_process=planning_process)
-        kwargs = dict(pk=planning_process.pk)
+        layer_group = self.layer.group
+        kwargs = dict(pk=layer_group.pk)
         url = self.url_key + '-detail'
         response = self.get_check_200(url, **kwargs)
 
-        response = self.delete(url, **kwargs)
+        # with referencing objects, it should fail
+        response = self.delete(url, **kwargs, extra={'format': 'json'})
         self.response_403(msg=response.content)
-        scenario.delete()
-        response = self.delete(url, **kwargs)
+
+        # after deleting the referencing objects, it should work
+        self.layer.delete()
+        response = self.delete(url, **kwargs, extra={'format': 'json'})
         self.response_204(msg=response.content)
 
     def test_without_protection_of_referenced_objects(self):
@@ -198,21 +209,21 @@ class TestPlanningProcessProtectCascade(TestAPIMixin, LoginTestCase, APITestCase
         Test if the deletion of an object works, if there are related objects
         using on_delete=PROTECT_CASCADE and we use use_protection=False
         """
-        self.profile.can_create_process = True
-        self.profile.save()
-        planning_process = PlanningProcessFactory(owner=self.profile)
-        scenario = ScenarioFactory(planning_process=planning_process)
-        kwargs = dict(pk=planning_process.pk)
+        layer_group = self.layer.group
+        kwargs = dict(pk=layer_group.pk)
         url = self.url_key + '-detail'
         response = self.get_check_200(url, **kwargs)
 
         #  with force=False it should fail
-        response = self.delete(url, data=dict(force=False), **kwargs)
+        response = self.delete(url, data=dict(force=False),
+                               extra={'format': 'json'}, **kwargs)
         self.response_403(msg=response.content)
 
         #  with force=True it should work
-        response = self.delete(url, data=dict(force=True), **kwargs)
+        response = self.delete(url, data=dict(force=True),
+                               extra={'format': 'json'}, **kwargs)
         self.response_204(msg=response.content)
-        #  assert that the referenced scenario is deleted
-        self.assertEqual(Scenario.objects.count(), 0)
+
+        #  assert that the referenced WMS-Layer is deleted
+        self.assertEqual(WMSLayer.objects.count(), 0)
 

@@ -1,15 +1,20 @@
+import logging
+logger = logging.getLogger('routing')
+
+import pandas as pd
+from requests.exceptions import ConnectionError
 from rest_framework.validators import ValidationError
 from rest_framework import serializers
-from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-
+from datentool_backend.population.models import RasterCell
+from datentool_backend.modes.models import ModeVariant, Mode
+from datentool_backend.indicators.models import MatrixCellPlace
+from datentool_backend.indicators.compute.routing import TravelTimeRouterMixin
 from datentool_backend.area.models import FClass, FieldTypes
-
 from datentool_backend.infrastructure.models.places import (Place,
                                                             Capacity,
                                                             PlaceField,
                                                             )
-from datentool_backend.area.serializers import FieldTypeSerializer
 from datentool_backend.utils.geometry_fields import GeometrySRIDField
 from datentool_backend.infrastructure.models.infrastructures import (
     Infrastructure)
@@ -76,7 +81,7 @@ class PlaceAttributeValidator:
             # check if the fields exist as a PlaceField
             try:
                 place_field = PlaceField.objects.get(
-                    name=field_name,
+                    name__iexact=field_name,
                     infrastructure=infrastructure)
             except PlaceField.DoesNotExist:
                 msg = f'Field {field_name} is no PlaceField for Infrastructure {infr_name}'
@@ -105,6 +110,31 @@ class PlaceSerializer(serializers.ModelSerializer):
         model = Place
         fields = ('id', 'name', 'geom', 'infrastructure', 'attributes', 'scenario')
 
+    def create(self, validated_data):
+        instance = super().create(validated_data)
+        # auto calc. travel times for scenario places
+        if instance.scenario:
+            sources = TravelTimeRouterMixin.annotate_coords(
+                Place.objects.filter(pk=instance.pk), geom='geom')
+            destinations = TravelTimeRouterMixin.annotate_coords(
+                RasterCell.objects.filter(rastercellpopulation__isnull=False),
+                geom='pnt')
+            dataframes = []
+            for variant in ModeVariant.objects.all():
+                # ToDo: route transit
+                if variant.mode == Mode.TRANSIT:
+                    continue
+                try:
+                    df = TravelTimeRouterMixin.route(
+                        variant, sources, destinations, logger,
+                        id_columns=['place_id', 'cell_id'])
+                except ConnectionError:
+                    return instance
+                dataframes.append(df)
+            df = pd.concat(dataframes)
+            TravelTimeRouterMixin.save_df(df, MatrixCellPlace.objects.none(), False)
+        return instance
+
 
 class PlaceFieldSerializer(serializers.ModelSerializer):
     class Meta:
@@ -118,5 +148,5 @@ class PlaceFieldNestedSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
     class Meta:
         model = PlaceField
-        fields = ('id', 'name', 'unit', 'field_type', 'sensitive')
+        fields = ('id', 'name', 'unit', 'field_type', 'sensitive', 'is_preset')
 

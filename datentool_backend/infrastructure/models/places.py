@@ -24,12 +24,11 @@ class Place(DatentoolModelMixin, NamedModel, models.Model):
     copymanager = DirectCopyManager()
 
     name = models.TextField()
-    infrastructure = models.ForeignKey(Infrastructure,
-                                       on_delete=PROTECT_CASCADE)
+    infrastructure = models.ForeignKey(Infrastructure, on_delete=models.CASCADE)
     service_capacity = models.ManyToManyField(Service, related_name='place_services',
                                               blank=True, through='Capacity')
     geom = gis_models.PointField(srid=3857)
-    scenario = models.ForeignKey(Scenario, on_delete=PROTECT_CASCADE, null=True)
+    scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE, null=True)
 
     def __str__(self) -> str:
         return (f'{self.__class__.__name__} ({self.infrastructure.name}): '
@@ -58,7 +57,7 @@ class Place(DatentoolModelMixin, NamedModel, models.Model):
         for field_name, value in attr_dict.items():
             try:
                 field = PlaceField.objects.get(infrastructure=self.infrastructure,
-                                              name=field_name)
+                                              name__iexact=field_name)
             except PlaceField.DoesNotExist:
                 if isinstance(value, (int, float)):
                     ftype = FieldTypes.NUMBER
@@ -104,12 +103,12 @@ class Capacity(DatentoolModelMixin, models.Model):
     objects = models.Manager()
     copymanager = DirectCopyManager()
 
-    place = models.ForeignKey(Place, on_delete=PROTECT_CASCADE)
-    service = models.ForeignKey(Service, on_delete=PROTECT_CASCADE)
+    place = models.ForeignKey(Place, on_delete=models.CASCADE)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
     capacity = models.FloatField(default=1)
     from_year = models.IntegerField(default=0)
     to_year = models.IntegerField(default=99999999)
-    scenario = models.ForeignKey(Scenario, on_delete=PROTECT_CASCADE, null=True)
+    scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE, null=True)
 
     def __str__(self) -> str:
         place = getattr(self.place, 'pk', '_')

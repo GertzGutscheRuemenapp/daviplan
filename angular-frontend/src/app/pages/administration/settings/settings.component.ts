@@ -10,6 +10,7 @@ import * as ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import { FileHandle } from "../../../helpers/dragndrop.directive";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { take } from "rxjs/operators";
 
 @Component({
   selector: 'app-settings',
@@ -52,15 +53,15 @@ export class SettingsComponent implements AfterViewInit {
               private cdRef: ChangeDetectorRef, private formBuilder: FormBuilder, public dialog: MatDialog) {  }
 
   ngAfterViewInit(): void {
-    this.settingsService.siteSettings$.subscribe(settings => {
+    this.settingsService.siteSettings$.pipe(take(1)).subscribe(settings => {
       this.settings = Object.assign({}, settings);
       this.cdRef.detectChanges();
       this.welcomeTextInput = settings.welcomeText;
+      this.setupTitleDialog();
+      this.setupContactDialog();
+      this.setupWelcomeTextDialog();
+      this.setupLogoDialog();
     });
-    this.setupTitleDialog();
-    this.setupContactDialog();
-    this.setupWelcomeTextDialog();
-    this.setupLogoDialog();
     // this.setupRegstatDialog();
     this.setupBKGDialog();
   }
@@ -78,7 +79,8 @@ export class SettingsComponent implements AfterViewInit {
       let attributes: any = { title: this.titleForm.value.title }
       this.titleEdit.setLoading(true);
       this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, attributes
-        ).subscribe(data => {
+        ).subscribe(settings => {
+          this.settings = Object.assign({}, settings);
           this.titleEdit.closeDialog(true);
           // update global settings
           this.settingsService.refresh();
@@ -111,7 +113,8 @@ export class SettingsComponent implements AfterViewInit {
       let attributes: any = { contactMail: this.contactForm.value.contact }
       this.contactEdit.setLoading(true);
       this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, attributes
-      ).subscribe(data => {
+      ).subscribe(settings => {
+        this.settings = Object.assign({}, settings);
         this.contactEdit.closeDialog(true);
         // update global settings
         this.settingsService.refresh();
@@ -142,6 +145,7 @@ export class SettingsComponent implements AfterViewInit {
       this.welcomeTextEdit.setLoading(true);
       this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, attributes
       ).subscribe(settings => {
+        this.settings = Object.assign({}, settings);
         // update global settings
         this.settingsService.refresh();
         this.welcomeTextEdit.closeDialog(true);
@@ -167,6 +171,7 @@ export class SettingsComponent implements AfterViewInit {
       this.logoEdit?.setLoading(true);
       this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, formData
       ).subscribe(settings => {
+        this.settings = Object.assign({}, settings);
         this.logoEdit?.closeDialog(true);
         // update global settings
         this.settingsService.refresh();
@@ -198,7 +203,10 @@ export class SettingsComponent implements AfterViewInit {
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
         this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, { logo: null }
-        ).subscribe( settings => this.settingsService.refresh() )
+        ).subscribe( settings => {
+          this.settings = Object.assign({}, settings);
+          this.settingsService.refresh();
+        } )
       }
     });
   }
@@ -224,8 +232,9 @@ export class SettingsComponent implements AfterViewInit {
       }
       this.regstatEdit.setLoading(true);
       this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, attributes
-      ).subscribe(data => {
+      ).subscribe(settings => {
         this.regstatEdit.closeDialog(true);
+        this.settings = Object.assign({}, settings);
         // update global settings
         this.settingsService.refresh();
       },(error) => {

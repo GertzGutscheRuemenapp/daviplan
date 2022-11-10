@@ -6,8 +6,8 @@ from .models import ModeVariant, Network
 class ModeVariantSerializer(serializers.ModelSerializer):
     class Meta:
         model = ModeVariant
-        fields = ('id', 'mode', 'network', 'cutoff_time')
-        read_only_fields = ('mode', 'cutoff_time')
+        fields = ('id', 'mode', 'network', 'label', 'is_default', 'cutoff_time')
+        read_only_fields = ('cutoff_time', )
 
 
 class NetworkSerializer(serializers.ModelSerializer):

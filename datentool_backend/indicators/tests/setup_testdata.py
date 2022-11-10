@@ -3,15 +3,21 @@ import xarray as xr
 
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 
+from datentool_backend.site.models import ProjectSetting
 from datentool_backend.area.factories import (AreaLevelFactory,
                                               AreaFactory,
                                               AreaFieldFactory,
                                               FieldTypes,
                                               )
-from datentool_backend.area.models import AreaAttribute
+from datentool_backend.area.models import AreaAttribute, Area
 from datentool_backend.infrastructure.factories import (
-    InfrastructureFactory, Infrastructure, ServiceFactory, PlaceFactory,
-    ServiceFactory, CapacityFactory)
+    InfrastructureFactory,
+    Infrastructure,
+    ServiceFactory,
+    PlaceFactory,
+    ServiceFactory,
+    Service,
+    CapacityFactory)
 from datentool_backend.user.factories import PlanningProcess, ScenarioFactory
 from datentool_backend.user.models.process import ScenarioService
 
@@ -32,6 +38,9 @@ from datentool_backend.population.models import (Raster,
                                                  PopulationEntry,
                                                 )
 from datentool_backend.indicators.factories import StopFactory
+from datentool_backend.utils.pop_aggregation import (disaggregate_population,
+                                                     intersect_areas_with_raster,
+                                                     )
 
 
 class CreateTestdataMixin:
@@ -47,6 +56,17 @@ class CreateTestdataMixin:
         super().tearDownClass()
 
     @classmethod
+    def create_project_settings(cls):
+        ewkt = 'SRID=4326;MULTIPOLYGON (((9.8 52.2, 9.8 52.3, 9.9 52.3, 9.9 52.2, 9.8 52.2)))'
+
+        geom = MultiPolygon.from_ewkt(ewkt)
+        geom.transform(3857)
+        projectsettings, created = ProjectSetting.objects.get_or_create(pk=1)
+        projectsettings.project_area = geom
+        projectsettings.save()
+        return projectsettings
+
+    @classmethod
     def create_scenario(cls):
         disaggpopraster = getattr(cls, 'disaggpopraster', None)
         if disaggpopraster:
@@ -60,6 +80,11 @@ class CreateTestdataMixin:
         infrastructure = InfrastructureFactory()
         cls.service1 = ServiceFactory(infrastructure=infrastructure)
         cls.service2 = ServiceFactory(infrastructure=infrastructure)
+        cls.service_uniform = ServiceFactory(infrastructure=infrastructure,
+                                             demand_type=Service.DemandType.UNIFORM,
+                                             has_capacity=False)
+        cls.service_without_demand = ServiceFactory(infrastructure=infrastructure,
+                                               demand_type=Service.DemandType.FREQUENCY)
         return infrastructure
 
     @classmethod
@@ -261,6 +286,12 @@ class CreateTestdataMixin:
         CapacityFactory(place=cls.place5, service=cls.service1, capacity=66)
         CapacityFactory(place=cls.place5, service=cls.service2, capacity=77)
 
+        # capacity=1 for service_uniformin two places
+        CapacityFactory(place=cls.place1, service=cls.service_uniform, capacity=1)
+        CapacityFactory(place=cls.place2, service=cls.service_uniform, capacity=1)
+
+        CapacityFactory(place=cls.place2, service=cls.service_without_demand, capacity=2)
+
     @classmethod
     def create_raster_population(cls):
         year0 = Year.objects.get(is_default=True)
@@ -296,9 +327,9 @@ class CreateTestdataMixin:
     @classmethod
     def create_years_gender_agegroups(cls):
         """Create years, genders and agegroups"""
-        Year.objects.create(year=2022, is_default=True)
+        Year.objects.create(year=2022, is_default=True, is_real=True)
         for year in range(2023, 2030):
-            Year.objects.create(year=year)
+            Year.objects.create(year=year, is_prognosis=True)
 
         cls.years = Year.objects.all()
         Gender.objects.create(name='Male')
@@ -342,7 +373,7 @@ class CreateTestdataMixin:
                                       pop_values_by_age_gender,
                                       cls.population)
 
-        for i, year in enumerate(cls.years):
+        for i, year in enumerate(cls.years[1:]):
             population = PopulationFactory(prognosis=cls.prognosis,
                                            year=year,
                                            popraster=cls.popraster,
@@ -431,20 +462,17 @@ class CreateTestdataMixin:
                     demand_rates.append(dr)
         DemandRate.objects.bulk_create(demand_rates)
 
-    def prepare_population(self):
+    @classmethod
+    def prepare_population(cls):
         """prepare the population for the tests"""
         populations = Population.objects.all()
         for population in populations:
-            self.post('populations-disaggregate', pk=population.pk,
-                      data={'use_intersected_data': True,
-                            'drop_constraints': False, })
-            data = {
-                'pop_raster': self.popraster.pk,
-                'drop_constraints': False
-            }
-            self.post('arealevels-intersect-areas', pk=self.area_level2.pk,
-                      data=data)
-            self.post('arealevels-intersect-areas', pk=self.area_level3.pk,
-                      data=data)
-            self.post('arealevels-intersect-areas', pk=self.area_level4.pk,
-                      data=data)
+            disaggregate_population(population,
+                                    use_intersected_data=True,
+                                   drop_constraints=False)
+
+            for area_level in [cls.area_level2.pk,
+                               cls.area_level3.pk,
+                               cls.area_level4.pk]:
+                areas = Area.objects.filter(area_level=area_level)
+                intersect_areas_with_raster(areas=areas)

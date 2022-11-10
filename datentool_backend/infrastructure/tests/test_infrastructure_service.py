@@ -6,15 +6,12 @@ from datentool_backend.api_test import (BasicModelTest,
                                         WriteOnlyWithCanEditBaseDataTest,
                                         WriteOnlyWithAdminAccessTest,
                                         TestAPIMixin, TestPermissionsMixin)
-
-
 from datentool_backend.area.serializers import MapSymbolSerializer
 
 from datentool_backend.user.factories import ProfileFactory
-from datentool_backend.infrastructure.factories import (InfrastructureFactory,
-                                                        ServiceFactory)
-
-
+from datentool_backend.infrastructure.factories import (
+    InfrastructureFactory, ServiceFactory, FieldTypeFactory)
+from datentool_backend.area.models import FieldTypes
 from datentool_backend.infrastructure.models.infrastructures import (
     Infrastructure,
     Service,
@@ -51,6 +48,7 @@ class TestInfrastructureAPI(WriteOnlyWithAdminAccessTest,
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
+        cl_ft1 = FieldTypeFactory(ftype=FieldTypes.STRING, name='Zeichenkette')
         infrastructure: Infrastructure = cls.obj
         editable_by = list(infrastructure.editable_by.all().values_list(flat=True))
         accessible_by = [{'profile': p, 'allow_sensitive_data': True}
@@ -77,7 +75,7 @@ class TestInfrastructureAPI(WriteOnlyWithAdminAccessTest,
         """Test the patch with an empty list"""
         patch_data2 = self.patch_data.copy()
         patch_data2['editable_by'] = []
-        patch_data2['accessible_by'] = []
+        #patch_data2['accessible_by'] = []
         self.patch_data = patch_data2
         super().test_put_patch()
 

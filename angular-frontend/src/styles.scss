@@ -180,6 +180,7 @@ mat-list-option:not([aria-selected="true"]):hover {
 
 .cdk-overlay-pane.absolute{
   position: absolute!important;
+  max-height: 100vh;
 }
 
 mat-form-field.full {
@@ -216,9 +217,14 @@ button.large {
 }
 
 .hidden, .hidden > * {
-  //display: None!important;
  opacity: 0;
  pointer-events: none!important;
+}
+.hidden:not(.spaced), .hidden:not(.spaced) > * {
+  width: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
 }
 
 .fill-space {
@@ -303,6 +309,18 @@ button mat-icon {
   margin-left: -2px;
   margin-right: 1px;
   //margin-right: 2px;
+}
+
+button.outlined {
+  border: 2px solid;
+  mat-icon {
+    transform: scale(0.8);
+  }
+}
+
+mat-icon.outlined {
+  border-radius: 50px;
+  outline: 2px solid;
 }
 
 app-data-card table, app-dash-card table {
@@ -465,6 +483,10 @@ button.mat-icon-button {
   width: 30px;
   height: 30px;
   line-height: 30px;
+}
+
+.mat-icon-button.small.outlined {
+  line-height: 26px;
 }
 
 /*.mat-mini-fab.small {
@@ -696,6 +718,7 @@ mat-panel-title app-help-button{
   //height: 100%;
   box-shadow: 0px 5px 5px -1px rgb(0 0 0 / 20%), 0px 10px 10px 0px rgb(0 0 0 / 14%), 2px 18px 18px 0px rgb(0 0 0 / 12%) !important;
   padding-top: 10px;
+  user-select: none;
 
   mat-expansion-panel {
     border-radius: 0;
@@ -832,7 +855,7 @@ mat-expansion-panel {
 
 mat-expansion-panel.side-toggle {
   .mat-expansion-indicator:after {
-    transform: rotate(135deg);
+    transform: rotate(-45deg);
   }
   .mat-expansion-panel-content {
     display: none;
@@ -880,15 +903,25 @@ app-legend, .info-text, .tree-select {
   border-bottom: none;
 }
 
+/*.info-text h4 {
+  font-size: 18px !important;
+  line-height: 18px !important;
+}*/
+
 mat-sidenav {
   .mat-expansion-panel-body {
     padding: 16px 16px 16px 40px;
   }
 }
 
-.mat-mini-fab mat-icon{
-  margin-top: -3px;
-  margin-left: 1px;
+.mat-mini-fab{
+  mat-icon {
+    margin-top: -3px;
+    margin-left: 1px;
+  }
+  .mat-button-wrapper {
+    display: inline !important;
+  }
 }
 
 .map-drag-element {
@@ -1205,7 +1238,7 @@ mat-checkbox.reverse {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0,0,0,0.1);
+  background-color: rgba(0,0,0,0.2);
   z-index: 100;
   cursor: not-allowed;
 }
@@ -1216,7 +1249,17 @@ mat-checkbox.reverse {
 
 .loadOverlay > mat-spinner {
   left: 45%;
-  top: 40%;
+  top: 45%;
+  width: 70px !important;
+  height: 70px !important;
+  background-color: rgba(255,255,255,0.9);
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 1px 0px 3px 1px #a7a7a7;
+
+  > svg {
+    margin: 10px;
+  }
 }
 
 #years-check-table {

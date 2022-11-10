@@ -26,7 +26,7 @@ export interface FilterColumn {
   name: string,
   attribute?: string,
   service?: Service,
-  type: 'CLA' | 'NUM' | 'STR',
+  type: 'CLA' | 'NUM' | 'STR' | 'BOOL',
   classes?: string[],
   filter?: Filter,
   unit?: string
@@ -79,6 +79,15 @@ class NumFilter extends Filter {
   }
 }
 
+class BoolFilter extends Filter {
+  name = 'Booleanfilter';
+  value = false;
+
+  filter(value: number | boolean): boolean {
+    return this.value === !!value;
+  }
+}
+
 class ClassFilter extends Filter {
   name = 'Klassenfilter';
   classes: string[];
@@ -110,6 +119,7 @@ export class FilterTableComponent implements OnInit {
   @ViewChild('numberFilter') numberFilter?: TemplateRef<any>;
   @ViewChild('stringFilter') stringFilter?: TemplateRef<any>;
   @ViewChild('classFilter') classFilter?: TemplateRef<any>;
+  @ViewChild('boolFilter') boolFilter?: TemplateRef<any>;
   operators: string[][] = Object.values(Operator).map(op => [op, opText[op]]);
   opText = opText;
 
@@ -133,6 +143,8 @@ export class FilterTableComponent implements OnInit {
           column.filter = new StrFilter();
         else if (column.type === 'CLA')
           column.filter = new ClassFilter(column.classes || []);
+        else if (column.type === 'BOOL')
+          column.filter = new BoolFilter();
       })
     }
   }
@@ -174,7 +186,10 @@ export class FilterTableComponent implements OnInit {
         operator: column.filter.operator,
         value: column.filter.value
     });
-    const template = (column.type === 'NUM')? this.numberFilter: (column.type === 'STR')? this.stringFilter: this.classFilter;
+    const template = (column.type === 'NUM')? this.numberFilter:
+                     (column.type === 'BOOL')? this.boolFilter:
+                     (column.type === 'CLA')? this.classFilter:
+                       this.classFilter;
     const context: any = {
       unit: column.unit || '' ,
     }
@@ -196,7 +211,9 @@ export class FilterTableComponent implements OnInit {
       this.filterForm.markAllAsTouched();
       if (this.filterForm.invalid) return;
       column.filter!.operator = this.filterForm.value.operator;
-      column.filter!.value = this.filterForm.value.value;
+      let value = this.filterForm.value.value;
+      if (column.type === 'BOOL') value = value === '1';
+      column.filter!.value = value;
       column.filter!.active = true;
       this.emitChange();
       this.filterAndSort()

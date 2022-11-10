@@ -1,5 +1,7 @@
 from django.db import models, transaction
-from django.db.models import TextField, F, OuterRef, Subquery, Prefetch, Value
+from django.db.models import (TextField, F, OuterRef, Subquery,
+                              Prefetch, Value,
+                              UniqueConstraint, Deferrable)
 from django.db.models.functions import Cast, Coalesce
 from django.db.models.signals import post_save
 from django.contrib.gis.db import models as gis_models
@@ -146,23 +148,33 @@ class Area(DatentoolModelMixin, models.Model):
         attributes = AreaAttribute.value_annotated_qs()
         area_attributes = attributes.filter(area=OuterRef('pk'))
         area_fields = AreaField.objects.filter(area_level=area_level)
-        area_field_names = ','.join(area_fields.values_list('name', flat=True))
+        area_field_names =  ','.join(area_fields.values_list('name', flat=True))
+        area_field_names = f"'{area_field_names}'"
 
         annotations = {area_field.name: Subquery(area_attributes
                                                  .filter(field=area_field)
                                                  .values('_value')[:1])
                        for area_field in area_fields}
 
-        label_attribute = area_attributes.filter(is_label=True)
-        key_attribute = area_attributes.filter(is_key=True)
+        try:
+            label_field = area_fields.get(is_label=True)
+            label_attribute = area_attributes.filter(field=label_field)
+            annotations['_label'] = Subquery(label_attribute.values('_value')[:1])
+        except AreaField.DoesNotExist:
+            pass
 
-        annotations['_label'] = Subquery(label_attribute.values('_value')[:1])
-        annotations['_key'] = Subquery(key_attribute.values('_value')[:1])
+        try:
+            key_field = area_fields.get(is_key=True)
+            key_attribute = area_attributes.filter(field=key_field)
+            annotations['_key'] = Subquery(key_attribute.values('_value')[:1])
+        except AreaField.DoesNotExist:
+            pass
+
         annotations['_field_names'] = Value(area_field_names)
 
         qs = cls.objects\
             .filter(area_level_id=area_level)\
-            .select_related('area_level')\
+            .prefetch_related('area_level')\
             .prefetch_related(
                 Prefetch('areaattribute_set', queryset=attributes))\
             .annotate(**annotations)
@@ -180,7 +192,7 @@ class Area(DatentoolModelMixin, models.Model):
                        for area_field in area_fields}
         qs=cls.objects\
             .filter(area_level=area_level)\
-            .select_related('area_level')\
+            .prefetch_related('area_level')\
             .prefetch_related(
                 Prefetch('areaattribute_set', queryset=attributes))\
             .annotate(**annotations)
@@ -289,6 +301,9 @@ class FClass(DatentoolModelMixin, models.Model):
 
     class Meta:
         ordering = ['order']
+        constraints = [UniqueConstraint(fields=['ftype', 'order'],
+                                        name='fclass_unique',
+                                        deferrable=Deferrable.DEFERRED)]
 
     def __str__(self) -> str:
         return (f'{self.__class__.__name__}: {self.ftype.name}: '

@@ -58,8 +58,8 @@
   </div>
 </mat-expansion-panel>
 
-
-<app-side-toggle id="chart-toggle"
+<app-side-toggle #chartToggle
+                 id="chart-toggle"
                  icon="multiline_chart"
                  direction="right"
                  name="Diagramme"
@@ -75,7 +75,7 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
-    <app-help-button title="Gebiet" position="left" style="margin-left: 5px;" [top]="50">
+    <app-help-button title="Gebiet" position="right" style="margin-left: 5px;" [top]="50">
       <p>Wählen Sie aus dem Dropdown-Menü das Gebiet, für das Sie sich Ergebnisse in Diagrammen anzeigen lassen wollen.</p>
       <p>Alternativ können Sie ein Gebiet auch in der Karte auswählen durch einen Klick auf selbiges.</p>
     </app-help-button>
@@ -84,9 +84,10 @@
     <mat-tab [label]="(theme === 'nature')? 'Bevölkerungsentwicklung': 'Wanderung'">
       <ng-template matTabContent>
         <div class="diagram-wrapper">
-          <app-help-button title="Wanderung" position="left"
-                           style="position: absolute; right: 0; top: 10px; z-index: 1;">
-            <p>Platzhalter Erklärung Diagramm</p>
+          <app-help-button title="Wanderung" position="right"
+                           style="position: absolute; left: 0; top: 10px; z-index: 1;">
+            <p *ngIf="theme === 'nature'">Platzhalter Erklärung Diagramm Wanderung Natur</p>
+            <p *ngIf="theme === 'migration'">Das Diagramm zeigt die Zahl der Zuzüge (grün) und Fortzüge (rot) in bzw. aus dem ausgewählten Gebiet dar. Angezeigt werden alle zurückliegenden Jahre, für die Daten zur Verfügung stehen. Für jedes Jahr wird zudem ein Wanderungssaldo (blaue Linie) angezeigt. Dies entspricht jeweils der Zahl der Zuzüge minus der Zahl der Fortzüge. Dieses Wanderungssaldo wird in einem zweiten Diagramm auch noch einmal gesondert angezeigt. Dieses erreichen Sie über den Reiter “Wanderungssaldo”.</p>
           </app-help-button>
           <div *ngIf="selectedTab===0">
             <app-balance-chart #balanceChart
@@ -94,6 +95,7 @@
                                [colors]="['#32B06B', '#D75046']"
                                lineColor="#2196f3"
                                xLabel="Jahre"
+                               [showPNGExport]="true"
                                [animate]="true"
                                [yOrigin]="0"
                                [labels]="balanceChartProps.labels"
@@ -112,15 +114,17 @@
     <mat-tab [label]="(theme === 'nature')? 'Natürlicher Saldo': 'Wanderungssaldo'">
       <ng-template matTabContent>
         <div class="diagram-wrapper">
-          <app-help-button title="Wanderungssaldo Gesamtgebiet" position="left"
-                           style="position: absolute; right: 0; top: 10px; z-index: 1;">
-            <p>Platzhalter Erklärung Diagramm</p>
+          <app-help-button title="Wanderungssaldo Gesamtgebiet" position="right"
+                           style="position: absolute; left: 0; top: 10px; z-index: 1;">
+            <p *ngIf="theme === 'nature'">Platzhalter Erklärung Diagramm Wanderungsaldo Natur</p>
+            <p *ngIf="theme === 'migration'">Das Diagramm zeigt das jährliche Wanderungssaldo des ausgewählten Gebiets. Angezeigt werden alle zurückliegenden Jahre, für die Daten zur Verfügung stehen. Das Wanderungssaldo entspricht im jedem Jahr der Zahl der Zuzüge minus der Zahl der Fortzüge. Im ersten Diagramm, das Sie über den Reiter “Wanderung” erreichen, wird Ihnen zusätzlich auch der jährliche Umfang der Zu- und Fortzüge angezeigt.</p>
           </app-help-button>
           <div *ngIf="selectedTab===1">
             <app-multiline-chart #totalChart
                                  figureId="totalSaldo"
                                  xLabel="Jahre"
                                  yLabel="Differenz"
+                                 [showPNGExport]="true"
                                  [animate]="true"
                                  [yOrigin]="0"
                                  [colors]="['#2196f3']"

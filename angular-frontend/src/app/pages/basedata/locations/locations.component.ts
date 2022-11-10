@@ -3,17 +3,14 @@ import { MapControl, MapService } from "../../../map/map.service";
 import {
   Infrastructure,
   Place,
-  ExtLayerGroup,
-  ExtLayer,
   Capacity,
   Service,
   FieldType,
-  PlaceField
+  PlaceField, LogEntry
 } from "../../../rest-interfaces";
-import { RestCacheService } from "../../../rest-cache.service";
 import * as fileSaver from "file-saver";
 import { RestAPI } from "../../../rest-api";
-import { BehaviorSubject, forkJoin, Observable } from "rxjs";
+import { BehaviorSubject, Subscription } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
@@ -22,8 +19,9 @@ import { sortBy } from "../../../helpers/utils";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
-import { MapLayer, MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 import { PlanningService } from "../../planning/planning.service";
+import { SettingsService } from "../../../settings.service";
 
 interface PlaceEditField extends PlaceField {
   edited?: boolean;
@@ -46,6 +44,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   fieldTypes: FieldType[] = [];
   fieldRemoved: boolean = false;
   selectedInfrastructure?: Infrastructure;
+  placeFields: PlaceField[] = [];
   editFields: PlaceEditField[] = [];
   editErrors?: any;
   mapControl?: MapControl;
@@ -56,13 +55,14 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   places?: Place[];
   dataColumns: string[] = [];
   dataRows: any[][] = [];
-  selectedPlace?: Place;
+  selectedPlaces: Place[] = [];
   placeDialogRef?: MatDialogRef<any>;
   file?: File;
-  uploadErrors: any = {};
+  isProcessing = false;
+  subscriptions: Subscription[] = [];
 
   constructor(private mapService: MapService, private rest: RestAPI, private http: HttpClient,
-              private dialog: MatDialog, private restService: PlanningService) { }
+              private dialog: MatDialog, private restService: PlanningService, private settings: SettingsService) { }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-locations-map');
@@ -76,6 +76,9 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         this.isLoading$.next(false);
       })
     })
+    this.subscriptions.push(this.settings.baseDataSettings$.subscribe(bs => {
+      this.isProcessing = bs.processes?.routing || false;
+    }));
     this.setupAttributeCard();
   }
 
@@ -86,9 +89,10 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       this.placesLayer = undefined;
     }
     if (!this.selectedInfrastructure) return;
-    this.editFields = JSON.parse(JSON.stringify(this.selectedInfrastructure.placeFields));
+    this.placeFields = this.selectedInfrastructure.placeFields?.filter(f => !f.isPreset) || [];
+    this.editFields = JSON.parse(JSON.stringify(this.placeFields));
     this.isLoading$.next(true);
-    this.restService.getPlaces(this.selectedInfrastructure.id, { reset: reset }).subscribe(places => {
+    this.restService.getPlaces( { infrastructure: this.selectedInfrastructure, reset: reset }).subscribe(places => {
       this.selectedInfrastructure!.placesCount = places.length;
       this.isLoading$.next(false);
       this.dataColumns = ['Standort'];
@@ -96,14 +100,15 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         this.dataColumns.push(field.name);
       })
       this.selectedInfrastructure!.services.forEach(service => {
-        this.dataColumns.push(`Kapazitäten ${service.name}`);
+        let columnTitle = (service.hasCapacity)? `${service.name} (Kapazität)`: service.name;
+        this.dataColumns.push(columnTitle);
         this.isLoading$.next(true);
-        this.restService.getCapacities({ service: service.id! }).subscribe(serviceCapacities => {
+        this.restService.getCapacities({ service: service }).subscribe(serviceCapacities => {
           this.places?.forEach(place => {
             if (!place.capacities) place.capacities = [];
             const capacities = serviceCapacities.filter(c => c.place === place.id && c.service === service.id);
             const startCap = capacities.find(c => c.fromYear === 0);
-            if (!startCap)
+            if (startCap === undefined)
               place.capacities.push({
                 id: -1, place: place.id, service: service.id,
                 fromYear: 0, scenario: undefined, capacity: 0
@@ -119,6 +124,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   }
 
   updateMap(): void {
+    const showLabel = (this.placesLayer?.showLabel !== undefined)? this.placesLayer.showLabel: true;
     if (this.placesLayer) {
       this.layerGroup?.removeLayer(this.placesLayer);
       this.placesLayer = undefined;
@@ -138,26 +144,36 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         select: {
           style: { fillColor: 'yellow' },
           enabled: true,
-          multi: false
+          multi: true
         },
-        showLabel: true
+        showLabel: showLabel,
+        labelOffset: { y: 15 },
       });
     this.layerGroup?.addLayer(this.placesLayer);
-    this.placesLayer.addFeatures(this.places);
-    this.placesLayer?.featureSelected?.subscribe(evt => {
-      const placeId = evt.feature.get('id');
-      if (evt.selected){
-        const place = this.places?.find(p => p.id === placeId);
-        if (place) {
-          this.selectedPlace = place;
-          this.showPlaceDialog();
-        }
-      }
-      else if (this.selectedPlace?.id === placeId) {
-        this.selectedPlace = undefined;
-        if (this.placeDialogRef) this.placeDialogRef.close();
-      }
+    this.placesLayer.addFeatures(this.places.map(place => { return {
+      id: place.id, geometry: place.geom, properties: { name: place.name } }}));
+    this.placesLayer?.featuresSelected?.subscribe(features => {
+      features.forEach(f => this.selectPlace(f.get('id'), true));
     })
+    this.placesLayer?.featuresDeselected?.subscribe(features => {
+      features.forEach(f => this.selectPlace(f.get('id'), false));
+    })
+  }
+
+  selectPlace(placeId: number, select: boolean) {
+    const place = this.places?.find(p => p.id === placeId);
+    if (!place) return;
+    if (select) {
+      this.selectedPlaces.push(place);
+      this.showPlaceDialog();
+    }
+    else {
+      const idx = this.selectedPlaces.indexOf(place);
+      if (idx > -1) {
+        this.selectedPlaces.splice(idx, 1);
+      }
+      if (this.selectedPlaces.length === 0) this.placeDialogRef?.close();
+    }
   }
 
   showPlaceDialog(): void {
@@ -176,7 +192,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       }
     });
     this.placeDialogRef.afterClosed().subscribe(() => {
-      this.selectedPlace = undefined;
+      this.selectedPlaces = [];
       this.placesLayer?.clearSelection();
     })
   }
@@ -220,7 +236,9 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         row.push(place.attributes[field.name]);
       })
       this.selectedInfrastructure!.services?.forEach(service => {
-        row.push(place.capacities?.find(capacity => capacity.service === service.id && capacity.fromYear === 0)?.capacity || '');
+        const capacity = place.capacities?.find(capacity => capacity.service === service.id && capacity.fromYear === 0)?.capacity;
+        const entry = (capacity === undefined)? '': (service.hasCapacity)? capacity: (capacity)? 'Ja': 'Nein';
+        row.push(entry);
       })
       rows.push(row);
     })
@@ -236,7 +254,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
     this.editAttributesCard.dialogClosed.subscribe(() => {
       this.fieldRemoved = false;
       this.editErrors = undefined;
-      this.editFields = JSON.parse(JSON.stringify(this.selectedInfrastructure?.placeFields || []));
+      this.editFields = JSON.parse(JSON.stringify(this.placeFields || []));
     })
     this.editAttributesCard.dialogConfirmed.subscribe((ok)=> {
       const removeFields = this.editFields.filter(f => f.removed && !f.new);
@@ -281,7 +299,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
 
   addField(): void {
     this.editFields?.push({
-      name: '', unit: '', sensitive: false,
+      name: '', unit: '',// sensitive: false,
       fieldType: (this.fieldTypes.find(ft => ft.ftype == 'NUM') || this.fieldTypes[0]).id,
       new: true
     })
@@ -297,7 +315,13 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         template: this.editClassificationsTemplate,
         closeOnConfirm: true,
         hideConfirmButton: true,
-        infoText: 'ToDo: Erklärung Sortier- und Filterreihenfolge, Änderungen erfolgen sofort'
+        infoText: "<p>Sie können eigene Klassifikationen (z.B. Klassifikation „Bewertung“ mit den Klassen „gut“, „mittel“, „schlecht“) definieren, um diese danach einzelnen Standorteigenschaften (z.B. „Gebäudezustand“) zuordnen. </p> " +
+          "<p>Klassifikationen erleichtern zum einen eine strukturierte Dateneingabe. Zum anderen können Sie in daviplan später als Grundlage für Sortier- und Filterfunktionen verwendet werden.</p>" +
+          "<p>Klicken Sie auf die Schaltfläche „Hinzufügen“ unter der linken Liste „Klassifikationen“, um eine Klassifikation hinzuzufügen. Klicken Sie anschließen auf die Schaltfläche „Hinzufügen“ unter der rechten Liste „Klassen“, um dieser Klassifikation einzelne Klassen zuzufügen.</p>" +
+          "<p>Klicken Sie auf „OK“, wenn Sie fertig sind. Achtung: Dieser Eingabebereich hat keinen Entwurfsmodus mit “Abbrechen” und “Speichern”. Alle Eintragungen und Änderungen an den Klassifikationen und Klassen werden daher sofort in die Datenbank übernommen. </p>"
+
+
+
       }
     });
   }
@@ -309,10 +333,12 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   uploadTemplate(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: `Template hochladen`,
         confirmButtonText: 'Datei hochladen',
-        template: this.fileUploadTemplate
+        template: this.fileUploadTemplate,
+        closeOnConfirm: true
       }
     });
     dialogRef.componentInstance.confirmed.subscribe((confirmed: boolean) => {
@@ -321,21 +347,12 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       const formData = new FormData();
       formData.append('infrastructure', this.selectedInfrastructure!.id.toString());
       formData.append('excel_file', this.file);
-      const dialogRef2 = SimpleDialogComponent.show(
-        'Das Template wird hochgeladen. Bitte warten', this.dialog, { showAnimatedDots: true });
       const url = `${this.rest.URLS.places}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
-        this.onInfrastructureChange(true);
-        dialogRef.close();
-        dialogRef2.close();
+        this.isProcessing = true;
       }, error => {
-        this.uploadErrors = error.error;
-        dialogRef2.close();
       });
     });
-    dialogRef.afterClosed().subscribe(ok => {
-      this.uploadErrors = {};
-    })
   }
 
   setFiles(event: Event){
@@ -367,7 +384,15 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  onMessage(log: LogEntry): void {
+    if (log?.status?.success) {
+      this.isProcessing = false;
+      this.onInfrastructureChange(true);
+    }
+  }
+
   ngOnDestroy(): void {
     this.mapControl?.destroy();
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }

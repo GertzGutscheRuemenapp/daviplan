@@ -1,3 +1,6 @@
+<div class="loadOverlay" *ngIf="isLoading$ | async" xmlns="http://www.w3.org/1999/html">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
 <app-header-card [title]="'Leistungen in den Infrastrukturbereichen'"
                  cookieId="exp-services-header"
                  width="1130px">
@@ -123,9 +126,11 @@
       </div>
     </app-input-card>
     <app-dash-card subtitle="Beispieltexte" *ngIf="(indicators.length > 0)">
-      <li *ngFor="let indicator of indicators" style="margin-top: 10px; color: grey;">
-        {{indicator.description}}
-      </li>
+      <ul>
+        <li *ngFor="let indicator of indicators" style="margin-top: 10px; color: grey;">
+          {{indicator.description}}
+        </li>
+      </ul>
     </app-dash-card>
   </div>
 </div>

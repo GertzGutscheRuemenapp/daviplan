@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.gis.db.models import MultiPolygonField
 from datentool_backend.utils.models import SingletonModel
 from datentool_backend.base import DatentoolModelMixin
+from django.contrib.auth.models import User
 
 
 class Year(DatentoolModelMixin, models.Model):
@@ -37,6 +38,19 @@ class SiteSetting(SingletonModel):
     regionalstatistik_password = models.TextField(
         default='', null=True, blank=True)
 
+
+class ProcessScope(models.IntegerChoices):
+    GENERAL = 1, 'Allgemein'
+    POPULATION = 2, 'Bevölkerung'
+    INFRASTRUCTURE = 3, 'Infrastruktur'
+    ROUTING = 4, 'Routing'
+    AREAS = 5, 'Gebiete'
+
+
+class ProcessState(models.Model):
+    scope = models.IntegerField(choices=ProcessScope.choices)
+    is_running = models.BooleanField(default=False)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
 
 

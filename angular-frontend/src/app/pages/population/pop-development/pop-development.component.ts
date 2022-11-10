@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ViewChild, TemplateRef, OnDestroy } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, TemplateRef, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { MapControl, MapService } from "../../../map/map.service";
 import { StackedBarchartComponent, StackedData } from "../../../diagrams/stacked-barchart/stacked-barchart.component";
 import { MultilineChartComponent } from "../../../diagrams/multiline-chart/multiline-chart.component";
@@ -8,13 +8,14 @@ import { map } from "rxjs/operators";
 import { MatDialog } from "@angular/material/dialog";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { PopulationService } from "../population.service";
-import { Area, AreaLevel, Gender, ExtLayer, ExtLayerGroup, AgeGroup, Prognosis } from "../../../rest-interfaces";
+import { Area, AreaLevel, Gender, AgeGroup, Prognosis } from "../../../rest-interfaces";
 import * as d3 from "d3";
 import { SelectionModel } from "@angular/cdk/collections";
 import { sortBy } from "../../../helpers/utils";
 import { SettingsService } from "../../../settings.service";
 import { CookieService } from "../../../helpers/cookies.service";
 import { MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { SideToggleComponent } from "../../../elements/side-toggle/side-toggle.component";
 
 @Component({
   selector: 'app-pop-development',
@@ -25,6 +26,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   lineChart?: MultilineChartComponent;
   barChart?: StackedBarchartComponent;
   ageTree?: AgeTreeComponent;
+  @ViewChild('chartToggle') chartToggle!: SideToggleComponent;
   @ViewChild('lineChart', { static: false }) set _lineChart(content: MultilineChartComponent) {
     if (content) this.lineChart = content;
   }
@@ -41,12 +43,13 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   subscriptions: Subscription[] = [];
   populationLayer?: VectorLayer;
   layerGroup?: MapLayerGroup;
+  comparedYear = 0;
   compareYears = false;
   areaLevels: AreaLevel[] = [];
   areas: Area[] = [];
-  realYears?: number[];
+  realYears: number[] = [];
   selectedTab = 0;
-  prognosisYears?: number[];
+  prognosisYears: number[] = [];
   prognoses?: Prognosis[];
   activePrognosis?: Prognosis;
   genders: Gender[] = [];
@@ -62,13 +65,13 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
   constructor(private mapService: MapService, private dialog: MatDialog,
               private populationService: PopulationService, private settings: SettingsService,
-              private cookies: CookieService) { }
+              private cookies: CookieService, private cdref: ChangeDetectorRef) { }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('population-map');
-    this.layerGroup = new MapLayerGroup('Nachfrage', { order: -1 });
+    this.layerGroup = new MapLayerGroup('', { order: -1 });
     this.mapControl.addGroup(this.layerGroup);
-    this.mapControl.mapDescription = '';
+    this.mapControl.setDescription('');
     if (this.populationService.isReady)
       this.initData();
     else {
@@ -98,6 +101,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     })))
     observables.push(this.populationService.getAreaLevels({ active: true }).pipe(map(areaLevels => {
       this.areaLevels = areaLevels;
+      this.cdref.detectChanges();
     })))
     observables.push(this.populationService.getAgeGroups().pipe(map(ageGroups => {
       this.ageGroupSelection.clear();
@@ -141,16 +145,18 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     const defaultProg = this.prognoses?.find(prognosis => prognosis.isDefault);
     this.activePrognosis = this.prognoses!.find(p => p.id === progId) || defaultProg;
     const year = this.cookies.get('pop-year','number');
-    this.year = year || this.realYears![this.realYears!.length - 1];
+    this.year = year || this.realYears[this.realYears.length - 1];
+    this.comparedYear = this.cookies.get('pop-compared-year', 'number') || this.realYears[0];
+    this.compareYears = this.cookies.get('pop-compare-years', 'boolean') || false;
     const areaLevelId = this.cookies.get('pop-area-level','number');
-    this.activeLevel = this.areaLevels.find(al => al.id === areaLevelId) || (this.areaLevels.length > 0)? this.areaLevels[this.areaLevels.length - 1]: undefined;
+    this.activeLevel = this.areaLevels.find(al => al.id === areaLevelId) || ((this.areaLevels.length > 0)? this.areaLevels[this.areaLevels.length - 1]: undefined);
 
     this.setSlider();
     this.onLevelChange();
   }
 
   setSlider(): void {
-    if (!(this.realYears && this.prognosisYears)) return;
+    if (this.realYears.length + this.prognosisYears.length === 0) return;
     let slider = this.populationService.timeSlider!;
     slider.prognosisStart = this.prognosisYears[0] || 0;
     slider.years = this.realYears.concat(this.prognosisYears);
@@ -208,57 +214,76 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
 
   updateMap(): void {
     // only catch prognosis data if selected year is not in real data
-    const prognosis = (this.realYears?.indexOf(this.year) === -1)? this.activePrognosis?.id: undefined;
+    const prognosis = (this.realYears.indexOf(this.year) === -1)? this.activePrognosis?.id: undefined;
     const genders = (this.selectedGender?.id !== -1)? [this.selectedGender!.id]: undefined;
     const ageGroups = this.ageGroupSelection.selected;
-    if (this.populationLayer) {
-      this.layerGroup?.removeLayer(this.populationLayer);
-      this.populationLayer = undefined;
-    }
+    const showLabel = (this.populationLayer?.showLabel !== undefined)? this.populationLayer.showLabel: true;
+    this.layerGroup?.clear()
     this.updateMapDescription();
+    this.layerGroup!.name = (this.compareYears)? 'Bevölkerungsentwicklung': 'Zahl der Einwohner:innen';
     if (ageGroups.length === 0 || !this.activeLevel) return;
-    this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,
-      { genders: genders, prognosis: prognosis, ageGroups: ageGroups.map(ag => ag.id!) }).subscribe(popData => {
+    const comparedYear = (this.compareYears)? this.comparedYear: undefined;
+    const comparedPrognosis = (comparedYear && this.realYears.indexOf(comparedYear) === -1)? this.activePrognosis?.id: undefined;
+    this.populationService.getAreaLevelPopulation(this.activeLevel.id, this.year,{
+      genders: genders, prognosis: prognosis, ageGroups: ageGroups.map(ag => ag.id!),
+      comparedYear: comparedYear, comparedPrognosis: comparedPrognosis
+      }).subscribe(popData => {
+      const fillColor = (this.compareYears)? {
+        colorFunc: (value: number) => (value > 0)? '#1a9850': (value < 0)? '#d73027': 'grey'
+      }: undefined;
+      const max = Math.max(...popData.values.map(d => Math.abs(d.value)));
       this.populationLayer = new VectorLayer(this.activeLevel!.name,{
-          order: 0,
-          description: this.activeLevel!.name,
-          opacity: 1,
+        order: 0,
+        description: this.activeLevel!.name,
+        opacity: 1,
+        style: {
+          strokeColor: 'white',
+          fillColor: 'rgba(165, 15, 21, 0.9)',
+          symbol: 'circle'
+        },
+        labelField: 'value',
+        showLabel: showLabel,
+        tooltipField: 'description',
+        unit: 'Ew.',
+        forceSign: this.compareYears,
+        mouseOver: {
+          enabled: true,
           style: {
-            strokeColor: 'white',
-            fillColor: 'rgba(165, 15, 21, 0.9)',
-            symbol: 'circle'
-          },
-          labelField: 'value',
-          tooltipField: 'description',
-          mouseOver: {
-            enabled: true,
-            style: {
-              strokeColor: 'yellow',
-              fillColor: 'rgba(255, 255, 0, 0.7)'
-            }
-          },
-          select: {
-            enabled: true,
-            style: {
-              strokeColor: 'rgb(180, 180, 0)',
-              fillColor: 'rgba(255, 255, 0, 0.9)'
-            },
-          },
-          valueStyles: {
-            field: 'value',
-            radius: {
-              range: [5, 50],
-              scale: 'linear'
-            },
-            min: 0,
-            max: this.activeLevel?.maxValues!.population! || 1000
+            strokeColor: 'yellow',
+            fillColor: 'rgba(255, 255, 0, 0.7)'
           }
+        },
+        select: {
+          enabled: true,
+          style: {
+            strokeColor: 'rgb(180, 180, 0)',
+            fillColor: 'rgba(255, 255, 0, 0.9)'
+          },
+        },
+        valueStyles: {
+          field: 'value',
+          radius: {
+            range: [5, 50],
+            scale: 'sqrt'
+          },
+          fillColor: fillColor,
+          min: 0,
+          max: max || 1
+        },
+        labelOffset: { y: 15 }
       });
       this.layerGroup?.addLayer(this.populationLayer);
+      const hasProg = this.realYears.indexOf(this.year) === -1 || this.realYears.indexOf(this.comparedYear) === -1;
       this.areas.forEach(area => {
-        const data = popData.find(d => d.areaId == area.id);
-        area.properties.value = (data)? Math.round(data.value): 0;
-        area.properties.description = `<b>${area.properties.label}</b><br>Bevölkerung: ${area.properties.value}`
+        const data = popData.values.find(d => d.areaId == area.id);
+        const value = (data)? Math.round(data.value): 0;
+        area.properties.value = value;
+        let description = `<b>${area.properties.label}</b><br>`;
+        description += (this.compareYears && !value)? 'keine Änderung ': `${this.compareYears && value > 0? '+': ''}${area.properties.value.toLocaleString()} Ew. `;
+        description += (this.compareYears)? `zwischen ${this.comparedYear} und ${this.year}`: `im Jahr ${this.year}`;
+        if (hasProg)
+          description += `<br>Prognoseszenario: ${this.activePrognosis?.name}`
+        area.properties.description = description;
       })
       this.populationLayer.addFeatures(this.areas,{
         properties: 'properties',
@@ -267,17 +292,22 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       });
       if (this.activeArea)
         this.populationLayer.selectFeatures([this.activeArea.id], { silent: true });
-      this.populationLayer!.featureSelected.subscribe(evt => {
-        if (evt.selected) {
-          this.activeArea = this.areas.find(area => area.id === evt.feature.get('id'));
-        }
-        else {
-          this.activeArea = undefined;
-        }
-        this.cookies.set(`pop-area-${this.activeLevel!.id}`, this.activeArea?.id);
-        this.updateDiagrams();
+
+      this.populationLayer!.featuresSelected.subscribe(features => {
+        this.setArea(this.areas.find(area => area.id === features[0].get('id')));
+      })
+      this.populationLayer!.featuresDeselected.subscribe(features => {
+        if (this.activeArea?.id === features[0].get('id'))
+          this.setArea(undefined);
       })
     })
+  }
+
+  setArea(area: Area | undefined): void {
+    this.activeArea = area;
+    this.cookies.set(`pop-area-${this.activeLevel!.id}`, this.activeArea?.id);
+    this.chartToggle.expanded = area !== undefined;
+    this.updateDiagrams();
   }
 
   updateDiagrams(): void {
@@ -291,91 +321,98 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       return;
     }
     ageGroups = sortBy(ageGroups, 'fromAge');
-    this.populationService.getPopulationData(this.activeArea.id, { genders: genders }).subscribe( popData => {
-      this.populationService.getPopulationData(this.activeArea!.id, { prognosis: this.activePrognosis?.id, genders: genders }).subscribe(progData => {
-        const data = popData.concat(progData);
-        if (data.length === 0) return;
-        const years = [... new Set(data.map(d => d.year))].sort();
-        let stackedData: StackedData[] = [];
-        let ageTreeData: Record<number, AgeTreeData[]> = {}
-        const labels = ageGroups.map(ag => ag.label!);
-        const colors = ageGroups.map(ag => this.ageGroupColors[ag.id!]);
-        const maleId = this.genders.find(g => g.name === 'männlich')?.id || 1;
-        const femaleId = this.genders.find(g => g.name === 'weiblich')?.id || 2;
-        years.forEach(year => {
-          let summed: number[] = [];
-          let yearAgeData: AgeTreeData[] = [];
-          const yearData = data.filter(d => d.year === year)!;
-          ageGroups.forEach(ageGroup => {
-            const ad = yearData.filter(d => d.agegroup === ageGroup.id);
-            yearAgeData.push({
-              male: ad.find(d => d.gender === maleId)?.value || 0,
-              fromAge: ageGroup.fromAge,
-              toAge: ageGroup.toAge,
-              female: ad.find(d => d.gender === femaleId)?.value || 0,
-              label: ageGroup.label || ''
-            })
-            const sum = (ad)? ad.reduce((a, d) => a + d.value, 0): 0;
-            summed.push(sum);
+    // this.populationService.getPopulationData(this.activeArea.id, { genders: genders }).subscribe( popData => {
+    this.populationService.getPopulationData(this.activeArea!.id, { prognosis: this.activePrognosis?.id, genders: genders }).subscribe(progData => {
+      // const data = popData.concat(progData);
+      const data = progData.values;
+      if (data.length === 0) return;
+      const years = [... new Set(data.map(d => d.year))].sort();
+      let stackedData: StackedData[] = [];
+      let ageTreeData: Record<number, AgeTreeData[]> = {}
+      const labels = ageGroups.map(ag => ag.label!);
+      const colors = ageGroups.map(ag => this.ageGroupColors[ag.id!]);
+      const maleId = this.genders.find(g => g.name === 'männlich')?.id || 1;
+      const femaleId = this.genders.find(g => g.name === 'weiblich')?.id || 2;
+      years.forEach(year => {
+        let summed: number[] = [];
+        let yearAgeData: AgeTreeData[] = [];
+        const yearData = data.filter(d => d.year === year)!;
+        ageGroups.forEach(ageGroup => {
+          const ad = yearData.filter(d => d.agegroup === ageGroup.id);
+          yearAgeData.push({
+            male: Math.round(ad.find(d => d.gender === maleId)?.value || 0),
+            fromAge: ageGroup.fromAge,
+            toAge: ageGroup.toAge,
+            female: Math.round(ad.find(d => d.gender === femaleId)?.value || 0),
+            label: ageGroup.label || ''
           })
-          ageTreeData[year] = yearAgeData;
-          stackedData.push({
-            group: String(year),
-            values: summed
-          });
+          const sum = (ad)? ad.reduce((a, d) => a + d.value, 0): 0;
+          summed.push(sum);
         })
-
-        const baseYear = this.realYears![this.realYears!.length - 1];
-        const xSeparator = {
-          leftLabel: `Realdaten`,
-          rightLabel: `Prognose (Basisjahr: ${baseYear})`,
-          x: String(baseYear),
-          highlight: false
-        }
-
-        //Stacked Bar Chart
-        this.barChartProps.labels = labels;
-        this.barChartProps.colors = colors;
-        this.barChartProps.title = 'Bevölkerungsentwicklung';
-        if (this.selectedGender!.id !== -1)
-          this.barChartProps.title += ` (${this.selectedGender!.name})`;
-        this.barChartProps.subtitle = this.activeArea?.properties.label!;
-        this.barChartProps.xSeparator = xSeparator;
-        this.barChartProps.data = stackedData;
-
-        // Line Chart
-        let first = stackedData[0].values;
-        let relData = stackedData.map(d => { return {
-          group: d.group,
-          values: d.values.map((v, i) => 100 * v / first[i] )
-        }})
-        let max = Math.max(...relData.map(d => Math.max(...d.values))),
-          min = Math.min(...relData.map(d => Math.min(...d.values)));
-        this.lineChartProps.labels = labels;
-        this.lineChartProps.colors = colors;
-        this.lineChartProps.title = 'relative Altersgruppenentwicklung';
-        if (this.selectedGender!.id !== -1)
-          this.lineChartProps.title += ` (${this.selectedGender!.name})`;
-        this.lineChartProps.subtitle = this.activeArea?.properties.label!;
-        this.lineChartProps.min = Math.floor(min / 10) * 10;
-        this.lineChartProps.max = Math.ceil(max / 10) * 10;
-        this.lineChartProps.xSeparator = xSeparator;
-        this.lineChartProps.data = relData;
-
-        this.ageTreeProps.title = 'Bevölkerungspyramide';
-        this.ageTreeProps.subtitle = this.activeArea?.properties.label!;
-        this.ageTreeProps.data = ageTreeData;
-
-        this.forceDiagramReload();
+        ageTreeData[year] = yearAgeData;
+        stackedData.push({
+          group: String(year),
+          values: summed
+        });
       })
+
+      const baseYear = this.realYears[this.realYears.length - 1];
+      const xSeparator = {
+        leftLabel: `Realdaten`,
+        rightLabel: `Prognose (Basisjahr: ${baseYear})`,
+        x: String(baseYear),
+        highlight: false
+      }
+
+      //Stacked Bar Chart
+      this.barChartProps.labels = labels;
+      this.barChartProps.colors = colors;
+      this.barChartProps.title = 'Bevölkerungsentwicklung';
+      if (this.selectedGender!.id !== -1)
+        this.barChartProps.title += ` (${this.selectedGender!.name})`;
+      this.barChartProps.subtitle = this.activeArea?.properties.label!;
+      this.barChartProps.xSeparator = xSeparator;
+      this.barChartProps.data = stackedData;
+
+      // Line Chart
+      // first values != 0 for each group (otherwise if first year is 0 every other year would be an infinite increase)
+      let first: number[] = [];
+      ageGroups.forEach((ag, i) => {
+        const yd = stackedData.find(d => d.values[i] != 0);
+        first.push(yd? yd.values[i]: 0);
+      })
+      let relData = stackedData.map(d => { return {
+        group: d.group,
+        values: d.values.map((v, i) => first[i]? (100 * v / first[i]): 0 )
+      }})
+      let max = Math.max(...relData.map(d => Math.max(...d.values))),
+        min = Math.min(...relData.map(d => Math.min(...d.values)));
+      this.lineChartProps.labels = labels;
+      this.lineChartProps.colors = colors;
+      this.lineChartProps.title = 'relative Altersgruppenentwicklung';
+      if (this.selectedGender!.id !== -1)
+        this.lineChartProps.title += ` (${this.selectedGender!.name})`;
+      this.lineChartProps.subtitle = this.activeArea?.properties.label!;
+      this.lineChartProps.min = Math.floor(min / 10) * 10;
+      this.lineChartProps.max = Math.ceil(max / 10) * 10;
+      this.lineChartProps.xSeparator = xSeparator;
+      this.lineChartProps.data = relData;
+
+      this.ageTreeProps.title = 'Bevölkerungspyramide';
+      this.ageTreeProps.subtitle = this.activeArea?.properties.label!;
+      this.ageTreeProps.data = ageTreeData;
+
+      this.forceDiagramReload();
     })
+    // })
   }
 
   forceDiagramReload(): void {
     // workaround to force redraw of diagram by triggering ngIf wrapper
     const _prev = this.selectedTab;
     this.selectedTab = -1;
-    setTimeout(() => {  this.selectedTab = _prev; }, 1);
+    this.cdref.detectChanges();
+    setTimeout(() => {  this.selectedTab = _prev; this.cdref.detectChanges(); }, 1);
   }
 
   someAgeGroupsChecked(): boolean {
@@ -415,11 +452,21 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     else {
       const genderDesc = `Geschlecht: ${this.selectedGender?.name || '-'}`;
       const ageGroupDesc = `${(this.ageGroupSelection.selected.length == this.ageGroups.length)? 'alle' : this.ageGroupSelection.selected.length === 0? 'keine': 'ausgewählte'} Altersgruppen`;
-      const progDesc = (this.realYears?.indexOf(this.year) === -1)? `${this.activePrognosis?.name} `: '';
-      description = `Bevölkerungsentwicklung für Gebietseinheit ${this.activeLevel.name} | ${progDesc}${this.year} <br>` +
-                    `${genderDesc} | ${ageGroupDesc}`;
+      const pre = this.compareYears? 'Bevölkerungsentwicklung für': 'Zahl der Einwohner:innen nach'
+      description = `${pre} ${this.activeLevel.name} ${this.year}`;
+      if (this.compareYears)
+        description += ` im Vergleich zu ${this.comparedYear}`
+      if (this.realYears.indexOf(this.year) === -1 || this.realYears.indexOf(this.comparedYear) === -1)
+        description += `<br>Prognoseszenario: ${this.activePrognosis?.name}`;
+      description += `<br>${genderDesc} | ${ageGroupDesc}`;
     }
-    this.mapControl!.mapDescription = description;
+    this.mapControl?.setDescription(description);
+  }
+
+  onUpdateCompare(): void {
+    this.cookies.set('pop-compare-years', this.compareYears);
+    this.cookies.set('pop-compared-year', this.comparedYear);
+    this.updateMap();
   }
 
   ngOnDestroy(): void {

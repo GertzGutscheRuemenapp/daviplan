@@ -1,14 +1,20 @@
+import pandas as pd
+
 from django.test import TestCase
+from test_plus import APITestCase
+
+from django.urls import reverse
+from datentool_backend.api_test import LoginTestCase
+
 
 from datentool_backend.indicators.factories import (
-    RouterFactory, MatrixCellPlaceFactory,
-    MatrixCellStopFactory, MatrixPlaceStopFactory,
+    RouterFactory,
+    MatrixCellPlaceFactory,
+    MatrixCellStopFactory,
+    MatrixPlaceStopFactory,
     MatrixStopStopFactory)
 
-from datentool_backend.indicators.compute import (
-    register_indicator, ServiceIndicator)
-
-from datentool_backend.infrastructure.models.places import FieldTypes
+from datentool_backend.infrastructure.factories import ServiceFactory, Service
 
 
 class TestIndicator(TestCase):
@@ -16,7 +22,6 @@ class TestIndicator(TestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        register_indicator()(DummyIndicator)
 
     def test_router(self):
         RouterFactory()
@@ -33,79 +38,107 @@ class TestIndicator(TestCase):
     def test_matrix_stop_stop(self):
         MatrixStopStopFactory()
 
-    #def test_indicator_types(self):
-        #"""test if the indicator types are registred"""
-        #indicator = NumberOfLocations(query_params={})
-        #str(indicator)
 
-        #indicator_types = IndicatorType.objects.all()
+class TestIndicatorDescription(LoginTestCase,
+                               APITestCase,
+                               ):
+    """Test the indicator descriptions"""
 
-        ## add an unknown indicator
-        #IndicatorFactory(indicator_type__classname='Unknown')
-        #assert set(['Unknown',
-                    #DummyIndicator.__name__,
-                    #NumberOfLocations.__name__,
-                    #TotalCapacityInArea.__name__,
-                    #])\
-               #.issubset(set(indicator_types.values_list('classname', flat=True)))
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.service_school = ServiceFactory(
+            name='Grundschule',
+            quota_type='Wird Quota Type verwendet???',
+            capacity_singular_unit='Grundschulplatz',
+            capacity_plural_unit='Grundschulplätze',
+            has_capacity=True,
+            demand_singular_unit='Grundschüler:in',
+            demand_plural_unit='Grundschüler:innen',
+            demand_name='Grundschulbesuch',
+            demand_description='Grundschulbesuche Klassen 1-4',
+            facility_singular_unit='Schule',
+            facility_article='die',
+            facility_plural_unit='Schulen',
+            direction_way_relationship=Service.WayRelationship.TO,
+            demand_type=Service.DemandType.QUOTA,
+        )
 
-        ## delete an indicator_type
-        #IndicatorType.objects.get(classname=NumberOfLocations.__name__).delete()
+        cls.infra = cls.service_school.infrastructure
 
-        ##  change parameters of other indicators
-        #dummy_indicator = IndicatorType.objects.get(classname=DummyIndicator.__name__)
-        #dummy_fields = IndicatorTypeField.objects.filter(
-            #indicator_type__classname=DummyIndicator.__name__)
-        #self.assertEquals(len(dummy_fields), 2)
+        cls.service_doctor = ServiceFactory(
+            infrastructure=cls.infra,
+            name='Hausarzt',
+            quota_type='Wird Quota Type verwendet???',
+            capacity_singular_unit='Praxis',
+            capacity_plural_unit='Praxen',
+            has_capacity=False,
+            demand_singular_unit='Arztkontakt',
+            demand_plural_unit='Arztkontakte',
+            demand_name='Hausarztbesuche',
+            demand_description='Besuche pro Jahr',
+            facility_singular_unit='Praxis',
+            facility_article='die',
+            facility_plural_unit='Praxen',
+            direction_way_relationship=Service.WayRelationship.TO,
+            demand_type=Service.DemandType.FREQUENCY,
+        )
 
-        #dummy_indicator.name = 'NewName'
-        #dummy_indicator.save()
-        #dummy_fields[0].delete()
-        #self.assertEqual(dummy_fields[1].field_type.ftype,
-                         #DummyIndicator.parameters[dummy_fields[1].field_type.name])
+        cls.service_fire = ServiceFactory(
+            infrastructure=cls.infra,
+            name='Feuerwehr',
+            quota_type='Wird Quota Type verwendet???',
+            capacity_singular_unit='Löschzug',
+            capacity_plural_unit='Löschzüge',
+            has_capacity=False,
+            demand_singular_unit='Brand',
+            demand_plural_unit='Brände',
+            demand_name='Brandeinsatz',
+            demand_description='Brandeinsätze pro Jahr',
+            facility_singular_unit='Gerätehaus',
+            facility_article='das',
+            facility_plural_unit='Gerätehäuser',
+            direction_way_relationship=Service.WayRelationship.FROM,
+            demand_type=Service.DemandType.UNIFORM,
+        )
 
-        ## change fieldtype
-        #f1 = dummy_fields[1]
-        #f1.field_type.ftype = FieldTypes.CLASSIFICATION
-        #f1.field_type.save()
+        cls.services = [cls.service_school, cls.service_doctor, cls.service_fire]
 
-        ## add fields
-        #IndicatorTypeField.objects.create(indicator_type=dummy_indicator,
-                                          #field_type=f1.field_type,
-                                          #label='F1')
-        #IndicatorTypeField.objects.create(indicator_type=dummy_indicator,
-                                          #field_type=f1.field_type,
-                                          #label='F2')
+    def test_service_indicators(self):
+        """Test the description of the fixed indicators"""
+        self.client.force_login(self.profile.user)
 
-        #indicators_values_list = indicator_types.values_list('classname', flat=True)
-        #assert set(['Unknown',
-                    #DummyIndicator.__name__,
-                    #TotalCapacityInArea.__name__,
-                    #]).issubset(set(indicators_values_list))
+        for service in self.services:
+            url = reverse('services-get-indicators', kwargs={'pk': service.pk})
+            response = self.get(url)
+            self.assert_http_200_ok(response)
+            result = pd.DataFrame(response.data).set_index('name')
+            print(result['title'])
+            print(result['description'])
+            print(result['result_type'])
+            print(result['additional_parameters'])
 
-        #assert NumberOfLocations.__name__ not in indicators_values_list
+    def test_fixed_indicators(self):
+        """Test the description of the fixed indicators"""
+        self.client.force_login(self.profile.user)
 
-        ## reset the indicators
-        #IndicatorType._update_indicators_types()
-        #assert set([DummyIndicator.__name__,
-                    #NumberOfLocations.__name__,
-                    #TotalCapacityInArea.__name__,
-                    #])\
-               #.issubset(set(indicator_types.values_list('classname', flat=True)))
+        base_url = 'fixedindicators'
+        indicators = ['capacity',
+                      'demand',
+                      'number-of-locations',
+                      'aggregate-population',
+                      'population-details',
+                      'reachability-place',
+                      'reachability-cell',
+                      'reachability-next-place',
+                      ]
 
-
-        #dummy_indicator = IndicatorType.objects.get(classname=DummyIndicator.__name__)
-        #dummy_fields = IndicatorTypeField.objects.filter(
-            #indicator_type__classname=DummyIndicator.__name__)
-        #self.assertEquals(len(dummy_fields), 2)
-        #self.assertEquals(dummy_indicator.name, DummyIndicator.label)
-
-
-class DummyIndicator(ServiceIndicator):
-    label = 'TE'
-    description = 'Random Indicator'
-    parameters = {'Max_Value': FieldTypes.NUMBER, 'TextField': FieldTypes.STRING, }
-    userdefined = True
-
-    def compute(self):
-        """"""
+        for indicator in indicators:
+            url = reverse(f'{base_url}-{indicator}')
+            response = self.get(url)
+            self.assert_http_200_ok(response)
+            result = response.data
+            print(result['title'])
+            print(result['description'])
+            print(result['result_type'])
+            print(result['additional_parameters'])

@@ -1,6 +1,6 @@
 from .demand_per_capacity import DemandPerCapacity
 from .demand_per_facility import DemandPerFacility
-from .accessible_demand import AccessibleDemandPerArea
+from .accessible_demand import AccessibleDemandPerPlace
 from .capacity_per_demand import CapacityPerDemandInArea
 from .facilities_per_demand import FacilitiesPerDemandInArea
 from .average_area_reachability import AverageAreaReachability

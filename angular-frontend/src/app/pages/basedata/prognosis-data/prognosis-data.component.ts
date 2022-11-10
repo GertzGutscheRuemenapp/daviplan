@@ -6,10 +6,8 @@ import {
   Population,
   Year,
   Prognosis,
-  ExtLayer,
-  ExtLayerGroup,
   Gender,
-  AgeGroup, PopEntry, DemandRateSet
+  AgeGroup, PopEntry, DemandRateSet, LogEntry
 } from "../../../rest-interfaces";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { SelectionModel } from "@angular/cdk/collections";
@@ -21,13 +19,12 @@ import { MatDialog } from "@angular/material/dialog";
 import { PopulationService } from "../../population/population.service";
 import { sortBy } from "../../../helpers/utils";
 import { AgeTreeComponent, AgeTreeData } from "../../../diagrams/age-tree/age-tree.component";
-import * as d3 from "d3";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, Subscription } from "rxjs";
 import * as fileSaver from "file-saver";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
-import { MapLayer, MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-prognosis-data',
@@ -66,6 +63,8 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   propertiesForm: FormGroup;
   file?: File;
   uploadErrors: any = {};
+  isProcessing = false;
+  subscriptions: Subscription[] = [];
 
   constructor(private mapService: MapService, private settings: SettingsService, private dialog: MatDialog,
               private rest: RestAPI, private http: HttpClient, public popService: PopulationService, private formBuilder: FormBuilder) {
@@ -89,6 +88,10 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       else
         this.popLevelMissing = true;
     })
+    this.subscriptions.push(this.settings.baseDataSettings$.subscribe(baseSettings => {
+      this.isProcessing = baseSettings.processes?.population || false;
+    }));
+    this.settings.fetchBaseDataSettings();
     this.fetchData();
     this.setupYearCard();
     this.setupPropertiesCard();
@@ -228,14 +231,15 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       if (this.previewArea)
         this.previewLayer?.selectFeatures([this.previewArea.id], { silent: true });
       this.updateAgeTree();
-      this.previewLayer!.featureSelected?.subscribe(evt => {
-        if (evt.selected) {
-          this.previewArea = this.areas.find(area => area.id === evt.feature.get('id'));
-        }
-        else {
-          this.previewArea = undefined;
-        }
+      this.previewLayer!.featuresSelected.subscribe(features => {
+        this.previewArea = this.areas.find(area => area.id === features[0].get('id'));
         this.updateAgeTree();
+      })
+      this.previewLayer!.featuresDeselected.subscribe(features => {
+        if (this.previewArea?.id === features[0].get('id')) {
+          this.previewArea = undefined;
+          this.updateAgeTree();
+        }
       })
     })
   }
@@ -453,36 +457,53 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
     if (!this.activePrognosis) return;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
+      panelClass: 'absolute',
       data: {
         title: `Template hochladen`,
         confirmButtonText: 'Datei hochladen',
-        template: this.fileUploadTemplate
+        template: this.fileUploadTemplate,
+        closeOnConfirm: false,
       }
     });
-    dialogRef.componentInstance.confirmed.subscribe((confirmed: boolean) => {
+    dialogRef.componentInstance.confirmed.subscribe(() => {
       if (!this.file)
         return;
       const formData = new FormData();
+      dialogRef.componentInstance.isLoading$.next(true);
       formData.append('excel_file', this.file);
       formData.append('prognosis', this.activePrognosis!.id.toString());
-      const dialogRef2 = SimpleDialogComponent.show(
-        'Das Template wird hochgeladen. Die Bevölkerungsdaten werden auf das Raster disaggregiert und anschließend auf die vorhandenen Gebiete aggregiert.<br><br>' +
-        'Dies kann einige Minuten dauern. Bitte warten', this.dialog, { showAnimatedDots: true, width: '400px' });
       const url = `${this.rest.URLS.popEntries}upload_template/`;
       this.http.post(url, formData).subscribe(res => {
-        this.popService.reset();
-        this.fetchData();
+        this.isProcessing = true;
         dialogRef.close();
-        dialogRef2.close();
       }, error => {
         this.uploadErrors = error.error;
         dialogRef.componentInstance.isLoading$.next(false);
-        dialogRef2.close();
       });
     });
     dialogRef.afterClosed().subscribe(ok => {
       this.uploadErrors = {};
     })
+  }
+
+  setDefaultPrognosis(prognosis: Prognosis): void {
+    if (!prognosis) return;
+    const attributes = { isDefault: true };
+    this.isLoading$.next(true);
+    this.http.patch<Prognosis>(`${this.rest.URLS.prognoses}${this.activePrognosis?.id}/`, attributes
+    ).subscribe(prognosis => {
+      this.prognoses.forEach(p => p.isDefault = false);
+      this.activePrognosis!.isDefault = prognosis.isDefault;
+      this.isLoading$.next(false);
+    })
+  }
+
+  onMessage(log: LogEntry): void {
+    if (log?.status?.success) {
+      this.isProcessing = false;
+      this.popService.reset();
+      this.fetchData();
+    }
   }
 
   setFiles(event: Event){
@@ -493,5 +514,6 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.mapControl?.destroy();
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }

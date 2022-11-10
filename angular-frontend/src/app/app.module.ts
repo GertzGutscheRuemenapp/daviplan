@@ -75,8 +75,8 @@ import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
 import { LocationsComponent } from './pages/basedata/locations/locations.component';
 import { ServicesComponent } from './pages/basedata/services/services.component';
 import { DemandQuotasComponent } from './pages/basedata/demand-quotas/demand-quotas.component';
-import { RouterSettingsComponent } from './pages/basedata/router-settings/router-settings.component';
-import { ReachabilityMatrixComponent } from './pages/basedata/reachability-matrix/reachability-matrix.component';
+import { RoadNetworkComponent } from './pages/basedata/road-network/road-network.component';
+import { TransitMatrixComponent } from './pages/basedata/transit-matrix/transit-matrix.component';
 import { ExternalLayersComponent } from './pages/basedata/external-layers/external-layers.component';
 import { CheckTreeComponent } from './elements/check-tree/check-tree.component';
 import { MatTreeModule } from "@angular/material/tree";
@@ -95,6 +95,9 @@ import { AgeTreeComponent } from './diagrams/age-tree/age-tree.component';
 import { DemandRateSetViewComponent } from './pages/basedata/demand-quotas/demand-rate-set-view/demand-rate-set-view.component';
 import { ClassificationsComponent } from './pages/basedata/locations/classifications/classifications.component';
 import { ServiceSelectComponent } from './pages/planning/service-select/service-select.component';
+import { ModeSelectComponent } from './pages/planning/mode-select/mode-select.component';
+import { HorizontalBarchartComponent } from './diagrams/horizontal-barchart/horizontal-barchart.component';
+import { DiagramComponent } from './diagrams/diagram/diagram.component';
 
 @NgModule({
   declarations: [
@@ -142,8 +145,8 @@ import { ServiceSelectComponent } from './pages/planning/service-select/service-
     LocationsComponent,
     ServicesComponent,
     DemandQuotasComponent,
-    RouterSettingsComponent,
-    ReachabilityMatrixComponent,
+    RoadNetworkComponent,
+    TransitMatrixComponent,
     ExternalLayersComponent,
     CheckTreeComponent,
     FilterTableComponent,
@@ -158,7 +161,10 @@ import { ServiceSelectComponent } from './pages/planning/service-select/service-
     AgeTreeComponent,
     DemandRateSetViewComponent,
     ClassificationsComponent,
-    ServiceSelectComponent
+    ServiceSelectComponent,
+    ModeSelectComponent,
+    HorizontalBarchartComponent,
+    DiagramComponent
   ],
   imports: [
     BrowserModule,

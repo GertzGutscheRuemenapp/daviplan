@@ -2,7 +2,6 @@ from abc import ABCMeta, abstractmethod
 from django.db.models import OuterRef, Subquery, Count, IntegerField, Sum
 from django.db.models.functions import Coalesce
 from sql_util.utils import Exists
-from django.http.request import QueryDict
 
 from datentool_backend.indicators.compute.base import ComputeIndicator, ResultSerializer
 from datentool_backend.area.models import Area, AreaLevel
@@ -15,19 +14,16 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
     def compute(self):
         """"""
         area_level_id = self.data.get('area_level')
-        if isinstance(self.data, QueryDict):
-            service_ids = self.data.getlist('service')
-        else:
-            service_ids = self.data.get('service')
+        service_id = self.data.get('service')
         year = self.data.get('year', 0)
         scenario_id = self.data.get('scenario')
 
-        area_level = AreaLevel.objects.get(pk=area_level_id)
-        areas = area_level.area_set.all()
+        area_level = AreaLevel.objects.get(id=area_level_id)
+        areas = Area.label_annotated_qs(area_level=area_level)
 
         capacities = Capacity.objects.all()
         capacities = Capacity.filter_queryset(capacities,
-                                              service_ids=service_ids,
+                                              service_ids=[service_id],
                                               scenario_id=scenario_id,
                                               year=year,
                                               )
@@ -49,6 +45,8 @@ class ComputeAreaIndicator(ComputeIndicator, metaclass=ABCMeta):
 class NumberOfLocations(ComputeAreaIndicator):
     title = 'NumLocations'
     description = 'Number of Locations per Area'
+    representation = 'colorramp'
+    colormap_name = 'Blues'
 
     def aggregate_places(self,
                          places: Place,
@@ -76,6 +74,8 @@ class NumberOfLocations(ComputeAreaIndicator):
 class TotalCapacityInArea(ComputeAreaIndicator):
     title = 'Total Capacity'
     description = 'Total Capacity per Area'
+    representation = 'colorramp'
+    colormap_name = 'Blues'
 
     def aggregate_places(self,
                          places: Place,

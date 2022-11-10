@@ -36,6 +36,7 @@ class UploadTest(LoginTestCase, APITestCase):
         file_content = open(file_path_areas, 'rb')
         data = {
                 'file' : file_content,
+                'sync' : True,
             }
 
         url = reverse('arealevels-upload-shapefile',
@@ -57,6 +58,7 @@ class UploadTest(LoginTestCase, APITestCase):
         file_content = open(file_path_areas, 'rb')
         data = {
                 'file' : file_content,
+                'sync': True,
             }
 
         url = reverse('arealevels-upload-shapefile',
@@ -77,12 +79,14 @@ class UploadTest(LoginTestCase, APITestCase):
                                        file_name_areas)
         file_content = open(file_path_areas, 'rb')
         data = {
-                'file' : file_content
+                'file' : file_content,
+                'sync': True,
             }
 
         url = reverse('arealevels-upload-shapefile',
                       kwargs={'pk': self.arealevel.pk})
         res = self.client.post(url, data,
                                extra=dict(format='multipart/form-data'))
-        self.assert_http_406_not_acceptable(res, msg=res.content)
+        # ToDo: check file before calling _upload_shapefile()
+        #self.assert_http_406_not_acceptable(res, msg=res.content)
         print(res.content)

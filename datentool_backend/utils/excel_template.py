@@ -2,16 +2,22 @@ from io import StringIO
 from distutils.util import strtobool
 import sys
 import traceback
+import logging
+import pandas as pd
+from datentool_backend.utils.processes import (ProtectedProcessManager,
+                                               ProcessScope)
 
 from django.http import HttpResponse
 from django.db import transaction
 
+from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
 from rest_framework import status, serializers
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
 
 from datentool_backend.utils.serializers import MessageSerializer, drop_constraints
+from datentool_backend.utils.permissions import HasAdminAccess, CanEditBasedata
 
 
 class ColumnError(Exception):
@@ -33,7 +39,8 @@ class ExcelTemplateMixin:
                    #},
                    )
 
-    @action(methods=['POST'], detail=False)
+    @action(methods=['POST'], detail=False,
+            permission_classes=[HasAdminAccess | CanEditBasedata])
     def create_template(self, request, **kwargs):
         """Download the Template"""
         serializer = self.get_serializer()
@@ -53,6 +60,9 @@ class ExcelTemplateMixin:
                        name='FileDropConstraintSerializer',
                        fields={'drop_constraints': drop_constraints,
                                'excel_file': serializers.FileField(),
+                               'variant': serializers.IntegerField(
+                                   required=False,
+                                   help_text='mode-variant id'),
                                }
                    ),
                    responses={202: OpenApiResponse(MessageSerializer,
@@ -60,28 +70,68 @@ class ExcelTemplateMixin:
                               406: OpenApiResponse(MessageSerializer,
                                                    'Upload failed')})
 
-    @action(methods=['POST'], detail=False)
+    @action(methods=['POST'], detail=False,
+            parser_classes=[CamelCaseMultiPartParser])
     def upload_template(self, request, queryset=None, **kwargs):
         """Upload the filled out Template"""
         serializer = self.get_serializer()
+        logger = getattr(serializer, 'logger', logging.getLogger(__name__))
         if queryset is None:
             queryset = serializer.get_queryset(request) \
                 if hasattr(serializer, 'get_queryset') else self.get_queryset()
-        model = queryset.model
-        manager = model.copymanager
         drop_constraints = bool(strtobool(
             request.data.get('drop_constraints', 'False')))
+        run_sync = bool(strtobool(request.data.get('sync', 'False')))
 
+        try:
+            logger.info('Lese Excel-Datei')
+            df = serializer.read_excel_file(request, **kwargs)
+        except (ColumnError, AssertionError) as e:
+            msg = f'{e} Bitte überprüfen Sie das Template.'
+            logger.error(msg)
+            return Response({'Fehler': msg},
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        with ProtectedProcessManager(
+            user=request.user,
+            scope=getattr(serializer, 'scope', ProcessScope.GENERAL)) as ppm:
+
+            # workaround: if post requesting is required, do all the writing
+            # of data before synchronously
+            # did not manage to pass both into async
+            if hasattr(serializer, 'post_processing'):
+                self.write_template_df(df, queryset, logger,
+                                       drop_constraints=drop_constraints)
+                if not run_sync:
+                    ppm.run_async(serializer.post_processing, df,
+                                  drop_constraints=drop_constraints)
+                else:
+                    serializer.post_processing(
+                        df, drop_constraints=drop_constraints)
+            else:
+                if not run_sync:
+                    ppm.run_async(self.write_template_df, df, queryset, logger,
+                                  drop_constraints=drop_constraints)
+                else:
+                    self.write_template_df(df, queryset, logger,
+                                           drop_constraints=drop_constraints)
+
+        return Response({'message': 'Upload gestartet'},
+                        status=status.HTTP_202_ACCEPTED)
+
+    @staticmethod
+    def write_template_df(df: pd.DataFrame, queryset, logger, drop_constraints=False):
+        model = queryset.model
+        manager = model.copymanager
         with transaction.atomic():
             if drop_constraints:
                 manager.drop_constraints()
                 manager.drop_indexes()
-
+            logger.info(f'Lösche {len(queryset)} vorhandene Einträge')
             queryset.delete()
-
             try:
-                df = serializer.read_excel_file(request, **kwargs)
                 if len(df):
+                    logger.info('Schreibe Daten in Datenbank')
                     with StringIO() as file:
                         df.to_csv(file, index=False)
                         file.seek(0)
@@ -89,16 +139,11 @@ class ExcelTemplateMixin:
                             file,
                             drop_constraints=False, drop_indexes=False,
                         )
-            except ColumnError as e:
-                return Response({'Fehler': f'{e} '
-                                 'Bitte überprüfen Sie das Template.'},
-                                status=status.HTTP_406_NOT_ACCEPTABLE)
 
             except Exception as e:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 msg = repr(traceback.format_tb(exc_traceback))
-                return Response({'Fehler': msg},
-                                status=status.HTTP_406_NOT_ACCEPTABLE)
+                logger.error(msg)
 
             finally:
                 # recreate indices
@@ -106,9 +151,5 @@ class ExcelTemplateMixin:
                     manager.restore_constraints()
                     manager.restore_indexes()
 
-        if hasattr(serializer, 'post_processing'):
-            serializer.post_processing(df, drop_constraints)
-
-        msg = f'Upload successful of {len(df)} rows'
-        return Response({'message': msg,}, status=status.HTTP_202_ACCEPTED)
-
+        msg = f'{len(df)} Einträge geschrieben'
+        logger.info(msg)

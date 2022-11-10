@@ -1,23 +1,37 @@
 <h4 *ngIf="data.title" mat-dialog-title>{{ data.title }}</h4>
+<button *ngIf="data.showCloseButton"
+        color="primary"
+        mat-icon-button
+        mat-dialog-close
+        title="Dialog schließen"
+        id="close-button">
+  <mat-icon>close</mat-icon>
+</button>
 <span *ngIf="data.subtitle" class="subtitle1 sub">{{data.subtitle}}</span>
 <mat-dialog-content>
   <div class="loadOverlay" *ngIf="isLoading$ | async">
     <mat-spinner [diameter]="50"></mat-spinner>
   </div>
-  <p *ngIf="data.message" [innerHTML]="data.message" style="text-align: justify;"></p>
-  <ng-container *ngTemplateOutlet="data.template; context: data.context"></ng-container>
-  <div *ngIf="data.infoText" class="info-text" style="margin-top: 15px;"
-       [@.disabled]="!initReady">
-    <mat-expansion-panel class="text-panel" [expanded]="data.infoExpanded">
-      <mat-expansion-panel-header>
-        <mat-icon color="primary" class="material-icons-outlined"
-                  style="margin-right: 5px;">help_outline</mat-icon>
-        <span class="subtitle1" style="color: grey;">Hilfe</span>
-      </mat-expansion-panel-header>
-      <span [innerHTML]="data.infoText"></span>
-    </mat-expansion-panel>
+  <div *ngIf="errors">
+    <mat-error *ngFor="let error of errors | keyvalue" class="alert">
+      {{ error.key }}: {{ error.value }}
+    </mat-error>
   </div>
+  <p *ngIf="data.message" [innerHTML]="data.message"></p>
+  <ng-container *ngTemplateOutlet="data.template; context: data.context"></ng-container>
 </mat-dialog-content>
+<div *ngIf="data.infoText" class="info-text"
+     style="margin-top: 15px;"
+     [@.disabled]="!initReady">
+  <mat-expansion-panel class="text-panel" [expanded]="data.infoExpanded">
+    <mat-expansion-panel-header>
+      <mat-icon color="primary" class="material-icons-outlined"
+                style="margin-right: 5px;">help_outline</mat-icon>
+      <span class="subtitle1" style="color: grey;">Hilfe</span>
+    </mat-expansion-panel-header>
+    <span [innerHTML]="data.infoText"></span>
+  </mat-expansion-panel>
+</div>
 <mat-dialog-actions>
   <button mat-button class="mat-button-dv"
           color="primary"

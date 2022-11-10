@@ -16,7 +16,6 @@ from datentool_backend.infrastructure.factories import (InfrastructureFactory,
                                                         FieldTypeFactory,
                                                         PlaceFactory,
                                                         )
-
 from datentool_backend.area.models import FieldTypes
 from datentool_backend.area.factories import FClassFactory
 
@@ -50,7 +49,8 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
         cls.num_field = PlaceFieldFactory(infrastructure=cls.infra,
                                           field_type__name='FloatType',
                                           name='Gewichtung',
-                                          field_type__ftype=FieldTypes.NUMBER)
+                                          field_type__ftype=FieldTypes.NUMBER,
+                                          unit='Punkte')
 
         cl_ft1 = FieldTypeFactory(ftype=FieldTypes.CLASSIFICATION, name='Ziffern')
         cl_ft2 = FieldTypeFactory(ftype=FieldTypes.CLASSIFICATION, name='Buchstaben')
@@ -92,18 +92,29 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
 
     def test_create_infrastructure_template(self):
         url = reverse('places-create-template')
-        res = self.post(url, data={'infrastructure': self.infra.pk,})
+        res = self.post(url, data={'infrastructure': self.infra.pk,},
+                        extra={'format': 'json'})
         self.assert_http_200_ok(res)
         wb = load_workbook(BytesIO(res.content))
         self.assertSetEqual(set(wb.sheetnames),
                             {'Standorte und Kapazitäten', 'meta', 'Klassifizierungen'})
+        df = pd.read_excel(BytesIO(res.content), sheet_name='Klassifizierungen')
+        expected = pd.DataFrame({'order': [1, 2, 3],
+                                 'Ziffern': ['Eins', 'Zwei', 'Drei'],
+                                 'Buchstaben': ['AA', 'BB', pd.NA], })
+        pd.testing.assert_frame_equal(df, expected)
+        # check if the unit was used for column "Gewichtung"
+        df = pd.read_excel(BytesIO(res.content),
+                           sheet_name='Standorte und Kapazitäten')
+        self.assertEqual(df.loc[0, 'Gewichtung'],
+                         'Nutzerdefinierte Spalte (Punkte)')
 
-    def test_upload_place_template(self):
+    def test_upload_broken_place_template(self):
         """
         test bulk upload places and capacities
         """
-        # delete places
-        Place.objects.first().delete()
+        # delete Place1
+        Place.objects.get(name='Place1').delete()
 
         # upload excel-file
         file_name_places = 'Standorte_und_Kapazitäten_mod.xlsx'
@@ -114,11 +125,38 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
         data = {
             'excel_file' : file_content,
             'infrastructure': self.infra.pk,
+            'sync':  True
         }
 
         url = reverse('places-upload-template')
         res = self.client.post(url, data,
                                extra=dict(format='multipart/form-data'))
+        # modified excel-Testfile with non-matching-classifications should
+        # raise a 400-response
+        self.assert_http_400_bad_request(res, msg=res.content)
+
+    def test_upload_place_template(self):
+
+        # delete Place1
+        Place.objects.get(name='Place1').delete()
+
+        # upload excel-file
+        file_name_places = 'Standorte_und_Kapazitäten.xlsx'
+        file_path_places = os.path.join(os.path.dirname(__file__),
+                                        self.testdata_folder,
+                                        file_name_places)
+        file_content = open(file_path_places, 'rb')
+        data = {
+            'excel_file': file_content,
+            'infrastructure': self.infra.pk,
+            'sync': True
+        }
+
+        url = reverse('places-upload-template')
+        res = self.client.post(url, data,
+                               extra=dict(format='multipart/form-data'))
+
+
         self.assert_http_202_accepted(res, msg=res.content)
 
         df = pd.read_excel(file_path_places, sheet_name='Standorte und Kapazitäten',

@@ -212,13 +212,14 @@ class FClassSerializer(serializers.ModelSerializer):
     ftype_id = serializers.PrimaryKeyRelatedField(
         write_only=True,
         required=False,
+        # needs a default which is ignored, but otherwise an SkipField-exception is raised
+        default=-1,
         source='ftype',
         queryset=FieldType.objects.all())
 
     class Meta:
         model = FClass
         read_only_fields = ('id', 'ftype', )
-        write_only_fields = ('ftype_id', )
         fields = ('id', 'order', 'value',
                   'ftype', 'ftype_id')
 
@@ -249,25 +250,41 @@ class FieldTypeSerializer(serializers.ModelSerializer):
         return instance
 
     def _update_classification(self, instance, data):
-        classifications = []
+        """update the classifications for the fieldtype"""
+        # assert that the names are unique
         names = [f['value'] for f in data]
         if (len(set(names)) != len(names)):
             raise NotAcceptable('Die Werte der Klassen müssen einzigartig sein!')
+
+        # delete unused classifications
+        new_values = [d['value'] for d in data]
+        fields_fclasses = FClass.objects.filter(ftype=instance)
+        to_delete = fields_fclasses.exclude(value__in=new_values)
+        to_delete.delete()
+
+        # update order of existing values and create new values in one transaction
+        # with bulk_update/create - to assure the unique constraint on order is met
+        fclasses_to_update = []
+        fclasses_to_create = []
         for classification in data:
             order = classification.get('order', 0)
             try:
-                fclass = FClass.objects.get(ftype=instance,
-                                            value=classification['value'])
+                fclass = fields_fclasses.get(value=classification['value'])
                 fclass.order = order
-                fclass.save()
+                fclasses_to_update.append(fclass)
             except FClass.DoesNotExist:
-                fclass = FClass.objects.create(
+                fclass = FClass(
                     ftype=instance, value=classification['value'], order=order)
-            classifications.append(fclass)
-        classification_data_ids = [f.id for f in classifications]
-        for fclass in instance.fclass_set.all():
-            if fclass.id not in classification_data_ids:
-                fclass.delete(keep_parents=True)
+                fclasses_to_create.append(fclass)
+        FClass.objects.bulk_update(fclasses_to_update, fields=['order'])
+        # new objects are appended at the end if order is conflicting
+        if fclasses_to_create:
+            max_order = fields_fclasses.aggregate(Max('order'))['order__max']
+        for fclass in fclasses_to_create:
+            if fields_fclasses.filter(order__contains=fclass.order):
+                max_order += 1
+                fclass.order = max_order
+        FClass.objects.bulk_create(fclasses_to_create)
 
 
 class AreaAttributeField(serializers.JSONField):
@@ -277,7 +294,7 @@ class AreaAttributeField(serializers.JSONField):
 
     def to_representation(self, value):
         data = {}
-        for field_name in value.field_names.split(','):
+        for field_name in value.field_names.strip("'").split(','):
             try:
                 field_value = getattr(value, field_name)
             except AttributeError:

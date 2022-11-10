@@ -3,10 +3,12 @@ import os
 from collections import OrderedDict
 from typing import Tuple
 import pandas as pd
+import logging
 
 from django.conf import settings
 from django.db.models import Q
 from django.db.models.fields import FloatField
+from django.core.exceptions import BadRequest
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db.models.functions import GeoFunc, Transform
 from rest_framework import serializers
@@ -27,6 +29,7 @@ from datentool_backend.infrastructure.models.infrastructures import (
     Infrastructure)
 from datentool_backend.utils.crypto import decrypt
 from datentool_backend.utils.bkg_geocoder import BKGGeocoder
+from datentool_backend.utils.processes import ProcessScope
 
 infrastructure_id_serializer = serializers.PrimaryKeyRelatedField(
     queryset=Infrastructure.objects.all(),
@@ -42,11 +45,20 @@ class St_Y(GeoFunc):
     function='ST_Y'
     output_field = FloatField()
 
+ADDRESS_FIELDS = {
+    'Straße': 'Postalisch korrekte Schreibweise',
+    'Hausnummer': 'Zahl, ggf. mit Buchstaben (7b) oder 11-15',
+    'PLZ': 'fünfstellig',
+    'Ort': 'Postalisch korrekte Schreibweise'
+}
+
 
 class PlacesTemplateSerializer(serializers.Serializer):
     """Serializer for uploading Places for an Infrastructure"""
     excel_file = serializers.FileField()
     drop_constraints = serializers.BooleanField(default=True)
+    logger = logging.getLogger('infrastructure')
+    scope = ProcessScope.INFRASTRUCTURE
 
     def create_template(self, infrastructure_id: int) -> bytes:
         """Create a template file for places of the give infrastructure"""
@@ -58,13 +70,11 @@ class PlacesTemplateSerializer(serializers.Serializer):
         sn_classifications = 'Klassifizierungen'
 
         columns = {'Name': 'So werden die Einrichtungen auf den Karten beschriftet. '\
-                   'Jeder Standort muss einen Namen haben, den kein anderer Standort trägt.',
-                   'Straße': 'Postalisch korrekte Schreibweise',
-                   'Hausnummer': 'Zahl, ggf. mit Buchstaben (7b) oder 11-15',
-                   'PLZ': 'fünfstellig',
-                   'Ort': 'Postalisch korrekte Schreibweise',
-                   'Lon': 'Längengrad, in WGS84',
-                   'Lat': 'Breitengrad, in WGS84',}
+                   'Jeder Standort muss einen Namen haben, den kein anderer Standort trägt.'}
+
+        columns.update(ADDRESS_FIELDS)
+        columns.update({'Lon': 'Längengrad, in WGS84',
+                        'Lat': 'Breitengrad, in WGS84'})
 
         dv_01 = DataValidation(type="whole",
                         operator="between",
@@ -103,7 +113,7 @@ class PlacesTemplateSerializer(serializers.Serializer):
                 .rename(columns={'id': 'place_id', })\
                 .set_index('place_id')
             df_places['Name'] = df_placename['name']
-        for col in ['Straße', 'Hausnummer', 'PLZ', 'Ort']:
+        for col in ADDRESS_FIELDS.keys():
             try:
                 infrastructure.placefield_set.get(name=col)
                 attrs = pd.DataFrame(place_attrs
@@ -139,13 +149,16 @@ class PlacesTemplateSerializer(serializers.Serializer):
                 value_col = '_value'
 
             elif place_field.field_type.ftype == FieldTypes.NUMBER:
-                description = f'Nutzerdefinierte Spalte (Zahl)'
+                unit = place_field.unit or 'Zahl'
+                description = f'Nutzerdefinierte Spalte ({unit})'
                 validations[col_no] = dv_float
                 value_col = 'num_value'
 
             else:
                 description = f'Nutzerdefinierte Spalte (Klassifizierte Werte)'
-                cf_colno = classifications.get(place_field.field_type.name)
+
+                cl_name = place_field.field_type.name
+                cf_colno = classifications.get(cl_name)
                 value_col = '_value'
 
                 if cf_colno:
@@ -154,10 +167,10 @@ class PlacesTemplateSerializer(serializers.Serializer):
                     df = pd.DataFrame(
                         place_field.field_type.fclass_set.values('order', 'value'))\
                         .set_index('order')\
-                        .rename(columns={'value': place_field.field_type.name,})
+                        .rename(columns={'value': cl_name,})
 
                     cn = col_no_classifications
-                    classifications[place_field.field_type.name] = (df, cn)
+                    classifications[cl_name] = (df, cn)
                     col_no_classifications += 1
 
                 # list validator
@@ -208,10 +221,14 @@ class PlacesTemplateSerializer(serializers.Serializer):
             meta = writer.book.create_sheet('meta')
             meta['A1'] = 'infrastructure'
             meta['B1'] = infrastructure.name
+            meta.sheet_state = 'hidden'
 
             df_classification.reset_index().to_excel(writer,
                                                      sheet_name=sn_classifications,
                                                      index=False)
+            # hide classifications
+            sheet = writer.book.get_sheet_by_name(sn_classifications)
+            sheet.sheet_state = 'hidden'
 
             df_places.to_excel(writer,
                                sheet_name=sheetname,
@@ -267,27 +284,13 @@ class PlacesTemplateSerializer(serializers.Serializer):
 
         infra = Infrastructure.objects.get(pk=infrastructure_id)
 
-        # Check the classification
-
-        df_klassifizierungen = pd.read_excel(
-            excel_file.file, sheet_name='Klassifizierungen').set_index('order')
-
-        for field_name, series in df_klassifizierungen.items():
-            ft, created = FieldType.objects.get_or_create(
-                name=field_name, ftype=FieldTypes.CLASSIFICATION)
-            series = series.loc[~pd.isna(series)]
-            # add/change entries of the classification values
-            for order, value in series.iteritems():
-                fc, created = FClass.objects.get_or_create(
-                    ftype=ft, value=value, order=order)
-
         # get the services and the place fields of the infrastructure
         services = infra.service_set.all().values('id', 'has_capacity', 'name')
         place_fields = infra.placefield_set.all().values('id',
                                                          'name',
                                                          'field_type',
                                                          'field_type__ftype',
-                                                         #'field_type__fclass',
+                                                         'field_type__name',
                                                          )
 
 
@@ -317,6 +320,7 @@ class PlacesTemplateSerializer(serializers.Serializer):
         UUID = site_settings.bkg_password or None
         geocoder = BKGGeocoder(
             decrypt(UUID), crs='EPSG:3857') if UUID else None
+        n_new = 0
 
         # iterate over all places
         for place_id, place_row in df_places.iterrows():
@@ -327,6 +331,7 @@ class PlacesTemplateSerializer(serializers.Serializer):
                 place = Place.objects.get(pk=place_id)
             except Place.DoesNotExist:
                 place = Place()
+                n_new += 1
 
             place_name = place_row['Name']
             if pd.isna(place_name):
@@ -339,6 +344,7 @@ class PlacesTemplateSerializer(serializers.Serializer):
                 if geocoder:
                     # ToDo: raise error if no UUID is given
                     # ToDo: handle auth errors ...
+                    self.logger.info('Geokodiere Adressen')
                     res = self.geocode(geocoder, place_row)
                     if res:
                         lon, lat = res
@@ -370,7 +376,14 @@ class PlacesTemplateSerializer(serializers.Serializer):
                     elif ftype == 'NUM':
                         num_value = float(attr)
                     else:
-                        class_value = fclass_dict[(place_field['field_type'], attr)]
+                        try:
+                            class_value = fclass_dict[(place_field['field_type'],
+                                                       attr)]
+                        except KeyError:
+                            fieldtype_name = place_field['field_type__name']
+                            msg = f'Wert {attr} existiert nicht für Klassifizierung '\
+                                f'{fieldtype_name} in Spalte {place_field_name}'
+                            raise BadRequest(msg)
                     attribute = (place.id, place_field['id'], str_value, num_value, class_value)
                     place_attributes.append(attribute)
 
@@ -423,6 +436,11 @@ class PlacesTemplateSerializer(serializers.Serializer):
                     drop_constraints=False, drop_indexes=False,
                 )
 
+        self.logger.info(f'{len(df_places)} Einträge bearbeitet')
+        if n_new > 0:
+            self.logger.info(f'davon {n_new} als neue Orte hinzugefügt')
+            self.logger.info('ACHTUNG: Für die neuen Orte muss die '
+                             'Erreichbarkeit neu berechnet werden!')
         df = pd.DataFrame()
         return df
 

@@ -8,15 +8,31 @@ from drf_spectacular.utils import (extend_schema, inline_serializer,
                                    OpenApiResponse)
 from rest_framework import viewsets, status, serializers
 from rest_framework.decorators import action
+from djangorestframework_camel_case.parser import (CamelCaseMultiPartParser,
+                                                   CamelCaseJSONParser)
+from django.conf import settings
+import os
+import logging
 
+from datentool_backend.utils.routers import OSRMRouter
+from datentool_backend.modes.models import Mode
 from datentool_backend.utils.serializers import MessageSerializer
 from datentool_backend.utils.permissions import (HasAdminAccessOrReadOnly,
                                                  HasAdminAccessOrReadOnlyAny)
 from datentool_backend.utils.permissions import CanEditBasedata
 from datentool_backend.utils.views import ProtectCascadeMixin
-from .models import SiteSetting, ProjectSetting, Year
-from .serializers import (SiteSettingSerializer, ProjectSettingSerializer,
-                          BaseDataSettingSerializer, YearSerializer)
+from datentool_backend.models import (SiteSetting, ProjectSetting, Year,
+                                      Year, AreaLevel, PopulationRaster, Area)
+from .serializers import (SiteSettingSerializer,
+                          ProjectSettingSerializer,
+                          BaseDataSettingSerializer,
+                          YearSerializer,
+                          MatrixStatisticsSerializer,
+                          )
+from datentool_backend.utils.processes import (ProtectedProcessManager,
+                                               ProcessScope)
+from datentool_backend.population.views.raster import PopulationRasterViewSet
+
 
 
 class YearFilter(filters.FilterSet):
@@ -34,7 +50,7 @@ class YearFilter(filters.FilterSet):
 class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     serializer_class = YearSerializer
     permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
-    filter_class = YearFilter
+    filterset_class = YearFilter
 
     def get_queryset(self):
         """ get the years. Request-parameters with_prognosis/with_population """
@@ -84,6 +100,12 @@ class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
         years_to_delete = Year.objects.exclude(year__range=(from_year, to_year))
         years_to_delete.delete()
+        #with connection.cursor() as cursor:
+            #cursor.execute(
+                #'DELETE FROM datentool_backend_year WHERE NOT '
+                #'("datentool_backend_year"."year" BETWEEN %s AND %s)',
+                #(2011, 2030)
+            #)
 
         for y in range(from_year, to_year+1):
             year = Year.objects.get_or_create(year=y)
@@ -109,8 +131,6 @@ class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     @action(methods=['POST'], detail=False)
     def set_real_years(self, request):
         years = request.data.get('years', [])
-        if isinstance(years, str):
-            years = years.split(',')
         Year.objects.update(is_real=False)
         update_years = Year.objects.filter(year__in=years)
         update_years.update(is_real=True)
@@ -133,8 +153,6 @@ class YearViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     @action(methods=['POST'], detail=False)
     def set_prognosis_years(self, request):
         years = request.data.get('years', [])
-        if isinstance(years, str):
-            years = years.split(',')
         Year.objects.update(is_prognosis=False)
         update_years = Year.objects.filter(year__in=years)
         update_years.update(is_prognosis=True)
@@ -148,6 +166,49 @@ class ProjectSettingViewSet(SingletonViewSet):
     serializer_class = ProjectSettingSerializer
     permission_classes = [HasAdminAccessOrReadOnlyAny]
 
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        run_sync = request.data.get('sync', False)
+
+        if response.status_code == 200 and request.data.get('project_area'):
+            with ProtectedProcessManager(user=request.user,
+                                         scope=ProcessScope.AREAS) as ppm:
+                if not run_sync:
+                    ppm.run_async(self._postprocess_project_area)
+                else:
+                    self._postprocess_project_area()
+        return response
+
+    @staticmethod
+    def _postprocess_project_area():
+        logger = logging.getLogger('areas')
+        logger.info('Verarbeitung des Planungsraums gestartet')
+        for popraster in PopulationRaster.objects.all():
+            logger.info('Verschneide Planungsraum mit dem Zensusraster...')
+            PopulationRasterViewSet._intersect_census(
+                popraster, drop_constraints=True)
+        logger.info('Bereinige Daten:')
+        for area_level in AreaLevel.objects.filter(is_preset=True):
+            areas = Area.objects.filter(area_level=area_level)
+            if len(areas) > 0:
+                logger.info(f'Lösche {len(areas)} Gebiete der Ebene '
+                            f'{area_level.name}...')
+                areas.delete()
+        logger.info('Entferne eventuell vorhandene Router...')
+        # remove existing routers:
+        fp_target_pbf = os.path.join(settings.MEDIA_ROOT, 'projectarea.pbf')
+        # ToDo: default network?
+        if os.path.exists(fp_target_pbf):
+            try:
+                os.remove(fp_target_pbf)
+            except:
+                pass
+        for mode in [Mode.WALK, Mode.BIKE, Mode.CAR]:
+            router = OSRMRouter(mode)
+            if router.service_is_up:
+                router.remove()
+        logger.info('Verarbeitung des Planungsraums abgeschlossen.')
+
 
 class BaseDataSettingViewSet(viewsets.GenericViewSet):
     serializer_class = BaseDataSettingSerializer
@@ -160,5 +221,14 @@ class SiteSettingViewSet(SingletonViewSet):
     queryset = SiteSetting.objects.all()
     model_class = SiteSetting
     serializer_class = SiteSettingSerializer
+    parser_classes = [CamelCaseMultiPartParser, CamelCaseJSONParser]
     permission_classes = [HasAdminAccessOrReadOnlyAny]
+
+
+class MatrixStatisticsViewSet(viewsets.GenericViewSet):
+    serializer_class = MatrixStatisticsSerializer
+    def list(self, request):
+        results = self.serializer_class({}, many=False).data
+        return Response(results)
+
 

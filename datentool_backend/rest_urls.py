@@ -3,11 +3,15 @@ from datentool_backend.user.views import UserViewSet
 from datentool_backend.site.views import (SiteSettingViewSet,
                                           ProjectSettingViewSet,
                                           BaseDataSettingViewSet,
+                                          MatrixStatisticsViewSet,
                                           YearViewSet)
 
-from .area.views import (LayerGroupViewSet, WMSLayerViewSet,
-                         AreaLevelViewSet, AreaViewSet,
-                         FieldTypeViewSet, AreaFieldViewSet,
+from .area.views import (LayerGroupViewSet,
+                         WMSLayerViewSet,
+                         AreaLevelViewSet,
+                         AreaViewSet,
+                         FieldTypeViewSet,
+                         AreaFieldViewSet,
                          )
 
 from .demand.views import (GenderViewSet,
@@ -30,9 +34,7 @@ from .infrastructure.views import (PlaceViewSet,
                                    InfrastructureViewSet,
                                    ServiceViewSet
                                    )
-from .logging.views import (CapacityUploadLogViewSet,
-                            PlaceUploadLogViewSet,
-                            AreaUploadLogViewSet)
+from .logging.views import LogViewSet
 from .population.views import (RasterViewSet,
                                RasterCellViewSet,
                                PopulationRasterViewSet,
@@ -42,7 +44,22 @@ from .population.views import (RasterViewSet,
                                PopStatisticViewSet,
                                PopStatEntryViewSet)
 from .user.views import PlanningProcessViewSet, ScenarioViewSet
-from datentool_backend.utils.routers import SingletonRouter
+
+
+class SingletonRouter(routers.SimpleRouter):
+    routes = [
+       routers.Route(
+           url=r'^{prefix}/$',
+           mapping={
+               'get': 'retrieve',
+               'put': 'update',
+               'patch': 'partial_update'
+               },
+           name='{basename}-detail',
+           initkwargs={'suffix': 'Detail'},
+           detail=True
+           )
+    ]
 
 router = routers.SimpleRouter()
 router.register(r'users', UserViewSet, basename='users')
@@ -77,12 +94,7 @@ router.register(r'fieldtypes', FieldTypeViewSet, basename='fieldtypes')
 router.register(r'placefields', PlaceFieldViewSet, basename='placefields')
 
 # logging
-router.register(r'capacityuploadlogs', CapacityUploadLogViewSet,
-                basename='capacityuploadlogs')
-router.register(r'placeuploadlogs', PlaceUploadLogViewSet,
-                basename='placeuploadlogs')
-router.register(r'areauploadlogs', AreaUploadLogViewSet,
-                basename='areauploadlogs')
+router.register(r'logs', LogViewSet, basename='logs')
 
 # population
 router.register(r'years', YearViewSet, basename='years')
@@ -111,6 +123,8 @@ router.register(r'services', ServiceViewSet, basename='services')
 # site
 router.register('basedatasettings', BaseDataSettingViewSet,
                 basename='basedatasettings')
+router.register('matrixstatistics', MatrixStatisticsViewSet,
+                basename='matrixstatistics')
 srouter = SingletonRouter()
 srouter.register('projectsettings', ProjectSettingViewSet,
                  basename='projectsettings')

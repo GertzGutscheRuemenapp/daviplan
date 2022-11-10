@@ -12,13 +12,15 @@ class DemandPerCapacity(ServiceIndicator):
     '''Nachfragende nach betrachteter Leistung in einer Gebietseinheit pro
     Kapazitätseinheit für diese Leistung in der gleichen Gebietseinheit'''
     capacity_required = True
-    title = 'Nachfrage pro Platz'
+    title = 'Nachfrage pro Platz im Gebiet'
+    representation = 'colorramp'
+    colormap_name = 'Blues'
     result_serializer = ResultSerializer.AREA
 
     @property
     def description(self):
-        return (f'{self.service.demand_plural_unit or "Nachfragende"} pro '
-                f'{self.service.capacity_singular_unit or "Kapazitätseinheit"}')
+        return (f'{self.service.demand_plural_unit} pro '
+                f'{self.service.capacity_singular_unit}')
 
     def compute(self):
         demand_area_indicator = DemandAreaIndicator(self.data)
@@ -34,6 +36,7 @@ class DemandPerCapacity(ServiceIndicator):
 
         query = f'''SELECT
         l."id",
+        d."_label",
         CASE WHEN COALESCE(l."value", 0) = 0 THEN NULL
         ELSE d."value" / l."value"
         END AS "value"
