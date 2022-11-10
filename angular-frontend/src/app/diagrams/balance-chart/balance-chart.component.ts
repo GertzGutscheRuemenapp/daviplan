@@ -11,7 +11,11 @@ export interface BalanceChartData {
 @Component({
   selector: 'app-balance-chart',
   templateUrl: '../diagram/diagram.component.html',
-  styleUrls: ['./balance-chart.component.scss', '../diagram/diagram.component.scss']
+  styleUrls: ['../diagram/diagram.component.scss'],
+  styles: [
+    'figure {font-family: Calibri, Candara, Segoe;}',
+    'text.shadow {stroke: white; stroke-width: 4px; opacity: 0.8;}'
+  ]
 })
 export class BalanceChartComponent extends DiagramComponent implements AfterViewInit {
 

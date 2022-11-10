@@ -18,7 +18,21 @@ function translation(x: number, y: number) {
   encapsulation: ViewEncapsulation.None,
   selector: 'app-age-tree',
   templateUrl: '../diagram/diagram.component.html',
-  styleUrls: ['./age-tree.component.scss', '../diagram/diagram.component.scss']
+  styleUrls: ['../diagram/diagram.component.scss'],
+  // saveSvgAsPng is not able to parse the scss compiled styles, this here works to keep styles while exporting though
+  styles: [
+    '.axis line,.axis path {shape-rendering: crispEdges; fill: transparent; stroke: #555;pointer-events: none;}',
+    '.x.axis line, .y.axis line {stroke: #777; stroke-dasharray: 2,2;}',
+    '.x.axis .separator {stroke: #888; stroke-width: 2;stroke-dasharray: 6, 6;}',
+    '.line {fill: none;stroke-width: 2.5px;}',
+    'rect.male {fill: #2c81ff;}',
+    'text.male {stroke: #2c81ff;}',
+    'rect.female {fill: #ee4a4a;}',
+    'text.female {stroke: #ee4a4a;}',
+    'rect.highlight {fill: gold!important;}',
+    '.x.axis path.domain, .y.axis path.domain  {display: none; visibility: hidden;}',
+    'text.shadow {text-shadow: 1px 1px 0 #FFFFFF, 1px -1px 0 #FFFFFF, -1px 1px 0 #FFFFFF, -1px -1px 0 #FFFFFF, 1px 0px 0 #FFFFFF, 0px 1px 0 #FFFFFF, -1px 0px 0 #FFFFFF, 0px -2px 0 #FFFFFF; pointer-events: none;}'
+  ]
 })
 export class AgeTreeComponent extends DiagramComponent implements AfterViewInit {
   @Input() data?: AgeTreeData[];
