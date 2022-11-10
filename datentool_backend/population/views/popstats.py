@@ -19,6 +19,7 @@ from datentool_backend.population.models import (
     Year
     )
 from rest_framework.response import Response
+from datentool_backend.utils.crypto import decrypt
 
 from datentool_backend.utils.processes import (ProtectedProcessManager,
                                                ProcessScope)
@@ -90,6 +91,8 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
         settings = SiteSetting.load()
         username = settings.regionalstatistik_user or None
         password = settings.regionalstatistik_password or None
+        if (password):
+            password = decrypt(password)
 
         api = Regionalstatistik(start_year=min_max_years['year__min'],
                                 end_year=min_max_years['year__max'],
