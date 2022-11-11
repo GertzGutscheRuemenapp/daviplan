@@ -375,15 +375,10 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       this.barChartProps.data = stackedData;
 
       // Line Chart
-      // first values != 0 for each group (otherwise if first year is 0 every other year would be an infinite increase)
-      let first: number[] = [];
-      ageGroups.forEach((ag, i) => {
-        const yd = stackedData.find(d => d.values[i] != 0);
-        first.push(yd? yd.values[i]: 0);
-      })
+      const first = stackedData[0].values;
       let relData = stackedData.map(d => { return {
         group: d.group,
-        values: d.values.map((v, i) => first[i]? (100 * v / first[i]): 0 )
+        values: d.values.map((v, i) => first[i]? (100 * v / first[i]): 100 )
       }})
       let max = Math.max(...relData.map(d => Math.max(...d.values))),
         min = Math.min(...relData.map(d => Math.min(...d.values)));

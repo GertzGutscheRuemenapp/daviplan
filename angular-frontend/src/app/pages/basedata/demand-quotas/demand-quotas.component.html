@@ -133,11 +133,13 @@
         </div>
       </app-input-card>
     </div>
-    <div fxLayout="column" fxFlex="840px" [class.hidden]="!activeDemandRateSet">
+    <div fxLayout="column" fxFlex="840px">
       <app-input-card #demandRateSetCard
                       [title]="'Nachfragequoten bzw. Nutzungshäufigkeiten der ausgewählten Variante'"
                       [subtitle]="'Leistung ' + activeService?.name + ' / ' + 'Variante „' + activeDemandRateSet?.name + '“'"
                       [editTemplate]="demandRateSetEdit"
+                      [class.hidden]="!activeDemandRateSet"
+                      class="spaced"
                       dialogWidth="1200px"
                       [topRightHelp]="true"
                       dialogInfoText="

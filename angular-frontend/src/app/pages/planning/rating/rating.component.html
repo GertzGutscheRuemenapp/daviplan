@@ -163,14 +163,13 @@
                                [subtitle]="barChartProps.subtitle">
       </app-horizontal-barchart>
     </div>
-    <div class="diagram-controls">
-      <br>
-      <app-help-button title="Diagrammdarstellung" position="right" style="float: right;">
-        <p>Das Diagramm zeigt die Kennwerte des ausgewählten Indikators für alle Gebiete der ausgewählten Gebietseinheit.</p>
-        <p>Mit einem Klick auf den Vollbild-Button rechts oben können Sie sich das Diagramm vergrößert in einem Dialog anzeigen lassen.</p>
-        <p>Über den Herunterladen-Button darunter können Sie sich das Diagramm als Bild (PNG) herunterladen.</p>
-      </app-help-button>
-    </div>
+    <app-help-button title="Diagrammdarstellung"
+                     position="right"
+                     style="position: absolute; left: 5px; top: -5px; z-index: 1;">
+      <p>Das Diagramm zeigt die Kennwerte des ausgewählten Indikators für alle Gebiete der ausgewählten Gebietseinheit.</p>
+      <p>Mit einem Klick auf den Vollbild-Button rechts oben können Sie sich das Diagramm vergrößert in einem Dialog anzeigen lassen.</p>
+      <p>Über den Herunterladen-Button darunter können Sie sich das Diagramm als Bild (PNG) herunterladen.</p>
+    </app-help-button>
   </div>
 </app-side-toggle>
 

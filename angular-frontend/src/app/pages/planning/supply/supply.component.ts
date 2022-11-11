@@ -54,7 +54,10 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   fieldTypes: FieldType[] = [];
   placeForm?: FormGroup;
   private mapClickSub?: Subscription;
+  // capacities over all years (depending on scenario)
   capacities: Capacity[] = [];
+  // capacities over all years in base scenario
+  baseCapacities: Capacity[] = [];
   _editCapacities: Capacity[] = [];
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
@@ -71,34 +74,30 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   initData(): void {
-    let observables: Observable<any>[] = [];
-    observables.push(this.planningService.getRealYears().pipe(map(years => {
+    this.planningService.getRealYears().subscribe(years => {
       this.realYears = years;
-    })));
-    observables.push(this.planningService.getPrognosisYears().pipe(map(years => {
-      this.prognosisYears = years;
-    })));
-    observables.push(this.planningService.getFieldTypes().pipe(map(fieldTypes => {
-      this.fieldTypes = fieldTypes;
-    })))
-    forkJoin(...observables).subscribe(() => {
-      this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
-        this.activeInfrastructure = infrastructure;
-      }))
-      this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
-        this.activeService = service;
-        this.updatePlaces();
-      }))
-      this.subscriptions.push(this.planningService.year$.subscribe(year => {
-        this.year = year;
-        this.updatePlaces();
-      }));
-      this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
-        this.activeScenario = scenario;
-        this.updatePlaces();
-      }));
-      this.updatePlaces();
     });
+    this.planningService.getPrognosisYears().subscribe(years => {
+      this.prognosisYears = years;
+    });
+    this.planningService.getFieldTypes().subscribe(fieldTypes => {
+      this.fieldTypes = fieldTypes;
+    });
+    this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
+      this.activeInfrastructure = infrastructure;
+    }))
+    this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
+      this.activeService = service;
+      this.updatePlaces();
+    }))
+    this.subscriptions.push(this.planningService.year$.subscribe(year => {
+      this.year = year;
+      this.updatePlaces();
+    }));
+    this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
+      this.activeScenario = scenario;
+      this.updatePlaces();
+    }));
   }
 
   onFilter(): void {
@@ -117,151 +116,170 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       scenario: this.activeScenario
     };
     this.placePreviewDialogRef?.componentInstance?.setLoading(true);
-    this.planningService.getCapacities({
+
+    let observables: Observable<any>[] = [];
+    // fetch capacities over all years for place edit (and preview)
+    observables.push(this.planningService.getCapacities({
       service: this.activeService,
       scenario: this.activeScenario,
       reset: (!this.activeScenario?.isBase) && options?.resetScenario
-    }).subscribe(capacities => {
+    }).pipe(map(capacities => {
       this.capacities = capacities;
-      this.planningService.getPlaces(placeOptions).subscribe(places => {
-        this.places = places;
-        let showLabel = true;
-        let legendElapsed = true;
-        if (this.placesLayer) {
-          showLabel = !!this.placesLayer.showLabel;
-          legendElapsed = !!this.placesLayer.legend?.elapsed
-          this.layerGroup?.removeLayer(this.placesLayer);
-        }
-        let max = 0;
-        let min = Number.MAX_VALUE;
-        let mapPlaces: any[] = [];
-        this.places?.forEach(place => {
-          const capacity = place.capacity || 0;
-          max = Math.max(max, capacity);
-          if (place.capacity) min = Math.min(min, capacity);
-          const tooltip = `<b>${place.name}</b><br>${this.activeService?.hasCapacity? this.getFormattedCapacityString([this.activeService!.id], place.capacity || 0): place.capacity? 'Leistung wird angeboten': 'Leistung wird nicht angeboten'}`
-          const scenarioCapacities = (!this.activeScenario?.isBase)? this.capacities.filter(c => c.place === place.id && c.scenario !== null): [];
-          mapPlaces.push({
-              id: place.id,
-              geometry: place.geom,
-              properties: { name: place.name, tooltip: tooltip, capacity: place.capacity, scenarioPlace: place.scenario !== null, capChanged: scenarioCapacities.length > 0 }
-          });
+/*      if (this.activeScenario?.isBase)
+        this.baseCapacities = capacities;*/
+    })));
+/*    if (!this.activeScenario.isBase) {
+      observables.push(this.planningService.getCapacities({
+        service: this.activeService
+      }).pipe(map(capacities => {
+        this.baseCapacities = capacities;
+      })));
+    }*/
+    observables.push(this.planningService.getPlaces(placeOptions).pipe(map(places => this.places = places)));
+
+    forkJoin(...observables).subscribe(() => {
+      let showLabel = true;
+      let legendElapsed = true;
+      if (this.placesLayer) {
+        showLabel = !!this.placesLayer.showLabel;
+        legendElapsed = !!this.placesLayer.legend?.elapsed
+        this.layerGroup?.removeLayer(this.placesLayer);
+      }
+      let max = 0;
+      let min = Number.MAX_VALUE;
+      let mapPlaces: any[] = [];
+      this.places?.forEach(place => {
+        const capacity = place.capacity || 0;
+        max = Math.max(max, capacity);
+        if (place.capacity) min = Math.min(min, capacity);
+        const tooltip = `<b>${place.name}</b><br>${this.activeService?.hasCapacity? this.getFormattedCapacityString([this.activeService!.id], place.capacity || 0): place.capacity? 'Leistung wird angeboten': 'Leistung wird nicht angeboten'}`
+        const doCompare = (place.capacity !== undefined) && (place.baseCapacity !== undefined);
+        mapPlaces.push({
+            id: place.id,
+            geometry: place.geom,
+            properties: {
+              name: place.name, tooltip: tooltip, capacity: place.capacity,
+              scenarioPlace: place.scenario !== null,
+              capDecreased: doCompare && (place.capacity! < place.baseCapacity!),
+              capIncreased: doCompare && (place.capacity! > place.baseCapacity!)
+            }
         });
-        const desc = `<b>${this.activeService?.facilityPluralUnit} ${this.year}</b><br>
-                    mit Anzahl ${this.activeService?.capacityPluralUnit}<br>
-                    Minimum: ${min.toLocaleString()}<br>
-                    Maximum: ${max.toLocaleString()}`;
-        // ToDo description with filter
-        this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
-          order: 0,
-          description: desc,
+      });
+      const desc = `<b>${this.activeService?.facilityPluralUnit} ${this.year}</b><br>
+                  mit Anzahl ${this.activeService?.capacityPluralUnit}<br>
+                  Minimum: ${min.toLocaleString()}<br>
+                  Maximum: ${max.toLocaleString()}`;
+      // ToDo description with filter
+      this.placesLayer = new VectorLayer(this.activeInfrastructure!.name, {
+        order: 0,
+        description: desc,
+        opacity: 1,
+        style: {
+          fillColor: '#2171b5',
+          strokeWidth: 1,
+          strokeColor: 'black',
+          symbol: 'circle'
+        },
+        labelField: 'name',
+        showLabel: showLabel,
+        tooltipField: 'tooltip',
+        select: {
+          enabled: true,
+          style: {
+            strokeWidth: 1,
+            fillColor: 'yellow',
+          },
+          multi: true
+        },
+        mouseOver: {
+          enabled: true,
+          cursor: 'pointer'
+        },
+        valueStyles: {
+          radius: {
+            range: [5, 20],
+            scale: 'linear'
+          },
+          fillColor: {
+            colorFunc: (capacity => (capacity) ? '#2171b5' : 'lightgrey')
+          },
+          field: 'capacity',
+          // min: this.activeService?.minCapacity || 0,
+          min: 0,
+          max: Math.max(this.activeService?.maxCapacity || 10, 10)
+        },
+        labelOffset: { y: 15 },
+        legend: {
+          entries: [
+            { label: `mit Leistung "${this.activeService?.name}"`, color: '#2171b5', strokeColor: 'black' },
+            { label: `ohne Leistung "${this.activeService?.name}"`, color: 'lightgrey', strokeColor: 'black' }
+          ],
+          elapsed: legendElapsed
+        }
+      });
+      this.layerGroup?.addLayer(this.placesLayer);
+
+      this.placesLayer.addFeatures(mapPlaces);
+      if (options?.selectPlaceId !== undefined) {
+        const place = this.places.find(p => p.id === options.selectPlaceId);
+        if (place) {
+          this.selectedPlaces = [place];
+          this.openPlacePreview();
+        }
+      }
+      if (this.selectedPlaces.length > 0) {
+        const ids = this.selectedPlaces.map(p => p.id);
+        // after change, places might only be copies with old attributes
+        this.selectedPlaces = this.places.filter(p => ids.indexOf(p.id) > -1);
+        this.placesLayer?.selectFeatures(ids, { silent: true });
+      }
+      this.placesLayer?.featuresSelected?.subscribe(features => {
+        // on map selection deselect the previously selected ones by just setting empty list
+        this.selectedPlaces = [];
+        features.forEach(f => this.selectPlace(f.get('id'), true));
+      })
+      this.placesLayer?.featuresDeselected?.subscribe(features => {
+        features.forEach(f => this.selectPlace(f.get('id'), false));
+      })
+
+      // add layer for marking changes in scenario
+      if (!this.activeScenario?.isBase) {
+        this.scenarioMarkerLayer = new VectorLayer('Änderungen zu Status Quo', {
+          order: 1,
+          zIndex: this.placesLayer.getZIndex() + 1,
+          description: 'im Szenario verändert',
           opacity: 1,
           style: {
-            fillColor: '#2171b5',
-            strokeWidth: 2,
-            strokeColor: 'black',
+            strokeWidth: 3,
             symbol: 'circle'
-          },
-          labelField: 'name',
-          showLabel: showLabel,
-          tooltipField: 'tooltip',
-          select: {
-            enabled: true,
-            style: {
-              strokeWidth: 2,
-              fillColor: 'yellow',
-            },
-            multi: true
-          },
-          mouseOver: {
-            enabled: true,
-            cursor: 'pointer'
           },
           valueStyles: {
             radius: {
               range: [5, 20],
               scale: 'linear'
             },
-            fillColor: {
-              colorFunc: (capacity => (capacity) ? '#2171b5' : 'lightgrey')
+            strokeColor: {
+              colorFunc: (feat => feat.get('scenarioPlace')? '#FFC000': feat.get('capDecreased')? '#fc450c' : feat.get('capIncreased')? '#00ff28': '')
             },
             field: 'capacity',
             // min: this.activeService?.minCapacity || 0,
             min: 0,
             max: Math.max(this.activeService?.maxCapacity || 10, 10)
           },
-          labelOffset: { y: 15 },
           legend: {
             entries: [
-              { label: `mit Leistung "${this.activeService?.name}"`, color: '#2171b5', strokeColor: 'black' },
-              { label: `ohne Leistung "${this.activeService?.name}"`, color: 'lightgrey', strokeColor: 'black' }
+              { label: 'Kapazität verringert', color: 'rgba(0,0,0,0)', strokeColor: '#fc450c' },
+              { label: 'Kapazität erhöht', color: 'rgba(0,0,0,0)', strokeColor: '#00ff28' },
+              { label: 'Zusätzlicher Standort', color: 'rgba(0,0,0,0)', strokeColor: '#FFC000' },
             ],
             elapsed: legendElapsed
           }
         });
-        this.layerGroup?.addLayer(this.placesLayer);
+        this.layerGroup?.addLayer(this.scenarioMarkerLayer);
+        this.scenarioMarkerLayer.addFeatures(mapPlaces.filter(place => place.properties.scenarioPlace || place.properties.capDecreased || place.properties.capIncreased));
+      }
 
-        this.placesLayer.addFeatures(mapPlaces);
-        if (options?.selectPlaceId !== undefined) {
-          const place = this.places.find(p => p.id === options.selectPlaceId);
-          if (place) {
-            this.selectedPlaces = [place];
-            this.openPlacePreview();
-          }
-        }
-        if (this.selectedPlaces.length > 0) {
-          const ids = this.selectedPlaces.map(p => p.id);
-          // after change, places might only be copies with old attributes
-          this.selectedPlaces = this.places.filter(p => ids.indexOf(p.id) > -1);
-          this.placesLayer?.selectFeatures(ids, { silent: true });
-        }
-        this.placesLayer?.featuresSelected?.subscribe(features => {
-          // on map selection deselect the previously selected ones by just setting empty list
-          this.selectedPlaces = [];
-          features.forEach(f => this.selectPlace(f.get('id'), true));
-        })
-        this.placesLayer?.featuresDeselected?.subscribe(features => {
-          features.forEach(f => this.selectPlace(f.get('id'), false));
-        })
-
-        // add layer for marking changes in scenario
-        if (!this.activeScenario?.isBase) {
-          this.scenarioMarkerLayer = new VectorLayer('Veränderung im Szenario', {
-            order: 1,
-            zIndex: this.placesLayer.getZIndex() + 1,
-            description: 'im Szenario verändert',
-            opacity: 1,
-            style: {
-              strokeWidth: 3,
-              symbol: 'circle'
-            },
-            valueStyles: {
-              radius: {
-                range: [5, 20],
-                scale: 'linear'
-              },
-              strokeColor: {
-                colorFunc: (feat => feat.get('capChanged')? '#fc450c' : 'green')
-              },
-              field: 'capacity',
-              // min: this.activeService?.minCapacity || 0,
-              min: 0,
-              max: Math.max(this.activeService?.maxCapacity || 10, 10)
-            },
-            legend: {
-              entries: [
-                { label: 'Kapazitäten geändert', color: 'rgba(0,0,0,0)', strokeColor: '#fc450c' },
-                { label: 'Szenario exklusiv', color: 'rgba(0,0,0,0)', strokeColor: 'green' },
-              ],
-              elapsed: legendElapsed
-            }
-          });
-          this.layerGroup?.addLayer(this.scenarioMarkerLayer);
-          this.scenarioMarkerLayer.addFeatures(mapPlaces.filter(place => place.properties.scenarioPlace || place.properties.capChanged));
-        }
-
-        this.placePreviewDialogRef?.componentInstance?.setLoading(false);
-      });
+      this.placePreviewDialogRef?.componentInstance?.setLoading(false);
     });
   }
 

@@ -1,4 +1,4 @@
-import { EventEmitter, Injectable } from "@angular/core";
+import { Injectable } from "@angular/core";
 import { LegendComponent } from "../../map/legend/legend.component";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../rest-api";
@@ -26,8 +26,8 @@ import { Geometry } from "ol/geom";
 })
 export class PlanningService extends RestCacheService {
   legend?: LegendComponent;
-  isReady: boolean = false;
   placeFilterColumns: FilterColumn[] = [];
+  // cache already requested capacities: {scenario_id: {service_id: {year: capacity}}}
   private capacitiesPerScenarioService: Record<number, Record<string, Record<number, Capacity[]>>> = {};
   year$ = new BehaviorSubject<number>(0);
   activeProcess$ = new BehaviorSubject<PlanningProcess | undefined>(undefined);
@@ -116,8 +116,6 @@ export class PlanningService extends RestCacheService {
       hasCapacity?: boolean
     }
   }): Observable<Place[]>{
-    /*this.getCachedData<Place[]>('this.rest.URLS.places', {
-      params: { infrastructure: infrastructureId }, reset: options?.reset })*/
     const _this = this;
     const infrastructure = options?.infrastructure || this.activeInfrastructure;
     const observable = new Observable<Place[]>(subscriber => {
@@ -125,27 +123,45 @@ export class PlanningService extends RestCacheService {
         subscriber.next(places);
         subscriber.complete();
       };
+      // no infrastructure -> no places
       if (!infrastructure) {
         next([]);
         return;
       };
-      function filter(places: Place[]){
+      function postprocess(places: Place[]){
         if (options?.filter?.columnFilter || options?.addCapacities || options?.filter?.hasCapacity) {
-          _this.updateCapacities({ infrastructure: infrastructure, year: options?.filter?.year, scenario: options?.scenario }).subscribe(() => {
-            let placesTmp: Place[] = [];
+          let observables: Observable<any>[] = [];
+          // scenario capacity is required in any case (filter and adding cap.)
+          observables.push(_this.updateCapacities({ infrastructure: infrastructure, year: options?.filter?.year, scenario: options?.scenario }).pipe(map(() => {
             places.forEach(place => {
-              const cap = _this.getPlaceCapacity(place, { service: options?.service });
-              if (options.filter?.hasCapacity && cap === 0) return;
-              // ToDo: pass year
-              if (options.filter?.columnFilter && !_this._filterPlace(place)) return;
-              if (options?.addCapacities)
-                place.capacity = cap;
-              placesTmp.push(place);
+              const cap = _this.getPlaceCapacity(place, { service: options?.service, scenario: options?.scenario });
+              place.capacity = cap;
             });
-            places = placesTmp;
+          })))
+          // if capacities shall be added to the places add those of the base scenario too
+          if (options?.addCapacities && !options?.scenario?.isBase)
+            observables.push(_this.updateCapacities({ infrastructure: infrastructure, year: options?.filter?.year }).pipe(map(() => {
+              places.forEach(place => {
+                const cap = _this.getPlaceCapacity(place, { service: options?.service });
+                place.baseCapacity = cap;
+              })
+            })));
+          forkJoin(...observables).subscribe(() => {
+            if (options.filter) {
+              let placesTmp: Place[] = [];
+              // could take the normal array filter function instead but got messy
+              places.forEach(place => {
+                if (options.filter?.hasCapacity && place.capacity === 0) return;
+                // ToDo: pass year
+                if (options.filter?.columnFilter && !_this._filterPlace(place)) return;
+                placesTmp.push(place);
+              });
+              places = placesTmp;
+            }
             next(places);
-          })
+          });
         }
+        // nothing to do -> emit
         else
           next(places);
       }
@@ -153,14 +169,14 @@ export class PlanningService extends RestCacheService {
       if (options?.scenario && !options.scenario.isBase) params.scenario = options.scenario.id;
       this.getCachedData<Place[]>(this.rest.URLS.places, { reset: options?.reset, params: params }).subscribe(places => {
         const targetProjection = (options?.targetProjection !== undefined)? options?.targetProjection: 'EPSG:4326';
-        places.forEach((place: Place )=> {
+        places.forEach((place: Place) => {
           if (!(place.geom instanceof Geometry)) {
             const geometry = wktToGeom(place.geom as string,
               { targetProjection: targetProjection, ewkt: true });
             place.geom = geometry;
           }
         })
-        filter(places);
+        postprocess(places);
       })
     });
     return observable;
@@ -174,6 +190,7 @@ export class PlanningService extends RestCacheService {
       let scenarioCapacities = this.capacitiesPerScenarioService[scenarioId];
       if (!scenarioCapacities)
         scenarioCapacities = this.capacitiesPerScenarioService[scenarioId] = {};
+      // check for data missing in cache and collect requests for those
       function update(infrastructure: Infrastructure | undefined) {
         let observables: Observable<any>[] = [];
         infrastructure?.services?.forEach(service => {
@@ -191,12 +208,14 @@ export class PlanningService extends RestCacheService {
             })));
           }
         });
-        if (observables.length > 0) {
+        // do all the missing requests
+        if (observables.length) {
           forkJoin(...observables).subscribe(() => {
             subscriber.next();
             subscriber.complete();
           })
         }
+        // if all is cached already -> just emit it is that ready
         else {
           subscriber.next();
           subscriber.complete();
@@ -208,7 +227,8 @@ export class PlanningService extends RestCacheService {
           update(infrastructure);
         })
       }
-      else update(this.activeInfrastructure);
+      else
+        update(this.activeInfrastructure);
     })
     return observable;
   }
@@ -227,10 +247,10 @@ export class PlanningService extends RestCacheService {
 
   getPlaceCapacity(place: Place, options?: { service?: Service, scenario?: Scenario, year?: number}): number{
     const service = options?.service || this.activeService;
-    const scenario = options?.scenario || this.activeScenario;
     const year = (options?.year !== undefined)? options?.year: this.activeYear;
-    if (!service || !scenario || !year) return 0;
-    const scenarioCapacities = this.capacitiesPerScenarioService[scenario.id] || {};
+    if (!service || !year) return 0;
+    const scenarioId = options?.scenario? options.scenario.id: -1;
+    const scenarioCapacities = this.capacitiesPerScenarioService[scenarioId] || {};
     const serviceCapacities = scenarioCapacities[service.id] || {};
     const cap = serviceCapacities[year]?.find(c => c.place === place.id);
     return cap?.capacity || 0;

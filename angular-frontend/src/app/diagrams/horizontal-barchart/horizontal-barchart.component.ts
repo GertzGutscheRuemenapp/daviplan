@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input } from '@angular/core';
+import { AfterViewInit, Component, Input, ViewEncapsulation } from '@angular/core';
 import * as d3 from 'd3';
 import { DiagramComponent } from "../diagram/diagram.component";
 
@@ -12,12 +12,15 @@ export interface BarChartData {
   selector: 'app-horizontal-barchart',
   templateUrl: '../diagram/diagram.component.html',
   styleUrls: ['../diagram/diagram.component.scss'],
-  // absolutely no idea why the styles are not applied for this diagram except when declaring them as deep
-  // saveSvgAsPng does not recognize them this way though (and no other way i tried)
+  // saveSvgAsPng does not seem to be able to parse the css in any other way
+  encapsulation: ViewEncapsulation.None,
   styles: [
-    ':host::ng-deep .x.axis path.domain, .y.axis path.domain {display: none; visibility: hidden;}',
-    ':host::ng-deep .x.axis line {stroke: #777; stroke-dasharray: 2,2; }',
-    ':host::ng-deep text.label {font-size: 0.8em; text-shadow: -1px -1px white, -1px 1px white, 1px 1px white, 1px -1px white, -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;}'
+    'text { font-family: Sans-Serif }',
+    '.x.axis path.domain, .y.axis path.domain {display: none; visibility: hidden;}',
+    '.x.axis line {stroke: #777; stroke-dasharray: 2,2; }',
+    '.title  { font-size: 13px; }',
+    '.subtitle  { font-size: 10px; }',
+    'text.label {font-size: 10px; text-shadow: -1px -1px white, -1px 1px white, 1px 1px white, 1px -1px white, -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;}'
   ]
 })
 export class HorizontalBarchartComponent extends DiagramComponent implements AfterViewInit {
@@ -136,7 +139,6 @@ export class HorizontalBarchartComponent extends DiagramComponent implements Aft
       .attr('class', 'subtitle')
       .attr('x', this.margin.left)
       .attr('y', 15)
-      .attr('font-size', '0.8em')
       .attr('dy', '1em')
       .text(this.subtitle);
   }

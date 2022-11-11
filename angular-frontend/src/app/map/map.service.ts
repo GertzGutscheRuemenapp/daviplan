@@ -398,6 +398,7 @@ export class MapControl {
 
   setDescription(text: string): void {
     this.mapDescription$.next(text);
+
   }
 
   setCursor(cursor?: 'crosshair' | 'pointer' | 'marker' | 'search' | 'auto' | 'default' ): void {
