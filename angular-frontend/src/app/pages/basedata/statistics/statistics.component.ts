@@ -164,7 +164,7 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
         },
         radius: {
           range: [5, 50],
-          scale: 'linear'
+          scale: 'sqrt'
         },
         min: 0,
         max: max
