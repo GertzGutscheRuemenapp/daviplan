@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input } from '@angular/core';
+import { AfterViewInit, Component, Input, ViewEncapsulation } from '@angular/core';
 import * as d3 from "d3";
 import { StackedData } from "../stacked-barchart/stacked-barchart.component";
 import { DiagramComponent } from "../diagram/diagram.component";
@@ -12,8 +12,16 @@ export interface BalanceChartData {
   selector: 'app-balance-chart',
   templateUrl: '../diagram/diagram.component.html',
   styleUrls: ['../diagram/diagram.component.scss'],
+  // saveSvgAsPng does not seem to be able to parse the css in any other way
+  encapsulation: ViewEncapsulation.None,
   styles: [
-    'figure {font-family: Calibri, Candara, Segoe;}',
+    'text { font-family: Sans-Serif }',
+    'g.tick text { font-size: 10px; }',
+    '.axis-label { font-size: 10px; }',
+    '.title  { font-size: 13px; }',
+    '.subtitle  { font-size: 10px; }',
+    '.legend-label  { font-size: 10px; }',
+    '.separator-label  { font-size: 9px; }',
     'text.shadow {stroke: white; stroke-width: 4px; opacity: 0.8;}'
   ]
 })
@@ -178,37 +186,37 @@ export class BalanceChartComponent extends DiagramComponent implements AfterView
 
     if (this.yLabel)
       this.svg.append('text')
+        .attr('class', 'axis-label')
         .attr("y", 10)
         .attr("x", -(this.margin.top + 50))
         .attr('dy', '0.5em')
         .style('text-anchor', 'end')
         .attr('transform', 'rotate(-90)')
-        .attr('font-size', '0.8em')
         .text(this.yLabel);
 
     if (this.yTopLabel)
       this.svg.append('text')
+        .attr('class', 'axis-label')
         .attr("x", 0)
         .attr("y", this.margin.top - 5)
         .style('text-anchor', 'start')
-        .attr('font-size', '0.8em')
         .text(this.yTopLabel);
 
     if (this.yBottomLabel)
       this.svg.append('text')
+        .attr('class', 'axis-label')
         .attr("x", 0)
         .attr("y", y(min!) + this.margin.top + 15)
         .style('text-anchor', 'start')
-        .attr('font-size', '0.8em')
         .text(this.yBottomLabel);
 
     if (this.xLabel)
       this.svg.append('text')
+        .attr('class', 'axis-label')
         .attr("y", this.margin.top + y(this.yOrigin) + 20)
         .attr("x", this.width! - this.margin.right + 10)
         .attr('dy', '0.5em')
         .style('text-anchor', 'end')
-        .attr('font-size', '0.8em')
         .text(this.xLabel);
 
     let sums = data.map(d => {
@@ -268,7 +276,7 @@ export class BalanceChartComponent extends DiagramComponent implements AfterView
         .data(this.labels.reverse())
         .enter()
         .append("text")
-        .attr('font-size', '0.7em')
+        .attr('class', 'legend-label')
         .attr("x", innerWidth + size * 1.2)
         .attr("y", (d: string, i: number) => 20 + (i * (size + 5) + (size / 2)))
         .style("fill", (d: string, i: number) => {
@@ -290,7 +298,6 @@ export class BalanceChartComponent extends DiagramComponent implements AfterView
       .attr('class', 'subtitle')
       .attr('x', this.margin.left)
       .attr('y', 15)
-      .attr('font-size', '0.8em')
       .attr('dy', '1em')
       .text(this.subtitle);
 
