@@ -139,6 +139,11 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       const colorFunc = function(value: number) {
         return (value > 0)? '#1a9850': (value < 0)? '#d73027': 'grey';
       };
+      const unit = (this.theme === 'nature' && this.showBirths && !this.showDeaths)? 'Geburten':
+        (this.theme === 'nature' && this.showDeaths && !this.showBirths)? 'Sterbefälle':
+          (this.theme === 'migration' && this.showImmigration && !this.showEmigration)? 'Zuzüge':
+            (this.theme === 'migration' && this.showEmigration && !this.showImmigration)? 'Fortzüge':
+              'Ew.'
 
       this.statisticsLayer = new VectorLayer(descr, {
         order: 0,
@@ -176,7 +181,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
           min: 0,
           max: max || 1000
         },
-        unit: 'Ew.',
+        unit: unit,
         forceSign: diffDisplay,
         labelOffset: { y: 15 }
       });
@@ -193,7 +198,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         }
         area.properties.value = value;
         let description = `<b>${area.properties.label}</b><br>`;
-        description += (diffDisplay && !value)? 'keine Änderung ': `${diffDisplay && value > 0? '+': ''}${area.properties.value.toLocaleString()} Ew. im Jahr ${this.year}`;
+        description += (diffDisplay && !value)? 'keine Änderung ': `${diffDisplay && value > 0? '+': ''}${area.properties.value.toLocaleString()} ${unit} im Jahr ${this.year}`;
         area.properties.description = description;
       })
       this.statisticsLayer.addFeatures(this.areas,{
