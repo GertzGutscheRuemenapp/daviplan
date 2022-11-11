@@ -54,30 +54,13 @@
       <div #BKGEditButton
            class="row-button"
            style="width: 90%">
-        <label>{{settings?.bkgPasswordIsSet? '·········': '-'}}</label>
+        <label>{{settings?.bkgPasswordIsSet? '·········': 'nicht gesetzt'}}</label>
         <div class="fill-space"></div>
         <button mat-icon-button color="primary">
           <mat-icon>edit</mat-icon>
         </button>
       </div>
     </app-input-card>
-<!--    <app-input-card #regstatEdit
-                    [title]="'Regionalstatistik (optional)'"
-                    subtitle="Zugangsdaten ändern"
-                    [dialogTitle]="'Zugangsdaten für die Regionalstatistik'"
-                    dialogWidth="600px"
-                    infoText="<p><a href='https://www.regionalstatistik.de/genesis/online?Menu=Registrierung' target='_blank'>Regionalstatistik Registrierung</a></p>
-                    <p>Bitte nach der Bestätigungsmail einmalig auf der Regionalstatistik-Webseite anmelden, um das Passwort zu ändern. Dieses dann hier eintragen."
-                    [editTemplate]="regstatTemplate"
-                    [editButton]="regstatEditButton">
-      <div #regstatEditButton class="row-button" style="width: 90%">
-        <label>{{settings?.regionalstatistikUser || '-'}}</label>
-        <div class="fill-space"></div>
-        <button mat-icon-button color="primary">
-          <mat-icon>edit</mat-icon>
-        </button>
-      </div>
-    </app-input-card>-->
   </div>
   <div fxLayout="column" fxFlex="400px">
     <app-input-card #contactEdit
@@ -123,6 +106,23 @@
               color="primary" (click)="removeLogo()" i18n>
         <mat-icon>close</mat-icon>&nbsp; Logo entfernen
       </button>
+    </app-input-card>
+    <app-input-card #regstatEdit
+                    [title]="'Regionalstatistik (optional)'"
+                    subtitle="Zugangsdaten ändern"
+                    [dialogTitle]="'Zugangsdaten für die Regionalstatistik'"
+                    dialogWidth="600px"
+                    infoText="<p><a href='https://www.regionalstatistik.de/genesis/online?Menu=Registrierung' target='_blank'>Regionalstatistik Registrierung</a></p>
+                    <p>Bitte nach der Bestätigungsmail einmalig auf der Regionalstatistik-Webseite anmelden, um das Passwort zu ändern. Dieses dann hier eintragen."
+                    [editTemplate]="regstatTemplate"
+                    [editButton]="regstatEditButton">
+      <div #regstatEditButton class="row-button" style="width: 90%">
+        <label>{{settings?.regionalstatistikUser || 'nicht gesetzt'}}</label>
+        <div class="fill-space"></div>
+        <button mat-icon-button color="primary">
+          <mat-icon>edit</mat-icon>
+        </button>
+      </div>
     </app-input-card>
   </div>
 </div>
