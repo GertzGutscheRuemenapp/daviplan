@@ -74,34 +74,30 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   initData(): void {
-    let observables: Observable<any>[] = [];
-    observables.push(this.planningService.getRealYears().pipe(map(years => {
+    this.planningService.getRealYears().subscribe(years => {
       this.realYears = years;
-    })));
-    observables.push(this.planningService.getPrognosisYears().pipe(map(years => {
-      this.prognosisYears = years;
-    })));
-    observables.push(this.planningService.getFieldTypes().pipe(map(fieldTypes => {
-      this.fieldTypes = fieldTypes;
-    })))
-    forkJoin(...observables).subscribe(() => {
-      this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
-        this.activeInfrastructure = infrastructure;
-      }))
-      this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
-        this.activeService = service;
-        this.updatePlaces();
-      }))
-      this.subscriptions.push(this.planningService.year$.subscribe(year => {
-        this.year = year;
-        this.updatePlaces();
-      }));
-      this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
-        this.activeScenario = scenario;
-        this.updatePlaces();
-      }));
-      this.updatePlaces();
     });
+    this.planningService.getPrognosisYears().subscribe(years => {
+      this.prognosisYears = years;
+    });
+    this.planningService.getFieldTypes().subscribe(fieldTypes => {
+      this.fieldTypes = fieldTypes;
+    });
+    this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
+      this.activeInfrastructure = infrastructure;
+    }))
+    this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
+      this.activeService = service;
+      this.updatePlaces();
+    }))
+    this.subscriptions.push(this.planningService.year$.subscribe(year => {
+      this.year = year;
+      this.updatePlaces();
+    }));
+    this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
+      this.activeScenario = scenario;
+      this.updatePlaces();
+    }));
   }
 
   onFilter(): void {
@@ -180,7 +176,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         opacity: 1,
         style: {
           fillColor: '#2171b5',
-          strokeWidth: 2,
+          strokeWidth: 1,
           strokeColor: 'black',
           symbol: 'circle'
         },
@@ -190,7 +186,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         select: {
           enabled: true,
           style: {
-            strokeWidth: 2,
+            strokeWidth: 1,
             fillColor: 'yellow',
           },
           multi: true
@@ -263,7 +259,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
               scale: 'linear'
             },
             strokeColor: {
-              colorFunc: (feat => feat.get('scenarioPlace')? '#FFC000': feat.get('capDecreased')? '#fc450c' : feat.get('capIncreased')? 'green': '#')
+              colorFunc: (feat => feat.get('scenarioPlace')? '#FFC000': feat.get('capDecreased')? '#fc450c' : feat.get('capIncreased')? '#00ff28': '')
             },
             field: 'capacity',
             // min: this.activeService?.minCapacity || 0,
@@ -273,7 +269,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           legend: {
             entries: [
               { label: 'Kapazität verringert', color: 'rgba(0,0,0,0)', strokeColor: '#fc450c' },
-              { label: 'Kapazität erhöht', color: 'rgba(0,0,0,0)', strokeColor: 'green' },
+              { label: 'Kapazität erhöht', color: 'rgba(0,0,0,0)', strokeColor: '#00ff28' },
               { label: 'Zusätzlicher Standort', color: 'rgba(0,0,0,0)', strokeColor: '#FFC000' },
             ],
             elapsed: legendElapsed
