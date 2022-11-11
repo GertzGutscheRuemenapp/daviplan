@@ -40,8 +40,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   year?: number;
   realYears: number[] = [0];
   prognosisYears?: number[];
-  compareSupply = true;
-  compareStatus = 'option 1';
   mapControl?: MapControl;
   layerGroup?: MapLayerGroup;
   placesLayer?: VectorLayer;
@@ -73,21 +71,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   }
 
   initData(): void {
-    this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
-      this.activeInfrastructure = infrastructure;
-    }))
-    this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
-      this.activeService = service;
-      this.updatePlaces();
-    }))
-    this.subscriptions.push(this.planningService.year$.subscribe(year => {
-      this.year = year;
-      this.updatePlaces();
-    }));
-    this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
-      this.activeScenario = scenario;
-      this.updatePlaces();
-    }));
     let observables: Observable<any>[] = [];
     observables.push(this.planningService.getRealYears().pipe(map(years => {
       this.realYears = years;
@@ -99,6 +82,21 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       this.fieldTypes = fieldTypes;
     })))
     forkJoin(...observables).subscribe(() => {
+      this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
+        this.activeInfrastructure = infrastructure;
+      }))
+      this.subscriptions.push(this.planningService.activeService$.subscribe(service => {
+        this.activeService = service;
+        this.updatePlaces();
+      }))
+      this.subscriptions.push(this.planningService.year$.subscribe(year => {
+        this.year = year;
+        this.updatePlaces();
+      }));
+      this.subscriptions.push(this.planningService.activeScenario$.subscribe(scenario => {
+        this.activeScenario = scenario;
+        this.updatePlaces();
+      }));
       this.updatePlaces();
     });
   }
@@ -109,7 +107,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   updatePlaces(options?: { resetScenario?: boolean, selectPlaceId?: number }): void {
     this.layerGroup?.clear();
-    if (!this.activeInfrastructure || !this.activeService || !this.activeScenario) return;
+    if (!this.activeInfrastructure || !this.activeService || !this.activeScenario || !this.year) return;
     this.updateMapDescription();
     let placeOptions: any = {
       targetProjection: this.mapControl!.map!.mapProjection,

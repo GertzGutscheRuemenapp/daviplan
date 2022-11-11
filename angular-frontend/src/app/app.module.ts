@@ -97,6 +97,7 @@ import { ClassificationsComponent } from './pages/basedata/locations/classificat
 import { ServiceSelectComponent } from './pages/planning/service-select/service-select.component';
 import { ModeSelectComponent } from './pages/planning/mode-select/mode-select.component';
 import { HorizontalBarchartComponent } from './diagrams/horizontal-barchart/horizontal-barchart.component';
+import { DiagramComponent } from './diagrams/diagram/diagram.component';
 
 @NgModule({
   declarations: [
@@ -162,7 +163,8 @@ import { HorizontalBarchartComponent } from './diagrams/horizontal-barchart/hori
     ClassificationsComponent,
     ServiceSelectComponent,
     ModeSelectComponent,
-    HorizontalBarchartComponent
+    HorizontalBarchartComponent,
+    DiagramComponent
   ],
   imports: [
     BrowserModule,

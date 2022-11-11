@@ -41,8 +41,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
     data: BarChartData[]
   } = { title: '', subtitle: '', data: [], unit: ''};
   backend: string = environment.backend;
-  compareSupply = true;
-  compareStatus = 'option 1';
+  chartData: BarChartData[] = [];
   indicators: Indicator[] = [];
   areaLevels: AreaLevel[] = [];
   infrastructures: Infrastructure[] = [];
@@ -117,18 +116,21 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
   updateMap(): void {
     this.showLabel = (this.indicatorLayer?.showLabel !== undefined)? this.indicatorLayer.showLabel: true;
     this.layerGroup?.clear();
-    this.updateMapDescription();
     this.barChart.clear();
+    this.mapControl?.setDescription('');
     if(!this.activeScenario || !this.activeService) return;
     switch (this.selectedIndicator?.resultType) {
       case 'area':
         this.renderAreaIndicator();
+        this.updateMapDescription();
         break;
       case 'place':
         this.renderPlaceIndicator();
+        this.updateMapDescription();
         break;
       case 'raster':
         this.renderRasterIndicator();
+        this.updateMapDescription();
         break;
       default:
     }
@@ -201,7 +203,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         let max = 0;
         let min = Number.MAX_VALUE;
         let displayedPlaces: any[] = [];
-        let chartData: BarChartData[] = [];
+        this.chartData = [];
         results.values.forEach(result => {
           const place = places.find(p => p.id == result.placeId);
           if (!place) return;
@@ -227,7 +229,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
           });
           max = Math.max(max, result.value);
           min = Math.min(min, result.value);
-          chartData.push({ label: place.name || '', value: result.value });
+          this.chartData.push({ label: place.name || '', value: result.value });
         })
 
         let style: ValueStyle = {
@@ -276,7 +278,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         this.layerGroup?.addLayer(this.indicatorLayer);
         this.indicatorLayer.addFeatures(displayedPlaces);
         this.barChartProps.unit = this.selectedIndicator?.unit || '';
-        this.renderDiagram(chartData);
+        this.renderDiagram(this.chartData);
       });
     });
   }
@@ -289,7 +291,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
       this.planningService.computeIndicator<AreaIndicatorResult>(this.selectedIndicator!.name, this.activeService!.id, params).subscribe(results => {
         let max = 0;
         let min = Number.MAX_VALUE;
-        let chartData: BarChartData[] = [];
+        this.chartData = [];
         let displayedAreas: Area[] = [];
         areas.forEach(area => {
           const data = results.values.find(d => d.areaId == area.id);
@@ -318,7 +320,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
               label: formattedValue
             }
           })
-          chartData.push({ label: area.properties.label, value: value });
+          this.chartData.push({ label: area.properties.label, value: value });
         })
         let style: ValueStyle = {
           field: 'value',
@@ -365,7 +367,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         this.layerGroup?.addLayer(this.indicatorLayer);
         this.indicatorLayer.addFeatures(displayedAreas,{ properties: 'properties' });
         this.barChartProps.unit = this.selectedIndicator?.unit || '';
-        this.renderDiagram(chartData);
+        this.renderDiagram(this.chartData);
       })
     })
   }
@@ -412,10 +414,6 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
         template: this.diagramDialogTemplate
       }
     });
-  }
-
-  downloadDiagram(): void {
-    saveSvgAsPng(this.barChart.svg.node(), "diagram.png", {backgroundColor: 'white'});
   }
 
   ngOnDestroy(): void {

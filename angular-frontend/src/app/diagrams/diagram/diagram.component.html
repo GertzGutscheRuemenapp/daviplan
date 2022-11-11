@@ -1,0 +1,21 @@
+<div class="diagram-controls">
+  <button *ngIf="showPNGExport"
+          mat-mini-fab
+          class="small no-shadow"
+          style="margin: 5px 5px;"
+          color="primary"
+          (click)="downloadPNG()"
+          title="Diagramm als Bilddatei exportieren">
+    <mat-icon style="font-size: 20px; margin-top: 0;">photo_camera</mat-icon>
+  </button>
+  <button *ngIf="showCSVExport"
+          mat-mini-fab
+          class="small no-shadow"
+          style="margin: 5px 0;"
+          color="primary"
+          (click)="downloadCSV()"
+          title="Daten als CSV-Datei exportieren">
+    <mat-icon style="font-size: 20px; margin-top: 0;">article</mat-icon>
+  </button>
+</div>
+<figure [id]="figureId"></figure>

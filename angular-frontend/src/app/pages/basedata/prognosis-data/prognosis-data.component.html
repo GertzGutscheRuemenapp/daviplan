@@ -3,7 +3,7 @@
 </div>
 <app-header-card [title]="'Einwohnerdaten für die Zukunft (Prognosedaten, ggf. in Szenarien)'"
                  cookieId="exp-progdata-header"
-                 width="1200px">
+                 width="1170px">
   <p>Für die Abschätzung der zukünftigen Nachfrageentwicklung nach Infrastrukturen werden u.a. Prognosedaten zur Einwohnerentwicklung benötigt. Auf dieser Seite können Sie daher Einwohnerprognosen einlesen. Reale Einwohnerdaten für die zurückliegenden Jahre werden hingegen im vorstehenden Menüpunkt „Vergangenheit“ eingepflegt.</p>
   <p>Legen Sie in der Eingabebox „Prognosejahre“ zunächst fest, für welche Jahre Sie Prognosedaten hochladen wollen.</p>
   <p>Da Einwohnerprognosen manchmal unterschiedliche Prognosevarianten enthalten (z.B. „Trendentwicklung“, „mehr Zuwanderung“, „mehr Abwanderung“), können Sie in der Box „Prognosevarianten“ bei Bedarf unterschiedliche Varianten definieren. Wenn Ihre Prognose keine Varianten enthält, definieren Sie hier nur eine Variante. Um eine Prognosevariante zu definieren, klicken Sie auf die Schaltfläche „Hinzufügen“.</p>
@@ -89,7 +89,7 @@
   </div>
   <div fxLayout="column">
     <app-input-card #propertiesCard
-                    width="450px"
+                    width="430px"
                     [title]="'Bezeichnung der ausgewählten Variante'"
                     [class.hidden]="!popLevel || !activePrognosis"
                     [editTemplate]="propertiesEdit">
@@ -109,15 +109,12 @@
       </table>
     </app-input-card>
     <app-input-card [title]="'Prognosedaten der ausgewählten Variante hochladen'"
-                    width="450px"
+                    width="430px"
+                    [subtitle]="activePrognosis?.name || '-'"
                     [disabled]="isProcessing"
                     [class.hidden]="!popLevel || !activePrognosis"
                     infoText="<p>Wenn Sie für diese Prognosevariante noch keine Einwohnerdaten hochgeladen haben (oder die bereits hochgeladenen Daten ersetzen möchten), können Sie sich mit der Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excelformat herunterladen. Befüllen Sie diese mit Ihren Daten für die angezeigte Variante und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Für jede Prognosevariante benötigen Sie eine eigene Vorlagedatei.</p>
                     <p>Zur Kontrolle können Sie sich die hochgeladenen Daten anschließend in der Box „Bereits importierte Prognosedaten für die ausgewählte Variante“ für einzelne Gebiete anschauen.</p>">
-      <span class="subtitle1 sub">
-        Prognosevariante:
-        <p style="font-size: 1.5em;">"{{activePrognosis?.name || '-'}}"</p>
-      </span>
       <div style="width: 100%; display: flex;">
         <button mat-stroked-button color="primary"
                 style="margin-right: 10px;"
@@ -131,9 +128,8 @@
     </app-input-card>
   </div>
   <app-input-card subtitle="Daten-Historie Bevölkerung"
-                  width="400px"
-                  infoText="<p>Die Liste zeigt Ihnen eine Chronik aller Datenimporte (Hochladen der befüllten Vorlagen).</p>
-                  <p>Die Chronik enthält auch Informationen über alle Datenimporte für Realdaten, die über den Menüpunkt „Bevölkerung > Vergangenheit“ (linker Browserrand) durchgeführt wurden.</p>">
+                  width="370px"
+                  infoText="<p>Die Liste zeigt Ihnen eine Chronik aller Datenimporte (Online-Abfragen und Hochladen befüllter Vorlagen) und Berechnungen im Bereich „Bevölkerung“.</p>">
     <app-log room="population" (onMessage)="onMessage($event)" height="350px"></app-log>
   </app-input-card>
 </div>
@@ -142,7 +138,7 @@
                   [disabled]="isProcessing"
                   [topRightHelp]="true"
                   class="spaced"
-                  width="1200px"
+                  width="1170px"
                   [class.hidden]="!popLevel || !activePrognosis"
                   infoText="<p>Sie haben drei Möglichkeiten, sich die bereits importierten Prognosedaten für die ausgewählte Variante anzusehen.</p>
                   <ol type='1'>
@@ -160,12 +156,13 @@
       <button class="mat-button-dv"
               mat-button color="primary"
               (click)="showDataTable()">
-        <mat-icon class="material-icons-outlined">table_chart</mat-icon> Datentabelle ansehen
+        <mat-icon class="material-icons-outlined">table_chart</mat-icon>
+        Alle Daten (als Tabelle)
       </button>
     </div>
     <div style="width: 100%; display: flex;">
       <div style="width: 50%; margin-right: 10px;">
-        <span class="subtitle1">Alle Gesamtwerte eines Jahres</span><br>
+        <span class="subtitle1">Alle Gesamtwerte eines Jahres <br> (Als Karte)</span><br>
         <mat-form-field appearance="outline" class="small" style="margin-right: 10px;">
           <mat-label>Jahr</mat-label>
           <mat-select disableOptionCentering disableRipple
@@ -193,7 +190,7 @@
         </div>
       </div>
       <div style="width: 50%">
-        <span class="subtitle1">Alterstruktur eines Gebiets in diesem Jahr</span><br>
+        <span class="subtitle1">Altersstruktur eines Gebiets in diesem Jahr <br>(Auswahl auch über Karte möglich)</span><br>
         <mat-form-field appearance="outline" class="small">
           <mat-label>Gebiet</mat-label>
           <mat-select disableOptionCentering disableRipple

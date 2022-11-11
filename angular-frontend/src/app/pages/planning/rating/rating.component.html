@@ -6,6 +6,9 @@
         <div class="davicon icon-GGR-davicons-Font-Simple-3-Standorte-Leistungen"></div>
       </div>
       Leistung
+      <mat-icon color="warn" *ngIf="!planningService.activeService" style="margin-left: 10px;">
+        error_outline
+      </mat-icon>
       <app-help-button title="Leistung" position="right">
         <p>Wählen Sie hier die Leistung aus, für die Sie Indikatoren in der Karte anzeigen möchten.</p>
         <p>Wählen Sie hierzu zunächst im Dropdown-Menü den entsprechenden Infrastrukturbereich und dann per Checkbox die gewünschte Leistung.</p>
@@ -21,6 +24,9 @@
         <mat-icon class="material-icons-outlined">lightbulb</mat-icon>
       </div>
       Indikator
+      <mat-icon color="warn" *ngIf="!selectedIndicator" style="margin-left: 10px;">
+        error_outline
+      </mat-icon>
       <app-help-button title="Indikator" position="right">
         <p>Wählen Sie hier aus den definierten Indikatoren für die Darstellung aus.</p>
       </app-help-button>
@@ -69,7 +75,7 @@
     </div>
   </ng-container>
 </mat-expansion-panel>
-<mat-expansion-panel [class.disabled]="selectedIndicator?.resultType !== 'area'"
+<mat-expansion-panel *ngIf="selectedIndicator && selectedIndicator.resultType !== 'area'"
                      cookieExpansion="exp-rating-areas">
   <mat-expansion-panel-header>
     <mat-panel-title>
@@ -145,8 +151,10 @@
                  id="chart-toggle" icon="bar_chart" name="Diagramm"
                  cookieExpansion="exp-rating-diagram">
   <div style="position: relative;">
-    <div class="diagram-wrapper" style="width: 500px; height: 400px; margin: 10px 0;">
+    <div class="diagram-wrapper">
       <app-horizontal-barchart #barChart
+                               [showCSVExport]="true"
+                               [showPNGExport]="true"
                                xLabel="Jahre"
                                yLabel="Einwohner"
                                [unit]="this.selectedIndicator?.unit || ''"
@@ -156,24 +164,8 @@
       </app-horizontal-barchart>
     </div>
     <div class="diagram-controls">
-<!--      <button mat-mini-fab
-              class="small"
-              color="primary"
-              title="Diagramm vergrößert darstellen"
-              (click)="onFullscreenDialog()">
-        <mat-icon>fullscreen</mat-icon>
-      </button>
-      <br>-->
-      <button mat-mini-fab
-              class="small"
-              style="margin: 5px 0;"
-              color="primary"
-              (click)="downloadDiagram()"
-              title="Diagramm als Bilddatei herunterladen">
-        <mat-icon style="font-size: 20px; margin-top: 0;">download</mat-icon>
-      </button>
       <br>
-      <app-help-button title="Diagrammdarstellung" position="right">
+      <app-help-button title="Diagrammdarstellung" position="right" style="float: right;">
         <p>Das Diagramm zeigt die Kennwerte des ausgewählten Indikators für alle Gebiete der ausgewählten Gebietseinheit.</p>
         <p>Mit einem Klick auf den Vollbild-Button rechts oben können Sie sich das Diagramm vergrößert in einem Dialog anzeigen lassen.</p>
         <p>Über den Herunterladen-Button darunter können Sie sich das Diagramm als Bild (PNG) herunterladen.</p>

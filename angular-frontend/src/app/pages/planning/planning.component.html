@@ -27,7 +27,8 @@
         </mat-select-trigger>
         <mat-option [value]="-1" style="display: none;"></mat-option>
         <mat-optgroup label="Meine Planungsprozesse">
-          <button title="Planungsprozess erstellen"
+          <button *ngIf="user?.profile?.canCreateProcess"
+                  title="Planungsprozess erstellen"
                   mat-icon-button color="primary" class="small"
                   style="position: absolute; right: 6px; top: 8px;"
                   (click)="onCreateProcess()">
@@ -42,6 +43,7 @@
             <mat-option class="custom-option"
                         [value]="process.id"
                         [ngbPopover]="ProcessPopover"
+                        [popoverTitle]="process?.name"
                         placement="right"
                         container="body"
                         triggers="mouseenter:mouseleave">
@@ -75,6 +77,7 @@
             </ng-template>
             <mat-option [value]="process.id"
                         [ngbPopover]="ProcessPopover"
+                        [popoverTitle]="process?.name"
                         placement="right"
                         container="body"
                         triggers="mouseenter:mouseleave">
@@ -84,13 +87,13 @@
         </mat-optgroup>
       </mat-select>
     </mat-form-field>
-    <button *ngIf="activeProcess" class="process-button small"
+    <button *ngIf="activeProcess && activeProcess.owner === user?.id" class="process-button small"
             title="ausgewählten Planungsprozess editieren"
             mat-icon-button color="primary"
             (click)="editProcess(activeProcess)" i18n>
       <mat-icon>edit</mat-icon>
     </button>
-    <button *ngIf="!activeProcess" class="process-button small"
+    <button *ngIf="!activeProcess && user?.profile?.canCreateProcess" class="process-button small"
             title="Planungsprozess erstellen"
             mat-icon-button color="primary"
             (click)="onCreateProcess()" i18n>

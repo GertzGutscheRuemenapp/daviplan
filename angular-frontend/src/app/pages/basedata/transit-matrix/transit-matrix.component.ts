@@ -16,6 +16,7 @@ import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dia
 import * as fileSaver from "file-saver";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { BehaviorSubject } from "rxjs";
+import { environment } from "../../../../environments/environment";
 
 @Component({
   selector: 'app-transit-matrix',
@@ -23,6 +24,7 @@ import { BehaviorSubject } from "rxjs";
   styleUrls: ['./transit-matrix.component.scss']
 })
 export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
+  backend: string = environment.backend;
   mapControl?: MapControl;
   variants: ModeVariant[] = [];
   selectedVariant?: ModeVariant;

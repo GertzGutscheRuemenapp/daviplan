@@ -129,12 +129,12 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
   updatePlaces(): Observable<boolean> {
     const observable = new Observable<any>(subscriber => {
+      this.placesLayerGroup?.clear();
       if (!this.activeInfrastructure || !this.activeService || !this.year || !this.activeScenario) {
         subscriber.next(false);
         subscriber.complete();
         return;
       };
-      this.updateMapDescription();
       const scenario = this.activeScenario?.isBase? undefined: this.activeScenario
       this.planningService.getPlaces({
         targetProjection: this.mapControl!.map!.mapProjection, filter: { columnFilter: true, hasCapacity: true, year: this.year }, scenario: scenario
@@ -360,7 +360,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     if (this.placesLayer)
       this.placesLayer?.clearSelection();
     this.reachLayerGroup?.clear();
-    this.updateMapDescription();
+    this.mapControl?.setDescription('');
     if (this.indicator === 'next')
       this.showNextPlaceReachabilities();
   }

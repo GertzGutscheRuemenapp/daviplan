@@ -75,7 +75,7 @@ class TestInfrastructureAPI(WriteOnlyWithAdminAccessTest,
         """Test the patch with an empty list"""
         patch_data2 = self.patch_data.copy()
         patch_data2['editable_by'] = []
-        patch_data2['accessible_by'] = []
+        #patch_data2['accessible_by'] = []
         self.patch_data = patch_data2
         super().test_put_patch()
 

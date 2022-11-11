@@ -90,7 +90,7 @@ export class ScenarioMenuComponent implements OnInit {
   }
 
   setScenario(scenario: Scenario, options?: { silent?: boolean }): void {
-    if (this.activeScenario === scenario) return;
+    if (this.activeScenario?.id === scenario.id) return;
     this.activeScenario = scenario;
     if (!options?.silent)
       this.planningService.activeScenario$.next(scenario);
@@ -186,6 +186,7 @@ export class ScenarioMenuComponent implements OnInit {
       this.http.patch<Scenario>(`${this.rest.URLS.scenarios}${this.activeScenario!.id}/`, attributes
       ).subscribe(scenario => {
         this.activeScenario!.name = scenario.name;
+        this.planningService.activeScenario$.next(this.activeScenario);
       },(error) => {
         dialogRef.componentInstance.isLoading$.next(false);
       });

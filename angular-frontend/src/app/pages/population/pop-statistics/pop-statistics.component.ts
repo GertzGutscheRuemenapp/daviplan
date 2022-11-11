@@ -115,11 +115,11 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       this.layerGroup?.removeLayer(this.statisticsLayer);
       this.statisticsLayer = undefined;
     }
-    this.updateMapDescription();
     if ((this.theme === 'nature' && !this.showBirths && !this.showDeaths) ||
          this.theme === 'migration' && !this.showImmigration && !this.showEmigration){
       return;
     }
+    this.updateMapDescription();
     this.populationService.getStatisticsData({ year: this.year! }).subscribe(statistics => {
       let descr = '';
       let max: number;
@@ -168,17 +168,16 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         },
         valueStyles: {
           field: 'value',
-          fillColor: {
-            colorFunc: colorFunc
-          },
-          // fillColor: diffDisplay? colorFunc: undefined,
+          fillColor: diffDisplay? { colorFunc: colorFunc }: undefined,
           radius: {
             range: [5, 50],
-            scale: 'linear'
+            scale: 'sqrt'
           },
           min: 0,
           max: max || 1000
         },
+        unit: 'Ew.',
+        forceSign: diffDisplay,
         labelOffset: { y: 15 }
       });
       this.layerGroup?.addLayer(this.statisticsLayer);
@@ -193,7 +192,9 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
           }
         }
         area.properties.value = value;
-        area.properties.description = `<b>${area.properties.label}</b><br>${descr}: ${area.properties.value}`
+        let description = `<b>${area.properties.label}</b><br>`;
+        description += (diffDisplay && !value)? 'keine Änderung ': `${diffDisplay && value > 0? '+': ''}${area.properties.value.toLocaleString()} Ew. im Jahr ${this.year}`;
+        area.properties.description = description;
       })
       this.statisticsLayer.addFeatures(this.areas,{
         properties: 'properties',
@@ -295,7 +296,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         theme = (this.showBirths && this.showDeaths)? 'Geburten und Sterbefälle': (this.showBirths)? 'Geburten': (this.showDeaths)? 'Sterbefälle': 'keine Auswahl';
     else
       theme = (this.showImmigration && this.showEmigration)? 'Wanderung': (this.showImmigration)? 'Zuzüge': (this.showEmigration)? 'Fortzüge': 'keine Auswahl';
-    let description = `${theme} für Gebietseinheit ${this.areaLevel.name} | ${this.year}`;
+    let description = `${theme} für ${this.areaLevel.name} ${this.year}`;
     this.mapControl?.setDescription(description);
   }
 
