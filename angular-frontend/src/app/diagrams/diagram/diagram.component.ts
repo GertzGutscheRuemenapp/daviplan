@@ -35,6 +35,7 @@ export class DiagramComponent {
     }
     this.svg = figure.append('svg')
       .attr('viewBox', `0 0 ${this.width!} ${this.height!}`);
+    this.svg.append("style").text('text {font-family: sans-serif}')
   }
 
   clear(): void {
@@ -42,7 +43,8 @@ export class DiagramComponent {
   }
 
   downloadPNG(): void {
-    saveSvgAsPng(this.svg.node(), `${this.title || 'Diagramm'}${this.subtitle? ' - ' + this.subtitle: ''}.png`,{ backgroundColor: 'white' });
+    saveSvgAsPng(this.svg.node(), `${this.title || 'Diagramm'}${this.subtitle? ' - ' + this.subtitle: ''}.png`,
+      { backgroundColor: 'white' });
   }
   getCSVRows(): (string | number)[][] {
     return [];
