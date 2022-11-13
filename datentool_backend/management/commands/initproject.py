@@ -3,6 +3,7 @@ from datentool_backend.area.models import (AreaLevel, MapSymbol, Source,
                                            SourceTypes, AreaField, FieldType,
                                            FieldTypes)
 from datentool_backend.population.models import Gender, Raster, PopulationRaster
+from datentool_backend.modes.models import ModeVariant, Mode
 
 
 class Command(BaseCommand):
@@ -125,5 +126,16 @@ class Command(BaseCommand):
                                         name='Zensus-2011-Raster',
                                         filename='Zensus2011Einwohner100_LAEA3035.tif',
                                         default=True)
+
+        # add mode variants
+        ModeVariant.truncate()
+        ModeVariant.objects.create(id=1, mode=Mode.WALK,
+                                   label=Mode.WALK.label, is_default=True)
+        ModeVariant.objects.create(id=2, mode=Mode.BIKE,
+                                   label=Mode.BIKE.label, is_default=True)
+        ModeVariant.objects.create(id=3, mode=Mode.CAR,
+                                   label=Mode.CAR.label, is_default=True)
+        ModeVariant.objects.create(id=4, mode=Mode.TRANSIT,
+                                   label=Mode.TRANSIT.label, is_default=True)
 
         self.stdout.write(self.style.SUCCESS('Successfully initialized project'))

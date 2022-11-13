@@ -185,22 +185,22 @@ class MatrixStatisticsSerializer(serializers.Serializer):
 
     def get_n_rels_place_stop_modevariant(self, obj) -> Dict[int, int]:
         qs = MatrixPlaceStop.objects\
-            .values('variant')\
-            .annotate(n_relations=Count('variant'))
-        return {var['variant']: var['n_relations']
+            .values('stop__variant')\
+            .annotate(n_relations=Count('stop__variant'))
+        return {var['stop__variant']: var['n_relations']
                 for var in qs}
 
     def get_n_rels_stop_cell_modevariant(self, obj) -> Dict[int, int]:
         qs = MatrixCellStop.objects\
-            .values('variant')\
-            .annotate(n_relations=Count('variant'))
-        return {var['variant']: var['n_relations']
+            .values('stop__variant')\
+            .annotate(n_relations=Count('stop__variant'))
+        return {var['stop__variant']: var['n_relations']
                 for var in qs}
 
     def get_n_rels_stop_stop_modevariant(self, obj) -> Dict[int, int]:
         qs = MatrixStopStop.objects\
-            .values('variant')\
-            .annotate(n_relations=Count('variant'))
-        return {var['variant']: var['n_relations']
+            .values('from_stop__variant')\
+            .annotate(n_relations=Count('from_stop__variant'))
+        return {var['from_stop__variant']: var['n_relations']
                 for var in qs}
 

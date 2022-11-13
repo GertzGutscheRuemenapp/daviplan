@@ -84,6 +84,7 @@ class TestMatrixCreation(CreateTestdataMixin,
 
     def calc_cell_place_matrix(self,
                                variants: List[int],
+                               access_variant:int=None,
                                places: List[int]=[],
                                air_distance_routing: bool=False,
                                max_distance: float = None) -> str:
@@ -92,6 +93,7 @@ class TestMatrixCreation(CreateTestdataMixin,
         and return the content of the response
         """
         data = {'variants': variants,
+                'access_variant': access_variant,
                 'drop_constraints': False,
                 'places': places,
                 'air_distance_routing': air_distance_routing,
@@ -147,16 +149,29 @@ class TestMatrixCreation(CreateTestdataMixin,
             'osrm docker not running')
     def test_create_routed_matrix_for_new_places(self):
         """Test to create an walk matrix from routing"""
+
+        # setup modevariants
         network = self.network
         walk = ModeVariantFactory(mode=Mode.WALK, network=network)
-        car = ModeVariantFactory(mode=Mode.CAR, network=network)
         bike = ModeVariantFactory(mode=Mode.BIKE, network=network)
-        variants = [walk.pk, bike.pk, car.pk]
-        content = self.calc_cell_place_matrix(variants=variants)
+        car = ModeVariantFactory(mode=Mode.CAR, network=network)
+        transit1 = ModeVariantFactory(mode=Mode.TRANSIT, network=network)
+        transit2 = ModeVariantFactory(mode=Mode.TRANSIT, network=network)
+        self.create_stops(transit_variant_id=transit1.pk)
+        self.create_stops(transit_variant_id=transit2.pk)
+        variants = [walk.pk, bike.pk, car.pk, transit1.pk, transit2.pk]
+
+        # calculate initial number of relations
+        content = self.calc_cell_place_matrix(variants=variants, access_variant=walk.pk)
         print(content)
         walk_rows_before = MatrixCellPlace.objects.filter(variant=walk.pk).count()
-        print(walk_rows_before)
+        self.assertEqual(walk_rows_before, 40)
+        transit1_rows_before = MatrixCellPlace.objects.filter(variant=transit1.pk).count()
+        self.assertEqual(transit1_rows_before, 12)
+        transit2_rows_before = MatrixCellPlace.objects.filter(variant=transit2.pk).count()
+        self.assertEqual(transit2_rows_before, 12)
 
+        # add new infrastructure
         infrastructure = self.place1.infrastructure
         new_place = Place.objects.create(name='NewPlace',
                                          infrastructure=infrastructure,
@@ -165,20 +180,26 @@ class TestMatrixCreation(CreateTestdataMixin,
         # recalculate one place, add one new
         places = [self.place2.pk, new_place.pk]
         content = self.calc_cell_place_matrix(variants=variants,
+                                              access_variant=walk.pk,
                                               places=places)
         walk_rows_after = MatrixCellPlace.objects.filter(variant=walk.pk).count()
-        print(walk_rows_after)
+        self.assertEqual(walk_rows_after, 48)
         bike_to_new_place = MatrixCellPlace.objects.filter(variant=bike.pk,
                                                            place=new_place).count()
-        print(bike_to_new_place)
+        self.assertEqual(bike_to_new_place, 8)
+        transit1_rows_after = MatrixCellPlace.objects.filter(variant=transit1.pk).count()
+        self.assertEqual(transit1_rows_after, 20)
+        transit2_rows_after = MatrixCellPlace.objects.filter(variant=transit2.pk).count()
+        self.assertEqual(transit2_rows_after, 20)
 
         content = self.calc_cell_place_matrix(variants=variants,
+                                              access_variant=walk.pk,
                                               places=places,
                                               air_distance_routing=True)
 
         car_to_new_place = MatrixCellPlace.objects.filter(variant=car.pk,
                                                           place=new_place).count()
-        print(car_to_new_place)
+        self.assertEqual(car_to_new_place, 8)
 
     @classmethod
     def build_osrm(cls):
@@ -197,11 +218,14 @@ class TestMatrixCreation(CreateTestdataMixin,
         """create network"""
         cls.network = NetworkFactory()
 
-    def create_stops(self):
+    def create_stops(self, transit_variant_id: int=None):
         """upload stops from excel-template"""
 
-        self.transit, created = ModeVariant.objects.get_or_create(
-            mode=Mode.TRANSIT, network=self.network)
+        if transit_variant_id:
+            self.transit = ModeVariant.objects.get(id=transit_variant_id)
+        else:
+            self.transit, created = ModeVariant.objects.get_or_create(
+                mode=Mode.TRANSIT, network=self.network)
 
        # upload stops
         file_path_transit = os.path.join(os.path.dirname(__file__),
@@ -241,29 +265,36 @@ class TestMatrixCreation(CreateTestdataMixin,
         self.create_stops()
         walk, created = ModeVariant.objects.get_or_create(mode=Mode.WALK,
                                                           network=self.network)
-        content = self.calc_cell_stop_matrix(mode=walk, max_distance=1000)
+        content = self.calc_cell_stop_matrix(transit_variant=self.transit,
+                                             access_variant=walk,
+                                             max_distance=1000)
         print(content)
-        print(MatrixCellStop.objects.filter(variant=walk.pk).count())
+        print(MatrixCellStop.objects.filter(access_variant=walk.pk).count())
 
-        content = self.calc_cell_stop_matrix(mode=walk, max_distance=2000)
+        content = self.calc_cell_stop_matrix(transit_variant=self.transit,
+                                             access_variant=walk,
+                                             max_distance=2000)
         print(content)
-        print(MatrixCellStop.objects.filter(variant=walk.pk).count())
+        print(MatrixCellStop.objects.filter(access_variant=walk.pk).count())
 
-    def calc_cell_stop_matrix(self, mode: ModeVariant,
+    def calc_cell_stop_matrix(self,
+                              transit_variant: ModeVariant,
+                              access_variant:ModeVariant,
                               max_distance: float=None) -> str:
         """
         calculate the matrix between cells and stops
         and return the content of the response
         """
 
-        data = {'variants': [mode.pk],
+        data = {'transit_variant': transit_variant.pk,
+                'access_variant': access_variant.pk,
                 'drop_constraints': False,
                 'sync': True,
                 }
         if max_distance:
             data['max_distance'] = max_distance
 
-        res = self.post('matrixcellstops-precalculate-traveltime', data=data,
+        res = self.post('matrixcellstops-precalculate-accesstime', data=data,
                         extra={'format': 'json'})
         self.assert_http_202_accepted(res)
         return res.content
@@ -275,24 +306,27 @@ class TestMatrixCreation(CreateTestdataMixin,
         walk, created = ModeVariant.objects.get_or_create(mode=Mode.WALK,
                                                           network=self.network)
 
-        content = self.calc_place_stop_matrix(mode=walk)
+        content = self.calc_place_stop_matrix(transit_variant=self.transit,
+                                              access_variant=walk)
         print(content)
-        print(MatrixPlaceStop.objects.filter(variant=walk.pk).count())
+        print(MatrixPlaceStop.objects.filter(access_variant=walk.pk).count())
 
-    def calc_place_stop_matrix(self, mode: ModeVariant,
+    def calc_place_stop_matrix(self, transit_variant: ModeVariant,
+                               access_variant: ModeVariant,
                                max_distance: float = None) -> str:
         """
         calculate the matrix between cells and stops
         and return the content of the response
         """
-        data = {'variants': [mode.pk],
+        data = {'transit_variant': transit_variant.pk,
+                'access_variant': access_variant.pk,
                 'drop_constraints': False,
                 'sync': True,
                 }
         if max_distance:
             data['max_distance'] = max_distance
 
-        res = self.post('matrixplacestops-precalculate-traveltime', data=data,
+        res = self.post('matrixplacestops-precalculate-accesstime', data=data,
                         extra={'format': 'json'})
         self.assert_http_202_accepted(res)
         return res.content
@@ -304,14 +338,18 @@ class TestMatrixCreation(CreateTestdataMixin,
         walk, created = ModeVariant.objects.get_or_create(mode=Mode.WALK,
                                                           network=self.network)
         # precalculate the walk time from places and rastercells to stops
-        content = self.calc_cell_stop_matrix(mode=walk, max_distance=1000)
-        content = self.calc_place_stop_matrix(mode=walk, max_distance=1500)
+        content = self.calc_cell_stop_matrix(transit_variant=self.transit,
+                                             access_variant=walk,
+                                             max_distance=1000)
+        content = self.calc_place_stop_matrix(transit_variant=self.transit,
+                                              access_variant=walk,
+                                              max_distance=1500)
         # until 800 m walk the way, if it's faster, over 800 m always take transit
         # ToDo: add max_distance
         content = self.calc_cell_place_matrix(variants=[walk.pk],
                                               max_distance=800)
 
-        self.transit
+
         data = {'variants': [self.transit.pk],
                 'drop_constraints': False,
                 'access_variant': walk.pk,
@@ -325,7 +363,7 @@ class TestMatrixCreation(CreateTestdataMixin,
         print(res.content)
         print(MatrixCellPlace.objects.filter(variant=self.transit.pk).count())
         #  try longer access distance to stops
-        data['max_access_distance'] = 1500
+        data['max_access_distance'] = 2000
         res = self.post('matrixcellplaces-precalculate-traveltime', data=data,
                         extra={'format': 'json'})
         self.assert_http_202_accepted(res)
@@ -344,8 +382,8 @@ class TestMatrixCreation(CreateTestdataMixin,
 
         self.assertEqual(data['n_stops'], 383)
         self.assertDictEqual(data['n_rels_place_stop_modevariant'],
-                             {walk.pk: 17,})
+                             {self.transit.pk: 27,})
         self.assertDictEqual(data['n_rels_stop_cell_modevariant'],
-                             {walk.pk: 18,})
+                             {self.transit.pk: 34,})
         self.assertDictEqual(data['n_rels_stop_stop_modevariant'],
                              {self.transit.pk: 88412,})
