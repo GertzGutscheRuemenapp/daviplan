@@ -133,7 +133,7 @@
           <b>{{ mapControl.background?.name }}</b>
           <p *ngIf="mapControl.background?.description">{{ mapControl.background?.description }}</p>
         </ng-template>
-        <div class="legend-entry">
+        <div class="legend-entry" style="height: 50px;">
           <div class="entry-header"
                [ngbPopover]="backSelectPopover"
                [disablePopover]="!mapControl.background"

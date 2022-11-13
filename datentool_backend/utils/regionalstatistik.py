@@ -69,7 +69,7 @@ class GenesisAPI():
             raise ConnectionError('API is not responding. Try again later')
         if res.status_code != 200:
             jres = res.json()
-            raise Exception(jres['Status']['Content'])
+            raise Exception(jres.get('Status', {}).get('Content') or jres.get('Content'))
         return res.text
 
 

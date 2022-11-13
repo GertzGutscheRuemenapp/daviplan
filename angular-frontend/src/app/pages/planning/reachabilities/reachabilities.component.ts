@@ -129,12 +129,12 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
 
   updatePlaces(): Observable<boolean> {
     const observable = new Observable<any>(subscriber => {
+      this.placesLayerGroup?.clear();
       if (!this.activeInfrastructure || !this.activeService || !this.year || !this.activeScenario) {
         subscriber.next(false);
         subscriber.complete();
         return;
       };
-      this.updateMapDescription();
       const scenario = this.activeScenario?.isBase? undefined: this.activeScenario
       this.planningService.getPlaces({
         targetProjection: this.mapControl!.map!.mapProjection, filter: { columnFilter: true, hasCapacity: true, year: this.year }, scenario: scenario
@@ -254,10 +254,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
       this.planningService.getCellReachability(cell.cellcode, this.activeMode, { scenario: this.activeScenario }).subscribe(placeResults => {
         let showLabel = this.placeReachabilityLayer?.showLabel;
         this.reachLayerGroup?.clear();
-        this.places.forEach(place => {
-          const res = placeResults.values.find(p => p.placeId === place.id);
-          place.value = (res?.value !== undefined)? Math.round(res?.value): undefined;
-        })
         const valueBins = modeBins[this.activeMode];
         let style: ValueStyle = {};
 
@@ -293,9 +289,11 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
         });
         this.reachLayerGroup?.addLayer(this.placeReachabilityLayer);
         this.placeReachabilityLayer.addFeatures(this.places.map(place => {
-          const label = (place.value !== undefined)? `${place.value} Minuten`: `nicht erreichbar innerhalb von ${valueBins[valueBins.length - 1]} Minuten`;
+          const res = placeResults.values.find(p => p.placeId === place.id);
+          const value = (res?.value !== undefined)? Math.round(res?.value): undefined;
+          const label = (value !== undefined)? `${value} Minuten`: `nicht erreichbar innerhalb von ${valueBins[valueBins.length - 1]} Minuten`;
           return { id: place.id, geometry: place.geom, properties: {
-            name: place.name, value: place.value,
+            name: place.name, value: value,
               label: label, tooltip: `<b>${place.name}</b><br>${label}`} }
         }));
       })
@@ -360,7 +358,7 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     if (this.placesLayer)
       this.placesLayer?.clearSelection();
     this.reachLayerGroup?.clear();
-    this.updateMapDescription();
+    this.mapControl?.setDescription('');
     if (this.indicator === 'next')
       this.showNextPlaceReachabilities();
   }

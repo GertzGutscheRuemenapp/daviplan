@@ -2,6 +2,7 @@
 
 .map-wrapper {
   position: absolute;
+  z-index: 0;
   top: $sub-nav-height;
   height: calc(100% - #{$sub-nav-height});
   width: 100%;
@@ -18,6 +19,7 @@
   overflow-y: hidden;
 
   #chart-toggle {
+    pointer-events: none;
     position: fixed;
     left: $context-bar-width;
     top: 240px;

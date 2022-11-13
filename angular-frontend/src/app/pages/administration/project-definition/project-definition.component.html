@@ -66,7 +66,8 @@
         <app-map-controls target="project-preview-map"></app-map-controls>
       </div>
     </app-input-card>
-    <app-input-card subtitle="Daten-Historie Gebiete">
+    <app-input-card subtitle="Daten-Historie Gebiete"
+                    infoText="<p>Die Liste zeigt Ihnen eine Chronik aller Datenimporte (Online-Abfragen und Hochladen befüllter Vorlagen) und Berechnungen im Bereich „Gebiete“ und aus der Definition des Planungsraums.</p>">
       <app-log room="areas" (onMessage)="onMessage($event)" height="200px"></app-log>
     </app-input-card>
   </div>

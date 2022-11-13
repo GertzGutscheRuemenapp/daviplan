@@ -1,5 +1,6 @@
-import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Input, ViewEncapsulation } from '@angular/core';
 import * as d3 from 'd3';
+import { DiagramComponent } from "../diagram/diagram.component";
 
 export interface StackedData {
   group: string,
@@ -8,26 +9,32 @@ export interface StackedData {
 
 @Component({
   selector: 'app-stacked-barchart',
-  templateUrl: './stacked-barchart.component.html',
-  styleUrls: ['./stacked-barchart.component.scss']
+  templateUrl: '../diagram/diagram.component.html',
+  styleUrls: ['../diagram/diagram.component.scss'],
+  // saveSvgAsPng does not seem to be able to parse the css in any other way
+  encapsulation: ViewEncapsulation.None,
+  styles: [
+    'text { font-family: Sans-Serif }',
+    'g.tick text { font-size: 10px; }',
+    '.axis-label { font-size: 10px; }',
+    '.title  { font-size: 13px; }',
+    '.subtitle  { font-size: 10px; }',
+    '.legend-label  { font-size: 10px; }',
+    '.separator-label  { font-size: 9px; }'
+  ]
 })
-export class StackedBarchartComponent implements AfterViewInit {
+export class StackedBarchartComponent extends DiagramComponent implements AfterViewInit {
 
   @Input() data?: StackedData[];
-  @Input() title: string = '';
-  @Input() subtitle: string = '';
   @Input() labels?: string[];
   @Input() colors?: string[];
   @Input() drawLegend: boolean = true;
+  @Input() xLegendOffset: number = 70;
+  @Input() yLegendOffset: number = 20;
   @Input() xLabel?: string;
   @Input() yLabel?: string;
-  @Input() width?: number;
-  @Input() height?: number;
   @Input() animate?: boolean;
   @Input() xSeparator?: { leftLabel?: string, rightLabel?:string, x: string, highlight?: boolean };
-  @Input() figureId: String = 'stacked-barchart';
-
-  private svg: any;
   private margin: {top: number, bottom: number, left: number, right: number } = {
     top: 50,
     bottom: 50,
@@ -38,25 +45,6 @@ export class StackedBarchartComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.createSvg();
     if (this.data) this.draw(this.data);
-  }
-
-  private createSvg(): void {
-    let figure = d3.select(`figure#${ this.figureId }`);
-    if (!(this.width && this.height)){
-      let node: any = figure.node()
-      let bbox = node.getBoundingClientRect();
-      if (!this.width)
-        this.width = bbox.width;
-      if (!this.height)
-        this.height = bbox.height;
-    }
-    this.svg = figure.append('svg')
-      .attr('viewBox', `0 0 ${this.width!} ${this.height!}`)
-      .append('g');
-  }
-
-  clear(): void {
-    this.svg.selectAll('*').remove();
   }
 
   draw(data: StackedData[]): void {
@@ -97,21 +85,20 @@ export class StackedBarchartComponent implements AfterViewInit {
 
     if (this.yLabel)
       this.svg.append('text')
-        .attr('y', 10)
-        .attr('x', -(this.margin.top + 30))
-        .attr('dy', '0.5em')
+        .attr('class', 'axis-label')
+        .attr('y', '10px')
+        .attr('x', - (this.margin.top + 30))
         .style('text-anchor', 'end')
         .attr('transform', 'rotate(-90)')
-        .attr('font-size', '0.8em')
         .text(this.yLabel);
 
     if (this.xLabel)
       this.svg.append('text')
+        .attr('class', 'axis-label')
         .attr('y', this.height! - 30)
         .attr('x', this.width! - this.margin.right + 10)
         .attr('dy', '0.5em')
         .style('text-anchor', 'end')
-        .attr('font-size', '0.8em')
         .text(this.xLabel);
 
     let tooltip = d3.select('body')
@@ -195,8 +182,8 @@ export class StackedBarchartComponent implements AfterViewInit {
         .data(this.labels.slice().reverse())
         .enter()
         .append('rect')
-        .attr('x', innerWidth + 70)
-        .attr('y', (d: string, i: number) => 10 + (i * (size + 1))) // 100 is where the first dot appears. 25 is the distance between dots
+        .attr("x", innerWidth + this.xLegendOffset)
+        .attr("y", (d: string, i: number) => 10 + this.yLegendOffset + (i * (size + 1)))
         .attr('width', size)
         .attr('height', size)
         .style('fill', (d: string, i: number) => {
@@ -208,9 +195,9 @@ export class StackedBarchartComponent implements AfterViewInit {
         .data(this.labels.slice().reverse())
         .enter()
         .append('text')
-        .attr('font-size', '0.7em')
-        .attr('x', innerWidth + 70 + size * 1.2)
-        .attr('y', (d: string, i: number) => 10 + (i * (size + 1) + (size / 2)))
+        .attr('class', 'legend-label')
+        .attr("x", innerWidth + this.xLegendOffset + size * 1.2)
+        .attr("y", (d: string, i: number) => 10 + this.yLegendOffset + (i * (size + 1) + (size / 2)))
         .style('fill', (d: string, i: number) => {
           const j = this.labels!.length - i - 1;
           return (this.colors) ? this.colors[j] : colorScale(j);
@@ -230,7 +217,6 @@ export class StackedBarchartComponent implements AfterViewInit {
         .attr('class', 'subtitle')
         .attr('x', this.margin.left)
         .attr('y', 15)
-        .attr('font-size', '0.8em')
         .attr('dy', '1em')
         .text(this.subtitle);
 
@@ -245,20 +231,20 @@ export class StackedBarchartComponent implements AfterViewInit {
         .attr('class', 'separator');
       if (this.xSeparator.leftLabel)
         this.svg.append('text')
+          .attr('class', 'separator-label')
           .attr('y', this.height! - 10)
           .attr('x', xSepPos - 5)
           .attr('dy', '0.5em')
           .style('text-anchor', 'end')
-          .attr('font-size', '0.7em')
           .attr('fill', 'grey')
           .text(this.xSeparator.leftLabel);
       if (this.xSeparator.rightLabel)
         this.svg.append('text')
+          .attr('class', 'separator-label')
           .attr('y', this.height! - 10)
           .attr('x', xSepPos + 5)
           .attr('dy', '0.5em')
           .style('text-anchor', 'start')
-          .attr('font-size', '0.7em')
           .attr('fill', 'grey')
           .text(this.xSeparator.rightLabel);
     }
