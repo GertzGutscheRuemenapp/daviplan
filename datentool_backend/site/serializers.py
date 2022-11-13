@@ -100,7 +100,7 @@ class BaseDataSettingSerializer(serializers.Serializer):
         return ret
 
     def get_default_mode_variants(self, obj) -> Dict[int, int]:
-        sets = ModeVariant.objects.filter(network__is_default=True).order_by('mode')
+        sets = ModeVariant.objects.filter(is_default=True).order_by('mode')
         ret = [{'mode': s.mode, 'variant': s.id} for s in sets]
         return ret
 
