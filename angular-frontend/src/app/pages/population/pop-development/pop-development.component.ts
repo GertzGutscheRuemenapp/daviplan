@@ -375,10 +375,10 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       this.barChartProps.data = stackedData;
 
       // Line Chart
-      let first = stackedData[0].values;
+      const first = stackedData[0].values;
       let relData = stackedData.map(d => { return {
         group: d.group,
-        values: d.values.map((v, i) => 100 * v / first[i] )
+        values: d.values.map((v, i) => first[i]? (100 * v / first[i]): 100 )
       }})
       let max = Math.max(...relData.map(d => Math.max(...d.values))),
         min = Math.min(...relData.map(d => Math.min(...d.values)));
@@ -406,8 +406,8 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
     // workaround to force redraw of diagram by triggering ngIf wrapper
     const _prev = this.selectedTab;
     this.selectedTab = -1;
-    setTimeout(() => {  this.selectedTab = _prev; }, 1);
     this.cdref.detectChanges();
+    setTimeout(() => {  this.selectedTab = _prev; this.cdref.detectChanges(); }, 1);
   }
 
   someAgeGroupsChecked(): boolean {

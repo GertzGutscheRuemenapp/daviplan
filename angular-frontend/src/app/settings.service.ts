@@ -13,7 +13,9 @@ export interface SiteSettings {
   contactMail: string,
   welcomeText: string,
   logo: string,
-  regionalstatistikUser: string
+  regionalstatistikUser: string,
+  regionalstatistikPasswordIsSet: boolean,
+  bkgPasswordIsSet: boolean
 }
 
 class UserSettings {
@@ -61,7 +63,8 @@ class UserSettings {
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
   siteSettings$ = new BehaviorSubject<SiteSettings>({
-    id: 0, title: '', contactMail: '', welcomeText: '', logo: '', regionalstatistikUser: ''
+    id: 0, title: '', contactMail: '', welcomeText: '', logo: '', regionalstatistikUser: '',
+    regionalstatistikPasswordIsSet: false, bkgPasswordIsSet: false
   });
   baseDataSettings$ = new BehaviorSubject<BasedataSettings>({
     popStatisticsAreaLevel: 0,

@@ -1,6 +1,6 @@
-import { AfterViewInit, Component, Input } from '@angular/core';
+import { AfterViewInit, Component, Input, ViewEncapsulation } from '@angular/core';
 import * as d3 from 'd3';
-import { v4 as uuid } from "uuid";
+import { DiagramComponent } from "../diagram/diagram.component";
 
 export interface MultilineData {
   group: string,
@@ -9,15 +9,23 @@ export interface MultilineData {
 
 @Component({
   selector: 'app-multiline-chart',
-  templateUrl: './multiline-chart.component.html',
-  styleUrls: ['./multiline-chart.component.scss']
+  templateUrl: '../diagram/diagram.component.html',
+  styleUrls: ['../diagram/diagram.component.scss'],
+  // saveSvgAsPng does not seem to be able to parse the css in any other way
+  encapsulation: ViewEncapsulation.None,
+  styles: [
+    'text { font-family: Sans-Serif }',
+    'g.tick text { font-size: 10px; }',
+    '.axis-label { font-size: 10px; }',
+    '.title  { font-size: 13px; }',
+    '.subtitle  { font-size: 10px; }',
+    '.legend-label  { font-size: 10px; }',
+    '.separator-label  { font-size: 9px; }'
+  ]
 })
-export class MultilineChartComponent implements AfterViewInit {
+export class MultilineChartComponent extends DiagramComponent implements AfterViewInit {
 
   @Input() data?: MultilineData[];
-  @Input() figureId: String = `figure${uuid()}`;
-  @Input() title: string = '';
-  @Input() subtitle: string = '';
   @Input() labels?: string[];
   @Input() drawLegend: boolean = true;
   @Input() xLabel?: string;
@@ -25,8 +33,6 @@ export class MultilineChartComponent implements AfterViewInit {
   @Input() yTicks?: number;
   @Input() yTopLabel?: string;
   @Input() yBottomLabel?: string;
-  @Input() width?: number;
-  @Input() height?: number;
   @Input() unit?: string;
   @Input() min?: number;
   @Input() max?: number;
@@ -34,12 +40,11 @@ export class MultilineChartComponent implements AfterViewInit {
   @Input() yPadding: number = 0;
   @Input() yOrigin: number = 0;
   @Input() xLegendOffset: number = 70;
-  @Input() yLegendOffset: number = 0;
+  @Input() yLegendOffset: number = 20;
   @Input() animate?: boolean;
   @Input() xSeparator?: { leftLabel?: string, rightLabel?:string, x: string, highlight?: boolean };
   @Input() shiftXLabelDown?: boolean;
 
-  private svg: any;
   @Input() margin: {top: number, bottom: number, left: number, right: number } = {
     top: 50,
     bottom: 50,
@@ -47,35 +52,9 @@ export class MultilineChartComponent implements AfterViewInit {
     right: 130
   };
 
-  localeFormatter = d3.formatLocale({
-    decimal: ',',
-    thousands: '.',
-    grouping: [3],
-    currency: ['€', '']
-  })
-
   ngAfterViewInit(): void {
     this.createSvg();
     if (this.data) this.draw(this.data);
-  }
-
-  private createSvg(): void {
-    let figure = d3.select(`figure#${this.figureId}`);
-    if (!(this.width && this.height)){
-      let node: any = figure.node()
-      let bbox = node.getBoundingClientRect();
-      if (!this.width)
-        this.width = bbox.width;
-      if (!this.height)
-        this.height = bbox.height;
-    }
-    this.svg = figure.append("svg")
-      .attr("viewBox", `0 0 ${this.width!} ${this.height!}`)
-      .append("g");
-  }
-
-  clear(): void {
-    this.svg.selectAll("*").remove();
   }
 
   public draw(data: MultilineData[]): void {
@@ -97,8 +76,8 @@ export class MultilineChartComponent implements AfterViewInit {
 
     let max = this.max || Math.max(d3.max(data, d => { return d3.max(d.values) }) || 0, 0);
     max! += this.yPadding;
-    let min = (this.min === undefined)? d3.min(data, d => { return d3.min(d.values) }): this.min;
-    min! -= this.yPadding;
+    let min = (this.min === undefined)? d3.min(data, d => { return d3.min(d.values) }) || 0: this.min;
+    min -= this.yPadding;
     const y = d3.scaleLinear()
       .domain([min!, max!])
       .range([innerHeight, 0]);
@@ -123,43 +102,43 @@ export class MultilineChartComponent implements AfterViewInit {
 
     if (this.yLabel)
       this.svg.append('text')
+        .attr('class', 'axis-label')
         .attr("y", 10)
         .attr("x", -(this.margin.top + 50))
         .attr('dy', '0.5em')
         .style('text-anchor', 'end')
         .attr('transform', 'rotate(-90)')
-        .attr('font-size', '0.8em')
         .text(this.yLabel);
 
     if (this.yTopLabel)
       this.svg.append('text')
+        .attr('class', 'axis-label')
         .attr("x", 0)
         .attr("y", this.margin.top - 5)
         .style('text-anchor', 'start')
-        .attr('font-size', '0.8em')
         .text(this.yTopLabel);
 
     if (this.yBottomLabel)
       this.svg.append('text')
+        .attr('class', 'axis-label')
         .attr("x", 0)
         .attr("y", y(min!) + this.margin.top + 15)
         .style('text-anchor', 'start')
-        .attr('font-size', '0.8em')
         .text(this.yBottomLabel);
 
     if (this.xLabel)
       this.svg.append('text')
-        .attr("y", this.shiftXLabelDown? this.margin.top + y(min!): this.margin.top + y(this.yOrigin) + 20)
+        .attr('class', 'axis-label')
+        .attr("y", this.shiftXLabelDown? this.margin.top + y(min!) + 15: this.margin.top + y(this.yOrigin) + 20)
         .attr("x", this.width! - this.margin.right + 10)
         .attr('dy', '0.5em')
         .style('text-anchor', 'middle')
-        .attr('font-size', '0.8em')
         .text(this.xLabel);
 
     let line = d3.line()
       // .curve(d3.curveCardinal)
       .x((d: any) => x(d.group)!)
-      .y((d: any) => y(d.value));
+      .y((d: any) => y(d.value || 0));
 
     let _this = this;
 
@@ -194,13 +173,12 @@ export class MultilineChartComponent implements AfterViewInit {
       lineG.selectAll('circle')
         .transition()
         .duration(this.animate ? 60 : 0)
-        .attr("transform", (d: null, i: number) => `translate(${x(groups[xIdx])}, ${y(groupData.values[i])})`);
+        .attr("transform", (d: null, i: number) => `translate(${x(groups[xIdx])}, ${y(groupData.values[i] || 0)})`);
       let text = `<b>${groupData.group}</b><br>`;
-      const formatter = _this.localeFormatter.format(',.2f');
       _this.labels?.slice().reverse().forEach((label, i)=>{
         const j = _this.labels!.length - i - 1;
         let color = (_this.colors)? _this.colors[j]: colorScale(j);
-        text += `<b style="color: ${color}">${label}</b>: ${formatter(groupData.values[j])}${(_this.unit)? _this.unit : ''}<br>`;
+        text += `<b style="color: ${color}">${label}</b>: ${(groupData.values[j] || 0).toLocaleString()}${(_this.unit)? _this.unit : ''}<br>`;
       })
       tooltip.html(text);
       tooltip.style('left', event.pageX + 20 + 'px')
@@ -212,7 +190,7 @@ export class MultilineChartComponent implements AfterViewInit {
       let di = data.map(d => {
         return {
           group: d.group,
-          value: d.values[i]
+          value: d.values[i] || 0
         }
       });
       let path = lineG.append("path")
@@ -259,12 +237,12 @@ export class MultilineChartComponent implements AfterViewInit {
         .data(this.labels.slice().reverse())
         .enter()
         .append("text")
-        .attr('font-size', '0.7em')
+        .attr('class', 'legend-label')
         .attr("x", innerWidth + this.xLegendOffset + size * 1.2)
         .attr("y", (d: string, i: number) => 5 + this.yLegendOffset + (i * (size + 1) + (size / 2)))
         .style("fill", (d: string, i: number) => {
           const j = this.labels!.length - i - 1;
-          return (this.colors) ? this.colors[j] : colorScale(j)
+          return (this.colors) ? this.colors[j] : colorScale(j);
         })
         .text((d: string) => d)
         .attr("text-anchor", "left")
@@ -281,7 +259,6 @@ export class MultilineChartComponent implements AfterViewInit {
       .attr('class', 'subtitle')
       .attr('x', this.margin.left)
       .attr('y', 15)
-      .attr('font-size', '0.8em')
       .attr('dy', '1em')
       .text(this.subtitle);
 
@@ -296,20 +273,20 @@ export class MultilineChartComponent implements AfterViewInit {
         .attr('class', 'separator');
       if (this.xSeparator.leftLabel)
         this.svg.append('text')
+          .attr('class', 'separator-label')
           .attr("y", this.height! - 10)
           .attr("x", xSepPos - 5)
           .attr('dy', '0.5em')
           .style('text-anchor', 'end')
-          .attr('font-size', '0.7em')
           .attr('fill', 'grey')
           .text(this.xSeparator.leftLabel);
       if (this.xSeparator.rightLabel)
         this.svg.append('text')
+          .attr('class', 'separator-label')
           .attr("y", this.height! - 10)
           .attr("x", xSepPos + 5)
           .attr('dy', '0.5em')
           .style('text-anchor', 'start')
-          .attr('font-size', '0.7em')
           .attr('fill', 'grey')
           .text(this.xSeparator.rightLabel);
       if (this.xSeparator.highlight) {

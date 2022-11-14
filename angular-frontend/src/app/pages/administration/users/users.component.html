@@ -1,6 +1,6 @@
 <app-header-card [title]="'Personen und Berechtigungen'"
                  cookieId="exp-users-header"
-                 width="1180px">
+                 width="1110px">
   <p>Diese Seite dient der Nutzerverwaltung. In der Eingabebox „Benutzerkonten“ können Sie daviplan-Nutzende anlegen, verwalten und wieder löschen. Wenn Sie ein Benutzerkonto in der Liste anklicken, werden dessen Eigenschaften und Berechtigungen in drei weiteren Eingabeboxen sichtbar und können hier editiert werden. Für das Administratorkonto werden keine Berechtigungen angezeigt, da es über alle Berechtigungen verfügt.</p>
   <p>Legen Sie für jedes Nicht-Admin-Nutzerkonto zunächst in der Eingabebox „Sichtbarkeit der Infrastrukturbereiche“ fest, welche Infrastrukturbereiche die betreffende Person sehen können soll. Sie können dabei auch auswählen, ob dieser Person dabei auch als sensibel gekennzeichnete Daten anzeigt werden sollen.</p>
   <p>Eine Sichtberechtigung für einen Infrastrukturbereich bedeutet, dass die Nutzenden Daten- und Modellergebnisse sehen und im Rahmen von Szenarien verändern können.</p>
@@ -45,7 +45,7 @@
     </app-input-card>
   </div>
   <div fxLayout="row wrap">
-    <div fxLayout="column" fxFlex="400px" [ngClass]="{'hidden': !selectedUser}">
+    <div fxLayout="column" fxFlex="380px" [ngClass]="{'hidden': !selectedUser}">
       <app-input-card #accountCard
                      [title]="'Ausgewähltes Konto'"
                      infoText="Über die Schaltfläche „Editieren“ können Sie Namen, E-Mail-Adresse und Passwort verändern."
@@ -98,7 +98,7 @@
         </div>
       </app-input-card>
     </div>
-    <div fxLayout="column" fxFlex="400px" [ngClass]="{'hidden': !selectedUser || selectedUser.isSuperuser}">
+    <div fxLayout="column" fxFlex="350px" [ngClass]="{'hidden': !selectedUser || selectedUser.isSuperuser}">
       <app-input-card #accessCard
                       [title]="'Sichtberechtigung des ausgewählten Kontos'"
                       infoText="<p>Die Auswahlliste umfasst alle Infrastrukturbereiche, die im vorstehenden Menüpunkt „Infrastrukturbereiche“ definiert wurden.</p>

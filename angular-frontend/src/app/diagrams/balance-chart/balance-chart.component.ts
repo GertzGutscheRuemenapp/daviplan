@@ -1,6 +1,7 @@
-import { AfterViewInit, Component, Input } from '@angular/core';
+import { AfterViewInit, Component, Input, ViewEncapsulation } from '@angular/core';
 import * as d3 from "d3";
 import { StackedData } from "../stacked-barchart/stacked-barchart.component";
+import { DiagramComponent } from "../diagram/diagram.component";
 
 export interface BalanceChartData {
   group: string,
@@ -9,15 +10,24 @@ export interface BalanceChartData {
 
 @Component({
   selector: 'app-balance-chart',
-  templateUrl: './balance-chart.component.html',
-  styleUrls: ['./balance-chart.component.scss']
+  templateUrl: '../diagram/diagram.component.html',
+  styleUrls: ['../diagram/diagram.component.scss'],
+  // saveSvgAsPng does not seem to be able to parse the css in any other way
+  encapsulation: ViewEncapsulation.None,
+  styles: [
+    'text { font-family: Sans-Serif }',
+    'g.tick text { font-size: 10px; }',
+    '.axis-label { font-size: 10px; }',
+    '.title  { font-size: 13px; }',
+    '.subtitle  { font-size: 10px; }',
+    '.legend-label  { font-size: 10px; }',
+    '.separator-label  { font-size: 9px; }',
+    'text.shadow {stroke: white; stroke-width: 4px; opacity: 0.8;}'
+  ]
 })
-export class BalanceChartComponent implements AfterViewInit {
+export class BalanceChartComponent extends DiagramComponent implements AfterViewInit {
 
   @Input() data?: BalanceChartData[];
-  @Input() figureId: String = 'balance-chart';
-  @Input() title: string = '';
-  @Input() subtitle: string = '';
   @Input() labels?: string[];
   @Input() drawLegend: boolean = true;
   @Input() xLabel?: string;
@@ -26,8 +36,6 @@ export class BalanceChartComponent implements AfterViewInit {
   @Input() lineColor: string = 'blue';
   @Input() yTopLabel?: string;
   @Input() yBottomLabel?: string;
-  @Input() width?: number;
-  @Input() height?: number;
   @Input() unit?: string;
   @Input() min?: number;
   @Input() max?: number;
@@ -36,7 +44,6 @@ export class BalanceChartComponent implements AfterViewInit {
   @Input() yOrigin: number = 0;
   @Input() animate?: boolean;
 
-  private svg: any;
   public margin: {top: number, bottom: number, left: number, right: number } = {
     top: 50,
     bottom: 50,
@@ -47,25 +54,6 @@ export class BalanceChartComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.createSvg();
     if (this.data) this.draw(this.data);
-  }
-
-  private createSvg(): void {
-    let figure = d3.select(`figure#${ this.figureId }`);
-    if (!(this.width && this.height)){
-      let node: any = figure.node()
-      let bbox = node.getBoundingClientRect();
-      if (!this.width)
-        this.width = bbox.width;
-      if (!this.height)
-        this.height = bbox.height;
-    }
-    this.svg = figure.append("svg")
-      .attr("viewBox", `0 0 ${this.width!} ${this.height!}`)
-      .append("g");
-  }
-
-  public clear(): void {
-    this.svg.selectAll("*").remove();
   }
 
   public draw(data: BalanceChartData[]): void {
@@ -198,37 +186,37 @@ export class BalanceChartComponent implements AfterViewInit {
 
     if (this.yLabel)
       this.svg.append('text')
+        .attr('class', 'axis-label')
         .attr("y", 10)
         .attr("x", -(this.margin.top + 50))
         .attr('dy', '0.5em')
         .style('text-anchor', 'end')
         .attr('transform', 'rotate(-90)')
-        .attr('font-size', '0.8em')
         .text(this.yLabel);
 
     if (this.yTopLabel)
       this.svg.append('text')
+        .attr('class', 'axis-label')
         .attr("x", 0)
         .attr("y", this.margin.top - 5)
         .style('text-anchor', 'start')
-        .attr('font-size', '0.8em')
         .text(this.yTopLabel);
 
     if (this.yBottomLabel)
       this.svg.append('text')
+        .attr('class', 'axis-label')
         .attr("x", 0)
         .attr("y", y(min!) + this.margin.top + 15)
         .style('text-anchor', 'start')
-        .attr('font-size', '0.8em')
         .text(this.yBottomLabel);
 
     if (this.xLabel)
       this.svg.append('text')
+        .attr('class', 'axis-label')
         .attr("y", this.margin.top + y(this.yOrigin) + 20)
         .attr("x", this.width! - this.margin.right + 10)
         .attr('dy', '0.5em')
         .style('text-anchor', 'end')
-        .attr('font-size', '0.8em')
         .text(this.xLabel);
 
     let sums = data.map(d => {
@@ -288,7 +276,7 @@ export class BalanceChartComponent implements AfterViewInit {
         .data(this.labels.reverse())
         .enter()
         .append("text")
-        .attr('font-size', '0.7em')
+        .attr('class', 'legend-label')
         .attr("x", innerWidth + size * 1.2)
         .attr("y", (d: string, i: number) => 20 + (i * (size + 5) + (size / 2)))
         .style("fill", (d: string, i: number) => {
@@ -310,7 +298,6 @@ export class BalanceChartComponent implements AfterViewInit {
       .attr('class', 'subtitle')
       .attr('x', this.margin.left)
       .attr('y', 15)
-      .attr('font-size', '0.8em')
       .attr('dy', '1em')
       .text(this.subtitle);
 

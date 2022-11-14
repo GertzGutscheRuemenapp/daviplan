@@ -1,5 +1,6 @@
-import { AfterViewInit, Component, Input } from '@angular/core';
+import { AfterViewInit, Component, Input, ViewEncapsulation } from '@angular/core';
 import * as d3 from 'd3';
+import { DiagramComponent } from "../diagram/diagram.component";
 
 export interface BarChartData {
   label: string,
@@ -9,26 +10,26 @@ export interface BarChartData {
 
 @Component({
   selector: 'app-horizontal-barchart',
-  templateUrl: './horizontal-barchart.component.html',
-  styleUrls: ['./horizontal-barchart.component.scss']
+  templateUrl: '../diagram/diagram.component.html',
+  styleUrls: ['../diagram/diagram.component.scss'],
+  // saveSvgAsPng does not seem to be able to parse the css in any other way
+  encapsulation: ViewEncapsulation.None,
+  styles: [
+    'text { font-family: Sans-Serif }',
+    '.x.axis path.domain, .y.axis path.domain {display: none; visibility: hidden;}',
+    '.x.axis line {stroke: #777; stroke-dasharray: 2,2; }',
+    '.title  { font-size: 13px; }',
+    '.subtitle  { font-size: 10px; }',
+    'text.label {font-size: 10px; text-shadow: -1px -1px white, -1px 1px white, 1px 1px white, 1px -1px white, -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;}'
+  ]
 })
-export class HorizontalBarchartComponent implements AfterViewInit {
+export class HorizontalBarchartComponent extends DiagramComponent implements AfterViewInit {
   @Input() data?: BarChartData[];
-  @Input() title: string = '';
   @Input() subtitle: string = '';
   @Input() xLabel?: string;
   @Input() yLabel?: string;
-  @Input() width?: number;
-  @Input() height?: number;
   @Input() animate?: boolean;
   @Input() unit: string = '';
-  @Input() figureId: String = 'horizontal-barchart';
-  localeFormatter = d3.formatLocale({
-    decimal: ',',
-    thousands: '.',
-    grouping: [3],
-    currency: ['€', '']
-  })
   svg: any;
   @Input()  margin: {top: number, bottom: number, left: number, right: number } = {
     top: 50,
@@ -37,36 +38,16 @@ export class HorizontalBarchartComponent implements AfterViewInit {
     right: 40
   };
 
-
-  constructor() { }
-
   ngAfterViewInit(): void {
     this.createSvg();
     if (this.data) this.draw(this.data);
-  }
-
-  private createSvg(): void {
-    let figure = d3.select(`figure#${ this.figureId }`);
-    if (!(this.width && this.height)){
-      let node: any = figure.node()
-      let bbox = node.getBoundingClientRect();
-      if (!this.width)
-        this.width = bbox.width;
-      if (!this.height)
-        this.height = bbox.height;
-    }
-    this.svg = figure.append('svg')
-      .attr('viewBox', `0 0 ${this.width!} ${this.height!}`)
-  }
-
-  clear(): void {
-    this.svg.selectAll('*').remove();
   }
 
   draw(data: BarChartData[]): void {
     this.clear();
     if (data.length == 0) return;
     const _this = this;
+    this.data = data;
 
     const barHeight = 20,
       barPadding = 5,
@@ -95,8 +76,7 @@ export class HorizontalBarchartComponent implements AfterViewInit {
       let bar = d3.select(this);
       bar.select('rect').classed('highlight', true);
       const data = this.__data__;
-      const formatter = _this.localeFormatter.format(',.2f');
-      let text = `<b>${data.label}</b><br>${formatter(data.value)} ${_this.unit}`;
+      let text = `<b>${data.label}</b><br>${data.value.toLocaleString()} ${_this.unit}`;
       tooltip.style('display', null);
       tooltip.html(text);
     };
@@ -159,13 +139,13 @@ export class HorizontalBarchartComponent implements AfterViewInit {
       .attr('class', 'subtitle')
       .attr('x', this.margin.left)
       .attr('y', 15)
-      .attr('font-size', '0.8em')
       .attr('dy', '1em')
       .text(this.subtitle);
-
   }
 
-  ngOnInit(): void {
+  getCSVRows(): (string | number)[][] {
+    let rows = [['Name', `${this.title} ${this.unit? '(' + this.unit + ')': ''}`]];
+    rows = rows.concat(this.data?.map(d => [d.label, d.value.toLocaleString()]) || []);
+    return rows;
   }
-
 }

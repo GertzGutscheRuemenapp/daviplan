@@ -19,6 +19,7 @@ from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.worksheet.dimensions import ColumnDimension, RowDimension
 from openpyxl.worksheet.datavalidation import DataValidation
 
+from datentool_backend.site.models import SiteSetting
 from datentool_backend.area.models import FClass, FieldType, FieldTypes
 from datentool_backend.infrastructure.models.places import (PlaceAttribute,
                                                             Place,
@@ -26,6 +27,8 @@ from datentool_backend.infrastructure.models.places import (PlaceAttribute,
                                                             Capacity)
 from datentool_backend.infrastructure.models.infrastructures import (
     Infrastructure)
+from datentool_backend.utils.crypto import decrypt
+from datentool_backend.utils.bkg_geocoder import BKGGeocoder
 from datentool_backend.utils.processes import ProcessScope
 
 infrastructure_id_serializer = serializers.PrimaryKeyRelatedField(
@@ -313,6 +316,10 @@ class PlacesTemplateSerializer(serializers.Serializer):
                            skiprows=[1, 2]).set_index('Unnamed: 0')
         df_places.index.name = 'place_id'
 
+        site_settings = SiteSetting.load()
+        UUID = site_settings.bkg_password or None
+        geocoder = BKGGeocoder(
+            decrypt(UUID), crs='EPSG:3857') if UUID else None
         n_new = 0
 
         # iterate over all places
@@ -334,12 +341,21 @@ class PlacesTemplateSerializer(serializers.Serializer):
             lon = place_row['Lon']
             lat = place_row['Lat']
             if pd.isna(lon) or pd.isna(lat):
-                self.logger.info('Geokodiere Adressen')
-                lon, lat = self.geocode(place_row)
-
-            # create the geometry and transform to WebMercator
-            geom = Point(lon, lat, srid=4326)
-            geom.transform(3857)
+                if geocoder:
+                    # ToDo: raise error if no UUID is given
+                    # ToDo: handle auth errors ...
+                    self.logger.info('Geokodiere Adressen')
+                    res = self.geocode(geocoder, place_row)
+                    if res:
+                        lon, lat = res
+                        geom = Point(lon, lat, srid=3857)
+                    else:
+                        # ToDo: ????
+                        pass
+            else:
+                # create the geometry and transform to WebMercator
+                geom = Point(lon, lat, srid=4326)
+                geom.transform(3857)
 
             # set the place columns
             place.infrastructure = infra
@@ -428,7 +444,17 @@ class PlacesTemplateSerializer(serializers.Serializer):
         df = pd.DataFrame()
         return df
 
-    def geocode(self, place_row: dict) -> Tuple[float, float]:
-        """do the geocoding, if no coordinates are provided"""
-        raise NotImplementedError('Geocoding is not implemented yet. '
-                                  'Please provide Lon/Lat-coordinates')
+    def geocode(self, geocoder: BKGGeocoder, place_row: dict) -> Tuple[float, float]:
+        kwargs = {
+            'ort': place_row.Ort,
+            'plz': place_row.PLZ,
+            'strasse': place_row.Straße,
+            'haus': place_row.Hausnummer,
+        }
+        res = geocoder.query(max_retries=2, **kwargs)
+        if res.status_code != 200:
+            return
+        features = res.json()['features']
+        if not features:
+            return
+        return features[0]['geometry']['coordinates']

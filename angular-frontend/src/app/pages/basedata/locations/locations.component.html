@@ -43,6 +43,9 @@
                     <p>Diesen vordefinierten (und nicht veränderbaren) Datenspalten können Sie optional weitere Standorteigenschaften hinzufügen. Dies kann z.B. der bauliche Zustand, die Anzahl der Räume, das Budget o.ä. sein. Daviplan kann diese optionalen Standorteigenschaften nicht in Berechnungen und Bewertungen verwenden. Die Zusatzinformationen können aber zur Unterstützung der Szenarienerarbeitung angezeigt sowie zum Filtern von Standorten verwendet werden.</p>
                     <p>Um der Standortliste zusätzliche Standorteigenschaften hinzuzufügen klicken Sie auf die Schaltfläche „Editieren“ und folgen den Erläuterungen im Hilfetext des dann erscheinenden Eingabedialogs. Bei der Eingabe geht es nur um die Bezeichnung der zusätzlichen Standorteigenschaften, d.h. die zusätzlichen Spaltenüberschriften der Standortliste in Schritt 2. Die konkreten Werte der einzelnen Standorte erfassen Sie erst bei deren Befüllung in Schritt 2.</p>
                     <p>Neben Name, Adresse und Kapazitäten für die Leistungen sollen für jeden Standort folgende Eigenschaften erfasst werden. Diese gehen nicht in Berechnungen ein, können aber u.a. zum Filtern der Standorten verwendet werden.</p>">
+      <ng-container *ngIf="!editFields.length">
+        keine weiteren Standorteigenschaften
+      </ng-container>
       <table>
         <tr *ngFor="let field of placeFields">
           <td>{{field.name}}</td>
@@ -52,6 +55,7 @@
     </app-input-card>
     <app-input-card [title]="'Schritt 2: Standortdaten und Kapazitäten hochladen'"
                     [class.hidden]="!selectedInfrastructure"
+                    [subtitle]="selectedInfrastructure?.name || ''"
                     width="400px"
                     infoText="<p>Nachdem Sie in der Box „Schritt 1: Weitere Standorteigenschaften“ der Datenstruktur zur Beschreibung der Standorte des gewählten Infrastrukturbereichs optional weitere Eigenschaftsfelder hinzugefügt haben, können Sie sich nun hier über die Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excel-Format herunterladen. Sofern Sie bereits Daten hochgeladen haben, enthält die Vorlage alle bereits vorliegenden Daten.</p>
                     <p>In der Vorlage entspricht jede Zeile einem Infrastrukturstandort, z.B. einer Schule.</p>
@@ -59,9 +63,6 @@
                     <p>Bei Leistungen ohne Berücksichtigung einer Kapazität tragen Sie bitte eine 1 bei allen Standorten ein, die diese Leistung anbieten (und eine 0 bei allen anderen).</p>
                     <p>Laden Sie die ausgefüllte Vorlagedatei anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Daviplan wird die Standorte anhand der Adresse georeferenzieren und in der Karte anzeigen. Kontrollieren Sie die Lage der Standorte in der Karte und korrigieren Sie bei Bedarf die Adresse oder die Geokoordinate, indem Sie die Vorlage erneut herunterladen, korrigieren und wieder hochladen. </p>
                     <p>Das gleiche Prinzip gilt auch für alle anderen Korrekturen und Aktualisierungen: Vorlagen (mit dem aktuellen Datenbestand herunterladen), in Excel bearbeiten, anschließend wieder hochladen.</p>">
-    <span class="subtitle1 sub" style="width: 100%;">
-      Infrastrukturbereich: <p style="font-size: 1.5em;">"{{selectedInfrastructure?.name || '-'}}"</p>
-    </span>
       <div style="width: 100%; display: flex;">
         <button mat-stroked-button color="primary"
                 style="margin-right: 10px;"
@@ -75,6 +76,7 @@
     </app-input-card>
   </div>
   <app-input-card [title]="'Daten-Historie Infrastruktur'"
+                  infoText="<p>Die Liste zeigt Ihnen eine Chronik aller Datenimporte (Hochladen befüllter Vorlagen) und Berechnungen im Bereich „Standorte“.</p>"
                   width="430px">
     <app-log room="infrastructure" (onMessage)="onMessage($event)" height="350px"></app-log>
   </app-input-card>
@@ -161,7 +163,7 @@
   </div>
   <p>Neben Name, Adresse und Kapazitäten für die Leistungen sollen für jeden Standort folgende Eigenschaften erfasst werden. Dabei können optional Klassifikationen verwendet werden (siehe Hilfetext).</p>
   <table id="place-attr-table">
-    <tr>
+    <tr *ngIf="editFields.length">
       <th>Bezeichnung Standorteigenschaft</th>
       <th>Attributtyp / Klassifikation</th>
       <th>Einheit</th>
