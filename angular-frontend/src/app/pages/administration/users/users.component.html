@@ -4,8 +4,8 @@
   <p>Diese Seite dient der Nutzerverwaltung. In der Eingabebox „Benutzerkonten“ können Sie daviplan-Nutzende anlegen, verwalten und wieder löschen. Wenn Sie ein Benutzerkonto in der Liste anklicken, werden dessen Eigenschaften und Berechtigungen in drei weiteren Eingabeboxen sichtbar und können hier editiert werden. Für das Administratorkonto werden keine Berechtigungen angezeigt, da es über alle Berechtigungen verfügt.</p>
   <p>Legen Sie für jedes Nicht-Admin-Nutzerkonto zunächst in der Eingabebox „Sichtbarkeit der Infrastrukturbereiche“ fest, welche Infrastrukturbereiche die betreffende Person sehen können soll. Sie können dabei auch auswählen, ob dieser Person dabei auch als sensibel gekennzeichnete Daten anzeigt werden sollen.</p>
   <p>Eine Sichtberechtigung für einen Infrastrukturbereich bedeutet, dass die Nutzenden Daten- und Modellergebnisse sehen und im Rahmen von Szenarien verändern können.</p>
-  <p>Möchten Sie einen Nutzerkonto weitere Berechtigungen geben, wählen Sie diese bitte in der Eingabebox „Weitergehende Berechtigungen“ aus.</p>
-  <p>Stellen Sie sich, dass für jeden Infrastrukturbereich mindestens eine Person die Grundlagendaten editieren und Planungsprozesse anlegen kann. Das Admin-Konto hat immer auch diese Berechtigungen. </p>
+  <p>Möchten Sie einem Nutzerkonto weitere Berechtigungen geben, wählen Sie diese bitte in der Eingabebox „Weitergehende Berechtigungen“ aus.</p>
+  <p>Stellen Sie sicher, dass für jeden Infrastrukturbereich mindestens eine Person die Grundlagendaten editieren und Planungsprozesse anlegen kann. Das Admin-Konto hat immer auch diese Berechtigungen. </p>
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="400px">
@@ -78,9 +78,9 @@
                       infoText="<p>Über die Schaltfläche „Editieren“ können Sie die Berechtigungen des ausgewählten Kontos einstellen.</p>
                       <p>Die Optionen „Kann Grundlagendaten editieren“ und „Kann Planungsprozesse anlegen“ gelten für alle Infrastrukturbereiche, für die Sie in der Box „Zugang zu Infrastrukturbereichen“ einen Zugriff gewähren.</p>
                       <p>Für Nutzer*innen mit der aktivierten Option „Kann Seite administrieren“ ist der Hauptmenübereich „Administration“ sicht- und editierbar. </p>
-                      <p>Nutzer*innen mit der aktivierten Option „Kann Grundlagendaten editieren“ können im nachfolgenden Menüpunkt „Koordination der Grundlagendaten“ ausgewählt werden, um konkrete Bereiche der Grundlagendaten einzupflegen. Für diese Nutzer*innen sind dann die entsprechenden Abschnitte des Hauptmenübereichs „Grundlagendaten“ sicht- und editierbar.</p>
+                      <p>Für Nutzer*innen mit der aktivierten Option „Kann Grundlagendaten editieren“ sind die entsprechenden Abschnitte des Hauptmenübereichs „Grundlagendaten“ sicht- und editierbar.</p>
                       <p>Der Hauptmenübereich „Bevölkerung“ ist für alle Nutzer*innen sichtbar.</p>
-                      <p>Der Hauptmenübereich „Infrastrukturplanung“ ist alle Nutzer*innen sichtbar, für die ein Zugriff auf den entsprechenden Infrastrukturbereich in der Box „Datenzugriff des ausgewählten Kontos“ gewährt wurde.</p>
+                      <p>Der Hauptmenübereich „Infrastrukturplanung“ ist für alle Nutzer*innen sichtbar, für die ein Zugriff auf den entsprechenden Infrastrukturbereich in der Box „Sichtberechtigung des ausgewählten Kontos“ gewährt wurde.</p>
                       <p>Nutzer*innen mit der aktivierten Option „Kann Planungsprozess anlegen“ können im Hauptmenübereich „Infrastrukturplanung“ eigene Planungsprozesse anlegen und bearbeiten.</p>
                       <p>Nutzer*innen ohne die aktivierte Option „Kann Planungsprozess anlegen“ können im Hauptmenübereich „Infrastrukturplanung“ vorhandene Planungsprozesse nur betrachten, wenn Sie zu diesen eingeladen werden. Im Zuge dieser Einladung kann ihnen optional die Berechtigung zugewiesen werden, innerhalb des betreffenden Planungsprozesses Szenarien anzulegen und zu editieren. </p>"
                       [ngClass]="{'hidden': selectedUser?.isSuperuser}"
