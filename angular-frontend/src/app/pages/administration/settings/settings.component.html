@@ -48,7 +48,7 @@
                     dialogWidth="600px"
                     infoText="Für die Geokodierung von Standortdaten wird die Geocoding-Schnittstelle des BKG verwendet.
                     Um diesen nutzen zu können, wird ein eindeutiger Nutzeridentifikator (UUID) benötigt,
-                    der vom BKG bezogen werden kann"
+                    der vom BKG bezogen werden kann."
                     [editTemplate]="BKGTemplate"
                     [editButton]="BKGEditButton">
       <div #BKGEditButton
@@ -86,7 +86,7 @@
             </button>-->
     </app-input-card>
     <app-input-card #logoEdit
-                    [title]="'Logo für die Startseite (optional)'"
+                    [title]="'Eigenes Logo (optional)'"
                     subtitle="Logo ändern"
                     [dialogTitle]="'Bilddatei als Logo festlegen'"
                     infoText="<p>Die Individualisierung des Logos ist optional. Falls ein Logo gesetzt wird, wird es auf der Loginseite angezeigt und
@@ -112,8 +112,9 @@
                     subtitle="Zugangsdaten ändern"
                     [dialogTitle]="'Zugangsdaten für die Regionalstatistik'"
                     dialogWidth="600px"
-                    infoText="<p><a href='https://www.regionalstatistik.de/genesis/online?Menu=Registrierung' target='_blank'>Regionalstatistik Registrierung</a></p>
-                    <p>Bitte nach der Bestätigungsmail einmalig auf der Regionalstatistik-Webseite anmelden, um das Passwort zu ändern. Dieses dann hier eintragen."
+                    infoText="<p> Sofern Sie noch keine Zugangsdaten zur Regionalstatistik haben, können Sie diese über den folgenden Link erhalten (Detailerläuterung im Handbuch): </p>
+                    <a href='https://www.regionalstatistik.de/genesis/online?Menu=Registrierung' target='_blank'>Regionalstatistik Registrierung</a></p>
+                    <p>Bitte nach dem Erhalt der Bestätigungsmail einmalig auf der Regionalstatistik-Webseite anmelden, um das Passwort zu ändern. Anschließend bitte den Nutzernamen und das geänderte Passowort hier eintragen."
                     [editTemplate]="regstatTemplate"
                     [editButton]="regstatEditButton">
       <div #regstatEditButton class="row-button" style="width: 90%">

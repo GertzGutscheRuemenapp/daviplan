@@ -307,4 +307,16 @@ export class DemandQuotasComponent implements AfterViewInit {
       set.isDefault = ds.isDefault;
     })
   }
+
+  getTitle(demandType: number | undefined): string {
+    // [title] = "(activeService?.demandType === 1)? 'Nachfragequoten der ausgewählten Variante': (activeService?.demandType === 2)? 'Nutzungshäufigkeiten der ausgewählten Variante': 'jbkbjdsf'"
+    switch(demandType) {
+      case 1:
+        return 'Nachfragequoten der ausgewählten Variante';
+      case 2:
+        return 'Nutzungshäufigkeiten der ausgewählten Variante';
+      default:
+    }
+    return '';
+  }
 }
