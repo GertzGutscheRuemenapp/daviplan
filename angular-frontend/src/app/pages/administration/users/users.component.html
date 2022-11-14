@@ -235,6 +235,7 @@
     <mat-error *ngIf="accessForm.errors && accessForm.errors['error']" class="alert">
       {{accessForm.errors['error']}}
     </mat-error>
+<!-- help text without defined infrastructures    <div *ngIf="infrastructures===[]"> Es wurden noch keine Infrastrukturbereiche definiert. Diese müssten Sie zunächst links in dem Abschnitt Infrastrukturbereiche definieren. </div>-->
     <div *ngFor="let infrastructure of infrastructures"
          [formGroupName]="infrastructure.id" style="display: flex;">
       <ng-container *ngIf="accessForm.value[infrastructure.id]">
