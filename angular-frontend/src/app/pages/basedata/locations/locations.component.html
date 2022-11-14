@@ -10,6 +10,9 @@
   <p>Die eingelesenen Standorte werden anschließend in der Karte angezeigt. Eine Listendarstellung erreichen Sie über die Schaltfläche „Standortliste anzeigen“ in der Box „Schritt 2“.</p>
   <p>Wenn Sie Änderungen, Ergänzungen oder Aktualisierungen vornehmen möchten, laden Sie die Vorlage der Standortliste erneut herunter. Diese enthält stets aller bereits vorliegenden Daten. Ändern Sie diese anschließend in Excel und laden Sie sie wieder hoch.</p>
 </app-header-card>
+<app-status-card *ngIf="isProcessing">
+  Es läuft gerade eine Berechnung im Bereich „Standorte“
+</app-status-card>
 <div fxLayout="row wrap">
   <app-input-card [title]="'Infrastrukturbereiche'"
                   width="300px"

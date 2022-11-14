@@ -15,6 +15,9 @@
 <div *ngIf="popLevelMissing">
   <h1 style="color: red; margin: 30px;">Fehler: Es ist keine Gebietseinheit für die Bevölkerungsdaten festgelegt!</h1>
 </div>
+<app-status-card *ngIf="isProcessing">
+  Es läuft gerade eine Berechnung im Bereich „Bevölkerung“
+</app-status-card>
 <div fxLayout="row wrap">
   <div fxFlex="350px">
     <app-input-card #yearCard
