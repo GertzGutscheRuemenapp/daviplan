@@ -100,8 +100,14 @@ class BaseDataSettingSerializer(serializers.Serializer):
         return ret
 
     def get_default_mode_variants(self, obj) -> Dict[int, int]:
-        sets = ModeVariant.objects.filter(is_default=True).order_by('mode')
-        ret = [{'mode': s.mode, 'variant': s.id} for s in sets]
+        sets_prt = ModeVariant.objects\
+            .exclude(mode=Mode.TRANSIT)\
+            .filter(network__is_default=True)\
+            .order_by('mode')
+        sets_put = ModeVariant.objects.filter(mode=Mode.TRANSIT,
+                                              is_default=True).order_by('mode')
+        ret = [{'mode': s.mode, 'variant': s.id} for s in sets_prt]\
+            + [{'mode': s.mode, 'variant': s.id} for s in sets_put]
         return ret
 
     def get_default_prognosis(self, obj) -> int:

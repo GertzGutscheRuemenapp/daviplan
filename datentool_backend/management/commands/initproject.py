@@ -127,15 +127,4 @@ class Command(BaseCommand):
                                         filename='Zensus2011Einwohner100_LAEA3035.tif',
                                         default=True)
 
-        # add mode variants
-        ModeVariant.truncate()
-        ModeVariant.objects.create(id=1, mode=Mode.WALK,
-                                   label=Mode.WALK.label, is_default=True)
-        ModeVariant.objects.create(id=2, mode=Mode.BIKE,
-                                   label=Mode.BIKE.label, is_default=True)
-        ModeVariant.objects.create(id=3, mode=Mode.CAR,
-                                   label=Mode.CAR.label, is_default=True)
-        ModeVariant.objects.create(id=4, mode=Mode.TRANSIT,
-                                   label=Mode.TRANSIT.label, is_default=True)
-
         self.stdout.write(self.style.SUCCESS('Successfully initialized project'))
