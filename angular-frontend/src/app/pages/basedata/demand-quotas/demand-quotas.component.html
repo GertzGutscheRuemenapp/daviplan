@@ -44,13 +44,13 @@
                     infoText="<p>Klicken Sie auf „Editieren“, um das Prinzip der Nachfrageberechnung zu verändern.</p>
                     <p>Wenn Sie eine Nachfrageberechnung mit Nutzungsquoten oder Nutzungshäufigkeiten ausgewählt haben, erscheint eine Eingabebox „Nachfragequoten bzw. Nutzungshäufigkeiten (Varianten)“, über die Sie diese Nutzungsquoten bzw. Nutzungshäufigkeiten definieren können. </p>">
         <!-- <li *ngIf="activeService">{{demandTypes[activeService.demandType][0]}}</li> -->
-      <p *ngIf="activeService?.demandType ===1">
+      <p *ngIf="activeService?.demandType === 1">
         (1) Die Nachfrage in einem Gebiet wird in jedem Jahr berechnet, indem eine (ggf. nach Alter und Geschlecht differenzierte) <b>Nachfragequote</b> mit der Zahl der Einwohner:innen (nach Alter und Geschlecht) multipliziert wird. Ergebnis ist eine <b>Anzahl an Nachfrager:innen </b>.
       </p>
-      <p *ngIf="activeService?.demandType ===2">
+      <p *ngIf="activeService?.demandType === 2">
         (2) Die Nachfrage in einem Gebiet wird in jedem Jahr berechnet, indem eine (ggf. nach Alter und Geschlecht differenzierte) <b>Nutzungshäufigkeit pro Einwohner:in </b>mit der Zahl der Einwohner:innen (nach Alter und Geschlecht) multipliziert wird. Ergebnis ist eine <b> Anzahl an Nutzungen pro Jahr </b>.
       </p>
-      <p *ngIf="activeService?.demandType ===3">
+      <p *ngIf="activeService?.demandType === 3">
         (3) Die Nachfrage in einem Gebiet entspricht in jedem Jahr der <b> Gesamtzahl der Einwohner:innen </b>.
       </p>
     </app-input-card>
@@ -135,7 +135,7 @@
     </div>
     <div fxLayout="column" fxFlex="900px" [class.hidden]="!activeDemandRateSet">
       <app-input-card #demandRateSetCard
-                      [title]="'Nachfragequoten bzw. Nutzungshäufigkeiten der ausgewählten Variante'"
+                      [title] = "getTitle(activeService?.demandType)"
                       [subtitle]="'Leistung ' + activeService?.name + ' / ' + 'Variante „' + activeDemandRateSet?.name + '“'"
                       [editTemplate]="demandRateSetEdit"
                       dialogWidth="1200px"
