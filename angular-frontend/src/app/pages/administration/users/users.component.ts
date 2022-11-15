@@ -6,7 +6,7 @@ import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dia
 import { InputCardComponent } from '../../../dash/input-card.component'
 import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
 import { RestAPI } from "../../../rest-api";
-import { Observable } from "rxjs";
+import { BehaviorSubject, Observable } from "rxjs";
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { Infrastructure, InfrastructureAccess, User } from "../../../rest-interfaces";
 
@@ -36,6 +36,7 @@ export class UsersComponent implements AfterViewInit  {
   showNewUserPassword: boolean = false;
   // workaround to have access to object iteration in template
   Object = Object;
+  isLoading$ = new BehaviorSubject<boolean>(false);
 
   constructor(private http: HttpClient, private dialog: MatDialog, private formBuilder: FormBuilder,
               private rest: RestAPI) {
@@ -47,24 +48,20 @@ export class UsersComponent implements AfterViewInit  {
   }
 
   ngAfterViewInit() {
+    this.isLoading$.next(true);
     this.http.get<Infrastructure[]>(this.rest.URLS.infrastructures).subscribe(infrastructures => {
       this.infrastructures = infrastructures;
-      this.getUsers();
+      this.http.get<User[]>(this.rest.URLS.users).subscribe((users)=>{
+        // sort users alphabetically, admins always on top
+        this.users = users.slice().sort((a,b) =>
+          (!a.isSuperuser && b.isSuperuser)? 1 : (a.isSuperuser && !b.isSuperuser)? -1 :
+            (a.username > b.username)? 1 : (a.username < b.username)? -1 : 0);
+        this.isLoading$.next(false);
+      })
     })
     this.setupAccountCard();
     this.setupPermissionCard();
     this.setupAccessCard();
-  }
-
-  getUsers(): Observable<User[]> {
-    let query = this.http.get<User[]>(this.rest.URLS.users);
-    query.subscribe((users)=>{
-      // sort users alphabetically, admins always on top
-      this.users = users.slice().sort((a,b) =>
-        (!a.isSuperuser && b.isSuperuser)? 1 : (a.isSuperuser && !b.isSuperuser)? -1 :
-          (a.username > b.username)? 1 : (a.username < b.username)? -1 : 0)
-    })
-    return query;
   }
 
   setupAccountCard(){
