@@ -18,6 +18,7 @@
 <div fxLayout="row wrap">
   <div fxFlex="350px">
     <app-input-card [title]="'Gebietseinteilungen'"
+                    [disabled]="isProcessing"
                     subtitle="Administrative Ebenen aktivieren und/oder benutzerdefinierte Gebietseinteilung hinzufügen"
                     infoText="<p>Die vier oberen Gebietseinteilungen sind die administrativen Grenzen. Wählen Sie eine Gebietseinteilung aus und klicken Sie anschließend in der Box „Daten der Gebietseinteilung“ auf „Daten abrufen bzw. aktualisieren“. Daraufhin werden die Daten vom BKG heruntergeladen, mit Ihrem Projektgebiet verschnitten und in der Karte angezeigt.</p>
                               <p>Nur aktive Gebietseinteilungen können außerhalb dieser Seite ausgewählt werden und in der Karte dargestellt werden. Die Aktivität kann über die Auswahlbox neben dem Namen der jeweiligen Gebietseinteilung umgeschaltet werden.</p>

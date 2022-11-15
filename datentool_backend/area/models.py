@@ -214,7 +214,6 @@ class Area(DatentoolModelMixin, models.Model):
         """The area label retrieved from the attributes"""
         if hasattr(self, '_label'):
             return self._label
-
         try:
             label_attr = self.areaattribute_set.get(field__is_label=True)
         except AreaAttribute.DoesNotExist:
