@@ -21,7 +21,8 @@
 <div fxLayout="row wrap">
   <div fxFlex="350px">
     <app-input-card #yearCard
-                    [title]="'Angezeigte Prognosejahre'"
+                    [title]="'Prognosejahre'"
+                    subtitle="Folgende Jahre sollen in Vorlage und Karten enthalten sein"
                     [editTemplate]="yearsEdit"
                     [disabled]="!popLevel || isProcessing"
                     dialogWidth="500px"

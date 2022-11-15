@@ -3,7 +3,8 @@ from datentool_backend.area.models import (AreaLevel, MapSymbol, Source,
                                            SourceTypes, AreaField, FieldType,
                                            FieldTypes)
 from datentool_backend.population.models import Gender, Raster, PopulationRaster
-from datentool_backend.modes.models import ModeVariant, Mode
+from datentool_backend.demand.models import AgeGroup
+from datentool_backend.demand.constants import RegStatAgeGroups
 
 
 class Command(BaseCommand):
@@ -126,5 +127,10 @@ class Command(BaseCommand):
                                         name='Zensus-2011-Raster',
                                         filename='Zensus2011Einwohner100_LAEA3035.tif',
                                         default=True)
+
+        AgeGroup.objects.all().delete()
+        for age_group in RegStatAgeGroups.agegroups:
+            AgeGroup.objects.create(from_age=age_group.from_age,
+                                    to_age=age_group.to_age)
 
         self.stdout.write(self.style.SUCCESS('Successfully initialized project'))
