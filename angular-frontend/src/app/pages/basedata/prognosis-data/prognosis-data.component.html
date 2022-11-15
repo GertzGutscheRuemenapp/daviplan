@@ -15,6 +15,9 @@
 <div *ngIf="popLevelMissing">
   <h1 style="color: red; margin: 30px;">Fehler: Es ist keine Gebietseinheit für die Bevölkerungsdaten festgelegt!</h1>
 </div>
+<app-status-card *ngIf="isProcessing">
+  Es läuft gerade eine Berechnung im Bereich „Bevölkerung“
+</app-status-card>
 <div fxLayout="row wrap">
   <div fxFlex="350px">
     <app-input-card #yearCard
@@ -80,10 +83,11 @@
       <button mat-button color="primary"
               class="multiline-button"
               style="width: 86%;"
+              title="Als Annahme für Trendfortschreibung (Status Quo) festlegen"
               (click)="activePrognosis && setDefaultPrognosis(activePrognosis)"
               [disabled]="!activePrognosis">
         <mat-icon class="material-icons-outlined">verified</mat-icon>
-        Als Gebietseinteilung für alle Einwohnerdaten festlegen
+        Als Annahme für Trendfortschreibung festlegen
       </button>
     </app-input-card>
   </div>

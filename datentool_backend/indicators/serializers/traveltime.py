@@ -115,8 +115,5 @@ class MatrixStopStopTemplateSerializer(serializers.Serializer):
             .merge(df_stops['id'].rename('to_stop_id'),
                       left_on='to_stop', right_index=True)
 
-        variant = request.data.get('variant')
-        df['variant_id'] = int(variant)
-
-        df = df[['variant_id', 'from_stop_id', 'to_stop_id', 'minutes']]
+        df = df[['from_stop_id', 'to_stop_id', 'minutes']]
         return df

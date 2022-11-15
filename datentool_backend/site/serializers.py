@@ -1,20 +1,18 @@
-from typing import Dict
+from typing import Dict, List
 import os
 from rest_framework import serializers
 from .models import SiteSetting, ProjectSetting
-from django.db.models import Max, Min, Count
+from django.db.models import Max, Min, Count, F
 from django.conf import settings
 import logging
 
-from datentool_backend.utils.routers import OSRMRouter
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
 from datentool_backend.utils.crypto import encrypt
 from datentool_backend.utils.pop_aggregation import intersect_areas_with_raster
 from datentool_backend.area.views import AreaLevelViewSet
 from datentool_backend.modes.models import Mode
-from datentool_backend.population.views.raster import PopulationRasterViewSet
 from datentool_backend.models import (DemandRateSet, Prognosis, ModeVariant,
-                                      Year, AreaLevel, PopulationRaster, Area)
+                                      Year, AreaLevel, Area)
 from datentool_backend.utils.processes import (ProtectedProcessManager,
                                                ProcessScope)
 
@@ -102,8 +100,14 @@ class BaseDataSettingSerializer(serializers.Serializer):
         return ret
 
     def get_default_mode_variants(self, obj) -> Dict[int, int]:
-        sets = ModeVariant.objects.filter(network__is_default=True).order_by('mode')
-        ret = [{'mode': s.mode, 'variant': s.id} for s in sets]
+        sets_prt = ModeVariant.objects\
+            .exclude(mode=Mode.TRANSIT)\
+            .filter(network__is_default=True)\
+            .order_by('mode')
+        sets_put = ModeVariant.objects.filter(mode=Mode.TRANSIT,
+                                              is_default=True).order_by('mode')
+        ret = [{'mode': s.mode, 'variant': s.id} for s in sets_prt]\
+            + [{'mode': s.mode, 'variant': s.id} for s in sets_put]
         return ret
 
     def get_default_prognosis(self, obj) -> int:
@@ -180,14 +184,11 @@ class SiteSettingSerializer(serializers.ModelSerializer):
 class MatrixStatisticsSerializer(serializers.Serializer):
     n_places = serializers.SerializerMethodField(read_only=True)
     n_cells = serializers.SerializerMethodField(read_only=True)
-    n_rels_place_cell_walk = serializers.SerializerMethodField(read_only=True)
-    n_rels_place_cell_bike = serializers.SerializerMethodField(read_only=True)
-    n_rels_place_cell_car = serializers.SerializerMethodField(read_only=True)
-    n_rels_place_cell_transit = serializers.SerializerMethodField(read_only=True)
+    n_rels_place_cell_modevariant = serializers.SerializerMethodField(read_only=True)
     n_stops = serializers.SerializerMethodField(read_only=True)
-    n_rels_place_stop_transit = serializers.SerializerMethodField(read_only=True)
-    n_rels_stop_cell_transit = serializers.SerializerMethodField(read_only=True)
-    n_rels_stop_stop_transit = serializers.SerializerMethodField(read_only=True)
+    n_rels_place_stop_modevariant = serializers.SerializerMethodField(read_only=True)
+    n_rels_stop_cell_modevariant = serializers.SerializerMethodField(read_only=True)
+    n_rels_stop_stop_modevariant = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         fields = ('n_places',
@@ -208,30 +209,33 @@ class MatrixStatisticsSerializer(serializers.Serializer):
     def get_n_cells(self, obj) -> int:
             return MatrixCellPlace.objects.distinct('cell_id').count()
 
-    def get_n_rels_place_cell_walk(self, obj) -> int:
-            return MatrixCellPlace.objects.filter(variant__mode=Mode.WALK)\
-                .count()
-
-    def get_n_rels_place_cell_bike(self, obj) -> int:
-            return MatrixCellPlace.objects.filter(variant__mode=Mode.BIKE)\
-                .count()
-
-    def get_n_rels_place_cell_car(self, obj) -> int:
-            return MatrixCellPlace.objects.filter(variant__mode=Mode.CAR)\
-                .count()
-
-    def get_n_rels_place_cell_transit(self, obj) -> int:
-            return MatrixCellPlace.objects.filter(variant__mode=Mode.TRANSIT)\
-                .count()
+    def get_n_rels_place_cell_modevariant(self, obj) -> Dict[int, int]:
+            qs = MatrixCellPlace.objects\
+                .values('variant')\
+                .annotate(n_relations=Count('variant'))
+            return {var['variant']: var['n_relations']
+                    for var in qs}
 
     def get_n_stops(self, obj) -> int:
             return Stop.objects.count()
 
-    def get_n_rels_place_stop_transit(self, obj) -> int:
-            return MatrixPlaceStop.objects.count()
+    def get_n_rels_place_stop_modevariant(self, obj) -> Dict[int, int]:
+        qs = MatrixPlaceStop.objects\
+            .values('stop__variant')\
+            .annotate(n_relations=Count('stop__variant'))
+        return {var['stop__variant']: var['n_relations']
+                for var in qs}
 
-    def get_n_rels_stop_cell_transit(self, obj) -> int:
-            return MatrixCellStop.objects.count()
+    def get_n_rels_stop_cell_modevariant(self, obj) -> Dict[int, int]:
+        qs = MatrixCellStop.objects\
+            .values('stop__variant')\
+            .annotate(n_relations=Count('stop__variant'))
+        return {var['stop__variant']: var['n_relations']
+                for var in qs}
 
-    def get_n_rels_stop_stop_transit(self, obj) -> int:
-            return MatrixStopStop.objects.count()
+    def get_n_rels_stop_stop_modevariant(self, obj) -> Dict[int, int]:
+        qs = MatrixStopStop.objects\
+            .values('from_stop__variant')\
+            .annotate(n_relations=Count('from_stop__variant'))
+        return {var['from_stop__variant']: var['n_relations']
+                for var in qs}

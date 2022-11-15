@@ -49,7 +49,6 @@ class MatrixCellStopFactory(DjangoModelFactory):
         model = MatrixCellStop
     cell = factory.SubFactory(RasterCellFactory)
     stop = factory.SubFactory(StopFactory)
-    variant = factory.SubFactory(ModeVariantFactory)
     minutes = faker.pyfloat()
 
 
@@ -58,7 +57,6 @@ class MatrixPlaceStopFactory(DjangoModelFactory):
         model = MatrixPlaceStop
     place = factory.SubFactory(PlaceFactory)
     stop = factory.SubFactory(StopFactory)
-    variant = factory.SubFactory(ModeVariantFactory)
     minutes = faker.pyfloat()
 
 
@@ -66,6 +64,6 @@ class MatrixStopStopFactory(DjangoModelFactory):
     class Meta:
         model = MatrixStopStop
     from_stop = factory.SubFactory(StopFactory)
-    to_stop = factory.SubFactory(StopFactory)
-    variant = factory.SubFactory(ModeVariantFactory)
+    to_stop = factory.SubFactory(StopFactory,
+                                 variant=factory.SelfAttribute('..from_stop.variant'))
     minutes = faker.pyfloat()

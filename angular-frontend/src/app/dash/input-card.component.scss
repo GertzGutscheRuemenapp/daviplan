@@ -1,5 +1,9 @@
 @import "~src/constants";
 
+:host::ng-deep .dashboard-card.disabled button {
+  color: grey;
+}
+
 .dashboard-card.disabled {
   background: #f5f5f5;
   .title {

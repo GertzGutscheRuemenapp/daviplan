@@ -1,0 +1,25 @@
+<mat-card class="dashboard-card mat-elevation-z0" [style.maxWidth]="width">
+  <div class="info-text">
+    <mat-expansion-panel class="text-panel" [expanded]="false">
+      <mat-expansion-panel-header>
+        <div style="display: flex; align-items: center;">
+          <mat-icon color="primary" class="material-icons-outlined">
+            lock
+          </mat-icon>
+          <span class="title">
+            <ng-content></ng-content>
+          </span>
+          <mat-spinner *ngIf="showSpinner" [diameter]="20" style="margin-left: 10px;"></mat-spinner>
+          <mat-icon color="primary" class="material-icons-outlined"
+                    style="position: absolute; right: 10px; top: 0;">
+            help_outline
+          </mat-icon>
+        </div>
+      </mat-expansion-panel-header>
+      <div style="padding-top: 16px;">
+        <p>Es laufen gerade Uploads oder Berechnungen in diesem Bereich. Den Fortschritt können Sie der Daten-Historie entnehmen.</p>
+        <p>Während der laufenden Berechnung sind Teile des Bereichs gesperrt. Bitte warten Sie, bis die Berechnungen abgeschlossen sind.</p>
+      </div>
+    </mat-expansion-panel>
+  </div>
+</mat-card>

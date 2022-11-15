@@ -6,7 +6,7 @@ from datentool_backend.utils.protect_cascade import PROTECT_CASCADE
 from datentool_backend.utils.copy_postgres import DirectCopyManager
 
 from datentool_backend.infrastructure.models.places import Place
-from datentool_backend.modes.models import ModeVariant
+from datentool_backend.modes.models import ModeVariant, Mode
 from datentool_backend.population.models import RasterCell
 
 
@@ -32,12 +32,39 @@ class MatrixCellPlace(DatentoolModelMixin, models.Model):
                               related_name='place_cell')
     variant = models.ForeignKey(ModeVariant, on_delete=models.CASCADE)
     minutes = models.FloatField()
+    access_variant = models.ForeignKey(ModeVariant,
+                                       null=True,
+                                       on_delete=models.SET_NULL,
+                                       related_name='mcp_access_variant')
 
     class Meta:
-        unique_together = ['variant', 'cell', 'place']
+        unique_together = ['variant', 'access_variant', 'cell', 'place']
+        constraints = [
+            models.UniqueConstraint(
+                name='variant_accessvariant_cell_place_uniq',
+                fields=('variant', 'access_variant', 'cell', 'place')
+            ),
+            models.UniqueConstraint(
+                name='variant_noaccessvariant_cell_place_uniq',
+                fields=('variant', 'cell', 'place'),
+                condition=models.Q(access_variant__isnull=True)
+            )
+        ]
 
     objects = models.Manager()
     copymanager = DirectCopyManager()
+
+
+def get_default_access_variant():
+    variant, created = ModeVariant.objects.get_or_create(mode=Mode.WALK, is_default=True)
+    return variant.pk
+    #return 1
+
+def get_default_transit_variant():
+    variant, created = ModeVariant.objects.get_or_create(mode=Mode.TRANSIT, is_default=True)
+    return variant.pk
+    #return 4
+
 
 
 class MatrixCellStop(DatentoolModelMixin, models.Model):
@@ -46,11 +73,14 @@ class MatrixCellStop(DatentoolModelMixin, models.Model):
                              related_name='cell_stop')
     stop = models.ForeignKey(Stop, on_delete=PROTECT_CASCADE,
                              related_name='stop_cell')
-    variant = models.ForeignKey(ModeVariant, on_delete=models.CASCADE)
     minutes = models.FloatField()
+    access_variant = models.ForeignKey(ModeVariant,
+                                       default=get_default_access_variant,
+                                       on_delete=models.CASCADE,
+                                       related_name='mcs_access_variant')
 
     class Meta:
-        unique_together = ['variant', 'cell', 'stop']
+        unique_together = ['access_variant', 'cell', 'stop']
 
     objects = models.Manager()
     copymanager = DirectCopyManager()
@@ -62,11 +92,14 @@ class MatrixPlaceStop(models.Model):
                               related_name='place_stop')
     stop = models.ForeignKey(Stop, on_delete=PROTECT_CASCADE,
                              related_name='stop_place')
-    variant = models.ForeignKey(ModeVariant, on_delete=models.CASCADE)
     minutes = models.FloatField()
+    access_variant = models.ForeignKey(ModeVariant,
+                                       default=get_default_access_variant,
+                                       on_delete=models.CASCADE,
+                                       related_name='mps_access_variant')
 
     class Meta:
-        unique_together = ['variant', 'place', 'stop']
+        unique_together = ['access_variant', 'place', 'stop']
 
     objects = models.Manager()
     copymanager = DirectCopyManager()
@@ -78,11 +111,10 @@ class MatrixStopStop(models.Model):
                                   related_name='from_stop')
     to_stop = models.ForeignKey(Stop, on_delete=PROTECT_CASCADE,
                                 related_name='to_stop')
-    variant = models.ForeignKey(ModeVariant, on_delete=models.CASCADE)
     minutes = models.FloatField()
 
     class Meta:
-        unique_together = ['variant', 'from_stop', 'to_stop']
+        unique_together = ['from_stop', 'to_stop']
 
     objects = models.Manager()
     copymanager = DirectCopyManager()
