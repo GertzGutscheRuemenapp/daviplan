@@ -142,6 +142,6 @@ class PopulationTemplateTest(LoginTestCase, APITestCase, CreateTestdataMixin):
                                           sheet_name=str(y),
                                           header=[1, 3],
                                           skiprows=[4],
-                                          index_col=[0, 1, 2])\
+                                          index_col=[0, 1])\
                     .sum().sum()
                 self.assertAlmostEqual(total_pop, df_actual.loc[y, 'value'])
