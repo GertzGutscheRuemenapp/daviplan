@@ -105,19 +105,16 @@ export class UsersComponent implements AfterViewInit  {
       });
     })
     this.accountCard.dialogClosed.subscribe((ok)=>{
-      // reset form on cancel
-      if (!ok){
-        this.changePassword = false;
-        this.showAccountPassword = false;
-        this.accountForm.controls['password'].disable();
-        this.accountForm.controls['confirmPass'].disable();
-        this.accountForm.reset({
-          user: this.selectedUser,
-          changePass: this.changePassword,
-          password: '',
-          confirmPass: ''
-        });
-      }
+      this.changePassword = false;
+      this.showAccountPassword = false;
+      this.accountForm.controls['password'].disable();
+      this.accountForm.controls['confirmPass'].disable();
+      this.accountForm.reset({
+        user: this.selectedUser,
+        changePass: this.changePassword,
+        password: '',
+        confirmPass: ''
+      });
     })
   }
 
@@ -161,8 +158,7 @@ export class UsersComponent implements AfterViewInit  {
         const ua = this.userAccess(this.selectedUser, infrastructure);
         const access = {
           infrastructure: infrastructure,
-          hasAccess: ua !== undefined,
-          allowSensitiveData: ua?.allowSensitiveData || false
+          hasAccess: ua !== undefined
         }
         accessControl[infrastructure.id] = this.formBuilder.group(access);
       })
@@ -176,8 +172,7 @@ export class UsersComponent implements AfterViewInit  {
         const control = this.accessForm.value[infrastructureId];
         if (control.hasAccess) {
           access.push({
-            infrastructure: infrastructureId,
-            allowSensitiveData: control.allowSensitiveData
+            infrastructure: infrastructureId
           })
         }
       })
@@ -279,6 +274,7 @@ export class UsersComponent implements AfterViewInit  {
           if (idx > -1) {
             this.users.splice(idx, 1);
           }
+          this.selectedUser = undefined;
         },(error) => {
           console.log('there was an error sending the query', error);
         });
