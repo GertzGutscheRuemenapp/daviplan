@@ -12,9 +12,13 @@
   <p>Wenn Sie mehrere Gebietseinteilungen auswählen oder selbst definieren, können Sie sich später die Ergebnisse von Auswertungen für jeden dieser Gebietseinteilungen (z.B. Gemeinden, Verwaltungsgemeinschaften und Kreise) auswerten lassen.</p>
   <p>Wenn Sie mehrere Gebietseinteilungen auswählen oder selbst definieren, müssen Sie festlegen, welche davon die Grundlage für die Erfassung der Einwohnerdaten (Vergangenheit und Prognose) im nachfolgenden Schritt „Bevölkerung“ sein soll.</p>
 </app-header-card>
+<app-status-card *ngIf="isProcessing">
+  Es läuft gerade eine Berechnung im Bereich „Gebiete“
+</app-status-card>
 <div fxLayout="row wrap">
   <div fxFlex="350px">
     <app-input-card [title]="'Gebietseinteilungen'"
+                    [disabled]="isProcessing"
                     subtitle="Administrative Ebenen aktivieren und/oder benutzerdefinierte Gebietseinteilung hinzufügen"
                     infoText="<p>Die vier oberen Gebietseinteilungen sind die administrativen Grenzen. Wählen Sie eine Gebietseinteilung aus und klicken Sie anschließend in der Box „Daten der Gebietseinteilung“ auf „Daten abrufen bzw. aktualisieren“. Daraufhin werden die Daten vom BKG heruntergeladen, mit Ihrem Projektgebiet verschnitten und in der Karte angezeigt.</p>
                               <p>Nur aktive Gebietseinteilungen können außerhalb dieser Seite ausgewählt werden und in der Karte dargestellt werden. Die Aktivität kann über die Auswahlbox neben dem Namen der jeweiligen Gebietseinteilung umgeschaltet werden.</p>

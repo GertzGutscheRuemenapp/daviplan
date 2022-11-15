@@ -81,6 +81,7 @@ import { ExternalLayersComponent } from './pages/basedata/external-layers/extern
 import { CheckTreeComponent } from './elements/check-tree/check-tree.component';
 import { MatTreeModule } from "@angular/material/tree";
 import { HeaderCardComponent } from "./dash/header-card.component";
+import { StatusCardComponent } from "./dash/status-card.component";
 import { FilterTableComponent } from './elements/filter-table/filter-table.component';
 import { MatChipsModule } from "@angular/material/chips";
 import { CookieExpansionDirective } from './helpers/cookie-expansion.directive';
@@ -109,6 +110,7 @@ import { DiagramComponent } from './diagrams/diagram/diagram.component';
     SideNavComponent,
     InputCardComponent,
     HeaderCardComponent,
+    StatusCardComponent,
     ConfirmDialogComponent,
     LoginComponent,
     DemandComponent,
