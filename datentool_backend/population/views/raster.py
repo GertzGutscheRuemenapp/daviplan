@@ -139,6 +139,8 @@ class PopulationRasterViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
         projectsettings = ProjectSetting.objects.first()
         project_area = projectsettings.project_area
+        if not project_area:
+            return
         project_area.transform(epsg)
         srid = project_area.srid
 

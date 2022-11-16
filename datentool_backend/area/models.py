@@ -161,14 +161,14 @@ class Area(DatentoolModelMixin, models.Model):
             label_attribute = area_attributes.filter(field=label_field)
             annotations['_label'] = Subquery(label_attribute.values('_value')[:1])
         except AreaField.DoesNotExist:
-            pass
+            annotations['_label'] = Value('')
 
         try:
             key_field = area_fields.get(is_key=True)
             key_attribute = area_attributes.filter(field=key_field)
             annotations['_key'] = Subquery(key_attribute.values('_value')[:1])
         except AreaField.DoesNotExist:
-            pass
+            annotations['_key'] = Value('')
 
         annotations['_field_names'] = Value(area_field_names)
 
@@ -214,7 +214,6 @@ class Area(DatentoolModelMixin, models.Model):
         """The area label retrieved from the attributes"""
         if hasattr(self, '_label'):
             return self._label
-
         try:
             label_attr = self.areaattribute_set.get(field__is_label=True)
         except AreaAttribute.DoesNotExist:

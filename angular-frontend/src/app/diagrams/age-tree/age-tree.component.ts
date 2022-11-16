@@ -21,14 +21,13 @@ function translation(x: number, y: number) {
   styleUrls: ['../diagram/diagram.component.scss'],
   // saveSvgAsPng is not able to parse the scss compiled styles, this here works to keep styles while exporting though
   styles: [
+    'text { font-family: Sans-Serif; font-size: 1em; }',
     '.axis line,.axis path {shape-rendering: crispEdges; fill: transparent; stroke: #555;pointer-events: none;}',
     '.x.axis line, .y.axis line {stroke: #777; stroke-dasharray: 2,2;}',
     '.x.axis .separator {stroke: #888; stroke-width: 2;stroke-dasharray: 6, 6;}',
     '.line {fill: none;stroke-width: 2.5px;}',
-    'rect.male {fill: #2c81ff;}',
-    'text.male {stroke: #2c81ff;}',
-    'rect.female {fill: #ee4a4a;}',
-    'text.female {stroke: #ee4a4a;}',
+    'rect.male, text.male {fill: #2c81ff;}',
+    'rect.female, text.female {fill: #ee4a4a;}',
     'rect.highlight {fill: gold!important;}',
     '.x.axis path.domain, .y.axis path.domain  {display: none; visibility: hidden;}',
     'text.shadow {text-shadow: 1px 1px 0 #FFFFFF, 1px -1px 0 #FFFFFF, -1px 1px 0 #FFFFFF, -1px -1px 0 #FFFFFF, 1px 0px 0 #FFFFFF, 0px 1px 0 #FFFFFF, -1px 0px 0 #FFFFFF, 0px -2px 0 #FFFFFF; pointer-events: none;}'
@@ -114,7 +113,7 @@ export class AgeTreeComponent extends DiagramComponent implements AfterViewInit 
       )
       .selectAll('text')
       .attr('class', 'shadow')
-      .attr('font-size', '0.8em')
+      .style('font-size', '0.8em')
       .style('text-anchor', 'middle');
 
     this.svg.append('g')
@@ -142,14 +141,14 @@ export class AgeTreeComponent extends DiagramComponent implements AfterViewInit 
     this.svg.append('text')
       .attr('class', 'title')
       .attr('x', 30)
-      .attr('y', 10)
+      .attr('y', 15)
       .text(this.title);
 
     this.svg.append('text')
       .attr('class', 'subtitle')
       .attr('x', 30)
-      .attr('y', 10)
-      .attr('font-size', '0.8em')
+      .attr('y', 15)
+      .style('font-size', '0.8em')
       .attr('dy', '1em')
       .text(this.subtitle);
 
@@ -271,7 +270,7 @@ export class AgeTreeComponent extends DiagramComponent implements AfterViewInit 
     this.svg.append('text')
       .attr('x', (width / 2) + this.margin.left + 2)
       .attr('y', this.margin.top - 10)
-      .attr('font-size', '0.8em')
+      .style('font-size', '0.8em')
       // .attr('font-weight', 'bold')
       .attr('text-anchor', 'middle')
       .text('Alter');
@@ -280,7 +279,7 @@ export class AgeTreeComponent extends DiagramComponent implements AfterViewInit 
       .attr('class', 'male')
       .attr('text-anchor', 'middle')
       .text('Anzahl männlich pro Jahrgang')
-      .attr('font-size', '0.8em')
+      .style('font-size', '0.8em')
       .attr('x', width / 4 + this.margin.left)
       .attr('y', height + this.margin.top + this.margin.bottom - 10);
 
@@ -288,7 +287,7 @@ export class AgeTreeComponent extends DiagramComponent implements AfterViewInit 
       .attr('class', 'female')
       .attr('text-anchor', 'middle')
       .text('Anzahl weiblich pro Jahrgang')
-      .attr('font-size', '0.8em')
+      .style('font-size', '0.8em')
       .attr('x', 3 * width / 4 + this.margin.left)
       .attr('y', height + this.margin.top + this.margin.bottom - 10);
   }

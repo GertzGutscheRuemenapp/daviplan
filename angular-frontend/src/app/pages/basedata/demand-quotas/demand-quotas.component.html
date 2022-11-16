@@ -4,7 +4,7 @@
 <app-header-card [title]="'Nachfragequoten'"
                  cookieId="exp-quota-header"
                  width="1170px">
-  <p>Auf dieser Seite legen Sie für jede zuvor definierte Leistung fest, wie der Umfang der Nachfrage nach dieser Leistung berechnet werden soll. Dabei können Sie zwischen drei Berechnungsprinzipien wählen, die für die betreffende Leistung dann für alle Jahre und alle Gebietseinheiten Ihres Planungsraums angewendet wird:</p>
+  <p>Auf dieser Seite legen Sie für jede zuvor definierte Leistung fest, wie der Umfang der Nachfrage nach dieser Leistung berechnet werden soll. Dabei können Sie zwischen drei Berechnungsprinzipien wählen, die für die betreffende Leistung dann für alle Jahre und alle Gebietseinteilungen Ihres Planungsraums angewendet wird:</p>
   <ol>
     <li>Die Nachfrage wird in jedem Jahr berechnet, indem eine (ggf. nach Alter und Geschlecht differenzierte) <b> Nachfragequote </b>(z.B. 35% der unter 3-Jährigen) mit der Zahl der Einwohner:innen (nach Alter und Geschlecht) multipliziert wird. Ergebnis ist eine <b> Anzahl an Nachfrager:innen</b>, z.B. die Zahl der Krippenkinder.</li>
     <li>Die Nachfrage wird berechnet, indem eine (ggf. nach Alter und Geschlecht differenzierte) <b>Nutzungshäufigkeit pro Einwohner:in </b>(z.B. 10 Arztkontakte pro Jahre) mit der Zahl der Einwohner:innen (nach Alter und Geschlecht) multipliziert wird. Ergebnis ist eine <b>Anzahl an Nutzungen pro Jahr</b>, z.B. die Zahl der gewünschten Arztkontakte pro Jahr.</li>
@@ -44,13 +44,13 @@
                     infoText="<p>Klicken Sie auf „Editieren“, um das Prinzip der Nachfrageberechnung zu verändern.</p>
                     <p>Wenn Sie eine Nachfrageberechnung mit Nutzungsquoten oder Nutzungshäufigkeiten ausgewählt haben, erscheint eine Eingabebox „Nachfragequoten bzw. Nutzungshäufigkeiten (Varianten)“, über die Sie diese Nutzungsquoten bzw. Nutzungshäufigkeiten definieren können. </p>">
         <!-- <li *ngIf="activeService">{{demandTypes[activeService.demandType][0]}}</li> -->
-      <p *ngIf="activeService?.demandType ===1">
+      <p *ngIf="activeService?.demandType === 1">
         (1) Die Nachfrage in einem Gebiet wird in jedem Jahr berechnet, indem eine (ggf. nach Alter und Geschlecht differenzierte) <b>Nachfragequote</b> mit der Zahl der Einwohner:innen (nach Alter und Geschlecht) multipliziert wird. Ergebnis ist eine <b>Anzahl an Nachfrager:innen </b>.
       </p>
-      <p *ngIf="activeService?.demandType ===2">
+      <p *ngIf="activeService?.demandType === 2">
         (2) Die Nachfrage in einem Gebiet wird in jedem Jahr berechnet, indem eine (ggf. nach Alter und Geschlecht differenzierte) <b>Nutzungshäufigkeit pro Einwohner:in </b>mit der Zahl der Einwohner:innen (nach Alter und Geschlecht) multipliziert wird. Ergebnis ist eine <b> Anzahl an Nutzungen pro Jahr </b>.
       </p>
-      <p *ngIf="activeService?.demandType ===3">
+      <p *ngIf="activeService?.demandType === 3">
         (3) Die Nachfrage in einem Gebiet entspricht in jedem Jahr der <b> Gesamtzahl der Einwohner:innen </b>.
       </p>
     </app-input-card>
@@ -133,11 +133,13 @@
         </div>
       </app-input-card>
     </div>
-    <div fxLayout="column" fxFlex="840px" [class.hidden]="!activeDemandRateSet">
+    <div fxLayout="column" fxFlex="840px">
       <app-input-card #demandRateSetCard
-                      [title]="'Nachfragequoten bzw. Nutzungshäufigkeiten der ausgewählten Variante'"
+                      [title] = "getTitle(activeService?.demandType)"
                       [subtitle]="'Leistung ' + activeService?.name + ' / ' + 'Variante „' + activeDemandRateSet?.name + '“'"
                       [editTemplate]="demandRateSetEdit"
+                      [class.hidden]="!activeDemandRateSet"
+                      class="spaced"
                       dialogWidth="1200px"
                       [topRightHelp]="true"
                       dialogInfoText="

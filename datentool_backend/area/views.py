@@ -545,7 +545,7 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
             logger.error(msg)
             return
             #raise e
-        areas = Area.objects.filter(area_level=area_level)
+        areas = Area.objects.filter(area_level=area_level).order_by('id')
         for i, area in enumerate(areas):
             area_attrs = {field_name: attrs[i]
                           for field_name, attrs

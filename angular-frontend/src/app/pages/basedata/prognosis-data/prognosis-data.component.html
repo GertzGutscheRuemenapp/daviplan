@@ -12,13 +12,18 @@
   <p>Bereits hochgeladene Prognosedaten einer ausgewählten Variante können Sie über die Karte sowie das Alterspyramiden-Diagramm kontrollieren. Zudem können Sie sich alle Daten in einer Tabellenansicht anzeigen lassen.</p>
   <p>Die auf dieser Seite zusammengetragenen Prognosedaten sind für alle Nutzer*innen im Hauptmenübereich „Bevölkerung“ sichtbar. Zudem stehen sie für Auswertungen im Hauptmenübereich „Infrastrukturplanung“ zur Verfügung.</p>
 </app-header-card>
-<div *ngIf="popLevelMissing">
-  <h1 style="color: red; margin: 30px;">Fehler: Es ist keine Gebietseinheit für die Bevölkerungsdaten festgelegt!</h1>
-</div>
+<app-status-card *ngIf="!popLevel" [showSpinner]="false"
+                 infoText="Bitte legen Sie im Bereich „Gebietseinteilungen“ eine Gebietseinteilung für die Einwohnerdaten fest.">
+  Fehler: Es ist keine Gebietseinteilung für die Bevölkerungsdaten festgelegt!
+</app-status-card>
+<app-status-card *ngIf="isProcessing">
+  Es läuft gerade eine Berechnung im Bereich „Bevölkerung“
+</app-status-card>
 <div fxLayout="row wrap">
   <div fxFlex="350px">
     <app-input-card #yearCard
-                    [title]="'Angezeigte Prognosejahre'"
+                    [title]="'Prognosejahre'"
+                    subtitle="Folgende Jahre sollen in Vorlage und Karten enthalten sein"
                     [editTemplate]="yearsEdit"
                     [disabled]="!popLevel || isProcessing"
                     dialogWidth="500px"
@@ -80,10 +85,11 @@
       <button mat-button color="primary"
               class="multiline-button"
               style="width: 86%;"
+              title="Als Annahme für Trendfortschreibung (Status Quo) festlegen"
               (click)="activePrognosis && setDefaultPrognosis(activePrognosis)"
               [disabled]="!activePrognosis">
         <mat-icon class="material-icons-outlined">verified</mat-icon>
-        Als Gebietseinteilung für alle Einwohnerdaten festlegen
+        Als Annahme für Trendfortschreibung festlegen
       </button>
     </app-input-card>
   </div>

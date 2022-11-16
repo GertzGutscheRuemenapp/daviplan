@@ -100,8 +100,14 @@ class BaseDataSettingSerializer(serializers.Serializer):
         return ret
 
     def get_default_mode_variants(self, obj) -> Dict[int, int]:
-        sets = ModeVariant.objects.filter(network__is_default=True).order_by('mode')
-        ret = [{'mode': s.mode, 'variant': s.id} for s in sets]
+        sets_prt = ModeVariant.objects\
+            .exclude(mode=Mode.TRANSIT)\
+            .filter(network__is_default=True)\
+            .order_by('mode')
+        sets_put = ModeVariant.objects.filter(mode=Mode.TRANSIT,
+                                              is_default=True).order_by('mode')
+        ret = [{'mode': s.mode, 'variant': s.id} for s in sets_prt]\
+            + [{'mode': s.mode, 'variant': s.id} for s in sets_put]
         return ret
 
     def get_default_prognosis(self, obj) -> int:
@@ -215,22 +221,22 @@ class MatrixStatisticsSerializer(serializers.Serializer):
 
     def get_n_rels_place_stop_modevariant(self, obj) -> Dict[int, int]:
         qs = MatrixPlaceStop.objects\
-            .values('variant')\
-            .annotate(n_relations=Count('variant'))
-        return {var['variant']: var['n_relations']
+            .values('stop__variant')\
+            .annotate(n_relations=Count('stop__variant'))
+        return {var['stop__variant']: var['n_relations']
                 for var in qs}
 
     def get_n_rels_stop_cell_modevariant(self, obj) -> Dict[int, int]:
         qs = MatrixCellStop.objects\
-            .values('variant')\
-            .annotate(n_relations=Count('variant'))
-        return {var['variant']: var['n_relations']
+            .values('stop__variant')\
+            .annotate(n_relations=Count('stop__variant'))
+        return {var['stop__variant']: var['n_relations']
                 for var in qs}
 
     def get_n_rels_stop_stop_modevariant(self, obj) -> Dict[int, int]:
         qs = MatrixStopStop.objects\
-            .values('variant')\
-            .annotate(n_relations=Count('variant'))
-        return {var['variant']: var['n_relations']
+            .values('from_stop__variant')\
+            .annotate(n_relations=Count('from_stop__variant'))
+        return {var['from_stop__variant']: var['n_relations']
                 for var in qs}
 

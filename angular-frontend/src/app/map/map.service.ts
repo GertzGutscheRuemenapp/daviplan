@@ -107,7 +107,7 @@ export class MapService {
           }
           const mLayer = new VectorTileLayer(level.name, tileUrl, {
             id: `area-layer-level-${level.id}`,
-            description: `Gebiete der Gebietseinheit ${level.name}`,
+            description: `Gebiete der Gebietseinteilung ${level.name}`,
             style: level.symbol,
             labelField: '_label',
             zIndex: 20000
@@ -398,6 +398,7 @@ export class MapControl {
 
   setDescription(text: string): void {
     this.mapDescription$.next(text);
+
   }
 
   setCursor(cursor?: 'crosshair' | 'pointer' | 'marker' | 'search' | 'auto' | 'default' ): void {

@@ -4,23 +4,31 @@
 <app-header-card [title]="'Gebietseinteilungen'"
                  cookieId="exp-areas-header"
                  width="1170px">
-  <p>Nachdem Sie bei den Basisdefinitionen im Administrationsbereich ein Planungsgebiets definiert haben, auf das Sie daviplan anwenden möchten, können Sie dieses Planungsgebiet in Gebietseinheiten unterteilen. Diese Gebietseinheiten dienen später der räumlich differenzierten Bilanzierung von Angebot und Nachfrage nach den betrachteten Infrastrukturen.</p>
-  <p>Die einzelnen Gebietseinheiten werden über Gebietseinteilungen definiert, die das gesamte Planungsgebiet abdecken müssen.</p>
+  <p>Nachdem Sie bei den Basisdefinitionen im Administrationsbereich ein Planungsgebiets definiert haben, auf das Sie daviplan anwenden möchten, können Sie dieses Planungsgebiet in Gebietseinteilungen unterteilen. Diese Gebietseinheiten dienen später der räumlich differenzierten Bilanzierung von Angebot und Nachfrage nach den betrachteten Infrastrukturen.</p>
+  <p>Die einzelnen Gebietseinteilungen werden über Gebietseinteilungen definiert, die das gesamte Planungsgebiet abdecken müssen.</p>
   <p>Standardmäßig entsprechen die Gebietseinteilungen den administrativen Ebenen, d.h. den Gemeinden, Verwaltungsgemeinschaften (Ämter, Samtgemeinden, Verbandsgemeinden, VG), Kreisen und Bundesländern. Diese amtlichen Grenzen können auf Sie einfach vom Bundesamt für Kartographie und Geodäsie (BKG) herunterladen lassen und für Ihre daviplan-Anwendung auswählen.</p>
   <p>Ergänzend können Sie benutzerdefinierte Gebietseinteilungen, z.B. Ortsteile, hinzufügen. Hierzu laden Sie ein Shape-File hoch oder Sie geben einen WFS-Dienst an. Auch die benutzerdefinierten Gebietseinteilungen müssen das gesamte Planungsgebiets abdecken.</p>
   <p>Sie müssen mindestens eine Gebietseinteilung auswählen oder definieren, um mit der Erfassung der Grundlagendaten fortzufahren.</p>
   <p>Wenn Sie mehrere Gebietseinteilungen auswählen oder selbst definieren, können Sie sich später die Ergebnisse von Auswertungen für jeden dieser Gebietseinteilungen (z.B. Gemeinden, Verwaltungsgemeinschaften und Kreise) auswerten lassen.</p>
   <p>Wenn Sie mehrere Gebietseinteilungen auswählen oder selbst definieren, müssen Sie festlegen, welche davon die Grundlage für die Erfassung der Einwohnerdaten (Vergangenheit und Prognose) im nachfolgenden Schritt „Bevölkerung“ sein soll.</p>
 </app-header-card>
+<app-status-card *ngIf="!projectArea" [showSpinner]="false"
+                 infoText="Im Bereich „Administration“ > „Basisdefinitionen“ muss ein Planungsraum definiert werden, bevor die Gebietseinteilungen bearbeitet werden können.">
+  Fehler: Es ist kein Planungsraum definiert!
+</app-status-card>
+<app-status-card *ngIf="isProcessing">
+  Es läuft gerade eine Berechnung im Bereich „Gebiete“
+</app-status-card>
 <div fxLayout="row wrap">
   <div fxFlex="350px">
     <app-input-card [title]="'Gebietseinteilungen'"
+                    [disabled]="isProcessing || !projectArea"
                     subtitle="Administrative Ebenen aktivieren und/oder benutzerdefinierte Gebietseinteilung hinzufügen"
                     infoText="<p>Die vier oberen Gebietseinteilungen sind die administrativen Grenzen. Wählen Sie eine Gebietseinteilung aus und klicken Sie anschließend in der Box „Daten der Gebietseinteilung“ auf „Daten abrufen bzw. aktualisieren“. Daraufhin werden die Daten vom BKG heruntergeladen, mit Ihrem Projektgebiet verschnitten und in der Karte angezeigt.</p>
                               <p>Nur aktive Gebietseinteilungen können außerhalb dieser Seite ausgewählt werden und in der Karte dargestellt werden. Die Aktivität kann über die Auswahlbox neben dem Namen der jeweiligen Gebietseinteilung umgeschaltet werden.</p>
                               <p>In der Box „Darstellung der ausgewählten Gebietseinteilung“ können Sie den angezeigten Namen und die Linienfarbe der Gebietseinteilung verändern.</p>
                               <p>Wiederholen Sie dieses Vorgehen für jede amtliche Gebietseinteilung, die Sie nutzen möchten.</p>
-                              <p>Um optional eine benutzerdefinierte Gebietseinteilungen (Shape-File, WFS-Dienst) hinzuzufügen, klicken Sie auf „Hinzufügen“. Diese erscheint danach in der Liste der Gebietseinheiten unterhalb einer Trennlinie zu den vier vorgegebenen Gebietseinheiten. Wenn Sie diese in der Liste auswählen, wird Sie in der Karte angezeigt und Sie können ihre Darstellung anpassen.</p>">
+                              <p>Um optional eine benutzerdefinierte Gebietseinteilungen (Shape-File, WFS-Dienst) hinzuzufügen, klicken Sie auf „Hinzufügen“. Diese erscheint danach in der Liste der Gebietseinteilungen unterhalb einer Trennlinie zu den vier vorgegebenen Gebietseinheiten. Wenn Sie diese in der Liste auswählen, wird Sie in der Karte angezeigt und Sie können ihre Darstellung anpassen.</p>">
       <div style="display: inline-flex;">
         <mat-selection-list [multiple]="false"
                             id="level-select">
@@ -102,8 +110,8 @@
     </app-input-card>
     <app-input-card #editArealevelCard
                     [ngClass]="{'hidden': !activeLevel}"
-                    [disabled]="isProcessing"
-                    [title]="'Darstellung der ausgewählten Gebietseinteilung'"
+                    [disabled]="isProcessing || !projectArea"
+                    [title]="'Eigenschaften der ausgewählten Gebietseinteilung'"
                     [editTemplate]="propertiesEdit"
                     [subtitle]="'In allen Karten der Anwendung so darstellen'"
                     infoText="<p>Über die Schaltfläche „Editieren“ können Sie festlegen, wie die gerade ausgewählte Gebietseinteilung in allen Karten dieser Anwendung, d.h. auch in den Bereichen „Bevölkerung“ und „Infrastrukturplanung“ des Hauptmenüs dargestellt und bezeichnet werden soll.</p>"
@@ -146,12 +154,12 @@
       <app-input-card [title]="'Daten der ausgewählten Gebietseinteilung'"
                       [ngClass]="{'hidden': !activeLevel}"
                       width="450px"
-                      [disabled]="isProcessing"
+                      [disabled]="isProcessing || !projectArea"
                       [infoText]="(activeLevel?.source?.sourceType === 'WFS')?
                       '<p>Klicken Sie auf „Daten abrufen bzw. aktualisieren“, um die Daten erstmalig oder – zum Aktualisieren – erneut vom Bundesamt für Kartographie und Geodäsie (BKG) herunterzuladen. Den Zeitpunkt der letzten Aktualisierung können Sie der Daten-Historie entnehmen.</p>':
                       'Platzhalter'">
         <span class="subtitle1 sub">
-          Gebietseinheit: <p style="font-size: 1.5em;">"{{activeLevel?.name || '-'}}"</p>
+          Gebietseinteilung: <p style="font-size: 1.5em;">"{{activeLevel?.name || '-'}}"</p>
         </span>
         <table style="margin-top: 15px;">
           <tr>
@@ -238,9 +246,9 @@
                       class="spaced"
                       [topRightHelp]="true"
                       width="820px"
-                      infoText="<p>Die Karte zeigt die Gebiete der aktuell ausgewählten Gebietseinheiten als ausgefüllte Flächen.<p>
-                      <p>Zusätzlich zeigt sie auf Wunsch alle zur Darstellung freigegeben Gebietseinheiten, auswählbar über die Legende.
-                      Die Darstellung der einzelnen Gebietseinheiten in der Karte können Sie in der Box „Darstellung der ausgewählten Gebietseinteilung“ anpassen.</p>">
+                      infoText="<p>Die Karte zeigt die Gebiete der aktuell ausgewählten Gebietseinteilung als ausgefüllte Flächen.<p>
+                      <p>Zusätzlich zeigt sie auf Wunsch alle zur Darstellung freigegeben Gebietseinteilungen, auswählbar über die Legende.
+                      Die Darstellung der einzelnen Gebietseinteilungen in der Karte können Sie in der Box „Darstellung der ausgewählten Gebietseinteilung“ anpassen.</p>">
         <div id="base-areas-map" class="map-container">
           <app-map-controls target="base-areas-map"></app-map-controls>
           <app-side-toggle id="legend"
@@ -292,8 +300,8 @@
       <mat-checkbox color="primary"
                     #enableLayerCheck
                     [checked]="!!activeLevel?.symbol?.strokeColor"
-                    title="Gebietseinheit als Layer in Karte zur Verfügung stellen">
-        Gebietseinheit als Layer zur Verfügung stellen
+                    title="Gebietseinteilung als Layer in Karte zur Verfügung stellen">
+        Gebietseinteilung als Layer zur Verfügung stellen
       </mat-checkbox>
       <div *ngIf="enableLayerCheck.checked" style="display: flex; align-items: baseline;">
         Linienfarbe
@@ -338,17 +346,17 @@
     </mat-error>
   </div>
   <p>
-    Daten mit Gebieten für Gebietseinheit "{{activeLevel?.name}}" hochladen
+    Daten mit Gebieten für Gebietseinteilung "{{activeLevel?.name}}" hochladen
   </p>
   <input #fileInput type="file" accept=".zip,.gpkg" (change)="setFiles($event)">
 </ng-template>
 
 <ng-template #pullWfsTemplate>
   <p>
-    Sollen die Gebiete der Gebietseinheit "{{this.activeLevel?.name}}" jetzt aus dem angegebenen WFS-Dienst abgerufen und eingespielt werden?
+    Sollen die Gebiete der Gebietseinteilung "{{this.activeLevel?.name}}" jetzt aus dem angegebenen WFS-Dienst abgerufen und eingespielt werden?
   </p>
   <p>
-    Achtung: alle bereits eingespielten Gebiete der Gebietseinheit und die damit verbundenen Daten werden entfernt!
+    Achtung: alle bereits eingespielten Gebiete der Gebietseinteilung und die damit verbundenen Daten werden entfernt!
   </p>
 </ng-template>
 

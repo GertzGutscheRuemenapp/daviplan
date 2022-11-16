@@ -375,15 +375,10 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       this.barChartProps.data = stackedData;
 
       // Line Chart
-      // first values != 0 for each group (otherwise if first year is 0 every other year would be an infinite increase)
-      let first: number[] = [];
-      ageGroups.forEach((ag, i) => {
-        const yd = stackedData.find(d => d.values[i] != 0);
-        first.push(yd? yd.values[i]: 0);
-      })
+      const first = stackedData[0].values;
       let relData = stackedData.map(d => { return {
         group: d.group,
-        values: d.values.map((v, i) => first[i]? (100 * v / first[i]): 0 )
+        values: d.values.map((v, i) => first[i]? (100 * v / first[i]): 100 )
       }})
       let max = Math.max(...relData.map(d => Math.max(...d.values))),
         min = Math.min(...relData.map(d => Math.min(...d.values)));
@@ -448,7 +443,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   updateMapDescription(): void {
     let description = '';
     if (!this.activeLevel)
-      description = 'Bitte Gebietseinheit wählen';
+      description = 'Bitte Gebietseinteilung wählen';
     else {
       const genderDesc = `Geschlecht: ${this.selectedGender?.name || '-'}`;
       const ageGroupDesc = `${(this.ageGroupSelection.selected.length == this.ageGroups.length)? 'alle' : this.ageGroupSelection.selected.length === 0? 'keine': 'ausgewählte'} Altersgruppen`;
@@ -457,7 +452,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       if (this.compareYears)
         description += ` im Vergleich zu ${this.comparedYear}`
       if (this.realYears.indexOf(this.year) === -1 || this.realYears.indexOf(this.comparedYear) === -1)
-        description += `<br>Prognoseszenario: ${this.activePrognosis?.name}`;
+        description += `<br>Prognoseszenario: ${this.activePrognosis?.name || '-'}`;
       description += `<br>${genderDesc} | ${ageGroupDesc}`;
     }
     this.mapControl?.setDescription(description);
