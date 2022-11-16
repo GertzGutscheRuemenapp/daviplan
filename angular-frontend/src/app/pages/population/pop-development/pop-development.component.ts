@@ -443,7 +443,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   updateMapDescription(): void {
     let description = '';
     if (!this.activeLevel)
-      description = 'Bitte Gebietseinheit wählen';
+      description = 'Bitte Gebietseinteilung wählen';
     else {
       const genderDesc = `Geschlecht: ${this.selectedGender?.name || '-'}`;
       const ageGroupDesc = `${(this.ageGroupSelection.selected.length == this.ageGroups.length)? 'alle' : this.ageGroupSelection.selected.length === 0? 'keine': 'ausgewählte'} Altersgruppen`;
@@ -452,7 +452,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       if (this.compareYears)
         description += ` im Vergleich zu ${this.comparedYear}`
       if (this.realYears.indexOf(this.year) === -1 || this.realYears.indexOf(this.comparedYear) === -1)
-        description += `<br>Prognoseszenario: ${this.activePrognosis?.name}`;
+        description += `<br>Prognoseszenario: ${this.activePrognosis?.name || '-'}`;
       description += `<br>${genderDesc} | ${ageGroupDesc}`;
     }
     this.mapControl?.setDescription(description);

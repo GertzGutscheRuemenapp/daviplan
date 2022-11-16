@@ -49,6 +49,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   uploadErrors: any = {};
   isProcessing = false;
   subscriptions: Subscription[] = [];
+  projectArea?: string;
 
   constructor(private mapService: MapService, private http: HttpClient, private dialog: MatDialog,
               private rest: RestAPI, private formBuilder: FormBuilder, private restService: RestCacheService,
@@ -72,7 +73,11 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     })
     this.setupEditLevelCard();
     this.subscriptions.push(this.settings.baseDataSettings$.subscribe(bs => this.isProcessing = bs.processes?.areas || false));
+    this.subscriptions.push(this.settings.projectSettings$.subscribe(ps => {
+      this.projectArea = (ps.projectArea.indexOf('EMPTY') >= 0)? '': ps.projectArea;
+    }));
     this.settings.fetchBaseDataSettings();
+    this.settings.fetchProjectSettings();
   }
 
   /**
@@ -310,7 +315,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       return;
     const dialogRef = this.dialog.open(RemoveDialogComponent, {
       data: {
-        title: $localize`Die Gebiete der Gebietseinheit wirklich entfernen?`,
+        title: $localize`Die Gebiete der Gebietseinteilung wirklich entfernen?`,
         confirmButtonText: $localize`Daten löschen`,
         value: this.activeLevel.name,
         message: `Bei Bestätigung werden ${this.activeLevel.areaCount} Gebiete entfernt. `
@@ -404,7 +409,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       disableClose: false,
       autoFocus: false,
       data: {
-        title: `Datentabelle Gebiete der Gebietseinheit "${this.activeLevel.name}"`,
+        title: `Datentabelle Gebiete der Gebietseinteilung "${this.activeLevel.name}"`,
         template: this.dataTemplate,
         hideConfirmButton: true,
         cancelButtonText: 'OK'

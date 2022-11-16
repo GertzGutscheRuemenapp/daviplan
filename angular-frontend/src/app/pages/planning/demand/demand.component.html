@@ -9,7 +9,8 @@
         <div class="davicon icon-GGR-davicons-Font-Simple-3-Standorte-Leistungen"></div>
       </div>
       Leistung
-      <mat-icon color="warn" *ngIf="!planningService.activeService" style="margin-left: 10px;">
+      <mat-icon *ngIf="!planningService.activeService" class="warning"
+                title="Keine Leistung ausgewählt">
         error_outline
       </mat-icon>
       <app-help-button title="Leistung" position="right">
@@ -26,9 +27,13 @@
       <div class="mini-fab-icon">
         <mat-icon class="material-icons-outlined">flip_to_front</mat-icon>
       </div>
-      Gebietseinheit
-      <app-help-button title="Gebietseinheit" position="right">
-        <p>Wählen Sie hier die Gebietseinheit (z.B. Gemeinden oder Kreise) aus, nach der Sie die Darstellung der Nachfrage in der Karte räumlich differenzieren möchten.</p>
+      Gebietseinteilung
+      <mat-icon *ngIf="!activeLevel" class="warning"
+                title="Keine Gebietseinteilung ausgewählt">
+        error_outline
+      </mat-icon>
+      <app-help-button title="Gebietseinteilung" position="right">
+        <p>Wählen Sie hier die Gebietseinteilung (z.B. Gemeinden oder Kreise) aus, nach der Sie die Darstellung der Nachfrage in der Karte räumlich differenzieren möchten.</p>
         <p>Nutzen Sie für die Auswahl das Dropdown-Menü.</p>
       </app-help-button>
     </mat-panel-title>
