@@ -310,7 +310,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       return;
     const dialogRef = this.dialog.open(RemoveDialogComponent, {
       data: {
-        title: $localize`Die Gebiete der Gebietseinheit wirklich entfernen?`,
+        title: $localize`Die Gebiete der Gebietseinteilung wirklich entfernen?`,
         confirmButtonText: $localize`Daten löschen`,
         value: this.activeLevel.name,
         message: `Bei Bestätigung werden ${this.activeLevel.areaCount} Gebiete entfernt. `
@@ -404,7 +404,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       disableClose: false,
       autoFocus: false,
       data: {
-        title: `Datentabelle Gebiete der Gebietseinheit "${this.activeLevel.name}"`,
+        title: `Datentabelle Gebiete der Gebietseinteilung "${this.activeLevel.name}"`,
         template: this.dataTemplate,
         hideConfirmButton: true,
         cancelButtonText: 'OK'

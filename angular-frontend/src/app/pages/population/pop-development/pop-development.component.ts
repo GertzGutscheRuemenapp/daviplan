@@ -443,7 +443,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
   updateMapDescription(): void {
     let description = '';
     if (!this.activeLevel)
-      description = 'Bitte Gebietseinheit wählen';
+      description = 'Bitte Gebietseinteilung wählen';
     else {
       const genderDesc = `Geschlecht: ${this.selectedGender?.name || '-'}`;
       const ageGroupDesc = `${(this.ageGroupSelection.selected.length == this.ageGroups.length)? 'alle' : this.ageGroupSelection.selected.length === 0? 'keine': 'ausgewählte'} Altersgruppen`;

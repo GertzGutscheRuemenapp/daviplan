@@ -9,6 +9,10 @@
         <div class="davicon icon-GGR-davicons-Font-Simple-3-Standorte-Leistungen"></div>
       </div>
       Standorte / Leistungen
+      <mat-icon *ngIf="!planningService.activeService" class="warning"
+                title="Keine Leistung ausgewählt">
+        error_outline
+      </mat-icon>
       <app-help-button title="Standorte / Leistungen" position="right">
         <p>Wählen Sie hier die Leistung aus, dessen Angebotsstruktur Sie in der Karten anzeigen möchten. Wählen Sie
           hierzu zunächst im Dropdown-Menü den entsprechenden Infrastrukturbereich und dann per Checkbox die gewünschte

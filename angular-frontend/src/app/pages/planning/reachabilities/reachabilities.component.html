@@ -9,6 +9,10 @@
         <div class="davicon icon-GGR-davicons-Font-Simple-3-Standorte-Leistungen"></div>
       </div>
       Leistung/en
+      <mat-icon *ngIf="!planningService.activeService" class="warning"
+                title="Keine Leistung ausgewählt">
+        error_outline
+      </mat-icon>
       <app-help-button title="Leistung/en" position="right">
         <p>Wählen Sie hier die Leistung aus, für die Sie die Erreichbarkeitsverhältnisse in der Karten anzeigen möchten. Wählen Sie hierzu zunächst im Dropdown-Menü den entsprechenden Infrastrukturbereich und dann per Checkbox die gewünschte Leistung.</p>
         <p>Sie können zusätzlich Standorte nach eigenen Kriterien filtern. Klicken Sie hierzu auf das Filtersymbol neben dem Dropdown-Menü. Die in der Karte gezeigten Erreichbarkeitsverhältnisse berücksichtigen nur die Standorte Ihrer Filtereinstellung.</p>

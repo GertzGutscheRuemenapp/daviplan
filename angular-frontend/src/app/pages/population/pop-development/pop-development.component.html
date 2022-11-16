@@ -4,19 +4,19 @@
       <div class="mini-fab-icon">
         <mat-icon class="material-icons-outlined">flip_to_front</mat-icon>
       </div>
-      Gebietseinheit
+      Gebietseinteilung
       <mat-icon *ngIf="!activeLevel" class="warning"
-                title="Keine Gebietseinheit ausgewählt">
+                title="Keine Gebietseinteilung ausgewählt">
         error_outline
       </mat-icon>
-      <app-help-button title="Gebietseinheit" position="right">
-        <p>Wählen Sie aus dem Dropdown-Menü die Gebietseinheit, für die Werte in der Karte angezeigt werden sollen. Es werden Werte für alle Gebiete der ausgewählten Gebietseinheit dargestellt.</p>
+      <app-help-button title="Gebietseinteilung" position="right">
+        <p>Wählen Sie aus dem Dropdown-Menü die Gebietseinteilung, für die Werte in der Karte angezeigt werden sollen. Es werden Werte für alle Gebiete der ausgewählten Gebietseinteilung dargestellt.</p>
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
   <mat-form-field floatLabel="never" appearance="outline" class="small">
     <mat-select disableOptionCentering disableRipple
-                placeholder="Gebietseinheit auswählen"
+                placeholder="Gebietseinteilung auswählen"
                 [(ngModel)]="activeLevel"
                 (ngModelChange)="onLevelChange()">
       <mat-option [value]="areaLevel" *ngFor="let areaLevel of areaLevels">
