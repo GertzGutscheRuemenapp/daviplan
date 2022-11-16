@@ -27,7 +27,7 @@
         </mat-select-trigger>
         <mat-option [value]="-1" style="display: none;"></mat-option>
         <mat-optgroup label="Meine Planungsprozesse">
-          <button *ngIf="user?.profile?.canCreateProcess"
+          <button *ngIf="user?.profile?.canCreateProcess || user?.isSuperuser"
                   title="Planungsprozess erstellen"
                   mat-icon-button color="primary" class="small"
                   style="position: absolute; right: 6px; top: 8px;"
@@ -93,7 +93,7 @@
             (click)="editProcess(activeProcess)" i18n>
       <mat-icon>edit</mat-icon>
     </button>
-    <button *ngIf="!activeProcess && user?.profile?.canCreateProcess" class="process-button small"
+    <button *ngIf="!activeProcess && (user?.profile?.canCreateProcess || user?.isSuperuser)" class="process-button small"
             title="Planungsprozess erstellen"
             mat-icon-button color="primary"
             (click)="onCreateProcess()" i18n>

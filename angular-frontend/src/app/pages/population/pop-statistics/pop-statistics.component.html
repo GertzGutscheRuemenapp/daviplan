@@ -5,6 +5,11 @@
         <mat-icon class="material-icons-outlined">family_restroom</mat-icon>
       </div>
       Thema
+      <mat-icon *ngIf="theme==='migration' && !(this.showImmigration || this.showEmigration) ||
+                       theme==='nature' && !(this.showDeaths || this.showBirths)"
+                class="warning" title="Kein Thema ausgewählt">
+        error_outline
+      </mat-icon>
       <ng-template #themeHelp>
         <p>Wählen Sie hier das Thema für die Karten- bzw. Diagrammdarstellungen aus.</p>
         <p *ngIf="theme==='migration'">

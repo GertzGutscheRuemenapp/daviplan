@@ -452,7 +452,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       if (this.compareYears)
         description += ` im Vergleich zu ${this.comparedYear}`
       if (this.realYears.indexOf(this.year) === -1 || this.realYears.indexOf(this.comparedYear) === -1)
-        description += `<br>Prognoseszenario: ${this.activePrognosis?.name}`;
+        description += `<br>Prognoseszenario: ${this.activePrognosis?.name || '-'}`;
       description += `<br>${genderDesc} | ${ageGroupDesc}`;
     }
     this.mapControl?.setDescription(description);

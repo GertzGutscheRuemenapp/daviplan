@@ -5,6 +5,10 @@
         <mat-icon class="material-icons-outlined">flip_to_front</mat-icon>
       </div>
       Gebietseinheit
+      <mat-icon *ngIf="!activeLevel" class="warning"
+                title="Keine Gebietseinheit ausgewählt">
+        error_outline
+      </mat-icon>
       <app-help-button title="Gebietseinheit" position="right">
         <p>Wählen Sie aus dem Dropdown-Menü die Gebietseinheit, für die Werte in der Karte angezeigt werden sollen. Es werden Werte für alle Gebiete der ausgewählten Gebietseinheit dargestellt.</p>
       </app-help-button>
@@ -21,13 +25,17 @@
     </mat-select>
   </mat-form-field>
 </mat-expansion-panel>
-<mat-expansion-panel cookieExpansion="exp-pop-prog">
+<mat-expansion-panel *ngIf="prognosisYears.length > 0" cookieExpansion="exp-pop-prog">
   <mat-expansion-panel-header>
     <mat-panel-title>
       <div class="mini-fab-icon">
         <mat-icon class="material-icons-outlined">auto_graph</mat-icon>
       </div>
       Prognoseszenario
+      <mat-icon *ngIf="!activePrognosis" class="warning"
+                title="Kein Prognoseszenario ausgewählt">
+        error_outline
+      </mat-icon>
       <app-help-button title="Prognoseszenario" position="right">
         <p>Wählen Sie aus dem Dropdown-Menü das Prognose-Szenario, für das Werte in der Karte angezeigt werden sollen. Zur Auswahl stehen alle in den Grundlagendaten eingepflegten Prognoseszenarien.</p>
       </app-help-button>
@@ -51,6 +59,10 @@
         <mat-icon class="material-icons-outlined">group</mat-icon>
       </div>
       Bevölkerungsgruppe
+      <mat-icon *ngIf="ageGroupSelection.selected.length === 0" class="warning"
+                title="Keine Altersgruppen ausgewählt">
+        error_outline
+      </mat-icon>
       <app-help-button title="Bevölkerungsgruppe" position="right">
         <p>Beschreiben Sie in diesem Bereich die Bevölkerungsgruppe für die Werte in der Karte dargestellt werden sollen. Wählen Sie dafür das Geschlecht aus dem Dropdown-Menü und die Altersgruppe/n für die Darstellung mit den Checkboxen aus. Werden mehrere Altersgruppen ausgewählt, erfolgt die Darstellung der Summe über die ausgewählten Altersklassen.</p>
       </app-help-button>
@@ -68,11 +80,6 @@
   </mat-form-field>
   <div class="sub-select-box">
     <span style="color: grey;" class="subtitle1" i18n> Enthaltene Altersgruppen </span>
-<!--    <button mat-icon-button color="primary"
-            style="position: absolute; right: 10px; margin-top: -8px;"
-            (click)="editAgeGroups()">
-      <mat-icon>edit</mat-icon>
-    </button>-->
     <div class="border-box" style="margin-top: 10px; max-height: 300px;">
       <mat-checkbox class="reverse" color="primary"
                     [indeterminate]="someAgeGroupsChecked()"
