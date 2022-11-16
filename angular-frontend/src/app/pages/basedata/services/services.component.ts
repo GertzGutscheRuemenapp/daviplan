@@ -1,13 +1,14 @@
 import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core';
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
-import { AreaLevel, Infrastructure, Service } from "../../../rest-interfaces";
+import { Infrastructure, Service } from "../../../rest-interfaces";
 import { RestCacheService } from "../../../rest-cache.service";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
+import { BehaviorSubject } from "rxjs";
 
 @Component({
   selector: 'app-services',
@@ -27,6 +28,7 @@ export class ServicesComponent implements AfterViewInit {
   capacitiesForm: FormGroup;
   demandForm: FormGroup;
   Object = Object;
+  isLoading$ = new BehaviorSubject<boolean>(false);
 
   constructor(private dialog: MatDialog, private http: HttpClient,
               private restService: RestCacheService, private rest: RestAPI,
@@ -55,6 +57,7 @@ export class ServicesComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    this.isLoading$.next(true);
     this.restService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures || [];
       if (infrastructures.length === 0) return;
@@ -63,6 +66,7 @@ export class ServicesComponent implements AfterViewInit {
         this.activeService = services[0];
         this.onServiceChange();
       }
+      this.isLoading$.next(false);
     })
     this.setupPropertiesCard();
     this.setupCapacitiesCard();

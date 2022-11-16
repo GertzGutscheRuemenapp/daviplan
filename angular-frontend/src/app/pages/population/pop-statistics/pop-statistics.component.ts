@@ -115,11 +115,11 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       this.layerGroup?.removeLayer(this.statisticsLayer);
       this.statisticsLayer = undefined;
     }
-    this.updateMapDescription();
     if ((this.theme === 'nature' && !this.showBirths && !this.showDeaths) ||
          this.theme === 'migration' && !this.showImmigration && !this.showEmigration){
       return;
     }
+    this.updateMapDescription();
     this.populationService.getStatisticsData({ year: this.year! }).subscribe(statistics => {
       let descr = '';
       let max: number;

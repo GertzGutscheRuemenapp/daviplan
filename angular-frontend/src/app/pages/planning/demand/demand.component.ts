@@ -5,14 +5,11 @@ import {
   Area,
   AreaLevel,
   Infrastructure,
-  PlanningProcess,
-  Scenario,
-  Service
+  PlanningProcess
 } from "../../../rest-interfaces";
 import { map } from "rxjs/operators";
 import { forkJoin, Observable, Subscription } from "rxjs";
 import { MapControl, MapService } from "../../../map/map.service";
-import { SelectionModel } from "@angular/cdk/collections";
 import { MapLayerGroup, ValueStyle, VectorLayer } from "../../../map/layers";
 import * as d3 from "d3";
 
@@ -100,7 +97,7 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
       this.demandLayer = undefined;
     }*/
     this.layerGroup?.clear();
-    if (!this.year || !this.activeLevel || !this.planningService.activeService || !this.planningService.activeScenario) return;
+    if (!this.year || !this.activeLevel  || !this.planningService.activeInfrastructure || !this.planningService.activeService || !this.planningService.activeScenario) return;
     this.updateMapDescription();
     const scenarioId = this.planningService.activeScenario?.isBase? undefined: this.planningService.activeScenario?.id;
     this.planningService.getDemand(this.activeLevel.id,

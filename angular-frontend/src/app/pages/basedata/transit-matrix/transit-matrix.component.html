@@ -3,7 +3,7 @@
 </div>
 <app-header-card [title]="'ÖPNV-Netz: Reisezeiten zu den Einrichtungen mit Bus und Bahn'"
                  cookieId="exp-reach-header"
-                 width="1210px">
+                 width="1170px">
   <p>Wie schon im vorigen Menüpunkt beschrieben werden die Erreichbarkeitsverhältnisse in Ihrem Planungsraum anhand von Erreichbarkeitsmatrizen abgebildet.</p>
   <p>Erreichbarkeitsmatrizen sind (große) Tabellen, in denen für ein bestimmtes Verkehrsmittel verzeichnet ist, wie lange man mit diesem von Teilfläche A zu Teilfläche B braucht. Die Teilflächen entsprechend dabei dem europaweit standardisierten 100x100-Meter-LAEA-Raster, auf das bereits im Menüpunkt „Einwohnerraster“ Bezug genommen wurde.</p>
   <p>Diese Erreichbarkeitsmatrizen können Sie auf dieser Seite für die vier Verkehrsmittel „zu Fuß“, „Fahrrad“, „Auto“ und „ÖPNV“ zusammentragen. Dabei können Sie entweder extern vorberechnete Erreichbarkeitsmatrizen hochladen. Alternativ können Sie alle oder einzelne Erreichbarkeitsmatrizen mit einem oder mehreren im vorigen Menüpunkt „Verkehrsnetz“ erzeugten Verkehrsnetzen und deren Routensuchern berechnen.</p>
@@ -61,7 +61,7 @@
     <app-input-card [title]="'Schritt 1: Haltestellen'"
                     [disabled]="isProcessing"
                     [class.hidden]="!selectedVariant"
-                    width="500px"
+                    width="450px"
                     infoText="<p>Für das ausgewählte ÖPNV-Netz können Sie hier eine Liste der Haltestellen in ihrem Planungsraum hochladen. Bitte nutzen Sie hierfür die Excel-Vorlage, die Sie sich über die Schaltfläche „Vorlage Haltestellen“ herunterladen können. </p>
                     <p>Jede Haltestelle braucht neben ihrem Namen eine eindeutige Nummer sowie eine Geokoordinate. </p>
                     <p>Sofern Sie oder einer Ihrer Dienstleister/innen über das Programm VISUM verfügt, können die Haltestellenliste direkt aus VISUM exportieren und in daviplan einlesen. Hierzu finden Sie über die Schaltfläche „Anleitung VISUM-Datenexport“ in der Eingabebox zu Schritt 2 sowie im daviplan-Handbuch eine detaillierte Anleitung. </p>">
@@ -86,12 +86,11 @@
     <app-input-card [title]="'Schritt 2: Fahrzeiten zwischen den Haltestellen'"
                     [disabled]="isProcessing"
                     [class.hidden]="!selectedVariant"
-                    width="500px"
+                    width="450px"
                     infoText= "<p> In dieser Eingabebox wird eine Liste der Reisezeiten zwischen den in Schritt 1 definierten Haltestellen von Ihnen erwartet. Hierfür können Sie sich über die Schaltfläche „Vorlage Fahrzeitenliste“ eine Excel-Vorlage herunterladen und diese anschließend befüllt wieder hochladen. </p
-      <p> In der erwarteten Liste geben Sie an, von welcher Haltestelle (= Haltestelle-Nummer aus Schritt 1) zu welcher Haltestelle (ebenfalls Haltestelle-Nummer aus Schritt 1) man wie viele Minuten (inkl. Umstiegszeiten, aber ohne Wartezeit an der Starthaltestelle) unterwegs ist. </p>
-      <p> Sie können dabei selbst entscheiden, ob Sie die schnellste, die mittlere oder die häufigste Reisezeit angeben. Wenn sich die Reisezeiten an unterschiedlichen Tagen oder Tageszeiten deutlich unterscheiden, ist es sinnvoll, mehrere Netze zu definieren (Schritt 0). </p>
-      <p> Sofern Sie, Ihr ÖPNV-Unternehmen, Ihr Verkehrsverbund oder ein für Sie tätiges Planungsbüro über das Programm VISUM verfügt, können Sie sowohl die Haltestellenliste (Schritt 1) als auch die Liste der Liste der Fahrzeiten (Schritt 2) direkt aus VISUM exportieren und in daviplan einlesen. In diesem Fall brauchen Sie die Excelvorlage weder herunterladen noch befüllen. Stattdessen laden Sie über die Schaltfläche „VISUM-Datei hochladen“ die Exportdatei aus VISUM hoch. Wie Sie diese erzeugen, erläutert Ihnen das daviplan-Handbuch oder die Anleitung, die Sie über die Schaltfläche „Anleitung VISUM-Datenexport“ herunterladen können. </p>
-">
+                    <p>In der erwarteten Liste geben Sie an, von welcher Haltestelle (= Haltestelle-Nummer aus Schritt 1) zu welcher Haltestelle (ebenfalls Haltestelle-Nummer aus Schritt 1) man wie viele Minuten (inkl. Umstiegszeiten, aber ohne Wartezeit an der Starthaltestelle) unterwegs ist. </p>
+                    <p>Sie können dabei selbst entscheiden, ob Sie die schnellste, die mittlere oder die häufigste Reisezeit angeben. Wenn sich die Reisezeiten an unterschiedlichen Tagen oder Tageszeiten deutlich unterscheiden, ist es sinnvoll, mehrere Netze zu definieren (Schritt 0). </p>
+                    <p>Sofern Sie, Ihr ÖPNV-Unternehmen, Ihr Verkehrsverbund oder ein für Sie tätiges Planungsbüro über das Programm VISUM verfügt, können Sie sowohl die Haltestellenliste (Schritt 1) als auch die Liste der Liste der Fahrzeiten (Schritt 2) direkt aus VISUM exportieren und in daviplan einlesen. In diesem Fall brauchen Sie die Excelvorlage weder herunterladen noch befüllen. Stattdessen laden Sie über die Schaltfläche „VISUM-Datei hochladen“ die Exportdatei aus VISUM hoch. Wie Sie diese erzeugen, erläutert Ihnen das daviplan-Handbuch oder die Anleitung, die Sie über die Schaltfläche „Anleitung VISUM-Datenexport“ herunterladen können. </p>">
       <span class="subtitle1 sub">
         Fahrzeitliste für „{{selectedVariant?.label}}“ zwischen Haltestellen
       </span>
@@ -102,23 +101,37 @@
         </tr>
       </table>
       <div style="display: flex; margin-top: 10px;">
-        <div style="width: 45%; display: flex; flex-wrap: wrap;">
+        <div style="width: 55%; display: flex; flex-wrap: wrap;">
           <span class="subtitle1 sub" style="margin-top: 10px;">
             Variante 1: Excel
           </span>
-          <button mat-stroked-button color="primary" style="margin-top: 10px;" (click)="downloadTemplate(true)">
+          <button mat-stroked-button color="primary"
+                  style="margin-top: 10px;"
+                  (click)="downloadTemplate(true)">
             <mat-icon>download</mat-icon> Vorlage Fahrzeitenliste
           </button>
-          <button mat-flat-button color="primary" style="margin-top: 10px;" (click)="uploadMatrix()">
+          <button mat-flat-button color="primary"
+                  style="margin-top: 10px;"
+                  (click)="uploadMatrix()">
             <mat-icon>upload</mat-icon> Fahrzeitenliste
           </button>
         </div>
         <mat-divider [vertical]="true" style="margin: 0 20px;"></mat-divider>
-        <div style="width: 45%; display: flex; flex-wrap: wrap;">
-          <span class="subtitle1 sub" style="width: 100%; margin-top: 10px;">
+        <div style="width: 40%; display: flex; flex-wrap: wrap;">
+          <span class="subtitle1 sub"
+                style="width: 100%; margin-top: 10px;">
             Variante 2: VISUM
           </span>
-          <button mat-flat-button color="primary" style="align-self: end;" (click)="uploadMatrix(true)">
+          <a mat-stroked-button color="primary"
+             style="margin-top: 10px;"
+             href="{{backend}}/static/Berechnung_Reisezeitmatrix_Haltestellen_VISUM.pdf"
+             target="_blank">
+            <mat-icon>menu_book</mat-icon>
+            Anleitung
+          </a>
+          <button mat-flat-button color="primary"
+                  style="margin-top: 10px;"
+                  (click)="uploadMatrix(true)">
             <mat-icon>upload</mat-icon> VISUM-Datei
           </button>
         </div>
@@ -126,7 +139,7 @@
     </app-input-card>
     <app-input-card [title]="'Schritt 3: Reisezeitmatrix ÖPNV erzeugen'"
                     [class.hidden]="!selectedVariant"
-                    width="500px"
+                    width="450px"
                     [disabled]="isProcessing"
                     infoText="<p>Mit einem Klick auf die Schaltfläche „„Reisezeitmatrix erzeugen“ starten Sie die daviplan-interne Berechnung der ÖPNV-Reisezeitmatrix. Dabei ermittelt daviplan die ÖPNV-Wegezeiten von allen Wohnstandorten (Rasterzellen) in Ihrem Planungsraum und allen Standorten von Infrastruktureinrichtungen.</p>
                     <p>Diesen zeitintensiven Rechenschritt sollten Sie erst durchführen, wenn Sie im Menüpunkt „Infrastrukturdaten > Standorte und Kapazitäten“ bereits alle für Ihr Projekt relevanten Standorte hochgeladen haben. Zwar können Sie auch später noch – z.B. im Zuge der Szenarienentwicklung im Bereich „Infrastrukturplanung“ – einzelne Standorte nachdefinieren. Die Neuberechnung der ÖPNV-Reisezeitmatrix dauert jedoch mitunter länger.</p>">
@@ -146,7 +159,7 @@
     </app-input-card>
   </div>
   <app-input-card subtitle="Daten-Historie Erreichbarkeiten"
-                  width="400px"
+                  width="380px"
                   infoText="<p>Die Liste zeigt Ihnen eine Chronik aller Datenimporte und Berechnungen im Bereich „Erreichbarkeiten“.</p>">
     <app-log room="routing" (onMessage)="onMessage($event)" height="350px"></app-log>
   </app-input-card>
