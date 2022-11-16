@@ -12,9 +12,10 @@
   <p>Bereits hochgeladene Prognosedaten einer ausgewählten Variante können Sie über die Karte sowie das Alterspyramiden-Diagramm kontrollieren. Zudem können Sie sich alle Daten in einer Tabellenansicht anzeigen lassen.</p>
   <p>Die auf dieser Seite zusammengetragenen Prognosedaten sind für alle Nutzer*innen im Hauptmenübereich „Bevölkerung“ sichtbar. Zudem stehen sie für Auswertungen im Hauptmenübereich „Infrastrukturplanung“ zur Verfügung.</p>
 </app-header-card>
-<div *ngIf="popLevelMissing">
-  <h1 style="color: red; margin: 30px;">Fehler: Es ist keine Gebietseinteilung für die Bevölkerungsdaten festgelegt!</h1>
-</div>
+<app-status-card *ngIf="!popLevel" [showSpinner]="false"
+                 infoText="Bitte legen Sie im Bereich „Gebietseinteilungen“ eine Gebietseinteilung für die Einwohnerdaten fest.">
+  Fehler: Es ist keine Gebietseinteilung für die Bevölkerungsdaten festgelegt!
+</app-status-card>
 <app-status-card *ngIf="isProcessing">
   Es läuft gerade eine Berechnung im Bereich „Bevölkerung“
 </app-status-card>

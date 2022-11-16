@@ -16,10 +16,7 @@
           </mat-icon>
         </div>
       </mat-expansion-panel-header>
-      <div style="padding-top: 16px;">
-        <p>Es laufen gerade Uploads oder Berechnungen in diesem Bereich. Den Fortschritt können Sie der Daten-Historie entnehmen.</p>
-        <p>Während der laufenden Berechnung sind Teile des Bereichs gesperrt. Bitte warten Sie, bis die Berechnungen abgeschlossen sind.</p>
-      </div>
+      <div style="padding-top: 16px;" [innerHTML]="infoText"></div>
     </mat-expansion-panel>
   </div>
 </mat-card>

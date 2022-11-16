@@ -49,6 +49,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   uploadErrors: any = {};
   isProcessing = false;
   subscriptions: Subscription[] = [];
+  projectArea?: string;
 
   constructor(private mapService: MapService, private http: HttpClient, private dialog: MatDialog,
               private rest: RestAPI, private formBuilder: FormBuilder, private restService: RestCacheService,
@@ -72,7 +73,11 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     })
     this.setupEditLevelCard();
     this.subscriptions.push(this.settings.baseDataSettings$.subscribe(bs => this.isProcessing = bs.processes?.areas || false));
+    this.subscriptions.push(this.settings.projectSettings$.subscribe(ps => {
+      this.projectArea = (ps.projectArea.indexOf('EMPTY') >= 0)? '': ps.projectArea;
+    }));
     this.settings.fetchBaseDataSettings();
+    this.settings.fetchProjectSettings();
   }
 
   /**
