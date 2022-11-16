@@ -1,3 +1,6 @@
+<div class="loadOverlay" *ngIf="isLoading$ | async">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
 <app-header-card [title]="'Personen und Berechtigungen'"
                  cookieId="exp-users-header"
                  width="1110px">
@@ -107,16 +110,10 @@
                       subtitle="Das auswählte Konto kann diese Infrastrukturbereiche sehen"
                       dialogWidth="430px"
                       [editTemplate]="dataAccessEdit">
-        <div style="display: flex;" *ngFor="let infrastructure of infrastructures">
+        <div *ngFor="let infrastructure of infrastructures">
           <mat-checkbox class="infra-check" disabled
                         [checked]="userAccess(selectedUser, infrastructure) != undefined">
             {{infrastructure.name}}
-          </mat-checkbox>
-          <div class="dotted-fill"
-               [style.borderColor]="(userAccess(selectedUser, infrastructure)?.allowSensitiveData !== true)? '#00000061': ''">
-          </div>
-          <mat-checkbox class="sensitive-check" disabled [checked]="userAccess(selectedUser, infrastructure)?.allowSensitiveData === true">
-            sensible Daten
           </mat-checkbox>
         </div>
       </app-input-card>
@@ -241,16 +238,6 @@
       <ng-container *ngIf="accessForm.value[infrastructure.id]">
         <mat-checkbox formControlName="hasAccess" class="infra-check" color="primary">
           {{accessForm.value[infrastructure.id].infrastructure.name}}
-        </mat-checkbox>
-        <div class="dotted-fill"
-             [style.borderColor]="(!accessForm.value[infrastructure.id].hasAccess)? '#00000061': ''">
-        </div>
-        <mat-checkbox
-          formControlName="allowSensitiveData"
-          [disabled]="!accessForm.value[infrastructure.id].hasAccess"
-          class="sensitive-check"
-          color="primary">
-          sensible Daten
         </mat-checkbox>
       </ng-container>
     </div>

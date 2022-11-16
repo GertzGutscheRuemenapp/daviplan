@@ -704,9 +704,17 @@ mat-panel-title:hover, #process-select:hover {
   }
 }*/
 
-mat-panel-title app-help-button{
-  position: absolute;
-  right: 41px;
+mat-panel-title {
+  mat-icon.warning {
+    color: red;
+    background-color: white;
+    border-radius: 50%;
+    margin-left: 5px;
+  }
+  app-help-button {
+    position: absolute;
+    right: 41px;
+  }
 }
 
 .context-bar {
@@ -1280,20 +1288,5 @@ mat-checkbox.reverse {
   }
   tr.warn td:first-child {
     color: $warning;
-  }
-}
-
-.under-construction {
-  color: black;
-  background-color: #ffcd00;
-  border: 2px solid black;
-  border-radius: 5px;
-  padding: 10px;
-  font-size: 20px;
-  margin: 10px;
-  text-align: center;
-  mat-icon {
-    //font-size: 30px;
-    margin-right: 10px;
   }
 }

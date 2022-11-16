@@ -9,6 +9,10 @@
         <div class="davicon icon-GGR-davicons-Font-Simple-3-Standorte-Leistungen"></div>
       </div>
       Standorte / Leistungen
+      <mat-icon *ngIf="!planningService.activeService" class="warning"
+                title="Keine Leistung ausgewählt">
+        error_outline
+      </mat-icon>
       <app-help-button title="Standorte / Leistungen" position="right">
         <p>Wählen Sie hier die Leistung aus, dessen Angebotsstruktur Sie in der Karten anzeigen möchten. Wählen Sie
           hierzu zunächst im Dropdown-Menü den entsprechenden Infrastrukturbereich und dann per Checkbox die gewünschte
@@ -38,7 +42,7 @@
   <mat-divider></mat-divider>
   <div>
     <ul style="list-style-type: none; margin: 10px 0 10px -28px;">
-      <li><mat-slide-toggle color="primary">Cluster</mat-slide-toggle></li>
+<!--      <li><mat-slide-toggle color="primary">Cluster</mat-slide-toggle></li>-->
       <!--<li><mat-slide-toggle color="primary">Verdrängung</mat-slide-toggle></li>-->
       <li>
         <div class="row-button"
@@ -63,58 +67,6 @@
     </div>
   </ng-container>
 </mat-expansion-panel>
-<!--<mat-expansion-panel cookieExpansion="exp-supply-compare" class="disabled">
-  <mat-expansion-panel-header>
-    <mat-panel-title>
-      <div class="mini-fab-icon">
-        <div class="davicon icon-GGR-davicons-Font-Simple-4-Vergleichsdarstellung"></div>
-      </div>
-      Vergleichsdarstellung
-      <app-help-button title="Vergleichsdarstellung" position="right">
-      <p>Sie können die Karte für eine Vergleichsdarstellung nutzen, um zwei Angebotsstrukturen zu vergleichen. </p>
-      <p>Sie können entweder das Angebot in zwei unterschiedlichen Jahren des gleichen Szenarios vergleichen </p>
-      <p>Oder Sie vergleichen die Angebot in zwei unterschiedlichen Szenarien für das gleiche Jahr. </p>
-
-      </app-help-button>
-    </mat-panel-title>
-  </mat-expansion-panel-header>
-  <mat-checkbox style="padding-left: 12px;" color="primary" [(ngModel)]="compareSupply" i18n> &lt;!&ndash;style="margin-left: -12px"&ndash;&gt;
-    Angebotsstrukturen vergleichen
-  </mat-checkbox>
-  <div class="sub-select-wrapper compare-radio-list">
-    <mat-radio-group [(ngModel)]="compareStatus">
-      <mat-radio-button value="option 1" color="primary"
-                        [disabled]="!compareSupply"
-                        i18n>
-        Mit Angebotsstrukturen im gleichen Szenario im Jahr
-      </mat-radio-button>
-
-      <mat-form-field *ngIf="realYears && prognosisYears" appearance="outline" class="small">
-        <mat-label>Jahr</mat-label>
-        <mat-select disableOptionCentering disableRipple [value]="realYears[0]" [disabled]="!compareSupply || compareStatus != 'option 1'">
-          <mat-option *ngFor="let year of realYears.concat(prognosisYears)" [value]="year">
-            {{year}}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-      <mat-radio-button value="option 2" color="primary"
-                        [disabled]="!compareSupply"
-                        i18n>
-        Mit Angebotsstrukturen im gleichen Jahr im Szenario
-      </mat-radio-button>
-      <mat-form-field appearance="outline" class="small">
-        <mat-select disableOptionCentering disableRipple value="1" [disabled]="!compareSupply || compareStatus != 'option 2'">
-          <mat-option value="1">
-            Szenario 1
-          </mat-option>
-          <mat-option value="2">
-            Szenario 2
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-    </mat-radio-group>
-  </div>
-</mat-expansion-panel>-->
 <!--workaround to cover visible scenario menu-->
 <div style="width: 100%; height:200px; background-color: white;"></div>
 

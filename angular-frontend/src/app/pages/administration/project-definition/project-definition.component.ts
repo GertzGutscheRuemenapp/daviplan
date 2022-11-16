@@ -12,7 +12,7 @@ import proj4 from 'proj4';
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { FormBuilder, FormGroup } from "@angular/forms";
-import { Observable, Subscription } from "rxjs";
+import { BehaviorSubject, Observable, Subscription } from "rxjs";
 import { Layer } from "ol/layer";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
@@ -85,6 +85,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   @ViewChild('ageGroupWarning') ageGroupWarningTemplate?: TemplateRef<any>;
   subscriptions: Subscription[] = [];
   isProcessing = false;
+  isLoading$ = new BehaviorSubject<boolean>(false);
 
   constructor(private restService: RestCacheService,private mapService: MapService, private formBuilder: FormBuilder,
               private http: HttpClient, private rest: RestAPI, private dialog: MatDialog,
@@ -93,14 +94,16 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.setupPreviewMap();
     this.setupAreaCard();
+    this.isLoading$.next(true);
     this.fetchProjectSettings().subscribe(settings => {
       this.updatePreviewLayer();
-    });
-    this.fetchYears().subscribe(settings => {
-      this.setupYearCard();
-    });
-    this.fetchAgeGroups().subscribe(ageGroups => {
-      this.setupAgeGroupCard();
+      this.fetchYears().subscribe(settings => {
+        this.setupYearCard();
+        this.fetchAgeGroups().subscribe(ageGroups => {
+          this.setupAgeGroupCard();
+          this.isLoading$.next(false);
+        });
+      });
     });
     this.subscriptions.push(this.settings.baseDataSettings$.subscribe(bs => this.isProcessing = bs.processes?.areas || false));
   }

@@ -85,8 +85,6 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       if (this.popLevel) {
         this.popService.getAreas(this.popLevel.id, { reset: true }).subscribe(areas => this.areas = areas);
       }
-      else
-        this.popLevelMissing = true;
     })
     this.subscriptions.push(this.settings.baseDataSettings$.subscribe(baseSettings => {
       this.isProcessing = baseSettings.processes?.population || false;

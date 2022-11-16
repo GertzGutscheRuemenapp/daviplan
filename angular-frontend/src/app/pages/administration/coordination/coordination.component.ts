@@ -44,7 +44,7 @@ export const mockUsers: User[] = [
 
 const data: { [name: string]: DataDomain[] } = {
   'geodaten' : [
-    { name: 'Gebietseinheit', url: '/grundlagendaten/gebiete/', users: [mockUsers[0]], status: { text: '3 Ebenen definiert', detail:'' }, marker: 1 },
+    { name: 'Gebietseinteilung', url: '/grundlagendaten/gebiete/', users: [mockUsers[0]], status: { text: '3 Ebenen definiert', detail:'' }, marker: 1 },
     { name: 'Einwohnerraster', url: '/grundlagendaten/einwohnerraster/', users: [mockUsers[0]], status: { text: 'Zensus 2011', detail:'' }},
     { name: 'Bevölkerungssalden', url: '/grundlagendaten/statistiken/', users: [], status: { text: 'Importiert', detail:'' }, marker: 1 },
     { name: 'Externe Layer', url: '/grundlagendaten/layer/', users: mockUsers, status: { text: '3 Layer definiert', detail:'' }}

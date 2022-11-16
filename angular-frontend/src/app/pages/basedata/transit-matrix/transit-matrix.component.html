@@ -11,6 +11,9 @@
   <p>Um eine Erreichbarkeitsmatrix zu erzeugen, wählen Sie in der Box „Verkehrsmittel“ zunächst das Verkehrsmittel aus, für das sie eine Erreichbarkeitsmatrix hinzufügen oder erzeugen wollen. Klicken Sie dann auf „Hinzufügen“.</p>
   <p>Gehen Sie anschließend zur Box „Ausgewählte Erreichbarkeitsmatrix“. Hier können Sie die Daten dieser Matrix (aus einer externen Vorberechnung) hochladen oder mit Hilfe eines im Menüpunkt „Verkehrsnetz“ erzeugten Routensuchers berechnen. Detail hierzu finden Sie im Hilfetext der Box.</p>
 </app-header-card>
+<app-status-card *ngIf="isProcessing">
+  Es läuft gerade eine Berechnung im Bereich „Erreichbarkeiten“
+</app-status-card>
 <div fxLayout="row wrap">
   <app-input-card [title]="'ÖPNV-Netze'"
                   subtitle="ÖPNV-Netz hinzufügen oder auswählen"

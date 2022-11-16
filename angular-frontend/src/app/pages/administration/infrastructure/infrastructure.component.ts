@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core';
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
-import { Observable } from "rxjs";
+import { BehaviorSubject, Observable } from "rxjs";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
@@ -22,6 +22,7 @@ export class InfrastructureComponent implements AfterViewInit  {
   @ViewChild('infrastructureEditCard') infrastructureEditCard?: InputCardComponent;
   @ViewChild('infrastructureEdit') infrastructureEditTemplate?: TemplateRef<any>;
   Object = Object;
+  isLoading$ = new BehaviorSubject<boolean>(false);
 
   constructor(private http: HttpClient, private rest: RestAPI,
               private dialog: MatDialog, private formBuilder: FormBuilder) {
@@ -32,17 +33,13 @@ export class InfrastructureComponent implements AfterViewInit  {
   }
 
   ngAfterViewInit() {
-    this.fetchInfrastructures();
-    this.setupInfrastructureCard();
-  }
-
-  fetchInfrastructures(): Observable<Infrastructure[]> {
-    let query = this.http.get<Infrastructure[]>(this.rest.URLS.infrastructures);
-    query.subscribe((infrastructures) => {
+    this.isLoading$.next(true);
+    this.http.get<Infrastructure[]>(this.rest.URLS.infrastructures).subscribe((infrastructures) => {
       this.infrastructures = this.sortInfrastructures(infrastructures);
       this.selectedInfrastructure = (infrastructures.length > 0)? infrastructures[0]: undefined;
+      this.isLoading$.next(false);
     });
-    return query;
+    this.setupInfrastructureCard();
   }
 
   setupInfrastructureCard(): void {
@@ -128,7 +125,7 @@ export class InfrastructureComponent implements AfterViewInit  {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.infrastructures}${this.selectedInfrastructure?.id}/`
+        this.http.delete(`${this.rest.URLS.infrastructures}${this.selectedInfrastructure?.id}/?force=true`
         ).subscribe(res => {
           const idx = this.infrastructures.indexOf(this.selectedInfrastructure!);
           if (idx > -1) {

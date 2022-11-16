@@ -5,14 +5,18 @@
                  cookieId="exp-realdata-header"
                  width="1170px">
   <p>Für die Abschätzung der Nachfrage nach Infrastrukturen werden u.a. Einwohnerdaten benötigt. Auf dieser Seite können Sie Daten zur Einwohnerzahl und Altersstruktur in den zurückliegenden Jahren einlesen. Prognosedaten werden über den Eingabeseite „Zukunft“ (nächster Punkte im Menü links) eingepflegt.</p>
-  <p>Die Einwohnerdaten werden für die Gebietsebene eingelesen, die Sie im obersten Menüpunkt „Gebietseinheiten“ hierfür ausgewählt haben. Standardmäßig ist dies die Gemeindeebene. Einwohnerdaten anderer Gebietseinheiten (z.B. Kreise oder Verwaltungsgemeinschaften) werden aus diesen Daten automatisch abgeleitet.</p>
+  <p>Die Einwohnerdaten werden für die Gebietsebene eingelesen, die Sie im obersten Menüpunkt „Gebietseinteilungen“ hierfür ausgewählt haben. Standardmäßig ist dies die Gemeindeebene. Einwohnerdaten anderer Gebietseinteilungen (z.B. Kreise oder Verwaltungsgemeinschaften) werden aus diesen Daten automatisch abgeleitet.</p>
   <p>Sie können Einwohnerdaten für Ihren Planungsraum online vom zentralen Datendienst „Regionalstatistik“ der Statistikämter des Bundes und der Länder abrufen und diese Daten bei Bedarf händisch ergänzen.</p>
   <p>Bereits abgerufene oder hochgeladene Einwohnerdaten können Sie über die Karte sowie das Alterspyramiden-Diagramm kontrollieren. Zudem können Sie sich alle Daten in einer Tabellenansicht anzeigen lassen.</p>
   <p>Die auf dieser Seite zusammengetragenen Einwohnerdaten sind für alle Nutzer*innen im Hauptmenübereich „Bevölkerung“ sichtbar. Zudem stehen sie für Auswertungen im Hauptmenübereich „Infrastrukturplanung“ zur Verfügung.</p>
 </app-header-card>
-<div *ngIf="popLevelMissing">
-  <h1 style="color: red; margin: 30px;">Fehler: Es ist keine Gebietseinheit für die Bevölkerungsdaten festgelegt!</h1>
-</div>
+<app-status-card *ngIf="!popLevel" [showSpinner]="false"
+                 infoText="Bitte legen Sie im Bereich „Gebietseinteilungen“ eine Gebietseinteilung für die Einwohnerdaten fest.">
+  Fehler: Es ist keine Gebietseinteilung für die Bevölkerungsdaten festgelegt!
+</app-status-card>
+<app-status-card *ngIf="isProcessing">
+  Es läuft gerade eine Berechnung im Bereich „Bevölkerung“
+</app-status-card>
 <div fxLayout="row wrap">
   <app-input-card [title]="'Einwohnerdaten online abrufen'"
                   width="300px"
@@ -29,11 +33,12 @@
         </button>
       </div>
     </ng-container>
-    <ng-template #notAvailable>Die Regionalstatistik kann nur abgerufen werden, wenn "{{defaultPopLevel?.name}}" als Gebietseinheit für die Bevölkerungsdaten ausgewählt wurde und die Altersgruppeneinteilung mit der der Regionalstatistik übereinstimmt (siehe Projektdefinition).</ng-template>
+    <ng-template #notAvailable>Die Regionalstatistik kann nur abgerufen werden, wenn "{{defaultPopLevel?.name}}" als Gebietseinteilung für die Bevölkerungsdaten ausgewählt wurde und die Altersgruppeneinteilung mit der der Regionalstatistik übereinstimmt (siehe Projektdefinition).</ng-template>
   </app-input-card>
   <div fxFlex="450px">
     <app-input-card #yearCard
-                    [title]="'Angezeigte Jahre mit Vergangenheitsdaten'"
+                    [title]="'Jahre mit Vergangenheitsdaten'"
+                    subtitle="Folgende Jahre sollen in Vorlage und Karten enthalten sein"
                     [editTemplate]="yearsEdit"
                     infoText="<p>Die Liste zeigt die Jahre, deren Einwohnerdaten den Nutzer*innen der Hauptmenübereiche „Bevölkerung“ und „Infrastrukturplanung“ als Vergangenheitsdaten angezeigt werden.</p>
                     <p>Klicken Sie auf „Editieren“, um die Auswahl zu verändern und mit dem Datenbestand abzugleichen. Weitere Erläuterungen finden Sie im Hilfetext des sich dann öffnenden Dialogfensters.</p>
@@ -128,7 +133,7 @@
         </div>
       </div>
       <div style="width: 50%">
-        <span class="subtitle1">Alterstruktur eines Gebiets in diesem Jahr</span><br>
+        <span class="subtitle1">Altersstruktur eines Gebiets in diesem Jahr</span><br>
         <mat-form-field appearance="outline" class="small">
           <mat-label>Gebiet</mat-label>
           <mat-select disableOptionCentering disableRipple
