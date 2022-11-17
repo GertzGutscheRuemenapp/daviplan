@@ -11,6 +11,9 @@
     Wie dies im Einzelnen geht, wird Ihnen in den Hilfetexten der drei nachstehenden Eingabeboxen erläutert.
   </p>
 </app-header-card>
+<app-status-card *ngIf="isProcessing">
+  Es läuft gerade eine Berechnung im Bereich „Gebiete“/„Planungsraum“
+</app-status-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
     <app-input-card #yearCard

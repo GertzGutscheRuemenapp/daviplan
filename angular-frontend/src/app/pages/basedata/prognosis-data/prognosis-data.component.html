@@ -12,7 +12,11 @@
   <p>Bereits hochgeladene Prognosedaten einer ausgewählten Variante können Sie über die Karte sowie das Alterspyramiden-Diagramm kontrollieren. Zudem können Sie sich alle Daten in einer Tabellenansicht anzeigen lassen.</p>
   <p>Die auf dieser Seite zusammengetragenen Prognosedaten sind für alle Nutzer*innen im Hauptmenübereich „Bevölkerung“ sichtbar. Zudem stehen sie für Auswertungen im Hauptmenübereich „Infrastrukturplanung“ zur Verfügung.</p>
 </app-header-card>
-<app-status-card *ngIf="!popLevel" [showSpinner]="false"
+<app-status-card *ngIf="!(popService.isLoading$ | async) && years.length === 0" [showSpinner]="false"
+                 infoText="Im Bereich „Administration“ > „Basisdefinitionen“ muss ein Betrachtungszeitraum definiert werden.">
+  Fehler: Es ist kein Betrachtungszeitraum festgelegt!
+</app-status-card>
+<app-status-card *ngIf="!(popService.isLoading$ | async) && !popLevel" [showSpinner]="false"
                  infoText="Bitte legen Sie im Bereich „Gebietseinteilungen“ eine Gebietseinteilung für die Einwohnerdaten fest.">
   Fehler: Es ist keine Gebietseinteilung für die Bevölkerungsdaten festgelegt!
 </app-status-card>
@@ -25,7 +29,7 @@
                     [title]="'Prognosejahre'"
                     subtitle="Folgende Jahre sollen in Vorlage und Karten enthalten sein"
                     [editTemplate]="yearsEdit"
-                    [disabled]="!popLevel || isProcessing"
+                    [disabled]="years.length === 0  || !popLevel || isProcessing"
                     dialogWidth="500px"
                     infoText="<p>Legen Sie über die Schaltfläche „Editieren“ fest, für welche zukünftigen Jahre Ihnen
                     aus der Ihnen vorliegenden Prognose Werte hochgeladen werden sollen. Über die gleiche Schaltfläche
@@ -49,7 +53,7 @@
       </table>
     </app-input-card>
     <app-input-card [title]="'Prognosevarianten'"
-                    [disabled]="!popLevel || isProcessing"
+                    [disabled]="years.length === 0 || !popLevel || isProcessing"
                     subtitle="Varianten hinzufügen bzw. bereits hinzugefügte bearbeiten"
                     infoText="<p>Klicken Sie auf „Hinzufügen“, um die erste Prognosevariante hinzuzufügen. Tun Sie dies auch, wenn Ihre Prognose keine Varianten ausweist.</p>
                     <p>In dem sich öffnenden Dialog geben Sie nur die Bezeichnung dieser Variante an, z.B. „Basisvariante“, „Trendfortschreibung“, „mehr Zuzug“ oder auch „einzige Variante“. Die hinzugefügte Variante erscheint dann in der Liste.</p>
@@ -118,9 +122,13 @@
                     width="430px"
                     [subtitle]="activePrognosis?.name || '-'"
                     [disabled]="isProcessing"
-                    [class.hidden]="!popLevel || !activePrognosis"
+                    [class.hidden]="years.length === 0 || !popLevel || !activePrognosis"
+                    [disabled]="prognosisYears.length === 0"
                     infoText="<p>Wenn Sie für diese Prognosevariante noch keine Einwohnerdaten hochgeladen haben (oder die bereits hochgeladenen Daten ersetzen möchten), können Sie sich mit der Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excelformat herunterladen. Befüllen Sie diese mit Ihren Daten für die angezeigte Variante und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch. Für jede Prognosevariante benötigen Sie eine eigene Vorlagedatei.</p>
                     <p>Zur Kontrolle können Sie sich die hochgeladenen Daten anschließend in der Box „Bereits importierte Prognosedaten für die ausgewählte Variante“ für einzelne Gebiete anschauen.</p>">
+      <span *ngIf="prognosisYears.length === 0" style="margin-bottom: 10px;">
+        Es müssen „Prognosjahre“ ausgewählt werden, damit eine Vorlage mit diesen Jahren erzeugt werden kann.
+      </span>
       <div style="width: 100%; display: flex;">
         <button mat-stroked-button color="primary"
                 style="margin-right: 10px;"
