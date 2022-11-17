@@ -391,7 +391,7 @@ export interface LogEntry {
   level: 'ERROR' | 'INFO' | 'DEBUG',
   timestamp: string,
   message: string,
-  status?: {success?: boolean}
+  status?: { success?: boolean, finished?: boolean }
 }
 
 export interface ModeStatistics {

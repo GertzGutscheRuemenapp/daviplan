@@ -227,7 +227,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
   }
 
   onMessage(log: LogEntry): void {
-    if (log?.status?.success) {
+    if (log?.status?.finished) {
       this.isProcessing = false;
       this.restService.getRoutingStatistics({ reset: true }).subscribe(stats => this.statistics = stats)
     }

@@ -414,7 +414,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   }
 
   onMessage(log: LogEntry): void {
-    if (log?.status?.success) {
+    if (log?.status?.finished) {
       this.isProcessing = false;
       this.popService.reset();
       this.fetchData();

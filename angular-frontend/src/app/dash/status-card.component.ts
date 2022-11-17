@@ -13,7 +13,7 @@ export class StatusCardComponent implements OnInit {
                               '<p>Während der laufenden Berechnung sind Teile des Bereichs gesperrt. Bitte warten Sie, bis die Berechnungen abgeschlossen sind.</p>';
   @Input() width: string = '';
   @Input() showSpinner: boolean = true;
-
+  @Input() symbol: string = 'lock';
 
   constructor () {}
   ngOnInit() {

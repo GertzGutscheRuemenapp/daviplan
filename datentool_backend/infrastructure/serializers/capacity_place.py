@@ -139,7 +139,8 @@ class PlaceSerializer(serializers.ModelSerializer):
 class PlaceFieldSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlaceField
-        fields = ('id', 'name', 'unit', 'infrastructure', 'field_type', 'sensitive')
+        fields = ('id', 'name',  'label', 'unit', 'infrastructure',
+                  'field_type', 'sensitive')
 
 
 class PlaceFieldNestedSerializer(serializers.ModelSerializer):
