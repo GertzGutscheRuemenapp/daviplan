@@ -348,12 +348,12 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
 
         with ProtectedProcessManager(user=request.user,
                                      scope=ProcessScope.AREAS) as ppm:
-            if not run_sync:
-                ppm.run_async(self._pull_areas, area_level, project_area,
-                              truncate=truncate, simplify=simplify)
-            else:
-                self._pull_areas(area_level, project_area,
-                                 truncate=truncate, simplify=simplify)
+            try:
+                ppm.run(self._pull_areas, area_level, project_area,
+                        truncate=truncate, simplify=simplify, sync=run_sync)
+            except Exception as e:
+                return Response({'message': str(e)},
+                                status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({'message': f'Abruf der Gebiete erfolgreich gestartet'},
                         status.HTTP_202_ACCEPTED)
 
@@ -489,11 +489,12 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
 
         with ProtectedProcessManager(user=request.user,
                                      scope=ProcessScope.AREAS) as ppm:
-            if not run_sync:
-                ppm.run_async(self._upload_shapefile, area_level, fp.name,
-                              project_area)
-            else:
-                self._upload_shapefile(area_level, fp.name, project_area)
+            try:
+                ppm.run(self._upload_shapefile, area_level, fp.name,
+                        project_area, sync=run_sync)
+            except Exception as e:
+                return Response({'message': str(e)},
+                                status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({'message': 'Hochladen der Gebiete gestartet'},
                         status=status.HTTP_202_ACCEPTED)
 
@@ -543,7 +544,7 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
             'Sie, ob es sich um eine korrektes Shapefile bzw. Geopackage '
             'handelt.'
             logger.error(msg)
-            return
+            raise Exception(msg)
             #raise e
         areas = Area.objects.filter(area_level=area_level).order_by('id')
         for i, area in enumerate(areas):

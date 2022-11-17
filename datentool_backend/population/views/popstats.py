@@ -72,12 +72,12 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
 
         with ProtectedProcessManager(user=request.user,
                                      scope=ProcessScope.POPULATION) as ppm:
-            if not run_sync:
-                ppm.run_async(self._pull_regionalstatistik, area_level,
-                              drop_constraints=drop_constraints)
-            else:
-                self._pull_regionalstatistik(area_level,
-                                             drop_constraints=drop_constraints)
+            try:
+                ppm.run(self._pull_regionalstatistik, area_level,
+                        drop_constraints=drop_constraints, sync=run_sync)
+            except Exception as e:
+                return Response({'message': str(e)},
+                                status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({
             'message': f'Abruf der Bevölkerungsstatistiken gestartet'
@@ -109,10 +109,10 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
             df_migration = api.query_migration(ags=ags)
         except PermissionDenied as e:
             logger.error(str(e))
-            return
+            raise Exception(str(e))
         except Exception as e:
             logger.error(str(e))
-            return
+            raise Exception(str(e))
 
         years = df_births['year'].unique()
         years.sort()

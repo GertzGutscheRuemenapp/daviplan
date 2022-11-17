@@ -97,7 +97,7 @@ class ProtectedProcessManager:
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         if not self._async_running:
-            self.finish(None, emit_log=False)
+            self.finish(None)
 
     def finish(self, task):
         state = self.get_state(self.scope, create=True)
@@ -115,6 +115,12 @@ class ProtectedProcessManager:
                 self.logger.error(f'{status_msg} fehlgeschlagen.',
                                   extra={'status': {'success': False,
                                                     'finished': True}})
+
+    def run(self, func, *args, sync=False, **kwargs):
+        if sync:
+            func(*args, **kwargs)
+        else:
+            self.run_async(func, *args, **kwargs)
 
     def run_async(self, func, *args, **kwargs):
         self._async_func = func
