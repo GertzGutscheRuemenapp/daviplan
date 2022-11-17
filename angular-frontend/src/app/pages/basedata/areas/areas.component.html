@@ -12,7 +12,7 @@
   <p>Wenn Sie mehrere Gebietseinteilungen auswählen oder selbst definieren, können Sie sich später die Ergebnisse von Auswertungen für jeden dieser Gebietseinteilungen (z.B. Gemeinden, Verwaltungsgemeinschaften und Kreise) auswerten lassen.</p>
   <p>Wenn Sie mehrere Gebietseinteilungen auswählen oder selbst definieren, müssen Sie festlegen, welche davon die Grundlage für die Erfassung der Einwohnerdaten (Vergangenheit und Prognose) im nachfolgenden Schritt „Bevölkerung“ sein soll.</p>
 </app-header-card>
-<app-status-card *ngIf="!projectArea" [showSpinner]="false"
+<app-status-card *ngIf="!(isLoading$ | async) && !projectArea" [showSpinner]="false"
                  infoText="Im Bereich „Administration“ > „Basisdefinitionen“ muss ein Planungsraum definiert werden, bevor die Gebietseinteilungen bearbeitet werden können.">
   Fehler: Es ist kein Planungsraum definiert!
 </app-status-card>

@@ -15,6 +15,7 @@ from django.db import transaction
 from django.core.exceptions import PermissionDenied
 from rest_framework.response import Response
 
+from datentool_backend.utils.crypto import decrypt
 from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, HasAdminAccess, CanEditBasedata)
@@ -285,6 +286,12 @@ class PopulationViewSet(viewsets.ModelViewSet):
         settings = SiteSetting.load()
         username = settings.regionalstatistik_user or None
         password = settings.regionalstatistik_password or None
+        if (password):
+            try:
+                password = decrypt(password)
+            except (ValueError, TypeError):
+                password = None
+
         api = Regionalstatistik(start_year=min_max_years['year__min'],
                                 end_year=min_max_years['year__max'],
                                 username=username,

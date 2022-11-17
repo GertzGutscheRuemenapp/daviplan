@@ -91,6 +91,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
     if (!this.selectedInfrastructure) return;
     this.placeFields = this.selectedInfrastructure.placeFields?.filter(f => !f.isPreset) || [];
     this.editFields = JSON.parse(JSON.stringify(this.placeFields));
+    this.editFields.forEach(f => f.removed = false);
     this.isLoading$.next(true);
     this.restService.getPlaces( { infrastructure: this.selectedInfrastructure, reset: reset }).subscribe(places => {
       this.selectedInfrastructure!.placesCount = places.length;
@@ -255,6 +256,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       this.fieldRemoved = false;
       this.editErrors = undefined;
       this.editFields = JSON.parse(JSON.stringify(this.placeFields || []));
+      this.editFields.forEach(f => f.removed = false);
     })
     this.editAttributesCard.dialogConfirmed.subscribe((ok)=> {
       const removeFields = this.editFields.filter(f => f.removed && !f.new);
@@ -283,7 +285,8 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
           return;
         }
         _this.isLoading$.next(true);
-        const body = { place_fields: _this.editFields.filter(f => !f.removed) }
+        // all fields are being sent to API, fields not in body will autmatically be removed
+        const body = { place_fields: _this.editFields.filter(f => !f.removed) };
         _this.http.patch<Infrastructure>(`${_this.rest.URLS.infrastructures}${_this.selectedInfrastructure!.id}/`, body).subscribe(infrastructure => {
           Object.assign(_this.selectedInfrastructure!, infrastructure);
           _this.isLoading$.next(false);
@@ -299,9 +302,9 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
 
   addField(): void {
     this.editFields?.push({
-      name: '', unit: '',// sensitive: false,
+      name: '', label: '', unit: '',// sensitive: false,
       fieldType: (this.fieldTypes.find(ft => ft.ftype == 'NUM') || this.fieldTypes[0]).id,
-      new: true
+      new: true, removed: false
     })
   }
 
@@ -319,9 +322,6 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
           "<p>Klassifikationen erleichtern zum einen eine strukturierte Dateneingabe. Zum anderen können Sie in daviplan später als Grundlage für Sortier- und Filterfunktionen verwendet werden.</p>" +
           "<p>Klicken Sie auf die Schaltfläche „Hinzufügen“ unter der linken Liste „Klassifikationen“, um eine Klassifikation hinzuzufügen. Klicken Sie anschließen auf die Schaltfläche „Hinzufügen“ unter der rechten Liste „Klassen“, um dieser Klassifikation einzelne Klassen zuzufügen.</p>" +
           "<p>Klicken Sie auf „OK“, wenn Sie fertig sind. Achtung: Dieser Eingabebereich hat keinen Entwurfsmodus mit “Abbrechen” und “Speichern”. Alle Eintragungen und Änderungen an den Klassifikationen und Klassen werden daher sofort in die Datenbank übernommen. </p>"
-
-
-
       }
     });
   }
