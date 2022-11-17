@@ -304,6 +304,7 @@ export interface PlaceField {
   id?: number,
   fieldType: number
   name: string,
+  label: string,
   unit: string,
   sensitive?: boolean,
   isPreset?: boolean

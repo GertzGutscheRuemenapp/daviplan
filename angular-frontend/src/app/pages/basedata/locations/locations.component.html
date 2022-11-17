@@ -165,11 +165,15 @@
     </mat-error>
   </div>
   <p>Neben Name, Adresse und Kapazitäten für die Leistungen sollen für jeden Standort folgende Eigenschaften erfasst werden. Dabei können optional Klassifikationen verwendet werden (siehe Hilfetext).</p>
-  <table id="place-attr-table">
-    <tr *ngIf="editFields.length">
-      <th>Bezeichnung Standorteigenschaft</th>
+  <table id="place-attr-table" *ngIf="(editFields| arrayFilter:'removed': false).length">
+    <tr><th>
+      Standorteigenschaft
+    </th></tr>
+    <tr>
+      <th>Kurzname (für Vorlage)</th>
+      <th>Anzeigename</th>
       <th>Attributtyp / Klassifikation</th>
-      <th>Einheit</th>
+      <th style="text-align: center;">Einheit</th>
 <!--      <th style="width: 1%; text-align: center;">
         sensible Information
       </th>-->
@@ -177,7 +181,12 @@
     </tr>
     <ng-container *ngFor="let field of editFields">
       <tr *ngIf="!field.removed">
-        <td class="not-first-child"><input [(ngModel)]="field.name" (change)="field.edited = true;"></td>
+        <td class="not-first-child">
+          <input [(ngModel)]="field.name" (change)="field.edited = true;">
+        </td>
+        <td>
+          <input [(ngModel)]="field.label" (change)="field.edited = true;">
+        </td>
         <td>
           <mat-form-field class="small" appearance="outline" style="margin-right: 10px;">
             <mat-select [disabled]="!field.new"
@@ -200,10 +209,11 @@
             </mat-select>
           </mat-form-field>
         </td>
-        <td>
-          <ng-container *ngIf="getFieldType(field.fieldType).ftype === 'NUM'">
+        <td style="text-align: center;">
+          <ng-container *ngIf="getFieldType(field.fieldType).ftype === 'NUM' else nounit">
             <input [(ngModel)]="field.unit" (change)="field.edited = true;">
           </ng-container>
+          <ng-template #nounit>-</ng-template>
         </td>
 <!--        <td style="text-align: center;">
           <mat-checkbox color="primary"
@@ -221,27 +231,21 @@
         </td>
       </tr>
     </ng-container>
-    <tr>
-      <td>
-        <button mat-button color="primary"
-                class="mat-button-dv"
-                (click)="addField()"
-                style="margin-top: 10px"
-                title="Standorteigenschaft hinzufügen" i18n>
-          <mat-icon>add</mat-icon>Standorteigenschaft hinzufügen
-        </button>
-      </td>
-      <td>
-        <button mat-button color="primary"
-                class="mat-button-dv"
-                (click)="editClassifications()"
-                style="margin-top: 10px"
-                title="Klassifikationen (Standorteigenschaften) bearbeiten" i18n>
-          <mat-icon>edit</mat-icon>Klassifikationen
-        </button>
-      </td>
-    </tr>
   </table>
+  <button mat-button color="primary"
+          class="mat-button-dv"
+          (click)="addField()"
+          style="margin: 10px 10px 0 0"
+          title="Standorteigenschaft hinzufügen" i18n>
+    <mat-icon>add</mat-icon>Standorteigenschaft hinzufügen
+  </button>
+  <button mat-button color="primary"
+          class="mat-button-dv"
+          (click)="editClassifications()"
+          style="margin-top: 10px"
+          title="Klassifikationen (Standorteigenschaften) bearbeiten" i18n>
+    <mat-icon>edit</mat-icon>Klassifikationen
+  </button>
 </ng-template>
 
 <ng-template #editClassificationsTemplate>

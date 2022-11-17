@@ -79,7 +79,7 @@
       <ng-container *ngIf="activeInfrastructure?.placeFields && activeInfrastructure!.placeFields!.length > 0">
         <table>
           <tr *ngFor="let field of activeInfrastructure?.placeFields">
-            <td style="padding-right: 10px;">{{field.name}}</td>
+            <td style="padding-right: 10px;">{{field.label || field.name}}</td>
             <td><i>{{place.attributes[field.name] || '-'}}</i></td>
           </tr>
         </table>
@@ -140,7 +140,7 @@
     <div *ngFor="let field of activeInfrastructure?.placeFields">
       <ng-container *ngVar="getFieldType(field) as fieldType">
         <mat-form-field appearance="outline" class="full">
-          <mat-label i18n>{{field.name}}</mat-label>
+          <mat-label i18n>{{field.label || field.name}}</mat-label>
           <input matInput *ngIf="fieldType.ftype === 'STR'" [formControlName]="field.name">
           <input matInput *ngIf="fieldType.ftype === 'NUM'" [formControlName]="field.name" type="number">
           <mat-select *ngIf="fieldType.ftype === 'CLA'" [formControlName]="field.name">

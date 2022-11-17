@@ -87,7 +87,7 @@ class ExcelTemplateMixin:
             logger.info('Lese Excel-Datei')
             df = serializer.read_excel_file(request, **kwargs)
         except (ColumnError, AssertionError) as e:
-            msg = f'{e} Bitte überprüfen Sie das Template.'
+            msg = str(e)# f'{e} Bitte überprüfen Sie das Template.'
             logger.error(msg)
             return Response({'Fehler': msg},
                             status=status.HTTP_406_NOT_ACCEPTABLE)
