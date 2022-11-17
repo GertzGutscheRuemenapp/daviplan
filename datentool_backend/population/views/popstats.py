@@ -92,7 +92,10 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
         username = settings.regionalstatistik_user or None
         password = settings.regionalstatistik_password or None
         if (password):
-            password = decrypt(password)
+            try:
+                password = decrypt(password)
+            except (ValueError, TypeError):
+                password = None
 
         api = Regionalstatistik(start_year=min_max_years['year__min'],
                                 end_year=min_max_years['year__max'],
