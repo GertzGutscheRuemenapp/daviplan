@@ -114,7 +114,7 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
   }
 
   onMessage(log: LogEntry): void {
-    if (log?.status?.success) {
+    if (log?.status?.finished) {
       this.isProcessing = false;
       this.settings.fetchBaseDataSettings();
       this.restCache.getRoutingStatistics({ reset: true }).subscribe(stats => this.statistics = stats)

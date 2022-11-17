@@ -230,7 +230,7 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
   }
 
   onMessage(log: LogEntry): void {
-    if (log?.status?.success) {
+    if (log?.status?.finished) {
       this.isProcessing = false;
       this.restService.reset();
       this.fetchData();

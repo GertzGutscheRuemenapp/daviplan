@@ -265,12 +265,12 @@ class PopulationViewSet(viewsets.ModelViewSet):
 
         with ProtectedProcessManager(user=request.user,
                                      scope=ProcessScope.POPULATION) as ppm:
-            if not run_sync:
-                ppm.run_async(self._pull_regionalstatistik, area_level,
-                              drop_constraints=drop_constraints)
-            else:
-                self._pull_regionalstatistik(area_level,
-                                             drop_constraints=drop_constraints)
+            try:
+                ppm.run(self._pull_regionalstatistik, area_level,
+                        drop_constraints=drop_constraints, sync=run_sync)
+            except Exception as e:
+                return Response({'message': str(e)},
+                                status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({
             'message': f'Abruf der Bevölkerungsdaten gestartet'
@@ -309,10 +309,10 @@ class PopulationViewSet(viewsets.ModelViewSet):
             'werden müssen. Falls dort bereits ein Konto eingetragen ist, '
             'überprüfen Sie bitte die Gültigkeit der Zugangsdaten.')
             logger.error(msg)
-            return
+            raise Exception(msg)
         except Exception as e:
             logger.error(str(e))
-            return
+            raise Exception(str(e))
         df_population = pd.concat(frames)
         years = df_population['year'].unique()
         years.sort()

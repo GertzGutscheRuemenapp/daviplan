@@ -102,19 +102,19 @@ class ExcelTemplateMixin:
             if hasattr(serializer, 'post_processing'):
                 self.write_template_df(df, queryset, logger,
                                        drop_constraints=drop_constraints)
-                if not run_sync:
-                    ppm.run_async(serializer.post_processing, df,
-                                  drop_constraints=drop_constraints)
-                else:
-                    serializer.post_processing(
-                        df, drop_constraints=drop_constraints)
+                try:
+                    ppm.run(serializer.post_processing, df,
+                            drop_constraints=drop_constraints, sync=run_sync)
+                except Exception as e:
+                    return Response({'message': str(e)},
+                                    status.HTTP_500_INTERNAL_SERVER_ERROR)
             else:
-                if not run_sync:
-                    ppm.run_async(self.write_template_df, df, queryset, logger,
-                                  drop_constraints=drop_constraints)
-                else:
-                    self.write_template_df(df, queryset, logger,
-                                           drop_constraints=drop_constraints)
+                try:
+                    ppm.run(self.write_template_df, df, queryset, logger,
+                            drop_constraints=drop_constraints, sync=run_sync)
+                except Exception as e:
+                    return Response({'message': str(e)},
+                                    status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({'message': 'Upload gestartet'},
                         status=status.HTTP_202_ACCEPTED)
@@ -144,6 +144,7 @@ class ExcelTemplateMixin:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 msg = repr(traceback.format_tb(exc_traceback))
                 logger.error(msg)
+                raise Exception(msg)
 
             finally:
                 # recreate indices

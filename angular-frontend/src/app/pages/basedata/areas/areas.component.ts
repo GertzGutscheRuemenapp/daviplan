@@ -418,10 +418,10 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   }
 
   onMessage(log: LogEntry): void {
-    if (log?.status?.success) {
+    if (log?.status?.finished) {
       this.isProcessing = false;
       this.fetchAreaLevels().subscribe(res => {
-        if (this.activeLevel)  this.selectAreaLevel(this.activeLevel);
+        if (this.activeLevel) this.selectAreaLevel(this.activeLevel);
       });
     }
   }

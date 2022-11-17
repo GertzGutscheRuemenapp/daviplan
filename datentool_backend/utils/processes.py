@@ -97,14 +97,30 @@ class ProtectedProcessManager:
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         if not self._async_running:
-            self.finish()
+            self.finish(None)
 
-    def finish(self, *args):
+    def finish(self, task):
         state = self.get_state(self.scope, create=True)
         state.is_running = False
         state.save()
         self._async_running = False
-        self.logger.info('', extra={'status': {'success': True}})
+        if task:
+            status_msg = f'Berechnung im Bereich "{self.scope.label}"' \
+                if self.scope else 'Berechnung'
+            if task.success:
+                self.logger.info(f'{status_msg} erfolgreich abgeschlossen.',
+                                 extra={'status': {'success': True,
+                                                   'finished': True}})
+            else:
+                self.logger.error(f'{status_msg} fehlgeschlagen.',
+                                  extra={'status': {'success': False,
+                                                    'finished': True}})
+
+    def run(self, func, *args, sync=False, **kwargs):
+        if sync:
+            func(*args, **kwargs)
+        else:
+            self.run_async(func, *args, **kwargs)
 
     def run_async(self, func, *args, **kwargs):
         self._async_func = func

@@ -2,7 +2,8 @@
 <div #log id="log" [style.height]="height">
   <ng-container *ngFor="let entry of entries" >
     <div class="log-row"
-         [style.color]="(entry.level === 'ERROR')? 'red': 'black'">
+         [style.color]="(entry.level === 'ERROR' || entry.status?.success === false)? 'red': (entry.status?.success)? 'green': 'black'"
+         [style.font-weight]="entry.status?.finished? 'bold': ''">
       <ng-container *ngIf="entry.level === 'DEBUG'">DEBUG </ng-container>
       <i>{{entry.timestamp}}</i> - {{entry.message}}
     </div>

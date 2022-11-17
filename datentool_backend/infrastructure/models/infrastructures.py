@@ -47,6 +47,7 @@ class InfrastructureAccess(models.Model):
 class PlaceField(DatentoolModelMixin, models.Model):
     """a field of a Place of this infrastructure"""
     name = models.TextField()
+    label = models.TextField(blank=True, default='')
     infrastructure = models.ForeignKey(Infrastructure, on_delete=models.CASCADE)
     field_type = models.ForeignKey(FieldType, on_delete=PROTECT_CASCADE)
     is_label = models.BooleanField(null=True, default=None)
