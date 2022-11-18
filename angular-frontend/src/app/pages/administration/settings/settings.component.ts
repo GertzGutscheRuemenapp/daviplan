@@ -251,6 +251,20 @@ export class SettingsComponent implements AfterViewInit {
     })
   }
 
+  removeRegstatCredentials(): void {
+    let attributes: any = {
+      regionalstatistikUser: '',
+      regionalstatistikPassword: ''
+    }
+    this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, attributes
+    ).subscribe(settings => {
+      this.settings = Object.assign({}, settings);
+      // update global settings
+      this.settingsService.refresh();
+    },(error) => {
+    });
+  }
+
   setupBKGDialog(): void {
     this.BKGForm = this.formBuilder.group({
       bkgPassword: ''
@@ -280,5 +294,18 @@ export class SettingsComponent implements AfterViewInit {
         });
       }
     })
+  }
+
+  removeBKGCredentials(): void {
+    let attributes: any = {
+      bkgPassword: '',
+    }
+    this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, attributes
+    ).subscribe(settings => {
+      this.settings = Object.assign({}, settings);
+      // update global settings
+      this.settingsService.refresh();
+    },(error) => {
+    });
   }
 }

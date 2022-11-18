@@ -60,6 +60,14 @@
           <mat-icon>edit</mat-icon>
         </button>
       </div>
+      <div>
+        <button mat-button class="mat-button-dv"
+                title="Zugangsdaten für den BKG-Geokodierungsdienst entfernen"
+                [disabled]="!settings?.bkgPasswordIsSet? true : null"
+                color="primary" (click)="removeBKGCredentials()">
+          <mat-icon>close</mat-icon>&nbsp; entfernen
+        </button>
+      </div>
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="400px">
@@ -79,11 +87,6 @@
           <mat-icon>edit</mat-icon>
         </button>
       </div>
-      <!--      <button mat-button class="mat-button-dv"
-                    [disabled]="(!settings?.contactMail) ? true : null"
-                    color="primary" (click)="removeEmail()" i18n>
-              <mat-icon>close</mat-icon>&nbsp; E-Mail entfernen
-            </button>-->
     </app-input-card>
     <app-input-card #logoEdit
                     [title]="'Eigenes Logo (optional)'"
@@ -122,6 +125,14 @@
         <div class="fill-space"></div>
         <button mat-icon-button color="primary">
           <mat-icon>edit</mat-icon>
+        </button>
+      </div>
+      <div>
+        <button mat-button class="mat-button-dv"
+                title="Zugangsdaten für die Regionalstatistik entfernen"
+                [disabled]="!settings?.regionalstatistikUser? true : null"
+                color="primary" (click)="removeRegstatCredentials()">
+          <mat-icon>close</mat-icon>&nbsp; entfernen
         </button>
       </div>
     </app-input-card>
@@ -216,7 +227,7 @@
       <mat-label i18n>Nutzeridentifikator (UUID)</mat-label>
       <input matInput formControlName="bkgPassword" autocomplete="bkg-uuid"
              [type]="showBKGPassword ? 'text' : 'password'"
-             placeholder="·········">
+             placeholder="·········" required>
       <fa-icon matSuffix [icon]="showBKGPassword? faEyeSlash: faEye" (click)="showBKGPassword = !showBKGPassword"></fa-icon>
     </mat-form-field>
   </form>
