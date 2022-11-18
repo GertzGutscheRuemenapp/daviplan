@@ -164,6 +164,8 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
             strokeColor: 'orange'
           },
           tooltipField: 'label',
+          showLabel: true,
+          labelField: 'label',
           mouseOver: {
             enabled: true,
             style: {
@@ -414,7 +416,14 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     if (log?.status?.finished) {
       this.isProcessing = false;
       this.fetchAreaLevels().subscribe(res => {
-        if (this.activeLevel) this.selectAreaLevel(this.activeLevel);
+        if (this.activeLevel) {
+          // get level from freshly fetched levels cause fields might have changed
+          const level = this.customAreaLevels.concat(this.presetLevels).find(l => l.id === this.activeLevel!.id);
+          if (level)
+            this.selectAreaLevel(level);
+          else
+            this.activeLevel = undefined;
+        }
       });
     }
   }
