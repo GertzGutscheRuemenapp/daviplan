@@ -38,9 +38,11 @@ export function showMessage(message: string, dialog: MatDialog) {
 }
 
 export function showAPIError(error: any, dialog: MatDialog) {
-  const title = `Fehler ${error.status}`;
+  const title = `Fehler ${error.status || ''}`;
   let message = '';
-  if (error.error) {
+  if (error.status === 0)
+    message = 'Server antwortet nicht';
+  else if (error.error) {
     // usually the backend responds with a message (wrapped in error attribute)
     if (error.error.message)
       // style injection via innerHTML is not trusted, using class to color it red instead

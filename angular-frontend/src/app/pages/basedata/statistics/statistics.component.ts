@@ -9,7 +9,7 @@ import {
   Statistic,
   StatisticsData,
 } from "../../../rest-interfaces";
-import { sortBy } from "../../../helpers/utils";
+import { showAPIError, sortBy } from "../../../helpers/utils";
 import { SettingsService } from "../../../settings.service";
 import { BehaviorSubject, Subscription } from "rxjs";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
@@ -225,6 +225,7 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
       this.http.post(url, {}).subscribe(() => {
         this.isProcessing = true;
         }, error => {
+        showAPIError(error, this.dialog);
       })
     })
   }
@@ -259,7 +260,7 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
           this.year = undefined;
           this.onYearChange();
         },(error) => {
-          console.log('there was an error sending the query', error);
+          showAPIError(error, this.dialog);
         });
       }
     });

@@ -42,7 +42,6 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   areas: Area[] = [];
   isLoading$ = new BehaviorSubject<boolean>(false);
   orderIsChanging$ = new BehaviorSubject<boolean>(false);
-  Object = Object;
   dataColumns: string[] = [];
   dataRows: any[][] = [];
   file?: File;

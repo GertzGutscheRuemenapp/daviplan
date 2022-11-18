@@ -169,11 +169,6 @@
 
 <ng-template #demandTypeEdit>
   <form [formGroup]="demandTypeForm" style="padding: 10px 0;">
-    <div *ngIf="demandTypeForm.errors">
-      <mat-error *ngFor="let error of demandTypeForm.errors | keyvalue" class="alert">
-        {{ error.key }}: {{ error.value }}
-      </mat-error>
-    </div>
     <mat-radio-group formControlName="demandType">
       <mat-radio-button *ngFor="let item of demandTypes | keyvalue" [value]="item.key">
         {{item.value[0]}} {{item.value[1]}}
@@ -184,11 +179,6 @@
 
 <ng-template #propertiesEdit>
   <form [formGroup]="propertiesForm" style="padding: 10px 0;">
-    <div *ngIf="propertiesForm.errors">
-      <mat-error *ngFor="let error of propertiesForm.errors | keyvalue" class="alert">
-        {{ error.key }}: {{ error.value }}
-      </mat-error>
-    </div>
     <div fxLayout="column">
       <mat-form-field appearance="fill">
         <mat-label i18n>Name</mat-label>

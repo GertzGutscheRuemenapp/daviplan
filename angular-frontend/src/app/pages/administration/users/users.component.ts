@@ -9,6 +9,7 @@ import { RestAPI } from "../../../rest-api";
 import { BehaviorSubject, Observable } from "rxjs";
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { Infrastructure, InfrastructureAccess, User } from "../../../rest-interfaces";
+import { showAPIError } from "../../../helpers/utils";
 
 @Component({
   selector: 'app-users',
@@ -34,8 +35,6 @@ export class UsersComponent implements AfterViewInit  {
   changePassword: boolean = false;
   showAccountPassword: boolean = false;
   showNewUserPassword: boolean = false;
-  // workaround to have access to object iteration in template
-  Object = Object;
   isLoading$ = new BehaviorSubject<boolean>(false);
 
   constructor(private http: HttpClient, private dialog: MatDialog, private formBuilder: FormBuilder,
@@ -67,7 +66,6 @@ export class UsersComponent implements AfterViewInit  {
   setupAccountCard(){
     if (!this.accountCard) return;
     this.accountCard.dialogConfirmed.subscribe((ok)=>{
-      this.accountForm.setErrors(null);
       // display errors for all fields even if not touched
       this.accountForm.markAllAsTouched();
       if (this.accountForm.invalid) return;
@@ -82,7 +80,7 @@ export class UsersComponent implements AfterViewInit  {
       if (this.accountForm.value.changePass){
         let pass = this.accountForm.value.password
         if (pass != this.accountForm.value.confirmPass){
-          this.accountForm.controls['confirmPass'].setErrors({'notMatching': true});
+          showAPIError({message: 'Die Passwörter stimmen nicht überein'}, this.dialog);
           return;
         }
         attributes.password = pass;
@@ -96,8 +94,7 @@ export class UsersComponent implements AfterViewInit  {
         this.selectedUser!.lastName = user.lastName;
         this.accountCard?.closeDialog(true);
       },(error) => {
-        // ToDo: set specific errors to fields
-        this.accountForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         this.accountCard?.setLoading(false);
       });
     })
@@ -118,7 +115,6 @@ export class UsersComponent implements AfterViewInit  {
   setupPermissionCard() {
     if (!this.permissionCard) return;
     this.permissionCard.dialogConfirmed.subscribe((ok)=>{
-      this.permissionForm.setErrors(null);
       let profile = this.permissionForm.value.profile;
       let attributes = {
         profile: {
@@ -133,7 +129,7 @@ export class UsersComponent implements AfterViewInit  {
         this.selectedUser!.profile = user.profile;
         this.permissionCard?.closeDialog(true);
       },(error) => {
-        this.permissionForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         this.permissionCard?.setLoading(false);
       });
     })
@@ -162,7 +158,6 @@ export class UsersComponent implements AfterViewInit  {
       this.accessForm = this.formBuilder.group(accessControl);
     })
     this.accessCard.dialogConfirmed.subscribe((ok)=>{
-      this.accessForm.setErrors(null);
       this.accessCard?.setLoading(true);
       let access: any[] = [];
       Object.keys(this.accessForm.controls).forEach(infrastructureId => {
@@ -178,8 +173,8 @@ export class UsersComponent implements AfterViewInit  {
         this.selectedUser!.access = user.access;
         this.accessCard?.closeDialog(true);
       },(error) => {
-         this.accessForm.setErrors(error.error);
-         this.accessCard?.setLoading(false);
+        showAPIError(error, this.dialog);
+        this.accessCard?.setLoading(false);
       });
     })
   }
@@ -192,8 +187,8 @@ export class UsersComponent implements AfterViewInit  {
       password: new FormControl({value: '', disabled: !this.changePassword}),
       confirmPass: new FormControl({value: '', disabled: !this.changePassword})
     });
-    let userControl: any = this.accountForm.get('user');
-    userControl.get('email').setValidators([Validators.email])
+    // let userControl: any = this.accountForm.get('user');
+    // userControl.get('email').setValidators([Validators.email])
     this.permissionForm = this.formBuilder.group({
       profile: this.formBuilder.group(this.selectedUser.profile)
     });
@@ -227,14 +222,13 @@ export class UsersComponent implements AfterViewInit  {
       this.showNewUserPassword = false;
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
-      this.createUserForm.setErrors(null);
       // display errors for all fields even if not touched
       this.createUserForm.markAllAsTouched();
       if (this.createUserForm.invalid) return;
       let username = this.createUserForm.value.username;
       let password = this.createUserForm.value.password;
       if (password != this.createUserForm.value.confirmPass){
-        this.createUserForm.controls['confirmPass'].setErrors({'notMatching': true});
+        showAPIError({message: 'Die Passwörter stimmen nicht überein'}, this.dialog);
         return;
       }
       dialogRef.componentInstance.isLoading$.next(true);
@@ -247,7 +241,7 @@ export class UsersComponent implements AfterViewInit  {
         this.users.push(user);
         dialogRef.close();
       },(error) => {
-        this.createUserForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);
       });
     });
@@ -273,7 +267,7 @@ export class UsersComponent implements AfterViewInit  {
           }
           this.selectedUser = undefined;
         },(error) => {
-          console.log('there was an error sending the query', error);
+          showAPIError(error, this.dialog);
         });
       }
     });

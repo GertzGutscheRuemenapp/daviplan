@@ -16,7 +16,6 @@ export class LegendComponent implements AfterViewInit {
   @ViewChild('legendImage') legendImageTemplate?: TemplateRef<any>;
   legendImageDialogs: Record<number | string, MatDialogRef<any>> = {};
   mapControl?: MapControl;
-  Object = Object;
 
   constructor(public dialog: MatDialog, private mapService: MapService, private cdRef: ChangeDetectorRef) {
   }

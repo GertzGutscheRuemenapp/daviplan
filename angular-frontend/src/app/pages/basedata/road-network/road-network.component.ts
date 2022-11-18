@@ -7,6 +7,7 @@ import { BasedataSettings, LogEntry, ModeStatistics, ModeVariant, TransportMode 
 import { RestCacheService } from "../../../rest-cache.service";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { BehaviorSubject, Subscription } from "rxjs";
+import { showAPIError } from "../../../helpers/utils";
 
 @Component({
   selector: 'app-road-network',
@@ -61,6 +62,7 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
         this.http.post<any>(`${this.rest.URLS.networks}pull_base_network/`, {}).subscribe(() => {
           this.isProcessing = true;
         }, (error) => {
+          showAPIError(error, this.dialog);
         })
       }
     })
@@ -82,6 +84,7 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
         this.http.post<any>(`${this.rest.URLS.networks}build_project_network/`, {}).subscribe(() => {
           this.isProcessing = true;
         },(error) => {
+          showAPIError(error, this.dialog);
         })
     })
   }
@@ -107,7 +110,7 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
         this.isProcessing = true;
         dialogRef.close();
       }, (error) => {
-        dialogRef.componentInstance.setErrors(error.error);
+        showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);
       })
     });

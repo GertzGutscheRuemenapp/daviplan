@@ -281,11 +281,6 @@
 
 <ng-template #propertiesEdit>
   <form [formGroup]="propertiesForm" style="padding: 10px 0;">
-    <div *ngIf="propertiesForm.errors">
-      <mat-error *ngFor="let error of propertiesForm.errors | keyvalue" class="alert">
-        {{ error.key }}: {{ error.value }}
-      </mat-error>
-    </div>
     <div fxLayout="column">
       <mat-form-field appearance="fill">
         <mat-label i18n>Name</mat-label>
@@ -321,11 +316,6 @@
 </ng-template>
 
 <ng-template #fileUploadTemplate>
-  <div *ngIf="uploadErrors">
-    <mat-error *ngFor="let error of uploadErrors | keyvalue" class="alert">
-      {{ error.key }}: {{ error.value }}
-    </mat-error>
-  </div>
   <p>
     Befülltes Excel-Template mit Bevölkerungsdaten für die Prognose <b>"{{activePrognosis?.name}}"</b> hochladen
   </p>
