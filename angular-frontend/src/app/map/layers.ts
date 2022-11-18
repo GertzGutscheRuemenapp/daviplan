@@ -284,6 +284,7 @@ export class VectorLayer extends MapLayer {
     this.tooltipField = options?.tooltipField;
     this.labelField = options?.labelField;
     this.style = options?.style;
+    this.opacity = options?.opacity;
     this.mouseOver = options?.mouseOver?.enabled;
     this.mouseOverStyle = options?.mouseOver?.style;
     this.selectable = options?.select?.enabled;

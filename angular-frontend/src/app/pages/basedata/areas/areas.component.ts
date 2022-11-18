@@ -25,7 +25,6 @@ import { SettingsService } from "../../../settings.service";
 })
 export class AreasComponent implements AfterViewInit, OnDestroy {
   @ViewChild('editArealevelCard') editArealevelCard!: InputCardComponent;
-  @ViewChild('enableLayerCheck') enableLayerCheck?: MatCheckbox;
   @ViewChild('createAreaLevel') createLevelTemplate?: TemplateRef<any>;
   @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
   @ViewChild('pullWfsTemplate') pullWfsTemplate?: TemplateRef<any>;
@@ -118,12 +117,10 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     this.editArealevelCard.dialogConfirmed.subscribe((ok)=>{
       this.editLevelForm.markAllAsTouched();
       if (this.editLevelForm.invalid) return;
-      let attributes: any = this.enableLayerCheck!.checked? {
+      let attributes: any =  {
         symbol: {
           strokeColor: this.colorSelection
         }
-      }: {
-        symbol: null
       }
       if (!this.activeLevel?.isPreset) {
         attributes['name'] = this.editLevelForm.value.name;
@@ -156,14 +153,16 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       {targetProjection: this.mapControl?.map?.mapProjection, reset: true}).subscribe(areas => {
         this.areas = areas;
         this.areaLayer = new VectorLayer(this.activeLevel!.name, {
-          description: '',
+          description: 'Gebiete der ausgewählten Gebietseinheit',
           order: 0,
-          opacity: 1,
+          opacity: 0.7,
           style: {
             fillColor: 'yellow',
             strokeColor: 'orange'
           },
           tooltipField: 'label',
+          showLabel: true,
+          labelField: 'label',
           mouseOver: {
             enabled: true,
             style: {
@@ -414,7 +413,14 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     if (log?.status?.finished) {
       this.isProcessing = false;
       this.fetchAreaLevels().subscribe(res => {
-        if (this.activeLevel) this.selectAreaLevel(this.activeLevel);
+        if (this.activeLevel) {
+          // get level from freshly fetched levels cause fields might have changed
+          const level = this.customAreaLevels.concat(this.presetLevels).find(l => l.id === this.activeLevel!.id);
+          if (level)
+            this.selectAreaLevel(level);
+          else
+            this.activeLevel = undefined;
+        }
       });
     }
   }
