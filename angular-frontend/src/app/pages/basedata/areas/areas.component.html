@@ -270,11 +270,6 @@
 <ng-template #propertiesEdit>
   <form [formGroup]="editLevelForm">
     <div style="min-height: 130px">
-      <div *ngIf="editLevelForm.errors">
-        <mat-error *ngFor="let error of Object.values(editLevelForm.errors)" class="alert">
-          {{ error }}
-        </mat-error>
-      </div>
       <mat-form-field appearance="fill" style="width: 100%">
         <mat-label i18n>Name</mat-label>
         <input matInput formControlName="name" required>
@@ -321,11 +316,6 @@
 
 <ng-template #createAreaLevel>
   <form [formGroup]="editLevelForm">
-    <div *ngIf="editLevelForm.errors">
-      <mat-error *ngFor="let error of Object.values(editLevelForm.errors)" class="alert">
-        {{ error }}
-      </mat-error>
-    </div>
     <div fxLayout="column">
       <mat-form-field appearance="fill" style="width: 100%">
         <mat-label i18n>Name</mat-label>
@@ -340,11 +330,6 @@
 </ng-template>
 
 <ng-template #fileUploadTemplate>
-  <div *ngIf="uploadErrors">
-    <mat-error *ngFor="let error of Object.values(uploadErrors)" class="alert">
-      {{ error }}
-    </mat-error>
-  </div>
   <p>
     Daten mit Gebieten für Gebietseinteilung "{{activeLevel?.name}}" hochladen
   </p>

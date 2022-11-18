@@ -12,7 +12,8 @@ interface DialogData {
   infoExpanded?: boolean,
   showConfirmButton?: boolean,
   showCloseButton?: boolean,
-  showAnimatedDots?: boolean
+  showAnimatedDots?: boolean,
+  centerContent?: boolean
 }
 
 @Component({
@@ -30,7 +31,9 @@ export class SimpleDialogComponent {
   }
 
   public static show(message: string, dialog: MatDialog,
-                     options?: { loading?: boolean, showConfirmButton?: boolean, showCloseButton?: boolean, disableClose?: boolean, width?: string, showAnimatedDots?: boolean }
+                     options?: { loading?: boolean, showConfirmButton?: boolean, showCloseButton?: boolean,
+                       disableClose?: boolean, width?: string, showAnimatedDots?: boolean, title?: string,
+                       centerContent?: boolean, icon?: string }
   ): MatDialogRef<SimpleDialogComponent> {
     const dialogRef = dialog.open(SimpleDialogComponent, {
       autoFocus: true,
@@ -38,10 +41,12 @@ export class SimpleDialogComponent {
       width: options?.width || '300px',
       disableClose: (options?.disableClose != undefined)? options?.disableClose: true,
       data: {
+        title: options?.title,
         message: message,
         showConfirmButton: options?.showConfirmButton,
         showCloseButton: options?.showCloseButton,
-        showAnimatedDots: options?.showAnimatedDots
+        showAnimatedDots: options?.showAnimatedDots,
+        centerContent: options?.centerContent
       }
     });
     if (options?.loading)
