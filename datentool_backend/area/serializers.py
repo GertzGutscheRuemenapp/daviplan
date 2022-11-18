@@ -2,23 +2,23 @@ from typing import Dict
 from rest_framework.exceptions import NotAcceptable
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
+from rest_framework.exceptions import ValidationError
 from datentool_backend.utils.geometry_fields import MultiPolygonGeometrySRIDField
 from datetime import date as dt_date
 from django.urls import reverse
 from django.db.models import Max, F, Func
+from django.db.models.functions import Cast, Coalesce
 
 from .models import (MapSymbol, LayerGroup, WMSLayer,
-                     Source, AreaLevel, Area,
+                     Source, AreaLevel, Area, TextField,
                      FieldType, FieldTypes, FClass,
                      AreaAttribute, AreaField,
                      )
 from datentool_backend.models import PopStatEntry
 
-
 area_level_id_serializer = serializers.PrimaryKeyRelatedField(
     queryset=AreaLevel.objects.all(),
     help_text='area_level_id',)
-
 
 
 class MapSymbolSerializer(serializers.ModelSerializer):
@@ -141,6 +141,27 @@ class AreaLevelSerializer(serializers.ModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
+
+        key_field = validated_data.pop('key_field', None)
+        # ToDo: validate uniqueness of column, return HTTPError otherwise
+        if key_field:
+            field, created = AreaField.objects.get_or_create(
+                area_level=instance, name=key_field)
+            attributes = (
+                AreaAttribute.objects.filter(field=field)
+                .select_related('field__field_type', 'class_value')
+                .annotate(_value=Coalesce(
+                    F('str_value'), Coalesce(Cast(F('num_value'), TextField()),
+                                             F('class_value__value')))))
+            unique = (attributes.values('_value').distinct().count() ==
+                      attributes.count())
+            if not unique:
+                raise ValidationError(f'Die Werte des Feldes "{key_field}" '
+                                      'sind nicht eindeutig!')
+            instance.areafield_set.update(is_key=None)
+            field.is_key = True
+            field.save()
+
         #  you are not allowed to change names of presets
         if (instance.is_preset):
             validated_data.pop('name', None)
@@ -153,21 +174,11 @@ class AreaLevelSerializer(serializers.ModelSerializer):
 
         label_field = validated_data.pop('label_field', None)
         if label_field:
-            # ToDo: does setting to None work this way?
             instance.areafield_set.update(is_label=None)
             # ToDo: field type
             field, created = AreaField.objects.get_or_create(
                 area_level=instance, name=label_field)
             field.is_label = True
-            field.save()
-
-        key_field = validated_data.pop('key_field', None)
-        # ToDo: validate uniqueness of column, return HTTPError otherwise
-        if key_field:
-            instance.areafield_set.update(is_key=None)
-            field, created = AreaField.objects.get_or_create(
-                area_level=instance, name=key_field)
-            field.is_key = True
             field.save()
 
         instance = super().update(instance, validated_data)
