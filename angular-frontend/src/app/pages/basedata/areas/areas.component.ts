@@ -182,7 +182,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       })
   }
 
-  onCreateArea(): void {
+  onCreateAreaLevel(): void {
     let dialogRef = this.dialog.open(ConfirmDialogComponent, {
       panelClass: 'absolute',
       width: '500px',
@@ -206,13 +206,14 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       let attributes = {
         name: this.editLevelForm.value.name,
         isPreset: false,
-        isActive: false,
+        isActive: true,
         order: 100 + this.customAreaLevels.length,
         source: { sourceType: 'FILE' }
       };
       this.http.post<AreaLevel>(this.rest.URLS.arealevels, attributes
       ).subscribe(level => {
         this.customAreaLevels.push(level);
+        this.selectAreaLevel(level);
         dialogRef.close();
       },error => {
         showAPIError(error, this.dialog);
