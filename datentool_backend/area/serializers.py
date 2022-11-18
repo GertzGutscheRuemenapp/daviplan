@@ -80,15 +80,15 @@ class AreaLevelSerializer(serializers.ModelSerializer):
     tile_url = serializers.SerializerMethodField(read_only=True)
     max_values = serializers.SerializerMethodField(read_only=True)
     area_fields = serializers.SerializerMethodField(read_only=True)
-    label_field = serializers.CharField(required=False)
-    key_field = serializers.CharField(required=False)
+    label_field = serializers.CharField(allow_null=True, required=False)
+    key_field = serializers.CharField(allow_null=True, required=False)
 
     class Meta:
         model = AreaLevel
         fields = ('id', 'name', 'order', 'source', 'symbol', 'is_active',
                   'is_preset', 'area_count', 'tile_url', 'label_field',
                   'max_values', 'is_statistic_level', 'is_default_pop_level',
-                  'is_pop_level', 'area_fields', 'label_field', 'key_field')
+                  'is_pop_level', 'area_fields', 'key_field')
         read_only_fields = ('is_preset', 'is_statistic_level',
                             'is_default_pop_level')
 
