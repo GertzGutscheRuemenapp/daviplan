@@ -104,10 +104,11 @@
     <div fxLayout="column" fxFlex="350px" [ngClass]="{'hidden': !selectedUser || selectedUser.isSuperuser}">
       <app-input-card #accessCard
                       [title]="'Sichtberechtigung des ausgewählten Kontos'"
+                      [disabled]="!infrastructures.length"
                       infoText="<p>Die Auswahlliste umfasst alle Infrastrukturbereiche, die im vorstehenden Menüpunkt „Infrastrukturbereiche“ definiert wurden.</p>
                       <p>Sie können dem ausgewählten Konto einen Sichtzugriff auf alle oder einzelne Infrastrukturbereiche gewähren, indem Sie auf „Editieren“ klicken. Hier können Sie auch festlegen, ob die betreffende Personen Daten sehen darf, die im Hauptmenübereich „Grundlagendaten“ als „sensible Daten“ mit einem besonderen Datenschutzstatus versehen wurden.</p>
                       <p>Wenn Sie die Zugriffsberechtigung über das reine Anzeigen von Daten (sowie das Anlegen und Bearbeiten von Szenarien) erweitern wollen, legen Sie dies bitte in der Box „Weitergehende Berechtigungen“ fest. Diese weiteren Berechtigungen gelten für alle hier ausgewählten Infrastrukturbereiche.</p>"
-                      subtitle="Das auswählte Konto kann diese Infrastrukturbereiche sehen"
+                      [subtitle]="infrastructures.length? 'Das auswählte Konto kann diese Infrastrukturbereiche sehen': 'Es sind noch keine Infrastrukturen definiert'"
                       dialogWidth="430px"
                       [editTemplate]="dataAccessEdit">
         <div *ngFor="let infrastructure of infrastructures">

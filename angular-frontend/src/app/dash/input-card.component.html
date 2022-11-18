@@ -5,7 +5,7 @@
       [style.width]="(infoText && topRightHelp)? 'calc(100% - 100px)': '100%'">
     {{title}}
   </h4>
-  <div *ngIf="!disabled && infoText && topRightHelp" class="info-text"
+  <div *ngIf="infoText && topRightHelp" class="info-text"
        [ngClass]="{'top-right': topRightHelp}"
        [style.marginTop]="!title? '0' : '-35px'"
        [style.marginBottom]="!title? '-25px' : '5px'"  >
@@ -24,7 +24,7 @@
     </button>
   </div>
   <ng-content select="[between]"></ng-content>
-  <div *ngIf="!disabled && infoText && !topRightHelp" class="info-text" style="margin-top: 15px;">
+  <div *ngIf="infoText && !topRightHelp" class="info-text" style="margin-top: 15px;">
     <ng-container *ngTemplateOutlet="helpContent"></ng-container>
   </div>
   <ng-content select="[after]"></ng-content>
