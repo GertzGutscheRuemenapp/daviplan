@@ -213,6 +213,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       this.http.post<AreaLevel>(this.rest.URLS.arealevels, attributes
       ).subscribe(level => {
         this.customAreaLevels.push(level);
+        this.selectAreaLevel(level);
         dialogRef.close();
       },error => {
         showAPIError(error, this.dialog);
