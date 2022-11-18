@@ -156,9 +156,9 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       {targetProjection: this.mapControl?.map?.mapProjection, reset: true}).subscribe(areas => {
         this.areas = areas;
         this.areaLayer = new VectorLayer(this.activeLevel!.name, {
-          description: '',
+          description: 'Gebiete der ausgewählten Gebietseinheit',
           order: 0,
-          opacity: 1,
+          opacity: 0.7,
           style: {
             fillColor: 'yellow',
             strokeColor: 'orange'
