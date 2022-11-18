@@ -15,7 +15,7 @@ import { HttpClient } from "@angular/common/http";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
-import { sortBy } from "../../../helpers/utils";
+import { showAPIError, sortBy } from "../../../helpers/utils";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
@@ -46,7 +46,6 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   selectedInfrastructure?: Infrastructure;
   placeFields: PlaceField[] = [];
   editFields: PlaceEditField[] = [];
-  editErrors?: any;
   mapControl?: MapControl;
   layerGroup?: MapLayerGroup;
   placesLayer?: VectorLayer;
@@ -207,6 +206,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       fileSaver.saveAs(blob, 'standorte-template.xlsx');
     },(error) => {
       dialogRef.close();
+      showAPIError(error, this.dialog);
     });
   }
 
@@ -254,7 +254,6 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   setupAttributeCard(): void {
     this.editAttributesCard.dialogClosed.subscribe(() => {
       this.fieldRemoved = false;
-      this.editErrors = undefined;
       this.editFields = JSON.parse(JSON.stringify(this.placeFields || []));
       this.editFields.forEach(f => f.removed = false);
     })
@@ -293,8 +292,8 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
           _this.editAttributesCard?.closeDialog();
           _this.onInfrastructureChange(true);
         }, error => {
+          showAPIError(error, _this.dialog);
           _this.isLoading$.next(false);
-          _this.editErrors = error.error
         });
       }
     })
@@ -351,6 +350,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       this.http.post(url, formData).subscribe(res => {
         this.isProcessing = true;
       }, error => {
+        showAPIError(error, this.dialog);
       });
     });
   }
@@ -378,7 +378,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         ).subscribe(res => {
           this.onInfrastructureChange(true);
         }, error => {
-          console.log('there was an error sending the query', error);
+          showAPIError(error, this.dialog);
         });
       }
     });

@@ -2,7 +2,7 @@
   <mat-spinner [diameter]="50"></mat-spinner>
 </div>
 <div style="position: relative">
-  <h4 *ngIf="data.title" mat-dialog-title>{{ data.title }}</h4>
+  <h4 *ngIf="data.title" [style.text-align]="data.centerContent? 'center': ''" mat-dialog-title>{{ data.title }}</h4>
   <span *ngIf="data.subtitle" class="subtitle1 sub">{{data.subtitle}}</span>
   <button *ngIf="data.showCloseButton"
           color="primary"
@@ -32,6 +32,6 @@
     </mat-expansion-panel>
   </div>
 </mat-dialog-content>
-<mat-dialog-actions *ngIf="data.showConfirmButton">
+<mat-dialog-actions *ngIf="data.showConfirmButton" [style.justify-content]="data.centerContent? 'center': ''">
   <button mat-button mat-dialog-close class="mat-button-dv" color="primary">OK</button>
 </mat-dialog-actions>

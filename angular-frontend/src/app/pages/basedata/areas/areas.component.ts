@@ -14,7 +14,7 @@ import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { RestCacheService } from "../../../rest-cache.service";
 import { tap } from "rxjs/operators";
-import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
+import { showAPIError } from "../../../helpers/utils";
 import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 import { SettingsService } from "../../../settings.service";
 
@@ -42,11 +42,9 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   areas: Area[] = [];
   isLoading$ = new BehaviorSubject<boolean>(false);
   orderIsChanging$ = new BehaviorSubject<boolean>(false);
-  Object = Object;
   dataColumns: string[] = [];
   dataRows: any[][] = [];
   file?: File;
-  uploadErrors: any = {};
   isProcessing = false;
   subscriptions: Subscription[] = [];
   projectArea?: string;
@@ -116,9 +114,10 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         this.editLevelForm.controls['name'].enable();
       }
       this.colorSelection = this.activeLevel?.symbol?.strokeColor || 'black';
-      this.editLevelForm.setErrors(null);
     })
     this.editArealevelCard.dialogConfirmed.subscribe((ok)=>{
+      this.editLevelForm.markAllAsTouched();
+      if (this.editLevelForm.invalid) return;
       let attributes: any = this.enableLayerCheck!.checked? {
         symbol: {
           strokeColor: this.colorSelection
@@ -139,7 +138,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         this.mapControl?.refresh({ internal: true });
         this.selectAreaLevel(arealevel);
       },(error) => {
-        this.editLevelForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         this.editArealevelCard.setLoading(false);
       });
     })
@@ -198,7 +197,6 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     dialogRef.afterOpened().subscribe(sth => {
       this.editLevelForm.reset();
       this.editLevelForm.controls['name'].enable();
-      this.editLevelForm.setErrors(null);
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
       // display errors for all fields even if not touched
@@ -216,8 +214,8 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       ).subscribe(level => {
         this.customAreaLevels.push(level);
         dialogRef.close();
-      },(error) => {
-        this.editLevelForm.setErrors(error.error);
+      },error => {
+        showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);
       });
     });
@@ -244,7 +242,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
             this.mapControl?.refresh({ internal: true });
           }
         }, error => {
-          console.log('there was an error sending the query', error);
+          showAPIError(error, this.dialog);
         });
       }
     });
@@ -267,12 +265,9 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/pull_areas/`, { area_level: this.activeLevel!.id, truncate: true, simplify: false }).subscribe(res => {
         this.isProcessing = true;
       }, error => {
-        this.uploadErrors = error.error;
+        showAPIError(error, this.dialog);
       });
     });
-    dialogRef.afterClosed().subscribe(ok => {
-      this.uploadErrors = {};
-    })
   }
 
   setFiles(event: Event){
@@ -302,12 +297,9 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       this.http.post(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/upload_shapefile/`, formData).subscribe(res => {
         this.isProcessing = true;
       }, error => {
-        this.uploadErrors = error.error;
+        showAPIError(error, this.dialog);
       });
     });
-    dialogRef.afterClosed().subscribe(ok => {
-      this.uploadErrors = {};
-    })
   }
 
   onDeleteAreas(): void {
@@ -327,7 +319,7 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
         ).subscribe(res => {
           this.selectAreaLevel(this.activeLevel!);
         }, error => {
-          console.log('there was an error sending the query', error);
+          showAPIError(error, this.dialog);
         });
       }
     });

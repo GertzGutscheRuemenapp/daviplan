@@ -159,11 +159,6 @@
 </ng-template>
 
 <ng-template #editAttributesTemplate>
-  <div *ngIf="editErrors">
-    <mat-error class="alert" *ngFor="let error of editErrors | keyvalue">
-      {{ error.key }}: {{ error.value }}
-    </mat-error>
-  </div>
   <p>Neben Name, Adresse und Kapazitäten für die Leistungen sollen für jeden Standort folgende Eigenschaften erfasst werden. Dabei können optional Klassifikationen verwendet werden (siehe Hilfetext).</p>
   <table id="place-attr-table" *ngIf="(editFields| arrayFilter:'removed': false).length">
     <tr><th>

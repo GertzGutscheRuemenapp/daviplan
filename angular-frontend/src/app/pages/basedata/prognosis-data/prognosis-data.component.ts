@@ -17,7 +17,7 @@ import { HttpClient } from "@angular/common/http";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { PopulationService } from "../../population/population.service";
-import { sortBy } from "../../../helpers/utils";
+import { showAPIError, sortBy } from "../../../helpers/utils";
 import { AgeTreeComponent, AgeTreeData } from "../../../diagrams/age-tree/age-tree.component";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
@@ -62,7 +62,6 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
   dataYear?: Year;
   propertiesForm: FormGroup;
   file?: File;
-  uploadErrors: any = {};
   isProcessing = false;
   subscriptions: Subscription[] = [];
 
@@ -269,7 +268,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
             this.updatePreview();
           }
         },(error) => {
-          console.log('there was an error sending the query', error);
+          showAPIError(error, this.dialog);
         });
       }
     });
@@ -310,7 +309,6 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       });
     })
     this.propertiesCard?.dialogConfirmed.subscribe((ok)=>{
-      this.propertiesForm.setErrors(null);
       this.propertiesForm.markAllAsTouched();
       if (this.propertiesForm.invalid) return;
       let attributes: any = {
@@ -323,8 +321,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
         Object.assign(this.activePrognosis!, prognosis);
         this.propertiesCard?.closeDialog(true);
       },(error) => {
-        // ToDo: set specific errors to fields
-        this.propertiesForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         this.propertiesCard?.setLoading(false);
       });
     })
@@ -345,7 +342,6 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       this.propertiesForm.reset();
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
-      this.propertiesForm.setErrors(null);
       // display errors for all fields even if not touched
       this.propertiesForm.markAllAsTouched();
       if (this.propertiesForm.invalid) return;
@@ -361,7 +357,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
         this.onPrognosisChange();
         dialogRef.close();
       },(error) => {
-        this.propertiesForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);
       });
     });
@@ -389,7 +385,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
           }
           this.activePrognosis = undefined;
         },(error) => {
-          console.log('there was an error sending the query', error);
+          showAPIError(error, this.dialog);
         });
       }
     });
@@ -447,6 +443,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       fileSaver.saveAs(blob, 'prognosedaten-template.xlsx');
       dialogRef.close();
     },(error) => {
+      showAPIError(error, this.dialog);
       dialogRef.close();
     });
   }
@@ -475,13 +472,10 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
         this.isProcessing = true;
         dialogRef.close();
       }, error => {
-        this.uploadErrors = error.error;
+        showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);
       });
     });
-    dialogRef.afterClosed().subscribe(ok => {
-      this.uploadErrors = {};
-    })
   }
 
   setDefaultPrognosis(prognosis: Prognosis): void {

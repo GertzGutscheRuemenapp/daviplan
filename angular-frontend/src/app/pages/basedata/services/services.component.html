@@ -137,11 +137,6 @@
 
 <ng-template #propertiesEdit>
   <form [formGroup]="propertiesForm">
-    <div *ngIf="propertiesForm.errors">
-      <mat-error *ngFor="let error of Object.values(propertiesForm.errors)" class="alert">
-        {{ error }}
-      </mat-error>
-    </div>
     <div fxLayout="column">
       <mat-form-field appearance="fill">
         <mat-label i18n>Name</mat-label>
@@ -157,11 +152,6 @@
 
 <ng-template #capacityEdit>
   <form [formGroup]="capacitiesForm">
-    <div *ngIf="capacitiesForm.errors">
-      <mat-error *ngFor="let error of Object.values(capacitiesForm.errors)" class="alert">
-        {{ error }}
-      </mat-error>
-    </div>
     <div fxLayout="column">
       <mat-checkbox #hasCapCheck formControlName="hasCapacity" color="primary">
         Für diese Leistung sollen die Kapazitäten der Einrichtungen berücksichtigt werden
@@ -202,11 +192,6 @@
 
 <ng-template #demandEdit>
   <form [formGroup]="demandForm">
-    <div *ngIf="demandForm.errors">
-      <mat-error *ngFor="let error of Object.values(demandForm.errors)" class="alert">
-        {{ error }}
-      </mat-error>
-    </div>
     <div fxLayout="column">
       <mat-form-field appearance="fill">
         <mat-label i18n>Nachfragende Einzahl</mat-label>
@@ -238,11 +223,6 @@
 
 <ng-template #createService>
   <form [formGroup]="serviceForm">
-    <div *ngIf="serviceForm.errors">
-      <mat-error *ngFor="let error of Object.values(serviceForm.errors)" class="alert">
-        {{ error }}
-      </mat-error>
-    </div>
     <div fxLayout="column">
       <mat-form-field appearance="fill">
         <mat-label i18n>Infrastruktur</mat-label>

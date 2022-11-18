@@ -17,6 +17,7 @@ import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { CookieService } from "../../../helpers/cookies.service";
+import { showAPIError } from "../../../helpers/utils";
 
 @Component({
   selector: 'app-scenario-menu',
@@ -154,6 +155,7 @@ export class ScenarioMenuComponent implements OnInit {
         this.process!.scenarios.push(scenario);
         this.scenarios.push(scenario);
       },(error) => {
+        showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);
       });
     });
@@ -188,6 +190,7 @@ export class ScenarioMenuComponent implements OnInit {
         this.activeScenario!.name = scenario.name;
         this.planningService.activeScenario$.next(this.activeScenario);
       },(error) => {
+        showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);
       });
     });

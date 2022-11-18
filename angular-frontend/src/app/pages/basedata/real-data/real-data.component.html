@@ -37,7 +37,11 @@
         </button>
       </div>
     </ng-container>
-    <ng-template #notAvailable>Die Regionalstatistik kann nur abgerufen werden, wenn "{{defaultPopLevel?.name}}" als Gebietseinteilung für die Bevölkerungsdaten ausgewählt wurde und die Altersgruppeneinteilung mit der der Regionalstatistik übereinstimmt (siehe Administration > Basisdefinitionen).</ng-template>
+    <ng-template #notAvailable>
+      Die Regionalstatistik kann nur abgerufen werden, wenn "{{defaultPopLevel?.name}}" als Gebietseinteilung für die
+      Bevölkerungsdaten ausgewählt wurde und die Altersgruppeneinteilung mit der der Regionalstatistik übereinstimmt
+      (siehe Bereich „Administration“ > „Basisdefinitionen“).
+    </ng-template>
   </app-input-card>
   <div fxFlex="450px">
     <app-input-card #yearCard
@@ -238,11 +242,6 @@
 </ng-template>
 
 <ng-template #fileUploadTemplate>
-  <div *ngIf="uploadErrors">
-    <mat-error *ngFor="let error of uploadErrors | keyvalue" class="alert">
-      {{ error.key }}: {{ error.value }}
-    </mat-error>
-  </div>
   <p>
     Befülltes Excel-Template mit Bevölkerungsdaten hochladen
   </p>

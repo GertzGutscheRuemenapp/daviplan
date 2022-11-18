@@ -7,7 +7,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { RemoveDialogComponent } from "../../../../dialogs/remove-dialog/remove-dialog.component";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { ConfirmDialogComponent } from "../../../../dialogs/confirm-dialog/confirm-dialog.component";
-import { arrayMove } from "../../../../helpers/utils";
+import { arrayMove, showAPIError } from "../../../../helpers/utils";
 
 @Component({
   selector: 'app-classifications',
@@ -59,7 +59,7 @@ export class ClassificationsComponent implements OnInit {
         this.selectedClassification = fieldType;
         dialogRef.close();
       },(error) => {
-        this.nameForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
       });
     });
   }
@@ -90,7 +90,7 @@ export class ClassificationsComponent implements OnInit {
         this.selectedClassification!.name = fieldType.name;
         dialogRef.close();
       },(error) => {
-        this.nameForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
       });
     });
   }
@@ -116,7 +116,7 @@ export class ClassificationsComponent implements OnInit {
           this.selectedClassification = undefined;
           this.selectedClass = undefined;
         },(error) => {
-          this.showErrorMessage(error);
+          showAPIError(error, this.dialog);
         });
       }
     });
@@ -149,7 +149,7 @@ export class ClassificationsComponent implements OnInit {
         this.selectedClass = this.selectedClassification!.classification!.find(c => c.value == value);
         dialogRef.close();
       },(error) => {
-        this.nameForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
       });
     });
   }
@@ -178,7 +178,7 @@ export class ClassificationsComponent implements OnInit {
           const classes = this.selectedClassification!.classification || [];
           this.selectedClass = (classes.length > 0)? classes[0]: undefined;
         },(error) => {
-          this.showErrorMessage(error);
+          showAPIError(error, this.dialog);
         });
       }
     });
@@ -186,20 +186,6 @@ export class ClassificationsComponent implements OnInit {
 
   patchClassificaton(id: number, attributes: any): Observable<FieldType> {
     return this.http.patch<FieldType>(`${this.rest.URLS.fieldTypes}${id}/`, attributes);
-  }
-
-  showErrorMessage(error: any): void {
-    this.dialog.open(ConfirmDialogComponent, {
-      panelClass: 'absolute',
-      width: '300px',
-      disableClose: true,
-      data: {
-        title: 'Fehler',
-        hideConfirmButton: true,
-        message: `<i>${error.error}</i>`,
-        closeOnConfirm: true
-      }
-    });
   }
 
   moveClass(direction: string): void {

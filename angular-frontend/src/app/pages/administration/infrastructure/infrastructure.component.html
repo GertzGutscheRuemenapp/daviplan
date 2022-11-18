@@ -78,11 +78,6 @@
 
 <ng-template #infrastructureEdit>
   <form [formGroup]="infrastructureForm">
-    <div *ngIf="infrastructureForm.errors">
-      <mat-error *ngFor="let error of Object.values(infrastructureForm.errors)" class="alert">
-        {{ error }}
-      </mat-error>
-    </div>
     <div fxLayout="column">
       <mat-form-field appearance="fill">
         <mat-label i18n>Name</mat-label>

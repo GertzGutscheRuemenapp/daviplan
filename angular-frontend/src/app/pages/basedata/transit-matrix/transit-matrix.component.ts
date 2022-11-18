@@ -17,6 +17,7 @@ import * as fileSaver from "file-saver";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { BehaviorSubject } from "rxjs";
 import { environment } from "../../../../environments/environment";
+import { showAPIError } from "../../../helpers/utils";
 
 @Component({
   selector: 'app-transit-matrix',
@@ -30,7 +31,6 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
   selectedVariant?: ModeVariant;
   variantForm: FormGroup;
   file?: File;
-  uploadErrors: any = {};
   statistics?: ModeStatistics;
   isLoading$ = new BehaviorSubject<boolean>(false);
   isProcessing = false;
@@ -92,7 +92,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
           this.variants.push(variant);
           dialogRef.close();
         }, (error) => {
-          this.variantForm.setErrors(error.error);
+          showAPIError(error, this.dialog);
           dialogRef.componentInstance.isLoading$.next(false);
         });
       }
@@ -102,7 +102,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
           Object.assign(this.selectedVariant, variant);
           dialogRef.close();
         }, (error) => {
-          this.variantForm.setErrors(error.error);
+          showAPIError(error, this.dialog);
           dialogRef.componentInstance.isLoading$.next(false);
         });
       }
@@ -127,7 +127,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
         this.isProcessing = true;
         dialogRef.close();
       }, (error) => {
-        dialogRef.componentInstance.setErrors(error.error);
+        showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);
       })
     });
@@ -152,13 +152,13 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
       dialogRef.close();
       fileSaver.saveAs(blob, matrix? 'matrix-template.xlsx': 'haltestellen-template.xlsx');
     },(error) => {
+      showAPIError(error, this.dialog);
       dialogRef.close();
     });
   }
 
   uploadStops(): void {
     if (!this.selectedVariant) return;
-    this.uploadErrors = {};
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
       panelClass: 'absolute',
@@ -185,7 +185,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
         this.isProcessing = true;
         dialogRef.close();
       }, error => {
-        this.uploadErrors = error.error;
+        showAPIError(error, this.dialog);
         dialogRef.componentInstance.setLoading(false);
       });
     });
@@ -193,7 +193,6 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
 
   uploadMatrix(visum: boolean = false): void {
     if (!this.selectedVariant) return;
-    this.uploadErrors = {};
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '450px',
       panelClass: 'absolute',
@@ -220,7 +219,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
         this.isProcessing = true;
         dialogRef.close();
       }, error => {
-        this.uploadErrors = error.error;
+        showAPIError(error, this.dialog);
         dialogRef.componentInstance.setLoading(false);
       });
     });
@@ -261,7 +260,7 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
           }
           this.selectedVariant = undefined;
         }, error => {
-          console.log('there was an error sending the query', error);
+          showAPIError(error, this.dialog);
         });
       }
     });

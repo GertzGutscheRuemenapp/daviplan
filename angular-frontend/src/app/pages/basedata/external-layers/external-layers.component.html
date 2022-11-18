@@ -119,11 +119,6 @@
 
 <ng-template #addLayerTemplate>
   <div fxLayout="column" fxFlex="400px">
-    <div *ngIf="addLayerForm.errors">
-      <mat-error *ngFor="let error of Object.values(addLayerForm.errors)" class="alert">
-        {{ error }}
-      </mat-error>
-    </div>
     <div fxLayout="column">
       <mat-form-field appearance="fill">
         <mat-label i18n>URL</mat-label>
@@ -201,11 +196,6 @@
 
 <ng-template #editLayerGroupTemplate>
   <form [formGroup]="layerGroupForm">
-    <div *ngIf="layerGroupForm.errors">
-      <mat-error *ngFor="let error of Object.values(layerGroupForm.errors)" class="alert">
-        {{ error }}
-      </mat-error>
-    </div>
     <div fxLayout="column">
       <mat-form-field appearance="fill">
         <mat-label i18n>Name</mat-label>

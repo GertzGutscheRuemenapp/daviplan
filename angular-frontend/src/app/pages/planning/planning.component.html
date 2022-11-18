@@ -211,11 +211,6 @@
 
 <ng-template #processTemplate>
   <form [formGroup]="editProcessForm">
-    <div *ngIf="editProcessForm.errors">
-      <mat-error *ngFor="let error of editProcessForm.errors | keyvalue" class="alert">
-        {{ error.key }}: {{ error.value }}
-      </mat-error>
-    </div>
     <div fxLayout="row wrap">
       <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
         <mat-form-field appearance="fill">
