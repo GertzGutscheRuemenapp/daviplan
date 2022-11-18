@@ -25,7 +25,6 @@ import { SettingsService } from "../../../settings.service";
 })
 export class AreasComponent implements AfterViewInit, OnDestroy {
   @ViewChild('editArealevelCard') editArealevelCard!: InputCardComponent;
-  @ViewChild('enableLayerCheck') enableLayerCheck?: MatCheckbox;
   @ViewChild('createAreaLevel') createLevelTemplate?: TemplateRef<any>;
   @ViewChild('dataTemplate') dataTemplate?: TemplateRef<any>;
   @ViewChild('pullWfsTemplate') pullWfsTemplate?: TemplateRef<any>;
@@ -118,12 +117,10 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
     this.editArealevelCard.dialogConfirmed.subscribe((ok)=>{
       this.editLevelForm.markAllAsTouched();
       if (this.editLevelForm.invalid) return;
-      let attributes: any = this.enableLayerCheck!.checked? {
+      let attributes: any =  {
         symbol: {
           strokeColor: this.colorSelection
         }
-      }: {
-        symbol: null
       }
       if (!this.activeLevel?.isPreset) {
         attributes['name'] = this.editLevelForm.value.name;

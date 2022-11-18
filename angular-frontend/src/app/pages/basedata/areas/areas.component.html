@@ -299,14 +299,8 @@
           </mat-select>
         </mat-form-field>
       </div>
-      <mat-checkbox color="primary"
-                    #enableLayerCheck
-                    [checked]="!!activeLevel?.symbol?.strokeColor"
-                    title="Gebietseinteilung als Layer in Karte zur Verfügung stellen">
-        Gebietseinteilung als Layer zur Verfügung stellen
-      </mat-checkbox>
-      <div *ngIf="enableLayerCheck.checked" style="display: flex; align-items: baseline;">
-        Linienfarbe
+      <span style="color: grey;">Linienfarbe (Karte):</span>
+      <div style="display: flex; align-items: baseline;">
         <div class="symbol square"
              [(colorPicker)]="colorSelection"
              [style.backgroundColor]="colorSelection"
