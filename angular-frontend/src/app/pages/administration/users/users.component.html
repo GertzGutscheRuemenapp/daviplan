@@ -16,7 +16,7 @@
                     [title]="'Benutzerkonten'"
                     subtitle="Konten auswählen und bearbeiten"
                     [dialogTitle]="'Namen der Seite ändern'"
-                    infoText="<p>Nur Nutzer*innen mit einem Konto haben Zugriff auf das System. </p>
+                    infoText="<p>Nur Nutzer:innen mit einem Konto haben Zugriff auf das System. </p>
                     <p>Hier können Sie neue Konten erstellen und bestehende Konten über die obige Liste bearbeiten oder entfernen.</p>
                     <p>Die Detailinformationen zu einem Konto werden Ihnen in den anderen Boxen angezeigt, sobald sie dieses Konto in der Liste ausgewählt haben. In den anderen Boxen können Sie das Konto jeweils über die Schaltflächen „Editieren“ verändern.</p>">
       <mat-selection-list [multiple]="false" style="min-height: 300px">
@@ -80,12 +80,12 @@
                       [title]="'Weitergehende Berechtigungen des ausgewählten Kontos'"
                       infoText="<p>Über die Schaltfläche „Editieren“ können Sie die Berechtigungen des ausgewählten Kontos einstellen.</p>
                       <p>Die Optionen „Kann Grundlagendaten editieren“ und „Kann Planungsprozesse anlegen“ gelten für alle Infrastrukturbereiche, für die Sie in der Box „Zugang zu Infrastrukturbereichen“ einen Zugriff gewähren.</p>
-                      <p>Für Nutzer*innen mit der aktivierten Option „Kann Seite administrieren“ ist der Hauptmenübereich „Administration“ sicht- und editierbar. </p>
-                      <p>Für Nutzer*innen mit der aktivierten Option „Kann Grundlagendaten editieren“ sind die entsprechenden Abschnitte des Hauptmenübereichs „Grundlagendaten“ sicht- und editierbar.</p>
-                      <p>Der Hauptmenübereich „Bevölkerung“ ist für alle Nutzer*innen sichtbar.</p>
-                      <p>Der Hauptmenübereich „Infrastrukturplanung“ ist für alle Nutzer*innen sichtbar, für die ein Zugriff auf den entsprechenden Infrastrukturbereich in der Box „Sichtberechtigung des ausgewählten Kontos“ gewährt wurde.</p>
-                      <p>Nutzer*innen mit der aktivierten Option „Kann Planungsprozess anlegen“ können im Hauptmenübereich „Infrastrukturplanung“ eigene Planungsprozesse anlegen und bearbeiten.</p>
-                      <p>Nutzer*innen ohne die aktivierte Option „Kann Planungsprozess anlegen“ können im Hauptmenübereich „Infrastrukturplanung“ vorhandene Planungsprozesse nur betrachten, wenn Sie zu diesen eingeladen werden. Im Zuge dieser Einladung kann ihnen optional die Berechtigung zugewiesen werden, innerhalb des betreffenden Planungsprozesses Szenarien anzulegen und zu editieren. </p>"
+                      <p>Für Nutzer:innen mit der aktivierten Option „Kann Seite administrieren“ ist der Hauptmenübereich „Administration“ sicht- und editierbar. </p>
+                      <p>Für Nutzer:innen mit der aktivierten Option „Kann Grundlagendaten editieren“ sind die entsprechenden Abschnitte des Hauptmenübereichs „Grundlagendaten“ sicht- und editierbar.</p>
+                      <p>Der Hauptmenübereich „Bevölkerung“ ist für alle Nutzer:innen sichtbar.</p>
+                      <p>Der Hauptmenübereich „Infrastrukturplanung“ ist für alle Nutzer:innen sichtbar, für die ein Zugriff auf den entsprechenden Infrastrukturbereich in der Box „Sichtberechtigung des ausgewählten Kontos“ gewährt wurde.</p>
+                      <p>Nutzer:innen mit der aktivierten Option „Kann Planungsprozess anlegen“ können im Hauptmenübereich „Infrastrukturplanung“ eigene Planungsprozesse anlegen und bearbeiten.</p>
+                      <p>Nutzer:innen ohne die aktivierte Option „Kann Planungsprozess anlegen“ können im Hauptmenübereich „Infrastrukturplanung“ vorhandene Planungsprozesse nur betrachten, wenn Sie zu diesen eingeladen werden. Im Zuge dieser Einladung kann ihnen optional die Berechtigung zugewiesen werden, innerhalb des betreffenden Planungsprozesses Szenarien anzulegen und zu editieren. </p>"
                       [ngClass]="{'hidden': selectedUser?.isSuperuser}"
                       [editTemplate]="permissionEdit">
         <div *ngIf="selectedUser">

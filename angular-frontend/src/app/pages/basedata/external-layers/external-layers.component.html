@@ -5,19 +5,19 @@
                  cookieId="exp-ext-layers-header"
                  width="1170px">
   <p>Viele Ansichten von daviplan enthalten Karten, in denen die Einwohner- und Infrastrukturbezogenen Informationen dargestellt und ausgewertet werden.</p>
-  <p>Sie haben die Möglichkeit, den Nutzer*innen darüber hinaus weitere Informationen („Layer“) in den Karten anzuzeigen. Die Nutzer*innen können diese Zusatzinformationen dann individuell in den Karten über die Legendensteuerung ein- oder ausschalten.</p>
+  <p>Sie haben die Möglichkeit, den Nutzer:innen darüber hinaus weitere Informationen („Layer“) in den Karten anzuzeigen. Die Nutzer:innen können diese Zusatzinformationen dann individuell in den Karten über die Legendensteuerung ein- oder ausschalten.</p>
   <p>Zusätzliche Layer werden als WMS-Dienste eingebunden. Ein direktes Hochladen von Shape-Files oder anderen GIS-Formaten für lokal gespeicherte Layer ist nicht möglich.</p>
   <p>Um einen externen Layer in Form eines WMS-Dienstes für alle Kartendarstellungen in daviplan hinzuzufügen, tragen Sie diesen zunächst in den Layerstruktur der Box „Layer“ ein. Anschließend können Sie die WMS-Dienst-Informationen in der Box „Eigenschaften des ausgewählten Layers“ eintragen.</p>
   <p>Der hinzugefügte externe Layer wird Ihnen dann in der Karte dargestellt. Auf diese Weise können Sie kontrollieren, ob der Datenzugriff funktioniert und wie die Darstellung in der Karte aussieht.</p>
-  <p>Eine Veränderung der Kartendarstellung ist nur bei den WMS-Dienst-Bereitstellenden direkt möglich. Die Nutzer*innen haben lediglich die Möglichkeit, die Transparenz der einzelnen Layer einzustellen.</p>
+  <p>Eine Veränderung der Kartendarstellung ist nur bei den WMS-Dienst-Bereitstellenden direkt möglich. Die Nutzer:innen haben lediglich die Möglichkeit, die Transparenz der einzelnen Layer einzustellen.</p>
 </app-header-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="450px">
     <app-input-card [title]="'Layer'"
                     subtitle="Externe Layer eintragen und in Layergruppen sortieren"
-                    infoText="Damit die Nutzer*innen von daviplan beim Öffnen der Layer- und Legendensteuerung der einzelnen Karten den Überblick behalten, werden (auch) die externen Layer in Layergruppen gruppiert angezeigt.</p>
+                    infoText="Damit die Nutzer:innen von daviplan beim Öffnen der Layer- und Legendensteuerung der einzelnen Karten den Überblick behalten, werden (auch) die externen Layer in Layergruppen gruppiert angezeigt.</p>
                     <p>Bevor Sie einen ersten externen Layer hinzufügen können, müssen Sie daher erst eine Layergruppe hinzufügen, indem Sie auf „Layergruppe hinzufügen“ klicken. Geben Sie der Layergruppe einen kurzen sprechenden Namen (z.B. „Flächennutzungsplanung“, „Verkehr“ oder „Naturschutz“). Die Name der Layergruppen erscheinen in allen Karten als Zwischenüberschrift der Legendenstruktur.</p>
-                    <p>Nachdem Sie eine Layergruppe hinzugefügt haben, können Sie einen externen Layer hinzufügen, indem Sie auf das „+“-Symbol hinter dem Namen der Layergruppe klicken. Geben Sie auch dem Layer einen kurzen sprechenden Namen. Unter diesem Namen erscheint der Layer in den Kartenlegenden und kann dort von den einzelnen Nutzer*innen ein- oder ausgeschaltet werden. Gehen Sie anschließend zur Box „Eigenschaften des ausgewählten Layers“ und tragen Sie dort die URL des WMS-Dienstes ein. Hier können Sie auch den angezeigten Namen des Layers noch nachträglich verändern.</p>
+                    <p>Nachdem Sie eine Layergruppe hinzugefügt haben, können Sie einen externen Layer hinzufügen, indem Sie auf das „+“-Symbol hinter dem Namen der Layergruppe klicken. Geben Sie auch dem Layer einen kurzen sprechenden Namen. Unter diesem Namen erscheint der Layer in den Kartenlegenden und kann dort von den einzelnen Nutzer:innen ein- oder ausgeschaltet werden. Gehen Sie anschließend zur Box „Eigenschaften des ausgewählten Layers“ und tragen Sie dort die URL des WMS-Dienstes ein. Hier können Sie auch den angezeigten Namen des Layers noch nachträglich verändern.</p>
                     <p>Um einen externen Layer wieder zu löschen, wählen Sie diesen in der Liste aus und klicken auf „Layer Entfernen“. Auf diese Weisen können Sie auch ganze Layergruppen  löschen.</p>">
       <div style="display: inline-flex;">
         <div id="layer-select">
@@ -101,7 +101,7 @@
                     [topRightHelp]="true"
                     infoText="In der Karte können Sie sehen, ob der Datenzugriff für den ausgewählten externen Layer funktioniert und wie er in allen daviplan-Karten angezeigt wird.</p>
                     <p>Eine Veränderung der Kartendarstellung ist nur bei den WMS-Dienst-Bereitstellenden direkt möglich.</p>
-                    <p>Die Nutzer*innen haben in den einzelnen Karten lediglich die Möglichkeit, die Transparenz der einzelnen Layer einzustellen.</p>">
+                    <p>Die Nutzer:innen haben in den einzelnen Karten lediglich die Möglichkeit, die Transparenz der einzelnen Layer einzustellen.</p>">
 
       <div id="base-layers-map" class="map-container">
         <app-map-controls target="base-layers-map"></app-map-controls>
