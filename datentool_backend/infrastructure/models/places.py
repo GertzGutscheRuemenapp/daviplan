@@ -191,9 +191,9 @@ class Capacity(DatentoolModelMixin, models.Model):
         # find the places, that have specific capacities
         # for this scenario defined
         scenario_filter = Q(scenario=scenario_id)
-        #  if a specific services is requested,
-        # filter only the places with capacities for this service
-        if service_ids is None:
+        #  if (a) specific service(s) is requested,
+        # filter only the places with capacities for this/these service(s)
+        if service_ids:
             scenario_filter = scenario_filter & Q(service__in=service_ids)
         # get the places that have have capacities
         # defined for the scenario (and service)

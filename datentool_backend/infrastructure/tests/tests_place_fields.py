@@ -1,5 +1,5 @@
 from typing import Tuple, Set, List
-from collections import OrderedDict
+import json
 
 from django.test import TestCase
 from django.contrib.gis.geos import Point
@@ -25,7 +25,6 @@ from datentool_backend.infrastructure.models.places import (
     PlaceAttribute,
 )
 from datentool_backend.area.factories import FClassFactory
-from datentool_backend.area.models import FClass
 
 from faker import Faker
 faker = Faker('de-DE')
@@ -409,7 +408,6 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         scenario1 = ScenarioFactory()
         scenario2 = ScenarioFactory(planning_process=scenario1.planning_process)
         scenario3 = ScenarioFactory(planning_process=scenario1.planning_process)
-        all_scenario_ids = [scenario1.pk, scenario2.pk, scenario3.pk]
 
         place1: Place = self.obj
         place2 = PlaceFactory(infrastructure=place1.infrastructure)
@@ -475,16 +473,61 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
 
 
         """Test the number of places and the total capacity by scenario"""
-        response = self.get('service-total-capacity-in-year',
-                            pk=service1.pk,
-                            data={'year': 2018, 'scenario_ids': all_scenario_ids,})
+        all_scenario_ids = [0, scenario1.pk, scenario2.pk, scenario3.pk]
+        self.check_total_nplaces_capacity(
+            all_scenario_ids,
+            service=service1.pk,
+            year=2018,
+            expected_values=[(2, 50 + 88), (2, 100 + 55),
+                             (2, 50 + 33), (2, 100 + 88)])
+
+        self.check_total_nplaces_capacity(
+            all_scenario_ids,
+            service=service1.pk,
+            year=2022,
+            expected_values=[(2, 50 + 99), (2, 100 + 55),
+                             (2, 50 + 33), (2, 200 + 99)])
+
+        self.check_total_nplaces_capacity(
+            all_scenario_ids,
+            service=service1.pk,
+            year=2025,
+            expected_values=[(2, 77 + 99), (2, 100 + 55),
+                             (2, 77 + 33), (2, 200 + 99)])
+
+        self.check_total_nplaces_capacity(
+            all_scenario_ids,
+            service=service1.pk,
+            year=2030,
+            expected_values=[(2, 77 + 99), (2, 100 + 55),
+                             (2, 77 + 33), (1, 99)])
+
+        self.check_total_nplaces_capacity(
+            all_scenario_ids,
+            service=service2.pk,
+            year=2018,
+            expected_values=[(1, 99), (1, 99), (1, 99), (1, 99)])
+
+
+    def check_total_nplaces_capacity(self,
+                                     all_scenario_ids: List[int],
+                                     service: int,
+                                     year:int,
+                                     expected_values:List[Tuple[int, float]],
+                                     ):
+        params = {'year': year, 'scenario_ids': all_scenario_ids,}
+        response = self.get('services-total-capacity-in-year',
+                            pk=service,
+                            data=params)
         self.response_200(msg=response.content)
-        r1 = response.data
-        self.assertDictEqual(r1,
-                             {scenario1.pk: (2, 155),
-                              scenario2.pk: (2, 83),
-                              scenario3.pk: (2, 188),
-                              })
+        r1 = json.loads(response.content)
+        expected = []
+        for i, scenario_id in enumerate(all_scenario_ids):
+            expected_value=expected_values[i]
+            expected.append({'scenarioId': scenario_id,
+                             'nPlaces': expected_value[0],
+                             'totalCapacity': expected_value[1],})
+        self.assert_response_equals_expected(r1, expected)
 
 
 class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,

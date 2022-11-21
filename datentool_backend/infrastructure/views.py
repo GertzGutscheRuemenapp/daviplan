@@ -19,7 +19,7 @@ from datentool_backend.utils.permissions import (HasAdminAccess,
                                                  CanEditBasedata)
 from datentool_backend.models import (
     InfrastructureAccess, Infrastructure, Place, Capacity, PlaceField,
-    PlaceAttribute, Service, Scenario, Year)
+    PlaceAttribute, Service, Scenario)
 from .permissions import (CanPatchSymbol, ScenarioCapacitiesPermission,
                           CanEditScenarioPlacePermission)
 from datentool_backend.infrastructure.serializers import (
@@ -35,8 +35,6 @@ from datentool_backend.indicators.compute.base import (
     ServiceIndicator,
     ResultSerializer)
 from datentool_backend.indicators.serializers import IndicatorSerializer
-from datentool_backend.utils.processes import (ProtectedProcessManager,
-                                               ProcessScope)
 from datentool_backend.utils.serializers import MessageSerializer
 
 
@@ -341,18 +339,25 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     @action(methods=['GET'], detail=True)
     def total_capacity_in_year(self, request, **kwargs):
         service_id = kwargs.get('pk')
-        year = self.request.data.get('year')
-        scenario_ids = self.request.data.get('scenario_ids')
-        scenarios = Scenario.objects.filter(id__in=scenario_ids)
+        year = self.request.query_params.get('year')
+        scenario_ids = self.request.query_params.getlist('scenario_ids')
+        data = []
 
         for scenario_id in scenario_ids:
-            capacity = Capacity.objects.filter(capacity__gte=0)
-            capacity = Capacity.filter_queryset(service_ids=[service_id],
+            scenario_id = scenario_id or None
+
+            capacity = Capacity.objects.all()
+            capacity2 = Capacity.filter_queryset(capacity,
+                                                service_ids=[service_id],
                                                 scenario_id=scenario_id,
                                                 year=year)
-            capacity = capacity.annotate(
+            capacity3 = capacity2\
+                .filter(capacity__gt=0)\
+                .aggregate(
                 n_places=Count('id'),
                 total_capacity=Sum('capacity'))
+            capacity3['scenario_id'] = int(scenario_id)
+            data.append(capacity3)
 
         serializer = ServiceCapacityByScenarioSerializer(data, many=True)
         return Response(serializer.data)
