@@ -180,10 +180,12 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                 msg = (f'Berechnung fehlgeschlagen. Der Router {mode.name} '
                        'konnte nicht gebaut werden.')
                 logger.error(msg)
+                global o_success
                 o_success = False
-            msg = (f'Router {mode.name} erfolgreich gebaut. Starte Router')
-            logger.info(msg)
-            router.run()
+            else:
+                msg = (f'Router {mode.name} erfolgreich gebaut. Starte Router')
+                logger.info(msg)
+                router.run()
 
         modes = [Mode.CAR, Mode.BIKE, Mode.WALK]
         for mode in modes:
