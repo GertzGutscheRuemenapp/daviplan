@@ -389,7 +389,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
       width: '450px',
       panelClass: 'absolute',
       data: {
-        title: `Template hochladen`,
+        title: `Ergänzte Einwohnerdaten hochladen`,
         confirmButtonText: 'Datei hochladen',
         closeOnConfirm: false,
         template: this.fileUploadTemplate
