@@ -215,10 +215,14 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
       this.editProcessForm.markAllAsTouched();
       if (this.editProcessForm.invalid) return;
       dialogRef.componentInstance.isLoading$.next(true);
+      const sharedUsers = this.otherUsers.filter(user => user.shared).map(user => user.id);
+      const includedInfrastructures = this.allInfrastructures.filter(i => i.included).map(i => i.id);
       let attributes = {
         name: this.editProcessForm.value.name,
         description: this.editProcessForm.value.description,
-        allowSharedChange: this.editProcessForm.value.allowSharedChange
+        infrastructures: includedInfrastructures,
+        allowSharedChange: this.editProcessForm.value.allowSharedChange,
+        users: sharedUsers
       };
       this.http.post<PlanningProcess>(this.rest.URLS.processes, attributes
       ).subscribe(process => {
