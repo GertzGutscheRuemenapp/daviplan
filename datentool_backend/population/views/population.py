@@ -15,6 +15,7 @@ from django.db import transaction
 from django.core.exceptions import PermissionDenied
 from rest_framework.response import Response
 
+from datentool_backend.utils.crypto import decrypt
 from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
 from datentool_backend.utils.permissions import (
     HasAdminAccessOrReadOnly, HasAdminAccess, CanEditBasedata)
@@ -265,12 +266,12 @@ class PopulationViewSet(viewsets.ModelViewSet):
 
         with ProtectedProcessManager(user=request.user,
                                      scope=ProcessScope.POPULATION) as ppm:
-            if not run_sync:
-                ppm.run_async(self._pull_regionalstatistik, area_level,
-                              drop_constraints=drop_constraints)
-            else:
-                self._pull_regionalstatistik(area_level,
-                                             drop_constraints=drop_constraints)
+            try:
+                ppm.run(self._pull_regionalstatistik, area_level,
+                        drop_constraints=drop_constraints, sync=run_sync)
+            except Exception as e:
+                return Response({'message': str(e)},
+                                status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({
             'message': f'Abruf der Bevölkerungsdaten gestartet'
@@ -285,6 +286,12 @@ class PopulationViewSet(viewsets.ModelViewSet):
         settings = SiteSetting.load()
         username = settings.regionalstatistik_user or None
         password = settings.regionalstatistik_password or None
+        if (password):
+            try:
+                password = decrypt(password)
+            except (ValueError, TypeError):
+                password = None
+
         api = Regionalstatistik(start_year=min_max_years['year__min'],
                                 end_year=min_max_years['year__max'],
                                 username=username,
@@ -309,10 +316,10 @@ class PopulationViewSet(viewsets.ModelViewSet):
             'werden müssen. Falls dort bereits ein Konto eingetragen ist, '
             'überprüfen Sie bitte die Gültigkeit der Zugangsdaten.')
             logger.error(msg)
-            return
+            raise Exception(msg)
         except Exception as e:
             logger.error(str(e))
-            return
+            raise Exception(str(e))
         df_population = pd.concat(frames)
         years = df_population['year'].unique()
         years.sort()

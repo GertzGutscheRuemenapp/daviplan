@@ -130,6 +130,7 @@ class TravelTimeRouterMixin:
             ret_status = status.HTTP_406_NOT_ACCEPTABLE
             msg = str(err)
             logger.error(msg)
+            raise Exception(msg)
         else:
             ret_status = status.HTTP_202_ACCEPTED
             logger.info(msg)
@@ -610,6 +611,7 @@ class AccessTimeRouterMixin(TravelTimeRouterMixin):
             ret_status = status.HTTP_406_NOT_ACCEPTABLE
             msg = str(err)
             logger.error(msg)
+            raise Exception(msg)
         else:
             ret_status = status.HTTP_202_ACCEPTED
             logger.info(msg)

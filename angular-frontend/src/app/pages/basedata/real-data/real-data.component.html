@@ -5,14 +5,19 @@
                  cookieId="exp-realdata-header"
                  width="1170px">
   <p>Für die Abschätzung der Nachfrage nach Infrastrukturen werden u.a. Einwohnerdaten benötigt. Auf dieser Seite können Sie Daten zur Einwohnerzahl und Altersstruktur in den zurückliegenden Jahren einlesen. Prognosedaten werden über den Eingabeseite „Zukunft“ (nächster Punkte im Menü links) eingepflegt.</p>
-  <p>Die Einwohnerdaten werden für die Gebietsebene eingelesen, die Sie im obersten Menüpunkt „Gebietseinheiten“ hierfür ausgewählt haben. Standardmäßig ist dies die Gemeindeebene. Einwohnerdaten anderer Gebietseinheiten (z.B. Kreise oder Verwaltungsgemeinschaften) werden aus diesen Daten automatisch abgeleitet.</p>
+  <p>Die Einwohnerdaten werden für die Gebietsebene eingelesen, die Sie im obersten Menüpunkt „Gebietseinteilungen“ hierfür ausgewählt haben. Standardmäßig ist dies die Gemeindeebene. Einwohnerdaten anderer Gebietseinteilungen (z.B. Kreise oder Verwaltungsgemeinschaften) werden aus diesen Daten automatisch abgeleitet.</p>
   <p>Sie können Einwohnerdaten für Ihren Planungsraum online vom zentralen Datendienst „Regionalstatistik“ der Statistikämter des Bundes und der Länder abrufen und diese Daten bei Bedarf händisch ergänzen.</p>
   <p>Bereits abgerufene oder hochgeladene Einwohnerdaten können Sie über die Karte sowie das Alterspyramiden-Diagramm kontrollieren. Zudem können Sie sich alle Daten in einer Tabellenansicht anzeigen lassen.</p>
   <p>Die auf dieser Seite zusammengetragenen Einwohnerdaten sind für alle Nutzer:innen im Hauptmenübereich „Bevölkerung“ sichtbar. Zudem stehen sie für Auswertungen im Hauptmenübereich „Infrastrukturplanung“ zur Verfügung.</p>
 </app-header-card>
-<div *ngIf="popLevelMissing">
-  <h1 style="color: red; margin: 30px;">Fehler: Es ist keine Gebietseinheit für die Bevölkerungsdaten festgelegt!</h1>
-</div>
+<app-status-card *ngIf="!(popService.isLoading$ | async) && years.length === 0" [showSpinner]="false"
+                 infoText="Im Bereich „Administration“ > „Basisdefinitionen“ muss ein Betrachtungszeitraum definiert werden.">
+  Fehler: Es ist kein Betrachtungszeitraum festgelegt!
+</app-status-card>
+<app-status-card *ngIf="!(popService.isLoading$ | async) && !popLevel" [showSpinner]="false"
+                 infoText="Bitte legen Sie im Bereich „Gebietseinteilungen“ eine Gebietseinteilung für die Einwohnerdaten fest.">
+  Fehler: Es ist keine Gebietseinteilung für die Bevölkerungsdaten festgelegt!
+</app-status-card>
 <app-status-card *ngIf="isProcessing">
   Es läuft gerade eine Berechnung im Bereich „Bevölkerung“
 </app-status-card>
@@ -23,7 +28,7 @@
                   <p>Der Fortschritt der Abfrage wird Ihnen in der Box „Datenhistorie“ angezeigt. Die eingelesenen Daten können Sie anschließend in der Box „Bereits eingelesene Daten“ als Tabelle, Karte oder Diagramm betrachten.</p>
                   <p>Der Online-Abruf steht nur zur Verfügung, wenn die Einteilung der Altersgruppen im Administrationsbereich nicht gegenüber der Standardeinstellung (Alterseinteilung der Regionalstatistik) verändert wurde.</p>"
                   [subtitle]="'Abruf der Regionalstatistik'"
-                  [disabled]="!popLevel || !popLevel.isDefaultPopLevel || isProcessing">
+                  [disabled]="years.length === 0 || !popLevel || !popLevel.isDefaultPopLevel || isProcessing">
     <ng-container *ngIf="popLevel && popLevel.isDefaultPopLevel && ageGroupsRegStatValid; else notAvailable">
       <div style="margin-top: 10px">
         <button mat-flat-button color="primary"
@@ -36,7 +41,8 @@
   </app-input-card>
   <div fxFlex="450px">
     <app-input-card #yearCard
-                    [title]="'Angezeigte Jahre mit Vergangenheitsdaten'"
+                    [title]="'Jahre mit Vergangenheitsdaten'"
+                    subtitle="Folgende Jahre sollen in Vorlage und Karten enthalten sein"
                     [editTemplate]="yearsEdit"
                     infoText="<p>Die Liste zeigt die Jahre, deren Einwohnerdaten den Nutzer:innen der Hauptmenübereiche „Bevölkerung“ und „Infrastrukturplanung“ als Vergangenheitsdaten angezeigt werden.</p>
                     <p>Klicken Sie auf „Editieren“, um die Auswahl zu verändern und mit dem Datenbestand abzugleichen. Weitere Erläuterungen finden Sie im Hilfetext des sich dann öffnenden Dialogfensters.</p>
@@ -46,7 +52,7 @@
                     <p>Besonders relevant ist diese Auswahl, wenn in einem Jahr sowohl Realdaten aus der Einwohnerstatistik wie auch Prognosedaten aus einer ggf. schon etwas älteren Prognose vorliegen. Daher zeigt Ihnen die letzte Spalte an, für welche der zurückliegenden Jahre auch Prognosedaten in daviplan hochgeladen wurden.</p>
                     <p>Um bereits hochgeladene reale Einwohnerdaten zurückliegender Jahre wieder zu löschen, klicken Sie auf das entsprechende rote Kreuzchen in der Spalte „Realdaten“. Prognosedaten löschen Sie über den Menüpunkt „Bevölkerung > Zukunft“ im Menü am linken Browserrand.</p>"
                     dialogWidth="500px"
-                    [disabled]="!popLevel || isProcessing">
+                    [disabled]="years.length === 0 || !popLevel || isProcessing">
       <table>
         <tr>
           <td i18n>Jahre</td>
@@ -60,11 +66,15 @@
       </table>
     </app-input-card>
     <app-input-card [title]="'Ergänzte/Korrigierte Einwohnerdaten hochladen'"
-                    [disabled]="!popLevel || isProcessing"
+                    [disabled]="years.length === 0 || realYears.length === 0 || !popLevel || isProcessing"
+
                     infoText="<p>Sollten Sie Lücken in den Daten finden, einzelne Werte korrigieren wollen oder keine Daten online abrufen können oder wollen, können Sie Einwohnerdaten auch händisch eingeben.</p>
                     <p>Laden Sie sich hierzu über die Schaltfläche „Vorlage herunterladen“ eine Excel-Vorlage herunter. Diese enthält alle bereits per Online-Abruf oder frühere Eintragungen bereits in daviplan verfügbaren Einwohnerdaten.</p>
                     <p>Öffnen Sie die heruntergeladene Vorlage in Excel und nehmen Sie dort Ihre Eintragungen vor. Laden Sie anschließend immer diese gesamte Vorlage inkl. Ihrer Änderungen hoch.</p>
                     <p>Um der Vorlage ein weiteres Jahr hinzufügen, für das Ihnen bereits Vergangenheitsdaten vorliegen (aber die ggf. noch nicht im online-Abruf verfügbar ist), klicken Sie bitte auf die Schaltfläche „Editieren“ in der Eingabebox „Jahre“, wählen dort das betreffende Jahr aus und laden anschließend hier die Vorlage – ggf. erneut – herunter.</p>">
+      <span *ngIf="realYears.length === 0" style="margin-bottom: 10px;">
+        Es müssen „Jahre mit Vergangenheitsdaten“ ausgewählt werden, damit eine Vorlage mit diesen Jahren erzeugt werden kann.
+      </span>
       <div style="width: 100%; display: flex;">
         <button mat-stroked-button color="primary" style="margin-right: 10px;"
                 (click)="downloadTemplate()">
@@ -87,7 +97,7 @@
   <app-input-card [title]="'Bereits importierte Einwohnerdaten'"
                   [topRightHelp]="true"
                   width="1170px"
-                  [disabled]="!popLevel || isProcessing"
+                  [disabled]="years.length === 0 || !popLevel || isProcessing"
                   infoText="<p>Sie haben drei Möglichkeiten, sich die bereits importierten Einwohnerdaten der zurückliegenden Jahre anzusehen.</p>
                   <ol type='1'>
                     <li>Sie können sich alle Daten in einer Tabellenansicht ansehen</li>
@@ -229,11 +239,6 @@
 </ng-template>
 
 <ng-template #fileUploadTemplate>
-  <div *ngIf="uploadErrors">
-    <mat-error *ngFor="let error of uploadErrors | keyvalue" class="alert">
-      {{ error.key }}: {{ error.value }}
-    </mat-error>
-  </div>
   <p>
     Ergänzte Excel-Vorlage mit Vergangenheitsdaten hochladen
   </p>

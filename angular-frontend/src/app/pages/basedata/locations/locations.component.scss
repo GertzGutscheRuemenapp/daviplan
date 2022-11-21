@@ -1,6 +1,10 @@
 #place-attr-table {
+  table-layout: fixed;
   tr:hover:not(:first-child):not(:last-child) {
     background-color: #f6f6f6;
+  }
+  th, td {
+    padding: 0 10px;
   }
 }
 

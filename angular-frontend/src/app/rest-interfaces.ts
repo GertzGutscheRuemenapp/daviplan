@@ -304,6 +304,7 @@ export interface PlaceField {
   id?: number,
   fieldType: number
   name: string,
+  label: string,
   unit: string,
   sensitive?: boolean,
   isPreset?: boolean
@@ -391,7 +392,7 @@ export interface LogEntry {
   level: 'ERROR' | 'INFO' | 'DEBUG',
   timestamp: string,
   message: string,
-  status?: {success?: boolean}
+  status?: { success?: boolean, finished?: boolean }
 }
 
 export interface ModeStatistics {

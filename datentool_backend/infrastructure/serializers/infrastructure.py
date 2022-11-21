@@ -136,6 +136,7 @@ class InfrastructureSerializer(serializers.ModelSerializer):
                         f'Der Name des Feldes "{field_name}" ist '
                         'bereits so oder in anderer Schreibweise vorhanden')
             place_field.unit = pf_data.get('unit', '')
+            place_field.label = pf_data.get('label', '')
             place_field.sensitive = pf_data.get('sensitive', False)
             place_field.save()
             place_fields.append(place_field)

@@ -27,7 +27,7 @@
         </mat-select-trigger>
         <mat-option [value]="-1" style="display: none;"></mat-option>
         <mat-optgroup label="Meine Planungsprozesse">
-          <button *ngIf="user?.profile?.canCreateProcess"
+          <button *ngIf="user?.profile?.canCreateProcess || user?.isSuperuser"
                   title="Planungsprozess erstellen"
                   mat-icon-button color="primary" class="small"
                   style="position: absolute; right: 6px; top: 8px;"
@@ -93,7 +93,7 @@
             (click)="editProcess(activeProcess)" i18n>
       <mat-icon>edit</mat-icon>
     </button>
-    <button *ngIf="!activeProcess && user?.profile?.canCreateProcess" class="process-button small"
+    <button *ngIf="!activeProcess && (user?.profile?.canCreateProcess || user?.isSuperuser)" class="process-button small"
             title="Planungsprozess erstellen"
             mat-icon-button color="primary"
             (click)="onCreateProcess()" i18n>
@@ -121,7 +121,7 @@
     <p>Im gerade angezeigten Hauptmenübereich „Infrastrukturplanung“ können Sie auf Basis von Szenarien eine
     Infrastrukturplanung für die zuvor definierten Infrastrukturbereiche vornehmen.</p>
     <p>Wenn Sie auf „Nachfrage“ klicken, können Sie sich für jede einzelne Leistung eine Nachfrageschätzung ansehen und
-      die editieren. Die Nachfrage errechnet sich für jede Gebietseinheit aus der Zahl der Einwohner:innen in einem
+      die editieren. Die Nachfrage errechnet sich für jede Gebietseinteilung aus der Zahl der Einwohner:innen in einem
       bestimmten Alter und einer Nachfragequote.</p>
     <p>Im Abschnitt „Angebot“ können Sie sich das Angebot aktuelle Angebot ansehen, d.h. die räumliche Verteilung
       und ggf. die Kapazitäten der Einrichtungen, die die von Ihnen betrachtete Leistung anbieten. Dieses Angebot
@@ -211,11 +211,6 @@
 
 <ng-template #processTemplate>
   <form [formGroup]="editProcessForm">
-    <div *ngIf="editProcessForm.errors">
-      <mat-error *ngFor="let error of editProcessForm.errors | keyvalue" class="alert">
-        {{ error.key }}: {{ error.value }}
-      </mat-error>
-    </div>
     <div fxLayout="row wrap">
       <div fxLayout="column" fxFlex="50%" style="padding: 10px;">
         <mat-form-field appearance="fill">

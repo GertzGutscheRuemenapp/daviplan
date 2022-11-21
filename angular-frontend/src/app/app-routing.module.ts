@@ -74,7 +74,7 @@ const routes: Routes = [
         component: InfrastructureComponent
       },
       {
-        path: 'projektdefinition',
+        path: 'basisdefinitionen',
         component: ProjectDefinitionComponent
       },
       {

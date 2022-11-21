@@ -12,6 +12,7 @@ import { DemandRateSetViewComponent } from "./demand-rate-set-view/demand-rate-s
 import { DemandTypes } from "../../../rest-interfaces";
 import { BehaviorSubject } from "rxjs";
 import { MatSelectionList } from "@angular/material/list";
+import { showAPIError } from "../../../helpers/utils";
 
 @Component({
   selector: 'app-demand-quotas',
@@ -77,7 +78,6 @@ export class DemandQuotasComponent implements AfterViewInit {
       });
     })
     this.demandTypeCard?.dialogConfirmed.subscribe((ok)=>{
-      this.demandTypeForm.setErrors(null);
       this.demandTypeForm.markAllAsTouched();
       if (this.demandTypeForm.invalid) return;
       let attributes: any = {
@@ -89,8 +89,7 @@ export class DemandQuotasComponent implements AfterViewInit {
         Object.assign(this.activeService!, service);
         this.demandTypeCard?.closeDialog(true);
       },(error) => {
-        // ToDo: set specific errors to fields
-        this.demandTypeForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         this.demandTypeCard?.setLoading(false);
       });
     })
@@ -104,7 +103,6 @@ export class DemandQuotasComponent implements AfterViewInit {
       });
     })
     this.propertiesCard?.dialogConfirmed.subscribe((ok)=>{
-      this.propertiesForm.setErrors(null);
       this.propertiesForm.markAllAsTouched();
       if (this.propertiesForm.invalid) return;
       let attributes: any = {
@@ -121,8 +119,7 @@ export class DemandQuotasComponent implements AfterViewInit {
         setTimeout(() => {  this.activeDemandRateSet = activeDemandRateSet; }, 1);
         this.propertiesCard?.closeDialog(true);
       },(error) => {
-        // ToDo: set specific errors to fields
-        this.propertiesForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         this.propertiesCard?.setLoading(false);
       });
     })
@@ -138,7 +135,7 @@ export class DemandQuotasComponent implements AfterViewInit {
         this.demandRateSetPreview!.demandRateSet = set;
         this.demandRateSetCard?.closeDialog(true);
       },(error) => {
-        // ToDo: set errors
+        showAPIError(error, this.dialog);
         this.demandRateSetCard?.setLoading(false);
       });
     })
@@ -162,7 +159,6 @@ export class DemandQuotasComponent implements AfterViewInit {
       this.propertiesForm.reset();
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
-      this.propertiesForm.setErrors(null);
       // display errors for all fields even if not touched
       this.propertiesForm.markAllAsTouched();
       if (this.propertiesForm.invalid) return;
@@ -179,7 +175,7 @@ export class DemandQuotasComponent implements AfterViewInit {
         this.onDemandRateSetChange();
         dialogRef.close();
       },(error) => {
-        this.propertiesForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);
       });
     });
@@ -215,7 +211,6 @@ export class DemandQuotasComponent implements AfterViewInit {
       });
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
-      this.propertiesForm.setErrors(null);
       // display errors for all fields even if not touched
       this.propertiesForm.markAllAsTouched();
       if (this.propertiesForm.invalid) return;
@@ -233,7 +228,7 @@ export class DemandQuotasComponent implements AfterViewInit {
         this.onDemandRateSetChange();
         dialogRef.close();
       },(error) => {
-        this.propertiesForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);
       });
     });
@@ -261,7 +256,7 @@ export class DemandQuotasComponent implements AfterViewInit {
           }
           this.activeDemandRateSet = undefined;
         },(error) => {
-          console.log('there was an error sending the query', error);
+          showAPIError(error, this.dialog);
         });
       }
     });

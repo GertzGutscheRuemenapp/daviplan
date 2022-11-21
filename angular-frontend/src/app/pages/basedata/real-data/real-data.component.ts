@@ -7,8 +7,6 @@ import {
   AgeGroup,
   Area,
   AreaLevel, Gender,
-  ExtLayer,
-  ExtLayerGroup,
   PopEntry,
   Population,
   Year, LogEntry
@@ -20,14 +18,13 @@ import { HttpClient } from "@angular/common/http";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { InputCardComponent } from "../../../dash/input-card.component";
-import * as d3 from "d3";
 import { AgeTreeComponent, AgeTreeData } from "../../../diagrams/age-tree/age-tree.component";
-import { sortBy } from "../../../helpers/utils";
+import { showAPIError, sortBy } from "../../../helpers/utils";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { Router } from "@angular/router";
 import { BehaviorSubject, Subscription } from "rxjs";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
-import { MapLayer, MapLayerGroup, VectorLayer } from "../../../map/layers";
+import { MapLayerGroup, VectorLayer } from "../../../map/layers";
 
 @Component({
   selector: 'app-real-data',
@@ -60,14 +57,12 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   ageGroups: AgeGroup[] = [];
   yearSelection = new SelectionModel<number>(true);
   maxYear = new Date().getFullYear() - 1;
-  Object = Object;
   dataTableColumns: string[] = [];
   dataTableRows: any[][] = [];
   dataTableYear?: Year;
   file?: File;
   isProcessing = false;
   subscriptions: Subscription[] = [];
-  uploadErrors: any = {};
 
   constructor(private mapService: MapService, public popService: PopulationService,
               private dialog: MatDialog, private settings: SettingsService,
@@ -83,8 +78,6 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
       if (this.popLevel) {
         this.popService.getAreas(this.popLevel.id, { reset: true }).subscribe(areas => this.areas = areas);
       }
-      else
-        this.popLevelMissing = true;
     })
     this.subscriptions.push(this.settings.baseDataSettings$.subscribe(baseSettings => {
       this.isProcessing = baseSettings.processes?.population || false;
@@ -191,7 +184,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
           }
           this.yearCard?.setLoading(false);
         },(error) => {
-          console.log('there was an error sending the query', error);
+          showAPIError(error, this.dialog);
           this.yearCard?.setLoading(false);
         });
       }
@@ -296,6 +289,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
       dialogRef.close();
       fileSaver.saveAs(blob, 'realdaten-template.xlsx');
     },(error) => {
+      showAPIError(error, this.dialog);
       dialogRef.close();
     });
   }
@@ -337,6 +331,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
       this.http.post(url, {}).subscribe(() => {
         this.isProcessing = true;
       }, error => {
+        showAPIError(error, this.dialog);
       })
     })
   }
@@ -406,17 +401,14 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
         this.isProcessing = true;
         dialogRef.close();
       }, error => {
-        this.uploadErrors = error.error;
+        showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);
       });
     });
-    dialogRef.afterClosed().subscribe(ok => {
-      this.uploadErrors = {};
-    })
   }
 
   onMessage(log: LogEntry): void {
-    if (log?.status?.success) {
+    if (log?.status?.finished) {
       this.isProcessing = false;
       this.popService.reset();
       this.fetchData();

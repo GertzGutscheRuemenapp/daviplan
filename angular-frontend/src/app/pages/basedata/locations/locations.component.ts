@@ -15,7 +15,7 @@ import { HttpClient } from "@angular/common/http";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { FloatingDialog } from "../../../dialogs/help-dialog/help-dialog.component";
-import { sortBy } from "../../../helpers/utils";
+import { showAPIError, sortBy } from "../../../helpers/utils";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
@@ -46,7 +46,6 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   selectedInfrastructure?: Infrastructure;
   placeFields: PlaceField[] = [];
   editFields: PlaceEditField[] = [];
-  editErrors?: any;
   mapControl?: MapControl;
   layerGroup?: MapLayerGroup;
   placesLayer?: VectorLayer;
@@ -91,6 +90,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
     if (!this.selectedInfrastructure) return;
     this.placeFields = this.selectedInfrastructure.placeFields?.filter(f => !f.isPreset) || [];
     this.editFields = JSON.parse(JSON.stringify(this.placeFields));
+    this.editFields.forEach(f => f.removed = false);
     this.isLoading$.next(true);
     this.restService.getPlaces( { infrastructure: this.selectedInfrastructure, reset: reset }).subscribe(places => {
       this.selectedInfrastructure!.placesCount = places.length;
@@ -206,6 +206,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       fileSaver.saveAs(blob, 'standorte-template.xlsx');
     },(error) => {
       dialogRef.close();
+      showAPIError(error, this.dialog);
     });
   }
 
@@ -253,8 +254,8 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   setupAttributeCard(): void {
     this.editAttributesCard.dialogClosed.subscribe(() => {
       this.fieldRemoved = false;
-      this.editErrors = undefined;
       this.editFields = JSON.parse(JSON.stringify(this.placeFields || []));
+      this.editFields.forEach(f => f.removed = false);
     })
     this.editAttributesCard.dialogConfirmed.subscribe((ok)=> {
       const removeFields = this.editFields.filter(f => f.removed && !f.new);
@@ -283,15 +284,16 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
           return;
         }
         _this.isLoading$.next(true);
-        const body = { place_fields: _this.editFields.filter(f => !f.removed) }
+        // all fields are being sent to API, fields not in body will autmatically be removed
+        const body = { place_fields: _this.editFields.filter(f => !f.removed) };
         _this.http.patch<Infrastructure>(`${_this.rest.URLS.infrastructures}${_this.selectedInfrastructure!.id}/`, body).subscribe(infrastructure => {
           Object.assign(_this.selectedInfrastructure!, infrastructure);
           _this.isLoading$.next(false);
           _this.editAttributesCard?.closeDialog();
           _this.onInfrastructureChange(true);
         }, error => {
+          showAPIError(error, _this.dialog);
           _this.isLoading$.next(false);
-          _this.editErrors = error.error
         });
       }
     })
@@ -299,9 +301,9 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
 
   addField(): void {
     this.editFields?.push({
-      name: '', unit: '',// sensitive: false,
+      name: '', label: '', unit: '',// sensitive: false,
       fieldType: (this.fieldTypes.find(ft => ft.ftype == 'NUM') || this.fieldTypes[0]).id,
-      new: true
+      new: true, removed: false
     })
   }
 
@@ -319,9 +321,6 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
           "<p>Klassifikationen erleichtern zum einen eine strukturierte Dateneingabe. Zum anderen können Sie in daviplan später als Grundlage für Sortier- und Filterfunktionen verwendet werden.</p>" +
           "<p>Klicken Sie auf die Schaltfläche „Hinzufügen“ unter der linken Liste „Klassifikationen“, um eine Klassifikation hinzuzufügen. Klicken Sie anschließen auf die Schaltfläche „Hinzufügen“ unter der rechten Liste „Klassen“, um dieser Klassifikation einzelne Klassen zuzufügen.</p>" +
           "<p>Klicken Sie auf „OK“, wenn Sie fertig sind. Achtung: Dieser Eingabebereich hat keinen Entwurfsmodus mit “Abbrechen” und “Speichern”. Alle Eintragungen und Änderungen an den Klassifikationen und Klassen werden daher sofort in die Datenbank übernommen. </p>"
-
-
-
       }
     });
   }
@@ -351,6 +350,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       this.http.post(url, formData).subscribe(res => {
         this.isProcessing = true;
       }, error => {
+        showAPIError(error, this.dialog);
       });
     });
   }
@@ -378,14 +378,14 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         ).subscribe(res => {
           this.onInfrastructureChange(true);
         }, error => {
-          console.log('there was an error sending the query', error);
+          showAPIError(error, this.dialog);
         });
       }
     });
   }
 
   onMessage(log: LogEntry): void {
-    if (log?.status?.success) {
+    if (log?.status?.finished) {
       this.isProcessing = false;
       this.onInfrastructureChange(true);
     }

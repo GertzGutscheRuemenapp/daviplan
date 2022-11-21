@@ -1,3 +1,6 @@
+<div class="loadOverlay" *ngIf="isLoading$ | async">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
 <app-header-card [title]="'Basisdefinitionen'"
                  cookieId="exp-project-header"
                  width="930px">
@@ -8,6 +11,9 @@
     Wie dies im Einzelnen geht, wird Ihnen in den Hilfetexten der drei nachstehenden Eingabeboxen erläutert.
   </p>
 </app-header-card>
+<app-status-card *ngIf="isProcessing">
+  Es läuft gerade eine Berechnung im Bereich „Gebiete“/„Planungsraum“
+</app-status-card>
 <div fxLayout="row wrap">
   <div fxLayout="column" fxFlex="350px">
     <app-input-card #yearCard
@@ -75,11 +81,6 @@
 
 <ng-template #yearEdit>
   <form [formGroup]="yearForm">
-    <div *ngIf="yearForm.errors">
-      <mat-error *ngFor="let error of Object.values(yearForm.errors)" class="alert">
-        {{ error }}
-      </mat-error>
-    </div>
     <mat-form-field appearance="outline" class="full">
       <mat-label i18n>Startjahr</mat-label>
       <input matInput type="number" [min]="projectSettings?.minYear || 2000" max="3000" formControlName="startYear" required>
@@ -93,11 +94,6 @@
 </ng-template>
 
 <ng-template #ageGroupsEdit>
-  <div *ngIf="ageGroupErrors.length > 0">
-    <mat-error *ngFor="let error of Object.values(ageGroupErrors)" class="alert">
-      {{ error }}
-    </mat-error>
-  </div>
   <div class="age-group-container" #ageGroupContainer>
     <div>
       <ng-container *ngFor="let ageGroup of editAgeGroups; let i = index;">
@@ -109,7 +105,6 @@
                    [min]="(i===0)? 0: editAgeGroups![i-1].toAge"
                    [max]="ageGroup.toAge - 1"
                    [(ngModel)]="ageGroup.fromAge"
-                   (change)="ageGroupErrors = []"
                    required>
           </mat-form-field>
           &nbsp;-&nbsp;
@@ -119,7 +114,6 @@
                    [min]="ageGroup.fromAge + 1"
                    [max]="(i < editAgeGroups.length - 1)? editAgeGroups![i+1].fromAge: 998"
                    [(ngModel)]="ageGroup.toAge"
-                   (change)="ageGroupErrors = []"
                    required>
             <mat-error *ngIf="yearForm.get('startYear')?.errors?.tooHigh" i18n>
               Das Startjahr muss vor dem Endjahr liegen
@@ -196,9 +190,6 @@
                         (ngModelChange)="toggleLayerVisibility()">
         Gebietsauswahl {{showAreaLayers? 'aktiv': 'deaktiviert' }}
       </mat-slide-toggle>
-      <mat-error *ngFor="let error of projectAreaErrors" class="alert">
-        {{ error }}
-      </mat-error>
       <div id="project-area-select-map" class="map-container">
         <app-map-controls target="project-area-select-map"></app-map-controls>
       </div>

@@ -6,9 +6,10 @@ import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dia
 import { InputCardComponent } from '../../../dash/input-card.component'
 import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
 import { RestAPI } from "../../../rest-api";
-import { Observable } from "rxjs";
+import { BehaviorSubject, Observable } from "rxjs";
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { Infrastructure, InfrastructureAccess, User } from "../../../rest-interfaces";
+import { showAPIError } from "../../../helpers/utils";
 
 @Component({
   selector: 'app-users',
@@ -34,8 +35,7 @@ export class UsersComponent implements AfterViewInit  {
   changePassword: boolean = false;
   showAccountPassword: boolean = false;
   showNewUserPassword: boolean = false;
-  // workaround to have access to object iteration in template
-  Object = Object;
+  isLoading$ = new BehaviorSubject<boolean>(false);
 
   constructor(private http: HttpClient, private dialog: MatDialog, private formBuilder: FormBuilder,
               private rest: RestAPI) {
@@ -47,30 +47,25 @@ export class UsersComponent implements AfterViewInit  {
   }
 
   ngAfterViewInit() {
+    this.isLoading$.next(true);
     this.http.get<Infrastructure[]>(this.rest.URLS.infrastructures).subscribe(infrastructures => {
       this.infrastructures = infrastructures;
-      this.getUsers();
+      this.http.get<User[]>(this.rest.URLS.users).subscribe((users)=>{
+        // sort users alphabetically, admins always on top
+        this.users = users.slice().sort((a,b) =>
+          (!a.isSuperuser && b.isSuperuser)? 1 : (a.isSuperuser && !b.isSuperuser)? -1 :
+            (a.username > b.username)? 1 : (a.username < b.username)? -1 : 0);
+        this.isLoading$.next(false);
+      })
     })
     this.setupAccountCard();
     this.setupPermissionCard();
     this.setupAccessCard();
   }
 
-  getUsers(): Observable<User[]> {
-    let query = this.http.get<User[]>(this.rest.URLS.users);
-    query.subscribe((users)=>{
-      // sort users alphabetically, admins always on top
-      this.users = users.slice().sort((a,b) =>
-        (!a.isSuperuser && b.isSuperuser)? 1 : (a.isSuperuser && !b.isSuperuser)? -1 :
-          (a.username > b.username)? 1 : (a.username < b.username)? -1 : 0)
-    })
-    return query;
-  }
-
   setupAccountCard(){
     if (!this.accountCard) return;
     this.accountCard.dialogConfirmed.subscribe((ok)=>{
-      this.accountForm.setErrors(null);
       // display errors for all fields even if not touched
       this.accountForm.markAllAsTouched();
       if (this.accountForm.invalid) return;
@@ -85,7 +80,7 @@ export class UsersComponent implements AfterViewInit  {
       if (this.accountForm.value.changePass){
         let pass = this.accountForm.value.password
         if (pass != this.accountForm.value.confirmPass){
-          this.accountForm.controls['confirmPass'].setErrors({'notMatching': true});
+          showAPIError({message: 'Die Passwörter stimmen nicht überein'}, this.dialog);
           return;
         }
         attributes.password = pass;
@@ -99,32 +94,27 @@ export class UsersComponent implements AfterViewInit  {
         this.selectedUser!.lastName = user.lastName;
         this.accountCard?.closeDialog(true);
       },(error) => {
-        // ToDo: set specific errors to fields
-        this.accountForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         this.accountCard?.setLoading(false);
       });
     })
     this.accountCard.dialogClosed.subscribe((ok)=>{
-      // reset form on cancel
-      if (!ok){
-        this.changePassword = false;
-        this.showAccountPassword = false;
-        this.accountForm.controls['password'].disable();
-        this.accountForm.controls['confirmPass'].disable();
-        this.accountForm.reset({
-          user: this.selectedUser,
-          changePass: this.changePassword,
-          password: '',
-          confirmPass: ''
-        });
-      }
+      this.changePassword = false;
+      this.showAccountPassword = false;
+      this.accountForm.controls['password'].disable();
+      this.accountForm.controls['confirmPass'].disable();
+      this.accountForm.reset({
+        user: this.selectedUser,
+        changePass: this.changePassword,
+        password: '',
+        confirmPass: ''
+      });
     })
   }
 
   setupPermissionCard() {
     if (!this.permissionCard) return;
     this.permissionCard.dialogConfirmed.subscribe((ok)=>{
-      this.permissionForm.setErrors(null);
       let profile = this.permissionForm.value.profile;
       let attributes = {
         profile: {
@@ -139,7 +129,7 @@ export class UsersComponent implements AfterViewInit  {
         this.selectedUser!.profile = user.profile;
         this.permissionCard?.closeDialog(true);
       },(error) => {
-        this.permissionForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         this.permissionCard?.setLoading(false);
       });
     })
@@ -161,23 +151,20 @@ export class UsersComponent implements AfterViewInit  {
         const ua = this.userAccess(this.selectedUser, infrastructure);
         const access = {
           infrastructure: infrastructure,
-          hasAccess: ua !== undefined,
-          allowSensitiveData: ua?.allowSensitiveData || false
+          hasAccess: ua !== undefined
         }
         accessControl[infrastructure.id] = this.formBuilder.group(access);
       })
       this.accessForm = this.formBuilder.group(accessControl);
     })
     this.accessCard.dialogConfirmed.subscribe((ok)=>{
-      this.accessForm.setErrors(null);
       this.accessCard?.setLoading(true);
       let access: any[] = [];
       Object.keys(this.accessForm.controls).forEach(infrastructureId => {
         const control = this.accessForm.value[infrastructureId];
         if (control.hasAccess) {
           access.push({
-            infrastructure: infrastructureId,
-            allowSensitiveData: control.allowSensitiveData
+            infrastructure: infrastructureId
           })
         }
       })
@@ -186,8 +173,8 @@ export class UsersComponent implements AfterViewInit  {
         this.selectedUser!.access = user.access;
         this.accessCard?.closeDialog(true);
       },(error) => {
-         this.accessForm.setErrors(error.error);
-         this.accessCard?.setLoading(false);
+        showAPIError(error, this.dialog);
+        this.accessCard?.setLoading(false);
       });
     })
   }
@@ -200,8 +187,8 @@ export class UsersComponent implements AfterViewInit  {
       password: new FormControl({value: '', disabled: !this.changePassword}),
       confirmPass: new FormControl({value: '', disabled: !this.changePassword})
     });
-    let userControl: any = this.accountForm.get('user');
-    userControl.get('email').setValidators([Validators.email])
+    // let userControl: any = this.accountForm.get('user');
+    // userControl.get('email').setValidators([Validators.email])
     this.permissionForm = this.formBuilder.group({
       profile: this.formBuilder.group(this.selectedUser.profile)
     });
@@ -235,14 +222,13 @@ export class UsersComponent implements AfterViewInit  {
       this.showNewUserPassword = false;
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
-      this.createUserForm.setErrors(null);
       // display errors for all fields even if not touched
       this.createUserForm.markAllAsTouched();
       if (this.createUserForm.invalid) return;
       let username = this.createUserForm.value.username;
       let password = this.createUserForm.value.password;
       if (password != this.createUserForm.value.confirmPass){
-        this.createUserForm.controls['confirmPass'].setErrors({'notMatching': true});
+        showAPIError({message: 'Die Passwörter stimmen nicht überein'}, this.dialog);
         return;
       }
       dialogRef.componentInstance.isLoading$.next(true);
@@ -255,7 +241,7 @@ export class UsersComponent implements AfterViewInit  {
         this.users.push(user);
         dialogRef.close();
       },(error) => {
-        this.createUserForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);
       });
     });
@@ -279,8 +265,9 @@ export class UsersComponent implements AfterViewInit  {
           if (idx > -1) {
             this.users.splice(idx, 1);
           }
+          this.selectedUser = undefined;
         },(error) => {
-          console.log('there was an error sending the query', error);
+          showAPIError(error, this.dialog);
         });
       }
     });

@@ -55,7 +55,7 @@ export class LoginComponent implements OnInit, OnDestroy {
             this.settingsService.refresh();
             this.router.navigate([this.next || '/']);
           }, (error) => {
-            const msg = (error.status === 0) ? 'Server antwortet nicht': $localize`Keine Übereinstimmung von Nutzer und Passwort`;
+            const msg = (error.status === 0)? 'Server antwortet nicht': $localize`Keine Übereinstimmung von Nutzer und Passwort`;
             this.loginForm.setErrors({ 'error': msg })
           });
   }

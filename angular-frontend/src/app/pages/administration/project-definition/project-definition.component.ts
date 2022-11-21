@@ -12,7 +12,7 @@ import proj4 from 'proj4';
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { FormBuilder, FormGroup } from "@angular/forms";
-import { Observable, Subscription } from "rxjs";
+import { BehaviorSubject, Observable, Subscription } from "rxjs";
 import { Layer } from "ol/layer";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
@@ -21,6 +21,7 @@ import { tap } from "rxjs/operators";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import { RestCacheService } from "../../../rest-cache.service";
 import { SettingsService } from "../../../settings.service";
+import { showAPIError } from "../../../helpers/utils";
 
 export interface ProjectSettings {
   projectArea: string,
@@ -66,17 +67,14 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   ageGroups: AgeGroup[] = [];
   editAgeGroups: AgeGroup[] = [];
   ageGroupDefaults: AgeGroup[] = [];
-  projectAreaErrors = [];
   projectSettings?: ProjectSettings;
   yearForm!: FormGroup;
-  Object = Object;
   areaLayers = areaLayers;
   selectedAreaLayer: BKGLayer = areaLayers[0];
   baseAreaLayer: BKGLayer = areaLayers[areaLayers.length - 1];
   selectedBaseAreaMapping = new Map<string, Feature<any>>();
   baseAreasInExtent: Feature<any>[] = [];
   showAreaLayers = false;
-  ageGroupErrors: string[] = [];
   private _baseSelectLayer?: Layer<any>;
   @ViewChild('areaCard') areaCard!: InputCardComponent;
   @ViewChild('yearCard') yearCard!: InputCardComponent;
@@ -85,6 +83,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   @ViewChild('ageGroupWarning') ageGroupWarningTemplate?: TemplateRef<any>;
   subscriptions: Subscription[] = [];
   isProcessing = false;
+  isLoading$ = new BehaviorSubject<boolean>(false);
 
   constructor(private restService: RestCacheService,private mapService: MapService, private formBuilder: FormBuilder,
               private http: HttpClient, private rest: RestAPI, private dialog: MatDialog,
@@ -93,14 +92,16 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.setupPreviewMap();
     this.setupAreaCard();
+    this.isLoading$.next(true);
     this.fetchProjectSettings().subscribe(settings => {
       this.updatePreviewLayer();
-    });
-    this.fetchYears().subscribe(settings => {
-      this.setupYearCard();
-    });
-    this.fetchAgeGroups().subscribe(ageGroups => {
-      this.setupAgeGroupCard();
+      this.fetchYears().subscribe(settings => {
+        this.setupYearCard();
+        this.fetchAgeGroups().subscribe(ageGroups => {
+          this.setupAgeGroupCard();
+          this.isLoading$.next(false);
+        });
+      });
     });
     this.subscriptions.push(this.settings.baseDataSettings$.subscribe(bs => this.isProcessing = bs.processes?.areas || false));
   }
@@ -152,67 +153,78 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     this.editAgeGroups = transformAgeGroups(this.ageGroups);
 
     this.ageGroupCard.dialogConfirmed.subscribe(ok => {
-      // transformation raised toAge, revert
-      const changedGroups = this.editAgeGroups.map(ag => {
-        return { fromAge: ag.fromAge, toAge: ag.toAge - 1 }
-      })
-      // append last group that was cut
-      if (this.editAgeGroups.length === 0)
-        changedGroups.push({ fromAge: 0, toAge: 999 })
-      changedGroups.push({
-        fromAge: (this.editAgeGroups.length === 0)? 0: this.editAgeGroups[this.editAgeGroups.length-1].toAge,
-        toAge: 999
-      })
-      const valid = this.validateAgeGroups(changedGroups),
-            _this = this;
-      if (!valid) {
-        this.ageGroupErrors = ['Die Altersgruppen müssen lückenlos sein und dürfen sich nicht überschneiden'];
-        return;
-      }
-      const matchesDefaults = this.compareAgeGroupsDefault(changedGroups);
-      function postAgeGroups(){
-        _this.ageGroupCard.setLoading(true);
-        _this.http.post<AgeGroup[]>(`${_this.rest.URLS.ageGroups}replace/`, changedGroups
-        ).subscribe(ageGroups => {
-          _this.ageGroupCard.closeDialog(true);
-          _this.ageGroups = ageGroups;
-        },(error) => {
-          // ToDo: set specific errors to fields
-          _this.ageGroupErrors = [error.error.detail];
-          _this.ageGroupCard.setLoading(false);
-        });
-      }
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '400px',
+        data: {
+          title: 'Altersgruppen bestätigen',
+          confirmButtonText: 'Altersgruppen speichern',
+          closeOnConfirm: true,
+          message: 'Das Setzen der Altersgruppen entfernt alle bereits hochgeladenen Bevölkerungsdaten und die Bevölkerungsssalden.'
+        },
+        panelClass: 'warning'
+      });
+      dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+        if (!confirmed) return;
+        // transformation raised toAge, revert
+        const changedGroups = this.editAgeGroups.map(ag => {
+          return { fromAge: ag.fromAge, toAge: ag.toAge - 1 }
+        })
+        // append last group that was cut
+        if (this.editAgeGroups.length === 0)
+          changedGroups.push({ fromAge: 0, toAge: 999 })
+        changedGroups.push({
+          fromAge: (this.editAgeGroups.length === 0) ? 0 : this.editAgeGroups[this.editAgeGroups.length - 1].toAge,
+          toAge: 999
+        })
+        const valid = this.validateAgeGroups(changedGroups),
+          _this = this;
+        if (!valid) {
+          showAPIError({ message: 'Die Altersgruppen müssen lückenlos sein und dürfen sich nicht überschneiden!' }, this.dialog);
+          return;
+        }
+        const matchesDefaults = this.compareAgeGroupsDefault(changedGroups);
 
-      if (!matchesDefaults){
-        const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-          width: '400px',
-          data: {
-            title: $localize`Altersgruppen bestätigen`,
-            confirmButtonText: $localize`Altersgruppen übernehmen`,
-            template: this.ageGroupWarningTemplate,
-            closeOnConfirm: true,
-            infoText: 'Wenn die Altersgruppen nicht mit der Regionalstatistik übereinstimmen, können die ' +
-              'Bevölkerungsdaten im Bereich "Grundlagendaten" nicht automatisch von der Regionalstatistik abgerufen werden, ' +
-              'sondern müssen manuell eingespielt werden.'
-          },
-          panelClass: 'warning'
-        });
-        dialogRef.afterClosed().subscribe((confirmed: boolean) => {
-          if (confirmed) {
-            postAgeGroups();
-          }
-        });
-      }
-      else {
-        postAgeGroups();
-      }
+        function postAgeGroups() {
+          _this.ageGroupCard.setLoading(true);
+          _this.http.post<AgeGroup[]>(`${_this.rest.URLS.ageGroups}replace/`, changedGroups
+          ).subscribe(ageGroups => {
+            _this.ageGroupCard.closeDialog(true);
+            _this.ageGroups = ageGroups;
+          }, (error) => {
+            showAPIError(error, _this.dialog);
+            _this.ageGroupCard.setLoading(false);
+          });
+        }
+
+        if (!matchesDefaults) {
+          const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+            width: '400px',
+            data: {
+              title: $localize`Altersgruppen bestätigen`,
+              confirmButtonText: $localize`Altersgruppen übernehmen`,
+              template: this.ageGroupWarningTemplate,
+              closeOnConfirm: true,
+              infoText: 'Wenn die Altersgruppen nicht mit der Regionalstatistik übereinstimmen, können die ' +
+                'Bevölkerungsdaten im Bereich "Grundlagendaten" nicht automatisch von der Regionalstatistik abgerufen werden, ' +
+                'sondern müssen manuell eingespielt werden.'
+            },
+            panelClass: 'warning'
+          });
+          dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+            if (confirmed) {
+              postAgeGroups();
+            }
+          });
+        } else {
+          postAgeGroups();
+        }
+      })
     })
     this.ageGroupCard.dialogClosed.subscribe((ok)=>{
       // reset form on cancel
       if (!ok){
       }
       this.editAgeGroups = transformAgeGroups(this.ageGroups);
-      this.ageGroupErrors = [];
     })
   }
 
@@ -247,8 +259,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
           _this.yearCard.setLoading(false);
           _this.yearCard.closeDialog(true);
         }, (error) => {
-          // ToDo: set specific errors to fields
-          _this.yearForm.setErrors(error.error);
+          showAPIError(error, _this.dialog);
           _this.yearCard.setLoading(false);
         });
       }
@@ -302,7 +313,6 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
 
   setupAreaCard(): void {
     this.areaCard.dialogOpened.subscribe(x => {
-      this.projectAreaErrors = [];
       this.areaSelectMapControl = this.mapService.get('project-area-select-map');
       this.areaSelectMapControl.setBackground(this.areaSelectMapControl.backgroundLayers[0].id!);
 
@@ -412,7 +422,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
               this.isProcessing = true;
               this.areaCard?.closeDialog(true);
             },(error) => {
-              this.projectAreaErrors = error.error;
+              showAPIError(error, this.dialog);
               this.areaCard?.setLoading(false);
             });
             dialogRef.close();
@@ -454,7 +464,6 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
 
   resetAgeGroups(): void {
     this.editAgeGroups = transformAgeGroups(this.ageGroupDefaults);
-    this.ageGroupErrors = [];
   }
 
   addAgeGroup(): void {
@@ -465,7 +474,6 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     else {
       this.editAgeGroups = [{ fromAge: 0, toAge: 1 }];
     }
-    this.ageGroupErrors = [];
     this.ageGroupContainer.nativeElement.scrollTop = this.ageGroupContainer.nativeElement.scrollHeight;
   }
 
@@ -477,7 +485,6 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
     // else
     //   this.editAgeGroups[index + 1].fromAge = 0;
     this.editAgeGroups.splice(index, 1);
-    this.ageGroupErrors = [];
   }
 
   insertAgeGroup(index: number) {
@@ -676,7 +683,7 @@ export class ProjectDefinitionComponent implements AfterViewInit, OnDestroy {
   }
 
   onMessage(log: LogEntry): void {
-    if (log?.status?.success) {
+    if (log?.status?.finished) {
       this.isProcessing = false;
       this.fetchProjectSettings().subscribe(settings => {
         this.updatePreviewLayer();

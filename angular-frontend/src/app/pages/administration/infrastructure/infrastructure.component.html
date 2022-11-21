@@ -1,3 +1,6 @@
+<div class="loadOverlay" *ngIf="isLoading$ | async">
+  <mat-spinner [diameter]="50"></mat-spinner>
+</div>
 <app-header-card [title]="'Infrastrukturbereiche'"
                  cookieId="exp-infra-header"
                  width="980px">
@@ -75,11 +78,6 @@
 
 <ng-template #infrastructureEdit>
   <form [formGroup]="infrastructureForm">
-    <div *ngIf="infrastructureForm.errors">
-      <mat-error *ngFor="let error of Object.values(infrastructureForm.errors)" class="alert">
-        {{ error }}
-      </mat-error>
-    </div>
     <div fxLayout="column">
       <mat-form-field appearance="fill">
         <mat-label i18n>Name</mat-label>

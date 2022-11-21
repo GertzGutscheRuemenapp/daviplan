@@ -6,7 +6,8 @@
         <div class="davicon icon-GGR-davicons-Font-Simple-3-Standorte-Leistungen"></div>
       </div>
       Leistung
-      <mat-icon color="warn" *ngIf="!planningService.activeService" style="margin-left: 10px;">
+      <mat-icon *ngIf="!planningService.activeService" class="warning"
+                title="Keine Leistung ausgewählt">
         error_outline
       </mat-icon>
       <app-help-button title="Leistung" position="right">
@@ -24,7 +25,8 @@
         <mat-icon class="material-icons-outlined">lightbulb</mat-icon>
       </div>
       Indikator
-      <mat-icon color="warn" *ngIf="!selectedIndicator" style="margin-left: 10px;">
+      <mat-icon *ngIf="!selectedIndicator" class="warning"
+                title="Kein Indikator ausgewählt">
         error_outline
       </mat-icon>
       <app-help-button title="Indikator" position="right">
@@ -82,9 +84,13 @@
       <div class="mini-fab-icon">
         <mat-icon class="material-icons-outlined">flip_to_front</mat-icon>
       </div>
-      Gebietseinheit
-      <app-help-button title="Gebietseinheit" position="right">
-        <p>Wählen Sie hier im Dropdown-Menü die jeweilige Gebietseinheit für die Darstellung aus.</p>
+      Gebietseinteilung
+      <mat-icon *ngIf="!selectedAreaLevel" class="warning"
+                title="Keine Gebietseinteilung ausgewählt">
+        error_outline
+      </mat-icon>
+      <app-help-button title="Gebietseinteilung" position="right">
+        <p>Wählen Sie hier im Dropdown-Menü die jeweilige Gebietseinteilung für die Darstellung aus.</p>
       </app-help-button>
     </mat-panel-title>
   </mat-expansion-panel-header>
@@ -98,53 +104,6 @@
     </mat-select>
   </mat-form-field>
 </mat-expansion-panel>
-<!--<mat-expansion-panel cookieExpansion="exp-rating-compare" class="disabled">
-  <mat-expansion-panel-header>
-    <mat-panel-title>
-      <div class="mini-fab-icon">
-        <div class="davicon icon-GGR-davicons-Font-Simple-4-Vergleichsdarstellung"></div>
-      </div>
-      Vergleichsdarstellung
-      <app-help-button title="Gebietseinheit" position="right">
-        <p></p>
-      </app-help-button>
-    </mat-panel-title>
-  </mat-expansion-panel-header>
-  <mat-checkbox style="padding-left: 12px;" color="primary" [(ngModel)]="compareSupply" i18n> &lt;!&ndash;style="margin-left: -12px"&ndash;&gt;
-    Nachfrage vergleichen
-  </mat-checkbox>
-  <div class="sub-select-wrapper compare-radio-list">
-    <mat-radio-group [(ngModel)]="compareStatus">
-      <mat-radio-button value="option 1" color="primary"
-                        [disabled]="!compareSupply"
-                        i18n>
-        Mit Bewertung im gleichen Szenario im Jahr
-      </mat-radio-button>
-      <mat-form-field appearance="outline" class="small">
-        <mat-select disableOptionCentering disableRipple [value]="years[0]" [disabled]="!compareSupply || compareStatus != 'option 1'">
-          <mat-option *ngFor="let year of years" [value]="year">
-            {{year}}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-      <mat-radio-button value="option 2" color="primary"
-                        [disabled]="!compareSupply"
-                        i18n>
-        Mit Bewertung im gleichen Jahr im Szenario
-      </mat-radio-button>
-      <mat-form-field appearance="outline" class="small">
-        <mat-select disableOptionCentering disableRipple value="1" [disabled]="!compareSupply || compareStatus != 'option 2'">
-          <mat-option value="1">
-            Szenario 1
-          </mat-option>
-          <mat-option value="2">
-            Szenario 2
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-    </mat-radio-group>
-  </div>
-</mat-expansion-panel>-->
 <!--this div is only there to cover glitched shadow of chart toggle-->
 <div style="width: 100%; height: 200px; background-color: white;"></div>
 <app-side-toggle [class.hidden]="!(selectedIndicator?.resultType === 'area' || selectedIndicator?.resultType === 'place')"
@@ -166,7 +125,7 @@
     <app-help-button title="Diagrammdarstellung"
                      position="right"
                      style="position: absolute; left: 5px; top: -5px; z-index: 1;">
-      <p>Das Diagramm zeigt die Kennwerte des ausgewählten Indikators für alle Gebiete der ausgewählten Gebietseinheit.</p>
+      <p>Das Diagramm zeigt die Kennwerte des ausgewählten Indikators für alle Gebiete der ausgewählten Gebietseinteilung.</p>
       <p>Mit einem Klick auf den Vollbild-Button rechts oben können Sie sich das Diagramm vergrößert in einem Dialog anzeigen lassen.</p>
       <p>Über den Herunterladen-Button darunter können Sie sich das Diagramm als Bild (PNG) herunterladen.</p>
     </app-help-button>

@@ -170,11 +170,6 @@
 
 <ng-template #editVariant>
   <form [formGroup]="variantForm">
-    <div *ngIf="variantForm.errors">
-      <mat-error *ngFor="let error of variantForm.errors | keyvalue" class="alert">
-        {{error.key}}: <i>{{error.value}}</i>
-      </mat-error>
-    </div>
     <div fxLayout="column">
       <mat-form-field appearance="fill">
         <mat-label i18n>Name des Netzes</mat-label>
@@ -185,8 +180,5 @@
 </ng-template>
 
 <ng-template #fileUploadTemplate let-accept="accept">
-  <mat-error *ngFor="let error of uploadErrors | keyvalue" class="alert">
-    {{ error.key }}: {{ error.value }}
-  </mat-error>
   <input #fileInput type="file" [accept]="accept" (change)="setFiles($event)">
 </ng-template>

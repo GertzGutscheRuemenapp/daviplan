@@ -27,6 +27,7 @@ import { AuthService } from "../../auth.service";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../rest-api";
 import { CookieService } from "../../helpers/cookies.service";
+import { showAPIError } from "../../helpers/utils";
 
 interface SharedUser extends User {
   shared?: boolean;
@@ -58,7 +59,6 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
   infrastructures: Infrastructure[] = [];
   baseScenario?: Scenario;
   editProcessForm: FormGroup;
-  Object = Object;
   isLoading = true;
   mapDescription = '';
   subscriptions: Subscription[] = [];
@@ -211,7 +211,6 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
       })
     })
     dialogRef.componentInstance.confirmed.subscribe(() => {
-      this.editProcessForm.setErrors(null);
       // display errors for all fields even if not touched
       this.editProcessForm.markAllAsTouched();
       if (this.editProcessForm.invalid) return;
@@ -228,7 +227,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
         this.setProcess(process.id);
         dialogRef.close();
       },(error) => {
-        this.editProcessForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);
       });
     });
@@ -261,7 +260,6 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
       })
     })
     dialogRef.componentInstance.confirmed.subscribe(() => {
-      this.editProcessForm.setErrors(null);
       // display errors for all fields even if not touched
       this.editProcessForm.markAllAsTouched();
       if (this.editProcessForm.invalid) return;
@@ -282,7 +280,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
         this.setProcess(process.id);
         dialogRef.close();
       },(error) => {
-        this.editProcessForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);
       });
     });
@@ -311,7 +309,7 @@ export class PlanningComponent implements AfterViewInit, OnDestroy {
             this.setProcess(undefined, {persist: true});
           }
         },(error) => {
-          console.log('there was an error sending the query', error);
+          showAPIError(error, this.dialog);
         });
       }
     });

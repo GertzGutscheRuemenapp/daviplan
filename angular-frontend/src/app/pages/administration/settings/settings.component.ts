@@ -11,6 +11,7 @@ import { FileHandle } from "../../../helpers/dragndrop.directive";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { take } from "rxjs/operators";
+import { showAPIError } from "../../../helpers/utils";
 
 @Component({
   selector: 'app-settings',
@@ -34,12 +35,8 @@ export class SettingsComponent implements AfterViewInit {
   showBKGPassword: boolean = false;
   showRegstatPassword: boolean = false;
   welcomeTextInput: string = '';
-  welcomeTextErrors: any = {};
-  logoErrors: any = {};
   // 10MB (=10 * 2 ** 20)
   readonly maxLogoSize = 10485760;
-  // workaround to have access to object iteration in template
-  Object = Object;
   Editor = ClassicEditor;
   logoFile?: FileHandle;
   editorConfig = {
@@ -72,7 +69,6 @@ export class SettingsComponent implements AfterViewInit {
     });
 
     this.titleEdit.dialogConfirmed.subscribe(()=>{
-      this.titleForm.setErrors(null);
       this.titleForm.markAllAsTouched();
       if (this.titleForm.invalid) return;
       this.titleEdit.setLoading(true);
@@ -85,8 +81,7 @@ export class SettingsComponent implements AfterViewInit {
           // update global settings
           this.settingsService.refresh();
         },(error) => {
-          // ToDo: set specific errors to fields
-          this.titleForm.setErrors(error.error);
+          showAPIError(error, this.dialog);
           this.titleEdit.setLoading(false);
       });
     })
@@ -106,7 +101,6 @@ export class SettingsComponent implements AfterViewInit {
     });
 
     this.contactEdit.dialogConfirmed.subscribe(()=>{
-      this.contactForm.setErrors(null);
       this.contactForm.markAllAsTouched();
       if (this.contactForm.invalid) return;
       this.contactEdit.setLoading(true);
@@ -119,11 +113,7 @@ export class SettingsComponent implements AfterViewInit {
         // update global settings
         this.settingsService.refresh();
       },(error) => {
-        // ToDo: set specific errors to fields
-        if (error.error.contactMail)
-          this.contactForm.controls['contact'].setErrors(error.error.contactMail)
-        else
-          this.contactForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         this.contactEdit.setLoading(false);
       });
     })
@@ -150,12 +140,11 @@ export class SettingsComponent implements AfterViewInit {
         this.settingsService.refresh();
         this.welcomeTextEdit.closeDialog(true);
       },(error) => {
-        this.welcomeTextErrors = error.error;
+        showAPIError(error, this.dialog);
         this.welcomeTextEdit.setLoading(false);
       });
     });
     this.welcomeTextEdit.dialogClosed.subscribe((ok)=>{
-      this.welcomeTextErrors = {};
       this.welcomeTextInput = this.settings!.welcomeText;
     });
   }
@@ -164,7 +153,7 @@ export class SettingsComponent implements AfterViewInit {
     this.logoEdit.dialogConfirmed.subscribe((ok)=>{
       const formData = new FormData();
       if (!this.logoFile) {
-        this.logoErrors['errors'] = {'error': $localize`Die Datei darf nicht leer sein.`};
+        showAPIError({message: 'Die Datei darf nicht leer sein.'}, this.dialog);
         return;
       }
       formData.append('logo', this.logoFile.file);
@@ -176,18 +165,16 @@ export class SettingsComponent implements AfterViewInit {
         // update global settings
         this.settingsService.refresh();
       },(error) => {
-        this.logoErrors = error.error;
+        showAPIError(error, this.dialog);
         this.logoEdit?.setLoading(false);
       });
     });
     this.logoEdit.dialogClosed.subscribe((ok)=> {
-      this.logoErrors = {};
       this.logoFile = undefined;
     })
   }
 
   filesDropped(files: FileHandle[]): void {
-    this.logoErrors = {};
     // ToDo: verify file
     this.logoFile = files[0];
   }
@@ -223,7 +210,6 @@ export class SettingsComponent implements AfterViewInit {
       regstatPassword: ''
     });
     this.regstatEdit.dialogConfirmed.subscribe(()=>{
-      this.regstatForm.setErrors(null);
       this.regstatForm.markAllAsTouched();
       if (this.regstatForm.invalid) return;
       let attributes: any = {
@@ -238,6 +224,7 @@ export class SettingsComponent implements AfterViewInit {
         // update global settings
         this.settingsService.refresh();
       },(error) => {
+        showAPIError(error, this.dialog);
         this.regstatEdit.setLoading(false);
       });
     })
@@ -249,6 +236,21 @@ export class SettingsComponent implements AfterViewInit {
         });
       }
     })
+  }
+
+  removeRegstatCredentials(): void {
+    let attributes: any = {
+      regionalstatistikUser: '',
+      regionalstatistikPassword: ''
+    }
+    this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, attributes
+    ).subscribe(settings => {
+      this.settings = Object.assign({}, settings);
+      // update global settings
+      this.settingsService.refresh();
+    },(error) => {
+      showAPIError(error, this.dialog);
+    });
   }
 
   setupBKGDialog(): void {
@@ -269,7 +271,7 @@ export class SettingsComponent implements AfterViewInit {
         this.settingsService.refresh();
         this.BKGEdit.closeDialog(true);
       },(error) => {
-        this.BKGForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         this.BKGEdit.setLoading(false);
       });
     })
@@ -280,5 +282,19 @@ export class SettingsComponent implements AfterViewInit {
         });
       }
     })
+  }
+
+  removeBKGCredentials(): void {
+    let attributes: any = {
+      bkgPassword: '',
+    }
+    this.http.patch<SiteSettings>(this.rest.URLS.siteSettings, attributes
+    ).subscribe(settings => {
+      this.settings = Object.assign({}, settings);
+      // update global settings
+      this.settingsService.refresh();
+    },(error) => {
+      showAPIError(error, this.dialog);
+    });
   }
 }
