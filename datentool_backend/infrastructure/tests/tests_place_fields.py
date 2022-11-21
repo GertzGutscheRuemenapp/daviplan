@@ -409,6 +409,7 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         scenario1 = ScenarioFactory()
         scenario2 = ScenarioFactory(planning_process=scenario1.planning_process)
         scenario3 = ScenarioFactory(planning_process=scenario1.planning_process)
+        all_scenario_ids = [scenario1.pk, scenario2.pk, scenario3.pk]
 
         place1: Place = self.obj
         place2 = PlaceFactory(infrastructure=place1.infrastructure)
@@ -471,6 +472,19 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         self.check_place_with_capacity(service1, year=0, scenario=scenario1.id, expected=[100, 55])
         self.check_place_with_capacity(service1, year=0, scenario=scenario2.id, expected=[50, 33])
         self.check_place_with_capacity(service1, year=0, scenario=scenario3.id, expected=[100, 88])
+
+
+        """Test the number of places and the total capacity by scenario"""
+        response = self.get('service-total-capacity-in-year',
+                            pk=service1.pk,
+                            data={'year': 2018, 'scenario_ids': all_scenario_ids,})
+        self.response_200(msg=response.content)
+        r1 = response.data
+        self.assertDictEqual(r1,
+                             {scenario1.pk: (2, 155),
+                              scenario2.pk: (2, 83),
+                              scenario3.pk: (2, 188),
+                              })
 
 
 class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,
