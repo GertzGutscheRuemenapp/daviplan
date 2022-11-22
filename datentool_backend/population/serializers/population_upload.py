@@ -50,8 +50,6 @@ class PopulationTemplateSerializer(serializers.Serializer):
                         prognosis_id: int,
                         ) -> bytes:
         """Create a template file for population/prognosis"""
-        #popraster = PopulationRaster.objects.get(default=True)
-
         area_level = AreaLevel.objects.get(pk=area_level_id)
         if prognosis_id is None:
             excel_filename = 'Einwohnerrealdaten.xlsx'
@@ -137,17 +135,19 @@ class PopulationTemplateSerializer(serializers.Serializer):
                 else:
                     df_areas.loc[:, :] = pd.NA
 
-                df_areas.to_excel(writer,
-                                  sheet_name=str(year),
-                                  startrow=1,
-                                  freeze_panes=(6, 3))
+
+                df_areas_without_id = df_areas.droplevel('id')
+                df_areas_without_id.to_excel(writer,
+                                             sheet_name=str(year),
+                                             startrow=1,
+                                             freeze_panes=(6, 2))
 
                 ws: Worksheet = writer.sheets.get(str(year))
-                ws['B1'] = 'Jahr'
-                ws['C1'] = year
-                ws['D1'] = title
+                ws['A1'] = 'Jahr'
+                ws['B1'] = year
+                ws['C1'] = title
                 ws.merge_cells(start_row=1, end_row=1,
-                               start_column=4, end_column=df_areas.shape[1] + 3)
+                               start_column=3, end_column=df_areas.shape[1] + 2)
 
                 row12 = ws[1:6]
                 for row in row12:
@@ -158,9 +158,9 @@ class PopulationTemplateSerializer(serializers.Serializer):
                 from_row = 7
                 to_row = from_row + df_areas.shape[0] - 1
 
-                from_col_no = 4
+                from_col_no = 3
                 from_col = get_column_letter(from_col_no)
-                to_col_no = from_col_no + df_areas.shape[1] - 1
+                to_col_no = from_col_no + df_areas.shape[1] - 2
                 to_col = get_column_letter(to_col_no)
 
                 dv_pos_float.add(f'{from_col}{from_row}:{to_col}{to_row}')
@@ -169,13 +169,11 @@ class PopulationTemplateSerializer(serializers.Serializer):
                 ws.row_dimensions[2] = RowDimension(ws, index=2, hidden=True)
                 ws.row_dimensions[4] = RowDimension(ws, index=4, hidden=True)
 
-                ws.column_dimensions['A'] = ColumnDimension(ws, index='A',
-                                                            hidden=True)
-                ws.column_dimensions['B'] = ColumnDimension(ws, index='B',
+                ws.column_dimensions['A'] = ColumnDimension(ws, index='B',
                                                             width=20)
-                ws.column_dimensions['C'] = ColumnDimension(ws, index='C',
+                ws.column_dimensions['B'] = ColumnDimension(ws, index='C',
                                                             width=30)
-                for col_no in range(4, 4 + df_areas.shape[1]):
+                for col_no in range(3, 3 + df_areas.shape[1]):
                     col = get_column_letter(col_no)
                     ws.column_dimensions[col] = ColumnDimension(ws, index=col,
                                                                 width=12)
@@ -191,7 +189,7 @@ class PopulationTemplateSerializer(serializers.Serializer):
         """read excelfile and return a dataframe"""
         excel_file = request.FILES['excel_file']
         prognosis_id = request.data.get('prognosis')
-        #popraster = PopulationRaster.objects.get(default=True)
+
         columns = ['population_id', 'area_id', 'gender_id',
                    'age_group_id', 'value']
         df = pd.DataFrame(columns=columns)
@@ -232,10 +230,10 @@ class PopulationTemplateSerializer(serializers.Serializer):
                                        sheet_name=str(y),
                                        header=[1, 2, 3, 4],
                                        dtype={key_attr: object,},
-                                       index_col=[0, 1, 2])\
+                                       index_col=[0, 1])\
                     .stack(level=[0, 1, 2, 3])\
                     .reset_index()
-                df_pop = df_pop.drop(['id', 'gender_id', 'age_group_id'], axis=1)
+                df_pop = df_pop.drop(['gender_id', 'age_group_id'], axis=1)
                 df_pop = df_pop\
                     .merge(df_areas, left_on=key_attr, right_index=True)\
                     .merge(df_genders, left_on='Geschlecht', right_index=True)\
@@ -255,7 +253,7 @@ class PopulationTemplateSerializer(serializers.Serializer):
             key_attr = AreaField.objects.get(area_level=area_level,
                                              is_key=True).name
         except AreaField.DoesNotExist:
-            msg = f'kein Schlüsselfeld für Gebietseinheit {area_level.name} definiert'
+            msg = f'Template konnte nicht erstellt werden, weil kein Schlüsselfeld für die Gebietseinheit {area_level.name} definiert ist.'
             self.logger.error(msg)
             raise BadRequest(msg)
         return key_attr
