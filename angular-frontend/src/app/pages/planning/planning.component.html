@@ -21,8 +21,11 @@
           <span *ngIf="activeProcess">
             {{ activeProcess.name }}
           </span>
-          <span *ngIf="!activeProcess">
-            -----
+          <span *ngIf="!activeProcess" style="display: flex">
+            <span style="margin-right: 5px;">keine Auswahl</span>
+            <mat-icon style="color: red;">
+              error_outline
+            </mat-icon>
           </span>
         </mat-select-trigger>
         <mat-option [value]="-1" style="display: none;"></mat-option>
@@ -188,7 +191,11 @@
       geteilt durch <i>{{activeProcess?.user}}</i>
     </div>-->
   </ng-container>
-  <div *ngIf="!activeProcess" i18n>Wählen Sie hier einen Planungsprozess aus</div>
+  <div *ngIf="!activeProcess" i18n>
+    <p>Bitte wählen Sie hier einen Planungsprozess aus.</p>
+    <p>Falls keiner zur Auswahl steht, erstellen Sie bitte einen neuen Planungsprozess.</p>
+    <p><i>Ohne aktiven Planungsprozess kann diese Seite nicht genutzt werden!</i></p>
+  </div>
 </ng-template>
 <mat-sidenav #drawer class="context-bar"
              [disableClose]="true"
