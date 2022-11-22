@@ -289,8 +289,10 @@ class PopulationViewSet(viewsets.ModelViewSet):
         if (password):
             try:
                 password = decrypt(password)
-            except (ValueError, TypeError):
-                password = None
+            except (ValueError, TypeError) as e:
+                raise Exception(f'Der voreingestellte Schlüssel zum Verschlüsseln der '
+                    f'Passwörter in der Datenbank (ENCRYPT_KEY) ist nicht valide. '
+                    f'Bitte wenden Sie sich an den Systemadministrator. {e}')
 
         api = Regionalstatistik(start_year=min_max_years['year__min'],
                                 end_year=min_max_years['year__max'],

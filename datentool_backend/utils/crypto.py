@@ -1,4 +1,4 @@
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 import base64
 from django.conf import settings
 
@@ -12,5 +12,10 @@ def encrypt(pas):
 def decrypt(pas):
     pas = base64.urlsafe_b64decode(pas)
     cipher_pass = Fernet(settings.ENCRYPT_KEY)
-    decod_pass = cipher_pass.decrypt(pas).decode("ascii")
+    try:
+        decod_pass = cipher_pass.decrypt(pas).decode("ascii")
+    except InvalidToken:
+        raise Exception('Der für die Passwortverschlüsselung benutzte Key '
+                        'ist nicht gültig. Wenden Sie sich bitte an Ihren '
+                        'Administrator')
     return decod_pass
