@@ -333,7 +333,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       width: '300px',
       disableClose: true,
       data: {
-        title: 'Neue Nachfragevariante',
+        title: 'Neue Prognosevariante',
         template: this.propertiesEdit,
         closeOnConfirm: false
       }

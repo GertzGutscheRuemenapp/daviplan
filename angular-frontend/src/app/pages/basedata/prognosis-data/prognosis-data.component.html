@@ -1,7 +1,7 @@
 <div class="loadOverlay" *ngIf="popService.isLoading$ | async">
   <mat-spinner [diameter]="50"></mat-spinner>
 </div>
-<app-header-card [title]="'Einwohnerdaten für die Zukunft (Prognosedaten, ggf. in Szenarien)'"
+<app-header-card [title]="'Einwohnerdaten für die Zukunft (Prognosedaten, ggf. in Varianten)'"
                  cookieId="exp-progdata-header"
                  width="1170px">
   <p>Für die Abschätzung der zukünftigen Nachfrageentwicklung nach Infrastrukturen werden u.a. Prognosedaten zur Einwohnerentwicklung benötigt. Auf dieser Seite können Sie daher Einwohnerprognosen einlesen. Reale Einwohnerdaten für die zurückliegenden Jahre werden hingegen im vorstehenden Menüpunkt „Vergangenheit“ eingepflegt.</p>
@@ -88,12 +88,12 @@
       </div>
       <button mat-button color="primary"
               class="multiline-button"
-              style="width: 86%;"
-              title="Als Annahme für Trendfortschreibung (Status Quo) festlegen"
+              style="width: 100%;"
+              title="Als Grundlage für alle Szenarien 'Trendfortschreibung' verwenden"
               (click)="activePrognosis && setDefaultPrognosis(activePrognosis)"
               [disabled]="!activePrognosis">
         <mat-icon class="material-icons-outlined">verified</mat-icon>
-        Als Annahme für Trendfortschreibung festlegen
+        Als Grundlage für alle Szenarien 'Trendfortschreibung' verwenden
       </button>
     </app-input-card>
   </div>
