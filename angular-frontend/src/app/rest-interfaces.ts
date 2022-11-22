@@ -398,12 +398,9 @@ export interface LogEntry {
 export interface ModeStatistics {
   nPlaces: number,
   nCells: number,
-  nRelsPlaceCellWalk: number,
-  nRelsPlaceCellBike: number,
-  nRelsPlaceCellCar: number,
-  nRelsPlaceCellTransit: number,
   nStops: number,
-  nRelsPlaceStopTransit: number,
-  nRelsStopCellTransit: number,
-  nRelsStopStopTransit: number
+  nRelsPlaceCellModevariant: Record<number, number>,
+  nRelsPlaceStopModevariant: Record<number, number>,
+  nRelsStopCellModevariant: Record<number, number>,
+  nRelsStopStopModevariant: Record<number, number>
 }

@@ -42,14 +42,14 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
     this.variantForm = this.formBuilder.group({
       label: ''
     });
+  }
+
+  ngAfterViewInit(): void {
     this.isLoading$.next(true);
     this.restService.getModeVariants().subscribe(variants => {
       this.variants = variants.filter(v => v.mode === TransportMode.TRANSIT);
       this.isLoading$.next(false);
     })
-  }
-
-  ngAfterViewInit(): void {
   }
 
   selectVariant(variant: ModeVariant): void {

@@ -100,7 +100,7 @@
       <table>
         <tr>
           <td i18n>Anzahl Relationen: </td>
-          <td>{{this.statistics?.nRelsStopStopTransit?.toLocaleString() || '-'}}</td>
+          <td>{{(this.statistics?.nRelsStopStopModevariant && this.selectedVariant)? (this.statistics!.nRelsStopStopModevariant![this.selectedVariant.id]?.toLocaleString() || '-'): '-'}}</td>
         </tr>
       </table>
       <div style="display: flex; margin-top: 10px;">
@@ -153,7 +153,7 @@
       <table>
         <tr>
           <td i18n>Anzahl Relationen: </td>
-          <td>{{this.statistics?.nRelsPlaceCellTransit?.toLocaleString() || '-'}}</td>
+          <td>{{(this.statistics?.nRelsPlaceCellModevariant && this.selectedVariant)? (this.statistics!.nRelsPlaceCellModevariant![this.selectedVariant.id]?.toLocaleString() || '-'): '-'}}</td>
         </tr>
       </table>
       <button mat-flat-button color="primary" (click)="createMatrices()">
