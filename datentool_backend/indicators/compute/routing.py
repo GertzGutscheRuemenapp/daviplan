@@ -317,12 +317,25 @@ class TravelTimeRouterMixin:
         sources = self.get_sources(variant=variant, **kwargs).order_by('id')
         destinations = self.get_destinations(variant=variant, **kwargs).order_by('id')
 
-        return self.route(variant,
-                          sources,
-                          destinations,
-                          logger,
-                          max_distance=max_distance,
-                          id_columns=self.columns)
+        # split destinations, if needed
+        # OSRM can only handle certain dimensions of inputs
+        # seems to be sth like 100 * 50k, the splitting of the source should
+        # already have been done outside of this funtion if needed
+        chunk_size = 20000
+        dataframes = []
+        for i in range(0, len(destinations), chunk_size):
+            # don't know a better way to keep querysets instead of lists when
+            # splitting a queryset but by filtering by ids, might be inefficient
+            dest_part = destinations.filter(
+                id__in=destinations.values_list('id')[i:i+chunk_size])
+            df = self.route(variant,
+                            sources,
+                            dest_part,
+                            logger,
+                            max_distance=max_distance,
+                            id_columns=self.columns)
+            dataframes.append(df)
+        return pd.concat(dataframes)
 
     def calculate_airdistance_traveltimes(self,
                                           variant: ModeVariant,
