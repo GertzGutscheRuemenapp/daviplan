@@ -88,12 +88,12 @@
       </div>
       <button mat-button color="primary"
               class="multiline-button"
-              style="width: 100%;"
-              title="Als Grundlage für alle Szenarien 'Trendfortschreibung' verwenden"
+              style="width: 108%;"
+              title="Als Grundlage für alle Szenarien 'Status Quo Fortschreibung' verwenden"
               (click)="activePrognosis && setDefaultPrognosis(activePrognosis)"
               [disabled]="!activePrognosis">
         <mat-icon class="material-icons-outlined">verified</mat-icon>
-        Als Grundlage für alle Szenarien 'Trendfortschreibung' verwenden
+        Als Grundlage für alle Szenarien 'Status Quo Fortschreibung' verwenden
       </button>
     </app-input-card>
   </div>
@@ -317,7 +317,7 @@
 
 <ng-template #fileUploadTemplate>
   <p>
-    Befülltes Excel-Template mit Bevölkerungsdaten für die Prognose <b>"{{activePrognosis?.name}}"</b> hochladen
+    Befüllte Excel-Vorlage mit Bevölkerungsdaten für die Prognosevariante <b>"{{activePrognosis?.name}}"</b> hochladen
   </p>
   <input #fileInput type="file" accept=".xlsx,.xls" (change)="setFiles($event)">
 </ng-template>
