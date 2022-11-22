@@ -225,7 +225,7 @@
   <form [formGroup]="serviceForm">
     <div fxLayout="column">
       <mat-form-field appearance="fill">
-        <mat-label i18n>Infrastruktur</mat-label>
+        <mat-label i18n>Infrastrukturbereich</mat-label>
         <mat-select disableRipple formControlName="infrastructure" required> <!-- [value]="infrastructures[0].id">-->
           <mat-option *ngFor="let infrastructure of infrastructures" [value]="infrastructure.id">
             {{infrastructure.name}}
