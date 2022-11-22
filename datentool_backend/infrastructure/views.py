@@ -329,9 +329,10 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             name='ScenariosYearSerializer',
             fields={'year': serializers.IntegerField(required=False,
                                          help_text='Jahr (z.B. 2010)'),
-                    'scenario_ids': serializers.ListField(
-                        child=serializers.IntegerField(),
-                        required=True, help_text='scenario ids'),
+                    'planningprocess': serializers.IntegerField(
+                        help_text='planning process id'),
+                    'scenaio': serializers.IntegerField(
+                        help_text='scenario id'),
                     }
         ),
         responses=ServiceCapacityByScenarioSerializer(many=True),
@@ -340,12 +341,19 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     def total_capacity_in_year(self, request, **kwargs):
         service_id = kwargs.get('pk')
         year = self.request.query_params.get('year')
-        scenario_ids = self.request.query_params.getlist('scenario_ids')
+        planning_process_id = self.request.query_params.get('planningprocess')
+        scenario_id = self.request.query_params.get('scenario')
         data = []
+        if scenario_id:
+            scenario_ids = [scenario_id]
+        else:
+            scenarios = Scenario.objects.all()
+            if planning_process_id:
+                scenarios = scenarios.filter(planning_process=planning_process_id)
+            scenario_ids = [None] + list(scenarios.values_list('id', flat=True))
+
 
         for scenario_id in scenario_ids:
-            scenario_id = scenario_id or None
-
             capacity = Capacity.objects.all()
             capacity2 = Capacity.filter_queryset(capacity,
                                                 service_ids=[service_id],
@@ -354,8 +362,9 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             capacity3 = capacity2\
                 .filter(capacity__gt=0)\
                 .aggregate(
-                n_places=Count('id'),
-                total_capacity=Sum('capacity'))
+                    n_places=Count('id'),
+                    total_capacity=Sum('capacity'))
+            scenario_id = scenario_id if scenario_id else 0
             capacity3['scenario_id'] = int(scenario_id)
             data.append(capacity3)
 
