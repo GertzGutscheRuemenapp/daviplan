@@ -53,18 +53,16 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
         closeOnConfirm: true
       }
     });
-    dialogRef.afterClosed().subscribe(ok => {
-      if (ok) {
-        if (this.baseDataSettings?.routing) {
-          this.baseDataSettings.routing.projectAreaNet = false;
-          this.baseDataSettings.routing.baseNet = false;
-        }
-        this.http.post<any>(`${this.rest.URLS.networks}pull_base_network/`, {}).subscribe(() => {
-          this.isProcessing = true;
-        }, (error) => {
-          showAPIError(error, this.dialog);
-        })
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      if (this.baseDataSettings?.routing) {
+        this.baseDataSettings.routing.projectAreaNet = false;
+        this.baseDataSettings.routing.baseNet = false;
       }
+      this.http.post<any>(`${this.rest.URLS.networks}pull_base_network/`, {}).subscribe(() => {
+        this.isProcessing = true;
+      }, (error) => {
+        showAPIError(error, this.dialog);
+      })
     })
   }
 
@@ -79,13 +77,15 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
         closeOnConfirm: true
       }
     });
-    dialogRef.afterClosed().subscribe(ok => {
-      if (ok)
-        this.http.post<any>(`${this.rest.URLS.networks}build_project_network/`, {}).subscribe(() => {
-          this.isProcessing = true;
-        },(error) => {
-          showAPIError(error, this.dialog);
-        })
+    dialogRef.componentInstance.confirmed.subscribe(() => {
+      if (this.baseDataSettings?.routing) {
+        this.baseDataSettings.routing.projectAreaNet = false;
+      }
+      this.http.post<any>(`${this.rest.URLS.networks}build_project_network/`, {}).subscribe(() => {
+        this.isProcessing = true;
+      },(error) => {
+        showAPIError(error, this.dialog);
+      })
     })
   }
 
@@ -101,10 +101,6 @@ export class RoadNetworkComponent implements OnInit, OnDestroy {
       }
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
-      if (this.baseDataSettings?.routing) {
-        this.baseDataSettings.routing.projectAreaNet = false;
-        this.baseDataSettings.routing.baseNet = false;
-      }
       dialogRef.componentInstance.isLoading$.next(true);
       this.http.post<any>(`${this.rest.URLS.matrixCellPlaces}precalculate_traveltime/`, {variants: this.modeVariants.map(m => m.id)}).subscribe(() => {
         this.isProcessing = true;
