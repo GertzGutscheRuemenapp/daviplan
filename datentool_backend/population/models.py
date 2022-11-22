@@ -25,7 +25,7 @@ class AgeGroup(DatentoolModelMixin, models.Model):
 
     @property
     def name(self) -> str:
-        return f'{self.from_age} bis {self.to_age} Jahre'
+        return f'{self.from_age} bis unter {self.to_age + 1} Jahre'
 
 
 class Raster(DatentoolModelMixin, NamedModel, models.Model):

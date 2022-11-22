@@ -4,6 +4,7 @@ from io import StringIO
 from django.http.request import QueryDict
 from django_filters import rest_framework as filters
 from django.db.models import Max, Min
+
 from drf_spectacular.utils import (extend_schema,
                                    OpenApiResponse,
                                    inline_serializer)
@@ -12,7 +13,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import transaction
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, BadRequest
 from rest_framework.response import Response
 
 from datentool_backend.utils.crypto import decrypt
@@ -413,6 +414,10 @@ class PopulationEntryViewSet(ExcelTemplateMixin, viewsets.ModelViewSet):
         area_level_id = request.data.get('area_level')
         prognosis_id = request.data.get('prognosis')
         years = request.data.get('years')
+        if not years:
+            msg = f'Kein Jahr ausgewählt, daher kann kein Template erzeugt werden.'
+            logger.error(msg)
+            raise BadRequest(msg)
         return super().create_template(request,
                                        area_level_id=area_level_id,
                                        years=years,

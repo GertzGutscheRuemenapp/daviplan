@@ -197,12 +197,26 @@ class TestAreas(TestCase):
         """Test the area label and attribute values"""
         areas = Area.objects.all()
         self.assertEqual(areas[0].label, '')
-        self.assertEqual(areas[1].label, 'MyName')
+        area1 = areas[1]
+        self.assertEqual(area1.label, 'MyName')
+        area1.is_cut = True
+        area1.save()
+        self.assertEqual(area1.label, 'MyName (Ausschnitt)')
+        area1.is_cut = False
+        area1.save()
 
         areas = Area.label_annotated_qs(area_level=self.area.area_level).all()
+        area1 = areas[1]
         self.assertEqual(areas[0].label, None)
-        self.assertEqual(areas[1].label, 'MyName')
-        self.assertEqual(areas[1]._label, 'MyName')
+        self.assertEqual(area1.label, 'MyName')
+        self.assertEqual(area1._label, 'MyName')
+
+        area1.is_cut = True
+        area1.save()
+        areas = Area.label_annotated_qs(area_level=self.area.area_level).all()
+        area1 = areas[1]
+        self.assertEqual(area1.label, 'MyName (Ausschnitt)')
+        self.assertEqual(area1._label, 'MyName (Ausschnitt)')
 
 
 class TestLayerGroupAPI(WriteOnlyWithCanEditBaseDataTest,

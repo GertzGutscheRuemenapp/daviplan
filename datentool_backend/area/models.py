@@ -1,8 +1,9 @@
 from django.db import models, transaction
 from django.db.models import (TextField, F, OuterRef, Subquery,
                               Prefetch, Value,
-                              UniqueConstraint, Deferrable)
-from django.db.models.functions import Cast, Coalesce
+                              UniqueConstraint, Deferrable,
+                              Case, When)
+from django.db.models.functions import Cast, Coalesce, Concat
 from django.db.models.signals import post_save
 from django.contrib.gis.db import models as gis_models
 
@@ -159,9 +160,11 @@ class Area(DatentoolModelMixin, models.Model):
         try:
             label_field = area_fields.get(is_label=True)
             label_attribute = area_attributes.filter(field=label_field)
-            annotations['_label'] = Subquery(label_attribute.values('_value')[:1])
+            annotations['_label0'] = Subquery(label_attribute.values('_value')[:1]
+             )
+
         except AreaField.DoesNotExist:
-            annotations['_label'] = Value('')
+            annotations['_label0'] = Value('')
 
         try:
             key_field = area_fields.get(is_key=True)
@@ -172,12 +175,19 @@ class Area(DatentoolModelMixin, models.Model):
 
         annotations['_field_names'] = Value(area_field_names)
 
+        label_annotation = Case(When(is_cut=True,
+                                          then=Concat(F('_label0'),
+                                                      Value(' (Ausschnitt)'))),
+                                     default=F('_label0'),
+                                output_field=models.TextField())
+
         qs = cls.objects\
             .filter(area_level_id=area_level)\
             .prefetch_related('area_level')\
             .prefetch_related(
                 Prefetch('areaattribute_set', queryset=attributes))\
-            .annotate(**annotations)
+            .annotate(**annotations)\
+            .annotate(_label=label_annotation)
 
         return qs
 
@@ -218,7 +228,10 @@ class Area(DatentoolModelMixin, models.Model):
             label_attr = self.areaattribute_set.get(field__is_label=True)
         except AreaAttribute.DoesNotExist:
             return ''
-        return str(label_attr.value)
+        label = str(label_attr.value)
+        if self.is_cut:
+            label += ' (Ausschnitt)'
+        return label
 
     @attributes.setter
     def attributes(self, attr_dict: dict):

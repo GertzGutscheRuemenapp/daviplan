@@ -239,3 +239,4 @@ class MatrixStatisticsSerializer(serializers.Serializer):
             .annotate(n_relations=Count('from_stop__variant'))
         return {var['from_stop__variant']: var['n_relations']
                 for var in qs}
+
