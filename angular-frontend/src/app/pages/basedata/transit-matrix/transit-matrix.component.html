@@ -7,7 +7,7 @@
   <p>Wie schon im vorigen Menüpunkt beschrieben werden die Erreichbarkeitsverhältnisse in Ihrem Planungsraum anhand von Erreichbarkeitsmatrizen abgebildet.</p>
   <p>Erreichbarkeitsmatrizen sind (große) Tabellen, in denen für ein bestimmtes Verkehrsmittel verzeichnet ist, wie lange man mit diesem von Teilfläche A zu Teilfläche B braucht. Die Teilflächen entsprechend dabei dem europaweit standardisierten 100x100-Meter-LAEA-Raster, auf das bereits im Menüpunkt „Einwohnerraster“ Bezug genommen wurde.</p>
   <p>Diese Erreichbarkeitsmatrizen können Sie auf dieser Seite für die vier Verkehrsmittel „zu Fuß“, „Fahrrad“, „Auto“ und „ÖPNV“ zusammentragen. Dabei können Sie entweder extern vorberechnete Erreichbarkeitsmatrizen hochladen. Alternativ können Sie alle oder einzelne Erreichbarkeitsmatrizen mit einem oder mehreren im vorigen Menüpunkt „Verkehrsnetz“ erzeugten Verkehrsnetzen und deren Routensuchern berechnen.</p>
-  <p>Erzeugen Sie nach Möglichkeit für jedes Verkehrsmittel eine Erreichbarkeitsmatrix. Wenn Sie für ein Verkehrsmittel unterschiedliche Entwicklungszustände (z.B. „aktueller Fahrplan“, „geplanter Fahrplan“ oder „mit/ohne neue Ortsumgehung“) abbilden möchten, können Sie für einzelne Verkehrsmittel auch mehrere Erreichbarkeitsmatrizen für die Nutzer*innen des Hauptmenübereichs „Infrastrukturplanung“ bereitstellen. Diese unterschiedlichen Versionen der regionalen Erreichbarkeit können von den Nutzer*innen dann alternativ in ihre Szenarienbetrachtungen integriert werden.</p>
+  <p>Erzeugen Sie nach Möglichkeit für jedes Verkehrsmittel eine Erreichbarkeitsmatrix. Wenn Sie für ein Verkehrsmittel unterschiedliche Entwicklungszustände (z.B. „aktueller Fahrplan“, „geplanter Fahrplan“ oder „mit/ohne neue Ortsumgehung“) abbilden möchten, können Sie für einzelne Verkehrsmittel auch mehrere Erreichbarkeitsmatrizen für die Nutzer:innen des Hauptmenübereichs „Infrastrukturplanung“ bereitstellen. Diese unterschiedlichen Versionen der regionalen Erreichbarkeit können von den Nutzer:innen dann alternativ in ihre Szenarienbetrachtungen integriert werden.</p>
   <p>Um eine Erreichbarkeitsmatrix zu erzeugen, wählen Sie in der Box „Verkehrsmittel“ zunächst das Verkehrsmittel aus, für das sie eine Erreichbarkeitsmatrix hinzufügen oder erzeugen wollen. Klicken Sie dann auf „Hinzufügen“.</p>
   <p>Gehen Sie anschließend zur Box „Ausgewählte Erreichbarkeitsmatrix“. Hier können Sie die Daten dieser Matrix (aus einer externen Vorberechnung) hochladen oder mit Hilfe eines im Menüpunkt „Verkehrsnetz“ erzeugten Routensuchers berechnen. Detail hierzu finden Sie im Hilfetext der Box.</p>
 </app-header-card>
@@ -170,11 +170,6 @@
 
 <ng-template #editVariant>
   <form [formGroup]="variantForm">
-    <div *ngIf="variantForm.errors">
-      <mat-error *ngFor="let error of variantForm.errors | keyvalue" class="alert">
-        {{error.key}}: <i>{{error.value}}</i>
-      </mat-error>
-    </div>
     <div fxLayout="column">
       <mat-form-field appearance="fill">
         <mat-label i18n>Name des Netzes</mat-label>
@@ -185,8 +180,5 @@
 </ng-template>
 
 <ng-template #fileUploadTemplate let-accept="accept">
-  <mat-error *ngFor="let error of uploadErrors | keyvalue" class="alert">
-    {{ error.key }}: {{ error.value }}
-  </mat-error>
   <input #fileInput type="file" [accept]="accept" (change)="setFiles($event)">
 </ng-template>

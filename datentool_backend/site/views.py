@@ -173,10 +173,11 @@ class ProjectSettingViewSet(SingletonViewSet):
         if response.status_code == 200 and request.data.get('project_area'):
             with ProtectedProcessManager(user=request.user,
                                          scope=ProcessScope.AREAS) as ppm:
-                if not run_sync:
-                    ppm.run_async(self._postprocess_project_area)
-                else:
-                    self._postprocess_project_area()
+                try:
+                    ppm.run(self._postprocess_project_area, sync=run_sync)
+                except Exception as e:
+                    return Response({'message': str(e)},
+                                    status.HTTP_500_INTERNAL_SERVER_ERROR)
         return response
 
     @staticmethod

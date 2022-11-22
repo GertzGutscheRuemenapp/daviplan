@@ -318,8 +318,19 @@ class PlacesTemplateSerializer(serializers.Serializer):
 
         site_settings = SiteSetting.load()
         UUID = site_settings.bkg_password or None
-        geocoder = BKGGeocoder(
-            decrypt(UUID), crs='EPSG:3857') if UUID else None
+        bkg_error = ('Es wurde keine UUID für die Nutzung des BKG-'
+                     'Geokodierungsdienstes hinterlegt' if not UUID else '')
+        geocoder = None
+        if UUID:
+            try:
+                bkg_pass = decrypt(UUID)
+            except Exception:
+                bkg_error = ('Die UUID des BKG-Geokodierungsdienstes konnte '
+                             'nicht entschlüsselt werden. Vermutlich ist der '
+                             'hinterlegte Schlüssel (ENCRYPT_KEY) nicht valide '
+                             '(URL-safe base64-encoded 32-byte benötigt)')
+            else:
+                geocoder = BKGGeocoder(bkg_pass, crs='EPSG:3857')
         n_new = 0
 
         # iterate over all places
@@ -342,7 +353,6 @@ class PlacesTemplateSerializer(serializers.Serializer):
             lat = place_row['Lat']
             if pd.isna(lon) or pd.isna(lat):
                 if geocoder:
-                    # ToDo: raise error if no UUID is given
                     # ToDo: handle auth errors ...
                     self.logger.info('Geokodiere Adressen')
                     res = self.geocode(geocoder, place_row)
@@ -352,6 +362,9 @@ class PlacesTemplateSerializer(serializers.Serializer):
                     else:
                         # ToDo: ????
                         pass
+                else:
+                    # that's not the right error, but this is what being caught outside
+                    raise AssertionError(bkg_error)
             else:
                 # create the geometry and transform to WebMercator
                 geom = Point(lon, lat, srid=4326)

@@ -10,4 +10,5 @@ class LogEntry(NamedModel, models.Model):
     text = models.TextField()
     room = models.CharField(max_length=100)
     level = models.CharField(max_length=30)
+    status = models.JSONField(null=True)
 

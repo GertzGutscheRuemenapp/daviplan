@@ -9,7 +9,7 @@ import { InputCardComponent } from "../../../dash/input-card.component";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
-import { arrayMove } from "../../../helpers/utils";
+import { arrayMove, showAPIError } from "../../../helpers/utils";
 import { ExtLayerGroup, ExtLayer } from "../../../rest-interfaces";
 import { RestCacheService } from "../../../rest-cache.service";
 import { MapLayer, MapLayerGroup, WMSLayer } from "../../../map/layers";
@@ -37,7 +37,6 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
   editLayerForm: FormGroup;
   selectedLayer?: MapLayer;
   selectedGroup?: MapLayerGroup;
-  Object = Object;
   availableLayers: MapLayer[] = [];
   isLoading$ = new BehaviorSubject<boolean>(false);
 
@@ -101,7 +100,6 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       });
     })
     this.layerCard?.dialogConfirmed.subscribe((ok)=>{
-      this.editLayerForm.setErrors(null);
       // display errors for all fields even if not touched
       this.editLayerForm.markAllAsTouched();
       if (this.editLayerForm.invalid) return;
@@ -118,8 +116,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         this.mapControl?.refresh({ external: true });
         this.layerCard?.closeDialog(true);
       },(error) => {
-        // ToDo: set specific errors to fields
-        this.editLayerForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         this.layerCard?.setLoading(false);
       });
     })
@@ -138,7 +135,6 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       });
     })
     this.layerGroupCard?.dialogConfirmed.subscribe((ok)=>{
-      this.layerGroupForm.setErrors(null);
       // display errors for all fields even if not touched
       this.layerGroupForm.markAllAsTouched();
       if (this.layerGroupForm.invalid) return;
@@ -153,8 +149,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         this.mapControl?.refresh({ external: true });
         this.layerGroupCard?.closeDialog(true);
       },(error) => {
-        // ToDo: set specific errors to fields
-        this.layerGroupForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         this.layerGroupCard?.setLoading(false);
       });
     })
@@ -215,7 +210,6 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       this.availableLayers = [];
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
-      this.layerGroupForm.setErrors(null);
       // display errors for all fields even if not touched
       this.layerGroupForm.markAllAsTouched();
       if (this.layerGroupForm.invalid) return;
@@ -233,7 +227,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         this.layerTree.select(group);
         dialogRef.close();
       },(error) => {
-        this.layerGroupForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);
       });
     });
@@ -256,7 +250,6 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
       }
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
-      this.addLayerForm.setErrors(null);
       this.addLayerForm.markAllAsTouched();
       if (this.addLayerForm.invalid) return;
       let attributes: any = {
@@ -282,7 +275,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
         this.layerTree.select(layer);
         dialogRef.close();
       },(error) => {
-        this.addLayerForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);
       });
     });
@@ -300,7 +293,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
     this.http.post(this.rest.URLS.getCapabilities, { url: url }).subscribe((res: any) => {
       this.availableLayers = [];
       if (!res.cors) {
-        this.addLayerForm.setErrors(['Der Server unterstützt kein Cross-Origin Resource Sharing (CORS).']);
+        showAPIError({ message: 'Der Server unterstützt kein Cross-Origin Resource Sharing (CORS).' }, this.dialog);
         return;
       }
       for (let i = 0; i < res.layers.length; i += 1) {
@@ -316,7 +309,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
           this.onAvLayerSelected(0);
       }
     }, error => {
-      this.addLayerForm.setErrors(error.error);
+      showAPIError(error, this.dialog);
     })
   }
 
@@ -370,7 +363,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
             }
           }
         },(error) => {
-          console.log('there was an error sending the query', error);
+          showAPIError(error, this.dialog);
         });
       }
     });
@@ -403,7 +396,7 @@ export class ExternalLayersComponent implements AfterViewInit, OnDestroy {
             this.mapControl?.refresh({ external: true });
           }
         },(error) => {
-          console.log('there was an error sending the query', error);
+          showAPIError(error, this.dialog);
         });
       }
     });

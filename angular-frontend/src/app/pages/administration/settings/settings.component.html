@@ -27,8 +27,8 @@
                     subtitle="Willkommenstext ändern"
                     [dialogTitle]="'Willkommenstext für die Startseite einfügen'"
                     dialogWidth="1000px"
-                    infoText="<p>Hier können sie einen Text eintragen, der auf der Startseite angezeigt wird.</p>
-                    <p>Die Startseite ist die Seite, die die Nutzer*innen nach dem Login sehen. Sie kann auch über ein Anklicken des Logos oben links erreicht werden.</p>"
+                    infoText="<p>Hier können Sie einen Text eintragen, der auf der Startseite angezeigt wird.</p>
+                    <p>Die Startseite ist die Seite, die die Nutzer:innen nach dem Login sehen. Sie kann auch über ein Anklicken des Logos oben links erreicht werden.</p>"
                     [editTemplate]="welcomeTextTemplate"
                     [editButton]="welcomeTextEditButton">
       <div #welcomeTextEditButton style="width: 100%">
@@ -60,6 +60,14 @@
           <mat-icon>edit</mat-icon>
         </button>
       </div>
+      <div>
+        <button mat-button class="mat-button-dv"
+                title="Zugangsdaten für den BKG-Geokodierungsdienst entfernen"
+                [disabled]="!settings?.bkgPasswordIsSet? true : null"
+                color="primary" (click)="removeBKGCredentials()">
+          <mat-icon>close</mat-icon>&nbsp; entfernen
+        </button>
+      </div>
     </app-input-card>
   </div>
   <div fxLayout="column" fxFlex="400px">
@@ -79,11 +87,6 @@
           <mat-icon>edit</mat-icon>
         </button>
       </div>
-      <!--      <button mat-button class="mat-button-dv"
-                    [disabled]="(!settings?.contactMail) ? true : null"
-                    color="primary" (click)="removeEmail()" i18n>
-              <mat-icon>close</mat-icon>&nbsp; E-Mail entfernen
-            </button>-->
     </app-input-card>
     <app-input-card #logoEdit
                     [title]="'Eigenes Logo (optional)'"
@@ -124,17 +127,20 @@
           <mat-icon>edit</mat-icon>
         </button>
       </div>
+      <div>
+        <button mat-button class="mat-button-dv"
+                title="Zugangsdaten für die Regionalstatistik entfernen"
+                [disabled]="!settings?.regionalstatistikUser? true : null"
+                color="primary" (click)="removeRegstatCredentials()">
+          <mat-icon>close</mat-icon>&nbsp; entfernen
+        </button>
+      </div>
     </app-input-card>
   </div>
 </div>
 
 <ng-template #titleTemplate>
   <form [formGroup]="titleForm">
-    <div *ngIf="titleForm.errors">
-      <mat-error *ngFor="let error of Object.values(titleForm.errors)" class="alert">
-        {{ error }}
-      </mat-error>
-    </div>
     <mat-form-field appearance="outline" class="full">
       <mat-label i18n>Neuen Namen eingeben</mat-label>
       <input matInput formControlName="title" required/>
@@ -144,34 +150,18 @@
 
 <ng-template #contactTemplate>
   <form [formGroup]="contactForm">
-    <div *ngIf="contactForm.errors">
-      <mat-error *ngFor="let error of Object.values(contactForm.errors)" class="alert">
-        {{ error }}
-      </mat-error>
-    </div>
     <mat-form-field appearance="outline" class="full">
       <mat-label i18n>E-Mail</mat-label>
       <input matInput formControlName="contact"/>
-      <mat-error *ngIf="contactForm.get('contact')?.errors" i18n>Die E-Mail Adresse hat kein gültiges Format.</mat-error>
     </mat-form-field>
   </form>
 </ng-template>
 
 <ng-template #welcomeTextTemplate>
-  <div *ngIf="welcomeTextErrors.errors">
-    <mat-error *ngFor="let error of Object.values(welcomeTextErrors.errors)" class="alert">
-      {{ error }}
-    </mat-error>
-  </div>
   <ckeditor [editor]="Editor" [config]="editorConfig" [(ngModel)]="welcomeTextInput"></ckeditor>
 </ng-template>
 
 <ng-template #logoTemplate>
-  <div *ngIf="logoErrors.errors">
-    <mat-error *ngFor="let error of Object.values(logoErrors.errors)" class="alert">
-      {{ error }}
-    </mat-error>
-  </div>
   <div class="col-12 rmpm dropzone" appDrag (files)="filesDropped($event)">
     <div class="text-wrapper">
       <div class="centered" style="min-height: 300px;">
@@ -186,11 +176,6 @@
 
 <ng-template #regstatTemplate>
   <form [formGroup]="regstatForm">
-    <div *ngIf="regstatForm.errors">
-      <mat-error *ngFor="let error of Object.values(regstatForm.errors)" class="alert">
-        {{ error }}
-      </mat-error>
-    </div>
     <mat-form-field appearance="outline" class="full">
       <mat-label i18n>Nutzername</mat-label>
       <input matInput formControlName="regstatUser" autocomplete="regstat-user"/>
@@ -207,16 +192,11 @@
 
 <ng-template #BKGTemplate>
   <form [formGroup]="BKGForm">
-    <div *ngIf="BKGForm.errors">
-      <mat-error *ngFor="let error of BKGForm.errors | keyvalue">
-        {{error.key}}: <i>{{error.value}}</i>
-      </mat-error>
-    </div>
     <mat-form-field appearance="outline" class="full">
       <mat-label i18n>Nutzeridentifikator (UUID)</mat-label>
       <input matInput formControlName="bkgPassword" autocomplete="bkg-uuid"
              [type]="showBKGPassword ? 'text' : 'password'"
-             placeholder="·········">
+             placeholder="·········" required>
       <fa-icon matSuffix [icon]="showBKGPassword? faEyeSlash: faEye" (click)="showBKGPassword = !showBKGPassword"></fa-icon>
     </mat-form-field>
   </form>

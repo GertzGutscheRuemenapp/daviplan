@@ -21,7 +21,6 @@ export class MapControlsComponent implements AfterViewInit {
   addExtentForm: FormGroup;
   mapControl!: MapControl;
   expanded: boolean = false;
-  Object = Object;
 
   constructor(private mapService: MapService, private formBuilder: FormBuilder, private dialog: MatDialog) {
     this.addExtentForm = this.formBuilder.group({

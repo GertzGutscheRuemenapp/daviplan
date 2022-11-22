@@ -1,7 +1,12 @@
 @import "~src/constants";
 
-:host::ng-deep .dashboard-card.disabled button {
-  color: grey;
+:host::ng-deep .dashboard-card.disabled {
+  button {
+    color: grey;
+  }
+  .mat-flat-button{
+    background-color: #e4e4e4;
+  }
 }
 
 .dashboard-card.disabled {

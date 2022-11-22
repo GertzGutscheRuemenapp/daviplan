@@ -67,17 +67,23 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
             return Response({'message': msg, },
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
+        if Area.objects.filter(area_level=area_level).count() == 0:
+            msg = (f'Die Gebietseinheit "{area_level.name}" enthält noch '
+                   'keine Gebiete.')
+            return Response({'message': msg, },
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+
         drop_constraints = request.data.get('drop_constraints', True)
         run_sync = request.data.get('sync', False)
 
         with ProtectedProcessManager(user=request.user,
                                      scope=ProcessScope.POPULATION) as ppm:
-            if not run_sync:
-                ppm.run_async(self._pull_regionalstatistik, area_level,
-                              drop_constraints=drop_constraints)
-            else:
-                self._pull_regionalstatistik(area_level,
-                                             drop_constraints=drop_constraints)
+            try:
+                ppm.run(self._pull_regionalstatistik, area_level,
+                        drop_constraints=drop_constraints, sync=run_sync)
+            except Exception as e:
+                return Response({'message': str(e)},
+                                status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({
             'message': f'Abruf der Bevölkerungsstatistiken gestartet'
@@ -92,7 +98,10 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
         username = settings.regionalstatistik_user or None
         password = settings.regionalstatistik_password or None
         if (password):
-            password = decrypt(password)
+            try:
+                password = decrypt(password)
+            except (ValueError, TypeError):
+                password = None
 
         api = Regionalstatistik(start_year=min_max_years['year__min'],
                                 end_year=min_max_years['year__max'],
@@ -109,10 +118,10 @@ class PopStatisticViewSet(viewsets.ModelViewSet):
             df_migration = api.query_migration(ags=ags)
         except PermissionDenied as e:
             logger.error(str(e))
-            return
+            raise Exception(str(e))
         except Exception as e:
             logger.error(str(e))
-            return
+            raise Exception(str(e))
 
         years = df_births['year'].unique()
         years.sort()

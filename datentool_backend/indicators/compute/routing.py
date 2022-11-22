@@ -6,13 +6,11 @@ import numpy as np
 from typing import List, Tuple
 from io import StringIO
 
-
 from django.db import transaction, connection
 from django.db.models.query import QuerySet
 from django.db.models import FloatField, Q
 from django.contrib.gis.db.models.functions import Transform, Func
-
-from rest_framework import status
+from requests.exceptions import ConnectionError
 
 from datentool_backend.utils.routers import OSRMRouter
 
@@ -127,11 +125,10 @@ class TravelTimeRouterMixin:
                     raise RoutingError(msg)
 
         except RoutingError as err:
-            ret_status = status.HTTP_406_NOT_ACCEPTABLE
             msg = str(err)
             logger.error(msg)
+            raise Exception(msg)
         else:
-            ret_status = status.HTTP_202_ACCEPTED
             logger.info(msg)
             logger.info('Berechnung der Reisezeitmatrizen erfolgreich abgeschlossen')
 
@@ -231,7 +228,11 @@ class TravelTimeRouterMixin:
         source_coords = list(sources.values_list('lon', 'lat', named=False))
         dest_coords = list(destinations.values_list('lon', 'lat', named=False))
 
-        matrix = router.matrix_calculation(source_coords, dest_coords)
+        try:
+            matrix = router.matrix_calculation(source_coords, dest_coords)
+        # if routing crashes due to malformed network the connection just aborts
+        except ConnectionError:
+            raise RoutingError('Routing abgebrochen')
 
         # convert matrix to dataframe
         arr = np.array(matrix.durations)
@@ -607,11 +608,10 @@ class AccessTimeRouterMixin(TravelTimeRouterMixin):
                     raise RoutingError(msg)
 
         except RoutingError as err:
-            ret_status = status.HTTP_406_NOT_ACCEPTABLE
             msg = str(err)
             logger.error(msg)
+            raise Exception(msg)
         else:
-            ret_status = status.HTTP_202_ACCEPTED
             logger.info(msg)
             logger.info('Berechnung der Reisezeitmatrizen erfolgreich abgeschlossen')
 

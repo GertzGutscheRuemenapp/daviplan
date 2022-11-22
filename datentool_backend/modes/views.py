@@ -49,10 +49,14 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     )
     @action(methods=['POST'], detail=False)
     def pull_base_network(self, request, **kwargs):
-
+        run_sync = request.data.get('sync', False)
         with ProtectedProcessManager(user=request.user,
                                      scope=ProcessScope.ROUTING) as ppm:
-            ppm.run_async(self._pull_base_network)
+            try:
+                ppm.run(self._pull_base_network, sync=run_sync)
+            except Exception as e:
+                return Response({'message': str(e)},
+                                status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({'message': f'Download of base network successful'},
                         status=status.HTTP_201_CREATED)
 
@@ -100,10 +104,15 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             logger.error(msg)
             return Response({'message': msg },
                             status=status.HTTP_400_BAD_REQUEST)
+        run_sync = request.data.get('sync', False)
 
         with ProtectedProcessManager(user=request.user,
                                      scope=ProcessScope.ROUTING) as ppm:
-            ppm.run_async(self._build_project_network)
+            try:
+                ppm.run(self._build_project_network, sync=run_sync)
+            except Exception as e:
+                return Response({'message': str(e)},
+                                status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({'message': 'Bau der Router gestartet'},
                         status=status.HTTP_200_OK)
@@ -158,6 +167,8 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
         network.network_file = fp_target_pbf
         network.save()
 
+        o_success = True
+
         def build(mode):
             logger.info(f'Baue Router {mode.name}')
             router = OSRMRouter(mode)
@@ -169,13 +180,18 @@ class NetworkViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                 msg = (f'Berechnung fehlgeschlagen. Der Router {mode.name} '
                        'konnte nicht gebaut werden.')
                 logger.error(msg)
-            msg = (f'Router {mode.name} erfolgreich gebaut. Starte Router')
-            logger.info(msg)
-            router.run()
+                global o_success
+                o_success = False
+            else:
+                msg = (f'Router {mode.name} erfolgreich gebaut. Starte Router')
+                logger.info(msg)
+                router.run()
 
         modes = [Mode.CAR, Mode.BIKE, Mode.WALK]
         for mode in modes:
             build(mode)
+        if not o_success:
+            raise Exception('')
 
     @extend_schema(
         description=('start routers for modes bike, car and foot'),

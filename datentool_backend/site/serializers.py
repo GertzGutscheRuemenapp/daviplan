@@ -173,7 +173,7 @@ class SiteSettingSerializer(serializers.ModelSerializer):
                 instance.regionalstatistik_password = encrypt(regstat_pass) \
                     if regstat_pass else ''
             instance.save()
-        except ValueError as e:
+        except (ValueError, TypeError) as e:
             raise serializers.ValidationError({
                 'detail': f'Der voreingestellte Schlüssel zum Verschlüsseln der '
                 f'Passwörter in der Datenbank (ENCRYPT_KEY) ist nicht valide. '

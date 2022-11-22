@@ -82,11 +82,6 @@
 
 <ng-template #nameTemplate>
   <form [formGroup]="nameForm">
-    <div *ngIf="nameForm.errors">
-      <mat-error class="alert" *ngFor="let error of nameForm.errors | keyvalue">
-        {{error.key}}: <i>{{error.value}}</i>
-      </mat-error>
-    </div>
     <div fxLayout="column">
       <mat-form-field appearance="fill" style="width: 100%">
         <mat-label i18n>Name</mat-label>

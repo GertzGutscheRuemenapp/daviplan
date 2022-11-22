@@ -1,14 +1,14 @@
 import { AfterViewInit, Component, TemplateRef, ViewChild } from '@angular/core';
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
-import { BehaviorSubject, Observable } from "rxjs";
+import { BehaviorSubject } from "rxjs";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
-import { arrayMove } from "../../../helpers/utils";
-import { Infrastructure, Symbol } from "../../../rest-interfaces"
+import { arrayMove, showAPIError } from "../../../helpers/utils";
+import { Infrastructure } from "../../../rest-interfaces"
 
 @Component({
   selector: 'app-infrastructure',
@@ -21,7 +21,6 @@ export class InfrastructureComponent implements AfterViewInit  {
   infrastructureForm: FormGroup;
   @ViewChild('infrastructureEditCard') infrastructureEditCard?: InputCardComponent;
   @ViewChild('infrastructureEdit') infrastructureEditTemplate?: TemplateRef<any>;
-  Object = Object;
   isLoading$ = new BehaviorSubject<boolean>(false);
 
   constructor(private http: HttpClient, private rest: RestAPI,
@@ -50,7 +49,6 @@ export class InfrastructureComponent implements AfterViewInit  {
       });
     })
     this.infrastructureEditCard?.dialogConfirmed.subscribe((ok)=>{
-      this.infrastructureForm.setErrors(null);
       // display errors for all fields even if not touched
       this.infrastructureForm.markAllAsTouched();
       if (this.infrastructureForm.invalid) return;
@@ -65,8 +63,7 @@ export class InfrastructureComponent implements AfterViewInit  {
         this.selectedInfrastructure!.description = infrastructure.description;
         this.infrastructureEditCard?.closeDialog(true);
       },(error) => {
-        // ToDo: set specific errors to fields
-        this.infrastructureForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         this.infrastructureEditCard?.setLoading(false);
       });
     })
@@ -81,7 +78,7 @@ export class InfrastructureComponent implements AfterViewInit  {
       width: '300px',
       disableClose: true,
       data: {
-        title: 'Neue Infrastruktur',
+        title: 'Neuer Infrastrukturbereich',
         template: this.infrastructureEditTemplate,
         closeOnConfirm: false
       }
@@ -90,7 +87,6 @@ export class InfrastructureComponent implements AfterViewInit  {
       this.infrastructureForm.reset();
     });
     dialogRef.componentInstance.confirmed.subscribe(() => {
-      this.infrastructureForm.setErrors(null);
       // display errors for all fields even if not touched
       this.infrastructureForm.markAllAsTouched();
       if (this.infrastructureForm.invalid) return;
@@ -105,7 +101,7 @@ export class InfrastructureComponent implements AfterViewInit  {
         this.selectedInfrastructure = infrastructure;
         dialogRef.close();
       },(error) => {
-        this.infrastructureForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);
       });
     });
@@ -134,7 +130,7 @@ export class InfrastructureComponent implements AfterViewInit  {
           this.selectedInfrastructure = undefined;
           this.patchOrder();
         },(error) => {
-          console.log('there was an error sending the query', error);
+          showAPIError(error, this.dialog);
         });
       }
     });

@@ -255,32 +255,15 @@ class MatrixCellPlaceViewSet(TravelTimeRouterViewMixin):
 
         with ProtectedProcessManager(user=request.user,
                                      scope=ProcessScope.ROUTING) as ppm:
-            if not run_sync:
-                ppm.run_async(self.calc,
-                              self.router,
-                              variant_ids,
-                              places,
-                              drop_constraints,
-                              logger,
-                              max_distance,
-                              access_variant_id,
-                              max_access_distance,
-                              air_distance_routing,
-                              max_direct_walktime,
-                              )
-            else:
-                self.calc(
-                    self.router,
-                    variant_ids,
-                    places,
-                    drop_constraints,
-                    logger,
-                    max_distance,
-                    access_variant_id,
-                    max_access_distance,
-                    air_distance_routing,
-                    max_direct_walktime,
-                )
+            try:
+                ppm.run(self.calc, self.router, variant_ids, places,
+                        drop_constraints, logger, max_distance,
+                        access_variant_id, max_access_distance,
+                        air_distance_routing, max_direct_walktime,
+                        sync=run_sync)
+            except Exception as e:
+                return Response({'message': str(e)},
+                                status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({'message': 'Routenberechnung gestartet'},
                         status=status.HTTP_202_ACCEPTED)
@@ -346,30 +329,15 @@ class TransitAccessRouterViewMixin(TravelTimeRouterViewMixin):
 
         with ProtectedProcessManager(user=request.user,
                                      scope=ProcessScope.ROUTING) as ppm:
-            if not run_sync:
-                ppm.run_async(self.calc,
-                              self.router,
-                              variant_ids,
-                              places,
-                              drop_constraints,
-                              logger,
-                              max_distance,
-                              access_variant_id,
-                              max_access_distance,
-                              air_distance_routing,
-                              )
-            else:
-                self.calc(
-                    self.router,
-                    variant_ids,
-                    places,
-                    drop_constraints,
-                    logger,
-                    max_distance,
-                    access_variant_id,
-                    max_access_distance,
-                    air_distance_routing,
-                )
+            try:
+                ppm.run(self.calc, self.router, variant_ids, places,
+                        drop_constraints, logger,
+                        max_distance, access_variant_id,
+                        max_access_distance, air_distance_routing,
+                        sync=True)
+            except Exception as e:
+                return Response({'message': str(e)},
+                                status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({'message': 'Routenberechnung gestartet'},
                         status=status.HTTP_202_ACCEPTED)

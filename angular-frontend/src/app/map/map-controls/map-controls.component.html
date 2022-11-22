@@ -72,17 +72,17 @@
 </div>
 
 <ng-template #extentPopover>
-  <p *ngFor="let extent of Object.keys(mapControl?.mapExtents)">
+  <p *ngFor="let extent of mapControl?.mapExtents | keyvalue">
     <button mat-button color="primary"
-            title='Auf Ausschnitt "{{extent}}" zoomen'
-            (click)="loadExtent(extent)"
+            title='Auf Ausschnitt "{{extent.key}}" zoomen'
+            (click)="loadExtent(extent.key)"
             style="width: 75%; display: inline-flex;">
       <mat-icon>bookmark_border</mat-icon>
-      {{extent}}
+      {{extent.key}}
     </button>
     <button mat-button color="primary"
-            (click)="removeExtent(extent)"
-            title='Kartenausschnitt "{{extent}}" entfernen'
+            (click)="removeExtent(extent.key)"
+            title='Kartenausschnitt "{{extent.key}}" entfernen'
             style="float: right;">
       <mat-icon>close</mat-icon>
     </button>

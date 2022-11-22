@@ -9,6 +9,7 @@ import { FormBuilder, FormGroup } from "@angular/forms";
 import { InputCardComponent } from "../../../dash/input-card.component";
 import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dialog.component";
 import { BehaviorSubject } from "rxjs";
+import { showAPIError } from "../../../helpers/utils";
 
 @Component({
   selector: 'app-services',
@@ -27,7 +28,6 @@ export class ServicesComponent implements AfterViewInit {
   serviceForm: FormGroup;
   capacitiesForm: FormGroup;
   demandForm: FormGroup;
-  Object = Object;
   isLoading$ = new BehaviorSubject<boolean>(false);
 
   constructor(private dialog: MatDialog, private http: HttpClient,
@@ -81,7 +81,6 @@ export class ServicesComponent implements AfterViewInit {
       });
     })
     this.propertiesCard.dialogConfirmed.subscribe((ok)=>{
-      this.propertiesForm.setErrors(null);
       // display errors for all fields even if not touched
       this.propertiesForm.markAllAsTouched();
       if (this.propertiesForm.invalid) return;
@@ -96,8 +95,7 @@ export class ServicesComponent implements AfterViewInit {
         this.onServiceChange();
         this.propertiesCard.closeDialog(true);
       },(error) => {
-        // ToDo: set specific errors to fields
-        this.propertiesForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         this.propertiesCard.setLoading(false);
       });
     })
@@ -115,7 +113,6 @@ export class ServicesComponent implements AfterViewInit {
       });
     })
     this.capacitiesCard.dialogConfirmed.subscribe((ok)=>{
-      this.capacitiesForm.setErrors(null);
       // display errors for all fields even if not touched
       this.capacitiesForm.markAllAsTouched();
       if (this.capacitiesForm.invalid) return;
@@ -136,8 +133,7 @@ export class ServicesComponent implements AfterViewInit {
         this.onServiceChange();
         this.capacitiesCard.closeDialog(true);
       },(error) => {
-        // ToDo: set specific errors to fields
-        this.capacitiesForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         this.capacitiesCard.setLoading(false);
       });
     })
@@ -152,7 +148,6 @@ export class ServicesComponent implements AfterViewInit {
       });
     })
     this.demandCard.dialogConfirmed.subscribe((ok)=>{
-      this.demandForm.setErrors(null);
       // display errors for all fields even if not touched
       this.demandForm.markAllAsTouched();
       if (this.demandForm.invalid) return;
@@ -168,8 +163,7 @@ export class ServicesComponent implements AfterViewInit {
         this.onServiceChange();
         this.demandCard.closeDialog(true);
       },(error) => {
-        // ToDo: set specific errors to fields
-        this.demandForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         this.demandCard.setLoading(false);
       });
     })
@@ -204,7 +198,7 @@ export class ServicesComponent implements AfterViewInit {
         infrastructure?.services.push(service);
         dialogRef.close();
       },(error) => {
-        this.serviceForm.setErrors(error.error);
+        showAPIError(error, this.dialog);
         dialogRef.componentInstance.isLoading$.next(false);
       });
     });
@@ -233,7 +227,7 @@ export class ServicesComponent implements AfterViewInit {
             infrastructure.services.splice(idx, 1);
           this.activeService = undefined;
         }, error => {
-          console.log('there was an error sending the query', error);
+          showAPIError(error, this.dialog);
         });
       }
     });

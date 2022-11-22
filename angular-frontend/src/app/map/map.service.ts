@@ -166,7 +166,7 @@ export class MapControl {
   mapDescription$ = new BehaviorSubject<string>('');
   layerGroups: MapLayerGroup[] = [];
   private markerLayer?: VectorLayer;
-  mapExtents: any = {};
+  mapExtents: Record<string, any> = {};
   editMode: boolean = true;
   background?: TileLayer;
   mapSettings: any = {};
