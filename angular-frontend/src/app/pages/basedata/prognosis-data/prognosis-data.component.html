@@ -1,7 +1,7 @@
 <div class="loadOverlay" *ngIf="popService.isLoading$ | async">
   <mat-spinner [diameter]="50"></mat-spinner>
 </div>
-<app-header-card [title]="'Einwohnerdaten für die Zukunft (Prognosedaten, ggf. in Szenarien)'"
+<app-header-card [title]="'Einwohnerdaten für die Zukunft (Prognosedaten, ggf. in Varianten)'"
                  cookieId="exp-progdata-header"
                  width="1170px">
   <p>Für die Abschätzung der zukünftigen Nachfrageentwicklung nach Infrastrukturen werden u.a. Prognosedaten zur Einwohnerentwicklung benötigt. Auf dieser Seite können Sie daher Einwohnerprognosen einlesen. Reale Einwohnerdaten für die zurückliegenden Jahre werden hingegen im vorstehenden Menüpunkt „Vergangenheit“ eingepflegt.</p>
@@ -10,7 +10,7 @@
   <p>Für jede Prognosevariante, die Sie definiert haben, können Sie sich anschließend in der Box „Prognosedaten der ausgewählten Variante hochladen“ eine Vorlagedatei herunterzuladen. Befüllen Sie diese Vorlage in Excel mit den Prognosedaten für die zuvor definierten Prognosevariante und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch.</p>
   <p>Wiederholen Sie dieses Vorgehen für alle Prognosevarianten, in dem Sie in der Liste „Prognosevarianten“ die nächste Variante auswählen.</p>
   <p>Bereits hochgeladene Prognosedaten einer ausgewählten Variante können Sie über die Karte sowie das Alterspyramiden-Diagramm kontrollieren. Zudem können Sie sich alle Daten in einer Tabellenansicht anzeigen lassen.</p>
-  <p>Die auf dieser Seite zusammengetragenen Prognosedaten sind für alle Nutzer*innen im Hauptmenübereich „Bevölkerung“ sichtbar. Zudem stehen sie für Auswertungen im Hauptmenübereich „Infrastrukturplanung“ zur Verfügung.</p>
+  <p>Die auf dieser Seite zusammengetragenen Prognosedaten sind für alle Nutzer:innen im Hauptmenübereich „Bevölkerung“ sichtbar. Zudem stehen sie für Auswertungen im Hauptmenübereich „Infrastrukturplanung“ zur Verfügung.</p>
 </app-header-card>
 <app-status-card *ngIf="!(popService.isLoading$ | async) && years.length === 0" [showSpinner]="false"
                  infoText="Im Bereich „Administration“ > „Basisdefinitionen“ muss ein Betrachtungszeitraum definiert werden.">
@@ -33,11 +33,11 @@
                     dialogWidth="500px"
                     infoText="<p>Legen Sie über die Schaltfläche „Editieren“ fest, für welche zukünftigen Jahre Ihnen
                     aus der Ihnen vorliegenden Prognose Werte hochgeladen werden sollen. Über die gleiche Schaltfläche
-                    können Sie zudem entscheiden, welche Jahre den Nutzer*innen angezeigt werden sollen. Zudem können Sie
+                    können Sie zudem entscheiden, welche Jahre den Nutzer:innen angezeigt werden sollen. Zudem können Sie
                     über die Schaltfläche bereits hochgeladene Prognosedaten wieder löschen.</p>"
                     dialogInfoText="<p>Die Liste enthält alle Jahre Ihres Betrachtungszeitraums. Zurückliegende Jahre sind mit einem Sternchen gekennzeichnet.</p>
                     <p>In der mittleren Spalte sind die Jahre mit einem grauen Häkchen markiert, für die bereits Prognosedaten hochgeladen wurden (ob diese für alle Varianten vorliegen, wird nicht überprüft).</p>
-                    <p>Sie können in der ersten Spalte auswählen, welche dieser Daten Sie den Nutzer*innen der Hauptmenübereiche „Bevölkerung“ und „Infrastrukturplanung“ als Prognosedaten anzeigen möchten.</p>
+                    <p>Sie können in der ersten Spalte auswählen, welche dieser Daten Sie den Nutzer:innen der Hauptmenübereiche „Bevölkerung“ und „Infrastrukturplanung“ als Prognosedaten anzeigen möchten.</p>
                     <p>Besonders relevant ist diese Auswahl, wenn in einem Jahr sowohl Realdaten aus der Einwohnerstatistik wie auch Prognosedaten aus einer ggf. schon etwas älteren Prognose vorliegen. Daher zeigt Ihnen die letzte Spalte an, für welche der zurückliegenden Jahre auch Realdaten in daviplan hochgeladen wurden.</p>
                     <p>Um bereits hochgeladenen reale Prognosedaten wieder zu löschen, klicken Sie auf das entsprechende rote Kreuzchen in der Spalte „Prognosedaten“. Die Löschung betrifft alle Varianten für das betreffende Jahr. Realdaten löschen Sie über den Menüpunkt „Bevölkerung > Vergangenheit“ im Menü am linken Browserrand.</p>">
       <table>
@@ -58,7 +58,7 @@
                     infoText="<p>Klicken Sie auf „Hinzufügen“, um die erste Prognosevariante hinzuzufügen. Tun Sie dies auch, wenn Ihre Prognose keine Varianten ausweist.</p>
                     <p>In dem sich öffnenden Dialog geben Sie nur die Bezeichnung dieser Variante an, z.B. „Basisvariante“, „Trendfortschreibung“, „mehr Zuzug“ oder auch „einzige Variante“. Die hinzugefügte Variante erscheint dann in der Liste.</p>
                     <p>Für eine in der Liste ausgewählte Varianten können Sie anschließend in der Box „Prognosedaten der ausgewählten Variante hochladen“ eine Vorlagedatei herunterzuladen. Befüllen Sie diese mit Ihren Daten und laden Sie sie anschließend über die Schaltfläche „Daten hochladen“ wieder hoch.</p>
-                    <p>Wiederholen Sie dieses Vorgehen bitte für alle Prognosevarianten, die Sie Ihren Nutzer*innen zur Verfügung stellen möchten.</p>
+                    <p>Wiederholen Sie dieses Vorgehen bitte für alle Prognosevarianten, die Sie Ihren Nutzer:innen zur Verfügung stellen möchten.</p>
                     <p>Um eine Variante samt ihrer ggf. bereits hochgeladenen Daten zu löschen wählen Sie diese in der Liste aus und klicken auf „Entfernen“.</p>">
       <mat-selection-list [multiple]="false"
                           id="prognosis-select">
@@ -88,12 +88,12 @@
       </div>
       <button mat-button color="primary"
               class="multiline-button"
-              style="width: 86%;"
-              title="Als Annahme für Trendfortschreibung (Status Quo) festlegen"
+              style="width: 100%;"
+              title="Als Grundlage für alle Szenarien 'Trendfortschreibung' verwenden"
               (click)="activePrognosis && setDefaultPrognosis(activePrognosis)"
               [disabled]="!activePrognosis">
         <mat-icon class="material-icons-outlined">verified</mat-icon>
-        Als Annahme für Trendfortschreibung festlegen
+        Als Grundlage für alle Szenarien 'Trendfortschreibung' verwenden
       </button>
     </app-input-card>
   </div>

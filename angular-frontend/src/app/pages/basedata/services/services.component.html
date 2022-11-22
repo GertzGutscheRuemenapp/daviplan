@@ -5,9 +5,9 @@
                  cookieId="exp-services-header"
                  width="1130px">
   <p>Im Administrationsbereich wurde festgelegt, welche Infrastrukturbereiche der Daseinsvorsorge (z.B. Kindertagesbetreuung, Schule, Feuerwehr, ärztliche Versorgung, Einzelhandel, …) mit daviplan betrachtet werden sollen.</p>
-  <p>An dieser Stelle differenzieren Sie die Infrastrukturbereiche weiter aus, in dem Sie Ihnen „Leistungen“ zuordnen. Leistungen sind die einzelnen Angebote der Infrastrukturen, die von den Nutzer*innen nachgefragt und genutzt werden. Alle Nachfrageschätzungen, Kapazitätsangaben und Nachfrage-Angebot-Vergleiche im Hauptmenüabschnitt „Infrastrukturplanung“ werden sich auf diese Leistungen beziehen.</p>
+  <p>An dieser Stelle differenzieren Sie die Infrastrukturbereiche weiter aus, in dem Sie Ihnen „Leistungen“ zuordnen. Leistungen sind die einzelnen Angebote der Infrastrukturen, die von den Nutzer:innen nachgefragt und genutzt werden. Alle Nachfrageschätzungen, Kapazitätsangaben und Nachfrage-Angebot-Vergleiche im Hauptmenüabschnitt „Infrastrukturplanung“ werden sich auf diese Leistungen beziehen.</p>
   <p>Für den Infrastrukturbereich „Kindertagesbetreuung“ könnten z.B. „Krippe“, „Elementarbetreuung“ und „Hort“ drei mögliche Leistungen sein. Bei der ärztlichen Versorgung z.B. „Hausärzte“ und „Fachärzte“, wobei ggf. bei den Fachärzten noch zwischen den wichtigsten Fachrichtungen unterschieden werden können, indem diese jeweils als eigene Leistung definiert werden. Für die Feuerwehr könnten z.B. unterschiedliche Einsatztypen durch entsprechende definierte Leistungen abgebildet werden.</p>
-  <p>Sie können die Leistungen jedes Infrastrukturbereichs frei definieren. Bedenken Sie jedoch, dass Sie im weiteren Verlauf der Datenaufbereitung in der Lage sein müssen, für diese Leistungen Angaben zu vorhandenen Kapazitäten sowie zum Häufigkeit der Nachfrage pro Einwohner*in („Nachfragequote“) zu machen.</p>
+  <p>Sie können die Leistungen jedes Infrastrukturbereichs frei definieren. Bedenken Sie jedoch, dass Sie im weiteren Verlauf der Datenaufbereitung in der Lage sein müssen, für diese Leistungen Angaben zu vorhandenen Kapazitäten sowie zum Häufigkeit der Nachfrage pro Einwohner:in („Nachfragequote“) zu machen.</p>
   <p>Ein Infrastrukturstandort kann auch mehrere Leistungen anbieten, z.B. Kita mit Krippe und Elementarbetreuung oder Ärztehaus mit Haus- und Fachärzten.</p>
   <p>Um eine Leistung zu definieren, fügen Sie diese zunächst in der Box „Leistungen“ dem betreffenden Infrastrukturbereich hinzu und ergänzen Sie anschließend deren Eigenschaften (Beschreibung, Kapazitätseinheit, Nachfrageeinheit) in den drei anderen Eingabeboxen.</p>
 </app-header-card>
@@ -49,7 +49,7 @@
                     [title]="'Bezeichnung der ausgewählten Leistung'"
                     [editTemplate]="propertiesEdit"
                     infoText="<p>Der angezeigte Name entspricht der Bezeichnung in der Liste. Diese können Sie über die Schaltfläche „Editieren“ nachträglich noch verändern. Zudem können Sie eine Kurzbeschreibung hinzufügen.</p>
-                    <p>Beide Eigenschaften sind für die Nutzer*innen des Hauptmenübereichs „Infrastrukturplanung“ als Auswahlbezeichnung bzw. kurzem Definitionstext sichtbar.</p>">
+                    <p>Beide Eigenschaften sind für die Nutzer:nnen des Hauptmenübereichs „Infrastrukturplanung“ als Auswahlbezeichnung bzw. kurzem Definitionstext sichtbar.</p>">
       <table *ngIf="activeService">
         <tr>
           <td>Name</td>
@@ -225,7 +225,7 @@
   <form [formGroup]="serviceForm">
     <div fxLayout="column">
       <mat-form-field appearance="fill">
-        <mat-label i18n>Infrastruktur</mat-label>
+        <mat-label i18n>Infrastrukturbereich</mat-label>
         <mat-select disableRipple formControlName="infrastructure" required> <!-- [value]="infrastructures[0].id">-->
           <mat-option *ngFor="let infrastructure of infrastructures" [value]="infrastructure.id">
             {{infrastructure.name}}

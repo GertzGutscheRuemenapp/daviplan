@@ -78,7 +78,7 @@ export class InfrastructureComponent implements AfterViewInit  {
       width: '300px',
       disableClose: true,
       data: {
-        title: 'Neue Infrastruktur',
+        title: 'Neuer Infrastrukturbereich',
         template: this.infrastructureEditTemplate,
         closeOnConfirm: false
       }
