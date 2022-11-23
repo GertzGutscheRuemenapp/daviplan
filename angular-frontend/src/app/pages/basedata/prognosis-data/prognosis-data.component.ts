@@ -363,7 +363,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  removePrognosis(): void {
+  deletePrognosis(): void {
     if (!this.activePrognosis)
       return;
     const dialogRef = this.dialog.open(RemoveDialogComponent, {
@@ -379,11 +379,9 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       if (confirmed) {
         this.http.delete(`${this.rest.URLS.prognoses}${this.activePrognosis?.id}/`
         ).subscribe(() => {
-          const idx = this.prognoses.indexOf(this.activePrognosis!);
-          if (idx > -1) {
-            this.prognoses.splice(idx, 1);
-          }
           this.activePrognosis = undefined;
+          // other prognosis might change on deletion of the default one
+          this.popService.fetchPrognoses().subscribe(prognoses => this.prognoses = prognoses);
         },(error) => {
           showAPIError(error, this.dialog);
         });
