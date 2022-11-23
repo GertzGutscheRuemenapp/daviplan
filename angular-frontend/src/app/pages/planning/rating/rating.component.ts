@@ -90,8 +90,6 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
 
   applyUserSettings(): void {
     this.selectedAreaLevel = this.areaLevels.find(al => al.id === this.cookies.get('planning-area-level', 'number')) || ((this.areaLevels.length > 0)? this.areaLevels[this.areaLevels.length - 1]: undefined);
-/*    this.onServiceChange();
-    this.onAreaLevelChange();*/
   }
 
   onAreaLevelChange(): void {
@@ -145,7 +143,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
       ).subscribe(cellResults => {
       let values: Record<string, number> = {};
       cellResults.values.forEach(cellResult => {
-        values[cellResult.cellCode] = cellResult.value;// Math.round(cellResult.value);
+        values[cellResult.cellCode] = cellResult.value;
         max = Math.max(max, cellResult.value);
         min = Math.min(min, cellResult.value);
       })
