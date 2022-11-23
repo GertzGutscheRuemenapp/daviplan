@@ -198,6 +198,8 @@ export class ServicesComponent implements AfterViewInit {
       ).subscribe(service => {
         const infrastructure = this.infrastructures!.find(i => i.id === service.infrastructure);
         infrastructure?.services.push(service);
+        this.activeService = service;
+        this.onServiceChange();
         dialogRef.close();
       },(error) => {
         showAPIError(error, this.dialog);
