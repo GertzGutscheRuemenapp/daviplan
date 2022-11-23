@@ -157,13 +157,6 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
           fillColor: 'rgba(255, 255, 0, 0.7)'
         }
       },
-      select: {
-        enabled: true,
-        style: {
-          strokeColor: 'rgb(180, 180, 0)',
-          fillColor: 'rgba(255, 255, 0, 0.9)'
-        }
-      },
       valueStyles: {
         field: 'value',
         fillColor: diffDisplay? { colorFunc: colorFunc }: undefined,
