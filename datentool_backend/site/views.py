@@ -189,7 +189,7 @@ class ProjectSettingViewSet(SingletonViewSet):
             PopulationRasterViewSet._intersect_census(
                 popraster, drop_constraints=True)
         logger.info('Bereinige Daten:')
-        for area_level in AreaLevel.objects.filter(is_preset=True):
+        for area_level in AreaLevel.objects.filter():
             areas = Area.objects.filter(area_level=area_level)
             if len(areas) > 0:
                 logger.info(f'Lösche {len(areas)} Gebiete der Ebene '

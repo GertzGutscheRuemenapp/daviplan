@@ -4,10 +4,9 @@ import { CookieService } from "../../../helpers/cookies.service";
 import { PlanningService } from "../planning.service";
 import { environment } from "../../../../environments/environment";
 import {
-  Capacity, IndicatorLegendClass,
+  IndicatorLegendClass,
   Infrastructure,
   Place,
-  PlanningProcess,
   RasterCell,
   Scenario,
   Service,
@@ -18,7 +17,6 @@ import { Observable, Subscription } from "rxjs";
 import { Geometry } from "ol/geom";
 import { MapLayerGroup, ValueStyle, VectorLayer, VectorTileLayer } from "../../../map/layers";
 import { modes } from "../mode-select/mode-select.component";
-import * as d3 from "d3";
 
 const modeColorValues = [[0,104,55],[100,188,97],[215,238,142],[254,221,141],[241,110,67],[165,0,38],[0,0,0]];
 const modeColors = modeColorValues.map(c => `rgb(${c.join(',')})`);
@@ -75,10 +73,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.applyUserSettings();
     this.planningService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures;
-      // this.drawRaster();
-/*      this.planningService.getRasterCells({targetProjection: this.mapControl?.map?.mapProjection }).subscribe(rasterCells => {
-        this.rasterCells = rasterCells;
-      });*/
       this.updatePlaces().subscribe();
     });
     this.subscriptions.push(this.planningService.activeInfrastructure$.subscribe(infrastructure => {
@@ -106,25 +100,6 @@ export class ReachabilitiesComponent implements AfterViewInit, OnDestroy {
     this.activeMode = this.cookies.get('planning-mode', 'number') || TransportMode.WALK;
     // @ts-ignore
     this.indicator = this.cookies.get('planning-reach-indicator', 'string') || 'place';
-  }
-
-  drawRaster(): void {
-    const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
-    this.baseRasterLayer = new VectorTileLayer( 'Rasterzellen', url,{
-      order: 0,
-      description: 'Zensus-Raster (LAEA)',
-      opacity: 1,
-      style: {
-        fillColor: 'rgba(0, 0, 0, 0)',
-        strokeWidth: 1,
-        strokeColor: 'black',
-        symbol: 'line'
-      },
-      labelField: 'label',
-      showLabel: false
-    });
-    this.placesLayerGroup?.addLayer(this.baseRasterLayer);
-    this.baseRasterLayer?.clearFeatures();
   }
 
   updatePlaces(): Observable<boolean> {

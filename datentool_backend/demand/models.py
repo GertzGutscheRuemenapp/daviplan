@@ -21,7 +21,26 @@ class DemandRateSet(DatentoolModelMixin, NamedModel, models.Model):
                 DemandRateSet.objects.filter(
                     is_default=True, service=self.service
                     ).update(is_default=False)
+        # on creation -> look if there is already a default set for the service,
+        # else set this as default (so there is always a default one)
+        elif self.pk is None:
+            try:
+                DemandRateSet.objects.get(is_default=True, service=self.service)
+            except DemandRateSet.DoesNotExist:
+                self.is_default = True
         return super().save(*args, **kwargs)
+
+    def delete(self, **kwargs):
+        # deleting set marked as default for the service -> mark another one
+        # of the same service (so there always is one default set if there are
+        # any at all)
+        if self.is_default:
+            new_default = DemandRateSet.objects.filter(
+                service=self.service).exclude(id=self.id).first()
+            if new_default:
+                new_default.is_default = True
+                new_default.save()
+        return super().delete(**kwargs)
 
 
 class DemandRate(models.Model):

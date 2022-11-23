@@ -91,11 +91,29 @@ class Prognosis(DatentoolModelMixin, NamedModel, models.Model):
     is_default = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
+        # make sure only one is default at a time
         if self.is_default:
             with transaction.atomic():
                 Prognosis.objects.filter(
                     is_default=True).update(is_default=False)
+        # on creation -> look if there is already a default prognosis, else
+        # set this as default (so there is always a default one)
+        elif self.pk is None:
+            try:
+                Prognosis.objects.get(is_default=True)
+            except Prognosis.DoesNotExist:
+                self.is_default = True
         return super().save(*args, **kwargs)
+
+    def delete(self, **kwargs):
+        # deleting prog. marked as default -> mark another one
+        # (so there always is one default prog. if there are any at all)
+        if self.is_default:
+            new_default = Prognosis.objects.exclude(id=self.id).first()
+            if new_default:
+                new_default.is_default = True
+                new_default.save()
+        return super().delete(**kwargs)
 
 
 class Population(DatentoolModelMixin, models.Model):

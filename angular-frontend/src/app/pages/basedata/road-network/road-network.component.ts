@@ -24,7 +24,10 @@ export class RoadNetworkComponent implements AfterViewInit, OnDestroy {
   TransportMode = TransportMode;
 
   constructor(private http: HttpClient, private rest: RestAPI, private dialog: MatDialog,
-              private settings: SettingsService, private restCache: RestCacheService) { }
+              private settings: SettingsService, private restService: RestCacheService) {
+    // make sure data requested here is up-to-date
+    this.restService.reset();
+  }
 
   ngAfterViewInit(): void {
     this.settings.baseDataSettings$.subscribe(baseSettings => this.baseDataSettings = baseSettings);
@@ -34,7 +37,7 @@ export class RoadNetworkComponent implements AfterViewInit, OnDestroy {
     }));
     this.settings.fetchBaseDataSettings();
     this.isLoading$.next(true);
-    this.restCache.getModeVariants().subscribe(modeVariants => {
+    this.restService.getModeVariants().subscribe(modeVariants => {
       this.modeVariants = modeVariants.filter(m => m.mode !== TransportMode.TRANSIT);
       this.isLoading$.next(false);
       this.getStatistics();
@@ -43,7 +46,7 @@ export class RoadNetworkComponent implements AfterViewInit, OnDestroy {
 
   getStatistics(): void {
     this.isLoading$.next(true);
-    this.restCache.getRoutingStatistics({ reset: true }).subscribe(stats => {
+    this.restService.getRoutingStatistics({ reset: true }).subscribe(stats => {
       this.statistics = {};
       this.modeVariants.forEach(mV => this.statistics[mV.mode] = stats.nRelsPlaceCellModevariant[mV.id]);
       this.isLoading$.next(false);

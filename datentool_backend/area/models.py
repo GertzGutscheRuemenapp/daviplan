@@ -125,6 +125,15 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
             self.symbol.delete()
         if self.source:
             self.source.delete()
+        # deleting level marked as level to upload pop data with -> mark the
+        # default one as the new pop level
+        if self.is_pop_level:
+            try:
+                new_default = AreaLevel.objects.get(is_default_pop_level=True)
+                new_default.is_pop_level = True
+                new_default.save()
+            except AreaLevel.DoesNotExist:
+                pass
         return super().delete(**kwargs)
 
 

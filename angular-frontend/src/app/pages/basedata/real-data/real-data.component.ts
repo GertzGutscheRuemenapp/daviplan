@@ -21,7 +21,6 @@ import { InputCardComponent } from "../../../dash/input-card.component";
 import { AgeTreeComponent, AgeTreeData } from "../../../diagrams/age-tree/age-tree.component";
 import { showAPIError, sortBy } from "../../../helpers/utils";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
-import { Router } from "@angular/router";
 import { BehaviorSubject, Subscription } from "rxjs";
 import { SimpleDialogComponent } from "../../../dialogs/simple-dialog/simple-dialog.component";
 import { MapLayerGroup, VectorLayer } from "../../../map/layers";
@@ -43,7 +42,6 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   ageGroupsRegStatValid = false;
   years: Year[] = [];
   popLevel?: AreaLevel;
-  popLevelMissing = false;
   defaultPopLevel?: AreaLevel;
   areas: Area[] = [];
   realYears: number[] = [];
@@ -66,7 +64,10 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
 
   constructor(private mapService: MapService, public popService: PopulationService,
               private dialog: MatDialog, private settings: SettingsService,
-              private rest: RestAPI, private http: HttpClient, private router: Router) {}
+              private rest: RestAPI, private http: HttpClient) {
+    // make sure data requested here is up-to-date
+    this.popService.reset();
+  }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-real-data-map');
@@ -248,7 +249,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
           // fillColor: diffDisplay? colorFunc: undefined,
           radius: {
             range: [5, 50],
-            scale: 'linear'
+            scale: 'sqrt'
           },
           min: 0,
           max: max
