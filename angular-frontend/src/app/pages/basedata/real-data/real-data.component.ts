@@ -248,7 +248,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
           // fillColor: diffDisplay? colorFunc: undefined,
           radius: {
             range: [5, 50],
-            scale: 'linear'
+            scale: 'sqrt'
           },
           min: 0,
           max: max

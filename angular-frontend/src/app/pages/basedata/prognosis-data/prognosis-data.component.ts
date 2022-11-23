@@ -213,7 +213,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
           field: 'value',
           radius: {
             range: [5, 50],
-            scale: 'linear'
+            scale: 'sqrt'
           },
           min: 0,
           max: max
