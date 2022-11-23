@@ -380,7 +380,7 @@ export class RestCacheService {
     return this.getCachedData<DemandRateSet[]>(url, options);
   }
 
-  getModeVariants(options?: { reset: boolean }): Observable<ModeVariant[]> {
+  getModeVariants(options?: { reset?: boolean }): Observable<ModeVariant[]> {
     const url = this.rest.URLS.modevariants;
     return this.getCachedData<ModeVariant[]>(url, options);
   }

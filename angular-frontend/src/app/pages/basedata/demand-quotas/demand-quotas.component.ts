@@ -253,7 +253,7 @@ export class DemandQuotasComponent implements AfterViewInit {
         this.http.delete(`${this.rest.URLS.demandRateSets}${this.activeDemandRateSet?.id}/`
         ).subscribe(() => {
           this.activeDemandRateSet = undefined;
-          // other prognosis might change on deletion of the default one
+          // other set might change on deletion of the default one
           this.onServiceChange({reset: true});
         },(error) => {
           showAPIError(error, this.dialog);

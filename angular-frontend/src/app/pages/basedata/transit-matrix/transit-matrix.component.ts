@@ -47,8 +47,12 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    this.fetchVariants();
+  }
+
+  fetchVariants(options?: { reset?: boolean }): void {
     this.isLoading$.next(true);
-    this.restService.getModeVariants().subscribe(variants => {
+    this.restService.getModeVariants({reset: options?.reset}).subscribe(variants => {
       this.variants = variants.filter(v => v.mode === TransportMode.TRANSIT);
       this.isLoading$.next(false);
     })
@@ -256,11 +260,9 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
       if (confirmed) {
         this.http.delete(`${this.rest.URLS.modevariants}${this.selectedVariant!.id}/`
         ).subscribe(res => {
-          const idx = this.variants.indexOf(this.selectedVariant!);
-          if (idx > -1) {
-            this.variants.splice(idx, 1);
-          }
           this.selectedVariant = undefined;
+          // other variants might change on deletion of the default one
+          this.fetchVariants({reset: true});
         }, error => {
           showAPIError(error, this.dialog);
         });
