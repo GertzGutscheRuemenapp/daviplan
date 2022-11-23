@@ -63,7 +63,7 @@ export class RealDataComponent implements AfterViewInit, OnDestroy {
   subscriptions: Subscription[] = [];
 
   constructor(private mapService: MapService, public popService: PopulationService,
-              private dialog: MatDialog, private settings: SettingsService,
+              private dialog: MatDialog, public settings: SettingsService,
               private rest: RestAPI, private http: HttpClient) {
     // make sure data requested here is up-to-date
     this.popService.reset();
