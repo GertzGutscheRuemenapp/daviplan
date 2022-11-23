@@ -51,6 +51,8 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   constructor(private mapService: MapService, private http: HttpClient, private dialog: MatDialog,
               private rest: RestAPI, private formBuilder: FormBuilder, private restService: RestCacheService,
               private settings: SettingsService) {
+    // make sure data requested here is up-to-date
+    this.restService.reset();
     this.editLevelForm = this.formBuilder.group({
       name: new FormControl(''),
       labelField: new FormControl(''),

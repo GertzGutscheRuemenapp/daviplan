@@ -67,6 +67,8 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
 
   constructor(private mapService: MapService, private settings: SettingsService, private dialog: MatDialog,
               private rest: RestAPI, private http: HttpClient, public popService: PopulationService, private formBuilder: FormBuilder) {
+    // make sure data requested here is up-to-date
+    this.popService.reset();
     this.propertiesForm = this.formBuilder.group({
       name: new FormControl(''),
       description: new FormControl('')

@@ -375,7 +375,7 @@ export class RestCacheService {
     return this.getCachedData<{ values: AreaIndicatorResult[], legend: IndicatorLegendClass[] }>(url, {method: 'POST', params: data, key: options?.scenario?.toString()});
   }
 
-  getDemandRateSets(service: number, options?: { reset: boolean }): Observable<DemandRateSet[]> {
+  getDemandRateSets(service: number, options?: { reset?: boolean }): Observable<DemandRateSet[]> {
     const url = `${this.rest.URLS.demandRateSets}?service=${service}`;
     return this.getCachedData<DemandRateSet[]>(url, options);
   }

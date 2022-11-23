@@ -39,6 +39,8 @@ export class TransitMatrixComponent implements AfterViewInit, OnDestroy {
 
   constructor(private dialog: MatDialog, private restService: RestCacheService,
               private http: HttpClient, private rest: RestAPI, private formBuilder: FormBuilder) {
+    // make sure data requested here is up-to-date
+    this.restService.reset();
     this.variantForm = this.formBuilder.group({
       label: ''
     });

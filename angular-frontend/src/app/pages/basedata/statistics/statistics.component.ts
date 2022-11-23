@@ -47,7 +47,10 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
   subscriptions: Subscription[] = [];
 
   constructor(private mapService: MapService, private restService: RestCacheService, private rest: RestAPI,
-              private settings: SettingsService, private dialog: MatDialog, private http: HttpClient) { }
+              private settings: SettingsService, private dialog: MatDialog, private http: HttpClient) {
+    // make sure data requested here is up-to-date
+    this.restService.reset();
+  }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-statistics-map');

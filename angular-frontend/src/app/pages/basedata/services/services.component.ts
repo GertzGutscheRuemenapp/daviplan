@@ -33,6 +33,8 @@ export class ServicesComponent implements AfterViewInit {
   constructor(private dialog: MatDialog, private http: HttpClient,
               private restService: RestCacheService, private rest: RestAPI,
               private formBuilder: FormBuilder) {
+    // make sure data requested here is up-to-date
+    this.restService.reset();
     this.propertiesForm = this.formBuilder.group({
       name: '',
       description: ''
