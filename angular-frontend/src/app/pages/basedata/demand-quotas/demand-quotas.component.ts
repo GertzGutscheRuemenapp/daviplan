@@ -38,10 +38,11 @@ export class DemandQuotasComponent implements AfterViewInit {
   demandTypeForm: FormGroup;
   propertiesForm: FormGroup;
   demandRateSets: DemandRateSet[] = [];
-  demandRateSetCache: Record<number, DemandRateSet[]> = {};
 
   constructor(private restService: RestCacheService, private formBuilder: FormBuilder,
               private dialog: MatDialog, private http: HttpClient, private rest: RestAPI) {
+    // make sure data requested herer is up-to-date
+    this.restService.reset();
     this.demandTypeForm = this.formBuilder.group({
       demandType: new FormControl('1')
     });
@@ -58,9 +59,9 @@ export class DemandQuotasComponent implements AfterViewInit {
     this.isLoading$.next(true);
     this.restService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures || [];
+      this.isLoading$.next(false);
       if (infrastructures.length === 0) return;
       const services = infrastructures[0].services || [];
-      this.isLoading$.next(false);
       if (services.length > 0) {
         this.activeService = services[0];
         this.onServiceChange();
@@ -78,6 +79,7 @@ export class DemandQuotasComponent implements AfterViewInit {
       });
     })
     this.demandTypeCard?.dialogConfirmed.subscribe((ok)=>{
+      this.demandTypeForm.markAllAsTouched();
       this.demandTypeForm.markAllAsTouched();
       if (this.demandTypeForm.invalid) return;
       let attributes: any = {
@@ -234,7 +236,7 @@ export class DemandQuotasComponent implements AfterViewInit {
     });
   }
 
-  removeDemandRateSet(): void {
+  deleteDemandRateSet(): void {
     if (!this.activeDemandRateSet)
       return;
     const dialogRef = this.dialog.open(RemoveDialogComponent, {
@@ -250,11 +252,9 @@ export class DemandQuotasComponent implements AfterViewInit {
       if (confirmed) {
         this.http.delete(`${this.rest.URLS.demandRateSets}${this.activeDemandRateSet?.id}/`
         ).subscribe(() => {
-          const idx = this.demandRateSets.indexOf(this.activeDemandRateSet!);
-          if (idx > -1) {
-            this.demandRateSets.splice(idx, 1);
-          }
           this.activeDemandRateSet = undefined;
+          // other prognosis might change on deletion of the default one
+          this.onServiceChange({reset: true});
         },(error) => {
           showAPIError(error, this.dialog);
         });
@@ -262,29 +262,19 @@ export class DemandQuotasComponent implements AfterViewInit {
     });
   }
 
-  onServiceChange(): void {
+  onServiceChange(options?: {reset?: boolean}): void {
     if (!this.activeService) return;
-    const demandRateSets = this.demandRateSetCache[this.activeService!.id];
-    if (demandRateSets) {
-      this.demandRateSets = demandRateSets;
-      // this.activeDemandRateSet = demandRateSets[0];
-    }
-    else {
-      this.isLoading$.next(true);
-      this.restService.getDemandRateSets(this.activeService.id).subscribe(sets => {
-        this.demandRateSetCache[this.activeService!.id] = sets;
-        this.demandRateSets = sets;
-        // this.activeDemandRateSet = sets[0];
-        // this.onDemandRateSetChange();
-        this.isLoading$.next(false);
-        // workaround: mat-selection always seems to select sth when adding options, even if nothing is defined
-        // as selected
-        this.demandSetSelection?.deselectAll();
-      });
-    }
     this.activeDemandRateSet = undefined;
-    this.demandSetSelection?.deselectAll();
-    this.onDemandRateSetChange();
+    this.isLoading$.next(true);
+    this.restService.getDemandRateSets(this.activeService.id, {reset: options?.reset}).subscribe(sets => {
+      this.demandRateSets = sets;
+      // this.activeDemandRateSet = sets[0];
+      // this.onDemandRateSetChange();
+      this.isLoading$.next(false);
+      // workaround: mat-selection always seems to select sth when adding options, even if nothing is defined
+      // as selected
+      this.demandSetSelection?.deselectAll();
+    });
   }
 
   onDemandRateSetChange(): void {
