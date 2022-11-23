@@ -20,7 +20,7 @@
 </app-status-card>
 <app-status-card *ngIf="popLevel?.areaCount === 0" [showSpinner]="false"
                  infoText="Bitte laden Sie im Bereich „Gebietseinteilungen“ Gebiete für die Gebietseinteilung hoch bzw. rufen Sie sie ab.">
-  Fehler: Die Gebietseinteilung für die Bevölkerungsdaten enthält keine Gebiete!
+  Fehler: Die Gebietseinteilung für die Bevölkerungsdaten („{{popLevel?.name}}“)  enthält keine Gebiete!
 </app-status-card>
 <app-status-card *ngIf="isProcessing">
   Es läuft gerade eine Berechnung im Bereich „Bevölkerung“

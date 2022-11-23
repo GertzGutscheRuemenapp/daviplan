@@ -12,23 +12,33 @@
 <app-status-card *ngIf="isProcessing">
   Es läuft gerade eine Berechnung im Bereich „Bevölkerung“
 </app-status-card>
+<app-status-card *ngIf="areaLevel?.areaCount === 0" [showSpinner]="false"
+                 infoText="Bitte laden Sie im Bereich „Gebietseinteilungen“ Gebiete für die Gebietseinteilung hoch bzw. rufen Sie sie ab.">
+  Fehler: Die Gebietseinteilung für die Statistikdaten („{{areaLevel?.name}}“) enthält keine Gebiete!
+</app-status-card>
 <div fxLayout="row wrap">
   <app-input-card [title]="'Online-Datenabruf '"
-                  [disabled]="isProcessing"
+                  [disabled]="isProcessing || areaLevel?.areaCount === 0"
                   width="300px"
                   infoText="<p>Klicken Sie auf „Abrufen“, um die Daten der natürlichen Bevölkerungsentwicklung (Geburten und Sterbefälle) sowie zu den Wanderungen (Zu- und Fortzüge) aus dem Online-Angebot der Regionalstatistik herunterzuladen.</p>
                   <p>Nach dem erfolgreichen Abruf werden Ihnen in der Box „Jahre“ die Jahre angezeigt, für die nun Daten zur Verfügung stehen. Wenn Sie eines dieser Jahre auswählen, werden Ihnen die zugehörigen Salden in der Karte angezeigt.</p>
                   <p>Die Inhalte der Karte steuern Sie über die Menü oben links in der Karte. Ist dieses eingeklappt, klicken Sie bitte auf das Icon mit der Familie.</p>"
                   [subtitle]="'Abruf der Regionalstatistik'">
-    <div style="margin-top: 10px">
-      <button mat-flat-button color="primary"
-              (click)="pullService()">
-        <mat-icon>refresh</mat-icon> Abrufen
-      </button>
-    </div>
+    <label>
+      <ng-container *ngIf="(this.settings.siteSettings$ | async)?.regionalstatistikUser else noRegStatUser">
+        Nutzerdaten für die Regionalstatistik sind hinterlegt
+      </ng-container>
+      <ng-template #noRegStatUser>
+        Es sind keine Nutzerdaten für die Regionalstatistik hinterlegt
+      </ng-template>
+    </label>
+    <button mat-flat-button color="primary"
+            (click)="pullService()">
+      <mat-icon>refresh</mat-icon> Abrufen
+    </button>
   </app-input-card>
   <app-input-card [title]="'Jahre'"
-                  [disabled]="isProcessing"
+                  [disabled]="isProcessing || areaLevel?.areaCount === 0"
                   width="300px"
                   subtitle="Verfügbare Jahre"
                   infoText="<p>Die Liste in dieser Box enthält die Jahre, für die Daten aus dem Online-Angebot der Regionalstatistik heruntergeladen werden konnten.</p>
@@ -96,7 +106,7 @@
                         [(ngModel)]="theme"
                         (ngModelChange)="updateMap()">
               <mat-option value="nature">
-                Natürlicher Saldo
+                Geburten und Sterbefälle
               </mat-option>
               <mat-option value="migration">
                 Wanderung
