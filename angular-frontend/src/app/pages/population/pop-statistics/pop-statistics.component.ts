@@ -211,7 +211,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       this.statisticsLayer!.featuresSelected.subscribe(features => {
         this.setArea(this.areas.find(area => area.id === features[0].get('id')));
       })
-      this.statisticsLayer!.featuresSelected.subscribe(features => {
+      this.statisticsLayer!.featuresDeselected.subscribe(features => {
         if (this.activeArea?.id === features[0].get('id'))
           this.setArea(undefined);
       })
@@ -221,12 +221,16 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
   setArea(area: Area | undefined): void {
     this.activeArea = area;
     this.cookies.set(`pop-area-${this.areaLevel!.id}`, this.activeArea?.id);
-    this.chartToggle.expanded = true;
+    this.chartToggle.expanded = area !== undefined;
     this.updateDiagrams();
   }
 
   updateDiagrams(): void {
-    if (!this.activeArea) return;
+    this.totalChartProps = {};
+    this.balanceChartProps = {};
+    this.balanceChart?.clear();
+    this.totalChart?.clear();
+    if (this.activeArea) {
     this.populationService.getStatisticsData({ areaId: this.activeArea.id }).subscribe(statistics => {
       let totalData: MultilineData[] = [];
       let balanceData: BalanceChartData[] = [];
@@ -266,7 +270,7 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
       const _prev = this.selectedTab;
       this.selectedTab = -1;
       setTimeout(() => {  this.selectedTab = _prev; }, 1);
-    })
+    })}
   }
 
   onAreaChange(): void {

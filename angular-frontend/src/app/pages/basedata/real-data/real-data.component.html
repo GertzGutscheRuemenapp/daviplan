@@ -33,13 +33,23 @@
                   <p>Der Online-Abruf steht nur zur Verfügung, wenn die Einteilung der Altersgruppen im Administrationsbereich nicht gegenüber der Standardeinstellung (Alterseinteilung der Regionalstatistik) verändert wurde.</p>"
                   [subtitle]="'Abruf der Regionalstatistik'"
                   [disabled]="years.length === 0 || !popLevel || !popLevel.isDefaultPopLevel || popLevel?.areaCount === 0 || isProcessing">
-    <ng-container *ngIf="popLevel && popLevel.isDefaultPopLevel && ageGroupsRegStatValid; else notAvailable">
-      <div style="margin-top: 10px">
-        <button mat-flat-button color="primary"
-                (click)="pullService()">
-          <mat-icon>refresh</mat-icon> Abrufen
-        </button>
-      </div>
+    <ng-container *ngIf="!(popService.isLoading$ | async)">
+      <ng-container *ngIf="popLevel && popLevel.isDefaultPopLevel && ageGroupsRegStatValid; else notAvailable">
+        <label>
+          <ng-container *ngIf="(this.settings.siteSettings$ | async)?.regionalstatistikUser else noRegStatUser">
+            Nutzerdaten für die Regionalstatistik sind hinterlegt
+          </ng-container>
+          <ng-template #noRegStatUser>
+            Es sind keine Nutzerdaten für die Regionalstatistik hinterlegt
+          </ng-template>
+        </label>
+        <div style="margin-top: 10px">
+          <button mat-flat-button color="primary"
+                  (click)="pullService()">
+            <mat-icon>refresh</mat-icon> Abrufen
+          </button>
+        </div>
+      </ng-container>
     </ng-container>
     <ng-template #notAvailable>Die Regionalstatistik kann nur abgerufen werden, wenn "{{defaultPopLevel?.name}}" als Gebietseinteilung für alle Einwohnerdaten ausgewählt wurde (siehe Grundlagendaten > Gebietseinteilungen) und die Altersgruppeneinteilung mit der Regionalstatistik übereinstimmt (siehe Administration > Basisdefinitionen).</ng-template>
   </app-input-card>
