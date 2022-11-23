@@ -235,12 +235,9 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
       if (confirmed) {
         this.http.delete(`${this.rest.URLS.arealevels}${this.activeLevel!.id}/`,
           { params: { force: true }}).subscribe(res => {
-          const idx = this.customAreaLevels.indexOf(this.activeLevel!);
-          if (idx >= 0) {
-            this.customAreaLevels.splice(idx, 1);
             this.activeLevel = undefined;
-            this.mapControl?.refresh({ internal: true });
-          }
+            // resetting all area levels because deletion might change the set population level
+            this.reset();
         }, error => {
           showAPIError(error, this.dialog);
         });
@@ -412,17 +409,22 @@ export class AreasComponent implements AfterViewInit, OnDestroy {
   onMessage(log: LogEntry): void {
     if (log?.status?.finished) {
       this.isProcessing = false;
-      this.fetchAreaLevels().subscribe(res => {
-        if (this.activeLevel) {
-          // get level from freshly fetched levels cause fields might have changed
-          const level = this.customAreaLevels.concat(this.presetLevels).find(l => l.id === this.activeLevel!.id);
-          if (level)
-            this.selectAreaLevel(level);
-          else
-            this.activeLevel = undefined;
-        }
-      });
+      this.reset();
     }
+  }
+
+  // refetch all levels
+  reset(): void {
+    this.fetchAreaLevels().subscribe(res => {
+      if (this.activeLevel) {
+        // get level from freshly fetched levels cause fields might have changed
+        const level = this.customAreaLevels.concat(this.presetLevels).find(l => l.id === this.activeLevel!.id);
+        if (level)
+          this.selectAreaLevel(level);
+        else
+          this.activeLevel = undefined;
+      }
+    });
   }
 
   ngOnDestroy(): void {
