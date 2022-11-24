@@ -287,7 +287,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
           return;
         }
         _this.isLoading$.next(true);
-        // all fields are being sent to API, fields not in body will autmatically be removed
+        // all fields are being sent to API, fields not in body will automatically be removed
         const body = { place_fields: _this.editFields.filter(f => !f.removed) };
         _this.http.patch<Infrastructure>(`${_this.rest.URLS.infrastructures}${_this.selectedInfrastructure!.id}/`, body).subscribe(infrastructure => {
           Object.assign(_this.selectedInfrastructure!, infrastructure);

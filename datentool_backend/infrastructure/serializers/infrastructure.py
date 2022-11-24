@@ -48,10 +48,8 @@ class InfrastructureSerializer(serializers.ModelSerializer):
         # preset fields for address uploads
         str_type = FieldType.objects.get(ftype=FieldTypes.STRING)
         for field_name in ADDRESS_FIELDS.keys():
-            place_field = PlaceField.objects.create(
-                infrastructure=instance, name=field_name, is_preset=True,
-                field_type=str_type)
-            place_field.save()
+            PlaceField.objects.create(infrastructure=instance, name=field_name,
+                                      is_preset=True, field_type=str_type)
 
         for profile_access in accessible_by:
             infrastructure_access = InfrastructureAccess.objects.get(
@@ -117,6 +115,10 @@ class InfrastructureSerializer(serializers.ModelSerializer):
         for name in names:
             if '_' in name:
                 raise NotAcceptable('Die Namen der Attribute dürfen kein "_" enthalten!')
+        place_fields_ids = [f.id for f in place_fields]
+        for place_field in instance.placefield_set.exclude(
+            is_preset=True).exclude(id__in=place_fields_ids):
+            place_field.delete(keep_parents=True)
         for pf_data in data:
             pf_id = pf_data.get('id', None)
             field_name = pf_data['name']
@@ -138,12 +140,13 @@ class InfrastructureSerializer(serializers.ModelSerializer):
             place_field.unit = pf_data.get('unit', '')
             place_field.label = pf_data.get('label', '')
             place_field.sensitive = pf_data.get('sensitive', False)
-            place_field.save()
+            try:
+                place_field.save()
+            except IntegrityError:
+                raise NotAcceptable(
+                    f'Der Name des Feldes "{field_name}" ist '
+                    'bereits so oder in anderer Schreibweise vorhanden')
             place_fields.append(place_field)
-        place_fields_ids = [f.id for f in place_fields]
-        for place_field in instance.placefield_set.exclude(
-            is_preset=True).exclude(id__in=place_fields_ids):
-            place_field.delete(keep_parents=True)
 
     def get_places_count(self, instance):
         return instance.place_set.count()
