@@ -61,7 +61,10 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   subscriptions: Subscription[] = [];
 
   constructor(private mapService: MapService, private rest: RestAPI, private http: HttpClient,
-              private dialog: MatDialog, private restService: PlanningService, private settings: SettingsService) { }
+              private dialog: MatDialog, private restService: PlanningService, private settings: SettingsService) {
+    // make sure data requested here is up-to-date
+    this.restService.reset();
+  }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-locations-map');

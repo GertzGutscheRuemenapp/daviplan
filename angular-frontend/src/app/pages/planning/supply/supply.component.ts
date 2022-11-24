@@ -125,16 +125,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       reset: (!this.activeScenario?.isBase) && options?.resetScenario
     }).pipe(map(capacities => {
       this.capacities = capacities;
-/*      if (this.activeScenario?.isBase)
-        this.baseCapacities = capacities;*/
     })));
-/*    if (!this.activeScenario.isBase) {
-      observables.push(this.planningService.getCapacities({
-        service: this.activeService
-      }).pipe(map(capacities => {
-        this.baseCapacities = capacities;
-      })));
-    }*/
     observables.push(this.planningService.getPlaces(placeOptions).pipe(map(places => this.places = places)));
 
     forkJoin(...observables).subscribe(() => {
@@ -412,6 +403,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         dialogRefWait.close();
         this.togglePlaceMode();
         // this.precalcTraveltime(place);
+        // clear scenario cache (to force update on rating page)
+        this.planningService.clearCache(this.activeScenario!.id.toString())
         this.updatePlaces({ resetScenario: true, selectPlaceId: place.id });
       }, error => {
         this.placeForm?.setErrors(error.error);
@@ -522,6 +515,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         place: place.id,
         capacities: this._editCapacities
       }).subscribe(capacities => {
+        // clear scenario cache (to force update on rating page)
+        this.planningService.clearCache(this.activeScenario!.id.toString());
         this.planningService.resetCapacities(this.activeScenario!.id, this.activeService!.id);
         this.updatePlaces({ resetScenario: true });
         dialogRef.componentInstance.setLoading(false);
@@ -531,8 +526,6 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         // ToDo: error
       })
     })
-    // ToDo: reset scenario
-    // this.planningService.resetCapacities(this.activeService.id);
   }
 
   removeEditCap(i: number): void {

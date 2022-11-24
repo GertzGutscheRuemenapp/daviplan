@@ -18,7 +18,7 @@ import { SettingsService } from "../../settings.service";
 import { CookieService } from "../../helpers/cookies.service";
 import { FilterColumn } from "../../elements/filter-table/filter-table.component";
 import { map } from "rxjs/operators";
-import { sortBy, wktToGeom } from "../../helpers/utils";
+import { wktToGeom } from "../../helpers/utils";
 import { Geometry } from "ol/geom";
 
 @Injectable({

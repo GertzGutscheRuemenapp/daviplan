@@ -4,13 +4,13 @@ import { MapControl, MapService } from "../../../map/map.service";
 import { RestCacheService } from "../../../rest-cache.service";
 import {
   Area,
-  AreaLevel,
+  AreaLevel, BasedataSettings,
   LogEntry,
   Statistic,
   StatisticsData,
 } from "../../../rest-interfaces";
 import { showAPIError, sortBy } from "../../../helpers/utils";
-import { SettingsService } from "../../../settings.service";
+import { SettingsService, SiteSettings } from "../../../settings.service";
 import { BehaviorSubject, Subscription } from "rxjs";
 import { ConfirmDialogComponent } from "../../../dialogs/confirm-dialog/confirm-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
@@ -45,9 +45,13 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
   dataRows: any[][] = [];
   isProcessing = false;
   subscriptions: Subscription[] = [];
+  baseSettings?: BasedataSettings;
 
   constructor(private mapService: MapService, private restService: RestCacheService, private rest: RestAPI,
-              private settings: SettingsService, private dialog: MatDialog, private http: HttpClient) { }
+              public settings: SettingsService, private dialog: MatDialog, private http: HttpClient) {
+    // make sure data requested here is up-to-date
+    this.restService.reset();
+  }
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('base-statistics-map');
@@ -56,26 +60,26 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
     this.isLoading$.next(true);
     this.subscriptions.push(this.settings.baseDataSettings$.subscribe(baseSettings => {
       this.isProcessing = baseSettings.processes?.population || false;
-      const baseLevel = baseSettings.popStatisticsAreaLevel;
-      // ToDo: warn if areas are empty, disable pull
-      this.restService.getAreaLevels({ active: true }).subscribe(areaLevels => {
-        this.areaLevel = areaLevels.find(al => al.id === baseLevel);
-        this.restService.getAreas(baseLevel,
-          { targetProjection: this.mapControl!.map!.mapProjection }).subscribe(areas => {
-          this.areas = areas;
-          this.fetchData();
-        })
-      });
+      this.baseSettings = baseSettings;
+      this.fetchData();
     }));
     this.settings.fetchBaseDataSettings();
   }
 
   fetchData(): void {
-    this.restService.getStatistics({ reset: true }).subscribe(statistics => {
-      this.statistics = sortBy(statistics, 'year');
-      this.isLoading$.next(false);
-      this.year = (this.statistics.length > 0)? this.statistics[0].year: undefined;
-      this.onYearChange();
+    const baseLevel = this.baseSettings!.popStatisticsAreaLevel;
+    this.restService.getAreaLevels({ active: true }).subscribe(areaLevels => {
+      this.areaLevel = areaLevels.find(al => al.id === baseLevel);
+      this.restService.getAreas(baseLevel,
+        { targetProjection: this.mapControl!.map!.mapProjection }).subscribe(areas => {
+        this.areas = areas;
+        this.restService.getStatistics({ reset: true }).subscribe(statistics => {
+          this.statistics = sortBy(statistics, 'year');
+          this.isLoading$.next(false);
+          this.year = (this.statistics.length > 0)? this.statistics[0].year: undefined;
+          this.onYearChange();
+        });
+      })
     });
   }
 
@@ -111,7 +115,6 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
       this.theme === 'migration' && !this.showImmigration && !this.showEmigration){
       return;
     }
-    this.isLoading$.next(true);
     let descr = '';
     let max: number;
     let color: string;
@@ -130,10 +133,14 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
     const colorFunc = function(value: number) {
       return (value > 0)? '#1a9850': (value < 0)? '#d73027': 'grey';
     };
+    const unit = (this.theme === 'nature' && this.showBirths && !this.showDeaths)? 'Geburten':
+      (this.theme === 'nature' && this.showDeaths && !this.showBirths)? 'Sterbefälle':
+        (this.theme === 'migration' && this.showImmigration && !this.showEmigration)? 'Zuzüge':
+          (this.theme === 'migration' && this.showEmigration && !this.showImmigration)? 'Fortzüge':
+            'Ew.'
 
     this.statisticsLayer = new VectorLayer(descr, {
       order: 0,
-      description: 'ToDo',
       opacity: 1,
       style: {
         strokeColor: 'white',
@@ -150,25 +157,19 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
           fillColor: 'rgba(255, 255, 0, 0.7)'
         }
       },
-      select: {
-        enabled: true,
-        style: {
-          strokeColor: 'rgb(180, 180, 0)',
-          fillColor: 'rgba(255, 255, 0, 0.9)'
-        }
-      },
       valueStyles: {
         field: 'value',
-        fillColor: {
-          colorFunc: colorFunc
-        },
+        fillColor: diffDisplay? { colorFunc: colorFunc }: undefined,
         radius: {
           range: [5, 50],
           scale: 'sqrt'
         },
         min: 0,
-        max: max
-      }
+        max: max || 1000
+      },
+      unit: unit,
+      forceSign: diffDisplay,
+      labelOffset: { y: 15 }
     });
     this.layerGroup?.addLayer(this.statisticsLayer);
     this.areas.forEach(area => {
@@ -182,14 +183,15 @@ export class StatisticsComponent implements AfterViewInit, OnDestroy {
         }
       }
       area.properties.value = value;
-      area.properties.description = `<b>${area.properties.label}</b><br>${descr}: ${area.properties.value}`
+      let description = `<b>${area.properties.label}</b><br>`;
+      description += (diffDisplay && !value)? 'keine Änderung ': `${diffDisplay && value > 0? '+': ''}${area.properties.value.toLocaleString()} ${unit} im Jahr ${this.year}`;
+      area.properties.description = description;
     })
-    this.statisticsLayer?.addFeatures(this.areas, {
+    this.statisticsLayer.addFeatures(this.areas,{
       properties: 'properties',
       geometry: 'centroid',
       zIndex: 'value'
     });
-    this.isLoading$.next(false);
   }
 
   showDataTable(): void {

@@ -1,4 +1,4 @@
-from django.db.models import Prefetch, Max, Q
+from django.db.models import Prefetch, Max, Q, Count, Sum
 from django.http.request import QueryDict
 from rest_framework import viewsets, status, serializers
 from rest_framework.response import Response
@@ -23,14 +23,18 @@ from datentool_backend.models import (
 from .permissions import (CanPatchSymbol, ScenarioCapacitiesPermission,
                           CanEditScenarioPlacePermission)
 from datentool_backend.infrastructure.serializers import (
-    PlaceSerializer, CapacitySerializer, PlaceFieldSerializer,
-    PlacesTemplateSerializer, infrastructure_id_serializer,
-    ServiceSerializer, InfrastructureSerializer)
+    PlaceSerializer,
+    CapacitySerializer,
+    PlaceFieldSerializer,
+    PlacesTemplateSerializer,
+    infrastructure_id_serializer,
+    ServiceSerializer,
+    InfrastructureSerializer,
+    ServiceCapacityByScenarioSerializer)
 from datentool_backend.indicators.compute.base import (
-    ServiceIndicator, ResultSerializer)
+    ServiceIndicator,
+    ResultSerializer)
 from datentool_backend.indicators.serializers import IndicatorSerializer
-from datentool_backend.utils.processes import (ProtectedProcessManager,
-                                               ProcessScope)
 from datentool_backend.utils.serializers import MessageSerializer
 
 
@@ -319,3 +323,50 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
 
         return Response(indicator.serialize(results))
 
+    @extend_schema(
+        description='Number of Places and Total capacity in scenarios',
+        request=inline_serializer(
+            name='ScenariosYearSerializer',
+            fields={'year': serializers.IntegerField(required=False,
+                                         help_text='Jahr (z.B. 2010)'),
+                    'planningprocess': serializers.IntegerField(
+                        help_text='planning process id'),
+                    'scenaio': serializers.IntegerField(
+                        help_text='scenario id'),
+                    }
+        ),
+        responses=ServiceCapacityByScenarioSerializer(many=True),
+    )
+    @action(methods=['GET'], detail=True)
+    def total_capacity_in_year(self, request, **kwargs):
+        service_id = kwargs.get('pk')
+        year = self.request.query_params.get('year')
+        planning_process_id = self.request.query_params.get('planningprocess')
+        scenario_id = self.request.query_params.get('scenario')
+        data = []
+        if scenario_id:
+            scenario_ids = [scenario_id]
+        else:
+            scenarios = Scenario.objects.all()
+            if planning_process_id:
+                scenarios = scenarios.filter(planning_process=planning_process_id)
+            scenario_ids = [None] + list(scenarios.values_list('id', flat=True))
+
+
+        for scenario_id in scenario_ids:
+            capacity = Capacity.objects.all()
+            capacity2 = Capacity.filter_queryset(capacity,
+                                                service_ids=[service_id],
+                                                scenario_id=scenario_id,
+                                                year=year)
+            capacity3 = capacity2\
+                .filter(capacity__gt=0)\
+                .aggregate(
+                    n_places=Count('id'),
+                    total_capacity=Sum('capacity'))
+            scenario_id = scenario_id if scenario_id else 0
+            capacity3['scenario_id'] = int(scenario_id)
+            data.append(capacity3)
+
+        serializer = ServiceCapacityByScenarioSerializer(data, many=True)
+        return Response(serializer.data)

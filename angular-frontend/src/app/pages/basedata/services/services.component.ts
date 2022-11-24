@@ -33,6 +33,8 @@ export class ServicesComponent implements AfterViewInit {
   constructor(private dialog: MatDialog, private http: HttpClient,
               private restService: RestCacheService, private rest: RestAPI,
               private formBuilder: FormBuilder) {
+    // make sure data requested here is up-to-date
+    this.restService.reset();
     this.propertiesForm = this.formBuilder.group({
       name: '',
       description: ''
@@ -60,13 +62,13 @@ export class ServicesComponent implements AfterViewInit {
     this.isLoading$.next(true);
     this.restService.getInfrastructures().subscribe(infrastructures => {
       this.infrastructures = infrastructures || [];
+      this.isLoading$.next(false);
       if (infrastructures.length === 0) return;
       const services = infrastructures[0].services || [];
       if (services.length > 0) {
         this.activeService = services[0];
         this.onServiceChange();
       }
-      this.isLoading$.next(false);
     })
     this.setupPropertiesCard();
     this.setupCapacitiesCard();

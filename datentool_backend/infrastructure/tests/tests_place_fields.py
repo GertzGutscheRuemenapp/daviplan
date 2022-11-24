@@ -1,5 +1,5 @@
 from typing import Tuple, Set, List
-from collections import OrderedDict
+import json
 
 from django.test import TestCase
 from django.contrib.gis.geos import Point
@@ -10,7 +10,7 @@ from datentool_backend.api_test import (BasicModelTest,
                                         )
 from datentool_backend.api_test import TestAPIMixin, TestPermissionsMixin
 
-from datentool_backend.user.factories import ProfileFactory, ScenarioFactory
+from datentool_backend.user.factories import ProfileFactory, ScenarioFactory, Scenario
 from datentool_backend.user.models.profile import Profile
 from datentool_backend.infrastructure.models.infrastructures import (
     Infrastructure, InfrastructureAccess, Service)
@@ -25,7 +25,6 @@ from datentool_backend.infrastructure.models.places import (
     PlaceAttribute,
 )
 from datentool_backend.area.factories import FClassFactory
-from datentool_backend.area.models import FClass
 
 from faker import Faker
 faker = Faker('de-DE')
@@ -407,8 +406,9 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
 
     def test_check_capacity_for_scenario(self):
         scenario1 = ScenarioFactory()
-        scenario2 = ScenarioFactory(planning_process=scenario1.planning_process)
-        scenario3 = ScenarioFactory(planning_process=scenario1.planning_process)
+        planning_process = scenario1.planning_process
+        scenario2 = ScenarioFactory(planning_process=planning_process)
+        scenario3 = ScenarioFactory(planning_process=planning_process)
 
         place1: Place = self.obj
         place2 = PlaceFactory(infrastructure=place1.infrastructure)
@@ -472,6 +472,79 @@ class TestPlaceAPI(WriteOnlyWithCanEditBaseDataTest,
         self.check_place_with_capacity(service1, year=0, scenario=scenario2.id, expected=[50, 33])
         self.check_place_with_capacity(service1, year=0, scenario=scenario3.id, expected=[100, 88])
 
+
+        """Test the number of places and the total capacity by scenario"""
+        self.check_total_nplaces_capacity(
+            planning_process=planning_process.pk,
+            service=service1.pk,
+            year=2018,
+            expected_values=[(2, 50 + 88), (2, 100 + 55),
+                             (2, 50 + 33), (2, 100 + 88)])
+
+        self.check_total_nplaces_capacity(
+            planning_process=planning_process.pk,
+            service=service1.pk,
+            year=2022,
+            expected_values=[(2, 50 + 99), (2, 100 + 55),
+                             (2, 50 + 33), (2, 200 + 99)])
+
+        self.check_total_nplaces_capacity(
+            planning_process=planning_process.pk,
+            service=service1.pk,
+            year=2025,
+            expected_values=[(2, 77 + 99), (2, 100 + 55),
+                             (2, 77 + 33), (2, 200 + 99)])
+
+        self.check_total_nplaces_capacity(
+            planning_process=planning_process.pk,
+            service=service1.pk,
+            year=2030,
+            expected_values=[(2, 77 + 99), (2, 100 + 55),
+                             (2, 77 + 33), (1, 99)])
+
+        self.check_total_nplaces_capacity(
+            planning_process=planning_process.pk,
+            service=service2.pk,
+            year=2018,
+            expected_values=[(1, 99), (1, 99), (1, 99), (1, 99)])
+
+        self.check_total_nplaces_capacity(
+            scenario=scenario2.pk,
+            service=service1.pk,
+            year=2030,
+            expected_values=[(2, 77 + 33)])
+
+    def check_total_nplaces_capacity(self,
+                                     service: int,
+                                     year: int,
+                                     expected_values: List[Tuple[int, float]],
+                                     planning_process: int = None,
+                                     scenario: int = None,
+                                     ):
+        params = {'year': year}
+        if planning_process:
+            params['planningprocess'] = planning_process
+        if scenario:
+            params['scenario'] = scenario
+        response = self.get('services-total-capacity-in-year',
+                            pk=service,
+                            data=params)
+        self.response_200(msg=response.content)
+        r1 = json.loads(response.content)
+        expected = []
+        if scenario:
+            scenario_ids = [scenario]
+        else:
+            scenario_ids = [0] + list(Scenario.objects
+                .filter(planning_process=planning_process)
+                .values_list('id', flat=True))
+
+        for i, scenario_id in enumerate(scenario_ids):
+            expected_value = expected_values[i]
+            expected.append({'scenarioId': scenario_id,
+                             'nPlaces': expected_value[0],
+                             'totalCapacity': expected_value[1], })
+        self.assert_response_equals_expected(r1, expected)
 
 class TestCapacityAPI(WriteOnlyWithCanEditBaseDataTest,
                       TestPermissionsMixin, TestAPIMixin, BasicModelTest, APITestCase):

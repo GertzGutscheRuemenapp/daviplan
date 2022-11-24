@@ -66,19 +66,20 @@ export class ScenarioMenuComponent implements OnInit {
   }
 
   onServiceChange(service: Service | undefined): void {
-    if (!service) return;
     switch (this.domain) {
       case 'supply':
         break;
       case 'demand':
+        if (!service) return;
         this.planningService.getDemandRateSets(service.id).subscribe(dr => { this.demandRateSets = dr; });
         break;
       case 'reachabilities':
         this.planningService.getModeVariants().subscribe(modeVariants => this.transitVariants = modeVariants.filter(v => v.mode === TransportMode.TRANSIT));
         break;
       case 'rating':
-        this.planningService.getDemandRateSets(service.id).subscribe(dr => { this.demandRateSets = dr; });
         this.planningService.getModeVariants().subscribe(modeVariants => this.transitVariants = modeVariants.filter(v => v.mode === TransportMode.TRANSIT));
+        if (!service) return;
+        this.planningService.getDemandRateSets(service.id).subscribe(dr => { this.demandRateSets = dr; });
         break;
       default:
         break;

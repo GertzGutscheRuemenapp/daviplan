@@ -20,13 +20,10 @@ import * as d3 from "d3";
 })
 export class DemandComponent implements AfterViewInit, OnDestroy {
   years = [2009, 2010, 2012, 2013, 2015, 2017, 2020, 2025];
-  compareSupply = true;
-  compareStatus = 'option 1';
   infrastructures: Infrastructure[] = [];
   activeLevel?: AreaLevel;
   areaLevels: AreaLevel[] = [];
   areas: Area[] = [];
-  activeProcess?: PlanningProcess;
   realYears?: number[];
   prognosisYears?: number[];
   mapControl?: MapControl;
@@ -92,10 +89,6 @@ export class DemandComponent implements AfterViewInit, OnDestroy {
   }
 
   updateMap(): void {
-/*    if (this.demandLayer) {
-      this.layerGroup?.removeLayer(this.demandLayer);
-      this.demandLayer = undefined;
-    }*/
     this.layerGroup?.clear();
     if (!this.year || !this.activeLevel  || !this.planningService.activeInfrastructure || !this.planningService.activeService || !this.planningService.activeScenario) return;
     this.updateMapDescription();

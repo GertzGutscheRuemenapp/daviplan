@@ -20,6 +20,10 @@
                  infoText="Bitte legen Sie im Bereich „Gebietseinteilungen“ eine Gebietseinteilung für die Einwohnerdaten fest.">
   Fehler: Es ist keine Gebietseinteilung für die Bevölkerungsdaten festgelegt!
 </app-status-card>
+<app-status-card *ngIf="popLevel?.areaCount === 0" [showSpinner]="false"
+                 infoText="Bitte laden Sie im Bereich „Gebietseinteilungen“ Gebiete für die Gebietseinteilung hoch bzw. rufen Sie sie ab.">
+  Fehler: Die Gebietseinteilung für die Bevölkerungsdaten („{{popLevel?.name}}“) enthält keine Gebiete!
+</app-status-card>
 <app-status-card *ngIf="isProcessing">
   Es läuft gerade eine Berechnung im Bereich „Bevölkerung“
 </app-status-card>
@@ -81,7 +85,7 @@
         <button mat-button color="primary"
                 style="float:right;"
                 class="mat-button-dv"
-                (click)="removePrognosis()"
+                (click)="deletePrognosis()"
                 [disabled]="!activePrognosis">
           <mat-icon>close</mat-icon>entfernen
         </button>

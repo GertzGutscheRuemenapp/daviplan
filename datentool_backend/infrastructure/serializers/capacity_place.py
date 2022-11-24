@@ -152,3 +152,8 @@ class PlaceFieldNestedSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'label', 'unit', 'field_type', 'sensitive',
                   'is_preset')
 
+
+class ServiceCapacityByScenarioSerializer(serializers.Serializer):
+    scenario_id = serializers.IntegerField()
+    n_places = serializers.IntegerField()
+    total_capacity = serializers.FloatField()

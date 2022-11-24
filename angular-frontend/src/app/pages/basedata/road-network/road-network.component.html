@@ -68,15 +68,15 @@
       <table>
         <tr>
           <td i18n>Anzahl Relationen Fuß: </td>
-          <td>{{statistics?.nRelsPlaceCellWalk?.toLocaleString() || '-'}}</td>
+          <td>{{statistics[TransportMode.WALK]?.toLocaleString() || '-'}}</td>
         </tr>
         <tr>
           <td i18n>Anzahl Relationen Rad: </td>
-          <td>{{statistics?.nRelsPlaceCellBike?.toLocaleString() || '-'}}</td>
+          <td>{{statistics[TransportMode.BIKE]?.toLocaleString() || '-'}}</td>
         </tr>
         <tr>
           <td i18n>Anzahl Relationen Auto: </td>
-          <td>{{statistics?.nRelsPlaceCellCar?.toLocaleString() || '-'}}</td>
+          <td>{{statistics[TransportMode.CAR]?.toLocaleString() || '-'}}</td>
         </tr>
       </table>
       <button mat-flat-button color="primary"

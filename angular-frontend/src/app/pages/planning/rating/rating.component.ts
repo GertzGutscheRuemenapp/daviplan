@@ -90,8 +90,6 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
 
   applyUserSettings(): void {
     this.selectedAreaLevel = this.areaLevels.find(al => al.id === this.cookies.get('planning-area-level', 'number')) || ((this.areaLevels.length > 0)? this.areaLevels[this.areaLevels.length - 1]: undefined);
-/*    this.onServiceChange();
-    this.onAreaLevelChange();*/
   }
 
   onAreaLevelChange(): void {
@@ -145,7 +143,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
       ).subscribe(cellResults => {
       let values: Record<string, number> = {};
       cellResults.values.forEach(cellResult => {
-        values[cellResult.cellCode] = cellResult.value;// Math.round(cellResult.value);
+        values[cellResult.cellCode] = cellResult.value;
         max = Math.max(max, cellResult.value);
         min = Math.min(min, cellResult.value);
       })
@@ -195,9 +193,9 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
 
   renderPlaceIndicator(): void {
     if (!this.year || !this.selectedIndicator || !this.activeService) return;
-    const scenarioId = this.planningService.activeScenario?.isBase ? undefined : this.planningService.activeScenario?.id;
-    let params = { year: this.year!, scenario: scenarioId, additionalParams: this.getAdditionalParams() };
-    this.planningService.getPlaces().subscribe(places => {
+    const scenario = this.activeScenario?.isBase? undefined: this.activeScenario;
+    let params = { year: this.year!, scenario: scenario?.id, additionalParams: this.getAdditionalParams() };
+    this.planningService.getPlaces({scenario: scenario}).subscribe(places => {
       this.planningService.computeIndicator<PlaceIndicatorResult>(this.selectedIndicator!.name, this.activeService!.id, params).subscribe(results => {
         // ToDo description with filter
         let max = 0;

@@ -29,8 +29,8 @@ class Command(BaseCommand):
 
         # add genders
         Gender.truncate()
-        Gender.objects.create(id=1, name='männlich')
-        Gender.objects.create(id=2, name='weiblich')
+        Gender.objects.create(name='männlich')
+        Gender.objects.create(name='weiblich')
 
         # generic field types
         FieldType.truncate()
@@ -50,8 +50,7 @@ class Command(BaseCommand):
             layer='vg250_gem',
             source_type=SourceTypes.WFS
         )
-        gem = AreaLevel.objects.create(id=1,
-                                       name='Gemeinden',
+        gem = AreaLevel.objects.create(name='Gemeinden',
                                        symbol=symbol,
                                        source=source,
                                        is_preset=True,
@@ -67,8 +66,7 @@ class Command(BaseCommand):
             layer='vg250_vwg',
             source_type=SourceTypes.WFS
         )
-        vwg = AreaLevel.objects.create(id=2,
-                                       name='Verwaltungsgemeinschaften',
+        vwg = AreaLevel.objects.create(name='Verwaltungsgemeinschaften',
                                        symbol=symbol,
                                        source=source,
                                        is_preset=True,
@@ -82,8 +80,7 @@ class Command(BaseCommand):
             layer='vg250_krs',
             source_type=SourceTypes.WFS
         )
-        krs = AreaLevel.objects.create(id=3,
-                                       name='Kreise',
+        krs = AreaLevel.objects.create(name='Kreise',
                                        symbol=symbol,
                                        source=source,
                                        is_preset=True,
@@ -97,8 +94,7 @@ class Command(BaseCommand):
             layer='vg250_lan',
             source_type=SourceTypes.WFS
         )
-        lan = AreaLevel.objects.create(id=4,
-                                       name='Bundesländer',
+        lan = AreaLevel.objects.create(name='Bundesländer',
                                        symbol=symbol,
                                        source=source,
                                        is_preset=True,
@@ -121,9 +117,8 @@ class Command(BaseCommand):
         # add raster
         Raster.truncate()
         PopulationRaster.truncate()
-        raster = Raster.objects.create(id=1, name='LAEA-Raster')
-        PopulationRaster.objects.create(id=1,
-                                        raster=raster,
+        raster = Raster.objects.create(name='LAEA-Raster')
+        PopulationRaster.objects.create(raster=raster,
                                         name='Zensus-2011-Raster',
                                         filename='Zensus2011Einwohner100_LAEA3035.tif',
                                         default=True)

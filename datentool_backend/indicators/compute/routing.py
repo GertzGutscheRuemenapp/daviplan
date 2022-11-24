@@ -6,13 +6,11 @@ import numpy as np
 from typing import List, Tuple
 from io import StringIO
 
-
 from django.db import transaction, connection
 from django.db.models.query import QuerySet
 from django.db.models import FloatField, Q
 from django.contrib.gis.db.models.functions import Transform, Func
-
-from rest_framework import status
+from requests.exceptions import ConnectionError
 
 from datentool_backend.utils.routers import OSRMRouter
 
@@ -127,12 +125,10 @@ class TravelTimeRouterMixin:
                     raise RoutingError(msg)
 
         except RoutingError as err:
-            ret_status = status.HTTP_406_NOT_ACCEPTABLE
             msg = str(err)
             logger.error(msg)
             raise Exception(msg)
         else:
-            ret_status = status.HTTP_202_ACCEPTED
             logger.info(msg)
             logger.info('Berechnung der Reisezeitmatrizen erfolgreich abgeschlossen')
 
@@ -232,7 +228,11 @@ class TravelTimeRouterMixin:
         source_coords = list(sources.values_list('lon', 'lat', named=False))
         dest_coords = list(destinations.values_list('lon', 'lat', named=False))
 
-        matrix = router.matrix_calculation(source_coords, dest_coords)
+        try:
+            matrix = router.matrix_calculation(source_coords, dest_coords)
+        # if routing crashes due to malformed network the connection just aborts
+        except ConnectionError:
+            raise RoutingError('Routing abgebrochen')
 
         # convert matrix to dataframe
         arr = np.array(matrix.durations)
@@ -317,12 +317,25 @@ class TravelTimeRouterMixin:
         sources = self.get_sources(variant=variant, **kwargs).order_by('id')
         destinations = self.get_destinations(variant=variant, **kwargs).order_by('id')
 
-        return self.route(variant,
-                          sources,
-                          destinations,
-                          logger,
-                          max_distance=max_distance,
-                          id_columns=self.columns)
+        # split destinations, if needed
+        # OSRM can only handle certain dimensions of inputs
+        # seems to be sth like 100 * 50k, the splitting of the source should
+        # already have been done outside of this funtion if needed
+        chunk_size = 20000
+        dataframes = []
+        for i in range(0, len(destinations), chunk_size):
+            # don't know a better way to keep querysets instead of lists when
+            # splitting a queryset but by filtering by ids, might be inefficient
+            dest_part = destinations.filter(
+                id__in=destinations.values_list('id')[i:i+chunk_size])
+            df = self.route(variant,
+                            sources,
+                            dest_part,
+                            logger,
+                            max_distance=max_distance,
+                            id_columns=self.columns)
+            dataframes.append(df)
+        return pd.concat(dataframes)
 
     def calculate_airdistance_traveltimes(self,
                                           variant: ModeVariant,
@@ -608,12 +621,10 @@ class AccessTimeRouterMixin(TravelTimeRouterMixin):
                     raise RoutingError(msg)
 
         except RoutingError as err:
-            ret_status = status.HTTP_406_NOT_ACCEPTABLE
             msg = str(err)
             logger.error(msg)
             raise Exception(msg)
         else:
-            ret_status = status.HTTP_202_ACCEPTED
             logger.info(msg)
             logger.info('Berechnung der Reisezeitmatrizen erfolgreich abgeschlossen')
 

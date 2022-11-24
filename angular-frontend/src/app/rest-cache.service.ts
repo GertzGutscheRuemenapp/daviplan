@@ -47,8 +47,6 @@ export class RestCacheService {
 
   private genericCache: Record<string, Record<string, any>> = {};
   private areaCache: Record<number, Area[]> = {};
-  private capacitiesCache: Record<string, Capacity[]> = {};
-  private statisticsCache: Record<string, StatisticsData[]> = {};
   isLoading$ = new BehaviorSubject<boolean>(false);
   private _isLoading = false;
   private loadCount = 0;
@@ -375,12 +373,12 @@ export class RestCacheService {
     return this.getCachedData<{ values: AreaIndicatorResult[], legend: IndicatorLegendClass[] }>(url, {method: 'POST', params: data, key: options?.scenario?.toString()});
   }
 
-  getDemandRateSets(service: number, options?: { reset: boolean }): Observable<DemandRateSet[]> {
+  getDemandRateSets(service: number, options?: { reset?: boolean }): Observable<DemandRateSet[]> {
     const url = `${this.rest.URLS.demandRateSets}?service=${service}`;
     return this.getCachedData<DemandRateSet[]>(url, options);
   }
 
-  getModeVariants(options?: { reset: boolean }): Observable<ModeVariant[]> {
+  getModeVariants(options?: { reset?: boolean }): Observable<ModeVariant[]> {
     const url = this.rest.URLS.modevariants;
     return this.getCachedData<ModeVariant[]>(url, options);
   }
@@ -416,32 +414,14 @@ export class RestCacheService {
     return this.getCachedData<Statistic[]>(url, options);
   }
 
-  getStatisticsData(options?: { year?: number, areaId?: number }): Observable<StatisticsData[]> {
-    const key = `${options?.areaId}-${options?.year}`;
-    const observable = new Observable<StatisticsData[]>(subscriber => {
-      const cached = this.statisticsCache[key];
-      if (!cached) {
-        this.setLoading(true);
-        let url = this.rest.URLS.statisticsData;
-        let params: any = {};
-        if (options?.year !== undefined)
-          params['year'] = options.year;
-        if (options?.areaId !== undefined)
-          params['area'] = options.areaId;
-        this.http.get<StatisticsData[]>(this.rest.URLS.statisticsData, { params: params }).subscribe(data => {
-          this.statisticsCache[key] = data;
-          this.setLoading(false);
-          subscriber.next(data);
-          subscriber.complete();
-        }, error => {
-          this.setLoading(false);
-        })
-      } else {
-        subscriber.next(cached);
-        subscriber.complete();
-      }
-    })
-    return observable;
+  getStatisticsData(options?: { year?: number, areaId?: number, reset?: boolean }): Observable<StatisticsData[]> {
+    let params: any = {};
+    if (options?.year !== undefined)
+      params['year'] = options.year;
+    if (options?.areaId !== undefined)
+      params['area'] = options.areaId;
+    const url = this.rest.URLS.statisticsData;
+    return this.getCachedData<StatisticsData[]>(url, {params: params, reset: options?.reset});
   }
 
   getPlaceReachability(placeId: number, mode: TransportMode, options?: { scenario?: Scenario }): Observable<{ values: CellResult[], legend: IndicatorLegendClass[] }>{
@@ -474,8 +454,6 @@ export class RestCacheService {
   reset(): void {
     this.genericCache = {};
     this.areaCache = {};
-    this.capacitiesCache = {};
-    this.statisticsCache = {};
   }
 
   setLoading(isLoading: boolean) {
