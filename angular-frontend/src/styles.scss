@@ -841,6 +841,11 @@ mat-sidenav, .context-bar, app-legend, .tree-select {
       }
     }
   }
+  .mat-slide-toggle-content {
+    white-space: normal;
+    line-height: normal;
+    padding-right: 15px;
+  }
 }
 
 mat-expansion-panel {
