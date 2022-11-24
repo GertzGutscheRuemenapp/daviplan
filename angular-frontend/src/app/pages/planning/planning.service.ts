@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { EventEmitter, Injectable } from "@angular/core";
 import { LegendComponent } from "../../map/legend/legend.component";
 import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../rest-api";
@@ -11,7 +11,7 @@ import {
   Place,
   PlanningProcess,
   Scenario,
-  Service,
+  Service, TotalCapacityInScenario,
   User
 } from "../../rest-interfaces";
 import { SettingsService } from "../../settings.service";
@@ -20,6 +20,7 @@ import { FilterColumn } from "../../elements/filter-table/filter-table.component
 import { map } from "rxjs/operators";
 import { wktToGeom } from "../../helpers/utils";
 import { Geometry } from "ol/geom";
+import { reset } from "ol/transform";
 
 @Injectable({
   providedIn: 'root'
@@ -40,6 +41,7 @@ export class PlanningService extends RestCacheService {
   activeScenario?: Scenario;
   activeProcess?: PlanningProcess;
   showScenarioMenu = false;
+  scenarioChanged = new EventEmitter<boolean>();
 
   constructor(protected http: HttpClient, protected rest: RestAPI, private settings: SettingsService,
               private cookies: CookieService) {
@@ -180,6 +182,18 @@ export class PlanningService extends RestCacheService {
       })
     });
     return observable;
+  }
+
+  getTotalCapactities(year: number, service: Service, options?: {scenario?:Scenario, planningProcess?: PlanningProcess, reset?: boolean}): Observable<TotalCapacityInScenario[]> {
+    const url = `${this.rest.URLS.services}${service.id}/total_capacity_in_year/`;
+    let params: {year:number, scenario?:number, planningProcess?:number} = {year: year};
+    if (options?.scenario){
+      params.scenario = options.scenario.id
+    }
+    if (options?.planningProcess){
+      params.planningProcess = options.planningProcess.id
+    };
+    return this.getCachedData<TotalCapacityInScenario[]>(url, {params: params, reset: options?.reset});
   }
 
   updateCapacities(options?: { infrastructure?: Infrastructure, year?: number, scenario?: Scenario }): Observable<any> {

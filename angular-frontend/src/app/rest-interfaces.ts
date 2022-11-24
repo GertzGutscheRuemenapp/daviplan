@@ -334,6 +334,12 @@ export interface Place {
   capacities?: Capacity[]
 }
 
+export interface TotalCapacityInScenario {
+  scenarioId: number,
+  nPlaces: number,
+  totalCapacity: number
+}
+
 export interface TransitStop {
   id: number,
   geom: string | Geometry,

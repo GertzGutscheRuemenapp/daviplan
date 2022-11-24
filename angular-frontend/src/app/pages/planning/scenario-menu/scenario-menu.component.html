@@ -163,21 +163,16 @@
 </ng-template>
 
 <ng-template #supplyScenario let-scenario="scenario">
-  <div *ngIf="!scenario.isBase"
-       title="Kennwerte anzeigen"
-       style="cursor: pointer; display: flex;"
-       (click)="onShowSupplyTable()">
-    <div style="align-self: center; margin-right: 10px;">
-<!--      <mat-icon class="material-icons-outlined" color="primary">
-        info
-      </mat-icon>-->
-    </div>
-    <div>
-      Platzhaltertext <br>
-      <i>ausgewählte Leistungen: <br>
-      Standorte +XX<br>
-      Plätze +XXX</i>
-    </div>
+  <div class="supply-capacity"
+       *ngVar="scenario.isBase? totalCapacities[0]: totalCapacities[scenario.id] as capInScenario" >
+      <div title='{{planningService.activeService?.name || "-"}}'>{{planningService.activeService?.name || "-"}} </div>
+      <div title="{{capInScenario?.labelPlaces}}">
+        {{planningService.activeService?.facilityPluralUnit}}: {{capInScenario?.labelPlaces}}
+      </div>
+      <div title="{{capInScenario?.labelCapacity}}"
+           *ngIf="planningService.activeService?.hasCapacity">
+        {{planningService.activeService?.capacityPluralUnit}}: {{capInScenario?.labelCapacity}}
+      </div>
   </div>
 </ng-template>
 

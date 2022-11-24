@@ -331,7 +331,7 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                                          help_text='Jahr (z.B. 2010)'),
                     'planningprocess': serializers.IntegerField(
                         help_text='planning process id'),
-                    'scenaio': serializers.IntegerField(
+                    'scenario': serializers.IntegerField(
                         help_text='scenario id'),
                     }
         ),
@@ -351,7 +351,6 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             if planning_process_id:
                 scenarios = scenarios.filter(planning_process=planning_process_id)
             scenario_ids = [None] + list(scenarios.values_list('id', flat=True))
-
 
         for scenario_id in scenario_ids:
             capacity = Capacity.objects.all()

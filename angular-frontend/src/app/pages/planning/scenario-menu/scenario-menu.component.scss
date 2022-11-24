@@ -94,6 +94,15 @@
   }
 }
 
+.supply-capacity {
+  div{
+    width: 100%;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+}
+
 #scenario-controls {
   width: 50px;
   padding-left: 8px;
