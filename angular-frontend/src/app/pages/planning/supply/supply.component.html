@@ -32,14 +32,17 @@
       #placeFilter
       style="margin-top: 7px;"
       (onFilter)="onFilter()"
-      [infrastructure]="this.activeInfrastructure"
+      [infrastructure]="activeInfrastructure"
       [scenario]="activeScenario"
       [service]="activeService"
       [year]="year">
 <!--        [service]="activeService"-->
     </app-place-filter-button>
   </div>
-  <mat-slide-toggle color="primary" style="margin-top: 10px; margin-bottom: 20px;">
+  <mat-slide-toggle [(ngModel)]="showAllPlaces"
+                    (toggleChange)="updatePlaces()"
+                    color="primary"
+                    style="margin-top: 10px; margin-bottom: 20px;">
     <span>
       Auch Standorte ohne ausgewählte Leistung anzeigen
     </span>

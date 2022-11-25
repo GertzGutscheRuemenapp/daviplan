@@ -56,9 +56,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   private mapClickSub?: Subscription;
   // capacities over all years (depending on scenario)
   capacities: Capacity[] = [];
-  // capacities over all years in base scenario
-  baseCapacities: Capacity[] = [];
   _editCapacities: Capacity[] = [];
+  showAllPlaces = false;
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
               public planningService: PlanningService, private formBuilder: FormBuilder,
@@ -143,9 +142,11 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         const capacity = place.capacity || 0;
         max = Math.max(max, capacity);
         if (place.capacity) min = Math.min(min, capacity);
-        const tooltip = `<b>${place.name}</b><br>${this.activeService?.hasCapacity? this.getFormattedCapacityString([this.activeService!.id], place.capacity || 0): place.capacity? 'Leistung wird angeboten': 'Leistung wird nicht angeboten'}`
+        const tooltip = `<b>${place.name}</b><br>${this.activeService?.hasCapacity? this.getFormattedCapacityString(
+          [this.activeService!.id], place.capacity || 0): place.capacity? 'Leistung wird angeboten': 'Leistung wird nicht angeboten'}`
         const doCompare = (place.capacity !== undefined) && (place.baseCapacity !== undefined);
-        mapPlaces.push({
+        if (this.showAllPlaces || place.capacity || place.scenario) {
+          mapPlaces.push({
             id: place.id,
             geometry: place.geom,
             properties: {
@@ -154,7 +155,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
               capDecreased: doCompare && (place.capacity! < place.baseCapacity!),
               capIncreased: doCompare && (place.capacity! > place.baseCapacity!)
             }
-        });
+          });
+        }
       });
       const desc = `<b>${this.activeService?.facilityPluralUnit} ${this.year}</b><br>
                   mit Anzahl ${this.activeService?.capacityPluralUnit}<br>
