@@ -160,7 +160,7 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
         self.assert_http_202_accepted(res, msg=res.content)
 
         df = pd.read_excel(file_path_places, sheet_name='Standorte und Kapazitäten',
-                           skiprows=[1, 2]).set_index('Unnamed: 0')
+                           skiprows=[1]).set_index('place_id')
 
         places = Place.objects.filter(infrastructure=self.infra)
         place_names = places.values_list('name', flat=True)

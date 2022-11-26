@@ -102,7 +102,9 @@ class PlacesTemplateSerializer(serializers.Serializer):
 
         df_places = pd.DataFrame(columns=pd.Index(columns.items()),
                                  index=pd.Index([], dtype='int64', name='place_id'))
-        df_places.index.name = 'place_id'
+        place_id_description = 'Hier stehen die daviplan-internen Nummern von bereits '\
+            'hochgeladenen Standorten. Bitte nicht verändern.'
+        df_places.index.name = ('place_id', place_id_description)
         place_attrs = PlaceAttribute\
             .value_annotated_qs()\
             .filter(place__infrastructure=infrastructure)
@@ -230,11 +232,27 @@ class PlacesTemplateSerializer(serializers.Serializer):
             sheet = writer.book.get_sheet_by_name(sn_classifications)
             sheet.sheet_state = 'hidden'
 
-            df_places.to_excel(writer,
-                               sheet_name=sheetname,
-                               freeze_panes=(3, 2))
+            df_places\
+                .reset_index()\
+                .to_excel(writer,
+                          sheet_name=sheetname,
+                          freeze_panes=(2, 2))
 
             ws: Worksheet = writer.sheets.get(sheetname)
+
+            ws.delete_rows(3, 1)
+            ws.delete_cols(1, 1)
+
+            grey_fill = styles.PatternFill("solid", fgColor='00C0C0C0')
+            ws.column_dimensions['A'].fill = grey_fill
+            col_placeid = ws.['A1:A999999']
+            for row in col_placeid:
+                row[0].cell.fill = grey_fill
+
+            ws.column_dimensions['E'].number_format = '@'
+            col_plz = ws['E1:E999999']
+            for cell in col_plz:
+                cell.number_format = '@'
 
             row12 = ws[1:2]
             for row in row12:
@@ -250,7 +268,16 @@ class PlacesTemplateSerializer(serializers.Serializer):
             dv.error ='Koordinaten müssen in WGS84 angegeben werden und zwischen 0 und 90 liegen'
             dv.errorTitle = 'Ungültige Koordinaten'
             dv.add('G3:H999999')
+
+            dv_unique_name = DataValidation(type='custom',
+                                            formula1='=COUNTIF(B$3:B$99999,B3)<2',
+                                            allow_blank=True)
+            dv_unique_name.error ='Name muss eindeutig sein'
+            dv_unique_name.errorTitle = 'Name nicht eindeutig'
+            dv_unique_name.add('B3:B999999')
+
             ws.add_data_validation(dv)
+            ws.add_data_validation(dv_unique_name)
             ws.add_data_validation(dv_01)
             ws.add_data_validation(dv_float)
             ws.add_data_validation(dv_pos_float)
@@ -261,9 +288,7 @@ class PlacesTemplateSerializer(serializers.Serializer):
                 if not dv in ws.data_validations:
                     ws.add_data_validation(dv)
 
-            ws.row_dimensions[3] = RowDimension(ws, index=3, hidden=True)
-
-            ws.column_dimensions['A'] = ColumnDimension(ws, index='A', hidden=True)
+            ws.column_dimensions['A'] = ColumnDimension(ws, index='A', width=20)
             ws.column_dimensions['B'] = ColumnDimension(ws, index='B', width=30)
             for col_no in range(3, len(df_places.columns) + 2):
                 col = get_column_letter(col_no)
@@ -313,8 +338,8 @@ class PlacesTemplateSerializer(serializers.Serializer):
 
         df_places = pd.read_excel(excel_file.file,
                            sheet_name='Standorte und Kapazitäten',
-                           skiprows=[1, 2]).set_index('Unnamed: 0')
-        df_places.index.name = 'place_id'
+                           skiprows=[1])\
+            .set_index('place_id')
 
         site_settings = SiteSetting.load()
         UUID = site_settings.bkg_password or None
