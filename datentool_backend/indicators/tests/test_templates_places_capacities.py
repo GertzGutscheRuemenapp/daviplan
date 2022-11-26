@@ -139,6 +139,11 @@ class InfrastructureTemplateTest(LoginTestCase, APITestCase):
 
         # delete Place1
         Place.objects.get(name='Place1').delete()
+        place2 = Place.objects.get(name='Place2')
+
+
+        # create a third place, that should be deleted
+        place3 = PlaceFactory(infrastructure=place2.infrastructure)
 
         # upload excel-file
         file_name_places = 'Standorte_und_Kapazitäten.xlsx'

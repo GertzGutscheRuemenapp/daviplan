@@ -6,7 +6,6 @@ import pandas as pd
 import logging
 
 from django.conf import settings
-from django.db.models import Q
 from django.db.models.fields import FloatField
 from django.core.exceptions import BadRequest
 from django.contrib.gis.geos import Point
@@ -16,11 +15,11 @@ from rest_framework import serializers
 from openpyxl.utils import get_column_letter, quote_sheetname
 from openpyxl import styles
 from openpyxl.worksheet.worksheet import Worksheet
-from openpyxl.worksheet.dimensions import ColumnDimension, RowDimension
+from openpyxl.worksheet.dimensions import ColumnDimension
 from openpyxl.worksheet.datavalidation import DataValidation
 
 from datentool_backend.site.models import SiteSetting
-from datentool_backend.area.models import FClass, FieldType, FieldTypes
+from datentool_backend.area.models import FClass, FieldTypes
 from datentool_backend.infrastructure.models.places import (PlaceAttribute,
                                                             Place,
                                                             PlaceField,
@@ -245,14 +244,14 @@ class PlacesTemplateSerializer(serializers.Serializer):
 
             grey_fill = styles.PatternFill("solid", fgColor='00C0C0C0')
             ws.column_dimensions['A'].fill = grey_fill
-            col_placeid = ws.['A1:A999999']
+            col_placeid = ws['A1:A99999']
             for row in col_placeid:
-                row[0].cell.fill = grey_fill
+                row[0].fill = grey_fill
 
             ws.column_dimensions['E'].number_format = '@'
-            col_plz = ws['E1:E999999']
-            for cell in col_plz:
-                cell.number_format = '@'
+            col_plz = ws['E1:E99999']
+            for row in col_plz:
+                row[0].number_format = '@'
 
             row12 = ws[1:2]
             for row in row12:
@@ -276,11 +275,20 @@ class PlacesTemplateSerializer(serializers.Serializer):
             dv_unique_name.errorTitle = 'Name nicht eindeutig'
             dv_unique_name.add('B3:B999999')
 
+            dv_plz = DataValidation(type='textLength',
+                                    operator='equal',
+                                    formula1=5,
+                                    allow_blank=True)
+            dv_plz.error ='Postleitzahl muss fünfstellig sein'
+            dv_plz.errorTitle = 'Postleitzahl_Format'
+            dv_plz.add('E3:E999999')
+
             ws.add_data_validation(dv)
             ws.add_data_validation(dv_unique_name)
             ws.add_data_validation(dv_01)
             ws.add_data_validation(dv_float)
             ws.add_data_validation(dv_pos_float)
+            ws.add_data_validation(dv_plz)
             for col_no, dv in validations.items():
                 letter = get_column_letter(col_no)
                 cell_range = f'{letter}3:{letter}999999'
@@ -335,12 +343,19 @@ class PlacesTemplateSerializer(serializers.Serializer):
         capacities = []
 
         # read the excel-file
-
         df_places = pd.read_excel(excel_file.file,
                            sheet_name='Standorte und Kapazitäten',
                            skiprows=[1])\
             .set_index('place_id')
 
+        # delete places that have no place_id in the excel-file
+        place_ids_in_excelfile = df_places.index[~pd.isna(df_places.index)]
+        places_to_delete = Place.objects.exclude(id__in=place_ids_in_excelfile)
+        n_elems_deleted, elems_deleted = places_to_delete.delete()
+        n_places_deleted = elems_deleted.get('datentool_backend.Place')
+        self.logger.info(f'{n_places_deleted} bestehende Standorte gelöscht')
+
+        # get BKG-Geocoding-Key
         site_settings = SiteSetting.load()
         UUID = site_settings.bkg_password or None
         bkg_error = ('Es wurde keine UUID für die Nutzung des BKG-'
@@ -356,9 +371,9 @@ class PlacesTemplateSerializer(serializers.Serializer):
                              '(URL-safe base64-encoded 32-byte benötigt)')
             else:
                 geocoder = BKGGeocoder(bkg_pass, crs='EPSG:3857')
-        n_new = 0
 
         # iterate over all places
+        n_new = 0
         for place_id, place_row in df_places.iterrows():
             if pd.isna(place_id):
                 place_id = None
@@ -436,7 +451,6 @@ class PlacesTemplateSerializer(serializers.Serializer):
                 if capacity is not None and not pd.isna(capacity):
                     capacities.append((place.id, service['id'], capacity, 0, 99999999))
 
-
         # upload the place-attributes
         df_place_attributes = pd.DataFrame(place_attributes, columns=[
             'place_id', 'field_id', 'str_value', 'num_value', 'class_value_id'
@@ -455,7 +469,6 @@ class PlacesTemplateSerializer(serializers.Serializer):
                     file,
                     drop_constraints=False, drop_indexes=False,
                 )
-
 
         # upload the capacities
         df_capacities = pd.DataFrame(capacities,
