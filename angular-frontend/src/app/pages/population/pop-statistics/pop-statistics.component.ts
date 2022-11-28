@@ -302,10 +302,10 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
     if (!this.areaLevel) return;
     let theme = '';
     if (this.theme === 'nature')
-        theme = (this.showBirths && this.showDeaths)? 'Geburten und Sterbefälle': (this.showBirths)? 'Geburten': (this.showDeaths)? 'Sterbefälle': 'keine Auswahl';
+        theme = (this.showBirths && this.showDeaths)? 'Natürliches Saldo (Geburten minus Sterbefälle)': (this.showBirths)? 'Geburten': (this.showDeaths)? 'Sterbefälle': 'keine Auswahl';
     else
-      theme = (this.showImmigration && this.showEmigration)? 'Wanderung': (this.showImmigration)? 'Zuzüge': (this.showEmigration)? 'Fortzüge': 'keine Auswahl';
-    let description = `${theme} für ${this.areaLevel.name} ${this.year || '-'}`;
+      theme = (this.showImmigration && this.showEmigration)? 'Wanderungssaldo (Zuzüge minus Fortzüge)': (this.showImmigration)? 'Zuzüge': (this.showEmigration)? 'Fortzüge': 'keine Auswahl';
+    let description = `${theme} nach ${this.areaLevel.name} ${this.year || '-'}`;
     this.mapControl?.setDescription(description);
   }
 

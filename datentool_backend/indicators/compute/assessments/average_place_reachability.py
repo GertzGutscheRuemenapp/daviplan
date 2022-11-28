@@ -27,14 +27,14 @@ class AveragePlaceReachability(ModeVariantMixin, PopulationIndicatorMixin, Servi
                f'{self.service.facility_article} angezeigte '
                f'{self.service.facility_singular_unit} ')
         if self.service.direction_way_relationship == Service.WayRelationship.TO:
-            ersiees = ('er' if self.service.facility_singular_unit == 'der'
-                       else 'es' if self.service.facility_singular_unit == 'das'
+            ersiees = ('er' if self.service.facility_article == 'der'
+                       else 'es' if self.service.facility_article == 'das'
                        else 'sie')
             return pre + (
                 f'erreicht wird (sofern {ersiees} '
                 f'{self.service.facility_article} '
                 'am besten erreichbare ist)')
-        ihrihm = ('ihm' if self.service.facility_singular_unit
+        ihrihm = ('ihm' if self.service.facility_article
                    in ['der', 'das'] else 'ihr')
         return pre + (
             f'die {self.service.demand_plural_unit} '
