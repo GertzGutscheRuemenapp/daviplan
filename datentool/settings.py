@@ -179,7 +179,7 @@ DATABASES = {
         'HOST': DB_HOST,
         'PORT': DB_PORT,
         'OPTIONS': {
-            'sslmode': 'require',
+            'sslmode': 'prefer',
         },
     },
     'spatialite': {
