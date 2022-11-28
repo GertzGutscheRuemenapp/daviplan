@@ -8,9 +8,9 @@
    > optional: edit the created .env file
 - start up the service with <em>docker-compose up -d</em>
 - run ./createsuperuser.sh and follow the instructions
-   > container needs to be running and have the default name!
+   > The script has to be flagged as executable (chmod +x). The container needs to be up and running and have the default name!
 - run ./init_db.sh to initialize important database objects
-   > container needs to be running and have the default name!
+   > The script has to be flagged as executable (chmod +x). The container needs to be up and running and have the default name!
 
 ## Server configuration
 - pass requests to the domain to the service running at the port you set up with setup.py (http://localhost:{EXT_PORT}, see the created <em>.env</em> file)

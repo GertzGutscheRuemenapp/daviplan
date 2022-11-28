@@ -49,8 +49,8 @@ There are two options to serve the Javascript-files:
 - run the cluster, required for pushing background tasks (if <em>Q_CLUSTER['sync'] = False</em> in settings)
   > <em>python manage.py qcluster settings=datentool.yoursettingsfile</em>
 - run the backend
-  > <em>python manage.py runserver 8000 settings=datentool.yoursettingsfile</em>
-  > you may swap the port with any other port you like. the site will be available there (if you serve the frontend with django)
+  > <em>python manage.py runserver 8000 settings=datentool.yoursettingsfile</em>.
+  > you may swap the port with any other port you like. The site will be available there (in case you serve the frontend with django)
 
 ### Rest API is protected
 - in development (settings_dev.py) access with an active session is allowed
