@@ -17,4 +17,4 @@
 - pass web socket requests to the service running at the port you set up (http://localhost:{EXT_PORT})
 - forward the request headers to the service
 - set up your certificates
-- example Apache configuration at <em>/install/site/apache.conf</em>
+- example Apache configuration at <em>/dist/site/apache.conf</em>
