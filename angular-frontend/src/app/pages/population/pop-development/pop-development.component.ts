@@ -359,7 +359,7 @@ export class PopDevelopmentComponent implements AfterViewInit, OnDestroy {
       const baseYear = this.realYears[this.realYears.length - 1];
       const xSeparator = {
         leftLabel: `Realdaten`,
-        rightLabel: `Prognose (Basisjahr: ${baseYear})`,
+        rightLabel: `Prognose`,
         x: String(baseYear),
         highlight: false
       }
