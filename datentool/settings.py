@@ -298,12 +298,6 @@ STATIC_ROOT = os.path.join(PUBLIC_DIR, 'static')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(PUBLIC_DIR, 'media')
 
-if not os.path.exists(MEDIA_ROOT):
-    try:
-        os.mkdir(MEDIA_ROOT)
-    except Exception as e:
-        print(e)
-
 DATA_ROOT = os.path.join(BASE_DIR, 'datentool_backend', 'data')
 
 # Default primary key field type

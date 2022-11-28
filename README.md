@@ -1,10 +1,16 @@
 ### GDAL
 two options under Windows
 - with OSGeo4W Installer (settings.py):
+# Bule Datentool
+
+a web tool to display and plan basic public services
+
+## Setting up a development environment
+
 https://docs.djangoproject.com/en/3.2/ref/contrib/gis/install/#windows
-- with conda installation (settings_dev.py):
-conda install -c conda-forge gdal=3.4 shapely osmium-tool protobuf pip pyproj (global)
-# install osmium-tool and protobuf (needed for vector-tiles)
+with conda installation (settings_dev.py):
+- conda install -c conda-forge gdal=3.4 shapely osmium-tool protobuf pip pyproj (global)
+install osmium-tool and protobuf (needed for vector-tiles)
 conda install -c conda-forge osmium-tool protobuf
 
 ### Rest API is protected
@@ -14,10 +20,14 @@ conda install -c conda-forge osmium-tool protobuf
 - verification of token in header: {"Authorization": "Bearer *received token*"}
 
 ### Serve Frontend
-\<path to installation\>/angular-frontend/npm install --force
+Install the dependencies:
+- \<path to installation\>/angular-frontend/npm install --force
+There are two options to serve the Javascript-files:
+- use an IDE to run the frontend
+- to serve them solely with django you have to bundle them first:
 \<path to installation\>/angular-frontend/ng build --stats-json
- - argument --stats-json creates stats file that provides information to django about the built hashed resources
- - add argument --watch to reload on change
+  > add argument --watch to reload on change
 
-### export fixtures for area (very slow when creating it with hypothesis)
-dumpdata datentool_backend.mapsymbols datentool_backend.layergroup datentool_backend.internalwfslayer datentool_backend.source datentool_backend.arealevel datentool_backend.area --indent 2 >test.json
+## Productive Server
+see /dist/README.md
+
