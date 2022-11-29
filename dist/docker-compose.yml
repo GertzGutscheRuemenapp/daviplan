@@ -45,10 +45,11 @@ services:
   # backend service serving the frontend and REST resources
   web:
     image: gertzgutscheruemenapp/daviplan:latest
-    env_file: .env
     # environment variables as requested in django (settings.py)
     environment:
       - DJANGO_SITENAME=datentool
+      # settings file, either datentool.settings for productive use or datentool.settings_dev in development
+      - DJANGO_SETTINGS_MODULE=datentool.settings
       - MODE_CAR_HOST=router-car
       - MODE_BIKE_HOST=router-bike
       - MODE_WALK_HOST=router-walk
@@ -56,6 +57,7 @@ services:
       - MODE_BIKE_SERVICE_PORT=8001
       - MODE_WALK_SERVICE_PORT=8001
       - REDIS_HOST=redis
+    env_file: .env
     # network links to access the other containers
     links:
       - postgis:db

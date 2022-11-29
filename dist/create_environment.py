@@ -3,7 +3,6 @@ from collections import OrderedDict
 from cryptography.fernet import Fernet
 
 outputs = OrderedDict({
-    'DJANGO_SETTINGS_MODULE': ('datentool.settings', 'settings file, either datentool.settings for productive use or datentool.settings_dev in development'),
     'ENCRYPT_KEY': ('', 'URL-safe base64-encoded 32-byte key used for en/decrypting of BKG Geocode and Regionalstatistik API passwords'),
     'ALLOWED_HOSTS': ('*', 'URLs or IPs of hosts, that are allowed to do certain queries on the server (comma-seperated without https://, should at least include the domain this site is on'),
     'SECRET_KEY':  ('', 'Secret key django is using to secure signed data  '),
