@@ -83,14 +83,20 @@ class HasPermissionForScenario(permissions.BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return False
+        # service-id comes with the view (detail-view) or as query_params
+        service_id = view.kwargs.get('pk', request.query_params.get('service'))
+
+        # if no valid service is provided, deny access
         # check if the infrastructure is permitted for the user
-        service_id = view.kwargs.get('pk')
-        service = Service.objects.get(pk=service_id)
+        try:
+            service = Service.objects.get(pk=service_id)
+        except Service.DoesNotExist:
+            return False
         if not service.infrastructure.accessible_by.contains(request.user.profile):
             return False
 
         # check if the planning process of the scenario is permitted for the user
-        scenario_id = request.data.get('scenario')
+        scenario_id = request.data.get('scenario', request.query_params.get('scenario'))
         if not scenario_id:
             # the base scenario can be seen by everyone
             # with access to the infrastructure
