@@ -36,12 +36,12 @@ class CutoffAreaReachability(ModeVariantMixin, PopulationIndicatorMixin, Service
         pre = (f'Anteil {self.service.demand_plural_unit}'
                ', die innerhalb von [...] Minuten ')
         if self.service.direction_way_relationship == Service.WayRelationship.TO:
-            ein = ('einen' if self.service.facility_singular_unit
+            ein = ('einen' if self.service.facility_article
                    in ['der', 'das'] else 'eine')
             return pre + (
                 f'{ein} {self.service.facility_singular_unit} '
                 'erreichen')
-        ein = ('einem' if self.service.facility_singular_unit in ['der', 'das']
+        ein = ('einem' if self.service.facility_article in ['der', 'das']
                else 'einer')
         return pre + (
             f'von {ein} {self.service.facility_singular_unit} '
