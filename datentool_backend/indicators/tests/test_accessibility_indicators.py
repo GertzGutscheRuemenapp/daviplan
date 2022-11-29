@@ -6,6 +6,7 @@ import logging
 
 from datentool_backend.api_test import LoginTestCase
 
+from datentool_backend.user.factories import ProfileFactory
 from datentool_backend.indicators.tests.setup_testdata import CreateTestdataMixin
 from datentool_backend.indicators.views.transit import MatrixCellPlaceRouter
 from datentool_backend.modes.factories import ModeVariantFactory, Mode, ModeVariant
@@ -42,8 +43,31 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         cls.create_capacities()
         cls.create_traveltime_matrix()
         cls.prepare_population()
+        cls.create_testusers()
 
         pd.set_option('mode.use_inf_as_na', True)
+
+    @classmethod
+    def create_testusers(cls):
+        """Create testusers with no access to service or planning process"""
+        cls.profile2 = ProfileFactory(admin_access=False,
+                                      can_edit_basedata=False,
+                                      can_create_process=False)
+        cls.profile3 = ProfileFactory(admin_access=False,
+                                      can_edit_basedata=False,
+                                      can_create_process=False)
+        cls.profile4 = ProfileFactory(admin_access=False,
+                                      can_edit_basedata=False,
+                                      can_create_process=False)
+        cls.profile5 = ProfileFactory(admin_access=False,
+                                      can_edit_basedata=False,
+                                      can_create_process=False)
+        infra = cls.service1.infrastructure
+        infra.accessible_by.add(cls.profile3)
+        infra.accessible_by.add(cls.profile4)
+        planning_process = cls.scenario.planning_process
+        planning_process.users.add(cls.profile4)
+        planning_process.users.add(cls.profile5)
 
     @classmethod
     def create_traveltime_matrix(cls):
@@ -235,7 +259,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         np.testing.assert_array_almost_equal(result_u['value'], [0, 0])
 
     def test_accessible_demand(self):
-        """Test accisible demand at places"""
+        """Test accessible demand at places"""
 
         self.client.force_login(self.profile.user)
         variant = ModeVariant.objects.get(id=self.variant_id)
@@ -244,7 +268,7 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
             'indicator': 'accessibledemandperplace',
             'year': 2022,
             'mode': variant.mode,
-            'service': self.service2.pk,
+            #'service': self.service2.pk,
             # 'scenario': self.scenario.pk,
         }
         url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
@@ -352,3 +376,60 @@ class TestAccessibilityIndicatorAPI(CreateTestdataMixin,
         self.assert_http_200_ok(response)
         result = pd.DataFrame(response.data['values']).set_index('cell_code')
         self.assertEquals(len(result), 8)
+
+    def test_permissions(self):
+        """Test permissions to indicators"""
+
+        variant = ModeVariant.objects.get(id=self.variant_id)
+
+        query_params = {
+            'indicator': 'accessibledemandperplace',
+            'year': 2022,
+            'mode': variant.mode,
+            'scenario': self.scenario.pk,
+        }
+        url = reverse(self.url_key, kwargs={'pk': self.service1.pk})
+
+        # profile 2 is not allowed to infrastructure and not to planning process
+        self.client.force_login(self.profile2.user)
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_403_forbidden(response)
+
+        # profile 3 is allowed to infrastructure but not to planning process
+        self.client.force_login(self.profile3.user)
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_403_forbidden(response)
+
+        # profile 4 is allowed to infrastructure and to planning process
+        self.client.force_login(self.profile4.user)
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+
+        # profile 5 is not allowed to infrastructure but to planning process
+        self.client.force_login(self.profile5.user)
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_403_forbidden(response)
+
+        query_params = {
+            'indicator': 'accessibledemandperplace',
+            'year': 2022,
+            'mode': variant.mode,
+        }
+
+        # profile 2 is not allowed to infrastructure and not to planning process
+        self.client.force_login(self.profile2.user)
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_403_forbidden(response)
+
+        # profile 3 is allowed to infrastructure but not to planning process
+        # but may see base scenario
+        self.client.force_login(self.profile3.user)
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_200_ok(response)
+
+        # profile 5 is not allowed to infrastructure but to planning process
+        # is forbidden to see the indicator
+        self.client.force_login(self.profile5.user)
+        response = self.post(url, data=query_params, extra={'format': 'json'})
+        self.assert_http_403_forbidden(response)
+

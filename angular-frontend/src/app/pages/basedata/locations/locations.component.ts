@@ -84,7 +84,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
     this.setupAttributeCard();
   }
 
-  onInfrastructureChange(reset: boolean = false): void {
+  onInfrastructureChange(options?: {reset?: boolean}): void {
     this.places = [];
     if (this.placesLayer) {
       this.layerGroup?.removeLayer(this.placesLayer);
@@ -95,7 +95,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
     this.editFields = JSON.parse(JSON.stringify(this.placeFields));
     this.editFields.forEach(f => f.removed = false);
     this.isLoading$.next(true);
-    this.restService.getPlaces( { infrastructure: this.selectedInfrastructure, reset: reset }).subscribe(places => {
+    this.restService.getPlaces( { infrastructure: this.selectedInfrastructure, reset: options?.reset }).subscribe(places => {
       this.selectedInfrastructure!.placesCount = places.length;
       this.isLoading$.next(false);
       this.dataColumns = ['Standort'];
@@ -106,7 +106,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
         let columnTitle = (service.hasCapacity)? `${service.name} (Kapazität)`: service.name;
         this.dataColumns.push(columnTitle);
         this.isLoading$.next(true);
-        this.restService.getCapacities({ service: service }).subscribe(serviceCapacities => {
+        this.restService.getCapacities({ service: service, reset: options?.reset }).subscribe(serviceCapacities => {
           this.places?.forEach(place => {
             if (!place.capacities) place.capacities = [];
             const capacities = serviceCapacities.filter(c => c.place === place.id && c.service === service.id);
@@ -293,7 +293,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
           Object.assign(_this.selectedInfrastructure!, infrastructure);
           _this.isLoading$.next(false);
           _this.editAttributesCard?.closeDialog();
-          _this.onInfrastructureChange(true);
+          _this.onInfrastructureChange({ reset: true });
         }, error => {
           showAPIError(error, _this.dialog);
           _this.isLoading$.next(false);
@@ -350,10 +350,11 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       formData.append('infrastructure', this.selectedInfrastructure!.id.toString());
       formData.append('excel_file', this.file);
       const url = `${this.rest.URLS.places}upload_template/`;
+      this.isProcessing = true;
       this.http.post(url, formData).subscribe(res => {
-        this.isProcessing = true;
       }, error => {
         showAPIError(error, this.dialog);
+        this.isProcessing = false;
       });
     });
   }
@@ -379,7 +380,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       if (confirmed) {
         this.http.post(`${this.rest.URLS.places}clear/`, { infrastructure: this.selectedInfrastructure!.id }
         ).subscribe(res => {
-          this.onInfrastructureChange(true);
+          this.onInfrastructureChange({ reset: true });
         }, error => {
           showAPIError(error, this.dialog);
         });
@@ -390,7 +391,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
   onMessage(log: LogEntry): void {
     if (log?.status?.finished) {
       this.isProcessing = false;
-      this.onInfrastructureChange(true);
+      this.onInfrastructureChange({ reset: true });
     }
   }
 
