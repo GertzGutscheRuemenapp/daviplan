@@ -132,20 +132,20 @@ export class ScenarioMenuComponent implements OnInit {
 
           function labelTotalCapacity(value:number):string{
             if (value > 0)
-              return scen.totalCapacity + " (+ " + value.toLocaleString()+")";
+              return scen.totalCapacity.toLocaleString() + " (+ " + value.toLocaleString()+")";
             else if (value === 0)
-              return scen.totalCapacity + " (Keine Veränderung)";
+              return scen.totalCapacity.toLocaleString() + " (unverändert)";
             else if (value < 0)
-              return scen.totalCapacity + " (" + value.toLocaleString() + ")";
+              return scen.totalCapacity.toLocaleString() + " (" + value.toLocaleString() + ")";
             return  value.toLocaleString();
           }
           function labelNPlaces(value:number):string{
             if (value > 0)
-              return scen.nPlaces + " (+ " + value.toLocaleString()+")";
+              return scen.nPlaces.toLocaleString() + " (+ " + value.toLocaleString()+")";
             else if (value === 0)
-              return scen.nPlaces + " (Keine Veränderung)";
+              return scen.nPlaces.toLocaleString() + " (unverändert)";
             else if (value < 0)
-              return scen.nPlaces + " (" + value.toLocaleString() + ")";
+              return scen.nPlaces.toLocaleString() + " (" + value.toLocaleString() + ")";
             return  value.toLocaleString();
           }
 

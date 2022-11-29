@@ -206,7 +206,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
     this.http.post(url, { infrastructure: this.selectedInfrastructure?.id }, { responseType: 'blob' }).subscribe((res:any) => {
       const blob: any = new Blob([res],{ type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       dialogRef.close();
-      fileSaver.saveAs(blob, 'standorte-template.xlsx');
+      fileSaver.saveAs(blob, 'standorte-'+ this.selectedInfrastructure?.name + '.xlsx');
     },(error) => {
       dialogRef.close();
       showAPIError(error, this.dialog);
@@ -220,7 +220,7 @@ export class LocationsComponent implements AfterViewInit, OnDestroy {
       disableClose: false,
       autoFocus: false,
       data: {
-        title: `Datentabelle Realdaten`,
+        title: 'Standorte des Infrastrukturbereichs ' + this.selectedInfrastructure?.name,
         template: this.dataTemplate,
         hideConfirmButton: true,
         cancelButtonText: 'OK'

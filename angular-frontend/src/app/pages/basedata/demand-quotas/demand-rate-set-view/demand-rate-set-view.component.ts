@@ -198,11 +198,11 @@ export class DemandRateSetViewComponent implements AfterViewInit {
       autoFocus: false,
       width: '270px',
       data: {
-        title: 'Daten übertragen',
+        title: 'Daten kopieren',
         template: this.copyYearDataTemlate,
         closeOnConfirm: false,
         message: 'Alle Werte des links ausgewählten Jahres übertragen',
-        confirmButtonText: 'Übertragen'
+        confirmButtonText: 'Kopieren'
       }
     });
     dialogRef.afterOpened().subscribe(x => {
