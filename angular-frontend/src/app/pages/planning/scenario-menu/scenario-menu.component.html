@@ -165,13 +165,15 @@
 <ng-template #supplyScenario let-scenario="scenario">
   <div class="supply-capacity"
        *ngVar="scenario.isBase? totalCapacities[0]: totalCapacities[scenario.id] as capInScenario" >
-      <div title='{{planningService.activeService?.name || "-"}}'>{{planningService.activeService?.name || "-"}} </div>
+    <div title='{{planningService.activeService?.name || "-"}}'> Angebot für Leistung <br> <b>{{planningService.activeService?.name || "-"}}</b> <br>
+      im Jahr <b>{{planningService.activeYear}} </b>
+    </div>
       <div title="{{capInScenario?.labelPlaces}}">
-        {{planningService.activeService?.facilityPluralUnit}}: {{capInScenario?.labelPlaces}}
+        <b> {{planningService.activeService?.facilityPluralUnit}}: {{capInScenario?.labelPlaces}} </b>
       </div>
       <div title="{{capInScenario?.labelCapacity}}"
            *ngIf="planningService.activeService?.hasCapacity">
-        {{planningService.activeService?.capacityPluralUnit}}: {{capInScenario?.labelCapacity}}
+        <b> {{planningService.activeService?.capacityPluralUnit}}: {{capInScenario?.labelCapacity}}</b>
       </div>
   </div>
 </ng-template>
