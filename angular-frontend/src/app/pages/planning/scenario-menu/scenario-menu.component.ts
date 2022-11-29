@@ -130,11 +130,22 @@ export class ScenarioMenuComponent implements OnInit {
           const totalCapacity = scen.totalCapacity - baseCap.totalCapacity;
           const nPlaces = scen.nPlaces - baseCap.nPlaces;
 
-          function label(value:number):string{
+          function labelTotalCapacity(value:number):string{
             if (value > 0)
-              return "+ " + value.toLocaleString();
+              return scen.totalCapacity + " (+ " + value.toLocaleString()+")";
             else if (value === 0)
-              return "Keine Veränderung";
+              return scen.totalCapacity + " (Keine Veränderung)";
+            else if (value < 0)
+              return scen.totalCapacity + " (" + value.toLocaleString() + ")";
+            return  value.toLocaleString();
+          }
+          function labelNPlaces(value:number):string{
+            if (value > 0)
+              return scen.nPlaces + " (+ " + value.toLocaleString()+")";
+            else if (value === 0)
+              return scen.nPlaces + " (Keine Veränderung)";
+            else if (value < 0)
+              return scen.nPlaces + " (" + value.toLocaleString() + ")";
             return  value.toLocaleString();
           }
 
@@ -142,8 +153,8 @@ export class ScenarioMenuComponent implements OnInit {
             scenarioId: scen.scenarioId,
             totalCapacity: totalCapacity,
             nPlaces: nPlaces,
-            labelCapacity:label(totalCapacity),
-            labelPlaces:label(nPlaces)
+            labelCapacity:labelTotalCapacity(totalCapacity),
+            labelPlaces:labelNPlaces(nPlaces)
           }
         }
       });

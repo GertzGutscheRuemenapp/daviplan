@@ -7,7 +7,7 @@ from html.parser import HTMLParser
 from json.decoder import JSONDecodeError
 
 # default url to the BKG geocoding service, key has to be replaced
-URL = 'https://sg.geodatenzentrum.de/gdz_geokodierung__{key}'
+URL = 'https://sg.geodatenzentrum.de/gdz_geokodierung_bund__{key}'
 
 # fields added to the input layer containing the properties of the results
 prefix = 'bkg'
@@ -232,8 +232,6 @@ class BKGGeocoder:
             (code, pretty name)
         '''
         url = url or URL.format(key=key)
-        # in case users typed in url with the 'geosearch' term in it
-        url = url.replace('geosearch', '')
         url += '/index.xml'
         default = [('EPSG:25832', 'ETRS89 / UTM zone 32N')]
         con_msg = ('Der Dienst ist zur Zeit nicht erreichbar bzw. '
@@ -321,7 +319,7 @@ class BKGGeocoder:
 
         Raises
         ----------
-        RuntimeError
+        ConnectionError
             critical error (no parameters, no access to service/url),
             it is recommended to abort geocoding
         ValueError
@@ -354,7 +352,7 @@ class BKGGeocoder:
                     )
             except ConnectionError:
                 if retries >= max_retries:
-                    raise RuntimeError(
+                    raise ConnectionError(
                         f'Anfrage nach {retries + 1} gescheiterten '
                         'Verbindungsversuchen abgebrochen.')
                 retries += 1
@@ -375,7 +373,7 @@ class BKGGeocoder:
 
         Raises
         ----------
-        RuntimeError
+        ConnectionError
             no access to service/url
         ValueError
             malformed request parameters
@@ -393,14 +391,14 @@ class BKGGeocoder:
                 parser = ErrorCodeParser()
                 parser.feed(reply.content.decode('utf-8'))
                 message = self.exception_codes.get(parser.error)
-                raise RuntimeError(message)
+                raise ConnectionError(message)
         if reply.status_code == 500:
             raise ValueError('500 - interner Serverfehler')
         if reply.status_code == None:
-            raise RuntimeError(f'Service "{reply.url[:30] + "..."}" nicht '
-                               'erreichbar. Bitte überprüfen Sie die '
-                               'eingegebene Dienst-URL und ihre '
-                               'Internetverbindung.')
+            raise ConnectionError(f'Service "{reply.url[:30] + "..."}" nicht '
+                                  'erreichbar. Bitte überprüfen Sie die '
+                                  'eingegebene Dienst-URL und ihre '
+                                  'Internetverbindung.')
         if reply.status_code == 404:
             raise ValueError(
                 f'404 - "{reply.url[:30] + "..."}" nicht gefunden.')
@@ -428,7 +426,7 @@ class BKGGeocoder:
 
         Raises
         ----------
-        RuntimeError
+        ConnectionError
             no access to service/url
         ValueError
             malformed request parameters

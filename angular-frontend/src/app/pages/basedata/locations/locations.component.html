@@ -15,6 +15,7 @@
 </app-status-card>
 <div fxLayout="row wrap">
   <app-input-card [title]="'Infrastrukturbereiche'"
+                  [disabled]="isProcessing"
                   width="300px"
                   subtitle="Infrastrukturbereich auswählen, um Standorte anzuzeigen bzw. einzutragen"
                   infoText="<p>Wählen Sie in der Liste den Infrastrukturbereich aus, dessen Standort sie anzeigen, hochladen oder verändern möchten.</p>
@@ -31,6 +32,7 @@
   <div fxLayout="column">
     <app-input-card #editAttributesCard
                     [title]="'Schritt 1: Weitere Standorteigenschaften (optional)'"
+                    [disabled]="isProcessing"
                     [editTemplate]="editAttributesTemplate"
                     [class.hidden]="!selectedInfrastructure"
                     [subtitle]="selectedInfrastructure?.name || ''"
@@ -58,6 +60,7 @@
     </app-input-card>
     <app-input-card [title]="'Schritt 2: Standortdaten und Kapazitäten hochladen'"
                     [class.hidden]="!selectedInfrastructure"
+                    [disabled]="isProcessing"
                     [subtitle]="selectedInfrastructure?.name || ''"
                     width="400px"
                     infoText="<p>Nachdem Sie in der Box „Schritt 1: Weitere Standorteigenschaften“ der Datenstruktur zur Beschreibung der Standorte des gewählten Infrastrukturbereichs optional weitere Eigenschaftsfelder hinzugefügt haben, können Sie sich nun hier über die Schaltfläche „Vorlage herunterladen“ eine Vorlagedatei im Excel-Format herunterladen. Sofern Sie bereits Daten hochgeladen haben, enthält die Vorlage alle bereits vorliegenden Daten.</p>
