@@ -134,7 +134,7 @@ export class PlanningService extends RestCacheService {
         if (options?.filter?.columnFilter || options?.addCapacities || options?.filter?.hasCapacity) {
           let observables: Observable<any>[] = [];
           // scenario capacity is required in any case (filter and adding cap.)
-          observables.push(_this.updateCapacities({ infrastructure: infrastructure, year: options?.filter?.year, scenario: options?.scenario }).pipe(map(() => {
+          observables.push(_this.updateCapacities({ infrastructure: infrastructure, year: options?.filter?.year, scenario: options?.scenario, reset: options?.reset }).pipe(map(() => {
             places.forEach(place => {
               const cap = _this.getPlaceCapacity(place, { service: options?.service, scenario: options?.scenario });
               place.capacity = cap;
@@ -196,7 +196,7 @@ export class PlanningService extends RestCacheService {
     return this.getCachedData<TotalCapacityInScenario[]>(url, {params: params, reset: options?.reset});
   }
 
-  updateCapacities(options?: { infrastructure?: Infrastructure, year?: number, scenario?: Scenario }): Observable<any> {
+  updateCapacities(options?: { infrastructure?: Infrastructure, year?: number, scenario?: Scenario, reset?: boolean }): Observable<any> {
     const year = (options?.year !== undefined)? options?.year: this.activeYear;
     const _this = this;
     const scenarioId = (options?.scenario?.id !== undefined)? options.scenario.id: -1;
@@ -211,7 +211,7 @@ export class PlanningService extends RestCacheService {
           let serviceCapacities = scenarioCapacities[service.id];
           if (!serviceCapacities)
             serviceCapacities = scenarioCapacities[service.id] = {};
-          if (!serviceCapacities[year!]) {
+          if (!serviceCapacities[year!] || options?.reset) {
             observables.push(_this.getCapacities({
               year: year,
               service: service,

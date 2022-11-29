@@ -403,8 +403,7 @@ class PlacesTemplateSerializer(serializers.Serializer):
                         # ToDo: ????
                         pass
                 else:
-                    # that's not the right error, but this is what being caught outside
-                    raise AssertionError(bkg_error)
+                    raise ConnectionError(bkg_error)
             else:
                 # create the geometry and transform to WebMercator
                 geom = Point(lon, lat, srid=4326)
