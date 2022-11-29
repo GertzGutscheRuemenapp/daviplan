@@ -220,13 +220,9 @@ class AreaLevelSerializer(serializers.ModelSerializer):
 
 
 class FClassSerializer(serializers.ModelSerializer):
-    ftype_id = serializers.PrimaryKeyRelatedField(
+    ftype_id = serializers.IntegerField(
         write_only=True,
-        required=False,
-        # needs a default which is ignored, but otherwise an SkipField-exception is raised
-        default=-1,
-        source='ftype',
-        queryset=FieldType.objects.all())
+        required=False)
 
     class Meta:
         model = FClass

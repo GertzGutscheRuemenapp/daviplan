@@ -16,12 +16,18 @@ from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
 from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
 from datentool_backend.utils.permissions import (HasAdminAccess,
                                                  HasAdminAccessOrReadOnly,
-                                                 CanEditBasedata)
+                                                 CanEditBasedata,
+                                                 )
+
 from datentool_backend.models import (
     InfrastructureAccess, Infrastructure, Place, Capacity, PlaceField,
     PlaceAttribute, Service, Scenario)
-from .permissions import (CanPatchSymbol, ScenarioCapacitiesPermission,
-                          CanEditScenarioPlacePermission)
+
+from .permissions import (CanPatchSymbol,
+                          ScenarioCapacitiesPermission,
+                          CanEditScenarioPlacePermission,
+                          HasPermissionForScenario)
+
 from datentool_backend.infrastructure.serializers import (
     PlaceSerializer,
     CapacitySerializer,
@@ -277,7 +283,14 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Service.objects.all().annotate(
         max_capacity=Max('capacity__capacity'))
     serializer_class = ServiceSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+    def get_permissions(self):
+        if self.action in ['compute_indicator', 'total_capacity_in_year']:
+            permission_classes = [HasAdminAccess | HasPermissionForScenario]
+        else:
+            permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+        return [permission() for permission in permission_classes]
+
 
     @extend_schema(
         description='Indicators available for this service',
