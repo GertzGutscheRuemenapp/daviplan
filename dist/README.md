@@ -3,7 +3,7 @@
 - install Docker and Python
 
 ## Docker configuration
-- copy the files <em>docker-compose.yml, setup.py, createsuperuser.sh</em> and <em>init_db.sh</em> into a directory on the server
+- copy the files <em>docker-compose.yml, create_environment.py, createsuperuser.sh</em> and <em>init_db.sh</em> into a directory on the server
 - run create_environment.py (<em>python create_environment.py</em>)
    > optional: edit the created .env file
 - start up the service with <em>docker-compose up -d</em>

@@ -4,10 +4,19 @@ h3{
 }
 
 #LegalNotice {
-    min-width: 30%;
+  min-width: 35%;
 }
 .disclaimer{
-    margin: 0 10em 0 60px;
-    min-width: 85%;
+  margin: 0 10em 0 60px;
+  min-width: 90%;
+}
+.draft{
+  margin: 210px 0px 100px 100px;
+  position: absolute;
+  font-size: 30px;
+  background-color: #ffffffcc;
+  text-align: left;
+  padding: 10px;
+  max-width: 31%;
 }
 
