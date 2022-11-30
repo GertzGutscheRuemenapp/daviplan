@@ -46,9 +46,12 @@
                     subtitle="Zugangsdaten ändern"
                     [dialogTitle]="'Zugangsdaten für den BKG-Geocoder'"
                     dialogWidth="600px"
-                    infoText="Für die Geokodierung von Standortdaten wird die Geocoding-Schnittstelle des BKG verwendet.
+                    infoText="<p>Für die Geokodierung von Standortdaten wird die Geocoding-Schnittstelle des BKG verwendet.
                     Um diesen nutzen zu können, wird ein eindeutiger Nutzeridentifikator (UUID) benötigt,
-                    der vom BKG bezogen werden kann."
+                    der vom BKG bezogen werden kann.</p>
+                    <p>Dafür laden Sie bitte oben den Nutzungsantrag herunter, füllen die Felder aus und mailen den
+                    unterschriebenen Antrag an <a href='mailto:dlz.bkg.bund.de'>dlz.bkg.bund.de</a>. Den Nutzeridentifikator erhalten Sie per Mail. </p>
+                    <p>Nach Erhalt wählen Sie bitte hier die Editierfunktion über das Stiftsymbol aus und geben den Nutzeridentifikator ein.</p>"
                     [editTemplate]="BKGTemplate"
                     [editButton]="BKGEditButton">
       <div #BKGEditButton
@@ -67,6 +70,15 @@
                 color="primary" (click)="removeBKGCredentials()">
           <mat-icon>close</mat-icon>&nbsp; entfernen
         </button>
+        <a mat-stroked-button color="primary"
+           style="margin-left: 25px;"
+           title="BKG Nutzungsantrag"
+           href="{{backend}}/static/Formular_Nutzung_BKG-Geocoding.pdf"
+           target="_blank"
+           download>
+          <mat-icon>description</mat-icon>
+          Nutzungsantrag
+        </a>
       </div>
     </app-input-card>
   </div>

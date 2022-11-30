@@ -15,7 +15,7 @@ outputs = OrderedDict({
 })
 
 print()
-title = 'Konfiguration des Datentools und Erzeugung der Umgebungsvariablen.'
+title = 'Konfiguration der Daviplan-Instanz und Erzeugung der Umgebungsvariablen.'
 print('-' * len(title))
 print(title)
 print('-' * len(title))
@@ -38,6 +38,16 @@ if not fernet_key:
     fernet_key = Fernet.generate_key().decode('utf-8')
 outputs['ENCRYPT_KEY'] = (fernet_key, outputs['ENCRYPT_KEY'][1])
 print(fernet_key)
+print()
+
+print('Port auf dem der Service laufen soll. (z.B 8090)')
+print('Der Port muss frei sein, damit der Service gestartet werden kann.')
+while True:
+    port = input('Port: ')
+    if port:
+        outputs['EXT_PORT'] = (port, outputs['EXT_PORT'][1])
+        break
+print(port)
 print()
 
 print('Name der Domain, über die die Seite des Datentools erreichbar sein wird.')
