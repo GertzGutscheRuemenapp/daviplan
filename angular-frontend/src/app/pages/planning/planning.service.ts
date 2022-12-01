@@ -28,6 +28,7 @@ import { reset } from "ol/transform";
 export class PlanningService extends RestCacheService {
   legend?: LegendComponent;
   placeFilterColumns: FilterColumn[] = [];
+  ignoreCapacitySupplyFilter: boolean = false;
   // cache already requested capacities: {scenario_id: {service_id: {year: capacity}}}
   private capacitiesPerScenarioService: Record<number, Record<string, Record<number, Capacity[]>>> = {};
   year$ = new BehaviorSubject<number>(0);
@@ -43,8 +44,7 @@ export class PlanningService extends RestCacheService {
   showScenarioMenu = false;
   scenarioChanged = new EventEmitter<boolean>();
 
-  constructor(protected http: HttpClient, protected rest: RestAPI, private settings: SettingsService,
-              private cookies: CookieService) {
+  constructor(protected http: HttpClient, protected rest: RestAPI, private settings: SettingsService) {
     super(http, rest);
     // store the current states in variables, easier to access than subscribing to observables
     // could also be done later with [...].pipe(take(1)).subscribe(...), easier by remembering in separate variable

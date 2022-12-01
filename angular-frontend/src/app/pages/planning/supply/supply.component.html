@@ -31,6 +31,8 @@
     <app-place-filter-button
       #placeFilter
       style="margin-top: 7px;"
+      [showIgnoreCapacitiesToggle]="true"
+      [ignoreCapacities]="ignoreCapacities"
       (onFilter)="onFilter()"
       [infrastructure]="activeInfrastructure"
       [scenario]="activeScenario"
@@ -39,8 +41,8 @@
 <!--        [service]="activeService"-->
     </app-place-filter-button>
   </div>
-  <mat-slide-toggle [(ngModel)]="showAllPlaces"
-                    (toggleChange)="updatePlaces()"
+  <mat-slide-toggle [(ngModel)]="ignoreCapacities"
+                    (change)="onIgnoreCapacitiesChange()"
                     color="primary"
                     style="margin-top: 10px; margin-bottom: 20px;">
     <span>

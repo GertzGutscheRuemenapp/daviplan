@@ -57,7 +57,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   // capacities over all years (depending on scenario)
   capacities: Capacity[] = [];
   _editCapacities: Capacity[] = [];
-  showAllPlaces = false;
+  ignoreCapacities = false;
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
               public planningService: PlanningService, private formBuilder: FormBuilder,
@@ -67,6 +67,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
     this.mapControl = this.mapService.get('planning-map');
     this.layerGroup = new MapLayerGroup('Angebot', { order: -1 });
     this.mapControl.addGroup(this.layerGroup);
+    this.applyUserSettings();
     this.initData();
   }
 
@@ -96,11 +97,18 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       this.updatePlaces();
     }));
   }
+  applyUserSettings(): void {
+    this.ignoreCapacities = this.cookies.get('planning-ignore-capacities', 'boolean') || false;
+  }
+
+  onIgnoreCapacitiesChange(): void {
+    this.cookies.set('planning-ignore-capacities', this.ignoreCapacities);
+    this.updatePlaces();
+  }
 
   onFilter(): void {
     this.updatePlaces();
   }
-
 
   updatePlaces(options?: { resetScenario?: boolean, selectPlaceId?: number }): void {
     this.layerGroup?.clear();
@@ -144,7 +152,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         const tooltip = `<b>${place.name}</b><br>${this.activeService?.hasCapacity? this.getFormattedCapacityString(
           [this.activeService!.id], place.capacity || 0): place.capacity? 'Leistung wird angeboten': 'Leistung wird nicht angeboten'}`
         const doCompare = (place.capacity !== undefined) && (place.baseCapacity !== undefined);
-        if (this.showAllPlaces || place.capacity || place.scenario) {
+        if (this.ignoreCapacities || place.capacity || place.scenario) {
           mapPlaces.push({
             id: place.id,
             geometry: place.geom,
