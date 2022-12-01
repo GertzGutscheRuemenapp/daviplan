@@ -12,6 +12,7 @@ import { RemoveDialogComponent } from "../../../dialogs/remove-dialog/remove-dia
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { take } from "rxjs/operators";
 import { showAPIError } from "../../../helpers/utils";
+import { environment } from "../../../../environments/environment";
 
 @Component({
   selector: 'app-settings',
@@ -45,6 +46,7 @@ export class SettingsComponent implements AfterViewInit {
     },
     language: 'de'
   };
+  backend: string = environment.backend;
 
   constructor(private settingsService: SettingsService, private http: HttpClient, private rest: RestAPI,
               private cdRef: ChangeDetectorRef, private formBuilder: FormBuilder, public dialog: MatDialog) {  }
