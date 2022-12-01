@@ -167,7 +167,8 @@
                       [disabled]="isProcessing || !projectArea"
                       [infoText]="(activeLevel?.source?.sourceType === 'WFS')?
                       '<p>Klicken Sie auf „Daten abrufen bzw. aktualisieren“, um die Daten erstmalig oder – zum Aktualisieren – erneut vom Bundesamt für Kartographie und Geodäsie (BKG) herunterzuladen. Den Zeitpunkt der letzten Aktualisierung können Sie der Daten-Historie entnehmen.</p>':
-                      '<p>Wenn die angezeigte Anzahl der Gebiete 0 ist, wurden noch keine Geodaten für diese benutzerdefinierte Gebietseinteilung hochgeladen. Klicken Sie auf „Shapefile (gezippt) oder Geopackage hochladen“, um der ausgewählte Gebietseinteilung räumliche Daten hinzuzufügen. Bereits hochgeladene Daten können Sie sich als Datentabelle oder in der Kartenvorschau anzeigen lassen.</p>'">
+                      '<p>Wenn die angezeigte Anzahl der Gebiete 0 ist, wurden noch keine Geodaten für diese benutzerdefinierte Gebietseinteilung hochgeladen. Klicken Sie auf „Shapefile (gezippt) oder Geopackage hochladen“, um der ausgewählte Gebietseinteilung räumliche Daten hinzuzufügen. Bereits hochgeladene Daten können Sie sich als Datentabelle oder in der Kartenvorschau anzeigen lassen.</p>' +
+                      '<p>Beachten Sie im Falle eines Uploads eines gezippten Shapefiles, dass alle Dateien auf der obersten Ebene ohne Unterordner innerhalb der Zip-Datei liegen müssen, um eingelesen werden zu können!</p>'">
         <span class="subtitle1 sub">
           Gebietseinteilung: <p style="font-size: 1.5em;">"{{activeLevel?.name || '-'}}"</p>
         </span>

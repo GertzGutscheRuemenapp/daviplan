@@ -29,7 +29,7 @@ class StopSerializer(serializers.ModelSerializer):
 class StopTemplateSerializer(serializers.Serializer):
     """Serializer for uploading StopTemplate"""
     excel_file = FileField()
-    drop_constraints = BooleanField(default=True,
+    drop_constraints = BooleanField(default=False,
                                     label='temporarily delete constraints and indices',
                                     help_text='Set to False in unittests')
     scope = ProcessScope.ROUTING

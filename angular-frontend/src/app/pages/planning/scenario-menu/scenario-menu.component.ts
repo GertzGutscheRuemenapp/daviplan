@@ -10,7 +10,7 @@ import {
   PlanningProcess,
   Prognosis,
   Scenario,
-  Service,
+  Service, TotalCapacityInScenario,
   TransportMode
 } from "../../../rest-interfaces";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
@@ -18,6 +18,12 @@ import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { CookieService } from "../../../helpers/cookies.service";
 import { showAPIError } from "../../../helpers/utils";
+import { TRUE } from "ol/functions";
+
+interface LabelledTotalCapacity extends TotalCapacityInScenario{
+  labelPlaces: string;
+  labelCapacity: string;
+}
 
 @Component({
   selector: 'app-scenario-menu',
@@ -41,6 +47,9 @@ export class ScenarioMenuComponent implements OnInit {
   demandRateSets: DemandRateSet[] = [];
   transitVariants: ModeVariant[] = [];
   prognoses: Prognosis[] = [];
+  year?: number;
+  totalCapacities: Record<number, LabelledTotalCapacity> = {};
+  service?:Service;
 
   constructor(private dialog: MatDialog, public planningService: PlanningService, private cookies: CookieService,
               private formBuilder: FormBuilder, private http: HttpClient, private rest: RestAPI) {
@@ -50,6 +59,11 @@ export class ScenarioMenuComponent implements OnInit {
         this.onProcessChange(process);
       });
     })
+    this.planningService.scenarioChanged.subscribe(changed => {
+      if (this.domain==="supply") {
+        this.updateTotalCapacities({scenario:this.activeScenario, reset:true});
+      }
+    })
     this.planningService.activeScenario$.subscribe(scenario => {
        if (scenario)
          this.setScenario(scenario, {silent: true});
@@ -57,8 +71,17 @@ export class ScenarioMenuComponent implements OnInit {
     this.editScenarioForm = this.formBuilder.group({
       scenarioName: new FormControl('')
     });
-    this.planningService.activeService$.subscribe(service => this.onServiceChange(service));
-    this.planningService.getPrognoses().subscribe(pr => this.prognoses = pr)
+    this.planningService.activeService$.subscribe(service => {
+      this.service= service;
+      this.onServiceChange(service);
+    });
+    this.planningService.year$.subscribe(year => {
+      this.year=year;
+      if (this.domain==="supply"){
+        this.updateTotalCapacities();
+      }
+    });
+    this.planningService.getPrognoses().subscribe(pr => this.prognoses = pr);
   }
 
   ngOnInit(): void {
@@ -68,6 +91,7 @@ export class ScenarioMenuComponent implements OnInit {
   onServiceChange(service: Service | undefined): void {
     switch (this.domain) {
       case 'supply':
+        this.updateTotalCapacities();
         break;
       case 'demand':
         if (!service) return;
@@ -84,6 +108,57 @@ export class ScenarioMenuComponent implements OnInit {
       default:
         break;
     }
+  }
+
+  updateTotalCapacities(options?:{scenario?:Scenario, reset?:boolean} ): void{
+    if (!options?.scenario)
+      this.totalCapacities = {};
+    if (!this.service || !this.year) return;
+    this.planningService.getTotalCapactities(this.year, this.service,{scenario:options?.scenario, planningProcess:this.planningService.activeProcess, reset:options?.reset}).subscribe(cap => {
+      const baseCap = cap.find(scen => scen.scenarioId===0) || this.totalCapacities[0];
+      if (!baseCap) return;
+      cap.forEach(scen => {
+        if (scen.scenarioId===0){
+          this.totalCapacities[scen.scenarioId]= {
+            labelPlaces:scen.nPlaces.toLocaleString(),
+            labelCapacity:scen.totalCapacity.toLocaleString(),
+            scenarioId: scen.scenarioId,
+            totalCapacity: scen.totalCapacity,
+            nPlaces: scen.nPlaces}
+        }
+        else {
+          const totalCapacity = scen.totalCapacity - baseCap.totalCapacity;
+          const nPlaces = scen.nPlaces - baseCap.nPlaces;
+
+          function labelTotalCapacity(value:number):string{
+            if (value > 0)
+              return scen.totalCapacity.toLocaleString() + " (+ " + value.toLocaleString()+")";
+            else if (value === 0)
+              return scen.totalCapacity.toLocaleString() + " (unverändert)";
+            else if (value < 0)
+              return scen.totalCapacity.toLocaleString() + " (" + value.toLocaleString() + ")";
+            return  value.toLocaleString();
+          }
+          function labelNPlaces(value:number):string{
+            if (value > 0)
+              return scen.nPlaces.toLocaleString() + " (+ " + value.toLocaleString()+")";
+            else if (value === 0)
+              return scen.nPlaces.toLocaleString() + " (unverändert)";
+            else if (value < 0)
+              return scen.nPlaces.toLocaleString() + " (" + value.toLocaleString() + ")";
+            return  value.toLocaleString();
+          }
+
+          this.totalCapacities[scen.scenarioId] = {
+            scenarioId: scen.scenarioId,
+            totalCapacity: totalCapacity,
+            nPlaces: nPlaces,
+            labelCapacity:labelTotalCapacity(totalCapacity),
+            labelPlaces:labelNPlaces(nPlaces)
+          }
+        }
+      });
+    });
   }
 
   getDemandRateSet(scenario: Scenario): DemandRateSet | undefined {

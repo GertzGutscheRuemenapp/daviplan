@@ -16,12 +16,18 @@ from djangorestframework_camel_case.parser import CamelCaseMultiPartParser
 from datentool_backend.utils.views import ProtectCascadeMixin, ExcelTemplateMixin
 from datentool_backend.utils.permissions import (HasAdminAccess,
                                                  HasAdminAccessOrReadOnly,
-                                                 CanEditBasedata)
+                                                 CanEditBasedata,
+                                                 )
+
 from datentool_backend.models import (
     InfrastructureAccess, Infrastructure, Place, Capacity, PlaceField,
     PlaceAttribute, Service, Scenario)
-from .permissions import (CanPatchSymbol, ScenarioCapacitiesPermission,
-                          CanEditScenarioPlacePermission)
+
+from .permissions import (CanPatchSymbol,
+                          ScenarioCapacitiesPermission,
+                          CanEditScenarioPlacePermission,
+                          HasPermissionForScenario)
+
 from datentool_backend.infrastructure.serializers import (
     PlaceSerializer,
     CapacitySerializer,
@@ -167,8 +173,16 @@ capacity_params = [
 class CapacityViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Capacity.objects.all()
     serializer_class = CapacitySerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata |
-                          ScenarioCapacitiesPermission]
+
+    def get_permissions(self):
+        if self.action in ['list']:
+            permission_classes = [HasAdminAccess | HasPermissionForScenario]
+        else:
+            permission_classes = [HasAdminAccessOrReadOnly |
+                                  CanEditBasedata |
+                                  ScenarioCapacitiesPermission]
+        return [permission() for permission in permission_classes]
+
 
     # only filtering for list view
     def list(self, request, *args, **kwargs):
@@ -277,7 +291,14 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Service.objects.all().annotate(
         max_capacity=Max('capacity__capacity'))
     serializer_class = ServiceSerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+
+    def get_permissions(self):
+        if self.action in ['compute_indicator', 'total_capacity_in_year']:
+            permission_classes = [HasAdminAccess | HasPermissionForScenario]
+        else:
+            permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata]
+        return [permission() for permission in permission_classes]
+
 
     @extend_schema(
         description='Indicators available for this service',
@@ -331,7 +352,7 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
                                          help_text='Jahr (z.B. 2010)'),
                     'planningprocess': serializers.IntegerField(
                         help_text='planning process id'),
-                    'scenaio': serializers.IntegerField(
+                    'scenario': serializers.IntegerField(
                         help_text='scenario id'),
                     }
         ),
@@ -351,7 +372,6 @@ class ServiceViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
             if planning_process_id:
                 scenarios = scenarios.filter(planning_process=planning_process_id)
             scenario_ids = [None] + list(scenarios.values_list('id', flat=True))
-
 
         for scenario_id in scenario_ids:
             capacity = Capacity.objects.all()

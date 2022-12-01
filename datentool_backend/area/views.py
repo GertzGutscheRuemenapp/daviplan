@@ -53,7 +53,6 @@ from .models import (MapSymbol,
                      AreaLevel,
                      Area,
                      FieldType,
-                     FClass,
                      AreaAttribute,
                      FieldTypes,
                      AreaField,
@@ -68,7 +67,6 @@ from .serializers import (MapSymbolSerializer,
                           AreaLevelSerializer,
                           AreaSerializer,
                           FieldTypeSerializer,
-                          FClassSerializer,
                           AreaFieldSerializer,
                           )
 from datentool_backend.site.models import ProjectSetting
@@ -484,8 +482,23 @@ class AreaLevelViewSet(AnnotatedAreasMixin,
             f.write(geo_file.file.read())
         fp.close()
         run_sync = bool(strtobool(request.data.get('sync', 'False')))
-        # ToDo: check file before calling _upload_shapefile() and return 406
-        # if broken
+
+        # validate file before uploading
+        try:
+            mapping = {'geom': 'MULTIPOLYGON',}
+            lm = CustomLayerMapping(Area,
+                                    fp.name,
+                                    mapping,
+                                    custom={'area_level': area_level, })
+
+        except GDALException as e:
+            #msg = f'Upload failed: {e}'
+            msg = 'Die Datei konnte nicht gelesen werden. Bitte überprüfen '
+            'Sie, ob es sich um eine korrektes Shapefile bzw. Geopackage '
+            'handelt.'
+            logger.error(msg)
+            return Response({'message': msg},
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
 
         with ProtectedProcessManager(user=request.user,
                                      scope=ProcessScope.AREAS) as ppm:

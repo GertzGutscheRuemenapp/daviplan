@@ -36,7 +36,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   @ViewChild('placePreviewTemplate') placePreviewTemplate!: TemplateRef<any>;
   @ViewChild('placeEditTemplate') placeEditTemplate!: TemplateRef<any>;
   @ViewChild('placeCapacitiesEditTemplate') placeCapacitiesEditTemplate!: TemplateRef<any>;
-  addPlaceMode: boolean;
+  addPlaceMode: boolean = false;
   year?: number;
   realYears: number[] = [0];
   prognosisYears?: number[];
@@ -61,9 +61,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
 
   constructor(private dialog: MatDialog, private cookies: CookieService, private mapService: MapService,
               public planningService: PlanningService, private formBuilder: FormBuilder,
-              private http: HttpClient, private rest: RestAPI) {
-    this.addPlaceMode = false;
-  }
+              private http: HttpClient, private rest: RestAPI) {}
 
   ngAfterViewInit(): void {
     this.mapControl = this.mapService.get('planning-map');
@@ -102,6 +100,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
   onFilter(): void {
     this.updatePlaces();
   }
+
 
   updatePlaces(options?: { resetScenario?: boolean, selectPlaceId?: number }): void {
     this.layerGroup?.clear();
@@ -406,7 +405,8 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         this.togglePlaceMode();
         // this.precalcTraveltime(place);
         // clear scenario cache (to force update on rating page)
-        this.planningService.clearCache(this.activeScenario!.id.toString())
+        this.planningService.clearCache(this.activeScenario!.id.toString());
+        this.planningService.scenarioChanged.emit(true);
         this.updatePlaces({ resetScenario: true, selectPlaceId: place.id });
       }, error => {
         this.placeForm?.setErrors(error.error);
@@ -475,6 +475,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           this.placePreviewDialogRef?.close();
           this.selectedPlaces = [];
           this.updatePlaces({ resetScenario: true });
+          this.planningService.scenarioChanged.emit(true);
         }, error => {
           // ToDo: show error
           console.log(error)
@@ -521,6 +522,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         this.planningService.clearCache(this.activeScenario!.id.toString());
         this.planningService.resetCapacities(this.activeScenario!.id, this.activeService!.id);
         this.updatePlaces({ resetScenario: true });
+        this.planningService.scenarioChanged.emit(true);
         dialogRef.componentInstance.setLoading(false);
         dialogRef.close();
       }, error => {

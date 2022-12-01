@@ -11,11 +11,21 @@ RUN apt-get -y update \
     && apt-get -y install libsqlite3-mod-spatialite \
     && apt-get -y install osmium-tool
 
+RUN git clone https://github.com/GertzGutscheRuemenapp/bule_datentool.git /datentool
+
 RUN npm i npm@latest -g
 RUN npm i -g @angular/cli@13
 
-RUN git clone https://github.com/GertzGutscheRuemenapp/bule_datentool.git $HOME/datentool
-RUN python -m pip install --upgrade pip \
-    && pip install -r $HOME/datentool/requirements.txt
-WORKDIR root/datentool/angular-frontend
+# bundle the frontend scripts
+WORKDIR /datentool/angular-frontend
 RUN npm install --force
+RUN ng build --stats_json --build-optimizer
+
+WORKDIR /datentool
+RUN python -m pip install --upgrade pip && pip install -r requirements.txt
+RUN mkdir -p /datentool/public/media
+# django demands a secret key (not set in settings due to security reasons)
+ENV SECRET_KEY=1234
+RUN python manage.py collectstatic
+# unset the key
+ENV SECRET_KEY=

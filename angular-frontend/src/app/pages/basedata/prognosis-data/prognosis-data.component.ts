@@ -398,7 +398,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       disableClose: false,
       autoFocus: false,
       data: {
-        title: `Datentabelle Realdaten`,
+        title: 'Datentabelle mit Prognosedaten der ausgewählten Variante: '+this.activePrognosis?.name,
         template: this.dataTemplate,
         hideConfirmButton: true,
         cancelButtonText: 'OK'
@@ -440,7 +440,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
     const dialogRef = SimpleDialogComponent.show('Bereite Template vor. Bitte warten', this.dialog, { showAnimatedDots: true });
     this.http.post(url, { area_level: this.popLevel.id, years: this.prognosisYears, prognosis: this.activePrognosis.id }, { responseType: 'blob' }).subscribe((res:any) => {
       const blob: any = new Blob([res],{ type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      fileSaver.saveAs(blob, 'prognosedaten-template.xlsx');
+      fileSaver.saveAs(blob, 'prognosedaten-'+ this.activePrognosis?.name+'.xlsx');
       dialogRef.close();
     },(error) => {
       showAPIError(error, this.dialog);
@@ -454,7 +454,7 @@ export class PrognosisDataComponent implements AfterViewInit, OnDestroy {
       width: '450px',
       panelClass: 'absolute',
       data: {
-        title: `Template hochladen`,
+        title: `Befüllte Vorlage hochladen`,
         confirmButtonText: 'Datei hochladen',
         template: this.fileUploadTemplate,
         closeOnConfirm: false,

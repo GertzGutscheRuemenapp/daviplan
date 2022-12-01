@@ -100,6 +100,18 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
         except AreaField.DoesNotExist:
             return
 
+    @label_field.setter
+    def label_field(self, field_name: str):
+        areafields = self.areafield_set.all()
+        areafields.update(is_label=None)
+        AreaField.objects.bulk_update(areafields, ['is_label'])
+        try:
+            label_field = self.areafield_set.get(name=field_name)
+        except AreaField.DoesNotExist:
+            raise ValueError(f'field {field_name} not found for {self}')
+        label_field.is_label = True
+        label_field.save()
+
     @property
     def key_field(self) -> str:
         """the label field derived from the Fields"""
@@ -107,6 +119,18 @@ class AreaLevel(DatentoolModelMixin, NamedModel, models.Model):
             return self.areafield_set.get(is_key=True).name
         except AreaField.DoesNotExist:
             return
+
+    @key_field.setter
+    def key_field(self, field_name: str):
+        areafields = self.areafield_set.all()
+        areafields.update(is_key=None)
+        AreaField.objects.bulk_update(areafields, ['is_key'])
+        try:
+            label_field = self.areafield_set.get(name=field_name)
+        except AreaField.DoesNotExist:
+            raise ValueError(f'field {field_name} not found for {self}')
+        label_field.is_key = True
+        label_field.save()
 
     def save(self, *args, **kwargs):
         # only one statistic / pop level at a time

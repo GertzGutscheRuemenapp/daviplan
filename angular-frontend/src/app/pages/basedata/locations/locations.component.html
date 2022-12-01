@@ -15,6 +15,7 @@
 </app-status-card>
 <div fxLayout="row wrap">
   <app-input-card [title]="'Infrastrukturbereiche'"
+                  [disabled]="isProcessing"
                   width="300px"
                   subtitle="Infrastrukturbereich auswählen, um Standorte anzuzeigen bzw. einzutragen"
                   infoText="<p>Wählen Sie in der Liste den Infrastrukturbereich aus, dessen Standort sie anzeigen, hochladen oder verändern möchten.</p>
@@ -31,6 +32,7 @@
   <div fxLayout="column">
     <app-input-card #editAttributesCard
                     [title]="'Schritt 1: Weitere Standorteigenschaften (optional)'"
+                    [disabled]="isProcessing"
                     [editTemplate]="editAttributesTemplate"
                     [class.hidden]="!selectedInfrastructure"
                     [disabled]="isProcessing"
@@ -251,7 +253,7 @@
 
 <ng-template #fileUploadTemplate>
   <p>
-    Befülltes Excel-Template mit Standortdaten für den Infrastrukturbereich <b>"{{selectedInfrastructure?.name}}"</b> hochladen
+    Befüllte Excel-Vorlage mit Standortdaten für den Infrastrukturbereich <b>"{{selectedInfrastructure?.name}}"</b> hochladen
   </p>
   <input #fileInput type="file" accept=".xlsx,.xls" (change)="setFiles($event)">
 </ng-template>
