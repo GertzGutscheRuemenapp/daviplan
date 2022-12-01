@@ -173,8 +173,16 @@ capacity_params = [
 class CapacityViewSet(ProtectCascadeMixin, viewsets.ModelViewSet):
     queryset = Capacity.objects.all()
     serializer_class = CapacitySerializer
-    permission_classes = [HasAdminAccessOrReadOnly | CanEditBasedata |
-                          ScenarioCapacitiesPermission]
+
+    def get_permissions(self):
+        if self.action in ['list']:
+            permission_classes = [HasAdminAccess | HasPermissionForScenario]
+        else:
+            permission_classes = [HasAdminAccessOrReadOnly |
+                                  CanEditBasedata |
+                                  ScenarioCapacitiesPermission]
+        return [permission() for permission in permission_classes]
+
 
     # only filtering for list view
     def list(self, request, *args, **kwargs):

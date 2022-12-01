@@ -171,6 +171,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
 
       const url = `${environment.backend}/tiles/raster/{z}/{x}/{y}/`;
       this.indicatorLayer = new VectorTileLayer( this.selectedIndicator!.title, url,{
+        description: this.selectedIndicator!.title,
         order: 0,
         opacity: 1,
         style: {
@@ -253,7 +254,7 @@ export class RatingComponent implements AfterViewInit, OnDestroy {
 
         this.indicatorLayer = new VectorLayer(this.selectedIndicator!.title, {
           order: 0,
-          // description: desc,
+          description: this.selectedIndicator!.title,
           opacity: 1,
           style: {
             fillColor: '#2171b5',

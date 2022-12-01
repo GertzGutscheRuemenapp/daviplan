@@ -55,7 +55,7 @@ ADDRESS_FIELDS = {
 class PlacesTemplateSerializer(serializers.Serializer):
     """Serializer for uploading Places for an Infrastructure"""
     excel_file = serializers.FileField()
-    drop_constraints = serializers.BooleanField(default=True)
+    drop_constraints = serializers.BooleanField(default=False)
     logger = logging.getLogger('infrastructure')
     scope = ProcessScope.INFRASTRUCTURE
 

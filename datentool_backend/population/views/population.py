@@ -262,7 +262,7 @@ class PopulationViewSet(viewsets.ModelViewSet):
             return Response({'message': msg},
                             status=status.HTTP_406_NOT_ACCEPTABLE)
 
-        drop_constraints = request.data.get('drop_constraints', True)
+        drop_constraints = request.data.get('drop_constraints', False)
         run_sync = request.data.get('sync', False)
 
         with ProtectedProcessManager(user=request.user,
