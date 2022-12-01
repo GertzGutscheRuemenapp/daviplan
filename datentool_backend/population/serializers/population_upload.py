@@ -40,7 +40,7 @@ prognosis_id_serializer = serializers.PrimaryKeyRelatedField(
 class PopulationTemplateSerializer(serializers.Serializer):
     """Serializer for uploading Population and Prognosis"""
     excel_file = serializers.FileField()
-    drop_constraints = serializers.BooleanField(default=True)
+    drop_constraints = serializers.BooleanField(default=False)
     logger = logging.getLogger('population')
     scope = ProcessScope.POPULATION
 

@@ -28,7 +28,7 @@ class MatrixStopStopTemplateSerializer(serializers.Serializer):
     """Serializer for uploading MatrixStopStopTemplate"""
     excel_or_visum_file = FileField()
     variant = IntegerField()
-    drop_constraints = BooleanField(default=True)
+    drop_constraints = BooleanField(default=False)
     scope = ProcessScope.ROUTING
     logger = logging.getLogger('routing')
 
