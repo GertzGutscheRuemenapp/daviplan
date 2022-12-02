@@ -222,7 +222,7 @@ export class ServicesComponent implements AfterViewInit {
     });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        this.http.delete(`${this.rest.URLS.services}${this.activeService!.id}/`
+        this.http.delete(`${this.rest.URLS.services}${this.activeService!.id}/?force=true`
         ).subscribe(res => {
           const infrastructure = this.infrastructures!.find(i => i.id === this.activeService!.infrastructure);
           if (!infrastructure) return;
