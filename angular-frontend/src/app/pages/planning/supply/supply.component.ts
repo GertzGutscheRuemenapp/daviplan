@@ -425,7 +425,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         // this.precalcTraveltime(place);
         // clear scenario cache (to force update on rating page)
         this.planningService.clearCache(this.activeScenario!.id.toString());
-        this.planningService.scenarioChanged.emit(true);
+        this.planningService.scenarioChanged.emit(this.activeScenario);
         this.updatePlaces({ resetScenario: true, selectPlaceId: place.id });
       }, error => {
         this.placeForm?.setErrors(error.error);
@@ -494,7 +494,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
           this.placePreviewDialogRef?.close();
           this.selectedPlaces = [];
           this.updatePlaces({ resetScenario: true });
-          this.planningService.scenarioChanged.emit(true);
+          this.planningService.scenarioChanged.emit(this.activeScenario);
         }, error => {
           // ToDo: show error
           console.log(error)
@@ -541,7 +541,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
         this.planningService.clearCache(this.activeScenario!.id.toString());
         this.planningService.resetCapacities(this.activeScenario!.id, this.activeService!.id);
         this.updatePlaces({ resetScenario: true });
-        this.planningService.scenarioChanged.emit(true);
+        this.planningService.scenarioChanged.emit(this.activeScenario);
         dialogRef.componentInstance.setLoading(false);
         dialogRef.close();
       }, error => {
