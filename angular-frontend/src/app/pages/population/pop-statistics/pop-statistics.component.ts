@@ -121,20 +121,20 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
     }
     this.updateMapDescription();
     this.populationService.getStatisticsData({ year: this.year! }).subscribe(statistics => {
-      let descr = '';
-      let max: number;
+      let title = '';
+      let globalMax: number;
       let color: string;
       const diffDisplay = ((this.theme ==='nature' && this.showBirths && this.showDeaths) || (this.theme ==='migration' && this.showEmigration && this.showImmigration));
       const mvs = this.areaLevel?.maxValues!;
       if (this.theme === 'nature') {
-        descr = diffDisplay? 'Natürlicher Saldo' : (this.showBirths) ? 'Geburten' : 'Sterbefälle';
+        title = diffDisplay? 'Natürlicher Saldo' : (this.showBirths) ? 'Geburten' : 'Sterbefälle';
         color = this.showBirths? '#1a9850': '#d73027';
-        max = (diffDisplay)? Math.max(mvs.natureDiff!): this.showBirths? mvs.births!: mvs.deaths!;
+        globalMax = (diffDisplay)? Math.max(mvs.natureDiff!): this.showBirths? mvs.births!: mvs.deaths!;
       }
       else {
-        descr = diffDisplay? 'Wanderungssaldo' : (this.showImmigration) ? 'Zuzüge' : 'Fortzüge';
+        title = diffDisplay? 'Wanderungssaldo' : (this.showImmigration) ? 'Zuzüge' : 'Fortzüge';
         color = this.showImmigration? '#1a9850': '#d73027';
-        max = (diffDisplay)? Math.max(mvs.migrationDiff!): this.showImmigration? mvs.immigration!: mvs.emigration!;
+        globalMax = (diffDisplay)? Math.max(mvs.migrationDiff!): this.showImmigration? mvs.immigration!: mvs.emigration!;
       }
       const colorFunc = function(value: number) {
         return (value > 0)? '#1a9850': (value < 0)? '#d73027': 'grey';
@@ -143,11 +143,42 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
         (this.theme === 'nature' && this.showDeaths && !this.showBirths)? 'Sterbefälle':
           (this.theme === 'migration' && this.showImmigration && !this.showEmigration)? 'Zuzüge':
             (this.theme === 'migration' && this.showEmigration && !this.showImmigration)? 'Fortzüge':
-              'Ew.'
+              'Ew.';
 
-      this.statisticsLayer = new VectorLayer(descr, {
+      const displayedAreas: Area[] = this.areas.map(area => {
+        const data = statistics.find(d => d.area == area.id);
+        let value = 0;
+        if (data) {
+          if (this.theme === 'nature') {
+            value = (this.showBirths && this.showDeaths) ? data.births - data.deaths : (this.showBirths) ? data.births : data.deaths;
+          } else {
+            value = (this.showImmigration && this.showEmigration) ? data.immigration - data.emigration : (this.showImmigration) ? data.immigration : data.emigration;
+          }
+        }
+        let description = `<b>${area.properties.label}</b><br>`;
+        description += (diffDisplay && !value)? 'keine Änderung ': `${diffDisplay && value > 0? '+': ''}${value.toLocaleString()} ${unit} im Jahr ${this.year}`;
+        return {
+          id: area.id,
+          geometry: area.centroid!,
+          properties: {
+            value: value,
+            areaLevel: area.properties.areaLevel,
+            description: description,
+            label: area.properties.label,
+            attributes: area.properties.attributes,
+          }
+        }
+      })
+
+      const values = displayedAreas.map(a => a.properties.value || 0);
+      const max = Math.max(...values);
+      const min = Math.min(...values);
+      const description = `<b>${this.getLayerDescription()}</b>
+                           <br>Minimum: ${diffDisplay && min > 0 ? '+' : ''}${min.toLocaleString()} ${unit}
+                           <br>Maximum: ${diffDisplay && max > 0 ? '+' : ''}${max.toLocaleString()} ${unit}`
+      this.statisticsLayer = new VectorLayer(title, {
         order: 0,
-        description: 'ToDo',
+        description: description,
         opacity: 1,
         style: {
           strokeColor: 'white',
@@ -179,31 +210,15 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
             scale: 'sqrt'
           },
           min: 0,
-          max: max || 1000
+          max: globalMax || 1000
         },
         unit: unit,
         forceSign: diffDisplay,
         labelOffset: { y: 15 }
       });
       this.layerGroup?.addLayer(this.statisticsLayer);
-      this.areas.forEach(area => {
-        const data = statistics.find(d => d.area == area.id);
-        let value = 0;
-        if (data) {
-          if (this.theme === 'nature') {
-            value = (this.showBirths && this.showDeaths) ? data.births - data.deaths : (this.showBirths) ? data.births : data.deaths;
-          } else {
-            value = (this.showImmigration && this.showEmigration) ? data.immigration - data.emigration : (this.showImmigration) ? data.immigration : data.emigration;
-          }
-        }
-        area.properties.value = value;
-        let description = `<b>${area.properties.label}</b><br>`;
-        description += (diffDisplay && !value)? 'keine Änderung ': `${diffDisplay && value > 0? '+': ''}${area.properties.value.toLocaleString()} ${unit} im Jahr ${this.year}`;
-        area.properties.description = description;
-      })
-      this.statisticsLayer.addFeatures(this.areas,{
+      this.statisticsLayer.addFeatures(displayedAreas,{
         properties: 'properties',
-        geometry: 'centroid',
         zIndex: 'value'
       });
       if (this.activeArea)
@@ -300,13 +315,17 @@ export class PopStatisticsComponent implements AfterViewInit, OnDestroy {
 
   updateMapDescription(): void {
     if (!this.areaLevel) return;
+    this.mapControl?.setDescription(this.getLayerDescription());
+  }
+
+  private getLayerDescription(): string {
     let theme = '';
     if (this.theme === 'nature')
-        theme = (this.showBirths && this.showDeaths)? 'Natürliches Saldo (Geburten minus Sterbefälle)': (this.showBirths)? 'Geburten': (this.showDeaths)? 'Sterbefälle': 'keine Auswahl';
+      theme = (this.showBirths && this.showDeaths)? 'Natürliches Saldo (Geburten minus Sterbefälle)': (this.showBirths)? 'Geburten': (this.showDeaths)? 'Sterbefälle': 'keine Auswahl';
     else
       theme = (this.showImmigration && this.showEmigration)? 'Wanderungssaldo (Zuzüge minus Fortzüge)': (this.showImmigration)? 'Zuzüge': (this.showEmigration)? 'Fortzüge': 'keine Auswahl';
-    let description = `${theme} nach ${this.areaLevel.name} ${this.year || '-'}`;
-    this.mapControl?.setDescription(description);
+    let description = `${theme} nach ${this.areaLevel?.name} ${this.year || '-'}`;
+    return description;
   }
 
   ngOnDestroy(): void {

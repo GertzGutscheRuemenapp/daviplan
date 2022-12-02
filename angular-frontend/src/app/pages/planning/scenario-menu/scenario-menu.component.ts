@@ -18,7 +18,6 @@ import { HttpClient } from "@angular/common/http";
 import { RestAPI } from "../../../rest-api";
 import { CookieService } from "../../../helpers/cookies.service";
 import { showAPIError } from "../../../helpers/utils";
-import { TRUE } from "ol/functions";
 
 interface LabelledTotalCapacity extends TotalCapacityInScenario{
   labelPlaces: string;
