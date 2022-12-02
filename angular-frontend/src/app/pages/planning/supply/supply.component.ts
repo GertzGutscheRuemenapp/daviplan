@@ -270,7 +270,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
               scale: 'linear'
             },
             strokeColor: {
-              colorFunc: (feat => feat.get('scenarioPlace')? '#FFC000': feat.get('capDecreased')? '#fc450c' : feat.get('capIncreased')? '#00ff28': '')
+              colorFunc: (feat => feat.get('scenarioPlace')? '#00c4ff': feat.get('capDecreased')? '#fc450c' : feat.get('capIncreased')? '#00ff28': '')
             },
             field: 'capacity',
             // min: this.activeService?.minCapacity || 0,
@@ -281,7 +281,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
             entries: [
               { label: 'Kapazität verringert', color: 'rgba(0,0,0,0)', strokeColor: '#fc450c' },
               { label: 'Kapazität erhöht', color: 'rgba(0,0,0,0)', strokeColor: '#00ff28' },
-              { label: 'Zusätzlicher Standort', color: 'rgba(0,0,0,0)', strokeColor: '#FFC000' },
+              { label: 'Zusätzlicher Standort', color: 'rgba(0,0,0,0)', strokeColor: '#00c4ff' },
             ],
             elapsed: legendElapsed
           }
@@ -332,7 +332,7 @@ export class SupplyComponent implements AfterViewInit, OnDestroy {
       hasBackdrop: false,
       autoFocus: false,
       data: {
-        title: 'Ausgewählte Einrichtungen',
+        title: 'Ausgewählte Einrichtung(en)',
         template: template,
         context: { edit: true },
         resizable: true,
